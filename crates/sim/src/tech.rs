@@ -649,6 +649,10 @@ pub enum Gained {
     UnitUpgrade { to: TypeId },
     /// Under the Tech Race victory, the age just gained is the ending age.
     TechRaceWon,
+    /// A building type of the city line (`is(TOWN, 0)`) had the gained type
+    /// among its prerequisites: every one of the leader's cities runs
+    /// `City::check_upgrade` (`docs/TECH.md` step 11, `docs/AI.md` §98).
+    CityCheck,
 }
 
 /// The tree itself: the table of types and the facts the rules hang on it.
@@ -1695,6 +1699,11 @@ impl TechTree {
             }
             let hit =
                 (0..self.num_preq(b)).any(|i| self.get_preq(setup, Some(p), b, i) == Preq::Of(t));
+            // `0x6dec2f`: `is(0x19f, 0)` on the matched type, then every
+            // city of this leader, before the automatic gain below.
+            if hit && self.roles.town.is_some_and(|town| self.is(b, town, false)) {
+                out.push(Gained::CityCheck);
+            }
             if hit && auto && self.type_eligible(setup, p, b, true) != 0 {
                 self.gain(setup, p, b, frame, out, depth + 1);
             }
@@ -2241,6 +2250,41 @@ mod tests {
             assert!(f.tree.has_preq(&s, p, f.ages[a]), "age {a} preqs");
             f.tree.gain_tech(&s, p, f.ages[a], 1);
         }
+    }
+
+    /// Step 11's city arm (`0x6dec2f`, `docs/AI.md` §98): the age that is a
+    /// prerequisite of the city line reports [`Gained::CityCheck`], so every
+    /// city of the leader runs `check_upgrade` on the frame it lands, and
+    /// an age that is not reports nothing.
+    #[test]
+    fn the_age_the_large_city_needs_asks_every_city_to_level_up() {
+        let mut f = fixture();
+        f.tree.types[f.town] = TypeDef::building("Town").needs(0, f.ages[1]);
+        let s = Setup::STANDARD;
+        let mut p = fresh(&f);
+        age_up(&f, &mut p, 0);
+        let need = f.tree.techs_per_age(&s, &p, f.ages[1]);
+        let mut level = 0;
+        while p.epochs < need {
+            for line in Line::ALL {
+                if p.epochs < need {
+                    let e = f
+                        .tree
+                        .gain_tech(&s, &mut p, f.epochs[line.index()][level], 1);
+                    assert!(!e.contains(&Gained::CityCheck), "an epoch is no city's");
+                }
+            }
+            level += 1;
+        }
+        let events = f.tree.gain_tech(&s, &mut p, f.ages[1], 1);
+        assert_eq!(
+            events.iter().filter(|e| **e == Gained::CityCheck).count(),
+            1,
+            "the Town's prerequisite arrived: {events:?}"
+        );
+        let mut q = fresh(&f);
+        let first = f.tree.gain_tech(&s, &mut q, f.ages[0], 1);
+        assert!(!first.contains(&Gained::CityCheck), "Classical is not it");
     }
 
     #[test]

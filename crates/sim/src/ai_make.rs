@@ -440,7 +440,7 @@ impl Sim {
                 }
             }
         }
-        self.produce_building(who, rec, centre, Some(c))
+        self.produce_building(who, rec, centre, Some(c), m.escrow != 0)
     }
 
     /// `reg_free_peasants[r] != 0 || reg_gatherers[r] != 0` — the region test

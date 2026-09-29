@@ -2306,8 +2306,11 @@ impl Sim {
             self.kill_current_order(i);
             return;
         }
+        // `Unit::do_repair@005ee420`'s charge draws the escrow down by the
+        // same amount, floored at zero (`docs/AI.md` §98).
         for (g, d) in due.iter().enumerate() {
             ledger.bucket[g] -= d;
+            ledger.escrow[g] = (ledger.escrow[g] - d).max(0);
         }
         self.repair_building(at, amount);
     }

@@ -12003,3 +12003,184 @@ M, as does the long trace's floor. §97.5 is `run426_s_…`. **Read only**:
 §97.2's array layout, read off `Group::kill@00714110`'s decompile and the
 type record's `GroupData` (`off_x +0x4c` … `list +0x8cc`). **Pinned
 capture-free**: `a_member_leaving_an_army_group_takes_its_slot_with_it`.
+
+## 98. The Large City arrives with its age, the escrow is fed, and the second pair's East Indies word moves to 7512 (2026-09-29, item 1174)
+
+§95's word was frame 7382, ours 15 draws against 9, at index 0. Ours
+spent two `Leader::use_market+0x1ed` and three
+`Leader::produce_building+0x1805` that the original did not, then one
+`Leader::make_stuff+0x221` more, and it was missing the original's
+`make_stuff+0x63d` (`report.py rontrace-run425.log draws 7382`; ours from
+`run346_is_east_indies_at_toughest_and_its_word_holds` with
+`RON_DEBUG_SITES=1`). §95 named no mechanism. There were two: one under
+the make list's value and one under the buckets.
+
+### 98.1 Three sevenths is `pop`
+
+run425's widening first parts on player 1's `MAKE[].val` on 7379, the
+research step. Every slot is ours × 233/100: 1800000 against 4194000,
+12000 against 27960. `tech_value`'s base is `pop × 200 / cities`
+(§2.14), and on the first block, 7377, who=1's `pop` stood **3 here
+against 7**, with `reg_pop[11]` at 2 against 6. `pop` is the sum of 1/3/5
+per Small/Large/Major city (§27), so the original's London and Norwich
+(`1/2000`, `1/2007`) were Large Cities and ours were not. The dump agrees:
+their `myhits` go from 1200 on run420's last block (6860) to 2500 on
+7377, and `mylos` from 17 to 19. `1/2017` stays at 1200.
+Building `myhits`/`mylos` are on the coverage pin as uncompared
+(`coverage.rs`), so the level-up itself was never a row.
+
+Between the two blocks, who=1's `ages_get()` goes from 1 to 2: it
+gained the Medieval Age. `buildingrules.xml` gives the Large City
+`PREQ0 Medieval Age`. `Leader::gain_tech`'s buildings cascade (`docs/TECH.md`
+step 11) reads off the listing at `0x6dec2f`:
+
+```
+6dec2f  push 0 ; push 0x19f ; call *0x60(%eax)   ; B.is(TOWN, 0), on a B whose preq is t
+6dec50  … Cities[who][i], alive (+4 & 1) → call 0x738b20   ; City::check_upgrade, every city of this leader
+6dec8f  testb $0x4, 0x2c0(%eax)                    ; then the build_flags & 4 automatic gain
+```
+
+`docs/CITIES.md` §12.1 recorded that this crate's `check_upgrade` had no
+`gain_tech` trigger. Here, two cities that already held their six kinds
+waited for their next building's completion instead.
+
+### 98.2 The buckets are the escrow
+
+With the Large City built, the make list agreed through 7381. Then on
+7382, ours paid the Cataphract's metal and kept 37 in escrow, while the
+original's metal escrow was 0. Before that, `leader:escrow` had stood 0
+here against 39/44/15/47/36 on every window since the third city.
+`economy::pay` had never fed it. `docs/ECONOMY.md`, "Escrow" had read
+the accrual and said so.
+
+`Leader::do_gather@006ce450`'s tail, for a leader whose flags are not
+`& 0xc == 4` (a human):
+
+```
+v = escrow_rate[g] × rate           ; the paid rate, after the handicap
+q, r = v / (GATHER_RATE × 1600), v % …
+r ≠ 0: n = max(2, (d + r/2) / r); frame % n == 0 → q += 1
+escrow[g] += q
+```
+
+On run357, food at 2240 pays 3360 a frame at Toughest, so `n` is 5. The
+dump's food escrow climbs on blocks 5606, 5611, 5616 and so on, which is
+frames ≡ 0 mod 5. Timber's `n` is 9, on blocks 5608, 5617, 5626.
+
+The accrual alone moved the word earlier, to 5782, because nothing in this
+crate spent escrow the original's way. `Type::pay_cost@006681f0` takes
+the flag as `param_4`:
+
+- set, it draws `escrow[g] −= cost` floored at 0;
+- clear, it zeroes `escrow[g]` where `bucket − escrow < cost`.
+
+Each producer passes its make-list slot's `escrow` through:
+
+- `produce_city` and `produce_building` (`:1024`) pass it to `pay_cost`
+  directly;
+- techs, units, upgrades and spells go through `Build::queue_up(t, escrow)`.
+  Its affordability test is `can_pay_cost(who, −1, o, 1)` (`0x6214b2`):
+  the **whole** bucket, whatever the flag. The flag reaches
+  `pay_cost(who, o, −1, escrow, …)` at `0x621949`.
+
+Every caller here passed `false`. Run357 shows the difference:
+
+- ours escrowed 5/3/2/1/1 on 5601 against the original's 4/2/1/1/1;
+- a purchase of 134/100/36 on 5584 is what zeroed the original's three
+  and not ours.
+
+`Unit::do_repair@005ee420` also draws the escrow down by its per-good
+charge.
+
+### 98.3 The build
+
+- **The city arm.** `tech::Gained::CityCheck`, pushed at step 11 when the
+  matched building `is(roles.town, 0)`. `Sim::gain_tech` runs
+  `check_upgrade` on every live city of the leader for each one. That
+  is after the Civic sweep and before the age snap.
+- **The accrual.** `Holdings::escrow_rate` is written every frame from the
+  census, and is zero for a human. `economy::pay` takes the frame and adds
+  the escrow after the bucket.
+- **The flag.** `Sim::queue_up_with` and `queue_tech_with`:
+  - the affordability test counts the whole bucket;
+  - the payment takes the flag.
+
+  `queue_up`/`queue_tech` are these with `false`. `queue_batch`,
+  `produce_unit`'s trainer walk, `produce_tech`, `produce_upgrade`,
+  `produce_city` and `produce_building` pass their slot's flag.
+- **The repair.** `repair_step` draws the escrow with the bucket.
+
+Pinned capture-free:
+
+- `the_age_the_large_city_needs_asks_every_city_to_level_up` (the tree);
+- `the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain` (the
+  Sim);
+- `escrow_takes_its_rate_of_the_paid_income_one_frame_in_n`;
+- `an_escrowed_order_draws_the_reservation_down_and_an_ordinary_one_abandons_it`.
+
+### 98.4 What moved
+
+- **run346's word: 7382 → 7512.** On frame 7382, 15 against 9 → 9
+  against 9.
+- **The value diff** (`run425_s_word_frame_is_widened_whole`), who=1:
+
+| block | field | before | now |
+|---|---|---|---|
+| 7377 | `pop` | 3 against 7 | agreeing |
+| 7377 | `escrow` | 0 ×5 against 39/44/15/47/36 | agreeing |
+| 7379 | `MAKE[0].val` | 1800000 against 4194000 | agreeing (every slot) |
+| 7379 | `bucket` | 93/183/58/306/208 on both sides | agreeing |
+| 7383 | `bucket` food/timber/wealth/metal | 43/39/118/109 against 34/124/8/149 | agreeing |
+
+- run425's keys fall 1182 → 614.
+- run357, run414, run419, run420 and run421 each lose the five `escrow`
+  rows from their first block and nothing else.
+- Every other walk the suite holds is unchanged: the first pair's long
+  captures, Great Lakes' 5930, Great Sahara and every golden chapter.
+
+### 98.5 The new word, 7512
+
+**Frame 7512: ours 39 draws against 3243, at index 30.** Ours spends
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. The original spends
+`PathFinder::calc_road_cost+0x46`, 3206 times under
+`PathFinder::astar_caravan_road`. The word is inside run425's window,
+block 7513.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 7377 | both | 217 standing keys | | |
+| 7381..7384 | `1/-1` | `MAKE[].city` | the city shift (§52.2) | |
+| 7384 | `1/-1` | `MAKE[4].t` / `known_rares` | 61 / 2 | 417 / 0 |
+| 7419 | `1/36`, `1/38` | the barges' swap (parked 1157) | | |
+| 7478 | `1/-1` | `caras` | 3 | 2 |
+| 7485 | `1/47` / `1/51` | held alone | ours | theirs |
+| **7513** | `1/15` | `path[0..22].flags` | 33, 32… | 1, 0… |
+
+**No mechanism is named.** The original plans a caravan road on the
+word's frame. By then this crate holds a caravan more (7478) and each side
+holds a unit the other does not (7485).
+
+### 98.6 What this has *not* established
+
+- `Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
+  escrow too, and neither is modelled. No capture on disk is known to
+  reach either.
+- The script host's `queue_up`/`produce_building` (`ai_host.rs`) pass
+  `false`. What the script actions pass is not read.
+- `do_gather`'s knowledge `tech_cost` arm and `ai_speed` scale both the
+  bucket and the escrow, and this crate models neither. Neither is in the
+  lobby of any capture.
+- The Industrial Age's Major City arm runs through the same code and no
+  capture holds it.
+
+### 98.7 Coverage
+
+- **Diff-backed**: §98.1's `pop` and make list, and §98.2's escrow on
+  every East Indies window from run357 to run425. Each one's first block
+  lost the five rows.
+- **Listing-backed**:
+  - `0x6dec2f`'s `is(0x19f, 0)` and the city loop;
+  - `queue_up`'s `can_pay_cost(…, 1)` and `pay_cost(…, escrow, …)`
+    arguments.
+- **Read only**: `do_repair`'s escrow draw. No walk reaches a repair
+  under escrow.

@@ -1131,10 +1131,9 @@ impl Sim {
 
         // The charge lands before the site is checked — the original's
         // order, and reachable through `place_city_with_cost`.
-        let _ = escrow;
         let charges = self.building_price(who, rec);
         let available = self.holdings[w].available;
-        cost::pay(&charges, &mut self.ledgers[w], &available, false);
+        cost::pay(&charges, &mut self.ledgers[w], &available, escrow != 0);
         self.economy_changed(who);
 
         if !self.site_clear(who, rec, wx, wy) {
