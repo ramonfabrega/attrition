@@ -2967,15 +2967,15 @@ mod tests {
             .expect("the unit costs something");
         let price = charges[g];
         sim.ledgers[0].bucket = [0; crate::economy::RESOURCES];
-        sim.ledgers[0].bucket[g] = price + 5;
-        sim.ledgers[0].escrow[g] = 10;
+        sim.ledgers[0].bucket[g] = price + 50;
+        sim.ledgers[0].escrow[g] = price + 20;
         // Only the whole bucket covers it, and the order goes through.
         sim.queue_up_with(ids.b, ids.rec, true)
             .expect("the whole bucket pays");
-        assert_eq!(sim.ledgers[0].bucket[g], 5);
-        assert_eq!(sim.ledgers[0].escrow[g], 0, "10 − price, floored");
-        sim.ledgers[0].bucket[g] = price + 5;
-        sim.ledgers[0].escrow[g] = 10;
+        assert_eq!(sim.ledgers[0].bucket[g], 50);
+        assert_eq!(sim.ledgers[0].escrow[g], 20, "drawn down by the price");
+        sim.ledgers[0].bucket[g] = price + 50;
+        sim.ledgers[0].escrow[g] = price + 20;
         sim.queue_up_with(ids.b, ids.rec, false)
             .expect("the same test");
         assert_eq!(sim.ledgers[0].escrow[g], 0, "reached into: abandoned");
