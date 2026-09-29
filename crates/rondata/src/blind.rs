@@ -225,7 +225,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// [`RESIDUE`] too. **139** with run423 (item 1111: chapter thirty-nine at
 /// `cover=1`, `docs/GOLDEN.md` §48; `SpellType::cast_to_arms@00670880` on
 /// 625, `cast_civilian@006704a0` on 665 and `cast_create_decoy@00674370`
-/// on 820, the three rows its staging named).
+/// on 820, the three rows its staging named); **141** with the two §48
+/// cites that no trace enters: `Group::action_alarm@0070ec30`, the City's
+/// alarm, an issuer no chapter stages, and `Options::do_spell@0071d7a0`,
+/// the button the DLL's `@spell` stands in for.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -249,9 +252,9 @@ pub const NEVER: &[u32] = &[
     0x0070_0010, 0x0070_0b90, 0x0070_20c0,
     0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
-    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
+    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_ec30, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
-    0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
+    0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
     0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
     0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,

@@ -1503,25 +1503,29 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// are `LeaderData` field offsets, quoted as the listing prints them, and
 /// this crate keeps the masks as `Ledger::rare`, not at an offset;
 /// `economy::PEACOCKS` is the bit they carry.
+///
+/// **Item 1111 banked six, one each**: AI 37 → 36, COSTS, GOLDEN and
+/// GROUPS 5 → 4, PRODUCTION 10 → 9, TECH 16 → 15 — the Militia line's and
+/// the Citizen's `TypeIndex`es `crate::cast` names (`docs/GOLDEN.md` §48).
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 37),
+    ("AI.md", 36),
     ("ANIM.md", 4),
     ("ARMY.md", 9),
     ("ATTRITION.md", 1),
     ("CITIES.md", 8),
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
-    ("COSTS.md", 5),
+    ("COSTS.md", 4),
     ("ECONOMY.md", 17),
-    ("GOLDEN.md", 5),
+    ("GOLDEN.md", 4),
     ("GOODY.md", 5),
-    ("GROUPS.md", 5),
+    ("GROUPS.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 12),
-    ("PRODUCTION.md", 10),
+    ("PRODUCTION.md", 9),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 16),
+    ("TECH.md", 15),
     ("TRANSPORT.md", 3),
     ("VISION.md", 2),
 ];

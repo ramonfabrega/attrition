@@ -8637,6 +8637,12 @@ rondata chapter_thirty_nine run422_s_casts`, restored from git and
 | the untargeted mana unpaid | the decoy test | the field test (1) |
 | `cavarch_who` 0 after a press | the To Arms test | the field test (4) |
 
+**Beyond the chapter.** The computer holds the Militia line in every long
+capture, so its Citizens' `myhits`/`mylos` rows (40/50, 2/4) left every
+Great Lakes, East Indies and Great Sahara widening. The floors went down
+and no word moved. run248's sixteen fog half-cells at 17146 and run240's
+priced step at 15986 agree now (`crates/rondata/src/diff/world.rs`).
+
 **What is not established.** The damage fraction and the refusal without
 the Militia rest on the listing, the emulator and the sim tests: no capture
 wounds a converting unit or presses To Arms on enemy land. The decoy's close
