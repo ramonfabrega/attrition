@@ -10102,6 +10102,34 @@ landed. It had no decrement. Now:
 - the unit loop takes one off a dead occupant at its visit;
 - `find_free` refuses a dead number whose hold is not zero.
 
+**A third writer holds every dead number thirty frames** (item 1197,
+2026-09-29). `Object::close@00647160`, at the foot of `Unit::close`,
+ends each close of an active object with `Objects::remove@00658980` and
+then `hold_frames = 0x1e`. Both of its arms reach that write: the one
+that takes the object out of the world, and the `blocks_while_dead` arm
+that leaves it there. `Object::die` calls `close` through vslot `+0x150`
+first, so its `max(1, …)` is taken against 30. A death that makes no
+death object therefore still holds its number thirty frames. That covers
+`dtype` 0 (attrition, `disembark`'s `Object::die(boat, 0, −1, 0)`, the
+upgrade's squad trim through `Unit::die`, vslot `+0x158`), an aircraft
+that crashes, and a dock's gull, which `Dock::close` shuts with
+`Unit::close(0, −1, 0)`. This crate held only a combat death's number,
+and only at 1. Now every kill site sets `Sim::CLOSE_HOLD`, and
+`hold_dead_slot` maxes the ammo terms against it.
+
+The dump bounds it. On East Indies at Toughest the gap 7634..8513 is
+undumped, but run439's first block prints player 1's units with their
+`uid`s, which run in birth order. This crate's walk agrees with the
+draw stream through the gap and makes the same births on the same
+frames. Two transports die there putting a passenger ashore: the
+Transport Barge `1/62` (a Cataphract) on frame 8195, and the Merchant
+Fleet `1/59` (a Caravan) on 8411. The original's next births skip both
+numbers. uid 107, born on 8210, is `1/63`, and uids 113–116, born on 8423
+and 8429, are `1/68`–`1/71`. uid 111 has 62 by 8248. Inside run439, uid
+118 takes 59 on 8627, and the barge `1/56`, dead on 8519, gives its
+number to uid 117 on 8562. So a number is still held 15 and 18 frames
+after its death, and free 43 frames after.
+
 ### 59.4 What moved
 
 | | before | after |
@@ -10145,6 +10173,11 @@ now links arena A's hoplites and shows what the numbering had hidden:
 
 ### 59.7 What is not established
 
+- **The thirty frames' own edge** (§59.3, item 1197). The listing
+  writes `0x1e` and the dump bounds the hold between 18 and 43 frames.
+  No birth on disk falls on the 30th or 31st frame after a death, so
+  the frame the number comes free on, against `process_all`'s visit
+  order, is read and not diffed.
 - **The cull itself.** Nothing ends a death object in this crate, so a
   dead number here is now held for good. The original frees it once the
   record ends. For a land unit with no corpse piece (`DeathObj +0x44 ==

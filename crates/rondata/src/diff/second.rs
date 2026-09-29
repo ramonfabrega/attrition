@@ -1141,7 +1141,9 @@ mod tests {
         // Item 1164: 317 → 304, the landing's rows and what followed them.
         // Item 1174: 304 → 299 and the first block 160 → 155, who=1's
         // `escrow` on its five goods (`docs/AI.md` §98).
-        pin_eq!(w.firsts.len(), 299, "every key parted on run419");
+        // Item 1197: 299 → 182, the dead transports' numbers held
+        // (`docs/COMBAT.md` §59.3).
+        pin_eq!(w.firsts.len(), 182, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1244,17 +1246,13 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (6604, 244),
+                (6604, 156),
                 (6614, 1),
-                (6615, 2),
-                (6626, 2),
                 (6633, 1),
-                (6658, 2),
                 (6670, 2),
                 (6671, 3),
                 (6685, 4),
-                (6718, 22),
-                (6735, 2),
+                (6718, 9),
                 (6742, 2),
                 (6769, 2),
                 (6778, 2),
@@ -1267,7 +1265,9 @@ mod tests {
             ],
             "the blocks keys first part on, the whole window"
         );
-        pin_eq!(w.firsts.len(), 298, "every key parted on run420");
+        // Item 1197: 298 → 189, the dead transports' numbers held
+        // (`docs/COMBAT.md` §59.3).
+        pin_eq!(w.firsts.len(), 189, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1381,23 +1381,24 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (7377, 217),
+                (7377, 161),
                 (7381, 4),
                 (7382, 1),
                 (7384, 4),
                 (7401, 1),
                 (7406, 1),
-                (7419, 14),
+                (7419, 3),
                 (7424, 2),
-                (7429, 2),
                 (7478, 2),
-                (7485, 3),
+                (7485, 5),
                 (7501, 1)
             ],
             "the blocks keys first part on, to the old word's"
         );
         // Item 1174: 1182 → 614. Item 1185: 614 → 317.
-        pin_eq!(w.firsts.len(), 317, "every key parted on run425");
+        // Item 1197: 317 → 187, the dead transports' numbers held
+        // (`docs/COMBAT.md` §59.3).
+        pin_eq!(w.firsts.len(), 187, "every key parted on run425");
     }
 
     /// **The second pair's East Indies word 8519, widened whole** (item
@@ -1451,7 +1452,7 @@ mod tests {
         // **Item 1197 closed those two**: they were `1/68` and `1/69` on
         // each other's numbers — the three Longbowmen stood at `1/59`,
         // `1/68`, `1/69` here while the dead transports' numbers were not
-        // held (`docs/COMBAT.md` §59.8).
+        // held (`docs/COMBAT.md` §59.3).
         pin_eq!(
             row(1, 69, "order:move.dest").as_deref(),
             None,
@@ -1529,7 +1530,7 @@ mod tests {
         // the figure clocks of two units the original wraps on 8820 —
         // `1/68`'s `g.cur_time[0]` ours 21 against 25 and `1/70`'s
         // `g.cur_anim[0]` ours 35 against 1. **Item 1197 closed it**
-        // (`docs/COMBAT.md` §59.8): the Longbowmen `1/68`–`1/70` stood at
+        // (`docs/COMBAT.md` §59.3): the Longbowmen `1/68`–`1/70` stood at
         // `1/59`, `1/68`, `1/69` here, because the transports that died
         // putting their passengers ashore in the gap did not hold their
         // numbers. Both clocks now agree past the word; they part on 8945.
@@ -1647,9 +1648,8 @@ mod tests {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [
-                (6567, 258),
+                (6567, 158),
                 (6570, 3),
-                (6574, 2),
                 (6576, 4),
                 (6577, 4),
                 (6582, 1),
@@ -1658,7 +1658,9 @@ mod tests {
             ],
             "the blocks keys first part on, the whole window"
         );
-        pin_eq!(w.firsts.len(), 277, "every key parted on run421");
+        // Item 1197: 277 → 175, the dead transports' numbers held
+        // (`docs/COMBAT.md` §59.3).
+        pin_eq!(w.firsts.len(), 175, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item

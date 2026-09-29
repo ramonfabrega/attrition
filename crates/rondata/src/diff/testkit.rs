@@ -1421,7 +1421,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 16_681;
 /// where ours has none. Past run439's window (its last block 8770), widened
 /// on run445 (block 8821).
 ///
-/// **8820 → 8907 on item 1197** (`docs/COMBAT.md` §59.8): every close
+/// **8820 → 8907 on item 1197** (`docs/COMBAT.md` §59.3): every close
 /// holds the dead number thirty frames — `Object::close@00647160`'s
 /// `hold_frames = 0x1e` — and this crate held only a combat death's. The
 /// transports that died putting their passengers ashore in the gap before

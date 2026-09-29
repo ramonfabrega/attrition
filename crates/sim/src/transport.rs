@@ -489,7 +489,7 @@ impl Sim {
             && let Some(gull) = self.units.get_mut(g)
         {
             // `Unit::close(0, −1, 0)`, and `Object::close`'s hold on the
-            // number at its foot (`docs/COMBAT.md` §59.8).
+            // number at its foot (`docs/COMBAT.md` §59.3).
             gull.health = 0;
             gull.on_map = false;
             gull.hold_frames = Sim::CLOSE_HOLD;
@@ -1263,7 +1263,7 @@ impl Sim {
         }
         self.units[boat].health = 0;
         // `Object::die(boat, 0, −1, 0)`: `close`, whose `Object::close`
-        // holds the number thirty frames (`docs/COMBAT.md` §59.8). East
+        // holds the number thirty frames (`docs/COMBAT.md` §59.3). East
         // Indies' barge `1/62` and Merchant Fleet `1/59` were reused here
         // at once, and the original's next births took the numbers above.
         self.hold_dead_slot(boat);
@@ -1806,12 +1806,12 @@ mod tests {
     }
 
     /// **The boat's number is held thirty frames** (`docs/COMBAT.md`
-    /// §59.8): `Object::die(boat, 0, −1, 0)` makes no death object, but
+    /// §59.3): `Object::die(boat, 0, −1, 0)` makes no death object, but
     /// `close` ends in `Object::close`'s `hold_frames = 0x1e`, and
     /// `Objects::find_free` will not hand the number out until
     /// `process_all` has taken it to zero. East Indies' barge `1/62` died
-    /// on 8195 and the Cataphract's next births were numbered past it; this
-    /// crate gave the next one the boat's number on 8210.
+    /// on 8195, and the original numbered its owner's next birth, on 8210,
+    /// past it; this crate gave that birth the barge's number.
     ///
     /// Made to fail by leaving [`Sim::disembark`]'s boat with no hold.
     #[test]

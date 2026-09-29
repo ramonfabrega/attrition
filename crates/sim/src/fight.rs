@@ -2336,7 +2336,7 @@ impl Sim {
     /// taken as zero (§42.5); no capture on disk has a nuke.
     ///
     /// **And the `hold_frames` it maxes against is already
-    /// [`Self::CLOSE_HOLD`]** (§59.8): `die` calls `close` through vslot
+    /// [`Self::CLOSE_HOLD`]** (§59.3): `die` calls `close` through vslot
     /// `+0x150` first, and `Unit::close` ends in `Object::close`, whose
     /// last write to an active object is `hold_frames = 0x1e`. So every
     /// death holds its number thirty frames, whatever `dtype` it carried —
@@ -2355,7 +2355,7 @@ impl Sim {
     /// **`Object::close@00647160`'s hold**: the last write it makes to an
     /// object that was active, after `Objects::remove`, is
     /// `hold_frames = 0x1e` — on both of its arms, so on every close
-    /// (`docs/COMBAT.md` §59.8). `Objects::process_all` takes one off per
+    /// (`docs/COMBAT.md` §59.3). `Objects::process_all` takes one off per
     /// frame, and `Objects::find_free` will not hand the number out until
     /// it is zero.
     pub(crate) const CLOSE_HOLD: i32 = 0x1e;
@@ -6008,7 +6008,7 @@ mod tests {
         );
         // The death object's end: nothing bumps it, and `process_all`
         // takes one off a frame — from `Object::close`'s thirty, which the
-        // bump and the take have held level (§59.8).
+        // bump and the take have held level (§59.3).
         assert_eq!(sim.units[a].hold_frames, Sim::CLOSE_HOLD);
         sim.deaths.clear();
         for _ in 1..Sim::CLOSE_HOLD {
