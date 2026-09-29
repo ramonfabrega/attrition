@@ -102,6 +102,17 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1109, 2026-09-28 — the speed's other edges
+
+(1113) **Chapter thirty-eight's speed and army rows beside its word**:
+the army's `ATTACKTO` points for `1/7` and `1/8` on 765 stand one cell
+(48) past the original's (`off_y` 360 against 312) — 1102's speed
+hypothesis is killed, `myspeed` agrees and the rows stay, so it is
+army/group code; and the other `update_speed` arms 1109's disk scan saw
+change a speed after birth, unread: types 83 (28 → 29), 341 (42 → 44),
+324 (56 → 60), and one with no guy type (28 → 29). `ai_speed` reads 1 in
+all eleven packets on disk.
+
 ## Parked by item 1102, 2026-09-28 — the air line's other edges
 
 (1110) **Chapter thirty-eight's rows beside its word** (COMBAT §81.5):
@@ -1918,6 +1929,12 @@ first pair's does. (b) The click-free lane refuses a window past
 `!quit` + 1 and leaves the empty output directory it made, which its
 second launch then refuses; a refusal before staging could remove what
 it made.
+
+(1114) **`a_constant_a_document_names_is_built_or_pinned` counts hex
+spellings only** (1109's Loop line): COMBAT §83.2 names `LOOKOUT` and
+`OBSERVATIONPOST`, unbuilt, by TypeIndex name and decimal, and the guard
+does not see them. The guard could read enum names; the successor that
+builds the cycle carries both constants.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
