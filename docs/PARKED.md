@@ -1899,19 +1899,41 @@ tranche; every landing pays it whole at least once and nine paid it
 twice. **It is a long tail and not a few tests**: three of the 599 run
 over a minute, the suite is some 41 minutes of processor at four
 seconds a test, and its memory peaks at 17 GB of a 20 GB cap on a
-machine of 128 — a chapter's whole walk is under three seconds, so the
-time is read as the dumps' parsing, which is a reading until the
-modules are timed apart. Captures were taken on nine of twenty and are not where the time
+machine of 128. **Timed a module at a time, the same day** (four
+threads under the cap, `/usr/bin/time`): of 2,394 processor seconds,
+**`diff::golden` 893 over 132 tests and `diff::harness` 904 over 96 —
+three quarters of the suite in two modules**, 238 and 240 s of wall
+clock each; `diff::world` 108, `diff::unit` 93, `diff::shutdown` 80,
+`diff::build` 67, `diff::second` 66, `diff::coverage` 63 in three
+tests, and nothing else over 30. System time is one per cent, so it is
+not the disk. **And one long walk sampled twice**
+(`run226_s_word_frame_is_widened_whole`, 81 s alone, on a dump of 1.4
+GB), 4 s in and 45 s in: **of the samples that were not idle, 82 per
+cent and more were reading text and none was the simulation** — `memchr`
+under `lines`, `gamelog::fill`, `Log::field`, `memcmp`. `Block::get`
+finds a key by walking the block's fields and comparing each, so a
+record read field by field is read in the square of its length; and
+every test that opens a capture reads it again. The 20 GiB cap was set
+on a machine that had crashed at 27.6 GB resident with its swap full
+(`docs/DECISIONS.md` entry 34); the machine stood at 89 per cent free
+under this measurement, so the number is cautious and the kind is
+right, and **width is not what the suite is short of**: on 2026-09-10
+four threads ran 275 tests in 120 s, and 599 take 619. Captures were taken on nine of twenty and are not where the time
 went. Three lanes gate at twelve threads of sixteen. **And the
 commander's chain is serial**: a lane stood empty fourteen minutes a
 landing, 4.6 hours of the tranche's 15.1, between its landing and its
 refill, which is the booking gate; at three lanes that is the loop's
 narrowest point. **The spawn follows the booking commit now, with
 the gate beside it** (DECISIONS 55, amended). The next pass reads the
-three-lane tranche's split first; the shapes left are a booking gate
-that is the guard reflex where the merge added nothing the lane's gate
-had not seen, a wider gate under a higher cap on a machine of 128 GB,
-and a suite that says which tests a change can reach — none is chosen.
+three-lane tranche's split first. **The shapes, in the order the
+profile puts them**: a block's fields found by key without a walk, and
+a capture parsed once for the tests that share it — the reader's own
+work, which is where the time is; a booking gate that is the guard
+reflex where the merge added nothing the lane's gate had not seen; and
+last a wider gate under a higher cap, which buys at most the cores
+three lanes leave. The reader was rebuilt twice with care (items 235
+and 260) and the whole suite is its regression test; it is the next
+pass's first build, at a desk, and none is chosen before it.
 
 (1140) **A worker's spend is the square of its length** (the
 nineteenth pass, measured on the user's question, `lore trace --steps`
