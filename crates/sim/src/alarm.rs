@@ -276,7 +276,7 @@ impl Sim {
     /// the movers: action_move_near(b's point, 0xc0, QUEUE_NEW, MOVE_TO)
     /// ```
     ///
-    /// SEAM, no capture on file reaching them: a University target and
+    /// SEAM, read and not staged by chapter forty: a University target and
     /// its Scholars' arm; the good's `type_avail` test; the probe cell's
     /// objects are its buildings in this crate (`Sim::cell_chain` threads
     /// units, and a unit is never a gather building); the non-castable
