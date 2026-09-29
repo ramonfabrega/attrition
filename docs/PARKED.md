@@ -116,6 +116,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1111, 2026-09-29 — the casts' standing rows
+
+(1168) **The pool's speed refresh off the cursor's frame** (GOLDEN §48):
+run422's slot 0 is refreshed to 24 on 662 and slot 2 to 25 on 702,
+neither on its `frame mod 64` frame; ours reach them on 704 and 706, and
+slot 1 on 641 agrees. `WANT_CH39_POOL`'s two `speed` rows.
+
+(1169) **The standing birth `form`**: `Unit::init` writes 9 for a
+Citizen and 0 otherwise, and this crate writes −1 — a standing row in
+every chapter. Chapter thirty-nine's casts write the byte, and
+`GroupData::get_form` reads it, so it can reach a draw now.
+
 ## Parked by item 1156, 2026-09-29 — the barge's path flag
 
 (1165) **`1/42`'s `path[16].flags`, ours 4 against 0 on run421's 6576**
@@ -2096,6 +2108,13 @@ was read correctly for the merchant (item 186) and wrongly for the scout
 A guard listing every call site of a function whose export body prints
 `unaff_` arguments, beside the `SEAM` or document line each caller
 cites, would have put the two readings side by side. One reach.
+
+(1170) **A capture whose script stages nothing still exits
+`success: true`** (1111's Loop line): two of run422's three takes were
+wasted on the script's own lines, and `cmdsran.py` and `issuesmatch.py`
+said "ran" for both. A staging-walk check that the script's lines parse
+into something before the capture, and the harness reading a bare `tech`
+as the report it is, would each have saved a take. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
