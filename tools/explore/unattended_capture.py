@@ -278,6 +278,29 @@ def capture_lane(profile):
         yield
 
 
+def capture_all(args):
+    """Every map into its own directory under `args.output`, and the receipt.
+
+    A refusal before anything was written leaves no directory (parked 1108,
+    the nineteenth pass): item 1099's window past `!quit` + 1 was refused
+    after the output directory was made, and the relaunch with the window
+    put right was refused by the directory. `rmdir` takes only what is empty,
+    so a failed capture's receipt keeps everything above it.
+    """
+    args.output.mkdir(parents=True,exist_ok=False)
+    reports=[]
+    try:
+        for style in args.maps:
+            reports.append(capture(args,args.output/f'map-{style}',style))
+            print(json.dumps(reports[-1]),flush=True)
+    except BaseException:
+        for made in [*sorted(args.output.glob('map-*')),args.output]:
+            try: made.rmdir()
+            except OSError: pass
+        raise
+    (args.output/'receipt.json').write_text(json.dumps(reports,indent=2)+'\n')
+
+
 def interrupted(signum, frame):
     raise InterruptedError(f'capture interrupted by signal {signum}')
 
@@ -324,12 +347,7 @@ def main():
     # Cooperative lock: protects runners using this tool, not arbitrary GUI use.
     with capture_lane(args.profile):
         live_session.require_closed()
-        args.output.mkdir(parents=True,exist_ok=False)
-        reports=[]
-        for style in args.maps:
-            reports.append(capture(args,args.output/f'map-{style}',style))
-            print(json.dumps(reports[-1]),flush=True)
-        (args.output/'receipt.json').write_text(json.dumps(reports,indent=2)+'\n')
+        capture_all(args)
 
 
 if __name__=='__main__': main()

@@ -129,6 +129,22 @@ class RunnerTest(unittest.TestCase):
         self.assertFalse(receipt['success']);self.assertTrue(receipt['settings_restored'])
         self.assertEqual(receipt['restored_files'],5)
 
+    def test_a_refusal_before_anything_is_written_leaves_no_directory(self):
+        # Parked 1108: a window past `!quit` + 1 was refused after the output
+        # directory was made, and the relaunch was refused by the directory.
+        output=self.root/'run';args=SimpleNamespace(output=output,maps=(14,))
+        with patch.object(runner,'capture',side_effect=ValueError('log window')):
+            with self.assertRaisesRegex(ValueError,'log window'):runner.capture_all(args)
+        self.assertFalse(output.exists())
+
+    def test_a_failure_that_wrote_a_receipt_keeps_its_directory(self):
+        output=self.root/'run';args=SimpleNamespace(output=output,maps=(14,))
+        def wrote(args,out,style):
+            out.mkdir();(out/'receipt.json').write_text('{}');raise ValueError('bad profile')
+        with patch.object(runner,'capture',side_effect=wrote):
+            with self.assertRaisesRegex(ValueError,'bad profile'):runner.capture_all(args)
+        self.assertTrue((output/'map-14/receipt.json').is_file())
+
     def test_live_game_blocks_restoration_and_records_cleanup_failure(self):
         output=self.root/'output';output.mkdir()
         args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36)
