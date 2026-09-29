@@ -2155,12 +2155,13 @@ Still open:
   slot. Either the walk re-enters, or one of the gate's five tests moves
   with the frame. *Capture:* already on disk — it is a reading of the
   same three moves against §6.6 step 6, member by member.
-- **`compute_dests`' modern-infantry scatter** (`72d456`): three
+- ~~**`compute_dests`' modern-infantry scatter** (`72d456`): three
   `guy_spacing`-sized jitters on a follower, keyed on the destination,
   the **object number** and the member index. `Sim::form_follower_slot`
   does not implement it, and the object number is not a quantity the
   simulation reproduces. No traced game has put modern infantry in a
-  formation.
+  formation.~~ Built by item 1113 (§34): two terms, not three, and the
+  object number is the unit's `index`; run404's squad is the capture.
 
 Closed by the second reading, struck here and answered where they belong:
 
@@ -4698,3 +4699,155 @@ is the pair's open word. `widen_east_indies_on` takes the `records` flag
 
 **Diff-backed**: every block of run356 and run373, pinned in both
 widening tests. **Mutation**: see item 1061's journal.
+
+## 34. A Modern Infantry squad scatters and packs — chapter thirty-eight 794 → 878 (item 1113, 2026-09-28)
+
+Chapter thirty-eight's word was 794 on run404 (`docs/GOLDEN.md` §47): `1/7`
+walking in ours (`Guy::set_anim+0x97a < Unit::move_step+0x823`, ours 12
+draws, theirs 8) where theirs had stood at (20604, 16968) since 777. Its
+position had parted since 765, the frame the army's `ATTACKTO` of 764
+lays out its one group: `1/7`'s point one cell (48) past the original's in
+`y`, `1/8`'s in `x` and `y`. The park read it as the army's point-laying,
+and named no mechanism.
+
+### 34.1 The frame, read whole first
+
+**The whole group on block 765, both sides.** Four members, one
+`ATTACKTOORDER` each, `orig` (38646, 13305), angle −541917184, `facing 1`:
+
+| unit | `x, y` theirs | ours | `path[0].to` theirs | ours |
+| --- | --- | --- | --- | --- |
+| `1/6` | (38664, 13320) | same | (38646, 13305) | same |
+| `1/7` | (38568, 13368) | (38568, 13416) | (38569, 13382) | (38544, 13407) |
+| `1/8` | (38712, 13176) | (38760, 13224) | (38712, 13169) | (38747, 13202) |
+| `1/9` | (38904, 13560) | same | (38886, 13542) | same |
+
+`x, y` is `path[0].to` snapped to its 48-unit cell, so a cell is not the
+size of the error: the slot destinations are. Back through the formation's
+matrix (§6.4), in slot coordinates off `1/6`: theirs `1/7` (−109, 0) and
+`1/8` (143, 48); ours (−144, 0) and (144, 0). **Not the army's point**:
+the origin, the angle, `1/6` and the Battery `1/9` agree.
+
+`1/6`, `1/7` and `1/8` are **one squad**: the Infantry (`INFANTRY`,
+`UBER_SIZE` 3) is three units, `1/6` the captain (`up 7`), `1/7` and
+`1/8` its followers. So they are laid out by `compute_dests`' follower arm
+(§6.4, `form.rs`'s `form_follower_slot`), one `guy_spacing` (144) either
+side of the captain. The arm's `is_modern_infantry` tail was the one piece
+of it this crate had not built, "unreached" in `form.rs` and an open
+question in §13.
+
+**Every instance on disk**: of the 303 dumps under `~/ron-golden`,
+`~/ron-data/lab-captures` and the Logs directory, **only run404 holds a
+Modern Infantry** (a `GUY` of `TypeIndex` 102..111, 118, 121, 122,
+139..145 or 380..383, the types with `unit_flags & 0x100` past age 5):
+3,423 figure records, all `INFANTRY`, all three of this squad. Neither
+pair can feel either mechanism below.
+
+### 34.2 The scatter — `Form::compute_dests`, `72d454`–`72d50f`
+
+The listing, after the follower's facing byte (`72d405`–`72d433`) and
+before its destination:
+
+```text
+72d447  call UnitData::is_modern_infantry ; je 72d511
+72d457  0x487ede05 · dest_x >> 37, + sign       ; dest_x / 113
+72d46c  × o (the list's entry, [ebp-0x48]) × i ([ebp-0x4]) + 7 · slot
+72d47e  0x66666667 … >> 33, + sign; idivl 3      ; / 5 % 3
+72d496  rem · 48 − 48 → edi                      ; the y step
+72d4b0  gs = the member's type +0x224
+72d4b6  0x151d07eb · dest_y >> 35, + sign        ; dest_y / 97
+72d4cc  × o × i + 13 · slot
+72d4d6  0x92492493 … >> 2, + sign; idivl 3       ; / 7 % 3
+72d4f1  rem · gs, (· + (· >> 31 & 3)) >> 2 − gs / 4 → ebx   ; the x step
+```
+
+So a modern-infantry follower's step off its captain gains
+
+```text
+y += ((dest.x/113 · o · i + 7·slot) / 5 % 3) · 48 − 48
+x += ((dest.y/97  · o · i + 13·slot) / 7 % 3) · gs / 4 − gs / 4
+```
+
+where `dest` is `compute_dests`' own `Coord` pair (`Form::compute`'s
+`x, y`: the formation's point), `o` the member's object number, `i` its
+index in the group's list, and `slot` the last captain's `cat_id`
+(`local_24`, 0 before the first). Each division truncates, `% 3` keeps
+the dividend's sign, and the products wrap. The step reaches `to` and
+`off` alike; the facing byte is the unscattered step's.
+
+On run404: `dest` (38646, 13305), `slot` 0. `1/7` (`o` 7, `i` 1):
+`342 · 7 / 5 % 3 = 1`, `y` 0; `137 · 7 / 7 % 3 = 2`, `x` +36, so
+−144 + 36 = **−108**. `1/8` (`o` 8, `i` 2): `y` **+48**; `x` 0, so **144**.
+Rotated, those are theirs's `path[0].to` on 765 to the unit, all three
+(`form.rs`'s `a_modern_infantry_follower_is_scattered_off_its_captain`).
+
+### 34.3 The pack — `Unit::do_move`, `5f82df`–`5f8390`
+
+With the points agreeing, the word fell to 793 on the same walk: theirs's
+`1/7` stops on 777. Block 778 prints it, on theirs: `cur_anim 23`
+(`CHAR_PACK`), `stopped 1`, the move's `retry 22`, `attempts −3`. That is
+`do_move`'s arm between the `retry` countdown and the `attempts` decay
+(`docs/ORDERS.md` §3.2's `retry` row; `docs/PATHFINDER.md` §21.4 called it
+a SEAM):
+
+```text
+5f82df  (short o · 0x11 + game+0x550 frame) & 0x7f ; jne → the decay
+5f8315  units[who][o] +0x68 & 4 (unit_masks, in danger) ; jne
+5f831d  is_modern_infantry ; je
+5f832f  has_general(0x8000, −1) ; jns
+5f8348  set_angle(guy0.angle, ·, 1)
+5f8361  set_new_location(guy0.x, guy0.y, 1, 1)
+5f836e  set_anim(0x17 CHAR_PACK, 0, 1)
+5f837b  retry = guy0 +0x78 (end_time, after the set_anim); attempts = −3
+```
+
+`1/7`'s phase: `7 · 17 + 777 = 896 = 7 · 128`. **run404 packs twenty
+times**, `1/7` on 777, 905, 1033, …, `1/6` on 794, 922, …, `1/8` on 888,
+1016, …, every one on its unit's phase, with `retry 22`, `attempts −3` on
+the next block. Each stands 22 frames and walks on.
+
+### 34.4 This crate
+
+- `form::form_scatter`, called from `form_follower_slot` for a follower
+  `is_modern_infantry` answers, with the destination, the member's `index`,
+  its list index and the last captain's `cat_id` (`form_dests` now carries
+  it).
+- `do_move`'s pack arm, where the SEAM comment stood. A figure with no art
+  (`end_time` `anim::UNKNOWN`) waits 0 frames.
+- **SEAM**: `has_general(0x8000, −1)` is taken as "none", as in §18's
+  `march`: nothing here places a General.
+
+### 34.5 What it moved
+
+**794 → 878** (after 793 on the scatter alone). The value diff, both
+sides: block 765's points in §34.1's table agree, and block 778's `1/7` at
+(20604, 16968), `cur_anim 23`, `retry 22`, `attempts −3`.
+`chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase`
+compares the move's `retry`/`attempts` for the squad on every block of
+run404 (2,626 moves) and finds the twenty packs; the compared pin leaves
+those two fields to run29's field table on the move row. The widening
+went 668 → 455 rows; no squad row parts before 1627.
+
+**878** is `0/7` shot down in ours (`Unit::close+0xcb6`,
+`Ammo::init_crash+0x305`; theirs on 1019): ours 7 draws, theirs 5. Walked
+back: the Radar Air Defense's target on 837 (`attack_ox` 7 against 6, the
+roll site `+0x432` against `+0x463`), `0/7`'s patrol leg on 820, its hit
+a frame late on 784 (the Battery's node-1 launch point). No mechanism is
+named.
+
+### 34.6 What this has *not* established
+
+- **A General beside a squad**: `has_general`'s arm, and the `0x8000`
+  flag it passes. No capture has one.
+- **A negative scatter**: every run404 quotient is positive. The signed
+  remainder and the wrap are the listing's, and a unit test's.
+- **A follower of another category's captain**: `slot` is 0 on run404.
+
+### 34.7 Coverage
+
+**Diff-backed**: the scatter, by block 765's four points; the pack, by
+run404's twenty. **Listing-backed**: `72d454`–`72d50f`, `5f82df`–`5f8390`.
+**Built**: `form::form_scatter` with `a_modern_infantry_follower_is_scattered_off_its_captain`
+and `the_scatter_truncates_and_keeps_a_negative_remainder`; the pack with
+`air.rs`'s `a_walking_modern_infantry_packs_on_its_own_phase`. The
+mutations are item 1113's journal.

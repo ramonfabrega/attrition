@@ -1881,10 +1881,13 @@ planner and gains three each time a delay runs out, so a unit wedged
 against a neighbour climbs to the `0xd` ceiling and stops being able to
 buy quiet.
 
-**SEAM**: the unpack arm between the two — `is_modern_infantry &&
+~~**SEAM**: the unpack arm between the two — `is_modern_infantry &&
 !has_general(0x8000)` on the `(o * 0x11 + frame) & 0x7f == 0` phase,
 which sets `retry` from the type's `+0x78` and `attempts` to `−3` — is
-not modelled. No capture on disk has a packable type in it.
+not modelled. No capture on disk has a packable type in it.~~ Built by
+item 1113 (`docs/GROUPS.md` §34.3): the arm is a **pack**, `CHAR_PACK`,
+and `+0x78` is guy 0's `end_time` read after it; run404 packs twenty
+times.
 
 ### 21.5 The value diff
 
