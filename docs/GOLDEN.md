@@ -1408,6 +1408,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 390 | thirty-six, the missile's other arms | `[605, 3420)` | chapter thirty-five whole, two more silos with a V2 each (`0/14`, `0/15`), who=1's Barracks T_home in its own land and T_far in no one's, a spotter, and five lines: `@launchstrike` from `0/2010` on T_home (3019, launched on 3050 with `(14 + 3050) & 7 == 0`), again on T_far during the countdown (3029), `tech who=1 missile_shield on` with the round in flight (3070), `@launchstrike` from `0/2011` on T_far (3080); at `cover=0` on the click-free lane, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run371's start (§45) — **run 2026-09-28 (item 1078), 1.17 GB, 3,278 s; no falsifier fired: the re-press found nothing, the redraw's draw led the round's two, the shield refused `0/15`'s order and closed V2b's round on T_home; word 3111, then 3169 (the price and the order gate), then 3420, closed** |
 | 397 | thirty-seven, the nuke | `[605, 3490)` | a cast of its own on the golden start (1094): a Missile Silo `0/2007` (610), the nuke's research there (615) and its train (2300), who=1's Barracks T at ground zero and F at a building distance of 1824 (2940, 2942), four of who=0's Elite Special Forces at 518, 1039, 1804 and 1870 (2950..2956), `@launchstrike` on T (3050) and `tech who=1 missile_shield on` in the countdown (3060); at `cover=0` on the click-free lane, run398 the same at `cover=1` on the queue lane (`Nuke::add_nuke`, a `NEVER` row), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run390's start (§46) — **run 2026-09-28 (item 1091), 1.12 GB, 3,380 s; no falsifier fired (7's leader half could not: `LEADERS=2` prints no `nuke_stamp`): the research done by 2237, the nuke launched on 3081 through the shield, the silo's `visible` −1, the round on the point with no draw, the ring striking on 3217, 3226 and 3239, 1870 never; word 3081, then 3490, closed** |
 | 404 | thirty-eight, the air line under fire | `[605, 1762)` | a cast of its own on the golden start (1094): an Airbase `0/2007` and two Bombers `0/6`, `0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense R `1/2007`, an Infantry squad I `1/6`..`1/8` and an Anti-Aircraft Battery A `1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644); at `cover=0` on the click-free lane, run405 the same at `cover=1` on the queue lane (`is_flying_low`, `is_flying_high`, `Ammo::init_crash`, `NEVER` rows), with `GROUPS=1` at `GUYS=4`, `AMMO=5` and `DEATHS=1`; the staging walked by this crate's `stage_walk` on run397's start (§47) — **run 2026-09-28 (item 1102), 321 MB, 895 s; the receipt refused it: `DEATHS=1` beside `GROUPS=1` printed no pool; no falsifier fired, 6 could not: 43 flak rounds one draw each, every matched flag its roll's, both Bombers shot down on 1006 and 1019 with a crash round and no death object; word 742 (the jam roll), then 776, open (item 1102: the jam roll, the flak roll and the crash built); then 777, open (item 1109: the foot line's speed, the anti-air angle and the Modern Infantry's step); then 779, open (item 1112: the anti-air building's `Wall::inc_time` cycle, `docs/COMBAT.md` §84); then 794, open (item 1117: the release gate is the event's, `docs/COMBAT.md` §85); then 878, open (item 1113: the Modern Infantry squad's scatter and pack, `docs/GROUPS.md` §34); then 1762, closed (item 1131: an armed building's ×5 a computer's, an object's `z` clamped, a building's `damage_o`, and `do_attack`'s target flow, `docs/COMBAT.md` §8.6)** |
+| 422 | thirty-nine, the spell issuer's untargeted crafts | `[605, 1100)` | a cast of its own on the golden start: `library who=0 1` and `tech who=0 militia on`, two Citizens, a Militia, a General beside a Hoplite and a Slinger squad (606..616); To Arms on each Citizen (620, 640), Civilian on the Militia (660) and on the first Citizen (700), Create Decoys (720); at `cover=0` on the click-free lane, run423 the same at `cover=1` on the queue lane (the three casts, `NEVER` rows), with `GROUPS=1` at `GUYS=4`; the predicates read on run424's packet at 619 (§48) — **run 2026-09-29 (item 1111), 224 MB, 651 s, the third take (the first staged nothing, the second's `tech` line only reported); no falsifier fired: both Citizens Militia on 626 and 646 with `rare` 50, back on 666 and 706 with `rare` 50 kept, two decoy squads on 821 aging a frame; word 820 with the conversions built, then 1100, closed (item 1111: the decoy, and a Citizen's hits and LOS from the Militia line)** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -8481,3 +8482,168 @@ and hold its round. 794 is `1/7`'s walk (1113). Widening: **668 rows**.
 
 **Item 1131: 878 → 1762, closed**: `docs/COMBAT.md` §8.6, §12.3, §46.2.
 Widening: **36 rows**.
+
+## 48. Chapter thirty-nine — the spell issuer's untargeted crafts: a Citizen's To Arms and a Militia's Civilian, both ways, and a General's Create Decoys beside two squads (item 1111)
+
+**Premise.** `docs/CENSUS.md`'s ranked list, row 7, keeps three rows past
+chapter thirty-eight: `SpellType::cast_civilian@006704a0`, `cast_to_arms@
+00670880` and `cast_create_decoy@00674370`. All three are **untargeted**
+crafts (`craftrules.xml` FLAGS with no `b`/`c`/`d`), issued the way the
+button issues them: `Options::do_spell@0071d7a0:189` calls `target_spell(
+type, −1, −1, 0, 0)` for a craft with `spell_flags & 0xe` clear, so the
+DLL's `@spell` takes `ox`/`whom` −1 and the point (0, 0). The casters, off
+the rows' `FROM`: To Arms (`0x294`) a **Citizen** or a Scholar, Civilian
+(`0x293`) a **Militia**, Create Decoys (`0x27a`) a **General**. Parked
+1111's "a City and a General" and the census's "a City's alarm" named
+`Group::action_alarm@0070ec30`, which is another issuer: its all-clear arm
+calls `cast_civilian` directly on a garrisoned Militia before the eject.
+It is not staged here.
+
+**The readings**, each off the listing or the decompile, then run:
+- **`is_castable@00675bc0`'s `0x294` case**: a map unit; the leader
+  `has_tech` of MILITIA, MINUTEMAN or PARTISAN; the cell under it no one's,
+  its own or an ally's. `has_tech` for a unit is its prerequisite **and
+  its own bit** (`LeaderData +0x6c18`), which neither `library` nor the age
+  sets: `Leader::gain_tech` of the type does. A decoy (`unit_masks & 1`)
+  casts nothing but a pack or unpack.
+- **`cast_to_arms`** (listing `670880`..`670977`, end to end): `frac =
+  (damage << 8) / hits`; `rare` (`+0x54`) = the unit's own `TypeIndex`;
+  `set_type(current_upgrade(MILITIA), 0)`; `damage = new_hits × frac / 256`
+  toward zero (`cltd; andl $0xff; addl; sarl $8`); `form` 0.
+- **`cast_civilian`** (`6704a0`..): the same tail to `current_upgrade(
+  rare)`, `rare` set to the Citizen (`PEASANTS`, tribe-substituted) when 0
+  and **never cleared**; `form` 9.
+- **`cast_create_decoy`**: `limit = (general_upgrade + 2) × 5`; the
+  player's objects walked **from the last down**; each live captain, not a
+  decoy, of the land, armed (`UnitData::attack`), not `PEASANTS`..
+  `SCHOLARSKOREAN`, not a caravan or a merchant, not the General, within
+  `HeroData::get_radius × 0xc0` (`GENERAL_RADIUS` 6 × 3/2 = 9 tiles, 1,728)
+  is copied: `find_nearby_spot(its type, the General, 0x180, −1, 0, 0,
+  FILTER_NOT_ME)`, `Objects::init_unit`, its population handed back
+  (`track_unit_type −1`), every figure `unit_masks |= 1`, `mana_burn` 0.
+  None made: the craft's mana handed back.
+- **A decoy's frame** (`Unit::process@00610bc0`, its `unit_masks & 1` arm):
+  `mana_burn` is its age, +1 a frame, and it closes at `(general_upgrade +
+  2) × DECOY_TIME / 2`, 2,500 frames. It sees one tile (`Unit::update_los`'s
+  last line).
+- **A Citizen and the Militia line**: `Object::update_hits@00647010` gives a
+  Citizen the hits of the newest held MILITIA/MINUTEMAN/PARTISAN, and
+  `Unit::update_los` adds 2 a held bit.
+- **The untargeted `do_cast`** pays through `pay_cast_costs`, the craft's
+  `MANA` onto `mana_burn`: Create Decoys' 1,000.
+
+**Under the emulator first.** `tools/emu/hooks.py` on both conversions, a
+damage sweep: a Citizen at 7 of 40 is a Militia at 8 of 50; a Militia at 1
+of 50 a Citizen at 0. **run424**, a `RON_STATE_FRAME=619` packet of the
+staging without its `@spell` lines (`docs/RUNS.md`): `is_castable(To
+Arms)` **0** on both Citizens, `has_preq(MILITIA)` 1 and `has_tech` 0;
+after `gain_tech(MILITIA)`, 3. The console `tech` verb's `parse_type`
+category reads `tubs` off the packet, so it names unit types.
+`cast_civilian` on the added Militia: `rare` 0 → 50, `set_type(50, 0)` with
+one `Random::get` inside it. `cast_create_decoy`: the first copy the
+Slingers', at (7800, 34296).
+
+**The cast and the lines** (`chapter39.cmd`), on the golden start:
+`!ai off`; `library who=0 1` (600); `tech who=0 militia on` (604); Citizens
+A `0/6` (30, 150) and B `0/7` (34, 150), a Militia C `0/8` (38, 150), a
+General G `0/9` (40, 180), Hoplites `0/10`..`12` (44, 180) and Slingers
+`0/13`..`15` (40, 184), all in who=0's land (606..616); To Arms on A (620)
+and B (640), Civilian on C (660) and on A (700), Create Decoys on G (720).
+The window is `[605, 1100)`: 250 blocks past the decoys on ~821.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1`, beside run105's `start:` set.
+
+**What would falsify it, and where each could first fire.** (1) An issue
+not reaching the pump: 621, 641, 661, 701, 721. (2) Block 622: A without
+one `CASTORDER` (660, `paid` 1, `ox` −1), or holding a `MOVEORDER`. (3) A
+not a Militia with `rare` 50, `form` 0 by 627. (4) C not a Citizen with
+`rare` 50 by 667; (5) A back with `rare` still 50 by 707. (6) Block 722:
+G's `mana_burn` not +1,000, or a bucket down. (7) Around 821: not two new
+squads, Slingers then Hoplites, each figure `unit_masks & 1` and
+`mana_burn` from 0. (8) A decoy's `mana_burn` not rising a frame.
+
+**Run 2026-09-29 as run422 (item 1111)**, three takes (`docs/RUNS.md`):
+the first staged nothing (the script's lines were only in its comments);
+the second wrote `tech who=0 militia` — `run_cmd`'s `tech` case gains a
+type only when the next token parses true (`parse_binary`), and with none
+it only **reports** — so both To Arms presses were refused inside
+`action_spell` with no order laid, falsifier 2 firing by construction; the
+third, with `on`. **No falsifier fired on the third**:
+- To Arms: A's `CASTORDER` on 622, `spell_time` 1..4, a Militia on 626 with
+  `rare` 50, `form` 0, `cavarch_o`/`cavarch_who` −1/−1; B the same on 646.
+- Civilian: C a Citizen on 666 with `rare` 0 → 50 and `form` 9; A back on
+  706, `rare` 50 kept.
+- Create Decoys: G's `mana_burn` 1,000 on 722, **recovering one a frame
+  while it casts** (untargeted, nothing sets `0x20000`); on 821 the
+  Slingers' copy `0/16`..`18` at (7800, 34296) and the Hoplites'
+  `0/19`..`21` at (7656, 34344), each figure `unit_masks` 1, `mana_burn` 1
+  (its first frame's age), `group` −1, `mylos` 1; G's `mana_burn` goes on
+  falling, no refund.
+- On the decoys' frame the original spends six `Guy::init_real` draws in
+  `init_unit` (two squads of three), one on the sound stream, and the new
+  figures' six `do_idle` draws.
+- Every Citizen of who=0, the start's five included, is at **50 hits and
+  LOS 4 from block 605**, the block after the `tech` line (run424, taken
+  without it, has them at 40).
+
+**run423**, the same script at `cover=1` to 830: five issues, 831 frames
+identical to run422's draws, and the three casts entered first on 625, 665
+and 820 — off `NEVER` (`crates/rondata/src/blind.rs`), 142 → 139.
+
+**Where this crate parted, and what closed it:
+`GOLDEN_WORD_CHAPTER_THIRTY_NINE` = 1100, closed** (item 1111).
+- Unbuilt, `group_action_spell` refused any craft without a target, and
+  the untargeted `do_cast` knew only pack, unpack and transport.
+- Built (`crate::cast`): the untargeted press (`(ox, whom)` = (−1, −1)
+  written as the pair, `Unit::cavarch_who` its own byte now); the
+  castability arms; the untargeted `do_cast`'s mana; both conversions;
+  Create Decoys and a decoy's age; a Citizen's hits and LOS from the
+  Militia line (`Sim::type_hits`, `unit_los`); a decoy's LOS 1. The
+  harness's `tech` verb resolves a unit type before a technology and does
+  nothing without `on`/`off`.
+- With the conversions alone the walk agreed to **820**, the decoys'
+  frame; with the decoy, to **1100**, sequence and values.
+- **The value diff on 820's block**, both sides: `0/16`..`0/21` on 821 at
+  the points above, `unit_masks` 1, `mana_burn` 1, `mylos` 1; G `mana_burn`
+  901.
+
+**The widening is run422 whole**, both directions, with the pool: 16 rows,
+every one the standing birth `form` (`Unit::init`'s 9 for a Citizen and 0
+else, against this crate's −1) on an added unit or a decoy; and 12 pool
+rows: each press's pushed selection's `ox`/`oy` (0 against −1, §27's and
+§43's family), and two `speed`/`new_speed` refreshes the original makes off
+its cursor's frame (slot 0 at 24 on 662, slot 2 at 25 on 702; ours reach
+them on 704 and 706). Before the Citizen and decoy terms, every Citizen's
+`myhits` 40/50 and `mylos` 2/4 stood from 605, and the decoys' `mylos`. `run422_s_casts_are_the_original_s_field_for_field` reads what no
+parser carries — `rare`, `mana_burn`, `spell_time`, `cavarch_o`/`who`,
+`unit_masks & 1` and `& 0x20000`, and every `CASTORDER`'s target, point,
+craft and `paid` — 87,921 rows, 1,674 on decoys, none parted.
+
+**Mutations**, each on the committed build, `git diff --stat` non-empty
+first, scored against `sim`'s three tests and `cargo test --release -p
+rondata chapter_thirty_nine run422_s_casts`, restored from git and
+`touch`ed:
+
+| mutation | sim | ch39's pins |
+| --- | --- | --- |
+| the damage carried whole | both conversion tests | **none** (run422 wounds no one) |
+| `rare` not written by To Arms | the To Arms test | the field test (2 rows) |
+| To Arms without the Militia test | the To Arms test | **none** (the Militia is held) |
+| the decoy radius in tiles | the decoy test | word 820; widening 421; field test |
+| a decoy's age not counted | the decoy test | the field test (6) |
+| a Citizen's hits not the Militia's | both conversion tests | widening (standing rows) |
+| a decoy's LOS not 1 | the decoy test | widening (22 rows) |
+| the untargeted mana unpaid | the decoy test | the field test (1) |
+| `cavarch_who` 0 after a press | the To Arms test | the field test (4) |
+
+**What is not established.** The damage fraction and the refusal without
+the Militia rest on the listing, the emulator and the sim tests: no capture
+wounds a converting unit or presses To Arms on enemy land. The decoy's close
+at 2,500 frames and its attrition every seventh frame on another's ground
+are read, not built. The Citizen's LOS takes the nomad term as before;
+PARTISAN's share of it and the tribe substitutions are unreached.
+`get_general_upgrade` is 0 throughout; Porus's and Kutosov's multiples and
+a computer General's army are SEAMs. The alarm's all-clear and a Militia's
+own Civilian ahead of a repair or a build (`Group::action_swarm_around`,
+`action_gather`, `action_repair`) are issuers no chapter stages.
