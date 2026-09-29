@@ -2176,7 +2176,11 @@ a container, for a reading of the container's exit. One reach.
 (1180) **A lane lock whose two pids are dead reads as a busy lane**
 (1171's Loop line): 1167's `longtrace.sh` lock stood after both its
 pids had exited, and only `ps` said so; the launch took it over. A
-waiter that reads the lock could say "stale" by itself. One reach.
+waiter that reads the lock could say "stale" by itself. **And the
+other way** (1177's message, 2026-09-29): run426's lock named pid 15593,
+recycled by an unrelated `next-server`, so run428's takeover read it
+live and refused with no wine running. The liveness test should check
+the pid's command, not only that the pid exists. Two reaches.
 
 (1181) **A move's waypoint is compared only under `dest 1`** (1171's
 Loop line): the original printed the follower's waypoint (28614, 20246)
