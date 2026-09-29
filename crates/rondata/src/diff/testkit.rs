@@ -1181,7 +1181,26 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
 /// 173 blocks after its first and 83 before its last), where the Caravan
 /// `1/33`, trained on 5772, holds a route of two orders there and none
 /// here.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_773;
+///
+/// **5773 → 5975 on item 1115** (`docs/AI.md` §85, `docs/CARAVAN.md` §11):
+/// `do_trade`'s region tests forgive a difference when the caravan
+/// `can_transport` (5773 → 5776), and `calc_road_cost` charges the sea only
+/// on the step off land (5776 → 5975). **The move's value diff (the word's
+/// delta, here; its block is `run357_s_word_frame_is_widened_whole`'s):**
+/// on run357's block 5774 `1/33`'s `orders.len` 0 against 2 closed with its
+/// route, `1/2017`'s and `1/2000`'s `city:vans.length`; its `order:flags` 4
+/// against 0 (5773) and `order:move.angle`/`dest_angle` 1073741824 against
+/// 546111488 (5774) closed with the trade order's bit and the bearing; the
+/// window's keys went 472 → 167. run413's packet at logger 5776 holds the
+/// original's parked search equal to ours, 1,437 nodes against 1,437. Frame
+/// 5773's draws went 4 against 3,209 → agreeing, and the search's sixteen
+/// frames to 5788 agree. **The new word's delta: ours 63 draws and the
+/// original 61 on frame 5975, parting at index 49**: ours spends
+/// `Unit::think_scout+0xaba` where the original spends
+/// `Guy::init_real+0x52`. The AI sea scout `1/35`'s region scan accepts 46
+/// cells here against 45 there; past run357's window, widened on run414
+/// (`run414_s_word_frame_is_widened_whole`, block 5976).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_975;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1596,6 +1615,11 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_3776: (i64, i64) = (3_771, 4_027);
 /// block 5607 and 250 past it. **Since item 1106 the word is 5773**, block
 /// 5774, inside it (173 blocks after its first and 83 before its last).
 pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
+
+/// `run414_s_word_frame_is_widened_whole`'s window (item 1115): run414 over
+/// run346's game, blocks 5970..6226 — six blocks before the word 5975's
+/// block 5976 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_5975: (i64, i64) = (5_970, 6_226);
 
 /// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
 /// run347's game, blocks 4550..4806 — six blocks before the word 4555's
@@ -3120,7 +3144,11 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 24_000;
 /// the `army` mode, which the original leaves off for a walk home planned
 /// while the leader's current order is the `ATTACK` (`docs/PATHFINDER.md`
 /// §29). What stands is `1/23`'s `Action` and `move/angle` rows alone.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 2_634;
+///
+/// **2,634 → 0 on item 1115**: `1/23` is the caravan, and its trade order
+/// carries no bit 4 and its leg faces its bearing (`docs/CARAVAN.md`
+/// §11.3). run97's order records agree on every block.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 0;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
@@ -6681,9 +6709,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run357_s_word_frame_is_widened_whole"),
-        1106,
-        Some(WIDENING_SECOND_EAST_INDIES_5606),
+        Some("run414_s_word_frame_is_widened_whole"),
+        1115,
+        Some(WIDENING_SECOND_EAST_INDIES_5975),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

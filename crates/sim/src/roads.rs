@@ -466,7 +466,8 @@ impl Sim {
                     continue;
                 }
                 traversed += 1;
-                let (mut cost, z_val) = self.calc_road_cost(p, cur.z_val, who, d, avoid_sea);
+                let from = Pos::new(cur.x, cur.y);
+                let (mut cost, z_val) = self.calc_road_cost(p, from, cur.z_val, who, d, avoid_sea);
                 if self.trace_costs {
                     self.road_marks.push(RoadCostMark {
                         to: (nx, ny),
@@ -628,6 +629,7 @@ impl Sim {
     fn calc_road_cost(
         &mut self,
         p: Pos,
+        from: Pos,
         parent_z: i32,
         who: (Player, Player),
         dir: usize,
@@ -648,11 +650,18 @@ impl Sim {
             // Reachable only for a caravan whose `can_transport` admitted
             // the tile. `avoid_sea` is "both endpoints in one region", and
             // it is what run64's ocean nodes price at 155 + jitter.
-            total += if avoid_sea {
-                weight::SEA_AVOIDED
-            } else {
-                weight::SEA_ENTER
-            };
+            //
+            // **Without it, only the step off land pays** (`00686300`, the
+            // `pathfinder +0x8c == 0` arm): `+0xa8` is added when the
+            // **parent's** tile is not ocean, so a crossing between two
+            // regions pays the surcharge once, at the shore, and every sea
+            // tile after it costs the base and the jitter (run413's packet,
+            // `docs/CARAVAN.md` §11).
+            if avoid_sea {
+                total += weight::SEA_AVOIDED;
+            } else if self.world.tile_mask(from.tile()) & tile::SURFACE != tile::SURFACE_OCEAN {
+                total += weight::SEA_ENTER;
+            }
         } else {
             let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
             let friendly = match self.world.owner(c) {
@@ -1119,6 +1128,48 @@ mod tests {
         assert!(
             then.intersection(&seen).count() < then.len(),
             "and it expands nodes the first frame did not"
+        );
+    }
+
+    /// **Between two regions, only the step off land pays the sea**
+    /// (`calc_road_cost@00686300`, `docs/CARAVAN.md` §11, item 1115). With
+    /// `pathfinder +0x8c` clear, `+0xa8` is added when the node's parent
+    /// stands on land; a sea tile reached from the sea costs the base and
+    /// the jitter. With it set (both ends in one region), every sea tile
+    /// pays `+0xa4`. run413's packet holds East Indies' AI route to its
+    /// second island node for node with this, and 171 of 1,437 nodes
+    /// apart without it.
+    #[test]
+    fn a_sea_crossing_between_regions_pays_once_at_the_shore() {
+        let (mut sim, ..) = town(Pos::new(40, 40));
+        for x in 50..60 {
+            sim.world
+                .set_tile_mask(Pos::new(x, 20), tile::SURFACE_OCEAN);
+        }
+        let sea = centre_of(Pos::new(52, 20));
+        let (off_sea, off_land) = (centre_of(Pos::new(51, 20)), centre_of(Pos::new(49, 20)));
+        let price = |from: Pos, avoid_sea: bool| {
+            let mut s = sim.clone();
+            s.calc_road_cost(sea, from, 0, (0, 0), 2, avoid_sea).0
+        };
+        assert_eq!(
+            price(off_land, false) - price(off_sea, false),
+            weight::SEA_ENTER,
+            "the shore step pays"
+        );
+        let jitter = price(off_sea, false) - weight::BASE;
+        assert!(
+            (0..0x14).contains(&jitter),
+            "a sea step is the base and the jitter"
+        );
+        assert_eq!(
+            price(off_sea, true),
+            price(off_land, true),
+            "one region: every sea tile pays"
+        );
+        assert_eq!(
+            price(off_sea, true) - price(off_sea, false),
+            weight::SEA_AVOIDED
         );
     }
 

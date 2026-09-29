@@ -166,9 +166,10 @@ figures go into a walking animation, and their clocks are draws
 stays behind it as the *action* — which is why §6's gate reads
 `get_action` and not the current order.
 
-SEAM: the original's arrival facing is `find_angle(1, 0)`, the literal
+~~SEAM: the original's arrival facing is `find_angle(1, 0)`, the literal
 pair `do_trade` passes where `add_move_order@00616ed0` reads a direction.
-Nothing reads it until the unit arrives.
+Nothing reads it until the unit arrives.~~ **The facing is the bearing to
+the near city** (§11.3, item 1115).
 
 ## 5. The road — `Caravan::build_road@0073db10`
 
@@ -359,9 +360,11 @@ the route pointing the other way for the leg after this one.
 `add_move_facing_order`'s fifth, which is the order flag `1` — "the top
 segment of the unit's path stack is this move's" — so `do_move` walks what
 is already on the stack instead of planning. §4.1's arm passes `0` there
-and this one passes `1`. The same two arguments are also what
+and this one passes `1`. ~~The same two arguments are also what
 `add_move_order` hands `find_angle`, so the arrival facing of each is a
-literal: `find_angle(1, 0)` for §4.1 and `find_angle(1, 1)` here.
+literal: `find_angle(1, 0)` for §4.1 and `find_angle(1, 1)` here.~~ The
+arrival facing of each is the bearing from the caravan to the move's
+target (§11.3, item 1115).
 
 **The smoothing is perpendicular.** `to_x += dy/3` and `to_y −= dx/3` is
 the step vector turned a quarter turn, so the route is walked *beside*
@@ -375,7 +378,9 @@ compound down the chain.
 
 With no road — `build_road` answered 0 — the arm instead asks
 `UnitType::find_nearby_spot` for a point between `local_38` and `local_38 +
-0xc0` of the *other* city, swept from `find_angle(1, 0)` under
+0xc0` of the *other* city, swept from ~~`find_angle(1, 0)`~~ a
+`find_angle` whose register arguments the decompiler does not name (§11.3;
+not re-read) under
 `FILTER_NOT_ME`, and moves there only if it came back inside `local_38 +
 0xc6`. `local_38` is deliberately the footprint of the city the arrival
 test used, not of the one being walked to.
@@ -712,3 +717,109 @@ asked. With both, Great Lakes' word moves **14529 → 14650**
   past its call of `restart_trade_route` was not run: the probe stopped
   there. The port has neither: `Unit::close`'s caravan arm only gives the
   slot back. It is not modelled.
+
+## 11. A route across water: the region tests, the shore surcharge and the bearing (2026-09-28, item 1115)
+
+*Established from `Unit::do_trade@005ed270`, `PathFinder::calc_road_cost@00686300`
+and `Unit::add_move_order@00616ed0`, read off the listing where the
+decompiler printed register arguments as stack ones, and backed by
+**run413**, a packet at logger frame 5776 on East Indies at Toughest, with
+the second pair's word (`docs/AI.md` §85).*
+
+East Indies' AI founds its third city, Newcastle `1/2017`, on a second
+island (region 5) on 5518. Its first caravan `1/33`, trained on 5772,
+stands at London (region 11), whose one route (to Norwich) is taken. The
+only free partner is across the sea. This crate had never had a route
+cross water, and three pieces of it were wrong.
+
+### 11.1 The region tests — `do_trade@005ed270`
+
+`do_trade` asks `WorldData::get_tregion` (with its coastal refinement,
+this crate's `tregion_alt`) three times, and each time a difference is
+forgiven only by `UnitData::can_transport` on the caravan:
+
+| call returns at | compares | on failure |
+|---|---|---|
+| `005ed483` | the caravan's tile against its home city's | `LAB_005eda11`: the order dies |
+| `005ed631` | each candidate's tile against the **home city's** | the candidate is skipped |
+| `005ed920` | the caravan off the home's region, or the far city off it | `LAB_005eda11` |
+
+The first and third run on every call, arrivals included. ~~SEAM: the
+cross-region arm~~: this crate refused every candidate in another region,
+whatever the caravan could do. On East Indies that left `1/33` with no
+partner, and the failure arm (`idle = 99`, the order killed) is what it
+took where the original started the road. `1/33` has `unit_masks
+0x840000`, `can_transport`'s `0x800000`.
+
+**Not modelled**: the failure arm's AI tail. With `unit_masks & 0x40000`
+it `go_to_city`s the home owner's next city when one is alive. No capture
+reaches it.
+
+### 11.2 The shore surcharge — `calc_road_cost@00686300`
+
+On an ocean tile (`mask & 0x30 == 0x20`) the cost function has two arms on
+`pathfinder +0x8c`, "both road ends in one region":
+
+- **set**: `+0xa4` on every sea tile, which is run64's 155 + jitter;
+- **clear**: `+0xa8` only when the node's **parent** tile is not ocean.
+
+So a crossing between two regions pays the surcharge once, at the shore,
+and every sea tile after it costs the base (55) and the jitter. This crate
+added `+0xa8` on every sea tile. The difference is invisible to the draw
+stream until the search's order parts: ours kept the original's per-frame
+counts for three frames (3,203, 3,206 and 3,205) and parted on the fourth,
+5776, with 3,201 against 3,206.
+
+**run413** settles it: the original's parked search is in memory between
+frames (`CaravanData +0x28` the open `Tree<PathNode*,int>`, `+0x30` the
+closed `BRTree<PathNode*,ulong>`, `caravans` at VA `0xE3A290`). At logger
+frame 5776, after three search frames, it holds 158 open and 1,279 closed
+nodes. With the surcharge on every sea tile, ours held 1,436 and **171
+differed** in length or parent, the lowest-valued ones sea tiles south of
+London where a shared parent's step cost 57 there and 155 here. With the
+parent test, **1,437 against 1,437, none differing**.
+
+### 11.3 The move faces its bearing — `add_move_order@00616ed0`
+
+The decompiler prints `find_angle(param_3, param_4)`, the order kind and
+the pathed flag, and §4.1 and §7.1 read those as a literal facing.
+`find_angle@0092d130` takes its two arguments in `ecx` and `edx`, and
+`add_move_order` loads them at `616edc`..`616f1f` with the destination less
+the unit's own decoded position: **the bearing to the target**. The
+pushes the decompiler saw are `add_move_facing_order`'s. This crate's
+generic `add_move_order` already took the bearing from the same listing;
+only the caravan's calls carried the literal. run357's block 5774 reads
+546111488 on `1/33`'s move, the bearing to London's point, where this
+crate wrote 1073741824 (due east).
+
+**The trade order's bit 4.** `think_caravan` passes 0 as
+`add_trade_order@005e4dc0`'s last argument, which clears the order's
+`0x4`. This crate set it. `get_action` skips only a transit move without
+the bit, and a trade order is never a transit move, so nothing read it;
+run357's `order:flags` and `order:action` rows on `1/33` were all it
+changed.
+
+### 11.4 What is not established
+
+- **The failure arm's `go_to_city`** (§11.1).
+- **`find_nearby_spot`'s sweep angle** in §7.1's no-road arm, which the
+  decompiler prints as registers it does not name. Not modelled.
+- **`add_trade_order`'s transport tail**: a caravan in another region than
+  its home city gets `unit_masks |= 0x800000` when the leader's transport
+  setting allows it and `can_ever_transport`. Not modelled; `1/33` shares
+  London's region.
+
+### 11.5 Coverage
+
+- **Packet-backed**: the search, node for node on the packet (run413),
+  after three frames.
+- **Diff-backed**: run346's word moves 5773 → 5776 on §11.1 and 5776 →
+  5975 on §11.2; run357's `1/33` rows (`orders.len`, `order:flags`,
+  `order:action`, `order:move.angle`, `dest_angle`) close on §11.1 and
+  §11.3.
+- **Pinned capture-free**:
+  `cities_tests::a_caravan_trades_across_regions_only_when_it_can_transport`
+  and `roads::tests::a_sea_crossing_between_regions_pays_once_at_the_shore`.
+- **Listing-backed**: the facing (`616edc`..`616f1f`) and the three region
+  calls' return addresses.
+
