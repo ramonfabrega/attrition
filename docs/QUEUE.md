@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, twenty landings from `c78abbbe` — **the twentieth pass is
-due**: East Indies 6151 → 8907 (seven); Great Sahara 6/5 → 1850/1850,
-long word 8 → 17623 (seven); chapters thirty-eight to forty-one closed
-(1131, 1111, 1167, 1182, 1200).*
+*2026-09-29, twenty-one landings from `c78abbbe` — **the twentieth pass
+is due**: East Indies 6151 → 8907 (seven); **Great Sahara closed**, long
+word 8 → 24000, endpoint 0 off (eight); chapters thirty-eight to
+forty-one closed (1131, 1111, 1167, 1182, 1200).*
 
-- **Lanes at the stop, none refilled**: 1206 (Great Sahara's 17623,
-  measuring → 24000, the game's end, on run458) and 1209 (chapter
-  forty-two, measuring closed at 1160) land into the pass; 1214 waits.
+- **Lanes at the stop, none refilled**: 1209 (chapter forty-two,
+  measuring closed at 1160) lands into the pass; 1214 waits. What
+  succeeds the closed third map is the pass's (DECISIONS 53, 54).
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -31,17 +31,17 @@ long word 8 → 17623 (seven); chapters thirty-eight to forty-one closed
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 42 GB free.
-- **Fable backlog: 30 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205, 1208, 1213).
+- **Fable backlog: 31 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205, 1208, 1213, 1217).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w8907 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w17623 of 24,000
+Third map: GreatSahara w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · 1209 next
-Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
+Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twentieth Fable pass — twenty landings from `c78abbbe`;
-land 1206 and 1209 unrefilled, then the pass; 1214 after it.**
+land 1209 unrefilled, then the pass; 1214 after it.**
 
 ## The queue
 
@@ -50,14 +50,6 @@ word** (DECISIONS 41, 53, 55): the golden word for the rules, the third map's, a
 lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
-
-1206. **Great Sahara's word: frame 17623, ours 7 draws against 8**
-    (1194), at index 2: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, widened on run449
-    (blocks 17618..17874), where `1/52` is idle there and walking here on
-    17624 and `1/46`, `1/51` hold an order the original has finished;
-    block 17618 already stands on four of who=1's soldiers' positions,
-    parted in the gap 16933..17617 no dump covers. No mechanism is named.
 
 1214. **East Indies' second word: frame 8907, ours 2 draws against 28**
     (1197), at index 1: theirs `Unit::think_scout+0x941 < Unit::think+0x7da

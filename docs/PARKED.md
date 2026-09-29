@@ -116,6 +116,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1206, 2026-09-29 — Great Sahara's closing rows
+
+(1216) **Great Sahara's standing leader rows, past its close**: who=1's
+food (parked 1207) now has a reader — the goody lottery on 17682 pays
+food for wealth (run449, `bucket[2:wealth]` 119 against 194 on 17683);
+and run458's 23984 has `gather_stamp` 23983 against 23879 beside
+`MAKE[1].city` 2 against 1 on 23981 (parked 1195). None spends a draw,
+and the endpoint is 0 off.
+
 ## Parked by item 1197, 2026-09-29 — the thirty frames' unheld arms
 
 (1215) **A close's thirty-frame hold, held by the listing alone on four
@@ -2322,6 +2331,14 @@ block N and absent on N + 1 beside its firsts would have. **Again**
 `(who, o)` turned every unit above the slot into a standing key; it
 could compare `uid`, which the dump prints and this crate does not
 carry. Two reaches.
+
+(1217) **A map whose word reaches its trace's end owes five things
+nothing enumerates** (1206's Loop line): an `ENDPOINTS` row and its
+`Endpoint` part, the `AI_WORDS` row closed, the compared pin's window
+dropped with its fields re-pinned, the coverage driver's word block a
+constant, and a capture of the last blocks. 1206 found each by its
+failing guard; one guard naming all five when a word equals its length
+would save the next closing map a gate. One reach.
 
 (1205) **A command to another player's units reads the seat twice**
 (1182's Loop line): the DLL's guard reads it when the line is issued and
