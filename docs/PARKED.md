@@ -116,6 +116,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1191, 2026-09-29 — the dead boat's other arms
+
+(1198) **A boat that dies stepping ashore** (TRANSPORT §6.4): 1191's
+mutation B (the dead boat takes only the arrival arm) and C (every unit
+that dies in its own work) are held by no walk, and its
+sixty-fourth-frame collision repaint, which `Guy::process` would give
+it, is skipped here.
+
 ## Parked by item 1189, 2026-09-29 — the make list's standing rows, and the Indian arm
 
 (1195) **who=1's make list stands on every Great Sahara window**
@@ -2248,6 +2256,17 @@ clearing stood as a `SEAM` four days after item 695 landed the mesh's
 clearing door, and it was East Indies' 7512. A guard listing every
 `SEAM` whose text names a function this crate now carries would have
 put it in front. One reach.
+
+## Loop, filed 2026-09-29 — the twentieth tranche's
+
+The nineteenth pass's section reached its ceiling at 1193; its rows
+stand there, and this tranche's later ones start here.
+
+(1199) **An event whose actor is gone on the next block is invisible to
+a widening** (1191's Loop line): `1/56`'s arrival stand parted no key,
+and the scan that found it asked which figures *vanish* between two
+blocks, not which fields part. A widening listing the units present on
+block N and absent on N + 1 beside its firsts would have. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
