@@ -123,6 +123,9 @@ pub const TRACES: &[&str] = &[
     // Item 1102: chapter thirty-eight at `cover=1` on the queue lane to
     // 1030 (`docs/RUNS.md` run405), run404's game on every frame.
     "rontrace-run405.log", // ch38
+    // Item 1111: chapter thirty-nine at `cover=1` on the queue lane to 830
+    // (`docs/RUNS.md` run423), run422's game on every frame.
+    "rontrace-run423.log", // ch39
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -219,7 +222,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// named); **142** with item 1117's `Guy::set_pivot_angle@005d8fc0`
 /// (`docs/COMBAT.md` §85.2: turret 0 pointed ahead when no node bears),
 /// dead in the image — `Unit::move_step` carries it inline — and so on
-/// [`RESIDUE`] too.
+/// [`RESIDUE`] too. **139** with run423 (item 1111: chapter thirty-nine at
+/// `cover=1`, `docs/GOLDEN.md` §48; `SpellType::cast_to_arms@00670880` on
+/// 625, `cast_civilian@006704a0` on 665 and `cast_create_decoy@00674370`
+/// on 820, the three rows its staging named).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -235,7 +241,7 @@ pub const NEVER: &[u32] = &[
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
     0x0064_e4a0,
-    0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0068_3730,
+    0x0065_cfd0, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
