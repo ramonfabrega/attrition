@@ -72,6 +72,9 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         last_time: g.last_time.unwrap_or(-1) as i32,
         anim: g.cur_anim? as i8,
         gpiece: g.gpiece.unwrap_or(-1) as i32,
+        // The piece `init_real` read `guy_flags & 8` off: the dumped one,
+        // which is the answer the derivation gave before the field existed.
+        flag_piece: g.gpiece.unwrap_or(-1) as i32,
         stopped: g.stopped.unwrap_or(1) != 0,
         // `GuyData +0x9e` and `+0xa0`, the attack a guy owes and the one
         // queued behind it (`docs/ANIM.md` §6.2). **No `GUY` record
