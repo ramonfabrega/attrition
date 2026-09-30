@@ -169,7 +169,8 @@ pub(crate) fn walk_second_probed(
 /// item 1197 moved it to 8907, inside it; item 1214 moved it to 10183,
 /// and the walk to run462; item 1228 moved it to 10185, inside it; item
 /// 1243 moved it to 10985, and the walk to run480; item 1264 moved it to
-/// 11328, and the walk to run490. `None`
+/// 11328, and the walk to run490; item 1281 moved it to 11549, inside it;
+/// item 1297 moved it to 11637, and the walk to run506. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -181,7 +182,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run490-islands-toughest-11328.txt",
+        "gamelog-run506-islands-toughest-11637.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
