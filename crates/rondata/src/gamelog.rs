@@ -307,11 +307,50 @@ impl<'a> Block<'a> {
         }
     }
 
+    /// The block's fields under `key`, in file order, as the arena holds
+    /// them: found by the key's bytes, with no slice cut for a field that
+    /// is not the one asked for.
+    ///
+    /// **Why not `fields_raw().find(..)`** (parked 1138, the twentieth
+    /// pass). That cut two `&str` out of the text for every field it
+    /// passed — four boundary checks and a borrow of the arena each — to
+    /// compare one of them and drop both: a fifth of the diff suite's
+    /// processor time was `Log::field` and the `memcmp` under it, on
+    /// records of fifty fields read a key at a time. A key's length parts
+    /// most fields before a byte is compared.
+    ///
+    /// `f` answers whether to carry on. The arena is borrowed once for the
+    /// walk and `f` is handed a copy, so it may not ask this log for a
+    /// block — and the two callers cut a slice of the text and nothing
+    /// else.
+    fn named(&self, key: &str, mut f: impl FnMut(Field) -> bool) {
+        self.ensure();
+        let n = self.node();
+        let want = key.as_bytes();
+        let text = self.log.text.as_bytes();
+        let arena = self.log.arena.borrow();
+        for i in n.fields_at as usize..(n.fields_at + n.fields_len) as usize {
+            let field = arena.fields.get(i);
+            let at = field.key_at as usize;
+            if field.key_len as usize == want.len()
+                && text[at..at + want.len()] == *want
+                && !f(field)
+            {
+                return;
+            }
+        }
+    }
+
     /// The first value under `key`.
     pub fn get(&self, key: &str) -> Option<&'a str> {
         #[cfg(test)]
         reads::note(self.log, self.node, key);
-        self.fields_raw().find(|(k, _)| *k == key).map(|(_, v)| v)
+        let mut found = None;
+        self.named(key, |f| {
+            found = Some(f);
+            false
+        });
+        found.map(|f| self.log.slice(f.val_at, f.val_len))
     }
 
     /// The first value under `key`, parsed as an integer.
@@ -323,9 +362,14 @@ impl<'a> Block<'a> {
     pub fn all(&self, key: &str) -> Vec<&'a str> {
         #[cfg(test)]
         reads::note(self.log, self.node, key);
-        self.fields_raw()
-            .filter(|(k, _)| *k == key)
-            .map(|(_, v)| v)
+        let mut found = Vec::new();
+        self.named(key, |f| {
+            found.push(f);
+            true
+        });
+        found
+            .into_iter()
+            .map(|f| self.log.slice(f.val_at, f.val_len))
             .collect()
     }
 
@@ -808,6 +852,174 @@ impl<'a> Log<'a> {
     }
 }
 
+/// The whitespace `str::trim_end` and `str::trim_start` strip that is one
+/// byte long: `char::is_whitespace` over ASCII is the space and U+0009 to
+/// U+000D — the tab, the two line ends, and the vertical tab and form feed
+/// `u8::is_ascii_whitespace` leaves out of its own list.
+#[inline]
+fn is_space(b: u8) -> bool {
+    matches!(b, b' ' | b'\t'..=b'\r')
+}
+
+/// One line of a dump, cut the way both passes want it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Line<'a> {
+    /// The line as `str::lines` yields it — what a span's offset is taken
+    /// from.
+    line: &'a str,
+    /// Its leading spaces.
+    indent: usize,
+    /// The line less its leading spaces and its trailing whitespace. It
+    /// is empty for a line that was whitespace past its spaces.
+    text: &'a str,
+    /// Whether every byte of the line is ASCII, which is what lets a value
+    /// be trimmed by the byte.
+    ascii: bool,
+}
+
+impl<'a> Line<'a> {
+    /// `(key, value)`: the first token and the rest, the rest less its
+    /// leading whitespace. The empty value is cut from the text's own tail
+    /// rather than written as `""`: every span in the arena is an offset
+    /// into the text, and a literal is not in it.
+    #[inline]
+    fn key_value(&self) -> (&'a str, &'a str) {
+        let text = self.text;
+        let bytes = text.as_bytes();
+        let Some(p) = bytes.iter().position(|&b| b == b' ') else {
+            return (text, &text[text.len()..]);
+        };
+        let rest = &text[p + 1..];
+        let value = if self.ascii {
+            let skip = rest.bytes().take_while(|&b| is_space(b)).count();
+            &rest[skip..]
+        } else {
+            rest.trim_start()
+        };
+        (&text[..p], value)
+    }
+}
+
+/// A region's lines that are not blank, each cut once.
+///
+/// **This is `str::lines` and four trims, read by the byte** (parked 1138,
+/// the twentieth pass). The diff suite reads some hundreds of gigabytes of
+/// dump a run, in lines of twenty bytes, and half its processor time was
+/// this module cutting them: a `memchr` for the line's end, a decoding
+/// trim either side, a searcher for the first space and a trim after it,
+/// each a call and each starting over. One walk of the line finds its
+/// indent, its end and whether it is ASCII; an ASCII line is trimmed by
+/// the byte and any other goes to the trims it always had, so a line
+/// reads exactly as it did — `reference_line` is the old cut, kept for the
+/// test that holds this one to it on every line of a capture.
+struct Lines<'a> {
+    rest: &'a str,
+}
+
+impl<'a> Iterator for Lines<'a> {
+    type Item = Line<'a>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Line<'a>> {
+        loop {
+            let rest = self.rest;
+            let bytes = rest.as_bytes();
+            if bytes.is_empty() {
+                return None;
+            }
+            let mut indent = 0;
+            while indent < bytes.len() && bytes[indent] == b' ' {
+                indent += 1;
+            }
+            let mut end = indent;
+            let mut high = 0u8;
+            // Eight bytes at a time while eight are left: a byte of the
+            // word is `\n` where the word less a `\n` in every byte has a
+            // zero, and the lowest such byte is exact (the borrow that
+            // makes a false one runs upward from a true one).
+            const ONES: u64 = 0x0101_0101_0101_0101;
+            const TOPS: u64 = 0x8080_8080_8080_8080;
+            while let Some(chunk) = bytes.get(end..end + 8) {
+                let word = u64::from_le_bytes(chunk.try_into().expect("eight bytes"));
+                let x = word ^ (ONES * u64::from(b'\n'));
+                let hit = x.wrapping_sub(ONES) & !x & TOPS;
+                if hit != 0 {
+                    let n = (hit.trailing_zeros() / 8) as usize;
+                    let before = word & ((1u64 << (8 * n)) - 1);
+                    high |= u8::from(before & TOPS != 0) << 7;
+                    end += n;
+                    break;
+                }
+                high |= u8::from(word & TOPS != 0) << 7;
+                end += 8;
+            }
+            while end < bytes.len() && bytes[end] != b'\n' {
+                high |= bytes[end];
+                end += 1;
+            }
+            let ended = end < bytes.len();
+            self.rest = &rest[if ended { end + 1 } else { end }..];
+            // `str::lines` drops the `\n`, and one `\r` before it — and
+            // leaves a `\r` that ends the text with no `\n` after it.
+            let mut stop = end;
+            if ended && stop > 0 && bytes[stop - 1] == b'\r' {
+                stop -= 1;
+            }
+            // A line of `\r\n` alone has its one byte before the indent's
+            // end; it is blank either way.
+            if stop <= indent {
+                continue;
+            }
+            let ascii = high < 0x80;
+            let line = &rest[..stop];
+            let text = if ascii {
+                let mut last = stop;
+                while last > indent && is_space(bytes[last - 1]) {
+                    last -= 1;
+                }
+                &rest[indent..last]
+            } else {
+                rest[indent..stop].trim_end()
+            };
+            return Some(Line {
+                line,
+                indent,
+                text,
+                ascii,
+            });
+        }
+    }
+}
+
+/// The cut [`Lines`] replaced, line for line as `fill` and `index_tail`
+/// made it until the twentieth pass: what the new one is held to.
+#[cfg(test)]
+fn reference_lines(region: &str) -> Vec<(Line<'_>, (&str, &str))> {
+    let mut out = Vec::new();
+    for line in region.lines() {
+        let trimmed = line.trim_start_matches(' ');
+        if trimmed.is_empty() {
+            continue;
+        }
+        let indent = line.len() - trimmed.len();
+        let trimmed = trimmed.trim_end();
+        let (key, value) = match trimmed.find(' ') {
+            Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
+            None => (trimmed, &trimmed[trimmed.len()..]),
+        };
+        out.push((
+            Line {
+                line,
+                indent,
+                text: trimmed,
+                ascii: line.is_ascii(),
+            },
+            (key, value),
+        ));
+    }
+    out
+}
+
 /// Reads `region` — a whole text, or one indexed block's own — into
 /// `arena`.
 ///
@@ -854,14 +1066,14 @@ fn fill<'a>(
         // still worth offering.
         let mut split = false;
         let mut try_lazy = lazy;
-        let mut lines = region.lines();
-        while let Some(line) = lines.next() {
-            let trimmed = line.trim_start_matches(' ');
-            if trimmed.is_empty() {
-                continue;
-            }
-            let indent = line.len() - trimmed.len();
-            let trimmed = trimmed.trim_end();
+        let mut lines = Lines { rest: region };
+        while let Some(cut) = lines.next() {
+            let Line {
+                line,
+                indent,
+                text: trimmed,
+                ..
+            } = cut;
             if let Some(name) = trimmed.strip_prefix("BEGIN ") {
                 if let Some(t) = trailing.take() {
                     commit(log, &mut stack, &mut pool, t);
@@ -890,7 +1102,9 @@ fn fill<'a>(
                         split = true;
                         // The index reads to the end unless a line closes
                         // the parent; the eager pass picks up there.
-                        lines = region[(stop - base) as usize..].lines();
+                        lines = Lines {
+                            rest: &region[(stop - base) as usize..],
+                        };
                         continue;
                     }
                     // The tail is a shape the index cannot model, so it is
@@ -922,13 +1136,7 @@ fn fill<'a>(
                 o.node = node;
                 stack.push(o);
             } else {
-                let (key, value) = match trimmed.find(' ') {
-                    Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
-                    // The empty value is cut from the text's own tail rather
-                    // than written as `""`: every span in the arena is an
-                    // offset into `text`, and a literal is not in it.
-                    None => (trimmed, &trimmed[trimmed.len()..]),
-                };
+                let (key, value) = cut.key_value();
                 let field = Field {
                     key_at: off(key),
                     key_len: key.len() as u32,
@@ -1040,13 +1248,13 @@ fn index_tail<'a>(
     // `GAME` *and* to the preamble). It is one line, so it is read rather
     // than modelled.
     let mut stop = end_of_rest;
-    for line in rest.lines() {
-        let trimmed = line.trim_start_matches(' ');
-        if trimmed.is_empty() {
-            continue;
-        }
-        let indent = line.len() - trimmed.len();
-        let trimmed = trimmed.trim_end();
+    for cut in (Lines { rest }) {
+        let Line {
+            line,
+            indent,
+            text: trimmed,
+            ..
+        } = cut;
         let begins = trimmed.starts_with("BEGIN ");
         if indent < child_indent {
             stop = off(line);
@@ -1069,10 +1277,7 @@ fn index_tail<'a>(
             spans.push((name, off(line)));
             span_open = true;
         } else {
-            let (key, value) = match trimmed.find(' ') {
-                Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
-                None => (trimmed, &trimmed[trimmed.len()..]),
-            };
+            let (key, value) = cut.key_value();
             fields.push(Field {
                 key_at: off(key),
                 key_len: key.len() as u32,
@@ -5173,5 +5378,195 @@ BEGIN GAME
         assert_eq!(o.in_group, Some(0));
         // And nothing from the attack row leaks onto it.
         assert_eq!((o.mandatory, o.ox, o.whom), (None, None, None));
+    }
+
+    /// Where a slice sits and how long it is: two cuts agree when they are
+    /// the same bytes of the same text, not when they spell alike — a span
+    /// in the arena is an offset.
+    fn span(s: &str) -> (usize, usize) {
+        (s.as_ptr() as usize, s.len())
+    }
+
+    /// `(lines compared, the first that differs)` for one text.
+    fn cut_against_the_reference(text: &str) -> (usize, Option<String>) {
+        let old = reference_lines(text);
+        let new: Vec<Line<'_>> = Lines { rest: text }.collect();
+        if old.len() != new.len() {
+            return (
+                old.len().min(new.len()),
+                Some(format!(
+                    "{} lines by the old cut, {} by the new",
+                    old.len(),
+                    new.len()
+                )),
+            );
+        }
+        for (i, ((was, (key, value)), now)) in old.iter().zip(&new).enumerate() {
+            let (k, v) = now.key_value();
+            let same = span(was.line) == span(now.line)
+                && was.indent == now.indent
+                && span(was.text) == span(now.text)
+                && was.ascii == now.ascii
+                && span(key) == span(k)
+                && span(value) == span(v);
+            if !same {
+                return (
+                    i,
+                    Some(format!(
+                        "line {i} {:?}: was indent {} text {:?} key {key:?} value {value:?}, \
+                         is indent {} text {:?} key {k:?} value {v:?}",
+                        was.line, was.indent, was.text, now.indent, now.text
+                    )),
+                );
+            }
+        }
+        (new.len(), None)
+    }
+
+    /// The byte-wise cut is the old cut (parked 1138, the twentieth pass):
+    /// every shape a trim can disagree on, authored, and then every line
+    /// of a capture's head and of a window of its frames.
+    #[test]
+    fn the_lines_are_cut_as_they_always_were() {
+        let authored = [
+            "BEGIN GAME\n BEGIN WORLD\n  seed 7236\n  xs 60\n",
+            // A value kept whole, spaces inside it and a run before it.
+            "name   The  Art of War  \n key\n key \n  k v\n",
+            // Carriage returns: before the line's end, alone on a line,
+            // and ending a text that has no line end after it.
+            " who 0\r\n\r\n  \r\n tribe 3\r\n last 1\r",
+            " \r",
+            "\r",
+            // Whitespace that is not a space: a tab is no indent, and a
+            // line of one is a field with an empty key.
+            "\tkey\tvalue\n \t\n  \x0b\n key \x0c value\x0c\x0b\t\n",
+            // Blank lines, a line of spaces, no line end at the end.
+            "\n\n   \n a 1\n\n b 2",
+            // Beyond ASCII: a no-break space and an em space are
+            // whitespace to a trim and not to a byte.
+            " nom Bo\u{e4}dicea \n key \u{a0}value\u{a0}\n k\u{2003} v\u{2003}\n \u{a0}\n clé  é\n",
+            " key \u{a0}",
+            // A line read eight bytes at a time: what is past its end in
+            // the same eight is the next line's, and the line is ASCII
+            // or not by its own bytes alone.
+            "abcdefgh 12\n\u{e9}t\u{e9} 3\nabc 1\n\u{e9} 2\nabcdefghij\u{e9}\nxy 1\n",
+            "   key 0123456789abcdef0123456789\n\u{2003}\n  k 1\r\n\u{e9}\r\n",
+            "",
+            " ",
+            "x",
+        ];
+        let mut lines = 0;
+        for text in authored {
+            let (n, differs) = cut_against_the_reference(text);
+            assert_eq!(differs, None, "in {text:?}");
+            lines += n;
+        }
+        assert_eq!(lines, 36, "the authored half's lines that are not blank");
+        // The cut that is a field with an empty key, spelled out: the old
+        // reader made one of a line of whitespace past its indent.
+        let odd: Vec<_> = Lines { rest: " \t\n" }.collect();
+        assert_eq!(odd.len(), 1);
+        assert_eq!(
+            (odd[0].indent, odd[0].text, odd[0].key_value()),
+            (1, "", ("", ""))
+        );
+
+        let Some(path) = crate::testenv::dump("gamelog-run87-greatlakes-blockedwalker.txt") else {
+            eprintln!("skipping the capture half: no dumps (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::capture::read(&path);
+        let head = text.len().min(64_000_000);
+        let head = text[..head].rfind('\n').map_or(head, |i| i + 1);
+        let (n, differs) = cut_against_the_reference(&text[..head]);
+        assert_eq!(differs, None, "in the capture's head");
+        assert!(n > 1_000_000, "the capture's head cut {n} lines");
+        // And its last frames, where a shutdown's lines are.
+        let tail = text.len().saturating_sub(16_000_000);
+        let tail = text[tail..].find('\n').map_or(tail, |i| tail + i + 1);
+        let (n, differs) = cut_against_the_reference(&text[tail..]);
+        assert_eq!(differs, None, "in the capture's tail");
+        assert!(n > 100_000, "the capture's tail cut {n} lines");
+    }
+
+    /// A key is found by its bytes, and the first of a repeat is the one
+    /// `get` answers with (parked 1138).
+    #[test]
+    fn a_key_is_found_by_its_bytes() {
+        let log = Log::parse_eager(
+            "BEGIN GAME\n BEGIN UNITDATA\n  who 1\n  whom 7\n  wh 3\n  tx 1\n  ty 2\n  tx 3\n  \
+             who 9\n  empty\n",
+        );
+        let unit = log.game().and_then(|g| g.kid("UNITDATA")).expect("a unit");
+        assert_eq!(unit.get("who"), Some("1"), "the first of two");
+        assert_eq!(unit.get("whom"), Some("7"), "a key that another begins");
+        assert_eq!(unit.get("wh"), Some("3"), "a key that begins another");
+        assert_eq!(unit.get("w"), None);
+        assert_eq!(unit.get("whos"), None, "the same length, another byte");
+        assert_eq!(unit.get("empty"), Some(""));
+        assert_eq!(unit.get(""), None);
+        assert_eq!(unit.all("tx"), ["1", "3"]);
+        assert_eq!(unit.all("who"), ["1", "9"]);
+        assert_eq!(unit.all("none"), Vec::<&str>::new());
+        assert_eq!(unit.int("ty"), Some(2));
+    }
+
+    /// The reader's own price, for the pass that changes it (parked 1138):
+    /// `cargo test --release -p rondata the_reader_is_timed -- --ignored
+    /// --nocapture`. It asserts nothing; it prints the three costs the
+    /// suite's profile is made of — the index of a whole capture, the eager
+    /// read of its head, and a field found by key on every block.
+    #[test]
+    #[ignore = "a measurement, not a check"]
+    fn the_reader_is_timed() {
+        let name = std::env::var("RON_BENCH_LOG")
+            .unwrap_or_else(|_| "gamelog-run445-islands-toughest-8820.txt".to_string());
+        let Some(path) = crate::testenv::dump(&name) else {
+            eprintln!("skipping: no dumps (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::capture::read(&path);
+        let mb = text.len() as f64 / 1e6;
+        let t = std::time::Instant::now();
+        let lazy = Log::parse(&text);
+        let indexed = t.elapsed();
+        eprintln!(
+            "reader: {name} {mb:.0} MB; parse (head read, tail indexed, {} blocks): {:.0} ms, {:.0} MB/s",
+            lazy.indexed(),
+            indexed.as_secs_f64() * 1e3,
+            mb / indexed.as_secs_f64()
+        );
+        let cut = text.len().min(200_000_000);
+        let cut = text[..cut].rfind('\n').map_or(cut, |i| i + 1);
+        let t = std::time::Instant::now();
+        let eager = Log::parse_eager(&text[..cut]);
+        let read = t.elapsed();
+        let fields = eager.arena.borrow().fields.len();
+        let nodes = eager.arena.borrow().nodes.len();
+        eprintln!(
+            "reader: eager read of {:.0} MB: {:.0} ms, {:.0} MB/s, {nodes} blocks, {fields} fields",
+            cut as f64 / 1e6,
+            read.as_secs_f64() * 1e3,
+            cut as f64 / 1e6 / read.as_secs_f64()
+        );
+        let t = std::time::Instant::now();
+        let mut found = 0usize;
+        let mut asked = 0usize;
+        for id in 0..nodes as u32 {
+            let b = Block {
+                log: &eager,
+                node: id,
+            };
+            for key in ["who", "z_internal", "flags", "no_such_key"] {
+                asked += 1;
+                found += usize::from(b.get(key).is_some());
+            }
+        }
+        let got = t.elapsed();
+        eprintln!(
+            "reader: {asked} gets, {found} found: {:.0} ms, {:.0} ns a get",
+            got.as_secs_f64() * 1e3,
+            got.as_secs_f64() * 1e9 / asked as f64
+        );
     }
 }

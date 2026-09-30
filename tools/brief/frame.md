@@ -30,7 +30,10 @@ the documents the item's own words cite.
 **The frame and the draw delta are the booking. Anything else in it is
 the item before's hypothesis** — a mechanism, and **the direction too**:
 which side acted (778, 1076). An event the booking names is cited with
-the record that shows it, or it is not yet an event.
+the record that shows it, or it is not yet an event. **A type or an
+object a booking names is a supposition too** (1213): a chapter is its
+census row's functions, and the listing of the arm's predicate says what
+enters it.
 
 ## lanes
 
@@ -61,22 +64,30 @@ Before any reading of the original, in this order:
    booked (737).
 4. **Read the first parting's field list, not its unit** (758), both
    directions, every unit on the block; **walk the object back to its
-   first parted field** before calling a block quiet (1046). A parked
-   row that shares the word's frames is a candidate for its mechanism
-   (1060). A unit that is a captain has its members' rows read on the
+   first parted field** before calling a block quiet (1046). **A first
+   row is no cause until the same key is read on every other unit of
+   the window** (1155), and **an actor that is gone parts no key**: list
+   the units on one block and not on the next beside the firsts (1199).
+   A parked row that shares the word's frames is a candidate for its
+   mechanism (1060). A unit that is a captain has its members' rows read on the
    same block (958); a group move names the slot's `GROUPDATA` on both
    sides of the gap (875); a route parting reads every proxied step the
    disk holds (914).
 5. **Count the writers of the field that parted**, by its offset in
    every spelling, never by its name alone (823, 869); rows booked under
    one mechanism have their writers counted first (889).
-6. **Grep the compared pin for the word's record** (772), and name a
-   standing floor row whose field has a live reader (769, 834). **A row
-   that agrees is quiet, not proven**, while another writer reached the
-   state or a value it reads is wrong elsewhere (898, 1039).
-7. **Grep every `SEAM` on the draw's call chain** (830, 860). A seam
-   that says no capture holds its arm is an absence as of the day it was
-   written: run its `scan:`, or write one (1132).
+6. **Grep the compared pin for the word's record** (772), and **pipe
+   the widening's `RON_FIRSTS=1` print through `python3
+   tools/standing.py`**: a standing field this crate reads is named in
+   your journal with both sides' values, read or not (769, 834, 1162,
+   1187). A row three widenings pin is a rule and not a residue (1176).
+   **A row that agrees is quiet, not proven**, while another writer
+   reached the state or a value it reads is wrong elsewhere (898, 1039).
+7. **Run `python3 tools/seams.py --item {item}`**, and again with the
+   parted fields' readers by name: every live `SEAM` and every "not
+   modelled" paragraph that names the draw's chain (830, 860, 1146,
+   1159, 1193). A seam that says no capture holds its arm is an absence
+   as of the day it was written: run its `scan:`, or write one (1132).
 8. **A parked row is the item before's wording, never a citation**:
    grep its nouns — a function against the export's index, a `NEVER`
    against `blind.rs`, a rule against its document's struck text (1010,
@@ -94,7 +105,9 @@ Before any reading of the original, in this order:
   964).
 - **An inlined idiom called "the same as" a named function has that
   function's listing quoted beside it** (1065). **A vtable slot the
-  export names by a folded function is read off the PE** (1090).
+  export names by a folded function is read off the PE** (1090). **A
+  function whose export prints `unaff_` arguments is read at each call
+  site's listing**, caller by caller (1166).
 
 ## capture
 
@@ -119,6 +132,15 @@ Before any reading of the original, in this order:
   whose exit wakes you, then end your turn. Read the log before acting
   on the exit. If you wait on the capture lane for another lane's
   capture, say for how many minutes in your journal.
+- **The lane says its own state** (1180): `source
+  tools/gamelog/winelaunch.sh; ron_lane_state` prints `free`, `stale`
+  with the reason, or `held by` with the holder. A stale lock is taken
+  over by the next launch; never remove one by hand. **A first take
+  that dies before frame 0 is taken again once** before anything is
+  read into it (1150).
+- **A release node is read with the `get_position` sweep on a packet**,
+  and the item that reaches it next commits the sweep under
+  `tools/recomp/` (1208).
 
 ## chapter
 
@@ -133,6 +155,11 @@ Before any reading of the original, in this order:
   that cites an address only for context chooses between the address
   and the pin (943). A `cover=1` batch is ranked by the `NEVER` rows
   each staging names (1033).
+- **A script that stages nothing still exits `success: true`** (1170):
+  walk it with `stage_walk` before the capture, and read a bare `tech`
+  as the report it is. **A command to another player's units holds `be`
+  across the pump** (1205): the seat is read when the line is issued
+  and again when the package is walked.
 - **A table row that will not fit says where the row goes** (932, 949).
 - A chapter's script never writes a frame below its predecessor's; the
   interpreter clamps it and a test refuses it.
@@ -175,6 +202,15 @@ Before any reading of the original, in this order:
   a file, never piped, in the background; read its exit before you say
   anything landed, and quote its `Lane verdict:` and `Gate steps:` lines
   (969). Its verdict is a second commit.
+- **When `ccc update` refuses on two sections appended at one anchor,
+  or on a count two lanes re-pinned, merge by hand and keep both**
+  (1161), and measure a re-pinned count again on the merged tree: the
+  compared pin is the union of every window walked (1151).
+- **A word that reaches its trace's end owes five things** (1217): an
+  `ENDPOINTS` row and its `Endpoint` part, the `AI_WORDS` row closed,
+  the compared pin's window dropped with its fields re-pinned, the
+  coverage driver's word block a constant, and a capture of the last
+  blocks.
 - **The constants and their widenings are yours to pin; the queue's
   lines are mine.** Do not touch `docs/QUEUE.md`, `docs/PARKED.md`,
   `docs/JOURNAL.md` or `docs/DECISIONS.md`: report what should book and
