@@ -15649,7 +15649,12 @@ fn stage_walk() {
         }
         now.push((
             "leader0".into(),
-            format!("L 0 buckets {:?}", s.ledgers[0].bucket),
+            // Item 1268: the rare mask beside the buckets, which the
+            // library line's tail reads (`has_rare`).
+            format!(
+                "L 0 buckets {:?} rare {:#x}",
+                s.ledgers[0].bucket, s.ledgers[0].rare
+            ),
         ));
         // Item 1182: each city's members and its attack bits, which the
         // computer's sortie reads (`city_flags & 3`).
