@@ -2282,11 +2282,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // with only run439's window walked `job_counter` returns to this pin.
     // **Item 1221 opened the third map at Toughest**: its word's window on
     // run471, 5375..5378, holds an unfinished site, so `job_counter` is
-    // compared and off this pin again.
+    // compared and off this pin again. **Item 1281 moved East Indies' window
+    // to run490's 11548..11551**, and with item 1275's Toughest window on
+    // 8377..8380 neither holds an unfinished site (measured on the tree
+    // merged with 1275's and 1278's landings): `job_counter` returns.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
