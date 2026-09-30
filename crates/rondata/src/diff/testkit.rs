@@ -1577,7 +1577,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_549;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **8182 since item 1264** (`docs/TECH.md` step 8): who=1's Tower is a
+/// **8377 since item 1275**: run470 parts on frame 8377, **ours 17 draws
+/// against the original's 19, at index 0** — ours opens on
+/// `Leader::make_stuff+0x221` where the original's first is
+/// `Leader::use_market+0x1ed`. Widened on run491 (block 8378), inside
+/// 8182's window.
+///
+/// It was **8182** before that (item 1264), ours 8 against 7 at index 2:
+/// a `Leader::make_stuff+0x63d` the original did not spend. The Barracks
+/// `1/2017` took one King's Longbowman and then the Hoplites where the
+/// original took two: the second's 74 wealth was the unit who=1's
+/// `leftover` paid in on 8182, parted since 6591, when caravan `1/52`'s new
+/// route 2 ↔ 3 had the original's `do_trade` re-sum city 2's delivered
+/// route at today's value, 176 → 184 (`docs/AI.md` §99.10). **The move's
+/// value diff**: run495 block 6592, who=1's `income[2:wealth]` ours 992
+/// against 1000 → both 1000, and the goods agree on every block
+/// 6030..7066; run491 block 8183, `num_queued[128]` 2 against 3 and
+/// `1/2017`'s `queue[2].type` 132 against 178 → agreeing; run491 parts on
+/// 530 keys where it parted on 967.
+///
+/// **The move 7785 → 8182** (item 1264, `docs/TECH.md` step 8): who=1's Tower is a
 /// Keep in the original's `num_buildings` from the Keep's gain (Tower 1,
 /// Keep 0 through run476's 6033; Tower 0, Keep 1 from run483's 7065), and
 /// this crate kept a Tower, so `create_buildings` saw no Keep and the make
@@ -1623,7 +1642,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_549;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_182;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_377;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5233,6 +5252,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 /// `resources[3:knowledge]` 160 against 240 from 769, both agree.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 
+/// **Chapter forty-six's golden word** (`docs/GOLDEN.md` §55, item
+/// 1278, run496): **opens at 1902**, the squad's landing — ours 3 draws
+/// against 2, parting at index 0: ours `0/8`'s `Guy::set_anim+0x97a <
+/// Guy::move+0x19f`, the original's first `Farms::inc_time+0x1ae`. The
+/// value diff on block 1902: the original's `0/7`, `0/8` and `0/9` hold
+/// one `GroupMoveOrder` each (group 1901300, `form_id` 0, 1, 2); ours
+/// `orders.len` 3, 2 and 1, and `0/9` at (14856, 31224) against (14904,
+/// 31224), `0/8`'s and `0/9`'s heading 1073741824 against 1084948480.
+/// Everything before it agrees but the standing families, the prune on
+/// 1049 included (`1/2`'s `order:gather.wait` −1 on block 1050).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 1902;
+
+/// `chapter_forty_six_s_word_frame_is_widened_whole`'s window: run496
+/// whole, 605 to its end (block 2199 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_SIX: (i64, i64) = (605, 2201);
+
 /// `chapter_forty_five_s_word_frame_is_widened_whole`'s window: run492
 /// whole, 600 to its end (block 1649 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_FIVE: (i64, i64) = (600, 1651);
@@ -5746,6 +5781,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
     ("chapter_forty_three_holds_to_the_golden_word", 3),
     ("chapter_forty_three_s_word_frame_is_widened_whole", 3),
+    // Chapter forty-six (item 1278) is chapter forty-three's cast: the same
+    // three shots at the who=1 Citizen X.
+    ("chapter_forty_six_holds_to_the_golden_word", 3),
+    ("chapter_forty_six_s_word_frame_is_widened_whole", 3),
     // Chapter forty-one (item 1182): the Biplane's two EXITs from its
     // Airbase on the computer's sorties, 808 and 1470, each a read of the
     // ground under the base's point.
@@ -7319,6 +7358,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1278: run496, chapter forty-six, the squad's landing and
+    // `all_gathering`'s prune. The widening is run496 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_SIX",
+        GOLDEN_WORD_CHAPTER_FORTY_SIX,
+        Some("chapter_forty_six_s_word_frame_is_widened_whole"),
+        1278,
+        Some(WIDENING_CHAPTER_FORTY_SIX),
+    ),
     // Item 1268: run492, chapter forty-five, `get_cost`'s library-line
     // tail on the golden start. The widening is run492 whole.
     (
@@ -7496,12 +7544,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
     // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
     // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
-    // 8177..8433 (item 1264).
+    // 8177..8433 (item 1264), and the word 8377 on the same blocks (item
+    // 1275).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run491_s_word_frame_is_widened_whole"),
-        1264,
+        1275,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8182),
     ),
 ];

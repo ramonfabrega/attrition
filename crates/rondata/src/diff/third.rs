@@ -83,6 +83,8 @@ pub(crate) fn walk_sahara_from(start: &str, (gamelog, tracelog): (&str, &str)) -
         built.tick();
         crate::diff::harness::debug_leader(&built, at);
         crate::diff::harness::debug_ammo(&built, at);
+        crate::diff::harness::debug_builds(&built, at);
+        crate::diff::harness::debug_tech(&built, at);
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);

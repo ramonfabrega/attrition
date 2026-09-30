@@ -2018,6 +2018,64 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
     })
 }
 
+/// `RON_DEBUG_TECH=<lo>-<hi>` — every computer leader's held types: the
+/// whole set on the window's first frame, then each one gained or lost,
+/// by frame and name, with `ages` and the four epochs beside it.
+#[cfg(test)]
+pub(crate) fn debug_tech(built: &Built, frame: i64) {
+    use std::cell::RefCell;
+    thread_local! {
+        static LAST: RefCell<Vec<Vec<bool>>> = const { RefCell::new(Vec::new()) };
+    }
+    let Some((lo, hi)) = site_window_named("RON_DEBUG_TECH") else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    let name = |t: usize| built.sim.tech_tree.types[t].name.clone();
+    LAST.with(|last| {
+        let mut last = last.borrow_mut();
+        last.resize(built.sim.players.len(), Vec::new());
+        for w in 0..built.sim.players.len() {
+            if built.sim.nation[w].human || built.sim.defeated[w] {
+                continue;
+            }
+            let p = &built.sim.tech[w];
+            let held: Vec<bool> = (0..p.tech.len())
+                .map(|t| p.tech[t] || p.obs.get(t).copied().unwrap_or(false))
+                .collect();
+            let changed: Vec<String> = if last[w].len() != held.len() {
+                (0..held.len())
+                    .filter(|&t| p.tech[t])
+                    .map(|t| format!("{t}:{}", name(t)))
+                    .collect()
+            } else {
+                (0..held.len())
+                    .filter(|&t| held[t] != last[w][t])
+                    .map(|t| {
+                        format!(
+                            "{}{t}:{}{}",
+                            if p.tech[t] { "+" } else { "-" },
+                            name(t),
+                            if p.obs[t] { "(obs)" } else { "" }
+                        )
+                    })
+                    .collect()
+            };
+            if !changed.is_empty() {
+                eprintln!(
+                    "  f{frame} T{w} ages {} epoch {:?}: {}",
+                    p.ages,
+                    p.epoch,
+                    changed.join(" ")
+                );
+            }
+            last[w] = held;
+        }
+    });
+}
+
 /// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
 /// queue over a window, on any capture [`run_traced`] or a hand-rolled loop
 /// drives. The dump's `BUILDDATA` prints `orig_type`, `job_counter`,
@@ -2037,7 +2095,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     for b in built.sim.buildings.iter().filter(|b| b.alive) {
         let ty = b.orig_ty.map_or_else(
             || "-".to_string(),
-            |t| format!("{:?}", built.sim.build_types[t].ident),
+            |t| format!("{:?}#{t}", built.sim.build_types[t].ident),
         );
         let q: Vec<String> = b
             .queue

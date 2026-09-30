@@ -13350,6 +13350,32 @@ fn chapter_forty_five_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-six** — three arms a unit test alone held
+/// (`docs/GOLDEN.md` §55, item 1278, run496): chapter forty-three's cast
+/// with its barge landing the squad (`Sim::disembark_squad`), and who=1's
+/// City training a Citizen under a two-point gather list onto its
+/// Woodcutter's Camp (`all_gathering`'s prune). Eighteen staged lines.
+#[test]
+fn chapter_forty_six_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch46", "chapter46", 46, 18, 2199) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-six: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_SIX,
+        "chapter forty-six's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_SIX}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_SIX,
+        "chapter forty-six's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §55"
+    );
+}
+
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
 /// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
@@ -13640,6 +13666,434 @@ const WANT_CH44: &[&str] = &[
     "613 0/6 form",
     "671 0/-1 leader:treaties[1]",
     "671 1/-1 leader:treaties[0]",
+];
+
+/// **run496 whole, both directions** (item 1278, `docs/GOLDEN.md` §55):
+/// every dumped record on every block, the leaders at `LEADERS=5`, and
+/// who=0's `GROUPDATA` pool.
+#[test]
+fn chapter_forty_six_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch46",
+        "chapter46",
+        WIDENING_CHAPTER_FORTY_SIX,
+        2199,
+        0,
+        (1899, 1903),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch46 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch46: {} rows", got.len());
+    let pool = widen_pool("ch46", "chapter46", WIDENING_CHAPTER_FORTY_SIX, 0)
+        .expect("run496 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch46 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH46.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch46: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH46_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch46: what parts in the pool moved");
+}
+
+/// Chapter forty-six's widening rows (item 1278): run496 whole, 605 to
+/// 2200 (`docs/GOLDEN.md` §55). **The chapter opens with a parting at
+/// 1902**, the squad's landing, and ends there: the word is the next
+/// item's.
+///
+/// - **Before 1902, the standing families only** (44 rows): the birth
+///   `form` (parked 1169; the trained Citizen W `1/6`'s on 726 and X
+///   `1/7`'s on 1401), the first block's census (parked 1183) and
+///   `filled_gather_slots`, and chapter forty-three's rows under their
+///   own frames — the pushed squad's `order:group.id` on 1302, the
+///   barge's `path_recursion` on 1357, the treaty and raid stamps of X's
+///   staging, the Chariot's turret on 1479, and X's `DEATH` record on
+///   1487. `all_gathering`'s prune on 1049 agrees: `1/2`'s
+///   `order:gather.wait` −1 and `1/2001`'s `gather_down` 2 on block 1050.
+/// - **From 1902, the word's** (305 rows): the squad's orders, headings
+///   and places on 1902 (ours stacks three moves on `0/7`, two on `0/8`
+///   and one on `0/9`, the original one each; `0/9` at (14856, 31224)
+///   against (14904, 31224)), then the stream a draw out, through every
+///   unit that rolls.
+const WANT_CH46: &[&str] = &[
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "611 0/6 form",
+    "613 0/7 form",
+    "613 0/8 form",
+    "613 0/9 form",
+    "704 0/10 form",
+    "726 1/6 form",
+    "1302 0/7 order:group.id",
+    "1302 0/8 order:group.id",
+    "1302 0/9 order:group.id",
+    "1357 0/10 path_recursion",
+    "1401 1/7 form",
+    "1404 0/-1 leader:treaties[1]",
+    "1404 1/-1 leader:treaties[0]",
+    "1426 1/2000 city:raid_stamp",
+    "1479 0/6 g.des_turret0[0]",
+    "1479 0/6 g.turret0[0]",
+    "1487 1/7 death:extra",
+    "1902 0/7 order:length",
+    "1902 0/7 orders.len",
+    "1902 0/7 path:length",
+    "1902 0/8 angle:Facing",
+    "1902 0/8 angle:Heading",
+    "1902 0/8 g.angle[0]",
+    "1902 0/8 g.des_angle[0]",
+    "1902 0/8 heading",
+    "1902 0/8 order:length",
+    "1902 0/8 orders.len",
+    "1902 0/8 path:length",
+    "1902 0/9 g.angle[0]",
+    "1902 0/9 g.des_angle[0]",
+    "1902 0/9 g.des_x[0]",
+    "1902 0/9 g.x[0]",
+    "1902 0/9 heading",
+    "1902 0/9 pos",
+    "1903 0/7 half_step",
+    "1903 0/7 order:coll",
+    "1903 0/7 path[0].tolerance",
+    "1903 0/8 g.avg_speed[0]",
+    "1903 0/8 g.cur_anim[0]",
+    "1903 0/8 g.cur_time[0]",
+    "1903 0/8 g.des_x[0]",
+    "1903 0/8 g.end_time[0]",
+    "1903 0/8 g.last_speed[0]",
+    "1903 0/8 g.last_time[0]",
+    "1903 0/8 g.stopped[0]",
+    "1903 0/8 g.x[0]",
+    "1903 0/8 pos",
+    "1904 0/7 g.avg_speed[0]",
+    "1904 0/7 g.des_x[0]",
+    "1904 0/7 g.last_speed[0]",
+    "1904 0/7 g.x[0]",
+    "1904 0/7 pos",
+    "1904 0/9 g.des_y[0]",
+    "1904 0/9 g.y[0]",
+    "1905 0/7 g.cur_anim[0]",
+    "1914 0/9 g.avg_speed[0]",
+    "1914 0/9 g.last_speed[0]",
+    "1915 0/9 order:length",
+    "1915 0/9 orders.len",
+    "1915 0/9 orders_x",
+    "1915 0/9 orders_y",
+    "1915 0/9 path:length",
+    "1916 0/9 idle",
+    "1917 0/9 g.cur_anim[0]",
+    "1917 0/9 g.end_time[0]",
+    "1917 0/9 g.stopped[0]",
+    "1918 0/8 orders_x",
+    "1918 0/9 g.cur_time[0]",
+    "1918 0/9 g.last_time[0]",
+    "1919 0/7 orders_x",
+    "1919 0/8 idle",
+    "1920 0/7 g.cur_time[0]",
+    "1920 0/7 g.end_time[0]",
+    "1920 0/7 g.last_time[0]",
+    "1920 0/7 g.stopped[0]",
+    "1920 0/7 idle",
+    "1920 0/8 collide_o",
+    "1920 0/8 collide_who",
+    "1921 0/7 collide_o",
+    "1921 0/7 collide_who",
+    "1922 0/7 tolerance",
+    "1927 0/7 collide",
+    "1927 0/7 start_dist",
+    "1939 1/3 dest_angle",
+    "1939 1/3 order:move.angle",
+    "1939 1/3 order:move.off_x",
+    "1939 1/3 order:move.off_y",
+    "1939 1/3 order:move.x",
+    "1939 1/3 order:move.y",
+    "1939 1/3 orders_x",
+    "1939 1/3 orders_y",
+    "1940 1/3 g.angle[0]",
+    "1940 1/3 g.des_angle[0]",
+    "1940 1/3 g.des_x[0]",
+    "1940 1/3 g.last_speed[0]",
+    "1940 1/3 g.x[0]",
+    "1940 1/3 heading",
+    "1940 1/3 order:move.dest_x",
+    "1940 1/3 order:move.dest_y",
+    "1940 1/3 path[0].to",
+    "1940 1/3 pos",
+    "1942 1/3 g.avg_speed[0]",
+    "1944 0/0 g.cur_anim[0]",
+    "1944 0/0 g.cur_anim[1]",
+    "1944 0/0 g.end_time[0]",
+    "1948 1/3 g.des_y[0]",
+    "1948 1/3 g.y[0]",
+    "1950 1/3 order:kind",
+    "1950 1/3 order:length",
+    "1950 1/3 orders.len",
+    "1950 1/3 path:length",
+    "1951 1/3 g.cur_anim[0]",
+    "1951 1/3 g.cur_time[0]",
+    "1951 1/3 g.end_time[0]",
+    "1951 1/3 g.last_time[0]",
+    "1951 1/3 g.stopped[0]",
+    "1957 0/5 dest_angle",
+    "1957 0/5 order:move.angle",
+    "1957 0/5 order:move.off_x",
+    "1957 0/5 order:move.off_y",
+    "1957 0/5 order:move.x",
+    "1957 0/5 order:move.y",
+    "1957 0/5 orders_x",
+    "1957 0/5 orders_y",
+    "1958 0/5 g.angle[0]",
+    "1958 0/5 g.avg_speed[0]",
+    "1958 0/5 g.cur_anim[0]",
+    "1958 0/5 g.cur_time[0]",
+    "1958 0/5 g.des_angle[0]",
+    "1958 0/5 g.des_x[0]",
+    "1958 0/5 g.des_y[0]",
+    "1958 0/5 g.end_time[0]",
+    "1958 0/5 g.last_speed[0]",
+    "1958 0/5 g.last_time[0]",
+    "1958 0/5 g.stopped[0]",
+    "1958 0/5 g.x[0]",
+    "1958 0/5 g.y[0]",
+    "1958 0/5 heading",
+    "1958 0/5 mirror",
+    "1958 0/5 order:kind",
+    "1958 0/5 order:length",
+    "1958 0/5 orders.len",
+    "1958 0/5 path:length",
+    "1958 0/5 pos",
+    "1959 0/5 order:flags",
+    "1959 0/5 order:move.dest",
+    "1959 1/4 dest_angle",
+    "1959 1/4 order:move.angle",
+    "1959 1/4 order:move.off_x",
+    "1959 1/4 order:move.off_y",
+    "1959 1/4 order:move.x",
+    "1959 1/4 order:move.y",
+    "1959 1/4 orders_x",
+    "1959 1/4 orders_y",
+    "1960 1/4 g.angle[0]",
+    "1960 1/4 g.avg_speed[0]",
+    "1960 1/4 g.cur_anim[0]",
+    "1960 1/4 g.cur_time[0]",
+    "1960 1/4 g.des_angle[0]",
+    "1960 1/4 g.des_x[0]",
+    "1960 1/4 g.des_y[0]",
+    "1960 1/4 g.end_time[0]",
+    "1960 1/4 g.last_speed[0]",
+    "1960 1/4 g.last_time[0]",
+    "1960 1/4 g.stopped[0]",
+    "1960 1/4 g.x[0]",
+    "1960 1/4 g.y[0]",
+    "1960 1/4 heading",
+    "1960 1/4 mirror",
+    "1960 1/4 order:kind",
+    "1960 1/4 order:length",
+    "1960 1/4 orders.len",
+    "1960 1/4 path:length",
+    "1960 1/4 pos",
+    "1961 1/4 order:flags",
+    "1961 1/4 order:move.dest",
+    "1962 0/5 order:move.dest_x",
+    "1962 0/5 order:move.dest_y",
+    "1962 0/5 path[0].to",
+    "1962 1/5 dest_angle",
+    "1962 1/5 order:move.angle",
+    "1962 1/5 order:move.off_x",
+    "1962 1/5 order:move.off_y",
+    "1962 1/5 order:move.x",
+    "1962 1/5 order:move.y",
+    "1962 1/5 orders_x",
+    "1962 1/5 orders_y",
+    "1963 1/5 g.angle[0]",
+    "1963 1/5 g.avg_speed[0]",
+    "1963 1/5 g.cur_anim[0]",
+    "1963 1/5 g.cur_time[0]",
+    "1963 1/5 g.des_angle[0]",
+    "1963 1/5 g.des_x[0]",
+    "1963 1/5 g.des_y[0]",
+    "1963 1/5 g.end_time[0]",
+    "1963 1/5 g.last_speed[0]",
+    "1963 1/5 g.last_time[0]",
+    "1963 1/5 g.stopped[0]",
+    "1963 1/5 g.x[0]",
+    "1963 1/5 g.y[0]",
+    "1963 1/5 heading",
+    "1963 1/5 mirror",
+    "1963 1/5 order:kind",
+    "1963 1/5 order:length",
+    "1963 1/5 orders.len",
+    "1963 1/5 path:length",
+    "1963 1/5 pos",
+    "1964 0/6 g.cur_anim[0]",
+    "1964 0/6 g.cur_anim[1]",
+    "1964 0/6 g.end_time[0]",
+    "1964 1/5 order:flags",
+    "1964 1/5 order:move.dest",
+    "1965 1/1 order:gather.wait",
+    "1975 1/1 collide_o",
+    "1975 1/1 collide_who",
+    "1975 1/1 g.avg_speed[0]",
+    "1975 1/1 g.cur_anim[0]",
+    "1975 1/1 g.cur_time[0]",
+    "1975 1/1 g.des_x[0]",
+    "1975 1/1 g.des_y[0]",
+    "1975 1/1 g.end_time[0]",
+    "1975 1/1 g.last_speed[0]",
+    "1975 1/1 g.last_time[0]",
+    "1975 1/1 g.stopped[0]",
+    "1975 1/1 g.x[0]",
+    "1975 1/1 g.y[0]",
+    "1975 1/1 order:coll",
+    "1975 1/1 order:move.dest_x",
+    "1975 1/1 order:move.dest_y",
+    "1975 1/1 path:length",
+    "1975 1/1 pos",
+    "1976 1/1 g.angle[0]",
+    "1976 1/1 g.des_angle[0]",
+    "1976 1/1 heading",
+    "1976 1/4 collide_o",
+    "1976 1/4 collide_who",
+    "1979 1/1 order:move.dest",
+    "1980 1/1 dest_angle",
+    "1980 1/1 order:kind",
+    "1980 1/1 order:length",
+    "1980 1/1 orders.len",
+    "1980 1/1 orders_x",
+    "1980 1/1 orders_y",
+    "1983 1/1 mirror",
+    "1995 0/6 g.cur_time[0]",
+    "1995 0/6 g.cur_time[1]",
+    "1995 0/6 g.last_time[0]",
+    "1995 1/5 angle:Facing",
+    "2005 0/0 g.cur_time[0]",
+    "2005 0/0 g.cur_time[1]",
+    "2005 0/0 g.last_time[0]",
+    "2031 0/7 safe",
+    "2032 0/3 order:move.off_x",
+    "2032 0/3 order:move.off_y",
+    "2032 0/3 order:move.x",
+    "2032 0/3 order:move.y",
+    "2032 0/3 orders_x",
+    "2032 0/3 orders_y",
+    "2033 0/3 dest_angle",
+    "2033 0/3 g.angle[0]",
+    "2033 0/3 g.avg_speed[0]",
+    "2033 0/3 g.cur_anim[0]",
+    "2033 0/3 g.des_angle[0]",
+    "2033 0/3 g.des_x[0]",
+    "2033 0/3 g.des_y[0]",
+    "2033 0/3 g.end_time[0]",
+    "2033 0/3 g.last_speed[0]",
+    "2033 0/3 g.stopped[0]",
+    "2033 0/3 g.x[0]",
+    "2033 0/3 g.y[0]",
+    "2033 0/3 heading",
+    "2033 0/3 mirror",
+    "2033 0/3 order:kind",
+    "2033 0/3 order:length",
+    "2033 0/3 orders.len",
+    "2033 0/3 path:length",
+    "2033 0/3 pos",
+    "2034 0/3 order:flags",
+    "2034 0/3 order:move.dest",
+    "2035 0/3 g.cur_time[0]",
+    "2035 0/3 g.last_time[0]",
+    "2048 1/6 order:gather.wait",
+    "2053 1/3 mirror",
+    "2063 1/3 order:flags",
+    "2063 1/3 order:move.dest",
+    "2098 1/5 order:move.dest_x",
+    "2098 1/5 order:move.dest_y",
+    "2098 1/5 path[0].to",
+    "2136 1/2 order:gather.wait",
+    "2174 0/4 order:move.off_x",
+    "2174 0/4 order:move.off_y",
+    "2174 0/4 order:move.x",
+    "2174 0/4 order:move.y",
+    "2174 0/4 orders_x",
+    "2174 0/4 orders_y",
+    "2175 0/4 order:move.dest_x",
+    "2175 0/4 order:move.dest_y",
+    "2175 0/4 path[0].to",
+    "2176 0/4 angle:Facing",
+    "2176 0/4 angle:Heading",
+    "2176 0/4 g.angle[0]",
+    "2176 0/4 g.des_angle[0]",
+    "2176 0/4 heading",
+    "2180 0/4 g.avg_speed[0]",
+    "2180 0/4 g.des_y[0]",
+    "2180 0/4 g.last_speed[0]",
+    "2180 0/4 g.y[0]",
+    "2180 0/4 pos",
+    "2183 0/4 g.des_x[0]",
+    "2183 0/4 g.x[0]",
+    "2185 0/4 dest_angle",
+    "2185 0/4 order:kind",
+    "2185 0/4 order:length",
+    "2185 0/4 orders.len",
+    "2185 0/4 path:length",
+    "2186 0/4 g.cur_anim[0]",
+    "2186 0/4 g.cur_time[0]",
+    "2186 0/4 g.end_time[0]",
+    "2186 0/4 g.last_time[0]",
+    "2186 0/4 g.stopped[0]",
+    "2187 1/3 angle:Facing",
+    "2187 1/3 angle:Heading",
+];
+
+/// Chapter forty-six's pool rows (item 1278): run496 whole, all the
+/// word's — the squad's slot 3 on 1902 (`order_num` ours 3 against 1, and
+/// the members' formation offsets mirrored) and its `speed` on 1922.
+const WANT_CH46_POOL: &[&str] = &[
+    "1902 slot 3 curr[1]",
+    "1902 slot 3 curr[2]",
+    "1902 slot 3 off[1]",
+    "1902 slot 3 off[2]",
+    "1902 slot 3 order_num",
+    "1922 slot 3 speed",
 ];
 
 /// **run466 whole, both directions** (items 1223, 1235, 1248,
@@ -15613,17 +16067,25 @@ fn stage_walk() {
         }
         for (i, b) in s.buildings.iter().enumerate() {
             let hangar = b.ty.is_some_and(|t| s.is_hangar(t));
-            if !(all || hangar || !b.queue.items.is_empty() || !b.gather.is_empty()) {
+            if !(all
+                || hangar
+                || !b.queue.items.is_empty()
+                || !b.gather.is_empty()
+                || !b.gatherers.is_empty())
+            {
                 continue;
             }
             let inside: Vec<i16> = b.garrison.iter().map(|&u| s.units[u].index).collect();
+            // Item 1278: the gatherer chain, head first (`gather_down`'s
+            // walk), which `all_gathering`'s prune reads.
+            let chain: Vec<i16> = b.gatherers.iter().map(|&u| s.units[u].index).collect();
             // The queue by type and price: a job's counter moves every frame.
             let queue: Vec<(usize, [i16; 3])> =
                 b.queue.items.iter().map(|q| (q.ty, q.cost)).collect();
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} inside={inside:?} launch={}",
+                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),

@@ -622,6 +622,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch43 = golden_dump("ch43");
     let ch44 = golden_dump("ch44");
     let ch45 = golden_dump("ch45");
+    let ch46 = golden_dump("ch46");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1378,12 +1379,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run488 carries the third map's word 7785 at Toughest");
         frames += n;
     }
-    // **And its word 8182, on run491** (item 1264): the frame writes block
-    // 8183, and the window is it with two either side.
+    // **And its word 8377, on run491** (item 1275): the frame writes block
+    // 8378, and the window is it with two either side.
     if let Some(p) = &r491 {
-        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8183;
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8378;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run491 carries the third map's word 8182 at Toughest");
+        assert_eq!(n, 5, "run491 carries the third map's word 8377 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1995,6 +1996,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [603, 769, 804] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-six, on run496** (item 1278): 726, the trained
+    // Citizen out under its two-point list; 1050, `all_gathering`'s prune;
+    // 1902, the word's block, the squad's landing.
+    if let Some(p) = &ch46 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SIX;
+        for w in [726, 1050, 1902] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-six carries the window's five blocks");
             frames += n;
         }
     }
