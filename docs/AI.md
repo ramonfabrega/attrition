@@ -166,7 +166,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    marked seen for me (`good+0x20 |= 1 << who`) and, unless its tile's
    owner is an enemy, `reg_known_rares[tregion]++`.
 10. **The unit census** — every captain of mine (`is_captain`, vslot
-    `+0xe8`) that is alive and whose type has `control_cost != 0`:
+    `+0xe8`) that is alive, is **not a decoy** (`unit_masks & 1`, the
+    `testb` at `6b9f57`; item 1302) and whose type has `control_cost != 0`:
     - its region: the unit's tile, or its outermost container's (§58)
       — the building's footprint (`x_size`/`y_size`, centred
       by parity) is scanned column by column for the first cell whose

@@ -530,6 +530,13 @@ impl Sim {
             if !self.is_captain(u) {
                 continue;
             }
+            // A decoy is no unit of mine (`testb $0x1, 0x68(%esi)` at
+            // `6b9f57`, beside the captain test): run346's six decoy squads
+            // of 11637 stay out of `non_siege`, and `create_units`' military
+            // gate reads the count without them (item 1302).
+            if unit.decoy {
+                continue;
+            }
             // `type->control_cost != 0`: a unit that costs no population is
             // not counted at all.
             let control_cost = unit.ty.map_or(0, |t| self.unit_types[t].price.pop);
