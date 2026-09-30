@@ -5316,8 +5316,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 
 /// **Chapter forty-seven's golden word** (`docs/GOLDEN.md` §56, item
-/// 1310, run514): PLACEHOLDER.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 0;
+/// 1310, run514): **open at 712**, word and sequence; the chapter opens
+/// with a parting there, ours 35 draws against 31, at index 25: ours
+/// spends four in the buildings phase — the Keep site `0/2008`'s round,
+/// fired unfinished and landing on who=1's `1/6` — where the original's
+/// next draw is `Farms::inc_time+0x1ae` (seed `0x8fad03fd`). The value
+/// diff on block 713: `1/6`'s `hits:damage` ours 8 against 0,
+/// `damage_frame` 712 against 0, `hits_left` 112 against 120.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 712;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).
