@@ -1348,7 +1348,11 @@ Every other death's `−1` is parked 1092's: this is the boat's close
 alone. **Diff-held** (the journal's killers): the birth's count, the
 close's, and the population half (a barge counted parts eighteen windows
 across both pairs). **Held by no walk**: the captain half, since no boat
-on disk is a squad follower.
+on disk is a squad follower — and none can be (item 1254, `docs/GOLDEN.md`
+§53): every boat type is `UBER_SIZE 1`, `cast_transport` passes `o_up`
+−1 to `init_unit`, and `+0x8e`'s other writers only thread a squad's
+members. With the captain test dropped, nothing fails, the unit test
+included.
 
 
 ## 17. A captain's boarding takes its squad: `Unit::go_inside`'s `o_down` walk (item 1235, 2026-09-30)

@@ -9379,3 +9379,88 @@ at its end detail. The pool agrees whole.
   out.
 - `DEATH` records beside `GROUPDATA`: with both asked no `GROUPDATA`
   printed, twice.
+
+## 53. Chapter forty-four — the idle search's head on a computer's fleet: a Bomb Vessel's building across the regions (item 1254)
+
+**Premise.** Item 1214 built `Object::check_target@00649e00`'s head
+(`docs/COMBAT.md` §86) and parked three arms no walk held; item 1228
+parked a fourth in `counts_in_muster`. The booking named three. What the
+listing of each predicate says a staging needs:
+
+- **The `SIEGE` ship (parked 1230): staged here.** `649f05`..`649f29`
+  clear the region test for a searcher with `unit +0x68 & 0x40000`
+  (every unit of a leader that is not a plain human), vslot `+0x148`
+  `has_objmask(0x40000)` (the `OBJ_MASK` letter `S`) and type `+0x218 ==
+  1`, the sea. The `S` sea types are the Siegeship (no tribe builds it),
+  Bomb Vessel, Bomb Ketch, Dreadnought, Battleship, Advanced Battleship
+  and Catapult Ship. The idle search is `Unit::think`'s
+  `find_melee_target(-1)`, whose radius a computer's unit raises to
+  `unit_respond_range × 0x180` (4608); a Bomb Vessel is `4-19rng`, so a
+  candidate between 19 tiles and that radius, in another region, is the
+  arm's.
+- **The defensive arm (parked 1231): no staging reaches it.**
+  `get_combat_stance@00610a30` (vslot `+0xf4`) answers the stance byte
+  `+0xb1` for a combat-stance type and 2 otherwise. The byte's writers are
+  `Unit::init` (the leader option `buildings`, 0 by default), `Build::train`
+  (the building's, the same option), `repair_damage` (the squad's),
+  `find_new_target` (2, for the search, then restored), `Group::action_stance`
+  (`issue_stance`, the scenario calls, `Army::set_stance`) and
+  `process_leader_options`. Under `!ai off`, and with the DLL's 26 issuer
+  verbs, none writes 1. It also needs an order under the attack at the
+  search: `find_new_target` kills the attack before it searches.
+- **The captain half of `counts_in_muster` (parked 1244): no staging
+  reaches it, and no game.** A follower is `+0x8e >= 0`. Its writers are
+  `Objects::init_unit@0065e0c0` (the `uber_size` loop, or an `o_up`
+  passed in), `Unit::close` (its squad re-threaded), `repair_damage` (a
+  member regrown) and the scenario loader. Every boat type is `UBER_SIZE
+  1`, and `cast_transport` calls `init_unit(…, −1, −1, −1)`, so the two
+  callers' boat is always a captain.
+
+**The staging** (`chapter44.cmd`), walked on run466's start. Two lakes in
+nobody's territory, a mark and a pair of eyes by each (an unseen candidate
+is refused by `valid_target`, above the head):
+- the middle lake: the human's Barracks `0/2007` at tile (110, 99), who=1's
+  Barracks `1/2006` beside it for the eyes, and the computer's Bomb Vessel
+  `1/6` at (110, 73) on 610: `0/2007` at `attack_dist` 4200;
+- the south lake: the computer's Barracks `1/2007` at (176, 226), who=0's
+  `0/2008` beside it, and the human's Bomb Vessel `0/6` at (176, 201) on
+  612: `1/2007` at 4008, inside the human's radius (`(19 + 1) × 0xc0 +
+  0x180`, 4224) and out of range.
+
+**Run 2026-09-30 as run484**, click-free lane, `cover=0`, 275 MB, 696 s.
+
+**The arm agrees.** Block 611: `1/6` holds an `ATTACKORDER` on `0/2007`
+on both sides; it walks south 19 frames and strikes from 630. `0/6` takes
+nothing on either side on any block of the window. The widening's rows
+before the word are the standing families (the birth `form`, parked
+1169; the first block's census, parked 1183; the attack's `order:target`,
+which this crate keeps on the unit) and one row of the ship's own:
+**`1/6`'s turret on block 631**, its first strike's aim, ours 94568448
+against 96862208.
+
+**The word is 670**: ours 9 draws against 10, parting at index 3, where
+the original spends `Object::take_damage+0xe1` and ours
+`Farms::inc_time+0x1ae`. The original acted: its first round lands on
+`0/2007`. **The value diff on block 671**: `0/2007` `damage` ours 0
+against 122, and `1/6`'s round, which agrees on block 670 on both sides
+(`traj 1`, `total_time` 39, `cur_time` 38, from (21301, 14867, 134) to
+(21155, 18776, 229)), gone from the original's dump and still in flight
+here; `treaties[·]` 3 on the first blow (chapter eight's family) goes
+with it. Every row from 686 is the draw stream's cascade. The widening is
+run484 from 605 to the word's block and 250 past it (287 rows).
+
+**Mutations**, each on the committed build, restored from git and touched:
+
+| mutation | held by |
+|---|---|
+| C: no `SIEGE`-ship exception | the walk (word 611), the widening, `a_candidate_in_another_region_is_taken_only_in_range` |
+| C2: the exception without `unit_masks & 0x40000` | the walk (word 626: `0/6` takes `1/2007`), the widening, and the unit test from this item's line |
+| D: no defensive arm | the unit test alone: **no walk** (1231) |
+| E: `counts_in_muster` without the captain | **nothing**: no walk and no unit test (1244) |
+
+**What is not established.**
+- The round's landing frame: the next word's.
+- The turret's aim on 631, which parts before the word and draws nothing.
+- The sea conjunct (type `+0x218 == 1`): no staging has a computer's
+  land `SIEGE` unit searching across the water.
+- The defensive arm and the captain half, for the reasons above.

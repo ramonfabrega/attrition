@@ -620,6 +620,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch41 = golden_dump("ch41");
     let ch42 = golden_dump("ch42");
     let ch43 = golden_dump("ch43");
+    let ch44 = golden_dump("ch44");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1926,6 +1927,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [1271, 1357, 1553, 1902] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-four, on run484** (item 1254): 611, the computer's
+    // Bomb Vessel's attack across the regions; 631, its first strike's
+    // turret; 671, the word's block, the first round's landing.
+    if let Some(p) = &ch44 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_FOUR;
+        for w in [611, 631, 671] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-four carries the window's five blocks");
             frames += n;
         }
     }

@@ -156,7 +156,10 @@ Smelter or Refinery beside another good's gather building would hold it.
 ## Parked by item 1228, 2026-09-30 — the muster's other arms
 
 (1244) **`counts_in_muster`'s captain half** (1228's mutation D): held
-by no walk — no boat on disk is a follower.
+by no walk — no boat on disk is a follower. **Unreachable in a game**
+(1254): every boat is `UBER_SIZE 1` and `cast_transport` passes −1, so
+`+0x8e` is never set on one; the gate stays for `Unit::set_type`'s
+fidelity and nothing holds it.
 
 (1245) **The make list's `city` from 10181**: types 84, 134 and 178 filed
 under city 1 against 0 on run462, a sibling of the word's chain rather
@@ -210,7 +213,14 @@ without it, no walk does.
 (1231) **The head's defensive arm**: a `DEFENSIVE` unit off duty, with
 an order and an out-of-range candidate, refuses (1214's mutation D);
 held by its unit test and no walk. The duty exemption beside it is
-diff-held (chapters one and eight).
+diff-held (chapters one and eight). **No staging reaches it** (1254):
+the stance byte `+0xb1` has no writer that sets 1 under `!ai off`, and
+the DLL has no issuer for `CommandManager::issue_stance`; it needs a
+`@stance` verb and a defensive unit with a second order queued under its
+attack when a search runs.
+
+(1258) **The head's sea conjunct (`+0x218 == 1`)** (1254): held by
+nothing; it needs a computer's land `SIEGE` unit searching across water.
 
 (1232) **`find_nearby_target`'s naval refusal**: a searcher whose type
 has `+0x2b4 & 0x400` skips a sea candidate (`local_50`), the refusal
@@ -2414,6 +2424,12 @@ forty-three's 1562 and 1900 lines in part for the chapter's life; its
 The golden harness now refuses such a line whole. A staging check that
 greps each capture's trace for `I_ISSUE` refusals (`cmdsran.py` decodes
 only `I_CMD`) would have named it on the take. One reach.
+
+(1259) **`stage_walk` does not say why a candidate was refused** (1254's
+Loop line): three of chapter forty-four's walks were placement guesses a
+one-line reason — `valid_target`'s seen test, `check_target`'s head, the
+radius — would have answered, and the lane built a scratch instrument to
+see the ship's first mark was unseen. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
