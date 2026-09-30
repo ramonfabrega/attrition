@@ -677,6 +677,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r457 = crate::testenv::dump(super::third::SAHARA_GAP_17140);
     let r458 = crate::testenv::dump(super::third::SAHARA_END);
     let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
+    let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1330,6 +1331,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run471 carries the third map's word at Toughest");
         frames += n;
     }
+    // **And its word 5782, on run476** (item 1241): the frame writes block
+    // 5783, and the window is it with two either side.
+    if let Some(p) = &r476 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_5783;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run476 carries the third map's word 5782 at Toughest");
+        frames += n;
+    }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
     // five blocks around the make list it was taken for, so the leader
     // record's paths are on this map's window too —
@@ -1910,10 +1919,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // **Chapter forty-three, on run466** (item 1223): 1271, the barge
     // put ashore on its phase frame; 1357, the squad's boarding (item
-    // 1235); 1553, the word, who=1's gather.
+    // 1235); 1553, who=1's gather with its dead gatherer gone, and 1902,
+    // the refused landing, the squad aboard (item 1248).
     if let Some(p) = &ch43 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_THREE;
-        for w in [1271, 1357, 1553] {
+        for w in [1271, 1357, 1553, 1902] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
             frames += n;
@@ -2143,15 +2153,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1221 walks the third map at Toughest beside it**, run471's
     // 5375..5378, where a move's `coll` pair has left `(0, 0)`:
     // `coll_x`/`coll_y` are compared on the union, and leave this pin.
+    // **Item 1241 moved the Toughest window to run476's 5781..5784**,
+    // where no move's `coll` pair has left `(0, 0)`, and
+    // East Indies' 10185 window has none either (measured on the tree
+    // merged with 1228's): `coll_x`/`coll_y` return to it.
     // **Item 1243 moved East Indies' window to run480's 10984..10987**,
     // where a cast order and a group move stand: `cast_paid`,
     // `cast_spell` and the group row (`group_id`, `group_angle`,
     // `in_group`, `form_id`, `oxx`, `whose`) are compared there, and
-    // leave this pin.
+    // leave this pin (measured on the tree merged with 1241's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
+         attempts build_type coll_x coll_y cruising_alt def_x \
          def_y defensive ever_in_range garrison_search \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \

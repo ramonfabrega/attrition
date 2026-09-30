@@ -146,6 +146,13 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1241, 2026-09-30 — the enhancer's other good
+
+(1252) **`find_friends`' enhancer arm, its good comparison** (1241's
+mutation B): held by its unit test and no walk — around run470's Granary
+the only gather buildings are farms. A capture placing a Lumber Mill,
+Smelter or Refinery beside another good's gather building would hold it.
+
 ## Parked by item 1228, 2026-09-30 — the muster's other arms
 
 (1244) **`counts_in_muster`'s captain half** (1228's mutation D): held
@@ -167,10 +174,20 @@ carriers are `CREW_SIZE 0` and `UBER_SIZE 1`.
 built, held by its unit test alone — no reader of a bare bit on a water
 cell in this crate; run466's second barge crosses the ghost on
 1561..1850, on disk for when chapter forty-three's word passes it.
+**Chapter forty-three closed at 2200 (1248) and it is still held by no
+walk** (1248's mutation D).
 
 (1238) **`disembark_squad`, a squad's passengers coming ashore as a
 group**: built, held by its unit test alone until chapter forty-three's
 word passes the landing on 1901 — three aboard one barge (1235).
+**Still held by no walk after the chapter closed** (1248's mutation E,
+with 1239 beside it): the DLL refuses chapter forty-three's 1900 line
+whole, since it names an object that does not exist; a restage with
+`1900 @move 0 15360 31200 10` alone lands a barge with three riders.
+
+(1255) **`all_gathering`'s prune** (1248's mutation B): held by no walk.
+It needs a live chain member that stopped gathering there, read by a
+woodcutter whose wait runs out.
 
 (1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
 cause): a member with its own cast stepped before its captain. Transport
@@ -2380,6 +2397,23 @@ reach.
 …`, so the brief's `RON_FIRSTS=1 … | python3 tools/standing.py` reads
 nothing from a chapter's widening; 1235 converted them with `sed` by
 hand. One reach.
+
+(1253) **`seams.py` does not read a "not modelled" comment in the code**
+(1241's Loop line): `find_friends`' enhancer arm said so in a comment,
+and `seams.py find_friends enhancer` answered "0 live seams" — the arm
+that decided 5376. A scan of code comments for "not modelled" / "not
+kept" inside the named functions, or a rule that such a comment is a
+`SEAM`, would have named it at step 7. With 1240, two reaches on the
+tool's reach.
+
+(1256) **A staging line the DLL refuses is applied in part by the
+harness** (1248's Loop line): a line naming an object the original never
+made is refused whole by the DLL, and the golden walk applied chapter
+forty-three's 1562 and 1900 lines in part for the chapter's life; its
+`skipped` report named 1562 and not 1900, because that line half-ran.
+The golden harness now refuses such a line whole. A staging check that
+greps each capture's trace for `I_ISSUE` refusals (`cmdsran.py` decodes
+only `I_CMD`) would have named it on the take. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

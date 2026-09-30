@@ -1541,14 +1541,19 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **5376 on the capture**: run469's 1,850 frames agree draw for draw (frame
-/// 0 spends 100 against 100), and run470 parts on frame 5376, **ours 45
-/// draws against the original's 40, at index 1**: ours spends four
-/// `Leader::produce_building+0x1805` where the original spends one, and
-/// five `Guy::set_anim+0x104b` where it spends three; the ten birds'
-/// `Animal::think_bird` triples, the three `Guy::inc_time` wraps and the
-/// three `Farms::inc_time` agree. Widened on run471 (block 5377).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_376;
+/// **5782 since item 1241**: run470 parts on frame 5782, **ours 14 draws
+/// against the original's 13, at index 3** — both open on
+/// `Leader::use_market+0x1ed` and two `Leader::make_stuff+0x221`, then ours
+/// spends a `Leader::make_stuff+0x63d` the original does not, where the
+/// original's next is `Animal::do_idle+0x83`. Widened on run476 (block
+/// 5783).
+///
+/// It was **5376** before that (item 1221), ours 45 against 40 at index 1:
+/// four `Leader::produce_building+0x1805` against one, the Granary `1/2023`
+/// laid friendless three cells south of the original's, until
+/// `find_friends`' enhancer arm counted the farms beside it (block 5377,
+/// widened on run471).
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_782;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5087,7 +5092,8 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
 pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 
 /// Chapter forty-three's golden word (item 1223, `docs/GOLDEN.md` §52,
-/// run466): the landing's arms no walk held — **open at 1552**.
+/// run466): the landing's arms no walk held — **2200, closed**, sequence
+/// and values.
 ///
 /// **The delta: 1356 → 1552, item 1235** — the squad boards whole
 /// (`Unit::go_inside@0061a2e0`'s `o_down` walk, `docs/TRANSPORT.md` §17).
@@ -5095,17 +5101,29 @@ pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 /// sides (ours had −1), and `0/9`'s `orders.len` 0 on both (ours had 1,
 /// its `orders_x` 11928 against the original's 7870).
 ///
-/// **The word, 1552**: ours 31 draws against 30, parting at index 27 —
-/// ours' who=1 Citizen `1/2` draws `Unit::do_non_flat_gather+0xcc3` where
-/// the original draws the bird `9/6`'s `Guy::set_anim+0x104b`, and the
-/// original's gather roll comes on 1553 (`Guy::set_anim+0x97a <
-/// Unit::do_non_flat_gather+0xb99`). The value diff on block 1553:
-/// `1/2` `order:gather.wait` ours 324 against −1.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1552;
+/// **1552 → 1901, item 1248: a dead gatherer leaves its chain.** 1552 was
+/// ours 31 draws against 30, parting at index 27: ours' who=1 Citizen
+/// `1/2` rerolled its chop at `Unit::do_non_flat_gather+0xcc3` where the
+/// original set −1 and walked home on 1553. The state first parted on
+/// block 1488: `1/2001`'s `gather_down` ours 6 (the Citizen `1/6`, dead
+/// on 1487) against 2 — `Unit::close` closes a dead unit's orders, and
+/// the gather arm's `remove_gatherer` takes it off the chain — and
+/// `Build::all_gathering` prunes before it walks. On 1488 `gather_down`
+/// is 2 on both sides, and on 1553 `1/2`'s `order:gather.wait` −1 on
+/// both.
+///
+/// **1901 → 2200, closed, the same item: the DLL's refusal 3.** 1901 was
+/// ours 4 draws against 3, parting at index 0 with the barge `0/10`'s
+/// `Guy::set_anim+0x97a < Guy::move+0x19f`: ours moved `0/10` ashore
+/// on `1900 @move 0 15360 31200 10 11`, and the original's trace refuses
+/// the whole line for the `0/11` it never made. The value diff on block
+/// 1902: `0/7`..`0/9` `inside` 10 on both sides (ours had −1, put
+/// ashore), and `0/10` at (14572, 31200) on both to the capture's end.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
-/// from 605, the word's block 1553 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1803);
+/// whole, 605 to its end (block 2199 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 2201);
 
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
@@ -7181,8 +7199,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1223: run466, chapter forty-three, the landing's arms; open at
-    // 1552 (item 1235), who=1's gather. The widening is run466 to 1803.
+    // Item 1223: run466, chapter forty-three, the landing's arms; closed at
+    // 2200 (item 1248). The widening is run466 whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_THREE",
         GOLDEN_WORD_CHAPTER_FORTY_THREE,
@@ -7333,15 +7351,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1206,
         Some(crate::diff::third::WIDENING_GREAT_SAHARA_END),
     ),
-    // **The third map at Toughest** (DECISIONS 56 §1, item 1221): its first
-    // word, 5376, past run469's 1,850 blocks, widened on run471 over
-    // 5371..5627.
+    // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
+    // past run469's 1,850 blocks, was widened on run471 over 5371..5627
+    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run471_s_word_frame_is_widened_whole"),
-        1221,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST),
+        Some("run476_s_word_frame_is_widened_whole"),
+        1241,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_5782),
     ),
 ];
 

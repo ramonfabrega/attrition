@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: six landings.
+*2026-09-30, the commander after the twentieth pass: eight landings.
 **East Indies' second word 8907 → 10185** (1214, 1228); **chapter forty-three
-opens at 1356, then 1552** (1223, 1235); **Great Sahara at Toughest
-opens at 5376 of 15,432** (1221; run469's 1850/1850 is its test's, not a
+opens at 1356 and closes at 2200** (1223, 1235, 1248); **Great Sahara at Toughest
+opens at 5376, then 5782** (1221, 1241; run469's 1850/1850 is its test's, not a
 floor). 1222: the held-out map, **Himalayas 1851/1850**, for the record.*
 
-- **Three lanes live: 1243, 1241, 1248**, one to each open word.
+- **Three lanes live: 1243, 1251, 1254**, one to each open word.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -30,17 +30,17 @@ floor). 1222: the held-out map, **Himalayas 1851/1850**, for the record.*
   functions**, from the arms a landing parks as held by no walk.
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
-- **Fable backlog: 19 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250).
+- **Fable backlog: 21 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w10185 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w5376 of 15,432
-Golden: ch43 w1552 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w5782 of 15,432
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1243, 1241 and
-1248; six landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1243, 1251 and
+1254; eight landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -58,21 +58,21 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     Senate's foundation `1/2026` the dump's alone. `MAKE[0].val` on 10185
     1,200,000 against 4,800,000; `num_queued[84]` stands from 10178.
 
-1241. **Great Sahara at Toughest's first word: frame 5376, ours 45
-    draws against 40** (1221), at index 1: four
-    `Leader::produce_building+0x1805` against one, five
-    `Guy::set_anim+0x104b` against three; widened on run471 (5371..5627).
-    Block 5377: who=1's new Granary site `1/2023` at ours (40608, 19680),
-    theirs (41184, 15072). Standing from 5371: `SITE[i].reg` 1 against 0,
-    who=1's `bucket[0:food]` 381 against 417. No mechanism is named.
+1251. **Great Sahara at Toughest's word: frame 5782, ours 14 draws
+    against 13** (1241), at index 3: ours `Leader::make_stuff+0x63d`,
+    theirs `Animal::do_idle+0x83`; widened on run476 (5777..6033). Block
+    5783: who=1 queues one more at `1/2017` (`queued` 2 against 1).
+    Standing from 5779: who=1's `MAKE[2].val`, `MAKE[9].val` 1200 against
+    4800 — the shape 1243's 10185 carries on East Indies. No mechanism.
 
-1248. **Chapter forty-three's word: frame 1552, ours 31 draws against
-    30** (1235), parting at index 27: ours who=1 `1/2`'s
-    `Unit::do_non_flat_gather+0xcc3`, where the original draws `9/6`'s
-    `Guy::set_anim+0x104b` and gathers on 1553; widened on run466 to
-    1803. Block 1553: `1/2`'s `order:gather.wait` 324 against −1. The
-    item before's hypothesis: the dead Citizen `1/6` left on `1/2001`'s
-    gather list (`gather_down[-1]` 6 against 2 from 1488).
+1254. **Chapter forty-four: the idle search's head, on a computer's
+    fleet** (DECISIONS 56 §3): `check_target`'s head arms that 1214 built
+    and no walk holds — a computer's `SIEGE` ship searching across
+    regions (parked 1230), a `DEFENSIVE` unit off duty refusing an
+    out-of-range candidate (1231) — and `counts_in_muster`'s captain half,
+    a boat that is a follower (1244). Three arms, one staging on the
+    golden start; whether a staging reaches each is the item's to
+    establish first, from the listing of each arm's predicate.
 
 ## How to maintain this file
 

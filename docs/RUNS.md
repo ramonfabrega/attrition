@@ -11920,6 +11920,16 @@ block 10986: six blocks before it and 250 after.
 ```
 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run480 \
     --map 18 --end-frame 11250 --timeout 5400 --log-window 10980 11237 \
+## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
+
+**What it is.** run471's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 5777..6033, `!quit` at 6047. The word's frame 5782 writes block
+5783: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run476 \
+    --map 7 --end-frame 6047 --timeout 4800 --log-window 5777 6034 \
     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
     --profile DIFFICULTY=5
 ```
@@ -11952,3 +11962,29 @@ a type-440 building at 900,000 where the original holds five Pikemen
 (`TypeIndex` 134) at 611,022. The window parts on 1,490 keys. The coverage
 driver walks 10985..10988 and the compared pin 10984..10987, where a cast
 order and a group move stand.
+**The booking cites what the disk could not answer.** The word moved to
+5782 when `find_friends`' enhancer arm was built (`docs/AI.md` §99.7);
+run471 ends at block 5627 and run470 prints `MISC` alone, so no dump of
+this game holds a per-frame record at 5783.
+
+**Taken** 02:13:50–02:36 in one take, on a stale lock (run471's
+unattended pid 83215, dead) with no runner or game alive and the profile
+at `MAP_STYLE 14`, `DIFFICULTY 0`, `gamelog.ini`'s `LogFile` in `Logs`;
+waited on with `waitrun.sh`: `success: true`, exit 0, 1,337 s from launch
+to exit, 6,048 frames, map verified, settings restored. The dump
+(495,734,295 bytes, sha256 `e745f15f…0036`) and the trace (28,560,192,
+`bd1c55ac…b383`) were moved into `Logs` as
+`gamelog-run476-greatsahara-toughest-5782.txt` and `rontrace-run476.log`.
+The disk had 51 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 6,048 identical |
+| window blocks | 257, 5777..6033 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7`, seed 12345 |
+
+**What it holds**: `run476_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 1,296 keys: 103 stand on 5777, who=1's make list parts on 5779
+and 5781, and on the word's block 5783 who=1 queues one more unit at
+`1/2017` than the original does.

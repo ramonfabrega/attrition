@@ -1307,6 +1307,16 @@ impl Sim {
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
     pub fn kill_current_order(&mut self, u: usize) {
+        self.kill_order(u, false);
+    }
+
+    /// `Unit::kill_current_order(closing)`: `closing` is the argument
+    /// `Unit::close@0060ee50` hands `close_orders` (`flags & 1`, 1 on a
+    /// live unit), and every other caller's 0. It gates the move family's
+    /// facing hand-back alone of the arms this crate carries (`5e3026`,
+    /// `param_1 == 0`); the gather arm's `remove_gatherer` is gated on
+    /// nothing but the building (§3.2, `docs/GOLDEN.md` §52).
+    fn kill_order(&mut self, u: usize, closing: bool) {
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
@@ -1317,6 +1327,7 @@ impl Sim {
         // from whatever the leader's turning left behind.
         if let Body::Move(m) = order.body
             && let Some(f) = m.facing
+            && !closing
         {
             self.hand_back_facing(u, f, m.angle);
         }
@@ -1394,6 +1405,20 @@ impl Sim {
     pub fn close_orders(&mut self, u: usize) {
         while !self.units[u].orders.is_empty() {
             self.kill_current_order(u);
+        }
+    }
+
+    /// **`Unit::close@0060ee50`'s `close_orders(this, flags & 1)`**, the
+    /// last call before `Object::close` (`60fa1c`): a unit that dies has
+    /// its orders killed, each through `kill_current_order(1)`. So a dead
+    /// gatherer leaves its building's chain on the frame it dies
+    /// (`remove_gatherer`, `kill_current_order@005e2cb0:104`), and not when
+    /// the next `check_gatherers` finds it: run466's `1/2001` has
+    /// `gather_down` 2 on block 1488, the block after the who=1 Citizen
+    /// `1/6` died at its head (`docs/GOLDEN.md` §52, item 1248).
+    pub(crate) fn close_dead_orders(&mut self, u: usize) {
+        while !self.units[u].orders.is_empty() {
+            self.kill_order(u, true);
         }
     }
 
@@ -7232,7 +7257,14 @@ impl Sim {
     }
 
     /// `Build::all_gathering`: every chain member is out at its tile.
-    fn all_gathering(&self, b: usize) -> bool {
+    ///
+    /// **The chain is pruned first**: `62f573` calls
+    /// `Build::check_gatherers@0062f710` before the walk, so a member that
+    /// is dead, off the map or no longer gathering here is dropped rather
+    /// than read as a gatherer still walking (item 1248, `docs/GOLDEN.md`
+    /// §52).
+    fn all_gathering(&mut self, b: usize) -> bool {
+        self.check_gatherers(b);
         self.buildings[b].gatherers.iter().all(|&u| {
             matches!(self.units[u].orders.front().map(|o| o.body),
                 Some(Body::Gather(g)) if !g.goto_build && g.wait >= 0)
@@ -9002,5 +9034,62 @@ mod loose_tests {
         assert!(!is_loose(&at(0x60, path_flag::FINAL)), "a final is kept");
         assert!(!is_loose(&at(0x60, 0x20)));
         assert!(!is_loose(&at(-1, 0)), "unsigned: a negative is kept");
+    }
+}
+
+#[cfg(test)]
+mod all_gathering_tests {
+    use super::*;
+    use crate::world::World;
+
+    /// **`Build::all_gathering` prunes the chain before it walks it**
+    /// (`62f573`: `check_gatherers` first; item 1248, `docs/GOLDEN.md`
+    /// §52). A dead member still on the chain, its walk still at the front
+    /// of its orders, would answer "not out at its tile" and send the
+    /// chopping woodcutter's reroll to `% 100 + 300` where the original
+    /// sets −1 and walks home. Made to fail by taking the prune out: the
+    /// dead member keeps the answer at false.
+    #[test]
+    fn all_gathering_drops_a_dead_member_before_it_reads_the_chain() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
+            flags: bflags::GATHER,
+            ..crate::build::BuildType::default()
+        }));
+        let put = |sim: &mut Sim, x: i32| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(1, index, Pos::new(x, 0x1000), 10);
+            u.ty = Some(citizen);
+            u.on_map = true;
+            sim.add_unit(u)
+        };
+        let chopping = [put(&mut sim, 0x1100), put(&mut sim, 0x1200)];
+        for u in chopping {
+            sim.add_gather_order(u, camp, QueuePos::New, false);
+            if let Some(Body::Gather(g)) = sim.units[u].orders.front_mut().map(|o| &mut o.body) {
+                g.goto_build = false;
+                g.wait = 100;
+            }
+        }
+        assert!(sim.all_gathering(camp), "both out at their tiles");
+        let dead = put(&mut sim, 0x1300);
+        sim.add_gather_order(dead, camp, QueuePos::New, false);
+        sim.add_move_order(
+            dead,
+            Pos::new(0x1800, 0x1000),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        sim.units[dead].health = 0;
+        assert_eq!(sim.buildings[camp].gatherers[0], dead, "at the head");
+        assert!(sim.all_gathering(camp), "the dead member is not read");
+        assert!(!sim.is_gathered_by(camp, dead), "it is pruned");
     }
 }
