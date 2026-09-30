@@ -4804,7 +4804,7 @@ impl Sim {
             // and after it, which is why a group's cap is one pass stale.
             //
             // **And the `march` arm under it** (`5e7ab?`, `docs/AI.md`
-            // §99.14): the leader's report clears `+0x4b`, and a leader
+            // §99.15): the leader's report clears `+0x4b`, and a leader
             // whose leader flags carry `0x8000` and which
             // `has_general(0x8000, -1)` sets it — from then on only a
             // follower near a marching hero reports its speed.

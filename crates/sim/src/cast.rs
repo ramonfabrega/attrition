@@ -750,7 +750,7 @@ impl Sim {
     /// the leader's `0x8000` (`docs/AI.md` §99.13).
     ///
     /// What the march does is [`Sim::unit_speed`]'s and the group's
-    /// `march` flag's (`docs/AI.md` §99.14).
+    /// `march` flag's (`docs/AI.md` §99.15).
     pub(crate) fn cast_march(&mut self, g: usize) {
         let Some(d) = self.spell(crate::orders::spell::FORCED_MARCH) else {
             return;
