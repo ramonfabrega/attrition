@@ -171,7 +171,8 @@ pub(crate) fn walk_second_probed(
 /// 1243 moved it to 10985, and the walk to run480; item 1264 moved it to
 /// 11328, and the walk to run490; item 1281 moved it to 11549, inside it;
 /// item 1297 moved it to 11637, and the walk to run506; item 1302 moved
-/// it to 12582, and the walk to run508. `None`
+/// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
+/// the walk to run523. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -183,7 +184,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run508-islands-toughest-12582.txt",
+        "gamelog-run523-islands-toughest-13385.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -949,9 +950,10 @@ mod tests {
         for what in ["order:move.angle", "dest_angle", "order:flags"] {
             pin_eq!(row(1, 15, what), None, "`1/15`'s {what}");
         }
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(5601, 130), (5682, 5), (5704, 2)].
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 104), (5682, 4), (5704, 1)],
+            [(5601, 121), (5682, 5), (5704, 2)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -1036,15 +1038,15 @@ mod tests {
         // (6182), and the newborns `1/42`'s and `1/43`'s `form` -1 against
         // 0 (6191, 6218).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (5970, 112),
-                (5976, 1),
-                (5982, 1),
+                (5970, 145),
+                (5976, 2),
                 (5984, 1),
                 (6001, 1),
                 (6074, 1),
@@ -1062,7 +1064,8 @@ mod tests {
         // 174 → 169 and the first block 156 → 151, who=1's `escrow` on its
         // five goods (`docs/AI.md` §98).
         // Item 1291 took 2: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 125, "every key parted on run414");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 167.
+        pin_eq!(w.firsts.len(), 160, "every key parted on run414");
     }
 
     /// **The second pair's East Indies word, 6321, widened whole** (item
@@ -1133,17 +1136,18 @@ mod tests {
             "the passenger's figure speed, put ashore"
         );
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1330: the first block 155 → 112 and `6334`'s one row
             // gone, the births' `form` (`docs/GROUPS.md` §24.3).
             [
-                (6316, 112),
-                (6381, 1),
-                (6385, 1),
+                (6316, 149),
+                (6334, 1),
                 (6393, 2),
                 (6401, 1),
-                (6417, 2)
+                (6417, 3),
+                (6434, 2)
             ],
             "the blocks keys first part on, the first six"
         );
@@ -1154,7 +1158,8 @@ mod tests {
         // (`docs/COMBAT.md` §59.3). Item 1228: 182 → 179, who=1's
         // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took 4: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 129, "every key parted on run419");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 175.
+        pin_eq!(w.firsts.len(), 167, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1255,10 +1260,12 @@ mod tests {
         // player 0's `production_step` (6801), ahead of the word 7382's
         // `Leader::use_market` against `Leader::make_stuff`.
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (6604, 109),
+                (6604, 147),
+                (6633, 1),
                 (6670, 2),
                 (6671, 2),
                 (6685, 4),
@@ -1266,9 +1273,6 @@ mod tests {
                 (6742, 2),
                 (6769, 2),
                 (6778, 2),
-                (6781, 1),
-                (6782, 1),
-                (6784, 1),
                 (6789, 2),
                 (6792, 1),
                 (6801, 1)
@@ -1279,7 +1283,8 @@ mod tests {
         // (`docs/COMBAT.md` §59.3). Item 1228: 189 → 185, and the first
         // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 138, "every key parted on run420");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 184.
+        pin_eq!(w.firsts.len(), 176, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1353,9 +1358,10 @@ mod tests {
         // shift (§52.2) on 7381, 7382 and 7384, and on 7384 the Units
         // step's slot 4 (a Merchant here against a Farm there) and
         // `known_rares` 2 against 0.
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was Some("7381: ours 1 theirs 0").
         pin_eq!(
             row(1, -1, "leader:MAKE[1].city").as_deref(),
-            Some("7381: ours 1 theirs 0"),
+            None,
             "the city shift"
         );
         pin_eq!(
@@ -1389,15 +1395,14 @@ mod tests {
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 7_513)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (7377, 102),
-                (7381, 4),
-                (7382, 1),
+                (7377, 149),
                 (7384, 4),
                 (7401, 1),
                 (7419, 3),
@@ -1412,7 +1417,8 @@ mod tests {
         // (`docs/COMBAT.md` §59.3). Item 1228: 187 → 183, the first block's
         // 161 → 158 and 7478's 2 → 1, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 124, "every key parted on run425");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 174.
+        pin_eq!(w.firsts.len(), 169, "every key parted on run425");
     }
 
     /// **The second pair's East Indies word 8519, widened whole** (item
@@ -1488,18 +1494,20 @@ mod tests {
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(8514, 167)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 8_520)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8514, 113)],
+            [(8514, 163)],
             "the blocks keys first part on, to the old word's block 8520"
         );
         // Item 1191: 1243 → 608. Item 1197: 608 → 198. Item 1228: 198 →
         // 194, and block 8514's 180 → 176, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 128, "every key parted on run439");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 185.
+        pin_eq!(w.firsts.len(), 180, "every key parted on run439");
     }
 
     /// **The second pair's East Indies word 8820, widened whole** (item
@@ -1593,12 +1601,13 @@ mod tests {
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(8815, 169)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 8908)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8815, 113)],
+            [(8815, 167)],
             "the blocks keys first part on, to the old word's block 8908"
         );
         // Item 1197: 1176 → 627, and block 8815's 504 → 183. Item 1214:
@@ -1606,7 +1615,8 @@ mod tests {
         // 1228: 195 → 190, and block 8815's 183 → 178, who=1's
         // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took 2: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 124, "every key parted on run445");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 180.
+        pin_eq!(w.firsts.len(), 175, "every key parted on run445");
     }
 
     /// **The second pair's East Indies word 10183, widened whole** (item
@@ -1721,19 +1731,21 @@ mod tests {
         // window, so the count stops where it stood.
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 10_186)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10178, 108), (10181, 3), (10182, 2), (10184, 3), (10185, 1)],
+            [(10178, 165), (10184, 3)],
             "the blocks keys first part on, to 10186"
         );
         // Item 1228: 1055 → 1398; the window now walks past 10185, and
         // who=1's make list and its Senate part from there. Item 1243:
         // 1398 → 198, the word past the window.
         // Item 1291 took 3: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 129, "every key parted on run462");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 187.
+        pin_eq!(w.firsts.len(), 179, "every key parted on run462");
     }
 
     /// **The second pair's East Indies word 10985, widened whole** (item
@@ -1799,18 +1811,20 @@ mod tests {
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 10_986)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10980, 119), (10981, 7), (10982, 1), (10984, 1)],
+            [(10980, 179), (10981, 1)],
             "the blocks keys first part on, to the old word's"
         );
         // Item 1264 took the Keep's offer and everything downstream of it
         // (1490 → 220).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 148, "every key parted on run480");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 211.
+        pin_eq!(w.firsts.len(), 202, "every key parted on run480");
     }
 
     /// **run490 — the second pair's East Indies word 11328, widened whole**
@@ -1895,13 +1909,14 @@ mod tests {
         // hands the first cast's craft back and `Unit::work` restarts its
         // clock, so the second cast is laid on 11538 on both sides
         // (`docs/AI.md` §99.14); 11539 is `1/79`'s `dest_angle` alone.
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (11323, 124),
+                (11323, 177),
                 (11329, 16),
                 (11356, 4),
                 (11384, 1),
@@ -1920,9 +1935,10 @@ mod tests {
         // Item 1302 took three on 11411: `1/98`'s Create Decoys, laid by
         // army 4's spellcaster turn — its `spell_time` 1 and `mana_burn`
         // 1000 (`docs/AI.md` §99.14).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 226.
         pin_eq!(
             w.firsts.len(),
-            161,
+            218,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
@@ -1990,17 +2006,19 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(11632, 194), (11638, 19)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 11_638)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(11632, 132), (11638, 1)],
+            [(11632, 189), (11638, 19)],
             "the blocks keys first part on, to 11637's"
         );
         // Item 1302 took 1151: the six squads' records, the group's list,
         // and what followed them (1375 before).
-        pin_eq!(w.firsts.len(), 144, "every key parted on run506");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 224.
+        pin_eq!(w.firsts.len(), 219, "every key parted on run506");
     }
 
     /// **run508 — the second pair's East Indies word 12582, widened whole**
@@ -2049,20 +2067,109 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was Some("12581: ours -1 theirs 50").
         pin_eq!(
             row(1, -1, "leader:MAKE[5].t").as_deref(),
-            Some("12581: ours -1 theirs 50"),
+            None,
             "the block before the word's: a make slot the dump alone fills"
+        );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1326 re-pinned on the tree merged with 1318's: was [(12577, 210), (12582, 1)].
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [
+                (12577, 210),
+                (12582, 1),
+                (12584, 1),
+                (12601, 1),
+                (12763, 3),
+                (12809, 2)
+            ],
+            "the blocks keys first part on, to the word's"
+        );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 1817.
+        pin_eq!(w.firsts.len(), 218, "every key parted on run508");
+    }
+
+    /// **run523 — the second pair's East Indies word 13385, widened whole**
+    /// (item 1326): run508's detail over blocks 13380..13636, walked from
+    /// run346's start.
+    #[test]
+    fn run523_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run523",
+            "gamelog-run523-islands-toughest-13385.txt",
+            WIDENING_SECOND_EAST_INDIES_13385,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run523 whole: blocks 13380..13636");
+        pin!(
+            w.missing.is_empty(),
+            "run523 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **The word 13385** (item 1326; no mechanism is named): ours 4
+        // draws against 54, at index 0, where the original's step-11
+        // `make_stuff` spends `Leader::use_market+0x1ed` and places a Farm.
+        // The lists agree through block 13384; on 13385 the original's
+        // second `create_buildings` puts the Farm (`t` 417, `val` 216500,
+        // city 3) in the empty head, and ours offers nothing there. The
+        // first rows are two blocks earlier, on 13383, step 8's purchase
+        // (frame 13382): who=1's Trebuchet order (`num` 2) queues two here
+        // and one there, the original's at `1/2028` for 76 timber and 76
+        // metal where ours' first costs 66 and its second 85.
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        pin_eq!(
+            row(1, -1, "leader:num_queued[216]").as_deref(),
+            Some("13383: ours 2 theirs 1"),
+            "the Trebuchets queued on step 8's purchase"
+        );
+        pin_eq!(
+            row(1, 2028, "queue:queue[0].cost[0]").as_deref(),
+            Some("13383: ours 66 theirs 76"),
+            "the first Trebuchet's price"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12577, 131), (12581, 9), (12582, 2), (12583, 3)],
+            [
+                (13380, 212),
+                (13383, 7),
+                (13384, 1),
+                (13385, 6),
+                (13386, 35)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1738, "every key parted on run508");
+        // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
+        pin_eq!(w.firsts.len(), 1102, "every key parted on run523");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
@@ -2136,11 +2243,12 @@ mod tests {
             *by.entry(*f).or_default() += 1;
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [
-                (6567, 111),
-                (6570, 2),
+                (6567, 146),
+                (6570, 3),
                 (6576, 4),
                 (6577, 2),
                 (6582, 1),
@@ -2153,7 +2261,8 @@ mod tests {
         // (`docs/COMBAT.md` §59.3). Item 1228: 175 → 171, the first
         // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 125, "every key parted on run421");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 170.
+        pin_eq!(w.firsts.len(), 162, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item

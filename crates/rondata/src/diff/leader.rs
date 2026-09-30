@@ -322,12 +322,34 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             i64::from(loaded.type_index(t as sim::tech::TypeId))
         }
     };
+    // **`city` is the leader's own index, not this crate's.** The original
+    // reads a slot's city as `cities[who].list[city]` (`produce_unit@006cb9e0`,
+    // the `cities.field_0x10 + who * 0x1c` base), the leader's own list;
+    // this crate's is the index into every player's cities. So ours is
+    // compared as its rank among the cities this leader holds, in index
+    // order — which is founding order until a city changes hands. Item 1326:
+    // East Indies' 12581 read the one Small City as ours 1 against 0, and
+    // the booking carried it as a parting.
+    let own_city = |c: i32| -> i64 {
+        usize::try_from(c)
+            .ok()
+            .and_then(|c| {
+                built
+                    .sim
+                    .cities
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, x)| x.alive && usize::from(x.owner) == who)
+                    .position(|(i, _)| i == c)
+            })
+            .map_or(i64::from(c), |k| k as i64)
+    };
     for (i, m) in a.make_list.list.iter().enumerate() {
         for (k, v) in [
             ("t", ti(m.t)),
             ("val", i64::from(m.val)),
             ("escrow", i64::from(m.escrow)),
-            ("city", i64::from(m.city)),
+            ("city", own_city(m.city)),
             ("up", i64::from(m.up)),
             ("o", i64::from(m.o)),
             ("num", i64::from(m.num)),
@@ -1645,11 +1667,6 @@ mod tests {
         (0, "production_step"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
@@ -2320,7 +2337,8 @@ mod tests {
     /// `num_queued[0]`, `num_queued[2]` and `bucket[0:food]`, the two
     /// Citizens this crate used to buy instead of the Scholar. The
     /// `MAKE[*].city` rows that remain are the index shift §52.2 names,
-    /// not a valuation.
+    /// not a valuation — and leave on item 1326, which compares the
+    /// leader's own index.
     ///
     /// **93 → 89 on item 545** (`docs/AI.md` §56), four down and nothing
     /// arriving: `MAKE[3]`'s `cat`, `t` and `val`, and `MAKE[7].val` — the
@@ -2363,11 +2381,6 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[5].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[2].reg"),
         (1, "SITE[5].dist"),
@@ -2403,7 +2416,8 @@ mod tests {
     /// nothing arriving: `MAKE[1].num` and the whole `MAKE[2]` head —
     /// `cat`, `t`, `val`, `num`. This window is 200 frames *before* the
     /// re-offer, so the scholar arm's correction reaches the list here
-    /// too; the `MAKE[*].city` rows that remain are §52.2's index shift.
+    /// too; the `MAKE[*].city` rows that remain are §52.2's index shift
+    /// (gone on item 1326).
     ///
     /// **90 → 85 on item 545** (`docs/AI.md` §56), five down and nothing
     /// arriving: `MAKE[1].val`, `MAKE[3]`'s `cat`, `t` and `val`, and
@@ -2442,13 +2456,6 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[0].city"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[5].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
         (1, "SITE[5].val"),
@@ -2553,11 +2560,6 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[0].city"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[3].dist"),
@@ -2650,14 +2652,6 @@ mod tests {
         (0, "peasant_high"),
         (0, "peasants"),
         (0, "scouts"),
-        (1, "MAKE[0].city"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[5].city"),
-        (1, "MAKE[6].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
@@ -2769,14 +2763,6 @@ mod tests {
         (0, "peasants"),
         (0, "production_step"),
         (0, "scouts"),
-        (1, "MAKE[0].city"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[2].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[6].city"),
-        (1, "MAKE[7].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
@@ -2945,7 +2931,7 @@ mod tests {
     ///
     /// The rest was standing before the window opened: `SITE[*]`'s
     /// ranking (run107's own), the human census this crate leaves at
-    /// nought, `MAKE[*].city`'s ours-plus-one, and the Merchant at
+    /// nought, `MAKE[*].city`'s ours-plus-one (gone on item 1326), and the Merchant at
     /// `MAKE[3]`/`MAKE[4]` that `civilian_value` does not offer
     /// (`docs/AI.md` §38.5).
     /// **Item 327 deleted four**: `1/MAKE[3]`'s `t` and `cat` and
@@ -2998,12 +2984,6 @@ mod tests {
         (0, "scouts"),
         (0, "treaties[1]"),
         (0, "wars"),
-        (1, "MAKE[0].city"),
-        (1, "MAKE[1].city"),
-        (1, "MAKE[3].city"),
-        (1, "MAKE[4].city"),
-        (1, "MAKE[6].city"),
-        (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[5].dist"),

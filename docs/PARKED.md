@@ -146,6 +146,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1326, 2026-09-30 — the Small City's `to`
+
+(1342) **run508's `MAKE[4].val` on 12582**: the Farm, 194250 against
+197250; it spends no draw on that frame.
+
+(1343) **`own_city`'s rank is founding order only while no city changes
+hands**: a capture would need the original's list order.
+
 ## Parked by item 1332, 2026-09-30 — the stranger's shove
 
 (1339) **The pushed unit's `guy_flags & 2` across a frame boundary**:
@@ -2709,6 +2717,11 @@ animal's chain. When the first parted field is a `collide_o` another
 unit wrote, run `seams.py` on the writer's function by name — the same
 shape as 1337.
 
+(1344) **A comparison of two index spaces** (1326's Loop line): a
+booking's `MAKE[k].city` row read as a parting for months while the
+harness compared ours' index against the dump's. A guard that names the
+unit of each side of a comparison would have caught it.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
@@ -3135,11 +3148,9 @@ call in this crate at all**, which is the shape 304 turned out to be, one
 level up. Parked because it names no score; it comes back the day a
 window contains one of them.
 
-(325) **`MAKE[*].city` is ours + 1 on every offer** — this crate's city
-array puts the human's at index 0 and the AI's at 1 and 2 where the dump
-reads 0 and 1. No offer in run19's window is chosen by the index, so
-nothing scores it; the falsifier is an offer whose choice depends on the
-city. Item 323, AI §38.
+(325) closed 2026-09-30 by item 1326: **`MAKE[*].city` is ours + 1** —
+the harness compared two index spaces; the loader and `own_city`'s rank
+now agree with the dump (`docs/CITIES.md` §13 item 14).
 
 (326) **Three tech `val`s part from before run19's window** — Empire
 2,100,000 against 1,800,000, Mercenaries 165,000 against 216,000,

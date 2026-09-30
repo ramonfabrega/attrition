@@ -199,6 +199,7 @@ const UNREAD: &[(&str, &str)] = &[
     // city; the name is read by nothing, as `London` and `Norwich` are not.
     // **Item 1332 added `York`**: run529's window, Great Sahara at
     // Toughest past 9574, holds a city no earlier window did.
+    // Item 1326 met it too, on run523's East Indies window.
     (
         "GAME/FRAME/CITIES/CITY",
         "London Napata Newcastle Norwich York flags increment length size",
@@ -675,6 +676,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
     let r506 = crate::testenv::dump("gamelog-run506-islands-toughest-11637.txt");
     let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
+    let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1273,6 +1275,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run508 carries the second pair's East Indies word 12582's blocks"
+        );
+        frames += n;
+    }
+    // Item 1326 moved it to 13385 (block 13386), past run508: run523 is
+    // its widening.
+    if let Some(p) = &r523 {
+        let n = drive_capture(p, 13_385, 13_388, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run523 carries the second pair's East Indies word 13385's blocks"
         );
         frames += n;
     }
@@ -2346,12 +2358,17 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // row (`form_id`, `group_angle`, `group_id`, `in_group`, `oxx`,
     // `whose`) is compared on the union, and leaves this pin (measured on
     // the tree merged with 1305's).
+    // **Item 1326 moved East Indies' window to run523's 13384..13387**,
+    // walked beside 1318's Toughest window: no group move stands on the
+    // union, so the group row returns to this pin, and a cast does, so
+    // `cast_paid` and `cast_spell` leave it (measured on the tree merged
+    // with 1318's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search \
-         in_range mandatory metric new_ord non_flat_gather \
+         attempts build_type cruising_alt def_x \
+         def_y defensive ever_in_range form_id garrison_search group_angle \
+         group_id in_group in_range mandatory metric new_ord non_flat_gather oxx whose \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint",
     ),
