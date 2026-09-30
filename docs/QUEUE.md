@@ -12,14 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: ten landings.
-**East Indies' second word 8907 → 10185** (1214, 1228); **Great Sahara
+*2026-09-30, the commander after the twentieth pass: eleven landings.
+**East Indies' second word 8907 → 10985** (1214, 1228, 1243); **Great Sahara
 at Toughest opens at 5376, now 7070** (1221, 1241, 1251); **chapter
 forty-three opens at 1356 and closes at 2200**; **chapter forty-four
 opens at 670** (1254). 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1243, 1257, 1260**, one to each open word. 1243 (10985) is
-  gated and waits on its merge.
+- **Three lanes live: 1264, 1257, 1260**, one to each open word.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first; the next clear is at the twentieth, the pass's.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -31,17 +30,17 @@ opens at 670** (1254). 1222: the held-out map, 1851/1850, for the record.*
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 23 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263).
+- **Fable backlog: 24 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w10185 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w10985 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w7070 of 15,432
 Golden: ch44 w670 of 1,450 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1243, 1257 and
-1260; ten landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1264, 1257 and
+1260; eleven landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -51,13 +50,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1243. **East Indies' second word: frame 10185, ours 9 draws against 10**
-    (1228), at index 1: ours `Leader::make_stuff+0x221` where the
-    original spends a second `Leader::use_market+0x1ed` (then
-    `produce_building+0x1805` twice); widened on run462 (block 10186),
-    which parts on 38 keys — who=1's `bucket[2:wealth]` 57 against 7, the
-    Senate's foundation `1/2026` the dump's alone. `MAKE[0].val` on 10185
-    1,200,000 against 4,800,000; `num_queued[84]` stands from 10178.
+1264. **East Indies' second word: frame 10985, ours 10 draws against
+    11** (1243), at index 2: ours `Leader::make_stuff+0x221` where the
+    original spends a third `Leader::use_market+0x1ed`; widened on run480
+    (block 10986), 1,490 keys. Block 10985's `MAKE[1]`: ours a type-440
+    building at 900,000, theirs five Pikemen (134) at 611,022. Standing
+    from 10980: the orders' `group.id`, and the make list's `city` from
+    10981. No mechanism; 1251's `get_cost` tail is a candidate.
 
 1260. **Great Sahara at Toughest's word: frame 7070, ours 3213 draws
     against 2552** (1251), at index 2545: ours 3204

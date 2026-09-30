@@ -146,6 +146,19 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1243, 2026-09-30 — the queue's group tally
+
+(1265) **`untrack_queued`'s group-tally guard** (1243's mutation C):
+held by its unit test and no walk. The dump's `barracks_queued` ..
+`air_queued` are parsed and stand on the compared pin as uncompared,
+while this crate carries them as `queued_by_group`; comparing the five
+keys is the cheaper step, a candidate widening. `combat_queued`
+(`+0xa1c`) is not carried.
+
+(1266) **A technology entry's finish order**: ours unqueues first; the
+original's is `finished` then `unqueue` for every entry. Named by 1243,
+not built past the research arm.
+
 ## Parked by item 1251, 2026-09-30 — the library line's other steps
 
 (1261) **`get_cost`'s library-line tail, its other eight steps** (1251):
@@ -2451,6 +2464,13 @@ block 1** (1251's Loop line): a leader's goods through a dark gap cost
 3½ minutes and 55 MB at `LEADERS=2`, where every widening so far booked
 `LEADERS=9` windows round the word. The brief checklist could name it as
 the first instrument for a standing goods row. One reach.
+
+(1267) **A booking's type number does not say its keying** (1243's Loop
+line): the dump's `num_queued` and the make list's `t` are
+`TypeIndex`-keyed, `num_units` and the harness's keys record-keyed, and
+1228's journal named `num_queued[84]` "Elite Javelineers" from the make
+list's 84 — it is Pikemen. A brief row: a type number names its keying
+and the name `unitrules.xml` gives it. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
