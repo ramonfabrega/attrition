@@ -18,8 +18,8 @@ before: East Indies 8907 → 11637, Great Sahara at Toughest 5376 → 8856,
 Himalayas 1851/1850 held out and in lockstep, chapters forty-three to
 forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 
-- **Lanes live: 1302 (att-1302), 1310 (att-1310), 1318 (att-1318).**
-  1305 landed: Great Sahara at Toughest 8856 → 9323.
+- **Lanes live: 1302, 1318, 1323.** Landed: 1305 (Great Sahara at
+  Toughest 8856 → 9323), 1310 (chapter forty-seven opens at 712).
 - **The pass built**: the lane held through the click-free runner's
   restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
   (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
@@ -31,17 +31,17 @@ forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; **the disk, 40 GiB free, 13 written a tranche**; parked
   1141 and 1142.
-- **Fable backlog: 23 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322).
+- **Fable backlog: 24 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w11637 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9323 of 15,432
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
+Golden: ch47 w712 of 1,401 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1302, 1310 and 1318;
-merge each landing and refill its lane; the count is at one.**
+**Opener: the commander, on Opus — lanes live on 1302, 1318 and 1323;
+merge each landing and refill its lane; the count is at two.**
 
 ## The queue
 
@@ -65,13 +65,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     (block 9324): 571 keys stand on 9318 from the gap 9038..9317, 28 of
     who=1's army positions among them. No mechanism is named.
 
-1310. **Chapter forty-seven: three arms the widenings hold and no walk**
-    (DECISIONS 56 §3): a landed squad's members turned to their
-    captain's angle (parked 1312, 1291's M1); a Tower-line site standing
-    when its leader gains the Keep (1282, 1264's B); and a unit whose
-    `dest_angle` an age's snap leaves, read on a later frame (1299,
-    1281's B). Whether one staging reaches each is the item's to
-    establish first. Booked by the commander; the pass may reorder.
+1323. **Chapter forty-seven's word: frame 712, ours 35 draws against
+    31** (1310), at index 25: ours spends four draws in the buildings
+    phase — T `0/2008`'s round while it is a site — where the original's
+    next is `Farms::inc_time+0x1ae` (seed `0x8fad03fd`); widened on
+    run514 (block 713): `1/6`'s `hits:damage` ours 8 against 0,
+    `hits_left` 112 against 120. No mechanism is named.
 
 ## How to maintain this file
 
