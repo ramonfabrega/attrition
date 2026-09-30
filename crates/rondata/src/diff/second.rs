@@ -2032,16 +2032,29 @@ mod tests {
         }
         // **The word 12582** (item 1302; no mechanism is named): ours 9
         // draws against 10, at index 4, where the original spends
-        // `Leader::make_stuff+0x63d`.
+        // `Leader::make_stuff+0x63d`. The first rows before it are on
+        // block 12581: who=1's `MAKE[5]` holds a Citizen order (`t` 50,
+        // `cat` 5, `num` 4, `city` 2, `escrow` 1) the dump alone has, and
+        // `MAKE[0]`, `[2]` and `[6]`'s `city` read 0 against ours' 1.
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        pin_eq!(
+            row(1, -1, "leader:MAKE[5].t").as_deref(),
+            Some("12581: ours -1 theirs 50"),
+            "the block before the word's: a make slot the dump alone fills"
+        );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(0, 0)],
+            [(12577, 210), (12581, 9), (12582, 2), (12583, 3)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run508");
+        pin_eq!(w.firsts.len(), 1817, "every key parted on run508");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
