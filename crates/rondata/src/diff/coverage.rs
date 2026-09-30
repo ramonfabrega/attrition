@@ -669,6 +669,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r462 = crate::testenv::dump("gamelog-run462-islands-toughest-10183.txt");
     let r480 = crate::testenv::dump("gamelog-run480-islands-toughest-10985.txt");
     let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
+    let r506 = crate::testenv::dump("gamelog-run506-islands-toughest-11637.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -685,6 +686,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r483 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7070);
     let r488 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7785);
     let r491 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8182);
+    let r500 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8786);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1239,6 +1241,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             "run490 carries the second pair's East Indies word 11328's blocks"
         );
         frames += n;
+        // Item 1281 moved it to 11549 (block 11550), inside run490.
+        let n = drive_capture(p, 11_549, 11_552, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run490 carries the second pair's East Indies word 11549's blocks"
+        );
+        frames += n;
+    }
+    // Item 1297 moved it to 11637 (block 11638), past run490: run506 is
+    // its widening.
+    if let Some(p) = &r506 {
+        let n = drive_capture(p, 11_637, 11_640, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run506 carries the second pair's East Indies word 11637's blocks"
+        );
+        frames += n;
     }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
@@ -1378,6 +1397,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8378;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run491 carries the third map's word 8377 at Toughest");
+        frames += n;
+    }
+    // **And its word 8786, on run500** (item 1286): the frame writes block
+    // 8787, and the window is it with two either side.
+    if let Some(p) = &r500 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8787;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run500 carries the third map's word 8786 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2243,12 +2270,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1264 moved it to run490's 11327..11330**, where no cast order
     // stands: `cast_paid` and `cast_spell` return to this pin; the group
     // row and `coll_x`/`coll_y` are still compared there.
+    // **Item 1281 moved it to run490's 11548..11551**, where a guard order
+    // stands and no group move does: the six `guard_*` fields are compared
+    // there and leave this pin; the group row (`form_id`, `group_angle`,
+    // `group_id`, `in_group`, `oxx`, `whose`) is compared on item 1286's
+    // Toughest window (8785..8788), and stays off it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search \
-         guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
+         def_y defensive ever_in_range garrison_search in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
          retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint",
     ),
@@ -2271,7 +2302,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // with only run439's window walked `job_counter` returns to this pin.
     // **Item 1221 opened the third map at Toughest**: its word's window on
     // run471, 5375..5378, holds an unfinished site, so `job_counter` is
-    // compared and off this pin again.
+    // compared and off this pin again. **Item 1281 moved East Indies' window
+    // to run490's 11548..11551**, and with item 1275's Toughest window on
+    // 8377..8380 neither held an unfinished site: `job_counter` returned.
+    // Item 1286's Toughest window on 8785..8788 holds one, so on the tree
+    // merged with it `job_counter` is compared and off this pin again.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \

@@ -312,6 +312,17 @@ pub struct Guy {
     pub anim: i8,
     /// `gpiece`: the graphic piece, −1 when the table could not name one.
     pub gpiece: i32,
+    /// **The piece `guy_flags & 8`'s packet half was read off** — the
+    /// `gpiece` the guy held when `Guy::init_real@005db6b0` last ran.
+    /// `init_real` re-pieces the guy first (`:33`, `update_gpiece`) and
+    /// sets the bit from that piece's packet (`:179`); nothing after it
+    /// writes the bit, and `Guy::update_gpiece@005d8530` moves the piece
+    /// and leaves `+0x9a` alone. So a guy re-pieced **without** an
+    /// `init_real` keeps the answer its old piece gave: an age's loop
+    /// (`Leader::gain_tech:2372`) is the one such writer a capture has
+    /// reached. [`Sim::guy_turns`] reads this, never `gpiece`
+    /// (`docs/ANIM.md` §4.8).
+    pub flag_piece: i32,
     /// `stopped`: the body stood on its destination at the last follow.
     pub stopped: bool,
     /// `+0x9e` — **the attack this guy owes**, deferred by
@@ -456,6 +467,7 @@ impl Guy {
             last_time: -1,
             anim: DEFAULT,
             gpiece,
+            flag_piece: gpiece,
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
@@ -688,7 +700,9 @@ impl Sim {
     /// by the nation's `build_continent` before any of this, and those six
     /// are the `-NEUROPE-`/`-KOREAN-`/`-IROQUOIS-`/`-COLONIAL-`/
     /// `-EINDIAN-` entries whose names the piece arithmetic cannot build.
-    /// No capture holds a merchant.
+    /// ~~No capture holds a merchant.~~ run490 holds two deployed ones
+    /// re-pieced by an age, on 50689 (`total − 5`), where this derives
+    /// 2123 and 14795 (`docs/ANIM.md` §3.4); no clock parts on it there.
     pub fn unit_gpiece(
         &self,
         who: Player,
@@ -940,6 +954,9 @@ impl Sim {
             }
             match self.units[u].guys.get_mut(n) {
                 Some(g) => {
+                    // `init_real` opens with its own `update_gpiece`
+                    // (`:33`), so the bit is the new piece's.
+                    g.flag_piece = piece;
                     g.gpiece = piece;
                     g.anim = anim;
                     g.cur_time = 0;
@@ -990,9 +1007,11 @@ impl Sim {
     /// turn and does not pack, carries `24`; `TRIREME`, neither, carries
     /// `0`.
     ///
-    /// Derived rather than stored: neither the type nor the piece changes
-    /// under a guy, so the answer is the one `init_real` would have
-    /// written.
+    /// The type half is derived — a type does not change under a guy
+    /// without `init_real` — and the packet half is read off
+    /// [`Guy::flag_piece`], the piece `init_real` saw, because a piece
+    /// **does** change under a guy without one: an age re-pieces every
+    /// unit and leaves the flags (`docs/ANIM.md` §4.8).
     pub(crate) fn guy_turns(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
         if unit.ty.is_some_and(|t| self.unit_types[t].combat.packs) {
@@ -1001,7 +1020,7 @@ impl Sim {
         let Some(guy) = unit.guys.get(g).copied() else {
             return false;
         };
-        self.packet_has(u, guy.gpiece, TURN_RIGHT)
+        self.packet_has(u, guy.flag_piece, TURN_RIGHT)
     }
 
     /// `Guy::do_turn@005d97a0`'s animation half — the override a caller
@@ -2359,6 +2378,7 @@ mod tests {
             last_time: -1,
             anim,
             gpiece: piece,
+            flag_piece: piece,
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
@@ -2856,6 +2876,7 @@ mod tests {
             last_time: -1,
             anim: DEFAULT,
             gpiece: 13043,
+            flag_piece: 13043,
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
@@ -3007,6 +3028,7 @@ mod tests {
                 last_time: -1,
                 anim: DEFAULT,
                 gpiece: 60063,
+                flag_piece: 60063,
                 stopped: true,
                 pending_attack: 0,
                 queued_attack: 0,
@@ -3087,6 +3109,7 @@ mod tests {
                 last_time: -1,
                 anim,
                 gpiece: -1,
+                flag_piece: -1,
                 stopped: true,
                 pending_attack: 0,
                 queued_attack: 0,

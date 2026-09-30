@@ -1194,12 +1194,33 @@ A spy with a target in range would be the capture that reads it.
    unmodelled.~~ **Read and implemented 2026-09-01** (item 134): a
    non-air unit sets `Region.scouted`'s bit for its leader on its own
    region and clears `Region +0x3c`; a naval unit goes to `add_to_army`
-   (still a seam); a citizen (`0x32`/`0x33`) that is not exploring and
-   has no city in its region returns 0; everything else calls
-   `Unit::think_civilian_transport(0)`, which is `docs/TRANSPORT.md` §7.
-   East Indies **does** reach the tail with nothing found — run54's frame
-   3584, the AI scout `1/0`, and the island it then sails to is what the
-   word parts on at 3608.
+   (~~still a seam~~ **built by item 1297**, below); a citizen
+   (`0x32`/`0x33`) that is not exploring and has no city in its region
+   returns 0; everything else calls `Unit::think_civilian_transport(0)`,
+   which is `docs/TRANSPORT.md` §7. East Indies **does** reach the tail
+   with nothing found — run54's frame 3584, the AI scout `1/0`, and the
+   island it then sails to is what the word parts on at 3608.
+
+   **The naval arm, from the listing and a diff (item 1297,
+   2026-09-30).** At `5f6db5`, after the mark (`cmpl $2, 0x218(type)` at
+   `5f6d7a` skips it for air): `cmpl $1, 0x218(type); jne 5f6dd7`, then
+   `call Unit::add_to_army@005f7740` and `setns` — the call's answer is
+   whether the returned army slot is `≥ 0`. For a sea unit
+   `add_to_army` asks `Armies::find_army` with no range and no unit, and
+   a found army's first member is walked to by `go_to_unit`: a
+   `go_to(…, 2 = ATTACK_TO, 0, 0x300)` when the unit is more than `0x480`
+   away (`docs/ARMY.md` §4.3). **Diff-backed** on East Indies at Toughest:
+   run346's Caravel `1/35` (`TypeIndex` 325; the second pair's word
+   11549) arrives at its explore target on 11523, its region scan spends
+   one `+0x941` and scores nothing, and on run490's block 11524 it stands
+   in army 3's group 72 (4 → 5 members, the group's `stamp` 11523) with an
+   `ATTACK_TO` to (43128, 32808) and a 24-step path. This crate held the
+   arm as a seam: the Caravel stood idle, thought again on 11549 with that
+   frame's stride and found six cells to explore. Built as
+   `Sim::think_scout`'s sea tail calling `Sim::add_to_army`; the unit
+   test is `a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army`,
+   and the arm is held by the walk (with the seam back, East Indies parts
+   at 11549 again), by run490's widening and by that test.
 2. ~~**`Unit::find_goody_box`** — the very first thing `think_scout` does
    for a land unit, and it returns 1 (and skips everything here) when it
    finds a goody box to walk to. Not read; the simulation treats it as

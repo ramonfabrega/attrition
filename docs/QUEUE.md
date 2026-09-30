@@ -12,33 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: seventeen landings.
-**East Indies 8907 → 11328**; **Great Sahara at Toughest opens at 5376,
-now 8377**; **chapters forty-three to forty-five opened and closed**
-(2200, 1450, 1650); **forty-six opens at 1902**. 1222: the held-out map, 1851/1850, for the record.*
+*2026-09-30, the commander after the twentieth pass: **twenty landings;
+the twenty-first steering pass is due.** East Indies 8907 → 11637; Great
+Sahara at Toughest opens at 5376, now 8786; chapters forty-three to
+forty-five opened and closed; forty-six opens at 1902. 1222: the held-out
+map, 1851/1850, for the record.*
 
-- **Three lanes live: 1281, 1286, 1291**, one to each open word.
-- **The commander clears at the seam after every tenth landing**; the
-  twentieth is the pass's.
-- **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
-  and a note of what the item alone needs.
-- **Two lanes that touch `coverage.rs` conflict at the merge**: the
-  second takes `ccc update` and gates again (three this run).
+- **No lane is refilled.** 1291 (chapter forty-six) is live; 1302 (East
+  Indies) is unstarted. **1293 (8786 → 8856) waits on the user**: its
+  update of the base conflicts in `sahara_toughest.rs`, and its session's
+  classifier refused the merge as destructive; nobody merged it.
+- **For the pass**: `ccc clear --then` was consumed twice without a
+  clear, so the tenth-landing seam was never taken; five merge conflicts
+  (`coverage.rs` twice, `TRANSPORT.md`, `sahara_toughest.rs` twice): the
+  second lane takes `ccc update` and gates again.
 - **A chapter is three arms of one staging at most**, from the arms a
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 28 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289).
+- **Fable backlog: 30 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289, 1296, 1301).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w11328 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8377 of 15,432
+Second pair: EastIndies w11637 of 18,140 · GreatLakes w5930 of 5,930
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8786 of 15,432
 Golden: ch46 w1902 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1281, 1286 and
-1291; seventeen landings counted from the twentieth pass's commit.**
+**Opener: the twenty-first Fable steering pass — twenty landings since
+the twentieth's commit; 1293 waits on the user's word.**
 
 ## The queue
 
@@ -48,20 +50,20 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1281. **East Indies' second word: frame 11328, ours 62 draws against
-    60** (1264), at index 57: ours `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271` where the original spends `set_anim+0x104b`;
-    widened on run490 (block 11329): no leader or city row parts, and 65
-    of who=1's units' `g.gpiece[0]` read the original's 2112 above ours.
-    Standing from 11323: who=1's `caras` 3 against 4. No mechanism.
+1302. **East Indies' second word: frame 11637, ours 2 draws against 38**
+    (1297), at index 1: the original spends eighteen `Guy::init_real
+    +0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` and seventeen
+    idle stands; widened on run506 (block 11638): who=1's eighteen
+    Peltasts `1/93`, `1/104`..`1/120` are the dump's alone, and group 70
+    lists 37 against 19. No mechanism is named.
 
-1286. **Great Sahara at Toughest's word: frame 8377, ours 17 draws
-    against 19** (1275), at index 0: ours `Leader::make_stuff+0x221`
-    where the original opens with `Leader::use_market+0x1ed`; widened on
-    run491 (block 8378): who=1's head spent here (`MAKE[0].val` −1) and a
-    category-9 row at 1981477 there; wealth 172 against 53. Standing:
-    8181's fifth make row, a Merchant (61) against Trade (560); group
-    66's record on 8209, ours none. No mechanism is named.
+1293. **Great Sahara at Toughest's word: frame 8786, ours 10 draws
+    against 49** (1286), at index 1: the original spends
+    `Unit::do_group_move+0xb03 < Unit::do_group_attack_to+0x11` where
+    ours spends a second `Guy::set_anim+0x97a < Unit::move_step+0x823`;
+    widened on run500 (block 8787), which parts on no key first. Standing
+    from 8781: who=1's `order:group.id` on `1/73`..`1/75` 8698116 against
+    8704516, a dozen units' orders parted in 8434..8780. No mechanism.
 
 1291. **Chapter forty-six's word: frame 1902, ours 3 draws against 2**
     (1278), at index 0: ours `0/8`'s `Guy::set_anim+0x97a <

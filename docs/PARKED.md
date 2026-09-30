@@ -146,6 +146,39 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1297, 2026-09-30 — the leader's scouts
+
+(1303) **`LeaderData +0x988 scouts` has no writer in this crate**: the
+original keeps it in `Leader::track_unit_type` for types with `role &
+0x10` that are neither citizens nor scholars; its one reader is the
+Lakota food bonus in `calc_gather`, not modelled here. It stands at 0
+against 3 on every East Indies window since 11323, and nothing reads it
+on a non-Lakota map.
+
+## Parked by item 1281, 2026-09-30 — the age's snap
+
+(1298) **The merchant family's over-time piece** (run490's 11329):
+`1/19` and `1/59`'s `g.gpiece[0..1]` ours 2123/14795 against 50689,
+`track` −48/−192 against 0; no clock parts in the window.
+
+(1299) **The age snap leaving `dest_angle`** (1281's mutation B): held
+by the widening alone — no draw walk has a unit whose `dest_angle` an
+age's snap moves and a later frame reads.
+
+(1300) **`Movement::set_facing`'s `des_angle` write in its other
+callers** (`do_move`'s re-face, `go_inside`, …): whether each
+`Guy::set_angle(…, 1)` site writes `UnitData +0x58` is not read, and
+that is the error 1281 found in one of them.
+
+## Parked by item 1286, 2026-09-30 — the city line's price
+
+(1294) **The Major City's pair in `get_cost`'s city count** (1286's
+mutation B): held by no walk.
+
+(1295) **`num_queued` for a city counts an alive, unfinished city**:
+the two differ only while a city is ordered and not yet placed. Read,
+not measured.
+
 ## Parked by item 1275, 2026-09-30 — the route's other end
 
 (1287) **`Unit::end_trade_route@005e3bd0`'s city arm**: `delivered`
@@ -2550,7 +2583,12 @@ line): the dump's `num_queued` and the make list's `t` are
 `TypeIndex`-keyed, `num_units` and the harness's keys record-keyed, and
 1228's journal named `num_queued[84]` "Elite Javelineers" from the make
 list's 84 — it is Pikemen. A brief row: a type number names its keying
-and the name `unitrules.xml` gives it. One reach.
+and the name `unitrules.xml` gives it. One reach. **Again** (1297's
+Loop line): 1281's booking called `1/35` "the scout" and it was a
+Caravel — one grep away (the `GUY` block's `type`, then
+`enums/TypeIndex.txt`) — and the unit's domain decided the arm. A brief
+row: name each unit a booking names by its `TypeIndex` and domain before
+reading its chain. Two reaches.
 
 (1273) **The coverage pin counts a record read when its scanner parses
 it** (1257's Loop line): `widen_civilians` read `AMMO` for presence
@@ -2576,6 +2614,20 @@ reach.
 check that the window is taken** (1275's Loop line): run491 and run494
 are one window taken twice for one move, because 1264's build moved
 1275's word before either landed. One reach.
+
+(1296) **A widening's `firsts` cannot tell a quiet block from one that
+parts only on standing keys** (1286's Loop line): run500's word block
+read "parts on no key first" while it parted on group orders that stood
+from the window's first block — the orders the word's own group attack
+reads. A per-block parting count beside the firsts would say which. One
+reach.
+
+(1301) **A field carried in one slot for two offsets names no writer's
+offset** (1281's Loop line): `set_facing`'s extra `+0x58` write was
+found only because the value walked back to "ours wrote it". A helper
+listing every writer of a `Movement` field by the offset it models, or a
+doc comment naming each writer's offset where one slot serves two, would
+have named it without the walk. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
