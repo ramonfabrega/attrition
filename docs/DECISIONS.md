@@ -67,7 +67,8 @@ is append-only and amended in place, as it always was.
 - 53 amended by 54 — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
 - 54 amended by 55 — The war is priced in landings, the instrument follows the word, and a third map is scored
 - 55 extended by 56 — A closed game chooses nothing, code is not fenced, and the third map's word opens
-- 56 standing — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
+- 56 extended by 57 — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
+- 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
 
 ## 1. Fidelity before divergence
 
@@ -3793,3 +3794,153 @@ its peak against 290 k; a landing's 99 minutes, 39 working and 61
 waiting; **the suite's 455 seconds**; the tranche's wall clock against
 12.9 hours; the disk against 53 GiB; the price a landing against 17.6
 at the day's table; and the count at twenty.
+
+## 57. The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
+
+**Decided 2026-09-30**, the twenty-first Fable pass, in the main thread
+(`docs/audit/2026-09-30-fable-pass-21.md`). Extends entries 41, 53, 54,
+55 and 56; amends entry 56's estimate; overturns nothing.
+
+**What was measured.** Twenty-two landings since the twentieth pass by
+the log from `a08efe7a`, 20:04 on 2026-09-29 to 12:09 on 2026-09-30 —
+sixteen hours and five minutes from the pass's gate, thirteen hours and
+thirty-six from the first merge — at three lanes, every worker on Opus
+5.5 by transcript. **East Indies 8907 → 11637** in six landings, 455
+frames each; **Great Sahara at Toughest opened at 5376 and stands at
+8856** after seven; **the held-out map ran its 1,850 frames in
+lockstep**, 1851/1850, on ground no closed map has; chapters
+forty-three to forty-six closed in eight landings. Workers **300.50 USD,
+13.7 a landing** at today's table, against 17.6 for the tranche before
+re-priced at the same table (387.10; the table did not move): East
+Indies 13.1, the third map 16.4, **the rules lane 13.0 from 34.2**. The
+deepest worker 560 k from 852 k; the workers' spend above 300 k of
+context 40 per cent from 52. **A landing took 142 minutes, 33 working
+and 108 waiting**, against 99, 39 and 61 by the same fold
+(`tools/tranche.py`): the gate 40 minutes from 16, a capture 30 from
+11, a status message and then nothing 19 from 10, the suite 15 from 13.
+Two lanes waited **258 minutes** on permission prompts. The commander
+ran one session, 402 k at its deepest and 1.14 USD a landing; `ccc
+clear --then` was armed three times and did not fire. Twelve value
+diffs on the word's frame, nine on the frame the state first parted,
+none partial. Twelve journals met a comparison that compared nothing,
+from sixteen; nine landings met a refused update, from six, four of
+them on `coverage.rs`. Five mutations failed nothing and **thirteen
+were held by a unit test alone**, from six; sixteen earlier gates on
+thirteen landings were red on the worker's own, from twelve, none
+stopped for a moved base, from four. `tools/seams.py` had printed the
+cause on five first reads of twenty and `tools/standing.py` named the
+standing key that was the cause on four of five. No `FABLE:` row stood.
+The blind list 137 → 138, the census's `entered` unmoved: no trace of
+the tranche carried coverage.
+
+**What the pass could see and no landing could.**
+
+1. **The three-arm bound did what the clear was meant to.** The rules
+   lane's price fell from 34.2 to 13.0 USD a landing and its deepest
+   worker from 852 k to 497 k with chapters booked on three arms of one
+   staging; parked 1140's clear at the seam was to be tried if this did
+   not bring the lane under 25, and it did.
+2. **The waiting doubled and the working did not move.** 108 minutes of
+   a landing's 142 are the machine's and the harness's: a landing gates
+   twice because a pin another lane moved turns its first gate red, a
+   capture at Toughest to 24,000 frames is two hours of one lane's
+   clock, and the permission classifier held two lanes for 258 minutes
+   between them on commands that named nothing of git.
+3. **The instrument that conflicts is the instrument that compares
+   nothing.** `coverage.rs` refused four updates; its pin is the union
+   of the open windows' comparisons, so every landing that moves a word
+   rewrites its rows and its comment, and a row falls off it the moment
+   no open window holds the event. Parked 1225's three reaches are one
+   design, written there.
+4. **What the tree says it left out is read by name now, and it was
+   still not read.** `seams.py` printed the cause on five first reads
+   of twenty; on the other fifteen the cause sat in a comment without
+   the word, a plural `SEAMS:` block, a list under a bold lead-in, or a
+   stale specification the tool does not scan. The scanner was widened
+   for the first three and found three more doors.
+5. **The held-out map held.** The rules that closed three maps in the
+   first pair's lobby ran 1,850 frames on the fourth without a parting.
+   The estimate said the first hundred.
+6. **A pass that measures a brief's length as a cost and adds a dozen
+   rows has not measured anything.** The frame grew 10,125 → 12,959 →
+   13,969 with this pass's rows; a ceiling that may only fall is the
+   guard, and it failed first.
+7. **The blind list is the queue lane's alone.** Chapters run on the
+   click-free lane at `cover=0` since forty-three, where the call
+   proxies never start, so no chapter of the tranche entered a function
+   for the census.
+
+**Decided.**
+
+1. **The frame has a ceiling and may only fall** (`brief.FRAME_CEILING`,
+   `tools/explore/test_brief.py`): a row a pass adds is paid for by one
+   struck, and **a Loop line with one reach stays parked until the frame
+   has room**. The story of the frame leaves it; the checklist keeps
+   the story.
+2. **The lane is held through the runner's restore and released after**
+   (parked 1234): the click-free runner takes the launch line's lock for
+   its own pid before its first write, its launches carry the pid, and
+   it releases the lock at the end; a waiter accepts `free` or `stale`.
+   The two locks answer as one.
+3. **Parked 1140 closes on its condition**; the rules track stays on
+   three arms of one staging (entry 56 §5).
+4. **The compared pin is redesigned by the next pass** (parked 1225): a
+   monotone record of what any window has ever compared, appended by a
+   landing and never rewritten, so two lanes do not conflict on it and
+   its count only falls.
+5. **A closed chapter's coverage is a decision owed** (parked 1317): the
+   next pass prices a `cover=1` twin on the queue lane against the blind
+   list's worth as the rules track's measure.
+6. **The count stays twenty and the lanes stay three.** The capture lane
+   stays one: 9.3 minutes a landing waited on another lane's capture,
+   against the ten it returns at.
+7. **Six Loop items are built, each made to fail first** — 1234, 1253
+   with 1240, 1250, 1226, 1227, and `tools/tranche.py` with its test;
+   six are checklist rows (1233, 1256, 1267, 1285, 1289, 1313) with two
+   of the pass's own; 1101 and 1114 close on two tranches without a
+   reach; 1314 to 1317 are filed. The backlog is twenty-two.
+
+**Not decided, and the user's**: the permission classifier's refusals,
+which cost more wall clock this tranche than every capture (parked
+1315); `ccc clear --then` (1314); whether phase 4 opens on the rules
+track alone; the thesis sentence from entry 41; whether the loop hands
+itself to its pass (1141); whether a cheaper model is admitted to a
+trial (1142); and **the disk** — 40 GiB free, 13 written in the tranche,
+`~/ron-data` at 117 GB, so three tranches fill it, and nothing leaves
+the archive without the user's word.
+
+**The estimate, written down to be wrong on record.** Entry 56's were
+beaten in one direction and missed in the other: East Indies passed
+12,000 by nothing, at 11637; Toughest parted at 5376 and not inside
+2,000; the held-out map parted nowhere and not inside a hundred;
+chapter forty-three closed in three landings and not two, and the rules
+lane landed at 13 and not 25. This one: **East Indies passes 13,500 by
+the next pass**, at 455 a landing; **Great Sahara at Toughest passes
+11,000**; **the next four chapters close in eight landings under 15 USD
+each**; and **a landing waits under 80 minutes** once no lane waits on
+a prompt.
+
+**The measure for the next pass**: East Indies against 11637 and 455
+frames a landing; Great Sahara at Toughest against 8856; the held-out
+map's 1851/1850 for the record; chapters forty-seven on, against eight
+landings for four; the rules lane's price against 13.0 and its deepest
+worker against 497 k; mutations held by a unit test alone against
+thirteen and failing nothing against five, and the arms a chapter
+staged; "a comparison that compared nothing" against twelve; the cause
+a `SEAM`, a comment, a list or a stale specification had written down
+and whether `seams.py` printed it on the first read, against five of
+twenty; standing keys that became words and whether `standing.py` named
+them, against four of five; refused updates against nine and
+`coverage.rs`'s four; earlier red gates against sixteen and a landing's
+two gates; minutes waited on a permission prompt against 258; the lane
+lock's incidents against eleven; `UNBUILT` against 138,
+`NO_SUCH_SECTION` against thirteen, `UNSCANNED_SEAMS` against
+forty-five, the doors against seventeen, `UNCOMPARED_BY_THE_INSTRUMENT`
+against seventy-three; the order row's cited and entered; the blind list
+against 138 and the census's `entered` against 7,901; the frame against
+12,963 and its ceiling; the commander's price against 1.14 and its
+peak against 402 k, and whether a clear fired; a landing's 142 minutes,
+33 working and 108 waiting, by `tools/tranche.py`; the tranche's wall
+clock against 16.1 hours; the disk against 40 GiB; the price a landing
+against 13.7 at the day's table with the tranche before re-priced
+beside it; and the count at twenty.

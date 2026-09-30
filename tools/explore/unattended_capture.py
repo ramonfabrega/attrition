@@ -270,12 +270,44 @@ def capture(args, output, style):
     return report
 
 
+LANE = ROOT / 'tools/gamelog/winelaunch.sh'
+
+
+def lane(verb):
+    """The launch line's lane lock, spoken to: `ron_lane_take <pid>`,
+    `ron_lane_release <pid>`, `ron_lane_state`."""
+    return subprocess.run(['zsh', '-c', f'source {LANE}; {verb}'], capture_output=True, text=True)
+
+
 @contextmanager
 def capture_lane(profile):
+    """This runner's lane, held from before its first write to after its
+    restore (parked 974, 1234).
+
+    Two locks were two answers: the profile's `flock` here, held for the
+    runner's whole life, and the launch line's `.lane.lock`, which `ron_wine`
+    wrote with the game's pid alone — so the moment run467's game exited the
+    lane read `stale` while this process's `finally` was still restoring the
+    profile, and item 1221's long trace launched into the restore. The lane
+    is taken for this process's pid first, so it is held while the runner
+    lives; the launches carry the pid in `RON_LANE_TAKEN` and go; and the
+    lane is released at the end, so a waiter reads `free` and not `stale`.
+    The `flock` stays as the cheap same-host check it always was.
+    """
     # Keep the inode: unlinking a lock file allows concurrent owners.
     with (profile/'.attrition-capture.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        yield
+        pid = os.getpid()
+        os.environ.setdefault('RON_LANE_HOLDER', 'unattended_capture')
+        took = lane(f'ron_lane_take {pid}')
+        if took.returncode:
+            raise BlockingIOError(took.stderr.strip() or f'the lane refused the take (rc {took.returncode})')
+        os.environ['RON_LANE_TAKEN'] = str(pid)
+        try:
+            yield
+        finally:
+            os.environ.pop('RON_LANE_TAKEN', None)
+            lane(f'ron_lane_release {pid}')
 
 
 def capture_all(args):

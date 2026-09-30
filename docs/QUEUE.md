@@ -12,25 +12,26 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: **twenty-two
-landings; the twenty-first steering pass is due.** East Indies 8907 →
-11637; Great Sahara at Toughest opens at 5376, now 8856; chapters forty-three to
-forty-six opened and closed. 1222: the held-out
-map, 1851/1850, for the record.*
+*2026-09-30, the twenty-first Fable pass (`docs/audit/2026-09-30-fable-pass-21.md`,
+DECISIONS 57): **the count starts at zero from its commit.** The tranche
+before: East Indies 8907 → 11637, Great Sahara at Toughest 5376 → 8856,
+Himalayas 1851/1850 held out and in lockstep, chapters forty-three to
+forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 
-- **No lane is live and none is refilled.** 1302, 1305 and 1310 are
-  unstarted. Two lanes sat on a permission prompt the commander cannot
-  see or answer (1293's merge, 1291's re-pin script); the user approved
-  both.
-- **For the pass**: `ccc clear --then` was consumed twice without a
-  clear, so the tenth-landing seam was never taken; five merge conflicts
-  (`coverage.rs` twice, `TRANSPORT.md`, `sahara_toughest.rs` twice): the
-  second lane takes `ccc update` and gates again.
-- **A chapter is three arms of one staging at most**, from the arms a
-  landing parks as held by no walk (DECISIONS 56 §3).
-- **The user's**: whether phase 4 opens on the rules track alone; **the
-  disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 33 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289, 1296, 1301, 1308, 1309, 1313).
+- **No lane is live.** 1302, 1305 and 1310 are unstarted; the first
+  spawn on each track is its item, cut off this commit.
+- **The pass built**: the lane held through the click-free runner's
+  restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
+  (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
+  frame's ceiling (1226), `tools/tranche.py` for a tranche's waiting.
+- **Two lanes lost 258 minutes to permission prompts** (parked 1315): a
+  refused command is a script in `$CLAUDE_JOB_DIR/tmp/` — the frame's
+  row now; **`ccc clear --then` did not fire three times** (1314), so
+  the commander takes the seam by hand after the tenth landing.
+- **The user's**: the classifier's refusals (1315); phase 4 on the rules
+  track alone; **the disk, 40 GiB free, 13 written a tranche**; parked
+  1141 and 1142.
+- **Fable backlog: 22 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,8 +40,8 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8856 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-first Fable steering pass — twenty-two landings
-since the twentieth's commit; no lane is live.**
+**Opener: the commander, on Opus — spawn 1302, 1305 and 1310, one to a
+lane, cut off the twenty-first pass's commit; the count is at zero.**
 
 ## The queue
 

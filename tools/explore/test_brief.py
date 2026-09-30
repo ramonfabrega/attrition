@@ -78,6 +78,14 @@ class TheFrameHoldsTheChecklist(unittest.TestCase):
         frame = row_numbers(brief.FRAME.read_text())
         self.assertEqual(sorted((struck - live) & frame), [])
 
+    def test_the_frame_is_held_to_its_ceiling(self):
+        # Parked 1226: the frame took a dozen rows a pass and shed none —
+        # 10,125 characters to 12,959 in the twentieth pass, where a brief's
+        # length had been measured as a cost. The ceiling is the size the
+        # last pass left the frame at, and a pass that adds a row strikes
+        # one; it may only fall.
+        self.assertLessEqual(len(brief.FRAME.read_text()), brief.FRAME_CEILING)
+
     def test_every_kind_s_sections_are_in_the_frame(self):
         have = set(brief.sections(brief.FRAME.read_text()))
         for kind, names in brief.KINDS.items():

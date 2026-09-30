@@ -33,7 +33,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SIM = ROOT / 'crates/sim/src'
-FIRST = re.compile(r'^\s*first (-?\d+) (-?\d+)/(-?\d+) (\S+?): (.*)$')
+# `first <frame> …` is the AI track's widening; `ch43 f<frame> …` is a
+# golden chapter's, the same row in the chapter's spelling (parked 1250).
+FIRST = re.compile(r'^\s*(?:first (-?\d+)|ch[0-9a-z]+ f(-?\d+)) (-?\d+)/(-?\d+) (\S+?): (.*)$')
 # Segments of a key that are the record's own spelling and not a field.
 NOT_A_FIELD = frozenset(('order', 'leader', 'group', 'g', 'build', 'guy', 'path', 'city',
                          'move', 'attack', 'unit', 'pool', 'death', 'ammo'))
@@ -45,8 +47,8 @@ def firsts(lines):
     for line in lines:
         m = FIRST.match(re.sub(r'\x1b\[[0-9;]*m', '', line.rstrip('\n')))
         if m:
-            f, who, o, what, values = m.groups()
-            out.append((int(f), int(who), int(o), what, values))
+            f1, f2, who, o, what, values = m.groups()
+            out.append((int(f1 if f1 is not None else f2), int(who), int(o), what, values))
     return out
 
 

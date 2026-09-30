@@ -32,6 +32,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FRAME = ROOT / 'tools/brief/frame.md'
+# The frame's size, in characters, and it may only fall (parked 1226, the
+# twenty-first pass): a row added by a pass is paid for by one struck.
+# 12,959 was the twentieth pass's; the twenty-first left it under 13,000.
+FRAME_CEILING = 13_000
 QUEUE = ROOT / 'docs/QUEUE.md'
 
 # The frame's sections a kind of brief carries, in the order they are read.

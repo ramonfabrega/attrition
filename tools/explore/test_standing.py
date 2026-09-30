@@ -57,6 +57,14 @@ class Standing(unittest.TestCase):
         self.assertEqual(rows[0], (7377, 1, -1, 'leader:pop', 'ours 41 theirs 42'))
         self.assertEqual(rows[-1][:4], (7390, 1, 35, 'group'))
 
+    def test_a_golden_widening_s_print_is_read_too(self):
+        # Parked 1250: a chapter's widening prints `  ch43 f<frame> …`, not
+        # `first <frame> …`, and item 1235 converted it with `sed` by hand.
+        rows = standing.firsts(['  ch43 f1356 0/7 order:kind: ours 3 theirs 5',
+                                '  ch7b f900 1/-1 leader:pop: ours 4 theirs 5'])
+        self.assertEqual(rows, [(1356, 0, 7, 'order:kind', 'ours 3 theirs 5'),
+                                (900, 1, -1, 'leader:pop', 'ours 4 theirs 5')])
+
     def test_a_key_names_its_field(self):
         for what, field in (('leader:pop_cap', 'pop_cap'), ('order:move.dest', 'dest'),
                             ('g.cur_time[0]', 'cur_time'), ('leader:escrow[2]', 'escrow'),

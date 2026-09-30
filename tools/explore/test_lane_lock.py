@@ -232,6 +232,40 @@ class Liveness(LaneLock):
         run = self.shell('ron_lane_state')
         self.assertEqual(run.stdout.strip(), 'free')
 
+    def test_a_take_for_another_pid_holds_the_lane_for_it(self):
+        # Parked 1234 (three reaches): the click-free runner launches
+        # through a child shell, so a take on the shell's own pid was dead
+        # the moment the shell exited, the lane read `stale` while the
+        # runner's `finally` was still restoring the profile, and another
+        # lane's long trace launched into the restore. A take names the pid
+        # the lane is held for; the runner's launches carry it in
+        # `RON_LANE_TAKEN` and go; another shell's refuse; and the runner
+        # releases what it took, so the lane reads `free` and not `stale`.
+        run = subprocess.run(['sh', '-c', 'sleep 30 >/dev/null 2>&1 </dev/null & echo $!'],
+                             capture_output=True, text=True, check=True)
+        pid = int(run.stdout.strip())
+        self.holders.append(pid)
+        run = self.shell(f'ron_lane_take {pid}; echo "rc=$?"; ron_lane_state')
+        self.assertIn('rc=0', run.stdout, run.stdout + run.stderr)
+        self.assertIn('held by test since', run.stdout)
+        self.assertIn(f'(pid {pid}, sleep)', run.stdout)
+        self.assertEqual(self.lock.read_text().split('\n')[2], str(pid))
+        rc, err, _ = self.launch()
+        self.assertEqual(rc, 75, err)
+        rc, err, _ = self.launch(RON_LANE_TAKEN=str(pid))
+        self.assertEqual(rc, 0, err)
+        self.assertEqual(self.lock.read_text().split('\n')[2], str(pid))
+        run = self.shell(f'ron_lane_release {pid}; echo "rc=$?"; ron_lane_state')
+        self.assertIn('rc=0', run.stdout, run.stdout + run.stderr)
+        self.assertEqual(run.stdout.strip().split('\n')[-1], 'free')
+        self.assertFalse(self.lock.exists())
+
+    def test_a_release_by_another_pid_leaves_the_lock(self):
+        pid = self.hold(20)
+        run = self.shell(f'ron_lane_release {pid + 100000}; echo "rc=$?"; ron_lane_state')
+        self.assertIn('rc=1\n', run.stdout, run.stdout + run.stderr)
+        self.assertTrue(self.lock.exists())
+
     def test_the_state_of_a_dead_holder(self):
         pid = self.hold(20)
         os.kill(pid, 9)

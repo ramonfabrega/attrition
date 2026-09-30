@@ -378,6 +378,63 @@ had been broken by the landings that filed it.
   output, which is coloured, and all four "failed nothing". A mutation
   is scored by the run's exit code and the failed tests' names.
 
+## The brief checklist, from the twenty-first pass
+
+The rows continue, under a ceiling now: `tools/brief/frame.md` may not
+grow past `brief.FRAME_CEILING` (parked 1226, the twenty-first pass,
+2026-09-30), so a row is added when the frame has room and a Loop line
+with one reach stays parked until it does. The twenty-first pass added
+these from the three-lane tranche's "for the Loop" lines and two
+failures of its own, and struck the frame's own story to pay for them.
+
+- **Name each unit a booking names by its `TypeIndex` and domain before
+  reading its chain** (1267, two reaches): "the scout" of 1281's booking
+  was a Caravel, `num_queued[84]` was Pikemen and not the make list's
+  Elite Javelineers, and the unit's domain decided the arm both times.
+  A type number says its keying — `TypeIndex` for the dump's
+  `num_queued` and the make list, the record's index for `num_units`.
+- **When one side spent nothing on the word's frame, `seams.py` runs on
+  the chain of the order the other side took** (1233): at 8907 ours
+  spent nothing, `--item` read the original's chain, and the seam that
+  named the cause sat on ours' own path.
+- **A comment that says "not modelled" without the word is a seam, a
+  plural `SEAMS:` block is one, and a list under a bold lead-in is its
+  lead-in's paragraph** (1253, 1240; `tools/seams.py`): `find_friends`'
+  enhancer arm decided the third map's 5376 from a plain comment,
+  `do_cast`'s captain check sat in a `SEAMS:` block, and ROADS §9.4's
+  `leech_codes` in the bullets under "**Not modelled**". The scan's
+  widening found three more doors (14 → 17, parked 1224).
+- **A chapter's `chNN f…` firsts pipe through `standing.py` as the AI
+  track's `first …` do** (1250): item 1235 converted them with `sed`.
+- **The lane is held through the runner's restore and released after**
+  (1234, three reaches; `unattended_capture.capture_lane`,
+  `ron_lane_take <pid>`, `ron_lane_release`): run467's game exited, the
+  lane read `stale`, and 1221's long trace launched into the restore.
+  A waiter accepts `free` or `stale`; a `held by` is a live pid.
+- **A take with `@` lines is read with `issuesmatch.py --none-refused`
+  first** (966, 1256): two Loop lines of the tranche asked for a decoder
+  of `INFO 17` that the seventeenth pass had built; the row had not
+  reached the frame.
+- **A change on a shared path runs the widenings whose captures reach it
+  before the gate** (1313): `land_passenger`'s snap moved nineteen
+  widenings at the gate and seven more at the merge.
+- **Read your run's `docs/RUNS.md` section whole after `ccc update`**
+  (1285): the union merge spliced run480's "Taken" into run476's, and
+  run488's and run490's the same way.
+- **A landing that moves another lane's word says so** (1289): 1264
+  moved the third map's word under 1275, whose run491 and run494 became
+  one window taken twice.
+- **A command the permission classifier refuses is written to
+  `$CLAUDE_JOB_DIR/tmp/` and run from there** (the pass's own): two
+  lanes waited 258 minutes on prompts the commander could not see —
+  1293's hand merge 86 minutes, 1291's re-pin script 163 — and the pass
+  itself was refused four times on a python heredoc naming nothing of
+  git. What needs a human is one line to the commander, and the turn
+  ends (`CLAUDE.md`).
+- **The frame has a ceiling and may only fall** (1226, the pass's own):
+  12,959 characters at the twentieth pass, 13,969 with this pass's rows,
+  12,963 after the story left it and three one-reach rows stayed parked.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

@@ -87,11 +87,16 @@ _ron_pid_holds () {
 
 _ron_lane_holder () {
   # Prints the live pid that holds the lane, and returns 0; returns 1 when
-  # the lane is free, stale, or held by this shell.
+  # the lane is free, stale, or held by this shell — or by the pid this
+  # shell's runner took it for (`RON_LANE_TAKEN`): the click-free lane
+  # launches through a child shell, whose `$$` is not the taker's. With
+  # `--any` nothing is exempt: a reader asks who holds the lane, not
+  # whether it may launch.
   [[ -r "$RON_LANE_LOCK" ]] || return 1
-  local pid
+  local pid mine=$$ taken=${RON_LANE_TAKEN:-}
+  if [[ "${1:-}" == --any ]]; then mine=; taken=; fi
   for pid in "$(sed -n 1p "$RON_LANE_LOCK")" "$(sed -n 3p "$RON_LANE_LOCK")"; do
-    if [[ "$pid" == <-> && "$pid" != "$$" ]] && _ron_pid_holds "$pid"; then
+    if [[ "$pid" == <-> && "$pid" != "$mine" && "$pid" != "$taken" ]] && _ron_pid_holds "$pid"; then
       print -r -- "$pid"
       return 0
     fi
@@ -106,7 +111,7 @@ ron_lane_state () {
     return 0
   fi
   local pid held why=""
-  if held=$(_ron_lane_holder); then
+  if held=$(_ron_lane_holder --any); then
     print -r -- "held by $(sed -n 2p "$RON_LANE_LOCK") (pid $held, $(ps -o comm= -p "$held" 2>/dev/null))"
     return 0
   fi
@@ -159,9 +164,36 @@ _ron_lane_write () {
 }
 
 ron_lane_take () {
+  # `ron_lane_take [pid]`: the lane is taken for this shell, or for the pid
+  # given — a runner that launches through a child shell takes it for its
+  # own pid, so the lane is held through its restore and not only while
+  # its game lives (parked 1234, the twenty-first pass: run467's game had
+  # exited, the lane read `stale`, and another lane's long trace launched
+  # while the runner's `finally` was still putting the profile back).
   _ron_lane_free || return 75
-  RON_LANE_TAKEN=$$
-  _ron_lane_write "$$" "$$"
+  RON_LANE_TAKEN=${1:-$$}
+  _ron_lane_write "$RON_LANE_TAKEN" "$RON_LANE_TAKEN"
+}
+
+ron_lane_release () {
+  # `ron_lane_release [pid]`: a taker lets the lane go — the lock is
+  # removed when its first line is the given pid (this shell's by
+  # default) and nothing else live holds it, so a waiter reads `free`
+  # rather than `stale` once a runner has exited. Any other lock is left
+  # exactly where it is: a stale lock is the next launch's to take over,
+  # never a hand's to remove. Returns 1 when the lock is not the caller's.
+  local mine=${1:-$$}
+  [[ -r "$RON_LANE_LOCK" ]] || return 0
+  # The taker's pid is the first line until its launch, and the third
+  # after it (`ron_wine` puts the game's pid first): either is ours.
+  [[ "$(sed -n 1p "$RON_LANE_LOCK")" == "$mine" || "$(sed -n 3p "$RON_LANE_LOCK")" == "$mine" ]] || return 1
+  local pid
+  for pid in "$(sed -n 1p "$RON_LANE_LOCK")" "$(sed -n 3p "$RON_LANE_LOCK")"; do
+    if [[ "$pid" == <-> && "$pid" != "$mine" ]] && _ron_pid_holds "$pid"; then
+      return 1
+    fi
+  done
+  command rm -f -- "$RON_LANE_LOCK"
 }
 
 ron_wine () {

@@ -20931,3 +20931,33 @@ moved to the brief checklist: items 685, 1146, 1150, 1151, 1155, 1159,
 row written, and both stay for their second. The backlog is twelve from
 thirty-one. **DECISIONS 56.**
 `docs/audit/2026-09-29-fable-pass-20.md`.
+
+## 2026-09-30 — the twenty-first Fable pass: the held-out map held, the waiting doubled, and the frame got a ceiling (Fable 5.1, steering)
+
+Twenty-two landings since the twentieth pass, in sixteen hours at three
+lanes, every worker on Opus 5.5 by transcript: East Indies 8907 → 11637
+in six, Great Sahara at Toughest opened at 5376 and stands at 8856 after
+seven, **Himalayas — the held-out map — ran its 1,850 frames in
+lockstep**, and chapters forty-three to forty-six closed in eight.
+Workers 300.50 USD, 13.7 a landing at today's table against 17.6 for
+the tranche before at the same table; the rules lane 34.2 → 13.0 under
+the three-arm bound, so parked 1140's clear closes untried. A landing
+took 142 minutes, 33 working and 108 waiting, by `tools/tranche.py`,
+built this pass as the third reach of the wall-clock probe: the gate 40
+(a landing gates twice, since a pin another lane moved turns its first
+gate red), a capture 30, the suite 15, and **258 minutes of two lanes
+on permission prompts** the commander could not see. `coverage.rs`
+refused four updates and twelve journals met a comparison that compared
+nothing — one instrument, parked 1225, the next pass's build with its
+design written. `seams.py` printed the cause on five first reads of
+twenty, and was widened for a comment without the word, a `SEAMS:`
+block and a list under a lead-in (1253, 1240; the doors 14 → 17). The
+lane is held through the click-free runner's restore and released after
+(1234, three reaches). The frame has a ceiling that may only fall
+(1226): it failed first at 13,969 and the frame is 12,963. The blind
+list has not moved since chapter forty-two, because the chapters run
+`cover=0` on the click-free lane (1317). Six Loop items built, six
+moved to the brief checklist (1233, 1256, 1267, 1285, 1289, 1313), 1101
+and 1114 closed on two tranches without a reach, 1314 to 1317 filed;
+the backlog is twenty-two from thirty-three. **DECISIONS 57.**
+`docs/audit/2026-09-30-fable-pass-21.md`.

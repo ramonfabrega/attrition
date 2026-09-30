@@ -122,7 +122,10 @@ check: python3 tools/trace/report.py "$L/rontrace-run340.log" summary | grep -c 
 # 53 and 54; parked 986, the eighteenth pass). Its stanzas are pinned by
 # run: a capture on map 9 that is not here is an item opened against the
 # one map that says whether the rules generalise, and it fails until a
-# steering pass adds its run — which is the pass deciding to measure.
+# steering pass adds its run — which is the pass deciding to measure. The
+# decision names the run it books, in the same commit; an item that takes a
+# held-out capture on a decision that named none adds the run here on the
+# decision's word and says so (parked 1227).
 HELD_OUT_MAP = '9'
 HELD_OUT_RUNS = {
     '348',  # item 972, DECISIONS 53 §4: run33's shape, one diff, 1 and 0

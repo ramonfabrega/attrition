@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import json
+import os
 import subprocess
 import unattended_capture as runner
 
@@ -13,6 +14,46 @@ class RunnerTest(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
+        # The lane lock the runner takes (parked 1234) lives in the prefix;
+        # here the prefix is the temporary directory, never `~/wine-ron`.
+        env=patch.dict(os.environ,{'RON_WINEPREFIX':str(self.root),'RON_LANE_LOCK':str(self.root/'.lane.lock'),
+                                   'RON_WINE_BIN':'/usr/bin/true','RON_LANE_HOLDER':'unattended_capture'})
+        env.start();self.addCleanup(env.stop)
+        os.environ.pop('RON_LANE_TAKEN',None)
+
+    def lane_state(self):
+        return subprocess.run(['zsh','-c',f'source {runner.ROOT}/tools/gamelog/winelaunch.sh; ron_lane_state'],
+                              capture_output=True,text=True).stdout.strip()
+
+    def test_the_lane_is_held_for_the_runner_through_its_restore(self):
+        # Parked 1234: run467's game had exited, the launch line's lock read
+        # `stale`, and 1221's long trace launched while the runner's
+        # `finally` was restoring the profile. The runner takes the lane for
+        # its own pid, so the lane is held while the runner lives — the
+        # restore included — its own launches carry the pid and go, and it
+        # releases the lane at the end, so a waiter sees `free`.
+        self.assertEqual(self.lane_state(),'free')
+        with runner.capture_lane(self.root):
+            state=self.lane_state()
+            self.assertTrue(state.startswith('held by unattended_capture since'),state)
+            self.assertIn(f'(pid {os.getpid()},',state)
+            self.assertEqual(os.environ.get('RON_LANE_TAKEN'),str(os.getpid()))
+            log=self.root/'wine.log'
+            run=subprocess.run(['zsh','-c',runner.LAUNCH,'test',str(runner.ROOT/'tools/gamelog/winelaunch.sh'),
+                                str(log),'/usr/bin/true'],capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stderr)
+            self.assertEqual((self.root/'.lane.lock').read_text().split('\n')[2],str(os.getpid()))
+            other=subprocess.run(['zsh','-c',f'source {runner.ROOT}/tools/gamelog/winelaunch.sh; ron_wine {log}; echo rc=$?'],
+                                 env={k:v for k,v in os.environ.items() if k!='RON_LANE_TAKEN'},
+                                 capture_output=True,text=True)
+            self.assertIn('rc=75',other.stdout,other.stderr)
+        self.assertEqual(self.lane_state(),'free')
+        self.assertIsNone(os.environ.get('RON_LANE_TAKEN'))
+
+    def test_a_held_lane_refuses_the_runner_before_it_stages(self):
+        (self.root/'.lane.lock').write_text(f'{os.getppid()}\nanother lane since now\n')
+        with self.assertRaises(BlockingIOError):
+            with runner.capture_lane(self.root): pass
 
     def test_launch_forwards_exact_arguments_with_spaces(self):
         helper=self.root/'launch helper.zsh';log=self.root/'launch args.log'

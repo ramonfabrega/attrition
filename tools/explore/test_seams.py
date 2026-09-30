@@ -36,6 +36,16 @@ impl Sim {
     }
 
     fn clear_mesh_at(&mut self) {}
+
+    fn find_friends(&self) {
+        // The enhancer arm (a Peacock's Wine, a Camp's Fur) is not
+        // modelled: an enhancer's tile is walked as any other.
+        let _ = 0;
+    }
+
+    /// SEAMS: `do_cast`'s captain check is not built; the spell's cost row
+    /// is not built either.
+    fn do_cast(&self) {}
 }
 '''
 
@@ -57,7 +67,25 @@ class Seams(unittest.TestCase):
         found = seams.seams(SOURCE)
         self.assertEqual([(fn, struck) for _, fn, _, struck in found],
                          [('soft_collision', False), ('soft_collision', True),
-                          ('soft_collision', False), ('set_blocked_at', False)])
+                          ('soft_collision', False), ('set_blocked_at', False),
+                          ('do_cast', False)])
+
+    def test_a_plural_block_is_a_seam(self):
+        # Parked 1240: `do_cast`'s captain check — chapter forty-three's
+        # hypothesis — sat in a `SEAMS:` block, which the scan did not list.
+        found = [text for _, fn, text, _ in seams.seams(SOURCE) if fn == 'do_cast']
+        self.assertEqual(len(found), 1)
+        self.assertIn('captain check', found[0])
+
+    def test_a_comment_that_says_not_modelled_is_a_seam_without_the_word(self):
+        # Parked 1253 (three reaches): `find_friends`' enhancer arm said so
+        # in a comment, and `seams.py find_friends enhancer` answered "0 live
+        # seams" — the arm that decided the third map's 5376.
+        found = seams.left_out(SOURCE)
+        self.assertEqual([(fn, 'enhancer' in text) for _, fn, text in found],
+                         [('find_friends', True)])
+        rx = seams.matcher(['find_friends'])
+        self.assertTrue(any(rx.fullmatch(fn) for _, fn, _ in found))
 
     def test_a_doc_comment_s_seam_is_the_function_s_under_it(self):
         line, fn, text, _ = seams.seams(SOURCE)[0]
@@ -110,6 +138,27 @@ class Seams(unittest.TestCase):
         self.assertEqual([(str(f), line, section) for f, line, section, _ in rows],
                          [('ORDERS.md', 3, '4.4 The take')])
 
+    def test_a_list_under_a_lead_in_is_the_lead_in_s_paragraph(self):
+        # Parked 1253's third reach: ROADS §9.4's "**Not modelled**" is a
+        # bold lead-in and the names sit in the bullets under it, so the
+        # list was invisible to a scan of paragraphs.
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / 'ROADS.md').write_text(
+                '### 9.4 What is not established\n\n'
+                '**Not modelled, and each of them could write a bit:**\n\n'
+                '- **`RoadsOut::mark_splits@00891d40`.** It sets cardinal bits.\n'
+                '- The redo pass: `leech_codes`, `delete_straglers`.\n\n'
+                'A paragraph after the list, naming `leech_codes` again.\n')
+            saved = seams.ROOT
+            seams.ROOT = Path(tmp)
+            try:
+                rows = seams.spec_rows(seams.matcher(['leech_codes']), Path(tmp))
+            finally:
+                seams.ROOT = saved
+        self.assertEqual([(str(f), line, section) for f, line, section, _ in rows],
+                         [('ROADS.md', 5, '9.4 What is not established')])
+        self.assertTrue(rows[0][3].startswith('**Not modelled'))
+
 
 class TheLiveTree(unittest.TestCase):
     # Exact, and it may only fall: a seam that names, as missing, a
@@ -117,8 +166,12 @@ class TheLiveTree(unittest.TestCase):
     # function is missing, or booked by the frame it holds (parked by the
     # twentieth pass). A new one is one of those three before it lands.
     # 15 → 14: item 1223 built `disembark`'s squad arm, whose SEAM named
-    # `push_group` as missing.
-    DOORS = 14
+    # `push_group` as missing. 14 → 17 on the twenty-first pass, the
+    # instrument widened and not the tree: a plural `SEAMS:` block is a
+    # seam now (parked 1240), and three such blocks name a built function —
+    # `spellcaster.rs`'s crate doc, `think_civilian_transport`'s and
+    # `do_cast`'s. Each is 1224's to strike, re-word or book.
+    DOORS = 17
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)

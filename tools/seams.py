@@ -115,12 +115,51 @@ def seams(text):
             if m:
                 under = m.group(1)
         joined = ' '.join(block)
-        for m in re.finditer(r'(~~)?SEAM\b', joined):
-            nxt = re.search(r'SEAM\b', joined[m.end():])
+        # A plural block (`SEAMS:`) is a seam too (parked 1240).
+        for m in re.finditer(r'(~~)?SEAMS?\b', joined):
+            nxt = re.search(r'SEAMS?\b', joined[m.end():])
             end = m.end() + nxt.start() if nxt else len(joined)
             one = joined[m.start():end].strip()
             struck = bool(m.group(1))
             out.append((start + 1, under or fn, one, struck))
+    return out
+
+
+def left_out(text):
+    """`(line, enclosing fn, the comment)` for every comment block of a source
+    text that says something is not modelled and carries no `SEAM` (parked
+    1253, three reaches): `find_friends`' enhancer arm said so in a plain
+    comment, and `seams.py find_friends enhancer` answered "0 live seams".
+    A comment is read as the seam it should have been."""
+    lines = text.split('\n')
+    out = []
+    fn = ''
+    i = 0
+    while i < len(lines):
+        s = lines[i].lstrip()
+        m = re.match(r'(?:pub(?:\([a-z]+\))? )?(?:const )?fn ([a-z0-9_]+)', s)
+        if m:
+            fn = m.group(1)
+        if not s.startswith('//'):
+            i += 1
+            continue
+        start = i
+        block = []
+        while i < len(lines) and lines[i].lstrip().startswith('//'):
+            block.append(lines[i].lstrip().lstrip('/!').strip())
+            i += 1
+        under = ''
+        j = i
+        while j < len(lines) and (lines[j].lstrip().startswith('#[') or not lines[j].strip()):
+            j += 1
+        if j < len(lines):
+            m = re.match(r'(?:pub(?:\([a-z]+\))? )?(?:const )?fn ([a-z0-9_]+)', lines[j].lstrip())
+            if m:
+                under = m.group(1)
+        joined = re.sub(r'~~.*?~~', '', ' '.join(block))
+        if re.search(r'SEAMS?\b', joined) or not LEFT_OUT.search(joined):
+            continue
+        out.append((start + 1, under or fn, joined.strip()))
     return out
 
 
@@ -166,18 +205,29 @@ def spec_rows(rx, docs=DOCS):
         section = ''
         para = []
         start = 0
+        # A bold lead-in that ends in a colon and says something is left
+        # out heads the list under it (parked 1253, ROADS §9.4): the names
+        # sit in the bullets, which are their own paragraph.
+        lead = ''
         for n, line in enumerate(f.read_text().split('\n') + [''], 1):
             if line.startswith('#'):
                 section = line.lstrip('# ').strip()
+                lead = ''
             if line.strip():
                 if not para:
                     start = n
                 para.append(line.strip())
                 continue
             text = re.sub(r'~~.*?~~', '', ' '.join(para))
+            is_list = bool(para) and re.match(r'(?:[-*]|\d+\.) ', para[0]) is not None
             para = []
-            if text and LEFT_OUT.search(text) and rx.search(text):
+            if not text:
+                continue
+            if is_list and lead:
+                text = lead + ' ' + text
+            if LEFT_OUT.search(text) and rx.search(text):
                 out.append((f.relative_to(ROOT), start, section, text))
+            lead = text if (not is_list and LEFT_OUT.search(text) and text.rstrip('*').endswith(':')) else ''
     return out
 
 
@@ -231,6 +281,16 @@ def main():
             print(f'\n{f.relative_to(ROOT)}:{line}  in `{fn}`{flag}')
             print(f'    {clip(live, args.width)}')
     print(f'\n{found} live seams name one of them, or sit in a function of that name')
+
+    plain = 0
+    for f in sorted(SIM.rglob('*.rs')):
+        for line, fn, text in left_out(f.read_text()):
+            if not (rx.search(text) or (fn and rx.fullmatch(fn))):
+                continue
+            plain += 1
+            print(f'\n{f.relative_to(ROOT)}:{line}  in `{fn}`  (a comment, no SEAM)')
+            print(f'    {clip(text, args.width)}')
+    print(f'\n{plain} comments without the word say something is left out and name one of them')
 
     rows = spec_rows(rx)
     for f, line, section, text in rows:
