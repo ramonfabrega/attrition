@@ -561,10 +561,11 @@ impl Sim {
     /// `tregion` must be in range; then [`Sim::guard_leash`]; then, with
     /// `use_poor`, not [`Sim::poor_target`].
     ///
-    /// SEAM: the region test's AI exception (`unit_masks & 0x40000`,
-    /// `has_objmask(0x40000)` and a sea type) and the tail's building-cell
-    /// test are not carried; a guard here is on land and its target a
-    /// unit.
+    /// The region test is [`Sim::check_target_reaches`], with the call's
+    /// third argument 1, so the defensive arm is off here.
+    ///
+    /// SEAM: the tail's building-cell test is not carried; a guard here
+    /// is on land and its target a unit.
     pub(crate) fn guard_check_target(
         &self,
         u: usize,
@@ -573,10 +574,7 @@ impl Sim {
         use_poor: bool,
     ) -> bool {
         let me = Obj::Unit(u);
-        let (here, there) = (self.units[u].pos, self.pos_of(target));
-        if self.world.tregion(here.tile()) != self.world.tregion(there.tile())
-            && !self.is_in_range(me, target)
-        {
+        if !self.check_target_reaches(u, target, true) {
             return false;
         }
         match self.guard_leash(u, g, target) {
@@ -584,6 +582,52 @@ impl Sim {
             Leash::Out => false,
             Leash::In => !(use_poor && self.poor_target(me, target)),
         }
+    }
+
+    /// **`Object::check_target@00649e00`'s head** for a unit searcher
+    /// (`docs/COMBAT.md` §72): the candidate is refused when it is out of
+    /// range and either
+    ///
+    /// - the searcher is not `duty` (the call's third argument), stands
+    ///   `DEFENSIVE` (vslot `+0xf4` answering 1) and has an order
+    ///   (`Unit::update_order` non-null), or
+    /// - the two stand in different `WorldData::get_tregion`s — unless
+    ///   the searcher is a computer's (`unit_masks & 0x40000`), carries
+    ///   the `SIEGE` objmask (`has_objmask(0x40000)`, vslot `+0x148`)
+    ///   and its type is a ship (`+0x218 == 1`).
+    ///
+    /// The listing's head, before `attack_dist`'s out-pointer is read by
+    /// the caller and so before `near_o` is written:
+    ///
+    /// ```text
+    /// if this->is_unit() && param_7 == 0:
+    ///     other = get_tregion(target tile) != get_tregion(my tile)
+    ///     if other && (unit_masks & 0x40000) && has_objmask(0x40000)
+    ///              && type->domain == 1:
+    ///         other = 0
+    ///     if ((param_3 == 0 && stance() == 1 && update_order() != 0)
+    ///         || other) && !is_in_range(target):
+    ///         return 0
+    /// ```
+    ///
+    /// `Object::find_nearby_target@00648da0` calls it with `param_3 =
+    /// Unit::on_duty` and `param_7` its own cavalry-archer argument, which
+    /// no caller in this crate passes; `Unit::fight`'s guard call passes
+    /// `param_3 = 1`. So a ship's idle search never takes a land building
+    /// it cannot hit from where it floats — East Indies' Caravel `1/35`
+    /// on 8907 (item 1214), which took `0/2004` five thousand units inland
+    /// here and `think_scout` there.
+    pub(crate) fn check_target_reaches(&self, u: usize, target: Obj, duty: bool) -> bool {
+        let me = Obj::Unit(u);
+        let (here, there) = (self.units[u].pos, self.pos_of(target));
+        let other = self.world.tregion_alt(here.tile()) != self.world.tregion_alt(there.tile())
+            && !(self.ai_driven(self.units[u].owner)
+                && self.profile(me).has(mask::SIEGE)
+                && self.unit_domain_of(u) == Domain::Sea);
+        let defensive = !duty
+            && self.units[u].combat.stance == Stance::Defensive
+            && self.current_order(u).is_some();
+        !((defensive || other) && !self.is_in_range(me, target))
     }
 
     /// `Object::poor_target@0064a270` — "chasing this one is futile", the
@@ -2955,6 +2999,12 @@ impl Sim {
             Obj::Building(_) => None,
         };
         let centre = guard.map_or(at, |(_, g)| g.guard).cell();
+        // `local_54`, `Unit::on_duty` of a unit searcher (`006490b6`):
+        // `check_target`'s third argument.
+        let duty = match attacker {
+            Obj::Unit(i) => self.on_duty(i),
+            Obj::Building(_) => false,
+        };
         // **`local_40`, computed once before the rings** (`00648e6e`), off
         // the *searcher's* own leader and not the candidate's. It is
         // `compare_target`'s fourth argument and nothing else here reads
@@ -3024,6 +3074,14 @@ impl Sim {
                         // **The `flags` filter** (`00649430`–`00649515`),
                         // above `check_target` and so above `near`.
                         if !self.search_admits(o, flags) {
+                            continue;
+                        }
+                        // **`check_target`'s head** (§72): a candidate
+                        // in another region, or any for a defensive unit
+                        // off duty with an order, must be in range.
+                        if let Obj::Unit(i) = attacker
+                            && !self.check_target_reaches(i, o, duty)
+                        {
                             continue;
                         }
                         // `check_target`'s guarding arm, above its tail:
@@ -5019,6 +5077,103 @@ mod tests {
             sim.units[u].orders
         );
         assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
+    }
+
+    /// **A candidate in another region is taken only in range**
+    /// (`Object::check_target@00649e00`'s head, `docs/COMBAT.md` §72, item
+    /// 1214). East Indies 8907's shape: the computer's Caravel, idle on
+    /// the sea, and the human's building inland. Across the regions the
+    /// building out of range is refused, and in range it is taken; a
+    /// computer's `SIEGE` ship ignores the regions. The head's other arm:
+    /// a `DEFENSIVE` unit off duty with an order must reach whatever it
+    /// takes, in its own region too.
+    ///
+    /// Made to fail by the search not asking `check_target_reaches`: the
+    /// first assertion names the building.
+    #[test]
+    fn a_candidate_in_another_region_is_taken_only_in_range() {
+        use crate::world::Terrain;
+        let (mut sim, ty) = at_war();
+        sim.nation[0].human = true;
+        sim.nation[1].human = false;
+        let land = sim.world.add_region(Terrain::Land);
+        let sea = sim.world.add_region(Terrain::Sea);
+        for x in 0..60 {
+            for y in 0..60 {
+                let r = if x < 30 { land } else { sea };
+                sim.world.set_region(crate::Cell::new(x, y), r);
+            }
+        }
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(29 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let site = sim.add_building(0, at, 0);
+        sim.buildings[site].ty = Some(bt);
+        sim.buildings[site].hits = 400;
+        sim.buildings[site].health = 400;
+        sim.buildings[site].combat = Some(Profile::default());
+        // A ship: the domain in the type's kind, the type's combat and the
+        // unit's kind.
+        sim.unit_types[ty].kind.domain = Domain::Sea;
+        sim.unit_types[ty].combat.domain = Domain::Sea;
+        let far = put(&mut sim, 1, ty, Pos::new(at.x + 10 * 0xc0, at.y));
+        assert_eq!(sim.units[far].kind.domain, Domain::Sea);
+        assert!(!sim.is_in_range(Obj::Unit(far), Obj::Building(site)));
+        assert_eq!(
+            sim.clone().find_melee_target(far, -1),
+            None,
+            "the ship took a building in another region out of its range"
+        );
+        // In range, across the regions, it is taken.
+        let mut near = sim.clone();
+        near.units[far].pos = Pos::new(at.x + 3 * 0xc0, at.y);
+        assert!(near.is_in_range(Obj::Unit(far), Obj::Building(site)));
+        assert_eq!(near.find_melee_target(far, -1), Some(Obj::Building(site)));
+        // A computer's siege ship does not ask the regions.
+        let mut siege = sim.clone();
+        siege.unit_types[ty].combat.obj_masks |= mask::SIEGE;
+        assert_eq!(
+            siege.find_melee_target(far, -1),
+            Some(Obj::Building(site)),
+            "a computer's siege ship asked the regions"
+        );
+        // One region: the same ship takes it out of range.
+        let mut one = sim.clone();
+        for x in 0..60 {
+            for y in 0..60 {
+                one.world.set_region(crate::Cell::new(x, y), land);
+            }
+        }
+        assert_eq!(
+            one.clone().find_melee_target(far, -1),
+            Some(Obj::Building(site))
+        );
+        // Defensive, off duty and with an order: it must reach.
+        let mut guarded = one.clone();
+        guarded.units[far].combat.stance = Stance::Defensive;
+        // The defensive radius is the range itself, so the search is
+        // handed a wider one, as `find_melee_target`'s callers may.
+        let wide = 12 * 0xc0;
+        assert_eq!(
+            guarded.clone().find_melee_target(far, wide),
+            Some(Obj::Building(site)),
+            "defensive with no order is the plain search"
+        );
+        guarded.add_move_order(
+            far,
+            Pos::new(at.x + 20 * 0xc0, at.y),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        assert_eq!(
+            guarded.find_melee_target(far, wide),
+            None,
+            "a defensive unit with an order took what it cannot reach"
+        );
     }
 
     /// **An attack-move's look passes over an unarmed building**
