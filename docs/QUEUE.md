@@ -12,13 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: three landings.
+*2026-09-30, the commander after the twentieth pass: four landings.
 **East Indies' second word 8907 → 10183** (1214); **chapter forty-three
-opens at 1356** (1223, a squad boarding its captain's barge); 1222
-measured the held-out map: **Himalayas 1851/1850**, for the record only.*
+opens at 1356** (1223); **Great Sahara at Toughest opens at 5376 of
+15,432** (1221; run469 1850/1850, held in its test, not a floor). 1222:
+the held-out map, **Himalayas 1851/1850**, for the record only.*
 
-- **Three lanes live: 1228, 1221, 1235.** 1228 reports 10185 and 1221
-  Great Sahara at Toughest's first word 5376, neither landed.
+- **Three lanes live: 1228, 1235, 1241**, one to each open word. 1228
+  reports 10185 and 1235 reports 1552, neither landed.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -30,17 +31,17 @@ measured the held-out map: **Himalayas 1851/1850**, for the record only.*
   functions**, from the arms a landing parks as held by no walk.
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
-- **Fable backlog: 16 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240).
+- **Fable backlog: 17 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w10183 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w5376 of 15,432
 Golden: ch43 w1356 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1228, 1221 and
-1235; three landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1228, 1235 and
+1241; four landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -58,13 +59,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     block 10178, who=1's `num_units[268]` (0 against 1) among them. No
     mechanism is named.
 
-1221. **Great Sahara at Toughest: the closed map in the second pair's
-    lobby** (DECISIONS 56 §1): a `DUMP_ALL` start sibling, a dump of
-    1,850 frames and a draw-stream trace at `cover=0` to 24,000 or the
-    game's end, the difficulty read back from `GAME INFO`; its row joins
-    `AI_WORDS` on the `Third map` line as `GreatSaharaToughest`, and its
-    first word is pinned with its widening. No mechanism is named. The
-    third lane's.
+1241. **Great Sahara at Toughest's first word: frame 5376, ours 45
+    draws against 40** (1221), at index 1: four
+    `Leader::produce_building+0x1805` against one, five
+    `Guy::set_anim+0x104b` against three; widened on run471 (5371..5627).
+    Block 5377: who=1's new Granary site `1/2023` at ours (40608, 19680),
+    theirs (41184, 15072). Standing from 5371: `SITE[i].reg` 1 against 0,
+    who=1's `bucket[0:food]` 381 against 417. No mechanism is named.
 
 1235. **Chapter forty-three's word: frame 1356, ours 8 draws against 6**
     (1223), parting at index 2: ours `0/8`'s `Unit::do_move+0xe84` and

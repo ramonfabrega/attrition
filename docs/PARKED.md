@@ -2335,7 +2335,17 @@ and the two locks be one. Repaired by hand from run467's
 `settings-backup/`. **Again** (1223's Loop line): a wait keyed on the
 lane state alone refused one take on the flock and let another lane
 launch into a cleanup; a waiter should key on the flock or the runner's
-pid too. Two reaches.
+pid too. Two reaches. **Again** (1221's Loop line): `ron_lane_state`
+reads `stale`, never `free`, after every runner exits, so a "free and
+nothing alive" wait never fires; what mattered was the INIs' own lines.
+Three reaches.
+
+(1242) **A take whose restore failed leaves the next capture's
+`LogFile` in another lane's directory** (1221's Loop line): run469's
+dump was written to 1223's `ch43d/map-14/gamelog.txt`, and neither
+`longtrace.sh` nor `setlog.py` noticed. `setlog.py` could assert
+`LogFile` names `Logs\`, or the runner refuse a stage whose
+`gamelog.ini` it did not write. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
