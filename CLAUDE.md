@@ -113,7 +113,9 @@ artifact is the next phase's tool.
    the first pair's lobby beside them, and the held-out map is measured
    and never debugged against** (entry 54). **A game that ends closes
    with its closing state scored, and the lower map is the lower open
-   word** (entry 55).
+   word** (entry 55). **A closed map is succeeded by the same map in
+   the newest pair's lobby, and the rules track stages the arms the AI
+   track built and no walk holds** (entry 56).
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
@@ -320,6 +322,12 @@ rules follow:
 - **Grep this crate for a field before reading the original's writers of
   it.** A comparison against a field this crate does not carry is a
   comparison against nothing, and one once carried five items.
+- **And read what the tree says it left out, by name, before the
+  original.** `tools/seams.py` prints the live `SEAM`s and the "not
+  modelled" paragraphs that name a word's chain; `tools/standing.py`
+  puts a widening's standing keys beside who in `sim` reads them. Both
+  were rows of the checklist in prose, and the landings that filed them
+  had been briefed with them (`docs/DECISIONS.md` entry 56).
 - **A quiet field is checked against the reader before it is called
   agreeing.** A key the dump prints that nothing parses cannot part, and
   quiet is what a blind instrument looks like; `rondata::diff::coverage`
@@ -431,7 +439,11 @@ notification was lost once and the work sat two days. **A gate's exit
 is read before anything says pushed**: the gate is a background task
 whose exit ends the wait, so a closing message written while it runs
 has not landed, and a wrapper that echoes the exit has hidden it
-(parked 574). **A message that
+(parked 574). **A gate that is running is not stopped for a base that
+moved**: the lane takes `ccc update` at the gate's exit, lands on that
+verdict if the update is clean and says which base the gate ran on, and
+gates again only if the update conflicted — four were stopped in one
+tranche, on no rule (entry 56). **A message that
 arrives during a gate says it is to be applied after it**, and the worker
 holds its write-ups until the gate exits. **An instruction about what to
 start is never one about what to stop**: "pause new lanes" is answered
@@ -573,6 +585,8 @@ and makes the eventual diff mechanical rather than a translation exercise.
   was one of this repo's own workers, which had backgrounded its wait
   correctly and been told only how *not* to wait. **A number in a rule
   names its source**: the first figure written here was wrong by 3x.
+  **And a price names the day of its rate table**: a tranche once read
+  half as dear as the one before and had cost the same (entry 56).
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer
@@ -614,7 +628,10 @@ and makes the eventual diff mechanical rather than a translation exercise.
   reach it. The launch line holds a **lane lock** keyed on the capture
   script's pid and the game's: a capture takes it before its first
   staging write, a second launch into a held lane refuses and names the
-  holder, and the lock releases itself when both have exited.
+  holder, and the lock releases itself when both have exited. It carries
+  each pid's start time, so a pid handed to another process holds
+  nothing; `ron_lane_state` says which of free, stale and held the lane
+  is, and a stale lock is never removed by hand.
 - **A function of the executable can be called outside the game.**
   `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
   in the script) and enters a function with chosen arguments; a sweep is a

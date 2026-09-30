@@ -12,25 +12,26 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, twenty-two landings from `c78abbbe` — **the twentieth
-pass is due**: East Indies 6151 → 8907 (seven); **Great Sahara closed**,
-long word 8 → 24000, endpoint 0 off (eight); chapters thirty-eight to
-forty-two closed (seven).*
+*2026-09-29, the twentieth Fable pass (DECISIONS 56): no score moved and
+none was meant to. Twenty-two landings behind it in 12.9 hours at three
+lanes: East Indies 6151 → 8907, Great Sahara closed at 24000, chapters
+thirty-eight to forty-two closed.*
 
-- **No lanes are live.** 1214 (East Indies' 8907) waits for the pass;
-  the rules track's next chapter and what succeeds the closed third map
-  are the pass's (DECISIONS 53, 54). One capture lane still.
+- **Three lanes, none live: spawn 1214, 1222 and 1223.** The third lane
+  takes 1222 and then 1221. One capture lane still.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
-- **Code is not fenced** (DECISIONS 55 §5): a brief reserves run and
-  section numbers and says where the other lanes' words sit. **A brief
-  is `python3 tools/brief.py <item> --kind residue|chapter`** plus a note.
-- **The spawn follows the booking commit**; the gate runs beside it.
-- **A floor test reports every pin that moved** (`Pins::hold()`,
-  `pin_eq!`); a widening `WIDENINGS` names is held to it.
-- **The user's**: whether phase 4 opens on the rules track alone. The
-  disk: 42 GB free.
-- **Fable backlog: 31 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205, 1208, 1213, 1217).
+- **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
+  and a note of what the item alone needs: never the sections or the
+  other lanes' words, which the brief carries already.
+- **The spawn follows the booking commit**; the gate runs beside it. **A
+  gate that is running is not stopped for a base that moved.**
+- **A chapter is three arms of one staging at most, booked by its
+  functions**, from the arms a landing parks as held by no walk.
+- **The suite runs in 455 s, from 683** (parked 1138's first half).
+- **The user's**: whether phase 4 opens on the rules track alone; **the
+  disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
+- **Fable backlog: 12 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,8 +40,8 @@ Third map: GreatSahara w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twentieth Fable pass — twenty landings from `c78abbbe`;
-no lane is live; 1214 and the rules' next chapter after it.**
+**Opener: the commander resumes — spawn 1214, 1222 and 1223, and 1221
+behind 1222; the count is at zero from the twentieth pass's commit.**
 
 ## The queue
 
@@ -55,7 +56,32 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     < Unit::do_idle+0x94` and 26 `Unit::think_scout+0xaba`, ours none,
     widened on run445 (block 8908), which parts `1/35` alone — eight
     keys, its `group` (65 against 79) and `order:kind` (10 against 3)
-    among them. No mechanism is named. Not yet spawned: the pass first.
+    among them; 183 keys stand on its first block, who=1's
+    `num_units[268]` (0 against 2) and `active` (67 against 68) among
+    them. No mechanism is named.
+
+1222. **The held-out map, measured again with its start sibling**
+    (DECISIONS 56 §2): map 9 in the first pair's lobby, a `DUMP_ALL`
+    start for its height table and a dump in the shape of Great Lakes'
+    run33; one diff, the number reported and nothing read into it. It
+    was 1 (item 972), with no height table. Measured, never debugged
+    against. The third lane's, first: it is one landing.
+
+1221. **Great Sahara at Toughest: the closed map in the second pair's
+    lobby** (DECISIONS 56 §1): a `DUMP_ALL` start sibling, a dump of
+    1,850 frames and a draw-stream trace at `cover=0` to 24,000 or the
+    game's end, the difficulty read back from `GAME INFO`; its row joins
+    `AI_WORDS` on the `Third map` line as `GreatSaharaToughest`, and its
+    first word is pinned with its widening. No mechanism is named. The
+    third lane's, behind 1222.
+
+1223. **Chapter forty-three: the landing's arms that no walk holds**
+    (DECISIONS 56 §3): a boat that dies stepping ashore with its
+    passengers (parked 1198; 1191's mutations B and C failed nothing)
+    and `come_out`'s building arm beside it (parked 1175). Two arms, one
+    staging on the golden start; whether a staging reaches each is the
+    item's to establish first. `DEATHS=1` beside `GROUPS=1` rides its
+    take as a second stanza (parked 1105).
 
 ## How to maintain this file
 

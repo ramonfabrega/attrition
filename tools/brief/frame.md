@@ -144,6 +144,12 @@ Before any reading of the original, in this order:
 
 ## chapter
 
+- **A chapter is three arms of one staging at most.** If the booking
+  names more, take the first three it names, say so in one line to me,
+  and leave the rest for the next chapter. **A chapter that opens with
+  a parting ends there**: the staging walked, the capture taken, the
+  word pinned with its widening, the section written; the word is the
+  next item's, booked by its frame.
 - **An issuer chapter's staging is walked before its capture** (794):
   off an existing dump when every predicate is a printed field (821), a
   staging-only packet otherwise (808), and through the command's own
@@ -173,8 +179,11 @@ Before any reading of the original, in this order:
 - **A mutation is scored against the walk** — `cargo test --release -p
   rondata <the pin>` — and the landing names the pin that failed; `git
   diff --stat` is non-empty first, **and the mutation means what it is
-  for** (918, 1018). A mechanism you call built has a unit test that
-  fails without it. A mutation no walk holds is a finding: say so.
+  for** (918, 1018). **Score it by the run's exit code and the failed
+  tests' names**, never by a pattern on the output. A mechanism you call
+  built has a unit test that fails without it. A mutation no walk holds
+  is a finding: say so, and name the arm, because an arm no walk holds
+  is what the rules track stages next.
 - **The tests a re-pin touches run green before a mutation is scored**
   (1083). A test that pins a floor or a widening takes `let _pins =
   Pins::hold();` and pins with `pin_eq!`, `pin_ne!`, `pin!`, so one run

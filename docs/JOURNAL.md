@@ -20873,3 +20873,61 @@ brief is composed by `tools/brief.py` from a frame the pass writes
 (item 1137, built), and the spawn follows the booking commit so a lane
 is not empty through the booking's gate. The backlog is seven.
 
+## 2026-09-29 — the twentieth Fable pass: a third map closed, three lanes measured, and the reader's price (Fable 5.1, steering)
+
+Twenty-two landings since the nineteenth pass by the log from
+`c78abbbe`, in twelve hours and fifty-six minutes at three lanes, every
+worker on Opus 5.5 by transcript. **Great Sahara closed at its trace's
+end, 24,000, in eight landings**, its endpoint 0 off — entry 55 had
+estimated 1,850 inside three, and the first landing took it to 12,783;
+East Indies 6151 → 8907 in eight; chapters thirty-eight to forty-two
+closed in six; the blind list 142 → 137. Workers 387.10 USD, 17.6 a
+landing against 17.1 **at one rate table**: `lore`'s table moved
+between the two passes' readings, the tranche before re-prices at
+341.19 where its record says 715.85, and a price is compared at one
+table from here. What the pass could see and no landing could: **a new
+map cost eight landings and none of it was terrain** — three of its
+eight causes were rare resources the first two maps do not hold; **the
+third lane bought twenty-nine per cent**, 1.70 landings an hour against
+1.32, and what a lane waited on was the machine: a landing took 99
+minutes, 39 working and 61 waiting, against 76, 38 and 38, and five
+journals in twenty-two waited on another lane's capture, fifty-four
+minutes in all. **The changes of the last pass, each against its
+number**: no handover, no grant and no update refused on the logic of
+code with every module free to every lane; a lane empty 1.6 minutes
+before its refill against fourteen, with two booking gates red behind a
+worker already cut; the commander cleared once, reached 290 k against
+631 k and cost 1.06 USD a landing against 2.10; every brief composed,
+three journals finding the item before's sentence in theirs against
+ten, the commander's note growing five times over the tranche. **The
+suite is a reader**: sampled whole, half its processor time was
+`gamelog::fill` cutting lines of twenty bytes, a fifth was a field found
+by walking a record, and the simulation was three per cent. Built, each
+made to fail first: the reader cuts a line by the byte and finds a key
+by its bytes, held to the old cut line for line on a capture, the eager
+read 707 → 1,221 MB/s and the suite 683 s → 455 s; `tools/seams.py`
+lists what the tree says it left out by name, after three of East
+Indies' eight words had been written down as a `SEAM` or a "not
+modelled" row before they were words, with fifteen seams a built door
+outlived pinned; `tools/standing.py` puts a widening's standing keys
+beside who in `sim` reads them, after four words stood as noise on a
+first block; a recycled pid is a stale lane lock and the lane says its
+state, after eight landings met a stale one; a wrapped title composes
+and the reflex runs the suites that read the queue; the capture stanzas
+merge by union. Six landings met a mutation that failed nothing, and
+**the rules track stages those arms from here**: chapter forty-three is
+the landing's. **The third lane takes Great Sahara at Toughest** — a
+closed map is succeeded by the same map in the newest pair's lobby —
+after the held-out map is measured again, once, with its start sibling.
+A chapter is booked on at most three arms of one staging: the one
+booked on seven functions cost 59.74 USD and reached 852 k of context.
+A gate that is running is not stopped for a base that moved. The pass's
+own mutation scorer could not fail — it matched a prefix on output that
+is coloured — and said four mutations failed nothing until the exit
+code was read; that is a checklist row. Ruled, closed, built, parked or
+moved to the brief checklist: items 685, 1146, 1150, 1151, 1155, 1159,
+1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1205,
+1208, 1213 and 1217; item 1138's first half is built and item 1199's
+row written, and both stay for their second. The backlog is twelve from
+thirty-one. **DECISIONS 56.**
+`docs/audit/2026-09-29-fable-pass-20.md`.

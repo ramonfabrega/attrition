@@ -66,7 +66,8 @@ is append-only and amended in place, as it always was.
 - 52 extended by 53 — The harness's numbers are not builds, and the first block prints itself
 - 53 amended by 54 — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
 - 54 amended by 55 — The war is priced in landings, the instrument follows the word, and a third map is scored
-- 55 standing — A closed game chooses nothing, code is not fenced, and the third map's word opens
+- 55 extended by 56 — A closed game chooses nothing, code is not fenced, and the third map's word opens
+- 56 standing — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
 
 ## 1. Fidelity before divergence
 
@@ -3626,3 +3627,169 @@ which do not. Parked 1140 (a worker's clear at the seam, as an A/B) and
 1141 (a loop that hands itself to its pass and back) are filed and
 neither is built.
 
+## 56. A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
+
+**Decided 2026-09-29**, the twentieth Fable pass, in the main thread
+(`docs/audit/2026-09-29-fable-pass-20.md`). Extends entries 41, 53, 54
+and 55; amends entry 55's estimate of what a new map costs and entry
+54 §4's held-out measurement; overturns nothing.
+
+**What was measured.** Twenty-two landings since the nineteenth pass by
+the log from `c78abbbe`, in twelve hours and fifty-six minutes at three
+lanes, every worker on Opus 5.5 by transcript. **Great Sahara closed at
+its trace's end, 24,000, in eight landings**, its endpoint 0 off; East
+Indies 6151 → 8907 in eight; chapters thirty-eight to forty-two closed
+in six; the blind list 142 → 137. Workers 387.10 USD, **17.6 a landing
+against 17.1 at one rate table**: either AI lane at 11, the rules lane
+at 34.2. **A landing took 99 minutes, 39 working and 61 waiting,
+against 76, 38 and 38.** A lane stood empty 1.6 minutes before its
+refill against fourteen; two booking gates turned red with a worker cut
+off them. The commander cleared once, reached 290 k against 631 k, and
+cost 1.06 USD a landing against 2.10. No handover, no grant, and no
+update refused on the logic of code; six refused on sections two lanes
+appended or counts two lanes re-pinned. Twelve value diffs on the
+word's frame, seven on the frame the state first parted, three partial.
+Sixteen journals met a comparison that compared nothing, against
+nineteen. Six landings met a mutation that failed nothing. No `FABLE:`
+row stood.
+
+**What the pass could see and no landing could.**
+
+1. **A new map cost eight landings and none of it was terrain.** Entry
+   55 read the third map's price as terrain, on a land map in a closed
+   lobby. Of its eight causes three were rare resources the first two
+   maps do not hold — Peacocks, Wine, Spice — two were rules of groups,
+   two of collision and one of a weapon's geometry. A map is a draw of
+   the rules' data as much as of the ground.
+2. **The third lane bought twenty-nine per cent, and what it waited on
+   was the machine.** 1.70 landings an hour against 1.32. The working
+   half of a landing did not move; the waiting half went from 38 minutes
+   to 61 — a capture 23, a gate 19, a suite 18 — and five journals in
+   twenty-two waited on another lane's capture, fifty-four minutes in
+   all. The capture lane is not the narrow point; the suite is.
+3. **The suite is a reader.** Sampled whole at four threads, half its
+   processor time was `gamelog::fill` cutting lines of twenty bytes, a
+   fifth was a field found by walking a record and comparing each key,
+   and the simulation's `tick` was three per cent. It reads some
+   hundreds of gigabytes of dump a run.
+4. **The price moved under the measure.** `lore`'s rate table changed
+   between the nineteenth pass's reading and this one's, and the tranche
+   before re-prices at 341.19 USD where its record says 715.85. Read
+   naively the tranche cost half; it cost the same.
+5. **What the AI track builds, a walk often does not hold.** Six
+   landings met a mutation that failed nothing at all and six one that a
+   unit test alone held, written from the same reading as the rule. The
+   landings parked those arms one by one, each under its own item.
+6. **The cause was on file.** A live `SEAM` or a "not modelled" row of
+   a specification had written down three of East Indies' eight words
+   before they were words, and a standing key this crate reads was a
+   word four times on the two AI lanes. The checklist asked for both
+   greps, in prose, and the landings that filed the Loop lines had been
+   briefed with them.
+7. **The rules lane's price is its booking's scope.** The chapter
+   booked on seven functions cost 59.74 USD and reached 852 k of
+   context; the chapter booked on one cost 21.82. Its three bookings
+   that named a mechanism named the wrong one.
+
+**Decided.**
+
+1. **A closed map is succeeded by the same map in the newest pair's
+   lobby.** Entry 53's rule for a pair — one setting moved, so a parting
+   names its cause — read for a map: **Great Sahara at Toughest** (item
+   1221), seed 12345, the second pair's lobby, as a `DUMP_ALL` start
+   sibling, a 1,850-frame dump and a draw-stream trace at `cover=0` to
+   24,000 frames or the game's end, the difficulty read back from the
+   dump's own `GAME INFO`. Its row joins `AI_WORDS` on the `Third map`
+   line as `GreatSaharaToughest`, after the closed row, and the
+   handoff's line carries both parts. It is the third lane's word. The
+   second pair's lower open word stays East Indies, item 1214; nation
+   and personality stay the third and fourth pairs', owed the day the
+   second pair has no open game.
+2. **The held-out map is measured again, once, with its start sibling**
+   (item 1222): map 9 in the first pair's lobby, a `DUMP_ALL` start for
+   its height table and a 1,850-frame dump in run33's shape, one diff,
+   the number written on the handoff's record and nothing read into it.
+   Three maps are closed in that lobby; this is what a held-out map is
+   for, and entry 54 §4 left the booking to the pass that wanted the
+   number. It is taken first on the third lane because it is one
+   landing. **It is measured and never debugged against.**
+3. **The rules track stages what the AI track built and no walk
+   holds.** A mutation that fails nothing, or that only a unit test
+   holds, names an arm; the landing parks it as it does now, and the
+   rules track's next chapter is booked from those rows, nearest the
+   open AI words first. **Chapter forty-three is the landing's** (item
+   1223): a boat that dies stepping ashore with its passengers (parked
+   1198) and `come_out`'s building arm beside it (parked 1175), which
+   East Indies' crossing will meet again. The blind list's rows still
+   queue with the chapters, by what a failure would teach; this is where
+   a chapter comes from when no row of the list is nearer.
+4. **A price is compared at one rate table.** A pass that compares a
+   price with the tranche before re-prices that tranche on the day it
+   reads, and says so; a figure quoted from an earlier record is quoted
+   with its date. Entry 55's "35.8 against 36.6" stands as a comparison
+   and not as a level.
+5. **A chapter is booked on at most three arms of one staging, and a
+   chapter that opens with a parting ends there.** The opening item
+   walks the staging, takes the capture, pins the word with its widening
+   and writes the section; the word is the next item's, booked by its
+   frame and its draw delta like any other. A booking names the census
+   row's or the parked row's functions, never a type or an object it
+   supposes (parked 1213). Parked 1140's clear at the seam is tried only
+   if this does not bring the lane under 25 USD a landing.
+6. **A gate that is running is not stopped for a base that moved.**
+   Four were, by their own workers, on no rule. A lane gates on the base
+   it last took; at the gate's exit it takes `ccc update`, lands on that
+   verdict if the update is clean and says which base the gate ran on,
+   and gates again only if the update conflicted. The merged tree's gate
+   is the commander's booking gate, as it was.
+7. **Eight Loop items are built, each made to fail first** — 1138's
+   first half, the reader's cut and its key; 1146, 1159 and 1193 as
+   `tools/seams.py`; 1162 and 1187 as `tools/standing.py`; 1180; 1188;
+   1161 for the capture stanzas — eleven are brief-checklist rows; 1173
+   and 1181 are parked; **685 closes on two tranches without a reach**;
+   1101, 1105, 1114, 1119, 1139, 1140, 1141 and 1142 stay, with 1138's
+   second half and 1199's harness half; 1225 and 1226 are filed, and the
+   fifteen seams a built door outlived are parked as 1224. The backlog
+   is twelve, from thirty-one.
+8. **The count stays twenty and the lanes stay three.** The capture
+   lane stays one (parked 1139): it returns at ten minutes a landing
+   waited on another lane, and the tranche measured two and a half.
+
+**Not decided, and the user's**: whether phase 4 opens on the rules
+track alone; the thesis sentence from entry 41; whether the loop hands
+itself to its pass and back (parked 1141); whether a cheaper model is
+admitted to a trial (parked 1142); and **the disk** — 53 GiB free once the pass had cleaned its debug build,
+11.2 GB written in the tranche, so under five tranches fill it, and nothing leaves
+the archive without the user's word.
+
+**The estimate, written down to be wrong on record.** Entry 55's were
+each beaten: the third map passed 1,850 in one landing and closed in
+eight, East Indies passed 7,500 by 1,400, chapter thirty-eight closed
+in one. This one: **East Indies passes 12,000 by the next pass**, at
+eight landings of its lane and a rate that rises as the sea's rules
+land; **Great Sahara at Toughest parts inside its first 2,000 frames
+and passes 5,000 within five landings**, on the reading that Great
+Lakes' war at Toughest built the land war's rules; **the held-out map
+parts inside its first hundred frames**, on its ground, which no closed
+map has; **chapter forty-three closes in two landings, and the rules
+lane lands under 25 USD each.** And with the reader's cut, **a landing
+waits under fifty minutes.**
+
+**The measure for the next pass**: East Indies against 8907 and 345
+frames a landing; Great Sahara at Toughest's first word and its
+landings to 5,000; the held-out number against 1; the rules lane's
+price against 34.2 and its deepest worker against 852 k; mutations that
+failed nothing against six landings, and the arms a chapter staged;
+whether `tools/seams.py` and `tools/standing.py` had printed a cause
+before it was read for, against eight, twelve and four; "a comparison
+that compared nothing" against sixteen; stale lane locks against eight;
+gates stopped for a moved base against four; booking gates red against
+two; refused updates against six; the section ceiling against seven;
+`UNBUILT` against 144, `NO_SUCH_SECTION` against thirteen,
+`UNSCANNED_SEAMS` against forty-seven, the doors against fifteen; the
+order row against 65 and 280; the blind list against 137; the
+commander's note against 1,594 characters, its price against 1.06 and
+its peak against 290 k; a landing's 99 minutes, 39 working and 61
+waiting; **the suite's 455 seconds**; the tranche's wall clock against
+12.9 hours; the disk against 53 GiB; the price a landing against 17.6
+at the day's table; and the count at twenty.

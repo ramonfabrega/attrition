@@ -306,6 +306,78 @@ carries.
   `tools/memcap.sh`** (1081, 1086, 1089): three read the thread-width
   guard's red as their mutation's.
 
+## The brief checklist, from the twentieth pass
+
+The rows continue. The twentieth pass (2026-09-29) added these from the
+three-lane tranche's "for the Loop" lines and one failure of its own;
+two of them name a tool the pass built, because a rule that was prose
+had been broken by the landings that filed it.
+
+- **What the tree says it left out is read by name before the original
+  is** (1146, 1159, 1193): `python3 tools/seams.py --item N` prints every
+  live `SEAM` and every "not modelled" paragraph of a specification that
+  names the draw chain's functions. `soft_collision`'s `TRADE_ROUTE` seam
+  held East Indies at 6151, ORDERS §4.4's region check at 6321, and
+  `World::set_blocked_at`'s road clearing — a seam whose door item 695
+  had built four days before — at 7512.
+- **A standing key whose field this crate reads is named, read or not**
+  (1162, 1187): the widening's `RON_FIRSTS=1` print through `python3
+  tools/standing.py`. who=1's `pop_cap` held Great Sahara at 12783; its
+  `pop` and `escrow`, then its wealth and `trade_val`, stood on two
+  widenings' first blocks each, read as noise. The row the checklist
+  already had (769, 834) asked for this in prose.
+- **A row three widenings pin is a rule, not a residue** (1176): run414,
+  run419 and run420 each pinned a passenger's `avg_speed` apart after a
+  landing, and it was one unbuilt exit rule.
+- **A first row is no cause until the same key is read on every other
+  unit of the window** (1155): `0/7`'s hit on 784 was chapter
+  thirty-eight's first row, and `0/6` parted the same way on 854 with no
+  hit behind it.
+- **An actor that is gone parts no key** (1199): `1/56`'s arrival stand
+  was found by asking which figures vanish between two blocks, and a
+  close that holds its number thirty frames turned every unit above the
+  slot into a standing key. The units on one block and not on the next
+  are listed beside the firsts.
+- **A function whose export prints `unaff_` arguments is read at each
+  call site's listing** (1166): `find_unit_ordered`'s distance was read
+  right for the merchant and wrong for the scout for four weeks.
+- **The lane says its own state** (1180): `ron_lane_state` prints
+  `free`, `stale` or `held by`. A lock whose pids were dead read as a
+  busy lane on eight landings, and one whose pid had been handed to
+  another process refused a capture with no game running; the lock
+  carries each pid's start time now. A stale lock is never removed by
+  hand — one removal was refused by the permission classifier, rightly.
+- **A first take that dies before frame 0 is taken again once** before
+  anything is read into it (1150): run416's and run420's first takes
+  faulted inside Wine within four seconds of the launch.
+- **A release node is read with the `get_position` sweep on a packet**
+  (1208): reached three times from one scratch file; the item that
+  reaches it next commits it under `tools/recomp/`.
+- **A script that stages nothing still exits `success: true`** (1170),
+  and **a command to another player's units holds `be` across the pump**
+  (1205): two of run422's three takes and run436's first were lost to
+  the script's own lines.
+- **Two sections appended at one anchor, or a count two lanes re-pinned,
+  merge by hand with both kept** (1161, 1151), and the count is measured
+  again on the merged tree. Six landings met a refused update and none
+  was on code; the capture stanzas merge by union now, and a
+  specification does not, because it is amended in place.
+- **A word that reaches its trace's end owes five things** (1217): the
+  `ENDPOINTS` row and its `Endpoint` part, the `AI_WORDS` row closed,
+  the compared pin's window dropped with its fields re-pinned, the
+  coverage driver's word block a constant, a capture of the last blocks.
+- **A type or an object a booking names is a supposition** (1213): "a
+  Gate across a path" booked chapter forty-two, no type in the rules
+  carries a gate, and one `cmovne` of `invalid_loc` made it any armed
+  walker and another player's footprint. **A chapter is booked on at
+  most three arms of one staging** (the pass's own, DECISIONS 56 §5):
+  the chapter booked on seven functions cost 59.74 USD and reached 852 k
+  of context; the one booked on one cost 21.82.
+- **A mutation's scorer is made to fail once** (the pass's own): the
+  pass scored four mutations of its own tool by a pattern on `unittest`'s
+  output, which is coloured, and all four "failed nothing". A mutation
+  is scored by the run's exit code and the failed tests' names.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

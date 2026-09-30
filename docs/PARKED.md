@@ -22,6 +22,36 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by the twentieth Fable pass, 2026-09-29 — names no score
+
+(1224) **Fifteen live `SEAM`s name, as missing, a function this crate
+now carries** (parked 1193, built by the pass; `python3 tools/seams.py
+--doors`, pinned exact in `tools/explore/test_seams.py`): `orders.rs` 5,
+`fight.rs` 4, `ai_make.rs` 3, `lib.rs` 2 and `group.rs` 1.
+`strafe_attack`'s names a non-bomber's `fire_ammo`, which item 1200
+built; `World::set_blocked_at`'s was East Indies' 7512. Some name a
+function only in passing, and the list is one to read: each seam is
+struck, re-worded to say what of the function is missing, or booked by
+the frame it holds. A worker takes it beside a word whose module it
+touches, and the pin lowers with each.
+
+(1173) **`RON_DEBUG_LEADER` prints the make list's values and not
+`check_income`'s factor** (1163's Loop line): the make-list cause sat
+behind a positive wrap, an unaffordable offer valued below an affordable
+one, the second time after AI §49 that the tail's wrap direction was the
+mechanism. The factor printed beside each value would have shown it on
+the first read. **The twentieth pass**: a print on our side, added by
+the item that next reads a make list's value; no score names it.
+
+(1181) **A move's waypoint is compared only under `dest 1`** (1171's
+Loop line): the original printed the follower's waypoint (28614, 20246)
+under `dest 0`, and that value named Great Sahara's 14587 mechanism, one
+`eprintln` away. Compared as a field of its own, it would have been the
+first row. **The twentieth pass**: `waypoint` is a row of
+`UNCOMPARED_BY_THE_INSTRUMENT`'s `OrderDump` already, so the gap is
+pinned; comparing it under `dest 0` re-pins every widening that holds a
+move, and returns when a score names a follower's leg.
+
 ## Parked by the nineteenth Fable pass, 2026-09-29 — names no score
 
 (1134) **The domain is one fact in three fields** (parked 1130,
@@ -2050,23 +2080,6 @@ The same section, split on 2026-09-22 when it passed the 16 KB ceiling
 the guard sets. Everything in the heading above applies: these are the
 steering pass's, never a worker's, and a commander never spawns one.
 
-(685) **`tools/recomp/step4.py` cannot run `do_frame` on a packet from
-597's plan**: a stack read falls outside the mapped ranges. A per-function
-call on the packet was enough for 680; a question that spans a whole
-frame would not be (`docs/journal/2026-09-24-item-680.md`). **The
-fourteenth pass named the fix and did not build it**: the plan copies
-the process's private data and not the game thread's stack, and
-`do_frame` reads its caller's frame on its nineteenth instruction; the
-packet's tracer build adds the thread's stack (the TEB `find_teb`
-already locates carries `StackBase`/`StackLimit` at +4/+8) to the
-ranges, and the next packet's stanza says so. Stays. **The eighteenth
-pass**: item 1014 met it again on run360 — the fault is at the first
-call, on a renderer object outside the packet (parked 1026, folded
-here) — and entered `think_scout` directly, as 680 did; two reaches,
-both answered by the per-function entry, and `docs/EMULATOR.md` §8 says
-so now. The stack is the third reach's. **The nineteenth pass**: no reach in the tranche; it closes at
-the next pass without one.
-
 ## Loop, filed 2026-09-29 — the nineteenth pass's own
 
 The commander's twenty-one lines of the tranche before and the
@@ -2083,7 +2096,8 @@ order slot moves `firsts.len()` on every widening that pins it, ninety
 tests; the shape that moves none is a second map beside the first —
 every frame a key parts again after agreeing — printed under
 `RON_FIRSTS` and pinned nowhere. One reach. Its second half, a packet at
-the decision's tick, is `docs/EMULATOR.md` §8's now.
+the decision's tick, is `docs/EMULATOR.md` §8's now. **The twentieth
+pass**: no reach in the tranche; it closes at the next pass without one.
 
 (1105) **A golden capture without `DEATHS` in its end detail** (1091's
 Loop line): every death then reads as a `death:extra` row on our side.
@@ -2094,12 +2108,16 @@ no build, because the remedy is a fact about the original's logger that
 one capture settles — a ground death with both asked — and the pass
 takes none. It rides the rules lane's next capture as a second stanza;
 the widening skips the death list on a capture that did not ask for it
-once that says which.
+once that says which. **The twentieth pass**: no capture of the tranche
+asked for both; it rides chapter forty-three's capture as a second
+stanza, in the commander's note (item 1223).
 
 (1114) **`a_constant_a_document_names_is_built_or_pinned` counts hex
 spellings only** (1109's Loop line): COMBAT §83.2 names `LOOKOUT` and
 `OBSERVATIONPOST`, unbuilt, by TypeIndex name and decimal, and the guard
-does not see them. The guard could read enum names. One reach.
+does not see them. The guard could read enum names. One reach. **The
+twentieth pass**: no reach in the tranche; it closes at the next pass
+without one.
 
 (1119) **A field no widening compares stays wrong silently** (1112's
 Loop line): the golden widening had dropped every building's round, and
@@ -2111,54 +2129,35 @@ widening called under one recording, from one test, fails
 (chapter twenty-two, 35 reads against a pin of 0). It wants each
 chapter's walk as a function the pin can call with the chapter's own
 name, or a recorder that outlives its thread; the AI track's pin walks
-both open words now and no round is printed on either.
+both open words now and no round is printed on either. **The twentieth
+pass**: not built; sixteen journals of twenty-two met a comparison that
+compared nothing, against nineteen of twenty, and the rules lane's six
+were among them.
 
-(1138) **Half a landing's wall clock is waiting on the machine, and
-the share grows with every landing** (the nineteenth pass, measured
-after its gate on the user's question, `lore trace --steps`): a worker
-of this tranche ran **76 minutes, 37 working and 38 waiting** on a gate,
-a suite or a capture, where the tranches after the eleventh and twelfth
-passes ran 43 and 45, with 12 and 19 waiting. The rondata release suite
-is 618 s at four threads alone and gained twenty-eight tests in the
-tranche; every landing pays it whole at least once and nine paid it
-twice. **It is a long tail and not a few tests**: three of the 599 run
-over a minute, the suite is some 41 minutes of processor at four
-seconds a test, and its memory peaks at 17 GB of a 20 GB cap on a
-machine of 128. **Timed a module at a time, the same day** (four
-threads under the cap, `/usr/bin/time`): of 2,394 processor seconds,
-**`diff::golden` 893 over 132 tests and `diff::harness` 904 over 96 —
-three quarters of the suite in two modules**, 238 and 240 s of wall
-clock each; `diff::world` 108, `diff::unit` 93, `diff::shutdown` 80,
-`diff::build` 67, `diff::second` 66, `diff::coverage` 63 in three
-tests, and nothing else over 30. System time is one per cent, so it is
-not the disk. **And one long walk sampled twice**
-(`run226_s_word_frame_is_widened_whole`, 81 s alone, on a dump of 1.4
-GB), 4 s in and 45 s in: **of the samples that were not idle, 82 per
-cent and more were reading text and none was the simulation** — `memchr`
-under `lines`, `gamelog::fill`, `Log::field`, `memcmp`. `Block::get`
-finds a key by walking the block's fields and comparing each, so a
-record read field by field is read in the square of its length; and
-every test that opens a capture reads it again. The 20 GiB cap was set
-on a machine that had crashed at 27.6 GB resident with its swap full
-(`docs/DECISIONS.md` entry 34); the machine stood at 89 per cent free
-under this measurement, so the number is cautious and the kind is
-right, and **width is not what the suite is short of**: on 2026-09-10
-four threads ran 275 tests in 120 s, and 599 take 619. Captures were taken on nine of twenty and are not where the time
-went. Three lanes gate at twelve threads of sixteen. **And the
-commander's chain is serial**: a lane stood empty fourteen minutes a
-landing, 4.6 hours of the tranche's 15.1, between its landing and its
-refill, which is the booking gate; at three lanes that is the loop's
-narrowest point. **The spawn follows the booking commit now, with
-the gate beside it** (DECISIONS 55, amended). The next pass reads the
-three-lane tranche's split first. **The shapes, in the order the
-profile puts them**: a block's fields found by key without a walk, and
-a capture parsed once for the tests that share it — the reader's own
-work, which is where the time is; a booking gate that is the guard
-reflex where the merge added nothing the lane's gate had not seen; and
-last a wider gate under a higher cap, which buys at most the cores
-three lanes leave. The reader was rebuilt twice with care (items 235
-and 260) and the whole suite is its regression test; it is the next
-pass's first build, at a desk, and none is chosen before it.
+(1138) **Half a landing's wall clock is waiting on the machine** (the
+nineteenth pass; the twentieth built its first half). A worker of the
+three-lane tranche ran **99 minutes, 39 working and 61 waiting**,
+against 76, 38 and 38: by the last instruction before each wait, 23
+minutes on a capture, 19 on a gate and 18 on a suite, where the tranche
+before waited 13, 14 and 11. **The whole suite sampled** (`sample`, four threads, 627 tests): of
+the processor time that was not a parked thread, **`gamelog::fill` 51
+per cent, `Log::field` and the `memcmp` under `Block::get` some 20, the
+simulation's `tick` 3**. The suite reads some hundreds of gigabytes of
+dump a run, in lines of twenty bytes. **Built, each held to the old
+reader**: a line is cut by the byte, eight at a time to its end, and an
+ASCII line trimmed by the byte (`gamelog::Lines`, held to
+`reference_lines` on every line of a capture's head and tail and on
+thirty-six authored ones, eight mutations failing by name); a key is
+found by its bytes with no slice cut for another field (`Block::named`).
+On run445's 613 MB (`the_reader_is_timed`): the eager read 707 → 1,221
+MB/s, the index 1,490 → 3,318, a `get` 113 → 34 ns. **The suite, back to
+back on one tree, four threads: 683 s → 455 s.** **What stays**: the
+volume. Every test that opens a capture reads it again, several tests
+walk one window, and `Log::parse` takes a text and no path, so nothing
+can be kept between them; a parse kept by path, length and date for the
+tests that share a window is the second half, with the memory cap's
+headroom measured first. And the commander's booking gate is still the
+whole gate where the merge added nothing the lane's had not seen.
 
 (1140) **A worker's spend is the square of its length** (the
 nineteenth pass, measured on the user's question, `lore trace --steps`
@@ -2173,7 +2172,13 @@ shape is an A/B across three lanes, one lane's briefs asking for the
 clear and two not, read at the pass after: the price a landing, and
 whether the cleared lane's landings kept their value diffs and their
 killers. Parked 1071 asked this of the rules lane and closed on a
-tranche where the depth had fallen by itself.
+tranche where the depth had fallen by itself. **The twentieth pass**:
+not tried, and the measure stands: 52 per cent of the workers' spend was
+above 300 k, the rules lane's deepest worker at 852 k (item 1182, a
+chapter booked on seven functions). A chapter is booked on three arms of
+one staging from here (`docs/DECISIONS.md` entry 56 §5), which is read
+first; the clear is tried if the rules lane's price a landing does not
+fall under 25.
 
 (1141) **The loop waits on a person twice a cycle, and could hand
 itself over** (the nineteenth pass, on the user's question): the
@@ -2189,7 +2194,9 @@ from the user's questions. If built: the commander arms the pass and
 the pass re-arms the commander; every pass's rule changes are one
 commit a person can revert; **after two passes nobody read, the loop
 stops and waits**; and what is the user's — spend, the irreversible,
-what the project is — is never decided by either.
+what the project is — is never decided by either. **The twentieth
+pass**: the loop stood idle some twenty minutes before this pass. Still
+the user's, and not built.
 
 (1142) **A cheaper model is admitted by a trial, and the first trial
 is the pass's own table** (the nineteenth pass, on the user's question
@@ -2200,7 +2207,11 @@ cost is its cache reads and half its landing is the machine's, so a
 cheaper worker buys tokens and no wall clock. The trial that risks no
 score: the pass's journal table, which a lean subagent on Opus wrote
 this pass, written again by the candidate from the same twenty
-journals and the two compared cell by cell. Not run.
+journals and the two compared cell by cell. Not run. **The twentieth
+pass**: the table for the trial stands again,
+`target/pass20/journals-20.md`, twenty-two journals against twenty-one
+columns by a lean subagent on Opus 5.5 (verified by transcript). Still
+the user's to open.
 
 (1139) **The capture lane is one prefix, one install and one profile**
 (the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
@@ -2211,130 +2222,32 @@ second copy of the install and its own user-data directory;
 `~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
 else. Not built: the lane was not what the tranche waited on. Returns
 when three lanes' journals say they waited on it, with the minutes.
-
-(1146) **A `SEAM` that says no capture has entered its arm carries no
-`scan:`, and one was a word's whole mechanism** (1127's Loop line):
-`soft_collision`'s `TRADE_ROUTE` seam held East Indies at 6151, and its
-`scan:` would have been a one-line grep for the half-step bit on two
-`TRADEORDER` units. A guard that asks every such seam for a `scan:` line
-would have found the word a tranche earlier. One reach.
-
-(1150) **The click-free lane's first take can die before frame 0 on a
-Wine page fault** (1133's Loop line): run416's first take faulted 3.5 s
-after launch, and the receipt called it `extra lifecycle or fault
-records`; a retry ran clean. The receipt could name the fault and the
-lane could retry once on its own. One reach.
-
-(1151) **The compared pin is the union of every window it walks, so a
-lane measures it only on the merged tree** (1133's Loop line):
-`coll_x`, `coll_y` and `job_counter` went back on the pin when the third
-map's window shrank to five blocks, and came off at the merge because
-1127's East Indies window compares them. One lane's gate went red on a
-pin another lane's window decides. One reach.
-
-(1155) **A first-row framing is killed by a second unit's rows on the
-same key** (1131's Loop line): 1113 named `0/7`'s hit on 784 as chapter
-thirty-eight's first parting; it was the first row and not the cause,
-since `0/6` parted the same way on 854 with no hit behind it. One grep
-across units would have killed the framing — rule 711's killer applied
-across units rather than across rows. A clause or a brief row. One reach.
-
-(1159) **A document's "not modelled" row was a word's whole mechanism**
-(1143's Loop line): ORDERS §4.4 had read and listed the waypoint take's
-region check as not modelled, under a name ("turn in place") that hid
-the bit's second reader, and it held East Indies at 6321. A guard that
-lists a document's "not modelled" rows beside the functions the word's
-draw chain and parted fields touch would have put it in front of the
-item on its first read. Kin of 1146. One reach.
-
-(1161) **`ccc update` refuses on append-only conflicts, and the lane
-falls back to a raw merge** (1147's Loop line): two sections side by
-side in `docs/AI.md` (§90 beside §91) and two stanzas at the end of
-`tools/gamelog/captures.txt` stopped `ccc update att-1147`; a raw merge
-kept both sides. The append-only files could merge by union, as
-`docs/RUNS.md` does. **Three reaches** (1147, 1156: the same pair of
-files, §91 beside §93 the second time; 1163: `diff/third.rs`, where two
-lanes re-pinned the same widening counts — a count two lanes re-pin is
-always a conflict). **Four** (1164: `diff/harness.rs`'s floor triples,
-re-measured by hand on the merged tree, and §94 beside §95).
-
-(1162) **A pinned uncompared field with a live reader in `sim` is not
-asked for** (1147's Loop line): `pop_cap` was parsed and uncompared,
-and this crate reads it in the AI's research, unit and army decisions;
-it held Great Sahara at 12783. A guard crossing the coverage pin with
-`sim`'s readers would have named it. Kin of 1119. One reach.
-
-(1166) **A function read right for one caller and wrong for another
-stood four weeks** (1156's Loop line): `find_unit_ordered`'s distance
-was read correctly for the merchant (item 186) and wrongly for the scout
-(SCOUT §8.1), and the export's `unaff_` operands were the tell in both.
-A guard listing every call site of a function whose export body prints
-`unaff_` arguments, beside the `SEAM` or document line each caller
-cites, would have put the two readings side by side. One reach.
-
-(1170) **A capture whose script stages nothing still exits
-`success: true`** (1111's Loop line): two of run422's three takes were
-wasted on the script's own lines, and `cmdsran.py` and `issuesmatch.py`
-said "ran" for both. A staging-walk check that the script's lines parse
-into something before the capture, and the harness reading a bare `tech`
-as the report it is, would each have saved a take. One reach.
-
-(1173) **`RON_DEBUG_LEADER` prints the make list's values and not
-`check_income`'s factor** (1163's Loop line): the make-list cause sat
-behind a positive wrap, an unaffordable offer valued below an affordable
-one, the second time after AI §49 that the tail's wrap direction was the
-mechanism. The factor printed beside each value would have shown it on
-the first read. One reach.
-
-(1176) **Three widenings pinned the same missing rule as "what is left
-of the landing"** (1164's Loop line): run414, run419 and run420 each
-pinned a passenger's figure `avg_speed` apart after a landing, and it
-was one unbuilt exit rule each time. A guard could flag a pinned row
-whose field is a speed or a clock, standing on the frame a unit leaves
-a container, for a reading of the container's exit. One reach.
-
-(1180) **A lane lock whose two pids are dead reads as a busy lane**
-(1171's Loop line): 1167's `longtrace.sh` lock stood after both its
-pids had exited, and only `ps` said so; the launch took it over. A
-waiter that reads the lock could say "stale" by itself. **And the
-other way** (1177's message, 2026-09-29): run426's lock named pid 15593,
-recycled by an unrelated `next-server`, so run428's takeover read it
-live and refused with no wine running. The liveness test should check
-the pid's command, not only that the pid exists (1177's journal: or its
-start time). Two reaches.
-
-(1181) **A move's waypoint is compared only under `dest 1`** (1171's
-Loop line): the original printed the follower's waypoint (28614, 20246)
-under `dest 0`, and that value named Great Sahara's 14587 mechanism,
-one `eprintln` away. Compared as a field of its own, it would have been
-the first row. One reach.
-
-(1187) **A widening's "standing" keys hid two causes for five
-widenings** (1174's Loop line): who=1's `pop` from run425's 7377 and
-`escrow` from run357's 5601 stood among the first block's 238 standing
-keys, read as noise. A guard listing each key a widening pins as
-standing whose field has a live reader in `sim`, with that reader, at
-the widening's run, would have put both in front. **Again**
-(1189): who=1's wealth and `trade_val` stood on two widenings' first
-blocks; the Spice route was the cause. Two reaches.
-
-(1188) **A queue item whose bold title wraps fails the booking gate,
-unseen by the reflex** (booking 1174): `test_brief.py` wants the title
-on one line, and `tools/guard.sh` does not run the offline tests, so
-the guard run was green and the gate on `6b117410` red at its first
-step. `guard.sh` taking `test_brief.py` would have caught it. One reach.
-
-(1193) **A `SEAM` that leaves an arm out because its door is not built
-outlives the door** (1185's Loop line): `World::set_blocked_at`'s road
-clearing stood as a `SEAM` four days after item 695 landed the mesh's
-clearing door, and it was East Indies' 7512. A guard listing every
-`SEAM` whose text names a function this crate now carries would have
-put it in front. One reach.
+**The twentieth pass, measured**: five journals of twenty-two said they
+waited on another lane's capture — 530 s, 15, 9, 6 and 15 minutes, some
+fifty-four minutes in all, two and a half a landing — and eleven said
+they did not. Captures were taken on eighteen landings against nine,
+which is where the lane's share of a landing's waiting rose (23 minutes
+against 13, by the last instruction before each wait). Not built; it
+returns at ten minutes a landing waited on another lane.
 
 ## Loop, filed 2026-09-29 — the twentieth tranche's
 
-The nineteenth pass's section reached its ceiling at 1193; its rows
-stand there, and this tranche's later ones start here.
+The nineteenth pass's section reached its ceiling at 1193; this
+tranche's later rows were filed here. **The twentieth pass, 2026-09-29,
+ruled thirty-one** (`docs/audit/2026-09-29-fable-pass-20.md`, DECISIONS
+56): **built eight, each made to fail first** — the reader's cut and its
+key (1138, the first half); `tools/seams.py`, what the tree says it left
+out by name (1146, 1159, 1193; fifteen seams a built door outlived,
+pinned and parked as 1224); `tools/standing.py`, a widening's standing
+keys beside who in `sim` reads them (1162, 1187); a recycled pid is a
+stale lane lock and `ron_lane_state` says which (1180); a wrapped title
+composes and the reflex runs the suites that read the queue (1188); the
+capture stanzas merge by union (1161) — moved eleven lines into the
+brief checklist (1150, 1151, 1155, 1166, 1170, 1176, 1199, 1205, 1208,
+1213, 1217), parked 1173 and 1181 as rows that name no score, **closed
+685** on two tranches without a reach, and filed 1225 and 1226; 1101,
+1105, 1114, 1119, 1138's second half, 1139, 1140, 1141, 1142 and 1199's
+harness half stay. The backlog is twelve.
 
 (1199) **An event whose actor is gone on the next block is invisible to
 a widening** (1191's Loop line): `1/56`'s arrival stand parted no key,
@@ -2345,39 +2258,29 @@ block N and absent on N + 1 beside its firsts would have. **Again**
 — a close holds its number thirty frames — and a widening keyed on
 `(who, o)` turned every unit above the slot into a standing key; it
 could compare `uid`, which the dump prints and this crate does not
-carry. Two reaches.
+carry. Two reaches. **The twentieth pass**: the list of the units on one
+block and not on the next is a brief row now; the harness half — a
+widening that prints them beside its firsts and compares `uid` — stays,
+and is built on its third reach.
 
-(1217) **A map whose word reaches its trace's end owes five things
-nothing enumerates** (1206's Loop line): an `ENDPOINTS` row and its
-`Endpoint` part, the `AI_WORDS` row closed, the compared pin's window
-dropped with its fields re-pinned, the coverage driver's word block a
-constant, and a capture of the last blocks. 1206 found each by its
-failing guard; one guard naming all five when a word equals its length
-would save the next closing map a gate. One reach.
+(1225) **The compared pin's comment is a journal** (the twentieth pass's
+own): `UNCOMPARED_BY_THE_INSTRUMENT`'s rows carry which item moved which
+window to which blocks, a hundred and seventeen lines over six rows, and
+every landing that moves a word appends to it. The pin is the union of
+the windows walked, so its count moves with the window and says nothing
+of the instrument: about eighty fields, from seventy-nine, with
+`coll_x`, `coll_y` and `job_counter` leaving and returning again. A row
+could say what is uncompared and on what condition, the window's history
+go to the journals, and the measure be the fields no window of any game
+has compared. One reach.
 
-(1205) **A command to another player's units reads the seat twice**
-(1182's Loop line): the DLL's guard reads it when the line is issued and
-the pump when the package is walked; run436's take read the one it
-could see and lost both commands. `be` had never been staged. A staging
-walk that names each `@` line's seat at both reads would have. One reach.
-
-(1208) **The `get_position` sweep on a packet has been reached three
-times** (1194's Loop line): 603's pivot, 602's release and 1194's bays,
-each copy edited from the last one's scratch file in `~/ron-data`. It
-is the whole instrument for a release node, where `AMMO` answers only
-the headings a fight shows; it graduates into `tools/recomp/` as one
-script taking a piece, keys and a packet and printing `Bay` rows
-(CLAUDE.md, "a probe shape reached for a third time"). One reach.
-
-(1213) **A booked mechanism a five-minute listing read would have
-killed** (1200's Loop line): 1182 named the reach and `fire_ammo` for
-839, and the cause was a wood's cell test; the widening's value rows
-(`recharging`, `cur_anim`) named the release, not its predicate, which
-needed the release's inputs printed frame by frame. A booking that
-names an arm could carry its predicate's listing lines. **Again**
-(1209): the commander booked chapter forty-two as "a Gate", which no
-type in the rules carries; one `cmovne` in `invalid_loc`'s listing made
-it "any armed walker, any other player's footprint". Two reaches.
+(1226) **The frame takes a dozen rows a pass and sheds none** (the
+twentieth pass's own): `tools/brief/frame.md` grew from 10,125
+characters to 12,959 in one pass, and nothing says which of its rows a
+worker used. The pass's journal table could count the rows a journal
+cites by number or obeys in its first hour, and a row no journal of two
+tranches reached be struck from the checklist, which takes it out of the
+frame. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
