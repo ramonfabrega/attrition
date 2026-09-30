@@ -5248,6 +5248,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 /// `resources[3:knowledge]` 160 against 240 from 769, both agree.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 
+/// **Chapter forty-six's golden word** (`docs/GOLDEN.md` §55, item
+/// 1278, run496): **opens at 1902**, the squad's landing — ours 3 draws
+/// against 2, parting at index 0: ours `0/8`'s `Guy::set_anim+0x97a <
+/// Guy::move+0x19f`, the original's first `Farms::inc_time+0x1ae`. The
+/// value diff on block 1902: the original's `0/7`, `0/8` and `0/9` hold
+/// one `GroupMoveOrder` each (group 1901300, `form_id` 0, 1, 2); ours
+/// `orders.len` 3, 2 and 1, and `0/9` at (14856, 31224) against (14904,
+/// 31224), `0/8`'s and `0/9`'s heading 1073741824 against 1084948480.
+/// Everything before it agrees but the standing families, the prune on
+/// 1049 included (`1/2`'s `order:gather.wait` −1 on block 1050).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 1902;
+
+/// `chapter_forty_six_s_word_frame_is_widened_whole`'s window: run496
+/// whole, 605 to its end (block 2199 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_SIX: (i64, i64) = (605, 2201);
+
 /// `chapter_forty_five_s_word_frame_is_widened_whole`'s window: run492
 /// whole, 600 to its end (block 1649 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_FIVE: (i64, i64) = (600, 1651);
@@ -5761,6 +5777,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
     ("chapter_forty_three_holds_to_the_golden_word", 3),
     ("chapter_forty_three_s_word_frame_is_widened_whole", 3),
+    // Chapter forty-six (item 1278) is chapter forty-three's cast: the same
+    // three shots at the who=1 Citizen X.
+    ("chapter_forty_six_holds_to_the_golden_word", 3),
+    ("chapter_forty_six_s_word_frame_is_widened_whole", 3),
     // Chapter forty-one (item 1182): the Biplane's two EXITs from its
     // Airbase on the computer's sorties, 808 and 1470, each a read of the
     // ground under the base's point.
@@ -7333,6 +7353,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1278: run496, chapter forty-six, the squad's landing and
+    // `all_gathering`'s prune. The widening is run496 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_SIX",
+        GOLDEN_WORD_CHAPTER_FORTY_SIX,
+        Some("chapter_forty_six_s_word_frame_is_widened_whole"),
+        1278,
+        Some(WIDENING_CHAPTER_FORTY_SIX),
     ),
     // Item 1268: run492, chapter forty-five, `get_cost`'s library-line
     // tail on the golden start. The widening is run492 whole.

@@ -622,6 +622,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch43 = golden_dump("ch43");
     let ch44 = golden_dump("ch44");
     let ch45 = golden_dump("ch45");
+    let ch46 = golden_dump("ch46");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1997,6 +1998,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [603, 769, 804] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-six, on run496** (item 1278): 726, the trained
+    // Citizen out under its two-point list; 1050, `all_gathering`'s prune;
+    // 1902, the word's block, the squad's landing.
+    if let Some(p) = &ch46 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SIX;
+        for w in [726, 1050, 1902] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-six carries the window's five blocks");
             frames += n;
         }
     }
