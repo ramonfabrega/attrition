@@ -567,7 +567,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 129)],
+            [(7065, 121)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -577,12 +577,12 @@ mod tests {
         // `form` on 7144 first — where it was 616.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 129), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
+            [(7065, 121), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
         pin_eq!(
             w.firsts.len(),
-            134,
+            126,
             "every key parted on run483 (745 before item 1260)"
         );
     }
@@ -651,11 +651,11 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 132), (7781, 1), (7782, 4), (7784, 3), (7785, 2)],
+            [(7780, 124), (7781, 1), (7782, 4), (7784, 3), (7785, 2)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1264: 876 → 150.
-        pin_eq!(w.firsts.len(), 150, "every key parted on run488");
+        pin_eq!(w.firsts.len(), 142, "every key parted on run488");
     }
 
     /// **The third map's word at Toughest, 8182, widened whole** (item
@@ -720,7 +720,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (8177, 136),
+                (8177, 128),
                 (8178, 1),
                 (8181, 8),
                 (8183, 14),
@@ -729,7 +729,7 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 967, "every key parted on run491");
+        pin_eq!(w.firsts.len(), 959, "every key parted on run491");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):

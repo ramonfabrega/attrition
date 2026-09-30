@@ -700,7 +700,9 @@ impl Sim {
     /// by the nation's `build_continent` before any of this, and those six
     /// are the `-NEUROPE-`/`-KOREAN-`/`-IROQUOIS-`/`-COLONIAL-`/
     /// `-EINDIAN-` entries whose names the piece arithmetic cannot build.
-    /// No capture holds a merchant.
+    /// ~~No capture holds a merchant.~~ run490 holds two deployed ones
+    /// re-pieced by an age, on 50689 (`total − 5`), where this derives
+    /// 2123 and 14795 (`docs/ANIM.md` §3.4); no clock parts on it there.
     pub fn unit_gpiece(
         &self,
         who: Player,

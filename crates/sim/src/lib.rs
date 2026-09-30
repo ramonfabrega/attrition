@@ -3266,10 +3266,15 @@ impl Sim {
     /// damage. This crate stores the complement, so the subtraction is
     /// explicit.
     ///
+    /// The tail's `update_gpiece` is [`Sim::reinit_guys`]' piece write, and
+    /// each `init_real` re-pieces its guy before it reads the flags, so a
+    /// converted guy's `guy_flags & 8` is the new piece's
+    /// ([`crate::anim::Guy::flag_piece`]).
+    ///
     /// SEAM: the `is(0x165, 1)` CEO bit and its `update_ceo_position`, the
-    /// `is(0x77, 0)` flag, `update_gpiece`, and the two vslots `+0x15c`
-    /// and `+0x160` the tail calls before `update_armor`/`update_speed` —
-    /// none has state here.
+    /// `is(0x77, 0)` flag, and the two vslots `+0x15c` and `+0x160` the
+    /// tail calls before `update_armor`/`update_speed` — none has state
+    /// here.
     pub(crate) fn unit_set_type(&mut self, u: usize, rec: usize) {
         let Some(old) = self.units[u].ty else { return };
         if old == rec {
@@ -3601,6 +3606,17 @@ impl Sim {
     /// own `+0x50` (this crate's [`crate::Movement::heading`]), guy 0's body
     /// goes onto the unit, and each tracked crew figure is **put** on its
     /// offset rather than told to walk to it — [`Sim::crew_des`]'s `snap`.
+    /// `Guy::set_angle(guy 0, +0x50, 1)` writes the figure and nothing of
+    /// the unit's, so the order's `dest_angle` (`+0x58`,
+    /// [`crate::Movement::des_angle`]) stands, which is why this is not
+    /// [`crate::Movement::set_facing`] (item 1281).
+    ///
+    /// Before it, `Unit::update_gpiece`: the age coordinate of
+    /// `get_unit_gpiece` is `ages < 5 ? ages / 3 : 2`, so the third and the
+    /// fifth ages move every figure one bracket up, and the new piece's
+    /// lengths are what its next `set_anim` reads. The flags stay the ones
+    /// `init_real` took ([`crate::anim::Guy::flag_piece`]); `docs/TECH.md`,
+    /// "The piece moves with the age".
     fn age_snap_units(&mut self, who: Player) {
         for u in 0..self.units.len() {
             if !self.units[u].alive() || self.units[u].owner != who {
