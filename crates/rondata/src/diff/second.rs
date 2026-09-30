@@ -1144,7 +1144,7 @@ mod tests {
         // `escrow` on its five goods (`docs/AI.md` §98).
         // Item 1197: 299 → 182, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 182 → 179, who=1's
-        // Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 179, "every key parted on run419");
     }
 
@@ -1269,7 +1269,7 @@ mod tests {
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 189 → 185, and the first
-        // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 185, "every key parted on run420");
     }
 
@@ -1401,7 +1401,7 @@ mod tests {
         // Item 1174: 1182 → 614. Item 1185: 614 → 317.
         // Item 1197: 317 → 187, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 187 → 183, the first block's
-        // 161 → 158 and 7478's 2 → 1, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // 161 → 158 and 7478's 2 → 1, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 183, "every key parted on run425");
     }
 
@@ -1485,7 +1485,7 @@ mod tests {
             "the blocks keys first part on, to the old word's block 8520"
         );
         // Item 1191: 1243 → 608. Item 1197: 608 → 198. Item 1228: 198 →
-        // 194, and block 8514's 180 → 176, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // 194, and block 8514's 180 → 176, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 194, "every key parted on run439");
     }
 
@@ -1589,7 +1589,7 @@ mod tests {
         // Item 1197: 1176 → 627, and block 8815's 504 → 183. Item 1214:
         // 627 → 195; the first key past block 8815 parts on 8947. Item
         // 1228: 195 → 190, and block 8815's 183 → 178, who=1's
-        // Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 190, "every key parted on run445");
     }
 
@@ -1641,7 +1641,7 @@ mod tests {
         // Its block 10184 parts on nine keys, the make list's head among
         // them.
         //
-        // **The word 10185** (item 1228, `docs/TRANSPORT.md` §6.5): the
+        // **The word 10185** (item 1228, `docs/TRANSPORT.md` §16): the
         // Merchant Fleet is counted, so who=1's `control`, `effective_pop`
         // and `num_units[268]` agree from the first block, and the second
         // `create_units` pass on 10183 fails the population gate on both
@@ -1788,7 +1788,7 @@ mod tests {
         );
         // Item 1197: 277 → 175, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 175 → 171, the first
-        // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         pin_eq!(w.firsts.len(), 171, "every key parted on run421");
     }
 

@@ -1495,7 +1495,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// < do_cast`. Past run445's window (its last block 9071), widened on
 /// run462 (block 10184).
 ///
-/// **10183 → 10185 on item 1228** (`docs/TRANSPORT.md` §6.5): a boat is
+/// **10183 → 10185 on item 1228** (`docs/TRANSPORT.md` §16): a boat is
 /// counted in `num_units`, `control` and `active` by `Unit::set_type` when
 /// its type has population and taken out by `Unit::close`, and this
 /// crate's `cast_transport` and `disembark` did neither. So a Merchant

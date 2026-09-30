@@ -1022,7 +1022,7 @@ impl Sim {
         let b = self.add_unit(boat);
         // `Unit::init` → `Guy::init_real`: the boat's one figure, one draw.
         self.init_guys(b, Some(ty));
-        // **And `Unit::set_type`'s count** (item 1228, §6.5): the boat is
+        // **And `Unit::set_type`'s count** (item 1228, §16): the boat is
         // born through `Objects::init_unit`, whose `set_type` moves
         // `num_units`, `control` and `active` for a type with population.
         // A Merchant Fleet is one, a Transport Barge is not; the caravan
@@ -1273,7 +1273,7 @@ impl Sim {
             }
         }
         self.units[boat].health = 0;
-        // `Unit::close@0060ee50`'s count, at `0060f3db` (§6.5): the boat
+        // `Unit::close@0060ee50`'s count, at `0060f3db` (§16): the boat
         // that came in through `set_type`'s `+1` goes out the same gate.
         if self.counts_in_muster(boat)
             && let Some(ty) = self.units[boat].ty
@@ -1754,7 +1754,7 @@ mod tests {
         );
     }
 
-    /// **The boat in the muster** (item 1228, §6.5): `Objects::init_unit`'s
+    /// **The boat in the muster** (item 1228, §16): `Objects::init_unit`'s
     /// `Unit::set_type` counts a boat whose type has population, and
     /// `Unit::close` takes it out again. A caravan's Merchant Fleet (`POP`
     /// 1) moves `num_units` and `control` by one while it is at sea; a

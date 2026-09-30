@@ -2104,10 +2104,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1214 moved it to run462's 10183**, where a cast order stands
     // and no move's `coll` pair has left `(0, 0)`: `cast_paid` and
     // `cast_spell` leave this pin, and `coll_x`/`coll_y` return to it.
+    // **Item 1228 moved it to 10185**, blocks 10184..10187: the Caravan
+    // `1/40`'s cast was spent on 10183, so no cast stands there and
+    // `cast_paid` and `cast_spell` return to this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type coll_x coll_y cruising_alt def_x \
+         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \

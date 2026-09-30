@@ -3758,7 +3758,7 @@ impl Sim {
     }
 
     /// **The gate both of the count's per-object writers share**
-    /// (`docs/TRANSPORT.md` §6.5): `Unit::set_type@00612fa0`'s `+1` block
+    /// (`docs/TRANSPORT.md` §16): `Unit::set_type@00612fa0`'s `+1` block
     /// on a birth and `Unit::close@0060ee50`'s `−1` at `0060f3db` on a
     /// close each move `num_units`, `control` and `active` only for a
     /// unit that is no squad follower (`is_captain`, `+0x8e`) and whose
