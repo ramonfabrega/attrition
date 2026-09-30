@@ -1513,7 +1513,29 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// where the original spends a second `Leader::use_market+0x1ed` and then
 /// buys the Senate (`Leader::produce_building+0x1805` twice). Inside
 /// run462's window (block 10186).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_185;
+///
+/// **10185 → 10985 on item 1243** (`docs/TECH.md`, "The queue loop"): a
+/// unit research finishes through `Build::do_queue@0061e410`, which calls
+/// `Build::finished` (and so `gain_tech`) before `Build::unqueue`, and every
+/// queued-count decrement is guarded against zero. This crate unqueued
+/// first, so who=1's Pikemen research at `1/2020` on 9143 re-targeted the
+/// Hoplites entry behind it by the `jump` chain with nothing for its `−1`
+/// to take, and `num_queued[84]` stood one high. The ramp priced the
+/// second Pikemen a step dearer, goods stood 8 short, and the Senate was
+/// unaffordable on 10184. **The move's value diff (the word's delta, here;
+/// its block is `run462_s_word_frame_is_widened_whole`'s):** on run462's
+/// first block 10178, who=1's `num_queued[84]` ours 1 against 0 →
+/// agreeing, `bucket[0:food]` 125 against 133 and `bucket[4:metal]` 107
+/// against 115 → agreeing, `1/2020`'s `queue[0].cost` 86/66 against 78/58
+/// → agreeing; on 10185 `MAKE[0].val` 1,200,000 against 4,800,000 →
+/// agreeing; on 10186 `bucket[2:wealth]` 57 against 7 → agreeing, and
+/// `1/2026` linked. run462's keys went 1398 → 198. Frame 10185's draws
+/// went 9 against 10 → agreeing. **The new word's delta: ours 10 draws and
+/// the original 11 on frame 10985, parting at index 2**: ours spends
+/// `Leader::make_stuff+0x221` where the original spends a third
+/// `Leader::use_market+0x1ed`. Past run462's window (its last block
+/// 10434), widened on run480 (block 10986).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2004,6 +2026,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
 /// 10183's block 10184 and 250 past it; the word 10185's block 10186 since
 /// item 1228.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434);
+
+/// **run480's window** (item 1243): the second pair's East Indies at
+/// run462's detail, blocks 10980..11236 — six blocks before the word
+/// 10985's block 10986 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_10985: (i64, i64) = (10_980, 11_236);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -5122,19 +5149,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// the human's Bomb Vessel `0/6` refuses the computer's `1/2007` on both
 /// sides to the capture's end.
 ///
-/// **The word is 670**: ours 9 draws against 10, parting at index 3,
-/// where the original spends `Object::take_damage+0xe1` — the first
-/// round landing on `0/2007` — and ours `Farms::inc_time+0x1ae`. The
-/// value diff on block 671: `0/2007` `damage` ours 0 against 122, and
-/// `1/6`'s round (`traj 1`, `total_time` 39, `cur_time` 38 on block 670
-/// on both sides) gone from the original's dump and still in flight
-/// here. Standing from block 631: `1/6`'s turret, ours 94568448 against
-/// 96862208.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 670;
+/// ~~**The word was 670**~~ (item 1254): ours 9 draws against 10 at
+/// index 3, where the original spends `Object::take_damage+0xe1`, the
+/// first round landing on `0/2007`.
+///
+/// **Item 1257: the chapter closes at 1450**, the capture's end, word,
+/// sequence and values. The round flew 40 frames here against 39 because
+/// it left from the ship's own square: `1/6`'s release goes through
+/// `get_position`'s pivot branch (`docs/COMBAT.md` §55) with the Bomb
+/// Vessel's piece 296, which `sim::pivot` had no rows for, and at
+/// `fast_angle_to_degrees` of its facing, 353, not `angle_to_degrees`'
+/// 354. The value diff on block 633, the round's first: `sx, sy, sz`
+/// ours `(21288, 14712, 0)` against `(21301, 14867, 134)`, `total_time`
+/// 40 against 39, `angle` −2123169792 against −2120286208, `ex` 21154
+/// against 21155; all agree now. The turret on block 631, ours 94568448
+/// against 96862208, was the same piece's missing pivot node.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 
 /// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
-/// from 605, the word's block 671 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 921);
+/// whole, 605 to its end (block 1449 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 1451);
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
@@ -7330,13 +7364,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
-    // inside it.
+    // inside it; item 1243 to 10985, past it, widened on run480.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run462_s_word_frame_is_widened_whole"),
-        1214,
-        Some(WIDENING_SECOND_EAST_INDIES_10183),
+        Some("run480_s_word_frame_is_widened_whole"),
+        1243,
+        Some(WIDENING_SECOND_EAST_INDIES_10985),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

@@ -11910,6 +11910,16 @@ building `1/2023` at another place: `build:x_internal`/`y_internal` ours
 (40608, 19680) against theirs (41184, 15072). The coverage driver and the
 compared pin walk 5375..5379 and 5375..5378.
 
+## run480 — run346's game at run462's detail over blocks 10980..11236: the second pair's East Indies word 10985 widened (2026-09-30, item 1243)
+
+**What it is.** run462's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10980..11236, `!quit` at 11250. The word's frame 10985 writes
+block 10986: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run480 \
+    --map 18 --end-frame 11250 --timeout 5400 --log-window 10980 11237 \
 ## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
 
 **What it is.** run471's shape on the click-free lane at run470's lobby,
@@ -11924,6 +11934,34 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-ca
     --profile DIFFICULTY=5
 ```
 
+**The booking cites what the disk could not answer.** run462 ends at block
+10434, and no other dump of run346's game prints the word's blocks at
+detail. The run346 dump itself carries no leader record.
+
+**Taken** 02:55–03:22 in one take. The lane read `stale` (pid 62826 dead)
+and no wine or runner process was alive, so the launch took the lock
+over; nothing was waited on. It was waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,609 s from launch
+to exit, 11,251 frames, map 18 and seed 12345 verified, five files
+restored. The dump (630.1 MB) and the trace (97.4 MB) were moved into
+`Logs` as `gamelog-run480-islands-toughest-10985.txt` and
+`rontrace-run480.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 11,251 identical |
+| window blocks | 257, 10980..11236 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run480_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 10980 stands on 188 keys, among them the
+order rows' `group.id` (10746119 against 10752919); the make list's `city`
+parts from 10981. On the word's block before, 10985, who=1's `MAKE[1]` is
+a type-440 building at 900,000 where the original holds five Pikemen
+(`TypeIndex` 134) at 611,022. The window parts on 1,490 keys. The coverage
+driver walks 10985..10988 and the compared pin 10984..10987, where a cast
+order and a group move stand.
 **The booking cites what the disk could not answer.** The word moved to
 5782 when `find_friends`' enhancer arm was built (`docs/AI.md` §99.7);
 run471 ends at block 5627 and run470 prints `MISC` alone, so no dump of
@@ -12101,3 +12139,35 @@ parts on 7782 and 7785. On the word's block 7786, the Senate `1/2030`
 (`orig_type` 438) is laid at (38976, 19584) here and at (38784, 17760)
 there. The compared pin walks its 7784..7787, and the coverage driver
 drives 7784..7788.
+
+## run486 — chapter forty-four's staging, a packet at logger frame 670 (2026-09-30, item 1257)
+
+**What it is.** `chapter44.cmd` whole, to 672, with a `RON_STATE_FRAME=670`
+packet (819,149,816 bytes; run144's plan) and `AMMO=5`, `GUYS=4` over
+660..672. 57 s launch to exit, `success: true`, 673 frames, seed 12345,
+map verified; the lane lock was stale (no runner alive). `rngcmp.py`
+against run484's trace: 673 frames, none differ; block 670's round is
+run484's field for field.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run486 \
+    --map 14 --end-frame 672 --log-window 660 672 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter44.cmd \
+    --tracer-def RON_STATE_FRAME=670 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'
+```
+
+**What the disk could not answer.** The Bomb Vessel's `AttachPos` entries
+and `RData +0x88`: no dump prints them, and no packet on disk came from a
+game that fields the type (the entries are built when its first unit is).
+
+**What it answered** (`tools/recomp/get_position.py`, committed by this
+item): piece 296's seven entries and its scale 0.8; the original's
+`get_position` on 277,248 release cells and the node's 361 degrees; and
+`fast_angle_to_degrees` of the ship's facing, 353, where
+`angle_to_degrees` gives 354. The tables are in
+`~/ron-data/lab-experiments/2026-09-30-item-1257/`. `docs/GOLDEN.md` §53.
+run487 was reserved and not used.

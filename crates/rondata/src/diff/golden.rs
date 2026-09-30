@@ -6710,39 +6710,49 @@ fn widen_civilians(
             }
         }
         if ammo {
-            let theirs: BTreeSet<(i64, i64, i64)> = super::ammo::blocks(&raw)
+            // **Every field of the round, not only its presence** (item
+            // 1257): chapter forty-four's first round flew 40 frames here
+            // against the original's 39, from a launch point 155 units
+            // short, and this walk said the two rounds agreed on every
+            // block to the word because it compared which rounds were
+            // held and nothing else.
+            let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
                 .into_iter()
                 .filter(|(a, _)| a.flags & 2 != 0)
-                .map(|(a, _)| (a.who, a.o, a.index))
+                .map(|(a, _)| ((a.who, a.o, a.index), a))
                 .collect();
-            let ours: BTreeSet<(i64, i64, i64)> = s
-                .built
-                .sim
+            let sim = &s.built.sim;
+            let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
                 .projectiles
                 .iter()
-                .map(|p| match p.shooter {
-                    sim::combat::Obj::Unit(u) => {
-                        let un = &s.built.sim.units[u];
-                        (i64::from(un.owner), i64::from(un.index), i64::from(p.slot))
-                    }
+                .map(|p| {
                     // A building's round too (item 1112): the dump's
                     // `who`/`o` are the building's.
-                    sim::combat::Obj::Building(b) => {
-                        let bd = &s.built.sim.buildings[b];
-                        (i64::from(bd.owner), i64::from(bd.index), i64::from(p.slot))
-                    }
+                    let (w, o) = obj_ident(sim, p.shooter);
+                    ((w, o, i64::from(p.slot)), *p)
                 })
                 .collect();
             ammo_rows += theirs.len().max(ours.len());
-            for &(w, o, slot) in theirs.symmetric_difference(&ours) {
-                let side = if theirs.contains(&(w, o, slot)) {
-                    "the dump"
-                } else {
-                    "this crate"
+            let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+            for key @ (w, o, slot) in keys {
+                let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                    let side = if theirs.contains_key(&key) {
+                        "the dump"
+                    } else {
+                        "this crate"
+                    };
+                    firsts
+                        .entry((w, o, format!("ammo[{slot}]")))
+                        .or_insert((n, format!("{side} holds it alone")));
+                    continue;
                 };
-                firsts
-                    .entry((w, o, format!("ammo[{slot}]")))
-                    .or_insert((n, format!("{side} holds it alone")));
+                for (name, mine, dumped) in ammo_value_rows(sim, p, a) {
+                    if mine != dumped {
+                        firsts
+                            .entry((w, o, format!("ammo[{slot}].{name}")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
             }
         }
         // **Both sides printed once** on the citizen's two blocks, for
@@ -10707,6 +10717,51 @@ struct ChapterThreeWidening {
 /// and every rolling round read "ours 1 theirs 0" there: a row that named
 /// the wrong field, not a parting. This crate carries no roll byte and no
 /// crash round, so its side of `rolling` is the zero `init` writes.
+/// An object's `(who, o)` as the dump prints it: a unit's owner and
+/// index, or a building's.
+fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
+    match o {
+        sim::combat::Obj::Unit(u) => (i64::from(sim.units[u].owner), i64::from(sim.units[u].index)),
+        sim::combat::Obj::Building(b) => (
+            i64::from(sim.buildings[b].owner),
+            i64::from(sim.buildings[b].index),
+        ),
+    }
+}
+
+/// **Every field of `AmmoData::log_data` this crate carries**, ours
+/// against the dump's, for one round held on both sides: the clock, the
+/// launch and landing, the target, the accuracy, the splash, the heights,
+/// the bearing, the arc and the flag bits. `traj`, `dx`, the roll and
+/// bank angles, `gpiece` and `graph_index` are not carried.
+fn ammo_value_rows(
+    sim: &sim::Sim,
+    p: &sim::combat::Projectile,
+    a: &super::ammo::Ammo,
+) -> Vec<(&'static str, i64, i64)> {
+    let target = p.target.map_or((-1, -1), |t| obj_ident(sim, t));
+    [
+        ("cur_time", i64::from(p.cur_time), a.cur_time),
+        ("total_time", i64::from(p.total_time), a.total_time),
+        ("sx", i64::from(p.launch.x), a.sx),
+        ("sy", i64::from(p.launch.y), a.sy),
+        ("ex", i64::from(p.landing.x), a.ex),
+        ("ey", i64::from(p.landing.y), a.ey),
+        ("whom", target.0, a.whom),
+        ("ox", target.1, a.ox),
+        ("accuracy", i64::from(p.accuracy), a.accuracy),
+        ("splash_area", i64::from(p.splash_area), a.splash_area),
+        ("num_guys", i64::from(p.num_guys), a.num_guys),
+        ("sz", i64::from(p.sz), a.sz),
+        ("ez", i64::from(p.ez), a.ez),
+        ("angle", i64::from(p.angle.0), a.angle),
+        ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+    ]
+    .into_iter()
+    .chain(ammo_flag_rows(p, a))
+    .collect()
+}
+
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
@@ -10813,11 +10868,11 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     //   757) where the original's `Ammo::check_hit` rewrites it on the
     //   round's due frame;
     // - the pool slot a round takes (703, 729, 730, 754), one apart;
-    // - `0/8`'s launch point on 753, one unit in `sx` and `sy`, after its
-    //   turn to 61.7° on 711: the round needs a turret step of 1°, where
-    //   this crate's is 0° (`des` 0.06° from the node). Its 729 round,
-    //   under the pool-slot row, is the same: `946, 8156` against
-    //   `947, 8158`. `GUYS=2` prints no turret (§55.5).
+    // - ~~`0/8`'s launch point on 753, one unit in `sx` and `sy`, after
+    //   its turn to 61.7° on 711~~: **item 1257** — the release rotates by
+    //   `fast_angle_to_degrees` of the facing, not `angle_to_degrees`
+    //   (`8e4c7d`–`8e4c98`), 240 against 242 at 61.7°, and the round
+    //   leaves from the dump's `941, 8155` with no turret step at all.
     pin_eq!(first, Some(678), "run145's first value parting moved");
     pin_eq!(
         rows_on(FIRST + 1, WORD + 1),
@@ -10832,10 +10887,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
             "703 0/7 ammo[2]: this crate holds it alone",
             "703 0/7 ammo[3]: the dump holds it alone",
             "754 0/7 ammo[4]: the dump holds it alone",
-            "753 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
             "757 0/8 ammo[0].ox: ours -1 theirs 6",
-            "753 0/8 ammo[0].sx: ours 940 theirs 941",
-            "753 0/8 ammo[0].sy: ours 8154 theirs 8155",
             "757 0/8 ammo[0].whom: ours -1 theirs 1",
             "729 0/8 ammo[1]: this crate holds it alone",
             "678 0/8 ammo[1].ox: ours -1 theirs 8",
@@ -10852,16 +10904,10 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     pin_eq!(
         whole_on(753, 754),
         vec![
-            "753 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
-            "753 0/8 ammo[0].sx: ours 940 theirs 941",
-            "753 0/8 ammo[0].sy: ours 8154 theirs 8155",
             "754 0/7 ammo[1]: this crate holds it alone",
             "754 0/7 ammo[4]: the dump holds it alone",
-            "754 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
-            "754 0/8 ammo[0].sx: ours 940 theirs 941",
-            "754 0/8 ammo[0].sy: ours 8154 theirs 8155",
         ],
-        "the turned chariot's round moved"
+        "the turned chariot's round moved (item 1257: its launch agrees)"
     );
     pin_eq!(
         whole_on(WORD, WORD + 1),
@@ -13537,17 +13583,16 @@ fn chapter_forty_four_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch44: what parts under the word moved");
 }
 
-/// Chapter forty-four's widening rows (item 1254): run484 from 605 to 920,
-/// the word's block 671 and 250 past it (`docs/GOLDEN.md` §53). Before
-/// the word: the standing families — the birth `form` (parked 1169), the
-/// first block's census (parked 1183) and `filled_gather_slots`, the
-/// Bomb Vessel's attack `order:target`, which this crate keeps on the
-/// unit — and `1/6`'s turret on 631, its first strike's aim, ours
-/// 94568448 against 96862208. On the word's block 671: the first round
-/// lands on `0/2007` in the original (`damage` 122, the round gone at
-/// `cur_time` 38 of `total_time` 39 on 670) and not here, and with it
-/// chapter eight's `treaties[·]` 3 on the first blow. Every row from 686
-/// is the draw stream's cascade past the word.
+/// Chapter forty-four's widening rows: run484 whole, 605 to 1450 (item
+/// 1257; `docs/GOLDEN.md` §53). The standing families only — the birth
+/// `form` (parked 1169), the first block's census (parked 1183) and
+/// `filled_gather_slots`, the Bomb Vessel's attack `order:target`, which
+/// this crate keeps on the unit — and chapter eight's `treaties[·]` 3 on
+/// the first blow, on 671, where the first round now lands on both sides.
+/// Item 1254's rows past 631 went with the release: `1/6`'s turret on
+/// 631, the round and `0/2007`'s `damage` on 671, and the cascade from
+/// 686. The rounds are compared field by field (item 1257), and all 381
+/// agree.
 const WANT_CH44: &[&str] = &[
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
@@ -13579,263 +13624,8 @@ const WANT_CH44: &[&str] = &[
     "611 1/6 form",
     "611 1/6 order:target",
     "613 0/6 form",
-    "631 1/6 g.des_turret0[0]",
-    "631 1/6 g.turret0[0]",
     "671 0/-1 leader:treaties[1]",
-    "671 0/2007 build:damage",
     "671 1/-1 leader:treaties[0]",
-    "671 1/6 ammo[0]",
-    "686 1/6 g.cur_anim[0]",
-    "700 0/4 dest_angle",
-    "700 0/4 order:move.angle",
-    "700 0/4 order:move.off_x",
-    "700 0/4 order:move.off_y",
-    "700 0/4 order:move.x",
-    "700 0/4 order:move.y",
-    "700 0/4 orders_x",
-    "700 0/4 orders_y",
-    "701 0/4 g.angle[0]",
-    "701 0/4 g.avg_speed[0]",
-    "701 0/4 g.cur_anim[0]",
-    "701 0/4 g.cur_time[0]",
-    "701 0/4 g.des_angle[0]",
-    "701 0/4 g.des_x[0]",
-    "701 0/4 g.des_y[0]",
-    "701 0/4 g.end_time[0]",
-    "701 0/4 g.last_speed[0]",
-    "701 0/4 g.last_time[0]",
-    "701 0/4 g.stopped[0]",
-    "701 0/4 g.x[0]",
-    "701 0/4 g.y[0]",
-    "701 0/4 heading",
-    "701 0/4 mirror",
-    "701 0/4 order:kind",
-    "701 0/4 order:length",
-    "701 0/4 orders.len",
-    "701 0/4 path:length",
-    "701 0/4 pos",
-    "702 0/4 order:flags",
-    "702 0/4 order:move.dest",
-    "703 0/4 order:move.dest_x",
-    "703 0/4 order:move.dest_y",
-    "703 0/4 path[0].to",
-    "712 0/6 g.cur_anim[0]",
-    "712 0/6 g.end_time[0]",
-    "712 1/3 dest_angle",
-    "712 1/3 order:move.angle",
-    "712 1/3 order:move.off_x",
-    "712 1/3 order:move.off_y",
-    "712 1/3 order:move.x",
-    "712 1/3 order:move.y",
-    "712 1/3 orders_x",
-    "712 1/3 orders_y",
-    "713 1/3 g.angle[0]",
-    "713 1/3 g.des_angle[0]",
-    "713 1/3 g.des_x[0]",
-    "713 1/3 g.des_y[0]",
-    "713 1/3 g.last_speed[0]",
-    "713 1/3 g.x[0]",
-    "713 1/3 g.y[0]",
-    "713 1/3 heading",
-    "713 1/3 order:move.dest_x",
-    "713 1/3 order:move.dest_y",
-    "713 1/3 path[0].to",
-    "713 1/3 pos",
-    "714 1/3 g.avg_speed[0]",
-    "724 0/0 g.cur_anim[0]",
-    "724 0/0 g.cur_anim[1]",
-    "724 0/0 g.end_time[0]",
-    "732 0/6 g.cur_time[0]",
-    "732 0/6 g.last_time[0]",
-    "734 1/3 order:kind",
-    "734 1/3 order:length",
-    "734 1/3 orders.len",
-    "734 1/3 path:length",
-    "735 1/3 g.cur_anim[0]",
-    "735 1/3 g.cur_time[0]",
-    "735 1/3 g.end_time[0]",
-    "735 1/3 g.last_time[0]",
-    "735 1/3 g.stopped[0]",
-    "747 0/3 dest_angle",
-    "747 0/3 order:move.angle",
-    "747 0/3 order:move.off_x",
-    "747 0/3 order:move.off_y",
-    "747 0/3 order:move.x",
-    "747 0/3 order:move.y",
-    "747 0/3 orders_x",
-    "747 0/3 orders_y",
-    "748 0/3 g.angle[0]",
-    "748 0/3 g.avg_speed[0]",
-    "748 0/3 g.cur_anim[0]",
-    "748 0/3 g.cur_time[0]",
-    "748 0/3 g.des_angle[0]",
-    "748 0/3 g.des_x[0]",
-    "748 0/3 g.des_y[0]",
-    "748 0/3 g.end_time[0]",
-    "748 0/3 g.last_speed[0]",
-    "748 0/3 g.last_time[0]",
-    "748 0/3 g.stopped[0]",
-    "748 0/3 g.x[0]",
-    "748 0/3 g.y[0]",
-    "748 0/3 heading",
-    "748 0/3 mirror",
-    "748 0/3 order:kind",
-    "748 0/3 order:length",
-    "748 0/3 orders.len",
-    "748 0/3 path:length",
-    "748 0/3 pos",
-    "749 0/3 order:flags",
-    "749 0/3 order:move.dest",
-    "750 0/3 order:move.dest_x",
-    "750 0/3 order:move.dest_y",
-    "750 0/3 path[0].to",
-    "770 0/5 dest_angle",
-    "770 0/5 order:move.angle",
-    "770 0/5 order:move.off_x",
-    "770 0/5 order:move.off_y",
-    "770 0/5 order:move.x",
-    "770 0/5 order:move.y",
-    "770 0/5 orders_x",
-    "770 0/5 orders_y",
-    "771 0/5 g.angle[0]",
-    "771 0/5 g.des_angle[0]",
-    "771 0/5 g.des_x[0]",
-    "771 0/5 g.des_y[0]",
-    "771 0/5 g.last_speed[0]",
-    "771 0/5 g.x[0]",
-    "771 0/5 g.y[0]",
-    "771 0/5 heading",
-    "771 0/5 order:move.dest_x",
-    "771 0/5 order:move.dest_y",
-    "771 0/5 path[0].to",
-    "771 0/5 pos",
-    "772 0/5 g.avg_speed[0]",
-    "781 0/5 order:kind",
-    "781 0/5 order:length",
-    "781 0/5 orders.len",
-    "781 0/5 path:length",
-    "782 0/5 g.cur_anim[0]",
-    "782 0/5 g.cur_time[0]",
-    "782 0/5 g.end_time[0]",
-    "782 0/5 g.last_time[0]",
-    "782 0/5 g.stopped[0]",
-    "783 1/5 dest_angle",
-    "783 1/5 order:move.angle",
-    "783 1/5 order:move.off_x",
-    "783 1/5 order:move.off_y",
-    "783 1/5 order:move.x",
-    "783 1/5 order:move.y",
-    "783 1/5 orders_x",
-    "783 1/5 orders_y",
-    "784 1/5 g.angle[0]",
-    "784 1/5 g.avg_speed[0]",
-    "784 1/5 g.cur_anim[0]",
-    "784 1/5 g.cur_time[0]",
-    "784 1/5 g.des_angle[0]",
-    "784 1/5 g.des_x[0]",
-    "784 1/5 g.des_y[0]",
-    "784 1/5 g.end_time[0]",
-    "784 1/5 g.last_speed[0]",
-    "784 1/5 g.last_time[0]",
-    "784 1/5 g.stopped[0]",
-    "784 1/5 g.x[0]",
-    "784 1/5 g.y[0]",
-    "784 1/5 heading",
-    "784 1/5 mirror",
-    "784 1/5 order:kind",
-    "784 1/5 order:length",
-    "784 1/5 orders.len",
-    "784 1/5 path:length",
-    "784 1/5 pos",
-    "785 0/0 g.cur_time[0]",
-    "785 0/0 g.cur_time[1]",
-    "785 0/0 g.last_time[0]",
-    "785 1/5 order:flags",
-    "785 1/5 order:move.dest",
-    "786 1/5 order:move.dest_x",
-    "786 1/5 order:move.dest_y",
-    "786 1/5 path[0].to",
-    "809 1/4 dest_angle",
-    "809 1/4 order:move.angle",
-    "809 1/4 order:move.off_x",
-    "809 1/4 order:move.off_y",
-    "809 1/4 order:move.x",
-    "809 1/4 order:move.y",
-    "809 1/4 orders_x",
-    "809 1/4 orders_y",
-    "810 1/4 collide_o",
-    "810 1/4 collide_who",
-    "812 1/4 order:move.dest_x",
-    "812 1/4 order:move.dest_y",
-    "812 1/4 path[0].to",
-    "813 1/4 angle:Facing",
-    "813 1/4 angle:Heading",
-    "813 1/4 g.angle[0]",
-    "813 1/4 g.des_angle[0]",
-    "813 1/4 heading",
-    "817 1/4 g.avg_speed[0]",
-    "817 1/4 g.des_y[0]",
-    "817 1/4 g.last_speed[0]",
-    "817 1/4 g.y[0]",
-    "817 1/4 pos",
-    "820 1/4 g.des_x[0]",
-    "820 1/4 g.x[0]",
-    "822 1/4 order:kind",
-    "822 1/4 order:length",
-    "822 1/4 orders.len",
-    "822 1/4 path:length",
-    "823 1/4 g.cur_anim[0]",
-    "823 1/4 g.cur_time[0]",
-    "823 1/4 g.end_time[0]",
-    "823 1/4 g.last_time[0]",
-    "823 1/4 g.stopped[0]",
-    "837 1/3 mirror",
-    "838 1/3 order:flags",
-    "838 1/3 order:move.dest",
-    "847 1/0 dest_angle",
-    "847 1/0 order:move.angle",
-    "847 1/0 order:move.facing",
-    "847 1/0 order:move.x",
-    "847 1/0 order:move.y",
-    "847 1/0 orders_x",
-    "847 1/0 orders_y",
-    "847 1/0 path:length",
-    "847 1/0 path[0].to",
-    "847 1/0 path[1].to",
-    "847 1/0 path[2].to",
-    "847 1/0 path[3].to",
-    "847 1/0 path[4].to",
-    "847 1/0 path[5].to",
-    "847 1/0 path[6].to",
-    "847 1/0 path[7].to",
-    "847 1/0 path[8].to",
-    "847 1/0 path[9].to",
-    "848 1/0 g.angle[0]",
-    "848 1/0 g.angle[1]",
-    "848 1/0 g.des_angle[0]",
-    "848 1/0 g.des_angle[1]",
-    "848 1/0 g.des_x[1]",
-    "848 1/0 g.des_y[0]",
-    "848 1/0 g.des_y[1]",
-    "848 1/0 g.last_speed[0]",
-    "848 1/0 g.x[1]",
-    "848 1/0 g.y[0]",
-    "848 1/0 g.y[1]",
-    "848 1/0 heading",
-    "848 1/0 mirror",
-    "848 1/0 order:move.dest_y",
-    "848 1/0 pos",
-    "849 1/0 g.des_x[0]",
-    "849 1/0 g.x[0]",
-    "850 1/0 g.avg_speed[0]",
-    "850 1/0 g.avg_speed[1]",
-    "850 1/0 g.last_speed[1]",
-    "851 1/0 g.cur_anim[1]",
-    "859 1/0 order:move.dest",
-    "883 1/0 order:move.dest_x",
-    "896 0/3 angle:Facing",
-    "896 0/3 angle:Heading",
-    "897 0/5 mirror",
 ];
 
 /// **run466 whole, both directions** (items 1223, 1235, 1248,
@@ -14043,6 +13833,17 @@ const WANT_CH41: &[&str] = &[
     "902 1/6 group",
     "902 1/7 group",
     "968 1/0 group",
+    // **The rounds' fields, compared from item 1257**: the Biplane
+    // `1/6`'s rounds keep no target here (`whom`/`ox` −1) where the
+    // original's name the Citizen it strafes (979, 1069, 1615). No draw.
+    "979 1/6 ammo[0].ox",
+    "979 1/6 ammo[0].whom",
+    "979 1/6 ammo[2].ox",
+    "979 1/6 ammo[2].whom",
+    "1069 1/6 ammo[3].ox",
+    "1069 1/6 ammo[3].whom",
+    "1615 1/6 ammo[1].ox",
+    "1615 1/6 ammo[1].whom",
 ];
 
 /// **run430 whole, both directions** (item 1167, `docs/GOLDEN.md` §49):
@@ -14759,6 +14560,90 @@ const WANT_CH38: &[&str] = &[
     "1036 1/2007 build:damage",
     "1036 1/2007 build:damage_frac",
     "1277 1/9 order:group.id",
+    // **The rounds' fields, compared from item 1257**, no draw from any:
+    // the Bombers' `accuracy` (0 here, `launch.rs`'s SEAM); the flak
+    // Battery `1/9`'s rounds leaving from its own square (754: `sx, sy,
+    // sz` ours `(21384, 17256, 30)` against `(21497, 17247, 214)`), a
+    // pivot piece with no `pivot::RELEASES` row; and the aim height at a
+    // flying Bomber on `1/9`'s and the Barracks `1/2007`'s rounds (`ez`
+    // ours 32 against 1660 on 754, 4 against 1618 on 798) with the arc
+    // from it.
+    "754 1/9 ammo[0].angle",
+    "754 1/9 ammo[0].ez",
+    "754 1/9 ammo[0].sx",
+    "754 1/9 ammo[0].sy",
+    "754 1/9 ammo[0].sz",
+    "754 1/9 ammo[0].v1z",
+    "756 1/9 ammo[1].angle",
+    "756 1/9 ammo[1].ex",
+    "756 1/9 ammo[1].ey",
+    "756 1/9 ammo[1].ez",
+    "756 1/9 ammo[1].sx",
+    "756 1/9 ammo[1].sy",
+    "756 1/9 ammo[1].sz",
+    "756 1/9 ammo[1].total_time",
+    "756 1/9 ammo[1].v1z",
+    "783 1/9 ammo[0].ex",
+    "783 1/9 ammo[0].ey",
+    "783 1/9 ammo[0].total_time",
+    "786 0/7 ammo[0].accuracy",
+    "787 0/7 ammo[1].accuracy",
+    "798 1/2007 ammo[6].ez",
+    "798 1/2007 ammo[6].v1z",
+    "806 0/7 ammo[6].accuracy",
+    "808 1/2007 ammo[2].ez",
+    "808 1/2007 ammo[2].v1z",
+    "828 1/2007 ammo[0].ez",
+    "828 1/2007 ammo[0].v1z",
+    "832 0/6 ammo[0].accuracy",
+    "833 0/6 ammo[1].accuracy",
+    "836 0/6 ammo[2].accuracy",
+    "838 1/2007 ammo[4].ez",
+    "838 1/2007 ammo[4].v1z",
+    "838 1/9 ammo[3].angle",
+    "838 1/9 ammo[3].ez",
+    "838 1/9 ammo[3].sx",
+    "838 1/9 ammo[3].sy",
+    "838 1/9 ammo[3].sz",
+    "838 1/9 ammo[3].v1z",
+    "840 1/9 ammo[6].angle",
+    "840 1/9 ammo[6].ez",
+    "840 1/9 ammo[6].sx",
+    "840 1/9 ammo[6].sy",
+    "840 1/9 ammo[6].sz",
+    "840 1/9 ammo[6].v1z",
+    "844 0/6 ammo[3].accuracy",
+    "847 0/6 ammo[4].accuracy",
+    "858 1/9 ammo[5].angle",
+    "858 1/9 ammo[5].ez",
+    "858 1/9 ammo[5].sx",
+    "858 1/9 ammo[5].sy",
+    "858 1/9 ammo[5].sz",
+    "858 1/9 ammo[5].v1z",
+    "888 1/2007 ammo[1].ez",
+    "888 1/2007 ammo[1].v1z",
+    "919 0/7 ammo[3].accuracy",
+    "922 0/7 ammo[4].accuracy",
+    "924 0/7 ammo[2].accuracy",
+    "927 0/7 ammo[5].accuracy",
+    "930 0/7 ammo[7].accuracy",
+    "964 1/9 ammo[4].angle",
+    "964 1/9 ammo[4].ez",
+    "964 1/9 ammo[4].sx",
+    "964 1/9 ammo[4].sy",
+    "964 1/9 ammo[4].sz",
+    "964 1/9 ammo[4].v1z",
+    "968 1/2007 ammo[5].ez",
+    "968 1/2007 ammo[5].v1z",
+    "969 0/6 ammo[6].accuracy",
+    "975 0/6 ammo[5].accuracy",
+    "980 0/6 ammo[7].accuracy",
+    "989 1/9 ammo[2].angle",
+    "989 1/9 ammo[2].ez",
+    "989 1/9 ammo[2].sx",
+    "989 1/9 ammo[2].sy",
+    "989 1/9 ammo[2].sz",
+    "989 1/9 ammo[2].v1z",
 ];
 
 /// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
@@ -14825,6 +14710,36 @@ const WANT_CH36: &[&str] = &[
     "650 0/1 g.last_time[0]",
     "655 0/2 g.cur_time[0]",
     "655 0/2 g.last_time[0]",
+    // **The rounds' fields, compared from item 1257**: chapter
+    // thirty-five's two families on the same start — the Bombers'
+    // `accuracy` (0 here) and the targets cleared on 1080.
+    "935 0/8 ammo[2].accuracy",
+    "936 0/8 ammo[3].accuracy",
+    "939 0/8 ammo[0].accuracy",
+    "942 0/8 ammo[1].accuracy",
+    "980 0/7 ammo[0].accuracy",
+    "981 0/7 ammo[1].accuracy",
+    "984 0/7 ammo[2].accuracy",
+    "987 0/7 ammo[3].accuracy",
+    "995 0/7 ammo[5].accuracy",
+    "1000 0/7 ammo[7].accuracy",
+    "1003 0/7 ammo[6].accuracy",
+    "1061 0/8 ammo[5].accuracy",
+    "1064 0/8 ammo[6].accuracy",
+    "1069 0/8 ammo[4].accuracy",
+    "1072 0/8 ammo[7].accuracy",
+    "1080 0/8 ammo[0].ox",
+    "1080 0/8 ammo[0].whom",
+    "1080 0/8 ammo[1].ox",
+    "1080 0/8 ammo[1].whom",
+    "1080 0/8 ammo[2].ox",
+    "1080 0/8 ammo[2].whom",
+    "1080 0/8 ammo[3].ox",
+    "1080 0/8 ammo[3].whom",
+    "1080 0/8 ammo[4].ox",
+    "1080 0/8 ammo[4].whom",
+    "1080 0/8 ammo[7].ox",
+    "1080 0/8 ammo[7].whom",
 ];
 
 /// Chapter thirty-six's pool rows (item 1078).
@@ -15424,6 +15339,39 @@ const WANT_CH35: &[&str] = &[
     "2719 0/12 heading",
     "2720 0/12 angle:Facing",
     "2720 0/12 g.angle[0]",
+    // **The rounds' fields, compared from item 1257** (the widening
+    // compared only which rounds were held until then). Two families, no
+    // draw from either: the Bombers' `accuracy`, 0 here against 276..296
+    // (`launch.rs`'s SEAM, the bomb arm writes none and the recycled slot
+    // keeps its last round's), and on 1080 the rounds' `whom`/`ox` cleared
+    // on the Barracks' death (chapter three's standing family).
+    "935 0/8 ammo[2].accuracy",
+    "936 0/8 ammo[3].accuracy",
+    "939 0/8 ammo[0].accuracy",
+    "942 0/8 ammo[1].accuracy",
+    "980 0/7 ammo[0].accuracy",
+    "981 0/7 ammo[1].accuracy",
+    "984 0/7 ammo[2].accuracy",
+    "987 0/7 ammo[3].accuracy",
+    "995 0/7 ammo[5].accuracy",
+    "1000 0/7 ammo[7].accuracy",
+    "1003 0/7 ammo[6].accuracy",
+    "1061 0/8 ammo[5].accuracy",
+    "1064 0/8 ammo[6].accuracy",
+    "1069 0/8 ammo[4].accuracy",
+    "1072 0/8 ammo[7].accuracy",
+    "1080 0/8 ammo[0].ox",
+    "1080 0/8 ammo[0].whom",
+    "1080 0/8 ammo[1].ox",
+    "1080 0/8 ammo[1].whom",
+    "1080 0/8 ammo[2].ox",
+    "1080 0/8 ammo[2].whom",
+    "1080 0/8 ammo[3].ox",
+    "1080 0/8 ammo[3].whom",
+    "1080 0/8 ammo[4].ox",
+    "1080 0/8 ammo[4].whom",
+    "1080 0/8 ammo[7].ox",
+    "1080 0/8 ammo[7].whom",
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and

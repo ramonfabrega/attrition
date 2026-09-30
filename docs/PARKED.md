@@ -146,6 +146,41 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1257, 2026-09-30 — the rounds' value rows
+
+Value rows the widened `AMMO` comparison found (1257), none with a draw.
+
+(1269) **The Bombers' rounds print `accuracy` 0 against 276–296**
+(chapters thirty-five, thirty-six, thirty-eight): `launch.rs`'s SEAM on
+the bomb arm.
+
+(1270) **The flak Battery `1/9`'s rounds** (chapter thirty-eight): they
+leave from its own square — a pivot piece with no `RELEASES` row — and
+aim low at a flying Bomber (`ez` 32 against 1660 on 754, 4 against 1618
+on 798), with its arc.
+
+(1271) **The Biplane `1/6`'s rounds keep no target** (chapter
+forty-one): `whom/ox` −1 against the Citizen.
+
+(1272) **A round's target is cleared on its building's death** (chapters
+thirty-five and thirty-six, 1080; chapter three's family); and two other
+`AMMO` comparison sites in `golden.rs` write a building target as
+`(−2, −2)`, so a round on a building parts there on `whom/ox` whatever
+it holds — `ammo_value_rows` names it properly.
+
+## Parked by item 1243, 2026-09-30 — the queue's group tally
+
+(1265) **`untrack_queued`'s group-tally guard** (1243's mutation C):
+held by its unit test and no walk. The dump's `barracks_queued` ..
+`air_queued` are parsed and stand on the compared pin as uncompared,
+while this crate carries them as `queued_by_group`; comparing the five
+keys is the cheaper step, a candidate widening. `combat_queued`
+(`+0xa1c`) is not carried.
+
+(1266) **A technology entry's finish order**: ours unqueues first; the
+original's is `finished` then `unqueue` for every entry. Named by 1243,
+not built past the research arm.
+
 ## Parked by item 1251, 2026-09-30 — the library line's other steps
 
 (1261) **`get_cost`'s library-line tail, its other eight steps** (1251):
@@ -2451,6 +2486,25 @@ block 1** (1251's Loop line): a leader's goods through a dark gap cost
 3½ minutes and 55 MB at `LEADERS=2`, where every widening so far booked
 `LEADERS=9` windows round the word. The brief checklist could name it as
 the first instrument for a standing goods row. One reach.
+
+(1267) **A booking's type number does not say its keying** (1243's Loop
+line): the dump's `num_queued` and the make list's `t` are
+`TypeIndex`-keyed, `num_units` and the harness's keys record-keyed, and
+1228's journal named `num_queued[84]` "Elite Javelineers" from the make
+list's 84 — it is Pikemen. A brief row: a type number names its keying
+and the name `unitrules.xml` gives it. One reach.
+
+(1273) **The coverage pin counts a record read when its scanner parses
+it** (1257's Loop line): `widen_civilians` read `AMMO` for presence
+only, so ten widenings compared no field of any round, and one item's
+word stood a frame short on a `total_time` nobody diffed. A pin that
+counts compared fields per record and per widening would have named it.
+One reach.
+
+(1274) **A call-site citation is not checked against the trace's return
+address** (1257's Loop line): COMBAT §55.2 cited the wrong one of
+`execute_game_events`' two `get_position` calls while the trace's own
+caller offset (`+0x40d`) was on disk. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

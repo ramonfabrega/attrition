@@ -55,15 +55,36 @@ pub struct Node {
 /// chapter three's Nubians (`GUY get_restrictions … 145`). A piece with no
 /// row here bears from the unit's own point.
 ///
+/// **Piece 296, the Bomb Vessel** (item 1257): run486's packet, taken on
+/// chapter forty-four's game, reads its `(4, 0, 0)` entry as `(0.0,
+/// −29.45, 18.78)` (`0xc1eb9999`). The pivot sits behind the hull's
+/// centre, where the Chariot's sits ahead of it.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
-/// when its events are built; no capture on this disk has built one, and
-/// the two packets taken before run147 hold the Chariot's pieces loaded
-/// with no `AttachPos` at all.
-const NODES: &[(i32, i32, Node)] = &[(145, 4, Node { px: 0, py: 2464 })];
+/// when its events are built; a packet from a game that fields the type
+/// reads it with `tools/recomp/get_position.py … entries <piece>`.
+const NODES: &[(i32, i32, Node)] = &[
+    (145, 4, Node { px: 0, py: 2464 }),
+    (296, 4, Node { px: 0, py: -2945 }),
+];
 
-/// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as,
-/// times the piece's `+0x88` of 1.0.
+/// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
 const SCALE: (i64, i64) = (48, 10);
+
+/// **The piece's own `RData +0x88`**, which `get_position` multiplies
+/// `guy_scale` by (`90b7ad`; `local_28` in the decompile), as a rational:
+/// 1.0 for the Chariot's piece 145 and **0.8** for the Bomb Vessel's 296
+/// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
+const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5))];
+
+/// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
+fn scale(piece: i32) -> (i64, i64) {
+    let (n, d) = RDATA_SCALE
+        .iter()
+        .find(|(p, _)| *p == piece)
+        .map_or((1, 1), |&(_, r)| r);
+    (SCALE.0 * n, SCALE.1 * d)
+}
 
 /// `sin(k°)` for `k = 0..=90`, rounded at 2³⁰. The nearest any entry
 /// comes to a rounding tie is 0.0076 of a unit, so the table is the
@@ -146,10 +167,11 @@ pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
     };
     let (px, py) = (n.px, n.py);
     let (c, s) = (cos_deg(d), sin_deg(d));
-    let den = SCALE.1 * 100 * ONE;
+    let (num, den) = scale(piece);
+    let den = den * 100 * ONE;
     (
-        trunc_div(SCALE.0 * (px * c + py * s), den),
-        trunc_div(SCALE.0 * (px * s - py * c), den),
+        trunc_div(num * (px * c + py * s), den),
+        trunc_div(num * (px * s - py * c), den),
     )
 }
 
@@ -164,6 +186,8 @@ pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
 /// unit (the float's value, rounded; the nearest is 1.2·10⁻⁷ away).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Release {
+    /// The piece the row is for: its [`RDATA_SCALE`] scales the result.
+    pub piece: i32,
     /// The event's `node` (`GraphicEvent +0x23`).
     pub node: i32,
     /// The pivot node's entry at the event's anim and time.
@@ -190,15 +214,23 @@ pub struct Release {
 /// @008e2520:833–841` fills exactly these when the piece's events are
 /// built. The bit patterns are in `docs/COMBAT.md` §55.2.
 ///
+/// **Piece 296, the Bomb Vessel** (item 1257): run486's packet holds its
+/// seven entries — the `(4, 0, 0)` [`NODES`] reads, and for each of its
+/// three `<RELEASEEVENT>`s (node 0, frame 3 of `CHAR_ATTACK1`, `2` and `3`)
+/// the pivot node's and the release node's. `CHAR_ATTACK1` and `3` share
+/// the pivot's `−29.576756`; `2`'s is `−29.555523`.
+///
 /// SEAM: every other pivot piece that releases (the horse archers, the
 /// camel archers, the Mameluke's line, the machine-gun ships). A packet
-/// from a game that fields the type reads each row in a minute.
+/// from a game that fields the type reads each row in a minute
+/// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
     (
         145,
         crate::anim::ATTACKWALK,
         18,
         Release {
+            piece: 145,
             node: 0,
             pivot: [369_230, 24_640_001, 12_299_541],
             at: [2_249_614, -15_437_737, 30_873_745],
@@ -210,6 +242,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
         crate::anim::ATTACK1,
         18,
         Release {
+            piece: 145,
             node: 0,
             pivot: [0, 24_640_001, 11_550_000],
             at: [-101_367, -15_533_024, 31_973_480],
@@ -221,6 +254,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
         crate::anim::ATTACK2,
         17,
         Release {
+            piece: 145,
             node: 0,
             pivot: [0, 25_720_001, 11_550_000],
             at: [1_031_301, -15_774_166, 29_316_223],
@@ -232,10 +266,47 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
         crate::anim::ATTACK3,
         18,
         Release {
+            piece: 145,
             node: 0,
             pivot: [0, 24_640_001, 11_550_000],
             at: [49_376, -15_435_911, 31_925_163],
             float_lands: &[(141, 136, 148, 100), (321, 136, -148, -100)],
+        },
+    ),
+    (
+        296,
+        crate::anim::ATTACK1,
+        3,
+        Release {
+            piece: 296,
+            node: 0,
+            pivot: [0, -29_576_756, 18_779_999],
+            at: [0, -11_213_131, 16_269_558],
+            float_lands: &[],
+        },
+    ),
+    (
+        296,
+        crate::anim::ATTACK2,
+        3,
+        Release {
+            piece: 296,
+            node: 0,
+            pivot: [0, -29_555_523, 18_779_999],
+            at: [0, -11_213_131, 16_269_558],
+            float_lands: &[],
+        },
+    ),
+    (
+        296,
+        crate::anim::ATTACK3,
+        3,
+        Release {
+            piece: 296,
+            node: 0,
+            pivot: [0, -29_576_756, 18_779_999],
+            at: [0, -11_213_131, 16_269_558],
+            float_lands: &[],
         },
     ),
 ];
@@ -264,8 +335,15 @@ pub const fn fast_degrees(a: i32) -> i32 {
 /// vector the event adds to the figure's `x, y, z` (`cvttss2si`,
 /// `008e4acd`–`008e4ae7`).
 ///
-/// - `param_5` is `(float)angle_to_degrees(angle − 0x8000_0000)`, the
-///   [`rotation`] `set_all_pivots` takes; `param_6` is the package's
+/// - `param_5` is `fast_angle_to_degrees(angle − 0x8000_0000)`
+///   (`8e4c7d`–`8e4ca1`), **the top-byte table, not the [`rotation`]
+///   `set_all_pivots` takes** (item 1257): `008e4a99`'s `angle_to_degrees`
+///   is the kind-5 event's, a unit put out of a carrier, and the release's
+///   `add_ammo` returns to `8e4ced` (`execute_game_events+0x40d`, the
+///   trace's own caller). The two differ by up to two degrees: the Bomb
+///   Vessel `1/6` of run484 faces `2077229056`, 354 by `angle_to_degrees`
+///   and 353 by the table, and only 353 puts its rounds at the dump's
+///   `(13, 155)`. `param_6` is the package's
 ///   `pivot_angles`, `fast_angle_to_degrees` of each `turret_angles[k]`
 ///   (`Guy::execute_events@005d99c0`, `005d9a2e`–`005d9a6d`).
 /// - With `node & 3` below the piece's restriction count and `param_6`
@@ -280,12 +358,19 @@ pub const fn fast_degrees(a: i32) -> i32 {
 /// facing's degree and `d₂ = d₁ + fast_degrees(turret)`, each component
 /// truncated once. `z` is `s·(P_z + E_z)`: the rotation is about z.
 pub fn release_offset(r: &Release, facing: Angle, turret: i32) -> (i32, i32, i32) {
-    release_offset_at(r, rotation(facing), fast_degrees(turret))
+    release_offset_at(r, release_rotation(facing), fast_degrees(turret))
+}
+
+/// The degree the release rotates by: `fast_angle_to_degrees` of the
+/// figure's angle less a half turn (`8e4c7d`–`8e4c98`), `0..=360`.
+pub const fn release_rotation(facing: Angle) -> i32 {
+    fast_degrees(facing.0.wrapping_sub(i32::MIN))
 }
 
 /// [`release_offset`] at the facing's degree `d1` and the turret's `t`.
 pub fn release_offset_at(r: &Release, d1: i32, t: i32) -> (i32, i32, i32) {
-    let z = SCALE.0 * (r.pivot[2] + r.at[2]) / (SCALE.1 * 1_000_000);
+    let (sn, sd) = scale(r.piece);
+    let z = sn * (r.pivot[2] + r.at[2]) / (sd * 1_000_000);
     if let Some(&(_, _, x, y)) = r.float_lands.iter().find(|c| (c.0, c.1) == (d1, t)) {
         return (x, y, z as i32);
     }
@@ -294,7 +379,7 @@ pub fn release_offset_at(r: &Release, d1: i32, t: i32) -> (i32, i32, i32) {
     let (c2, s2) = (i128::from(cos_deg(d2)), i128::from(sin_deg(d2)));
     let [px, py, _] = r.pivot.map(i128::from);
     let [ex, ey, _] = r.at.map(i128::from);
-    let (num, den) = (i128::from(SCALE.0), i128::from(SCALE.1) * 1_000_000);
+    let (num, den) = (i128::from(sn), i128::from(sd) * 1_000_000);
     let one = i128::from(ONE);
     let x = num * (px * c1 + py * s1 + ex * c2 + ey * s2) / (den * one);
     let y = num * (px * s1 - py * c1 + ex * s2 - ey * c2) / (den * one);
@@ -379,7 +464,7 @@ mod tests {
         for (facing, slot, frame, t, want) in rounds {
             let r = release(145, slot, frame).expect("the Chariot's row");
             assert_eq!(
-                release_offset_at(&r, rotation(Angle(facing)), t),
+                release_offset_at(&r, release_rotation(Angle(facing)), t),
                 want,
                 "{facing} {slot} {t}"
             );
@@ -389,6 +474,35 @@ mod tests {
         assert_eq!(fast_degrees(0x0100_0000), 1);
         assert_eq!(fast_degrees(0x0200_0000), 3);
         assert_eq!(fast_degrees(-410_670_421), 325);
+    }
+
+    /// **The Bomb Vessel's rounds leave through its turret at the table's
+    /// facing** (item 1257, run484, `AMMO=5` and `GUYS=4`): `1/6` stands at
+    /// `(21288, 14712)` facing `2077229056` with `turret_angles[0]`
+    /// `96862208` (7°), and every round it fires — `CHAR_ATTACK1` on 632
+    /// and 852, `CHAR_ATTACK2` on 687 — prints `sx, sy, sz` `(21301, 14867,
+    /// 134)`. By `angle_to_degrees` the facing is 354 and the offset `(11,
+    /// 156)`, which is what the original's own `get_position` answers on
+    /// run486's packet at 354; by `fast_angle_to_degrees` it is 353, and
+    /// the offset is the dump's. Made to fail with [`release_rotation`]
+    /// answering [`rotation`]: `(11, 156, 134)`.
+    #[test]
+    fn a_bomb_vessel_round_leaves_through_its_turret_at_the_table_s_facing() {
+        use crate::anim::{ATTACK1, ATTACK2};
+        let facing = Angle(2_077_229_056);
+        assert_eq!(rotation(facing), 354);
+        assert_eq!(release_rotation(facing), 353);
+        for slot in [ATTACK1, ATTACK2] {
+            let r = release(296, slot, 3).expect("the Bomb Vessel's row");
+            assert_eq!(
+                release_offset(&r, facing, 96_862_208),
+                (13, 155, 134),
+                "{slot}"
+            );
+        }
+        // The pivot node the turret bears from, at 0.8 of `guy_scale`:
+        // `(0, −29.45)` turned by 354° is `(11, 111)`.
+        assert_eq!(offset(296, 4, facing), (11, 112));
     }
 
     /// **The original's pivot branch on every reachable cell.**
@@ -424,6 +538,45 @@ mod tests {
         }
         assert!(rows >= 369_664, "{path}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+        eprintln!("{rows} cells agree");
+    }
+
+    /// **The original's pivot branch on every reachable cell, for the Bomb
+    /// Vessel** (item 1257): `tools/recomp/get_position.py … pivot 296 0
+    /// <anim> 3 1` on run486's packet, for its three rows, `d₁ = 0..=360`
+    /// and each of the 256 turret steps: 277,248 cells. The table is
+    /// `$RON_RELEASE_TABLE_296`, `slot d₁ t 0 x y z`, outside git
+    /// (`~/ron-data/lab-experiments/2026-09-30-item-1257/release-oracle-296.txt`).
+    /// Every cell agrees, so the rows carry no `float_lands`; made to fail
+    /// by scaling the piece at 1.0.
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_the_bomb_vessel() {
+        let Ok(path) = std::env::var("RON_RELEASE_TABLE_296") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_296 (item 1257's oracle, run486)");
+            return;
+        };
+        let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_296");
+        let (mut rows, mut off) = (0, Vec::new());
+        for line in table.lines() {
+            let f: Vec<i32> = line
+                .split_whitespace()
+                .take(7)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let slot = i8::try_from(f[0]).expect("a slot");
+            let r = release(296, slot, 3).expect("the row");
+            if release_offset_at(&r, f[1], f[2]) != (f[4], f[5], f[6]) {
+                off.push(line.to_string());
+            }
+            rows += 1;
+        }
+        assert!(rows >= 277_248, "{path}: {rows} rows");
+        assert!(
+            off.is_empty(),
+            "{} cells disagree: {:?}",
+            off.len(),
+            &off[..off.len().min(20)]
+        );
         eprintln!("{rows} cells agree");
     }
 

@@ -9438,7 +9438,8 @@ which this crate keeps on the unit) and one row of the ship's own:
 **`1/6`'s turret on block 631**, its first strike's aim, ours 94568448
 against 96862208.
 
-**The word is 670**: ours 9 draws against 10, parting at index 3, where
+~~**The word is 670**~~ (item 1254; **closed at 1450 by item 1257**,
+below): ours 9 draws against 10, parting at index 3, where
 the original spends `Object::take_damage+0xe1` and ours
 `Farms::inc_time+0x1ae`. The original acted: its first round lands on
 `0/2007`. **The value diff on block 671**: `0/2007` `damage` ours 0
@@ -9448,6 +9449,53 @@ against 122, and `1/6`'s round, which agrees on block 670 on both sides
 here; `treaties[·]` 3 on the first blow (chapter eight's family) goes
 with it. Every row from 686 is the draw stream's cascade. The widening is
 run484 from 605 to the word's block and 250 past it (287 rows).
+~~"The round agrees on block 670"~~: the widening compared only which
+rounds were held; its fields parted from the round's first block (item
+1257, below).
+
+**Item 1257: the ship releases through its turret, at the table's
+facing.** The widening now compares every field of a round
+(`ammo_value_rows`), and `1/6`'s first round parts on **block 633**, its
+first: `sx, sy, sz` ours `(21288, 14712, 0)`, the ship's own square,
+against `(21301, 14867, 134)`; `total_time` 40 against 39; `angle`
+−2123169792 against −2120286208; `ex` 21154 against 21155. The flight is
+`trunc(dist / 100)` from the launch (3911.7 against 4066.2), so the round
+landed a frame late. Its birth is `GraphicEvents::execute_game_events+0x40d
+→ Objects::add_ammo → Ammo::init` on trace frame 632, so the launch is
+`get_position`'s pivot branch (`docs/COMBAT.md` §55.2), and piece 296 had
+no row in `sim::pivot`.
+
+- **The rows, from the original's own function.** run486 is a
+  `RON_STATE_FRAME=670` packet on this staging (`docs/RUNS.md`).
+  `tools/recomp/get_position.py … entries 296` reads seven `AttachPos`
+  entries: node 4 at `(0, 0)` `(0, −29.45, 18.78)`, and for `CHAR_ATTACK1`,
+  `2` and `3` at frame 3 the pivot node (`−29.576756`, `−29.555523` on
+  `2`) and the release node 0 `(0, −11.213131, 16.269558)`. The piece's
+  `RData +0x88` is **0.8**, where every piece measured before was 1.0.
+- **The degree.** At `angle_to_degrees`' 354 and the turret's 7°, the
+  original's own `get_position` answers `(11, 156)`, not the dump's
+  `(13, 155)`. The release's call is `8e4c7d`–`8e4cbd`, whose `param_5` is
+  `fast_angle_to_degrees(angle − 0x8000_0000)`, 353 here; §55.2 had cited
+  the kind-5 event's call (`008e4a8a`, `angle_to_degrees`). At 353 and 7°
+  the answer is the dump's. Every `1/6` round of run484 (632, 687, 852;
+  `CHAR_ATTACK1` and `2`) leaves from `(13, 155, 134)`.
+- **The build.** `sim::pivot`: `release_rotation` (the table's degree),
+  a per-piece `RDATA_SCALE`, piece 296's `NODES` row and three
+  `RELEASES` rows. The integer form agrees with the original on all
+  277,248 release cells (361 facings × 256 turret steps × 3 rows) and on
+  the node's 361 degrees, so no cell is pinned as a float landing.
+- **What else moved.** The turret on block 631 was the same piece's
+  missing node: with it, `set_all_pivots` bears from `(11, 112)` off the
+  ship and writes the dump's 96862208. Chapter three's turned chariot
+  (`docs/COMBAT.md` §55.5), `0/8`'s round on 753, now leaves from the
+  dump's `941, 8155`: its facing is 240 by the table and 242 by
+  `angle_to_degrees`.
+
+**Chapter forty-four closes at 1450**, the capture's end: word, sequence
+and values. The widening is run484 whole (`[605, 1451)`, block 1449 the
+one the dump does not carry) and parts in 32 rows, every one a standing
+family, plus chapter eight's `treaties[·]` on 671, the first blow, which
+now lands on both sides. All 381 rounds agree field by field.
 
 **Mutations**, each on the committed build, restored from git and touched:
 
@@ -9458,9 +9506,20 @@ run484 from 605 to the word's block and 250 past it (287 rows).
 | D: no defensive arm | the unit test alone: **no walk** (1231) |
 | E: `counts_in_muster` without the captain | **nothing**: no walk and no unit test (1244) |
 
+Item 1257's, each on `8eb04e40`, restored from git and touched:
+
+| mutation | held by |
+|---|---|
+| M1: `release_rotation` is `angle_to_degrees`' | exit 101: the widening (633: `sx` 21299 against 21301), chapter three's widening (753), `a_bomb_vessel_round_leaves_…`. **The walk holds 1450**: the flight is 39 frames from either point |
+| M2: piece 296's `RELEASES` keyed away | exit 101: the walk (**670**, 1254's word), the widening |
+| M3: piece 296's `NODES` keyed away | exit 101: the widening (631's turret); the walk holds, since both turrets share the top byte the release reads |
+| M4: the 0.8 scale dropped | exit 101: the walk (**669**), the widening, both `pivot` unit tests |
+
 **What is not established.**
-- The round's landing frame: the next word's.
-- The turret's aim on 631, which parts before the word and draws nothing.
+- ~~The round's landing frame: the next word's.~~ Item 1257: block 671
+  on both sides.
+- ~~The turret's aim on 631, which parts before the word and draws
+  nothing.~~ Item 1257: the pivot node's offset.
 - The sea conjunct (type `+0x218 == 1`): no staging has a computer's
   land `SIEGE` unit searching across the water.
 - The defensive arm and the captain half, for the reasons above.
