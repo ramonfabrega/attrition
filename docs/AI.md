@@ -12574,7 +12574,8 @@ Tower by exact identity. `Wall::update_hits@0063f0d0` reads the Tower,
 the Lookout and the Market as lines (`is(0x1b7, 0)`, `is(0x209, 0)`,
 `is(0x1b4, 0)`); the Tower's two tests (the Senate bonus and the Romans')
 and the Lookout's now use `build::is_tower` and `build::is`
-(`docs/CITIES.md` §3.4). **Held by no walk**: `myhits` and
+(`crates/sim/src/build.rs`; `docs/CITIES.md` §3.4's formula names them
+without saying lines, and its section is at its size bound). **Held by no walk**: `myhits` and
 `construct_hits` are compared by no site; the unit test
 `the_senate_bonus_and_the_temple_bonus` holds it (a Keep in a Large City,
 1000).
@@ -12641,8 +12642,8 @@ parting past the standing rows, still standing.
 reached from `kill_current_order`'s `0xf` arm) recomputes both its cities
 too, and ours' `end_trade_route` does not — built, it moved nothing on
 run495 or the word: no route ends on these frames. Not built here; parked.
-ours' `end_trade_route` cites `@005ed1c0`, which is no function in the
-export's index.
+Ours' `end_trade_route` doc comment gave the address 005ed1c0, which
+starts no function in the export's index; it now gives 005e3bd0.
 
 **Coverage.** Diff-backed: the establishment recompute, by
 `run470_is_great_sahara_at_toughest_and_its_word_holds` (removed: the word

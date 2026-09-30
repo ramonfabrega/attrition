@@ -1002,7 +1002,7 @@ impl Sim {
         // cannot fire while the only two orders are this pair.
     }
 
-    /// `Unit::end_trade_route@005ed1c0`: the route is given up — the pair
+    /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
     pub(crate) fn end_trade_route(&mut self, u: usize) {
         let Some(v) = self.units[u].caravan else {
