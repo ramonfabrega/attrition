@@ -1204,17 +1204,44 @@ impl Sim {
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
             .collect();
+        // **The loop reads the boat's `inside_down` again after every
+        // passenger** (`eject_contents@0064cd20`'s `while` re-reads the
+        // host's `+0x28`), and a captain's `come_out` takes its squad
+        // with it: so a squad is one pass, on the chain's head, and its
+        // members are never the loop's own (item 1291). run496's block
+        // 1902 has one `GroupMoveOrder` on each of `0/7`..`0/9`.
         for r in riders {
+            if self.units[r].inside_unit != Some(boat) {
+                continue;
+            }
             // 1. the `param_4` arm, `update_action` its last call
             //    (`eject_contents@0064cd20`:115) — on a passenger still at
             //    its boarding point with an empty list, so `orders_x/y`
             //    are that point and step 4 does not move them: run249's
-            //    `0/6` prints (8428, 34200) ashore on 1160.
+            //    `0/6` prints (8428, 34200) ashore on 1160. The head alone:
+            //    a member's list died aboard (§17).
             self.units[r].path.clear();
             self.close_orders(r);
             self.clear_partial_path(r);
             self.update_action(r);
-            // 2. `come_out`.
+            // 2. `come_out`. **A member climbs to its captain first**
+            // (`come_out(this, 0)`'s not-a-captain arm, `00617c10:173`,
+            // `o_up` at `+0x8e`), so the one that comes out on the boat's
+            // ring is the captain whoever heads the chain.
+            let mut captain = r;
+            for _ in 0..self.units.len() {
+                let Some(a) = self.units[captain].o_up else {
+                    break;
+                };
+                captain = a;
+            }
+            if self.units[captain].inside_unit != Some(boat) {
+                // SEAM: a member whose captain already stands ashore — a
+                // member `come_out` refused on an earlier pass. The
+                // original re-runs the captain's `get_inside < 0` arm and
+                // moves the captain; no staging has refused a member.
+                continue;
+            }
             // **The ring is the boat's and the arm is the passenger's.**
             // `come_out`'s host branch reads `+0x240` off the *host's* type
             // for the inner radius: at `61845c`..`61846a` the host object
@@ -1227,81 +1254,47 @@ impl Sim {
             // `come_out` swaps its host for its captain (`docs/CITIES.md`
             // §6.5.1). The refusal is the same one — the passenger stays
             // inside, and the boat is left carrying it.
-            let Some(at) = self.come_out_unit_host_spot(r, boat) else {
+            let Some(at) = self.come_out_unit_host_spot(captain, boat) else {
                 continue;
             };
-            self.units[r].inside_unit = None;
-            self.units[r].pos = at;
-            // `Movement::at` alone would zero the speed and the turn rate,
-            // and a unit put ashore with no speed stands there for ever;
-            // `come_out`'s building arm carries the same two across.
-            // `dest_angle` (`+0x58`) is step 1's, below.
-            //
-            // **And the body keeps its speeds** (item 1164, `docs/TRANSPORT.md`
-            // §6.4): `Guy::last_speed`/`avg_speed` (`+0x80`/`+0x84`) have
-            // three writers, `Guy::move`, `Guy::clear` and `Guy::init_real`,
-            // and neither `Unit::set_new_location@005f8d20` nor
-            // `Guy::set_new_location@005d86f0` is one. A passenger comes
-            // ashore at the average it boarded with, and [`turn_speed`]
-            // divides its first turn by it: run420's `1/33` lands on 6734
-            // at 12 and takes nine frames to face its path, not seven.
-            //
-            // [`turn_speed`]: crate::movement::turn_speed
-            let body = self.units[r].movement.body;
-            self.units[r].movement = crate::Movement {
-                speed: self.units[r].movement.speed,
-                turning: self.units[r].movement.turning,
-                des_angle: self.units[r].movement.des_angle,
-                body: crate::movement::Body { pos: at, ..body },
-                ..crate::Movement::at(at)
-            };
-            self.units[r].on_map = true;
-            self.coll_add(r);
-            self.chain_add(r);
-            // **`come_out`'s own tail, for a computer player's unit** (item
-            // 1164, `docs/TRANSPORT.md` §6.4): past `set_new_location` at
-            // `6186c1`, `6187c8` tests `leaders.list[who] & 4`
-            // (`is_human`) and skips on it; a plane, and the four
-            // `0x32..=0x35` citizen types (`6187ff`..`618811`), skip too.
-            // Everyone else takes `path.length = 0`, `close_orders(0)`,
-            // `clear_partial_path` and `update_action` at `618813`..`618836`
-            // — step 1's four again, **from the spot**. Path and list are
-            // already empty, so what it writes is `orders_x/y`: run420's AI
-            // merchant `1/33` prints its landing point (38952, 24840) on
-            // 6735, where the human scout of run249 keeps its boarding
-            // point. `update_action`'s `+0x58 = +0x50` is the boarding
-            // heading still — the dump's `dest_angle` 292814848 against
-            // `angle` 165478400 on the same block says `set_angle` comes
-            // after — which is step 1's value, kept below.
-            if !self.nation[usize::from(self.units[r].owner)].human
-                && !(0x32..=0x35).contains(&self.units[r].type_index)
-            {
-                self.units[r].orders_pos = at;
+            let captain_angle = self.units[captain].movement.heading;
+            self.land_passenger(captain, at);
+            // **Then the squad, each member on its captain's ring**
+            // (`come_out@00617c10:535`: `o_down ≥ 0` and its `flags & 1`
+            // give `come_out(o_down, 1)`, right after `set_new_location`
+            // and before any of the captain's tail). A member's host is
+            // `get_captain()` (`617f2f`), so the bearing and the ring are
+            // the captain's, and the captain's `angle` is still the one it
+            // boarded with: its own `set_angle(boat)` is its tail's. run496
+            // block 1902: `0/7` at (14712, 31224), `0/8` at (14712,
+            // 31368) and `0/9` at (14904, 31224), both members turned to
+            // 1084948480, `0/7`'s angle on 1901. A refused member stops the
+            // walk there (the refusal returns before the recursion).
+            let mut members = Vec::new();
+            let mut at_f = self.units[captain].o_down;
+            for _ in 0..self.units.len() {
+                let Some(f) = at_f.filter(|&d| self.units[d].alive()) else {
+                    break;
+                };
+                if self.units[f].inside_unit != Some(boat) {
+                    break;
+                }
+                let Some(spot) = self.come_out_unit_host_spot(f, captain) else {
+                    break;
+                };
+                self.land_passenger(f, spot);
+                members.push(f);
+                at_f = self.units[f].o_down;
             }
-            // `come_out@6191f4`: with a **unit** for a host the passenger is
-            // turned to the host's own `angle` (`+0x50`) in `set_angle`'s
-            // snapping form, guys included — which is what puts the scout's
-            // dog on the track offset the original prints. run57 block 3979
-            // reads `angle -13303808` on the scout, the barge's own heading
-            // at the frame it ejects.
-            //
-            // `Unit::set_angle@00605400` writes `+0x50` and the guys and
-            // not `+0x58`, so `dest_angle` stays what step 1's
-            // `update_action` seeded it with, the heading the passenger
-            // boarded on: run249's `0/6` prints 1073741824 on 1160.
-            let des_angle = self.units[r].movement.des_angle;
-            self.units[r].movement.set_facing(bearing);
-            self.units[r].movement.des_angle = des_angle;
-            // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
-            // pos, 1)`, which seats the crew **on** its track offset rather
-            // than letting it walk there from wherever it boarded. Without
-            // it the scout's dog spends the next hundred frames chasing the
-            // sea, and a walking guy takes no idle roll — which is the
-            // second of the two `Unit::set_anim` draws the original spends
-            // when the scout arrives.
-            self.seat_guys(r);
-            self.come_out_join_army(r);
-            // 3. the damage, back the way it came.
+            // Each tail after its own recursion returns: the chain's last
+            // member first, the captain last (`add_to_army`'s coin is the
+            // tail's last draw, `0061a1f2`).
+            for &f in members.iter().rev() {
+                self.land_tail(f, captain_angle);
+            }
+            self.land_tail(captain, bearing);
+            // 3. the damage, back the way it came, on the loop's own
+            //    passenger alone.
             self.same_damage(r, boat);
             // 4. the order list and the path, back the way they came.
             if self.units[r]
@@ -1338,6 +1331,94 @@ impl Sim {
         self.units[boat].on_map = false;
         self.coll_remove(boat);
         self.chain_remove(boat);
+    }
+
+    /// `come_out`'s `set_new_location(·, ·, 1, 1)` on a passenger: out of
+    /// the boat, onto `at`, into both collision indices.
+    fn land_passenger(&mut self, r: usize, at: crate::Pos) {
+        self.units[r].inside_unit = None;
+        self.units[r].pos = at;
+        // `Movement::at` alone would zero the speed and the turn rate,
+        // and a unit put ashore with no speed stands there for ever;
+        // `come_out`'s building arm carries the same two across.
+        // `dest_angle` (`+0x58`) is step 1's, below.
+        //
+        // **And the body keeps its speeds** (item 1164, `docs/TRANSPORT.md`
+        // §6.4): `Guy::last_speed`/`avg_speed` (`+0x80`/`+0x84`) have
+        // three writers, `Guy::move`, `Guy::clear` and `Guy::init_real`,
+        // and neither `Unit::set_new_location@005f8d20` nor
+        // `Guy::set_new_location@005d86f0` is one. A passenger comes
+        // ashore at the average it boarded with, and [`turn_speed`]
+        // divides its first turn by it: run420's `1/33` lands on 6734
+        // at 12 and takes nine frames to face its path, not seven.
+        //
+        // [`turn_speed`]: crate::movement::turn_speed
+        let body = self.units[r].movement.body;
+        self.units[r].movement = crate::Movement {
+            speed: self.units[r].movement.speed,
+            turning: self.units[r].movement.turning,
+            heading: self.units[r].movement.heading,
+            facing: self.units[r].movement.facing,
+            frame_facing: self.units[r].movement.frame_facing,
+            mirror: self.units[r].movement.mirror,
+            des_angle: self.units[r].movement.des_angle,
+            body: crate::movement::Body { pos: at, ..body },
+            ..crate::Movement::at(at)
+        };
+        self.units[r].on_map = true;
+        self.coll_add(r);
+        self.chain_add(r);
+    }
+
+    /// The rest of `come_out` for a passenger put ashore: the computer's
+    /// order reset, `set_angle(host->angle)`, the crew seated, the army
+    /// coin. `angle` is the host's: the boat's for the captain, the
+    /// captain's own boarding angle for a member.
+    fn land_tail(&mut self, r: usize, angle: crate::movement::Angle) {
+        let at = self.units[r].pos;
+        // **`come_out`'s own tail, for a computer player's unit** (item
+        // 1164, `docs/TRANSPORT.md` §6.4): past `set_new_location` at
+        // `6186c1`, `6187c8` tests `leaders.list[who] & 4`
+        // (`is_human`) and skips on it; a plane, and the four
+        // `0x32..=0x35` citizen types (`6187ff`..`618811`), skip too.
+        // Everyone else takes `path.length = 0`, `close_orders(0)`,
+        // `clear_partial_path` and `update_action` at `618813`..`618836`
+        // — step 1's four again, **from the spot**. Path and list are
+        // already empty, so what it writes is `orders_x/y`: run420's AI
+        // merchant `1/33` prints its landing point (38952, 24840) on
+        // 6735, where the human scout of run249 keeps its boarding
+        // point. `update_action`'s `+0x58 = +0x50` is the boarding
+        // heading still — the dump's `dest_angle` 292814848 against
+        // `angle` 165478400 on the same block says `set_angle` comes
+        // after — which is step 1's value, kept below.
+        if !self.nation[usize::from(self.units[r].owner)].human
+            && !(0x32..=0x35).contains(&self.units[r].type_index)
+        {
+            self.units[r].orders_pos = at;
+        }
+        // `come_out@6191f4`: with a **unit** for a host the passenger is
+        // turned to the host's own `angle` (`+0x50`) in `set_angle`'s
+        // snapping form, guys included — which is what puts the scout's
+        // dog on the track offset the original prints. run57 block 3979
+        // reads `angle -13303808` on the scout, the barge's own heading
+        // at the frame it ejects.
+        //
+        // `Unit::set_angle@00605400` writes `+0x50` and the guys and
+        // not `+0x58`, so `dest_angle` stays what step 1's
+        // `update_action` seeded it with, the heading the passenger
+        // boarded on: run249's `0/6` prints 1073741824 on 1160.
+        let des_angle = self.units[r].movement.des_angle;
+        self.units[r].movement.set_facing(angle);
+        self.units[r].movement.des_angle = des_angle;
+        // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
+        // pos, 1)`, which seats the crew **on** its track offset rather
+        // than letting it walk there from wherever it boarded. Without
+        // it the scout's dog spends the next hundred frames chasing the
+        // sea, and a walking guy takes no idle roll — which is the
+        // second of the two `Unit::set_anim` draws the original spends
+        // when the scout arrives.
+        self.seat_guys(r);
+        self.come_out_join_army(r);
     }
 
     /// **Step 4's squad arm** (item 1223, `docs/TRANSPORT.md` §6.4,
@@ -2082,6 +2163,55 @@ mod tests {
                 .any(|p| p.who == 1 && p.list == vec![rider]),
             "in a pushed group of its own"
         );
+    }
+
+    /// **A squad comes ashore whole on its captain's pass** (item 1291,
+    /// `docs/TRANSPORT.md` §17, `docs/GOLDEN.md` §55): a captain's
+    /// `come_out` calls itself down `o_down` with each member's host its
+    /// captain, and `eject_contents` re-reads the boat's chain after it, so
+    /// the squad arm runs once — one group move on each figure. And the
+    /// members are turned to the captain's own angle, which its tail sets
+    /// to the boat's only after they are out. run496 block 1902: `0/7`,
+    /// `0/8` and `0/9` hold one `GroupMoveOrder` each, and `0/8`'s and
+    /// `0/9`'s angle is 1084948480, `0/7`'s on 1901.
+    ///
+    /// Made to fail by running the eject's arm on every rider: the captain
+    /// holds three moves, the first member two, and both members face the
+    /// boat's way.
+    #[test]
+    fn a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle() {
+        let mut f = fix();
+        let mut t = f.sim.unit_types[f.citizen].clone();
+        t.combat.uber_size = 3;
+        let hoplite = f.sim.add_unit_type(t);
+        let squad: Vec<usize> = (0..3)
+            .map(|k| unit(&mut f.sim, 1, hoplite, tile_pos(28, 13 + k)))
+            .collect();
+        for w in squad.windows(2) {
+            f.sim.units[w[0]].o_down = Some(w[1]);
+            f.sim.units[w[1]].o_up = Some(w[0]);
+            f.sim.units[w[1]].captain = false;
+        }
+        let boarded = crate::movement::Angle(1_084_948_480);
+        f.sim.units[squad[0]].movement.set_facing(boarded);
+        let (boat, _) = landing(&mut f, squad[0], 25);
+        f.sim.units[boat].orders[0].flags |= crate::orders::flag::ACTION;
+        let bearing = f.sim.units[boat].movement.heading;
+        assert_ne!(bearing, boarded);
+        f.sim.process_unit(boat, 1, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        for &m in &squad {
+            let u = &f.sim.units[m];
+            assert!(u.on_map && u.inside_unit.is_none(), "figure {m} is out");
+            assert_eq!(u.orders.len(), 1, "figure {m} holds one group move");
+        }
+        assert_eq!(f.sim.units[squad[0]].movement.heading, bearing);
+        for &m in &squad[1..] {
+            assert_eq!(
+                f.sim.units[m].movement.heading, boarded,
+                "member {m} faces its captain's boarding angle"
+            );
+        }
     }
 
     /// **A captain's boarding takes its whole squad** (item 1235,

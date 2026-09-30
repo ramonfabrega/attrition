@@ -5234,17 +5234,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 /// `resources[3:knowledge]` 160 against 240 from 769, both agree.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 
-/// **Chapter forty-six's golden word** (`docs/GOLDEN.md` §55, item
-/// 1278, run496): **opens at 1902**, the squad's landing — ours 3 draws
-/// against 2, parting at index 0: ours `0/8`'s `Guy::set_anim+0x97a <
-/// Guy::move+0x19f`, the original's first `Farms::inc_time+0x1ae`. The
-/// value diff on block 1902: the original's `0/7`, `0/8` and `0/9` hold
-/// one `GroupMoveOrder` each (group 1901300, `form_id` 0, 1, 2); ours
-/// `orders.len` 3, 2 and 1, and `0/9` at (14856, 31224) against (14904,
-/// 31224), `0/8`'s and `0/9`'s heading 1073741824 against 1084948480.
-/// Everything before it agrees but the standing families, the prune on
-/// 1049 included (`1/2`'s `order:gather.wait` −1 on block 1050).
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 1902;
+/// **Chapter forty-six's golden word** (`docs/GOLDEN.md` §55, items
+/// 1278 and 1291, run496): **closed at 2200**, the capture's end — word,
+/// sequence and values; it opened at 1902, the squad's landing, where
+/// ours drew 3 against 2 (ours `0/8`'s `Guy::set_anim+0x97a <
+/// Guy::move+0x19f`, the original's `Farms::inc_time+0x1ae`). The value
+/// diff on block 1902, both sides now: `0/7`, `0/8` and `0/9` hold one
+/// `GroupMoveOrder` each (group 1901300, `form_id` 0, 1, 2); `0/7` at
+/// (14712, 31224), `0/8` at (14712, 31368), `0/9` at (14904, 31224) —
+/// ours had (14856, 31224) — and `0/8`'s and `0/9`'s heading 1084948480,
+/// `0/7`'s own on 1901, where ours had the boat's 1073741824. Item 1291:
+/// a captain's `come_out` takes its squad ashore, each member on the
+/// captain's ring, so `eject_contents` gives the squad arm once.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 
 /// `chapter_forty_six_s_word_frame_is_widened_whole`'s window: run496
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
@@ -7340,13 +7342,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1278: run496, chapter forty-six, the squad's landing and
-    // `all_gathering`'s prune. The widening is run496 whole.
+    // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
+    // and `all_gathering`'s prune, closed at 2200. The widening is run496
+    // whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_SIX",
         GOLDEN_WORD_CHAPTER_FORTY_SIX,
         Some("chapter_forty_six_s_word_frame_is_widened_whole"),
-        1278,
+        1291,
         Some(WIDENING_CHAPTER_FORTY_SIX),
     ),
     // Item 1268: run492, chapter forty-five, `get_cost`'s library-line
