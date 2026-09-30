@@ -3092,6 +3092,32 @@ impl Sim {
         head.expect("uber_size is at least one")
     }
 
+    /// Step 8's object half (`docs/TECH.md`, `Leader::gain_tech@006dcb60`,
+    /// the loop at `6dde64`–`6ddf2b`): every in-use building of the leader
+    /// whose type's `upgrade` is `t` becomes `t` through `Wall::set_type(t,
+    /// 0)`. A Tower stands as a Keep from the frame its leader gains the
+    /// Keep, and every count keyed on its type moves with it — the
+    /// original's `num_buildings`, which `create_buildings` reads (item
+    /// 1264). The test is the in-use flag alone: a site converts too.
+    fn upgrade_buildings_to(&mut self, who: Player, t: tech::TypeId) {
+        let Some(rec) = self.build_record(t) else {
+            return;
+        };
+        for b in 0..self.buildings.len() {
+            let bd = &self.buildings[b];
+            if !bd.alive || bd.owner != who {
+                continue;
+            }
+            let upgrades = bd
+                .ty
+                .and_then(|r| self.build_types[r].tree)
+                .is_some_and(|x| self.tech_tree.types[x].upgrade == Some(t));
+            if upgrades {
+                self.set_type(b, rec);
+            }
+        }
+    }
+
     /// `Leader::gain_tech@006dcb60`'s unit-conversion loop, the **object**
     /// half of `docs/TECH.md` §7 (`6dd9bd`–`6ddbd1`).
     ///
@@ -3503,9 +3529,13 @@ impl Sim {
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {
-            if let tech::Gained::UnitUpgrade { to } = *e {
-                self.upgrade_units_to(who, to);
-                self.retarget_queued_to(who, to);
+            match *e {
+                tech::Gained::UnitUpgrade { to } => {
+                    self.upgrade_units_to(who, to);
+                    self.retarget_queued_to(who, to);
+                }
+                tech::Gained::BuildingUpgrade { to } => self.upgrade_buildings_to(who, to),
+                _ => {}
             }
         }
         self.apply_gained(who);
