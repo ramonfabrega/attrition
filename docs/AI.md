@@ -13012,5 +13012,7 @@ auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`
 **Coverage.** Diff-backed by the run470 walk (9323) and
 `run517_s_gap_is_widened_whole`; the unit test
 `a_forced_march_lifts_the_units_near_its_hero`. Held by no walk: the
-group's `+0x4b` arm (mutated, the walk and run511 held; every follower of
-the march stood inside the Senator's ten tiles).
+group's `+0x4b` arm and a follower's `has_general` report (mutated: the
+walk, run511 and run517 pass; every follower of the march stood inside the
+Senator's ten tiles). The value diff: without the march, run517 parts on
+block 9114, all 26 walkers; with it, no army position parts.
