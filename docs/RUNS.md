@@ -12455,3 +12455,45 @@ orders `1/73`..`1/75`, id 8698116 against 8704516, and a dozen units'
 `orders_x`/`orders_y` 24 apart, from the gap past 8433), who=1's make list
 parts on 8782 and 8785, and nothing parts first on the word's block 8787.
 The coverage driver walks 8785..8789 and the compared pin 8785..8788.
+
+## run506 — run346's game at run490's detail over blocks 11632..11888: the second pair's East Indies word 11637 widened (2026-09-30, item 1297)
+
+**What it is.** run490's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 11632..11888, `!quit` at 11902. The word's frame 11637 writes
+block 11638: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run506 \
+    --map 18 --end-frame 11902 --timeout 5400 --log-window 11632 11889 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run490 ends at block
+11579, and no other dump of run346's game prints the word's blocks at
+detail; the run346 dump itself carries no leader or figure record.
+
+**Taken** 09:48–10:13 in one take. The lane lock was stale (pid 56659
+dead) and the launch took it over. It was waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,467 s from launch
+to exit, 11,903 frames, map 18 and seed 12345 verified, five files
+restored. The dump (657,782,932 bytes, sha256 `b0b764a9469ce854…`) and
+the trace (100,271,488, `fe2cc4f61c9c8f4e…`) were moved into `Logs` as
+`gamelog-run506-islands-toughest-11637.txt` and `rontrace-run506.log`.
+The disk had 39 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 11,903 identical |
+| window blocks | 257, 11632..11888 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run506_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 11632 stands on 198 keys. On the word's
+block 11638, 23 keys first part: who=1 holds eighteen Peltasts
+(`TypeIndex` 84) that only the dump has, `1/93` and `1/104`..`1/120`, and
+its group 70 lists 37 members against 19, `stamp` 11637 against 11413;
+beside them is `1/78`'s animation clock. The window parts on 1,376 keys.
+The coverage driver walks 11637..11640.

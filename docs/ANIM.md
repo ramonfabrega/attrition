@@ -357,6 +357,19 @@ branch only when its `param_5`, the **packed** flag, is zero, and a
 merchant walks packed. So the art a merchant uses on its way to a rare is
 the ordinary arithmetic's `-PACKED` slot, which this crate computes, and
 the seam bites only once one has deployed (`docs/MERCHANT.md` §7).
+**run490 reaches it** (item 1281): East Indies' who=1 merchants `1/19` and
+`1/59`, deployed, are re-pieced by the third age on frame 11328, and on
+block 11329 both figures read piece 50689 (`total − 5`: the
+`build_continent` 1 arm) where this crate derives 2123 and 14795. The arm
+adds **no crew coordinate**, and the piece carries no track, so the crew
+figure reads `track` 0 and stands on its leader (`1/19`'s `x[1]` 32256
+against ours 32332). Neither merchant's clock parts through run490's
+window. The arm's entry, read off the listing: the type is `0x3d`, `0x3e`
+or 400 and not packed; the bracket is 1, or 0 with `build_continent` 6;
+and `build_continent` is 1, 3 or at least 6. The piece is `total − 6` for
+3, `− 5` for 1, `− 4 + (bracket ≠ 0)` for 6, `− 2` for 7, `− 1` for 8.
+Which `<UNIT>` name each of the six slots loads, and so their lengths, is
+the loader's, and it is not read.
 
 **And a trained unit's tracked crew figure is seated at birth.**
 `Unit::init@00612100:549` is `set_new_location(x, y, 1, 1)`, whose
@@ -804,11 +817,13 @@ the mechanic with a non-packing control that spends nothing.
 modelled and no capture reaches it. The set `do_turn` recurses into is read
 here as "guy 0 and the trackless crew", which is the set `Guy::move`'s follow
 walks; the original starts its loop at the type's `+0x304` rather than at 1,
-and no capture has a unit whose guys differ between the two readings. And the
+and no capture has a unit whose guys differ between the two readings. ~~And the
 bit is **derived** here rather than stored at `init_real`: neither the type
 nor the piece changes under a guy, so the answer is the one `init_real` would
 have written — but a piece that changes on packing (`get_unit_gpiece`'s fifth
-argument) would break that, and nothing checks it.
+argument) would break that, and nothing checks it.~~ Stored now, as
+`Guy::flag_piece` (item 1281): an age re-pieces without `init_real`
+(`docs/TECH.md`, "The piece moves with the age").
 
 ### 4.9 A moving frame asks for the walk **twice** (2026-09-03)
 

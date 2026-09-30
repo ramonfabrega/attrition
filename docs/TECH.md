@@ -719,13 +719,18 @@ Unit::set_new_location(u, u.x, u.y, 1, 1);
 ```
 
 then the same `update_gpiece` over the player's buildings from slot 2000 and
-over its walls. The graphics half is presentation. The **arguments** are not:
+over its walls. ~~The graphics half is presentation.~~ The units' graphics
+half is not presentation either (item 1281, "The piece moves with the age"
+below). And the **arguments** are not:
 `Unit::set_new_location(x, y, param_3, param_4)` re-places the unit where it
 already stands, and
 
 - `param_4 != 0` calls `Guy::set_angle(guy 0, this->angle /* +0x50 */, 1)`,
   whose snap flag writes `GuyData::angle` (`+0x18`) and `last_angle`
-  (`+0x1c`) outright rather than leaving them to the turn rate; and
+  (`+0x1c`) outright rather than leaving them to the turn rate. It writes
+  the figure's `des_angle` (`+0x64`) too, with the value it already holds,
+  and **nothing of the unit's**: `UnitData::dest_angle` (`+0x58`), the
+  order's angle, stands (item 1281); and
 - `param_3 != 0` calls `Guy::set_new_location(guy 0, des, 1)`, which writes
   `x`/`y` and `last_x`/`last_y`/`last_z`, and whose crew loop **puts** every
   tracked figure on its rotated offset instead of telling it to walk there.
@@ -739,6 +744,43 @@ the turn would have taken.
 `Sim::tick` runs the buildings after the unit loop, so a research that
 completes on frame *n* lands its snap **after** that frame's own step: the
 step is taken along the old facing and the next one starts from the heading.
+
+### The piece moves with the age (item 1281, 2026-09-30)
+
+`Unit::update_gpiece@005e2920` runs `Guy::update_gpiece@005d8530` on every
+figure, and that is `get_unit_gpiece`'s sum over again (`docs/ANIM.md`
+§3.4), whose age coordinate is `ages < 5 ? ages / 3 : 2`. So the first,
+second, fourth and later ages change nothing, and **the third and the fifth
+move every figure of the leader one bracket, `0x840` pieces up**. The new
+piece's lengths are what the next `set_anim` reads. The flags are not
+re-read: `Guy::update_gpiece` writes `gpiece`, the crew track
+(`+0x54`/`+0x58`) and `+0xd0`, never `guy_flags` (`+0x9a`), so the `& 8`
+bit `init_real` took from the **old** piece's packet stands until the
+figure's next `init_real` (`docs/ANIM.md` §4.8). `init_real` re-pieces
+its guy before it reads the flags (`:33`), so `Unit::set_type`'s call
+(`:187`) takes the **new** type's piece: golden chapters thirty-nine and
+forty fall to 846 and 693 when a converted guy keeps its old piece's bit,
+which is what first reading of `set_type` alone had it do.
+
+*The record.* East Indies at Toughest, run490 (`diff::second`): who=1's
+`ages_get()` goes 2 → 3 on block 11329 (frame 11328), and on that block 65
+of its units read `g.gpiece[0]` 2112 above this crate's (`1/1` ours 6336,
+theirs 8448), with fifteen `dest_angle` rows beside them, each ours taking
+the unit's `angle` where the original's stood. Frame 11328 drew 62 here
+against 60, two extra wraps on the old pieces. With the re-piecing and the
+snap's writes corrected, the frame agrees, block 11329 goes 115 rows → 16,
+and the word moved **11328 → 11349**. There who=1's upgraded `1/15` and
+`1/33`, re-pieced onto an art that names `CHAR_TURN_RIGHT`, played the
+turning stand at their point where the original's walked through the turn
+and paid the arrival stand a frame later; with the bit kept off the piece
+`init_real` saw, East Indies moves **11349 → 11549**.
+
+*Built*: `Sim::age_snap_units` (`update_gpiece` first; the facing alone,
+not `Movement::set_facing`), and `Guy::flag_piece`, which
+[`Sim::guy_turns`] reads. *Not established*: the buildings' and walls'
+`update_gpiece` halves (no simulation state reads them), and the merchant
+family's over-time arm, which the same re-piecing reaches on run490's
+`1/19` and `1/59` (`docs/ANIM.md` §3.4's SEAM).
 
 ### What run86 proves
 

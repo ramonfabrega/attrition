@@ -622,7 +622,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 127)],
+            [(7065, 119)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -632,13 +632,13 @@ mod tests {
         // `form` on 7144 first — where it was 616.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 127), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
+            [(7065, 119), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
         pin_eq!(
             w.firsts.len(),
-            132,
-            "every key parted on run483 (134 before item 1275, 745 before item 1260)"
+            124,
+            "every key parted on run483 (132 before item 1281, 134 before item 1275, 745 before item 1260)"
         );
     }
 
@@ -707,13 +707,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 130), (7781, 1), (7782, 4), (7784, 1), (7785, 2)],
+            [(7780, 122), (7781, 1), (7782, 4), (7784, 1), (7785, 2)],
             "the blocks keys first part on, to three past the word's"
         );
         pin_eq!(
             w.firsts.len(),
-            146,
-            "every key parted on run488 (150 after item 1264, 876 before)"
+            138,
+            "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }
 
@@ -805,7 +805,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (8177, 135),
+                (8177, 127),
                 (8181, 8),
                 (8201, 1),
                 (8209, 18),
@@ -816,8 +816,8 @@ mod tests {
         );
         pin_eq!(
             w.firsts.len(),
-            165,
-            "every key parted on run491 (530 before item 1286's city count, \
+            157,
+            "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
     }
@@ -857,7 +857,8 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **140 stand on the window's first block**: run491's families, and
+        // **132 stand on the window's first block** (140 before item 1281's
+        // age snap left eight `dest_angle`s): run491's families, and
         // from the gap past its last block, 8433, who=1's group orders —
         // `1/73`..`1/75` carry order id 8698116 here and 8704516 there —
         // and a dozen of its units' `orders_x`/`orders_y`, 24 apart.
@@ -896,7 +897,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (8781, 140),
+                (8781, 132),
                 (8782, 3),
                 (8785, 7),
                 (8796, 1),
@@ -909,7 +910,11 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 745, "every key parted on run500");
+        pin_eq!(
+            w.firsts.len(),
+            737,
+            "every key parted on run500 (1,808 before item 1293, 1,816 before item 1281)"
+        );
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):

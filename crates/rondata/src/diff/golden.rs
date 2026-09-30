@@ -2695,12 +2695,13 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     //   holds empty (`busy`, `filled`, `land`, `space`, `ter`, and
     //   `1/2000`'s by one), and `form` on the ten pre-existing units.
     //   All older than the chapter's first staged line.
-    // - **610, `g.gpiece`** on the ten pre-existing units: one age bracket
-    //   under the dump's, chapter two's same ten (`docs/ANIM.md`).
+    // - ~~**610, `g.gpiece`** on the ten pre-existing units: one age
+    //   bracket under the dump's~~ and ~~**617–623, `g.end_time`** on
+    //   three citizens, an idle length beside it~~: closed by item 1281,
+    //   the age's `update_gpiece` (`docs/TECH.md`, "The piece moves with
+    //   the age").
     // - **611 and 616, the births**: `form` −1 against 0 on all six
     //   hoplites.
-    // - **617–623, `g.end_time`** on three citizens: 33 against 56, an
-    //   idle length, beside the `gpiece` bracket.
     // - **616, the army group's `speed`/`new_speed`**, 0 against 25 on
     //   every block run110 prints: `Group::add` ends in `compute_speed`
     //   for a group with an id, and this crate's army group takes its
@@ -2738,19 +2739,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("form 1/6", 616),
         ("form 1/7", 616),
         ("form 1/8", 616),
-        ("g.end_time[0] 0/1", 617),
-        ("g.end_time[0] 0/2", 623),
-        ("g.end_time[0] 1/2", 619),
-        ("g.gpiece[0] 0/1", 610),
-        ("g.gpiece[0] 0/2", 610),
-        ("g.gpiece[0] 0/3", 610),
-        ("g.gpiece[0] 0/4", 610),
-        ("g.gpiece[0] 0/5", 610),
-        ("g.gpiece[0] 1/1", 610),
-        ("g.gpiece[0] 1/2", 610),
-        ("g.gpiece[0] 1/3", 610),
-        ("g.gpiece[0] 1/4", 610),
-        ("g.gpiece[0] 1/5", 610),
         ("group:new_speed 1/army0", 616),
         ("group:speed 1/army0", 616),
     ];
@@ -3838,20 +3826,10 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // parts on any frame from 606 to the end of the capture** except the
     // two standing residues: `damage 1/6` at 680 and the ten `g.gpiece`
     // rows at 606. Both are older than this window's word and neither
-    // spends a draw.
-    let measured = [
-        ("damage 1/6", 680),
-        ("g.gpiece[0] 0/1", 606),
-        ("g.gpiece[0] 0/2", 606),
-        ("g.gpiece[0] 0/3", 606),
-        ("g.gpiece[0] 0/4", 606),
-        ("g.gpiece[0] 0/5", 606),
-        ("g.gpiece[0] 1/1", 606),
-        ("g.gpiece[0] 1/2", 606),
-        ("g.gpiece[0] 1/3", 606),
-        ("g.gpiece[0] 1/4", 606),
-        ("g.gpiece[0] 1/5", 606),
-    ];
+    // spends a draw. **Item 1281 closed the `g.gpiece` rows**: the stand-up
+    // lands the chapter's third age before 606, and the age now re-pieces
+    // every figure (`docs/TECH.md`, "The piece moves with the age").
+    let measured = [("damage 1/6", 680)];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     pin_eq!(
         got,
@@ -8813,17 +8791,7 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
 // action bit cleared; on 1385 `0/6` and on 1489 `0/7` each hold one
 // `AIRPATROLORDER`, flags 0, `oxx` 2007, point (21120, 16512),
 // `returning` 0, `cruising_alt` 1400 and 1600, on both sides; 13 → 9).
-const WANT_CH22: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
-];
+const WANT_CH22: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
 
 // **What parts in the pool** on run265: chapter seventeen's ten, the
 // pushed flight groups' point (parked 760) and item 738's `get_num` speeds;
@@ -8914,17 +8882,7 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
 // the births' and chapter one's clocks (611–655). 1585 agrees on both
 // walks: this crate's `do_launch` kills `0/6`'s unflagged patrol, and
 // under the cleared bit so does the original's.
-const WANT_CH23: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
-];
+const WANT_CH23: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
 
 // **What parts in the pool** on run281: chapter twenty-two's ten. ~~And the
 // building group `[2007]` the original's `process_group` pushes into
@@ -9677,12 +9635,6 @@ const WANT_CH29: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
@@ -9828,20 +9780,10 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // +1 a frame on the map, so `check_fuel`'s empty arm turns `0/7` for
     // home on 1212 and `0/8` on 1214, `returning 1` on both sides, and
     // each flight home agrees to 1400. What stands is the births' nine.
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "617 0/1 g.end_time[0]",
-        "623 0/2 g.end_time[0]",
-        "650 0/1 g.cur_time[0]",
-        "650 0/1 g.last_time[0]",
-        "655 0/2 g.cur_time[0]",
-        "655 0/2 g.last_time[0]",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = ["611 0/6 form", "613 0/7 form", "615 0/8 form"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
     want.sort();
     pin_eq!(got, want, "ch17: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's
@@ -12734,12 +12676,6 @@ const WANT_CH32: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
@@ -12876,12 +12812,6 @@ const WANT_CH33: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
@@ -13216,12 +13146,6 @@ const WANT_CH37: &[&str] = &[
     "3022 0/10 pos",
     "3218 0/6 death:extra",
     "3227 0/7 death:extra",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
 ];
 
 /// Chapter thirty-seven's pool rows (item 1091): the research's building
@@ -15076,16 +15000,10 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 const WANT_CH38: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
-    "617 0/1 g.end_time[0]",
     "619 1/2007 build:constr_time",
     "621 1/6 form",
     "621 1/7 form",
     "621 1/8 form",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "743 1/9 g.des_turret0[0]",
     "743 1/9 g.turret0[0]",
     "761 1/9 ammo[1]",
@@ -15248,12 +15166,6 @@ const WANT_CH36: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     // **The rounds' fields, compared from item 1257**: chapter
     // thirty-five's two families on the same start — the Bombers'
     // `accuracy` (0 here) and the targets cleared on 1080.
@@ -15844,12 +15756,6 @@ const WANT_CH35: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
@@ -16020,12 +15926,6 @@ const WANT_CH34: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
-    "617 0/1 g.end_time[0]",
-    "623 0/2 g.end_time[0]",
-    "650 0/1 g.cur_time[0]",
-    "650 0/1 g.last_time[0]",
-    "655 0/2 g.cur_time[0]",
-    "655 0/2 g.last_time[0]",
     "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",

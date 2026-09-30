@@ -342,7 +342,8 @@ that is not a merchant (`0x3d`, `0x3e`, `0x190`), not a caravan and not a
 special (`unit_flags2 & 0x10`), when its city is not one the census
 marks weak — behind its city search, unreached by any trace;
 `think_supply` and `think_hero`, unconditionally;
-`think_scout@005f6010:571`, a **sea** unit whose region is scouted;
+`think_scout@005f6010:571`, a **sea** unit whose region is scouted
+(built and diff-backed by item 1297, `docs/SCOUT.md` §13 item 1b);
 and `Unit::come_out@00617c10:1614`, below.
 
 ### 4.1 `come_out`'s tail — the army coin (2026-09-01)
