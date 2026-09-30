@@ -724,9 +724,13 @@ impl Sim {
     ///    `cast_transport` has already moved the whole list onto the boat,
     ///    and the boat kills this order there.
     ///
-    /// SEAMS, all stated: the captain check between 4 and 5 — a figure
-    /// whose captain is itself casting gives its frame back — is not
-    /// modelled, since every unit here is its own captain; nor is the
+    /// SEAMS, all stated: the captain check between 4 and 5 — for `0x28a`
+    /// alone, a figure that is not a captain and whose `get_captain`'s
+    /// current order is `CAST_SPELL` takes `spell_time − 1` and returns
+    /// (`005ebfe0`, after the clock) — is not modelled. The captain's cast
+    /// boards its whole squad ([`Sim::cast_transport`]'s `board`), so only
+    /// a member holding a transport cast of its own and stepped **before**
+    /// its captain reaches it; no staging has one (item 1235). Nor is the
     /// general's `has_general(0, 0x162)` extra `spell_time` step; and nor
     /// is the whole non-spell-type arm, which is
     /// `LeaderData::current_upgrade` + `set_type` and reaches no craft
@@ -1082,19 +1086,58 @@ impl Sim {
         self.units[boat].health = boat_hits - ((boat_hits * frac) >> 8);
     }
 
-    /// `Unit::go_inside(o, who, 0)` with a **unit** for a host — the
-    /// boarding half of `docs/CITIES.md` §6's garrison, and the reason a
+    /// `Unit::go_inside(o, who, 0)@0061a2e0` with a **unit** for a host —
+    /// the boarding half of `docs/CITIES.md` §6's garrison, and the reason a
     /// passenger stops being stepped: `Unit::process` runs no order for a
     /// unit that is inside something.
+    ///
+    /// **The whole squad boards** (item 1235, `docs/TRANSPORT.md` §17,
+    /// `docs/GOLDEN.md` §52). With `param_3 == 0` the function first climbs
+    /// `o_up` (`+0x8e`) to the captain — no liveness asked — and inserts
+    /// that; then, at `61a48b`, when `o_down` (`+0x90`) is non-negative and
+    /// that figure's `flags & 1` is set, it calls itself on it with
+    /// `param_3 = 1`, so the chain goes aboard captain first. Between the
+    /// two, at `61a450`..`61a486`, a host whose vslot `0x18` answers (it is
+    /// `return 1` on `Unit::vftable`, `return 0` on `Build::vftable`) and a
+    /// figure whose type's `uber_size` (`+0x308`) is over 1 take `path.length
+    /// = 0`, `close_orders(0)`, `clear_partial_path` and `update_action` —
+    /// [`Sim::clear_orders`]' four — so a member's own group move dies
+    /// aboard. run466 block 1357: barge `0/10` `inside_down 7`, `0/7`
+    /// `inside_down 8`, `0/8` `inside_down 9`, and `0/8`/`0/9` `orders_x/y`
+    /// on their own points.
+    ///
+    /// SEAM: the `+0x68 & ~0x4000000` beside that clear (the move-facing
+    /// bit `add_move_facing_order` sets) is state this crate does not keep.
     fn board(&mut self, u: usize, boat: usize) {
-        self.coll_remove(u);
-        self.chain_remove(u);
-        let unit = &mut self.units[u];
-        unit.inside_unit = Some(boat);
-        unit.on_map = false;
-        unit.movement.dest = None;
-        unit.combat.target = None;
-        unit.combat.mandatory = false;
+        let mut head = u;
+        for _ in 0..self.units.len() {
+            let Some(a) = self.units[head].o_up else {
+                break;
+            };
+            head = a;
+        }
+        let mut at = Some(head);
+        // Bounded by the list: a cycle would hang the original.
+        for _ in 0..self.units.len() {
+            let Some(f) = at else { break };
+            self.coll_remove(f);
+            self.chain_remove(f);
+            {
+                let unit = &mut self.units[f];
+                unit.inside_unit = Some(boat);
+                unit.on_map = false;
+                unit.movement.dest = None;
+                unit.combat.target = None;
+                unit.combat.mandatory = false;
+            }
+            if self.units[f]
+                .ty
+                .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
+            {
+                self.clear_orders(f);
+            }
+            at = self.units[f].o_down.filter(|&d| self.units[d].alive());
+        }
     }
 
     /// `Object::eject_contents(0, -1, 1, 1)` and the death behind it —
@@ -2036,6 +2079,75 @@ mod tests {
                 .any(|p| p.who == 1 && p.list == vec![rider]),
             "in a pushed group of its own"
         );
+    }
+
+    /// **A captain's boarding takes its whole squad** (item 1235,
+    /// `docs/TRANSPORT.md` §17): `Unit::go_inside@0061a2e0` climbs `o_up`
+    /// to the captain, inserts it, and calls itself down `o_down` — and
+    /// each figure of a type whose `uber_size` is over 1 has its orders
+    /// closed aboard. run466 block 1357: the Hoplites `0/8` and `0/9` are
+    /// inside their captain's barge `0/10`, their group move gone.
+    ///
+    /// Made to fail by boarding the unit alone: the members stay ashore
+    /// holding their moves.
+    #[test]
+    fn a_captain_s_boarding_takes_its_squad_aboard_and_closes_its_orders() {
+        let mut f = fix();
+        let mut t = f.sim.unit_types[f.citizen].clone();
+        t.combat.uber_size = 3;
+        let hoplite = f.sim.add_unit_type(t);
+        let b = barge(&mut f.sim);
+        let squad: Vec<usize> = (0..3)
+            .map(|k| unit(&mut f.sim, 1, hoplite, tile_pos(28 + k, 14)))
+            .collect();
+        for w in squad.windows(2) {
+            f.sim.units[w[0]].o_down = Some(w[1]);
+            f.sim.units[w[1]].o_up = Some(w[0]);
+            f.sim.units[w[1]].captain = false;
+        }
+        for &m in &squad {
+            f.sim.add_move_order(
+                m,
+                tile_pos(20, 14),
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::New,
+                false,
+            );
+        }
+        let boat = unit(&mut f.sim, 1, b, tile_pos(32, 14));
+        // From the last figure: `param_3 == 0` climbs to the head first.
+        f.sim.board(squad[2], boat);
+        for &m in &squad {
+            let u = &f.sim.units[m];
+            assert_eq!(u.inside_unit, Some(boat), "figure {m} is aboard");
+            assert!(!u.on_map, "figure {m} is off the map");
+            assert!(u.orders.is_empty(), "figure {m}'s move is closed aboard");
+        }
+    }
+
+    /// **The chain stops at a dead figure** (`61a497`'s `flags & 1`): what
+    /// hangs below it is not walked, and stays ashore.
+    #[test]
+    fn a_squad_s_boarding_stops_at_a_dead_figure_down_the_chain() {
+        let mut f = fix();
+        let mut t = f.sim.unit_types[f.citizen].clone();
+        t.combat.uber_size = 3;
+        let hoplite = f.sim.add_unit_type(t);
+        let b = barge(&mut f.sim);
+        let squad: Vec<usize> = (0..3)
+            .map(|k| unit(&mut f.sim, 1, hoplite, tile_pos(28 + k, 14)))
+            .collect();
+        for w in squad.windows(2) {
+            f.sim.units[w[0]].o_down = Some(w[1]);
+            f.sim.units[w[1]].o_up = Some(w[0]);
+            f.sim.units[w[1]].captain = false;
+        }
+        f.sim.units[squad[1]].health = 0;
+        let boat = unit(&mut f.sim, 1, b, tile_pos(32, 14));
+        f.sim.board(squad[0], boat);
+        assert_eq!(f.sim.units[squad[0]].inside_unit, Some(boat));
+        assert_eq!(f.sim.units[squad[1]].inside_unit, None);
+        assert_eq!(f.sim.units[squad[2]].inside_unit, None);
     }
 
     /// **The boat's number is held thirty frames** (`docs/COMBAT.md`

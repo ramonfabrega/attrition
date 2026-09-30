@@ -158,7 +158,11 @@ cell in this crate; run466's second barge crosses the ghost on
 
 (1238) **`disembark_squad`, a squad's passengers coming ashore as a
 group**: built, held by its unit test alone until chapter forty-three's
-word passes the landing on 1901.
+word passes the landing on 1901 — three aboard one barge (1235).
+
+(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
+cause): a member with its own cast stepped before its captain. Transport
+only; no staging has one.
 
 (1239) **A refused passenger (`num_inside != 0`)**: the original's boat
 lives; no staging crowds a shore.
@@ -2346,6 +2350,12 @@ dump was written to 1223's `ch43d/map-14/gamelog.txt`, and neither
 `longtrace.sh` nor `setlog.py` noticed. `setlog.py` could assert
 `LogFile` names `Logs\`, or the runner refuse a stage whose
 `gamelog.ini` it did not write. One reach.
+
+(1250) **A golden widening's firsts are not `standing.py`'s shape**
+(1235's Loop line): they print `  ch43 f<frame> …`, not `first <frame>
+…`, so the brief's `RON_FIRSTS=1 … | python3 tools/standing.py` reads
+nothing from a chapter's widening; 1235 converted them with `sed` by
+hand. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

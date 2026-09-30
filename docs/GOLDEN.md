@@ -9289,17 +9289,38 @@ its first step onto land, so its figure stands:
 printed, as run404's. Its dump was then overwritten by another lane's
 (`docs/RUNS.md`, run467).
 
-**The word: 1356, open.** The walk agrees to 1355 in sequence and values,
-the repaint landing on 1270 among it. On 1356 ours draws 8 against 6,
-parting at index 2: both sides cast `0/7`'s Transport and init its barge;
-ours then draws `0/8`'s `Unit::do_move+0xe84` and `Guy::set_anim+0x97a <
-Guy::move+0x19f`, which the original does not. **The value diff on block
-1357**: `0/8` and `0/9` `inside` ours −1 against 10 — the original's
-members are aboard their captain's barge; ours are ashore, and `0/9` casts
-its own on 1358. The widening (run466 to 1607, every record, the pool)
-parts nothing before the word but the standing families: the birth `form`
-(parked 1169), the first block's census (parked 1183), and the pushed
-squad's `order:group.id` on 1302.
+**The word was 1356** (item 1223): ours drew 8 against 6 there, parting
+at index 2 — `0/8`'s `Unit::do_move+0xe84` and `Guy::set_anim+0x97a <
+Guy::move+0x19f` — and on block 1357 `0/8` and `0/9` were `inside` −1
+against 10.
+
+**1356 → 1552, item 1235: the squad boards whole.** The cast is
+`0/7`'s, and `Unit::go_inside@0061a2e0` climbs to the captain and
+walks `o_down`, closing each member's orders aboard
+(`docs/TRANSPORT.md` §17). This crate put the caster alone aboard. **The
+value diff on block 1357** is now nil on the squad: barge `0/10`
+`inside_down 7`, `0/7` → `8` → `9` down the chain; `0/8` and `0/9`
+`inside` 10 on both sides, `0/9` `orders.len` 0 on both (ours had 1,
+`orders_x` 11928 against 7870). Only `0/10`'s `path_recursion` (0
+against 1), a row of item 1223's, parts there. The pool agrees to 1803
+(item 1223's eight rows, six on slot 2 at 1357, are gone). The original
+makes no `0/11`, so `@move … 11` on 1562 and 1900 act on nothing on
+either side. The who=1 Citizen's death now agrees in time (the original
+has `1/6` on 1487 and not 1488; ours dropped it a block early before):
+what is left there is `gather_down` on its gather list and a `DEATH`
+record the capture does not print at its end detail.
+
+**The word: 1552, open.** Ours 31 draws against 30, parting at index 27:
+ours' who=1 Citizen `1/2` draws `Unit::do_non_flat_gather+0xcc3`, the
+original the bird `9/6`'s `Guy::set_anim+0x104b`, and the original's
+gather roll comes on 1553 (`Guy::set_anim+0x97a <
+Unit::do_non_flat_gather+0xb99`). The value diff on block 1553: `1/2`
+`order:gather.wait` ours 324 against −1. Before it the widening (run466
+to 1803, every record, the pool) parts only in the standing families and
+in rows item 1223 pinned: `0/10`'s `path_recursion` on 1357, the
+treaties on 1404 and the raid stamp on 1426 (the Citizen's staging), the
+Chariot's turret on 1479, and on 1488 `1/2001`'s `gather_down[-1]`, ours
+6 (the dead Citizen) against 2.
 
 **Mutations**, each on the committed build, restored from git and touched:
 
@@ -9311,6 +9332,8 @@ squad's `order:group.id` on 1302.
 **What is not established.**
 - Whether the original's barge reads the ghost; run466 holds the crossing
   (1561..1850), unwalked past the word.
-- The squad arm against a dump, and the refused passenger.
+- The squad arm against a dump, and the refused passenger. With the
+  squad aboard one barge (item 1235), its landing on 1901 puts three
+  riders out of `0/10`: past the word.
 - `DEATH` records beside `GROUPDATA`: with both asked no `GROUPDATA`
   printed, twice.

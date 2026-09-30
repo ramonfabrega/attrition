@@ -25,7 +25,8 @@
 #                                                   and (1270 + 10) % 64 == 0
 #  1300 `@move 0 11904 36480 7`                     H to deep water: 0/7's
 #                                                   barge B2 0/10 (the number
-#                                                   B1 held) and 0/9's B3 0/11
+#                                                   B1 held), the squad aboard
+#                                                   it (item 1235); no B3
 #  1400 `add citizen who=1 82,163`                  X 1/6 beside C: a ground
 #                                                   death, for run467's DEATHS
 #  1560 `@move 0 14572 31200 10`                    B2 onto B1's own point
@@ -74,8 +75,9 @@
 # - 1081: B1 at (14572, 31200); its `avg_speed` 0 from 1091.
 # - 1270: C ashore at (14712, 31224), B1 dead, `avg_speed` 0; the repaint
 #   marks cells (300..303, 647..653).
-# - 1355: 0/7 casts, B2 0/10 on 1356; 1366: 0/9 casts, B3 0/11 on 1367;
-#   0/8 stops at the shore with no cast.
+# - 1355: 0/7 casts, B2 0/10 on 1356 with the whole squad aboard (item
+#   1235; item 1223's walk put 0/7 alone aboard, and 0/9 cast a B3 0/11
+#   the original never makes). The lines naming 11 act on nothing.
 # - 1402: C takes X; X dies on 1486.
 # - 1850: B2 on B1's point; 1841 B3 a tile north.
 # - 1901: B2 dead, 0/7 ashore holding a group move to (15384, 31368); 0/8
