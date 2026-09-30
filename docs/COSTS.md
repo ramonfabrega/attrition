@@ -889,7 +889,7 @@ production" would predict.
 `cost::Modifiers::wonder` and `Sim::building_price`.*
 
 A building's ramp counts the buildings of its own type (the section above).
-A wonder's does not. `get_cost`'s wonder arm (a type in `0x20e..=0x21e`)
+A wonder's does not, and nor does a city's (the section below). `get_cost`'s wonder arm (a type in `0x20e..=0x21e`)
 counts **every** wonder the leader holds or has started:
 
 ```
@@ -943,6 +943,27 @@ The one-wonder case is diff-backed by run289's `MAKE` rows on block 20782
 - **Past three, and the space-race arm**: listing only, as above.
 - **The rest of the building branch** is still not built: the military and
   fort escalations and the Indian arm (the open question below).
+
+## A city is ramped by every city
+
+*Item 1286, 2026-09-30. Read from the listing of
+`TypeData::get_cost@00664090` (`006657ee`..`00665843`); built in
+`Sim::building_price`.*
+
+After the wonder test, `get_cost`'s building arm asks the type's vslot
+`+0x64` (`is_city`). On a city the count is not the type's own pair
+(`num_queued[t] + num_buildings[t]`, `00665966`) but the six counts of the
+line: `num_buildings` and `num_queued` of `VILLAGE`, `TOWN` and
+`METROPOLIS`, at `+0x555e`..`+0x5562` and `+0x5d5e`..`+0x5d62`
+(each array's base plus `2·0x19e`). So a Small City is priced as
+the leader's next city of any size. On Great Sahara at Toughest's frame 8377
+who=1 held one Small City and two Large ones: the original priced its
+fourth at 160 food and timber, and this crate, counting Small Cities alone,
+at 60 (`docs/AI.md` §99.11).
+
+**How confident**: read from the listing, and diff-backed by run491's block
+8378 and the draw stream to 8786. The Major City's two counts are the
+listing's alone: no capture's leader holds one when it prices a city.
 
 ---
 

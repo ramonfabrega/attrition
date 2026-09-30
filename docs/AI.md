@@ -12302,8 +12302,9 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 `run471_s_word_frame_is_widened_whole`. The compared pin walked run471's
 5375..5378 until item 1241 moved it to run476's (§99.7), and item 1251 to
 run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9),
-item 1264 to run491's 8181..8184 and item 1275 to its 8376..8379 (§99.10);
-the coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
+item 1264 to run491's 8181..8184 and item 1275 to its 8376..8379 (§99.10),
+and item 1286 to run500's 8785..8788 (§99.11); the coverage driver drives
+each. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12627,8 +12628,8 @@ against 178 → agreeing. run491 parts on **530 keys where it parted on
 ours opens on `Leader::make_stuff+0x221` where the original's first is
 `Leader::use_market+0x1ed`. It lies in run491's window: block 8378, where
 who=1's head is spent here (`MAKE[0].val` −1) and a category-9 row worth
-1981477 at (30, 24) there, and who=1's wealth is 172 against 53. No
-mechanism is named for it.
+1981477 at (30, 24) there, and who=1's wealth is 172 against 53. ~~No
+mechanism is named for it.~~ It was the fourth city's price: §99.11.
 
 **What stands before it.** who=1's `known_rares`, 3 against 4 on run488's
 7780 (and 4 against 0 on run491's 8177), the field parked 1172 names: it
@@ -12653,3 +12654,72 @@ and `run483_s_word_frame_is_widened_whole`; the unit test
 `a_new_route_recomputes_the_trade_its_cities_already_hold`. The Keep's
 conversion, by 1264's pins and `gaining_the_keep_turns_the_leader_s_standing_tower_into_one`.
 **Held by no walk**: the hits lines (above).
+
+### 99.11 The fourth city's price: `get_cost` counts the city line (item 1286)
+
+**8377, both sides.** Frame 8377: ours 17 draws against 19, parting at
+index 0. The original spends two `Leader::use_market+0x1ed < make_stuff
++0x5d < found_cities+0x696`, then both spend three `make_stuff+0x221` (the
+head walk over who=1's three city rows) and the same fourteen after. Both
+enter the frame with who=1's goods (169, 137, 171, 454, 104) and escrow
+(38, 49, 36, 82, 39) equal (run491 block 8377 against ours'
+`RON_DEBUG_LEADER`), and both run `found_cities`. On block 8378 the
+original's make list still holds three category-9 rows — (30, 24) at
+1981477, (45, 15) at 1707421, (29, 25) at 1036946, their `t` expired to −1
+— and who=1's food is 270, wealth 53, wealth escrow 0: `use_market` bought
+a hundred food, and the city was not bought. Ours bought it (food and timber
+169/137 → 110/78) and cleared the list.
+
+**Walked back: the offers.** A scratch print of `use_market`'s inputs on
+8377: ours' three site values are 7925909, 6829687 and 4147784 — each
+**exactly four times** the original's. `offer_site` quarters a site whose
+city is unaffordable, so the original's was and ours' was not. Ours priced
+the Small City at 60 food and 60 timber against a purse of 170 and 138.
+
+**The arm.** `TypeData::get_cost@00664090`, after the wonder test, calls the
+type's vslot `+0x64` (`is_city`, `0x6657f2`). On a city it sums six counts —
+`num_buildings` and `num_queued` of `VILLAGE`, `TOWN` and `METROPOLIS`, at
+`+0x555e`..`+0x5562` and `+0x5d5e`..`+0x5d62` (listing
+`0x66580c`–`0x665837`) — where every other building reads its own type's
+pair (`0x665966`). who=1 held one Small City and two Large ones (ours'
+records `build_types[0]` and `[1]`): the original's count is 3 and the price
+160 and 160, ours' count was 1. At 160 the timber (138) cannot pay, the
+sites are quartered, and `use_market`'s shortfall — two city rows in the
+first `epoch[Commerce]` = 2 slots, 320 of each — buys a hundred food and
+spends two draws of its sell branch, which ours now spends on the same
+frame. This crate's `building_price` counted `b.ty == ty` alone; a city now
+counts every alive building of the three (`crates/sim/src/city.rs`;
+`docs/COSTS.md`, "A city is ramped by every city").
+
+**The value diff.** run491 block 8378: who=1's `MAKE[0].val` ours −1
+against 1981477 and `bucket[2:wealth]` 172 against 53 → **agreeing**, and no
+key of the window first parts past 8277. run491 parts on **165 keys where it
+parted on 530**. Ours' city price on 8377, printed: `[160, 160, 0, 0, 0, 0]`.
+
+**The word moves 8377 → 8786**: ours 10 draws against 49, at index 1. Both
+open on `Guy::set_anim+0x97a < Unit::set_anim < Unit::move_step+0x823`;
+then the original spends `Unit::do_group_move+0xb03 <
+Unit::do_group_attack_to+0x11`, 33 `Objects::add_flock` and three `Guy::init_real
+< Unit::init < Animal::init` draws, and ours' next is a second `move_step`
+roll. **run500** widens it (blocks 8781..9037, 1,816 keys): 140 stand on
+8781 — run491's families, and from the gap past run491's last block (8433)
+who=1's group orders on `1/73`..`1/75` (id 8698116 here, 8704516 there), a
+dozen of its units' `orders_x`/`orders_y` 24 apart and their `dest_angle`,
+and `defense` 1 against 2. **The word's block 8787 parts on no key first**;
+who=1's make list parts on 8782 and 8785, and the animations from 8789. No
+mechanism is named for it.
+
+**What stands before it, read here and not the cause.** The University's
+offer ×7/6 on run488's 7782 and `scholars` 11 against 12 from 7925 (parked
+1288), and `known_rares` 4 against 0: none enters `found_cities`, `get_cost`
+or `use_market`'s shortfall on 8377.
+
+**Coverage.** Diff-backed: the city line's count, by
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (removed: the word
+falls back to 8377) and `run491_s_word_frame_is_widened_whole`; the unit
+test `a_city_is_priced_by_every_city_of_the_line`. **Held by no walk**: the
+Major City's pair — no capture's leader holds one when it prices a city
+(dropped from the line, the walk passes; the unit test fails). Read only:
+that `num_queued` of a city counts what this crate counts as an alive,
+unfinished city; the two differ only while a city is ordered and not yet
+placed.

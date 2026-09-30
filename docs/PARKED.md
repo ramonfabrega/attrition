@@ -146,6 +146,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1286, 2026-09-30 — the city line's price
+
+(1294) **The Major City's pair in `get_cost`'s city count** (1286's
+mutation B): held by no walk.
+
+(1295) **`num_queued` for a city counts an alive, unfinished city**:
+the two differ only while a city is ordered and not yet placed. Read,
+not measured.
+
 ## Parked by item 1275, 2026-09-30 — the route's other end
 
 (1287) **`Unit::end_trade_route@005e3bd0`'s city arm**: `delivered`
@@ -2576,6 +2585,13 @@ reach.
 check that the window is taken** (1275's Loop line): run491 and run494
 are one window taken twice for one move, because 1264's build moved
 1275's word before either landed. One reach.
+
+(1296) **A widening's `firsts` cannot tell a quiet block from one that
+parts only on standing keys** (1286's Loop line): run500's word block
+read "parts on no key first" while it parted on group orders that stood
+from the window's first block — the orders the word's own group attack
+reads. A per-block parting count beside the firsts would say which. One
+reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

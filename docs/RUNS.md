@@ -12414,3 +12414,44 @@ trace (38,350,016, `a86ba3c03e34d41a…`) were copied into `Logs` as
 establishment recompute the goods agree on every block, and 42 keys part
 (the human's standing gather rows and the records `LEADERS=2` does not
 print). The trace carries no function coverage (its window is empty).
+
+## run500 — run470's game at run491's detail over blocks 8781..9037: the third map's word 8786 at Toughest widened (2026-09-30, item 1286)
+
+**What it is.** run491's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8781..9037, `!quit` at 9051. The word's frame 8786 writes block
+8787: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run500 \
+    --map 7 --end-frame 9051 --timeout 4800 --log-window 8781 9038 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1286's city
+count moved Great Sahara at Toughest's word from 8377 to 8786; run491 ends
+at block 8433 and run470 prints `MISC` alone. No other lane was on this map.
+
+**Taken** 08:10:53–08:32 in one take; `ron_lane_state` read `stale` (pid
+90766 dead) and the launch took it over. Waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,294 s from launch to
+exit, 9,052 frames, map 7 and seed 12345 verified, five files restored. The
+dump (546,069,213 bytes, sha256 `54955d34c770f518…`) and the trace
+(49,026,496, `1196c40ed1ebabca…`) were moved into `Logs` as
+`gamelog-run500-greatsahara-toughest-8786.txt` and `rontrace-run500.log`.
+The disk had 41 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 9,052 identical |
+| window blocks | 257, 8781..9037, and the closing block 9052 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run500_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 1,816 keys: 140 stand on 8781 (run491's families; who=1's group
+orders `1/73`..`1/75`, id 8698116 against 8704516, and a dozen units'
+`orders_x`/`orders_y` 24 apart, from the gap past 8433), who=1's make list
+parts on 8782 and 8785, and nothing parts first on the word's block 8787.
+The coverage driver walks 8785..8789 and the compared pin 8785..8788.
