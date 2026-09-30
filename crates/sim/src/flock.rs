@@ -414,6 +414,18 @@ mod tests {
         s.frame = 1000;
         let before = s.rng;
         let (cx, cy) = (10, 12);
+        // Every cell a wood but the given one, so the fourth cell — the
+        // wood — is never the first.
+        for y in 0..s.world.height() {
+            for x in 0..s.world.width() {
+                if (x, y) != (cx, cy) {
+                    let c = Cell::new(x, y);
+                    let mut d = s.world.cell_data(c);
+                    d.flags |= cell::FOREST;
+                    s.world.set_cell_data(c, d);
+                }
+            }
+        }
         s.add_flock(Pos::new(cx * 4 + 2, cy * 4 + 2), Some(1), 3);
         assert_eq!(s.rng, rolled(before, 6 + 3 * 10), "36 draws");
         let b = birds(&s);
@@ -435,6 +447,17 @@ mod tests {
                 "the given cell is flown first"
             );
             assert_eq!((g.at.y - 0x80).div_euclid(UNITS_PER_CELL), cy);
+            let Body::AirAttackGround(w) = s.units[u].orders[3].body else {
+                panic!("an air attack on the ground");
+            };
+            let wood = Cell::new(
+                (w.at.x - 0x80).div_euclid(UNITS_PER_CELL),
+                (w.at.y - 0x80).div_euclid(UNITS_PER_CELL),
+            );
+            assert!(
+                wood != Cell::new(cx, cy) && s.world.cell_data(wood).flags & cell::FOREST != 0,
+                "the wood is flown last"
+            );
             assert_eq!(s.units[u].airframe.z, s.units[u].airframe.last_z + 200);
         }
         assert_eq!(s.flock_stamp[1], 1000);
