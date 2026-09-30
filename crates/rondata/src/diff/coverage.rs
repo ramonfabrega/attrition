@@ -677,6 +677,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r458 = crate::testenv::dump(super::third::SAHARA_END);
     let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
     let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
+    let r483 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7070);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1326,6 +1327,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_5783;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run476 carries the third map's word 5782 at Toughest");
+        frames += n;
+    }
+    // **And its word 7070, on run483** (item 1251): the frame writes block
+    // 7071, and the window is it with two either side.
+    if let Some(p) = &r483 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_7071;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run483 carries the third map's word 7070 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

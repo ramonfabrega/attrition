@@ -7322,13 +7322,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
-    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241).
+    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
+    // word 7070 on run483 over 7065..7321 (item 1251).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run476_s_word_frame_is_widened_whole"),
-        1241,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_5782),
+        Some("run483_s_word_frame_is_widened_whole"),
+        1251,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7070),
     ),
 ];
 

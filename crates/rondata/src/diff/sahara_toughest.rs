@@ -52,6 +52,17 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_5782: (i64, i64) = (5_777, 6_033
 /// **The word's block, 5783**: frame 5782 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_5783: i64 = 5_783;
 
+/// run483: run470's game at run476's detail over blocks 7065..7321, the
+/// word 7070's widening (item 1251) — six blocks before the word's block
+/// 7071 and 250 after, on the click-free lane.
+pub(crate) const TOUGHEST_WORD_7070: &str = "gamelog-run483-greatsahara-toughest-7070.txt";
+
+/// **run483's window** (item 1251): blocks 7065..7321.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_7070: (i64, i64) = (7_065, 7_321);
+
+/// **The word's block, 7071**: frame 7070 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_7071: i64 = 7_071;
+
 /// run482: run470's game at `end:MISC,LEADERS=2` over blocks 1..5378 —
 /// every leader's goods record, `LeaderDataEncrypt::log_data` and the
 /// gather-slot arrays beside it, on every frame the dark gap between run469
@@ -90,6 +101,17 @@ pub(crate) fn great_sahara_toughest_5782_window() -> Option<crate::diff::harness
     )
 }
 
+/// run483's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_7070`], walked as
+/// run476's are (item 1251).
+pub(crate) fn great_sahara_toughest_7070_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run483",
+        (TOUGHEST_WORD_7070, WIDENING_GREAT_SAHARA_TOUGHEST_7070.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_7070,
+        TOUGHEST_WORD_BLOCK_7071,
+    )
+}
+
 /// run482's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GOODS`], walked as
 /// run471's are (item 1251): the goods of every leader from block 1.
 pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -104,16 +126,16 @@ pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harnes
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run476 since item 1241 (run471 before it). `coverage`'s compared pin
+/// on run483 since item 1251 (run476 from item 1241, run471 before it). `coverage`'s compared pin
 /// walks these blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
     let word = THIRD_WORD_GREAT_SAHARA_TOUGHEST;
     toughest_window_over(
-        "run476",
-        (TOUGHEST_WORD_5782, WIDENING_GREAT_SAHARA_TOUGHEST_5782.0),
+        "run483",
+        (TOUGHEST_WORD_7070, WIDENING_GREAT_SAHARA_TOUGHEST_7070.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_5783,
+        TOUGHEST_WORD_BLOCK_7071,
     )
 }
 
@@ -430,6 +452,76 @@ mod tests {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees on 5783");
         }
         pin_eq!(w.firsts.len(), 147, "every key parted on run476");
+    }
+
+    /// **The third map's word at Toughest, 7070, widened whole** (item
+    /// 1251): [`great_sahara_toughest_7070_window`] over run483's blocks
+    /// 7065..7321, both directions, every record run476's detail prints.
+    /// The word's frame writes block 7071. No mechanism is named.
+    #[test]
+    fn run483_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_7070_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 257, "run483 whole: blocks 7065..7321");
+        pin!(
+            w.missing.is_empty(),
+            "run483 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 7065 stands on 129 keys**: run476's families — `form`,
+        // the human's census and city rows, `SITE[i].reg`, the make list's
+        // `city` one over — and three of who=1's that part in the gap past
+        // run476: wealth 161 against 162, its `leftover` 1584 against 48,
+        // and `MAKE[4].val` 1431372 against 1228956.
+        pin_eq!(
+            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
+            Some("7065: ours 161 theirs 162"),
+            "who=1's wealth stands"
+        );
+        pin_eq!(
+            row(1, -1, "leader:leftover[2:wealth]").as_deref(),
+            Some("7065: ours 1584 theirs 48"),
+            "who=1's wealth leftover stands"
+        );
+        pin_eq!(
+            row(1, -1, "leader:MAKE[4].val").as_deref(),
+            Some("7065: ours 1431372 theirs 1228956"),
+            "who=1's fifth make row stands"
+        );
+        // **The word's block 7071 is quiet**: nothing parts between the
+        // standing block and 7075. Frame 7070's extra draws are one road
+        // search, `1/52`'s — ours 3204 `PathFinder::calc_road_cost+0x46`
+        // against the original's 2543 — and no record prints a search.
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(7065, 129)],
+            "the blocks keys first part on, to three past the word's"
+        );
+        pin_eq!(w.firsts.len(), 745, "every key parted on run483");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):

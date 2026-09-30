@@ -11950,3 +11950,86 @@ The disk had 51 GB free after.
 It parts on 1,296 keys: 103 stand on 5777, who=1's make list parts on 5779
 and 5781, and on the word's block 5783 who=1 queues one more unit at
 `1/2017` than the original does.
+
+## run482 — run470's game at `LEADERS=2` over blocks 1..5378: every leader's goods through the dark gap (2026-09-30, item 1251)
+
+**What it is.** run470's lobby on the click-free lane, `cover=0`, the
+detail `end:MISC,LEADERS=2`, blocks 1..5378, `!quit` at 5392. `LEADERS=2`
+is `LeaderData::log_data`'s base fields and its detail-2 block: the
+encrypted goods (`bucket`, `leftover`, `resource_cap`, `over_cap`,
+`resources`, `income`, `rate`, `bonus` for each of the six), `escrow_rate`,
+`escrow`, `tributes`, `econ`, `base_rate`, `gather_slots`,
+`filled_gather_slots` and `gather_slots_high` — about sixty lines a leader
+a frame (`docs/AI.md` §99.8).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run482 \
+    --map 7 --end-frame 5392 --timeout 4800 --log-window 1 5378 \
+    --detail end:MISC,LEADERS=2 --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Who=1's food stood 36
+short on run471's first block, 5371, and on run476's; no dump of this game
+prints a leader's goods between run468's start and 5371 — run469 is
+`LEADERS=1` (the score) to 1850 and run470 `MISC` alone.
+
+**Taken** 03:23:05–03:26:29 in one take, on a stale lock (run480's pid,
+lane 1243's, dead; I waited on it for one minute) with no runner or game
+alive; waited on with `waitrun.sh`: `success: true`, exit 0, 180 s from
+launch to exit, 5,393 frames, map verified, settings restored. The dump
+(55,513,494 bytes, sha256 `d27ef2e2675863fa…`) and the trace (26,175,680,
+`6d5b659d62ba4c25…`) were copied into `Logs` as
+`gamelog-run482-greatsahara-toughest-goods.txt` and `rontrace-run482.log`.
+The disk had 50 GB free.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 5,393 identical |
+| window blocks | 5,378, 1..5378 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run482_s_goods_are_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+Before item 1251 who=1's food parted on block 4577 (ours 161 against 197),
+Empire's price; after it the goods agree on every block and the leader rows
+that part are the human's `filled_gather_slots` alone.
+
+## run483 — run470's game at run476's detail over blocks 7065..7321: the word 7070 widened (2026-09-30, item 1251)
+
+**What it is.** run476's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 7065..7321, `!quit` at 7335. The word's frame 7070 writes block
+7071: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run483 \
+    --map 7 --end-frame 7335 --timeout 4800 --log-window 7065 7322 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** The word moved to
+7070 when `get_cost`'s library-line tail was built (`docs/AI.md` §99.8);
+run476 ends at block 6033 and run470 prints `MISC` alone, so no dump of this
+game holds a per-frame record at 7071.
+
+**Taken** 03:55:07–04:14:33 in one take, on a stale lock (run482's pid,
+dead) with no runner or game alive; waited on with `waitrun.sh`: `success:
+true`, exit 0, 1,139 s from launch to exit, 7,336 frames, map verified,
+settings restored. The dump (512,875,389 bytes, sha256
+`4158994b0af0af17…`) and the trace (40,564,128, `d53751a749a6d8ea…`) were
+copied into `Logs` as `gamelog-run483-greatsahara-toughest-7070.txt` and
+`rontrace-run483.log`. The disk had 49 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 7,336 identical |
+| window blocks | 257, 7065..7321 |
+| `GAME INFO` | `DIFFICULTY 5` |
+
+**What it holds**: `run483_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 745 keys: 129 stand on 7065 — run476's families, and who=1's
+wealth 161 against 162, its `leftover` 1584 against 48 and `MAKE[4].val`
+1431372 against 1228956 — and nothing parts again until 7075: the word's
+block 7071 is quiet. The compared pin walks its 7069..7072.
