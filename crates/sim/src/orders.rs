@@ -6699,9 +6699,12 @@ impl Sim {
         self.set_anim(u, work, false, true);
         let bpos = self.buildings[b].pos;
         let here = self.units[u].pos;
-        self.units[u]
-            .movement
-            .set_heading(find_angle(bpos.x - here.x, bpos.y - here.y));
+        // `Unit::do_build@005eebf0:155` turns the builder through
+        // `Unit::set_angle`, whose turn of 90° or more toggles the mirror
+        // of the group it leads — the `@build`'s own group. That flag is
+        // the layout's `facing` on the group's next move (item 1330:
+        // chapter forty-seven's builders, `facing` 1 on block 624).
+        self.unit_set_angle(u, find_angle(bpos.x - here.x, bpos.y - here.y));
         let amount = build::builder_amount(
             &self.tuning,
             self.buildings[b].is_under_attack(),
