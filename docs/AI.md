@@ -12912,8 +12912,11 @@ coin both sides.
 spends two `Guy::set_anim+0x97a < Unit::move_step+0x823`, the AI scout
 `1/0`'s (type 69, `SCOUT`, in no army), where the original goes on to
 `Guy::set_anim+0x97a < Guy::inc_time+0x271`. `1/0` agrees on every field
-of run500 to 9037. No mechanism is named. Widened on run511 (§99.13's
-last paragraph).
+of run500 to 9037. No mechanism is named. **Widened on run511**
+(9318..9574): 2,069 keys; 571 stand on 9318 from the gap 9038..9317, 28 of
+who=1's positions among them (`1/69` at (33412, 19136) against (33056,
+18955)), the Senator agreeing to 9469; on 9324 `1/0` collides with `1/69`
+in ours alone and stops.
 
 **What this has *not* established.** What Forced March does:
 `UnitData::speed@0060aae0`'s arm, `forced_march_speed × unit_move_speed`

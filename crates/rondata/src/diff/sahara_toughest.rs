@@ -976,15 +976,48 @@ mod tests {
             "run511 carries every key: {:?}",
             w.missing
         );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **571 stand on the window's first block**, parted in the dark
+        // gap 9038..9317 no dump prints: 28 of who=1's units' positions
+        // among them — `1/69`, a King's Longbowman of the army, ahead on
+        // its westward march in the original — where the Senator `1/80`,
+        // whose Forced March ran 9112..9262, agrees to 9469.
+        pin_eq!(
+            row(1, 69, "pos").as_deref(),
+            Some("9318: ours (33412,19136) theirs (33056,18955)"),
+            "an army unit's position, standing"
+        );
+        // **The word 9323's block 9324**: the AI scout `1/0` collides with
+        // `1/69` and stops in ours alone — its two arrival stands.
+        pin_eq!(
+            row(1, 0, "collide_o").as_deref(),
+            Some("9324: ours 69 theirs -1"),
+            "the scout's collision on the word's block"
+        );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9324 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            Vec::<(i64, usize)>::new(),
+            [
+                (9318, 571),
+                (9319, 15),
+                (9320, 15),
+                (9321, 11),
+                (9322, 5),
+                (9323, 4),
+                (9324, 39),
+                (9325, 32),
+                (9326, 7),
+                (9327, 3)
+            ],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run511");
+        pin_eq!(w.firsts.len(), 2069, "every key parted on run511");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
