@@ -60,18 +60,66 @@ RON_LANE_LOCK=${RON_LANE_LOCK:-$RON_WINEPREFIX/.lane.lock}
 # minute after the game's exit in which its script is still moving the
 # log. A holder that is this shell is no refusal. `tools/explore/
 # test_lane_lock.py` fails on a capture script that writes before it takes.
+#
+# **A pid is a number the kernel hands out again** (parked 1180, the
+# twentieth pass, 2026-09-29). run426's lock named pid 15593; its game had
+# exited and an unrelated `next-server` held the number, so `kill -0` said
+# the lane was held and run428 was refused with no wine running. The lock
+# carries each pid's start time, as `stamp <pid> <ps -o lstart=>` lines
+# under the three it had, and a pid that lives under another start time is
+# dead for the lane. A lock with no stamp is read as it always was.
+# `ron_lane_state` says what a reader of the file cannot: `free`, `stale`
+# with the reason, or `held by` with the holder — a lock whose pids were
+# both dead read as a busy lane six times in one tranche.
+_ron_pid_started () {
+  ps -o lstart= -p "$1" 2>/dev/null | sed 's/^ *//;s/ *$//'
+}
+
+_ron_pid_holds () {
+  # 0 when $1 is a live pid and the one the lock stamped; 1 when it is
+  # dead; 2 when it lives under another start time (recycled).
+  local pid=$1 stamped
+  kill -0 "$pid" 2>/dev/null || return 1
+  stamped=$(sed -n "s/^stamp $pid //p" "$RON_LANE_LOCK" | sed -n 1p)
+  [[ -z "$stamped" || "$stamped" == "$(_ron_pid_started "$pid")" ]] || return 2
+  return 0
+}
+
 _ron_lane_holder () {
   # Prints the live pid that holds the lane, and returns 0; returns 1 when
   # the lane is free, stale, or held by this shell.
   [[ -r "$RON_LANE_LOCK" ]] || return 1
   local pid
   for pid in "$(sed -n 1p "$RON_LANE_LOCK")" "$(sed -n 3p "$RON_LANE_LOCK")"; do
-    if [[ "$pid" == <-> && "$pid" != "$$" ]] && kill -0 "$pid" 2>/dev/null; then
+    if [[ "$pid" == <-> && "$pid" != "$$" ]] && _ron_pid_holds "$pid"; then
       print -r -- "$pid"
       return 0
     fi
   done
   return 1
+}
+
+ron_lane_state () {
+  # One line for a reader: `free`, `stale: …` or `held by … (pid N, …)`.
+  if [[ ! -r "$RON_LANE_LOCK" ]]; then
+    print -r -- "free"
+    return 0
+  fi
+  local pid held why=""
+  if held=$(_ron_lane_holder); then
+    print -r -- "held by $(sed -n 2p "$RON_LANE_LOCK") (pid $held, $(ps -o comm= -p "$held" 2>/dev/null))"
+    return 0
+  fi
+  for pid in "$(sed -n 1p "$RON_LANE_LOCK")" "$(sed -n 3p "$RON_LANE_LOCK")"; do
+    [[ "$pid" == <-> ]] || continue
+    _ron_pid_holds "$pid"
+    case $? in
+      0) why+=" pid $pid is this shell;" ;;
+      1) why+=" pid $pid is dead;" ;;
+      2) why+=" pid $pid is recycled ($(ps -o comm= -p "$pid" 2>/dev/null), started $(_ron_pid_started "$pid"));" ;;
+    esac
+  done
+  print -r -- "stale:${why} last held by $(sed -n 2p "$RON_LANE_LOCK"); the next launch takes it over"
 }
 
 _ron_lane_free () {
@@ -102,6 +150,12 @@ _ron_lane_write () {
   print -r -- "$1" > "$RON_LANE_LOCK"
   print -r -- "${RON_LANE_HOLDER:-${ZSH_ARGZERO:-$0}} since $(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$RON_LANE_LOCK"
   if [[ -n "$2" ]]; then print -r -- "$2" >> "$RON_LANE_LOCK"; fi
+  local pid
+  for pid in "$1" "$2"; do
+    if [[ "$pid" == <-> ]]; then
+      print -r -- "stamp $pid $(_ron_pid_started "$pid")" >> "$RON_LANE_LOCK"
+    fi
+  done
 }
 
 ron_lane_take () {

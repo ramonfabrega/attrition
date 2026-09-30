@@ -34,6 +34,7 @@ SUITES = (
     'test_memcap',
     'test_lab_demo',
     'test_branch_experiment',
+    'test_captures_union',
 )
 
 if __name__ == '__main__':

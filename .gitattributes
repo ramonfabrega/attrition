@@ -4,3 +4,9 @@
 # `docs_guard::no_runs_section_heading_stands_twice` catches the one thing
 # it can get wrong.
 docs/RUNS.md merge=union
+# The capture stanzas are the same shape: one stanza a capture, appended,
+# and `ccc update` refused on two lanes' appends four times in one tranche
+# (parked 1161, the twentieth pass). `tools/explore/test_captures_union.py`
+# fails on a run that heads two stanzas, and on any specification listed
+# here: a document amended in place does not merge by union.
+tools/gamelog/captures.txt merge=union

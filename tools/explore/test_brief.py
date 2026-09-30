@@ -139,12 +139,48 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertLess(text.index("Read `1/2`'s path"), text.index('## Landing'))
         self.assertGreater(text.index("Read `1/2`'s path"), text.index('## Build'))
 
+    def carried(self, headline, text):
+        """The item's headline is in the brief, however the queue wrapped
+        it: a line break inside a title is the queue's and no defect."""
+        self.assertTrue(' '.join(headline.split()) in ' '.join(text.split()),
+                        f'the brief does not carry the headline: {headline}')
+
     def test_the_live_queue_composes(self):
         queue = (ROOT / 'docs/QUEUE.md').read_text()
         for item, headline in brief.open_items(queue):
             kind = 'chapter' if 'Chapter' in headline else 'residue'
             text = self.compose(item, kind, queue=queue)
-            self.assertIn(headline, text)
+            self.carried(headline, text)
+
+    def test_a_title_the_queue_wraps_composes(self):
+        # Booking 1174 (parked 1188): item 1185's bold title ran past the
+        # line and the commander wrapped it, as every other line of the
+        # queue is wrapped; the live test compared the headline with its
+        # whitespace joined against the item as written, the booking gate
+        # was red at its first step, and the reflex had not run this file.
+        queue = QUEUE.replace(
+            "1127. **East Indies' second word: frame 6151, ours 9 draws against 8**\n"
+            "    (1120)",
+            "1127. **East Indies' second word: frame 6151, ours 9 draws\n"
+            "    against 8** (1120)")
+        self.assertNotEqual(queue, QUEUE)
+        self.assertIn((1127, "East Indies' second word: frame 6151, ours 9 draws against 8"),
+                      brief.open_items(queue))
+        text = self.compose(1127, queue=queue)
+        self.carried("East Indies' second word: frame 6151, ours 9 draws against 8", text)
+        lanes = self.compose(1133, queue=queue).split('## The other lanes')[1].split('\n## ')[0]
+        self.assertIn('frame 6151, ours 9 draws against 8', lanes)
+
+
+class TheReflexReadsTheQueue(unittest.TestCase):
+    def test_the_reflex_runs_the_suites_that_read_the_queue(self):
+        # Parked 1188: `tools/guard.sh` ran no offline test, so a queue
+        # line these suites refuse was green on the reflex and red at the
+        # booking gate's first step, with a worker already cut off it.
+        guard = (ROOT / 'tools/guard.sh').read_text()
+        code = '\n'.join(l for l in guard.split('\n') if not l.lstrip().startswith('#'))
+        for suite in ('test_brief', 'test_queueledger'):
+            self.assertIn(suite, code)
 
 
 if __name__ == '__main__':

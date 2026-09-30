@@ -9,8 +9,13 @@
 # against a pin are the commander's to turn green at the merge
 # (`tools/release_gate.py`, `COMMANDERS_LINES`), so a lane skips them here
 # and runs everything else. `release_gate.py --lane` sets it.
+#
+# The two offline suites that read the queue run first, in under a second
+# (parked 1188, the twentieth pass): a queue line `test_brief` refused was
+# green here and red at the booking gate's first step.
 set -e
 cd "$(dirname "$0")/.."
+(cd tools/explore && python3 -m unittest -q test_brief test_queueledger)
 if [ -n "$RON_LANE" ]; then
   cargo test -q -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form
 else

@@ -172,6 +172,92 @@ class TakeFirst(LaneLock):
         self.assertIn(f'pid {script}', err)
 
 
+class Liveness(LaneLock):
+    """A pid is a number the kernel hands out again (parked 1180, the
+    twentieth pass). run426's lock named pid 15593; the game had exited and
+    an unrelated `next-server` held the number, so `kill -0` said the lane
+    was held and run428 was refused with no wine running. The lock carries
+    each pid's start time now, and a pid that lives under another start
+    time is dead for the lane. And a lock whose pids were both dead read as
+    a busy lane to a worker who looked at the file, six times in one
+    tranche: `ron_lane_state` says which it is."""
+
+    def shell(self, body, **extra):
+        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+                   RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='test')
+        env.pop('RON_LANE_WAIT', None)
+        env.pop('RON_LANE_FORCE', None)
+        env.update(extra)
+        return subprocess.run(['zsh', '-c', f'source {SCRIPT}; {body}'],
+                              env=env, capture_output=True, text=True, timeout=60)
+
+    def started(self, pid):
+        return subprocess.run(['ps', '-o', 'lstart=', '-p', str(pid)],
+                              capture_output=True, text=True).stdout.strip()
+
+    def test_a_recycled_pid_is_a_stale_lock(self):
+        pid = self.hold(20)
+        self.lock.write_text(f'{pid}\nrun426 since then\nstamp {pid} Mon Jan  1 00:00:00 2001\n')
+        rc, err, _ = self.launch()
+        self.assertEqual(rc, 0, err)
+        self.assertNotEqual(self.holder_pid(), str(pid))
+
+    def test_a_live_pid_under_its_own_stamp_holds(self):
+        pid = self.hold(20)
+        self.lock.write_text(f'{pid}\nrun426 since then\nstamp {pid} {self.started(pid)}\n')
+        rc, err, _ = self.launch()
+        self.assertEqual(rc, 75)
+        self.assertIn(f'pid {pid}', err)
+
+    def test_a_launch_stamps_what_it_writes(self):
+        holder = subprocess.Popen(
+            ['zsh', '-c', f'source {SCRIPT}; ron_lane_take; echo taken; sleep 20'],
+            env=dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+                     RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='the first lane'),
+            stdout=subprocess.PIPE, text=True)
+        self.holders.append(holder.pid)
+        try:
+            self.assertEqual(holder.stdout.readline().strip(), 'taken')
+            text = self.lock.read_text()
+            self.assertIn(f'stamp {holder.pid} {self.started(holder.pid)}', text)
+            # The first three lines are what they were: a reader by line
+            # number (`sed -n 1p`, `2p`, `3p`) is not moved by the stamps.
+            self.assertEqual(text.split('\n')[0], str(holder.pid))
+            self.assertEqual(text.split('\n')[2], str(holder.pid))
+        finally:
+            holder.kill()
+            holder.wait()
+
+    def test_the_state_of_a_free_lane(self):
+        run = self.shell('ron_lane_state')
+        self.assertEqual(run.stdout.strip(), 'free')
+
+    def test_the_state_of_a_dead_holder(self):
+        pid = self.hold(20)
+        os.kill(pid, 9)
+        for _ in range(50):
+            if not alive(pid):
+                break
+            time.sleep(0.1)
+        run = self.shell('ron_lane_state')
+        self.assertTrue(run.stdout.startswith('stale'), run.stdout + run.stderr)
+        self.assertIn(str(pid), run.stdout)
+
+    def test_the_state_of_a_recycled_pid(self):
+        pid = self.hold(20)
+        self.lock.write_text(f'{pid}\nrun426 since then\nstamp {pid} Mon Jan  1 00:00:00 2001\n')
+        run = self.shell('ron_lane_state')
+        self.assertTrue(run.stdout.startswith('stale'), run.stdout + run.stderr)
+        self.assertIn('recycled', run.stdout)
+
+    def test_the_state_of_a_held_lane(self):
+        pid = self.hold(20)
+        run = self.shell('ron_lane_state')
+        self.assertTrue(run.stdout.startswith('held'), run.stdout + run.stderr)
+        self.assertIn(f'pid {pid}', run.stdout)
+        self.assertIn('test since now', run.stdout)
+
+
 WRITES = re.compile(
     r'perm_probe |mapstyle\.py|profile\.py|checkini\.py|seedini\.py|setlog\.py'
     r'|window\.py" (?:stage|frames)|> "\$G/|rm -f "\$G')
