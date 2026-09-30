@@ -3606,9 +3606,10 @@ impl Sim {
             if !self.units[u].alive() || self.units[u].owner != who {
                 continue;
             }
+            self.update_gpiece(u);
             let pos = self.units[u].pos;
             let angle = self.units[u].movement.heading;
-            self.units[u].movement.set_facing(angle);
+            self.units[u].movement.facing = angle;
             self.units[u].movement.body.pos = pos;
             self.coll_follow(u);
             self.crew_des(u, pos, angle, true);
