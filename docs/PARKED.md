@@ -146,6 +146,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1297, 2026-09-30 — the leader's scouts
+
+(1303) **`LeaderData +0x988 scouts` has no writer in this crate**: the
+original keeps it in `Leader::track_unit_type` for types with `role &
+0x10` that are neither citizens nor scholars; its one reader is the
+Lakota food bonus in `calc_gather`, not modelled here. It stands at 0
+against 3 on every East Indies window since 11323, and nothing reads it
+on a non-Lakota map.
+
 ## Parked by item 1281, 2026-09-30 — the age's snap
 
 (1298) **The merchant family's over-time piece** (run490's 11329):
@@ -2574,7 +2583,12 @@ line): the dump's `num_queued` and the make list's `t` are
 `TypeIndex`-keyed, `num_units` and the harness's keys record-keyed, and
 1228's journal named `num_queued[84]` "Elite Javelineers" from the make
 list's 84 — it is Pikemen. A brief row: a type number names its keying
-and the name `unitrules.xml` gives it. One reach.
+and the name `unitrules.xml` gives it. One reach. **Again** (1297's
+Loop line): 1281's booking called `1/35` "the scout" and it was a
+Caravel — one grep away (the `GUY` block's `type`, then
+`enums/TypeIndex.txt`) — and the unit's domain decided the arm. A brief
+row: name each unit a booking names by its `TypeIndex` and domain before
+reading its chain. Two reaches.
 
 (1273) **The coverage pin counts a record read when its scanner parses
 it** (1257's Loop line): `widen_civilians` read `AMMO` for presence

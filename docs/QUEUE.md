@@ -12,18 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: nineteen landings.
-**East Indies 8907 → 11549**; **Great Sahara at Toughest opens at 5376,
-now 8786**; **chapters forty-three to forty-five opened and closed**
-(2200, 1450, 1650); **forty-six opens at 1902**. 1222: the held-out map, 1851/1850, for the record.*
+*2026-09-30, the commander after the twentieth pass: **twenty landings;
+the twenty-first steering pass is due.** East Indies 8907 → 11637; Great
+Sahara at Toughest opens at 5376, now 8786; chapters forty-three to
+forty-five opened and closed; forty-six opens at 1902. 1222: the held-out
+map, 1851/1850, for the record.*
 
-- **Lanes: 1297, 1291 live; 1293 (8786 → 8856) waits on the user**: its
+- **No lane is refilled.** 1291 (chapter forty-six) is live; 1302 (East
+  Indies) is unstarted. **1293 (8786 → 8856) waits on the user**: its
   update of the base conflicts in `sahara_toughest.rs`, and its session's
   classifier refused the merge as destructive; nobody merged it.
-- **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
-  and a note of what the item alone needs.
-- **Two lanes that touch `coverage.rs` conflict at the merge**: the
-  second takes `ccc update` and gates again (three this run).
+- **For the pass**: `ccc clear --then` was consumed twice without a
+  clear, so the tenth-landing seam was never taken; five merge conflicts
+  (`coverage.rs` twice, `TRANSPORT.md`, `sahara_toughest.rs` twice): the
+  second lane takes `ccc update` and gates again.
 - **A chapter is three arms of one staging at most**, from the arms a
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
@@ -32,13 +34,13 @@ now 8786**; **chapters forty-three to forty-five opened and closed**
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w11549 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w11637 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8786 of 15,432
 Golden: ch46 w1902 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1297, 1293 and
-1291; nineteen landings counted from the twentieth pass's commit.**
+**Opener: the twenty-first Fable steering pass — twenty landings since
+the twentieth's commit; 1293 waits on the user's word.**
 
 ## The queue
 
@@ -48,12 +50,12 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1297. **East Indies' second word: frame 11549, ours 11 draws against 4**
-    (1281), at index 0: ours `Unit::think_scout+0x941` (then six
-    `+0xaba`, all `1/35`'s) where the original spends `Guy::set_anim
-    +0x97a < Unit::do_guard+0x7f4`; widened on run490 (block 11550):
-    `1/35`'s `order:kind` ours 3 against 2, and its path. Standing from
-    11323: who=1's `scouts` 0 against 3. No mechanism is named.
+1302. **East Indies' second word: frame 11637, ours 2 draws against 38**
+    (1297), at index 1: the original spends eighteen `Guy::init_real
+    +0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` and seventeen
+    idle stands; widened on run506 (block 11638): who=1's eighteen
+    Peltasts `1/93`, `1/104`..`1/120` are the dump's alone, and group 70
+    lists 37 against 19. No mechanism is named.
 
 1293. **Great Sahara at Toughest's word: frame 8786, ours 10 draws
     against 49** (1286), at index 1: the original spends
