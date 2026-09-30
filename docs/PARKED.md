@@ -146,6 +146,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1223, 2026-09-30 — the landing's arms no walk holds
+
+(1236) **The crew loop of `eject_contents`**: unreachable, since the five
+carriers are `CREW_SIZE 0` and `UBER_SIZE 1`.
+
+(1237) **The dead boat's sixty-fourth-frame repaint** (from 1198):
+built, held by its unit test alone — no reader of a bare bit on a water
+cell in this crate; run466's second barge crosses the ghost on
+1561..1850, on disk for when chapter forty-three's word passes it.
+
+(1238) **`disembark_squad`, a squad's passengers coming ashore as a
+group**: built, held by its unit test alone until chapter forty-three's
+word passes the landing on 1901.
+
+(1239) **A refused passenger (`num_inside != 0`)**: the original's boat
+lives; no staging crowds a shore.
+
 ## Parked by item 1214, 2026-09-29 — the head's unheld arms
 
 (1229) **The coastal-refined region in `check_target`'s head**: the
@@ -240,14 +257,6 @@ unpacks in place and strikes a building, and the original's crew roll at
 (1204) **`1/2000`'s `raid_stamp`**, written on 671 as enemy units stand
 on the City's land; nothing here writes it.
 
-## Parked by item 1191, 2026-09-29 — the dead boat's other arms
-
-(1198) **A boat that dies stepping ashore** (TRANSPORT §6.4): 1191's
-mutation B (the dead boat takes only the arrival arm) and C (every unit
-that dies in its own work) are held by no walk, and its
-sixty-fourth-frame collision repaint, which `Guy::process` would give
-it, is skipped here.
-
 ## Parked by item 1189, 2026-09-29 — the make list's standing rows, and the Indian arm
 
 (1195) **who=1's make list stands on every Great Sahara window**
@@ -311,14 +320,6 @@ disk parts on it.
 
 (1179) **Group 68's `speed`/`new_speed` on run418's 14587, ours 26
 against 0** (AI §97): older than 1171, and no draw reads it there.
-
-## Parked by item 1164, 2026-09-29 — the other exit
-
-(1175) **`come_out`'s building arm zeroes the body's speeds** (TRANSPORT
-§6.4, AI §95): `Sim::come_out` in `garrison.rs` builds the movement from
-`Movement::at` and zeroes the speeds except a plane's; the original goes
-through the same `set_new_location` as the landing and keeps them. Not
-built: no row on the word's frames names it.
 
 ## Parked by item 1163, 2026-09-29 — the rares' count
 
@@ -2130,7 +2131,11 @@ takes none. It rides the rules lane's next capture as a second stanza;
 the widening skips the death list on a capture that did not ask for it
 once that says which. **The twentieth pass**: no capture of the tranche
 asked for both; it rides chapter forty-three's capture as a second
-stanza, in the commander's note (item 1223).
+stanza, in the commander's note (item 1223). **Settled by 1223**
+(run467): `DEATHS=1` beside `GROUPS=1` printed no `GROUPDATA` a second
+time, on a take with a ground death staged, so the two are not asked
+together. The harness half stays: the widening skips the death list on
+a capture that did not ask for `DEATHS`.
 
 (1114) **`a_constant_a_document_names_is_built_or_pinned` counts hex
 spellings only** (1109's Loop line): COMBAT §83.2 names `LOOKOUT` and
@@ -2327,7 +2332,15 @@ staged 1223's staged set as its "originals". The same lane's run466 was
 refused by the script's `flock` while `ron_lane_state` said stale: two
 locks, two answers. The lock could be held to the end of the restore,
 and the two locks be one. Repaired by hand from run467's
-`settings-backup/`. One reach.
+`settings-backup/`. **Again** (1223's Loop line): a wait keyed on the
+lane state alone refused one take on the flock and let another lane
+launch into a cleanup; a waiter should key on the flock or the runner's
+pid too. Two reaches.
+
+(1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
+line): only the singular `SEAM`, and `do_cast`'s captain check — the
+hypothesis on chapter forty-three's word — sits in a plural block. One
+reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
