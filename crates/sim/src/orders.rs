@@ -2286,8 +2286,12 @@ impl Sim {
         }
         // The recharging-melee gate: a recharging melee unit steps only an
         // order carrying the action bit, and never an ATTACK through here
-        // (ATTACK's own entry gate is `fight`'s).
+        // (ATTACK's own entry gate is `fight`'s). **An animal has none**:
+        // `Animal::work@005d7330` is `do_job` on the front order and the
+        // herd's sighting, and a flock's bird leaves `recharging` at 1 on
+        // every frame it flies (`crate::flock`).
         if let Some(o) = self.current_order(u).copied()
+            && !self.units[u].is_gaia()
             && o.index() != index::ATTACK
             && self.units[u].combat.recharging != 0
             && self.max_range_of(Obj::Unit(u)) == 0
@@ -4991,10 +4995,14 @@ impl Sim {
         //    which is what keeps a follower from marching into its
         //    neighbour rather than standing blocked beside it.
         //
-        //    SEAM: the flock of birds an invalid slot within `0x300`
-        //    Manhattan of an **ocean** cell adds — one sync-stream draw —
-        //    and the `cavarch_fight` call below it.
+        //    **And a slot in a wood flushes its birds** (`5e83f0`–`5e84cb`,
+        //    item 1293): within `0x300` Manhattan of the unit, a slot whose
+        //    cell is `FOREST` sends up a flock from a unit in a group —
+        //    [`Sim::group_flock`].
+        //
+        //    SEAM: the `cavarch_fight` call below it.
         if self.invalid_loc(u, mo.waypoint.tile(), false, false, false, false, false) != 0 {
+            self.group_flock(u, mo.waypoint);
             self.ungroup_move_order(u, gm.id);
             return;
         }

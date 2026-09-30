@@ -234,9 +234,10 @@ const UNREAD: &[(&str, &str)] = &[
     // counters (`docs/GOLDEN.md` §35), and they left the row. Item 1147
     // read `pop_cap`, which the third map's Peacocks had parted unseen.
     // Item 1209 read `agendas[scan]`, the bit `Unit::resolve_block` writes.
+    // Item 1293 read `flock_stamp`, the frame `Objects::add_flock` stamps.
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
+        "(int) ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic epochs_queued explored factory_queued factory_units flags fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -1387,6 +1388,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8787;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run500 carries the third map's word 8786 at Toughest");
+        frames += n;
+    }
+    // **And its word 8856, on the same capture** (item 1293): the frame
+    // writes block 8857, and the window is it with two either side.
+    if let Some(p) = &r500 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8857;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run500 carries the third map's word 8856 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

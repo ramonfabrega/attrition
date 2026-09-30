@@ -70,6 +70,7 @@ pub mod economy;
 pub mod farms;
 pub mod fight;
 pub mod fish;
+pub mod flock;
 pub mod form;
 pub mod gaia;
 pub mod garrison;
@@ -1130,6 +1131,11 @@ pub struct Sim {
     /// building of a player it is not at war with (`5fcdda`, item 1209);
     /// one direction only, where `treaty_on` writes both.
     pub agendas: Vec<Vec<i32>>,
+    /// `LeaderData::flock_stamp` (`+0x7b8`): the frame of the player's
+    /// last flock of birds, which `Objects::add_flock` reads to allow one
+    /// in 225 frames per player (`crate::flock`). The leader dump prints
+    /// it.
+    pub flock_stamp: Vec<i64>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
@@ -1563,6 +1569,7 @@ impl Sim {
             allied: vec![vec![false; players]; players],
             treaties: vec![vec![0; players]; players],
             agendas: vec![vec![0; players]; players],
+            flock_stamp: vec![0; players],
             defeated: vec![false; players],
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],

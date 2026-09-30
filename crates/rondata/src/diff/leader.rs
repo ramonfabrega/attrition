@@ -182,6 +182,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     out.push(("defense_mod".to_string(), i64::from(a.defense_mod)));
     out.push(("effective_pop".to_string(), i64::from(a.effective_pop)));
     out.push(("gather_stamp".to_string(), l.gather_stamp));
+    // `flock_stamp` (`+0x7b8`, item 1293): the frame of the player's last
+    // flock of birds (`sim::flock`).
+    out.push((
+        "flock_stamp".to_string(),
+        built.sim.flock_stamp.get(who).copied().unwrap_or(0),
+    ));
     out.push(("tech_frame".to_string(), a.tech_frame));
     out.push(("frame_attacked".to_string(), a.frame_attacked));
     out.push(("attacked_by".to_string(), i64::from(a.attacked_by)));
@@ -578,6 +584,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "defense_mod",
         "effective_pop",
         "gather_stamp",
+        "flock_stamp",
         "tech_frame",
         "gov",
         "gov_hero_frame",
