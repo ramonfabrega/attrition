@@ -1120,9 +1120,10 @@ mod tests {
             "the blocks keys first part on, the whole window"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 1802.
+        // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index: was 159.
         pin_eq!(
             w.firsts.len(),
-            159,
+            153,
             "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
     }
@@ -1179,13 +1180,14 @@ mod tests {
             Some("9765: ours 10 theirs 1"),
             "the crew figure the word's roll resets"
         );
+        // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9765 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9759, 168),
+                (9759, 162),
                 (9760, 1),
                 (9763, 2),
                 (9765, 2),
@@ -1194,7 +1196,8 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word 9764's"
         );
-        pin_eq!(w.firsts.len(), 1077, "every key parted on run529");
+        // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index: was 1077.
+        pin_eq!(w.firsts.len(), 1075, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
