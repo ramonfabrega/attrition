@@ -9849,9 +9849,30 @@ against 31, parting at index 25: ours spends four in the buildings phase
 where the original's next draw is `Farms::inc_time+0x1ae` (seed
 `0x8fad03fd`). **The value diff on block 713**: `1/6`'s `hits:damage`
 ours 8 against 0, `damage_frame` 712 against 0, `hits_left` 112 against
-120. `Sim::active` for a building reads `alive`, `combat` and health, and
+120. ~~`Sim::active` for a building reads `alive`, `combat` and health, and
 not whether it is finished, so `process_building_combat` lets a site
-shoot. That is a hypothesis for the next item, not a finding.
+shoot. That is a hypothesis for the next item, not a finding.~~ **Item
+1323: a site does not shoot**, and the round was ours alone. The
+original's T holds `attack_ox −1` and fires nothing from its laying to
+its death (its `recharging` climbs 0 → 56 with the builders' work and
+holds, `Wall::do_construct`'s bump), and `Build::process@0061edf0`
+returns before `do_attack` for a building that is not
+`WallData::is_active` (`flags & 4`; T's `flags` is 19) — `docs/COMBAT.md`
+§8.6 has the listing. Built in `process_building_combat`.
+
+**The word moves to 838**, ours 6 draws against 7, at index 1: the
+original spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where ours'
+next is `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Every row the
+widening held from 713 to 837 closes — 1/6's wound, and the walks of
+`0/3`, `0/4`, `1/3`, `1/4`, `1/5` and `1/7` that followed it — and no row
+opens before the word. **The value diff, walked back to block 838**:
+the Citizen `0/9` (added on 608, one of the builders `@move`d off on
+678), `orders.len` ours 1 against 0 and `orders_x/orders_y` ours (3864,
+36888) against (3840, 36864): the original's `0/9` stands at its
+`@move` point with no order on 838 and goes idle on 839 (`idle` 1), and
+ours still holds the move. Its chain parted long before: `order:kind`
+19 against 1 on 680, the position on 698, `path:length` 3 against 2 on
+745, `tolerance` 384 against 0 on 787. No mechanism is named.
 
 **The widening** is run514 whole (`[605, 1401)`): 517 rows and 8 pool
 rows, pinned as they stand. Before the word: the standing families and
@@ -9879,8 +9900,9 @@ forty-six's and forty-three's tests and the arms' unit tests
 | B3 (1299): the age's snap through `set_facing` again | exit 0 on the three chapters' walks and widenings; `an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not` alone |
 
 **What is not established.**
-- The word at 712: the next item's. That the site's round is ours
-  alone, and why, is its hypothesis.
+- ~~The word at 712: the next item's. That the site's round is ours
+  alone, and why, is its hypothesis.~~ Item 1323: ours alone, and
+  closed; the word is 838, `0/9`'s arrival.
 - The site's death past the word: the per-blow damage on a site (3
   against 4 on 706) and its progress loss.
 - The snap's `dest_angle` on a chapter: a unit left idle with its

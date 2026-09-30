@@ -1031,7 +1031,20 @@ knowing.
 
 A building with non-zero `type.attack` runs `do_attack` every frame it has a
 target, every 32nd frame (`(frame + o) & 0x1f == 0`) when it has none, and
-whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
+whenever the object adjacent to it (`near_o`) is in range. **Only a finished
+one** (item 1323): `Build::process@0061edf0` returns straight after
+`Wall::process` unless the building is active — `61ee1b` compares the
+vtable with `Build::vftable@00b42174` and reads `flags & 4` inline, else
+calls vslot `+0x4c`, which the PE holds as `0x472350`,
+`WallData::is_active` (`flags & 4` again) — and `61ee31` jumps to the
+epilogue at `0x6201c3`, past `do_attack` and everything after it. A site
+never shoots: run514's Tower site `0/2008` holds `attack_ox −1` from its
+laying to its death on 901 (`flags 19`, bit 4 clear), under who=1's
+squad from 681. Its `recharging` meanwhile counts **up**, one a frame
+while a builder works it (`Wall::do_construct@006434d0`, `+0x7a`, 0 on
+622 to 56 on 679, held once the builders walk off on 680), and
+`Build::activate@00623e20` zeroes it; this crate carries neither, and
+nothing reads the field on a site. `do_attack`:
 
 - *(second reading — the first draft had this inverted)* A building without
   ANTI_AIR, or a `LOOKOUT`/`OBSERVATIONPOST`: if `recharging` is non-zero,
