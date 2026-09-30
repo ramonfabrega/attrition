@@ -4969,6 +4969,108 @@ fn a_general_s_decoys_copy_the_armed_land_captains_near_it() {
     assert_eq!(sim.units[d].mana_burn, age + 1, "a decoy ages a frame");
 }
 
+/// **A computer's General standing in its army orders Create Decoys on
+/// the army's spellcaster turn, and the copies join that army** (item
+/// 1302; run346's `1/98`, `spell_time` 1 and `mana_burn` 1,000 on block
+/// 11539, six squads in its group 70 on 11638). `think_spellcaster`'s hero
+/// arm lays the cast at the General's own point, `QUEUE_FIRST`; it refuses
+/// while any decoy captain of its player stands, and while the General is
+/// moving. The army's standard line does not count a decoy.
+///
+/// Made to fail with the hero arm back at `return 0`, with the copies left
+/// out of the army, and with `num_decoys` not counted.
+#[test]
+fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
+    use crate::orders::{Body, spell};
+    let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+    sim.unit_types[general].cols.unit_flags2 |=
+        crate::ai_load::uflags2::GENERAL | crate::ai_load::uflags2::CASTER;
+    sim.nation[0].human = false;
+    sim.lobby.difficulty = 5;
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let near = sim.init_unit(0, foot, tile_pos(33, 30));
+    let slot = sim.init_army(0, None);
+    sim.army_add_unit(0, slot, near);
+    sim.army_add_unit(0, slot, g);
+    sim.army_normalize(0, slot);
+    assert_eq!(sim.army_of(g), Some(slot));
+    assert!(sim.think_spellcaster(g), "the hero arm casts");
+    match sim.units[g].orders.front().map(|o| o.body) {
+        Some(Body::Cast(c)) => {
+            assert_eq!(c.spell, spell::CREATE_DECOY);
+            assert_eq!((c.target, c.at), (None, sim.units[g].pos));
+        }
+        other => panic!("not a cast: {other:?}"),
+    }
+    let before = sim.units.len();
+    sim.cast_create_decoy(g);
+    let copy = before;
+    assert!(sim.units[copy].decoy);
+    assert_eq!(sim.army_of(copy), Some(slot), "the copy joins the army");
+    sim.army_normalize(0, slot);
+    let a = &sim.armies[0].list[slot];
+    assert_eq!((a.num_captains, a.num_decoys), (3, 1));
+    assert_eq!(a.num_standard, 1, "the Hoplites alone: the General casts");
+    sim.units[g].orders.clear();
+    assert!(!sim.think_spellcaster(g), "a decoy captain stands");
+    sim.units[copy].health = 0;
+    assert!(sim.think_spellcaster(g), "and none does");
+    sim.units[g].orders.clear();
+    sim.add_move_order(
+        g,
+        tile_pos(20, 20),
+        crate::orders::MoveKind::MoveTo,
+        crate::orders::QueuePos::New,
+        true,
+    );
+    assert!(!sim.think_spellcaster(g), "a moving General: the seam");
+}
+
+/// **A paid cast that dies before its craft hands the craft back; one
+/// that ran its course does not, and the cast clock restarts under any
+/// other order** (item 1302; run346's `1/98`: the army's `ATTACK_TO`
+/// replaced its Create Decoys on 11508 at `spell_time` 98, and block 11509
+/// has `mana_burn` 903 → 0 and `spell_time` 0 — `kill_current_order`'s
+/// `unpay_cast_costs`, and `Unit::work`'s reset).
+///
+/// Made to fail with the refund dropped, with `paid` left set through the
+/// closing kill, and with the clock's reset dropped.
+#[test]
+fn an_interrupted_cast_hands_its_craft_back_and_its_clock_restarts() {
+    use crate::orders::spell;
+    let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let _near = sim.init_unit(0, foot, tile_pos(33, 30));
+    assert_eq!(press(&mut sim, g, spell::CREATE_DECOY), 1);
+    for _ in 0..10 {
+        sim.tick();
+    }
+    let (burn, clock) = (sim.units[g].mana_burn, sim.units[g].spell_time);
+    assert!(burn > 900 && clock == 10, "{burn} {clock}");
+    sim.add_move_order(
+        g,
+        tile_pos(30, 34),
+        crate::orders::MoveKind::MoveTo,
+        crate::orders::QueuePos::New,
+        true,
+    );
+    assert_eq!(sim.units[g].mana_burn, 0, "the craft handed back");
+    assert_eq!(sim.units[g].spell_time, clock, "until the unit works");
+    sim.tick();
+    assert_eq!(sim.units[g].spell_time, 0, "`Unit::work` restarts it");
+    sim.units[g].orders.clear();
+    assert_eq!(press(&mut sim, g, spell::CREATE_DECOY), 1);
+    for _ in 0..101 {
+        sim.tick();
+    }
+    assert!(sim.units[g].orders.is_empty(), "the cast is spent");
+    assert!(
+        sim.units[g].mana_burn > 800,
+        "a cast that ran its course keeps its craft spent: {}",
+        sim.units[g].mana_burn
+    );
+}
+
 /// Chapter forty's fixture (item 1167, `docs/GOLDEN.md` §49):
 /// [`untargeted_sim`]'s types with a city's buildings beside them, the
 /// Citizen trained at the city (so it garrisons one) and the Militia a

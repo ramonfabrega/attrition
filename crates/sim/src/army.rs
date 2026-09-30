@@ -39,10 +39,14 @@ use crate::{Player, Sim};
 /// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
-/// | `use_generals` / `use_spies` / `use_scouts` | the 128-frame spellcaster turn (§5) | no spells |
+/// | `use_spies` / `use_scouts` | the 128-frame spellcaster turn (§5); `use_generals` is built | no spy's or scout's turn |
 pub mod seams {}
 
 pub const SLOTS: usize = 16;
+
+/// `TypeIndex` `0x119`, `AAGUN`: `Army::normalize` takes it off the
+/// standard line.
+const AAGUN: crate::tech::TypeId = 0x119;
 
 /// `Unit::come_out+0x25ca` — the scout arm's coin, `% 2`.
 /// `find_target`'s two draw sites, under the original's own offsets
@@ -343,8 +347,7 @@ impl Sim {
     }
 
     /// `Army::normalize` (§3.3): drop the dead, recount, and the standard
-    /// line — captains less casters and supply wagons. The sim has no
-    /// decoys and no anti-air yet.
+    /// line — captains less casters, supply wagons, decoys and AA guns.
     pub fn army_normalize(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         // `Group::normalize` on the group first (§3.3): the dead, and a
@@ -361,14 +364,25 @@ impl Sim {
                     && (pool.is_none() || self.units[u].group_ptr == pool)
             })
             .collect();
+        // `Army::normalize@006f9b50`'s counts, each a `GroupData::count`
+        // over the live members: `num_decoys` the decoy **captains**
+        // (`COUNT_DECOYS`), and the standard line the captains less the
+        // casters (`COUNT_CASTERS`, a decoy excluded), the supply wagons
+        // (`COUNT_NON_DECOY_TYPE 0x3f`), the decoys, and the AA guns
+        // (`COUNT_NON_DECOY_TYPE 0x119`). run346's army 4 holds six decoy
+        // squads from 11637 (item 1302).
         let mut captains = 0;
         let mut casters = 0;
         let mut supply = 0;
+        let mut decoys = 0;
+        let mut aa = 0;
         for &u in &units {
-            if !self.is_captain(u) {
+            let captain = self.is_captain(u);
+            captains += i32::from(captain);
+            if self.units[u].decoy {
+                decoys += i32::from(captain);
                 continue;
             }
-            captains += 1;
             if self.units[u]
                 .ty
                 .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::CASTER))
@@ -378,14 +392,17 @@ impl Sim {
             if self.is_supply_wagon(u) {
                 supply += 1;
             }
+            if self.unit_line_is(u, AAGUN) {
+                aa += 1;
+            }
         }
         let a = &mut self.armies[w].list[slot];
         a.units = units;
         a.role = 0;
         a.num_units = a.units.len() as i32;
         a.num_captains = captains;
-        a.num_decoys = 0;
-        a.num_standard = captains - casters - supply;
+        a.num_decoys = decoys;
+        a.num_standard = captains - casters - supply - decoys - aa;
     }
 
     /// `Army::add_unit(o)@006f9f40` (§3.2): into the one group, if not
@@ -883,7 +900,14 @@ impl Sim {
                 if self.armies[w].list[slot].num_captains == 0 {
                     return;
                 }
-                // The spellcasters' turn — a seam.
+                // The spellcasters' turn: `use_generals` for an army with
+                // a standard line and a General that is not a decoy.
+                // SEAM: `use_spies` and `use_scouts` (parked 980).
+                if self.armies[w].list[slot].num_standard != 0
+                    && self.army_count(who, slot, |s, u| s.is_general(u) && !s.units[u].decoy) != 0
+                {
+                    self.use_generals(who, slot);
+                }
             }
             if (frame + s) % 256 != 0 {
                 return;
@@ -893,6 +917,19 @@ impl Sim {
             return;
         }
         self.army_tick(who, slot);
+    }
+
+    /// `Army::use_generals@006f4c30` (§14): every live member of the
+    /// army's group, in list order, that `is_hero` (`unit_flags2 & 0x20`)
+    /// is given a `Unit::think_spellcaster` turn, and the first that orders
+    /// a cast ends the walk.
+    fn use_generals(&mut self, who: Player, slot: usize) {
+        let list = self.armies[who as usize].list[slot].units.clone();
+        for u in list {
+            if self.units[u].alive() && self.is_hero_unit(u) && self.think_spellcaster(u) {
+                return;
+            }
+        }
     }
 
     // ---- the tick (§6) ----

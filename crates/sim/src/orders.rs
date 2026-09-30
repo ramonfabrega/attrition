@@ -1045,6 +1045,11 @@ pub enum Coll {
 enum Seeker {
     Unit(usize),
     Type(usize),
+    /// A type asked **for** a unit: the block, domain and radius defaults
+    /// are the type's, and the collision half is the unit's pairwise pair
+    /// (`FILTER_NOT_ME` with the unit as `(not_o, not_who)`), which is how
+    /// `cast_create_decoy` places a copy beside its General.
+    TypeFor(usize, usize),
 }
 
 /// Which worker kind a unit type is, for the gather chain and `think_peasant`.
@@ -1349,6 +1354,22 @@ impl Sim {
                 let unit = &mut self.units[u];
                 unit.combat.target = None;
                 unit.combat.mandatory = false;
+            }
+            // `kill_current_order`'s `CAST_SPELL` arm (`0xe`): a cast that
+            // was **paid** and dies before its craft is cast hands the craft
+            // back — `SpellType::unpay_cast_costs@00676ff0`, `mana_burn -=
+            // min(mana_burn, MANA)` — unless the unit is closing. `do_cast`
+            // clears `paid` before its own kill, so only an interrupted cast
+            // reaches it: run346's `1/98`, whose Create Decoys the army's
+            // tick replaced with an `ATTACK_TO` on 11508, `mana_burn` 903 →
+            // 0 (item 1302). SEAM: `unpay_cost`'s resources, which
+            // `pay_cast_costs` is not modelled as taking either.
+            Body::Cast(c) if c.paid && !closing => {
+                if let Some(d) = self.spell(c.spell) {
+                    let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
+                    let burn = self.units[u].mana_burn;
+                    self.units[u].mana_burn = burn - back.min(burn);
+                }
             }
             _ => {}
         }
@@ -2362,15 +2383,28 @@ impl Sim {
         // And `update_action` is **unconditional** there (`:283`): every
         // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
         // before the dispatch, whatever the order.
-        if self
-            .update_action(u)
-            .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
+        let action = self.update_action(u);
+        if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
         {
             self.set_in_danger(u);
             if let Obj::Unit(v) = t {
                 self.set_in_danger(v);
             }
+        }
+        // `Unit::work@0060d180:285-296`, beside it: the **cast clock**
+        // (`spell_time`, `+0x98`) is zeroed on every frame the front order
+        // is not a cast and the action is not one either — so a cast an
+        // order displaced starts again from 0 (run346's `1/98` on 11508,
+        // item 1302). `Animal::work` has no such line, and a bird keeps its
+        // counter in the same field (`crate::gaia`). SEAM: the action's
+        // `+0x20` test, read as always true.
+        let is_cast = |o: &Order| matches!(o.body, Body::Cast(_));
+        if !self.units[u].is_gaia()
+            && !self.units[u].orders.front().is_some_and(is_cast)
+            && !action.is_some_and(|a| is_cast(&self.units[u].orders[a]))
+        {
+            self.units[u].spell_time = 0;
         }
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
@@ -6163,6 +6197,34 @@ impl Sim {
         )
     }
 
+    /// The sweep asked by a **type** on a unit's behalf ([`Seeker::TypeFor`]):
+    /// `UnitType::find_nearby_spot(…, FILTER_NOT_ME, o, who, 0, …)` with
+    /// no squad argument, whose collision half is `find_collision` and
+    /// `find_ordered_collision` against `(o, who)` (`bVar17`, written at `61df5f`–`61df7c`).
+    /// run346's six decoy squads on 11637 stand where the General's pair
+    /// allows, not the copied type's radius query (item 1302).
+    pub(crate) fn find_nearby_spot_type_for(
+        &self,
+        ty: usize,
+        me: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        angle: Angle,
+    ) -> Option<Pos> {
+        self.spot_sweep(
+            Seeker::TypeFor(ty, me),
+            centre,
+            min,
+            max,
+            0,
+            angle,
+            None,
+            Coll::Pairwise,
+            false,
+        )
+    }
+
     /// The same sweep asked by a **type** rather than by a unit — the
     /// original's `not_o`/`not_who` of `(-1, -1)`, which is what
     /// `Unit::do_cast` and `SpellType::cast_transport` pass when they look
@@ -6234,7 +6296,7 @@ impl Sim {
     ) -> Option<Pos> {
         let p = match who {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
-            Seeker::Type(t) => self.unit_types[t].combat,
+            Seeker::Type(t) | Seeker::TypeFor(t, _) => self.unit_types[t].combat,
         };
         let mut max = max;
         if (min > 0 && max == 0) || max < 0 {
@@ -6286,7 +6348,7 @@ impl Sim {
             && (p.attack != 0 || {
                 let ty = match who {
                     Seeker::Unit(u) => self.units[u].ty,
-                    Seeker::Type(t) => Some(t),
+                    Seeker::Type(t) | Seeker::TypeFor(t, _) => Some(t),
                 };
                 ty.is_some_and(|t| self.is_aircraft_carrier(t))
             });
@@ -6372,7 +6434,7 @@ impl Sim {
                         // one beside it.
                         (true, _) => {
                             let exempt = match who {
-                                Seeker::Unit(u) => Some(u),
+                                Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
                                 Seeker::Type(_) => None,
                             };
                             self.find_unit_with_radius(uber_r, c, exempt)
@@ -6383,7 +6445,7 @@ impl Sim {
                                         self.units[u].owner,
                                         exempt,
                                     ),
-                                    Seeker::Type(_) => false,
+                                    Seeker::Type(_) | Seeker::TypeFor(..) => false,
                                 }
                         }
                         (false, Seeker::Unit(u)) if coll == Coll::All => {
@@ -6402,7 +6464,7 @@ impl Sim {
                                     Some(u),
                                 )
                         }
-                        (false, Seeker::Unit(u)) => {
+                        (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
                             self.find_collision(u, c) || self.find_ordered_collision(u, c)
                         }
                         (false, Seeker::Type(_)) => {

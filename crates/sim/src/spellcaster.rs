@@ -15,7 +15,7 @@
 //! unit_masks & 1 (a decoy)                        -> 0
 //! is(SPY):  cloaked? Counterintelligence on a friend in range × 5,
 //!           then Bribe on an enemy unit in range × 5            (no draw)
-//! not is_special:  the hero arm                                 (seam)
+//! not is_special:  the hero arm   (Create Decoys; moving: seam)
 //! is_special:
 //!     Sniper (0x281) castable, with the mana, on an enemy in range -> cast
 //!     coin = Random::get(game_random, 0, 0xffff)        // +0x413
@@ -33,9 +33,9 @@
 //!   what is reproduced is the draw and every return before it;
 //! - **the Spy's cloak**: not carried, so a Spy is read as uncloaked and
 //!   returns 0 — the original's Spy arm draws nothing either way;
-//! - **the hero arm** (a General: Create Decoys, Forced March behind a
-//!   `game_random` coin, Ambush): not built, and returns 0. No
-//!   General stands in either capture of the second pair's opening;
+//! - **the hero arm's moving half** (a General's Forced March behind a
+//!   `game_random` coin, and Ambush): returns 0. Its standing half,
+//!   Create Decoys, is built ([`Sim::think_spellcaster_hero`], item 1302);
 //! - **the human arm**, which `Unit::think`'s special turn reaches: it
 //!   draws nothing and casts only through the same refused targets.
 
@@ -67,8 +67,7 @@ impl Sim {
             return false;
         }
         if !self.unit_is_special(u) {
-            // SEAM: the hero arm (module doc).
-            return false;
+            return self.think_spellcaster_hero(u);
         }
         // The Sniper (`0x281`): castable, with the mana, on an enemy unit in
         // range -> cast. SEAM: the target search finds none (module doc).
@@ -80,6 +79,60 @@ impl Sim {
         // Counterintelligence (`0x277`, a Scout's own craft): castable, with
         // the mana, on a target in range -> cast. SEAM: as the Sniper's.
         false
+    }
+
+    /// `think_spellcaster`'s **hero arm**, for a unit that is
+    /// not special (`docs/AI.md` §80.5):
+    ///
+    /// ```text
+    /// not is_hero (unit_flags2 & 0x20)                          -> 0
+    /// not is_moving (the head order's `+0x14`):
+    ///     any live captain of who's that is a decoy (& 1)       -> 0
+    ///     mana < mana_burn + CREATE_DECOY's MANA                -> 0
+    ///     craft = CREATE_DECOY (0x27a)
+    /// moving:                                                   (seam)
+    /// add_cast_order(-1, -1, its own point, craft, QUEUE_FIRST, 0) -> 1
+    /// ```
+    ///
+    /// run346's `1/98` casts it from army 4's 128-frame turn on 11410 and
+    /// on 11538, and the second makes six squads on 11637 (item 1302).
+    ///
+    /// SEAM: the moving arm — the head order's `+0x84`, the `game_random`
+    /// coin (`+0x589`) behind `leader_flags & 0x8000` choosing Forced
+    /// March (`0x27c`), and Ambush (`0x27b`) on another's land. It returns
+    /// 0 here, drawing nothing.
+    fn think_spellcaster_hero(&mut self, u: usize) -> bool {
+        if !self.is_hero_unit(u) {
+            return false;
+        }
+        if self.is_moving(u) {
+            // SEAM: the moving arm (above).
+            return false;
+        }
+        let who = self.units[u].owner;
+        if self
+            .units
+            .iter()
+            .any(|x| x.alive() && x.owner == who && x.captain && x.decoy)
+        {
+            return false;
+        }
+        let Some(d) = self.spell(crate::orders::spell::CREATE_DECOY) else {
+            return false;
+        };
+        if self.unit_mana(u) < i32::from(self.units[u].mana_burn) + d.mana {
+            return false;
+        }
+        let at = self.units[u].pos;
+        self.add_cast_order_on(
+            u,
+            crate::orders::spell::CREATE_DECOY,
+            None,
+            at,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        true
     }
 }
 
