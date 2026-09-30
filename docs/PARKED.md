@@ -146,6 +146,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1228, 2026-09-30 — the muster's other arms
+
+(1244) **`counts_in_muster`'s captain half** (1228's mutation D): held
+by no walk — no boat on disk is a follower.
+
+(1245) **The make list's `city` from 10181**: types 84, 134 and 178 filed
+under city 1 against 0 on run462, a sibling of the word's chain rather
+than its first parting.
+
+(1246) **The zero-pop arm of `create_units`**: its `is(0x134)` and
+`is_gov_hero` tests, read, not built.
+
 ## Parked by item 1223, 2026-09-30 — the landing's arms no walk holds
 
 (1236) **The crew loop of `eject_contents`**: unreachable, since the five
@@ -158,7 +170,11 @@ cell in this crate; run466's second barge crosses the ghost on
 
 (1238) **`disembark_squad`, a squad's passengers coming ashore as a
 group**: built, held by its unit test alone until chapter forty-three's
-word passes the landing on 1901.
+word passes the landing on 1901 — three aboard one barge (1235).
+
+(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
+cause): a member with its own cast stepped before its captain. Transport
+only; no staging has one.
 
 (1239) **A refused passenger (`num_inside != 0`)**: the original's boat
 lives; no staging crowds a shore.
@@ -412,6 +428,8 @@ original's `Unit::close@0060ee50` calls `track_unit_type(·, −1)` at
 `0060f3db`, and this crate does so for a missile's death alone (1078),
 so a player's count only grows. The AI reads those counts; 1074 said
 its frame does not turn on one. Returns when a word's decision does.
+**Narrowed by 1228** (TRANSPORT §16): a boat's close takes its `−1` in
+the muster now; every other death still does not.
 
 (1093) **Chapter thirty-six's no-score edges** (PRODUCTION "The
 missile's other arms (item 1078)"): `UnitData::is_busy` in the launch's
@@ -425,7 +443,9 @@ against −1) and the V2s' seats inside a silo (+24, +24).
 CARAVAN §11): the census's newborn lag — `caras` +1 at
 `Unit::set_type`, likewise `peasants` and `scholars`; and `do_trade`'s
 AI `go_to_city` tail and `add_trade_order`'s transport tail, both
-unreached on disk.
+unreached on disk. **Again** (1228): the boat's `caras` +1/−1 lags
+3 against 4 on run462's 10184, read by `create_units`' `civilians` and
+not decisive there.
 
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
@@ -2346,6 +2366,20 @@ dump was written to 1223's `ch43d/map-14/gamelog.txt`, and neither
 `longtrace.sh` nor `setlog.py` noticed. `setlog.py` could assert
 `LogFile` names `Logs\`, or the runner refuse a stage whose
 `gamelog.ini` it did not write. One reach.
+
+(1247) **A first parting the booking names inside the window is read as
+the chain's first** (1228's Loop line): "the make list parting from
+10181" was a sibling; what decided 10183 was a standing count three rows
+down the same record, `create_units`' first gate. A brief row: when the
+booking names a first parting inside the window, read the gate the
+draw's function opens with against the standing keys before it. One
+reach.
+
+(1250) **A golden widening's firsts are not `standing.py`'s shape**
+(1235's Loop line): they print `  ch43 f<frame> …`, not `first <frame>
+…`, so the brief's `RON_FIRSTS=1 … | python3 tools/standing.py` reads
+nothing from a chapter's widening; 1235 converted them with `sed` by
+hand. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

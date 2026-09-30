@@ -1299,3 +1299,106 @@ and this section records what that established about the mechanic.
   (`docs/ANIM.md` §15, item 850).
 - The disembarked figure's first animation and turn (run249 1162, 1165).
 
+## 16. The boat in the muster (item 1228, 2026-09-30)
+
+**The rule.** The boat `cast_transport` makes is born through
+`Objects::init_unit` → `Unit::init` → `Unit::set_type@00612fa0`, and
+`set_type`'s `+1` block moves `num_units` (`Leader::track_unit_type`),
+`control` (`+0x940`, by the type's `+0x2f0 control_cost`) and `active`
+(`+0x93c`) together. The block's gate: the unit is a captain
+(`is_captain`, `+0x8e`), and its type has population — or, for a
+`control_cost` of 0, `is(0x134)` or `is_gov_hero` — and `+0x68 & 1` is
+clear. `Unit::close@0060ee50` takes the same three back at `0060f3db`
+behind the same gate, for a unit that is no follower (`o_up < 0`). The
+boat that dies putting its passenger ashore (§6.4) goes out that way.
+Beside it, both functions move `caras` (`+0x980`) by one for a type
+whose `is_caravan` answers yes.
+
+**So a Merchant Fleet counts and a Transport Barge does not.** `POP` is 1
+on the Merchant Fleet and the Modern Merchant Fleet, and 0 on the Transport
+Barge. run462's block 10178 holds the barge `1/78` (TypeIndex 320,
+carrying the Explorer `1/0`) and the fleet `1/83` (318). The original's
+`num_units` there sums to its `active` 70, with `[268]` 1 and no `[270]`.
+The passenger stays counted as it was: `go_inside` moves none of the
+three.
+
+**What it moved** (East Indies' second pair, 10183 → 10185). This crate's
+`cast_transport` and `disembark` moved none of the three. So each fleet at
+sea left who=1's `control` one short: 72 against 73 from before run462's
+first block, `effective_pop` 74 against 75, `num_units[268]` 0 against 1.
+On frame 10183 the second `create_units` pass opens with `effective_pop =
+queued_units + control + 1`: 76 on the original against `pop_cap` 75, so
+every type fails gate 1 and no matchup-bias roll is taken; 75 here, so 15
+were. Built, all five agree through the word's block (the widening's
+pins). The next word is 10185, the Senate's affordability (`docs/AI.md`
+§37 has the chain's other gaps).
+
+**Built**: `Sim::counts_in_muster` (the gate), called from
+`cast_transport` after the boat's `Guy::init_real` and from `disembark`
+before the boat's `hold_dead_slot`.
+Test: `transport::tests::a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is`.
+
+**Not established.** The zero-population arm's `is(0x134)` and
+`is_gov_hero` are read, not built: no boat on disk answers either, and
+`counts_in_muster` answers no for them. `caras`' live `+1`/`−1` is not
+built on this path either (parked 1122's newborn lag): on 10184 the
+original's `caras` is 4 against ours' 3 after the fleet `1/79`'s birth,
+and nothing on the word's chain reads it before the sweep recounts.
+Every other death's `−1` is parked 1092's: this is the boat's close
+alone. **Diff-held** (the journal's killers): the birth's count, the
+close's, and the population half (a barge counted parts eighteen windows
+across both pairs). **Held by no walk**: the captain half, since no boat
+on disk is a squad follower.
+
+
+## 17. A captain's boarding takes its squad: `Unit::go_inside`'s `o_down` walk (item 1235, 2026-09-30)
+
+**The rule.** `SpellType::cast_transport@00670db0` ends in
+`Unit::go_inside(caster, boat, who, 0)`. `Unit::go_inside@0061a2e0`,
+with `param_3 == 0`, first climbs `o_up` (`UnitData +0x8e`) to the
+captain, asking no liveness, and inserts **that**
+(`Object::insert_inside@00647e90`: `remove_from_world`, then the new
+figure at the bottom of the host's `inside_down` chain). Then:
+
+1. at `61a450`, the host's vslot `0x18` — `return 1` on `Unit::vftable`
+   (`Buffer::is_pending_load@0041e0e0`, folded), `return 0` on
+   `Build::vftable` — and at `61a45a` the figure's type's `uber_size`
+   (`+0x308`) over 1: `unit_masks &= ~0x4000000`, `path.length = 0`,
+   `close_orders(0)`, `clear_partial_path` and `update_action`, which
+   are `Unit::clear_orders`' four;
+2. at `61a48b`, `o_down` (`+0x90`) non-negative and that figure's
+   `flags & 1` set: `go_inside(o_down, boat, who, 1)`, and the same
+   again from there.
+
+So a squad goes aboard **whole**, captain first, and each member's own
+group move dies aboard. The dump's `up`/`down` are `ObjectData
++0x2a`/`+0x2c`, the map chain `remove_from_world` clears, and not the
+squad's links, which no record prints.
+
+**The diff.** run466 (`docs/GOLDEN.md` §52), block 1357, after `0/7`
+casts on 1356: barge `0/10` `inside_down 7`; `0/7` `inside_up 10`,
+`inside_down 8`; `0/8` `inside_up 7`, `inside_down 9`; `0/9`
+`inside_up 8`; and `0/8`'s and `0/9`'s `orders_x/y` their own points.
+Before item 1235 this crate put the caster alone aboard (`board`); `0/8`
+walked on 1356 (`Unit::do_move+0xe84`, the word's two extra draws), and
+`0/9` held its move and cast a barge of its own on 1366. The original
+makes no `0/11` on any block.
+
+**In this crate**: `Sim::board` (`crate::transport`) walks the chain.
+`a_captain_s_boarding_takes_its_squad_aboard_and_closes_its_orders` and
+`a_squad_s_boarding_stops_at_a_dead_figure_down_the_chain` hold it;
+chapter forty-three's walk and widening hold it on run466 (the mutation
+is in item 1235's journal).
+
+**Not established.**
+- The `+0x68 & ~0x4000000` bit (`add_move_facing_order`'s) is not kept
+  here: a `SEAM` in `board`.
+- The squad's landing: `eject_contents@0064cd20` walks the host's
+  `inside_down` chain and gives each passenger `come_out`. With three
+  aboard, `Sim::disembark` walks the riders in index order, which is the
+  chain's order on run466 (7, 8, 9), and gives each the §6.4 squad arm.
+  run466's landing is on 1901, past the word.
+- `do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
+  whose captain's current order is `CAST_SPELL` gives its frame back) is
+  reached only by a member holding its own transport cast and stepped
+  before its captain. No staging has one.

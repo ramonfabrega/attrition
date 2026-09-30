@@ -1907,10 +1907,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         }
     }
     // **Chapter forty-three, on run466** (item 1223): 1271, the barge
-    // put ashore on its phase frame; 1357, the word, the squad's boarding.
+    // put ashore on its phase frame; 1357, the squad's boarding (item
+    // 1235); 1553, the word, who=1's gather.
     if let Some(p) = &ch43 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_THREE;
-        for w in [1271, 1357] {
+        for w in [1271, 1357, 1553] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
             frames += n;
@@ -2134,16 +2135,20 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1214 moved it to run462's 10183**, where a cast order stands
     // and no move's `coll` pair has left `(0, 0)`: `cast_paid` and
     // `cast_spell` leave this pin, and `coll_x`/`coll_y` return to it.
+    // **Item 1228 moved it to 10185**, blocks 10184..10187: the Caravan
+    // `1/40`'s cast was spent on 10183, so no cast stands there and
+    // `cast_paid` and `cast_spell` return to this pin.
     // **Item 1221 walks the third map at Toughest beside it**, run471's
     // 5375..5378, where a move's `coll` pair has left `(0, 0)`:
     // `coll_x`/`coll_y` are compared on the union, and leave this pin.
     // **Item 1241 moved the Toughest window to run476's 5781..5784**,
-    // where no move's `coll` pair has left `(0, 0)` and East Indies'
-    // run462 window has none either: `coll_x`/`coll_y` return to it.
+    // where no move's `coll` pair has left `(0, 0)`, and
+    // East Indies' 10185 window has none either (measured on the tree
+    // merged with 1228's): `coll_x`/`coll_y` return to it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type coll_x coll_y cruising_alt def_x \
+         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
