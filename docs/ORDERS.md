@@ -717,7 +717,11 @@ then per kind:
   removes the unit from the building's chain (§6.1); `unit_masks &=
   0x87ffffff`; a citizen's hold-doober removed.
 - **`TRADE_ROUTE`**: `end_trade_route`. **`CAST_SPELL`**: a paid cast refunds
-  (`unpay_cast_costs`) unless `silent`. **`SPECIAL_ANIM`** type 1: leave the
+  (`unpay_cast_costs`, `mana_burn −= min(mana_burn, MANA)`) unless
+  `silent`; `do_cast` clears `paid` before its own closing kill
+  (`005ece96`), so only an interrupted cast is refunded — built by item
+  1302 (`docs/AI.md` §99.14), which also carries `Unit::work`'s reset of
+  `spell_time` under any order that is not a cast (`0060d180:285-296`). **`SPECIAL_ANIM`** type 1: leave the
   building's `launching` list.
 
 Then: reposition, `remove_current`; if the removed order `is_move && is_pathed`

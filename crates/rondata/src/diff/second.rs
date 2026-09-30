@@ -170,7 +170,8 @@ pub(crate) fn walk_second_probed(
 /// and the walk to run462; item 1228 moved it to 10185, inside it; item
 /// 1243 moved it to 10985, and the walk to run480; item 1264 moved it to
 /// 11328, and the walk to run490; item 1281 moved it to 11549, inside it;
-/// item 1297 moved it to 11637, and the walk to run506. `None`
+/// item 1297 moved it to 11637, and the walk to run506; item 1302 moved
+/// it to 12582, and the walk to run508. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -182,7 +183,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run506-islands-toughest-11637.txt",
+        "gamelog-run508-islands-toughest-12582.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -1897,7 +1898,7 @@ mod tests {
                 (11356, 5),
                 (11384, 1),
                 (11401, 1),
-                (11411, 5),
+                (11411, 2),
                 (11413, 9),
                 (11414, 2),
                 (11445, 2),
@@ -1908,10 +1909,13 @@ mod tests {
             "the blocks keys first part on, to the window's end"
         );
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1302 took three on 11411: `1/98`'s Create Decoys, laid by
+        // army 4's spellcaster turn — its `spell_time` 1 and `mana_burn`
+        // 1000 (`docs/AI.md` §99.14).
         pin_eq!(
             w.firsts.len(),
-            229,
-            "every key parted on run490 (1311 before item 1281, 382 before 1297)"
+            226,
+            "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
 
@@ -1929,7 +1933,8 @@ mod tests {
             "run506",
             "gamelog-run506-islands-toughest-11637.txt",
             WIDENING_SECOND_EAST_INDIES_11637,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            // 11637's own block: the group record the copies join.
+            &[11_638],
             true,
             true,
         ) else {
@@ -1951,38 +1956,92 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word 11637** (item 1297; no mechanism is named): ours 2
-        // draws against 38, at index 1, where the original spends eighteen
-        // `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit` and
-        // seventeen idle stands. On its block 11638 who=1 holds eighteen
-        // Peltasts (`TypeIndex` 84) the dump alone has — `1/93` and
-        // `1/104`..`1/120` — and its group 70 lists 37 against 19, stamped
-        // 11637. Nothing else parts first on 11638 but `1/78`'s clock.
+        // **The word 11637** (item 1297), closed by item 1302: the
+        // eighteen births were six decoy squads of who=1's General `1/98`
+        // (`docs/AI.md` §99.14). On 11638 group 70 lists 37 on both sides
+        // and every copy stands where the original's does; what is left on
+        // the block is the eighteen copies' standing birth `form` (0
+        // against −1, the added-unit family) and `1/93`'s `path_recursion`
+        // (1 against 0), the one copy born into a reused slot.
         pin_eq!(
-            row(1, -3, "group:70.num").as_deref(),
-            Some("11638: ours 19 theirs 37"),
-            "the word's block: the group the births join"
+            row(1, -3, "group:70.num"),
+            None,
+            "the word's block: the group the copies join agrees"
         );
         pin_eq!(
-            row(1, 104, "unlinked").as_deref(),
-            Some("11638: the dump holds it alone"),
-            "the word's block: a Peltast this crate never made"
+            row(1, 104, "unlinked"),
+            None,
+            "the word's block: the copies are this crate's too"
+        );
+        pin_eq!(
+            row(1, 93, "path_recursion").as_deref(),
+            Some("11638: ours 0 theirs 1"),
+            "the copy in a reused slot"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= 11_638)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(11632, 194), (11638, 19)],
+            "the blocks keys first part on, to 11637's"
+        );
+        // Item 1302 took 1151: the six squads' records, the group's list,
+        // and what followed them (1375 before).
+        pin_eq!(w.firsts.len(), 224, "every key parted on run506");
+    }
+
+    /// **run508 — the second pair's East Indies word 12582, widened whole**
+    /// (item 1302): run506's detail over blocks 12577..12833, walked from
+    /// run346's start with the group record and the attack order's row.
+    #[test]
+    fn run508_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run508",
+            "gamelog-run508-islands-toughest-12582.txt",
+            WIDENING_SECOND_EAST_INDIES_12582,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run508 whole: blocks 12577..12833");
+        pin!(
+            w.missing.is_empty(),
+            "run508 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **The word 12582** (item 1302; no mechanism is named): ours 9
+        // draws against 10, at index 4, where the original spends
+        // `Leader::make_stuff+0x63d`.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(11632, 197), (11638, 23)],
+            [(0, 0)],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(w.firsts.len(), 1375, "every key parted on run506");
+        pin_eq!(w.firsts.len(), 0, "every key parted on run508");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
