@@ -12894,7 +12894,10 @@ drops the leader's `0x8000` once no hero's `unit_masks & 0x8000` stands.
 **Readings the trace killed.** *The cast draws its animation* (ours'
 `do_cast` as it stood): 9112's coin is odd and the original casts — the
 march's flag holds 9240's coin — yet spends no `do_cast` draw on any frame
-of run470; the attack slot's third argument is the difference. *The coin
+of run470. The difference is the slot: `CHAR_DEFAULT` rolls its idle
+variant, an attack slot rolls nothing whatever the third argument (a
+mutation forcing it to 1 holds the walk to 9323; one putting Forced March
+back on `CHAR_DEFAULT` drops the word to 9112). *The coin
 every turn a hero moves*: 9240 has none in the original; `leader_flags &
 0x8000` is `cast_march`'s.
 

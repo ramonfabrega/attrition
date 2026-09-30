@@ -33,9 +33,8 @@
 //!   what is reproduced is the draw and every return before it;
 //! - **the Spy's cloak**: not carried, so a Spy is read as uncloaked and
 //!   returns 0 — the original's Spy arm draws nothing either way;
-//! - **the hero arm** (a General: Create Decoys, Forced March behind a
-//!   `game_random` coin, Ambush): not built, and returns 0. No
-//!   General stands in either capture of the second pair's opening;
+//! - ~~**the hero arm**~~: built as [`Sim::think_hero`] (item 1305,
+//!   `docs/AI.md` §99.13), reached from `Army::use_generals`;
 //! - **the human arm**, which `Unit::think`'s special turn reaches: it
 //!   draws nothing and casts only through the same refused targets.
 
