@@ -2120,15 +2120,46 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // **The word 13385** (item 1326; no mechanism is named): ours 4
+        // draws against 54, at index 0, where the original's step-11
+        // `make_stuff` spends `Leader::use_market+0x1ed` and places a Farm.
+        // The lists agree through block 13384; on 13385 the original's
+        // second `create_buildings` puts the Farm (`t` 417, `val` 216500,
+        // city 3) in the empty head, and ours offers nothing there. The
+        // first rows are two blocks earlier, on 13383, step 8's purchase
+        // (frame 13382): who=1's Trebuchet order (`num` 2) queues two here
+        // and one there, the original's at `1/2028` for 76 timber and 76
+        // metal where ours' first costs 66 and its second 85.
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        pin_eq!(
+            row(1, -1, "leader:num_queued[216]").as_deref(),
+            Some("13383: ours 2 theirs 1"),
+            "the Trebuchets queued on step 8's purchase"
+        );
+        pin_eq!(
+            row(1, 2028, "queue:queue[0].cost[0]").as_deref(),
+            Some("13383: ours 66 theirs 76"),
+            "the first Trebuchet's price"
+        );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            Vec::<(i64, usize)>::new(),
+            [
+                (13380, 212),
+                (13383, 7),
+                (13384, 1),
+                (13385, 6),
+                (13386, 35)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run523");
+        pin_eq!(w.firsts.len(), 1103, "every key parted on run523");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
