@@ -1553,7 +1553,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
 /// original spends `Guy::set_anim+0x104b`. Past run480's window (its last
 /// block 11236), widened on run490 (block 11329).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
+///
+/// **11328 → 11549 on item 1281** (`docs/TECH.md`, "The piece moves with
+/// the age"): who=1's third age, on frame 11328, re-pieces every figure one
+/// bracket up (`Leader::gain_tech:2372`, `Unit::update_gpiece`), and this
+/// crate re-pieced none; its snap wrote the order's `dest_angle` as well;
+/// and a figure's `guy_flags & 8` stays the piece `init_real` saw, where
+/// this crate read the new one. **The move's value diff (the word's block,
+/// run490's 11329):** who=1's `1/1` `g.gpiece[0]` ours 6336 against 8448
+/// → agreeing, and the 65 such rows with it; `1/0`'s `dest_angle`
+/// −1615724544 against −1771962368 → agreeing, and fourteen more; block
+/// 11329's rows 115 → 16 (the two merchants' over-time piece stands).
+/// Frame 11328's draws went 62 against 60 → agreeing. On the way, 11349:
+/// `1/15`'s `g.cur_anim[0]` ours 21 (`CHAR_TURN_LEFT`) against 8 → agreeing.
+/// run490's keys went 1311 → 382. **The new word's delta: ours 11 draws
+/// and the original 4 on frame 11549, parting at index 0**: ours spends
+/// `Unit::think_scout+0x941` (and six `+0xaba`, all `1/35`'s) where the
+/// original spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Inside
+/// run490's window, widened there (block 11550).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_549;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -7489,12 +7507,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
     // inside it; item 1243 to 10985, past it, widened on run480; item 1264
-    // to 11328, past it, widened on run490.
+    // to 11328, past it, widened on run490; item 1281 to 11549, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run490_s_word_frame_is_widened_whole"),
-        1264,
+        1281,
         Some(WIDENING_SECOND_EAST_INDIES_11328),
     ),
     (

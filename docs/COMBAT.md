@@ -8342,8 +8342,9 @@ it spends the roll. On 771 `damage 1/7` is 24 + 10/16 on both sides, and on
 816 both `1/7`s die, carried from 817 as the dump's fourth `DEATH_OBJS`.
 
 What stands is older than this window's words and spends no draw:
-`damage 1/6` at 680 (§41.3) and the ten `g.gpiece` rows at 606 (parked,
-`docs/ANIM.md`). One new value row appears past the last draw either
+`damage 1/6` at 680 (§41.3) and ~~the ten `g.gpiece` rows at 606 (parked,
+`docs/ANIM.md`)~~ (closed by item 1281: the age's `update_gpiece`,
+`docs/TECH.md`, "The piece moves with the age"). One new value row appears past the last draw either
 side differs on. On 846 the bowmen `0/7` and `0/8` drop their attack on
 the dead `1/7`. The original's `near_o 7 near_who 1` stands through the
 drop, and this crate's goes to −1 (`NEAR_PARTED`, from 847). `waiting` is
@@ -8504,6 +8505,10 @@ same-player gate.
   original's order is `ATTACK_TO` with `stance 1` and this crate's is
   `GROUP_ATTACK_TO` with `stance 0`. Their captain `1/6` is dead by 764.
   No mechanism named.
+- **Item 1281** took the map's ten `g.gpiece` rows at 610 and three
+  citizens' `g.end_time` at 617–623 off it: the chapter's third age
+  re-pieces every figure one bracket up (`docs/TECH.md`, "The piece moves
+  with the age").
 
 ### 48.5 Coverage
 
