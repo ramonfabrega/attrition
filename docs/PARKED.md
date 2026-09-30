@@ -2282,6 +2282,13 @@ cites by number or obeys in its first hour, and a row no journal of two
 tranches reached be struck from the checklist, which takes it out of the
 frame. One reach.
 
+(1227) **A decision that books a held-out capture does not name its
+run** (1222's Loop line): `test_the_held_out_map_s_captures_are_the_pinned_ones`
+asks a steering pass to add the run to `HELD_OUT_RUNS`, DECISIONS 56 §2
+decided the measurement and added none, and the worker added `'465'` on
+the entry's word. The decision could name the run in the same commit, or
+the guard's comment say the item's worker adds it. One reach.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

@@ -10125,7 +10125,9 @@ and the same one run382 and run383 ran. The lane lock was stale (att-1040's
 pid 37944, dead) and no `RonDriver` was running. The disk had 70 GB free.
 `waitrun.sh` under `WAITRUN_RUNNER=gamelog/startcapture.sh` exits 2 on
 this script, which prints no banner, so the log's tail is the verdict: it
-read `MAP_STYLE 7` and `seed 12345`.
+read `MAP_STYLE 7` and `seed 12345`. ~~Exits 2~~ — no longer: the script
+prints its banner now, and `waitrun.sh` exited 0 on it for run464 (item
+1222).
 
 **`GAME INFO` is run39's 85 lines, line for line, except `MAP_STYLE 7`**.
 `DIFFICULTY 0` reads back. The profile and `check.ini` were copied before
