@@ -756,7 +756,11 @@ piece's lengths are what the next `set_anim` reads. The flags are not
 re-read: `Guy::update_gpiece` writes `gpiece`, the crew track
 (`+0x54`/`+0x58`) and `+0xd0`, never `guy_flags` (`+0x9a`), so the `& 8`
 bit `init_real` took from the **old** piece's packet stands until the
-figure's next `init_real` (`docs/ANIM.md` §4.8).
+figure's next `init_real` (`docs/ANIM.md` §4.8). `init_real` re-pieces
+its guy before it reads the flags (`:33`), so `Unit::set_type`'s call
+(`:187`) takes the **new** type's piece: golden chapters thirty-nine and
+forty fall to 846 and 693 when a converted guy keeps its old piece's bit,
+which is what first reading of `set_type` alone had it do.
 
 *The record.* East Indies at Toughest, run490 (`diff::second`): who=1's
 `ages_get()` goes 2 → 3 on block 11329 (frame 11328), and on that block 65

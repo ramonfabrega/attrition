@@ -2238,14 +2238,18 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1264 moved it to run490's 11327..11330**, where no cast order
     // stands: `cast_paid` and `cast_spell` return to this pin; the group
     // row and `coll_x`/`coll_y` are still compared there.
+    // **Item 1281 moved it to run490's 11548..11551**, where a guard order
+    // stands and no group move does: the six `guard_*` fields are compared
+    // there and leave this pin; the group row (`form_id`, `group_angle`,
+    // `group_id`, `in_group`, `oxx`, `whose`) returns to it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search \
-         guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
-         mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
-         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint",
+         def_y defensive ever_in_range form_id garrison_search group_angle \
+         group_id in_group in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

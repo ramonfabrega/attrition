@@ -359,7 +359,7 @@ the ordinary arithmetic's `-PACKED` slot, which this crate computes, and
 the seam bites only once one has deployed (`docs/MERCHANT.md` §7).
 **run490 reaches it** (item 1281): East Indies' who=1 merchants `1/19` and
 `1/59`, deployed, are re-pieced by the third age on frame 11328, and on
-block 11329 both figures read piece 50689 (`0xc601`, `total − 5`: the
+block 11329 both figures read piece 50689 (`total − 5`: the
 `build_continent` 1 arm) where this crate derives 2123 and 14795. The arm
 adds **no crew coordinate**, and the piece carries no track, so the crew
 figure reads `track` 0 and stands on its leader (`1/19`'s `x[1]` 32256
@@ -821,16 +821,9 @@ and no capture has a unit whose guys differ between the two readings. ~~And the
 bit is **derived** here rather than stored at `init_real`: neither the type
 nor the piece changes under a guy, so the answer is the one `init_real` would
 have written — but a piece that changes on packing (`get_unit_gpiece`'s fifth
-argument) would break that, and nothing checks it.~~ **The piece half is
-stored now** (item 1281): an age re-pieces every figure without an
-`init_real` (`docs/TECH.md`, "The piece moves with the age"), and East
-Indies' upgraded `1/15` and `1/33` walked through their turns on 11349 with
-a new piece that names `CHAR_TURN_RIGHT`. `Guy::flag_piece` is the piece
-`init_real` read the bit off. `init_real` re-pieces the guy itself before it
-reads (`:33`), so `Unit::set_type`'s call takes the **new** type's piece;
-that half is diff-held by golden chapters thirty-nine and forty, which fall
-to 846 and 693 when a converted guy keeps its old piece's bit. A pack or an
-unpack re-pieces without `init_real` too, and keeps the bit the same way.
+argument) would break that, and nothing checks it.~~ Stored now, as
+`Guy::flag_piece` (item 1281): an age re-pieces without `init_real`
+(`docs/TECH.md`, "The piece moves with the age").
 
 ### 4.9 A moving frame asks for the walk **twice** (2026-09-03)
 
