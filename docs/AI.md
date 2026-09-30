@@ -12868,12 +12868,54 @@ run500 737 keys → 149). **The word 9323**: ours 7 draws against 5 at index
 `inc_time`; on run511's block 9324 it collides with `1/69` in ours alone;
 571 keys stand on 9318 from the gap 9038..9317. No mechanism is named.
 
-**Not established**: Forced March's speed (`UnitData::speed@0060aae0`,
+**Not established**: ~~Forced March's speed (`UnitData::speed@0060aae0`,
 `forced_march_speed` through `HeroesData::find_hero`), so who=1's army
-walks 9112..9262 at its own speed here; `cast_ambush`, Rally,
+walks 9112..9262 at its own speed here~~ — built by item 1318, §99.15; `cast_ambush`, Rally,
 `use_spies`, `use_scouts`; `general_upgrade` (0; 9368's coin bounds it at
 1).
 
 **Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
 `run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
 Held by no walk: the decoy arm, Ambush's cast, the march's expiry (9368).
+
+### 99.15 Forced March's speed (item 1318)
+
+**`UnitData::speed@0060aae0`**, layer two (`docs/MOVEMENT.md`, "The speed
+pipeline"): a type not of the land (`+0x218 != 0`) returns `myspeed`. Under
+`leader_flags & 0x8000` and `has_general(0x8000, -1)`, the speed is
+`FORCED_MARCH_SPEED × UNIT_MOVE_SPEED` — `42m` in `rules.xml`, 42 in the
+dump's constants, no shift on this arm (`0060add1`–`0060addc`) — or
+`myspeed` where that is larger (`cmovle`, `0060ae0e`).
+`sim::cast::Sim::unit_speed`, which `get_speed`, `Group::compute_speed`, a
+follower's report and `do_follow` now open on.
+
+**`ObjectData::has_general(u, 0x8000, -1)@00646b00`**: `u` itself, a hero
+(vslot `+0xc4`, `unit_flags2 & 0x20`) with `unit_masks & 0x8000`; else
+`HeroesData::find_hero@0073a1b0` over the owner's hero records — active
+(`hero_flags & 1`, `Heroes::init_hero` to `close_hero`), the unit active
+(vslot `+0x8`) and on the map (vslot `+0xbc`, `inside_up < 0`, read off the
+PE), `unit_masks & 0x8000`, and `vector_dist(|dx|, |dy|) − 0 ≤ get_radius ×
+0xc0` (`0073a2c9`–`0073a2ea`; the `− 0` is a building's footprint).
+`HeroData::get_radius@00739e50` is `supply::general_radius`'s order; the
+Senator, `0x161`, is an economic patriot: 6 × 3 / 2 + 1 = 10 tiles.
+`sim::cast::Sim::near_marching_hero`, `hero_radius`.
+
+**The group's `+0x4b`** (`do_group_move@005e79a0`): the leader's report
+clears it and sets it again under the leader's `0x8000` and
+`has_general(0x8000, -1)`; a follower reports its `UnitData::speed` while
+it is clear, or when it has a marching hero near. `Sim::group_set_march`.
+
+**What moved**: 9323 → 9352 (the constant's comment has the value diff).
+**The word 9352**: ours 35 draws against 36 at index 0, the original's
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19`; gaia's
+`8/2` stands a unit apart on run511's 9348. No mechanism is named.
+
+**Not established**: Alexander's arm, the Iroquois bonus and the hero
+auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`
+(0); `is(t, 1)` for the patriots, taken as the type.
+
+**Coverage.** Diff-backed by the run470 walk (9323) and
+`run517_s_gap_is_widened_whole`; the unit test
+`a_forced_march_lifts_the_units_near_its_hero`. Held by no walk: the
+group's `+0x4b` arm (mutated, the walk and run511 held; every follower of
+the march stood inside the Senator's ten tiles).

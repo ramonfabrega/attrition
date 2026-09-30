@@ -867,7 +867,8 @@ impl Sim {
     /// SEAM: the Iroquois spear bonus in allied ground; Alexander's arm
     /// (the hero or the unit `is(0x166)`/`is(0x167)`, `× 384 >> 8`); and
     /// the hero auras below it — Spitamenes, Blucher, Porus, Charles,
-    /// Napoleon — each behind a nation power no capture's leader holds.
+    /// Napoleon — each behind a leader's power (`+0x59cc`..`+0x59e8`);
+    /// none is carried.
     pub(crate) fn unit_speed(&self, u: usize) -> i32 {
         let speed = self.units[u].movement.speed;
         if self.units[u].is_gaia()
