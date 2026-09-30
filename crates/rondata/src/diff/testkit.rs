@@ -1559,11 +1559,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **8377 since item 1275**: run470 parts on frame 8377, **ours 17 draws
-/// against the original's 19, at index 0** — ours opens on
-/// `Leader::make_stuff+0x221` where the original's first is
-/// `Leader::use_market+0x1ed`. Widened on run491 (block 8378), inside
-/// 8182's window.
+/// **8786 since item 1286**: run470 parts on frame 8786, **ours 10 draws
+/// against the original's 49, at index 1** — both open on
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, then the original spends
+/// `Unit::do_group_move+0xb03 < Unit::do_group_attack_to+0x11`, 33
+/// `Objects::add_flock` and three `Guy::init_real < Animal::init` draws
+/// where ours' next is the same `set_anim` again. Past run491's window (its last block 8433); widened on run500
+/// (block 8787).
+///
+/// It was **8377** before that (item 1275), ours 17 against 19 at index 0:
+/// ours' `found_cities` bought who=1's fourth city at once where the
+/// original's `make_stuff` went to the market (two `use_market+0x1ed`) and
+/// bought nothing. `get_cost` prices a city by every city of the line —
+/// Small, Large and Major, built and queued — and this crate counted Small
+/// Cities alone: one, against the original's three, so 60 food and timber
+/// against 160 (`docs/COSTS.md`, "A city is ramped by every city";
+/// `docs/AI.md` §99.11). **The move's value diff**, run491 block 8378:
+/// who=1's `MAKE[0].val` ours −1 against 1981477 and `bucket[2:wealth]`
+/// 172 against 53 → agreeing; run491 parts on 165 keys where it parted on
+/// 530, and on no block past 8277.
 ///
 /// It was **8182** before that (item 1264), ours 8 against 7 at index 2:
 /// a `Leader::make_stuff+0x63d` the original did not spend. The Barracks
@@ -1624,7 +1638,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_377;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_786;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
