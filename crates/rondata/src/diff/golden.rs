@@ -13869,8 +13869,13 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
 ///   the site's round (ours alone) landed on 712;
 /// - from 744, the cascade.
 ///
-/// **The site's conversion agrees**: `0/2008`'s `gpiece` 51364 → 51365 on
-/// block 677, on both sides — the original's in-use arm.
+/// **The original converts the site**, read off the dump by hand:
+/// `0/2008`'s `gpiece` 51364 → 51365, `myhits` 750 → 1000 and
+/// `construct_hits` 71 → 96 on block 677. The widening reads neither a
+/// building's `gpiece` nor its `myhits` (the `UNREAD` pin) and not its
+/// `construct_hits` (the compared pin): what it holds of the arm is the
+/// site's death — the original's on 901, ours on 965, and with the site
+/// left a Tower (1264's mutation B) ours on 901 and 480 rows.
 const WANT_CH47: &[&str] = &[
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",

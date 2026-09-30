@@ -1045,7 +1045,13 @@ run346's headline walk: without it East Indies' word falls from 11328 to
 run470's: Great Sahara at Toughest's who=1 holds a Keep from before
 run483's 7065 (a Tower through run476's 6033), and without the loop its word
 falls from 8182 to 7785, where the make list takes a Senate ahead of a
-Mine. Unit
+Mine. **The site arm** (`flags & 1`, not
+finished) is on disk since run514 (item 1310, `docs/GOLDEN.md` §56):
+`tech who=0 keep on` over a standing Tower site, whose `gpiece` 51364 →
+51365, `myhits` 750 → 1000 and `construct_hits` 71 → 96 on the next block,
+as this crate's `set_type` and `update_hits` give; the widening holds it
+through the site's death (with the site left a Tower, 517 → 480 rows), no
+walk yet. Unit
 test: `gaining_the_keep_turns_the_leader_s_standing_tower_into_one` (a
 finished Tower and a site convert, another leader's and a Library do not).
 Not diff-backed: the converted building's own fields. A building's
