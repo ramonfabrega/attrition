@@ -424,13 +424,18 @@ failures of its own, and struck the frame's own story to pay for them.
 - **A landing that moves another lane's word says so** (1289): 1264
   moved the third map's word under 1275, whose run491 and run494 became
   one window taken twice.
-- **A command the permission classifier refuses is written to
-  `$CLAUDE_JOB_DIR/tmp/` and run from there** (the pass's own): two
-  lanes waited 258 minutes on prompts the commander could not see —
-  1293's hand merge 86 minutes, 1291's re-pin script 163 — and the pass
-  itself was refused four times on a python heredoc naming nothing of
-  git. What needs a human is one line to the commander, and the turn
-  ends (`CLAUDE.md`).
+- **A command the worktree guard refuses is written to
+  `$CLAUDE_JOB_DIR/tmp/` and run from there, and `no verdict (error)`
+  is backed off, not stopped on** (1315, the pass's own — corrected the
+  same day from the transcripts): item 1291 met five "server-side auto
+  mode classifier gave no verdict (error)" answers in three minutes,
+  ended its turn by the permission-shaped rule, and sat 163 minutes
+  until a person typed "are we stuck?"; item 1293 was refused a `git
+  merge` inside its own worktree by the worktree guard, stopped as its
+  commander asked, and sat 86. The outage was the service's — 22 such
+  answers in six sessions on 2026-09-30, none before the 27th — and the
+  hours were the rule's. The pass itself was refused four times by the
+  worktree guard on commands naming nothing of git, at a turn each.
 - **The frame has a ceiling and may only fall** (1226, the pass's own):
   12,959 characters at the twentieth pass, 13,969 with this pass's rows,
   12,963 after the story left it and three one-reach rows stayed parked.

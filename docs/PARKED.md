@@ -2562,14 +2562,24 @@ landing against 1.06 — the tenth-landing seam was never taken
 The tool is the user's; the commander says in its handoff when an arm
 did not fire, and takes the seam by hand at the next booking.
 
-(1315) **The permission classifier holds a lane for hours** (the pass's
-own, `tools/tranche.py`): 1293's hand merge waited 86 minutes and 1291's
-re-pin script 163 — 258 minutes of two lanes' wall clock on prompts the
-commander cannot see or answer — and the pass itself was refused four
-times on commands naming nothing of git (a python heredoc, an
-arithmetic `$((n+1))`). The frame's row says write the script to
-`$CLAUDE_JOB_DIR/tmp/` and run it from there; the classifier is the
-harness's, and what it costs is the user's to weigh.
+(1315) **A classifier outage and the stop rule held two lanes 258
+minutes** (the pass's own, `tools/tranche.py`, corrected the same day
+from the transcripts): item 1291 met "the server-side auto mode
+classifier gave no verdict (error)" five times in three minutes
+(13:54–13:57Z), on Bash and then on its `SendMessage`, ended its turn by
+the permission-shaped rule, and sat **163 minutes** until the user typed
+"are we stuck?" — by then the service answered at once. Item 1293 was
+refused `git merge --no-ff worktree-replan-pdb` inside its own worktree
+by the worktree guard, stopped as its commander asked, and sat **86**
+until the user approved. Measured across the fleet's transcripts: the
+no-verdict answers were 0 before 2026-09-27, then 3, 6, 4 and **22 on
+the 30th in six sessions** — the service's outage, on 2.1.280 and
+2.1.285 alike; the worktree guard's refusals ran 5 to 20 a day for two
+weeks (344 in September's first half, 170 since), flat across the
+2.1.285 update of the 29th, a turn each. So the hours were the rule's:
+`CLAUDE.md` now says a no-verdict is backed off on a Monitor, five
+minutes and up to an hour, before a turn ends. The guard's refusal of a
+merge inside a lane's own worktree is the harness's and the user's.
 
 (1316) **A landing gates twice** (the pass's own, `tools/tranche.py`):
 the gate's wait went 16.2 → 39.9 minutes a landing, and sixteen earlier

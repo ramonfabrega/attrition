@@ -3818,7 +3818,8 @@ context 40 per cent from 52. **A landing took 142 minutes, 33 working
 and 108 waiting**, against 99, 39 and 61 by the same fold
 (`tools/tranche.py`): the gate 40 minutes from 16, a capture 30 from
 11, a status message and then nothing 19 from 10, the suite 15 from 13.
-Two lanes waited **258 minutes** on permission prompts. The commander
+Two lanes waited **258 minutes** on a classifier outage and the stop
+rule (parked 1315). The commander
 ran one session, 402 k at its deepest and 1.14 USD a landing; `ccc
 clear --then` was armed three times and did not fire. Twelve value
 diffs on the word's frame, nine on the frame the state first parted,
@@ -3844,8 +3845,13 @@ the tranche carried coverage.
    a landing's 142 are the machine's and the harness's: a landing gates
    twice because a pin another lane moved turns its first gate red, a
    capture at Toughest to 24,000 frames is two hours of one lane's
-   clock, and the permission classifier held two lanes for 258 minutes
-   between them on commands that named nothing of git.
+   clock, and two lanes sat 258 minutes between them — one on five
+   "no verdict (error)" answers from the auto-mode classifier in three
+   minutes, after which it ended its turn by the permission-shaped rule
+   and waited 163 minutes for a person; one on the worktree guard
+   refusing a merge inside its own worktree, and the stop its commander
+   asked for. The service's outage was three minutes; the rule's was
+   the hours.
 3. **The instrument that conflicts is the instrument that compares
    nothing.** `coverage.rs` refused four updates; its pin is the union
    of the open windows' comparisons, so every landing that moves a word
@@ -3900,9 +3906,9 @@ the tranche carried coverage.
    of the pass's own; 1101 and 1114 close on two tranches without a
    reach; 1314 to 1317 are filed. The backlog is twenty-two.
 
-**Not decided, and the user's**: the permission classifier's refusals,
-which cost more wall clock this tranche than every capture (parked
-1315); `ccc clear --then` (1314); whether phase 4 opens on the rules
+**Not decided, and the user's**: the worktree guard's refusal of a
+merge inside a lane's own worktree (parked 1315; the outage's half is
+`CLAUDE.md`'s now — a no-verdict is backed off, not stopped on); `ccc clear --then` (1314); whether phase 4 opens on the rules
 track alone; the thesis sentence from entry 41; whether the loop hands
 itself to its pass (1141); whether a cheaper model is admitted to a
 trial (1142); and **the disk** — 40 GiB free, 13 written in the tranche,
@@ -3932,7 +3938,7 @@ and whether `seams.py` printed it on the first read, against five of
 twenty; standing keys that became words and whether `standing.py` named
 them, against four of five; refused updates against nine and
 `coverage.rs`'s four; earlier red gates against sixteen and a landing's
-two gates; minutes waited on a permission prompt against 258; the lane
+two gates; minutes a lane sat on a classifier answer against 258; the lane
 lock's incidents against eleven; `UNBUILT` against 138,
 `NO_SUCH_SECTION` against thirteen, `UNSCANNED_SEAMS` against
 forty-five, the doors against seventeen, `UNCOMPARED_BY_THE_INSTRUMENT`

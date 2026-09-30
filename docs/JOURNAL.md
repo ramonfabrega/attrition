@@ -20961,3 +20961,5 @@ moved to the brief checklist (1233, 1256, 1267, 1285, 1289, 1313), 1101
 and 1114 closed on two tranches without a reach, 1314 to 1317 filed;
 the backlog is twenty-two from thirty-three. **DECISIONS 57.**
 `docs/audit/2026-09-30-fable-pass-21.md`.
+
+**The same day, corrected**: the 258 minutes were not "permission prompts" — item 1291 sat 163 minutes after five "no verdict (error)" answers from the auto-mode classifier (a three-minute service outage, 22 such answers fleet-wide that day) because the permission-shaped rule ended its turn, and 1293 sat 86 after the worktree guard refused a merge inside its own worktree; neither is the 2.1.285 update, whose date the worktree guard's refusals cross flat. `CLAUDE.md` now backs a no-verdict off on a Monitor before a turn ends (parked 1315).

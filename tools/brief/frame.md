@@ -33,7 +33,7 @@ word needs, in any module. The lanes below are where the other words
 sit, as information: if your build lands in a function theirs is likely
 in, say so in one line and carry on. Take `ccc update` before your gate
 and measure on the merged tree; a conflict in code is yours to resolve
-if you land second. Never hand your word over for where the code sits.
+if you land second.
 
 ## before-reading
 
@@ -193,9 +193,10 @@ Before any reading of the original, in this order:
   snap, a group move — runs the widenings whose captures reach it before
   the gate** (1313): `RON_FIRSTS` grepped for `inside_up` going to −1
   names the disembarks.
-- **A command the permission classifier refuses is written to
-  `$CLAUDE_JOB_DIR/tmp/` as a script and run from there**; a refusal
-  that needs a human is one line to me, and the turn ends.
+- **A command the worktree guard refuses is written to
+  `$CLAUDE_JOB_DIR/tmp/` and run from there; `no verdict (error)` is an
+  outage — back off on a Monitor, five minutes and up to an hour**;
+  what needs a human is one line to me, and the turn ends (1315).
 
 ## landing
 

@@ -24,9 +24,9 @@ forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
   restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
   (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
   frame's ceiling (1226), `tools/tranche.py` for a tranche's waiting.
-- **Two lanes lost 258 minutes to permission prompts** (parked 1315): a
-  refused command is a script in `$CLAUDE_JOB_DIR/tmp/` — the frame's
-  row now; **`ccc clear --then` did not fire three times** (1314), so
+- **Two lanes lost 258 minutes to a classifier outage and the stop
+  rule** (parked 1315): a `no verdict (error)` is backed off on a
+  Monitor, not stopped on — `CLAUDE.md` and the frame say so now; **`ccc clear --then` did not fire three times** (1314), so
   the commander takes the seam by hand after the tenth landing.
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; **the disk, 40 GiB free, 13 written a tranche**; parked

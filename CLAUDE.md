@@ -228,7 +228,11 @@ what they are not told about, and an hour of good side work is not worth
 the hour of the work that was asked for. A refusal whose remedy is in
 this repo and needs no human — a lane to relaunch through, a grant that
 belongs to another bundle — is taken and reported; the rule is for what
-needs a human.
+needs a human. **And `no verdict (error)` from the auto-mode classifier
+is an outage, not a refusal**: back off on a Monitor, five minutes and
+up to an hour, before the turn ends with a question — a lane that
+stopped on five such answers in three minutes sat 163 minutes for a
+person (parked 1315).
 
 In practice the natural boundary is the end of a mechanic. Finish it, commit
 it, say where things stand and what you would do next — then it is a good
