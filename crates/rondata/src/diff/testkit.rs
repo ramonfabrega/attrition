@@ -1535,7 +1535,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Leader::make_stuff+0x221` where the original spends a third
 /// `Leader::use_market+0x1ed`. Past run462's window (its last block
 /// 10434), widened on run480 (block 10986).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
+///
+/// **10985 → 11328 on item 1264** (`docs/TECH.md` step 8): a building type
+/// gained converts every in-use building whose type's `upgrade` is it
+/// (`Leader::gain_tech`'s loop at `6dde64`–`6ddf2b`, `Wall::set_type`), and
+/// this crate converted none. who=1's Tower `1/2014` is a Keep in the
+/// original's `num_buildings` from the Keep's gain (Tower 1, Keep 0 on
+/// run357's 5601; Tower 0, Keep 1 on run425's 7377) and stayed a Tower
+/// here, so `create_buildings` read a first Keep to offer and on 10984
+/// valued it at 900,000. **The move's value diff (the word's block before,
+/// here; its block is `run480_s_word_frame_is_widened_whole`'s):** on 10985
+/// who=1's `MAKE[1].t` ours 440 against 134 → agreeing and `MAKE[1].val`
+/// 900000 against 611022 → agreeing; `use_market`'s `need` over three slots
+/// takes the timber short again. run480's keys went 1490 → 220. Frame
+/// 10985's draws went 10 against 11 → agreeing. **The new word's delta:
+/// ours 62 draws and the original 60 on frame 11328, parting at index 57**:
+/// ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+/// original spends `Guy::set_anim+0x104b`. Past run480's window (its last
+/// block 11236), widened on run490 (block 11329).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -7346,7 +7364,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
-    // inside it; item 1243 to 10985, past it, widened on run480.
+    // inside it; item 1243 to 10985, past it, widened on run480; item 1264
+    // to 11328, past it, widened on run490.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
