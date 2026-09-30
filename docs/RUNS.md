@@ -11291,6 +11291,43 @@ make list on 15982, and the word's block 15983 on who=1's new site
 pin and the coverage driver walk 15981..15985.
 
 
+## run462 — run346's game at run445's detail over blocks 10178..10434: the second pair's East Indies word 10183 widened (2026-09-29, item 1214)
+
+**What it is.** run445's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10178..10434, `!quit` at 10448. The word's frame 10183 writes
+block 10184: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run462 \
+    --map 18 --end-frame 10448 --timeout 5400 --log-window 10178 10435 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run445 ends at block
+9071; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 22:20–22:44 in one take. The lane was held by item 1222's
+capture; mine waited **11.5 minutes** (690 s) for it, then took the stale
+lock. It was waited on with `waitrun.sh`: `success: true`, exit 0, 1,423 s
+from launch to exit, 10,449 frames, map 18 and seed 12345 verified, five
+files restored. The dump (619.1 MB) and the trace (93.2 MB) were moved into
+`Logs` as `gamelog-run462-islands-toughest-10183.txt` and
+`rontrace-run462.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 10,449 identical |
+| window blocks | 257, 10178..10434 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run462_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 10178 stands on 182 keys, among them
+who=1's `num_units[268]` ours 0 against 1; the make list parts from 10181,
+and the word's block 10184 on nine keys. The window parts on 1,055 keys.
+The coverage driver and the compared pin walk 10183..10186.
 ## run445 — run346's game at run439's detail over blocks 8815..9071: the second pair's East Indies word 8820 widened (2026-09-29, item 1191)
 
 **What it is.** run439's shape on the click-free lane: run346's lobby,
