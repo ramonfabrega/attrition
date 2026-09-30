@@ -2158,14 +2158,15 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // East Indies' 10185 window has none either (measured on the tree
     // merged with 1228's): `coll_x`/`coll_y` return to it.
     // **Item 1243 moved East Indies' window to run480's 10984..10987**,
-    // where a cast order and a group move stand: `cast_paid`,
-    // `cast_spell` and the group row (`group_id`, `group_angle`,
-    // `in_group`, `form_id`, `oxx`, `whose`) are compared there, and
-    // leave this pin (measured on the tree merged with 1241's).
+    // where a cast order, a group move and a move whose `coll` pair has
+    // left `(0, 0)` stand: `cast_paid`, `cast_spell`, the group row
+    // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`)
+    // and `coll_x`/`coll_y` are compared there, and leave this pin
+    // (measured on the tree merged with 1241's and 1248's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type coll_x coll_y cruising_alt def_x \
+         attempts build_type cruising_alt def_x \
          def_y defensive ever_in_range garrison_search \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
