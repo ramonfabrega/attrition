@@ -12,14 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: five landings.
-**East Indies' second word 8907 → 10183** (1214); **chapter forty-three
+*2026-09-30, the commander after the twentieth pass: six landings.
+**East Indies' second word 8907 → 10185** (1214, 1228); **chapter forty-three
 opens at 1356, then 1552** (1223, 1235); **Great Sahara at Toughest
 opens at 5376 of 15,432** (1221; run469's 1850/1850 is its test's, not a
 floor). 1222: the held-out map, **Himalayas 1851/1850**, for the record.*
 
-- **Three lanes live: 1228, 1241, 1248**, one to each open word. 1228
-  (10185) is retaking `ccc update` after a conflict in `coverage.rs`.
+- **Three lanes live: 1243, 1241, 1248**, one to each open word.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -31,17 +30,17 @@ floor). 1222: the held-out map, **Himalayas 1851/1850**, for the record.*
   functions**, from the arms a landing parks as held by no walk.
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
-- **Fable backlog: 18 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1250).
+- **Fable backlog: 19 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w10183 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w10185 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w5376 of 15,432
 Golden: ch43 w1552 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1228, 1241 and
-1248; five landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1243, 1241 and
+1248; six landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -51,13 +50,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1228. **East Indies' second word: frame 10183, ours 24 draws against 9**
-    (1214), at index 0: ours `Leader::create_units+0x642`, theirs
-    `Guy::set_anim+0x97a < do_cast`, widened on run462 (block 10184),
-    which parts on nine keys — who=1's `MAKE[0].t` (228 against 597)
-    among them, the make list parting from 10181; 182 keys stand on
-    block 10178, who=1's `num_units[268]` (0 against 1) among them. No
-    mechanism is named.
+1243. **East Indies' second word: frame 10185, ours 9 draws against 10**
+    (1228), at index 1: ours `Leader::make_stuff+0x221` where the
+    original spends a second `Leader::use_market+0x1ed` (then
+    `produce_building+0x1805` twice); widened on run462 (block 10186),
+    which parts on 38 keys — who=1's `bucket[2:wealth]` 57 against 7, the
+    Senate's foundation `1/2026` the dump's alone. `MAKE[0].val` on 10185
+    1,200,000 against 4,800,000; `num_queued[84]` stands from 10178.
 
 1241. **Great Sahara at Toughest's first word: frame 5376, ours 45
     draws against 40** (1221), at index 1: four
