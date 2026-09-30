@@ -7051,15 +7051,10 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         })
         .collect();
     got.sort();
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/6 order:target",
-        "616 1/6 form",
-        "616 1/6 order:target",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = ["611 0/6 order:target", "616 1/6 order:target"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
     want.sort();
     pin_eq!(got, want, "ch6b: what parts under the word moved");
 }
@@ -7183,17 +7178,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // `0/4` on 1172, `1/3` on 1188 and `1/1`'s gather `wait` on 1189. With
     // it no row parts past 1001: the list below is the standing family
     // (parked 275's row, as on 1139, gone since `push_group` keeps an equal group's record (item 723)).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-        "615 0/10 form",
-        "1001 1/6 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch11: what parts under the word moved");
 }
@@ -7258,17 +7243,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     // rows goes. The chariot's 24 hops and its rest, the hoplites' legs
     // under the doubled `k`, both turns and every follower's final stand
     // agree to run204's end, block for block.
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-        "615 0/10 form",
-        "617 0/11 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch12: what parts under the word moved");
 }
@@ -7338,15 +7313,7 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     // and `come_out` pushes the squad, and `0/7`–`0/9` read group 3 on 903
     // on both sides. What stays is the births' `form`, `Unit::init`'s
     // (parked 646).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "615 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch13: what parts under the word moved");
 }
@@ -7411,15 +7378,6 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     // original's is `who·64 +` the pool slot, 701101 against 707501
     // (parked 689).
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/10 form",
-        "613 0/11 form",
-        "613 0/9 form",
-        "615 0/12 form",
-        "615 0/13 form",
-        "615 0/14 form",
         "702 0/10 order:group.id",
         "702 0/11 order:group.id",
         "702 0/12 order:group.id",
@@ -7642,13 +7600,6 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // the list was not asked for. The target last prints on 808 on both
     // sides.
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/10 form",
-        "613 0/11 form",
-        "613 0/9 form",
-        "615 1/6 form",
         "622 0/10 order:group.id",
         "622 0/11 order:group.id",
         "622 0/6 order:group.id",
@@ -7745,15 +7696,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     // **Built → 1250, closed** (item 738): `MoveOrder::orig` on a plain
     // move, set by `action_move_near`'s plain arm, and `finish_insert`
     // replaying to it. All 67 keys past the births went.
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch16: what parts under the word moved");
     // **What parts in the pool.** Slot 0 is the squad's explore (641),
@@ -8001,16 +7944,9 @@ const WANT_CH21: &[&str] = &[
     "1021 1/6 order:group.id",
     "1021 1/7 order:group.id",
     "1021 1/8 order:group.id",
-    "611 1/6 form",
-    "611 1/7 form",
-    "611 1/8 form",
     "635 1/6 order:target",
     "635 1/7 order:target",
     "635 1/8 order:target",
-    "771 0/6 form",
-    "773 0/7 form",
-    "775 0/8 form",
-    "777 0/9 form",
 ];
 // **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
@@ -8050,8 +7986,6 @@ const WANT_CH20: &[&str] = &[
     // its disembark, 1160, ours 0 against 15, and its turn after — until
     // item 1164 put it ashore at the average it boarded with
     // (`docs/TRANSPORT.md` §6.4): ten rows, all agreeing.
-    "611 0/6 form",
-    "613 0/7 form",
     "704 0/8 form",
     "830 0/9 form",
 ];
@@ -8581,7 +8515,7 @@ fn run249_s_transport_is_the_original_s_unit_for_unit() {
 // command entered, 1100, closed** (605, 1101): past the births only the
 // Spy's birth `form` stands. Its figure's `stopped` on 756 went with
 // `Guy::set_angle`'s third argument (`crate::cast`).
-const WANT_CH19: &[&str] = &["611 0/6 form"];
+const WANT_CH19: &[&str] = &[];
 // **What parts in the pool**: the pushed selection's `ox`/`oy`, (0, 0)
 // there and (−1, −1) here, chapter seventeen's and eighteen's standing
 // family: a point no craft reads.
@@ -8662,15 +8596,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
     // of the walks, every block of construction, the completions, and
     // `0/8`'s help on 1097 once the one-unit swarm asked whose builder it
     // is (an `EXPLORETOORDER` there before).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "617 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch18: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's pushed
@@ -8791,7 +8717,7 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
 // action bit cleared; on 1385 `0/6` and on 1489 `0/7` each hold one
 // `AIRPATROLORDER`, flags 0, `oxx` 2007, point (21120, 16512),
 // `returning` 0, `cruising_alt` 1400 and 1600, on both sides; 13 → 9).
-const WANT_CH22: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
+const WANT_CH22: &[&str] = &[];
 
 // **What parts in the pool** on run265: chapter seventeen's ten, the
 // pushed flight groups' point (parked 760) and item 738's `get_num` speeds;
@@ -8882,7 +8808,7 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
 // the births' and chapter one's clocks (611–655). 1585 agrees on both
 // walks: this crate's `do_launch` kills `0/6`'s unflagged patrol, and
 // under the cleared bit so does the original's.
-const WANT_CH23: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
+const WANT_CH23: &[&str] = &[];
 
 // **What parts in the pool** on run281: chapter twenty-two's ten. ~~And the
 // building group `[2007]` the original's `process_group` pushes into
@@ -8991,29 +8917,16 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
 // `orders_x` by `Unit::check_target_path@005e22d0` (nothing targets
 // these squads).
 const WANT_CH24: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "856 0/10 form",
-    "856 0/11 form",
     "856 0/11 orders_x",
     "856 0/11 orders_y",
-    "856 0/12 form",
     "856 0/12 orders_x",
     "856 0/12 orders_y",
-    "1060 0/13 form",
-    "1060 0/14 form",
     "1060 0/14 orders_x",
     "1060 0/14 orders_y",
-    "1060 0/15 form",
     "1060 0/15 orders_x",
     "1060 0/15 orders_y",
-    "1272 0/16 form",
-    "1272 0/17 form",
     "1272 0/17 orders_x",
     "1272 0/17 orders_y",
-    "1272 0/18 form",
     "1272 0/18 orders_x",
     "1272 0/18 orders_y",
 ];
@@ -9117,22 +9030,12 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
 // layout (none in run292), `orders_x` by `Unit::check_target_path@
 // 005e22d0` (nothing targets these squads).
 const WANT_CH25: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "965 0/10 form",
-    "965 0/11 form",
     "965 0/11 orders_x",
     "965 0/11 orders_y",
-    "965 0/12 form",
     "965 0/12 orders_x",
     "965 0/12 orders_y",
-    "1216 0/13 form",
-    "1216 0/14 form",
     "1216 0/14 orders_x",
     "1216 0/14 orders_y",
-    "1216 0/15 form",
     "1216 0/15 orders_x",
     "1216 0/15 orders_y",
 ];
@@ -9243,16 +9146,9 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
 // `docs/VISION.md`'s open question on the cached `mylos`, run10's Scout
 // the same shape. Its reader is the fog disc; the stream agrees to 1492.
 const WANT_CH26: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
     "1023 0/0 mylos",
-    "1106 0/10 form",
-    "1106 0/11 form",
     "1106 0/11 orders_x",
     "1106 0/11 orders_y",
-    "1106 0/12 form",
     "1106 0/12 orders_x",
     "1106 0/12 orders_y",
 ];
@@ -9345,25 +9241,12 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
 // `form` on every non-citizen it makes (611, 615, 617, and the squads on
 // 1111 and 1307) and the followers' tile-centred `orders_x/y`.
 const WANT_CH27: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "617 0/10 form",
-    "617 0/11 form",
-    "617 0/12 form",
-    "1111 0/13 form",
-    "1111 0/14 form",
     "1111 0/14 orders_x",
     "1111 0/14 orders_y",
-    "1111 0/15 form",
     "1111 0/15 orders_x",
     "1111 0/15 orders_y",
-    "1307 0/16 form",
-    "1307 0/17 form",
     "1307 0/17 orders_x",
     "1307 0/17 orders_y",
-    "1307 0/18 form",
     "1307 0/18 orders_x",
     "1307 0/18 orders_y",
 ];
@@ -9475,43 +9358,24 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
 // the first walk. What stands is `Unit::init@00612100`'s (parked 646):
 // `form` on every birth and the followers' tile-centred `orders_x/y`.
 const WANT_CH28: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "825 0/10 form",
-    "825 0/11 form",
     "825 0/11 orders_x",
     "825 0/11 orders_y",
-    "825 0/12 form",
     "825 0/12 orders_x",
     "825 0/12 orders_y",
-    "876 0/13 form",
-    "876 0/14 form",
     "876 0/14 orders_x",
     "876 0/14 orders_y",
-    "876 0/15 form",
     "876 0/15 orders_x",
     "876 0/15 orders_y",
-    "1067 0/16 form",
-    "1067 0/17 form",
     "1067 0/17 orders_x",
     "1067 0/17 orders_y",
-    "1067 0/18 form",
     "1067 0/18 orders_x",
     "1067 0/18 orders_y",
-    "1126 0/19 form",
-    "1126 0/20 form",
     "1126 0/20 orders_x",
     "1126 0/20 orders_y",
-    "1126 0/21 form",
     "1126 0/21 orders_x",
     "1126 0/21 orders_y",
-    "1324 0/22 form",
-    "1324 0/23 form",
     "1324 0/23 orders_x",
     "1324 0/23 orders_y",
-    "1324 0/24 form",
     "1324 0/24 orders_x",
     "1324 0/24 orders_y",
 ];
@@ -9632,10 +9496,6 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
 // `Unit::init@00612100`'s seat (parked 646), the point's one writer; the
 // plane never leaves the base, so nothing reads it on the run.
 const WANT_CH29: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -9954,10 +9814,6 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
         "622 0/6 order:patrol.id",
         "642 0/7 order:group.id",
         "642 0/7 order:patrol.id",
@@ -10049,10 +9905,6 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
         "642 0/7 order:group.id",
         "642 0/8 order:group.id",
         "642 0/9 order:group.id",
@@ -10128,13 +9980,6 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/9 form",
-        "616 1/6 form",
-        "616 1/7 form",
-        "616 1/8 form",
         "660 0/-1 leader:treaties[1]",
         "660 0/7 damage_frac",
         "660 0/7 hits:damage",
@@ -12383,15 +12228,9 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
 // rows: the 70 of 1060..1079 go, and the Bowmen's three `form` rows stay
 // (parked 646).
 const WANT_CH30: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "760 0/10 form",
     "856 0/11 order:group.id",
     "856 0/12 order:group.id",
     "856 0/13 order:group.id",
-    "953 0/14 form",
     "953 0/14 g.des_x[0]",
     "953 0/14 g.des_y[0]",
     "953 0/14 g.x[0]",
@@ -12399,7 +12238,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/14 orders_x",
     "953 0/14 orders_y",
     "953 0/14 pos",
-    "953 0/15 form",
     "953 0/15 g.des_x[0]",
     "953 0/15 g.des_y[0]",
     "953 0/15 g.x[0]",
@@ -12407,7 +12245,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/15 orders_x",
     "953 0/15 orders_y",
     "953 0/15 pos",
-    "953 0/16 form",
     "953 0/16 g.des_x[0]",
     "953 0/16 g.des_y[0]",
     "953 0/16 g.x[0]",
@@ -12415,9 +12252,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/16 orders_x",
     "953 0/16 orders_y",
     "953 0/16 pos",
-    "1060 0/17 form",
-    "1060 0/18 form",
-    "1060 0/19 form",
 ];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's
@@ -12542,17 +12376,9 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
 // 1167: the builder's gather clears `+0x80` (`docs/GOLDEN.md` §49). 15 →
 // 14 rows.
 const WANT_CH31: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "616 0/10 form",
-    "718 0/11 form",
-    "824 0/12 form",
     "858 0/13 order:group.id",
     "858 0/14 order:group.id",
     "858 0/15 order:group.id",
-    "938 0/16 form",
     "953 0/17 order:group.id",
     "953 0/18 order:group.id",
     "953 0/19 order:group.id",
@@ -12673,10 +12499,6 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
 // 13920), theirs (11640, 13944) — `Unit::init@00612100`'s (parked 646).
 // It leaves on 1747 on the EXIT, where both sides agree.
 const WANT_CH32: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -12809,10 +12631,6 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
 // EXIT kills, are not read (the EXIT's own `set_angle(0)` turns 6° and
 // cannot flip it).
 const WANT_CH33: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -13132,11 +12950,6 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
 /// kills them on both sides; and two citizens' animation clocks on
 /// 617..655, a residue outside the nuke that moves no draw.
 const WANT_CH37: &[&str] = &[
-    "2951 0/6 form",
-    "2953 0/7 form",
-    "2955 0/8 form",
-    "2957 0/9 form",
-    "3022 0/10 form",
     "3022 0/10 g.des_x[0]",
     "3022 0/10 g.des_y[0]",
     "3022 0/10 g.x[0]",
@@ -13627,7 +13440,6 @@ const WANT_CH45: &[&str] = &[
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
-    "603 0/6 form",
     "600 0/2000 city:busy",
     "600 0/2000 city:filled",
     "600 0/2000 city:gatherers",
@@ -13687,9 +13499,7 @@ const WANT_CH44: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 1/6 form",
     "611 1/6 order:target",
-    "613 0/6 form",
     "671 0/-1 leader:treaties[1]",
     "671 1/-1 leader:treaties[0]",
 ];
@@ -13784,17 +13594,11 @@ const WANT_CH46: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/6 form",
-    "613 0/7 form",
-    "613 0/8 form",
-    "613 0/9 form",
     "704 0/10 form",
-    "726 1/6 form",
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
     "1357 0/10 path_recursion",
-    "1401 1/7 form",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -14522,16 +14326,11 @@ const WANT_CH43: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/6 form",
-    "613 0/7 form",
-    "613 0/8 form",
-    "613 0/9 form",
     "704 0/10 form",
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
     "1357 0/10 path_recursion",
-    "1401 1/6 form",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -14583,12 +14382,9 @@ const WANT_CH42: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "615 0/6 form",
     "622 0/6 order:target",
     "623 0/-1 leader:treaties[1]",
     "623 1/-1 leader:treaties[0]",
-    "701 0/7 form",
-    "901 1/6 form",
 ];
 
 /// Chapter forty-one's widening rows (items 1182, 1200): run437 whole,
@@ -14632,12 +14428,6 @@ const WANT_CH41: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "609 1/6 form",
-    "613 1/7 form",
-    "615 0/6 form",
-    "617 0/7 form",
-    "617 0/8 form",
-    "617 0/9 form",
     "632 0/6 order:target",
     "672 1/2000 city:raid_stamp",
     "902 1/6 group",
@@ -14732,7 +14522,6 @@ const WANT_CH40: &[&str] = &[
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
-    "605 0/6 form",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/2000 city:filled",
@@ -14740,11 +14529,6 @@ const WANT_CH40: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/7 form",
-    "615 0/8 form",
-    "617 0/9 form",
-    "619 0/10 form",
-    "621 0/11 form",
     "801 0/2000 city:free",
 ];
 
@@ -14846,24 +14630,7 @@ fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
 /// Citizen, 0 else, against this crate's −1) on every unit the script adds
 /// and on the six decoys of 821 — the standing row of every chapter; a cast
 /// writes the byte, and from each conversion on it agrees.
-const WANT_CH39: &[&str] = &[
-    "607 0/6 form",
-    "609 0/7 form",
-    "611 0/8 form",
-    "613 0/9 form",
-    "615 0/10 form",
-    "615 0/11 form",
-    "615 0/12 form",
-    "617 0/13 form",
-    "617 0/14 form",
-    "617 0/15 form",
-    "821 0/16 form",
-    "821 0/17 form",
-    "821 0/18 form",
-    "821 0/19 form",
-    "821 0/20 form",
-    "821 0/21 form",
-];
+const WANT_CH39: &[&str] = &[];
 
 /// Chapter thirty-nine's pool rows (item 1111): each press's pushed
 /// selection's `ox`/`oy` (0 against −1, chapters nineteen's and
@@ -15340,12 +15107,7 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// `block_radius` (`UnitType::init@0061ab50:753`), the splash's inner
 /// radius the loader had left at 0.
 const WANT_CH38: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
     "619 1/2007 build:constr_time",
-    "621 1/6 form",
-    "621 1/7 form",
-    "621 1/8 form",
     "743 1/9 g.des_turret0[0]",
     "743 1/9 g.turret0[0]",
     "761 1/9 ammo[1]",
@@ -15455,7 +15217,6 @@ const WANT_CH38: &[&str] = &[
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
 /// (+24, +24: parked 646's family, run371's `0/10` again).
 const WANT_CH36: &[&str] = &[
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -15463,7 +15224,6 @@ const WANT_CH36: &[&str] = &[
     "1746 0/9 orders_x",
     "1746 0/9 orders_y",
     "1746 0/9 pos",
-    "2431 0/10 form",
     "2431 0/10 g.des_x[0]",
     "2431 0/10 g.des_y[0]",
     "2431 0/10 g.x[0]",
@@ -15471,10 +15231,8 @@ const WANT_CH36: &[&str] = &[
     "2431 0/10 orders_x",
     "2431 0/10 orders_y",
     "2431 0/10 pos",
-    "2446 0/11 form",
     "2446 0/11 mirror",
     "2659 0/12 dest_angle",
-    "2659 0/12 form",
     "2659 0/12 g.des_x[0]",
     "2659 0/12 g.des_y[0]",
     "2659 0/12 g.last_z[0]",
@@ -15488,8 +15246,6 @@ const WANT_CH36: &[&str] = &[
     "2719 0/12 heading",
     "2720 0/12 angle:Facing",
     "2720 0/12 g.angle[0]",
-    "2741 0/13 form",
-    "2926 0/14 form",
     "2926 0/14 g.des_x[0]",
     "2926 0/14 g.des_y[0]",
     "2926 0/14 g.x[0]",
@@ -15497,7 +15253,6 @@ const WANT_CH36: &[&str] = &[
     "2926 0/14 orders_x",
     "2926 0/14 orders_y",
     "2926 0/14 pos",
-    "2931 0/15 form",
     "2931 0/15 g.des_x[0]",
     "2931 0/15 g.des_y[0]",
     "2931 0/15 g.x[0]",
@@ -15505,9 +15260,6 @@ const WANT_CH36: &[&str] = &[
     "2931 0/15 orders_x",
     "2931 0/15 orders_y",
     "2931 0/15 pos",
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
     // **The rounds' fields, compared from item 1257**: chapter
     // thirty-five's two families on the same start — the Bombers'
     // `accuracy` (0 here) and the targets cleared on 1080.
@@ -16095,10 +15847,6 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // parting. What stands is the birth seats and the second Helicopter's
 // bearing, parked.
 const WANT_CH35: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -16106,7 +15854,6 @@ const WANT_CH35: &[&str] = &[
     "1746 0/9 orders_x",
     "1746 0/9 orders_y",
     "1746 0/9 pos",
-    "2431 0/10 form",
     "2431 0/10 g.des_x[0]",
     "2431 0/10 g.des_y[0]",
     "2431 0/10 g.x[0]",
@@ -16114,10 +15861,8 @@ const WANT_CH35: &[&str] = &[
     "2431 0/10 orders_x",
     "2431 0/10 orders_y",
     "2431 0/10 pos",
-    "2446 0/11 form",
     "2446 0/11 mirror",
     "2659 0/12 dest_angle",
-    "2659 0/12 form",
     "2659 0/12 g.des_x[0]",
     "2659 0/12 g.des_y[0]",
     "2659 0/12 g.last_z[0]",
@@ -16265,10 +16010,6 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
 // `0/2008`, whose tile is −42: 21 → 17 on 2399). 421 → 17: chapter
 // thirty-two's seventeen alone.
 const WANT_CH34: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",

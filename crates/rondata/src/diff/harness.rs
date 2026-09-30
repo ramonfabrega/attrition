@@ -11345,8 +11345,6 @@ pub(crate) mod tests {
             [
                 "12086 1/-2 pool:68: ours [68] theirs []",
                 "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
-                "11993 1/67 form: ours -1 theirs 0",
-                "12057 1/68 form: ours -1 theirs 0",
             ],
             "the rows under the next word"
         );
@@ -11748,14 +11746,9 @@ pub(crate) mod tests {
                 // against 14080: the border pass's economy flag (`docs/AI.md` §84).
                 "14584 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
-                "13163 1/71 form: ours -1 theirs 9",
-                "13344 1/72 form: ours -1 theirs 9",
-                "13525 1/73 form: ours -1 theirs 9",
-                "13556 1/74 form: ours -1 theirs 9",
                 "13556 1/74 g.angle[0]: ours 1431655765 theirs 0",
                 "13556 1/74 orders_x: ours 40416 theirs 40440",
                 "13556 1/74 orders_y: ours 25248 theirs 25272",
-                "13737 1/75 form: ours -1 theirs 9",
                 "13737 1/75 g.angle[0]: ours 1431655765 theirs 0",
                 "13737 1/75 orders_x: ours 40416 theirs 40440",
                 "13737 1/75 orders_y: ours 25248 theirs 25272",
@@ -11918,16 +11911,7 @@ pub(crate) mod tests {
         // the Senate (`visible 0`, `orders_x/y` its own point), and ours
         // has come out onto its ring. That is the hypothesis for the new
         // word, 15175, and it is not built here (DECISIONS 42).
-        pin_eq!(
-            own,
-            [
-                "14946 1/76 form: ours -1 theirs 0",
-                "14946 1/77 form: ours -1 theirs 0",
-                "14946 1/78 form: ours -1 theirs 0",
-                "14983 1/79 form: ours -1 theirs 0",
-            ],
-            "the rows on run192's own blocks, to the word's"
-        );
+        pin_eq!(own, [] as [&str; 0], "the rows on run192's own blocks, to the word's");
         // **The old word, 14982 (block 14983).** The original spent three
         // `Guy::init_real+0x52` where this crate spent none: the Despot's
         // three figures. Since item 706 both sides birth it, the leader's
@@ -14807,7 +14791,6 @@ pub(crate) mod tests {
         pin_eq!(
             scholar,
             [
-                "9712 1/28 form: ours -1 theirs 9",
                 "9712 1/28 g.angle[0]: ours 1431655765 theirs 0",
                 "9712 1/28 orders_x: ours 36000 theirs 36024",
                 "9712 1/28 orders_y: ours 35808 theirs 35832",
@@ -14994,10 +14977,9 @@ pub(crate) mod tests {
         pin_eq!(
             birth,
             [
-                "10187 1/32 form: ours -1 theirs 0",
                 // Item 870: the navy's `group` on 10188, 68 here against
                 // 66, agrees (`docs/GROUPS.md` §29).
-            ],
+            ] as [&str; 0],
             "the warship's birth"
         );
         let placed: Vec<&String> = firsts
@@ -15848,14 +15830,13 @@ pub(crate) mod tests {
                 // point moved from (7320, 21912) and parted, (8364, 14588)
                 // against (8088, 17976), until item 1164: an AI's
                 // passenger is ordered where it lands (§6.4), and agrees.
-                "15783 1/60 form: ours -1 theirs 0",
                 // Item 829: the pool id reads 71 here where it read 69 —
                 // a closed army's group now holds its slot (`docs/ARMY.md`
                 // §22), so the wagon's new one takes a later index. Item
                 // 870: `1/60`'s `group` on 15784, 71 here against 70,
                 // agrees — who=1's pool numbering is the original's
                 // (`docs/GROUPS.md` §29).
-            ],
+            ] as [&str; 0],
             "every key first parting past the window's first block"
         );
         pin_eq!(
@@ -17601,7 +17582,6 @@ pub(crate) mod tests {
                 "23184 1/-1 leader:MAKE[5].city: ours 2 theirs 1",
                 "23192 1/-1 leader:gather_stamp: ours 23191 theirs 23183",
                 "23366 1/-1 leader:peasants: ours 29 theirs 30",
-                "23366 1/81 form: ours -1 theirs 9",
             ],
             "the runway to the new word"
         );

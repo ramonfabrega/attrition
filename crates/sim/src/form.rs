@@ -1499,7 +1499,7 @@ mod tests {
         assert_eq!(
             ring.angle,
             0x5555_5555u32
-                .wrapping_add(5 * 0x6666_6666u32)
+                .wrapping_add(0x6666_6666u32.wrapping_mul(5))
                 .wrapping_add(u32::MAX / 20)
         );
         let (x, y) = ring.place(6, 144, false);
