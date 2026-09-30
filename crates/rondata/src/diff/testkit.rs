@@ -5027,16 +5027,25 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
 pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 
 /// Chapter forty-three's golden word (item 1223, `docs/GOLDEN.md` §52,
-/// run466): the landing's arms no walk held — **open at 1356**, the
-/// squad's boarding: ours 8 draws against 6, parting at index 2, where
-/// ours' member `0/8` draws `Unit::do_move+0xe84` and an arrival stand
-/// the original does not. The value diff on block 1357: `0/8` and `0/9`
-/// `inside` ours −1 against 10. The repaint landing on 1270 walks clean.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1356;
+/// run466): the landing's arms no walk held — **open at 1552**.
+///
+/// **The delta: 1356 → 1552, item 1235** — the squad boards whole
+/// (`Unit::go_inside@0061a2e0`'s `o_down` walk, `docs/TRANSPORT.md` §17).
+/// The value diff on block 1357: `0/8` and `0/9` `inside` 10 on both
+/// sides (ours had −1), and `0/9`'s `orders.len` 0 on both (ours had 1,
+/// its `orders_x` 11928 against the original's 7870).
+///
+/// **The word, 1552**: ours 31 draws against 30, parting at index 27 —
+/// ours' who=1 Citizen `1/2` draws `Unit::do_non_flat_gather+0xcc3` where
+/// the original draws the bird `9/6`'s `Guy::set_anim+0x104b`, and the
+/// original's gather roll comes on 1553 (`Guy::set_anim+0x97a <
+/// Unit::do_non_flat_gather+0xb99`). The value diff on block 1553:
+/// `1/2` `order:gather.wait` ours 324 against −1.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1552;
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
-/// from 605, the word's block 1357 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1607);
+/// from 605, the word's block 1553 and 250 past it.
+pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1803);
 
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
@@ -7113,7 +7122,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
     // Item 1223: run466, chapter forty-three, the landing's arms; open at
-    // 1356, the squad's boarding. The widening is run466 to 1607.
+    // 1552 (item 1235), who=1's gather. The widening is run466 to 1803.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_THREE",
         GOLDEN_WORD_CHAPTER_FORTY_THREE,
