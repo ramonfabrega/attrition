@@ -911,14 +911,18 @@ impl Sim {
     /// `Unit::set_type@00612fa0`'s guy loops (`6133ac`, `613441`) — the
     /// figures a **converted** unit keeps, and the draw each one pays.
     ///
-    /// `set_type` does not rebuild the stack the way `Unit::init` does. It
+    /// `set_type` does not rebuild the squad the way `Unit::init` does. It
     /// clamps `guy_mark` to the new type's `squad_size` — written 1 for
-    /// every type (§3.5) — kills and recycles every slot past
-    /// `crew_size + squad_size`, pops fresh ones for any new slot, and
-    /// then walks the whole stack giving each guy the new type and a fresh
-    /// `Guy::init_real(guy, 1)`. So a **kept** guy holds its body and its
-    /// place and loses only its clock, and every guy costs one
-    /// [`SITE_INIT_REAL`] draw whether it is kept or new.
+    /// every type (§3.5) — and then **kills every crew slot and pops a
+    /// fresh one**: `6131bf`–`61325e` runs `Objects::kill_guy`,
+    /// `Guy::clear` and the recycler from the *old* type's `+0x304` (the
+    /// squad size) to `+0xe8`, the whole old crew, and `613306`–`61334a`
+    /// pops and `Guy::clear`s every slot from the new type's `+0x304` to
+    /// its `crew_size + squad_size`. Then it walks the stack giving each
+    /// guy the new type and a fresh `Guy::init_real(guy, 1)`. So only the
+    /// squad — guy 0 — is **kept**, holding its body and its place and
+    /// losing only its clock; every crew figure is new; and every guy
+    /// costs one [`SITE_INIT_REAL`] draw either way.
     ///
     /// That reset is what the frame after a conversion shows: `init_real`
     /// leaves `end_time` at zero, so the guy wraps on its very next
@@ -938,10 +942,19 @@ impl Sim {
     /// `docs/ANIM.md` §11). A fresh guy ([`Guy::fresh`]) already carries
     /// all of it; the kept arm did not.
     ///
+    /// **A new crew figure takes the new piece's track, or none.**
+    /// `init_real` zeroes `+0x54`/`+0x58` after its own `update_gpiece`,
+    /// and `set_type`'s tail (`Unit::update_gpiece@005e2920`, squad and
+    /// crew) writes them again from the new piece — zero where it names
+    /// none. The crew is then seated by the tail's `Guy::set_new_location
+    /// (guy 0, x, y, 1)` ([`Sim::unit_set_type`], [`Sim::seat_guys`]). A
+    /// Catapult's crew walks on tracks (−120, 0) and (72, 216) and a
+    /// Trebuchet's has none: Great Sahara at Toughest's `1/84` is upgraded
+    /// on 9710 and stands trackless on run529's block 9759, where this
+    /// crate kept the Catapult's two tracks and walked them (item 1338).
+    ///
     /// SEAM: `init_real`'s `+0x20..+0x3c` turret zeroing and its
-    /// `reset_pivots`, and its `+0x54`/`+0x58` track zeroing, which the
-    /// tail's `update_gpiece` may rewrite — no converted type here has a
-    /// pivot or a tracked crew.
+    /// `reset_pivots` — no converted type here has a pivot.
     pub(crate) fn reinit_guys(&mut self, u: usize, ty: usize) {
         let unit = &self.units[u];
         let (who, o) = (unit.owner, unit.index);
@@ -957,7 +970,7 @@ impl Sim {
             if anim != DEFAULT && piece >= 0 && !self.packet_has(u, piece, anim) {
                 anim = DEFAULT;
             }
-            match self.units[u].guys.get_mut(n) {
+            match self.units[u].guys.get_mut(n).filter(|_| n < SQUAD_SIZE) {
                 Some(g) => {
                     // `init_real` opens with its own `update_gpiece`
                     // (`:33`), so the bit is the new piece's.
@@ -985,7 +998,10 @@ impl Sim {
                 None => {
                     let mut g = Guy::fresh(piece);
                     g.anim = anim;
-                    self.units[u].guys.push(g);
+                    match self.units[u].guys.get_mut(n) {
+                        Some(slot) => *slot = g,
+                        None => self.units[u].guys.push(g),
+                    }
                 }
             }
         }
@@ -1204,6 +1220,19 @@ impl Sim {
             } else if cur_cat == 8 && !at_des {
                 // A walking guy asked to idle before its body has arrived:
                 // nothing, or a rewind once the walk cycle has run out.
+                if guy.cur_time >= guy.end_time {
+                    self.units[u].guys[g].cur_time = 0;
+                }
+                return;
+            } else if (guy.anim == TURN_LEFT || guy.anim == TURN_RIGHT) && !self.guy_settled(u, g)
+            {
+                // **A turn still turning is not idled** — the same
+                // nothing-or-rewind, on the *slot* `0x15`/`0x16` rather
+                // than a category, while `des_angle != angle` (`+0x64`
+                // against `+0x18`). A packing type's guy 0 plays its turn
+                // until it faces its heading and rolls no idle on the
+                // way; its trackless crew, whose pair `Guy::do_turn`
+                // writes equal, is not spared (item 1338).
                 if guy.cur_time >= guy.end_time {
                     self.units[u].guys[g].cur_time = 0;
                 }
