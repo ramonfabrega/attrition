@@ -4097,6 +4097,7 @@ fn informer_sim() -> (Sim, usize, Types) {
             range: 10 * 192,
             mana: 500,
             from: [Some(spy_t), None],
+            ..Default::default()
         };
     sim.spells = rows;
     (sim, spy, t)

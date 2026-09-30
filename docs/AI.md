@@ -10322,12 +10322,13 @@ computer leader's caster (`unit_flags2 & 2`) after the goody box.
 
 **The seams**, each drawing nothing where it stands: the three crafts'
 target searches (`spell_valid_target` refuses Bribe, Counterintelligence
-and the Sniper), the Spy's cloak, the hero arm (a General's Create Decoys,
-Forced March behind a coin, and Ambush), and the human arm `Unit::think`'s
+and the Sniper), the Spy's cloak, ~~the hero arm (a General's Create Decoys,
+Forced March behind a coin, and Ambush)~~ (built, §99.13), and the human arm `Unit::think`'s
 special turn reaches. The third caller, `Army::use_scouts`/`use_spies`/
 `use_generals` on an army's 128-frame turn (`army.rs`, "the spellcasters'
 turn — a seam"), is **not wired**: at Toughest an army holding a scout
-would throw the coin there.
+would throw the coin there. ~~`use_generals`~~ is wired (§99.13);
+`use_spies` and `use_scouts` are not.
 
 **What it moved**: East Indies **0 → 10**, Great Lakes **0 → 1**; both
 first-pair words hold at 24,000. The value diff on run349's block 1: the
@@ -12304,7 +12305,8 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9),
 item 1264 to run491's 8181..8184 and item 1275 to its 8376..8379 (§99.10),
 and item 1286 to run500's 8785..8788 (§99.11), and item 1293 to its
-8855..8858 (§99.12); the coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
+8855..8858 (§99.12), and item 1305 to run511's 9322..9325 (§99.13); the
+coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12830,3 +12832,48 @@ walk**: the flight past 8856 (the order, the birth snap, the pitch arms,
 the landing) — measured against the proxy here and pinned by nothing
 until the word passes 8992; the stamp's refusal (no second flock inside
 225 frames on this game); `take_damage`'s flock (no capture reaches it).
+
+### 99.13 A General's coin: `use_generals`, the hero arm and Forced March (item 1305)
+
+**The turn** (`Army::process@006f93d0`, `6f9437`–`6f9489`): after
+`normalize` and `num_captains`, `num_standard != 0` and a non-decoy
+`count(0x13, GENERAL)` call `Army::use_generals@006f4c30`, which offers
+every active hero (`unit_flags2 & 0x20`) of the army's groups, in list
+order, to `think_spellcaster`; the first cast ends it. A patriot `FROM
+General` is one: run470's caster is the Senator `1/80`, type 353.
+
+**The hero arm** (`5f2cb3`–`5f2e7d`): not `is_hero` → 0. Moving
+(`UnitData::is_moving`, vslot `+0xd8` off the PE): guy 0's `avg_speed` 0 →
+0; `leader_flags & 0x8000` clear → the coin (`+0x589`, `5f2d29`): odd →
+Forced March (`0x27c`) with the mana, else 0; even or the flag up → the
+cell's owner (`WData +0xf`) negative or the caster's → 0, else Ambush
+(`0x27b`) with the mana. Still: a live decoy captain of the leader's → 0,
+else Create Decoys (`0x27a`) with the mana. "With the mana" is `mana() >=
+mana_burn + MANA`; the cast is `add_cast_order(-1, -1, x, y, craft,
+QUEUE_FIRST, 0)`. `sim::spellcaster::Sim::think_hero`.
+
+**The cast.** `do_cast` (`5eca5b`–`5eca9a`) plays a hero's Ambush, Forced
+March and Rally (`0x279`) on `CHAR_ATTACK1..3` — no idle roll, where
+`CHAR_DEFAULT` rolls one. `cast_march@00671500`: an `ActiveSpell` to
+`frame + duration + general_upgrade × duration_upgrade` (`DURATION`,
+`DURATION_UPGRADE` × 15), `unit_masks |= 0x8000`, `leader_flags |=
+0x8000`; `Caster::process_spells@00739ad0` expires it and
+`Leader::verify_spell_flags@006ce190` drops the leader's bit when no hero
+marches. The unit bit holds mana recovery (`& 0x2a000`).
+`sim::cast::Sim::cast_march`, `process_spells`.
+
+**What moved**: 8856 → 9323 (the constant's comment has the value diff;
+run500 737 keys → 149). **The word 9323**: ours 7 draws against 5 at index
+1, the scout `1/0`'s two `move_step+0x823` arrivals against the original's
+`inc_time`; on run511's block 9324 it collides with `1/69` in ours alone;
+571 keys stand on 9318 from the gap 9038..9317. No mechanism is named.
+
+**Not established**: Forced March's speed (`UnitData::speed@0060aae0`,
+`forced_march_speed` through `HeroesData::find_hero`), so who=1's army
+walks 9112..9262 at its own speed here; `cast_ambush`, Rally,
+`use_spies`, `use_scouts`; `general_upgrade` (0; 9368's coin bounds it at
+1).
+
+**Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
+`run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
+Held by no walk: the decoy arm, Ambush's cast, the march's expiry (9368).

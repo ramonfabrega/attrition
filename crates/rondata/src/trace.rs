@@ -367,6 +367,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Unit::think_spellcaster@005f27a0` — the special arm's coin, which a
     // computer's scout throws from difficulty 2 up (`docs/AI.md` §80.5).
     (0x005f_2bb3, None, sim::spellcaster::SITE_SPECIAL_COIN),
+    // …and the hero arm's coin, which a computer's General (or a patriot
+    // `FROM General`) throws on its army's 128-frame turn (item 1305).
+    (0x005f_2d29, None, sim::spellcaster::SITE_HERO_COIN),
     // `Unit::think_scout@005f6010` — the ring walk (`docs/SCOUT.md` §10).
     (0x005f_6446, None, sim::scout::SITE_ROTATION),
     (0x005f_6468, None, sim::scout::SITE_PHASE),

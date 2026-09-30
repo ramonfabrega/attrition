@@ -1886,6 +1886,10 @@ mod tests {
         }
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // **Item 1305** wired the army's generals' turn (`docs/AI.md`
+        // §99.13): the General `1/98`'s `idle`, `order:length` and
+        // `orders.len`, ours 5, 0, 0 against 0, 1, 1 on 11411 → agreeing
+        // to 11538; they part on 11539 (ours 3, 0, 0 against 0, 1, 1).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
@@ -1897,12 +1901,12 @@ mod tests {
                 (11356, 5),
                 (11384, 1),
                 (11401, 1),
-                (11411, 5),
+                (11411, 2),
                 (11413, 9),
                 (11414, 2),
                 (11445, 2),
                 (11513, 1),
-                (11539, 1),
+                (11539, 4),
                 (11542, 1)
             ],
             "the blocks keys first part on, to the window's end"
