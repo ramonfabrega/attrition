@@ -5136,6 +5136,15 @@ mod tests {
         // A computer's siege ship does not ask the regions.
         let mut siege = sim.clone();
         siege.unit_types[ty].combat.obj_masks |= mask::SIEGE;
+        // A human's siege ship asks them (`unit_masks & 0x40000`, item
+        // 1254: chapter forty-four's `0/6` against `1/2007`).
+        let mut human = siege.clone();
+        human.nation[1].human = true;
+        assert_eq!(
+            human.find_melee_target(far, -1),
+            None,
+            "a human's siege ship took a building in another region out of its range"
+        );
         assert_eq!(
             siege.find_melee_target(far, -1),
             Some(Obj::Building(site)),
