@@ -1513,25 +1513,56 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// where the original spends a second `Leader::use_market+0x1ed` and then
 /// buys the Senate (`Leader::produce_building+0x1805` twice). Inside
 /// run462's window (block 10186).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_185;
+///
+/// **10185 → 10985 on item 1243** (`docs/TECH.md`, "The queue loop"): a
+/// unit research finishes through `Build::do_queue@0061e410`, which calls
+/// `Build::finished` (and so `gain_tech`) before `Build::unqueue`, and every
+/// queued-count decrement is guarded against zero. This crate unqueued
+/// first, so who=1's Pikemen research at `1/2020` on 9143 re-targeted the
+/// Hoplites entry behind it by the `jump` chain with nothing for its `−1`
+/// to take, and `num_queued[84]` stood one high. The ramp priced the
+/// second Pikemen a step dearer, goods stood 8 short, and the Senate was
+/// unaffordable on 10184. **The move's value diff (the word's delta, here;
+/// its block is `run462_s_word_frame_is_widened_whole`'s):** on run462's
+/// first block 10178, who=1's `num_queued[84]` ours 1 against 0 →
+/// agreeing, `bucket[0:food]` 125 against 133 and `bucket[4:metal]` 107
+/// against 115 → agreeing, `1/2020`'s `queue[0].cost` 86/66 against 78/58
+/// → agreeing; on 10185 `MAKE[0].val` 1,200,000 against 4,800,000 →
+/// agreeing; on 10186 `bucket[2:wealth]` 57 against 7 → agreeing, and
+/// `1/2026` linked. run462's keys went 1398 → 198. Frame 10185's draws
+/// went 9 against 10 → agreeing. **The new word's delta: ours 10 draws and
+/// the original 11 on frame 10985, parting at index 2**: ours spends
+/// `Leader::make_stuff+0x221` where the original spends a third
+/// `Leader::use_market+0x1ed`. Past run462's window (its last block
+/// 10434), widened on run480 (block 10986).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **5782 since item 1241**: run470 parts on frame 5782, **ours 14 draws
-/// against the original's 13, at index 3** — both open on
-/// `Leader::use_market+0x1ed` and two `Leader::make_stuff+0x221`, then ours
-/// spends a `Leader::make_stuff+0x63d` the original does not, where the
-/// original's next is `Animal::do_idle+0x83`. Widened on run476 (block
-/// 5783).
+/// **7070 since item 1251**: run470 parts on frame 7070, **ours 3213 draws
+/// against the original's 2552, at index 2545** — ours spends a
+/// `PathFinder::calc_road_cost+0x46` where the original's next is a
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Widened on run483 (block
+/// 7071).
+///
+/// It was **5782** before that (item 1241), ours 14 against 13 at index 3:
+/// a `Leader::make_stuff+0x63d` the original did not spend, who=1 queuing a
+/// Hoplite at `1/2017` its food could not pay for in the original. The food
+/// was 36 short from block 4577, where frame 4576's Empire cost 144 here and
+/// 108 there: `get_cost`'s library-line tail takes Dye's quarter off a civic
+/// epoch (`docs/AI.md` §99.8). **The move's value diff**, run482 block 4577:
+/// who=1's `bucket[0:food]` ours 161 against 197 → both 197; run476 block
+/// 5783, `1/2017`'s `queued` 2 against 1 → agreeing, `bucket[4:metal]` 7
+/// against 43 → agreeing. Widened on run476 (block 5783).
 ///
 /// It was **5376** before that (item 1221), ours 45 against 40 at index 1:
 /// four `Leader::produce_building+0x1805` against one, the Granary `1/2023`
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_782;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 7_070;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1984,6 +2015,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
 /// 10183's block 10184 and 250 past it; the word 10185's block 10186 since
 /// item 1228.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434);
+
+/// **run480's window** (item 1243): the second pair's East Indies at
+/// run462's detail, blocks 10980..11236 — six blocks before the word
+/// 10985's block 10986 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_10985: (i64, i64) = (10_980, 11_236);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -7317,13 +7353,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
-    // inside it.
+    // inside it; item 1243 to 10985, past it, widened on run480.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run462_s_word_frame_is_widened_whole"),
-        1214,
-        Some(WIDENING_SECOND_EAST_INDIES_10183),
+        Some("run480_s_word_frame_is_widened_whole"),
+        1243,
+        Some(WIDENING_SECOND_EAST_INDIES_10985),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
@@ -7365,13 +7401,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
-    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241).
+    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
+    // word 7070 on run483 over 7065..7321 (item 1251).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run476_s_word_frame_is_widened_whole"),
-        1241,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_5782),
+        Some("run483_s_word_frame_is_widened_whole"),
+        1251,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7070),
     ),
 ];
 

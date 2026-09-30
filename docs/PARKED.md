@@ -146,6 +146,32 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1243, 2026-09-30 — the queue's group tally
+
+(1265) **`untrack_queued`'s group-tally guard** (1243's mutation C):
+held by its unit test and no walk. The dump's `barracks_queued` ..
+`air_queued` are parsed and stand on the compared pin as uncompared,
+while this crate carries them as `queued_by_group`; comparing the five
+keys is the cheaper step, a candidate widening. `combat_queued`
+(`+0xa1c`) is not carried.
+
+(1266) **A technology entry's finish order**: ours unqueues first; the
+original's is `finished` then `unqueue` for every entry. Named by 1243,
+not built past the research arm.
+
+## Parked by item 1251, 2026-09-30 — the library line's other steps
+
+(1261) **`get_cost`'s library-line tail, its other eight steps** (1251):
+Furs, Despotism, the Turks, the Persians, Silk, the Dutch, Papyrus and
+the Chinese are held by no walk (the Americans ship at 0); the unit test
+holds Silk, Furs and the Turks' truncation after Furs'. A capture where a
+leader holding Furs, Silk or Papyrus, or playing one of those nations,
+researches the line would hold them.
+
+(1262) **`docs/COSTS.md`'s "The discounts" does not list the
+library-line tail**: AI §99.8 has it; 1251 left COSTS alone for the
+section-size guard. Names no score.
+
 ## Parked by item 1241, 2026-09-30 — the enhancer's other good
 
 (1252) **`find_friends`' enhancer arm, its good comparison** (1241's
@@ -163,7 +189,9 @@ fidelity and nothing holds it.
 
 (1245) **The make list's `city` from 10181**: types 84, 134 and 178 filed
 under city 1 against 0 on run462, a sibling of the word's chain rather
-than its first parting.
+than its first parting. **Again** (1251): the make list's `city` is
+ours one over the original's on every row that names a city — run471
+from 5382, run476, run483 — standing, and read by no score yet.
 
 (1246) **The zero-pop arm of `create_units`**: its `is(0x134)` and
 `is_gov_hero` tests, read, not built.
@@ -2430,6 +2458,19 @@ Loop line): three of chapter forty-four's walks were placement guesses a
 one-line reason — `valid_target`'s seen test, `check_target`'s head, the
 radius — would have answered, and the lane built a scratch instrument to
 see the ship's first mark was unseen. One reach.
+
+(1263) **A standing goods row is answered by one `LEADERS=2` capture from
+block 1** (1251's Loop line): a leader's goods through a dark gap cost
+3½ minutes and 55 MB at `LEADERS=2`, where every widening so far booked
+`LEADERS=9` windows round the word. The brief checklist could name it as
+the first instrument for a standing goods row. One reach.
+
+(1267) **A booking's type number does not say its keying** (1243's Loop
+line): the dump's `num_queued` and the make list's `t` are
+`TypeIndex`-keyed, `num_units` and the harness's keys record-keyed, and
+1228's journal named `num_queued[84]` "Elite Javelineers" from the make
+list's 84 — it is Pikemen. A brief row: a type number names its keying
+and the name `unitrules.xml` gives it. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

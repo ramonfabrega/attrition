@@ -12284,9 +12284,11 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
   spends `+0x1805`. It is not established here.~~ **Neither**: the
   placement's spiral scores every cell friendless, because `find_friends`'
   enhancer arm was not modelled — §99.7.
-- **What parts between 1851 and 5371.** No dump covers those frames at
+- ~~**What parts between 1851 and 5371.** No dump covers those frames at
   detail. The 86 standing keys may include one that parted in that gap and
-  matters here; the families match the first pair's standing rows.
+  matters here; the families match the first pair's standing rows.~~
+  run482 prints every leader's goods on every block to 5378: who=1's food
+  parts on 4577 and nothing else in the goods does — §99.8.
 - ~~**The two extra `Guy::set_anim+0x104b`.** They are after the birds on
   both sides and may follow from the orders above. Unread.~~ They did: with
   the Granary placed as the original places it, frame 5376 agrees draw for
@@ -12298,8 +12300,8 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 §99.2 by `run469_s_score_holds`, `run469_s_trace_holds_to_its_end` and
 `run470_is_great_sahara_at_toughest_and_its_word_holds`; §99.3 and §99.4 by
 `run471_s_word_frame_is_widened_whole`. The compared pin walked run471's
-5375..5378 until item 1241 moved it to run476's (§99.7); the coverage
-driver drives both. **Read only**: nothing; §99.5's third bullet is open.
+5375..5378 until item 1241 moved it to run476's (§99.7), and item 1251 to
+run483's 7069..7072 (§99.8); the coverage driver drives all three. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12362,3 +12364,88 @@ the only gather buildings around this Granary are farms; the unit test
 `an_enhancer_counts_the_gather_buildings_of_its_good` holds it (a Lumber
 Mill counts the camp, not the farm). A Lumber Mill, Smelter or Refinery
 placed beside a mixed ring is the arm no capture holds.
+
+### 99.8 Empire's price: `get_cost`'s library-line tail (item 1251)
+
+**The frame, both sides.** On 5782 both sides spend `Leader::use_market
++0x1ed` and two `Leader::make_stuff+0x221`; then ours queues a Hoplite at
+the Barracks `1/2017` (`make_stuff+0x63d`) and the original does not. The
+market decides it: with a hundred food over its need the original sells
+food and timber (food 128 → 29, wealth 82 → 158 on run476's block 5783)
+and cannot pay the Hoplite's 56 food; ours had 92 food, sold only timber,
+and bought it (food 37, metal 7 against 43). A probe that gave who=1 the
+36 food at 5776 made the block agree to the unit and moved the word to
+7070. The 36 was run471's and run476's standing `bucket[0:food]`.
+
+**Where the 36 came from — run482.** No dump printed a leader's goods
+between run468's start and run471's 5371 (run469 is `LEADERS=1`, the score;
+run470 is `MISC`). `LeaderData::log_data` prints the encrypted goods, the
+escrow and the gather-slot arrays at detail 2, after its levels 3 to 5 in
+source order, so `LEADERS=2` is about sixty lines a leader a frame: run482
+prints them over blocks 1..5378 in 55 MB. Walked beside ours, **who=1's
+goods agree on every block to 4576 and part on 4577 on food alone**, ours
+161 against 197. Frame 4576 is a script step: who=1 buys Allegiance (80
+wealth, 80 metal), three buildings, and **Empire, the civic epoch at level
+1, for 144 food here and 108 there**.
+
+**The arm.** `TypeData::get_cost@00664090`, past every other tech discount
+(the Science discount, the tech-cost setting, the British taxation four,
+Versailles, Silver): when the type is a library epoch (`0x227..0x242`), a
+switch on the tech's line (`techtypes[t] + 0x14`) at `00666b7d`, through the
+jump table at `006673a0` read off the PE — line 0 → `00666d2f`, 1 →
+`00666c0f`, 2 → `00666b98`, 3 → `00666c86`. Each step is `(100 − x) × cost
+/ 100`, truncated toward zero (`imul; imul 0x51eb851f; sar 5`):
+
+| line | first | second | third |
+|---|---|---|---|
+| military (0) | Furs held, `FURS_MILITARY` 25 | the highest `DESPOTISM_n` held (`TECHBONUSES` rows 110–112), `DESPOTISM_MILITARY_CHEAPER[n]` 15 | the Turks (`has_tribe_bonus(8)`), `TURK_MILITARY_CHEAP` 33 |
+| civic (1) | **Dye held (`has_rare(10)`), `DYE_CIVIC_COMMERCE` 25** | the Persians (`0x17`), `PERSIANS_CIVIC_DISCOUNT` 30 | — |
+| commerce (2) | Silk held (`has_rare(11)`), `SILK_COMMERCE` 25 | the Dutch (`0x16`), `DUTCH_COMMERCE_DISCOUNT` 10 | — |
+| science (3) | Papyrus held (`has_rare(9)`), `PAPYRUS_SCIENCE_MILITARY` 25 | the Chinese (`0xe`), `CHINESE_SCIENCE_DISCOUNT` 20 | the Americans (`0x14`), `AMERICANS_SCIENCE_DISCOUNT` 0 |
+
+Two names mislead and the listing settles both: `DYE_CIVIC_COMMERCE` is read
+in the civic case alone and `PAPYRUS_SCIENCE_MILITARY` in the science case
+alone. Who=1 is the British and holds Dye (good 10) on 4576: **144 × 75 /
+100 = 108**, the original's figure. This crate had no line tail. It is now
+`cost::Modifiers::line_discounts`, three steps after `late_discount`, filled
+by `Sim::line_discounts` from the tech's `Kind::Epoch` line; the Despotism
+tier is `Roles::despotism_preq`, read as `republic_preq` is.
+
+**The value diff.** run482, block 4577: who=1's `bucket[0:food]` ours 161
+against 197 → **both 197**, and the goods agree on every block to 5378
+(`run482_s_goods_are_widened_whole`: the only leader rows left are the
+human's `filled_gather_slots`, a standing row). run476, block 5783:
+`1/2017`'s `queued` 2 against 1, `num_queued[82]` 1 against 0 and metal 7
+against 43 → all agreeing. run476 parts on 147 keys where it parted on
+1,296, run471 on 202 where 212. **The 4× on the make list was the same
+price**: `MAKE[9].val` 1200 against 4800 on 5779 (and 4800 against 48000 on
+run471's 5380) is Feudalism, a civic epoch the food could not reach at our
+price; it agrees. So does run416's (Great Sahara at Easiest) Feudalism offer,
+10000 against 40002 on 12979. What stands of the list is its `city`, ours
+one over the original's on every row that names one (run471 from 5382).
+
+**The word moves 5782 → 7070**: ours 3213 draws against 2552, at index
+2545 — ours spends a `PathFinder::calc_road_cost+0x46` where the original's
+next is `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The frame is one road
+search, `1/52`'s (`astar_caravan_road < find_road`): **ours 3204
+`calc_road_cost` draws against the original's 2543**; every other site on
+the frame agrees. **run483** widens it (blocks 7065..7321, 745 keys): 129
+stand on 7065 — the families above, and three of who=1's that part in the
+gap past run476, wealth 161 against 162, its `leftover` 1584 against 48 and
+`MAKE[4].val` 1431372 against 1228956 — and nothing parts again until 7075,
+so the word's block 7071 is quiet: no record prints a search. No mechanism
+is named for it.
+
+**Coverage.** Diff-backed: the civic step, by `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(Dye's step off: the word falls to 5782) and `run482_s_goods_are_widened_whole`
+(4577 parts, 161 against 197); **the line it belongs to**, by the same walk
+(Dye on the commerce line too: Coinage on 5383 is priced a quarter low and
+the word falls to 6182; run471 and run476 part). **Held by no walk**: every
+other step — Furs, Despotism, the Turks, the Persians, Silk, the Dutch,
+Papyrus, the Chinese — since no capture's leader holds that rare or is that
+nation when it researches that line; the unit test
+`a_line_s_rare_and_nations_take_their_percent_off_its_epochs` holds Silk,
+Furs and the Turks' truncation after Furs'. The Americans' step ships as 0.
+Read only: the Despotism tier's `has_preq`, read through the first
+prerequisite of each bonus as the Republic tier is.
+

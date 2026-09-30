@@ -1992,8 +1992,7 @@ impl Sim {
             let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
             while !self.buildings[b].queue.items.is_empty() {
                 if let Some(item) = self.buildings[b].queue.unqueue(0, !silent, &mut ledger) {
-                    self.muster[who as usize].queued_by_type[item.ty] -= 1;
-                    self.track_tree_queued(who, item.ty, -1);
+                    self.untrack_queued(who, item.ty);
                 }
             }
             self.ledgers[who as usize] = ledger;
@@ -2642,8 +2641,7 @@ impl Sim {
             let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
             while !self.buildings[b].queue.items.is_empty() {
                 if let Some(item) = self.buildings[b].queue.unqueue(0, true, &mut ledger) {
-                    self.muster[who as usize].queued_by_type[item.ty] -= 1;
-                    self.track_tree_queued(who, item.ty, -1);
+                    self.untrack_queued(who, item.ty);
                 }
             }
             self.ledgers[who as usize] = ledger;

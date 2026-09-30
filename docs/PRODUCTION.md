@@ -2106,8 +2106,15 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   `0x227` and `0x235`, for which `ahead` is zero. `docs/COSTS.md`
   §"The discounts" carries the price side's own record.
 - **The AI counters** at `leader + 0xa10` through `+0xa24`, moved by both
-  `queue_up` and `unqueue`. They are per-production-building tallies and
-  nothing in the simulation reads them yet.
+  `queue_up` and `unqueue`. ~~They are per-production-building tallies and
+  nothing in the simulation reads them yet.~~ They are `barracks_queued`,
+  `stable_queued`, `factory_queued`, `combat_queued`, `dock_queued` and
+  `air_queued` (`types.txt`). All but `combat_queued` are
+  `Muster::queued_by_group`, the price ramp's group count
+  (`docs/COSTS.md`, "The count"). Every decrement is guarded against zero,
+  as `num_queued`'s is (`Sim::untrack_queued`; `docs/TECH.md`, "The queue
+  loop", item 1243). `combat_queued`, which barracks and stable types both
+  move, is not carried.
 - **Not modelled, by choice, and recorded so nobody looks for it:** the
   caravan-limit and aircraft-pad refusals (`finished` returning -1) and the
   `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
