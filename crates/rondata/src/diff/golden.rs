@@ -15743,7 +15743,7 @@ fn stage_walk() {
             now.push((
                 format!("u{i}"),
                 format!(
-                    "{}/{} {} alive={} hp={} in={:?} ride={:?} avg={} pos=({}, {}) z={} mana_burn={} [{}]",
+                    "{}/{} {} alive={} hp={} in={:?} ride={:?} avg={} pos=({}, {}) z={} mana_burn={} head={} des={} [{}]",
                     u.owner,
                     u.index,
                     unit_name(u.ty),
@@ -15759,6 +15759,10 @@ fn stage_walk() {
                     u.pos.y,
                     u.airframe.z,
                     u.mana_burn,
+                    // Item 1310: the heading and the order's `dest_angle`,
+                    // which an age's snap must leave apart to be seen.
+                    u.movement.heading.0,
+                    u.movement.des_angle.0,
                     orders.join(" | ")
                 ),
             ));
