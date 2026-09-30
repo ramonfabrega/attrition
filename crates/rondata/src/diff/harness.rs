@@ -11490,13 +11490,10 @@ pub(crate) mod tests {
         // unsigned, and keeps 0. **The move's value diff**: every one of
         // those rows is gone, and so is every one-sided animation change.
         pin_eq!(plan, Vec::<String>::new(), "1/68's plan on 12322");
-        // What stands of `1/67` on 12430 is parked 646's `form` residue,
-        // which spends no draw.
-        pin_eq!(
-            word,
-            [],
-            "1/67 on the old word's block"
-        );
+        // ~~What stands of `1/67` on 12430 is parked 646's `form` residue,
+        // which spends no draw.~~ Nothing, since item 1330: the births'
+        // `form` is `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        pin_eq!(word, [] as [&str; 0], "1/67 on the old word's block");
         pin_eq!(
             above,
             Vec::<String>::new(),
@@ -12889,7 +12886,8 @@ pub(crate) mod tests {
                 // Item 1072 took four (310 → 306): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
                 // Item 1115 took four (306 → 302): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
                 // Item 1111 took the AI citizens' Militia-line rows (`docs/GOLDEN.md` §48).
-                (WIDENING_GREAT_LAKES_END.0, 166),
+                // Item 1330 took 51 (166 → 115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+                (WIDENING_GREAT_LAKES_END.0, 115),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
@@ -13093,7 +13091,8 @@ pub(crate) mod tests {
                 (19_840, 1, 41, 1),
                 (19_840, 1, 42, 1),
                 (19_840, 1, 60, 1),
-                (19_840, 1, 80, 4),
+                // Item 1330 took one (4 → 3): `1/80`'s birth `form`.
+                (19_840, 1, 80, 3),
             ],
             "who first parts past run226, and on how many keys"
         );
@@ -15516,18 +15515,14 @@ pub(crate) mod tests {
         // point with it — and its four tiles were blocked there only. The
         // corner tile (149, 124) is what the original's tile search refused
         // the sheep's diagonal through. The fix seats it and `1/19` on
-        // their corners and blocks both footprints; `form` is not this
-        // arm's and stands.
+        // their corners and blocks both footprints; `form` ~~is not this
+        // arm's and stands~~ agrees since item 1330 (`Unit::init`'s).
         let merchant: Vec<String> = firsts
             .iter()
             .filter(|((w, o, _), _)| (*w, *o) == (1, 20))
             .map(row)
             .collect();
-        pin_eq!(
-            merchant,
-            [],
-            "the Merchant's seat"
-        );
+        pin_eq!(merchant, [] as [&str; 0], "the Merchant's seat");
         // **The word 11747's own blocks, every row, both directions**
         // (item 642). `firsts` keeps a key's first parting, so a key that
         // parted before the word is silent about the word's frame; these
@@ -15999,9 +15994,10 @@ pub(crate) mod tests {
             .filter(|((w, o, _), (f, _))| *w == 1 && *o == 31 && *f <= WORD_BLOCK + 2)
             .map(row)
             .collect();
+        // Item 1330: its `form` agrees (`docs/GROUPS.md` §24.3).
         pin_eq!(
             scout,
-            [],
+            [] as [&str; 0],
             "0/31's rows through the word's blocks"
         );
         pin_eq!(
@@ -16013,7 +16009,8 @@ pub(crate) mod tests {
                 .count(),
             // Item 870: 6 → 5, its `group` agreeing (`docs/GROUPS.md` §29).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
-            1,
+            // Item 1330 took the last, its `form` (`docs/GROUPS.md` §24.3).
+            0,
             "1/31's rows standing on 15985, the word's pre-state"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
@@ -16382,20 +16379,20 @@ pub(crate) mod tests {
             // 829 for the first block, 70 against 69: a closed army's group
             // holds its slot (`docs/ARMY.md` §22), and the pool id is one
             // higher here from the window's start (689).
-            ("16971 1/63 form: ours -1 theirs 9", 5),
+            // Item 1330 took the births' `form` (`docs/GROUPS.md` §24.3):
+            // `1/63`'s first row is its guy angle now, and `1/64`..`1/67`
+            // part on nothing; `1/68`'s and `1/69`'s is `orders_x`.
+            ("16971 1/63 g.angle[0]: ours 1431655765 theirs 0", 4),
             // Item 870 took one each from `1/64`..`1/66` (2 → 1): their
             // `group` on 17113, 69 here against 68, agrees — who=1's pool
             // numbering is the original's (`docs/GROUPS.md` §29).
-            ("17113 1/64 form: ours -1 theirs 0", 1),
-            ("17113 1/65 form: ours -1 theirs 0", 1),
-            ("17113 1/66 form: ours -1 theirs 0", 1),
+
             // Item 882 took one each from `1/67`..`1/69` (2/4/4 → 1/3/3):
             // their `group` on 17363, 69 on both sides (ours −1 before) —
             // the trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31). `form` is `Unit::init`'s (646).
-            ("17363 1/67 form: ours -1 theirs 0", 1),
-            ("17363 1/68 form: ours -1 theirs 0", 3),
-            ("17363 1/69 form: ours -1 theirs 0", 3),
+            ("17363 1/68 orders_x: ours 35136 theirs 35736", 2),
+            ("17363 1/69 orders_x: ours 35136 theirs 35784", 2),
         ]
         .iter()
         .map(|(r, n)| ((*r).to_string(), *n))

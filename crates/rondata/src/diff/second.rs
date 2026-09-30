@@ -902,9 +902,11 @@ mod tests {
         // and `stamp` 5518 against 5521, and now agrees but for `form`.
         pin_eq!(row(1, -3, "group:67.ox"), None, "`1/14`'s group's point");
         pin_eq!(row(1, -3, "group:67.stamp"), None, "and its frame");
+        // Item 1330: and `form` agrees, a citizen born in form 9
+        // (`Unit::init`, `docs/GROUPS.md` §24.3).
         pin_eq!(
             row(1, -3, "group:67.form").as_deref(),
-            Some("5601: ours 0 theirs 9"),
+            None,
             "the family's row stands"
         );
         // **The word 5773's block, 5774** (item 1106): the Caravan `1/33`,
@@ -1133,13 +1135,15 @@ mod tests {
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            // Item 1330: the first block 155 → 112 and `6334`'s one row
+            // gone, the births' `form` (`docs/GROUPS.md` §24.3).
             [
-                (6316, 155),
-                (6334, 1),
+                (6316, 112),
                 (6381, 1),
                 (6385, 1),
                 (6393, 2),
-                (6401, 1)
+                (6401, 1),
+                (6417, 2)
             ],
             "the blocks keys first part on, the first six"
         );
@@ -2667,7 +2671,8 @@ mod tests {
                 first(1, 13, "order:move.x"),
                 first(1, 13, "tolerance"),
             ),
-            (Some(5_090), None, None, None),
+            // `1/35`'s birth `form` on 5090 agrees since item 1330.
+            (None, None, None, None),
             "the first rows past the old word"
         );
         // **The group record and the attack order's row** (item 1061,
@@ -2683,8 +2688,9 @@ mod tests {
         // `1/34`'s `form` on 4909 (no mechanism is named).
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4_841, 102), (4_909, 2), (4_912, 1)],
-            "the blocks keys first part on, the first three ((4841, 104), \
+            [(4_841, 92), (4_909, 1), (4_912, 1)],
+            "the blocks keys first part on, the first three ((4841, 102), \
+             (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
              fresh; (4841, 116) until item 1072 healed the citizens; (4841, \
              111), (4868, 2), (4887, 2) until item 1061 compared the group \
@@ -2826,15 +2832,17 @@ mod tests {
         pin_eq!(
             (first(1, 36, "form"), first(1, 0, "g.x[1]"),),
             (
-                Some((5_165, "ours -1 theirs 0".to_string())),
+                // `1/36`'s birth `form` agrees since item 1330.
+                None,
                 Some((5_240, "ours 3081 theirs 3065".to_string())),
             ),
             "the value rows beneath the draws"
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5_100, 79), (5_147, 1), (5_149, 1)],
-            "the blocks keys first part on, the first three ((5100, 92), \
+            [(5_100, 67), (5_147, 1), (5_149, 1)],
+            "the blocks keys first part on, the first three ((5100, 79) \
+             until item 1330 took the births' `form`; (5100, 92), \
              (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
              until item 1248)"
         );
@@ -2910,7 +2918,8 @@ mod tests {
         // `income`, `resources`, `bucket` and `leftover` agree with them.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 96)],
+            // Item 1330: 96 → 79, the births' `form` (`docs/GROUPS.md` §24.3).
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 79)],
             "the blocks keys first part on, and how many"
         );
         pin!(
