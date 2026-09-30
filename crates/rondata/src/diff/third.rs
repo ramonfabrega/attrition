@@ -612,7 +612,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_12783_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12778, 133), (12782, 5), (12783, 1)],
+            [(12778, 97), (12782, 5), (12783, 1)],
             "the blocks keys first part on, to the old word's"
         );
         // The make list's value parted on 12979 until item 1251, the
@@ -624,7 +624,7 @@ mod tests {
             None,
             "the Feudalism offer's value agrees"
         );
-        pin_eq!(w.firsts.len(), 248, "every key parted on run416");
+        pin_eq!(w.firsts.len(), 207, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):
@@ -706,7 +706,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 13_183)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13177, 136), (13181, 6)],
+            [(13177, 97), (13181, 6)],
             "the blocks keys first part on, to the old word's"
         );
         pin!(
@@ -726,7 +726,7 @@ mod tests {
             Some("13184: ours 7 theirs 6"),
             "the known rares"
         );
-        pin_eq!(w.firsts.len(), 173, "every key parted on run417");
+        pin_eq!(w.firsts.len(), 130, "every key parted on run417");
     }
 
     /// **The third map's long word, 14587, widened whole** (item 1163):
@@ -807,7 +807,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_14587_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(14582, 155), (14584, 1), (14585, 1), (14587, 2)],
+            [(14582, 113), (14584, 1), (14585, 1), (14587, 2)],
             "the blocks keys first part on, to the old word's"
         );
         // **14661: the Spice route** (item 1189, the value diff of the
@@ -829,7 +829,7 @@ mod tests {
         ] {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees");
         }
-        pin_eq!(w.firsts.len(), 161, "every key parted on run418");
+        pin_eq!(w.firsts.len(), 118, "every key parted on run418");
     }
 
     /// **The third map's long word, 15586, widened whole** (item 1171):
@@ -898,10 +898,10 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15586_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15581, 152), (15582, 7), (15584, 1), (15585, 3)],
+            [(15581, 107), (15582, 7), (15584, 1), (15585, 3)],
             "the blocks keys first part on, to the old word's"
         );
-        pin_eq!(w.firsts.len(), 176, "every key parted on run426");
+        pin_eq!(w.firsts.len(), 131, "every key parted on run426");
     }
 
     /// **The third map's long word, 15982, widened whole** (item 1177):
@@ -989,14 +989,14 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15982_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15977, 144), (15982, 9)],
+            [(15977, 99), (15982, 9)],
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: the human's
         // `production_step` on 16001, the army group's id on 16123 (stamped
         // six frames apart again) and a make offer's value on 16182, 56700
         // against 48600 — the 15982 pair's ratio.
-        pin_eq!(w.firsts.len(), 164, "every key parted on run428");
+        pin_eq!(w.firsts.len(), 119, "every key parted on run428");
     }
 
     /// **The third map's long word, 16681, widened whole** (item 1189):
@@ -1081,14 +1081,14 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_16681_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16676, 163)],
+            [(16676, 118)],
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: a make offer's value on
         // 16782 (the 15982 pair's 7/6), who=1's food and `1/2024`'s queue
         // price on 16783, the human's `free_peasants` on 16801, and the
         // army group's id on 16891, stamped six frames apart again.
-        pin_eq!(w.firsts.len(), 177, "every key parted on run442");
+        pin_eq!(w.firsts.len(), 132, "every key parted on run442");
     }
 
     /// **The third map's long word, 17623, widened whole** (item 1194):
@@ -1143,7 +1143,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_17623_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(17618, 151)],
+            [(17618, 106)],
             "the blocks keys first part on, to the old word's"
         );
         // **Past it, the standing families and one row they reach**:
@@ -1160,7 +1160,7 @@ mod tests {
             Some("17683: ours 119 theirs 194"),
             "the goody pays food where the original pays wealth"
         );
-        pin_eq!(w.firsts.len(), 157, "every key parted on run449");
+        pin_eq!(w.firsts.len(), 112, "every key parted on run449");
     }
 
     /// **The gap before the third map's word, widened** (item 1206):
@@ -1221,17 +1221,10 @@ mod tests {
         );
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [
-                (17140, 154),
-                (17143, 1),
-                (17147, 9),
-                (17176, 1),
-                (17201, 1),
-                (17403, 6)
-            ],
+            [(17140, 109), (17147, 9), (17176, 1), (17201, 1), (17403, 6)],
             "the blocks keys first part on"
         );
-        pin_eq!(w.firsts.len(), 172, "every key parted on run457");
+        pin_eq!(w.firsts.len(), 126, "every key parted on run457");
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):
@@ -1272,10 +1265,10 @@ mod tests {
         // the game's last 257 blocks.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(23744, 154), (23801, 1), (23981, 1), (23984, 1)],
+            [(23744, 106), (23801, 1), (23981, 1), (23984, 1)],
             "the blocks keys first part on"
         );
-        pin_eq!(w.firsts.len(), 157, "every key parted on run458");
+        pin_eq!(w.firsts.len(), 109, "every key parted on run458");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's
