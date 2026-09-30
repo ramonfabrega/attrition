@@ -1559,7 +1559,21 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **7785 since item 1260**: run470 parts on frame 7785, **ours 23 draws
+/// **8182 since item 1264** (`docs/TECH.md` step 8): who=1's Tower is a
+/// Keep in the original's `num_buildings` from the Keep's gain (Tower 1,
+/// Keep 0 through run476's 6033; Tower 0, Keep 1 from run483's 7065), and
+/// this crate kept a Tower, so `create_buildings` saw no Keep and the make
+/// list took a Senate ahead of a Mine. **The move's value diff**, run488:
+/// on 7785 who=1's `MAKE[2].t` ours 438 against 419 → agreeing; on 7786
+/// the Senate `1/2030`'s `x_internal` 38976 against 38784 and `y_internal`
+/// 19584 against 17760 → agreeing; run488's keys went 876 → 150. Frame
+/// 7785's draws went 23 against 17 → agreeing. **The new word's delta:
+/// ours 8 draws and the original 7 on frame 8182, parting at index 2**:
+/// ours spends `Leader::make_stuff+0x63d` where the original spends
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run488's window (its
+/// last block 8036), widened on run491 (block 8183).
+///
+/// It was **7785** before that (item 1260): run470 parts on frame 7785, **ours 23 draws
 /// against the original's 17, at index 4** — both spend two
 /// `Leader::use_market+0x1ed` and open a placement
 /// (`Leader::produce_building+0x1805 < make_this`), ours three of its draws
@@ -1591,7 +1605,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 7_785;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_182;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7438,13 +7452,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
     // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
-    // run488 over 7780..8036 (item 1260).
+    // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
+    // 8177..8433 (item 1264).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run488_s_word_frame_is_widened_whole"),
-        1260,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7785),
+        Some("run491_s_word_frame_is_widened_whole"),
+        1264,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8182),
     ),
 ];
 

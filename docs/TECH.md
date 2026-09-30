@@ -999,7 +999,11 @@ none of which has state here.
 
 **The building loop beside it** (step 8, item 1264) is diff-backed on
 run346's headline walk: without it East Indies' word falls from 11328 to
-10985, where who=1's make list takes a Keep at 900,000 into slot 1. Unit
+10985, where who=1's make list takes a Keep at 900,000 into slot 1. And on
+run470's: Great Sahara at Toughest's who=1 holds a Keep from before
+run483's 7065 (a Tower through run476's 6033), and without the loop its word
+falls from 8182 to 7785, where the make list takes a Senate ahead of a
+Mine. Unit
 test: `gaining_the_keep_turns_the_leader_s_standing_tower_into_one` (a
 finished Tower and a site convert, another leader's and a Library do not).
 Not diff-backed: the converted building's own fields. A building's
