@@ -387,15 +387,19 @@ impl Sim {
             // — `Region.scouted`, the bit `think_civilian_transport` then
             // reads, and the reason a scout that has given up on home does
             // not choose home again (`docs/TRANSPORT.md` §7). A sea unit
-            // joins an army instead (a seam, `docs/ARMY.md`). A citizen
-            // that is not exploring and has no city in its region stops
-            // here. Everything else asks for an island.
+            // joins an army instead. A citizen that is not exploring and
+            // has no city in its region stops here. Everything else asks
+            // for an island.
             if domain != Domain::Air {
                 self.world.mark_region_scouted(region, who);
             }
             if domain == Domain::Sea {
-                // SEAM: `Unit::add_to_army` (`docs/SCOUT.md` §13 item 1).
-                return false;
+                // `5f6db5`: `cmpl $1, 0x218(type)`, then `call
+                // Unit::add_to_army` and `setns` — a sea unit with nothing
+                // left to see joins the nearest sea army, and walks to its
+                // first member (`docs/SCOUT.md` §13 item 1b; item 1297's
+                // Caravel `1/35` on East Indies' 11523).
+                return self.add_to_army(u).is_some();
             }
             let citizen = type_index == PEASANTS || type_index == PEASANTSKOREAN;
             if citizen && self.reg_cities(who, region) == 0 {
