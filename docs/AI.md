@@ -12835,105 +12835,45 @@ until the word passes 8992; the stamp's refusal (no second flock inside
 
 ### 99.13 A General's coin: `use_generals`, the hero arm and Forced March (item 1305)
 
-**8856, both sides.** Ours 34 draws against 35, parting at index 0: the
-original's first draw is `Unit::think_spellcaster+0x589 <
-Army::use_generals+0xfc < Army::process+0x8d` (seed `909f318c`, 16250),
-and the other 34 are ours' in order. **The original acted.** Every such
-coin on the disk: run470 frames 8856, 9112, 9368, 9496, 9624, 9752,
-10008, 10520, 12568, 12824, 13080, 14232, 14360, 14616, 14744, 15000,
-15128, 15384, and run500's 8856 — 8856 is the first. No `use_spies` or
-`use_scouts` draw is on either trace.
+**The turn** (`Army::process@006f93d0`, `6f9437`–`6f9489`): after
+`normalize` and `num_captains`, `num_standard != 0` and a non-decoy
+`count(0x13, GENERAL)` call `Army::use_generals@006f4c30`, which offers
+every active hero (`unit_flags2 & 0x20`) of the army's groups, in list
+order, to `think_spellcaster`; the first cast ends it. A patriot `FROM
+General` is one: run470's caster is the Senator `1/80`, type 353.
 
-**The caster is a patriot.** No `GENERAL` (`TypeIndex` 54) stands on
-run500's block 8857. who=1's hero is `1/80`, type 353 `THESENATOR`, whose
-`unitrules.xml` row reads `FROM General` — so `is(GENERAL)` admits it —
-in group 65 (who=1's army slot 1's pool group) on an `ATTACKTOORDER`,
-guy 0's `avg_speed` 1 entering 8856, `mana_burn` 0, `unit_masks` 0x4000A.
-who=1's `leader_flags` are `0x800013`.
+**The hero arm** (`5f2cb3`–`5f2e7d`): not `is_hero` → 0. Moving
+(`UnitData::is_moving`, vslot `+0xd8` off the PE): guy 0's `avg_speed` 0 →
+0; `leader_flags & 0x8000` clear → the coin (`+0x589`, `5f2d29`): odd →
+Forced March (`0x27c`) with the mana, else 0; even or the flag up → the
+cell's owner (`WData +0xf`) negative or the caster's → 0, else Ambush
+(`0x27b`) with the mana. Still: a live decoy captain of the leader's → 0,
+else Create Decoys (`0x27a`) with the mana. "With the mana" is `mana() >=
+mana_burn + MANA`; the cast is `add_cast_order(-1, -1, x, y, craft,
+QUEUE_FIRST, 0)`. `sim::spellcaster::Sim::think_hero`.
 
-**The turn, off the listing** (`Army::process@006f93d0`, `6f9437`–
-`6f9489`): on the 128-frame phase, after `normalize`, `num_captains` 0
-returns; then `num_standard != 0` and `count(COUNT_NON_DECOY_TYPE = 0x13,
-GENERAL)` — a member active, not a decoy (`unit_masks & 1`; vslot `+0x18`
-folds to `return 1`, read off the PE), `is(0x36)` — calls `use_generals`;
-`use_spies` and `use_scouts` follow behind their own counts.
-`Army::use_generals@006f4c30`: every group's members in list order,
-active (`SubObjectData::is_active`, `flags & 1`) and `is_hero` (`unit_flags2
-& 0x20`), offered `think_spellcaster`; the first that casts ends it.
-`sim::army::Sim::use_generals`.
-
-**The hero arm** (`Unit::think_spellcaster@005f27a0`, listing `5f2cb3`–
-`5f2e7d`), after the computer leader's head (§80.5): not `is_hero` → 0.
-**Moving** — vslot `+0xd8`, `UnitData::is_moving@00610af0` read off the
-PE — guy 0's `avg_speed` (`GuyData +0x84`; `+0xf4` is the `guys` array's
-data) 0 → 0; with `leader_flags & 0x8000` clear the coin, `Random::get(0,
-0xffff)` returning to `5f2d29`, `& 0x80000001`: odd → **Forced March**
-(`0x27c`) if `mana() >= mana_burn + its MANA`, else 0; even, or the flag
-up → the cell's owner (`WData +0xf`, the 768-unit cell) negative or the
-caster's → 0, else **Ambush** (`0x27b`) with the mana. **Not moving** →
-any live decoy captain of the leader's → 0; else **Create Decoys**
-(`0x27a`) with the mana. No arm asks `is_castable`. A cast is
-`add_cast_order(-1, -1, x, y, craft, QUEUE_FIRST, 0)`.
-`sim::spellcaster::Sim::think_hero`.
-
-**The cast** (`Unit::do_cast@005ebfe0`, `5eca5b`–`5eca9a`): a hero casting
-Ambush, Forced March or Rally (`0x279`) plays `CHAR_ATTACK1`, `2`, `3`
-with `set_anim`'s third argument 0 — no variant roll; every other caster
-`CHAR_DEFAULT` with 1. **`SpellType::cast_march@00671500`**: an
-`ActiveSpell` `{0x27c, frame, frame + duration + general_upgrade ×
-duration_upgrade}` on the hero's record (`SpellType::init@00674a80`
-stores `DURATION` and `DURATION_UPGRADE` × 15: 150 and 75 frames, the
-type record naming `+0x1d4`/`+0x1d8`), `unit_masks |= 0x8000` and
-`leader_flags |= 0x8000`. `Caster::process_spells@00739ad0`, from
-`Unit::process`'s hero head, removes a spell past its end frame, the
-march's with its unit bit, and `Leader::verify_spell_flags@006ce190`
-drops the leader's `0x8000` once no hero's `unit_masks & 0x8000` stands.
-`0x8000` is one of `unit_masks & 0x2a000`, which holds mana recovery.
+**The cast.** `do_cast` (`5eca5b`–`5eca9a`) plays a hero's Ambush, Forced
+March and Rally (`0x279`) on `CHAR_ATTACK1..3` — no idle roll, where
+`CHAR_DEFAULT` rolls one. `cast_march@00671500`: an `ActiveSpell` to
+`frame + duration + general_upgrade × duration_upgrade` (`DURATION`,
+`DURATION_UPGRADE` × 15), `unit_masks |= 0x8000`, `leader_flags |=
+0x8000`; `Caster::process_spells@00739ad0` expires it and
+`Leader::verify_spell_flags@006ce190` drops the leader's bit when no hero
+marches. The unit bit holds mana recovery (`& 0x2a000`).
 `sim::cast::Sim::cast_march`, `process_spells`.
 
-**Readings the trace killed.** *The cast draws its animation* (ours'
-`do_cast` as it stood): 9112's coin is odd and the original casts — the
-march's flag holds 9240's coin — yet spends no `do_cast` draw on any frame
-of run470. The difference is the slot: `CHAR_DEFAULT` rolls its idle
-variant, an attack slot rolls nothing whatever the third argument (a
-mutation forcing it to 1 holds the walk to 9323; one putting Forced March
-back on `CHAR_DEFAULT` drops the word to 9112). *The coin
-every turn a hero moves*: 9240 has none in the original; `leader_flags &
-0x8000` is `cast_march`'s.
+**What moved**: 8856 → 9323 (the constant's comment has the value diff;
+run500 737 keys → 149). **The word 9323**: ours 7 draws against 5 at index
+1, the scout `1/0`'s two `move_step+0x823` arrivals against the original's
+`inc_time`; on run511's block 9324 it collides with `1/69` in ours alone;
+571 keys stand on 9318 from the gap 9038..9317. No mechanism is named.
 
-**The value diff.** Frame 8856: the coin 16250, even, `1/80`'s own cell
-— no cast — on both sides; run500 block 8858, `1/54`'s `g.cur_anim[0]`
-ours 30 against 31 and `g.end_time[0]` 70 against 80 → agreeing; run500
-parts on **149 keys where it parted on 737**, nothing first from 8858 to
-8962. On the way: 9112, 25911, odd, Forced March both sides; 9240, no
-coin both sides.
+**Not established**: Forced March's speed (`UnitData::speed@0060aae0`,
+`forced_march_speed` through `HeroesData::find_hero`), so who=1's army
+walks 9112..9262 at its own speed here; `cast_ambush`, Rally,
+`use_spies`, `use_scouts`; `general_upgrade` (0; 9368's coin bounds it at
+1).
 
-**The word moves 8856 → 9323**: ours 7 draws against 5, at index 1 — ours
-spends two `Guy::set_anim+0x97a < Unit::move_step+0x823`, the AI scout
-`1/0`'s (type 69, `SCOUT`, in no army), where the original goes on to
-`Guy::set_anim+0x97a < Guy::inc_time+0x271`. `1/0` agrees on every field
-of run500 to 9037. No mechanism is named. **Widened on run511**
-(9318..9574): 2,069 keys; 571 stand on 9318 from the gap 9038..9317, 28 of
-who=1's positions among them (`1/69` at (33412, 19136) against (33056,
-18955)), the Senator agreeing to 9469; on 9324 `1/0` collides with `1/69`
-in ours alone and stops.
-
-**What this has *not* established.** What Forced March does:
-`UnitData::speed@0060aae0`'s arm, `forced_march_speed × unit_move_speed`
-for a unit `HeroesData::find_hero` finds near a marching hero of its
-leader's, is not carried, so from 9112 to the march's end at 9262 who=1's
-army near `1/80` walks at its own speed here; the draws agree through
-9322 regardless. `cast_ambush` (`unit_masks |= 0x2800`, `leader_flags |=
-0x4000`) and Rally are not built: cast, they hold the caster and do
-nothing. `use_spies` and `use_scouts` are not built (no draw of theirs on
-either trace). `general_upgrade` is 0 (the §48 seam): 9368's coin says
-the march was over by then, which bounds it at 1.
-
-**Coverage.** Diff-backed: the turn, the arm's coin and the march's hold
-by `run470_is_great_sahara_at_toughest_and_its_word_holds` (8856, 9112,
-9240); the value diff by `run500_s_word_frame_is_widened_whole`. Unit
-tests: `a_moving_general_throws_the_hero_coin`,
-`a_general_standing_draws_nothing_and_a_still_one_makes_decoys`,
-`a_forced_march_holds_the_coin_until_it_runs_out`. **Held by no walk**:
-the decoy arm (no still hero reaches a turn on this game), the Ambush
-arm's cast (every even coin to 9323 falls on the Senator's own ground).
+**Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
+`run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
+Held by no walk: the decoy arm, Ambush's cast, the march's expiry (9368).
