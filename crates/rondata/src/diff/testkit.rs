@@ -5315,6 +5315,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 /// captain's ring, so `eject_contents` gives the squad arm once.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 
+/// **Chapter forty-seven's golden word** (`docs/GOLDEN.md` §56, item
+/// 1310, run514): PLACEHOLDER.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 0;
+
+/// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
+/// whole, 605 to its end (block 1399 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_SEVEN: (i64, i64) = (605, 1401);
+
 /// `chapter_forty_six_s_word_frame_is_widened_whole`'s window: run496
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_SIX: (i64, i64) = (605, 2201);
@@ -7408,6 +7416,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1310: run514, chapter forty-seven, the Keep on a standing
+    // Tower site, a squad ashore facing away from its barge, and an age's
+    // snap mid-move. The widening is run514 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
+        Some("chapter_forty_seven_s_word_frame_is_widened_whole"),
+        1310,
+        Some(WIDENING_CHAPTER_FORTY_SEVEN),
     ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
     // and `all_gathering`'s prune, closed at 2200. The widening is run496

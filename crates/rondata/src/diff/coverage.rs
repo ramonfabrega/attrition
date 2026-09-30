@@ -624,6 +624,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch44 = golden_dump("ch44");
     let ch45 = golden_dump("ch45");
     let ch46 = golden_dump("ch46");
+    let ch47 = golden_dump("ch47");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2036,6 +2037,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [726, 1050, 1902] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-six carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-seven, on run514** (item 1310): 677, the Keep gained
+    // on a standing Tower site; 1102, the squad's landing; 1111, the age's
+    // snap.
+    if let Some(p) = &ch47 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SEVEN;
+        for w in [677, 1102, 1111] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-seven carries the window's five blocks");
             frames += n;
         }
     }

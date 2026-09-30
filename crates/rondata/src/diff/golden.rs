@@ -13376,6 +13376,32 @@ fn chapter_forty_six_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-seven** — three arms the widenings held and no walk
+/// (`docs/GOLDEN.md` §56, item 1310, run514): a Tower site standing when
+/// its leader gains the Keep, a squad put ashore facing away from its
+/// barge, and an age's snap on a unit mid-move. Thirteen staged lines on
+/// the golden start.
+#[test]
+fn chapter_forty_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch47", "chapter47", 47, 13, 1399) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-seven: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
+        "chapter forty-seven's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_SEVEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
+        "chapter forty-seven's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §56"
+    );
+}
+
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
 /// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
@@ -13781,6 +13807,58 @@ const WANT_CH46: &[&str] = &[
 /// word's — the squad's slot 3 on 1902 (`order_num` ours 3 against 1, and
 /// the members' formation offsets mirrored) and its `speed` on 1922.
 const WANT_CH46_POOL: &[&str] = &[];
+
+/// **run514 whole, both directions** (item 1310, `docs/GOLDEN.md` §56):
+/// every dumped record on every block, the leaders at `LEADERS=5`, and
+/// who=0's `GROUPDATA` pool.
+#[test]
+fn chapter_forty_seven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch47",
+        "chapter47",
+        WIDENING_CHAPTER_FORTY_SEVEN,
+        1399,
+        0,
+        (1099, 1103),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch47 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch47: {} rows", got.len());
+    let pool = widen_pool("ch47", "chapter47", WIDENING_CHAPTER_FORTY_SEVEN, 0)
+        .expect("run514 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch47 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH47.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch47: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH47_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch47: what parts in the pool moved");
+}
+
+/// Chapter forty-seven's widening rows (item 1310): run514 whole, 605 to
+/// 1400 (`docs/GOLDEN.md` §56).
+const WANT_CH47: &[&str] = &[];
+
+/// Chapter forty-seven's pool rows (item 1310): run514 whole.
+const WANT_CH47_POOL: &[&str] = &[];
 
 /// **run466 whole, both directions** (items 1223, 1235, 1248,
 /// `docs/GOLDEN.md` §52): every dumped record on every block, the leaders
