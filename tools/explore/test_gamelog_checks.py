@@ -126,6 +126,7 @@ check: python3 tools/trace/report.py "$L/rontrace-run340.log" summary | grep -c 
 HELD_OUT_MAP = '9'
 HELD_OUT_RUNS = {
     '348',  # item 972, DECISIONS 53 §4: run33's shape, one diff, 1 and 0
+    '465',  # item 1222, DECISIONS 56 §2: run348 again, run464 its start sibling
 }
 
 
