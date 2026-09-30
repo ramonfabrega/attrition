@@ -12962,15 +12962,13 @@ pub(crate) mod tests {
         // parts on 23961..23999**, and on the end block 24001 `orders.len`
         // on 48 units, because the quit block prints no order list, and
         // one position.
+        // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` 844
+        // against 836 closed (`docs/AI.md` §84).
+        // Item 1115: 292 → 288, the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [
-                // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` 844
-                // against 836 closed (`docs/AI.md` §84).
-                // Item 1115: 292 → 288, the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
-                (WIDENING_EAST_INDIES_END.0, 164),
-                (WIDENING_EAST_INDIES_END.1, 49)
-            ],
+            [(23960, 163), (24001, 49)],
             "the blocks keys first part on, and how many"
         );
         let end: Vec<String> = firsts
@@ -12991,12 +12989,13 @@ pub(crate) mod tests {
             "the end block parts on `orders.len` and one position"
         );
         // Item 1115 took the caravan's four rows here (292 → 288; `docs/CARAVAN.md` §11.3).
+        // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` (`docs/AI.md` §84).
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             standing
                 .get(&(WIDENING_EAST_INDIES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
-            // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` (`docs/AI.md` §84).
-            164,
+            163,
             "the floor stands on the second block, and nothing joins it"
         );
     }
@@ -14961,7 +14960,8 @@ pub(crate) mod tests {
         // disembark on 8242 and what followed it, its figures ashore at the
         // average they boarded with and its order point the landing
         // (`docs/TRANSPORT.md` §6.4).
-        pin_eq!(under, 145, "the floor under the word");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(under, 144, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -16235,21 +16235,20 @@ pub(crate) mod tests {
             .filter(|(_, (f, _))| *f > WORD_BLOCK)
             .map(row)
             .collect();
+        // Item 803: the scout's `dest_angle` (ours −2143223808
+        // against −2147483648) is gone, the disembark's
+        // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
+        // its `orders_y` moved from 38040 and still parts.
+        // Item 850: the scout's `g.avg_speed`, agreeing from its
+        // boarding now (`docs/ANIM.md` §15), first parted on its
+        // disembark, where ours seated the figures at 0. Item 1164:
+        // it lands at the average it boarded with, and an AI's is
+        // ordered where it lands — `avg_speed`, `cur_anim` and
+        // `orders_y` agree (`docs/TRANSPORT.md` §6.4).
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             past,
-            [
-                // Item 803: the scout's `dest_angle` (ours −2143223808
-                // against −2147483648) is gone, the disembark's
-                // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
-                // its `orders_y` moved from 38040 and still parts.
-                // Item 850: the scout's `g.avg_speed`, agreeing from its
-                // boarding now (`docs/ANIM.md` §15), first parted on its
-                // disembark, where ours seated the figures at 0. Item 1164:
-                // it lands at the average it boarded with, and an AI's is
-                // ordered where it lands — `avg_speed`, `cur_anim` and
-                // `orders_y` agree (`docs/TRANSPORT.md` §6.4).
-                "16782 1/0 mirror: ours 0 theirs 1",
-            ],
+            Vec::<String>::new(),
             "every key first parting past the word"
         );
         // **The floor**: 284 keys standing on the window's first block —
@@ -16274,7 +16273,8 @@ pub(crate) mod tests {
         // Item 1115 took the caravan's four rows here ((267, 282, 288) → (263, 278, 284); `docs/CARAVAN.md` §11.3).
         // Item 1164 took five past the word (172 → 167): the scout's
         // landing, above.
-        pin_eq!((first, under_n, firsts.len()), (159, 166, 167), "the floor");
+        // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!((first, under_n, firsts.len()), (159, 166, 166), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -16539,9 +16539,10 @@ pub(crate) mod tests {
         // `group` on 17363, 69 on both sides (ours −1 before), the squad's
         // birth push, `come_out`'s (parked 689, `docs/GROUPS.md` §31).
         // Item 1115 took the caravan's four rows here ((277, 289, 296, 302) → (273, 285, 292, 298); `docs/CARAVAN.md` §11.3).
+        // Item 1291 took (161, 173, 180, 186) → (160, 172, 179, 185): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (161, 173, 180, 186),
+            (160, 172, 179, 185),
             "the floor"
         );
     }
@@ -17334,20 +17335,21 @@ pub(crate) mod tests {
         // block, and every key in all.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        // Item 870: 352/21/371/948 → 323/21/342/916, the first block's
+        // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
+        // −1, army 1's `1/48`..`1/66` 71 against 68) and three past it:
+        // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        // Item 880: 323/21/342/916 → 286/0/286/299, the first
+        // block's 37 slot-swap rows (`1/64`..`1/66`'s `facing`, `1/65`'s
+        // and `1/66`'s `off`, `x/y`, paths and `1/65`'s position) and
+        // 580 keys past it; none opened (`docs/GROUPS.md` §30).
+        // Item 1106: → 285/0/285/297, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 5574 against 5566 on 20002 and `bucket[2:wealth]` 95 against 94 on 20130.
+        // Item 1164: → 165/0/165/171, six past the first block, the
+        // landings' figure speeds and orders (`docs/TRANSPORT.md` §6.4).
+        // Item 1291 took (165, 0, 165, 171) → (165, 0, 165, 170): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            // Item 870: 352/21/371/948 → 323/21/342/916, the first block's
-            // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
-            // −1, army 1's `1/48`..`1/66` 71 against 68) and three past it:
-            // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-            // Item 880: 323/21/342/916 → 286/0/286/299, the first
-            // block's 37 slot-swap rows (`1/64`..`1/66`'s `facing`, `1/65`'s
-            // and `1/66`'s `off`, `x/y`, paths and `1/65`'s position) and
-            // 580 keys past it; none opened (`docs/GROUPS.md` §30).
-            // Item 1106: → 285/0/285/297, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 5574 against 5566 on 20002 and `bucket[2:wealth]` 95 against 94 on 20130.
-            // Item 1164: → 165/0/165/171, six past the first block, the
-            // landings' figure speeds and orders (`docs/TRANSPORT.md` §6.4).
-            (165, 0, 165, 171),
+            (165, 0, 165, 170),
             "the floor"
         );
     }
@@ -17467,14 +17469,15 @@ pub(crate) mod tests {
         // orders and headings.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        // Item 890: 284/42/326/1,222 → 284/3/287/288. Under the word the
+        // three `MAKE` `val` rows and 36 keys of the building `1/2030`
+        // this crate no longer places close; across the runway 934 keys
+        // close, and the one that stands past the word is who=0's step.
+        // Item 1106: → 283/3/286/287, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` 2108 against 2100 on 20777.
+        // Item 1291 took (163, 3, 166, 167) → (162, 3, 165, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            // Item 890: 284/42/326/1,222 → 284/3/287/288. Under the word the
-            // three `MAKE` `val` rows and 36 keys of the building `1/2030`
-            // this crate no longer places close; across the runway 934 keys
-            // close, and the one that stands past the word is who=0's step.
-            // Item 1106: → 283/3/286/287, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` 2108 against 2100 on 20777.
-            (163, 3, 166, 167),
+            (162, 3, 165, 166),
             "the floor"
         );
     }
@@ -17609,17 +17612,18 @@ pub(crate) mod tests {
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let on_new = standing.get(&NEW_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        // Item 904: 283/5/288/1,045 → 283/2/285/292/359. Under the word
+        // `MAKE[4].t` and `1/79`'s two rows close on 23183 (the rock
+        // arm, `docs/AI.md` §78); 686 keys past it close with the
+        // draws; the new word's block stands 292 rows, the gap's.
+        // Item 919: → 283/2/285/289/294. The pasture (`docs/AI.md` §79)
+        // closes the word's three rows on 23421 and the 62 keys that
+        // first parted past it; nothing parts on 23422..23433.
+        // Item 1106: → 282/2/284/288/293, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 4990 against 4982 on 23177.
+        // Item 1291 took (162, 2, 164, 164, 169) → (161, 2, 163, 163, 168): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             (first, rows.len(), on_word, on_new, firsts.len()),
-            // Item 904: 283/5/288/1,045 → 283/2/285/292/359. Under the word
-            // `MAKE[4].t` and `1/79`'s two rows close on 23183 (the rock
-            // arm, `docs/AI.md` §78); 686 keys past it close with the
-            // draws; the new word's block stands 292 rows, the gap's.
-            // Item 919: → 283/2/285/289/294. The pasture (`docs/AI.md` §79)
-            // closes the word's three rows on 23421 and the 62 keys that
-            // first parted past it; nothing parts on 23422..23433.
-            // Item 1106: → 282/2/284/288/293, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 4990 against 4982 on 23177.
-            (162, 2, 164, 164, 169),
+            (161, 2, 163, 163, 168),
             "the floor"
         );
     }
@@ -18322,7 +18326,8 @@ pub(crate) mod tests {
         // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1164 took three (148/154/156 → 148/151/153): `1/31`'s
         // disembark on 10875, as run149's (`docs/TRANSPORT.md` §6.4).
-        pin_eq!((first, under, firsts.len()), (148, 151, 153), "the floor");
+        // Item 1291 took (148, 151, 153) → (148, 150, 152): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!((first, under, firsts.len()), (148, 150, 152), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -18472,7 +18477,8 @@ pub(crate) mod tests {
         // `avg_speed` ashore, 0 against 11 on 10875, and what it turned
         // with, agree — a passenger lands at the average it boarded with
         // (`docs/TRANSPORT.md` §6.4).
-        pin_eq!((first, under, firsts.len()), (148, 148, 152), "the floor");
+        // Item 1291 took (148, 148, 152) → (148, 148, 151): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!((first, under, firsts.len()), (148, 148, 151), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
