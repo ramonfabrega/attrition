@@ -1597,12 +1597,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_637;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **8856 since item 1293**: run470 parts on frame 8856, **ours 34 draws
-/// against the original's 35, at index 0** — the original opens on
-/// `Unit::think_spellcaster+0x589 < Army::use_generals+0xfc <
-/// Army::process+0x8d` and ours on `Animal::think_bird+0x82`. Inside
-/// run500's window (block 8857); the nearest first before it is who=1's
-/// `gather_stamp` on 8856, ours 8855 against 8799.
+/// **9323 since item 1305**: run470 parts on frame 9323, **ours 7 draws
+/// against the original's 5, at index 1** — ours spends two
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, the AI scout `1/0`'s,
+/// where the original goes on to `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. Past run500's window (its last block 9037),
+/// widened on run511 (block 9324).
+///
+/// It was **8856** before that (item 1293), ours 34 against 35 at index 0:
+/// the original opened on `Unit::think_spellcaster+0x589 <
+/// Army::use_generals+0xfc < Army::process+0x8d` — the Senator `1/80`
+/// (`TypeIndex` 353, `FROM General`) in who=1's army, moving, throwing the
+/// hero arm's coin on the army's 128-frame turn — which this crate held as
+/// two seams (`docs/AI.md` §99.13). **The move's value diff**, frame 8856:
+/// the coin 16250 (seed `909f318c`) thrown both sides, even, the Senator's
+/// own cell, no cast; run500 block 8858, `1/54`'s `g.cur_anim[0]` ours 30
+/// against 31 and `g.end_time[0]` 70 against 80 → agreeing; run500 parts
+/// on 149 keys where it parted on 737, and on nothing from 8858 to 8962.
+/// On the way, 9112: the coin 25911, odd, casts Forced March both sides —
+/// a hero's craft plays `CHAR_ATTACK2` with no reroll — and 9240: the
+/// march's `leader_flags & 0x8000` holds the next coin back.
 ///
 /// It was **8786** before that (item 1286), ours 10 against 49 at index 1:
 /// the squad `1/73`..`1/75`'s follower slot fell in a wood, and the original
@@ -1686,7 +1700,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_637;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_856;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_323;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7599,13 +7613,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
     // 8177..8433 (item 1264), and the word 8377 on the same blocks (item
     // 1275); the word 8786 on run500 over 8781..9037 (item 1286), and the
-    // word 8856 on the same blocks (item 1293).
+    // word 8856 on the same blocks (item 1293); the word 9323 on run511
+    // over 9318..9574 (item 1305), whose run500 test keeps the move's
+    // value diff on 8858.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run500_s_word_frame_is_widened_whole"),
-        1293,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8786),
+        Some("run511_s_word_frame_is_widened_whole"),
+        1305,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9323),
     ),
 ];
 
