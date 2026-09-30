@@ -1515,11 +1515,11 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// 1189 banked them** (38 → 36): `economy::SPICE` quotes the same two
 /// bytes for `Caravan::trade_value`'s Spice test, and is built.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 34),
+    ("AI.md", 32),
     ("ANIM.md", 4),
-    ("ARMY.md", 9),
+    ("ARMY.md", 7),
     ("ATTRITION.md", 1),
-    ("CITIES.md", 8),
+    ("CITIES.md", 6),
     ("COLLISION.md", 1),
     ("COMBAT.md", 8),
     ("COSTS.md", 3),
