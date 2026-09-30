@@ -1502,6 +1502,99 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
     assert_eq!(sim.muster[0].queued_by_type[javelins], 0);
 }
 
+/// **A research's finish gains before it unqueues** (`docs/TECH.md`, "The
+/// queue loop"): `Build::do_queue@0061e410` calls `Build::finished`, and so
+/// `gain_tech`, before `Build::unqueue`. So when the Elite Javelineers
+/// research finishes with a Slingers entry behind it, the re-target's
+/// `track_queued(elite, −1)` still finds the research's own count and takes
+/// it, its `+1` puts it back, and the unqueue takes it off: Elite
+/// Javelineers' count ends at **0** with the re-targeted entry in the queue,
+/// and the Slingers keep theirs. run462's block 10178 holds exactly that on
+/// who=1 (`num_queued[84]` 0, `1/2020` holding an Elite Javelineers entry).
+/// Unqueued first, the guarded `−1` finds nothing and the count ends at 1.
+/// And every decrement is guarded: a cancel of that entry leaves 0, not −1.
+#[test]
+fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let jumpable = UnitTraits {
+        jumpable: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let barracks_t = tree.add(TypeDef::building("Barracks"));
+    let slingers_t = tree.add(TypeDef::unit("Slingers", free).at(barracks_t));
+    let javelins_t = tree.add(
+        TypeDef::unit("Javelineers", jumpable)
+            .at(barracks_t)
+            .from(slingers_t),
+    );
+    let elite_t = tree.add(
+        TypeDef::unit("Elite Javelineers", jumpable)
+            .at(barracks_t)
+            .from(javelins_t),
+    );
+    tree.types[slingers_t].jump = Some(javelins_t);
+    tree.types[javelins_t].jump = Some(elite_t);
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let rec = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            tree: Some(t),
+            ..citizen_type()
+        })
+    };
+    let slingers = rec(&mut sim, slingers_t);
+    let _javelins = rec(&mut sim, javelins_t);
+    let elite = rec(&mut sim, elite_t);
+    let barracks = sim.add_build_type(crate::build::BuildType {
+        x_size: 3,
+        y_size: 3,
+        hits: 400,
+        ..crate::build::BuildType::default()
+    });
+    let b = sim.init_build(0, barracks, Pos::new(8 * 192, 8 * 192), false);
+    sim.activate(b, false, false);
+    let mut paid = [0; economy::RESOURCES];
+    paid[economy::Resource::Food.index()] = 46;
+    for ty in [elite, slingers] {
+        sim.buildings[b].queue.push(ty, &paid);
+        sim.muster[0].queued_by_type[ty] += 1;
+        sim.track_queued_for_test(0, ty, 1);
+    }
+    sim.muster[0].researched[elite] = false;
+
+    let mut guard = 0;
+    while !matches!(sim.advance_slot(b, 0), Advanced::Researched) {
+        guard += 1;
+        assert!(guard < 100_000, "the research finishes");
+    }
+
+    let q = &sim.buildings[b].queue.items;
+    assert_eq!(q.len(), 1, "the research entry is gone");
+    assert_eq!(q[0].ty, elite, "the Slingers entry is re-targeted");
+    assert_eq!(
+        sim.muster[0].queued_by_type[elite], 0,
+        "the gain's -1 took the research's own count before the unqueue"
+    );
+    assert_eq!(
+        sim.muster[0].queued_by_type[slingers], 1,
+        "the jump match leaves the Slingers' count one high"
+    );
+
+    sim.cancel(b, 0).expect("the entry is there");
+    assert_eq!(
+        sim.muster[0].queued_by_type[elite], 0,
+        "an unqueue never takes a count below zero"
+    );
+}
+
 #[test]
 fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     // `docs/TECH.md`, end to end: a tree with Classical (two library techs'
