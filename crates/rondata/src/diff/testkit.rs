@@ -1494,7 +1494,26 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Leader::create_units+0x642` where the original spends `Guy::set_anim+0x97a
 /// < do_cast`. Past run445's window (its last block 9071), widened on
 /// run462 (block 10184).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_183;
+///
+/// **10183 → 10185 on item 1228** (`docs/TRANSPORT.md` §16): a boat is
+/// counted in `num_units`, `control` and `active` by `Unit::set_type` when
+/// its type has population and taken out by `Unit::close`, and this
+/// crate's `cast_transport` and `disembark` did neither. So a Merchant
+/// Fleet at sea left who=1's `control` one below the original's, and the
+/// second `create_units` pass on frame 10183 passed the population gate
+/// here (`effective_pop` 75 against `pop_cap` 75) where the original's did
+/// not (76). **The move's value diff (the word's delta, here; its block is
+/// `run462_s_word_frame_is_widened_whole`'s):** on run462's first block
+/// 10178 who=1's `control` ours 72 against 73 → agreeing, `effective_pop`
+/// 74 against 75 → agreeing and `num_units[268]` 0 against 1 → agreeing;
+/// on 10184 `MAKE[0].t` ours 228 against 597 → agreeing and `active` 70
+/// against 71 → agreeing. Frame 10183's draws went 24 against 9 →
+/// agreeing. **The new word's delta: ours 9 draws and the original 10 on
+/// frame 10185, parting at index 1**: ours spends `Leader::make_stuff+0x221`
+/// where the original spends a second `Leader::use_market+0x1ed` and then
+/// buys the Senate (`Leader::produce_building+0x1805` twice). Inside
+/// run462's window (block 10186).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_185;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -1957,7 +1976,8 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
 
 /// **run462's window** (item 1214): the second pair's East Indies at
 /// run445's detail, blocks 10178..10434 — six blocks before the word
-/// 10183's block 10184 and 250 past it.
+/// 10183's block 10184 and 250 past it; the word 10185's block 10186 since
+/// item 1228.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
@@ -7239,7 +7259,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
-    // item 1214 to 10183, past it, widened on run462.
+    // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
+    // inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,

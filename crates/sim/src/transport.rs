@@ -1026,6 +1026,17 @@ impl Sim {
         let b = self.add_unit(boat);
         // `Unit::init` → `Guy::init_real`: the boat's one figure, one draw.
         self.init_guys(b, Some(ty));
+        // **And `Unit::set_type`'s count** (item 1228, §16): the boat is
+        // born through `Objects::init_unit`, whose `set_type` moves
+        // `num_units`, `control` and `active` for a type with population.
+        // A Merchant Fleet is one, a Transport Barge is not; the caravan
+        // inside stays counted as it was. Without it the original's
+        // `control` stood one above this crate's for every fleet at sea,
+        // and East Indies' second `create_units` pass on 10183 passed the
+        // population gate here and not there.
+        if self.counts_in_muster(b) {
+            self.track_unit_type(who, ty, 1);
+        }
         self.same_damage(b, u);
         // The boat is born on the caster's land tile and walked to the
         // water; it is a sea unit crossing the shore the other way, so the
@@ -1308,6 +1319,14 @@ impl Sim {
             }
         }
         self.units[boat].health = 0;
+        // `Unit::close@0060ee50`'s count, at `0060f3db` (§16): the boat
+        // that came in through `set_type`'s `+1` goes out the same gate.
+        if self.counts_in_muster(boat)
+            && let Some(ty) = self.units[boat].ty
+        {
+            let who = self.units[boat].owner;
+            self.track_unit_type(who, ty, -1);
+        }
         // `Object::die(boat, 0, −1, 0)`: `close`, whose `Object::close`
         // holds the number thirty frames (`docs/COMBAT.md` §59.3). East
         // Indies' barge `1/62` and Merchant Fleet `1/59` were reused here
@@ -1818,6 +1837,63 @@ mod tests {
             f.sim.world.seen2(fx, fy).is_some_and(|v| v & 2 != 0),
             "the spot's disc is lit for its owner"
         );
+    }
+
+    /// **The boat in the muster** (item 1228, §16): `Objects::init_unit`'s
+    /// `Unit::set_type` counts a boat whose type has population, and
+    /// `Unit::close` takes it out again. A caravan's Merchant Fleet, of
+    /// `POP` 1, moves `num_units` and `control` by one while it is at sea;
+    /// a citizen's Transport Barge, of `POP` 0, never does. run462's block 10178
+    /// holds one of each, and the original's `num_units` has the fleet
+    /// alone.
+    ///
+    /// Made to fail by dropping either call: without the birth's the fleet
+    /// is never counted, without the close's it stays counted ashore.
+    #[test]
+    fn a_merchant_fleet_is_counted_at_sea_and_a_barge_never_is() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[b].price.pop = 0;
+        let mut fleet_t = UnitType {
+            hits: 50,
+            moves: 25,
+            ..UnitType::default()
+        };
+        fleet_t.combat.domain = Domain::Sea;
+        fleet_t.combat.block_radius = 48;
+        fleet_t.price.pop = 1;
+        let fleet = f.sim.add_unit_type(fleet_t);
+        f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
+        f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
+        let caravan = f.sim.add_unit_type(UnitType {
+            hits: 40,
+            ..UnitType::default()
+        });
+        f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
+
+        for (walker_t, boat_t, counted) in [(caravan, fleet, 1), (f.citizen, b, 0)] {
+            let u = unit(&mut f.sim, 1, walker_t, tile_pos(30, 14));
+            f.sim.init_guys(u, Some(walker_t));
+            f.sim.units[u].auto_transport = true;
+            let control = f.sim.muster[1].control;
+            assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
+            let boat = f.sim.units.len();
+            f.sim.work(u, 1);
+            assert_eq!(f.sim.units[boat].ty, Some(boat_t), "the boat");
+            assert_eq!(
+                f.sim.muster[1].by_type[boat_t], counted,
+                "`set_type`'s `+1`, for a type with population"
+            );
+            assert_eq!(f.sim.muster[1].control, control + counted);
+            // Ashore again: the boat puts its passenger out and closes.
+            assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+            assert!(!f.sim.units[boat].alive());
+            assert_eq!(
+                f.sim.muster[1].by_type[boat_t], 0,
+                "`Unit::close`'s `−1` at `0060f3db`"
+            );
+            assert_eq!(f.sim.muster[1].control, control);
+        }
     }
 
     /// The other arm of the same test: a boat that steps off the water
