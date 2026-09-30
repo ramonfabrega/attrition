@@ -2552,8 +2552,7 @@ impl Sim {
         if let Some(t) = item.tech {
             self.tech[who as usize].queued[t] -= 1;
         } else {
-            self.muster[who as usize].queued_by_type[item.ty] -= 1;
-            self.track_tree_queued(who, item.ty, -1);
+            self.untrack_queued(who, item.ty);
         }
         self.economy_changed(who);
         Some(item)
@@ -2760,15 +2759,26 @@ impl Sim {
             production::Handover::Researched => {
                 // `gain_tech`: the bit, and nothing else. No refund, no
                 // skip-forward, no unit, no population.
-                let mut ledger = economy::Ledger::default();
-                self.buildings[at].queue.unqueue(slot, false, &mut ledger);
-                let muster = &mut self.muster[who as usize];
-                muster.queued_by_type[ty] -= 1;
-                muster.researched[ty] = true;
-                self.track_tree_queued(who, ty, -1);
+                //
+                // **The gain before the unqueue** (`docs/TECH.md`, "The
+                // queue loop"): `Build::do_queue@0061e410` calls vslot
+                // `+0x1b0` (`Build::finished`, and so `gain_tech`) at
+                // `61ec12` and vslot `+0x1c8` (`Build::unqueue`) only after
+                // it returns. So the re-target's `track_queued(t, −1)`
+                // finds the research entry's own count still standing, and
+                // the unqueue takes it off after. run462's block 10178:
+                // the Pikemen research at `1/2020` finished on 9143 with a
+                // Hoplites entry behind it (a `jump` match), and who=1's
+                // `num_queued[84]` stands at 0 with the re-targeted entry
+                // in the queue.
+                self.muster[who as usize].researched[ty] = true;
                 if let Some(id) = self.unit_types[ty].tree {
                     self.gain_tech(who, id);
                 }
+                debug_assert_eq!(self.buildings[at].queue.items[slot].ty, ty);
+                let mut ledger = economy::Ledger::default();
+                self.buildings[at].queue.unqueue(slot, false, &mut ledger);
+                self.untrack_queued(who, ty);
                 self.economy_changed(who);
                 self.senate_gov_hero(at);
                 Advanced::Researched
@@ -2780,8 +2790,7 @@ impl Sim {
                 // `61ec24`: the infinite queue is read before the unqueue.
                 let infinite = self.buildings[at].queue.infinite;
                 self.buildings[at].queue.unqueue(slot, false, &mut ledger);
-                self.muster[who as usize].queued_by_type[ty] -= 1;
-                self.track_tree_queued(who, ty, -1);
+                self.untrack_queued(who, ty);
                 let trained = self.build_train(at, ty);
                 self.requeue_infinite(at, ty, infinite);
                 Advanced::Trained(trained)
@@ -3207,10 +3216,7 @@ impl Sim {
                 } else {
                     continue;
                 };
-                if self.muster[w].queued_by_type[dec] > 0 {
-                    self.muster[w].queued_by_type[dec] -= 1;
-                    self.track_tree_queued(who, dec, -1);
-                }
+                self.untrack_queued(who, dec);
                 self.buildings[b].queue.items[i].ty = rec;
                 self.muster[w].queued_by_type[rec] += 1;
                 self.track_tree_queued(who, rec, 1);
@@ -3818,6 +3824,31 @@ impl Sim {
         // two counts agree by construction rather than by inspection.
         if let Some(g) = self.unit_types[ty].group {
             self.muster[who as usize].queued_by_group[g] += delta;
+        }
+    }
+
+    /// **One off the queued count, never below zero** — the decrement
+    /// `Build::unqueue@006207c0` and `Build::clean_queue@00620b60` inline
+    /// and `Leader::track_queued@006e0f30`'s `−1`: `num_queued[t]`
+    /// (`+0x5a22`, the absolute `0xe3fdb2` plus the stride) comes off only
+    /// when it is not zero, and each of the per-building tallies beside it
+    /// (`+0xa10`..`+0xa24`) on the same test. Every site that took a queued
+    /// entry off unguarded now comes here (`docs/TECH.md`, "The queue
+    /// loop").
+    pub(crate) fn untrack_queued(&mut self, who: Player, ty: usize) {
+        let w = who as usize;
+        if self.muster[w].queued_by_type[ty] != 0 {
+            self.muster[w].queued_by_type[ty] -= 1;
+        }
+        if let Some(id) = self.unit_types[ty].tree
+            && self.tech[w].queued[id] != 0
+        {
+            self.tech[w].queued[id] -= 1;
+        }
+        if let Some(g) = self.unit_types[ty].group
+            && self.muster[w].queued_by_group[g] != 0
+        {
+            self.muster[w].queued_by_group[g] -= 1;
         }
     }
 

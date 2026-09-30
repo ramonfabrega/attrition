@@ -1127,14 +1127,47 @@ decrement.
 are untouched, `0/10`..`0/12` are Javelineers, and the Hoplites beside
 them are not.
 
+**The gain comes before the unqueue** (item 1243). A unit research
+finishes in `Build::do_queue@0061e410`: vslot `+0x1b0` (`Build::finished`,
+whose research arm is `gain_tech`) at `61ec12`, and vslot `+0x1c8`
+(`Build::unqueue`) only once it has returned. So the loop above runs
+while the research entry still holds its own `num_queued[t]`. A `jump`
+match's `track_queued(t, −1)` takes that count, its `+1` puts it back,
+and the unqueue takes it off after. **`t` ends at the count of its other
+entries less one per `jump` match, and never below zero.** Every
+decrement is guarded: `Build::unqueue@006207c0` and
+`Build::clean_queue@00620b60` take `num_queued` (`0xe3fdb2` plus the
+stride) and each per-building tally (`+0xa10`..`+0xa24`) off only when
+it is not zero, as `track_queued` does.
+
+run462 backs it on who=1 (East Indies at Toughest). The Pikemen
+research (record 84, `TypeIndex` 134) at `1/2020` finished on 9143 with
+a Hoplites entry (82) behind it: Hoplites → Phalanx → Pikemen is a
+`jump` match. On block 10178 the queue holds a Pikemen entry, and
+`num_queued[84]` reads 0. The Hoplites' ghost, `[82]`, reads 1 on both
+sides. Unqueued first, this crate's guarded `−1` found nothing and left
+`[84]` one high from 9143. The ramp then priced the second Pikemen,
+queued on 9385, one step dearer: `1/2020`'s `queue[0].cost` read 86/66
+against 78/58. Food and metal stood 8 low,
+the timber that followed stood 8 low, and the Senate was unaffordable
+on 10184 (`check_income` 64 against 256). That is East Indies' 10185.
+After that Pikemen trained on 10367 the dump's `[84]` stays 0,
+where an unguarded unqueue would read −1.
+
 **In the code**: `Sim::retarget_queued_to` in `crates/sim/src/lib.rs`,
-called beside `Sim::upgrade_units_to` for each `Gained::UnitUpgrade`.
-`a_gained_unit_type_retargets_the_queued_entries_of_its_line` is its test.
+called beside `Sim::upgrade_units_to` for each `Gained::UnitUpgrade`;
+`Sim::advance_slot`'s research arm gains before it unqueues; and
+`Sim::untrack_queued` is the guarded decrement, used at every unqueue,
+cancel, close, transfer and re-target.
+`a_gained_unit_type_retargets_the_queued_entries_of_its_line` and
+`a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero`
+are its tests.
 
 **What run300 cannot split, and rests on the emulator**: the progress kept
-(the entry sat at 0 behind the research head), and the `jump`-chain
+(the entry sat at 0 behind the research head). ~~and the `jump`-chain
 decrement (Slingers → Javelineers is a `from` match). A mutation of
-either fails the unit test and no widening.
+either fails the unit test and no widening.~~ The `jump`-chain decrement
+is held by run462 now, together with the order above (item 1243).
 
 ## What is not established
 
