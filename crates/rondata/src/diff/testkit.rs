@@ -1613,7 +1613,28 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// original spends `Leader::make_stuff+0x63d` where ours goes on to
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run506's window (its
 /// last block 11888), widened on run508 (block 12583).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 12_582;
+///
+/// **12582 → 13385 on item 1326** (`docs/CITIES.md` §13 item 14): the
+/// Forbidden City and the Red Fort are hero-masked (`obj_masks`
+/// `0x4000000`), and `BuildType::init` skips their `B[from].to = this`,
+/// so the Small City's successor is the Large City. The loader linked
+/// them anyway, `get_buildings(VILLAGE)` counted no Large City, and
+/// who=1 offered no Citizen from the frame its last Small City grew.
+/// **The move's value diff (run508's block 12581, `create_units`' frame
+/// 12580):** who=1's `MAKE[5]` `t` ours −1 against 50, `val` −1 against
+/// 280519, `num` 1 against 4, `cat` 0 against 5, `escrow` 0 against 1 →
+/// agreeing; on 12583 `1/2017`'s `queue:queued` 0 against 4 and
+/// `num_queued[0]` 0 against 4 → agreeing, and `bucket[0:food]` 356
+/// against 122 → agreeing. run508's keys went 1817 → 218 (the make
+/// list's `city` compared as the leader's own index takes six more).
+/// Frame 12582's draws went 9 against 10 → agreeing. **The new word's
+/// delta: ours 4 draws and the original 54 on frame 13385, parting at
+/// index 0**: the original's step-11 `make_stuff` spends
+/// `Leader::use_market+0x1ed`, then a Farm's `produce_building` (42
+/// `+0xc99`, 4 `+0x1805`, `Farms::add`) and two `+0x221`; ours' step 11
+/// finds its head empty and spends nothing. Past run508's window (its
+/// last block 12833), widened on run523 (block 13386).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 13_385;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2195,6 +2216,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_11637: (i64, i64) = (11_632, 11_888
 /// run506's detail, blocks 12577..12833 — six blocks before the word
 /// 12582's block 12583 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_12582: (i64, i64) = (12_577, 12_833);
+
+/// **run523's window** (item 1326): the second pair's East Indies at
+/// run508's detail, blocks 13380..13636 — six blocks before the word
+/// 13385's block 13386 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_13385: (i64, i64) = (13_380, 13_636);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -7621,13 +7647,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1243 to 10985, past it, widened on run480; item 1264
     // to 11328, past it, widened on run490; item 1281 to 11549, inside it;
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
-    // past it, widened on run508.
+    // past it, widened on run508; item 1326 to 13385, past it, widened on
+    // run523.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run508_s_word_frame_is_widened_whole"),
-        1302,
-        Some(WIDENING_SECOND_EAST_INDIES_12582),
+        Some("run523_s_word_frame_is_widened_whole"),
+        1326,
+        Some(WIDENING_SECOND_EAST_INDIES_13385),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

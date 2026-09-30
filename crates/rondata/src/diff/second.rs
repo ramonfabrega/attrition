@@ -171,7 +171,8 @@ pub(crate) fn walk_second_probed(
 /// 1243 moved it to 10985, and the walk to run480; item 1264 moved it to
 /// 11328, and the walk to run490; item 1281 moved it to 11549, inside it;
 /// item 1297 moved it to 11637, and the walk to run506; item 1302 moved
-/// it to 12582, and the walk to run508. `None`
+/// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
+/// the walk to run523. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -183,7 +184,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run508-islands-toughest-12582.txt",
+        "gamelog-run523-islands-toughest-13385.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2082,6 +2083,52 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 1817.
         pin_eq!(w.firsts.len(), 218, "every key parted on run508");
+    }
+
+    /// **run523 — the second pair's East Indies word 13385, widened whole**
+    /// (item 1326): run508's detail over blocks 13380..13636, walked from
+    /// run346's start.
+    #[test]
+    fn run523_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run523",
+            "gamelog-run523-islands-toughest-13385.txt",
+            WIDENING_SECOND_EAST_INDIES_13385,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run523 whole: blocks 13380..13636");
+        pin!(
+            w.missing.is_empty(),
+            "run523 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            Vec::<(i64, usize)>::new(),
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 0, "every key parted on run523");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

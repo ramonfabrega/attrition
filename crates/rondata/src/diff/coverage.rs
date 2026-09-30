@@ -673,6 +673,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
     let r506 = crate::testenv::dump("gamelog-run506-islands-toughest-11637.txt");
     let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
+    let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1270,6 +1271,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run508 carries the second pair's East Indies word 12582's blocks"
+        );
+        frames += n;
+    }
+    // Item 1326 moved it to 13385 (block 13386), past run508: run523 is
+    // its widening.
+    if let Some(p) = &r523 {
+        let n = drive_capture(p, 13_385, 13_388, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run523 carries the second pair's East Indies word 13385's blocks"
         );
         frames += n;
     }
