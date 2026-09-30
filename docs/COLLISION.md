@@ -161,6 +161,15 @@ Four gates, and they are the original's in its order:
 So a hole lives for at most sixty-four frames, and the index is
 self-healing rather than exact.
 
+**And the repaint asks nothing of the unit but its type** (item 1223,
+`docs/GOLDEN.md` §52). `Unit::process@00610bc0` runs `Guy::process` over
+the figures after the think with no test between, so a boat that died in
+its own think — `set_new_location`'s sea arm, `docs/TRANSPORT.md` §6.4 —
+still reaches it: standing on its phase frame, its figure re-marks the
+disc `Object::close` has just cleared, and nothing owns the bits after.
+At the waterline of a coastal cell the region gate marks nothing; at the
+lake's tile (75, 162) on the golden start it marks 28 water cells.
+
 **How it was found, and what it cost while it was missing.** run69's AI
 woodcutter `1/9` walked west through unit cell `(849, 366)` on frame 1885
 and left it for `(848, 365)` on 1889; the diagonal step's clear pass took

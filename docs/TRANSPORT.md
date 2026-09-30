@@ -556,11 +556,14 @@ object, in order:
      **top** waypoint is popped, `flags &= ~4`, and pushed back — the
      embark flag cleared unconditionally, where §6.2 step 7 clears it only
      on a region match.
-   - **`> 1`**: `Unit::reset_move_orders(boat)` instead, and — for a
-     passenger that is not AI-driven or has no army — a `Group` insert that
-     moves the boat's group membership onto the passenger
-     (`Group::set_up_insert` / `push_group` / `finish_insert`). **Not
-     modelled**; no capture disembarks a squad.
+   - **`> 1`**: `Unit::reset_move_orders@005fd080(boat)` instead — each
+     move order's `+0x44`/`+0x48` set to its own `x`/`y` — and, unless the
+     passenger is AI-driven (`unit_masks & 0x40000`) and in an army, a stack
+     group of the boat, `Group::set_up_insert` (the boat's action-flagged
+     orders copied aside), `Group::kill(boat)`, `Group::add(passenger)`,
+     `Groups::push_group(who, g, 1)` and `Group::finish_insert` on the slot:
+     the passenger's squad takes the boat's move as a group action.
+     `Sim::disembark_squad` (item 1223, `docs/GOLDEN.md` §52).
 5. The transport bit back: with `transport_type(passenger) <= ` the
    leader's level, and unless `is(0x45)` without `leader_options.+0x1c &
    2`, `passenger.unit_masks |= 0x800000`. Then the selection swap and
@@ -630,8 +633,10 @@ shows. East Indies' `1/56` on 8519 (the journal, item 1191).
 own order. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by
 boarding, so the passenger keeps the flag either way and no capture
-separates them); the `uber_size > 1` arm; and the placement's own
-fallbacks, which no capture has forced.
+separates them); ~~the `uber_size > 1` arm~~ (built, item 1223); and the
+placement's own fallbacks, which no capture has forced — among them a
+refused passenger, on which the original's boat lives on carrying it
+(`num_inside != 0`) and this crate's dies.
 
 
 ## 7. The civilian's island — `Unit::think_civilian_transport(colonise)@005f40d0`
