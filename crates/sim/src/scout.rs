@@ -1505,6 +1505,54 @@ mod tests {
     /// original skips the offset draw outright (`leal -0x1(%ecx), %eax;
     /// testl; jg` at `005f6934`), so a small region spends one draw a cell
     /// and no more.
+    /// §3's tail at `005f6db5` (item 1297): a **sea** unit whose region
+    /// scan finds nothing marks its region scouted and then joins an army —
+    /// `cmpl $1, 0x218(type)`, `call Unit::add_to_army`, `setns` — where a
+    /// land unit would ask `think_civilian_transport` for an island. East
+    /// Indies' Caravel `1/35` gave up on its sea on frame 11523 and joined
+    /// army 3's group 72, walking to the army's first member on an
+    /// `ATTACK_TO`; this crate left it standing, and it thought again on
+    /// 11549 with a stride that found six cells.
+    #[test]
+    fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
+        let mut world = World::new(40, 40);
+        let sea = world.fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(39, 39));
+        let mut s = Sim::new(Tuning::RON, world, 2);
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        let t = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            ..crate::UnitType::default()
+        });
+        // A ship in all three places the crate reads a domain from.
+        s.unit_types[t].cols.role = role::SCOUT;
+        s.unit_types[t].kind.domain = Domain::Sea;
+        s.unit_types[t].combat.domain = Domain::Sea;
+        let spawn = |s: &mut Sim, at: Pos| {
+            let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
+            u.ty = Some(t);
+            u.kind.domain = Domain::Sea;
+            s.add_unit(u)
+        };
+        let first = spawn(&mut s, Pos::new(30 * 768 + 384, 20 * 768 + 384));
+        let scout = spawn(&mut s, Pos::new(5 * 768 + 384, 20 * 768 + 384));
+        let slot = s.init_army(1, None);
+        s.armies[1].list[slot].reg = Some(sea);
+        s.armies[1].list[slot].pos = s.units[first].pos;
+        s.army_add_unit(1, slot, first);
+        assert_eq!(s.army_of(first), Some(slot));
+
+        // No fog grid: every cell reads as seen, so the scan takes none.
+        assert!(s.think_scout(scout), "the join is the call's answer");
+        assert!(s.world.region_scouted(sea, 1), "the mark comes first");
+        assert_eq!(s.army_of(scout), Some(slot), "it joins the sea army");
+        // `go_to_unit` ran: its squad mark is unconditional. The walk
+        // itself (`ATTACK_TO` to a spot near `first`) is that function's
+        // own test's; this world's sea has no water tiles to stand on.
+        assert!(s.units[scout].in_danger, "`go_to_unit`'s mark");
+    }
+
     #[test]
     fn a_region_of_under_a_hundred_cells_draws_no_offset() {
         let (mut s, ai, _) = scout_sim(true);

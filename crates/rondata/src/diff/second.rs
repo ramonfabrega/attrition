@@ -1846,15 +1846,20 @@ mod tests {
             Some("11329: ours 2123 theirs 50689"),
             "the age's block: a merchant's over-time piece"
         );
-        // **The word 11549** (item 1281; no mechanism is named): ours 11
-        // draws against 4, at index 0, ours' `Unit::think_scout+0x941`
-        // where the original spends `Guy::set_anim+0x97a <
-        // Unit::do_guard+0x7f4`. On its block 11550 the scout `1/35`'s
-        // order kind and path part, and nothing else first.
+        // **The word 11549** (item 1281): ours 11 draws against 4, at
+        // index 0, ours' `Unit::think_scout+0x941` where the original
+        // spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. On its block
+        // 11550 the Caravel `1/35`'s order kind and path parted, ours 3
+        // (`EXPLORE_TO`) against 2 (`ATTACK_TO`). **Item 1297 closed it**
+        // (`docs/SCOUT.md` §13 item 1b): on frame 11523 its region scan
+        // found nothing, and a sea unit's tail joins an army
+        // (`think_scout` at `5f6db5`) — army 3's group 72, 4 → 5 members,
+        // walking to its first on an `ATTACK_TO`. Blocks 11524 (11 keys),
+        // 11525 (17) and 11550 (23) agree; the word is 11637, past run490.
         pin_eq!(
-            row(1, 35, "order:kind").as_deref(),
-            Some("11550: Kind { ours: 3, theirs: 2 }"),
-            "the word's block: the scout's order"
+            row(1, 35, "order:kind"),
+            None,
+            "the word's block: the Caravel's order agrees"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -1876,18 +1881,15 @@ mod tests {
                 (11414, 2),
                 (11445, 2),
                 (11513, 1),
-                (11524, 11),
-                (11525, 17),
                 (11539, 1),
-                (11542, 1),
-                (11550, 23)
+                (11542, 1)
             ],
-            "the blocks keys first part on, to the word's"
+            "the blocks keys first part on, to the window's end"
         );
         pin_eq!(
             w.firsts.len(),
-            382,
-            "every key parted on run490 (1311 before item 1281)"
+            230,
+            "every key parted on run490 (1311 before item 1281, 382 before 1297)"
         );
     }
 
