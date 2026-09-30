@@ -366,7 +366,7 @@ impl RoadMesh {
     /// this tile its answering claim. A road east whose element claims west
     /// makes this tile claim east, whatever the trim just withheld — which
     /// is what keeps a road beside a footprint joined to the rest of its
-    /// run (`docs/ROADS.md` §9.6).
+    /// run (`docs/ROADS.md` §11).
     ///
     /// The walk is north, south, east, west, and a road neighbour with **no
     /// element** clears this tile's bit toward it and ends the walk there:
@@ -1248,7 +1248,7 @@ mod tests {
 
     /// **A road beside a footprint stays joined to its run** —
     /// `RoadsOut::leech_codes@00890da0` in the redo pass (`docs/ROADS.md`
-    /// §9.6, item 1260). Great Sahara at Toughest's Farm took the west end
+    /// §11, item 1260). Great Sahara at Toughest's Farm took the west end
     /// of a trade road on 6611; the tile beside it was re-derived with a
     /// footprint to its west, so the trim recomputed north–south alone and
     /// the tile's claim east was lost with the zeroing. The east neighbour's

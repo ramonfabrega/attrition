@@ -1531,7 +1531,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_185;
 /// where the original's arrived, because ours had swept away (148..150, 123)
 /// on 6949 — the tile beside the Farm's footprint claimed nothing once its
 /// east was zeroed, until `RoadsOut::leech_codes` lent it back (`docs/ROADS.md`
-/// §9.6). **The move's value diff**, run483's trace on 7070: node 1129,
+/// §11). **The move's value diff**, run483's trace on 7070: node 1129,
 /// tile (150, 123), ours 114 against 37 → both 37, and the search 3204
 /// nodes against 2543 → 2543 node for node; run483 parts on 134 keys where
 /// it parted on 745.
@@ -7379,13 +7379,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
-    // word 7070 on run483 over 7065..7321 (item 1251).
+    // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
+    // run488 over 7780..8036 (item 1260).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run483_s_word_frame_is_widened_whole"),
-        1251,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7070),
+        Some("run488_s_word_frame_is_widened_whole"),
+        1260,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7785),
     ),
 ];
 

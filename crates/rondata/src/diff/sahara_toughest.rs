@@ -63,6 +63,17 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_7070: (i64, i64) = (7_065, 7_321
 /// **The word's block, 7071**: frame 7070 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_7071: i64 = 7_071;
 
+/// run488: run470's game at run483's detail over blocks 7780..8036, the
+/// word 7785's widening (item 1260) — six blocks before the word's block
+/// 7786 and 250 after, on the click-free lane.
+pub(crate) const TOUGHEST_WORD_7785: &str = "gamelog-run488-greatsahara-toughest-7785.txt";
+
+/// **run488's window** (item 1260): blocks 7780..8036.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_7785: (i64, i64) = (7_780, 8_036);
+
+/// **The word's block, 7786**: frame 7785 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_7786: i64 = 7_786;
+
 /// **The road search 7070 was** (item 1260): caravan `1/52`'s replan from
 /// `1/2007` to `1/2022`, which run483's trace carries node for node.
 pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
@@ -116,6 +127,17 @@ pub(crate) fn great_sahara_toughest_7070_window() -> Option<crate::diff::harness
     )
 }
 
+/// run488's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_7785`], walked as
+/// run483's are (item 1260).
+pub(crate) fn great_sahara_toughest_7785_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run488",
+        (TOUGHEST_WORD_7785, WIDENING_GREAT_SAHARA_TOUGHEST_7785.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_7785,
+        TOUGHEST_WORD_BLOCK_7786,
+    )
+}
+
 /// run482's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GOODS`], walked as
 /// run471's are (item 1251): the goods of every leader from block 1.
 pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -130,16 +152,17 @@ pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harnes
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run483 since item 1251 (run476 from item 1241, run471 before it). `coverage`'s compared pin
-/// walks these blocks with the recorder on.
+/// on run488 since item 1260 (run483 from item 1251, run476 from item 1241,
+/// run471 before it). `coverage`'s compared pin walks these blocks with the
+/// recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
     let word = THIRD_WORD_GREAT_SAHARA_TOUGHEST;
     toughest_window_over(
-        "run483",
-        (TOUGHEST_WORD_7070, WIDENING_GREAT_SAHARA_TOUGHEST_7070.0),
+        "run488",
+        (TOUGHEST_WORD_7785, WIDENING_GREAT_SAHARA_TOUGHEST_7785.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_7071,
+        TOUGHEST_WORD_BLOCK_7786,
     )
 }
 
@@ -542,6 +565,89 @@ mod tests {
         );
     }
 
+    /// **The third map's word at Toughest, 7785, widened whole** (item
+    /// 1260): [`great_sahara_toughest_7785_window`] over run488's blocks
+    /// 7780..8036, both directions, every record run483's detail prints.
+    /// The word's frame writes block 7786. No mechanism is named.
+    #[test]
+    fn run488_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_7785_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 257, "run488 whole: blocks 7780..8036");
+        pin!(
+            w.missing.is_empty(),
+            "run488 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 7780 stands on 132 keys**: run483's families, and new past
+        // it who=1's `known_rares`, ours one short.
+        pin_eq!(
+            row(1, -1, "leader:known_rares").as_deref(),
+            Some("7780: ours 3 theirs 4"),
+            "who=1's known rares stand"
+        );
+        // **The make list parts before the word**: on 7785 its third row is
+        // a Senate (438) in category 8 here and a Mine (419) in 4 there.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[2].t").as_deref(),
+            Some("7785: ours 438 theirs 419"),
+            "who=1's third make row"
+        );
+        // **The value diff, block 7786**: both lay the Senate `1/2030`
+        // (`orig_type` 438), ours at (38976, 19584) and the original at
+        // (38784, 17760) — the placement's jitter, three draws here and two
+        // there.
+        pin_eq!(
+            row(1, 2030, "build:x_internal").as_deref(),
+            Some("7786: ours 38976 theirs 38784"),
+            "the Senate's x"
+        );
+        pin_eq!(
+            row(1, 2030, "build:y_internal").as_deref(),
+            Some("7786: ours 19584 theirs 17760"),
+            "the Senate's y"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [
+                (7780, 132),
+                (7781, 1),
+                (7782, 8),
+                (7784, 3),
+                (7785, 6),
+                (7786, 30),
+                (7787, 1),
+                (7789, 2)
+            ],
+            "the blocks keys first part on, to three past the word's"
+        );
+        pin_eq!(w.firsts.len(), 876, "every key parted on run488");
+    }
+
     /// **The goods, every frame to the first word's block** (item 1251):
     /// [`great_sahara_toughest_goods_window`] over run482's blocks 1..5378,
     /// both directions, every field `LEADERS=2` prints for every leader.
@@ -604,7 +710,7 @@ mod tests {
     /// on 7070 — tile (150, 123) 114 against 37, a road the original still
     /// had and ours had swept away on 6949 — until `leech_codes` joined the
     /// tile beside the Farm's footprint back to its run (`docs/ROADS.md`
-    /// §9.6, `docs/AI.md` §99.9).
+    /// §11, `docs/AI.md` §99.9).
     #[test]
     fn run483_s_road_searches_hold_node_for_node_to_7070() {
         let _pins = Pins::hold();

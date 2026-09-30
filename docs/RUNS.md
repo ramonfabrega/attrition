@@ -12059,3 +12059,45 @@ run485 was reserved and not used.
 
 **What it holds**: `chapter_forty_four_holds_to_the_golden_word` (word
 670) and `chapter_forty_four_s_word_frame_is_widened_whole` (605..920).
+## run488 — run470's game at run483's detail over blocks 7780..8036: the word 7785 widened (2026-09-30, item 1260)
+
+**What it is.** run483's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 7780..8036, `!quit` at 8050. The word's frame 7785 writes block
+7786: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run488 \
+    --map 7 --end-frame 8050 --timeout 4800 --log-window 7780 8037 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** The word moved to
+7785 when `leech_codes` was built (`docs/AI.md` §99.9). run483 ends at
+block 7321 and run470 prints `MISC` alone, so no dump of this game holds a
+per-frame record at 7786.
+
+**Taken** 04:55–05:16 in one take, on a stale lock (pid 1868, dead, last
+held by the unattended lane) with no runner or game alive; waited on with
+`waitrun.sh`: `success: true`, exit 0, 1,211 s from launch to exit, 8,051
+frames, map verified, seed 12345, settings restored. The dump (525,902,944
+bytes, sha256 `275ece5dea0e4632…`) and the trace (43,805,664,
+`774109ff522099ec…`) were copied into `Logs` as
+`gamelog-run488-greatsahara-toughest-7785.txt` and `rontrace-run488.log`.
+The disk had 46 GB free after. run489 was reserved and not used.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 8,051 identical |
+| window blocks | 257, 7780..8036 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run488_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 876 keys. 132 stand on 7780, among them run483's families and
+who=1's `known_rares`, 3 against 4, new past run483. who=1's make list
+parts on 7782 and 7785. On the word's block 7786, the Senate `1/2030`
+(`orig_type` 438) is laid at (38976, 19584) here and at (38784, 17760)
+there. The compared pin walks its 7784..7787, and the coverage driver
+drives 7784..7788.

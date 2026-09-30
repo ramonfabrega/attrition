@@ -679,6 +679,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
     let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
     let r483 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7070);
+    let r488 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7785);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1336,6 +1337,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_7071;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run483 carries the third map's word 7070 at Toughest");
+        frames += n;
+    }
+    // **And its word 7785, on run488** (item 1260): the frame writes block
+    // 7786, and the window is it with two either side.
+    if let Some(p) = &r488 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_7786;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run488 carries the third map's word 7785 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2167,10 +2176,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // where no move's `coll` pair has left `(0, 0)`, and
     // East Indies' 10185 window has none either (measured on the tree
     // merged with 1228's): `coll_x`/`coll_y` return to it.
+    // **Item 1260 moved the Toughest window to run488's 7784..7787**, where
+    // a move's `coll` pair has left `(0, 0)`: `coll_x`/`coll_y` are compared
+    // on the union, and leave this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
