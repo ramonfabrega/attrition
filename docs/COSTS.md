@@ -955,7 +955,7 @@ After the wonder test, `get_cost`'s building arm asks the type's vslot
 (`num_queued[t] + num_buildings[t]`, `00665966`) but the six counts of the
 line: `num_buildings` and `num_queued` of `VILLAGE`, `TOWN` and
 `METROPOLIS`, at `+0x555e`..`+0x5562` and `+0x5d5e`..`+0x5d62`
-(`0x5222 + 2·0x19e` and `0x5a22 + 2·0x19e`). So a Small City is priced as
+(each array's base plus `2·0x19e`). So a Small City is priced as
 the leader's next city of any size. On Great Sahara at Toughest's frame 8377
 who=1 held one Small City and two Large ones: the original priced its
 fourth at 160 food and timber, and this crate, counting Small Cities alone,

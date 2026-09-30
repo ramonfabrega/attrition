@@ -12679,7 +12679,7 @@ the Small City at 60 food and 60 timber against a purse of 170 and 138.
 **The arm.** `TypeData::get_cost@00664090`, after the wonder test, calls the
 type's vslot `+0x64` (`is_city`, `0x6657f2`). On a city it sums six counts —
 `num_buildings` and `num_queued` of `VILLAGE`, `TOWN` and `METROPOLIS`, at
-`+0x555e/0x5560/0x5562` and `+0x5d5e/0x5d60/0x5d62` (listing
+`+0x555e`..`+0x5562` and `+0x5d5e`..`+0x5d62` (listing
 `0x66580c`–`0x665837`) — where every other building reads its own type's
 pair (`0x665966`). who=1 held one Small City and two Large ones (ours'
 records `build_types[0]` and `[1]`): the original's count is 3 and the price
