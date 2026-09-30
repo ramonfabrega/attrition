@@ -3092,6 +3092,42 @@ impl Sim {
         head.expect("uber_size is at least one")
     }
 
+    /// `Leader::gain_tech@006dcb60`'s building arm, the **object** half of
+    /// `docs/TECH.md` §8 (`6dde5e`–`6ddf2b`).
+    ///
+    /// Gaining a building type converts the standing buildings it is the
+    /// upgrade of. The loop walks the leader's two building lists and takes
+    /// every live one whose type's `upgrade` (`TypeData +0x44`) is `t`
+    /// (`cmpl %ecx, 0x44(%eax)` at `6ddeb2`): its type's bit goes into
+    /// `obs_flags` (`6ddee2`) and it is `Wall::set_type(t, 0)` (vslot
+    /// `+0x84`, `6ddf06`) — the per-type counters move with it
+    /// (`decrement_stats`, `increment_stats`) and nothing else is written.
+    /// Its hit points follow at the leader's next wall-stats pass
+    /// ([`Sim::calc_wall_stats`], marked by [`Sim::apply_gained`]). Only an
+    /// auto-upgrade type has an `upgrade` (`Types::init`), so this is the
+    /// Tower becoming a Keep with Medieval Age, and a Fort a Castle: run488's
+    /// Tower `1/2015` is `orig_type 439` with the Keep's 1000 hits
+    /// (`docs/AI.md` §99.10).
+    fn upgrade_buildings_to(&mut self, who: Player, t: tech::TypeId) {
+        let Some(rec) = self.build_record(t) else {
+            return;
+        };
+        for b in 0..self.buildings.len() {
+            if !self.buildings[b].alive || self.buildings[b].owner != who {
+                continue;
+            }
+            let Some(tree) = self.buildings[b].ty.and_then(|ty| self.build_types[ty].tree) else {
+                continue;
+            };
+            if self.tech_tree.types[tree].upgrade != Some(t) {
+                continue;
+            }
+            self.tech[who as usize].obs[tree] = true;
+            self.buildings[b].ty = Some(rec);
+            self.buildings[b].combat = Some(self.build_types[rec].combat.unwrap_or_default());
+        }
+    }
+
     /// `Leader::gain_tech@006dcb60`'s unit-conversion loop, the **object**
     /// half of `docs/TECH.md` §7 (`6dd9bd`–`6ddbd1`).
     ///
@@ -3506,6 +3542,13 @@ impl Sim {
             if let tech::Gained::UnitUpgrade { to } = *e {
                 self.upgrade_units_to(who, to);
                 self.retarget_queued_to(who, to);
+            }
+            // Step 8's object half: a building type converts the standing
+            // buildings it is the upgrade of.
+            if let tech::Gained::Type(x) = *e
+                && matches!(self.tech_tree.kind(x), tech::Kind::Building { .. })
+            {
+                self.upgrade_buildings_to(who, x);
             }
         }
         self.apply_gained(who);

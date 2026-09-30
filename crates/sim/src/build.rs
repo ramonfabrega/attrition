@@ -580,7 +580,10 @@ pub fn full_hits(
     if m.maya {
         h = (t.maya_building_hp + 100) * h / 100;
     }
-    if m.romans && (is_fort(types, ty) || b.ident == Ident::Tower) && !b.wonder {
+    // The Tower and the Lookout are read as lines, `is(0x1b7, 0)` and
+    // `is(0x209, 0)` (`Wall::update_hits@0063f0d0`): the Keep, the Stockade
+    // and the Bunker are Towers here (item 1275).
+    if m.romans && (is_fort(types, ty) || is_tower(types, ty)) && !b.wonder {
         h = (t.roman_fort_hp + 100) * h / 100;
     }
     h = (t.building_hp_upgrade * m.hp_upgrade.clamp(0, 3) + 100) * h / 100;
@@ -597,8 +600,8 @@ pub fn full_hits(
         if active
             && city_level > 0
             && !is_fort(types, ty)
-            && b.ident != Ident::Tower
-            && b.ident != Ident::Lookout
+            && !is_tower(types, ty)
+            && !is(types, ty, Ident::Lookout)
         {
             h += t.senate_hp_bonus * (city_level - 1) * h / 100;
         }
