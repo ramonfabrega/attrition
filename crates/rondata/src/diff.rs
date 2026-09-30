@@ -42,6 +42,8 @@ mod leader;
 mod order;
 mod report;
 #[cfg(test)]
+mod sahara_toughest;
+#[cfg(test)]
 mod second;
 mod setup;
 mod shutdown;
