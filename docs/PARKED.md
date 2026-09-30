@@ -146,6 +146,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1275, 2026-09-30 — the route's other end
+
+(1287) **`Unit::end_trade_route@005e3bd0`'s city arm**: `delivered`
+cleared, `loaded` zeroed, both ends recomputed — not modelled; built and
+measured by 1275, nothing moved (no route ends on these frames), so
+reverted. Ours' doc comment now gives the address 005e3bd0, not 005ed1c0.
+
+(1288) **who=1's University offer on run488's 7782, 4048327 against
+3469995 (×7/6), and `scholars` 11 against 12 from 7925**: before 8377's
+word, read by no draw yet.
+
 ## Parked by item 1264, 2026-09-30 — the Keep's conversion
 
 (1282) **The conversion's in-use arm** (1264's mutation B): a
@@ -157,6 +168,9 @@ prints `mylos 13` on run425's 7377 — Keep `LOS 12` plus `x_size / 2`,
 our formula — and **15** on run480's 10985, which is not. The `SEAM`'s
 "none can fire in any capture on disk" was false from run425 on; a
 building's `mylos` and `myhits` are uncompared, so no walk watches it.
+**Again** (1275): `full_hits`' Tower and Lookout by line, built with a
+unit test, are held by no walk for the same reason — no site compares
+`myhits` or `construct_hits`.
 
 (1284) **`num_buildings[scan]` and `high_buildings` stand on the
 compared pin as uncompared** while this crate carries the count as
@@ -2559,6 +2573,11 @@ and run488's and run490's were spliced the same way; no guard noticed.
 A guard: every `## runN` section's code fence closes before the next
 heading, and each section names its own `lab-captures/…-runN`. One
 reach.
+
+(1289) **A capture booked on a word another live lane can move has no
+check that the window is taken** (1275's Loop line): run491 and run494
+are one window taken twice for one move, because 1264's build moved
+1275's word before either landed. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

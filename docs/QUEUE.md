@@ -12,13 +12,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: fifteen landings.
+*2026-09-30, the commander after the twentieth pass: sixteen landings.
 **East Indies 8907 → 11328**; **Great Sahara at Toughest opens at 5376,
-now 8182**; **chapters forty-three to forty-five opened and closed**
+now 8377**; **chapters forty-three to forty-five opened and closed**
 (2200, 1450, 1650). 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1281, 1275, 1278**, one to each open word.
-  att-1275 works 8182, which 1264's landing gave it.
+- **Three lanes live: 1281, 1286, 1278**, one to each open word.
 - **The commander clears at the seam after every tenth landing**; the
   twentieth is the pass's.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -29,17 +28,17 @@ now 8182**; **chapters forty-three to forty-five opened and closed**
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 27 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285).
+- **Fable backlog: 28 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w11328 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8182 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8377 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1281, 1275 and
-1278; fifteen landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1281, 1286 and
+1278; sixteen landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -56,13 +55,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     of who=1's units' `g.gpiece[0]` read the original's 2112 above ours.
     Standing from 11323: who=1's `caras` 3 against 4. No mechanism.
 
-1275. **Great Sahara at Toughest's word: frame 8182, ours 8 draws against
-    7** (1264 moved it from 7785), at index 2: ours
-    `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`; widened on run491 (block 8183) and run494
-    (8177..8434). First parting past the standing rows: on 8181 who=1's
-    `MAKE[4]`, a Merchant (61) at 936,170 against Trade (560) at 307,560.
-    No mechanism is named.
+1286. **Great Sahara at Toughest's word: frame 8377, ours 17 draws
+    against 19** (1275), at index 0: ours `Leader::make_stuff+0x221`
+    where the original opens with `Leader::use_market+0x1ed`; widened on
+    run491 (block 8378): who=1's head spent here (`MAKE[0].val` −1) and a
+    category-9 row at 1981477 there; wealth 172 against 53. Standing:
+    8181's fifth make row, a Merchant (61) against Trade (560); group
+    66's record on 8209, ours none. No mechanism is named.
 
 1278. **Chapter forty-six: three arms a unit test alone holds**
     (DECISIONS 56 §3): `disembark_squad`, a barge landing three riders
