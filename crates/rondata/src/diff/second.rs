@@ -1894,6 +1894,74 @@ mod tests {
         );
     }
 
+    /// **run506 — the second pair's East Indies word 11637, widened whole**
+    /// (item 1297): run490's detail over blocks 11632..11888, walked from
+    /// run346's start with the group record and the attack order's row.
+    #[test]
+    fn run506_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run506",
+            "gamelog-run506-islands-toughest-11637.txt",
+            WIDENING_SECOND_EAST_INDIES_11637,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run506 whole: blocks 11632..11888");
+        pin!(
+            w.missing.is_empty(),
+            "run506 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 11637** (item 1297; no mechanism is named): ours 2
+        // draws against 38, at index 1, where the original spends eighteen
+        // `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit` and
+        // seventeen idle stands. On its block 11638 who=1 holds eighteen
+        // Peltasts (`TypeIndex` 84) the dump alone has — `1/93` and
+        // `1/104`..`1/120` — and its group 70 lists 37 against 19, stamped
+        // 11637. Nothing else parts first on 11638 but `1/78`'s clock.
+        pin_eq!(
+            row(1, -3, "group:70.num").as_deref(),
+            Some("11638: ours 19 theirs 37"),
+            "the word's block: the group the births join"
+        );
+        pin_eq!(
+            row(1, 104, "unlinked").as_deref(),
+            Some("11638: the dump holds it alone"),
+            "the word's block: a Peltast this crate never made"
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(11632, 198), (11638, 23)],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 1376, "every key parted on run506");
+    }
+
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
     /// (item 1156): run421 is run346's game at run420's detail over blocks
     /// 6567..6610, walked from run346's own start — the frames between
