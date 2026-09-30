@@ -15713,17 +15713,25 @@ fn stage_walk() {
         }
         for (i, b) in s.buildings.iter().enumerate() {
             let hangar = b.ty.is_some_and(|t| s.is_hangar(t));
-            if !(all || hangar || !b.queue.items.is_empty() || !b.gather.is_empty()) {
+            if !(all
+                || hangar
+                || !b.queue.items.is_empty()
+                || !b.gather.is_empty()
+                || !b.gatherers.is_empty())
+            {
                 continue;
             }
             let inside: Vec<i16> = b.garrison.iter().map(|&u| s.units[u].index).collect();
+            // Item 1278: the gatherer chain, head first (`gather_down`'s
+            // walk), which `all_gathering`'s prune reads.
+            let chain: Vec<i16> = b.gatherers.iter().map(|&u| s.units[u].index).collect();
             // The queue by type and price: a job's counter moves every frame.
             let queue: Vec<(usize, [i16; 3])> =
                 b.queue.items.iter().map(|q| (q.ty, q.cost)).collect();
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} inside={inside:?} launch={}",
+                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),
