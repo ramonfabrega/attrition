@@ -13729,3 +13729,19 @@ mutation of each did.
 
 SEAM: `find_nearby_target`'s cavalry-archer argument (`param_4`, passed
 on as `param_7`) turns the head off. This crate has no such caller.
+
+### 86.6 The killers
+
+Each mutation was scored by the whole `rondata` and `sim` suites:
+
+| mutation | unit test | walk |
+|---|---|---|
+| the search does not ask the head | fails | run445's widening (`1/35` back on 8908) |
+| the region read without the coastal refinement | passes | none |
+| no `SIEGE`-ship exception | fails | none |
+| no defensive arm | fails | none |
+| `duty` false for every search | passes | chapter one's word and widening, chapter eight's widening |
+
+So the region arm and the duty exemption are diff-held. The coastal
+refinement, the `SIEGE` ship and the defensive arm's own refusal are built
+on the listing alone.
