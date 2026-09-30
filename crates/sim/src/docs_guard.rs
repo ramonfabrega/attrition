@@ -2081,7 +2081,6 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("sim/src/rally.rs", 5),
     ("sim/src/roads.rs", 1),
     ("sim/src/site_recruit.rs", 2),
-    ("sim/src/transport.rs", 1),
 ];
 
 /// **A `SEAM` that says "no capture has X" names the scan that found

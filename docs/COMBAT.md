@@ -10801,8 +10801,9 @@ retaliation gate for a human guard (1091).
   ORDERS names the patrol's vslot `+0x34`.
 
 SEAMS: `is_attack`'s overrides are folded in the export, so it is taken
-as the attack and ground-attack orders. `check_target`'s AI-sea region
-exception and its building-cell tail are not carried. ~~The retaliation's
+as the attack and ground-attack orders. ~~`check_target`'s AI-sea region
+exception~~ **carried by item 1214 (§86)**, with the coastal-refined
+region; its building-cell tail is not carried. ~~The retaliation's
 `on_duty` return (`00600877`'s `local_20 != NONE` above it) is not
 carried.~~ **Carried by item 1040 (§70.3).**
 
@@ -13635,3 +13636,112 @@ of the window, and the held round on 780 (the word block test, the
 widening, the draw stream to 793). On chapter fifteen: the four fields.
 Read alone: the gate's `has_restrictions == 0` arm, and the writers in
 §85.2 that this crate does not have.
+
+## 86. An idle ship does not take a land building out of its range: `check_target`'s head (item 1214, 2026-09-29)
+
+East Indies' second-pair word stood at 8907: ours 2 draws against 28,
+parting at index 1, where the original spends `Unit::think_scout+0x941`
+and 26 `+0xaba` under `Unit::think+0x7da < Unit::do_idle+0x94`. No
+mechanism was named. `docs/journal/2026-09-29-item-1214.md` has the story.
+
+### 86.1 The event, both sides
+
+`1/35` is a **Caravel** (unit type 275; `ATTACK 13`, range 7), the
+computer's, finishing an `EXPLORE_TO` at (7392, 480) on the sea. Both
+sides spend its `Unit::do_idle` roll on 8907. Then:
+
+- **The original** (run445, block 8908): no attack. The think goes on to
+  its tail, `think_scout`'s 27 draws, and `1/35` stands in a new group 79
+  on an `EXPLORE_TO` (504, 504) with an eight-node path.
+- **Ours** (`RON_DEBUG_UNIT=1/35`): the auto-attack arm's
+  `find_melee_target` answers the human's building `0/2004`, at (4992,
+  4992) inland, and `1/35` takes an `ATTACK` on it (`order:kind` 10) and
+  keeps group 65. The think ends there, so no `think_scout`.
+
+The building is about 5,100 units from the ship, inside the computer's
+search radius (`unit_respond_range × 0x180`) and far out of its range.
+
+### 86.2 The head, from the listing
+
+`Object::check_target@00649e00`, `649e3a`–`649fb7`, for a unit searcher
+(vslot `+0x18`) and `param_7 == 0`:
+
+```text
+other = get_tregion(target's tile) != get_tregion(my tile)      # 649ec2, 649ed7
+if other && (unit_masks & 0x40000)                              # 649f05
+         && has_objmask(0x40000)                                # vslot +0x148, 649f17
+         && type->+0x218 == 1:                                  # 649f29, cmove
+    other = 0
+if ((param_3 == 0 && stance() == 1 && update_order() != 0)      # vslot +0xf4, 6179d0
+     || other)
+   && !is_in_range(o, who, x, y, y, 0, 0):                     # 649fb0
+    return 0
+```
+
+`get_tregion@006b52e0` is the coastal-refined region (`World::tregion_alt`):
+a `0x100` cell answers its `region2` when the tile is ocean.
+
+`Object::find_nearby_target@00648da0` calls it at `64955d` with `param_3 =
+local_54`, which is `Unit::on_duty` for a unit searcher (`6490b6`) and 0
+otherwise, and `param_7` its own cavalry-archer argument. The refusal
+comes before `near_o` is written. `Unit::fight`'s guard call passes
+`param_3 = 1`.
+
+So a candidate in another region is taken only in range, unless the
+searcher is a computer's `SIEGE` ship. A `DEFENSIVE` unit that is off
+duty and has an order must reach anything it takes, in its own region
+too.
+
+### 86.3 The build
+
+`Sim::check_target_reaches(u, target, duty)` (`fight.rs`) is the head.
+`find_nearby_target_with` asks it for every unit searcher, after the
+`flags` filter and before the guard's leash, with `duty` the searcher's
+`on_duty`. `guard_check_target` asks it with `duty` set. Its region test
+read `World::tregion` before, without the coastal refinement, and reads
+`tregion_alt` now, as the listing does.
+
+`fight::tests::a_candidate_in_another_region_is_taken_only_in_range`
+fails when the search does not ask it.
+
+### 86.4 What moved
+
+**8907 → 10183.** The value diff on run445's block 8908, the word's own:
+`1/35`'s `group` ours 65 against 79, `order:kind` 10 against 3,
+`orders_x`/`orders_y` (7392, 480) against (504, 504), and `path:length`
+0 against 8 all agree now. `1/35` parts no key through 9071. run445's
+keys went 627 → 195. `1/68`'s and `1/70`'s figure clocks, which parted on
+8945, agree through 9071. Frame 8907's draws went 2 against 28 →
+agreeing. The new word's delta: ours 24 draws and the original 9 on
+frame 10183, parting at index 0, where ours spends
+`Leader::create_units+0x642` and the original `Guy::set_anim+0x97a <
+do_cast`.
+
+### 86.5 What is not established, and coverage
+
+**Diff-backed** on run445: the region arm, for a computer's ship and a
+land building.
+
+**Listing-backed, never executed in a capture**: the `SIEGE` ship
+exception; the defensive arm (`on_duty`, `DEFENSIVE`, an order); the
+coastal refinement's effect on the guard's call. §86.6 has what a
+mutation of each did.
+
+SEAM: `find_nearby_target`'s cavalry-archer argument (`param_4`, passed
+on as `param_7`) turns the head off. This crate has no such caller.
+
+### 86.6 The killers
+
+Each mutation was scored by the whole `rondata` and `sim` suites:
+
+| mutation | unit test | walk |
+|---|---|---|
+| the search does not ask the head | fails | run445's widening (`1/35` back on 8908) |
+| the region read without the coastal refinement | passes | none |
+| no `SIEGE`-ship exception | fails | none |
+| no defensive arm | fails | none |
+| `duty` false for every search | passes | chapter one's word and widening, chapter eight's widening |
+
+So the region arm and the duty exemption are diff-held. The coastal
+refinement, the `SIEGE` ship and the defensive arm's own refusal are built
+on the listing alone.

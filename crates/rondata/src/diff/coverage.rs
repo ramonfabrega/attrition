@@ -619,6 +619,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch40 = golden_dump("ch40");
     let ch41 = golden_dump("ch41");
     let ch42 = golden_dump("ch42");
+    let ch43 = golden_dump("ch43");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -662,6 +663,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r425 = crate::testenv::dump("gamelog-run425-islands-toughest-7382.txt");
     let r439 = crate::testenv::dump("gamelog-run439-islands-toughest-8519.txt");
     let r445 = crate::testenv::dump("gamelog-run445-islands-toughest-8820.txt");
+    let r462 = crate::testenv::dump("gamelog-run462-islands-toughest-10183.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1196,6 +1198,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run445 carries the second pair's East Indies word 8907's blocks"
+        );
+        frames += n;
+    }
+    // Item 1214 moved it to 10183 (block 10184), past run445: run462 is its
+    // widening.
+    if let Some(p) = &r462 {
+        let n = drive_capture(p, 10_183, 10_186, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run462 carries the second pair's East Indies word 10183's blocks"
         );
         frames += n;
     }
@@ -1885,6 +1897,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter forty-three, on run466** (item 1223): 1271, the barge
+    // put ashore on its phase frame; 1357, the word, the squad's boarding.
+    if let Some(p) = &ch43 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_THREE;
+        for w in [1271, 1357] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
     // a frame out; 852, `0/7`'s.
@@ -2100,10 +2122,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 1197 moved East Indies' window to run445's 8907**, where `1/35`'s
     // move has left `(0, 0)`: `coll_x`/`coll_y` are compared there, and
     // left this pin again at 1206's booking (the two landed apart).
+    // **Item 1214 moved it to run462's 10183**, where a cast order stands
+    // and no move's `coll` pair has left `(0, 0)`: `cast_paid` and
+    // `cast_spell` leave this pin, and `coll_x`/`coll_y` return to it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x \
+         attempts build_type coll_x coll_y cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \

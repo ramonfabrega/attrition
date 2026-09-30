@@ -12,14 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, the commander after the twentieth pass: one landing, no
-score moved. 1222 measured the held-out map with its start sibling:
-**Himalayas 1851/1850** (run464, run465), from 1/0 without one. For the
-record only: nothing is pinned or debugged against it (DECISIONS 56 §2).*
+*2026-09-29, the commander after the twentieth pass: two landings.
+**East Indies' second word 8907 → 10183** (1214, `check_target`'s head
+in the idle search). 1222 measured the held-out map with its start
+sibling: **Himalayas 1851/1850**, for the record only (DECISIONS 56 §2).*
 
-- **Three lanes live: 1214, 1223, 1221.** 1214 reports 8907 → 10183,
-  unlanded; 1223 took 1198's repaint and `eject_contents`' squad arm
-  (1175 closed by 1167). One capture lane.
+- **Three lanes live: 1228, 1223, 1221.** 1223 took 1198's repaint and
+  `eject_contents`' squad arm (1175 closed by 1167). One capture lane.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -31,17 +30,17 @@ record only: nothing is pinned or debugged against it (DECISIONS 56 §2).*
   functions**, from the arms a landing parks as held by no walk.
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
-- **Fable backlog: 13 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227).
+- **Fable backlog: 15 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w8907 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w10183 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1214, 1221 and
-1223; one landing counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1228, 1221 and
+1223; two landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -51,14 +50,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1214. **East Indies' second word: frame 8907, ours 2 draws against 28**
-    (1197), at index 1: theirs `Unit::think_scout+0x941 < Unit::think+0x7da
-    < Unit::do_idle+0x94` and 26 `Unit::think_scout+0xaba`, ours none,
-    widened on run445 (block 8908), which parts `1/35` alone — eight
-    keys, its `group` (65 against 79) and `order:kind` (10 against 3)
-    among them; 183 keys stand on its first block, who=1's
-    `num_units[268]` (0 against 2) and `active` (67 against 68) among
-    them. No mechanism is named.
+1228. **East Indies' second word: frame 10183, ours 24 draws against 9**
+    (1214), at index 0: ours `Leader::create_units+0x642`, theirs
+    `Guy::set_anim+0x97a < do_cast`, widened on run462 (block 10184),
+    which parts on nine keys — who=1's `MAKE[0].t` (228 against 597)
+    among them, the make list parting from 10181; 182 keys stand on
+    block 10178, who=1's `num_units[268]` (0 against 1) among them. No
+    mechanism is named.
 
 1221. **Great Sahara at Toughest: the closed map in the second pair's
     lobby** (DECISIONS 56 §1): a `DUMP_ALL` start sibling, a dump of

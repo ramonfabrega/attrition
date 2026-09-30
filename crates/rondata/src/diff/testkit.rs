@@ -1477,7 +1477,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Unit::think_scout+0x941` and 26 `Unit::think_scout+0xaba` where ours
 /// spends one `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run445's
 /// window (block 8908).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_907;
+///
+/// **8907 → 10183 on item 1214** (`docs/COMBAT.md` §86):
+/// `Object::check_target@00649e00`'s head refuses a candidate in another
+/// region that is out of range, and this crate's idle search did not ask
+/// it. The computer's Caravel `1/35`, idle on the sea at (7392, 480), took
+/// the human's building `0/2004` at (4992, 4992) inland, where the
+/// original's think went on to `think_scout`. **The move's value diff (the
+/// word's delta, here; its block is `run445_s_word_frame_is_widened_whole`'s):**
+/// on run445's block 8908 `1/35`'s `group` ours 65 against 79 → agreeing,
+/// `order:kind` 10 against 3 → agreeing, `orders_x`/`orders_y` (7392, 480)
+/// against (504, 504) → agreeing; `1/35` parts no key through 9071, and
+/// run445's keys went 627 → 195. Frame 8907's draws went 2 against 28 →
+/// agreeing. **The new word's delta: ours 24 draws and the original 9 on
+/// frame 10183, parting at index 0**: ours spends
+/// `Leader::create_units+0x642` where the original spends `Guy::set_anim+0x97a
+/// < do_cast`. Past run445's window (its last block 9071), widened on
+/// run462 (block 10184).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_183;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -1937,6 +1954,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_8519: (i64, i64) = (8_514, 8_770);
 /// run439's detail, blocks 8815..9071 — six blocks before the word 8820's
 /// block 8821 and 250 past it; the word 8907's block 8908 since item 1197.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
+
+/// **run462's window** (item 1214): the second pair's East Indies at
+/// run445's detail, blocks 10178..10434 — six blocks before the word
+/// 10183's block 10184 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -5017,6 +5039,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
 /// whole, 605 to its end.
 pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 
+/// Chapter forty-three's golden word (item 1223, `docs/GOLDEN.md` §52,
+/// run466): the landing's arms no walk held — **open at 1356**, the
+/// squad's boarding: ours 8 draws against 6, parting at index 2, where
+/// ours' member `0/8` draws `Unit::do_move+0xe84` and an arrival stand
+/// the original does not. The value diff on block 1357: `0/8` and `0/9`
+/// `inside` ours −1 against 10. The repaint landing on 1270 walks clean.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1356;
+
+/// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
+/// from 605, the word's block 1357 and 250 past it.
+pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1607);
+
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
 pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
@@ -5514,6 +5548,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter forty-three (item 1223): the Chariot's three shots at the
+    // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
+    ("chapter_forty_three_holds_to_the_golden_word", 3),
+    ("chapter_forty_three_s_word_frame_is_widened_whole", 3),
     // Chapter forty-one (item 1182): the Biplane's two EXITs from its
     // Airbase on the computer's sorties, 808 and 1470, each a read of the
     // ground under the base's point.
@@ -7087,6 +7125,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1223: run466, chapter forty-three, the landing's arms; open at
+    // 1356, the squad's boarding. The widening is run466 to 1607.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_THREE",
+        GOLDEN_WORD_CHAPTER_FORTY_THREE,
+        Some("chapter_forty_three_s_word_frame_is_widened_whole"),
+        1223,
+        Some(WIDENING_CHAPTER_FORTY_THREE),
+    ),
     // Item 1209: run460, chapter forty-two, a ring of Barracks and four
     // walkers; closed at 1160. The widening is run460 whole.
     (
@@ -7182,13 +7229,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
     // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
-    // to 8820, past it, widened on run445; item 1197 to 8907, inside it.
+    // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
+    // item 1214 to 10183, past it, widened on run462.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run445_s_word_frame_is_widened_whole"),
-        1197,
-        Some(WIDENING_SECOND_EAST_INDIES_8820),
+        Some("run462_s_word_frame_is_widened_whole"),
+        1214,
+        Some(WIDENING_SECOND_EAST_INDIES_10183),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
