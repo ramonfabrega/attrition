@@ -9766,3 +9766,126 @@ Chapter forty-three's two tests pass under all three.
 - `leech_codes`' early return, for the reason above (parked).
 - `all_gathering`'s prune on a member that is off the map or dead: this
   chapter reaches the `is_gathering_at` arm alone.
+
+## 56. Chapter forty-seven — three arms the widenings held and no walk: the Keep on a standing Tower site, a squad ashore facing away from its barge, and an age's snap mid-move (item 1310)
+
+**Premise.** DECISIONS 56 §3's chapter from three landings' mutations
+that no walk held: the members' `set_angle(captain)` (parked 1312, §55's
+M1), `Leader::gain_tech`'s building loop on a site (parked 1282, item
+1264's B) and the age's snap leaving `dest_angle` (parked 1299, item
+1281's B). **What a walk can hold, established on the staging before the
+capture** (`RON_STAGE_DRAWS`, new: each frame's draw labels, the arm's
+mutation walked against the staging unmutated):
+
+- **The snap's `dest_angle`: no walk, by construction.** `UnitData +0x58`
+  has two writers in the export in every spelling this item searched
+  (`Unit::init@00612100:99`, `Unit::update_action@0060a870`), and no
+  reader but the log; `Movement::des_angle` has no reader in this crate's
+  step. A widening is its only instrument — and this staging turned out
+  not to reach it (below).
+- **The members' angle: no walk in this crate.** A landed member's
+  heading, facing and mirror are read by nothing on the draw stream
+  before its first move step rewrites the heading: a foot type turns
+  from a stop at once (`Movement::at`), and the mirror's one reader,
+  `do_guard`, reads a guard's target. With a 140° gap between the
+  captain's boarding angle and the barge's heading, the mutation changes
+  no draw through 1700.
+- **The site's conversion: a walk, through a fight.** A Keep's `HITS`
+  is 1000 and a Tower's 750, and a site's health is its job's share of
+  them (`site_hits`), so a site the Keep reached takes a third more
+  blows. Left alone at 96 hits (72 as a Tower) under who=1's squad, the
+  Keep site dies on 965 in this crate; with the site left a Tower it dies
+  on 901 and the draws part on 915.
+
+**The readings.** `run_cmd`'s `tech` case (`007dd966`) names its argument
+through `parse_type(·, "tubs", 2)` (`ConsoleWin::parse_type@007e4050`),
+whose `b` block walks the building types (414 up to 543) after the units
+and ahead of the technologies: `keep` is the Keep (440), and the case
+calls `Leader::gain_tech(who, 440, 0, 0, ·, 1)` and clears the Keep's
+`obs` bit. This crate's interpreter had no building arm (its `SEAM`);
+built here, exact names only, between the units and the technologies.
+`gain_tech`'s building loop (`6dde64`..`6ddf2b`, `docs/TECH.md` step 8)
+takes every object **in use** (`testb $1, 8(obj)`) whose type's
+`upgrade` is the type gained and calls vslot `+0x84`, read off the PE:
+`0x640da0`, `Wall::set_type` — `decrement_stats`, `SubObject::set_type`
+(the type pointer and `Wall::update_gpiece`), `increment_stats`.
+
+**The staging** (`chapter47.cmd`), walked on run496's start: `library
+who=0 1` and the Dock (600, 604); a Hoplite squad H `0/6`..`0/8` on the
+east shore (606) and three Citizens Z `0/9`..`0/11` (608); H `@move`d
+west into the lake (612), aboard barge B `0/12` on 707 facing
+−1541996544; Z `@build` a Tower site T `0/2008` (620); `tech who=0 keep
+on` (676), Z walked off (678), who=1's Hoplites beside T (680); B to the
+waterline (860) and ashore heading east (1100); `age who=0 2` (1110),
+with `0/8` walking a move whose angle is not its heading.
+
+**Run 2026-09-30 as run514**, click-free lane, `cover=0`, 1,080 s. No
+`I_ISSUE` refusal: all five `@` lines carry refusal 0.
+
+**All three arms agree on the dump's own records:**
+
+- **The in-use arm, first seen on disk**, read by hand: block 676, T's
+  `gpiece` 51364, `myhits` 750, `construct_hits` 71; block 677, 51365,
+  1000 and 96 — the original converted the site on the cheat's frame and
+  re-scaled its hits, as this crate does (ours 96 on 677). The widening
+  reads a building's `gpiece` and `myhits` nowhere (the `UNREAD` pin) and
+  its `construct_hits` is on the compared pin as uncompared.
+- **The members' angle.** Block 1102: B gone; `0/6` at (14712, 31224),
+  `0/7` at (14712, 31368), `0/8` at (14856, 31320) on both sides; the
+  captain's `angle` 1073741824 (the barge's), and `0/7`'s and `0/8`'s
+  −1710030848 — `0/6`'s own on 1101, the angle it boarded on.
+- **The snap: not reached.** Block 1111: `0/8`'s `angle` 780926976 and
+  `dest_angle` 1073741824 on both sides — but the cheat's snap lands at
+  the frame's pump, before the units' step, and a walking unit's step
+  runs `update_action`, which writes the move's angle back. Walked with
+  the mutation and a print in `age_snap_units`: `0/8`'s `dest_angle` is
+  780926976 after the snap and 1073741824 at the frame's end. Every
+  other unit of who=0 has `dest_angle` equal to its heading on 1110, so
+  the snap writes nothing a later frame reads.
+
+**The chapter opens with a parting at 712** and ends there. Ours draws 35
+against 31, parting at index 25: ours spends four in the buildings phase
+— T's round, fired while it is a site, landing on who=1's `1/6` on 712 —
+where the original's next draw is `Farms::inc_time+0x1ae` (seed
+`0x8fad03fd`). **The value diff on block 713**: `1/6`'s `hits:damage`
+ours 8 against 0, `damage_frame` 712 against 0, `hits_left` 112 against
+120. `Sim::active` for a building reads `alive`, `combat` and health, and
+not whether it is finished, so `process_building_combat` lets a site
+shoot. That is a hypothesis for the next item, not a finding.
+
+**The widening** is run514 whole (`[605, 1401)`): 517 rows and 8 pool
+rows, pinned as they stand. Before the word: the standing families and
+the births; the builders' `@move` on 680, `order:kind` ours 19 against
+1, and who=1's squad on 681 taking `0/9` where the original takes
+`0/11`; T's first blow on 706, `damage` 3 against 4. None is on an arm's
+chain.
+
+The site died on 901 in the original, at `construct_hits` 68 and
+`damage` 64 (block 899: `job_counter` 6850, `site_hits(1000, 6850,
+100000)` = 68, Keep-scaled throughout), and on 965 here. The first blow
+on 706 already parts: `damage` 3 against 4, `job_counter` 9900 against
+9850. So the Tower's 901 under mutation B below is a coincidence of a
+smaller share and a smaller blow, not agreement.
+
+**Mutations**, each on the committed build (`4ff37e1a`), restored from
+git and touched, scored by the exit code of chapters forty-seven's,
+forty-six's and forty-three's tests and the arms' unit tests
+(`--test-threads 2`):
+
+| mutation | held by |
+|---|---|
+| B (1282): only a finished building converts (`bd.active` in `upgrade_buildings_to`) | exit 101: **run514's widening** (517 → 480 rows: the site's death row on 902 goes, and the cascade after it moves) and `gaining_the_keep_turns_the_leader_s_standing_tower_into_one`; the word stays 712 |
+| M1 (1312): members turned to the boat's angle, not the captain's | exit 101: **run514's widening** (517 → 529 rows) and run496's, and `a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle`; the word stays 712 |
+| B3 (1299): the age's snap through `set_facing` again | exit 0 on the three chapters' walks and widenings; `an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not` alone |
+
+**What is not established.**
+- The word at 712: the next item's. That the site's round is ours
+  alone, and why, is its hypothesis.
+- The site's death past the word: the per-blow damage on a site (3
+  against 4 on 706) and its progress loss.
+- The snap's `dest_angle` on a chapter: a unit left idle with its
+  `dest_angle` apart from its heading when the age lands — a human's
+  unit trained at a building, whose `come_out` skips `update_action`,
+  is the candidate. No walk can hold it either way.
+- The members' angle on a walk: nothing on this crate's draw stream
+  reads a landed member's heading before its first step.
