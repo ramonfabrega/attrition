@@ -653,6 +653,9 @@ pub enum Gained {
     /// A unit type arrived: standing units of `from` (and of every type in
     /// the jump chain below it) convert to it, and so do their queue entries.
     UnitUpgrade { to: TypeId },
+    /// A building type arrived: every standing building of the leader whose
+    /// type's `upgrade` is `to` converts to it (`docs/TECH.md` step 8).
+    BuildingUpgrade { to: TypeId },
     /// Under the Tech Race victory, the age just gained is the ending age.
     TechRaceWon,
     /// A building type of the city line (`is(TOWN, 0)`) had the gained type
@@ -1671,7 +1674,10 @@ impl TechTree {
                 return;
             }
             Kind::Building { .. } => {
-                // 8. The type it upgrades from is obsolete.
+                // 8. The standing buildings the type upgrades convert
+                // (`Leader::gain_tech@006dcb60`, the loop at `6dde64`–`6ddf2b`), and
+                // the type it upgrades from is obsolete.
+                out.push(Gained::BuildingUpgrade { to: t });
                 if let Some(from) = self.types[t].from {
                     p.obs[from] = true;
                 }
