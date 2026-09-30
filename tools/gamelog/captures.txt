@@ -9331,6 +9331,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run468.log rontrace-run469.log |
 check: (python3 tools/gamelog/samegame.py gamelog-run468-greatsahara-toughest-start.txt gamelog-run469-greatsahara-toughest-longtrace.txt || true) | tee /dev/stderr | awk '/ in common /{for(i=1;i<=NF;i++) if($i=="common") c=$(i-2)+0} END{exit !(c>=2)}'
 # And it is not run382's game: the difficulty moves frame 0's draws.
 check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run469.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} END{exit !(d>0)}'
+# ==== TAKEN 2026-09-29, one take, 23:13–23:22 through `viadriver.sh` ====
+#
+# The dump landed in item 1223's `~/ron-golden/ch43d/map-14/gamelog.txt`:
+# its failed restore left the profile's `gamelog.ini` `LogFile` there, and
+# `setlog.py` keeps that line. Copied into `Logs` by hand (sha256
+# e532e54c…ab47, the same file), the runner stopped at 00:29 before its
+# poll limit; every check passed on the copy. `docs/RUNS.md` run469.
 
 run: 470
 tag: greatsahara-toughest-24k-trace
@@ -9355,3 +9362,18 @@ check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Game
 # The first 1,851 frames are run469's game draw for draw (cover=1 against
 # cover=0 is invisible to the simulation: run33, run53, run383).
 check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1850)}'
+# ==== TAKEN 2026-09-30, one take, 01:08–01:12 through `viadriver.sh` ====
+#
+# The game ends at 15432: block 15433 is the closing dump, the idle human
+# `defeated_by 1`. Every check passed. `docs/RUNS.md` run470.
+
+# ==== item 1221: the word 5376 widened ====
+#
+# run471 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run471),
+# run449's shape at run470's lobby: blocks 5371..5627, `!quit` at 5641,
+# `cover=0`, `--profile DIFFICULTY=5`. Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run470.log rontrace-run471.log   -> 0 differing, 5,642 identical
+#   `DIFFICULTY 5` / `MAP_STYLE 7` on gamelog-run471-greatsahara-toughest-5376.txt
+#   257 window blocks, 5371..5627
+# ==== TAKEN 2026-09-30, one take, 01:13–01:30 ====

@@ -11759,3 +11759,71 @@ rondata <install> --gamelog gamelog-run469-greatsahara-toughest-longtrace.txt \
 Frame 0 spends 100 draws at Toughest against run382's 99. The draw stream
 agrees on every frame to 1850 (`run469_s_trace_holds_to_its_end`), so the
 word is past this capture and on run470's.
+
+## run470 — Great Sahara's draw stream at Toughest, `cover=0`: the game ends at 15432 (2026-09-30, item 1221)
+
+**run383's stanza with run346's `profile: DIFFICULTY=5`**: `end: MISC`,
+run10's `start:`, `cover=0`, `cfg: -`, through `viadriver.sh
+tools/gamelog/runqueue.sh - 1221` (run469 skipped, its archive in place).
+Launched 01:08:24 on a stale lock (run469's own runner, stopped at 00:29)
+after 1223 restored the profile from run467's backup at 00:30:27 and its
+run466 had exited; the profile read `MAP_STYLE 14`, `DIFFICULTY 0` and
+`gamelog.ini`'s `LogFile` in `Logs` before the launch. The start clicked at
+01:09:20, settled 01:12:21. The dump is 10,574,962 bytes (sha256
+`84146a85…d983`), the trace 22,323,392 (`4c7a4a71…ec75`). DLL
+`399a9791…addd3`. Every stanza check passed: `MAP_STYLE 7`, seed 12345,
+`DIFFICULTY 5`, and `rngcmp.py` against run469 **1,851 in common, 0
+differ**.
+
+**Where it ends, and why: at 15432, the idle human defeated.** The trace's
+last frame is 15432 and the dump's last block, 15433, is the closing dump:
+the human `defeated_by 1`, score 356, and the AI's 8,165 (run383's game at
+Easiest read 421 and 2,495 at 24,000, nobody defeated).
+
+**The word is 5376** (`run470_is_great_sahara_at_toughest_and_its_word_holds`,
+walked from run468's start): **ours 45 draws against the original's 40,
+parting at index 1**. Both open on one `Leader::produce_building+0x1805`;
+ours then spends three more, and five `Guy::set_anim+0x104b` where the
+original spends three. The ten birds' `Animal::think_bird` triples
+(`+0x82`, `+0xa6`, `+0x1f8`), the three `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` and the three `Farms::inc_time+0x1ae` agree in count.
+
+## run471 — run470's game at run449's detail over blocks 5371..5627: the word 5376 widened (2026-09-30, item 1221)
+
+**What it is.** run449's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 5371..5627, `!quit` at 5641. The word's frame 5376 writes block
+5377: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run471 \
+    --map 7 --end-frame 5641 --timeout 4800 --log-window 5371 5628 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run469 ends at block
+1851 and run470 prints `MISC` alone; no dump of this game holds a per-frame
+record past 1851.
+
+**Taken** 01:13:46–01:30 in one take, on a stale lock (run470's runner,
+exited) with no runner alive; waited on with `waitrun.sh`: `success: true`,
+exit 0, 1,009 s from launch to exit, 5,642 frames, map verified, settings
+restored. The dump (483,574,137 bytes, sha256 `c4fd4b41…7d33`) and the trace
+(27,283,680, `cdf38f3b…9423`) were moved into `Logs` as
+`gamelog-run471-greatsahara-toughest-5376.txt` and `rontrace-run471.log`.
+The disk had 52 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 5,642 identical |
+| window blocks | 257, 5371..5627 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7`, seed 12345 |
+
+**What it holds**: `run471_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 1,121 keys. Block 5371 stands on 86, block 5376 adds who=1's
+`SITE[2].reg`, and the word's block 5377 adds 42, among them who=1's
+building `1/2023` at another place: `build:x_internal`/`y_internal` ours
+(40608, 19680) against theirs (41184, 15072). The coverage driver and the
+compared pin walk 5375..5379 and 5375..5378.
