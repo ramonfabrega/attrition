@@ -13720,12 +13720,16 @@ do_cast`.
 ### 86.5 What is not established, and coverage
 
 **Diff-backed** on run445: the region arm, for a computer's ship and a
-land building.
+land building. **On run484** (item 1254, `docs/GOLDEN.md` §53): the
+`SIEGE` ship exception, for a computer's Bomb Vessel and a human's
+Barracks, and its computer's conjunct, for a human's Bomb Vessel and a
+computer's Barracks, to the chapter's word 670.
 
-**Listing-backed, never executed in a capture**: the `SIEGE` ship
-exception; the defensive arm (`on_duty`, `DEFENSIVE`, an order); the
-coastal refinement's effect on the guard's call. §86.6 has what a
-mutation of each did.
+**Listing-backed, never executed in a capture**: the exception's sea
+conjunct; the defensive arm (`on_duty`, `DEFENSIVE`, an order), which no
+staging reaches under `!ai off` (no writer of the stance byte sets 1,
+`docs/GOLDEN.md` §53); the coastal refinement's effect on the guard's
+call. §86.6 has what a mutation of each did.
 
 SEAM: `find_nearby_target`'s cavalry-archer argument (`param_4`, passed
 on as `param_7`) turns the head off. This crate has no such caller.
@@ -13738,10 +13742,12 @@ Each mutation was scored by the whole `rondata` and `sim` suites:
 |---|---|---|
 | the search does not ask the head | fails | run445's widening (`1/35` back on 8908) |
 | the region read without the coastal refinement | passes | none |
-| no `SIEGE`-ship exception | fails | none |
+| no `SIEGE`-ship exception | fails | ~~none~~ chapter forty-four's walk (word 611) and widening (item 1254) |
 | no defensive arm | fails | none |
 | `duty` false for every search | passes | chapter one's word and widening, chapter eight's widening |
 
-So the region arm and the duty exemption are diff-held. The coastal
-refinement, the `SIEGE` ship and the defensive arm's own refusal are built
-on the listing alone.
+So the region arm and the duty exemption are diff-held, and since item
+1254 the `SIEGE` ship too: without `unit_masks & 0x40000` in it the walk
+parts on 626, and the unit test asks a human's siege ship. The coastal
+refinement and the defensive arm's own refusal are built on the listing
+alone.

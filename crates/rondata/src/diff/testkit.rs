@@ -5103,6 +5103,28 @@ pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 /// ashore), and `0/10` at (14572, 31200) on both to the capture's end.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 
+/// **Chapter forty-four** (item 1254, `docs/GOLDEN.md` §53): run484, the
+/// idle search's head on a computer's fleet. The computer's Bomb Vessel
+/// `1/6` takes the human's Barracks `0/2007` across the regions and out
+/// of its range on 610, its first idle think, and both sides agree on
+/// the attack, the 19-frame closing walk and the first strike from 630;
+/// the human's Bomb Vessel `0/6` refuses the computer's `1/2007` on both
+/// sides to the capture's end.
+///
+/// **The word is 670**: ours 9 draws against 10, parting at index 3,
+/// where the original spends `Object::take_damage+0xe1` — the first
+/// round landing on `0/2007` — and ours `Farms::inc_time+0x1ae`. The
+/// value diff on block 671: `0/2007` `damage` ours 0 against 122, and
+/// `1/6`'s round (`traj 1`, `total_time` 39, `cur_time` 38 on block 670
+/// on both sides) gone from the original's dump and still in flight
+/// here. Standing from block 631: `1/6`'s turret, ours 94568448 against
+/// 96862208.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 670;
+
+/// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
+/// from 605, the word's block 671 and 250 past it.
+pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 921);
+
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 2201);
@@ -7180,6 +7202,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1254: run484, chapter forty-four, the idle search's head on a
+    // computer's fleet. The widening is run484 to the word's block and
+    // 250 past it.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_FOUR",
+        GOLDEN_WORD_CHAPTER_FORTY_FOUR,
+        Some("chapter_forty_four_s_word_frame_is_widened_whole"),
+        1254,
+        Some(WIDENING_CHAPTER_FORTY_FOUR),
     ),
     // Item 1223: run466, chapter forty-three, the landing's arms; closed at
     // 2200 (item 1248). The widening is run466 whole.
