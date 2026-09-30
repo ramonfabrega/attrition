@@ -1798,9 +1798,9 @@ mod tests {
 
     /// **The boat in the muster** (item 1228, §16): `Objects::init_unit`'s
     /// `Unit::set_type` counts a boat whose type has population, and
-    /// `Unit::close` takes it out again. A caravan's Merchant Fleet (`POP`
-    /// 1) moves `num_units` and `control` by one while it is at sea; a
-    /// citizen's Transport Barge (`POP` 0) never does. run462's block 10178
+    /// `Unit::close` takes it out again. A caravan's Merchant Fleet, of
+    /// `POP` 1, moves `num_units` and `control` by one while it is at sea;
+    /// a citizen's Transport Barge, of `POP` 0, never does. run462's block 10178
     /// holds one of each, and the original's `num_units` has the fleet
     /// alone.
     ///
