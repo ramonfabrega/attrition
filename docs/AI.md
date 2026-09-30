@@ -12272,21 +12272,87 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 
 ### 99.5 What this has *not* established
 
-- **Why the Granary goes elsewhere.** The site list agrees and `.reg` does
+- ~~**Why the Granary goes elsewhere.** The site list agrees and `.reg` does
   not. Whether `.reg` or the food bucket enters `produce_building`'s
   placement is the next item's to read, from the listing of the arm that
-  spends `+0x1805`. It is not established here.
+  spends `+0x1805`. It is not established here.~~ **Neither**: the
+  placement's spiral scores every cell friendless, because `find_friends`'
+  enhancer arm was not modelled — §99.7.
 - **What parts between 1851 and 5371.** No dump covers those frames at
   detail. The 86 standing keys may include one that parted in that gap and
   matters here; the families match the first pair's standing rows.
-- **The two extra `Guy::set_anim+0x104b`.** They are after the birds on
-  both sides and may follow from the orders above. Unread.
+- ~~**The two extra `Guy::set_anim+0x104b`.** They are after the birds on
+  both sides and may follow from the orders above. Unread.~~ They did: with
+  the Granary placed as the original places it, frame 5376 agrees draw for
+  draw (§99.7).
 
 ### 99.6 Coverage
 
 **Diff-backed**: §99.1 by `run469_is_great_sahara_at_toughest_and_nothing_else_moved`;
 §99.2 by `run469_s_score_holds`, `run469_s_trace_holds_to_its_end` and
 `run470_is_great_sahara_at_toughest_and_its_word_holds`; §99.3 and §99.4 by
-`run471_s_word_frame_is_widened_whole`. The compared pin walks run471's
-5375..5378 (`great_sahara_toughest_word_window`), and the coverage driver
-drives 5375..5379. **Read only**: nothing; §99.5 is open.
+`run471_s_word_frame_is_widened_whole`. The compared pin walked run471's
+5375..5378 until item 1241 moved it to run476's (§99.7); the coverage
+driver drives both. **Read only**: nothing; §99.5's third bullet is open.
+
+### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
+
+**The event, both sides.** On frame 5376 both sides place who=1's first
+Granary from the script — the original's draw is `Leader::produce_building
++0x1805 < ScenarioFuncSet::place_orphan_building_with_cost+0x136 <
+place_building_with_cost+0x6a`, seed `28a47dd7`, 329 — anchored on the city
+centre `1/2000` at cell (53, 22), city 0, 105 spiral cells. This crate's
+spiral scored **every** candidate friendless: `1000 + 0xff − val`, 1244 to
+1254, so the Granary went to cell (52, 25), whose 2×2 of sub-positions is
+clear (four jitter draws). The original's lies at cell (53, 19) — spiral
+index 32, **between the farms `1/2008` (53, 20) and `1/2006` (54, 20)** —
+where only one sub-position is clear (one draw).
+
+**The arm** (`BuildTypeData::find_friends@00639270`, listing
+`0x639375`–`0x6393b0`): when the placed type `is_gather_enhancer`
+(a lineage test on the four enhancer types, 423 to 426), each neighbour found by `find_building_placed_at` is
+a friend when `get_enhancing_good(this)` equals `get_good` of the
+neighbour's type — `+1` on a diagonal, `+2` on a cardinal, as every other
+arm. `edx` carries the neighbour's object across the `get_enhancing_good`
+call (it writes `eax` alone), which is the decompiler's `extraout_EDX`.
+The two jump tables, off the PE: `get_enhancing_good@00639880` is `[+4] −
+423` into `0x6398b0` — Granary 0, Lumber Mill 1, Smelter 4, Refinery 5;
+`get_good@0063bd50` is `[+4] − 417` into `0x63bd84` — Farm 0, Woodcutter
+1, Mine 4, University 3, Oil Well and Oil Platform 5. Both are exact-type
+switches; `buildingrules.xml` gives none of the ten a successor. This crate
+had the arm as "the enhancer table is not modelled; no friend counted"
+(`sim::ai_place::find_friends`), and `enhancing_good` lived privately in
+`ai_build.rs`; it now sits beside `gather_good` and the arm counts.
+
+**The value diff** (run471, block 5377): `1/2023`'s `x_internal`,
+`y_internal` ours (40608, 19680) against (41184, 15072) before; **both
+(41184, 15072) after**, with `1/12`'s and `1/8`'s orders agreeing.
+`run471_s_word_frame_is_widened_whole` parts on 212 keys where it parted on
+1,121; the first after the word's block is who=1's make list on 5380
+(`MAKE[9].val` 4800 against 48000).
+
+**The item before's pointers were not the cause.** `SITE[i].reg` (ours 1,
+theirs 0) and who=1's `bucket[0:food]` (381 against 417 on 5371) still
+stand, and the Granary lands where the original's does: neither enters the
+arm that decided the frame.
+
+**The word moves 5376 → 5782**: ours 14 draws against 13, at index 3 —
+both spend `Leader::use_market+0x1ed` and two `Leader::make_stuff+0x221`,
+then ours a `Leader::make_stuff+0x63d` where the original's next is
+`Animal::do_idle+0x83`. **run476** widens it (blocks 5777..6033, 1,296
+keys): 103 stand on 5777 (run471's families, who=1's food bucket 90 against
+126), who=1's `MAKE[2].val` and `MAKE[9].val` part on 5779 (1200 against
+4800) and six rows' `city` on 5781; on the word's block 5783 who=1 queues
+one more at `1/2017`, its Barracks (`queued` 2 against 1, `num_queued[82]`
+1 against 0) and pays for it (wealth 105 against 158, metal 7 against 43).
+No mechanism is named for it.
+
+**Coverage.** Diff-backed: the placement by
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (the arm off: the
+word falls back to 5376, 45 against 40) and by run471's widening; the word
+by `run476_s_word_frame_is_widened_whole`. **The good comparison is held
+by no walk**: counting any gather neighbour instead passes the walk, since
+the only gather buildings around this Granary are farms; the unit test
+`an_enhancer_counts_the_gather_buildings_of_its_good` holds it (a Lumber
+Mill counts the camp, not the farm). A Lumber Mill, Smelter or Refinery
+placed beside a mixed ring is the arm no capture holds.
