@@ -9356,18 +9356,26 @@ treaty and raid stamps of the Citizen's staging, the Chariot's turret on
 1479, and `1/6`'s `DEATH` record on 1488, which the capture does not print
 at its end detail. The pool agrees whole.
 
-**Mutations**, each on the committed build, restored from git and touched:
+**Mutations**, each on the committed build, restored from git and touched
+(item 1223's two scored again by item 1248 on the walk to 2200):
 
 | mutation | held by |
 |---|---|
-| the dead boat's repaint off | its unit test alone: **no walk** — nothing in this crate reads a bare bit on a water cell (a boat's step asks `detect_boat_collision`), and the second barge's crossing is past the word |
-| the squad arm off | its unit test alone: **no walk** — the squad's landing (1901) is past the word |
+| the dead boat's repaint off | its unit test alone: **no walk** — nothing in this crate reads a bare bit on a water cell (a boat's step asks `detect_boat_collision`); the second barge's crossing (1561..1850) is walked and agrees without it |
+| the squad arm off | its unit test alone: **no walk** — the 1900 line is refused, and no barge carrying a squad lands |
+| a death closes no orders (`close_dead_orders` empty) | the widening (1488 `gather_down`), run373's, run396's and run403's widenings, its unit test; the word holds on the prune alone |
+| `all_gathering`'s prune off | its unit test alone: **no walk** — the death's close empties the chain first; with both off the word is 1552 again |
+| the refusal off | the word (1901), the widening, its unit test |
 
 **What is not established.**
-- Whether the original's barge reads the ghost; run466 holds the crossing
-  (1561..1850), unwalked past the word.
-- The squad arm against a dump, and the refused passenger. With the
-  squad aboard one barge (item 1235), its landing on 1901 puts three
-  riders out of `0/10`: past the word.
+- Whether the original's barge reads the ghost: the crossing agrees with
+  and without it.
+- The squad arm against a dump, and the refused passenger: the landing
+  run466 was staged for was refused (its `0/11` never existed). A take
+  of `1900 @move 0 15360 31200 10` alone would put three riders out of
+  `0/10`.
+- `all_gathering`'s prune against a dump: a chain member that is alive
+  and no longer gathering there, read by a woodcutter whose wait runs
+  out.
 - `DEATH` records beside `GROUPDATA`: with both asked no `GROUPDATA`
   printed, twice.
