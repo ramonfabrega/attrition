@@ -512,7 +512,10 @@ impl Sim {
             if transport && self.profile(Obj::Unit(o)).attack != 0 {
                 return false;
             }
-            if !self.is_ally(who, self.units[o].owner) {
+            // `5fad01`-`5fad3f`: a stranger who is not a mutual ally
+            // refuses the push only while it is a player's — `cmpb $8,
+            // %dl; jb` — so gaia's animals are pushed aside.
+            if self.units[o].owner < 8 && !self.is_ally(who, self.units[o].owner) {
                 return false;
             }
             // A land pusher's own refusals (`5fac8b`-`5faccc`): a packer
@@ -557,15 +560,57 @@ impl Sim {
                 self.units[o].collide_o = self.units[u].index;
                 self.units[o].collide_who = who as i8;
                 if self.units[o].orders.is_empty() {
-                    // SEAM: `Guy::turn_angles` and `Guy::do_turn` on the
-                    // pushed unit's guy 0 (`5faec8`, `5faedb`) are not
-                    // modelled; the unit's own angle is.
                     self.unit_set_angle(o, bearing);
+                    self.push_turn(o, bearing);
                 }
             }
             self.units[o].collide_frame = self.frame;
         }
         true
+    }
+
+    /// The pushed idle unit's guy 0 turned to the push's bearing
+    /// (`5faeb1`–`5faedb`): `Guy::turn_angles(bearing, &out, 1, 1)` and
+    /// `Guy::do_turn(bearing, out, 1, 1)`.
+    ///
+    /// `turn_angles@005d98c0` is [`crate::movement::turn_towards`] at the
+    /// body's rate (`GuyData::turn_speed(1)`, the guy's own `last_speed`)
+    /// **halved** by its fourth argument. `do_turn@005d97a0` then sets
+    /// `guy_flags & 2` when `out` is not the angle it had — the bit the
+    /// body's own turn respects, which this crate reads as the facing
+    /// against [`crate::Movement::frame_facing`] — asks for the turn
+    /// animation when the guy has one (its fifth argument), and writes
+    /// `out` as guy 0's angle and every trackless crew figure's through
+    /// `Guy::set_angle(out, 0)`. The peacock `8/2` on run511's block 9348,
+    /// pushed by the Supply Wagon `1/86`, comes round 71° in the frame:
+    /// its guy stands, so the rate is the instant one and half of it is
+    /// still a quarter turn (`docs/COLLISION.md` §13.3).
+    fn push_turn(&mut self, o: usize, bearing: Angle) {
+        let m = self.units[o].movement;
+        let turning = crate::movement::Turning {
+            packed: self.units[o].combat.packed,
+            ..m.turning
+        };
+        let rate = crate::movement::turn_speed(
+            &self.tuning,
+            &turning,
+            m.body.last_speed,
+            m.body.avg_speed,
+            crate::movement::TurnMode::Body,
+        ) >> 1;
+        let was = m.facing;
+        let (out, _) = crate::movement::turn_towards(was, bearing, rate);
+        if out != was {
+            let outer = self.phase_marks.last().map(|(label, _)| label.clone());
+            self.mark(crate::anim::SITE_TURN_PUSHED);
+            self.do_turn_anim(o, was, out, bearing);
+            if let Some(outer) = outer {
+                self.mark(&outer);
+            }
+        }
+        self.units[o].movement.facing = out;
+        let from = self.units[o].movement.body.pos;
+        self.crew_des(o, from, out, false);
     }
 
     /// `Objects::find_units(at, SEARCH_ALL, −1, range, 0x200,
