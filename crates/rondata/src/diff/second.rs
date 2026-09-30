@@ -2353,8 +2353,11 @@ mod tests {
         // 203 on item 1074 (the five chases on `0/1` walk on from 5075), and
         // 203 → 156 on item 1089 (`1/13`'s rows from 5067 and `1/21`'s from
         // 5091 go), and 156 → 128 on item 1099 (the re-search's fresh
-        // order, and what it moved).
-        pin_eq!(w.firsts.len(), 128, "every key parted on run373");
+        // order, and what it moved), and 128 → 117 on item 1248 (a dead
+        // citizen leaves its gather chain as it dies: `0/2001`'s and
+        // `0/2002`'s `gather_down`, and who=0's `income`, `resources`,
+        // `bucket`, `leftover` and `gather_stamp` from 5001).
+        pin_eq!(w.firsts.len(), 117, "every key parted on run373");
     }
 
     /// **The second pair's Great Lakes word, 5105, widened whole** (item
@@ -2470,12 +2473,16 @@ mod tests {
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5_100, 90), (5_147, 2), (5_149, 1)],
+            [(5_100, 79), (5_147, 1), (5_149, 1)],
             "the blocks keys first part on, the first three ((5100, 92), \
-             (5105, 2), (5128, 1) until item 1099)"
+             (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
+             until item 1248)"
         );
-        // Keys parted: 1,253 → 737 on item 1089, 737 → 131 on item 1099.
-        pin_eq!(w.firsts.len(), 127, "every key parted on run396");
+        // Keys parted: 1,253 → 737 on item 1089, 737 → 131 on item 1099,
+        // 127 → 114 on item 1248: a dead citizen leaves its gather chain
+        // as it dies (`0/2001`..`0/2004`'s `gather_down`, and who=0's
+        // `income`, `resources`, `bucket`, `leftover`, `gather_stamp`).
+        pin_eq!(w.firsts.len(), 114, "every key parted on run396");
     }
 
     /// **The second pair's Great Lakes word, 5930, the game's end, widened**
@@ -2532,15 +2539,18 @@ mod tests {
         // `SITE` regions, `active`/`control` and `num_units[0]` still
         // counting five dead citizens — parked 1092 — its economy and its
         // war flags), the human's city record, the dead citizens' `DEATH`
-        // rows and the gather chains they left, the group record (parked
+        // rows (their gather chains agree from item 1248), the group record (parked
         // 1075), the attack-move's `order:target` and the army's `form`,
         // and `1/36`'s order from its birth on 5165 (`action`, `flags`,
         // the move's `angle`). No `pos`, no figure, and no draw. **Item
         // 1115: 112 → 108**: `1/36` is the caravan, and its trade order's
         // bit 4 and its leg's facing agree (`docs/CARAVAN.md` §11.3).
+        // **Item 1248: 108 → 96**: the dead citizens are off their gather
+        // chains (`0/2001`..`0/2004`'s `gather_down`), and who=0's
+        // `income`, `resources`, `bucket` and `leftover` agree with them.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 108)],
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 96)],
             "the blocks keys first part on, and how many"
         );
         pin!(
@@ -2549,8 +2559,9 @@ mod tests {
                 && !what.starts_with("g.y")),
             "a position parts at the game's end"
         );
-        // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3).
-        pin_eq!(w.firsts.len(), 108, "every key parted on run403");
+        // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3),
+        // item 1248 the dead citizens' chains and the economy (108 → 96).
+        pin_eq!(w.firsts.len(), 96, "every key parted on run403");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

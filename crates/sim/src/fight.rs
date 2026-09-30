@@ -2181,6 +2181,7 @@ impl Sim {
                     // the draw arm's `dtype` at all (§42.3).
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
+                    self.close_dead_orders(i);
                     self.hold_dead_slot(i);
                     self.close_supply(i);
                     self.forget(Obj::Unit(i));
@@ -6659,6 +6660,60 @@ mod tests {
         assert_eq!(links(&sim, c), (Some(a), Some(b)));
         assert_eq!(links(&sim, b), (Some(c), None));
         assert!(sim.units[a].captain, "a middle death moves no captaincy");
+    }
+
+    /// **A gatherer killed by damage leaves its building's chain on the
+    /// frame it dies** (`Unit::close@0060ee50`'s `close_orders(this, 1)`
+    /// at `60fa1c`, whose `kill_current_order` gather arm calls
+    /// `remove_gatherer`; item 1248, `docs/GOLDEN.md` §52). run466's who=1
+    /// Citizen `1/6`, walking to its tile at the head of `1/2001`'s chain,
+    /// dies on 1487, and block 1488 prints `gather_down` 2. The walk in
+    /// front of the gather order is killed with it, and a move killed by a
+    /// close hands no facing back. Made to fail by taking the close out of
+    /// the death path: the dead citizen stays at the chain's head.
+    #[test]
+    fn a_gatherer_killed_by_damage_leaves_its_building_s_chain() {
+        use crate::orders::{MoveKind, QueuePos, Worker};
+        let (mut sim, ty) = at_war();
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let camp = sim.add_building(0, Pos::new(0x1000, 0x1000), 1);
+        sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
+            flags: crate::build::flags::GATHER,
+            ..crate::build::BuildType::default()
+        }));
+        let stays = put(&mut sim, 0, citizen, Pos::new(0x1100, 0x1000));
+        let dies = put(&mut sim, 0, citizen, Pos::new(0x1200, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        sim.add_gather_order(stays, camp, QueuePos::New, false);
+        sim.add_gather_order(dies, camp, QueuePos::New, false);
+        sim.add_move_order(
+            dies,
+            Pos::new(0x1800, 0x1000),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        assert_eq!(
+            sim.buildings[camp].gatherers,
+            vec![dies, stays],
+            "newest first"
+        );
+        let hit = combat::Sixteenths { whole: 50, frac: 0 };
+        let taken = sim.take_damage(Obj::Unit(dies), hit, Obj::Unit(foe), 1487);
+        assert!(matches!(taken, Taken::Died { .. }));
+        assert_eq!(
+            sim.buildings[camp].gatherers,
+            vec![stays],
+            "the dead leave the chain"
+        );
+        assert!(
+            sim.units[dies].orders.is_empty(),
+            "and every order goes with them"
+        );
     }
 
     /// The relink is on the death path itself: a head killed by damage
