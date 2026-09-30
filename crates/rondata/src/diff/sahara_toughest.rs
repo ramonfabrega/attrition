@@ -1168,7 +1168,14 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9765 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(9759, 168), (9760, 1), (9763, 2), (9765, 2), (9766, 2), (9768, 1)],
+            [
+                (9759, 168),
+                (9760, 1),
+                (9763, 2),
+                (9765, 2),
+                (9766, 2),
+                (9768, 1)
+            ],
             "the blocks keys first part on, to three past the word 9764's"
         );
         pin_eq!(w.firsts.len(), 1077, "every key parted on run529");
