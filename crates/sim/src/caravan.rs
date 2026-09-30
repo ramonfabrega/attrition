@@ -354,6 +354,18 @@ impl Sim {
         list.linked = true;
         ord.started = true;
         self.set_trade_order(u, ord);
+        // **Both cities' trade, recomputed on the route's first call**
+        // (`do_trade@005ed270:393–396`, after the pair is linked and before
+        // `build_road`). The new route adds nothing — it has not delivered
+        // — but the recompute re-sums every route each city already holds
+        // at today's `trade_value`, the partner's building count, which a
+        // round trip is otherwise the only thing to refresh. Great Sahara
+        // at Toughest's `1/52` takes city 2 ↔ 3 on 6587, and city 2's
+        // older route to city 1 is worth eight sixteenths more from there:
+        // who=1's wealth income 992 → 1000 (`docs/CARAVAN.md` §7.2,
+        // `docs/AI.md` §99.10, item 1275).
+        self.compute_trade(a);
+        self.compute_trade(b);
         // **A plan that did not finish sends the caravan walking.**
         // `do_trade@005ed270:397`: `build_road` answering −1 queues a
         // `QUEUE_FIRST` move to the **near** city's own point and returns,
@@ -990,7 +1002,7 @@ impl Sim {
         // cannot fire while the only two orders are this pair.
     }
 
-    /// `Unit::end_trade_route@005ed1c0`: the route is given up — the pair
+    /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
     pub(crate) fn end_trade_route(&mut self, u: usize) {
         let Some(v) = self.units[u].caravan else {

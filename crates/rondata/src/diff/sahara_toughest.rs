@@ -85,6 +85,10 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_8182: (i64, i64) = (8_177, 8_433
 /// **The word's block, 8183**: frame 8182 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_8183: i64 = 8_183;
 
+/// **The word's block, 8378**: frame 8377 writes it — the word item 1275
+/// left, inside run491's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_8378: i64 = 8_378;
+
 /// **The road search 7070 was** (item 1260): caravan `1/52`'s replan from
 /// `1/2007` to `1/2022`, which run483's trace carries node for node.
 pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
@@ -94,6 +98,15 @@ pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
 /// gather-slot arrays beside it, on every frame the dark gap between run469
 /// and run471 left unprinted (item 1251).
 pub(crate) const TOUGHEST_GOODS: &str = "gamelog-run482-greatsahara-toughest-goods.txt";
+
+/// run495: run470's game at run482's `end:MISC,LEADERS=2` over blocks
+/// 6030..7066 — every leader's goods through the gap between run476's last
+/// block and run483's first, where who=1's wealth `leftover` parted
+/// (item 1275).
+pub(crate) const TOUGHEST_WEALTH: &str = "gamelog-run495-greatsahara-toughest-wealth.txt";
+
+/// **run495's window** (item 1275): blocks 6030..7066.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH: (i64, i64) = (6_030, 7_066);
 
 /// **run482's window** (item 1251): blocks 1..5378.
 pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_GOODS: (i64, i64) = (1, 5_378);
@@ -160,6 +173,18 @@ pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harnes
     )
 }
 
+/// run495's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH`], walked as
+/// run482's are (item 1275): the goods of every leader through the gap.
+pub(crate) fn great_sahara_toughest_wealth_window() -> Option<crate::diff::harness::tests::Widened>
+{
+    toughest_window_over(
+        "run495",
+        (TOUGHEST_WEALTH, WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH,
+        TOUGHEST_WORD_BLOCK_7071,
+    )
+}
+
 /// run491's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_8182`], walked as
 /// run488's are (item 1264).
 pub(crate) fn great_sahara_toughest_8182_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -174,8 +199,9 @@ pub(crate) fn great_sahara_toughest_8182_window() -> Option<crate::diff::harness
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run491 since item 1264 (run488 from item 1260, run483 from item
-/// 1251, run476 from item 1241, run471 before it). `coverage`'s compared pin walks these blocks with the
+/// on run491 since item 1264, at its block 8378 since item 1275 (run488
+/// from item 1260, run483 from item 1251, run476 from item 1241, run471
+/// before it). `coverage`'s compared pin walks these blocks with the
 /// recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
@@ -184,7 +210,7 @@ pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness
         "run491",
         (TOUGHEST_WORD_8182, WIDENING_GREAT_SAHARA_TOUGHEST_8182.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_8183,
+        TOUGHEST_WORD_BLOCK_8378,
     )
 }
 
@@ -538,20 +564,23 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 7065 stands on 129 keys**: run476's families — `form`,
+        // **Block 7065 stands on 127 keys** (129 before item 1275): run476's families — `form`,
         // the human's census and city rows, `SITE[i].reg`, the make list's
         // `city` one over — and three of who=1's that part in the gap past
         // run476: wealth 161 against 162, its `leftover` 1584 against 48,
         // and `MAKE[4].val` 1431372 against 1228956.
+        // **The wealth rows agree since item 1275**: they parted on
+        // run495's 6592, when the original's `do_trade` re-summed city 2's
+        // delivered route for `1/52`'s new one (`docs/AI.md` §99.10).
         pin_eq!(
-            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
-            Some("7065: ours 161 theirs 162"),
-            "who=1's wealth stands"
+            row(1, -1, "leader:bucket[2:wealth]"),
+            None,
+            "who=1's wealth agrees"
         );
         pin_eq!(
-            row(1, -1, "leader:leftover[2:wealth]").as_deref(),
-            Some("7065: ours 1584 theirs 48"),
-            "who=1's wealth leftover stands"
+            row(1, -1, "leader:leftover[2:wealth]"),
+            None,
+            "who=1's wealth leftover agrees"
         );
         pin_eq!(
             row(1, -1, "leader:MAKE[4].val").as_deref(),
@@ -567,7 +596,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 129)],
+            [(7065, 127)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -577,13 +606,13 @@ mod tests {
         // `form` on 7144 first — where it was 616.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 129), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
+            [(7065, 127), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
         pin_eq!(
             w.firsts.len(),
-            134,
-            "every key parted on run483 (745 before item 1260)"
+            132,
+            "every key parted on run483 (134 before item 1275, 745 before item 1260)"
         );
     }
 
@@ -622,8 +651,9 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 7780 stands on 132 keys**: run483's families, and new past
-        // it who=1's `known_rares`, ours one short.
+        // **Block 7780 stands on 130 keys** (132 before item 1275's trade):
+        // run483's families, and new past it who=1's `known_rares`, ours one
+        // short.
         pin_eq!(
             row(1, -1, "leader:known_rares").as_deref(),
             Some("7780: ours 3 theirs 4"),
@@ -651,17 +681,22 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 132), (7781, 1), (7782, 4), (7784, 3), (7785, 2)],
+            [(7780, 130), (7781, 1), (7782, 4), (7784, 1), (7785, 2)],
             "the blocks keys first part on, to three past the word's"
         );
-        // Item 1264: 876 → 150.
-        pin_eq!(w.firsts.len(), 150, "every key parted on run488");
+        pin_eq!(
+            w.firsts.len(),
+            146,
+            "every key parted on run488 (150 after item 1264, 876 before)"
+        );
     }
 
     /// **The third map's word at Toughest, 8182, widened whole** (item
     /// 1264): [`great_sahara_toughest_8182_window`] over run491's blocks
     /// 8177..8433, both directions, every record run488's detail prints.
-    /// The word's frame writes block 8183. No mechanism is named.
+    /// The word's frame writes block 8183; the word 8377 it left (item
+    /// 1275) writes 8378, inside the same window. run494 is the same
+    /// capture, taken beside it (`docs/RUNS.md`).
     #[test]
     fn run491_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -696,9 +731,7 @@ mod tests {
         // **The make list parts before the word**: on 8181 who=1's fifth
         // row is a Merchant (`TypeIndex` 61, `unitrules.xml`) at 936,170
         // here and Trade (`TypeIndex` 560, `techrules.xml`) at 307,560
-        // there. On the word's block 8183 who=1's food, timber and metal
-        // part (94/164, 76/21, 5/57) and `1/2017` queues `TypeIndex` 132
-        // where the original queues 178.
+        // there. It still does.
         pin_eq!(
             row(1, -1, "leader:MAKE[4].t").as_deref(),
             Some("8181: ours 61 theirs 560"),
@@ -709,27 +742,56 @@ mod tests {
             Some("8181: ours 936170 theirs 307560"),
             "its offer"
         );
+        // **The word 8182 moved** (item 1275): the Barracks `1/2017` took
+        // one King's Longbowman and then the Hoplites here where the
+        // original took two (`num_queued[128]` 2 against 3, `queue[2].type`
+        // 132 against 178 on block 8183), its second 74 wealth paid by the
+        // unit who=1's wealth `leftover` handed in on 8182 — 1398 against
+        // 7062 on 8177, parted since 6592 — once `do_trade` recomputes a new
+        // route's cities (`docs/AI.md` §99.10). Nothing parts on 8183 now,
+        // and the leftover stands no more.
         pin_eq!(
-            row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("8183: ours 94 theirs 164"),
-            "the word's block: who=1's food"
+            row(1, -1, "leader:leftover[2:wealth]"),
+            None,
+            "who=1's wealth leftover agrees"
+        );
+        // **The word 8377, block 8378**: ours' head is spent (`val` −1)
+        // where the original's is a category-9 row worth 1981477 at
+        // (30, 24), and who=1's wealth is 172 against 53.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[0].val").as_deref(),
+            Some("8378: ours -1 theirs 1981477"),
+            "who=1's head on the word's block"
+        );
+        pin_eq!(
+            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
+            Some("8378: ours 172 theirs 53"),
+            "who=1's wealth on the word's block"
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8183 + 3)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (8177, 136),
-                (8178, 1),
+                (8177, 135),
                 (8181, 8),
-                (8183, 14),
-                (8184, 14),
-                (8186, 5)
+                (8201, 1),
+                (8209, 18),
+                (8210, 2),
+                (8277, 1),
+                (8378, 58),
+                (8379, 40),
+                (8380, 13),
+                (8381, 11)
             ],
-            "the blocks keys first part on, to three past the word's"
+            "the blocks keys first part on, to three past the word 8377's"
         );
-        pin_eq!(w.firsts.len(), 967, "every key parted on run491");
+        pin_eq!(
+            w.firsts.len(),
+            530,
+            "every key parted on run491 (967 before item 1275's trade)"
+        );
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
@@ -784,6 +846,61 @@ mod tests {
             "the leader rows that part on run482"
         );
         pin_eq!(w.firsts.len(), 40, "every key parted on run482");
+    }
+
+    /// **The goods through the gap, 6030..7066** (item 1275):
+    /// [`great_sahara_toughest_wealth_window`] over run495's blocks, both
+    /// directions, every field `LEADERS=2` prints for every leader.
+    #[test]
+    fn run495_s_goods_are_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = great_sahara_toughest_wealth_window() else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 1_037, "run495 whole: blocks 6030..7066");
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The value diff, block 6592** (frame 6591): who=1's wealth
+        // income stood ours 992 against 1000 from here, its `leftover` with
+        // it and its bucket from 6614 — caravan `1/52` took city 2 ↔ 3 on
+        // 6587, and the original's `do_trade` re-summed city 2's delivered
+        // route to city 1 at today's value, 176 → 184 (`docs/AI.md`
+        // §99.10). With the recompute the goods agree on every block.
+        pin_eq!(
+            row(1, -1, "leader:income[2:wealth]"),
+            None,
+            "who=1's wealth income agrees through 6592"
+        );
+        let leader: Vec<_> = w
+            .firsts
+            .keys()
+            .filter(|(_, o, what)| *o == -1 && what.starts_with("leader:"))
+            .map(|(who, _, what)| format!("{who} {what}"))
+            .collect();
+        pin_eq!(
+            leader,
+            [
+                "0 leader:filled_gather_slots[0:food]",
+                "0 leader:filled_gather_slots[1:timber]"
+            ],
+            "the leader rows that part on run495"
+        );
+        pin_eq!(
+            w.firsts.len(),
+            42,
+            "every key parted on run495 (46 before the trade)"
+        );
     }
 
     /// **Every road search to 7070, node for node** (item 1260). run483's

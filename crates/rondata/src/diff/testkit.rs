@@ -1559,7 +1559,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **8182 since item 1264** (`docs/TECH.md` step 8): who=1's Tower is a
+/// **8377 since item 1275**: run470 parts on frame 8377, **ours 17 draws
+/// against the original's 19, at index 0** — ours opens on
+/// `Leader::make_stuff+0x221` where the original's first is
+/// `Leader::use_market+0x1ed`. Widened on run491 (block 8378), inside
+/// 8182's window.
+///
+/// It was **8182** before that (item 1264), ours 8 against 7 at index 2:
+/// a `Leader::make_stuff+0x63d` the original did not spend. The Barracks
+/// `1/2017` took one King's Longbowman and then the Hoplites where the
+/// original took two: the second's 74 wealth was the unit who=1's
+/// `leftover` paid in on 8182, parted since 6591, when caravan `1/52`'s new
+/// route 2 ↔ 3 had the original's `do_trade` re-sum city 2's delivered
+/// route at today's value, 176 → 184 (`docs/AI.md` §99.10). **The move's
+/// value diff**: run495 block 6592, who=1's `income[2:wealth]` ours 992
+/// against 1000 → both 1000, and the goods agree on every block
+/// 6030..7066; run491 block 8183, `num_queued[128]` 2 against 3 and
+/// `1/2017`'s `queue[2].type` 132 against 178 → agreeing; run491 parts on
+/// 530 keys where it parted on 967.
+///
+/// **The move 7785 → 8182** (item 1264, `docs/TECH.md` step 8): who=1's Tower is a
 /// Keep in the original's `num_buildings` from the Keep's gain (Tower 1,
 /// Keep 0 through run476's 6033; Tower 0, Keep 1 from run483's 7065), and
 /// this crate kept a Tower, so `create_buildings` saw no Keep and the make
@@ -1605,7 +1624,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_182;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_377;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7478,12 +7497,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
     // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
     // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
-    // 8177..8433 (item 1264).
+    // 8177..8433 (item 1264), and the word 8377 on the same blocks (item
+    // 1275).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run491_s_word_frame_is_widened_whole"),
-        1264,
+        1275,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8182),
     ),
 ];
