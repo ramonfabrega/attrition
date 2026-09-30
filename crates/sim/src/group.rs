@@ -176,12 +176,9 @@ pub struct GroupState {
     /// both down.
     pub new_speed: i32,
     /// `+0x4b`: cleared by the leader's own report every frame it steps, and
-    /// set only by the forced-march arm below it. It gates whether a
-    /// follower reports its speed at all.
-    ///
-    /// SEAM: nothing sets it here, because the arm that does is
-    /// `has_general(0x8000, -1)` under `LeaderData & 0x8000` and no capture
-    /// has a general.
+    /// set only by the forced-march arm below it
+    /// ([`Sim::group_set_march`]). It gates whether a follower reports its
+    /// speed at all.
     pub march: bool,
     /// **Which of its player's 64 pool slots this record is** —
     /// `GroupData::id − who·64`, the number every member's `UnitData +0x80`
@@ -1632,9 +1629,16 @@ impl Sim {
         let Some(st) = self.gstate_mut(g) else { return };
         st.speed = st.new_speed;
         st.new_speed = speed;
-        // SEAM: the arm below it sets this instead, under
-        // `LeaderData & 0x8000` and `has_general(0x8000, -1)`.
         st.march = false;
+    }
+
+    /// `do_group_move`'s forced-march arm under the leader's report
+    /// (`groups[+0x80] +0x4b = 1`): the leader's leader flags carry
+    /// `0x8000` and `has_general(0x8000, -1)` found a marching hero.
+    pub(crate) fn group_set_march(&mut self, g: &Group) {
+        if let Some(st) = self.gstate_mut(g) {
+            st.march = true;
+        }
     }
 
     /// `Group::compute_speed@00707f80` — the group's speed as the four
@@ -1656,8 +1660,7 @@ impl Sim {
         if g.list.is_empty() {
             return 0;
         }
-        self.group_find_leader(g)
-            .map_or(0, |u| self.units[u].movement.speed)
+        self.group_find_leader(g).map_or(0, |u| self.unit_speed(u))
     }
 
     /// `GroupData::get_stance_type` (§4.4): the leader's, or the first
