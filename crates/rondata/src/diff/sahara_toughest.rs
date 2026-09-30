@@ -63,6 +63,10 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_7070: (i64, i64) = (7_065, 7_321
 /// **The word's block, 7071**: frame 7070 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_7071: i64 = 7_071;
 
+/// **The road search 7070 was** (item 1260): caravan `1/52`'s replan from
+/// `1/2007` to `1/2022`, which run483's trace carries node for node.
+pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
+
 /// run482: run470's game at `end:MISC,LEADERS=2` over blocks 1..5378 —
 /// every leader's goods record, `LeaderDataEncrypt::log_data` and the
 /// gather-slot arrays beside it, on every frame the dark gap between run469
@@ -521,7 +525,21 @@ mod tests {
             [(7065, 129)],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 745, "every key parted on run483");
+        // **The word moved to 7785 on item 1260**, past this window: with
+        // `leech_codes` the road beside the Farm stands and 7070's search
+        // arrives as the original's does. What parts past the standing
+        // block is five keys — who=1's `peasants` 30 against 31 and `1/56`'s
+        // `form` on 7144 first — where it was 616.
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(7065, 129), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
+            "the blocks keys first part on, the window whole"
+        );
+        pin_eq!(
+            w.firsts.len(),
+            134,
+            "every key parted on run483 (745 before item 1260)"
+        );
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
@@ -576,6 +594,84 @@ mod tests {
             "the leader rows that part on run482"
         );
         pin_eq!(w.firsts.len(), 40, "every key parted on run482");
+    }
+
+    /// **Every road search to 7070, node for node** (item 1260). run483's
+    /// trace proxies `valid_roadcoord` and `calc_road_cost` over the whole
+    /// game, so each search's priced nodes are comparable with ours from
+    /// frame 0: 49 frames of them to the old word, the last caravan `1/52`'s
+    /// replan of its road from `1/2007` to `1/2022`. It parted at node 1129
+    /// on 7070 — tile (150, 123) 114 against 37, a road the original still
+    /// had and ours had swept away on 6949 — until `leech_codes` joined the
+    /// tile beside the Farm's footprint back to its run (`docs/ROADS.md`
+    /// §9.6, `docs/AI.md` §99.9).
+    #[test]
+    fn run483_s_road_searches_hold_node_for_node_to_7070() {
+        let _pins = Pins::hold();
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(t483)) = (
+            dump(TOUGHEST_LONG.0),
+            dump(TOUGHEST_START),
+            trace(TOUGHEST_LONG.1),
+            trace("rontrace-run483.log"),
+        ) else {
+            eprintln!("skipping: no run470/run468/run483 (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        built.sim.trace_costs = true;
+        let mut searched = Vec::new();
+        let mut parted = Vec::new();
+        while built.sim.frame <= TOUGHEST_ROAD_FRAME_7070 {
+            let f = built.sim.frame;
+            built.sim.road_marks.clear();
+            built.tick();
+            let ours = std::mem::take(&mut built.sim.road_marks);
+            let theirs = t483.road_nodes(f);
+            if ours.is_empty() && theirs.is_empty() {
+                continue;
+            }
+            searched.push((f, theirs.len()));
+            if let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+            {
+                parted.push(format!(
+                    "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                    ours.get(i),
+                    theirs.get(i),
+                    ours.len(),
+                    theirs.len()
+                ));
+            }
+        }
+        pin!(parted.is_empty(), "a road search parted: {parted:?}");
+        pin_eq!(searched.len(), 49, "the road-search frames to 7070");
+        pin_eq!(
+            searched.last().copied(),
+            Some((TOUGHEST_ROAD_FRAME_7070, 2_543)),
+            "7070's search arrives on its frame"
+        );
+        // The endpoints, from `astar_caravan_road`'s own bracket: caravan
+        // slot 2's route, the second city to the third.
+        let bracket = t483.calls_in(TOUGHEST_ROAD_FRAME_7070, 5);
+        pin_eq!(
+            bracket
+                .iter()
+                .map(|c| (c.args[1], c.args[2], c.args[3], c.args[5]))
+                .collect::<Vec<_>>(),
+            [(2007, 1, 2022, 2)],
+            "one road plan on 7070, 1/2007 to 1/2022 for caravan slot 2"
+        );
     }
 
     /// **The third map's word at Toughest** (item 1221): run470, the draw

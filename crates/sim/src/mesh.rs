@@ -361,6 +361,40 @@ impl RoadMesh {
         }
     }
 
+    /// `RoadsOut::leech_codes@00890da0` — the redo pass's step between the
+    /// trim and `set_diags`: each cardinal neighbour that is a road lends
+    /// this tile its answering claim. A road east whose element claims west
+    /// makes this tile claim east, whatever the trim just withheld — which
+    /// is what keeps a road beside a footprint joined to the rest of its
+    /// run (`docs/ROADS.md` §9.6).
+    ///
+    /// The walk is north, south, east, west, and a road neighbour with **no
+    /// element** clears this tile's bit toward it and ends the walk there:
+    /// the listing returns from inside each arm. The other bits it copies —
+    /// the white and yellow line codes, `0x100`…`0x80_0000` — belong to the
+    /// texture passes this crate does not run, and only the direction is
+    /// taken.
+    fn leech_codes(&mut self, world: &World) {
+        let at = self.at;
+        for (d, own, back, dx, dy) in CARDINALS {
+            if !self.road[d] {
+                continue;
+            }
+            match self.elem(world, Pos::new(at.x + dx, at.y + dy)) {
+                None => {
+                    let f = self.flags_at(world, at) & !own;
+                    self.set_flags(world, at, f);
+                    return;
+                }
+                Some(n) if n.flags & back != 0 => {
+                    let f = self.flags_at(world, at) | own;
+                    self.set_flags(world, at, f);
+                }
+                Some(_) => {}
+            }
+        }
+    }
+
     /// `RoadsOut::mark_and_trim_directions@008935c0` — the pass that decides,
     /// from the cache alone, which cardinals this tile is joined in, and
     /// joins each neighbour back.
@@ -848,8 +882,9 @@ impl Sim {
 
     /// `Roads::redo_changed_roads@0088e670` — the three passes over one of
     /// the two lists: drop the support links, re-derive the directions from
-    /// scratch, then run `set_diags` again. Anything it touches goes on the
-    /// *other* list, which is what the ping-pong walks next.
+    /// scratch, then take each road neighbour's answering claim
+    /// (`leech_codes`) and run `set_diags` again. Anything it touches goes on
+    /// the *other* list, which is what the ping-pong walks next.
     fn redo_changed_roads(&mut self, which: usize, list: i32, param: i32) {
         let work = self.mesh.redo[which].clone();
         for &index in &work {
@@ -874,6 +909,7 @@ impl Sim {
                 continue;
             }
             self.mesh.fill_cache(&self.world, at);
+            self.mesh.leech_codes(&self.world);
             self.set_diags(list, param);
         }
     }
@@ -1208,6 +1244,79 @@ mod tests {
         assert!(is_road(&sim, 21, 20), "a road laid over a blocked tile");
         sim.set_blocked_at(Pos::new(21, 20), true);
         assert!(!is_road(&sim, 21, 20), "goes when it is blocked again");
+    }
+
+    /// **A road beside a footprint stays joined to its run** —
+    /// `RoadsOut::leech_codes@00890da0` in the redo pass (`docs/ROADS.md`
+    /// §9.6, item 1260). Great Sahara at Toughest's Farm took the west end
+    /// of a trade road on 6611; the tile beside it was re-derived with a
+    /// footprint to its west, so the trim recomputed north–south alone and
+    /// the tile's claim east was lost with the zeroing. The east neighbour's
+    /// claim west lends it back. Without it the tile claims nothing, and the
+    /// sweep takes it and then the rest of the run as stubs, where the
+    /// original kept them.
+    #[test]
+    fn a_road_beside_a_footprint_keeps_the_claim_its_neighbour_lends_it() {
+        let mut sim = bare();
+        lay(
+            &mut sim,
+            &[(20, 20), (21, 20), (22, 20), (23, 20), (24, 20)],
+        );
+        let end = Pos::new(20, 20);
+        let m = sim.world.tile_mask(end);
+        sim.world.set_tile_mask(end, m | tile::OBJECT_BUILDING);
+        sim.world_set_road_at(end, false, 0, 0);
+        assert!(
+            !is_road(&sim, 20, 20),
+            "the footprint's tile loses its road"
+        );
+        assert_eq!(
+            sim.mesh
+                .elem(&sim.world, Pos::new(21, 20))
+                .map(|e| e.flags & 0xff00_0000),
+            Some(dir::E),
+            "the tile beside it claims east, lent by (22, 20)'s west"
+        );
+        // The far end, (24, 20), is a stub in open country and erodes on
+        // its own visit; the tile beside the footprint is what is asked.
+        sim.scan_stray_tile(Pos::new(21, 20));
+        assert!(
+            (21..25).all(|x| is_road(&sim, x, 20)),
+            "and the sweep leaves it standing"
+        );
+    }
+
+    /// **A road neighbour with no element ends the walk** — each arm of
+    /// `leech_codes` returns from inside when `get_road_data` answers
+    /// nothing, clearing this tile's claim toward it and leaving the
+    /// cardinals after it unread.
+    #[test]
+    fn leech_codes_stops_at_a_road_with_no_element() {
+        let mut sim = bare();
+        lay(&mut sim, &[(30, 30), (31, 30)]);
+        // A road north of (30, 30) that the mesh does not hold.
+        let north = Pos::new(30, 29);
+        let m = sim.world.tile_mask(north);
+        sim.world.set_tile_mask(north, m | tile::SURFACE_ROAD);
+        let at = Pos::new(30, 30);
+        sim.mesh.set_flags(&sim.world, at, dir::N);
+        sim.mesh.at = at;
+        sim.mesh.fill_cache(&sim.world, at);
+        sim.mesh.leech_codes(&sim.world);
+        assert_eq!(
+            sim.mesh.elem(&sim.world, at).map(|e| e.flags & 0xff00_0000),
+            Some(0),
+            "north is cleared, and east is never lent"
+        );
+        // With the north road gone, the walk reaches east.
+        sim.world.set_tile_mask(north, m);
+        sim.mesh.fill_cache(&sim.world, at);
+        sim.mesh.leech_codes(&sim.world);
+        assert_eq!(
+            sim.mesh.elem(&sim.world, at).map(|e| e.flags & 0xff00_0000),
+            Some(dir::E),
+            "(31, 30) claims west, so (30, 30) claims east"
+        );
     }
 
     /// **And a building that starts over a road takes it** — the same arm,
