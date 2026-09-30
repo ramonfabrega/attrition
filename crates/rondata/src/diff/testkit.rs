@@ -1496,6 +1496,19 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// run462 (block 10184).
 pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_183;
 
+/// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
+/// run470, Great Sahara in the second pair's lobby, walked from run468's
+/// `DUMP_ALL` start (`diff::sahara_toughest`).
+///
+/// **5376 on the capture**: run469's 1,850 frames agree draw for draw (frame
+/// 0 spends 100 against 100), and run470 parts on frame 5376, **ours 45
+/// draws against the original's 40, at index 1**: ours spends four
+/// `Leader::produce_building+0x1805` where the original spends one, and
+/// five `Guy::set_anim+0x104b` where it spends three; the ten birds'
+/// `Animal::think_bird` triples, the three `Guy::inc_time` wraps and the
+/// three `Farms::inc_time` agree. Widened on run471 (block 5377).
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_376;
+
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
 ///
@@ -7272,6 +7285,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1206,
         Some(crate::diff::third::WIDENING_GREAT_SAHARA_END),
     ),
+    // **The third map at Toughest** (DECISIONS 56 §1, item 1221): its first
+    // word, 5376, past run469's 1,850 blocks, widened on run471 over
+    // 5371..5627.
+    (
+        "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
+        THIRD_WORD_GREAT_SAHARA_TOUGHEST,
+        Some("run471_s_word_frame_is_widened_whole"),
+        1221,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST),
+    ),
 ];
 
 /// **A test that holds several pins reports every one that moved** (parked
@@ -7520,5 +7543,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 24_000,
         endpoint: Some("great_sahara_endpoint_is_pinned"),
         window: None,
+    },
+    // **The closed map in the newest pair's lobby** (DECISIONS 56 §1, item
+    // 1221): run470 ends when the idle human is defeated, its trace's last
+    // frame 15432 and its closing dump block 15433.
+    AiWord {
+        line: "Third map",
+        map: "GreatSaharaToughest",
+        named: "Great Sahara at Toughest",
+        word: THIRD_WORD_GREAT_SAHARA_TOUGHEST,
+        length: 15_432,
+        endpoint: None,
+        window: Some("great_sahara_toughest_word_window"),
     },
 ];
