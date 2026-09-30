@@ -1013,6 +1013,9 @@ mod tests {
         assert_eq!(full_hits(&t(), &ty, 10, true, 0, false, &m), 1200);
         // A tower in a Large City: no senate bonus.
         assert_eq!(full_hits(&t(), &ty, 6, true, 2, false, &m), 750);
+        // Nor a Keep: `is(0x1b7, 0)` reads the line, and run488's Keep
+        // `1/2015` in a Large City holds 1000 (item 1275).
+        assert_eq!(full_hits(&t(), &ty, 7, true, 2, false, &m), 1000);
         // A city with a level-one temple: +25 %; with Tikal, (150 × 25 + 99) / 100 = 38 → +38 %.
         let m = HitsMods {
             temple_level: 1,
