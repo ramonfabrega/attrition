@@ -68,7 +68,7 @@ const SNAP_WITHIN: u32 = 0x038e_38e3;
 
 /// Forty-five degrees: past this much owed, a bird close to its patrol point
 /// keeps the heading it has rather than swinging round.
-const HALF_QUARTER: u32 = 0x2000_0000;
+pub(crate) const HALF_QUARTER: u32 = 0x2000_0000;
 
 /// `FRAMES_BETWEEN_LAUNCHES`, the PE's `.data` at `0xc06248`: the frames a
 /// hangar waits between two launches, and where its `launch_frames`
@@ -160,7 +160,7 @@ pub struct Flight {
 /// original's `d = to − from; if (0x80000000 < d) d = ~d`, an unsigned
 /// compare and a bitwise not rather than a negation, so the answer for
 /// exactly half a turn is `0x80000000` and not `0x7fffffff`.
-const fn owed(from: Angle, to: Angle) -> u32 {
+pub(crate) const fn owed(from: Angle, to: Angle) -> u32 {
     let d = (to.0 as u32).wrapping_sub(from.0 as u32);
     if d > 0x8000_0000 { !d } else { d }
 }
@@ -443,11 +443,11 @@ struct Approach {
 /// The `AirOrder` base of a plane's front order — what `do_air_physics`,
 /// `bank_aircraft` and `pitch_aircraft` read through `get_air_order`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct AirBase {
-    home: Option<usize>,
-    cruising_alt: i32,
-    sharp_turn: i32,
-    returning: bool,
+pub(crate) struct AirBase {
+    pub(crate) home: Option<usize>,
+    pub(crate) cruising_alt: i32,
+    pub(crate) sharp_turn: i32,
+    pub(crate) returning: bool,
 }
 
 /// How a plane's frame of flight ended — `do_air_physics`' return, which
@@ -1525,6 +1525,13 @@ impl Sim {
         else {
             return;
         };
+        // **A flock's bird** (`crate::flock`): its `do_air_physics` leaves
+        // `recharging` at 1, so the `+0xae` test below returns on every
+        // frame it flies.
+        if self.is_flockbird(u) {
+            self.flock_air_physics(u, g.at, frame);
+            return;
+        }
         if matches!(self.plane_air_physics(u, Some(g.at), frame), Flew::Done) {
             return;
         }
@@ -1758,7 +1765,7 @@ impl Sim {
     /// The front order's `AirOrder` base — `get_air_order` (vslot
     /// `+0x84`/`+0xfc`), which the three air classes answer and every
     /// other order answers 0.
-    fn current_air(&self, u: usize) -> Option<AirBase> {
+    pub(crate) fn current_air(&self, u: usize) -> Option<AirBase> {
         match self.current_order(u).map(|o| o.body) {
             Some(crate::orders::Body::Strafe(sf)) => Some(AirBase {
                 home: sf.home,
@@ -1801,7 +1808,7 @@ impl Sim {
     }
 
     /// The front air order's `returning` (`AirOrder +0x18`).
-    fn set_returning(&mut self, u: usize, on: bool) {
+    pub(crate) fn set_returning(&mut self, u: usize, on: bool) {
         match self.units[u].orders.front_mut().map(|o| &mut o.body) {
             Some(crate::orders::Body::Strafe(sf)) => sf.returning = on,
             Some(crate::orders::Body::AirPatrol(p)) => p.returning = on,
@@ -1810,11 +1817,11 @@ impl Sim {
         }
     }
 
-    fn set_cruising_alt(&mut self, u: usize, alt: i32) {
+    pub(crate) fn set_cruising_alt(&mut self, u: usize, alt: i32) {
         self.with_air(u, |c, _| *c = alt);
     }
 
-    fn set_sharp_turn(&mut self, u: usize, t: i32) {
+    pub(crate) fn set_sharp_turn(&mut self, u: usize, t: i32) {
         self.with_air(u, |_, s| *s = t);
     }
 
@@ -1829,9 +1836,22 @@ impl Sim {
     /// **no bank at all within 199 of the ground** under it (`0x5e9700`:
     /// `|guy.z − find_tcoord_z| ≤ 199`), and none of the three arms: it
     /// levels its wings off the runway before it turns.
-    fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32, returning: bool) {
+    ///
+    /// **An animal** — a flock's bird (`crate::flock`) — takes two arms a
+    /// plane never does (`005e9520`): with its bank settled and its
+    /// `spell_time` not negative it skips the whole call every eighth
+    /// frame (`frame & 7`, the game's own), and the ground test is an
+    /// owner-under-eight's (`(byte)+0x9 > 7` goes straight to the clamp).
+    pub(crate) fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32, returning: bool) {
         let stored = self.units[u].airframe.bank;
         let mut roll = stored.neg();
+        if self.units[u].is_gaia()
+            && roll.is_zero()
+            && self.units[u].spell_time >= 0
+            && self.frame & 7 == 0
+        {
+            return;
+        }
         let heading = self.units[u].movement.heading;
         let d = (des.0 as u32).wrapping_sub(heading.0 as u32);
         let adelta = fold(d);
@@ -1854,7 +1874,8 @@ impl Sim {
             }
         } else {
             let at = self.units[u].pos;
-            let low = (self.units[u].airframe.z - self.world.tile_z(at.tile())).abs() <= 199;
+            let low = self.units[u].owner < 8
+                && (self.units[u].airframe.z - self.world.tile_z(at.tile())).abs() <= 199;
             if low {
                 want = Single::ZERO;
             } else if !F55.gt(want) {
@@ -1984,7 +2005,7 @@ impl Sim {
     ///
     /// SEAM: the `0x400000` type arm's flying target
     /// ([`Sim::strike_altitude`]).
-    fn pitch_plane(
+    pub(crate) fn pitch_plane(
         &mut self,
         u: usize,
         dx: i32,
@@ -1993,6 +2014,22 @@ impl Sim {
         speed: &mut i32,
         returning: bool,
     ) {
+        // **An animal** — a flock's bird (`crate::flock`) — skips the
+        // whole call with its pitch level and its `spell_time` not
+        // negative on `(frame + 3) & 7 == 0` (`005e8de0`, the opening
+        // test), and inside it takes three arms of its own: no cap at
+        // `cruising_alt` over the ground ahead, a pitch rate of ±10 by the
+        // height owed rather than the plane's glide, and no pitch speed
+        // cut. The returning arm's halving inside `0x600` is not behind
+        // the test and is taken.
+        let animal = self.units[u].is_gaia();
+        if animal
+            && self.units[u].airframe.pitch.is_zero()
+            && self.units[u].spell_time >= 0
+            && (self.frame + 3) & 7 == 0
+        {
+            return;
+        }
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
         let at = self.units[u].pos;
@@ -2014,7 +2051,11 @@ impl Sim {
         } else {
             (self.strike_altitude(u, dx, dy, cruise) + ahead, 0x240)
         };
-        let want = want.min(cruise + ahead);
+        let want = if animal {
+            want
+        } else {
+            want.min(cruise + ahead)
+        };
         let ground = self.world.tile_z(at.tile());
         let target = want.max(ground + if returning { 50 } else { 200 });
         let mut pitch = self.units[u].airframe.pitch;
@@ -2024,8 +2065,16 @@ impl Sim {
             Single::ZERO
         };
         let z = self.units[u].airframe.z;
-        let n = (dist / *speed).max(1);
-        let rate = ((target - z) / 25 * 20) / n;
+        let rate = if animal {
+            match target - z {
+                d if d >= 0xc9 => 10,
+                d if d < -200 => -10,
+                _ => 0,
+            }
+        } else {
+            let n = (dist / *speed).max(1);
+            ((target - z) / 25 * 20) / n
+        };
         let owe = Single::from_i32(rate).subss(extra.addss(pitch));
         let mut dir = 0;
         if owe.gt(F1) {
@@ -2050,7 +2099,7 @@ impl Sim {
             af.z += step;
         }
         let mag = pitch.abs();
-        if mag.gt(F20) {
+        if mag.gt(F20) && !animal {
             let half = Single::from_i32(*speed / 2);
             *speed = F40.subss(mag).mulss(half).divss(F20).addss(half).to_i32();
         }

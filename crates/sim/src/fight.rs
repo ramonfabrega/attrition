@@ -2230,8 +2230,12 @@ impl Sim {
         }
         self.mark(SITE_FIRST_WOUND_FLOCK);
         // `Objects::add_flock(x, y, -1, roll % 2 + 3)` — three or four
-        // birds over the building. Cosmetic; the draw is not.
-        let _ = self.rng.roll();
+        // birds over the building, from its tile (`div_3_table[v >> 6]`,
+        // `6521ba`–`6521e3`) and with no player's stamp to wait on
+        // (`crate::flock`, item 1293).
+        let n = self.rng.roll() % 2 + 3;
+        let at = self.buildings[b].pos.tile();
+        self.add_flock(at, None, n);
     }
 
     /// `Object::take_damage` on a building (§7.2): the under-attack latch, a

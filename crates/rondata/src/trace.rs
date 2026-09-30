@@ -400,6 +400,20 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // …and a non-bomber plane's `cruising_alt` redraw, every eighth frame
     // of its flight (`docs/ORDERS.md` §33.1): chapter seventeen's 642.
     (0x005e_878a, None, sim::air::SITE_AIR_ALT),
+    // `Unit::do_group_move@005e79a0` — a follower's slot in a wood: the
+    // flock's size, `% 2 + 2` (item 1293, `docs/AI.md` §99.12).
+    (0x005e_84a3, None, sim::flock::SITE_GROUP_FLOCK),
+    // `Objects::add_flock@0065c0e0` — its six for the flock, then ten a
+    // bird: `Guy::init_real`, the turn, and two for each of four points.
+    (0x0065_c1e4, None, sim::flock::SITE_FLOCK_JITTER_X),
+    (0x0065_c201, None, sim::flock::SITE_FLOCK_JITTER_Y),
+    (0x0065_c265, None, sim::flock::SITE_FLOCK_SPREAD_X),
+    (0x0065_c284, None, sim::flock::SITE_FLOCK_SPREAD_Y),
+    (0x0065_c307, None, sim::flock::SITE_FLOCK_RING),
+    (0x0065_c3bc, None, sim::flock::SITE_FLOCK_ANGLE),
+    (0x0065_c43c, None, sim::flock::SITE_FLOCK_TURN),
+    (0x0065_c4c9, None, sim::flock::SITE_FLOCK_POINT_Y),
+    (0x0065_c4f1, None, sim::flock::SITE_FLOCK_POINT_X),
     // `Unit::do_spec_anim@005e5880`'s EXIT at an Airbase for a Helicopter:
     // its two offsets, `x` then `y` (item 1019, run371's 2445).
     (0x005e_59ef, None, sim::air::SITE_HELI_EXIT_X),

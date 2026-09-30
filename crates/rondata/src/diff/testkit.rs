@@ -1597,13 +1597,23 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_637;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **8786 since item 1286**: run470 parts on frame 8786, **ours 10 draws
-/// against the original's 49, at index 1** — both open on
-/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, then the original spends
-/// `Unit::do_group_move+0xb03 < Unit::do_group_attack_to+0x11`, 33
-/// `Objects::add_flock` and three `Guy::init_real < Animal::init` draws
-/// where ours' next is the same `set_anim` again. Past run491's window (its last block 8433); widened on run500
-/// (block 8787).
+/// **8856 since item 1293**: run470 parts on frame 8856, **ours 34 draws
+/// against the original's 35, at index 0** — the original opens on
+/// `Unit::think_spellcaster+0x589 < Army::use_generals+0xfc <
+/// Army::process+0x8d` and ours on `Animal::think_bird+0x82`. Inside
+/// run500's window (block 8857); the nearest first before it is who=1's
+/// `gather_stamp` on 8856, ours 8855 against 8799.
+///
+/// It was **8786** before that (item 1286), ours 10 against 49 at index 1:
+/// the squad `1/73`..`1/75`'s follower slot fell in a wood, and the original
+/// sent up a flock of three birds — `Unit::do_group_move+0xb03`'s roll,
+/// `Objects::add_flock`'s 36 — where ours only ungrouped (`docs/AI.md`
+/// §99.12). **The move's value diff**, run500 block 8787: who=1's
+/// `flock_stamp` ours 0 against 8786 → both 8786 (compared from this
+/// item); the three birds' `set_new_location` in run500's proxy, every
+/// frame from 8787 to their landings on 8968, 8977 and 8992 → agreeing;
+/// run500 parts on 745 keys where it parted on 1,816, and nothing on
+/// 8789.
 ///
 /// It was **8377** before that (item 1275), ours 17 against 19 at index 0:
 /// ours' `found_cities` bought who=1's fourth city at once where the
@@ -1676,7 +1686,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_637;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_786;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 8_856;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7585,12 +7595,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
     // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
     // 8177..8433 (item 1264), and the word 8377 on the same blocks (item
-    // 1275); the word 8786 on run500 over 8781..9037 (item 1286).
+    // 1275); the word 8786 on run500 over 8781..9037 (item 1286), and the
+    // word 8856 on the same blocks (item 1293).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run500_s_word_frame_is_widened_whole"),
-        1286,
+        1293,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8786),
     ),
 ];

@@ -12303,8 +12303,8 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 5375..5378 until item 1241 moved it to run476's (§99.7), and item 1251 to
 run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9),
 item 1264 to run491's 8181..8184 and item 1275 to its 8376..8379 (§99.10),
-and item 1286 to run500's 8785..8788 (§99.11); the coverage driver drives
-each. **Read only**: nothing; §99.5's third bullet is open.
+and item 1286 to run500's 8785..8788 (§99.11), and item 1293 to its
+8855..8858 (§99.12); the coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12706,8 +12706,8 @@ roll. **run500** widens it (blocks 8781..9037, 1,816 keys): 140 stand on
 who=1's group orders on `1/73`..`1/75` (id 8698116 here, 8704516 there), a
 dozen of its units' `orders_x`/`orders_y` 24 apart and their `dest_angle`,
 and `defense` 1 against 2. **The word's block 8787 parts on no key first**;
-who=1's make list parts on 8782 and 8785, and the animations from 8789. No
-mechanism is named for it.
+who=1's make list parts on 8782 and 8785, and the animations from 8789. ~~No
+mechanism is named for it.~~ It was a flock of birds: §99.12.
 
 **What stands before it, read here and not the cause.** The University's
 offer ×7/6 on run488's 7782 and `scholars` 11 against 12 from 7925 (parked
@@ -12723,3 +12723,110 @@ Major City's pair — no capture's leader holds one when it prices a city
 that `num_queued` of a city counts what this crate counts as an alive,
 unfinished city; the two differ only while a city is ordered and not yet
 placed.
+
+### 99.12 A slot in a wood: `add_flock` (item 1293)
+
+**8786, both sides.** Ours 10 draws against 49, parting at index 1. Both
+spend `1/9`'s `move_step` roll; the original then spends
+`Unit::do_group_move+0xb03` (seed `c4d14055`, 5551: `% 2`, three birds),
+six `Objects::add_flock` draws for the flock and ten for each bird
+(`Guy::init_real`, `+0x35c`, and `+0x3e9`/`+0x411` for each of four
+points), where ours goes on to `1/78`'s. **The original acted.** Both
+sides ungroup the squad `1/73`..`1/75` on this frame: run500's block 8787
+has `GROUPATTACKTOORDER` → `ATTACKTOORDER` on all three, and ours' rows
+for them go quiet on the same block (`RON_ROW_WALK`). Ours took the
+ungroup without the flock: `orders.rs`' follower step 9 carried it as a
+seam, "of an **ocean** cell".
+
+**The standing group id is a numbering, not a parting.** `add_group_move_
+order`'s id is `(group + frame · 10) · 100 + order_num`: 8698116 is group
+1, frame 8698, order 16; 8704516 is group 65, the same frame and order.
+Ours numbers an army's group by its army slot and the dump by its pool
+slot, `who · 64 + s` — the 6400 of parked 871. The dozen `orders_x/y` 24
+apart and `dest_angle` 0 against 120° on 8781 are `SCHOLARS` (type 52),
+housed and orderless: stale fields, parked 1288's unit.
+
+**Every instance on the disk**: run30 frame 307, run46 280 and 507 (and
+the size roll alone on 342 and 466, the stamp below), run50 613 (two
+birds, 24 draws), run346 17135, run470 8786 and 15378, run500 8786.
+
+**The arm, off the listing** (`Unit::do_group_move@005e79a0`). `5e83e3`:
+`invalid_loc` on the slot — the order's `dest_x/dest_y`, ours' waypoint;
+refused, `5e8425`: the Manhattan from the unit under `0x300`; `5e8457`:
+the slot's cell, `WorldData::restrict`ed; `5e847e`: its `WData.flags &
+0x20` — **`FOREST`** (`world::cell`), not ocean; `5e8487`: the unit's own
+group (`+0x80`) not negative. Then the roll, `and $0x80000001` → `% 2 + 2`,
+and `add_flock(x · 4 + 2, y · 4 + 2, whose, n)`; the ungroup follows
+whichever way it went (`5e84ce`). `sim::flock::Sim::group_flock`.
+
+**`Objects::add_flock@0065c0e0`**, listing `65c10b`–`65c4f1`. A player's
+`LeaderData::flock_stamp` (`+0x7b8`, gated on `leader_flags & 1`) holds
+the next flock to `frame ≥ stamp + 0xe1`, read and written before any
+draw. The cells: the given one; it `+ % 3 − 1` on each axis; that `+ % 5 −
+2`; each clamped into the world; and the first `FOREST` cell of
+`circle_x/y[i]` round the last, `i` from `% circle_radius[3]` below
+`circle_radius[8]`, or the given cell. A heading `(% 12) · 0x15555555`.
+Each bird: `init_unit(9, FLOCKBIRD, t · 0xc0 + 0x60)`, which
+`Unit::init@00612100:69–72` seats on the 48-grid's centre (`+ 0x18`); its
+angle; the next bird's `+ (% 5 + 3) · 0xb60b60`; `update_z` and the figure
+200 over it; and an `AIR_ATTACK_GROUND` per cell at `cell · 0x300 + 0x80 +
+(roll & 0x1ff)`, the first roll the `y` and the second the `x`. **The
+orders are flown in the order listed**: the node is linked in as the
+ring's `field_0xdc`, and the current order is `field_0xdc->prev` (`+0x4`,
+as `land_plane` reads it), so the first linked stays current and the wood
+is the last leg. `Object::take_damage`'s siege flock (`6521ba`–`6521e3`,
+`add_flock(pos / 192, −1, % 2 + 3)`) now calls it too.
+
+**The flight** (`do_air_physics` for `0x193`, `sim::flock::Sim::
+flock_air_physics`): the altitude redraw every `(o + frame) & 7`; no
+`check_fuel`; `recharging = 0`, and on the stack's last order the flight
+is a return, the aim the ground under the bird; returning within a step
+and a half, `land_plane`, which for an animal is `Object::die`; the
+heading kept owing over 45° inside `min_range · 0xc0 + 0x300`;
+`bank_aircraft` with an animal's two arms (the eighth-frame skip, and no
+ground test over owner 7) and `pitch_aircraft` with its three (the skip on
+`(frame + 3) & 7` level, ±10 by the height owed, no cruise cap and no
+pitch speed cut) — its return **inside `0x600` at half speed** is not an
+animal's exemption; the step; `set_anim(CHAR_WALK)`; then `returning`
+cleared, `recharging = 1`, and within `0x30` of the point with an order
+behind it, `kill_current_order`. `do_air_attack_ground` returns on the
+`recharging`. `Animal::work@005d7330` has no recharge gate, and ours'
+shared `work` now passes gaia over it.
+
+**Readings killed, by run500's proxy.** run500 proxies `do_air_physics`
+(its goal) and `set_new_location` for every flier; the flock is `this`
+`0x15c61b94`, `0x15c61d04`, `0x15c61e74`, ours' `9/20`..`9/22`.
+- *Linked at the head* (the first reading of `field_0xdc = new`): on 8787
+  the three fly at (31689, 19542), (31923, 19560), (31853, 19594), ours'
+  last points. Killed.
+- *No `pitch_aircraft`* (the bird's own arms, `air.rs`): landings 8985,
+  8967, 8993 against 8977, 8968, 8992 with the order fixed. Killed.
+- *Born on the tile's centre*: every position (24, 24) short from 8787.
+  Killed.
+
+With all three, **each bird's point agrees with the proxy on every frame
+from 8787 to its landing** (a walk run on past the word, not pinned).
+
+**The value diff.** run500 block 8787: who=1's `flock_stamp` ours 0
+against 8786 → both 8786, compared from this item (the leader rows; the
+coverage pin's uncompared list loses it). run500 parts on **745 keys
+where it parted on 1,816**, and on nothing on 8789.
+
+**The word moves 8786 → 8856**: ours 34 draws against 35, at index 0 —
+the original opens on `Unit::think_spellcaster+0x589 <
+Army::use_generals+0xfc < Army::process+0x8d` and ours on
+`Animal::think_bird+0x82`. Inside run500's window, block 8857, which
+parts on no key first. Before it: `1/81` and `1/82`'s `form` on 8796 and
+8851 (units born in the window; the standing family), the human's
+`production_step` on 8801, and **who=1's `gather_stamp` on 8856, ours
+8855 against 8799**. No mechanism is named for it.
+
+**Coverage.** Diff-backed: the arm and `add_flock`'s draws by
+`run470_is_great_sahara_at_toughest_and_its_word_holds`, the stamp by
+`run500_s_word_frame_is_widened_whole`; the unit tests
+`a_flock_is_six_draws_and_ten_a_bird_flown_first_cell_first` and
+`a_slot_in_a_wood_flushes_a_flock_from_a_unit_in_a_group`. **Held by no
+walk**: the flight past 8856 (the order, the birth snap, the pitch arms,
+the landing) — measured against the proxy here and pinned by nothing
+until the word passes 8992; the stamp's refusal (no second flock inside
+225 frames on this game); `take_damage`'s flock (no capture reaches it).

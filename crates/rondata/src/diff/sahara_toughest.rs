@@ -100,6 +100,10 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_8786: (i64, i64) = (8_781, 9_037
 /// **The word's block, 8787**: frame 8786 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_8787: i64 = 8_787;
 
+/// **The word's block, 8857**: frame 8856 writes it — the word item 1293
+/// left, inside run500's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_8857: i64 = 8_857;
+
 /// **The road search 7070 was** (item 1260): caravan `1/52`'s replan from
 /// `1/2007` to `1/2022`, which run483's trace carries node for node.
 pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
@@ -221,8 +225,8 @@ pub(crate) fn great_sahara_toughest_8786_window() -> Option<crate::diff::harness
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run500 since item 1286 (run491 from item 1264, at its block 8378
-/// from item 1275; run488 from item 1260, run483 from item 1251, run476
+/// on run500 since item 1286, at its block 8857 from item 1293 (run491
+/// from item 1264, at its block 8378 from item 1275; run488 from item 1260, run483 from item 1251, run476
 /// from item 1241, run471 before it). `coverage`'s compared pin walks these
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -232,7 +236,7 @@ pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness
         "run500",
         (TOUGHEST_WORD_8786, WIDENING_GREAT_SAHARA_TOUGHEST_8786.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_8787,
+        TOUGHEST_WORD_BLOCK_8857,
     )
 }
 
@@ -863,22 +867,53 @@ mod tests {
             Some("8781: Group { field: \"id\", ours: 8698116, theirs: 8704516 }"),
             "who=1's group order, standing"
         );
-        // **The word's block 8787 parts on no key first**: the frame's
-        // group attack (`Unit::do_group_attack_to`, 33 `Objects::add_flock`
-        // draws, in the original alone) moves nothing the dump prints until
-        // the animations of 8789. No mechanism is named here.
+        // The id is the pool's: `(group + frame · 10) · 100 + order_num`
+        // with who=1's army group 1 here and pool slot 65 there — both
+        // laid on frame 8698 as order 16 (`sim::group::group_move_id`,
+        // parked 871).
+        //
+        // **The word 8786's block 8787** (item 1293): the squad's slot in a
+        // wood sent up a flock in the original alone; built, who=1's
+        // `flock_stamp` (compared from this item) reads 8786 both sides and
+        // the animations of 8789 no longer part.
+        pin_eq!(
+            row(1, -1, "leader:flock_stamp"),
+            None,
+            "who=1's flock_stamp agrees on every block"
+        );
+        // **The word 8856's block 8857** (item 1293) parts on no key first;
+        // the nearest first before it is who=1's economy reassembled on
+        // 8855 here and last on 8799 there. The two `form` rows are units
+        // born in the window (`1/81`, `1/82`), the family that stands on
+        // 8781; the human's `production_step` parts on 8801.
+        pin_eq!(
+            row(1, -1, "leader:gather_stamp").as_deref(),
+            Some("8856: ours 8855 theirs 8799"),
+            "who=1's gather_stamp, the first before the word's block"
+        );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8787 + 3)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8857 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8781, 132), (8782, 3), (8785, 7), (8789, 4)],
+            [
+                (8781, 132),
+                (8782, 3),
+                (8785, 7),
+                (8796, 1),
+                (8801, 1),
+                (8851, 1),
+                (8856, 1),
+                (8858, 2),
+                (8859, 2),
+                (8860, 2)
+            ],
             "the blocks keys first part on, to three past the word's"
         );
         pin_eq!(
             w.firsts.len(),
-            1_808,
-            "every key parted on run500 (1816 before item 1281)"
+            737,
+            "every key parted on run500 (1,808 before item 1293, 1,816 before item 1281)"
         );
     }
 

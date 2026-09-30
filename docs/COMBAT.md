@@ -2830,8 +2830,8 @@ which is an hour of synthesized state (`docs/EMULATOR.md`).
   step 5's two divisions and §7.2 step 4's accumulator end to end; and that
   the farm's damage record then tracks the original's, one landing behind.
 - **Reading only**: the `+0x18b` flock draw and its `% 2 + 3` — no capture on
-  this disk reaches a siege attacker's first wound on a fort, temple or town,
-  and `Objects::add_flock` has never executed in any traced game. The
+  this disk reaches a siege attacker's first wound on a fort, temple or town;
+  `add_flock` itself is `docs/AI.md` §99.12's, from a group move. The
   `TEMPLE`/`TOWN` type constants (`0x1b5`, `0x19f`) are the listing's
   immediates and are certain; what is untested is the whole arm firing.
 - **Reading only**: the war declaration below the flock, and the `param_7 < 0`
