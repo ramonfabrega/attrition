@@ -1299,3 +1299,55 @@ and this section records what that established about the mechanic.
   (`docs/ANIM.md` §15, item 850).
 - The disembarked figure's first animation and turn (run249 1162, 1165).
 
+
+## 17. A captain's boarding takes its squad: `Unit::go_inside`'s `o_down` walk (item 1235, 2026-09-30)
+
+**The rule.** `SpellType::cast_transport@00670db0` ends in
+`Unit::go_inside(caster, boat, who, 0)`. `Unit::go_inside@0061a2e0`,
+with `param_3 == 0`, first climbs `o_up` (`UnitData +0x8e`) to the
+captain, asking no liveness, and inserts **that**
+(`Object::insert_inside@00647e90`: `remove_from_world`, then the new
+figure at the bottom of the host's `inside_down` chain). Then:
+
+1. at `61a450`, the host's vslot `0x18` — `return 1` on `Unit::vftable`
+   (`Buffer::is_pending_load@0041e0e0`, folded), `return 0` on
+   `Build::vftable` — and at `61a45a` the figure's type's `uber_size`
+   (`+0x308`) over 1: `unit_masks &= ~0x4000000`, `path.length = 0`,
+   `close_orders(0)`, `clear_partial_path` and `update_action`, which
+   are `Unit::clear_orders`' four;
+2. at `61a48b`, `o_down` (`+0x90`) non-negative and that figure's
+   `flags & 1` set: `go_inside(o_down, boat, who, 1)`, and the same
+   again from there.
+
+So a squad goes aboard **whole**, captain first, and each member's own
+group move dies aboard. The dump's `up`/`down` are `ObjectData
++0x2a`/`+0x2c`, the map chain `remove_from_world` clears, and not the
+squad's links, which no record prints.
+
+**The diff.** run466 (`docs/GOLDEN.md` §52), block 1357, after `0/7`
+casts on 1356: barge `0/10` `inside_down 7`; `0/7` `inside_up 10`,
+`inside_down 8`; `0/8` `inside_up 7`, `inside_down 9`; `0/9`
+`inside_up 8`; and `0/8`'s and `0/9`'s `orders_x/y` their own points.
+Before item 1235 this crate put the caster alone aboard (`board`); `0/8`
+walked on 1356 (`Unit::do_move+0xe84`, the word's two extra draws), and
+`0/9` held its move and cast a barge of its own on 1366. The original
+makes no `0/11` on any block.
+
+**In this crate**: `Sim::board` (`crate::transport`) walks the chain.
+`a_captain_s_boarding_takes_its_squad_aboard_and_closes_its_orders` and
+`a_squad_s_boarding_stops_at_a_dead_figure_down_the_chain` hold it;
+chapter forty-three's walk and widening hold it on run466 (the mutation
+is in item 1235's journal).
+
+**Not established.**
+- The `+0x68 & ~0x4000000` bit (`add_move_facing_order`'s) is not kept
+  here: a `SEAM` in `board`.
+- The squad's landing: `eject_contents@0064cd20` walks the host's
+  `inside_down` chain and gives each passenger `come_out`. With three
+  aboard, `Sim::disembark` walks the riders in index order, which is the
+  chain's order on run466 (7, 8, 9), and gives each the §6.4 squad arm.
+  run466's landing is on 1901, past the word.
+- `do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
+  whose captain's current order is `CAST_SPELL` gives its frame back) is
+  reached only by a member holding its own transport cast and stepped
+  before its captain. No staging has one.
