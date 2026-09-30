@@ -1619,12 +1619,29 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 12_582;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9352 since item 1318**: run470 parts on frame 9352, **ours 35 draws
-/// against the original's 36, at index 0** — the original opens on
-/// `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19`
-/// (seed `0e2eda7d`, 55735), an animal's idle roll ours does not spend.
-/// Inside run511's window (block 9353): gaia's `8/2` stands a unit apart
-/// on 9348, its animation parts on 9349.
+/// **9764 since item 1332** (`docs/COLLISION.md` §13.3): the Supply
+/// Wagon `1/86` pushes gaia's peacock `8/2` (`HERDPEACOCK`, 413) on tick
+/// 9347 in the original, whose stranger refusal (`5fad3c`, `cmpb $8`)
+/// spares gaia, and this crate refused gaia and pushed nothing; and the
+/// pushed idle unit's guy 0 is turned to the push (`turn_angles(bearing,
+/// &out, 1, 1)`, `do_turn`), which this crate left a seam. **The move's
+/// value diff** (run511): on block 9348 `8/2`'s `gaia:pos` ours (38712,
+/// 20232) against (38711, 20231) → agreeing; on 9349 its `cur_anim` 0
+/// against 7 → agreeing; on 9355 `1/86`'s `collide_o` 2 against −1 →
+/// agreeing (with the push alone, `8/2`'s `cur_anim` 7 against 0 on 9354,
+/// and the word 9354). run511's keys went 1,802 → 159. Frame 9352's draws
+/// went 35 against 36 → agreeing. **The new word's delta: ours 10 draws
+/// and the original 11 on frame 9764, parting at index 4**: the original
+/// spends `Guy::set_anim+0x97a < Unit::set_anim+0xb6 < Unit::do_idle+0x7d`
+/// (seed `c84aaf40`), a crew figure's idle roll, where ours goes on to
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run511's window (its
+/// last block 9574), widened on run529 (block 9765).
+///
+/// It was **9352** before that (item 1318), ours 35 against 36 at index 0:
+/// the original opens on `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+/// Animal::do_idle+0x19` (seed `0e2eda7d`, 55735), an animal's idle roll
+/// ours did not spend. Inside run511's window (block 9353): gaia's `8/2`
+/// stood a unit apart on 9348, its animation parted on 9349.
 ///
 /// It was **9323** before that (item 1305), ours 7 against 5 at index 1:
 /// the AI scout `1/0` collided with the King's Longbowman `1/69` and
@@ -1737,7 +1754,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 12_582;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_352;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_764;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7706,13 +7723,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 9318..9574 (item 1305), whose run500 test keeps the move's
     // value diff on 8858; the word 9352 on the same blocks (item 1318),
     // whose run517 test keeps the move's value diff over the gap
-    // 9032..9323.
+    // 9032..9323; the word 9764 on run529 over 9759..10015 (item 1332),
+    // whose run511 test keeps the move's value diff on 9348..9355.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run511_s_word_frame_is_widened_whole"),
-        1318,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9323),
+        Some("run529_s_word_frame_is_widened_whole"),
+        1332,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9764),
     ),
 ];
 

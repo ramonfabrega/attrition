@@ -197,9 +197,11 @@ const UNREAD: &[(&str, &str)] = &[
     // valueless line, so each name is a key of its own. run356's and
     // run357's windows are the first driven ones to hold a third British
     // city; the name is read by nothing, as `London` and `Norwich` are not.
+    // **Item 1332 added `York`**: run529's window, Great Sahara at
+    // Toughest past 9574, holds a city no earlier window did.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Newcastle Norwich flags increment length size",
+        "London Napata Newcastle Norwich York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -691,6 +693,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r491 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8182);
     let r500 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8786);
     let r511 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9323);
+    let r529 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9764);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1443,6 +1446,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_9353;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run511 carries the third map's word 9352 at Toughest");
+        frames += n;
+    }
+    // **And its word 9764, on run529** (item 1332): the frame writes block
+    // 9765, and the window is it with two either side.
+    if let Some(p) = &r529 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_9765;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run529 carries the third map's word 9764 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

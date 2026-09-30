@@ -146,6 +146,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1332, 2026-09-30 — the stranger's shove
+
+(1339) **The pushed unit's `guy_flags & 2` across a frame boundary**:
+this crate reads the bit as the facing against the frame's start, so a
+push landing after the pushed unit's own turn, owing more than the
+halved rate, is forgotten at the next frame's start where the original
+may hold it into that unit's next `Guy::move`. No capture shows a
+partial push turn.
+
 ## Parked by item 1318, 2026-09-30 — Forced March's speed
 
 (1333) **The crew step's `GuyData::get_speed`**: ours 57 against 71 on
@@ -2693,6 +2702,12 @@ answer, but sat in a function the booking's chain does not reach, so
 `seams.py --item 1318` could not print it. When a word's frame follows a
 cast the previous landing built, run `seams.py` on that landing's own
 functions too.
+
+(1340) **A `SEAM` in the writer's function** (1332's Loop line): the
+answer sat in the pusher's function; the booking named only the pushed
+animal's chain. When the first parted field is a `collide_o` another
+unit wrote, run `seams.py` on the writer's function by name — the same
+shape as 1337.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
