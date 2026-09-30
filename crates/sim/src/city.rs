@@ -1019,10 +1019,31 @@ impl Sim {
     /// What a building of a type costs a player now — `get_cost` through
     /// `docs/COSTS.md`'s ramp, with the count of this type the player has
     /// placed.
+    ///
+    /// **A city is ramped by every city of the line** (item 1286):
+    /// `TypeData::get_cost@00664090`'s building arm asks the type's vslot
+    /// `+0x64` (`is_city`) after the wonder test, and on a city sums
+    /// `num_buildings` and `num_queued` over `VILLAGE`, `TOWN` and
+    /// `METROPOLIS` — six `movzwl`s at `+0x555e`..`+0x5562` and
+    /// `+0x5d5e`..`+0x5d62`, listing `0x66580c`–`0x665837` — where every
+    /// other building reads its own type's pair (`0x665966`). A Small City
+    /// offered beside two Large Cities is priced as the third city, not the
+    /// first Small one.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
         let wonder = self.build_types[ty].wonder;
         let of_type = if wonder {
             self.wonder_ramp_count(who, ty)
+        } else if build::is_city(&self.build_types, ty) {
+            let line = |k: usize| {
+                matches!(
+                    self.build_types[k].ident,
+                    Ident::Village | Ident::Town | Ident::Metropolis
+                )
+            };
+            self.buildings
+                .iter()
+                .filter(|b| b.alive && b.owner == who && b.ty.is_some_and(line))
+                .count() as i32
         } else {
             self.buildings
                 .iter()

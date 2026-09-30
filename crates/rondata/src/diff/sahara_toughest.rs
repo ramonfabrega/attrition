@@ -755,18 +755,23 @@ mod tests {
             None,
             "who=1's wealth leftover agrees"
         );
-        // **The word 8377, block 8378**: ours' head is spent (`val` −1)
-        // where the original's is a category-9 row worth 1981477 at
-        // (30, 24), and who=1's wealth is 172 against 53.
+        // **The word 8377 moved** (item 1286): on block 8378 ours' head was
+        // spent (`MAKE[0].val` −1) where the original's was a category-9
+        // row worth 1981477 at (30, 24), and who=1's wealth was 172 against
+        // 53 — ours bought its fourth city at 60 food and timber, counting
+        // Small Cities alone, where the original priced it as the fourth
+        // of the line at 160, quartered the three sites as unaffordable and
+        // went to the market (`docs/AI.md` §99.11). Nothing parts on 8378
+        // now, nor on any block past 8277 in the window.
         pin_eq!(
-            row(1, -1, "leader:MAKE[0].val").as_deref(),
-            Some("8378: ours -1 theirs 1981477"),
-            "who=1's head on the word's block"
+            row(1, -1, "leader:MAKE[0].val"),
+            None,
+            "who=1's head agrees on 8378"
         );
         pin_eq!(
-            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
-            Some("8378: ours 172 theirs 53"),
-            "who=1's wealth on the word's block"
+            row(1, -1, "leader:bucket[2:wealth]"),
+            None,
+            "who=1's wealth agrees on 8378"
         );
         pin_eq!(
             by.iter()
@@ -779,18 +784,15 @@ mod tests {
                 (8201, 1),
                 (8209, 18),
                 (8210, 2),
-                (8277, 1),
-                (8378, 58),
-                (8379, 40),
-                (8380, 13),
-                (8381, 11)
+                (8277, 1)
             ],
             "the blocks keys first part on, to three past the word 8377's"
         );
         pin_eq!(
             w.firsts.len(),
-            530,
-            "every key parted on run491 (967 before item 1275's trade)"
+            165,
+            "every key parted on run491 (530 before item 1286's city count, \
+             967 before item 1275's trade)"
         );
     }
 

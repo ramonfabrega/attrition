@@ -2054,6 +2054,52 @@ mod tests {
         );
     }
 
+    /// **A city is priced by every city of the line** (item 1286):
+    /// `get_cost`'s `is_city` arm sums `num_buildings` and `num_queued` over
+    /// the Small, Large and Major City. On Great Sahara at Toughest's frame
+    /// 8377 who=1 held one Small City and two Large ones, and the original
+    /// priced its fourth city as the fourth: the site was quartered as
+    /// unaffordable and the market bought food for it, where this crate,
+    /// counting Small Cities alone, bought it on the spot. A Barracks still
+    /// counts its own type.
+    #[test]
+    fn a_city_is_priced_by_every_city_of_the_line() {
+        use crate::cost::{Kind, Price, RampClass};
+        use crate::economy::Resource;
+        let (mut sim, t) = sim();
+        let food = Resource::Food as usize;
+        let mut town = bt(Ident::Town, "ean", 7, 7);
+        town.from = Some(t.village);
+        let town = sim.add_build_type(town);
+        let priced = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Food, 1)
+                .with_support(Resource::Food, 50)
+        };
+        sim.build_types[t.village].price = priced.clone();
+        sim.build_types[t.barracks].price = priced;
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let b = city(&mut sim, &t, 0, 80, 40);
+        let two_small = sim.building_price(0, t.village)[food];
+        let barracks = sim.building_price(0, t.barracks)[food];
+        sim.buildings[b].ty = Some(town);
+        assert_eq!(
+            sim.building_price(0, t.village)[food],
+            two_small,
+            "a Large City counts as a city"
+        );
+        let one_small = {
+            sim.buildings[b].alive = false;
+            let p = sim.building_price(0, t.village)[food];
+            sim.buildings[b].alive = true;
+            p
+        };
+        assert!(one_small < two_small, "{one_small} against {two_small}");
+        assert_eq!(sim.building_price(0, t.barracks)[food], barracks);
+    }
+
     /// Counts the sync-stream draws one `create_buildings` pass takes.
     fn pass_draws(sim: &mut Sim, who: Player) -> usize {
         let before = sim.rng;
