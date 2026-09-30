@@ -1070,6 +1070,40 @@ mod tests {
         );
     }
 
+    /// **The gap 9038..9317, widened whole** (item 1318):
+    /// [`great_sahara_toughest_gap_window`] over run517's blocks
+    /// 9032..9323, both directions, every record run500's detail prints —
+    /// the frames the 571 keys that stood on run511's first block parted
+    /// in, and the move 9323 → 9352's value diff.
+    #[test]
+    fn run517_s_gap_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_gap_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 292, "run517 whole: blocks 9032..9323");
+        pin!(
+            w.missing.is_empty(),
+            "run517 carries every key: {:?}",
+            w.missing
+        );
+        pin_eq!(w.firsts.len(), 0, "every key parted on run517");
+    }
+
     /// **The goods, every frame to the first word's block** (item 1251):
     /// [`great_sahara_toughest_goods_window`] over run482's blocks 1..5378,
     /// both directions, every field `LEADERS=2` prints for every leader.
