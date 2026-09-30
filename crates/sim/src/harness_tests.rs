@@ -1509,8 +1509,9 @@ fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
 /// `track_queued(elite, −1)` still finds the research's own count and takes
 /// it, its `+1` puts it back, and the unqueue takes it off: Elite
 /// Javelineers' count ends at **0** with the re-targeted entry in the queue,
-/// and the Slingers keep theirs. run462's block 10178 holds exactly that on
-/// who=1 (`num_queued[84]` 0, `1/2020` holding an Elite Javelineers entry).
+/// and the Slingers keep theirs. run462's block 10178 holds the same shape
+/// on who=1's Hoplites → Pikemen line (`num_queued[84]` 0, `1/2020`
+/// holding a Pikemen entry).
 /// Unqueued first, the guarded `−1` finds nothing and the count ends at 1.
 /// And every decrement is guarded: a cancel of that entry leaves 0, not −1.
 #[test]
@@ -1544,9 +1545,12 @@ fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
     let mut sim = skirmish(4);
     sim.set_tech_tree(tree);
     sim.start_techs(0);
+    // One production group, so the group tally (`barracks_queued`) moves
+    // beside the type's count.
     let rec = |sim: &mut Sim, t| {
         sim.add_unit_type(UnitType {
             tree: Some(t),
+            group: Some(0),
             ..citizen_type()
         })
     };
@@ -1587,11 +1591,24 @@ fn a_unit_research_gains_before_it_unqueues_and_no_count_goes_below_zero() {
         sim.muster[0].queued_by_type[slingers], 1,
         "the jump match leaves the Slingers' count one high"
     );
+    assert_eq!(
+        sim.muster[0].queued_by_group[0], 1,
+        "the group: two queued, the gain's -1 and +1, the unqueue's -1"
+    );
 
     sim.cancel(b, 0).expect("the entry is there");
     assert_eq!(
         sim.muster[0].queued_by_type[elite], 0,
         "an unqueue never takes a count below zero"
+    );
+    assert_eq!(
+        sim.muster[0].queued_by_group[0], 0,
+        "the group's tally: 1 → 0"
+    );
+    sim.untrack_queued(0, elite);
+    assert_eq!(
+        sim.muster[0].queued_by_group[0], 0,
+        "nor the group's: `barracks_queued` comes off only when it is not zero"
     );
 }
 

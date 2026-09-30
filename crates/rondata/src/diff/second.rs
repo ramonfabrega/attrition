@@ -167,7 +167,8 @@ pub(crate) fn walk_second_probed(
 /// 1174 moved it to 7512, inside it; item 1185 moved it to 8519, and the
 /// walk to run439; item 1191 moved it to 8820, and the walk to run445;
 /// item 1197 moved it to 8907, inside it; item 1214 moved it to 10183,
-/// and the walk to run462; item 1228 moved it to 10185, inside it. `None`
+/// and the walk to run462; item 1228 moved it to 10185, inside it; item
+/// 1243 moved it to 10985, and the walk to run480. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -179,7 +180,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run462-islands-toughest-10183.txt",
+        "gamelog-run480-islands-toughest-10985.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -1663,20 +1664,115 @@ mod tests {
                 "who=1's {key} agrees on the window (item 1228)"
             );
         }
+        //
+        // **The word 10985** (item 1243, `docs/TECH.md` "The queue loop"): a
+        // unit research gains before it unqueues, so who=1's Pikemen
+        // research at `1/2020` on 9143 leaves `num_queued[84]` at 0 with the
+        // re-targeted Hoplites entry in the queue, not at 1. **The move's
+        // value diff, here** — each key agreeing now, and each read on the
+        // block it parted on under 1228's tree: on 10178, who=1's
+        // `num_queued[84]` ours 1 against 0, `bucket[0:food]` 125 against
+        // 133 and `bucket[4:metal]` 107 against 115, and `1/2020`'s
+        // `queue[0].cost` 86/66 against 78/58 (the second Pikemen priced a
+        // ramp step dearer); on 10183 `bucket[1:timber]` 48 against 56; on
+        // 10185 `MAKE[0].val` 1,200,000 against 4,800,000 and `MAKE[1].t`
+        // −1 against 438 (the second Senate); on 10186 `bucket[2:wealth]`
+        // 57 against 7 and `1/2026`, the Senate's foundation, the dump's
+        // alone. Frame 10185's draws went 9 against 10 → agreeing. The
+        // word left the window: 10985, widened on run480.
+        for (who, o, key) in [
+            (1, -1, "leader:num_queued[84]"),
+            (1, -1, "leader:bucket[0:food]"),
+            (1, -1, "leader:bucket[4:metal]"),
+            (1, 2020, "queue:queue[0].cost[0]"),
+            (1, 2020, "queue:queue[0].cost[1]"),
+            (1, -1, "leader:bucket[1:timber]"),
+            (1, -1, "leader:MAKE[0].val"),
+            (1, -1, "leader:MAKE[1].t"),
+            (1, -1, "leader:bucket[2:wealth]"),
+            (1, 2026, "build:unlinked"),
+        ] {
+            pin_eq!(
+                row(who, o, key),
+                None,
+                "{who}/{o}'s {key} agrees on the window (item 1243)"
+            );
+        }
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // The blocks to 10186, 1228's word's block: the word has left the
+        // window, so the count stops where it stood.
         pin_eq!(
-            row(1, -1, "leader:MAKE[0].val").as_deref(),
-            Some("10185: ours 1200000 theirs 4800000"),
-            "the block before the word's: the Senate at a quarter"
+            by.iter()
+                .filter(|(b, _)| **b <= 10_186)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(10178, 174), (10181, 3), (10182, 2), (10184, 4), (10185, 1)],
+            "the blocks keys first part on, to 10186"
         );
-        pin_eq!(
-            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
-            Some("10186: ours 57 theirs 7"),
-            "the word's block: the original has paid for the Senate"
-        );
+        // Item 1228: 1055 → 1398; the window now walks past 10185, and
+        // who=1's make list and its Senate part from there. Item 1243:
+        // 1398 → 198, the word past the window.
+        pin_eq!(w.firsts.len(), 198, "every key parted on run462");
+    }
+
+    /// **The second pair's East Indies word 10985, widened whole** (item
+    /// 1243): run480 is run346's game at run462's detail over blocks
+    /// 10980..11236, walked from run346's own start — six blocks before
+    /// the word's block 10986 and 250 past it.
+    #[test]
+    fn run480_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run480",
+            "gamelog-run480-islands-toughest-10985.txt",
+            WIDENING_SECOND_EAST_INDIES_10985,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run480 whole: blocks 10980..11236");
         pin!(
-            row(1, 2026, "build:unlinked").is_some_and(|r| r.starts_with("10186:")),
-            "the word's block: the Senate's foundation, the dump's alone: {:?}",
-            row(1, 2026, "build:unlinked")
+            w.missing.is_empty(),
+            "run480 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 10985** (item 1243; no mechanism is named): ours 10
+        // draws against 11, at index 2, ours' `Leader::make_stuff+0x221`
+        // where the original spends a third `Leader::use_market+0x1ed`.
+        // On 10985 (`create_buildings`' block before it) who=1's make
+        // list holds a type-440 building at 900,000 in slot 1 where the
+        // original holds five Pikemen (`TypeIndex` 134) at 611,022, so
+        // `use_market`'s `need` over the first two slots differs. The first
+        // block stands on 188 keys, among them the order rows' `group.id`
+        // (10746119 against 10752919) and the make list's `city` from 10981.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[1].t").as_deref(),
+            Some("10985: ours 440 theirs 134"),
+            "the block before the word's: a building above the Pikemen"
+        );
+        pin_eq!(
+            row(1, -1, "leader:MAKE[1].val").as_deref(),
+            Some("10985: ours 900000 theirs 611022"),
+            "the block before the word's: its offer"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -1687,20 +1783,10 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (10178, 179),
-                (10181, 6),
-                (10182, 2),
-                (10183, 3),
-                (10184, 4),
-                (10185, 4),
-                (10186, 38)
-            ],
+            [(10980, 188), (10981, 7), (10982, 1), (10984, 1), (10985, 8)],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1228: 1055 → 1398; the window now walks past 10185, and
-        // who=1's make list and its Senate part from there.
-        pin_eq!(w.firsts.len(), 1398, "every key parted on run462");
+        pin_eq!(w.firsts.len(), 1490, "every key parted on run480");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

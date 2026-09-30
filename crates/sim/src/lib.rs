@@ -2705,9 +2705,10 @@ impl Sim {
                 // it returns. So the re-target's `track_queued(t, −1)`
                 // finds the research entry's own count still standing, and
                 // the unqueue takes it off after. run462's block 10178:
-                // the Elite Javelineers research at `1/2020` finished on
-                // 9143, and who=1's `num_queued[84]` stands at 0 with the
-                // re-targeted entry in the queue.
+                // the Pikemen research at `1/2020` finished on 9143 with a
+                // Hoplites entry behind it (a `jump` match), and who=1's
+                // `num_queued[84]` stands at 0 with the re-targeted entry
+                // in the queue.
                 self.muster[who as usize].researched[ty] = true;
                 if let Some(id) = self.unit_types[ty].tree {
                     self.gain_tech(who, id);
