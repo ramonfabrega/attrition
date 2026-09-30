@@ -531,7 +531,14 @@ value the last frame's `GROUPDATA` printed. Two writers move it:
   `reversing` window. Every marching leader does this the moment it turns
   onto a new bearing, so a live group's `facing 1` is ordinarily just "the
   leader has turned round since the last layout". A follower's turn does
-  nothing: it calls `find_leader` and compares.
+  nothing: it calls `find_leader` and compares. **A builder's turn to its
+  site is one** (`Unit::do_build@005eebf0:155`, item 1330): run514's
+  `@build` group reads `facing 1` from block 624, the frame its leader
+  `0/9` turned 122.5° onto its Tower site, and that flag mirrored the
+  group's next move on 680. `Sim::do_build` turns through
+  `Sim::unit_set_angle` since; the gather arms' turns
+  (`do_gather`, `do_non_flat_gather`, the oil well) still write the
+  heading alone.
 - **`Unit::kill_current_order@005e2cb0`**, on a dying order of the move
   family (`{1, 2, 3, 4, 0x12, 0x13, 0x15}`), reads the order's own
   `MoveOrder +0x28 facing` — the mirror **that** order was laid out with —
@@ -742,7 +749,24 @@ for c in 0 ..= cat:
 
 **Column** is `X = ((slot+1) % 3 − 1)·w`, `Y = −(slot/3)·d`, and **Mob**
 puts slot 0 on the anchor and the rest on concentric rings of 5, 10, 15, …
-Both then take the rank stack above. **Square has no placement arm at
+(`72ce81`–`72cf3d`, read in the listing, item 1330):
+
+```text
+r = (w · n) / 5                          n the ring's size, 5 first
+X = cosx(a, r), negated when reversed;   Y = sinx(a, r)
+count += 1
+a += 2 · (0xffffffff / n)                n odd
+     0x4ccccccb                          n == 10
+     (n / 10 + 1) · (0xffffffff / n)     otherwise (unsigned divides)
+count == n:  n += 5, count = 0, a += 0xffffffff / (2n)
+```
+
+`a` starts at `0x55555555` and `n` at 5 (`72cbd4`–`72cbdb`), once per
+call, and only this arm moves them. `cosx@0092d0c0` is `sinx@0092d100`
+a quarter turn on. run514's three Citizens (`x_spacing` 144) sent to
+(3840, 36864) on `-1532166144` stood slots 1 and 2 at (3768, 36984) and
+(3960, 36792), which is this, snapped to the tile. Both then take the
+rank stack above. **Square has no placement arm at
 all** — see the four limits below.
 
 `to[i]` is the destination rotated by the formation angle:
@@ -880,10 +904,13 @@ Each is the original's, not the port's:
    *other* category subtracts `x_spacing[wedge] · rows[wedge]`, so **a
    wedge with a second category is not reproducible by anyone**, us
    included. The simulation seeds it 0.
-3. **Mob past its first member.** Slot 0 on the anchor is exact; the rings
+3. ~~**Mob past its first member.** Slot 0 on the anchor is exact; the rings
    need `cosx`/`sinx` arguments the decompiler drops and no pass has
    recovered from the listing (`72ce96`–`72cec5`, magic-number divides and
-   a wrapping counter that grows its period by 5).
+   a wrapping counter that grows its period by 5).~~ Recovered from the
+   listing by item 1330 (the Mob paragraph above) and diffed on run514's
+   two outer slots; a Mob of six or more, the second ring, is on no
+   capture.
 4. **`categorize`'s two type substitutions.** A loaded sea transport is
    sized by its **cargo's** type; a land unit ordered onto **water** — the
    test is `compute_form`'s own `(terrain & 0x30) == 0x20` at the
@@ -2053,7 +2080,8 @@ Still open:
 - ~~**`Form::compute`'s slot table** (§6.4), the largest gap.~~
   **Closed 2026-08-26**, and the four things left in it are the
   original's, not ours: Square is dead code, a wedge's row count is seeded
-  from uninitialised stack, Mob's rings are unrecovered, and
+  from uninitialised stack, ~~Mob's rings are unrecovered~~ (recovered by
+  item 1330, §6.4), and
   `categorize`'s two type substitutions have no cargo list to read. Each
   is stated with its own falsifying capture at the end of §6.4. On the way
   the three sub-questions this entry named were all answered:
@@ -3340,6 +3368,17 @@ the test, not inside it, as §6.6 step 1 already says. This crate had put
 both inside. So a citizen in a group carries the group's width, 50, and
 keeps its own `form`. That is run157's `1/1` on 990: `form 9` stands,
 and `form_mod` goes from −1 to 50.
+
+**And the `form` it keeps is its birth's** (item 1330, parked 646):
+`Unit::init@00612100:81`–`86` writes `+0xaa` as **9** for the type's
+`+4` in `0x32`–`0x35` and **0** for every other type, and `+0xab` as −1.
+This crate bore every unit −1 (`crate::init_form`, called from
+`Sim::init_unit` and the bird's and pasture animal's births since). The
+difference is not only a dump row: a group of Citizens has `get_form` 9,
+and form 9 keeps each member off the `GroupMoveOrder` (§6.6 step 6), so
+run514's three builders `@move`d on 678 walk three plain `MOVE_TO`s to
+the Mob's rings (§6.4) where this crate gave them one group move to one
+point.
 
 ### 24.4 This crate
 

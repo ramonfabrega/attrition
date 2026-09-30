@@ -1453,6 +1453,63 @@ mod tests {
         );
     }
 
+    /// **The Mob (9) rides rings** (item 1330, `compute_dests`' arm at
+    /// `72ce81`): slot 0 on the anchor, the rest on a first ring of five
+    /// at radius `x_spacing`, from a third of a turn round and two fifths
+    /// of a turn apart. run514's three Citizens, `x_spacing` 144, sent to
+    /// (3840, 36864) on `-1532166144` unmirrored, stood their slots at
+    /// (3768, 36984) and (3960, 36792) — the tile centres below.
+    ///
+    /// Made to fail with the arm placing every slot on the anchor, as it
+    /// did.
+    #[test]
+    fn the_mob_rides_rings_from_a_third_of_a_turn() {
+        let mut s = sim();
+        let t = ty(&mut s, mask::FOOT, 144, 144);
+        let us: Vec<usize> = (0..3)
+            .map(|i| spawn(&mut s, t, Pos::new(7032 + i * 200, 34344)))
+            .collect();
+        let dest = Pos::new(3840, 36864);
+        let at = |reverse| {
+            s.form_compute(
+                &group(&us),
+                dest,
+                Angle(-1_532_166_144),
+                formation::MOB,
+                50,
+                reverse,
+                false,
+                &[],
+            )
+        };
+        let f = at(false);
+        assert_eq!(f.to[0], dest, "slot 0 on the anchor");
+        assert_eq!(crate::orders::snapped(f.to[1]), Pos::new(3768, 36984));
+        assert_eq!(crate::orders::snapped(f.to[2]), Pos::new(3960, 36792));
+        let m = at(true);
+        assert_eq!(m.off[1].0, -f.off[1].0, "the mirror negates x");
+        assert_eq!(m.off[1].1, f.off[1].1, "and keeps y");
+
+        // The rings: five on the first, then ten from a half-step on.
+        let mut ring = MobRing::new();
+        for slot in 1..=5 {
+            let _ = ring.place(slot, 144, false);
+        }
+        assert_eq!((ring.n, ring.count), (10, 0));
+        assert_eq!(
+            ring.angle,
+            0x5555_5555u32
+                .wrapping_add(5 * 0x6666_6666u32)
+                .wrapping_add(u32::MAX / 20)
+        );
+        let (x, y) = ring.place(6, 144, false);
+        let r2 = x * x + y * y;
+        assert!(
+            (287 * 287..=289 * 289).contains(&r2),
+            "the second ring is twice as far out: ({x}, {y})"
+        );
+    }
+
     /// Column (8) is centre, right, left, repeating, three to a rank —
     /// and it leaves `cols[]` uninitialised, which is safe only because
     /// its own arm never reads it.
