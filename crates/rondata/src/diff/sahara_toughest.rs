@@ -1015,29 +1015,43 @@ mod tests {
         // the word's block 9324 the AI scout `1/0` collided with `1/69` in
         // ours alone (`collide_o` 69 against −1). With the march's
         // `UnitData::speed` and the group's `+0x4b`, 133 stand, no
-        // position among them; `1/69` agrees to 9432 and `1/0`'s
-        // collision to 9362.
+        // position among them; `1/69` agreed to 9432 and `1/0`'s
+        // collision to 9362 — and past the move 9352 → 9764, through the
+        // window's end.
         pin_eq!(
             row(1, 69, "pos").as_deref(),
-            Some("9433: ours (34115,19417) theirs (34130,19421)"),
-            "the army unit's position, agreeing past both words"
+            None,
+            "the army unit's position, agreeing through the window"
         );
         pin_eq!(
             row(1, 0, "collide_o").as_deref(),
-            Some("9363: ours 58 theirs -1"),
-            "the scout's collision, agreeing on 9323's block"
+            None,
+            "the scout's collision, agreeing through the window"
         );
-        // **The word 9352's block 9353**: the original spends an animal's
-        // `Animal::do_idle+0x19` idle roll ours does not. Gaia's `8/2`
-        // stands a unit apart on 9348 and parts its animation on 9349 —
-        // the nearest rows to the word; the Senator `1/80`'s followers
-        // part their step on 9328 (ours 57, theirs 71: `Guy::move`'s crew
-        // step takes `GuyData::get_speed`, and this crate the cached
-        // `myspeed`), as they did before the move.
+        // **The move 9352 → 9764** (item 1332, `docs/COLLISION.md` §13.3):
+        // the Supply Wagon `1/86` pushes gaia's peacock `8/2` on tick 9347
+        // in the original — `detect_boat_collision`'s stranger refusal is a
+        // player's only — and ours refused gaia and pushed nothing: `8/2`
+        // stood on (38712, 20232) against (38711, 20231) on block 9348,
+        // `cur_anim` 0 against 7 on 9349, and on 9355 the wagon collided
+        // with it in ours alone (`collide_o` 2 against −1, 40 keys). With
+        // the push, the peacock agreed to 9353 and parted `cur_anim` 7
+        // against 0 on 9354: the pushed idle unit's guy 0 turn
+        // (`turn_angles(bearing, &out, 1, 1)`) left it owing 4° and walking
+        // a frame longer. With the turn, `8/2` and `1/86` agree through
+        // the window. The Senator `1/80`'s followers part their step on
+        // 9328 (ours 57, theirs 71: `Guy::move`'s crew step takes
+        // `GuyData::get_speed`, and this crate the cached `myspeed`), as
+        // they did before either move.
         pin_eq!(
             row(8, 2, "gaia:pos").as_deref(),
-            Some("9348: ours (38712,20232) theirs (38711,20231)"),
-            "gaia's 8/2, a unit apart before the word"
+            None,
+            "gaia's 8/2, pushed on both sides"
+        );
+        pin_eq!(
+            row(1, 86, "collide_o").as_deref(),
+            None,
+            "the wagon collides with nothing it pushed"
         );
         pin_eq!(
             row(1, 80, "g.last_speed[2]").as_deref(),
@@ -1045,10 +1059,7 @@ mod tests {
             "the Senator's crew step"
         );
         pin_eq!(
-            by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9353 + 3)
-                .map(|(b, n)| (*b, *n))
-                .collect::<Vec<_>>(),
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (9318, 133),
                 (9328, 4),
@@ -1056,17 +1067,24 @@ mod tests {
                 (9330, 1),
                 (9332, 1),
                 (9333, 1),
-                (9348, 1),
-                (9349, 2),
-                (9355, 40),
-                (9356, 10)
+                (9355, 1),
+                (9363, 2),
+                (9368, 1),
+                (9376, 1),
+                (9401, 1),
+                (9446, 1),
+                (9447, 1),
+                (9512, 1),
+                (9513, 1),
+                (9533, 4),
+                (9574, 1)
             ],
-            "the blocks keys first part on, to three past the word 9352's"
+            "the blocks keys first part on, the whole window"
         );
         pin_eq!(
             w.firsts.len(),
-            1802,
-            "every key parted on run511 (2,069 before item 1318)"
+            159,
+            "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
     }
 
