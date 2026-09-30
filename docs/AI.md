@@ -6256,7 +6256,8 @@ now fills (`Leader::unit_offers`, stamped with its frame): Scholar
 **45,568** city 1, Citizen 234,782 city 2, Scholar **45,568** city 2 — the
 two numbers §49 and §51 measured, no Merchant, and the city index one
 apart because it is this crate's index into `cities` and not the leader's
-own numbering. That is item 442's residue, pinned in no direction.
+own numbering. ~~Item 442's residue.~~ Compared as the leader's own
+index since item 1326 (`diff::leader`).
 
 The purchase is one `make_this` on 9382, `slot 1`, answering 0.
 
@@ -7099,8 +7100,8 @@ chain walk. The rest of the branch is unchanged.
 
 With the search in, both lists agree **slot for slot on every block of
 run139**. Only `MAKE[*].city` still parts, and that is §52.2's index shift,
-not a value. The 17 rows on 9982 become 7 city rows, and the 38 on 9984
-become 0.
+not a value (gone since item 1326). The 17 rows on 9982 become 7 city rows,
+and the 38 on 9984 become 0.
 
 | instrument | before | after |
 | --- | --- | --- |

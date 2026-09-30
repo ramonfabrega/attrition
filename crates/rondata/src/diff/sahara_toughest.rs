@@ -491,12 +491,14 @@ mod tests {
             None,
             "who=1's tenth make row agrees"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was Some("5382: ours 1 theirs 0").
         pin_eq!(
             row(1, -1, "leader:MAKE[1].city").as_deref(),
-            Some("5382: ours 1 theirs 0"),
+            None,
             "the make list's city stands"
         );
-        pin_eq!(w.firsts.len(), 202, "every key parted on run471");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 202.
+        pin_eq!(w.firsts.len(), 194, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item
@@ -554,12 +556,13 @@ mod tests {
             None,
             "who=1's tenth make row agrees"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(5777, 102), (5781, 6)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_5783)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5777, 102), (5781, 6)],
+            [(5777, 102)],
             "the blocks keys first part on, to the old word's"
         );
         // **The old word's value diff, block 5783, closed by item 1251**:
@@ -575,7 +578,8 @@ mod tests {
         ] {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees on 5783");
         }
-        pin_eq!(w.firsts.len(), 147, "every key parted on run476");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
+        pin_eq!(w.firsts.len(), 138, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -640,12 +644,13 @@ mod tests {
         // standing block and 7075. Frame 7070's extra draws are one road
         // search, `1/52`'s — ours 3204 `PathFinder::calc_road_cost+0x46`
         // against the original's 2543 — and no record prints a search.
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(7065, 119)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 119)],
+            [(7065, 113)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -653,14 +658,16 @@ mod tests {
         // arrives as the original's does. What parts past the standing
         // block is five keys — who=1's `peasants` 30 against 31 and `1/56`'s
         // `form` on 7144 first — where it was 616.
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 119), (7144, 2), (7152, 1), (7184, 1), (7201, 1)],
+            [(7065, 113), (7144, 2), (7152, 1), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 124.
         pin_eq!(
             w.firsts.len(),
-            124,
+            117,
             "every key parted on run483 (132 before item 1281, 134 before item 1275, 745 before item 1260)"
         );
     }
@@ -725,17 +732,19 @@ mod tests {
         );
         pin_eq!(row(1, 2030, "build:x_internal"), None, "the Senate's x");
         pin_eq!(row(1, 2030, "build:y_internal"), None, "the Senate's y");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 122), (7781, 1), (7782, 4), (7784, 1), (7785, 2)],
+            [(7780, 122), (7782, 2)],
             "the blocks keys first part on, to three past the word's"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 138.
         pin_eq!(
             w.firsts.len(),
-            138,
+            132,
             "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }
@@ -822,6 +831,7 @@ mod tests {
             None,
             "who=1's wealth agrees on 8378"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
@@ -829,7 +839,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             [
                 (8177, 127),
-                (8181, 8),
+                (8181, 3),
                 (8201, 1),
                 (8209, 18),
                 (8210, 2),
@@ -837,9 +847,10 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word 8377's"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            157,
+            152,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
@@ -922,15 +933,16 @@ mod tests {
             Some("8856: ours 8855 theirs 8799"),
             "who=1's gather_stamp, the first before the word's block"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8857 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (8781, 132),
+                (8781, 128),
                 (8782, 3),
-                (8785, 7),
+                (8785, 8),
                 (8796, 1),
                 (8801, 1),
                 (8851, 1),
@@ -938,9 +950,10 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word's"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 149.
         pin_eq!(
             w.firsts.len(),
-            149,
+            145,
             "every key parted on run500 (737 before item 1305, 1,808 before item 1293, \
              1,816 before item 1281)"
         );
@@ -998,13 +1011,14 @@ mod tests {
             Some("9324: ours 69 theirs -1"),
             "the scout's collision on the word's block"
         );
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9324 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9318, 571),
+                (9318, 565),
                 (9319, 15),
                 (9320, 15),
                 (9321, 11),
@@ -1017,7 +1031,8 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 2069, "every key parted on run511");
+        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 2069.
+        pin_eq!(w.firsts.len(), 2063, "every key parted on run511");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
