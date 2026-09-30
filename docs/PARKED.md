@@ -146,6 +146,20 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1318, 2026-09-30 — Forced March's speed
+
+(1333) **The crew step's `GuyData::get_speed`**: ours 57 against 71 on
+run517's 9222 and run511's 9328 — named by `docs/MOVEMENT.md`, reached
+now.
+
+(1334) **Group 67's `speed` 0 against 34** from run517's 9084.
+
+(1335) **The group's `+0x4b` arm** (1318's M3), held by no walk; and the
+follower's `has_general` report (M2).
+
+(1336) **Alexander's arm, the Iroquois bonus and the hero auras**
+(`Sim::unit_speed`'s `SEAM`): not built.
+
 ## Parked by item 1302, 2026-09-30 — the General's decoys
 
 (1327) **`1/93`'s `path_recursion` 1 against 0 on run506's 11638**: a
@@ -165,10 +179,9 @@ after it on the walk.
 
 ## Parked by item 1305, 2026-09-30 — a General's coin
 
-(1319) **Forced March's speed** — `UnitData::speed@0060aae0`'s
-`forced_march_speed` arm through `HeroesData::find_hero` — not carried:
-who=1's army near `1/80` walks 9112..9262 at its own speed here; fits
-the army's lead on 9318, a hypothesis only.
+(1319) closed 2026-09-30 by item 1318: **Forced March's speed** —
+`UnitData::speed`'s march arm and `do_group_move`'s `+0x4b` flag, built;
+Great Sahara at Toughest 9323 → 9352 (`docs/AI.md` §99.15).
 
 (1320) **`cast_ambush` and Rally's cast; `use_spies`, `use_scouts`**:
 not built; no draw of theirs on run470 or run500.
@@ -2673,6 +2686,13 @@ widening** (1323's Loop line): the building `recharging`/`attack_ox`
 comparison is keyed to anti-air types (`wall_cycle`), so a Tower's own
 cycle, and a site's, goes uncompared; chapter forty-seven's word found
 T's round where the widening could have named it.
+
+(1337) **A seam in the previous landing's functions** (1318's Loop
+line): `cast_march`'s "what the march does … is not carried" named the
+answer, but sat in a function the booking's chain does not reach, so
+`seams.py --item 1318` could not print it. When a word's frame follows a
+cast the previous landing built, run `seams.py` on that landing's own
+functions too.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
