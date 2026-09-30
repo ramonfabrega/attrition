@@ -146,6 +146,24 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1264, 2026-09-30 — the Keep's conversion
+
+(1282) **The conversion's in-use arm** (1264's mutation B): a
+Tower-line site standing on the frame its leader gains the next type
+converts; held by its unit test and no walk.
+
+(1283) **`Sim::build_los`'s tower term**: the original's Keep `1/2014`
+prints `mylos 13` on run425's 7377 — Keep `LOS 12` plus `x_size / 2`,
+our formula — and **15** on run480's 10985, which is not. The `SEAM`'s
+"none can fire in any capture on disk" was false from run425 on; a
+building's `mylos` and `myhits` are uncompared, so no walk watches it.
+
+(1284) **`num_buildings[scan]` and `high_buildings` stand on the
+compared pin as uncompared** while this crate carries the count as
+`num_buildings_of`: comparing them is the widening that would have
+caught 1264's Keep in one run, about 6,000 frames before the word.
+Beside 1265's `*_queued` keys, a candidate widening.
+
 ## Parked by item 1260, 2026-09-30 — the mesh's redo
 
 (1276) **run483's window parts on 7144, before 7785's word**: who=1's
@@ -198,7 +216,20 @@ Furs, Despotism, the Turks, the Persians, Silk, the Dutch, Papyrus and
 the Chinese are held by no walk (the Americans ship at 0); the unit test
 holds Silk, Furs and the Turks' truncation after Furs'. A capture where a
 leader holding Furs, Silk or Papyrus, or playing one of those nations,
-researches the line would hold them.
+researches the line would hold them. **No staging on the golden start
+reaches them** (1268): map 14's rares at seed 12345 are none of the
+three goods; `add` makes only units and buildings and no console verb
+writes a rare mask; who=0 is tribe 4 and who=1 tribe 11, and neither the
+console nor the profile's lobby blocks carry a nation (`--profile KEY=N`
+writes `<SOLO>`/`<MULTI>`). A map style or seed that places one of the
+goods would reach it with chapter forty-five's staging, but the golden
+harness reads map 14 alone. **Despotism is held since 1268.**
+
+(1279) **The Despotism tiers' order is invisible** (1268): three rows,
+one government, 15 each.
+
+(1280) **`calc_rare`'s Porcelain term and `Unit::update_hits`' other
+terms** (1268): no staging reaches them.
 
 (1262) **`docs/COSTS.md`'s "The discounts" does not list the
 library-line tail**: AI §99.8 has it; 1251 left COSTS alone for the
@@ -2442,7 +2473,9 @@ and the two locks be one. Repaired by hand from run467's
 `settings-backup/`. **Again** (1223's Loop line): a wait keyed on the
 lane state alone refused one take on the flock and let another lane
 launch into a cleanup; a waiter should key on the flock or the runner's
-pid too. Two reaches. **Again** (1221's Loop line): `ron_lane_state`
+pid too. Two reaches. **Again** (1268's Loop line): a launch in the
+window where `ron_lane_state` says stale and the runner's `flock` is
+still held dies before frame 0 with nothing written. **Again** (1221's Loop line): `ron_lane_state`
 reads `stale`, never `free`, after every runner exits, so a "free and
 nothing alive" wait never fires; what mattered was the INIs' own lines.
 Three reaches.
@@ -2518,6 +2551,14 @@ One reach.
 address** (1257's Loop line): COMBAT §55.2 cited the wrong one of
 `execute_game_events`' two `get_position` calls while the trace's own
 caller offset (`+0x40d`) was on disk. One reach.
+
+(1285) **`docs/RUNS.md`'s union merge interleaves two sections that
+share lines** (1264's Loop line): run480's command was cut after
+`--log-window` and its "Taken" paragraph landed inside run476's section,
+and run488's and run490's were spliced the same way; no guard noticed.
+A guard: every `## runN` section's code fence closes before the next
+heading, and each section names its own `lab-captures/…-runN`. One
+reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the

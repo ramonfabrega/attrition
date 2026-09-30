@@ -2995,7 +2995,7 @@ impl Sim {
             let index = self
                 .find_free(who, UNIT_BASE, BUILD_BASE)
                 .unwrap_or(i16::MAX);
-            let mut unit = Unit::new(who, index, pos, self.type_hits(who, ty));
+            let mut unit = Unit::new(who, index, pos, self.unit_hits(who, ty));
             unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
             unit.type_index = self.unit_types[ty].type_index;
@@ -3092,42 +3092,29 @@ impl Sim {
         head.expect("uber_size is at least one")
     }
 
-    /// `Leader::gain_tech@006dcb60`'s building arm, the **object** half of
-    /// `docs/TECH.md` §8 (`6dde5e`–`6ddf2b`).
-    ///
-    /// Gaining a building type converts the standing buildings it is the
-    /// upgrade of. The loop walks the leader's two building lists and takes
-    /// every live one whose type's `upgrade` (`TypeData +0x44`) is `t`
-    /// (`cmpl %ecx, 0x44(%eax)` at `6ddeb2`): its type's bit goes into
-    /// `obs_flags` (`6ddee2`) and it is `Wall::set_type(t, 0)` (vslot
-    /// `+0x84`, `6ddf06`) — the per-type counters move with it
-    /// (`decrement_stats`, `increment_stats`) and nothing else is written.
-    /// Its hit points follow at the leader's next wall-stats pass
-    /// ([`Sim::calc_wall_stats`], marked by [`Sim::apply_gained`]). Only an
-    /// auto-upgrade type has an `upgrade` (`Types::init`), so this is the
-    /// Tower becoming a Keep with Medieval Age, and a Fort a Castle: run488's
-    /// Tower `1/2015` is `orig_type 439` with the Keep's 1000 hits
-    /// (`docs/AI.md` §99.10).
+    /// Step 8's object half (`docs/TECH.md`, `Leader::gain_tech@006dcb60`,
+    /// the loop at `6dde64`–`6ddf2b`): every in-use building of the leader
+    /// whose type's `upgrade` is `t` becomes `t` through `Wall::set_type(t,
+    /// 0)`. A Tower stands as a Keep from the frame its leader gains the
+    /// Keep, and every count keyed on its type moves with it — the
+    /// original's `num_buildings`, which `create_buildings` reads (item
+    /// 1264). The test is the in-use flag alone: a site converts too.
     fn upgrade_buildings_to(&mut self, who: Player, t: tech::TypeId) {
         let Some(rec) = self.build_record(t) else {
             return;
         };
         for b in 0..self.buildings.len() {
-            if !self.buildings[b].alive || self.buildings[b].owner != who {
+            let bd = &self.buildings[b];
+            if !bd.alive || bd.owner != who {
                 continue;
             }
-            let Some(tree) = self.buildings[b]
+            let upgrades = bd
                 .ty
-                .and_then(|ty| self.build_types[ty].tree)
-            else {
-                continue;
-            };
-            if self.tech_tree.types[tree].upgrade != Some(t) {
-                continue;
+                .and_then(|r| self.build_types[r].tree)
+                .is_some_and(|x| self.tech_tree.types[x].upgrade == Some(t));
+            if upgrades {
+                self.set_type(b, rec);
             }
-            self.tech[who as usize].obs[tree] = true;
-            self.buildings[b].ty = Some(rec);
-            self.buildings[b].combat = Some(self.build_types[rec].combat.unwrap_or_default());
         }
     }
 
@@ -3294,7 +3281,7 @@ impl Sim {
             self.track_unit_type(who, old, -1);
         }
         let damage = self.units[u].max_health - self.units[u].health;
-        let hits = self.type_hits(who, rec);
+        let hits = self.unit_hits(who, rec);
         {
             let unit = &mut self.units[u];
             unit.ty = Some(rec);
@@ -3542,16 +3529,13 @@ impl Sim {
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {
-            if let tech::Gained::UnitUpgrade { to } = *e {
-                self.upgrade_units_to(who, to);
-                self.retarget_queued_to(who, to);
-            }
-            // Step 8's object half: a building type converts the standing
-            // buildings it is the upgrade of.
-            if let tech::Gained::Type(x) = *e
-                && matches!(self.tech_tree.kind(x), tech::Kind::Building { .. })
-            {
-                self.upgrade_buildings_to(who, x);
+            match *e {
+                tech::Gained::UnitUpgrade { to } => {
+                    self.upgrade_units_to(who, to);
+                    self.retarget_queued_to(who, to);
+                }
+                tech::Gained::BuildingUpgrade { to } => self.upgrade_buildings_to(who, to),
+                _ => {}
             }
         }
         self.apply_gained(who);

@@ -1346,6 +1346,24 @@ mod tests {
             civic,
             "the Turks are the military line's"
         );
+        // Despotism, the military line's second step (run492, `docs/
+        // GOLDEN.md` §54): 15 % off what the rare left, and nothing off
+        // another line.
+        sim.tech[1].power = None;
+        sim.ledgers[1].rare = 0;
+        sim.tech_tree.roles.despotism_preq = [Some(t.taxation); 3];
+        sim.tech[1].tech[t.taxation] = true;
+        assert_eq!(
+            price(&sim, t.military1),
+            military * 85 / 100,
+            "Despotism, military"
+        );
+        assert_eq!(price(&sim, civic1), civic, "Despotism is not civic's");
+        assert_eq!(
+            price(&sim, t.commerce2),
+            commerce,
+            "Despotism is not commerce's"
+        );
     }
 
     #[test]

@@ -1500,9 +1500,11 @@ far as anything read goes they are as dead as `calc_support`.
   `calc_rare` reads nothing else off the good (step 6, above). What a rare
   *does* beyond paying is a per-rare rule scattered across the executable —
   `WHALES_SHIPS_MOVE` is read and landed, and the other forty-three are not.
-  The **Porcelain Tower** and **Nubian** terms in `calc_rare`, and the
+  The **Porcelain Tower** ~~and **Nubian**~~ terms in `calc_rare`, and the
   **Japanese** fishing-boat one, are the nation and wonder layer and are always
-  zero here; so is the Porcelain Tower's pass at the top of `calc_gather`,
+  zero here (**the Nubian term is built**, item 1268: `NUBIAN_RARE`'s 50 on
+  every slot of a land rare on friendly ground, run492's Dye paying 240
+  knowledge where the good's own is 160, `docs/GOLDEN.md` §54); so is the Porcelain Tower's pass at the top of `calc_gather`,
   which is the one thing that makes a rare pay with nobody standing on it.
 - **The market.** `MARKET_BASEMENT`, `MARKET_EQUILIBRIUM`, `MARKET_CYCLE_RATE`
   and the rest describe a price simulation with supply and demand. ~~Entirely

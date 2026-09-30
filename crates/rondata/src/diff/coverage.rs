@@ -621,6 +621,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch42 = golden_dump("ch42");
     let ch43 = golden_dump("ch43");
     let ch44 = golden_dump("ch44");
+    let ch45 = golden_dump("ch45");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -666,6 +667,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r445 = crate::testenv::dump("gamelog-run445-islands-toughest-8820.txt");
     let r462 = crate::testenv::dump("gamelog-run462-islands-toughest-10183.txt");
     let r480 = crate::testenv::dump("gamelog-run480-islands-toughest-10985.txt");
+    let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -681,7 +683,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
     let r483 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7070);
     let r488 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7785);
-    let r494 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8182);
+    let r491 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8182);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1227,6 +1229,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // Item 1264 moved it to 11328 (block 11329), past run480: run490 is
+    // its widening.
+    if let Some(p) = &r490 {
+        let n = drive_capture(p, 11_328, 11_331, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run490 carries the second pair's East Indies word 11328's blocks"
+        );
+        frames += n;
+    }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
         assert_eq!(
@@ -1359,12 +1371,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run488 carries the third map's word 7785 at Toughest");
         frames += n;
     }
-    // **And its word 8377, on run494** (item 1275): the frame writes block
+    // **And its word 8377, on run491** (item 1275): the frame writes block
     // 8378, and the window is it with two either side.
-    if let Some(p) = &r494 {
+    if let Some(p) = &r491 {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_8378;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run494 carries the third map's word 8377 at Toughest");
+        assert_eq!(n, 5, "run491 carries the third map's word 8377 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1968,6 +1980,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter forty-five, on run492** (item 1268): 603, the Nubian
+    // Merchant's birth; 769, its Dye's first pay; 804, whose five blocks
+    // hold the three research prices (802, 804, 806).
+    if let Some(p) = &ch45 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_FIVE;
+        for w in [603, 769, 804] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
     // a frame out; 852, `0/7`'s.
@@ -2205,10 +2228,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1260 moved the Toughest window to run488's 7784..7787**, where
     // a move's `coll` pair has left `(0, 0)`: `coll_x`/`coll_y` are compared
     // on the union, and stay off this pin.
+    // **Item 1264 moved it to run490's 11327..11330**, where no cast order
+    // stands: `cast_paid` and `cast_spell` return to this pin; the group
+    // row and `coll_x`/`coll_y` are still compared there.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range garrison_search \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \

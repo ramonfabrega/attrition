@@ -1535,7 +1535,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Leader::make_stuff+0x221` where the original spends a third
 /// `Leader::use_market+0x1ed`. Past run462's window (its last block
 /// 10434), widened on run480 (block 10986).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
+///
+/// **10985 → 11328 on item 1264** (`docs/TECH.md` step 8): a building type
+/// gained converts every in-use building whose type's `upgrade` is it
+/// (`Leader::gain_tech`'s loop at `6dde64`–`6ddf2b`, `Wall::set_type`), and
+/// this crate converted none. who=1's Tower `1/2014` is a Keep in the
+/// original's `num_buildings` from the Keep's gain (Tower 1, Keep 0 on
+/// run357's 5601; Tower 0, Keep 1 on run425's 7377) and stayed a Tower
+/// here, so `create_buildings` read a first Keep to offer and on 10984
+/// valued it at 900,000. **The move's value diff (the word's block before,
+/// here; its block is `run480_s_word_frame_is_widened_whole`'s):** on 10985
+/// who=1's `MAKE[1].t` ours 440 against 134 → agreeing and `MAKE[1].val`
+/// 900000 against 611022 → agreeing; `use_market`'s `need` over three slots
+/// takes the timber short again. run480's keys went 1490 → 220. Frame
+/// 10985's draws went 10 against 11 → agreeing. **The new word's delta:
+/// ours 62 draws and the original 60 on frame 11328, parting at index 57**:
+/// ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+/// original spends `Guy::set_anim+0x104b`. Past run480's window (its last
+/// block 11236), widened on run490 (block 11329).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -1544,31 +1562,42 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_985;
 /// **8377 since item 1275**: run470 parts on frame 8377, **ours 17 draws
 /// against the original's 19, at index 0** — ours opens on
 /// `Leader::make_stuff+0x221` where the original's first is
-/// `Leader::use_market+0x1ed`. Widened on run494 (block 8378).
+/// `Leader::use_market+0x1ed`. Widened on run491 (block 8378), inside
+/// 8182's window.
 ///
-/// It was **8182** before that (items 1264 and 1275), ours 8 against 7 at
-/// index 2: a `Leader::make_stuff+0x63d` the original did not spend. The
-/// Barracks `1/2017` took one King's Longbowman and then the Hoplites
-/// where the original took two: the second's 74 wealth was the unit
-/// who=1's `leftover` paid in on 8182, parted since 6591, when caravan
-/// `1/52`'s new route 2 ↔ 3 had the original's `do_trade` re-sum city 2's
-/// delivered route at today's value, 176 → 184 (`docs/AI.md` §99.10).
-/// **The move's value diff**: run495 block 6592, who=1's
-/// `income[2:wealth]` ours 992 against 1000 → both 1000, and the goods
-/// agree on every block 6030..7066; run494 block 8183, `num_queued[128]`
-/// 2 against 3 and `1/2017`'s `queue[2].type` 132 against 178 → agreeing;
-/// run494 parts on 530 keys where it parted on 967.
+/// It was **8182** before that (item 1264), ours 8 against 7 at index 2:
+/// a `Leader::make_stuff+0x63d` the original did not spend. The Barracks
+/// `1/2017` took one King's Longbowman and then the Hoplites where the
+/// original took two: the second's 74 wealth was the unit who=1's
+/// `leftover` paid in on 8182, parted since 6591, when caravan `1/52`'s new
+/// route 2 ↔ 3 had the original's `do_trade` re-sum city 2's delivered
+/// route at today's value, 176 → 184 (`docs/AI.md` §99.10). **The move's
+/// value diff**: run495 block 6592, who=1's `income[2:wealth]` ours 992
+/// against 1000 → both 1000, and the goods agree on every block
+/// 6030..7066; run491 block 8183, `num_queued[128]` 2 against 3 and
+/// `1/2017`'s `queue[2].type` 132 against 178 → agreeing; run491 parts on
+/// 530 keys where it parted on 967.
 ///
-/// It was **7785** before that (item 1260), ours 23 against 17 at index 4:
-/// the placement's jitter, three draws against two, because ours laid a
-/// **Keep** (`orig_type` 440, `constr_time` 100000) where the original laid
-/// the Senate — ours' Tower `1/2015` had never become a Keep when Medieval
-/// Age handed who=1 the Keep on 6677, so a city with no Keep of the line
-/// valued one at 840000 (`Leader::gain_tech@006dcb60`'s building arm,
-/// `docs/AI.md` §99.10). **The move's value diff**, run488 block 7786:
-/// `1/2030` ours a Keep at (38976, 19584) against the Senate at (38784,
-/// 17760) → the Senate at (38784, 17760) on both; run488 parts on 150 keys
-/// where it parted on 876.
+/// **The move 7785 → 8182** (item 1264, `docs/TECH.md` step 8): who=1's Tower is a
+/// Keep in the original's `num_buildings` from the Keep's gain (Tower 1,
+/// Keep 0 through run476's 6033; Tower 0, Keep 1 from run483's 7065), and
+/// this crate kept a Tower, so `create_buildings` saw no Keep and the make
+/// list took a Senate ahead of a Mine. **The move's value diff**, run488:
+/// on 7785 who=1's `MAKE[2].t` ours 438 against 419 → agreeing; on 7786
+/// the Senate `1/2030`'s `x_internal` 38976 against 38784 and `y_internal`
+/// 19584 against 17760 → agreeing; run488's keys went 876 → 150. Frame
+/// 7785's draws went 23 against 17 → agreeing. **The new word's delta:
+/// ours 8 draws and the original 7 on frame 8182, parting at index 2**:
+/// ours spends `Leader::make_stuff+0x63d` where the original spends
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run488's window (its
+/// last block 8036), widened on run491 (block 8183).
+///
+/// It was **7785** before that (item 1260): run470 parts on frame 7785, **ours 23 draws
+/// against the original's 17, at index 4** — both spend two
+/// `Leader::use_market+0x1ed` and open a placement
+/// (`Leader::produce_building+0x1805 < make_this`), ours three of its draws
+/// against two, where the original's next is `Leader::make_stuff+0x221`.
+/// Widened on run488 (block 7786).
 ///
 /// It was **7070** before that (item 1251), ours 3213 against 2552 at index
 /// 2545: caravan `1/52`'s road from `1/2007` to `1/2022` ran to the budget
@@ -2053,6 +2082,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434
 /// run462's detail, blocks 10980..11236 — six blocks before the word
 /// 10985's block 10986 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_10985: (i64, i64) = (10_980, 11_236);
+
+/// **run490's window** (item 1264): the second pair's East Indies at
+/// run480's detail, blocks 11323..11579 — six blocks before the word
+/// 11328's block 11329 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_11328: (i64, i64) = (11_323, 11_579);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -5188,6 +5222,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// against 96862208, was the same piece's missing pivot node.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 
+/// **Chapter forty-five's golden word** (`docs/GOLDEN.md` §54, item
+/// 1268, run492): **closed at 1650**, the capture's end — word, sequence
+/// and values — `get_cost`'s library-line tail on the golden start. The
+/// value diff: who=0's food 770 → 668 on block 802 (The Art of War, 120
+/// less Despotism's 15 %), → 578 on 804 (City State, 120 less Dye's
+/// 25 %), and 579 → 519 with timber 753 → 693 on 806 (Barter whole), on
+/// both sides. The two Nubian arms the staging met (`Sim::unit_hits`,
+/// `economy::calc_rare`'s `nubian`) were built in the same item: the
+/// Merchant `0/6`'s `myhits` ours 90 against 135 from 603, and who=0's
+/// `resources[3:knowledge]` 160 against 240 from 769, both agree.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
+
+/// `chapter_forty_five_s_word_frame_is_widened_whole`'s window: run492
+/// whole, 600 to its end (block 1649 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_FIVE: (i64, i64) = (600, 1651);
+
 /// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
 /// whole, 605 to its end (block 1449 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 1451);
@@ -7270,6 +7320,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1268: run492, chapter forty-five, `get_cost`'s library-line
+    // tail on the golden start. The widening is run492 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_FIVE",
+        GOLDEN_WORD_CHAPTER_FORTY_FIVE,
+        Some("chapter_forty_five_s_word_frame_is_widened_whole"),
+        1268,
+        Some(WIDENING_CHAPTER_FORTY_FIVE),
+    ),
     // Item 1254: run484, chapter forty-four, the idle search's head on a
     // computer's fleet. The widening is run484 to the word's block and
     // 250 past it.
@@ -7386,13 +7445,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
     // to 8820, past it, widened on run445; item 1197 to 8907, inside it;
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
-    // inside it; item 1243 to 10985, past it, widened on run480.
+    // inside it; item 1243 to 10985, past it, widened on run480; item 1264
+    // to 11328, past it, widened on run490.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run480_s_word_frame_is_widened_whole"),
-        1243,
-        Some(WIDENING_SECOND_EAST_INDIES_10985),
+        Some("run490_s_word_frame_is_widened_whole"),
+        1264,
+        Some(WIDENING_SECOND_EAST_INDIES_11328),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
@@ -7436,12 +7496,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
     // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
-    // run488 over 7780..8036 (item 1260); the words 8182 and 8377 on
-    // run494 over 8177..8433 (item 1275).
+    // run488 over 7780..8036 (item 1260); the word 8182 on run491 over
+    // 8177..8433 (item 1264), and the word 8377 on the same blocks (item
+    // 1275).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run494_s_word_frame_is_widened_whole"),
+        Some("run491_s_word_frame_is_widened_whole"),
         1275,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_8182),
     ),

@@ -311,7 +311,10 @@ The squad's hit points: `type.hits` (for citizens, the age-variant type's),
 100) / 100`, `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
 units), `+ ages × dutch_hp_bonus` (the Dutch kinds), spies' `spy_upgrade_hp[
 level]`, heroes `+ lvl² × hits / 2`, `× (nubian_hit_points + 100) / 100` for
-caravans, `+ supply_hp_upgrade[level]` for supply. The result is written to
+~~caravans~~ the three merchant ids and caravans (`0060ec72`; **the one term
+this crate carries**, `Sim::unit_hits`, item 1268: run492's Nubian Merchant
+is 135 on a type of 90, `docs/GOLDEN.md` §54), `+ supply_hp_upgrade[level]`
+for supply. The result is written to
 `myhits` on the captain and **every figure down the chain**. What one figure
 can absorb is not this number; see §7.3.
 
