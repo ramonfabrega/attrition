@@ -2318,6 +2318,17 @@ order print showed. A brief row: when one side spends nothing, run
 `seams.py` on the chain of the order the other side took instead. One
 reach.
 
+(1234) **The lane is handed over before the settings are restored**
+(the commander's, 2026-09-29, from 1223 and 1221): run467's game exited
+at 23:13, the lock released, and 1221's long trace launched into it
+before `unattended_capture.py`'s `finally` restored the profile — its
+`require_closed` then refused, `settings_restored` false, and 1221
+staged 1223's staged set as its "originals". The same lane's run466 was
+refused by the script's `flock` while `ron_lane_state` said stale: two
+locks, two answers. The lock could be held to the end of the restore,
+and the two locks be one. Repaired by hand from run467's
+`settings-backup/`. One reach.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
