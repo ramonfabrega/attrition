@@ -146,6 +146,19 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1305, 2026-09-30 — a General's coin
+
+(1319) **Forced March's speed** — `UnitData::speed@0060aae0`'s
+`forced_march_speed` arm through `HeroesData::find_hero` — not carried:
+who=1's army near `1/80` walks 9112..9262 at its own speed here; fits
+the army's lead on 9318, a hypothesis only.
+
+(1320) **`cast_ambush` and Rally's cast; `use_spies`, `use_scouts`**:
+not built; no draw of theirs on run470 or run500.
+
+(1321) **The march's expiry** (1305's M4): held by its unit test, by no
+walk until the word passes the next coin, 9368.
+
 ## Parked by item 1291, 2026-09-30 — the squad's landing
 
 (1311) **A member refused on its captain's ring** (a `SEAM` in
@@ -2611,6 +2624,12 @@ the tranche entered a function; `never` read 138 from 137 on one new
 citation. Either a closed chapter takes its `cover=1` twin on the queue
 lane, twenty minutes each as 1011 did, or the blind list is not the
 rules track's measure; the next pass decides with the cost beside it.
+
+(1322) **A seam `seams.py` did not print** (1305's Loop line):
+`army.rs`'s "The spellcasters' turn — a seam." had no `SEAM:` and named
+no function the booking named, and it was half the word. Either the
+tool reads the lower-case form, or the checklist greps the chain's
+callers' comments for "a seam" too.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

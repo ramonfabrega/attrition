@@ -757,12 +757,54 @@ impl Sim {
             return;
         }
         let unit = &self.units[u];
-        if unit.mana_burn == 0 || unit.casting {
+        if unit.mana_burn == 0 || unit.casting || unit.marching.is_some() {
             return;
         }
         let step = i16::try_from(((frame & 1) + 2) / 2).unwrap_or(1);
         let unit = &mut self.units[u];
         unit.mana_burn -= step.min(unit.mana_burn);
+    }
+
+    /// `SpellType::cast_march@00671500` — Forced March on a hero: an
+    /// `ActiveSpell` to `frame + duration + general_upgrade ×
+    /// duration_upgrade` (`DURATION` and `DURATION_UPGRADE` × 15 at
+    /// `SpellType::init`: 150 and 75 frames), `unit_masks |= 0x8000` and
+    /// the leader's `0x8000` (`docs/AI.md` §99.13).
+    ///
+    /// SEAM: what the march does — `UnitData::speed`'s
+    /// `forced_march_speed` for every unit `HeroesData::find_hero` puts
+    /// near a marching hero of its leader's — is not carried.
+    pub(crate) fn cast_march(&mut self, g: usize) {
+        let Some(d) = self.spell(crate::orders::spell::FORCED_MARCH) else {
+            return;
+        };
+        let end = self.frame + i64::from(d.duration + GENERAL_UPGRADE * d.duration_upgrade);
+        self.units[g].marching = Some(end);
+        let who = self.units[g].owner as usize;
+        self.forced_march[who] = true;
+    }
+
+    /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
+    /// head of `Unit::process`: a spell whose end frame has passed is
+    /// removed, and a Forced March's takes `unit_masks & 0x8000` with it;
+    /// then `Leader::verify_spell_flags@006ce190` drops the leader's
+    /// `0x8000` when none of its heroes still marches.
+    pub(crate) fn process_spells(&mut self, u: usize, frame: i64) {
+        let Some(end) = self.units[u].marching else {
+            return;
+        };
+        if end >= frame {
+            return;
+        }
+        self.units[u].marching = None;
+        let who = self.units[u].owner;
+        if !self
+            .units
+            .iter()
+            .any(|x| x.owner == who && x.alive() && x.marching.is_some())
+        {
+            self.forced_march[who as usize] = false;
+        }
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type

@@ -699,6 +699,9 @@ pub fn load_tables(
             // tiles halved on a building).
             range: int(r, "SPELL_RANGE").unwrap_or(0) * 192,
             mana: int(r, "MANA").unwrap_or(0),
+            // Seconds on file, frames in the record (`× 0xf`).
+            duration: int(r, "DURATION").unwrap_or(0) * 15,
+            duration_upgrade: int(r, "DURATION_UPGRADE").unwrap_or(0) * 15,
             from: ["FROM", "FROM2"].map(|col| {
                 r.text(col)
                     .map(str::trim)

@@ -12497,3 +12497,43 @@ block 11638, 23 keys first part: who=1 holds eighteen Peltasts
 its group 70 lists 37 members against 19, `stamp` 11637 against 11413;
 beside them is `1/78`'s animation clock. The window parts on 1,376 keys.
 The coverage driver walks 11637..11640.
+
+## run511 — run470's game at run500's detail over blocks 9318..9574: the third map's word 9323 at Toughest widened (2026-09-30, item 1305)
+
+**What it is.** run500's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 9318..9574, `!quit` at 9588. The word's frame 9323 writes block
+9324: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run511 \
+    --map 7 --end-frame 9588 --timeout 5000 --log-window 9318 9575 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1305's General
+coin moved Great Sahara at Toughest's word from 8856 to 9323; run500 ends
+at block 9037 and run470 prints `MISC` alone.
+
+**Taken** 15:05:42–15:29 in one take; `ron_lane_state` read `stale` (pid
+27063 dead) and the launch took it over. Waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,404 s from launch to
+exit, 9,589 frames, map 7 and seed 12345 verified, five files restored. The
+dump (554,654,736 bytes, sha256 `dfaab49efbc2a617…`) and the trace
+(54,114,336, `4d3f3451c57e47d6…`) were moved into `Logs` as
+`gamelog-run511-greatsahara-toughest-9323.txt` and `rontrace-run511.log`.
+The disk had 43 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 9,589 identical |
+| window blocks | 257, 9318..9574, and the closing block 9589 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run511_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 2,069 keys: 571 stand on 9318 (the gap 9038..9317; 28 of
+who=1's units' positions among them), and on the word's block 9324 the AI
+scout `1/0` collides with `1/69` in ours alone. The coverage driver walks
+9322..9326 and the compared pin 9322..9325.

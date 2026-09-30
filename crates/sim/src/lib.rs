@@ -273,6 +273,11 @@ pub struct Unit {
     /// `kill_current_order`, and one of the three bits that stop mana
     /// recovering (`docs/GOLDEN.md` §27).
     pub casting: bool,
+    /// **`unit_masks & 0x8000`** — a hero on a Forced March, set by
+    /// `SpellType::cast_march` and held to the craft's end frame, the
+    /// `ActiveSpell` its hero record keeps (`docs/AI.md` §99.13); one of
+    /// the three bits that stop mana recovering.
+    pub marching: Option<i64>,
     /// **`ObjectData::infiltrated` (`+0x3a`)** — the players who have an
     /// informer in this object, one bit per `who`: `cast_double_agent`
     /// sets the caster's (`docs/GOLDEN.md` §27).
@@ -872,6 +877,7 @@ impl Unit {
             cast_target: None,
             cavarch_who: 0,
             casting: false,
+            marching: None,
             infiltrated: 0,
             airframe: air::Airframe::default(),
             was_builder: false,
@@ -1136,6 +1142,12 @@ pub struct Sim {
     /// in 225 frames per player (`crate::flock`). The leader dump prints
     /// it.
     pub flock_stamp: Vec<i64>,
+    /// `leader_flags & 0x8000` per player: one of its heroes is on a
+    /// Forced March. `cast_march` sets it and `Leader::verify_spell_flags`
+    /// clears it once no hero's `unit_masks & 0x8000` stands; the hero
+    /// arm of `think_spellcaster` throws no coin while it is up
+    /// (`docs/AI.md` §99.13).
+    pub forced_march: Vec<bool>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
@@ -1570,6 +1582,7 @@ impl Sim {
             treaties: vec![vec![0; players]; players],
             agendas: vec![vec![0; players]; players],
             flock_stamp: vec![0; players],
+            forced_march: vec![false; players],
             defeated: vec![false; players],
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],
@@ -4708,8 +4721,10 @@ impl Sim {
             }
             return;
         }
-        // `Unit::process@00610bc0`'s head, a caster's arm: a point of
-        // craft back (`crate::cast`), before the heal and the work.
+        // `Unit::process@00610bc0`'s head, a caster's arm: a hero's
+        // spells run out, then a point of craft back (`crate::cast`),
+        // before the heal and the work.
+        self.process_spells(i, frame);
         self.recover_mana(i, frame);
         // `process_healing` runs for every unit, inside or out: the
         // garrison branch inside, and on the map the civilian heal

@@ -47,6 +47,9 @@ pub const SLOTS: usize = 16;
 /// `TypeIndex` `0x119`, `AAGUN`: `Army::normalize` takes it off the
 /// standard line.
 const AAGUN: crate::tech::TypeId = 0x119;
+/// `TypeIndex` `0x36`, the General — the lineage `Army::process` counts
+/// before its generals' turn; a government patriot `FROM General` is one.
+const GENERAL: crate::tech::TypeId = 0x36;
 
 /// `Unit::come_out+0x25ca` — the scout arm's coin, `% 2`.
 /// `find_target`'s two draw sites, under the original's own offsets
@@ -900,11 +903,14 @@ impl Sim {
                 if self.armies[w].list[slot].num_captains == 0 {
                     return;
                 }
-                // The spellcasters' turn: `use_generals` for an army with
-                // a standard line and a General that is not a decoy.
-                // SEAM: `use_spies` and `use_scouts` (parked 980).
+                // The spellcasters' turn (`6f9441`–`6f9489`): the
+                // generals behind `num_standard` and a non-decoy
+                // `is(GENERAL)`. SEAM: `use_spies` and `use_scouts`, each
+                // behind its own count, are not built.
                 if self.armies[w].list[slot].num_standard != 0
-                    && self.army_count(who, slot, |s, u| s.is_general(u) && !s.units[u].decoy) != 0
+                    && self.army_count(who, slot, |s, u| {
+                        !s.units[u].decoy && s.unit_line_is(u, GENERAL)
+                    }) != 0
                 {
                     self.use_generals(who, slot);
                 }
@@ -919,13 +925,13 @@ impl Sim {
         self.army_tick(who, slot);
     }
 
-    /// `Army::use_generals@006f4c30` (§14): every live member of the
-    /// army's group, in list order, that `is_hero` (`unit_flags2 & 0x20`)
-    /// is given a `Unit::think_spellcaster` turn, and the first that orders
-    /// a cast ends the walk.
+    /// `Army::use_generals@006f4c30`: every member of the army's groups,
+    /// in list order, that is active and a hero (`unit_flags2 & 0x20`) is
+    /// offered [`Sim::think_spellcaster`]; the first that casts ends the
+    /// turn.
     fn use_generals(&mut self, who: Player, slot: usize) {
-        let list = self.armies[who as usize].list[slot].units.clone();
-        for u in list {
+        let members = self.armies[who as usize].list[slot].units.clone();
+        for u in members {
             if self.units[u].alive() && self.is_hero_unit(u) && self.think_spellcaster(u) {
                 return;
             }
