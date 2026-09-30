@@ -2668,6 +2668,12 @@ were three types (84, 179, 134) under the label `guy=`. A births line
 labelled `type`, printing the decoy bit (`unit_masks & 1`), would have
 named the event in one command.
 
+(1331) **A shooting building's cycle is unread on every golden
+widening** (1323's Loop line): the building `recharging`/`attack_ox`
+comparison is keyed to anti-air types (`wall_cycle`), so a Tower's own
+cycle, and a site's, goes uncompared; chapter forty-seven's word found
+T's round where the widening could have named it.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

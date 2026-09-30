@@ -2585,6 +2585,55 @@ fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
     );
 }
 
+/// **A site holds its fire** (item 1323, `docs/COMBAT.md` §8.6):
+/// `Build::process@0061edf0` returns before `do_attack` while the
+/// building is not `WallData::is_active` (`flags & 4`). The same tower,
+/// finished, fires on its first think.
+#[test]
+fn a_tower_site_does_not_shoot_until_it_is_finished() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        attack: 80,
+        armor: 2,
+        recharge: 60,
+        max_range: 6,
+        to_hit: 400,
+        attenuate: 0,
+        proj_speed: 200,
+        ammo_per_att: 1,
+        base_arrows: 1,
+        most_shots: 4,
+        x_size: 1,
+        y_size: 1,
+        big_radius: 96,
+        ..combat::Profile::default()
+    });
+    sim.buildings[tower].hits = 400;
+    sim.buildings[tower].health = 400;
+    sim.buildings[tower].active = false;
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 3 * 192, 1000),
+        movement::Angle::WEST,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    run(&mut sim, 49);
+    assert_eq!(
+        sim.buildings[tower].target, None,
+        "a site looks for nothing"
+    );
+    assert!(sim.projectiles.is_empty(), "and fires nothing");
+    sim.buildings[tower].active = true;
+    // The next think is frame 80, `(80 + 2000) & 0x1f == 0`.
+    run(&mut sim, 32);
+    assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
+    assert_eq!(sim.projectiles.len(), 1);
+}
+
 #[test]
 fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
     let mut sim = arena();
