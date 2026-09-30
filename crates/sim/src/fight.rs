@@ -585,7 +585,7 @@ impl Sim {
     }
 
     /// **`Object::check_target@00649e00`'s head** for a unit searcher
-    /// (`docs/COMBAT.md` §72): the candidate is refused when it is out of
+    /// (`docs/COMBAT.md` §86): the candidate is refused when it is out of
     /// range and either
     ///
     /// - the searcher is not `duty` (the call's third argument), stands
@@ -3076,7 +3076,7 @@ impl Sim {
                         if !self.search_admits(o, flags) {
                             continue;
                         }
-                        // **`check_target`'s head** (§72): a candidate
+                        // **`check_target`'s head** (§86): a candidate
                         // in another region, or any for a defensive unit
                         // off duty with an order, must be in range.
                         if let Obj::Unit(i) = attacker
@@ -5080,7 +5080,7 @@ mod tests {
     }
 
     /// **A candidate in another region is taken only in range**
-    /// (`Object::check_target@00649e00`'s head, `docs/COMBAT.md` §72, item
+    /// (`Object::check_target@00649e00`'s head, `docs/COMBAT.md` §86, item
     /// 1214). East Indies 8907's shape: the computer's Caravel, idle on
     /// the sea, and the human's building inland. Across the regions the
     /// building out of range is refused, and in range it is taken; a
