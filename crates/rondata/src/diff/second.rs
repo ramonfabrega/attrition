@@ -1032,6 +1032,7 @@ mod tests {
         // speed (6135), who=1's `MAKE[4].val` 198000 against 202000
         // (6182), and the newborns `1/42`'s and `1/43`'s `form` -1 against
         // 0 (6191, 6218).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
@@ -1043,15 +1044,13 @@ mod tests {
                 (5982, 1),
                 (5984, 1),
                 (6001, 1),
-                (6026, 1),
-                (6069, 1),
                 (6071, 1),
                 (6074, 1),
                 (6111, 4),
                 (6135, 2),
                 (6182, 1),
                 (6191, 1),
-                (6218, 1),
+                (6218, 1)
             ],
             "the blocks keys first part on, the whole window"
         );
@@ -1060,7 +1059,8 @@ mod tests {
         // (`docs/TRANSPORT.md` §6.4); their `mirror` stands. Item 1174:
         // 174 → 169 and the first block 156 → 151, who=1's `escrow` on its
         // five goods (`docs/AI.md` §98).
-        pin_eq!(w.firsts.len(), 169, "every key parted on run414");
+        // Item 1291 took 2: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 167, "every key parted on run414");
     }
 
     /// **The second pair's East Indies word, 6321, widened whole** (item
@@ -1130,15 +1130,16 @@ mod tests {
             None,
             "the passenger's figure speed, put ashore"
         );
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (6316, 155),
-                (6331, 1),
                 (6334, 1),
                 (6381, 1),
                 (6385, 1),
-                (6388, 1)
+                (6393, 2),
+                (6401, 1)
             ],
             "the blocks keys first part on, the first six"
         );
@@ -1148,7 +1149,8 @@ mod tests {
         // Item 1197: 299 → 182, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 182 → 179, who=1's
         // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 179, "every key parted on run419");
+        // Item 1291 took 4: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 175, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1248,11 +1250,11 @@ mod tests {
         // player 1's make list (`MAKE[].city`), `gather_stamp` (6792) and
         // player 0's `production_step` (6801), ahead of the word 7382's
         // `Leader::use_market` against `Leader::make_stuff`.
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (6604, 152),
-                (6614, 1),
                 (6633, 1),
                 (6670, 2),
                 (6671, 3),
@@ -1273,7 +1275,8 @@ mod tests {
         // Item 1197: 298 → 189, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 189 → 185, and the first
         // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 185, "every key parted on run420");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 184, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1381,13 +1384,15 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 7_513)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (7377, 150),
+                (7377, 149),
                 (7381, 4),
                 (7382, 1),
                 (7384, 4),
@@ -1405,7 +1410,8 @@ mod tests {
         // Item 1197: 317 → 187, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 187 → 183, the first block's
         // 161 → 158 and 7478's 2 → 1, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 175, "every key parted on run425");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 174, "every key parted on run425");
     }
 
     /// **The second pair's East Indies word 8519, widened whole** (item
@@ -1479,17 +1485,20 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 8_520)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8514, 168)],
+            [(8514, 167)],
             "the blocks keys first part on, to the old word's block 8520"
         );
         // Item 1191: 1243 → 608. Item 1197: 608 → 198. Item 1228: 198 →
         // 194, and block 8514's 180 → 176, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 186, "every key parted on run439");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 185, "every key parted on run439");
     }
 
     /// **The second pair's East Indies word 8820, widened whole** (item
@@ -1581,19 +1590,22 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 8908)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8815, 170)],
+            [(8815, 169)],
             "the blocks keys first part on, to the old word's block 8908"
         );
         // Item 1197: 1176 → 627, and block 8815's 504 → 183. Item 1214:
         // 627 → 195; the first key past block 8815 parts on 8947. Item
         // 1228: 195 → 190, and block 8815's 183 → 178, who=1's
         // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 182, "every key parted on run445");
+        // Item 1291 took 2: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 180, "every key parted on run445");
     }
 
     /// **The second pair's East Indies word 10183, widened whole** (item
@@ -1706,18 +1718,21 @@ mod tests {
         }
         // The blocks to 10186, 1228's word's block: the word has left the
         // window, so the count stops where it stood.
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 10_186)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10178, 166), (10181, 3), (10182, 2), (10184, 4), (10185, 1)],
+            [(10178, 165), (10181, 3), (10182, 2), (10184, 3), (10185, 1)],
             "the blocks keys first part on, to 10186"
         );
         // Item 1228: 1055 → 1398; the window now walks past 10185, and
         // who=1's make list and its Senate part from there. Item 1243:
         // 1398 → 198, the word past the window.
-        pin_eq!(w.firsts.len(), 190, "every key parted on run462");
+        // Item 1291 took 3: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 187, "every key parted on run462");
     }
 
     /// **The second pair's East Indies word 10985, widened whole** (item
@@ -1781,17 +1796,20 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= 10_986)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10980, 180), (10981, 7), (10982, 1), (10984, 1)],
+            [(10980, 179), (10981, 7), (10982, 1), (10984, 1)],
             "the blocks keys first part on, to the old word's"
         );
         // Item 1264 took the Keep's offer and everything downstream of it
         // (1490 → 220).
-        pin_eq!(w.firsts.len(), 212, "every key parted on run480");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 211, "every key parted on run480");
     }
 
     /// **run490 — the second pair's East Indies word 11328, widened whole**
@@ -1866,13 +1884,15 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (11323, 186),
+                (11323, 185),
                 (11329, 16),
                 (11356, 5),
                 (11384, 1),
@@ -1887,9 +1907,10 @@ mod tests {
             ],
             "the blocks keys first part on, to the window's end"
         );
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             w.firsts.len(),
-            230,
+            229,
             "every key parted on run490 (1311 before item 1281, 382 before 1297)"
         );
     }
@@ -1951,15 +1972,17 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(11632, 198), (11638, 23)],
+            [(11632, 197), (11638, 23)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1376, "every key parted on run506");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 1375, "every key parted on run506");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
@@ -2032,10 +2055,11 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [
-                (6567, 155),
+                (6567, 154),
                 (6570, 3),
                 (6576, 4),
                 (6577, 3),
@@ -2048,7 +2072,8 @@ mod tests {
         // Item 1197: 277 → 175, the dead transports' numbers held
         // (`docs/COMBAT.md` §59.3). Item 1228: 175 → 171, the first
         // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
-        pin_eq!(w.firsts.len(), 171, "every key parted on run421");
+        // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
+        pin_eq!(w.firsts.len(), 170, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
