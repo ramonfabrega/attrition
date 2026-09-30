@@ -2284,13 +2284,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // there and leave this pin; the group row (`form_id`, `group_angle`,
     // `group_id`, `in_group`, `oxx`, `whose`) is compared on item 1286's
     // Toughest window (8785..8788), and stays off it.
+    // **Item 1293 moved the Toughest window to run500's 8855..8858**, where
+    // the squad's group attack has been ungrouped since 8786 and no group
+    // move stands; with 1297's East Indies window (11636) holding none
+    // either, the group row returns to this pin (measured on the tree
+    // merged with 1281's and 1297's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search in_range \
-         mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
-         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint",
+         def_y defensive ever_in_range form_id garrison_search group_angle \
+         group_id in_group in_range mandatory metric new_ord non_flat_gather \
+         orig_x orig_y oxx patrol_x patrol_y retry returning sharp_turn strafe_xx \
+         strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
