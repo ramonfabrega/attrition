@@ -1157,7 +1157,8 @@ impl Sim {
     /// step and `do_group_move`'s in-formation arm pass 1 and are not.
     pub fn get_speed(&self, u: usize, flag: i32) -> i32 {
         let unit = &self.units[u];
-        let speed = unit.movement.speed;
+        // Both classes open on `UnitData::speed`, layer two.
+        let speed = self.unit_speed(u);
         if unit.is_gaia() {
             if unit.kind.domain == crate::attrition::Domain::Air {
                 return speed;
@@ -3865,7 +3866,7 @@ impl Sim {
         let tp = self.units[t].pos;
         let d = vector_dist((tp.x - me.x).abs(), (tp.y - me.y).abs());
         let los = self.unit_los(u);
-        let mut k = if self.units[t].movement.speed < self.units[u].movement.speed {
+        let mut k = if self.unit_speed(t) < self.unit_speed(u) {
             los * 0x60
         } else {
             los * 0x300 / 5
@@ -4836,11 +4837,16 @@ impl Sim {
             // It runs only on a frame the leader's own step succeeded,
             // and after it, which is why a group's cap is one pass stale.
             //
-            // SEAM: the `march` arm under it —
-            // `LeaderData & 0x8000 && has_general(0x8000, -1) >= 0` — and
-            // no capture has a general, so `march` is only ever cleared.
+            // **And the `march` arm under it** (`5e7ab?`, `docs/AI.md`
+            // §99.15): the leader's report clears `+0x4b`, and a leader
+            // whose leader flags carry `0x8000` and which
+            // `has_general(0x8000, -1)` sets it — from then on only a
+            // follower near a marching hero reports its speed.
             let mine = self.get_speed(u, 1);
             self.group_leader_report_speed(g, mine);
+            if self.leader_marching(u) && self.near_marching_hero(u) {
+                self.group_set_march(g);
+            }
             self.group_update_positions(g, u);
             return;
         }
@@ -5027,8 +5033,13 @@ impl Sim {
             // what puts a slow squad's speed on a fast leader, and a
             // follower that stops reporting lets the cap drift back to
             // the leader's own over the next two frames.
-            if !self.gstate(g).is_some_and(|st| st.march) {
-                let own = self.units[u].movement.speed;
+            //
+            // Under a Forced March (`+0x4b`, set by the leader's report
+            // above) only a follower `has_general(0x8000, -1)` puts near
+            // a marching hero reports (`5e8303`–`5e8318`), so the march's
+            // stragglers do not hold the army back.
+            if !self.gstate(g).is_some_and(|st| st.march) || self.near_marching_hero(u) {
+                let own = self.unit_speed(u);
                 self.group_report_speed(g, own);
             }
             // `5e8355`: flag **1**. A follower keeping formation is
