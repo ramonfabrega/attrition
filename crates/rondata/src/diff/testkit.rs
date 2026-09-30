@@ -7710,13 +7710,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 9318..9574 (item 1305), whose run500 test keeps the move's
     // value diff on 8858; the word 9352 on the same blocks (item 1318),
     // whose run517 test keeps the move's value diff over the gap
-    // 9032..9323.
+    // 9032..9323; the word 9764 on run529 over 9759..10015 (item 1332),
+    // whose run511 test keeps the move's value diff on 9348..9355.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run511_s_word_frame_is_widened_whole"),
-        1318,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9323),
+        Some("run529_s_word_frame_is_widened_whole"),
+        1332,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9764),
     ),
 ];
 
