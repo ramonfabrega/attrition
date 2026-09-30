@@ -322,12 +322,34 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             i64::from(loaded.type_index(t as sim::tech::TypeId))
         }
     };
+    // **`city` is the leader's own index, not this crate's.** The original
+    // reads a slot's city as `cities[who].list[city]` (`produce_unit@006cb9e0`,
+    // the `cities.field_0x10 + who * 0x1c` base), the leader's own list;
+    // this crate's is the index into every player's cities. So ours is
+    // compared as its rank among the cities this leader holds, in index
+    // order — which is founding order until a city changes hands. Item 1326:
+    // East Indies' 12581 read the one Small City as ours 1 against 0, and
+    // the booking carried it as a parting.
+    let own_city = |c: i32| -> i64 {
+        usize::try_from(c)
+            .ok()
+            .and_then(|c| {
+                built
+                    .sim
+                    .cities
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, x)| x.alive && usize::from(x.owner) == who)
+                    .position(|(i, _)| i == c)
+            })
+            .map_or(i64::from(c), |k| k as i64)
+    };
     for (i, m) in a.make_list.list.iter().enumerate() {
         for (k, v) in [
             ("t", ti(m.t)),
             ("val", i64::from(m.val)),
             ("escrow", i64::from(m.escrow)),
-            ("city", i64::from(m.city)),
+            ("city", own_city(m.city)),
             ("up", i64::from(m.up)),
             ("o", i64::from(m.o)),
             ("num", i64::from(m.num)),

@@ -1470,13 +1470,21 @@ pub fn load_tables(
         });
     }
     // `BuildTypeData::to`: the successor by `FROM`, as `BuildType::init` sets
-    // it — `B[from].to = this`, unconditionally, in record order, so the last
-    // record naming a `FROM` wins. The Forbidden City (record 117) names the
-    // Small City, after the Large City (record 1) has, and the program's
-    // Small City therefore points at the Forbidden City. Reproduced as read.
+    // it — `B[from].to = this` in record order, so the last record naming a
+    // `FROM` wins, **except a record whose `obj_masks` carries `0x4000000`**
+    // (`OBJ_MASK` letter `1`, the units' hero bit): the listing tests it and
+    // skips the store (`00632da8`–`00632dbe`, `jne 0x632df1`). Two buildings
+    // carry it and name a `FROM`, the Forbidden City (record 117, `FROM`
+    // the Small City) and the Red Fort (120, `FROM` the Fort), so the Small
+    // City's `to` stays the Large City and the Fort's the Castle. Linking
+    // them anyway left `get_buildings(VILLAGE)` blind to every Large City
+    // and the AI offered no Citizen once its last Small City grew (item
+    // 1326, East Indies 12580; `docs/CITIES.md` §13 item 14).
     for i in 0..build_types.len() {
         if let Some(f) = build_types[i].from {
-            build_types[f].to = Some(i);
+            if build_cols[i].obj_masks & 0x0400_0000 == 0 {
+                build_types[f].to = Some(i);
+            }
         }
     }
 
