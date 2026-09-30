@@ -1851,7 +1851,10 @@ walk is (R4 G11, G12). `check_gatherers@0062f710`: prune every member that is de
 not `is_gathering_at(this)` or off the map. `is_gathered_by(o)`: membership.
 `all_gathering@0062f570`: `check_gatherers`, then every member's first
 order is a gather with `goto_build == 0` and `wait ≥ 0`; an empty chain is
-true. A death leaves the chain (`Unit::close`'s `close_orders`, GOLDEN §52). `gather_max` comes from `BuildTypeData::max_gatherers@0063c430` — **1 for
+true. The prune is diff-backed on its `is_gathering_at` arm: `add_gather_order`
+joins the chain on the call, so a Citizen under a City's two-point gather
+list sits at the head walking its waypoint, and is unlinked when a chopper's
+wait runs out (GOLDEN §55, run496's 1049). A death leaves the chain (`Unit::close`'s `close_orders`, GOLDEN §52). `gather_max` comes from `BuildTypeData::max_gatherers@0063c430` — **1 for
 a flat type** (`build_flags & 0x10000000`), else `calc_gather`'s slot output
 (`docs/ECONOMY.md`'s open item).
 

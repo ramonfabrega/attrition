@@ -1403,7 +1403,10 @@ is in item 1235's journal).
   chain's order on run466 (7, 8, 9), and gives each the §6.4 squad arm.
   ~~run466's landing is on 1901, past the word.~~ run466 has no landing:
   the DLL refused its `1900` line, which named an `0/11` never made
-  (item 1248, `docs/GOLDEN.md` §52), and the squad stays aboard.
+  (item 1248, `docs/GOLDEN.md` §52), and the squad stays aboard. **run496
+  lands it and parts on 1902** (`docs/GOLDEN.md` §55): the original's
+  riders hold one group move each, ours 3, 2 and 1, so the per-rider
+  walk above is in question.
 - `do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
   whose captain's current order is `CAST_SPELL` gives its frame back) is
   reached only by a member holding its own transport cast and stepped

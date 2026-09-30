@@ -9370,13 +9370,12 @@ at its end detail. The pool agrees whole.
 **What is not established.**
 - Whether the original's barge reads the ghost: the crossing agrees with
   and without it.
-- The squad arm against a dump, and the refused passenger: the landing
-  run466 was staged for was refused (its `0/11` never existed). A take
-  of `1900 @move 0 15360 31200 10` alone would put three riders out of
-  `0/10`.
-- `all_gathering`'s prune against a dump: a chain member that is alive
-  and no longer gathering there, read by a woodcutter whose wait runs
-  out.
+- ~~The squad arm against a dump~~ — run496 lands it, and it parts on
+  1902 (§55); the refused passenger still has no staging: the landing
+  run466 was staged for was refused (its `0/11` never existed).
+- ~~`all_gathering`'s prune against a dump~~ — diff-backed on run496's
+  1049 (§55): a Citizen walking the first leg of a two-point gather list
+  at the chain's head.
 - `DEATH` records beside `GROUPDATA`: with both asked no `GROUPDATA`
   printed, twice.
 
@@ -9633,3 +9632,108 @@ them.
 - The Porcelain Tower's `calc_rare` term and its pass in `calc_gather`.
 - `Unit::update_hits`' other terms (the American marines, Copper, Bananas,
   the Iroquois, the Dutch, the Spy, General and supply upgrades).
+
+## 55. Chapter forty-six — three arms a unit test alone held: a squad's barge ashore, `all_gathering`'s prune, and `leech_codes`' early return (item 1278)
+
+**Premise.** DECISIONS 56 §3's chapter from three landings' mutations
+that no walk held: `Sim::disembark_squad` (parked 1238, §52's mutation
+E), `all_gathering`'s prune (parked 1255, §52's mutation B) and
+`RoadsOut::leech_codes`' early return (parked 1277, `docs/ROADS.md` §11).
+What each needs, from the listing:
+
+- **The squad arm** is `Object::eject_contents@0064cd20`'s `+0x308 != 1`
+  arm (§52): a barge carrying a squad that dies stepping ashore. §52's cast
+  has one, `0/10` with `0/7`..`0/9` aboard at the waterline from 1850; its
+  `1900` line was refused whole for naming the absent `0/11` (item 1248).
+  The line naming the barge alone lands it.
+- **The prune needs a live chain member that is not gathering there.**
+  `Build::check_gatherers@0062f710` unlinks a member that is dead, off the
+  map or refused by `UnitData::is_gathering_at`, which reads the unit's
+  **action** (`get_action`). A death already leaves the chain (§52's
+  `close_orders`), and every issuer that re-tasks a gatherer does it
+  `QUEUE_NEW`, through `kill_current_order`'s `remove_gatherer`. But
+  `Unit::add_gather_order@0061a5c0` calls `Build::add_gatherer` **on the
+  call**, whatever the queue position. So a gather queued behind another
+  action joins the chain before the unit is gathering. `Unit::come_out`'s
+  routing does that: under a City's two-point list, a waypoint with action
+  0 and a gather building of its own with action 1, the Citizen trained
+  there takes `[MOVE_TO waypoint (action), GATHER (action)]` (§40's
+  arms). While it walks the first leg it sits at the chain's head with a
+  move for its action, and a chopper whose wait runs out reads the chain.
+  `add_gatherer`'s literal type test (`0x32`..`0x35`) keeps the Militia's
+  `gather, Civilian first` pair (§49) out of the chain, and To Arms
+  (`craftrules.xml`, no `g` flag) is `QUEUE_NEW`.
+- **`leech_codes`' early return is not staged.** It needs a road tile
+  whose surface is road and which the mesh holds no element for, beside a
+  tile being redone. Every door that sets a road bit goes through
+  `Roads::road_added` and `add_roads`' first pass, which makes the element
+  (`World::set_road_at@006b43b0`, `param_5 == 0`), and run72 pins "every
+  road tile has an element" (`docs/ROADS.md` §9.4). The listing's only
+  paths that leave a road bit without an element are `Roads::clear_roads
+  @0088fef0`'s and `clear_support@0088e3f0`'s arms when a count reaches
+  zero on an element whose `is_terrain_creation` is clear. No capture
+  reaches either, and whether `road_changed` frees the element at zero,
+  and which tile can get there, is a reading. The stray sweep kills such a
+  tile on its visit (§10.3). Parked with this reason.
+
+**The staging** (`chapter46.cmd`), walked on run466's start: §52's lines,
+its `1562` line dropped and `1900 @move 0 15360 31200 10`; then for who=1
+`resource who=1 all +500` (620), `be 1`, `@gatherpoint 1 44160 12480 0
+2000` (622), `@gatherpointadd 1 40512 17856 1 2000` (624, the Woodcutter's
+Camp `1/2001`), `@queueup 1 50 1 2000` (626) and `be 0` (627). The walk:
+the Citizen W `1/6` out on 725 under `[MOVE_TO (44160, 12480), GATHER
+1/2001]`, the chain `[6, 2, 1]`; `1/2`'s wait runs out on 1049 with W on
+its first leg, the prune drops W, `all_gathering` answers yes and `1/2`
+walks home. Walked with the prune off, `1/2` rerolls to 385 on 1049. X,
+§52's who=1 Citizen, is `1/7` here and dies on 1486 as before. On 1901
+the barge dies and the three riders are put ashore.
+
+**Run 2026-09-30 as run496**, click-free lane, `cover=0`, 2,176 s. No
+`I_ISSUE` refusal: all eight `@` lines carry refusal 0, and every `cmd`
+line returned 1.
+
+**The prune agrees, on the dump's own chain.** Block 1049: `1/2001`'s
+`gather_down` 6 (W at the head), W's own 2, `1/2`'s `order:gather.wait`
+1. Block 1050: `1/2001`'s `gather_down` 2, W's −1, `1/2`'s wait −1, on
+both sides. The original unlinked W and sent `1/2` home, as this crate
+does.
+
+**The chapter opens with a parting at 1902**, the squad's landing, and
+ends there. Ours draws 3 against 2, parting at index 0: ours `0/8`'s
+`Guy::set_anim+0x97a < Guy::move+0x19f`, where the original's first draw
+is `Farms::inc_time+0x1ae` (seed `0xff7d8f97`). **The value diff on block
+1902**: the original's `0/7`, `0/8` and `0/9` hold one `GroupMoveOrder`
+each (group 1901300, `form_id` 0, 1, 2, to (15384, 31224), (15384,
+31368) and (15384, 31080)). Ours hold 3, 2 and 1 group moves: `orders.len`
+3 against 1 on `0/7`, 2 against 1 on `0/8`. Ours' `0/9` stands at (14856,
+31224) against (14904, 31224), and `0/8`'s and `0/9`'s heading is
+1073741824 against 1084948480. The pool's slot 3 has `order_num` 3
+against 1 and the members' formation offsets mirrored. The count
+suggests that `Sim::disembark` gives the squad arm to each rider in turn
+and that each group insert re-issues to the whole squad. That is a
+hypothesis for the next item, not a finding: `docs/TRANSPORT.md` §17's
+"walks the riders in index order" was the reading it rests on.
+
+**The widening** is run496 whole (`[605, 2201)`) and parts in 349 rows
+and 6 pool rows. The 44 before 1902 are the standing families: §52's
+rows under their own frames, W's birth `form` on 726 and X's on 1401,
+and X's `DEATH` record on 1487. The 305 from 1902 are the word's: the
+squad, then the stream a draw out.
+
+**Mutations**, each on the committed build (`8b48595d`), restored from
+git and touched, scored by the exit code of chapter forty-six's and
+forty-three's tests and the arms' unit tests:
+
+| mutation | held by |
+|---|---|
+| M1: `disembark_squad` off (the riders take nothing) | the widening (block 1902: `0/7`..`0/9` `group`, `orders_x`, `orders_y`, `dest_angle` join the rows, 349 → 369), `a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group`; the word stays 1902, where it already parts |
+| M2: `all_gathering`'s prune off | **the word, 1902 → 1049**, and the widening; `all_gathering_drops_a_dead_member_before_it_reads_the_chain` |
+
+Chapter forty-three's two tests pass under both: §52's walk still holds
+neither arm.
+
+**What is not established.**
+- The squad's landing past 1902: the word is the next item's.
+- `leech_codes`' early return, for the reason above (parked).
+- `all_gathering`'s prune on a member that is off the map or dead: this
+  chapter reaches the `is_gathering_at` arm alone.
