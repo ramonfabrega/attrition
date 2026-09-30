@@ -1101,7 +1101,73 @@ mod tests {
             "run517 carries every key: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run517");
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The move 9323 → 9352's value diff** (item 1318, `docs/AI.md`
+        // §99.15). The Senator `1/80` cast Forced March on 9112, and with
+        // the march's speed not carried the gap parted on **block 9114**:
+        // 179 keys, every one of the army's 26 walkers — `1/28`'s `pos`
+        // ours (32179, 18050) against (32189, 18050), its guy's
+        // `last_speed` 15 against 25, `1/29`'s 31 against 52 — and on 9116
+        // the Senator's group 65's `speed` and `new_speed` 41 against 42,
+        // the march's `FORCED_MARCH_SPEED`. With it carried, none of them
+        // parts: 158 keys where 1,154 parted.
+        pin_eq!(row(1, 28, "pos"), None, "an army walker, agreeing");
+        pin_eq!(
+            row(1, 29, "g.last_speed[0]"),
+            None,
+            "a walker's step, agreeing"
+        );
+        pin_eq!(
+            row(1, -3, "group:65.speed"),
+            None,
+            "the Senator's group walks at 42"
+        );
+        // What still parts in the gap: group 67's speed from 9084 (ours 0
+        // against 34), before the march; and the Senator's crew step from
+        // 9222 (ours 57 against 71, `docs/MOVEMENT.md`, "the crew guy's
+        // step speed is the cached value").
+        pin_eq!(
+            row(1, -3, "group:67.speed").as_deref(),
+            Some("9084: ours 0 theirs 34"),
+            "group 67's speed, before the march"
+        );
+        pin_eq!(
+            row(1, 80, "g.last_speed[1]").as_deref(),
+            Some("9222: ours 57 theirs 71"),
+            "the Senator's crew step"
+        );
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [
+                (9032, 133),
+                (9083, 1),
+                (9084, 2),
+                (9144, 2),
+                (9185, 1),
+                (9201, 1),
+                (9222, 4),
+                (9223, 1),
+                (9236, 2),
+                (9237, 1),
+                (9268, 1),
+                (9273, 1),
+                (9274, 1),
+                (9294, 2),
+                (9295, 3),
+                (9307, 1),
+                (9310, 1)
+            ],
+            "the blocks keys first part on"
+        );
+        pin_eq!(
+            w.firsts.len(),
+            158,
+            "every key parted on run517 (1,154 without the march's speed)"
+        );
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
