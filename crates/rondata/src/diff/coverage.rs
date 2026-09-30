@@ -2309,14 +2309,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // move stands; with 1297's East Indies window (11636) holding none
     // either, the group row returns to this pin (measured on the tree
     // merged with 1281's and 1297's).
+    // **Item 1302 moved East Indies' window to run508's 12581..12584**,
+    // walked beside 1305's Toughest window (run511's 9322..9325): the group
+    // row (`form_id`, `group_angle`, `group_id`, `in_group`, `oxx`,
+    // `whose`) is compared on the union, and leaves this pin (measured on
+    // the tree merged with 1305's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range form_id garrison_search group_angle \
-         group_id in_group in_range mandatory metric new_ord non_flat_gather \
-         orig_x orig_y oxx patrol_x patrol_y retry returning sharp_turn strafe_xx \
-         strafe_yy tolerance uid waypoint whose",
+         def_y defensive ever_in_range garrison_search \
+         in_range mandatory metric new_ord non_flat_gather \
+         orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
+         strafe_yy tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
