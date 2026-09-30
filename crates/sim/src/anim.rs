@@ -1224,8 +1224,7 @@ impl Sim {
                     self.units[u].guys[g].cur_time = 0;
                 }
                 return;
-            } else if (guy.anim == TURN_LEFT || guy.anim == TURN_RIGHT) && !self.guy_settled(u, g)
-            {
+            } else if (guy.anim == TURN_LEFT || guy.anim == TURN_RIGHT) && !self.guy_settled(u, g) {
                 // **A turn still turning is not idled** — the same
                 // nothing-or-rewind, on the *slot* `0x15`/`0x16` rather
                 // than a category, while `des_angle != angle` (`+0x64`

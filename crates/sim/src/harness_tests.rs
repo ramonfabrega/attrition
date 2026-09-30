@@ -1404,6 +1404,153 @@ fn a_figure_converted_mid_walk_stands_with_its_speeds_zeroed() {
     }
 }
 
+/// **An upgraded unit's crew is new, and takes the new pieces' tracks**
+/// (item 1338, `docs/ANIM.md` §11). `Unit::set_type` kills every crew
+/// figure and pops a fresh one (`6131bf`–`61334a`); `init_real` zeroes the
+/// track, `Unit::update_gpiece` writes the new piece's, and the tail's
+/// `Guy::set_new_location(guy 0, x, y, 1)` seats each figure on its
+/// offset at guy 0's angle. Great Sahara at Toughest's Catapult `1/84`
+/// kept its crew's two tracks here when it became a Trebuchet on 9710,
+/// whose crew has none.
+#[test]
+fn an_upgraded_unit_s_crew_is_fresh_and_seated_on_the_new_pieces() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let medieval = tree.add(TypeDef::age("Medieval Age", 0));
+    let works = tree.add(TypeDef::building("Siege Factory"));
+    let catapult_t = tree.add(TypeDef::unit("Catapult", free).at(works));
+    let trebuchet_t = tree.add(
+        TypeDef::unit("Trebuchet", UnitTraits::default())
+            .at(works)
+            .from(catapult_t)
+            .needs(0, medieval),
+    );
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let mut catapult = UnitType {
+        tree: Some(catapult_t),
+        ..citizen_type()
+    };
+    catapult.combat.crew_size = 2;
+    let mut trebuchet = UnitType {
+        tree: Some(trebuchet_t),
+        ..citizen_type()
+    };
+    trebuchet.combat.crew_size = 3;
+    let catapult = sim.add_unit_type(catapult);
+    let trebuchet = sim.add_unit_type(trebuchet);
+    for (ty, base) in [(catapult, 100), (trebuchet, 200)] {
+        for sub in 0..2 {
+            for n in 0..4u8 {
+                sim.art.pieces.insert((0, ty, sub, n), base + i32::from(n));
+            }
+        }
+    }
+    // The Catapult's crew walks on tracks; the Trebuchet's first two
+    // figures have none, and its third one does.
+    sim.art.tracks.insert(101, (-120, 0));
+    sim.art.tracks.insert(102, (72, 216));
+    sim.art.tracks.insert(203, (-96, 48));
+    let a = sim.init_unit(0, catapult, centre_of(Cell::new(5, 0)));
+    assert!(
+        sim.units[a].guys[1].follow.is_some() && sim.units[a].guys[2].follow.is_some(),
+        "the Catapult's crew is tracked"
+    );
+    // Walk the crew off its offsets: a kept figure would keep this body.
+    for g in 1..3 {
+        let f = sim.units[a].guys[g].follow.as_mut().unwrap();
+        f.body.pos = Pos::new(f.body.pos.x + 30, f.body.pos.y);
+        f.facing = movement::Angle(12345);
+    }
+    let facing = sim.units[a].movement.facing;
+
+    sim.gain_tech(0, trebuchet_t);
+
+    assert_eq!(sim.units[a].ty, Some(trebuchet), "converted");
+    let guys = &sim.units[a].guys;
+    assert_eq!(guys.len(), 4, "a Trebuchet's squad and crew");
+    assert_eq!(
+        guys.iter().map(|g| g.gpiece).collect::<Vec<_>>(),
+        [200, 201, 202, 203],
+        "every figure on the new pieces"
+    );
+    assert!(
+        guys[1].follow.is_none() && guys[2].follow.is_none(),
+        "a crew piece with no track stands trackless on guy 0"
+    );
+    let f = guys[3].follow.expect("the tracked figure is seated");
+    assert_eq!(f.track, (-96, 48), "the new piece's track");
+    assert_eq!(f.body.pos, f.des, "seated on its offset, not walking to it");
+    assert_eq!(
+        (f.facing, f.des_angle),
+        (facing, facing),
+        "at guy 0's angle"
+    );
+}
+
+/// **A turn still turning is not idled** (item 1338, `docs/ANIM.md` §4):
+/// `Guy::set_anim`'s early return for an idle request on slot `0x15` or
+/// `0x16` while `des_angle != angle` — nothing, or a rewind once the turn
+/// has run out. The trackless crew, whose pair `Guy::do_turn` writes
+/// equal, is not spared. Great Sahara at Toughest's Trebuchet rolls its
+/// crew and not its guy 0 on every frame 9756..9763.
+#[test]
+fn a_guy_still_turning_on_its_turn_slot_rolls_no_idle() {
+    let mut sim = skirmish(0);
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    let unit = sim.add_unit(u);
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    for g in &mut sim.units[unit].guys {
+        g.anim = anim::TURN_RIGHT;
+        g.cur_time = 4;
+        g.end_time = 30;
+    }
+    let draws = |sim: &mut Sim| {
+        let before = sim.rng;
+        let unit_guys = sim.units[unit].guys.len();
+        sim.set_default_anim(unit);
+        let mut r = before;
+        (0..=unit_guys)
+            .position(|_| {
+                let hit = r == sim.rng;
+                r.roll();
+                hit
+            })
+            .expect("at most one draw a figure")
+    };
+    // Still turning: guy 0 is spared, its trackless crew rolls.
+    sim.units[unit].movement.heading = movement::Angle(0);
+    assert_ne!(
+        sim.units[unit].movement.facing,
+        sim.units[unit].movement.heading
+    );
+    assert_eq!(draws(&mut sim), 1, "the crew's roll alone");
+    assert_eq!(
+        (
+            sim.units[unit].guys[0].anim,
+            sim.units[unit].guys[0].cur_time
+        ),
+        (anim::TURN_RIGHT, 4),
+        "guy 0 plays on"
+    );
+    // Faced round: guy 0 rolls too.
+    for g in &mut sim.units[unit].guys {
+        g.anim = anim::TURN_RIGHT;
+        g.cur_time = 4;
+        g.end_time = 30;
+    }
+    let f = sim.units[unit].movement.heading;
+    sim.units[unit].movement.facing = f;
+    assert_eq!(draws(&mut sim), 2, "both figures roll");
+}
+
 /// **Gaining a unit type converts the units of the line it replaces**
 /// (`docs/TECH.md` §7's object half) — the pass that turns run53's three
 /// Bowmen into Archers on frame 6736.
