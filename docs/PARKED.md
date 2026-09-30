@@ -146,6 +146,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1302, 2026-09-30 — the General's decoys
+
+(1327) **`1/93`'s `path_recursion` 1 against 0 on run506's 11638**: a
+decoy born into a reused slot; no draw reads it.
+
+(1328) **`num_units` at a death**: this crate has no
+`track_unit_type(−1)` in `Unit::close`'s combat path (only missiles,
+V2s and the transport paths call it); the original's sits at `0060f3db`
+behind `(unit_masks & 1) == 0`. Not measured on a widening row.
+
 ## Parked by item 1310, 2026-09-30 — chapter forty-seven
 
 (1324) **A Keep-line site's per-blow damage and progress loss**: 3
@@ -2651,6 +2661,12 @@ callers' comments for "a seam" too.
 research finishes lands after it (`gain_tech`'s comment, run86), the
 kind 1281 measured on East Indies. A staging row for "an arm the snap
 reaches" says which it means.
+
+(1329) **`births.py` names a guy where a booking wants a type** (1302's
+Loop line): the booking said "eighteen Peltasts"; the block's births
+were three types (84, 179, 134) under the label `guy=`. A births line
+labelled `type`, printing the decoy bit (`unit_masks & 1`), would have
+named the event in one command.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

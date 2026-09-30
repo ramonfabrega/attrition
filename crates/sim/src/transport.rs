@@ -854,6 +854,10 @@ impl Sim {
             // …and the transport order is not killed here: see step 5.
             return;
         }
+        // `do_cast@005ebfe0`'s tail (`005ece96`): `paid` is cleared before
+        // the kill, so a cast that ran its course hands nothing back
+        // ([`Sim::kill_current_order`]'s cast arm).
+        self.clear_cast_paid(u);
         if spell::is_unpack(s) && self.units[u].combat.packed {
             // `is_castable`'s `0x28c`/`0x28e`/`0x290`/`0x292` case: a map
             // unit that is still packed.

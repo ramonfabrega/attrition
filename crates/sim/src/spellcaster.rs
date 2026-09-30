@@ -15,7 +15,7 @@
 //! unit_masks & 1 (a decoy)                        -> 0
 //! is(SPY):  cloaked? Counterintelligence on a friend in range × 5,
 //!           then Bribe on an enemy unit in range × 5            (no draw)
-//! not is_special:  the hero arm                                 (seam)
+//! not is_special:  the hero arm   (Create Decoys; moving: seam)
 //! is_special:
 //!     Sniper (0x281) castable, with the mana, on an enemy in range -> cast
 //!     coin = Random::get(game_random, 0, 0xffff)        // +0x413
