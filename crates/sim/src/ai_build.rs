@@ -2245,4 +2245,64 @@ mod tests {
         let id = sim.build_types[t.temple].tree.expect("in the tree");
         assert!(!sim.produce_spell(0, id, Some(c), 1));
     }
+
+    /// **A building type gained converts the line below it** (item 1264,
+    /// `docs/TECH.md` step 8): `Leader::gain_tech`'s loop at
+    /// `6dde64`–`6ddf2b` sets every in-use building whose type's `upgrade`
+    /// is the gained type to it. East Indies' Tower `1/2014` is a Keep in
+    /// the original's `num_buildings` from the Keep's gain, and
+    /// `create_buildings` read the missing Keep as a first one to offer.
+    #[test]
+    fn gaining_the_keep_turns_the_leader_s_standing_tower_into_one() {
+        let (mut sim, t) = sim();
+        let _c = city(&mut sim, &t, 0, 40, 40);
+        let tower_id = sim.build_types[t.tower].tree.expect("in the tree");
+        let mut keep = bt(Ident::Tower, "ecan", 2, 2);
+        keep.attack = 12;
+        keep.from = Some(t.tower);
+        let keep = sim.add_build_type(keep);
+        sim.build_types[t.tower].to = Some(keep);
+        let mut tree = sim.tech_tree.clone();
+        let mut d = TypeDef::building("Keep");
+        d.tribe_mask = u32::MAX;
+        d.from = Some(tower_id);
+        let keep_id = tree.add(d);
+        tree.types[tower_id].upgrade = Some(keep_id);
+        sim.set_tech_tree(tree);
+        sim.build_types[keep].tree = Some(keep_id);
+
+        let mine = sim
+            .place_building(0, t.tower, tile_pos(46, 40))
+            .expect("a tower places");
+        finish(&mut sim, mine);
+        let site = sim
+            .place_building(0, t.tower, tile_pos(46, 46))
+            .expect("a second tower places");
+        let theirs = sim.init_build(1, t.tower, tile_pos(10, 10), false);
+        finish(&mut sim, theirs);
+        let library = sim
+            .place_building(0, t.library, tile_pos(52, 40))
+            .expect("a library places");
+        assert_eq!(sim.num_buildings_of(0, t.tower), 1);
+        assert_eq!(sim.num_buildings_of(0, keep), 0);
+
+        sim.gain_tech(0, keep_id);
+
+        assert_eq!(sim.buildings[mine].ty, Some(keep), "the finished tower");
+        assert_eq!(
+            sim.buildings[site].ty,
+            Some(keep),
+            "the site: in use is enough"
+        );
+        assert_eq!(
+            sim.buildings[mine].orig_ty,
+            Some(t.tower),
+            "placed as a tower"
+        );
+        assert_eq!(sim.buildings[theirs].ty, Some(t.tower), "another leader's");
+        assert_eq!(sim.buildings[library].ty, Some(t.library));
+        assert_eq!(sim.num_buildings_of(0, t.tower), 0);
+        assert_eq!(sim.num_buildings_of(0, keep), 1);
+        assert_eq!(sim.buildings_of_line(0, t.tower), 1);
+    }
 }

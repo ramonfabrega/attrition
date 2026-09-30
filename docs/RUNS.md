@@ -11920,16 +11920,6 @@ block 10986: six blocks before it and 250 after.
 ```
 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run480 \
     --map 18 --end-frame 11250 --timeout 5400 --log-window 10980 11237 \
-## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
-
-**What it is.** run471's shape on the click-free lane at run470's lobby,
-`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
-blocks 5777..6033, `!quit` at 6047. The word's frame 5782 writes block
-5783: six blocks before it and 250 after.
-
-```
-zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run476 \
-    --map 7 --end-frame 6047 --timeout 4800 --log-window 5777 6034 \
     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
     --profile DIFFICULTY=5
 ```
@@ -11962,6 +11952,21 @@ a type-440 building at 900,000 where the original holds five Pikemen
 (`TypeIndex` 134) at 611,022. The window parts on 1,490 keys. The coverage
 driver walks 10985..10988 and the compared pin 10984..10987, where a cast
 order and a group move stand.
+
+## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
+
+**What it is.** run471's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 5777..6033, `!quit` at 6047. The word's frame 5782 writes block
+5783: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run476 \
+    --map 7 --end-frame 6047 --timeout 4800 --log-window 5777 6034 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
 **The booking cites what the disk could not answer.** The word moved to
 5782 when `find_friends`' enhancer arm was built (`docs/AI.md` §99.7);
 run471 ends at block 5627 and run470 prints `MISC` alone, so no dump of

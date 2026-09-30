@@ -1755,23 +1755,24 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word 10985** (item 1243; no mechanism is named): ours 10
-        // draws against 11, at index 2, ours' `Leader::make_stuff+0x221`
-        // where the original spends a third `Leader::use_market+0x1ed`.
-        // On 10985 (`create_buildings`' block before it) who=1's make
-        // list holds a type-440 building at 900,000 in slot 1 where the
-        // original holds five Pikemen (`TypeIndex` 134) at 611,022, so
-        // `use_market`'s `need` over the first two slots differs. The first
-        // block stands on 188 keys, among them the order rows' `group.id`
-        // (10746119 against 10752919) and the make list's `city` from 10981.
+        // **The word 10985** (item 1243) **→ 11328 on item 1264**
+        // (`docs/TECH.md` step 8): who=1's Tower `1/2014` became a Keep
+        // when the Keep was gained (before run425's 7377), and this crate
+        // kept a Tower. `create_buildings` then read no Keep, and on 10984
+        // offered a first one at 900,000, which took `MAKE[1]` ahead of the
+        // Pikemen. **The move's value diff (the word's block before, here):**
+        // on 10985 who=1's `MAKE[1].t` ours 440 against 134 → agreeing,
+        // `MAKE[1].val` 900000 against 611022 → agreeing, and the eight
+        // make-list rows that part there → none. Frame 10985's draws went
+        // 10 against 11 → agreeing. The new word 11328 is past this window.
         pin_eq!(
-            row(1, -1, "leader:MAKE[1].t").as_deref(),
-            Some("10985: ours 440 theirs 134"),
-            "the block before the word's: a building above the Pikemen"
+            row(1, -1, "leader:MAKE[1].t"),
+            None,
+            "the block before the word's: the Pikemen, no Keep above them"
         );
         pin_eq!(
-            row(1, -1, "leader:MAKE[1].val").as_deref(),
-            Some("10985: ours 900000 theirs 611022"),
+            row(1, -1, "leader:MAKE[1].val"),
+            None,
             "the block before the word's: its offer"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
@@ -1780,13 +1781,15 @@ mod tests {
         }
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .filter(|(b, _)| **b <= 10_986)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10980, 188), (10981, 7), (10982, 1), (10984, 1), (10985, 8)],
-            "the blocks keys first part on, to the word's"
+            [(10980, 188), (10981, 7), (10982, 1), (10984, 1)],
+            "the blocks keys first part on, to the old word's"
         );
-        pin_eq!(w.firsts.len(), 1490, "every key parted on run480");
+        // Item 1264 took the Keep's offer and everything downstream of it
+        // (1490 → 220).
+        pin_eq!(w.firsts.len(), 220, "every key parted on run480");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
