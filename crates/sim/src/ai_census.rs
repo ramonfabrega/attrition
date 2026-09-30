@@ -1982,6 +1982,29 @@ mod tests {
         assert_eq!(c.attack, 15, "`attack() / 10`, the captain's alone");
     }
 
+    /// **A decoy is no unit of the census** (item 1302, `docs/AI.md`
+    /// §99.14; `plan_strategy`'s `testb $0x1, 0x68(%esi)` at `6b9f57`):
+    /// run346's six decoy squads of 11637 stay off `non_siege`, and
+    /// `create_units`' military gate on 11780 reads the count without them.
+    ///
+    /// Made to fail with the decoy test dropped.
+    #[test]
+    fn a_decoy_is_no_unit_of_the_census() {
+        let mut f = fix();
+        build(&mut f.sim, 1, f.village, 20, 20);
+        f.sim.ai[1].census.resize(f.sim.world.region_count(), 2);
+        let soldier = f.sim.unit_types[f.scout].clone();
+        let soldier = f.sim.add_unit_type(soldier);
+        f.sim.unit_types[soldier].cols.role = ROLE_MILITARY;
+        f.sim.unit_types[soldier].combat.attack = 150;
+        spawn(&mut f.sim, 1, soldier, 20, 22);
+        let copy = spawn(&mut f.sim, 1, soldier, 22, 22);
+        f.sim.units[copy].decoy = true;
+        f.sim.census(1);
+        let c = &f.sim.ai[1].census;
+        assert_eq!((c.active, c.combat, c.non_siege), (1, 1, 1));
+    }
+
     /// A military unit of mine standing on another leader's land shows up
     /// in *their* `invaders[me]`, and the count is cleared each sweep.
     #[test]

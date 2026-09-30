@@ -5026,6 +5026,34 @@ fn an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army() {
     assert!(!sim.think_spellcaster(g), "a moving General: the seam");
 }
 
+/// **A copy is placed by its General's collision pair, not by the copied
+/// type's radius** (item 1302, `docs/AI.md` §99.14): `cast_create_decoy`
+/// asks `find_nearby_spot(type, …, FILTER_NOT_ME, the General, 0)`, whose
+/// collision half is `find_collision`/`find_ordered_collision` against the
+/// General. A type whose own block radius would refuse every spot beside
+/// the General is still copied beside it; run346's fourth squad on 11637
+/// stands at `k = −3`, where the radius query put it at `k = −2`.
+///
+/// Made to fail with the spot asked by the type alone.
+#[test]
+fn a_decoy_is_placed_by_its_general_s_collision_pair() {
+    use crate::orders::spell;
+    let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+    sim.unit_types[foot].combat.block_radius = 0x200;
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let _near = sim.init_unit(0, foot, tile_pos(33, 30));
+    let before = sim.units.len();
+    sim.units[g].orders.clear();
+    sim.cast_create_decoy(g);
+    assert_eq!(sim.units.len(), before + 1, "one copy, beside the General");
+    let d = crate::world::vector_dist(
+        sim.units[before].pos.x - sim.units[g].pos.x,
+        sim.units[before].pos.y - sim.units[g].pos.y,
+    );
+    assert!((0x150..0x200).contains(&d), "on the first ring, snapped: {d}");
+    let _ = spell::CREATE_DECOY;
+}
+
 /// **A paid cast that dies before its craft hands the craft back; one
 /// that ran its course does not, and the cast clock restarts under any
 /// other order** (item 1302; run346's `1/98`: the army's `ATTACK_TO`
