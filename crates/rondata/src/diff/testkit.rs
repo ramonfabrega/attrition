@@ -5166,6 +5166,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// against 96862208, was the same piece's missing pivot node.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 
+/// **Chapter forty-five's golden word** (`docs/GOLDEN.md` §54, item
+/// 1268, run492): **closed at 1650**, the capture's end — word, sequence
+/// and values — `get_cost`'s library-line tail on the golden start. The
+/// value diff: who=0's food 770 → 668 on block 802 (The Art of War, 120
+/// less Despotism's 15 %), → 578 on 804 (City State, 120 less Dye's
+/// 25 %), and 579 → 519 with timber 753 → 693 on 806 (Barter whole), on
+/// both sides. The two Nubian arms the staging met (`Sim::unit_hits`,
+/// `economy::calc_rare`'s `nubian`) were built in the same item: the
+/// Merchant `0/6`'s `myhits` ours 90 against 135 from 603, and who=0's
+/// `resources[3:knowledge]` 160 against 240 from 769, both agree.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
+
+/// `chapter_forty_five_s_word_frame_is_widened_whole`'s window: run492
+/// whole, 600 to its end (block 1649 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_FIVE: (i64, i64) = (600, 1651);
+
 /// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
 /// whole, 605 to its end (block 1449 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 1451);
@@ -7247,6 +7263,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1268: run492, chapter forty-five, `get_cost`'s library-line
+    // tail on the golden start. The widening is run492 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_FIVE",
+        GOLDEN_WORD_CHAPTER_FORTY_FIVE,
+        Some("chapter_forty_five_s_word_frame_is_widened_whole"),
+        1268,
+        Some(WIDENING_CHAPTER_FORTY_FIVE),
     ),
     // Item 1254: run484, chapter forty-four, the idle search's head on a
     // computer's fleet. The widening is run484 to the word's block and

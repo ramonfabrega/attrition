@@ -12442,11 +12442,15 @@ is named for it.~~ It was the road under the search: §99.9.
 (4577 parts, 161 against 197); **the line it belongs to**, by the same walk
 (Dye on the commerce line too: Coinage on 5383 is priced a quarter low and
 the word falls to 6182; run471 and run476 part). **Held by no walk**: every
-other step — Furs, Despotism, the Turks, the Persians, Silk, the Dutch,
+other step — Furs, ~~Despotism,~~ the Turks, the Persians, Silk, the Dutch,
 Papyrus, the Chinese — since no capture's leader holds that rare or is that
-nation when it researches that line; the unit test
+nation when it researches that line (**Despotism, and Dye on the golden
+start, are held by golden chapter forty-five's widening since item 1268**;
+the other seven are reached by no staging on the golden start,
+`docs/GOLDEN.md` §54); the unit test
 `a_line_s_rare_and_nations_take_their_percent_off_its_epochs` holds Silk,
-Furs and the Turks' truncation after Furs'. The Americans' step ships as 0.
+Furs and the Turks' truncation after Furs', and Despotism and its line since
+item 1268. The Americans' step ships as 0.
 Read only: the Despotism tier's `has_preq`, read through the first
 prerequisite of each bonus as the Republic tier is.
 

@@ -5897,9 +5897,15 @@ full-length swing. GUYS=2 does not print the original's slot.
 - **The arm's `idle += 1`** when nothing deploys. It is the listing's, and
   it is modelled, but run127's fisher deploys on its first idle frame, so
   no capture has exercised this path.
-- **A human's merchant.** The same arm with `is_merchant`, and the
+- ~~**A human's merchant.** The same arm with `is_merchant`, and the
   merchant's own `cast_unpack` arm (the four-tile footprint, `0x2000000`)
-  is still a SEAM (`crate::transport`). No capture has a human merchant.
+  is still a SEAM (`crate::transport`). No capture has a human merchant.~~
+  **run492 has one** (item 1268, `docs/GOLDEN.md` §54): who=0's Merchant
+  `0/6`, added packed three tiles from a Dye, takes `[MOVE_TO, CAST 656]`
+  on its birth frame, walks to 613, casts to 761 and stands on its corner
+  (7296, 30912); every field of it agrees on every block, and the Dye's bit
+  is lit on the leader from 768. The footprint arm was built by item 629
+  (`docs/MERCHANT.md` §3.2).
 - **`leader_flags & 4` is taken as `nation.human`.** An AI-driven human
   (`& 8`) and auto-manage are not distinguished, as elsewhere
   (`crate::scout`'s `ai_driven`).

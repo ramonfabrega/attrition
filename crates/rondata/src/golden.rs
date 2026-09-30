@@ -1988,6 +1988,11 @@ mod tests {
         // refuses a computer's — `check_target`'s head (item 1254,
         // `docs/GOLDEN.md` §53).
         ("chapter44.cmd", &[]),
+        // Chapter forty-five: a military epoch under Despotism, a civic
+        // epoch with Dye held by a human's Merchant, and a commerce epoch
+        // with both — `get_cost`'s library-line tail (item 1268,
+        // `docs/GOLDEN.md` §54).
+        ("chapter45.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

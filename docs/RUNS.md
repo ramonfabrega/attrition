@@ -12171,3 +12171,38 @@ item): piece 296's seven entries and its scale 0.8; the original's
 `angle_to_degrees` gives 354. The tables are in
 `~/ron-data/lab-experiments/2026-09-30-item-1257/`. `docs/GOLDEN.md` §53.
 run487 was reserved and not used.
+
+## run492 — chapter forty-five, `get_cost`'s library-line tail on the golden start (2026-09-30, item 1268)
+
+`docs/GOLDEN.md` §54, `tools/gamelog/golden/chapter45.cmd`: Despotism by
+`tech`, a human's Merchant three tiles from who=0's Dye, and three library
+epochs queued at who=0's Library `0/2005` on 800, 802 and 804.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch45 \
+    --map 14 --end-frame 1650 --log-window 600 1650 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter45.cmd
+```
+
+**What the disk could not answer.** No capture on disk has a leader
+holding Dye or Despotism while it researches a library epoch on the
+golden start, and none has a human's merchant (`docs/ORDERS.md` §23.4).
+
+The lane was held by another lane's `unattended` run from 05:16; the wait
+was 451 s. The first launch (05:42:14) died before the game on
+`unattended_capture.py`'s own `flock` as the previous runner exited, with
+`ron_lane_state` already saying stale; nothing was written. The second
+(05:42:55) is the take: `success: true`, 802 s launch to exit, 1,651
+frames, seed 12345, map verified, settings restored, no `GROUPDATA` (none
+asked). The trace's three `I_ISSUE` records (800, 802, 804) carry refusal
+0 and name `0/2005`; every `cmd` line returned 1. The dump (284,905,010
+bytes, sha256 `bec053e5…9f8c`) and the trace (11,082,208, `6889c2e9…6be7`)
+stay in `~/ron-golden/ch45/map-14`. The disk had 43 GB free after. run493
+was reserved and not used.
+
+**What it holds**: `chapter_forty_five_holds_to_the_golden_word` (closed
+at 1650) and `chapter_forty_five_s_word_frame_is_widened_whole`
+(600..1650); the coverage driver's windows 603, 769 and 804.

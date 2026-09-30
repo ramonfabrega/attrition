@@ -162,6 +162,34 @@ impl Sim {
         self.unit_types[rec].hits
     }
 
+    /// `Unit::update_hits@0060e930`: [`Sim::type_hits`] and then the
+    /// unit's own terms, of which one is carried — **the Nubians'**. A
+    /// merchant (the three ids, `0x3d`, `0x3e`, 400, by exact type) or a
+    /// caravan (`is_caravan`, `unit_flags2 & 8`) of a leader with tribe
+    /// bonus 4 takes `(NUBIAN_HIT_POINTS + 100) × hits / 100`, truncated
+    /// (`0060ec72`..`0060ecab`). run492's Merchant `0/6` is 135 from its
+    /// birth block 603, the type's 90 × 150 % (`docs/GOLDEN.md` §54).
+    ///
+    /// SEAM: the other terms — the American marines, Copper and Bananas,
+    /// the Iroquois, the Dutch, the Spy, General and supply upgrades —
+    /// which no staged nation or holding takes.
+    pub(crate) fn unit_hits(&self, who: Player, rec: usize) -> i32 {
+        let mut hits = self.type_hits(who, rec);
+        let t = &self.unit_types[rec];
+        let trader = matches!(t.type_index, 0x3d | 0x3e | 400)
+            || t.cols.flag2(crate::ai_load::uflags2::CARAVAN);
+        if trader
+            && self.tuning.nubian_hit_points != 0
+            && self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::NUBIANS)
+            })
+        {
+            hits = (self.tuning.nubian_hit_points + 100) * hits / 100;
+        }
+        hits
+    }
+
     /// A gain of a Militia-line bit re-reads every Citizen's `myhits`, as
     /// `update_hits` would: the damage is kept, the pool is the new one
     /// (run422's `0/1`..`0/5` at 50 on block 605, the block after the line).
@@ -172,7 +200,7 @@ impl Sim {
                 continue;
             }
             let Some(rec) = unit.ty else { continue };
-            let hits = self.type_hits(who, rec);
+            let hits = self.unit_hits(who, rec);
             let damage = self.units[u].max_health - self.units[u].health;
             self.units[u].max_health = hits;
             self.units[u].health = hits - damage;
