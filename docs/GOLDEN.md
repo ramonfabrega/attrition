@@ -9404,7 +9404,7 @@ listing of each predicate says a staging needs:
   `Unit::init` (the leader option `buildings`, 0 by default), `Build::train`
   (the building's, the same option), `repair_damage` (the squad's),
   `find_new_target` (2, for the search, then restored), `Group::action_stance`
-  (`issue_stance@00941530`, the scenario calls, `Army::set_stance`) and
+  (`issue_stance`, the scenario calls, `Army::set_stance`) and
   `process_leader_options`. Under `!ai off`, and with the DLL's 26 issuer
   verbs, none writes 1. It also needs an order under the attack at the
   search: `find_new_target` kills the attack before it searches.
