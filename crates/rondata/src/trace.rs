@@ -236,6 +236,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005d_9885), // `Guy::do_turn+0xe5`
         sim::anim::SITE_TURN_CREW,
     ),
+    // …and the pushed idle unit's, `detect_boat_collision` turning the
+    // unit it shoved (`docs/COLLISION.md` §13.3, item 1332).
+    (
+        0x005d_ac7a,
+        Some(0x005f_aee0), // `Unit::detect_boat_collision+0x630`
+        sim::anim::SITE_TURN_PUSHED,
+    ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends

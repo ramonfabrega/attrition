@@ -188,6 +188,11 @@ pub const SITE_TURN_STAND: &str =
 /// fur trapper `1/10` on 672 is the case (item 628): guy 0 under
 /// `move_step+0x389`, its crew under this (`docs/ANIM.md` §4.14).
 pub const SITE_TURN_CREW: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::do_turn+0xe5";
+/// And a fifth: an idle unit a pusher shoves aside is turned to the push
+/// (`Unit::detect_boat_collision+0x630`, `docs/COLLISION.md` §13.3), with
+/// the override set — a figure with a turn animation asks for it.
+pub const SITE_TURN_PUSHED: &str =
+    "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::detect_boat_collision+0x630";
 
 /// `Guy::set_anim+0x97a` under `Unit::do_cast+0xc89` — the casting unit's
 /// `set_anim(CHAR_DEFAULT, 0, 1)` on the first frame of a cast, **one draw
