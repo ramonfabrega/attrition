@@ -12,14 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: fourteen landings.
-**East Indies 8907 → 10985**; **Great Sahara at Toughest opens at 5376,
-now 7785**; **chapters forty-three to forty-five opened and closed**
+*2026-09-30, the commander after the twentieth pass: fifteen landings.
+**East Indies 8907 → 11328**; **Great Sahara at Toughest opens at 5376,
+now 8182**; **chapters forty-three to forty-five opened and closed**
 (2200, 1450, 1650). 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1264, 1275, 1278**, one to each open word. 1264
-  (gating) moves East Indies to 11328 and Great Sahara 7785 → 8182; tell
-  att-1275 when it lands, to take `ccc update` and work 8182.
+- **Three lanes live: 1281, 1275, 1278**, one to each open word.
+  att-1275 works 8182, which 1264's landing gave it.
 - **The commander clears at the seam after every tenth landing**; the
   twentieth is the pass's.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -30,17 +29,17 @@ now 7785**; **chapters forty-three to forty-five opened and closed**
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 26 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274).
+- **Fable backlog: 27 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w10985 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w7785 of 15,432
+Second pair: EastIndies w11328 of 18,140 · GreatLakes w5930 of 5,930
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8182 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander resumes — three lanes live on 1264, 1275 and
-1278; fourteen landings counted from the twentieth pass's commit.**
+**Opener: the commander resumes — three lanes live on 1281, 1275 and
+1278; fifteen landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -50,21 +49,20 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1264. **East Indies' second word: frame 10985, ours 10 draws against
-    11** (1243), at index 2: ours `Leader::make_stuff+0x221` where the
-    original spends a third `Leader::use_market+0x1ed`; widened on run480
-    (block 10986), 1,490 keys. Block 10985's `MAKE[1]`: ours a type-440
-    building at 900,000, theirs five Pikemen (134) at 611,022. Standing
-    from 10980: the orders' `group.id`, and the make list's `city` from
-    10981. No mechanism; 1251's `get_cost` tail is a candidate.
+1281. **East Indies' second word: frame 11328, ours 62 draws against
+    60** (1264), at index 57: ours `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` where the original spends `set_anim+0x104b`;
+    widened on run490 (block 11329): no leader or city row parts, and 65
+    of who=1's units' `g.gpiece[0]` read the original's 2112 above ours.
+    Standing from 11323: who=1's `caras` 3 against 4. No mechanism.
 
-1275. **Great Sahara at Toughest's word: frame 7785, ours 23 draws
-    against 17** (1260), at index 4: ours' `Leader::produce_building
-    +0x1805 < make_this` spends three against the original's two, whose
-    next is `make_stuff+0x221`; widened on run488 (7780..8036). Block
-    7786: both lay the Senate `1/2030` (`orig_type` 438), ours at
-    (38976, 19584), theirs (38784, 17760). Standing from 7780: who=1's
-    `known_rares` 3/4 (parked 1172's field). No mechanism is named.
+1275. **Great Sahara at Toughest's word: frame 8182, ours 8 draws against
+    7** (1264 moved it from 7785), at index 2: ours
+    `Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`; widened on run491 (block 8183) and run494
+    (8177..8434). First parting past the standing rows: on 8181 who=1's
+    `MAKE[4]`, a Merchant (61) at 936,170 against Trade (560) at 307,560.
+    No mechanism is named.
 
 1278. **Chapter forty-six: three arms a unit test alone holds**
     (DECISIONS 56 §3): `disembark_squad`, a barge landing three riders
