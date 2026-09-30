@@ -2262,15 +2262,15 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1281 moved it to run490's 11548..11551**, where a guard order
     // stands and no group move does: the six `guard_*` fields are compared
     // there and leave this pin; the group row (`form_id`, `group_angle`,
-    // `group_id`, `in_group`, `oxx`, `whose`) returns to it.
+    // `group_id`, `in_group`, `oxx`, `whose`) is compared on item 1286's
+    // Toughest window (8785..8788), and stays off it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range form_id garrison_search group_angle \
-         group_id in_group in_range \
-         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
-         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
+         def_y defensive ever_in_range garrison_search in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
@@ -2293,12 +2293,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // run471, 5375..5378, holds an unfinished site, so `job_counter` is
     // compared and off this pin again. **Item 1281 moved East Indies' window
     // to run490's 11548..11551**, and with item 1275's Toughest window on
-    // 8377..8380 neither holds an unfinished site (measured on the tree
-    // merged with 1275's and 1278's landings): `job_counter` returns.
+    // 8377..8380 neither held an unfinished site: `job_counter` returned.
+    // Item 1286's Toughest window on 8785..8788 holds one, so on the tree
+    // merged with it `job_counter` is compared and off this pin again.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
