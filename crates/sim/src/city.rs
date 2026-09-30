@@ -794,7 +794,7 @@ impl Sim {
 
     /// `Wall::set_type`: the building becomes another type of the same
     /// lineage; its damage is kept.
-    fn set_type(&mut self, b: usize, ty: usize) {
+    pub(crate) fn set_type(&mut self, b: usize, ty: usize) {
         self.buildings[b].ty = Some(ty);
         self.buildings[b].combat = Some(self.build_types[ty].combat.unwrap_or_default());
         self.update_hits(b);

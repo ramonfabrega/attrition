@@ -1286,6 +1286,68 @@ fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
     assert_eq!(sim.cities[c0].trade_val, 34 * 8, "and so is the power");
 }
 
+/// **A new route refreshes both its cities' trade** (item 1275):
+/// `do_trade@005ed270:393–396` runs `City::compute_trade` on the two ends
+/// the first time the order is stepped, after the pair is linked and before
+/// `build_road`. The route itself adds nothing — it has not delivered — but
+/// every route those cities already hold is re-summed at today's
+/// `trade_value`, which a round trip is otherwise the only thing to
+/// refresh. Great Sahara at Toughest's `1/52` takes city 2 ↔ 3 on 6587 and
+/// city 2's delivered route to city 1 goes from 176 to 184.
+#[test]
+fn a_new_route_recomputes_the_trade_its_cities_already_hold() {
+    use crate::orders::TradeOrder;
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 2;
+    let (b0, c0) = city_at(&mut sim, &t, 0, 6, 6);
+    let (b1, c1) = city_at(&mut sim, &t, 0, 32, 32);
+    let (_, c2) = city_at(&mut sim, &t, 0, 56, 56);
+    sim.buildings[b0].ty = Some(t.metropolis);
+    sim.buildings[b1].ty = Some(t.metropolis);
+    // The old route, city 0 ↔ 1, has delivered and was summed.
+    let old = sim.init_caravan(0, 0).expect("a slot");
+    let slot = &mut sim.caravans[0].slots[old];
+    slot.alive = true;
+    slot.linked = true;
+    slot.city_a = Some(c0);
+    slot.city_b = Some(c1);
+    slot.delivered = true;
+    sim.compute_trade(c1);
+    let before = sim.cities[c1].trade_val;
+    assert!(before > 0);
+    // City 0 is worth less since: the stored sum is stale.
+    sim.buildings[b0].ty = Some(t.village);
+    let fresh = sim.trade_value(c1, c0) * 16 / 2;
+    assert_ne!(fresh, before, "the partner's value moved");
+    assert_eq!(sim.cities[c1].trade_val, before);
+    // A caravan at city 1 takes a route to city 2.
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let u = spawn(&mut sim, 0, citizen, tile_pos(34, 34));
+    let v = sim.init_caravan(0, u).expect("a slot");
+    sim.units[u].caravan = Some(v);
+    sim.enqueue_order(
+        u,
+        crate::orders::Order {
+            flags: 0,
+            body: Body::Trade(TradeOrder {
+                home: c1,
+                dest: Some(c2),
+                started: false,
+                loaded: false,
+            }),
+        },
+        crate::orders::QueuePos::New,
+    );
+    sim.do_trade(u);
+    assert!(sim.caravans[0].slots[v].linked, "the pair is linked");
+    assert!(!sim.caravans[0].slots[v].delivered);
+    assert_eq!(
+        sim.cities[c1].trade_val, fresh,
+        "city 1's old route is re-summed at today's value"
+    );
+}
+
 /// `LeaderData::pop` and `reg_pop` — `CityData::get_pop_value@00738450`,
 /// which is **1, 3, 5** and not the level, summed over the leader's live
 /// cities. The number is `create_units`' and `research_techs`' whole `base`

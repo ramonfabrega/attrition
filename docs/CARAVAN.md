@@ -419,6 +419,17 @@ a lump. The `& 4` gate is why it is worth nothing until the caravan has
 completed a **round trip**: the bit is written only where a carrying
 caravan reaches the home city.
 
+**Three calls, and a new route is one of them** (item 1275):
+`do_trade@005ed270:476–478` at the close of a round trip,
+`Unit::end_trade_route@005e3bd0` on both ends of a route that ends while it
+is still the action, and **`do_trade:393–396` on both ends of a route the
+first time it is stepped**, after the pair is linked and before
+`build_road`. The last adds nothing for the new route, but it re-sums every
+route the two cities already hold at today's `trade_value` — the partner's
+building count — which nothing else refreshes between round trips: Great
+Sahara at Toughest's city 2 goes 176 → 184 on 6587 so (`docs/AI.md`
+§99.10). This crate has the first and the third; the second is parked.
+
 ### 7.3 `City::new_caravan@00739750` — the one-off
 
 `traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city.

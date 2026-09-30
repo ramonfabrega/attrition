@@ -12301,8 +12301,9 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 `run470_is_great_sahara_at_toughest_and_its_word_holds`; §99.3 and §99.4 by
 `run471_s_word_frame_is_widened_whole`. The compared pin walked run471's
 5375..5378 until item 1241 moved it to run476's (§99.7), and item 1251 to
-run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9);
-the coverage driver drives all four. **Read only**: nothing; §99.5's third bullet is open.
+run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9),
+item 1264 to run491's 8181..8184 and item 1275 to its 8376..8379 (§99.10);
+the coverage driver drives each. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12517,12 +12518,16 @@ widens it (blocks 7780..8036, 876 keys). 132 stand on 7780: run483's
 families, and who=1's `known_rares`, 3 against 4, new past run483. who=1's
 make list parts on 7782 and on 7785, where its third row is a Senate
 (`t` 438, `cat` 8) here and a Mine (419, `cat` 4) there. **On the word's
-block 7786 both sides lay a Senate, `1/2030` (`orig_type` 438), at
-(38976, 19584) here and (38784, 17760) there**, `constr_time` 100000
-against 50000, and who=1's timber and metal buckets are swapped, 78/28
-against 28/78. (Types are keyed as `orig_type` − 414 into
-`buildingrules.xml`'s rows; the Farm is 417 and the Granary 423 on that key,
-§99.4 and §99.7.) No mechanism is named for it.
+block 7786 ~~both sides lay a Senate, `1/2030` (`orig_type` 438), at
+(38976, 19584) here and (38784, 17760) there~~** — the original lays the
+Senate `1/2030` (`orig_type` 438) at (38784, 17760) and ours lays **a
+Keep** (`build_types[26]`, `orig_type` 440) at (38976, 19584): no site
+compares `orig_type` (parked 728), so the type was read off the original
+alone (§99.10). `constr_time` 100000 against 50000, and who=1's timber and
+metal buckets are swapped, 78/28 against 28/78. (Types are keyed as
+`orig_type` − 414 into `buildingrules.xml`'s rows; the Farm is 417 and the
+Granary 423 on that key, §99.4 and §99.7.) ~~No mechanism is named for
+it.~~ It was the Tower that never became a Keep: §99.10.
 
 **The standing rows the booking named** — who=1's wealth 161 against 162,
 its `leftover[2:wealth]` 1584 against 48, `MAKE[4].val` 1431372 against
@@ -12537,3 +12542,114 @@ the word falls back to 7070) and
 The early return on a road neighbour with no element is held by the unit test
 `leech_codes_stops_at_a_road_with_no_element` alone.
 
+### 99.10 The Keep and the trade: 7785 → 8182 → 8377 (items 1264 and 1275)
+
+**7785, both sides.** Frame 7785: ours 23 draws against 17, parting at
+index 4 — both spend two `Leader::use_market+0x1ed` and open a placement,
+ours three `Leader::produce_building+0x1805` against two (seeds `17d37a88`,
+`ac465c47`). The booking read "both lay the Senate" off the original's
+`BUILDDATA`; ours' `1/2030` was `build_types[26]`, `orig_type` 440, **a
+Keep**, with the Keep's `constr_time` 100000. The make lists part on 7782
+(block): ours offers a Keep for city 1 at 787500, the original none; on 7785
+ours' list is Keep 840000, Keep 600000, Senate 480000, Mine 101732, the
+original's Senate 480000 twice, Mine 101732, Farm 90933. Every offer the
+original lists has ours' value exactly; ours alone offers the Keep.
+
+**Walked back: the Tower.** Ours gains the Keep (auto-upgrade, `from`
+Tower) with Medieval Age on 6677, and the original's Tower `1/2015` prints
+`orig_type 439` with `myhits` and `construct_hits` 1000 — the Keep's
+`HITS`, not the Tower's 750: it is a Keep in all but the type it was
+placed as. `Leader::gain_tech@006dcb60`'s building arm (listing
+`6dde64`–`6ddf2b`) converts every in-use building whose type's `upgrade`
+is the gained type through `Wall::set_type(t, 0)` (vslot `+0x84`), and
+this crate had no such loop, so `create_buildings` saw a city with no
+Keep of the line and valued one at `level × 1000 × 10 …` = 840000.
+**Item 1264 built the loop** (`Sim::upgrade_buildings_to`, `docs/TECH.md`
+step 8) from East Indies' side; this item reached the same arm from this
+map's and merged onto it.
+
+**The Keep's hits.** Converted, ours' Keep took the Senate bonus, 1350 in
+a Large City where the original's holds 1000: `full_hits` exempted the
+Tower by exact identity. `Wall::update_hits@0063f0d0` reads the Tower,
+the Lookout and the Market as lines (`is(0x1b7, 0)`, `is(0x209, 0)`,
+`is(0x1b4, 0)`); the Tower's two tests (the Senate bonus and the Romans')
+and the Lookout's now use `build::is_tower` and `build::is`
+(`crates/sim/src/build.rs`; `docs/CITIES.md` §3.4's formula names them
+without saying lines, and its section is at its size bound). **Held by no walk**: `myhits` and
+`construct_hits` are compared by no site; the unit test
+`the_senate_bonus_and_the_temple_bonus` holds it (a Keep in a Large City,
+1000).
+
+**8182, both sides.** Frame 8182: ours 8 draws against 7, parting at
+index 2 — both spend two `Leader::make_stuff+0x221` (the head, King's
+Longbowmen `num 2`, and its duplicate), then ours a `make_stuff+0x63d`.
+Both enter the frame with who=1's goods (164, 123, 140, 356, 57) and
+escrow (40, 50, 33, 54, 20) equal. **The original queues two Longbowmen at
+the Barracks `1/2017`** (48/67, then 55/74; run491 block 8183
+`num_queued[128]` 3) and ours one, then the Hoplites from slot 2 behind
+it (`queue[2].type` 132 against 178): ours' second round of
+`produce_unit` could not pay 74 wealth out of 73. The original had 141:
+one wealth is 7200 of `leftover`, who=1 earns 2859 a frame, and its
+`leftover` crossed on 8182 (6957 → 2616) where ours' stood lower — 1398
+against 7062 on run491's first block, a standing row since run483's
+7065 (`leftover` 1584 against 48, wealth 161 against 162: the rows items
+1251 and 1260 carried).
+
+**Walked back: run495.** No dump printed a leader's goods between
+run476's last block, 6033, and run483's first, 7065. run495 is run482's
+`LEADERS=2` over 6030..7066: who=1's goods agree to block 6591, and on
+**6592 `income[2:wealth]` and `resources[2:wealth]` read ours 992 against
+1000**, the `leftover` with them, the bucket from 6614. Ours' wealth rate
+on 6591 is trade 352 (city 1 176, city 2 176), rares 320, taxes 320.
+Ours reassembles on 6591 too (the Farm `1/2027` placed on 6583 marks the
+economy), so the eight sixteenths are a term, not a timing: city 2's
+`trade_val`. Caravan `1/52` is new on 6585 and takes city 2 ↔ 3 on 6587.
+**`Unit::do_trade@005ed270:393–396`**, on the route's first call — after
+the pair is linked (`caravan_flags |= 1 | 2`, the order's `+0x1c` set)
+and before `build_road` — runs `City::compute_trade` on both cities. The
+new route adds nothing (it has not delivered), but the recompute re-sums
+city 2's delivered route to city 1 at today's `trade_value`, the partner's
+building count, which had grown since that route's last round trip: 176
+→ 184. Ours recomputed a city's trade only at a round trip's close
+(`do_trade:476–478`), and took the eight on 7061 with the next one. The
+recompute is now in ours' establishment arm (`crates/sim/src/caravan.rs`).
+
+**The value diff.** run495 block 6592: `income[2:wealth]` ours 992
+against 1000 → **both 1000**, and who=1's goods agree on every block
+6030..7066 (`run495_s_goods_are_widened_whole`; what parts is the human's
+standing gather rows and the records `LEADERS=2` does not print). run483
+block 7065: wealth 161/162 and `leftover` 1584/48 → agreeing. run491 block
+8183: `num_queued[128]` 2 against 3 and `1/2017`'s `queue[2].type` 132
+against 178 → agreeing. run491 parts on **530 keys where it parted on
+967**, run488 on 146 where 150, run483 on 132 where 134.
+
+**The word moves 8182 → 8377**: ours 17 draws against 19, at index 0 —
+ours opens on `Leader::make_stuff+0x221` where the original's first is
+`Leader::use_market+0x1ed`. It lies in run491's window: block 8378, where
+who=1's head is spent here (`MAKE[0].val` −1) and a category-9 row worth
+1981477 at (30, 24) there, and who=1's wealth is 172 against 53. No
+mechanism is named for it.
+
+**What stands before it.** who=1's `known_rares`, 3 against 4 on run488's
+7780 (and 4 against 0 on run491's 8177), the field parked 1172 names: it
+feeds `create_units`' merchant arm and no draw on these frames; the
+University's offer on 7782, 4048327 against 3469995 (7/6); `scholars` 11
+against 12 from 7925; and on 8181 who=1's fifth make row, a Merchant at
+936,170 here and Trade (`TypeIndex` 560) at 307,560 there — 1264's first
+parting past the standing rows, still standing.
+
+**Readings killed.** A route's end (`Unit::end_trade_route@005e3bd0`,
+reached from `kill_current_order`'s `0xf` arm) recomputes both its cities
+too, and ours' `end_trade_route` does not — built, it moved nothing on
+run495 or the word: no route ends on these frames. Not built here; parked.
+Ours' `end_trade_route` doc comment gave the address 005ed1c0, which
+starts no function in the export's index; it now gives 005e3bd0.
+
+**Coverage.** Diff-backed: the establishment recompute, by
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (removed: the word
+falls back to 8182), `run495_s_goods_are_widened_whole`,
+`run491_s_word_frame_is_widened_whole`, `run488_s_word_frame_is_widened_whole`
+and `run483_s_word_frame_is_widened_whole`; the unit test
+`a_new_route_recomputes_the_trade_its_cities_already_hold`. The Keep's
+conversion, by 1264's pins and `gaining_the_keep_turns_the_leader_s_standing_tower_into_one`.
+**Held by no walk**: the hits lines (above).

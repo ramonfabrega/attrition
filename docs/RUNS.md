@@ -11920,16 +11920,6 @@ block 10986: six blocks before it and 250 after.
 ```
 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run480 \
     --map 18 --end-frame 11250 --timeout 5400 --log-window 10980 11237 \
-## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
-
-**What it is.** run471's shape on the click-free lane at run470's lobby,
-`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
-blocks 5777..6033, `!quit` at 6047. The word's frame 5782 writes block
-5783: six blocks before it and 250 after.
-
-```
-zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run476 \
-    --map 7 --end-frame 6047 --timeout 4800 --log-window 5777 6034 \
     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
     --profile DIFFICULTY=5
 ```
@@ -11962,6 +11952,21 @@ a type-440 building at 900,000 where the original holds five Pikemen
 (`TypeIndex` 134) at 611,022. The window parts on 1,490 keys. The coverage
 driver walks 10985..10988 and the compared pin 10984..10987, where a cast
 order and a group move stand.
+
+## run476 — run470's game at run471's detail over blocks 5777..6033: the word 5782 widened (2026-09-30, item 1241)
+
+**What it is.** run471's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 5777..6033, `!quit` at 6047. The word's frame 5782 writes block
+5783: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run476 \
+    --map 7 --end-frame 6047 --timeout 4800 --log-window 5777 6034 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
 **The booking cites what the disk could not answer.** The word moved to
 5782 when `find_friends`' enhancer arm was built (`docs/AI.md` §99.7);
 run471 ends at block 5627 and run470 prints `MISC` alone, so no dump of
@@ -12097,6 +12102,7 @@ run485 was reserved and not used.
 
 **What it holds**: `chapter_forty_four_holds_to_the_golden_word` (word
 670) and `chapter_forty_four_s_word_frame_is_widened_whole` (605..920).
+
 ## run488 — run470's game at run483's detail over blocks 7780..8036: the word 7785 widened (2026-09-30, item 1260)
 
 **What it is.** run483's shape on the click-free lane at run470's lobby,
@@ -12140,6 +12146,50 @@ parts on 7782 and 7785. On the word's block 7786, the Senate `1/2030`
 there. The compared pin walks its 7784..7787, and the coverage driver
 drives 7784..7788.
 
+## run490 — run346's game at run480's detail over blocks 11323..11579: the second pair's East Indies word 11328 widened (2026-09-30, item 1264)
+
+**What it is.** run480's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 11323..11579, `!quit` at 11593. The word's frame 11328 writes
+block 11329: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run490 \
+    --map 18 --end-frame 11593 --timeout 5400 --log-window 11323 11580 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run480 ends at block
+11236, and no other dump of run346's game prints the word's blocks at
+detail; the run346 dump itself carries no leader or figure record.
+
+**Taken** 05:16:33–05:42:16 in one take. The lane was held by another
+lane's click-free capture (pid 4697, since 04:55:59); run490's launcher
+waited on `ron_lane_state` for 11 minutes, found the lock stale (pid 4697
+dead) and took it over. It was waited on with `waitrun.sh`: `success:
+true`, `settings_restored: true`, exit 0, 1,515 s from launch to exit,
+11,594 frames, map 18 and seed 12345 verified, five files restored. The
+dump (639,849,912 bytes, sha256 `f77dbb6423f9f565…`) and the trace
+(99,190,048, `4ab20c89984ffa99…`) were moved into `Logs` as
+`gamelog-run490-islands-toughest-11328.txt` and `rontrace-run490.log`.
+The disk had 45 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 11,594 identical |
+| window blocks | 257, 11323..11579 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run490_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 11323 stands on 194 keys; new among
+who=1's past run480 is `caras` 3 against 4. On the word's block 11329 no
+leader or city row parts, and 115 figure rows do: 65 of who=1's units'
+`g.gpiece[0]`, the original's 2112 (0x840) above ours (`1/1` 6336 against
+8448), and animation clocks beside them. The window parts on 1,311 keys.
+The coverage driver walks 11328..11331 and the compared pin 11327..11330.
+
 ## run486 — chapter forty-four's staging, a packet at logger frame 670 (2026-09-30, item 1257)
 
 **What it is.** `chapter44.cmd` whole, to 672, with a `RON_STATE_FRAME=670`
@@ -12171,6 +12221,53 @@ item): piece 296's seven entries and its scale 0.8; the original's
 `angle_to_degrees` gives 354. The tables are in
 `~/ron-data/lab-experiments/2026-09-30-item-1257/`. `docs/GOLDEN.md` §53.
 run487 was reserved and not used.
+
+## run491 — run470's game at run488's detail over blocks 8177..8433: the third map's word 8182 at Toughest widened (2026-09-30, item 1264)
+
+**What it is.** run488's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8177..8433, `!quit` at 8447. The word's frame 8182 writes block
+8183: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run491 \
+    --map 7 --end-frame 8447 --timeout 4800 --log-window 8177 8434 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1264's Keep
+conversion moved Great Sahara at Toughest's word from 7785 to 8182; run488
+ends at block 8036 and run470 prints `MISC` alone.
+
+**Taken** 06:34:37–06:54:39 in one take. The lane was held by another
+lane's capture (pid 32921, from 06:12:52); run491's launcher waited on
+`ron_lane_state` for 20 minutes. The first launch, at 06:34:06, came as
+that lock read stale while its `flock` was still held, and
+`unattended_capture.py` refused with `BlockingIOError` before staging
+anything; the second, 31 s later, took it. Waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,173 s from launch to
+exit, 8,448 frames, map 7 and seed 12345 verified, five files restored. The
+dump (530,155,767 bytes, sha256 `6178dae7a2a6837b…`) and the trace
+(45,947,552, `5e20430a914f3dbc…`) were moved into `Logs` as
+`gamelog-run491-greatsahara-toughest-8182.txt` and `rontrace-run491.log`.
+The disk had 42 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 8,448 identical |
+| window blocks | 257, 8177..8433 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run491_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 967 keys: 136 stand on 8177 (who=1's `known_rares` 4 against
+0, `leftover[2:wealth]` 1398 against 7062 among them), who=1's fifth make
+row parts on 8181 (a Merchant, `TypeIndex` 61, at 936,170 here and Trade,
+560, at 307,560 there), and on the word's block 8183 who=1's food, timber
+and metal part (94/164, 76/21, 5/57) and `1/2017` queues `TypeIndex` 132
+where the original queues 178. The coverage driver walks 8181..8185 and
+the compared pin 8181..8184.
 
 ## run492 — chapter forty-five, `get_cost`'s library-line tail on the golden start (2026-09-30, item 1268)
 
@@ -12239,3 +12336,81 @@ after. run497 was reserved and not used.
 **What it holds**: `chapter_forty_six_holds_to_the_golden_word` (1902) and
 `chapter_forty_six_s_word_frame_is_widened_whole` (605..2200); the coverage
 driver's windows 726, 1050 and 1902.
+## run494 — run470's game at run488's detail over blocks 8177..8433: the word 8182 at Toughest, a second take of run491's window (2026-09-30, item 1275)
+
+**What it is.** run488's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8177..8433, `!quit` at 8450 — the same window and detail as
+run491, which lane 1264 took on the same lane beside it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run494 \
+    --map 7 --end-frame 8450 --timeout 4800 --log-window 8177 8434 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** This lane's own Keep
+conversion moved the word from 7785 to 8182 before 1264's landed; run488
+ends at block 8036 and run470 prints `MISC` alone. The two lanes each
+booked the window for the same move, and neither knew the other had
+until the commander's message.
+
+**Taken** 06:12:43–06:34 in one take, on a stale lock (pid 38950, dead,
+last held by the unattended lane); waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,269 s from launch to
+exit, 8,451 frames, map 7 and seed 12345 verified. The dump (530,155,768
+bytes, sha256 `ce828e97485ea055…`) and the trace (45,891,616,
+`4d3386f19c05207f…`) were copied into `Logs` as
+`gamelog-run494-greatsahara-toughest-8182.txt` and `rontrace-run494.log`.
+The disk had 44 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 8,451 identical |
+| window blocks | 257, 8177..8433 |
+
+**What it holds**: nothing a test reads. Walked before the merge, it gave
+run491's numbers to the key (967, then 530 with item 1275's trade), and at
+the merge the widening stayed on run491 (`docs/AI.md` §99.10).
+
+## run495 — run470's game at `LEADERS=2` over blocks 6030..7066: who=1's goods through the gap between run476 and run483 (2026-09-30, item 1275)
+
+**What it is.** run482's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,LEADERS=2`, blocks 6030..7066, `!quit` at
+7080: every leader's goods record on every block of the gap.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run495 \
+    --map 7 --end-frame 7080 --timeout 4800 --log-window 6030 7067 \
+    --detail end:MISC,LEADERS=2 --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** who=1's wealth and
+its `leftover` agree on run476's last block, 6033, and stand parted on
+run483's first, 7065 (161/162, 1584/48); a probe that gave ours the
+original's wealth and `leftover` on 7780 moved the word 8182 → 8377. No
+dump prints a leader's goods between the two: run470 is `MISC` alone.
+
+**Taken** on the third launch. The first, 06:34:52, refused: run491
+(pid 84806) held the lane. A waiter on `ron_lane_state` then waited 19
+minutes; its launch at 06:54:28 came as the lock read stale while the
+`flock` was still held, and `unattended_capture.py` refused with
+`BlockingIOError` before staging anything. The third, 06:55:12, took it: `success: true`,
+`settings_restored: true`, exit 0, 7,081 frames, map 7 and seed 12345
+verified. The dump (10,757,294 bytes, sha256 `0e7c5e3dfb5a06f4…`) and the
+trace (38,350,016, `a86ba3c03e34d41a…`) were copied into `Logs` as
+`gamelog-run495-greatsahara-toughest-wealth.txt` and `rontrace-run495.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 7,081 identical |
+| window blocks | 1,037, 6030..7066 |
+
+**What it holds**: `run495_s_goods_are_widened_whole`
+(`diff::sahara_toughest`). Before item 1275 who=1's `income[2:wealth]` and
+`resources[2:wealth]` parted on block 6592, ours 992 against 1000, its
+`leftover` with them and its bucket from 6614; with `do_trade`'s
+establishment recompute the goods agree on every block, and 42 keys part
+(the human's standing gather rows and the records `LEADERS=2` does not
+print). The trace carries no function coverage (its window is empty).

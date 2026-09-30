@@ -582,7 +582,21 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
    — the predecessors are owned and obsolete at once.
 8. **A building type**: every live building whose type's `upgrade == t` is
    marked obsolete (`obs_flags` of its type) and converted (`set_type`), and
-   `obs_flags.set(t.from)` if `from ≥ 0`. **A unit or a building type stops
+   `obs_flags.set(t.from)` if `from ≥ 0`. The loop is `6dde64`–`6ddf2b`:
+   both of the leader's building lists, `flags & 1` (in use, so a site
+   converts too), `types[o.type].upgrade == t` (`TypeData +0x44`), then
+   `Wall::set_type(t, 0)` through vslot `+0x84` — `decrement_stats` on the
+   old type, the swap, `increment_stats` on the new, so `num_buildings`
+   (`+0x5222`) and the per-region count at `+0x11a2` move with it. No argument gates it: the cascade's
+   `gain_tech(B, 0, 0, 0, 1)` converts as `Build::finished`'s does. **Built
+   by item 1264** (`Sim::upgrade_buildings_to`): East Indies' who=1 gains
+   the Keep between run357's 5601 and run425's 7377, and the original's
+   `num_buildings` reads Tower 1, Keep 0 on the first and Tower 0, Keep 1
+   on the second, while its Tower `1/2014` prints `orig_type 439`
+   throughout — `BUILDDATA` prints the type it was placed as, never the
+   one it is. Without the loop this crate kept a Tower, and on 10984
+   `create_buildings` offered a first Keep at 900,000 where the original,
+   holding one, offered none. **A unit or a building type stops
    here** — a unit `goto`s the epilogue after step 7, and everything that is
    not a tech type returns after step 8; none of the cascades below run for
    them.
@@ -982,6 +996,21 @@ captain — no capture converts to a smaller squad); and `set_type`'s tail
 (`is(0x165, 1)` and `update_ceo_position`, `is(0x77, 0)`,
 `update_gpiece`, the two vslots before `update_armor`/`update_speed`),
 none of which has state here.
+
+**The building loop beside it** (step 8, item 1264) is diff-backed on
+run346's headline walk: without it East Indies' word falls from 11328 to
+10985, where who=1's make list takes a Keep at 900,000 into slot 1. And on
+run470's: Great Sahara at Toughest's who=1 holds a Keep from before
+run483's 7065 (a Tower through run476's 6033), and without the loop its word
+falls from 8182 to 7785, where the make list takes a Senate ahead of a
+Mine. Unit
+test: `gaining_the_keep_turns_the_leader_s_standing_tower_into_one` (a
+finished Tower and a site convert, another leader's and a Library do not).
+Not diff-backed: the converted building's own fields. A building's
+`myhits` and `mylos` are on the compared pin as uncompared. The Keep
+prints `mylos 13` on run425's 7377, which is [`Sim::build_los`]'s `LOS 12`
+and half its size, and **15** on run480's 10985, which it is not: a tower
+term its `SEAM` says no capture reaches.
 
 ## The graft table — 2026-09-24
 

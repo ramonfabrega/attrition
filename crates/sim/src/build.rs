@@ -580,7 +580,10 @@ pub fn full_hits(
     if m.maya {
         h = (t.maya_building_hp + 100) * h / 100;
     }
-    if m.romans && (is_fort(types, ty) || b.ident == Ident::Tower) && !b.wonder {
+    // The Tower and the Lookout are read as lines, `is(0x1b7, 0)` and
+    // `is(0x209, 0)` (`Wall::update_hits@0063f0d0`): the Keep, the Stockade
+    // and the Bunker are Towers here (item 1275).
+    if m.romans && (is_fort(types, ty) || is_tower(types, ty)) && !b.wonder {
         h = (t.roman_fort_hp + 100) * h / 100;
     }
     h = (t.building_hp_upgrade * m.hp_upgrade.clamp(0, 3) + 100) * h / 100;
@@ -597,8 +600,8 @@ pub fn full_hits(
         if active
             && city_level > 0
             && !is_fort(types, ty)
-            && b.ident != Ident::Tower
-            && b.ident != Ident::Lookout
+            && !is_tower(types, ty)
+            && !is(types, ty, Ident::Lookout)
         {
             h += t.senate_hp_bonus * (city_level - 1) * h / 100;
         }
@@ -1010,6 +1013,9 @@ mod tests {
         assert_eq!(full_hits(&t(), &ty, 10, true, 0, false, &m), 1200);
         // A tower in a Large City: no senate bonus.
         assert_eq!(full_hits(&t(), &ty, 6, true, 2, false, &m), 750);
+        // Nor a Keep: `is(0x1b7, 0)` reads the line, and run488's Keep
+        // `1/2015` in a Large City holds 1000 (item 1275).
+        assert_eq!(full_hits(&t(), &ty, 7, true, 2, false, &m), 1000);
         // A city with a level-one temple: +25 %; with Tikal, (150 × 25 + 99) / 100 = 38 → +38 %.
         let m = HitsMods {
             temple_level: 1,
