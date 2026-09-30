@@ -624,6 +624,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch44 = golden_dump("ch44");
     let ch45 = golden_dump("ch45");
     let ch46 = golden_dump("ch46");
+    let ch47 = golden_dump("ch47");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -671,6 +672,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r480 = crate::testenv::dump("gamelog-run480-islands-toughest-10985.txt");
     let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
     let r506 = crate::testenv::dump("gamelog-run506-islands-toughest-11637.txt");
+    let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1258,6 +1260,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run506 carries the second pair's East Indies word 11637's blocks"
+        );
+        frames += n;
+    }
+    // Item 1302 moved it to 12582 (block 12583), past run506: run508 is
+    // its widening.
+    if let Some(p) = &r508 {
+        let n = drive_capture(p, 12_582, 12_585, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run508 carries the second pair's East Indies word 12582's blocks"
         );
         frames += n;
     }
@@ -2056,6 +2068,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter forty-seven, on run514** (item 1310): 677, the Keep gained
+    // on a standing Tower site; 1102, the squad's landing; 1111, the age's
+    // snap.
+    if let Some(p) = &ch47 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SEVEN;
+        for w in [677, 1102, 1111] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-seven carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
     // a frame out; 852, `0/7`'s.
@@ -2306,14 +2329,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // move stands; with 1297's East Indies window (11636) holding none
     // either, the group row returns to this pin (measured on the tree
     // merged with 1281's and 1297's).
+    // **Item 1302 moved East Indies' window to run508's 12581..12584**,
+    // walked beside 1305's Toughest window (run511's 9322..9325): the group
+    // row (`form_id`, `group_angle`, `group_id`, `in_group`, `oxx`,
+    // `whose`) is compared on the union, and leaves this pin (measured on
+    // the tree merged with 1305's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range form_id garrison_search group_angle \
-         group_id in_group in_range mandatory metric new_ord non_flat_gather \
-         orig_x orig_y oxx patrol_x patrol_y retry returning sharp_turn strafe_xx \
-         strafe_yy tolerance uid waypoint whose",
+         def_y defensive ever_in_range garrison_search \
+         in_range mandatory metric new_ord non_flat_gather \
+         orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
+         strafe_yy tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

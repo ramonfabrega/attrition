@@ -1591,7 +1591,29 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
 /// (eighteen of them, and seventeen idle stands). Past run490's window
 /// (its last block 11579), widened on run506 (block 11638).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_637;
+///
+/// **11637 → 12582 on item 1302** (`docs/AI.md` §99.14): the eighteen were
+/// six **decoy** squads (Peltasts, King's Yeomanry, Pikemen, `unit_masks`
+/// 1), made by who=1's General `1/98`, whose Create Decoys this crate never
+/// cast: `Army::use_generals` gives an army's General a `think_spellcaster`
+/// turn every 128 frames, and its hero arm lays the cast when the General
+/// stands. Army 4's turn laid it on 11410 and on 11538; the tick's
+/// `ATTACK_TO` replaced the first on 11508, handing the craft back. **The
+/// move's value diff (run490's block 11411, the state's first parting,
+/// walked back from the word):** `1/98`'s `spell_time` ours 0 against 1 →
+/// agreeing, and `mana_burn` 0 against 1000 → agreeing; on 11509 both 0,
+/// and on 11638 `mana_burn` 901 on both; on run506's block 11638 group 70
+/// lists 37 on both, and `1/104`..`1/120` and `1/93` agree in type and
+/// place (the copies stand where the General's collision pair allows).
+/// run506's keys went 1375 → 224, run490's 229 → 226. Frame 11637's
+/// draws went 2 against 38 → agreeing; on the way, 11764's army-4 tick
+/// (`num_decoys` off the standard line) and 11780's `create_units` (a
+/// decoy is no unit of the census) agree. **The new word's delta: ours 9
+/// draws and the original 10 on frame 12582, parting at index 4**: the
+/// original spends `Leader::make_stuff+0x63d` where ours goes on to
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run506's window (its
+/// last block 11888), widened on run508 (block 12583).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 12_582;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2183,6 +2205,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_11328: (i64, i64) = (11_323, 11_579
 /// run490's detail, blocks 11632..11888 — six blocks before the word
 /// 11637's block 11638 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_11637: (i64, i64) = (11_632, 11_888);
+
+/// **run508's window** (item 1302): the second pair's East Indies at
+/// run506's detail, blocks 12577..12833 — six blocks before the word
+/// 12582's block 12583 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_12582: (i64, i64) = (12_577, 12_833);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -5344,6 +5371,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FIVE: i64 = 1650;
 /// captain's ring, so `eject_contents` gives the squad arm once.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 
+/// **Chapter forty-seven's golden word** (`docs/GOLDEN.md` §56, item
+/// 1310, run514): **open at 712**, word and sequence; the chapter opens
+/// with a parting there, ours 35 draws against 31, at index 25: ours
+/// spends four in the buildings phase — the Keep site `0/2008`'s round,
+/// fired unfinished and landing on who=1's `1/6` — where the original's
+/// next draw is `Farms::inc_time+0x1ae` (seed `0x8fad03fd`). The value
+/// diff on block 713: `1/6`'s `hits:damage` ours 8 against 0,
+/// `damage_frame` 712 against 0, `hits_left` 112 against 120.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 712;
+
+/// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
+/// whole, 605 to its end (block 1399 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_SEVEN: (i64, i64) = (605, 1401);
+
 /// `chapter_forty_six_s_word_frame_is_widened_whole`'s window: run496
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_SIX: (i64, i64) = (605, 2201);
@@ -7438,6 +7479,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1310: run514, chapter forty-seven, the Keep on a standing
+    // Tower site, a squad ashore facing away from its barge, and an age's
+    // snap mid-move. The widening is run514 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
+        Some("chapter_forty_seven_s_word_frame_is_widened_whole"),
+        1310,
+        Some(WIDENING_CHAPTER_FORTY_SEVEN),
+    ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
     // and `all_gathering`'s prune, closed at 2200. The widening is run496
     // whole.
@@ -7575,13 +7626,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 1214 to 10183, past it, widened on run462; item 1228 to 10185,
     // inside it; item 1243 to 10985, past it, widened on run480; item 1264
     // to 11328, past it, widened on run490; item 1281 to 11549, inside it;
-    // item 1297 to 11637, past it, widened on run506.
+    // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
+    // past it, widened on run508.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run506_s_word_frame_is_widened_whole"),
-        1297,
-        Some(WIDENING_SECOND_EAST_INDIES_11637),
+        Some("run508_s_word_frame_is_widened_whole"),
+        1302,
+        Some(WIDENING_SECOND_EAST_INDIES_12582),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

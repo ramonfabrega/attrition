@@ -3301,7 +3301,12 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner;
-        let captain = self.units[u].captain;
+        // A decoy's type is no count of the leader's: both of `set_type`'s
+        // `track_unit_type` calls sit behind `(unit_masks & 1) == 0`
+        // (decompile lines 62 and 273). run346's decoy Peltasts took the
+        // age's upgrade after 11637, and ours took `num_units` to −2
+        // (run508's block 12577, item 1302).
+        let captain = self.units[u].captain && !self.units[u].decoy;
         if captain {
             self.track_unit_type(who, old, -1);
         }

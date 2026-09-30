@@ -223,6 +223,10 @@ num_standard += captains − count(COUNT_CASTERS) − count(NON_DECOY_TYPE, SUPP
 role         |= group.role
 ```
 
+The crate counted neither the decoys nor the AA guns until item 1302
+(`docs/AI.md` §99.14): run346's army 4 holds six decoy squads from 11637,
+and its tick on 11764 reads `num_captains − num_decoys` (§6).
+
 `get_num_cap@007145c0` counts the group's active units (`flags & 1`) for
 which `UnitData::is_captain@0046ceb0` holds — and that function is
 **`return this->o_up < 0;` and nothing else**, the head of an uber squad.
@@ -621,7 +625,9 @@ thirty frames earlier in the cycle. Run21's `do_mustering` at 252,
 `do_marching` at 12024 (248, army 2) and `do_defending` at 15100 (252,
 army 0) are this arithmetic. `use_generals`/`use_spies`/`use_scouts`
 (§14) each walk the units and give the first hero / spy / special unit a
-`Unit::think_spellcaster` turn, stopping at the first that returns 1.
+`Unit::think_spellcaster` turn, stopping at the first that returns 1. `use_generals` is built (item 1302, `docs/AI.md`
+§99.14: run346's army 4 lays its General's Create Decoys on 11410 and
+11538); `use_spies` and `use_scouts` are not (parked 980).
 
 ## 6. The tick — `Army::process`, after the gate
 

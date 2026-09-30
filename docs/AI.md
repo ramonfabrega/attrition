@@ -166,7 +166,7 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    marked seen for me (`good+0x20 |= 1 << who`) and, unless its tile's
    owner is an enemy, `reg_known_rares[tregion]++`.
 10. **The unit census** — every captain of mine (`is_captain`, vslot
-    `+0xe8`) that is alive and whose type has `control_cost != 0`:
+    `+0xe8`) that is alive, not a decoy, and whose type has `control_cost != 0`:
     - its region: the unit's tile, or its outermost container's (§58)
       — the building's footprint (`x_size`/`y_size`, centred
       by parity) is scanned column by column for the first cell whose
@@ -10323,7 +10323,8 @@ computer leader's caster (`unit_flags2 & 2`) after the goody box.
 **The seams**, each drawing nothing where it stands: the three crafts'
 target searches (`spell_valid_target` refuses Bribe, Counterintelligence
 and the Sniper), the Spy's cloak, ~~the hero arm (a General's Create Decoys,
-Forced March behind a coin, and Ambush)~~ (built, §99.13), and the human arm `Unit::think`'s
+Forced March behind a coin, and Ambush)~~ (built, §99.13; its Create
+Decoys first reached on East Indies, §99.14), and the human arm `Unit::think`'s
 special turn reaches. The third caller, `Army::use_scouts`/`use_spies`/
 `use_generals` on an army's 128-frame turn (`army.rs`, "the spellcasters'
 turn — a seam"), is **not wired**: at Toughest an army holding a scout
@@ -12876,7 +12877,101 @@ walks 9112..9262 at its own speed here~~ — built by item 1318, §99.15; `cast_
 
 **Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
 `run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
-Held by no walk: the decoy arm, Ambush's cast, the march's expiry (9368).
+Held by no walk: ~~the decoy arm~~ (held by the East Indies walk since
+item 1302, §99.14), Ambush's cast, the march's expiry (9368).
+### 99.14 A General's copies: Create Decoys from the army's turn (item 1302)
+
+**11637, both sides.** Ours 2 draws against 38, parting at index 1: the
+original spends eighteen `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`, then seventeen idle stands. On run506's block
+11638 the eighteen are six **decoy** squads: three of Peltasts (84), one
+of King's Yeomanry (179), two of Pikemen (134), every figure `unit_masks`
+1 and `mana_burn` 1, all in who=1's group 70 (army 4). The booking's
+"eighteen Peltasts" was a supposition. **The original acted:** its General
+`1/98` (a hero, `unit_flags2 & 0x20`) holds `spell_time` 99 → 0 and
+`mana_burn` 902 → 901 across the block. Ours' `1/98` had no order and
+no craft.
+
+**Two casts, one interrupted.** run490 and run506 print `1/98`
+`spell_time` 1 and `mana_burn` 1000 on block 11411, and again on 11539.
+Both frames, 11410 and 11538, are army 4's spellcaster turn: `(frame −
+30 + (4 + 1·2)·2) % 128 == 0` (`docs/ARMY.md` §5). The first reaches 98,
+and on 11508, army 4's 256-frame tick, the group's `ATTACK_TO` replaces
+it. Block 11509 has `spell_time` 0 and `mana_burn` 0, which is
+`kill_current_order`'s `CAST_SPELL` arm (`docs/ORDERS.md` §3.2):
+`unpay_cast_costs@00676ff0` takes `min(mana_burn, MANA)` off a paid cast
+that dies. `do_cast` clears `paid` before its own closing kill
+(`005ece96`), so a cast that ran its course keeps its craft spent. The
+clock restarts in `Unit::work@0060d180:285-296`, which zeroes
+`spell_time` on every frame the front order is not a cast and the action
+is not one either. The second cast runs 100 frames, the craft's job
+time, and casts on 11637.
+
+**Who lays it.** `use_generals` and the hero arm are §99.13's. The arm
+this word needs is the standing half: not `is_moving`, no live decoy
+captain of the player, and `mana ≥ mana_burn + MANA(0x27a)`. It calls
+`add_cast_order(−1, −1, its own point, 0x27a, QUEUE_FIRST, 0)` and
+returns 1.
+
+**The copies**, `cast_create_decoy@00674370` (`docs/GOLDEN.md` §48), and
+the three things that chapter did not reach:
+- **Where each copy stands.** `find_nearby_spot` is asked with
+  `FILTER_NOT_ME` and the General as `(not_o, not_who)`, and no squad
+  argument. That takes the pairwise pair (`bVar17`,
+  `find_collision`/`find_ordered_collision` against the General), not
+  the copied type's radius query. The radius query put the fourth squad
+  at `k = −2` (37848, 42504), where the original's stands at `k = −3`
+  (37752, 42648).
+- **The army.** A computer's General (`unit_masks & 0x40000`) has each
+  copy `Army::add_unit`ed to its own army (the call at `674712`) before
+  the figures are marked. `Army::normalize` counts `num_decoys` (decoy
+  captains, `COUNT_DECOYS`) and takes them, with the non-decoy casters,
+  supply wagons and AA guns (`0x119`), off the standard line. Without it,
+  army 4's tick on 11764 ran `find_target` (six `+0x7df` draws) where the
+  original does not.
+- **The census.** `plan_strategy`'s unit census skips a decoy (`testb
+  $0x1, 0x68(%esi)` at `6b9f57`; §2.3 step 10). Without it,
+  `create_units` passed its military gate once more on 11780.
+- **The counts.** Both of `Unit::set_type`'s `track_unit_type` calls sit
+  behind `(unit_masks & 1) == 0`. The decoy Peltasts took the age's
+  upgrade after 11637, and without the test ours took `num_units` to −2
+  (run508's block 12577).
+
+**The value diff** (the state's first parting, walked back from the word):
+- run490's block 11411: `1/98`'s `spell_time` ours 0 against 1, and its
+  `mana_burn` 0 against 1000. Both now agree, and run490 parts on 226
+  keys where it parted on 229.
+- On run506's block 11638, group 70 lists 37 on both sides, and every
+  copy agrees in type and place. run506 parts on 224 keys, not 1375.
+- Left on 11638: the eighteen copies' birth `form` (0 against −1, the
+  standing added-unit family), and `1/93`'s `path_recursion` (1 against
+  0). `1/93` is the one copy born into a reused slot, below `1/104`.
+
+**East Indies 11637 → 12582.** Ours 9 draws against 10, parting at index
+4: the original spends `Leader::make_stuff+0x63d` where ours goes on to
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. It lies past run506, widened
+on run508 (block 12583). The first rows before it are on block 12581:
+who=1's `MAKE[5]` holds a Citizen order (`t` 50, `num` 4, `city` 2) that
+only the dump has. No mechanism is named.
+
+**Coverage.** Diff-backed:
+- the cast, its refund and its clock, by run490's and run506's rows of
+  `1/98`;
+- the copies' places and their army, by run506's block 11638;
+- the census and `num_decoys`, by the walk's draws on 11764 and 11780.
+
+Unit tests:
+`an_ai_general_standing_orders_create_decoys_and_its_copies_join_its_army`
+and `an_interrupted_cast_hands_its_craft_back_and_its_clock_restarts`.
+
+**Not established:**
+- The moving half of the hero arm (§99.13).
+- `use_spies` and `use_scouts` (parked 980).
+- `unpay_cost`'s resources, which are not modelled here, just as
+  `pay_cast_costs`' `pay_cost` is not.
+- The action's `+0x20` test in `Unit::work`, read here as always true.
+- Why a reused slot keeps `path_recursion`. `Unit::init` does not write
+  it, as far as this reading goes, and nothing draws on it.
 
 ### 99.15 Forced March's speed (item 1318)
 

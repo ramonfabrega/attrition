@@ -533,7 +533,18 @@ impl Sim {
         }
         self.units[u].spell_time = 0;
         self.cast_on(u, s, t);
+        self.clear_cast_paid(u);
         self.kill_current_order(u);
+    }
+
+    /// `do_cast`'s `paid = 0` before its closing `kill_current_order`
+    /// (`005ece96`): the head cast's craft stays spent.
+    pub(crate) fn clear_cast_paid(&mut self, u: usize) {
+        if let Some(front) = self.units[u].orders.front_mut()
+            && let Body::Cast(c) = &mut front.body
+        {
+            c.paid = false;
+        }
     }
 
     /// `SpellType::cast@00676ce0`'s targeted cases this crate carries:
@@ -616,8 +627,7 @@ impl Sim {
     ///
     /// SEAM: `general_upgrade` (0: `get_general_upgrade` counts the three
     /// `GENERALS_UPGRADE_n` prerequisites, none held here); Porus's and
-    /// Kutosov's multiples; the army the copy joins when the General is a
-    /// computer's (`unit_masks & 0x40000`); the leader's other two counters
+    /// Kutosov's multiples; the leader's other two counters
     /// (`+0x93c`, `+0x808`); `is_caravan` as the two caravan ids; the sound.
     pub(crate) fn cast_create_decoy(&mut self, g: usize) {
         let who = self.units[g].owner;
@@ -635,6 +645,15 @@ impl Sim {
             },
         ) * 0xc0;
         let centre = self.units[g].pos;
+        // `unit_masks & 0x40000` (a computer's unit): the General's army,
+        // which every copy joins (`Army::add_unit`, the call at `674712`) before its
+        // figures are marked. run346's `1/98` on 11637: army 4's group 70
+        // lists 37, the six squads after the nineteen (item 1302).
+        let army = if self.ai_driven(who) {
+            self.army_of(g)
+        } else {
+            None
+        };
         let mut list: Vec<usize> = (0..self.units.len())
             .filter(|&u| self.units[u].owner == who)
             .collect();
@@ -659,11 +678,14 @@ impl Sim {
                 continue;
             }
             let Some(spot) =
-                self.find_nearby_spot_type(ty, centre, 0x180, -1, 0, crate::movement::Angle(0))
+                self.find_nearby_spot_type_for(ty, g, centre, 0x180, -1, crate::movement::Angle(0))
             else {
                 break;
             };
             let head = self.init_unit(who, ty, spot);
+            if let Some(slot) = army {
+                self.army_add_unit(who, slot, head);
+            }
             any = true;
             if self.unit_types[ty].price.pop != 0 {
                 self.track_unit_type(who, ty, -1);

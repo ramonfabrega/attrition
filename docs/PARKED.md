@@ -146,6 +146,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1302, 2026-09-30 — the General's decoys
+
+(1327) **`1/93`'s `path_recursion` 1 against 0 on run506's 11638**: a
+decoy born into a reused slot; no draw reads it.
+
+(1328) **`num_units` at a death**: this crate has no
+`track_unit_type(−1)` in `Unit::close`'s combat path (only missiles,
+V2s and the transport paths call it); the original's sits at `0060f3db`
+behind `(unit_masks & 1) == 0`. Not measured on a widening row.
+
+## Parked by item 1310, 2026-09-30 — chapter forty-seven
+
+(1324) **A Keep-line site's per-blow damage and progress loss**: 3
+against 4, `job_counter` 9900 against 9850, on run514's 706; the
+original's site dies on 901, ours on 965. Before 712 in the widening,
+after it on the walk.
+
 ## Parked by item 1305, 2026-09-30 — a General's coin
 
 (1319) **Forced March's speed** — `UnitData::speed@0060aae0`'s
@@ -167,7 +184,10 @@ captain again; no staging reaches it.
 
 (1312) **The members' `set_angle(captain)`** (1291's M1): held by the
 widening and the unit test, not by chapter forty-six's walk — the word
-stays 2200 with it off. Booked into chapter forty-seven (1310).
+stays 2200 with it off. **Again** (1310): chapter forty-seven's walk
+does not hold it either — nothing on this crate's draw stream reads a
+landed member's heading before its first step; run496 and run514's
+widenings hold it.
 
 ## Parked by item 1293, 2026-09-30 — the flock
 
@@ -197,7 +217,11 @@ on a non-Lakota map.
 
 (1299) **The age snap leaving `dest_angle`** (1281's mutation B): held
 by the widening alone — no draw walk has a unit whose `dest_angle` an
-age's snap moves and a later frame reads.
+age's snap moves and a later frame reads. **Again** (1310): not reached —
+a cheat's snap lands before the units' step, so a staging needs an idle
+unit whose `dest_angle` is apart from its heading; a human's unit
+trained at a building is the candidate (`come_out`'s tail skips
+`update_action` for a human).
 
 (1300) **`Movement::set_facing`'s `des_angle` write in its other
 callers** (`do_move`'s re-face, `go_inside`, …): whether each
@@ -230,7 +254,8 @@ stale `orders_x/y` (+24) and `dest_angle` (120°) on 8781, parted in
 
 (1282) **The conversion's in-use arm** (1264's mutation B): a
 Tower-line site standing on the frame its leader gains the next type
-converts; held by its unit test and no walk.
+converts; held by its unit test and no walk. **Held by run514's
+widening** (1310's mutation B, 517 → 480); still by no walk.
 
 (1283) **`Sim::build_los`'s tower term**: the original's Keep `1/2014`
 prints `mylos 13` on run425's 7377 — Keep `LOS 12` plus `x_size / 2`,
@@ -2630,6 +2655,18 @@ rules track's measure; the next pass decides with the cost beside it.
 no function the booking named, and it was half the word. Either the
 tool reads the lower-case form, or the checklist greps the chain's
 callers' comments for "a seam" too.
+
+(1325) **Two snaps under one name** (1310's Loop line): a cheat's age
+(`age`, `library`) snaps at the pump, before the units' step; an age a
+research finishes lands after it (`gain_tech`'s comment, run86), the
+kind 1281 measured on East Indies. A staging row for "an arm the snap
+reaches" says which it means.
+
+(1329) **`births.py` names a guy where a booking wants a type** (1302's
+Loop line): the booking said "eighteen Peltasts"; the block's births
+were three types (84, 179, 134) under the label `guy=`. A births line
+labelled `type`, printing the decoy bit (`unit_masks & 1`), would have
+named the event in one command.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
