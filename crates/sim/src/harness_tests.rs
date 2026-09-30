@@ -1228,6 +1228,8 @@ fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
         ));
         make_mobile(&mut sim, u, movement::Angle::NORTH);
         sim.units[u].movement.heading = movement::Angle::EAST;
+        // The order's own angle, `UnitData +0x58`, somewhere else again.
+        sim.units[u].movement.des_angle = movement::Angle::SOUTH;
         turners.push(u);
     }
     let owed = |s: &Sim, u: usize| s.units[u].movement.facing != s.units[u].movement.heading;
@@ -1255,6 +1257,88 @@ fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
         sim.units[turners[0]].movement.body.pos,
         sim.units[turners[0]].pos
     );
+    // And the order's angle stands: `Guy::set_angle(guy 0, +0x50, 1)`
+    // writes the figure's `angle`, `last_angle` and `des_angle` and never
+    // `UnitData::dest_angle` (item 1281: fifteen of who=1's units on
+    // East Indies' block 11329).
+    assert_eq!(
+        sim.units[turners[0]].movement.des_angle,
+        movement::Angle::SOUTH,
+        "the snap leaves the order's `dest_angle`"
+    );
+}
+
+/// **An age that crosses a bracket re-pieces every figure, and each keeps
+/// the turn bit its old piece gave it** (item 1281, `docs/ANIM.md` §4.8).
+///
+/// `Leader::gain_tech@006dcb60:2372` runs `Unit::update_gpiece` on every
+/// unit of the leader before it re-places it, and `get_unit_gpiece`'s age
+/// coordinate is `ages < 5 ? ages / 3 : 2` — so the third age moves every
+/// figure `0x840` up, which is East Indies' 65 `g.gpiece[0]` rows on block
+/// 11329. `Guy::update_gpiece` writes no `guy_flags`, so the `& 8` bit
+/// `init_real` read off the old piece stands: a figure whose new piece
+/// names `CHAR_TURN_RIGHT` still walks through its turns, as `1/15` and
+/// `1/33` do on 11349.
+#[test]
+fn an_age_that_crosses_a_bracket_re_pieces_the_figures_and_keeps_their_turn_bit() {
+    use crate::tech::{TechTree, TypeDef};
+
+    let mut tree = TechTree::new();
+    let ages: Vec<usize> = (0..3u8)
+        .map(|n| tree.add(TypeDef::age(&format!("Age {n}"), n)))
+        .collect();
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let t = 0x32 + 9;
+    let ty = sim.add_unit_type(UnitType {
+        type_index: t,
+        ..citizen_type()
+    });
+    let old = t - 0x32;
+    let new = old + 0x840;
+    sim.art.piece_lengths.insert(
+        old,
+        [(anim::DEFAULT, 31u32), (anim::WALK, 30)]
+            .into_iter()
+            .collect(),
+    );
+    sim.art.piece_lengths.insert(
+        new,
+        [
+            (anim::DEFAULT, 31u32),
+            (anim::WALK, 30),
+            (anim::TURN_LEFT, 20),
+            (anim::TURN_RIGHT, 20),
+        ]
+        .into_iter()
+        .collect(),
+    );
+    let u = sim.init_unit(0, ty, centre_of(Cell::new(3, 3)));
+    assert_eq!(sim.units[u].guys[0].gpiece, old);
+
+    sim.gain_tech(0, ages[0]);
+    sim.gain_tech(0, ages[1]);
+    assert_eq!(sim.tech[0].ages, 2);
+    assert_eq!(
+        sim.units[u].guys[0].gpiece, old,
+        "ages 0 to 2 are one bracket"
+    );
+
+    sim.gain_tech(0, ages[2]);
+    assert_eq!(sim.tech[0].ages, 3);
+    assert_eq!(
+        sim.units[u].guys[0].gpiece, new,
+        "the third age moves the figure one bracket up"
+    );
+    assert!(
+        !sim.guy_turns(u, 0),
+        "the turn bit is the piece `init_real` saw, which names no turn"
+    );
+    // A figure born now is born on the new piece, and its bit is that one's.
+    let v = sim.init_unit(0, ty, centre_of(Cell::new(5, 3)));
+    assert_eq!(sim.units[v].guys[0].gpiece, new);
+    assert!(sim.guy_turns(v, 0), "a fresh figure's bit is its own piece's");
 }
 
 /// **A figure converted mid-walk comes out standing** (item 571,

@@ -321,7 +321,7 @@ pub struct Guy {
     /// (`Leader::gain_tech:2372`), and `Unit::set_type@00612fa0`'s own,
     /// whose `init_real` (`:187`) runs on the old piece before its
     /// `update_gpiece` (`:240`). [`Sim::guy_turns`] reads this, never
-    /// `gpiece` (`docs/ANIM.md` §16).
+    /// `gpiece` (`docs/ANIM.md` §4.8).
     pub flag_piece: i32,
     /// `stopped`: the body stood on its destination at the last follow.
     pub stopped: bool,
@@ -1011,7 +1011,7 @@ impl Sim {
     /// without `init_real` — and the packet half is read off
     /// [`Guy::flag_piece`], the piece `init_real` saw, because a piece
     /// **does** change under a guy: an age re-pieces every unit, and
-    /// `set_type` re-pieces after its `init_real` (`docs/ANIM.md` §16).
+    /// `set_type` re-pieces after its `init_real` (`docs/ANIM.md` §4.8).
     pub(crate) fn guy_turns(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
         if unit.ty.is_some_and(|t| self.unit_types[t].combat.packs) {
