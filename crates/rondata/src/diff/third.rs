@@ -613,14 +613,16 @@ mod tests {
             [(12778, 133), (12782, 5), (12783, 1)],
             "the blocks keys first part on, to the old word's"
         );
-        // The make list's first value parting past it is now 12979, the
-        // Feudalism offer: 10000 here against 40002 there.
+        // The make list's value parted on 12979 until item 1251, the
+        // Feudalism offer at 10000 here against 40002 there: a civic epoch
+        // who=1 could not afford until Dye took its quarter off the price
+        // (`get_cost`'s library-line tail, `docs/AI.md` §99.8). It agrees.
         pin_eq!(
-            row(1, -1, "leader:MAKE[1].val").as_deref(),
-            Some("12979: ours 10000 theirs 40002"),
-            "the make list's first value parting"
+            row(1, -1, "leader:MAKE[1].val"),
+            None,
+            "the Feudalism offer's value agrees"
         );
-        pin_eq!(w.firsts.len(), 250, "every key parted on run416");
+        pin_eq!(w.firsts.len(), 248, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):

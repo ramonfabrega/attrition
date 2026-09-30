@@ -292,17 +292,19 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 5371 stands on 86 keys**, the families the first pair's
+        // **Block 5371 stands on 85 keys**, the families the first pair's
         // widenings carry: `form` on every citizen and soldier, the human's
         // census and city rows (this crate fills neither for player 0),
         // both leaders' `SITE[i].reg` (ours 1, theirs 0), who=1's army
-        // groups' `role` and pool lists, and three rows of who=1's own that
-        // this crate reads: `bucket[0:food]` 381 against 417, `scholars` 0
-        // against 1 and the `tech_cat_frame`s.
+        // groups' `role` and pool lists, and two rows of who=1's own that
+        // this crate reads: `scholars` 0 against 1 and the
+        // `tech_cat_frame`s. Who=1's `bucket[0:food]` stood too, 381 against
+        // 417, until item 1251 priced frame 4576's Empire as the original
+        // does (run482; `docs/AI.md` §99.8).
         pin_eq!(
-            row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("5371: ours 381 theirs 417"),
-            "who=1's food bucket stands"
+            row(1, -1, "leader:bucket[0:food]"),
+            None,
+            "who=1's food bucket agrees"
         );
         // **Frame 5375's block adds who=1's `SITE[2].reg`**, and the word's
         // block 5377 its 42: the value diff below.
@@ -316,7 +318,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5371, 86), (5376, 1)],
+            [(5371, 85), (5376, 1)],
             "the blocks keys first part on, to the first word's"
         );
         // **The first word's value diff, block 5377, closed by item 1241**:
@@ -333,21 +335,29 @@ mod tests {
         ] {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees on 5377");
         }
-        // **The make list parts on 5380**, three blocks past the Granary:
-        // who=1's `MAKE[2]` and `MAKE[3]` swap (ours `t` 553 and 567,
-        // theirs 567 and 553), and `MAKE[9].val` reads 4800 against 48000.
+        // **The make list's values agree** since item 1251: on 5380 who=1's
+        // `MAKE[2]` and `MAKE[3]` swapped and `MAKE[9].val` read 4800
+        // against 48000 — Feudalism, a civic epoch, unaffordable at the
+        // price without Dye's quarter. What stands of the list is its
+        // `city`, ours one over the original's from 5382.
         pin_eq!(
-            row(1, -1, "leader:MAKE[9].val").as_deref(),
-            Some("5380: ours 4800 theirs 48000"),
-            "who=1's tenth make row"
+            row(1, -1, "leader:MAKE[9].val"),
+            None,
+            "who=1's tenth make row agrees"
         );
-        pin_eq!(w.firsts.len(), 212, "every key parted on run471");
+        pin_eq!(
+            row(1, -1, "leader:MAKE[1].city").as_deref(),
+            Some("5382: ours 1 theirs 0"),
+            "the make list's city stands"
+        );
+        pin_eq!(w.firsts.len(), 202, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item
     /// 1241): [`great_sahara_toughest_5782_window`] over run476's blocks
     /// 5777..6033, both directions, every record run471's detail prints.
-    /// The word's frame writes block 5783. No mechanism is named.
+    /// The word's frame writes block 5783. Item 1251 named its cause, 36
+    /// food short from frame 4576, and moved the word to 7070.
     #[test]
     fn run476_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -379,50 +389,47 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 5777 stands on 103 keys**: run471's families — `form`,
+        // **Block 5777 stands on 102 keys**: run471's families — `form`,
         // the human's census rows, both leaders' `SITE[i].reg` (ours 1,
-        // theirs 0) — and who=1's food bucket, 90 against 126.
+        // theirs 0). Who=1's food bucket stood too, 90 against 126, until
+        // item 1251 priced frame 4576's Empire with Dye's quarter off
+        // (`docs/AI.md` §99.8); it agrees.
         pin_eq!(
-            row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("5777: ours 90 theirs 126"),
-            "who=1's food bucket stands"
+            row(1, -1, "leader:bucket[0:food]"),
+            None,
+            "who=1's food bucket agrees"
         );
-        // **The make list parts on 5779**: `MAKE[2].val` and `MAKE[9].val`
-        // read 1200 against 4800, and on 5781 six rows' `city` part.
+        // **The make list's values agree**: `MAKE[2].val` and `MAKE[9].val`
+        // read 1200 against 4800 on 5779 before item 1251 — the Feudalism
+        // offer, a civic epoch the food could not reach at our price. On
+        // 5781 six rows' `city` part, ours one over the original's.
         pin_eq!(
-            row(1, -1, "leader:MAKE[9].val").as_deref(),
-            Some("5779: ours 1200 theirs 4800"),
-            "who=1's tenth make row"
+            row(1, -1, "leader:MAKE[9].val"),
+            None,
+            "who=1's tenth make row agrees"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_5783)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5777, 103), (5779, 2), (5781, 7), (5783, 5)],
-            "the blocks keys first part on, to the word's"
+            [(5777, 102), (5781, 6)],
+            "the blocks keys first part on, to the old word's"
         );
-        // **The word's value diff, block 5783**: on the frame ours spends a
-        // `Leader::make_stuff+0x63d` the original does not, who=1 queues one
-        // more at `1/2017` (its Barracks) — `queued` 2 against 1,
-        // `num_queued[82]` 1 against 0 — and pays for it: wealth 105
-        // against 158, metal 7 against 43.
-        pin_eq!(
-            row(1, 2017, "queue:queued").as_deref(),
-            Some("5783: ours 2 theirs 1"),
-            "1/2017's queue"
-        );
-        pin_eq!(
-            row(1, -1, "leader:num_queued[82]").as_deref(),
-            Some("5783: ours 1 theirs 0"),
-            "who=1's queued count of type 82"
-        );
-        pin_eq!(
-            row(1, -1, "leader:bucket[4:metal]").as_deref(),
-            Some("5783: ours 7 theirs 43"),
-            "who=1's metal"
-        );
-        pin_eq!(w.firsts.len(), 1_296, "every key parted on run476");
+        // **The old word's value diff, block 5783, closed by item 1251**:
+        // ours spent a `Leader::make_stuff+0x63d` the original did not,
+        // queuing one more Hoplite at `1/2017` — `queued` 2 against 1,
+        // `num_queued[82]` 1 against 0 — and paying for it: metal 7
+        // against 43. The original's market had sold the food that would
+        // have paid; with the 36 back all three agree.
+        for (o, what) in [
+            (2017, "queue:queued"),
+            (-1, "leader:num_queued[82]"),
+            (-1, "leader:bucket[4:metal]"),
+        ] {
+            pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees on 5783");
+        }
+        pin_eq!(w.firsts.len(), 147, "every key parted on run476");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
@@ -442,8 +449,41 @@ mod tests {
             }
             eprintln!("  missing {:?}", w.missing);
         }
-        pin_eq!(w.blocks, 5_378, "run482 whole: blocks 1..5378");
-        pin!(w.firsts.len() < 1_000_000, "{}", w.firsts.len());
+        pin_eq!(w.blocks, 5_377, "run482 whole: blocks 1..5378");
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The value diff, block 4577** (frame 4576, the script step that
+        // researches Empire): who=1's food stood ours 161 against 197 from
+        // here to the word 5782 — Empire at 144 food here, 108 there, the
+        // quarter Dye takes off a civic epoch (`docs/AI.md` §99.8). With
+        // the arm the whole goods record agrees on every block.
+        pin_eq!(
+            row(1, -1, "leader:bucket[0:food]"),
+            None,
+            "who=1's food agrees through 4577"
+        );
+        // **What parts is not the goods**: the human's `filled_gather_slots`
+        // from block 1 (a standing row every widening of this game carries),
+        // and the building and group records `LEADERS=2` does not print,
+        // which this crate holds alone.
+        let leader: Vec<_> = w
+            .firsts
+            .keys()
+            .filter(|(_, o, what)| *o == -1 && what.starts_with("leader:"))
+            .map(|(who, _, what)| format!("{who} {what}"))
+            .collect();
+        pin_eq!(
+            leader,
+            [
+                "0 leader:filled_gather_slots[0:food]",
+                "0 leader:filled_gather_slots[1:timber]"
+            ],
+            "the leader rows that part on run482"
+        );
+        pin_eq!(w.firsts.len(), 40, "every key parted on run482");
     }
 
     /// **The third map's word at Toughest** (item 1221): run470, the draw

@@ -1519,19 +1519,28 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_185;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **5782 since item 1241**: run470 parts on frame 5782, **ours 14 draws
-/// against the original's 13, at index 3** — both open on
-/// `Leader::use_market+0x1ed` and two `Leader::make_stuff+0x221`, then ours
-/// spends a `Leader::make_stuff+0x63d` the original does not, where the
-/// original's next is `Animal::do_idle+0x83`. Widened on run476 (block
-/// 5783).
+/// **7070 since item 1251**: run470 parts on frame 7070, **ours 3213 draws
+/// against the original's 2552, at index 2545** — ours spends a
+/// `PathFinder::calc_road_cost+0x46` where the original's next is a
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Widened on run483 (block
+/// 7071).
+///
+/// It was **5782** before that (item 1241), ours 14 against 13 at index 3:
+/// a `Leader::make_stuff+0x63d` the original did not spend, who=1 queuing a
+/// Hoplite at `1/2017` its food could not pay for in the original. The food
+/// was 36 short from block 4577, where frame 4576's Empire cost 144 here and
+/// 108 there: `get_cost`'s library-line tail takes Dye's quarter off a civic
+/// epoch (`docs/AI.md` §99.8). **The move's value diff**, run482 block 4577:
+/// who=1's `bucket[0:food]` ours 161 against 197 → both 197; run476 block
+/// 5783, `1/2017`'s `queued` 2 against 1 → agreeing, `bucket[4:metal]` 7
+/// against 43 → agreeing. Widened on run476 (block 5783).
 ///
 /// It was **5376** before that (item 1221), ours 45 against 40 at index 1:
 /// four `Leader::produce_building+0x1805` against one, the Granary `1/2023`
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_782;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 7_070;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
