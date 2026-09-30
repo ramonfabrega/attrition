@@ -314,14 +314,14 @@ pub struct Guy {
     pub gpiece: i32,
     /// **The piece `guy_flags & 8`'s packet half was read off** — the
     /// `gpiece` the guy held when `Guy::init_real@005db6b0` last ran.
-    /// `init_real:179` sets the bit from `+0x88`'s packet, and nothing
-    /// after it writes the bit: `Guy::update_gpiece@005d8530` moves the
-    /// piece and leaves `+0x9a` alone. So a guy whose piece changes under
-    /// it keeps the answer its old piece gave — an age's re-piecing
-    /// (`Leader::gain_tech:2372`), and `Unit::set_type@00612fa0`'s own,
-    /// whose `init_real` (`:187`) runs on the old piece before its
-    /// `update_gpiece` (`:240`). [`Sim::guy_turns`] reads this, never
-    /// `gpiece` (`docs/ANIM.md` §4.8).
+    /// `init_real` re-pieces the guy first (`:33`, `update_gpiece`) and
+    /// sets the bit from that piece's packet (`:179`); nothing after it
+    /// writes the bit, and `Guy::update_gpiece@005d8530` moves the piece
+    /// and leaves `+0x9a` alone. So a guy re-pieced **without** an
+    /// `init_real` keeps the answer its old piece gave: an age's loop
+    /// (`Leader::gain_tech:2372`) is the one such writer a capture has
+    /// reached. [`Sim::guy_turns`] reads this, never `gpiece`
+    /// (`docs/ANIM.md` §4.8).
     pub flag_piece: i32,
     /// `stopped`: the body stood on its destination at the last follow.
     pub stopped: bool,
@@ -952,10 +952,9 @@ impl Sim {
             }
             match self.units[u].guys.get_mut(n) {
                 Some(g) => {
-                    // `init_real` reads the bit off the piece the guy
-                    // still holds: guy 0's old one, and `Guy::clear`'s −1
-                    // for the crew `set_type` recycles (`:90`–`:137`).
-                    g.flag_piece = if n < SQUAD_SIZE { g.gpiece } else { -1 };
+                    // `init_real` opens with its own `update_gpiece`
+                    // (`:33`), so the bit is the new piece's.
+                    g.flag_piece = piece;
                     g.gpiece = piece;
                     g.anim = anim;
                     g.cur_time = 0;
@@ -978,7 +977,6 @@ impl Sim {
                 }
                 None => {
                     let mut g = Guy::fresh(piece);
-                    g.flag_piece = -1;
                     g.anim = anim;
                     self.units[u].guys.push(g);
                 }
@@ -1010,8 +1008,8 @@ impl Sim {
     /// The type half is derived — a type does not change under a guy
     /// without `init_real` — and the packet half is read off
     /// [`Guy::flag_piece`], the piece `init_real` saw, because a piece
-    /// **does** change under a guy: an age re-pieces every unit, and
-    /// `set_type` re-pieces after its `init_real` (`docs/ANIM.md` §4.8).
+    /// **does** change under a guy without one: an age re-pieces every
+    /// unit and leaves the flags (`docs/ANIM.md` §4.8).
     pub(crate) fn guy_turns(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
         if unit.ty.is_some_and(|t| self.unit_types[t].combat.packs) {

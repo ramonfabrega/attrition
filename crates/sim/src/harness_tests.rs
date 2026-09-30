@@ -1338,7 +1338,10 @@ fn an_age_that_crosses_a_bracket_re_pieces_the_figures_and_keeps_their_turn_bit(
     // A figure born now is born on the new piece, and its bit is that one's.
     let v = sim.init_unit(0, ty, centre_of(Cell::new(5, 3)));
     assert_eq!(sim.units[v].guys[0].gpiece, new);
-    assert!(sim.guy_turns(v, 0), "a fresh figure's bit is its own piece's");
+    assert!(
+        sim.guy_turns(v, 0),
+        "a fresh figure's bit is its own piece's"
+    );
 }
 
 /// **A figure converted mid-walk comes out standing** (item 571,
