@@ -12537,3 +12537,36 @@ It parts on 2,069 keys: 571 stand on 9318 (the gap 9038..9317; 28 of
 who=1's units' positions among them), and on the word's block 9324 the AI
 scout `1/0` collides with `1/69` in ours alone. The coverage driver walks
 9322..9326 and the compared pin 9322..9325.
+## run514 — chapter forty-seven, the Keep on a standing Tower site, a squad ashore facing away from its barge, and an age's snap mid-move (2026-09-30, item 1310)
+
+`docs/GOLDEN.md` §56, `tools/gamelog/golden/chapter47.cmd`: a cast of its
+own on the golden start, chapter forty-six's Dock and lake.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch47 \
+    --map 14 --end-frame 1400 --log-window 605 1400 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter47.cmd
+```
+
+**What the disk could not answer.** No capture on disk has a Tower-line
+site standing on the frame its leader gains the next type (parked 1282):
+East Indies' and Great Sahara's Keeps were each gained over a finished
+Tower. None lands a squad whose captain boarded facing away from the
+barge's landing heading: chapter forty-six's differ by a degree.
+
+The lane was held by lane 1305's run511 (from 15:05:51); this capture's
+wait keyed on `ron_lane_state` and launched when it read free, **451 s**
+later (15:29:46). `success: true`, one relaunch after 300 s (the stall
+before frame 0, parked 762), 1,080 s launch to exit, 1,401 frames, seed
+12345, map verified, settings restored. `issuesmatch.py --none-refused`:
+all five `@` lines issued, refusal 0. The dump (364,330,855 bytes, sha256
+`623c262b…b09c`) and the trace (11,662,336, `722db397…9ffa`) stay in
+`~/ron-golden/ch47/map-14`. The disk had 43 GB free before. run515 and
+run516 were reserved and not used.
+
+**What it holds**: `chapter_forty_seven_holds_to_the_golden_word` (712)
+and `chapter_forty_seven_s_word_frame_is_widened_whole` (605..1400); the
+coverage driver's windows 677, 1102 and 1111.
