@@ -12102,3 +12102,47 @@ run485 was reserved and not used.
 
 **What it holds**: `chapter_forty_four_holds_to_the_golden_word` (word
 670) and `chapter_forty_four_s_word_frame_is_widened_whole` (605..920).
+
+## run490 — run346's game at run480's detail over blocks 11323..11579: the second pair's East Indies word 11328 widened (2026-09-30, item 1264)
+
+**What it is.** run480's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 11323..11579, `!quit` at 11593. The word's frame 11328 writes
+block 11329: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run490 \
+    --map 18 --end-frame 11593 --timeout 5400 --log-window 11323 11580 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run480 ends at block
+11236, and no other dump of run346's game prints the word's blocks at
+detail; the run346 dump itself carries no leader or figure record.
+
+**Taken** 05:16:33–05:42:16 in one take. The lane was held by another
+lane's click-free capture (pid 4697, since 04:55:59); run490's launcher
+waited on `ron_lane_state` for 11 minutes, found the lock stale (pid 4697
+dead) and took it over. It was waited on with `waitrun.sh`: `success:
+true`, `settings_restored: true`, exit 0, 1,515 s from launch to exit,
+11,594 frames, map 18 and seed 12345 verified, five files restored. The
+dump (639,849,912 bytes, sha256 `f77dbb6423f9f565…`) and the trace
+(99,190,048, `4ab20c89984ffa99…`) were moved into `Logs` as
+`gamelog-run490-islands-toughest-11328.txt` and `rontrace-run490.log`.
+The disk had 45 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 11,594 identical |
+| window blocks | 257, 11323..11579 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run490_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 11323 stands on 194 keys; new among
+who=1's past run480 is `caras` 3 against 4. On the word's block 11329 no
+leader or city row parts, and 115 figure rows do: 65 of who=1's units'
+`g.gpiece[0]`, the original's 2112 (0x840) above ours (`1/1` 6336 against
+8448), and animation clocks beside them. The window parts on 1,311 keys.
+The coverage driver walks 11328..11331 and the compared pin 11327..11330.

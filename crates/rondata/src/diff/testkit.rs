@@ -2039,6 +2039,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_10183: (i64, i64) = (10_178, 10_434
 /// 10985's block 10986 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_10985: (i64, i64) = (10_980, 11_236);
 
+/// **run490's window** (item 1264): the second pair's East Indies at
+/// run480's detail, blocks 11323..11579 — six blocks before the word
+/// 11328's block 11329 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_11328: (i64, i64) = (11_323, 11_579);
+
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
 /// last block and run420's first, where the word 6609's `1/28` first parted,
@@ -7369,9 +7374,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run480_s_word_frame_is_widened_whole"),
-        1243,
-        Some(WIDENING_SECOND_EAST_INDIES_10985),
+        Some("run490_s_word_frame_is_widened_whole"),
+        1264,
+        Some(WIDENING_SECOND_EAST_INDIES_11328),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

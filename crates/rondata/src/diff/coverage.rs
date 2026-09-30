@@ -666,6 +666,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r445 = crate::testenv::dump("gamelog-run445-islands-toughest-8820.txt");
     let r462 = crate::testenv::dump("gamelog-run462-islands-toughest-10183.txt");
     let r480 = crate::testenv::dump("gamelog-run480-islands-toughest-10985.txt");
+    let r490 = crate::testenv::dump("gamelog-run490-islands-toughest-11328.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1222,6 +1223,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run480 carries the second pair's East Indies word 10985's blocks"
+        );
+        frames += n;
+    }
+    // Item 1264 moved it to 11328 (block 11329), past run480: run490 is
+    // its widening.
+    if let Some(p) = &r490 {
+        let n = drive_capture(p, 11_328, 11_331, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run490 carries the second pair's East Indies word 11328's blocks"
         );
         frames += n;
     }
@@ -2184,10 +2195,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`)
     // and `coll_x`/`coll_y` are compared there, and leave this pin
     // (measured on the tree merged with 1241's and 1248's).
+    // **Item 1264 moved it to run490's 11327..11330**, where no cast order
+    // stands: `cast_paid` and `cast_spell` return to this pin; the group
+    // row and `coll_x`/`coll_y` are still compared there.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range garrison_search \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y patrol_x patrol_y \
