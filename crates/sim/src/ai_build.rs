@@ -56,7 +56,7 @@
 //! - spells: the simulation has none, so `produce_spell` never casts.
 
 use crate::ai::{Census, MakeObject};
-use crate::ai_place::{gather_good, is_enhancer, is_military_trainer};
+use crate::ai_place::{enhancing_good, gather_good, is_enhancer, is_military_trainer};
 use crate::ai_types::Class;
 use crate::build::{self, BuildDomain, Ident, flags};
 use crate::economy::RESOURCES;
@@ -241,18 +241,6 @@ impl Sim {
             || build::is_fort(&self.build_types, rec)
             || build::is(&self.build_types, rec, Ident::Airbase)
             || self.build_types[rec].attack != 0
-    }
-
-    /// `BuildTypeData::get_enhancing_good@00639880` — an exact-type switch,
-    /// not a lineage test.
-    fn enhancing_good(ident: Ident) -> Option<usize> {
-        Some(match ident {
-            Ident::Granary => 0,
-            Ident::Lumbermill => 1,
-            Ident::Smelter => 4,
-            Ident::Refinery => 5,
-            _ => return None,
-        })
     }
 
     /// The tree id of the `g`th good, in `goodrules.xml` order.
@@ -592,7 +580,7 @@ impl Sim {
             }
             v = v.wrapping_mul(self.ai[w].infra_mod) / 256;
             cat = 4;
-            let g = Self::enhancing_good(ident)?;
+            let g = enhancing_good(ident)?;
             let mut nfilled = f.slots[g] - f.open_slots[g];
             if g == 5 {
                 nfilled = self.ai[w].census.gather_slots[5] * 2;

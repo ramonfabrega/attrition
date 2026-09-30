@@ -105,6 +105,22 @@ pub(crate) fn gather_good(ident: Ident) -> Option<usize> {
     })
 }
 
+/// The good a gather enhancer raises — `BuildTypeData::get_enhancing_good
+/// @00639880`, `[this+4] − 0x1a7` into a four-entry jump table (`0x6398b0`:
+/// Granary food, Lumber Mill timber, Smelter metal, Refinery oil). An
+/// exact-type switch, not a lineage test; none of the four has a successor
+/// in `buildingrules.xml`, so the two agree.
+pub(crate) fn enhancing_good(ident: Ident) -> Option<usize> {
+    use crate::economy::Resource as R;
+    Some(match ident {
+        Ident::Granary => R::Food.index(),
+        Ident::Lumbermill => R::Timber.index(),
+        Ident::Smelter => R::Metal.index(),
+        Ident::Refinery => R::Oil.index(),
+        _ => return None,
+    })
+}
+
 pub(crate) fn is_enhancer(ident: Ident) -> bool {
     matches!(
         ident,
@@ -312,8 +328,16 @@ impl Sim {
             let nb_wonder = ni == Ident::Wonder;
             let add = if d % 2 == 1 { 1 } else { 2 };
             if is_enhancer(ident) {
-                // The enhanced good against the neighbour's — the enhancer
-                // table is not modelled; no friend counted.
+                // **The enhanced good against the neighbour's**
+                // (`0x639380`–`0x6393b0`): `get_enhancing_good(this)` beside
+                // `get_good` of the neighbour's type, and a friend when the
+                // two are equal — a Granary counts the farms around it
+                // (`docs/AI.md` §99.5). `get_good@0063bd50` answers −1 for
+                // anything but the six gather types and the enhancer's side
+                // is never −1, so a non-gather neighbour never counts.
+                if enhancing_good(ident).is_some() && enhancing_good(ident) == gather_good(ni) {
+                    n += add;
+                }
             } else if is_military_trainer(ident) {
                 if is_military_trainer(ni) && !self.building_is_city(nb) {
                     n += add;
