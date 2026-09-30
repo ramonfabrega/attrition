@@ -1026,7 +1026,7 @@ under it is taken away when the farm starts. The residue is **32** now, bit
 - The rendering tail of `set_diags` (`element_num`, `rotation`, the `0xc000`
   and `0x1000`/`0x200` support codes) and `mark_white_lines`,
   `mark_yellow_lines`, `mark_intersections`, `fixup_lines`, `find_piece`,
-  `leech_codes`, `delete_straglers`. Of these only the tail matters beyond
+  ~~`leech_codes`~~ (it lends direction bits: §11), `delete_straglers`. Of these only the tail matters beyond
   texture choice: it calls `get_road_data(create = 1)` on tiles **that are
   not roads**, which is the one way an element comes to stand on a plain
   tile.
@@ -1245,3 +1245,56 @@ the same as here.
   rule reads either count, but a removal lowers `pending_camel_steps`
   first. A tile whose counts differ from the original's would outlive a
   removal differently. None has parted yet.
+
+## 11. `RoadsOut::leech_codes@00890da0` — a road beside a footprint keeps its run (2026-09-30, item 1260)
+
+*Established from the decompile and run483's trace, node for node.
+Confidence: **high** for the direction arm, which the trace checks; the
+line codes it also copies are not modelled.*
+
+`redo_changed_roads@0088e670`'s third pass is `fill_cache`,
+**`leech_codes`**, `set_diags` for each tile on its list. `leech_codes`
+has no other caller. It walks the four cardinals, N, S, E, W, and for
+each whose `road_cache` entry is set it reads the neighbour's element:
+
+- the neighbour claims **this** tile (`S` for the north neighbour, `N`
+  for the south, `W` for the east, `E` for the west) → this tile claims
+  it back;
+- the neighbour has **no element** → this tile's bit toward it is
+  cleared and the function **returns**, leaving the cardinals after it
+  unread.
+
+It copies the white and yellow line codes beside the direction (`0x100`
+to `0x80_0000`); those belong to the texture passes and are not carried
+here.
+
+**Why it matters.** The redo pass zeroes a tile's flags before
+`mark_and_trim_directions`, and the trim recomputes only the axis the
+footprint gates allow: a footprint west or east leaves east–west
+unrecomputed. So a road tile beside a footprint came out of the trim
+claiming nothing on that axis, even with a road beside it on the far
+side. The sweep (§10.3) then killed it as a road that claims no road,
+and the tiles behind it went as stubs (§10.4). `leech_codes` is what
+restores the claim: the far neighbour still claims this tile, so this
+tile claims it back.
+
+**The measurement.** Great Sahara at Toughest: caravan `1/51`'s road
+lays (147..150, 123) on 6389, with `set_diags` making (147, 123). The Farm
+`1/2027` (`orig_type` 417 in run483's `BUILDDATA`, `get_good`'s row 0),
+placed on 6583 over (144..147, 121..124) and started on 6610
+(`frame_started`), takes (147, 123) and (147, 124) on 6611 (§9.5). Without the step, (148, 123) was re-derived as `SW`
+alone. The sweep's visit to cell (37, 30) on 6949 took it and then
+(149, 123) and (150, 123). The original kept all three: on 7070 it prices
+(150, 123) at 37 and (149, 123) and (148, 123) at 27, road on road.
+Caravan `1/52`'s replan from `1/2007` to `1/2022` on 7070 therefore ran
+to the budget here, 3,204 nodes, where the original arrived in 2,543.
+With the step, (148, 123) claims `E|SW` and stands, and every road search
+to 7070 — 49 frames — agrees node for node
+(`rondata::diff::sahara_toughest::tests::run483_s_road_searches_hold_node_for_node_to_7070`;
+`crate::mesh`'s two unit tests; `docs/AI.md` §99.9).
+
+**Not established.** The early return is held by the unit test alone:
+turned into a `continue`, the whole rondata suite still passes. A road
+tile with no element is a tile the mesh does not hold, and no capture
+walked here has one beside a tile being redone (§10.3 removes such a tile
+on its visit).
