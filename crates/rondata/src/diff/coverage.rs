@@ -676,6 +676,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r457 = crate::testenv::dump(super::third::SAHARA_GAP_17140);
     let r458 = crate::testenv::dump(super::third::SAHARA_END);
     let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
+    let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1317,6 +1318,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run471 carries the third map's word at Toughest");
+        frames += n;
+    }
+    // **And its word 5782, on run476** (item 1241): the frame writes block
+    // 5783, and the window is it with two either side.
+    if let Some(p) = &r476 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_5783;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run476 carries the third map's word 5782 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2128,10 +2137,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1221 walks the third map at Toughest beside it**, run471's
     // 5375..5378, where a move's `coll` pair has left `(0, 0)`:
     // `coll_x`/`coll_y` are compared on the union, and leave this pin.
+    // **Item 1241 moved the Toughest window to run476's 5781..5784**,
+    // where no move's `coll` pair has left `(0, 0)` and East Indies'
+    // run462 window has none either: `coll_x`/`coll_y` return to it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
+         attempts build_type coll_x coll_y cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \

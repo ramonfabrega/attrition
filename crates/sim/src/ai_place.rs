@@ -1094,4 +1094,58 @@ mod tests {
             .collect();
         assert_eq!(small, [(51, 52)]);
     }
+
+    /// **An enhancer's friends are the gather buildings of its own good**
+    /// (`find_friends`' first arm, `0x639380`–`0x6393b0`): a Granary counts
+    /// a farm beside it, `+2` on a cardinal and `+1` on a diagonal, and
+    /// nothing else; a Lumber Mill counts the woodcutter's camp and not the
+    /// farm. Great Sahara at Toughest's Granary `1/2023` on frame 5376 is
+    /// this arm: without it every cell scores friendless and the Granary
+    /// goes three cells south (`docs/AI.md` §99.7).
+    #[test]
+    fn an_enhancer_counts_the_gather_buildings_of_its_good() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let mut ty = |ident: Ident| {
+            let rec = sim.build_types.len();
+            sim.build_types.push(crate::build::BuildType {
+                ident,
+                x_size: 4,
+                y_size: 4,
+                hits: 100,
+                ..crate::build::BuildType::default()
+            });
+            rec
+        };
+        let (farm, camp, barracks) = (ty(Ident::Farm), ty(Ident::Woodcutter), ty(Ident::Barracks));
+        let (granary, mill) = (ty(Ident::Granary), ty(Ident::Lumbermill));
+        let mut put = |rec: usize, x: i32, y: i32| {
+            let pos = Pos::new(x * 768 + 384, y * 768 + 384);
+            let b = sim.add_building(1, pos, 8);
+            sim.buildings[b].ty = Some(rec);
+            let corner = sim.tile_corner(rec, pos);
+            for t in sim.footprint(rec, corner) {
+                sim.world
+                    .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+            }
+        };
+        // Around the candidate (20, 21): a farm on the cardinal above, a
+        // farm on the diagonal above-right, a camp on the cardinal below and
+        // a barracks on the cardinal left.
+        put(farm, 20, 20);
+        put(farm, 21, 20);
+        put(camp, 20, 22);
+        put(barracks, 19, 21);
+        let at = Cell::new(20, 21);
+        assert_eq!(
+            sim.find_friends(granary, at, None, 1),
+            3,
+            "the two farms, cardinal and diagonal"
+        );
+        assert_eq!(sim.find_friends(mill, at, None, 1), 2, "the camp alone");
+        assert_eq!(
+            sim.find_friends(granary, at, None, 0),
+            0,
+            "another player's farms are nobody's friends"
+        );
+    }
 }

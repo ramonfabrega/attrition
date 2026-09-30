@@ -1500,14 +1500,19 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10_183;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **5376 on the capture**: run469's 1,850 frames agree draw for draw (frame
-/// 0 spends 100 against 100), and run470 parts on frame 5376, **ours 45
-/// draws against the original's 40, at index 1**: ours spends four
-/// `Leader::produce_building+0x1805` where the original spends one, and
-/// five `Guy::set_anim+0x104b` where it spends three; the ten birds'
-/// `Animal::think_bird` triples, the three `Guy::inc_time` wraps and the
-/// three `Farms::inc_time` agree. Widened on run471 (block 5377).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_376;
+/// **5782 since item 1241**: run470 parts on frame 5782, **ours 14 draws
+/// against the original's 13, at index 3** — both open on
+/// `Leader::use_market+0x1ed` and two `Leader::make_stuff+0x221`, then ours
+/// spends a `Leader::make_stuff+0x63d` the original does not, where the
+/// original's next is `Animal::do_idle+0x83`. Widened on run476 (block
+/// 5783).
+///
+/// It was **5376** before that (item 1221), ours 45 against 40 at index 1:
+/// four `Leader::produce_building+0x1805` against one, the Granary `1/2023`
+/// laid friendless three cells south of the original's, until
+/// `find_friends`' enhancer arm counted the farms beside it (block 5377,
+/// widened on run471).
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 5_782;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7276,15 +7281,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1206,
         Some(crate::diff::third::WIDENING_GREAT_SAHARA_END),
     ),
-    // **The third map at Toughest** (DECISIONS 56 §1, item 1221): its first
-    // word, 5376, past run469's 1,850 blocks, widened on run471 over
-    // 5371..5627.
+    // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
+    // past run469's 1,850 blocks, was widened on run471 over 5371..5627
+    // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run471_s_word_frame_is_widened_whole"),
-        1221,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST),
+        Some("run476_s_word_frame_is_widened_whole"),
+        1241,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_5782),
     ),
 ];
 
