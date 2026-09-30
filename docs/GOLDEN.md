@@ -9727,7 +9727,7 @@ forty-three's tests and the arms' unit tests:
 | mutation | held by |
 |---|---|
 | M1: `disembark_squad` off (the riders take nothing) | the widening (block 1902: `0/7`..`0/9` `group`, `orders_x`, `orders_y`, `dest_angle` join the rows, 349 → 369), `a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group`; the word stays 1902, where it already parts |
-| M2: `all_gathering`'s prune off | **the word, 1902 → 1049**, and the widening; `all_gathering_drops_a_dead_member_before_it_reads_the_chain` |
+| M2: `all_gathering`'s prune off | **the word, 1902 → 1049**, and the widening; `all_gathering_drops_a_member_walking_a_waypoint_first` (this arm's) and `all_gathering_drops_a_dead_member_before_it_reads_the_chain` |
 
 Chapter forty-three's two tests pass under both: §52's walk still holds
 neither arm.
