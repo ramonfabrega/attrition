@@ -146,6 +146,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1293, 2026-09-30 — the flock
+
+(1306) **The flock's flight past 8856** — the order, the birth snap, the
+pitch arms, the landing — measured against run500's proxy every frame and
+held by no walk until the word passes 8992; and the flock stamp's gap
+(1293's mutation M4), held by its unit test alone, since this game sends
+up one flock.
+
+(1307) **The human's `production_step`, 0 against 1 from 8801**: read by
+no draw yet.
+
 ## Parked by item 1297, 2026-09-30 — the leader's scouts
 
 (1303) **`LeaderData +0x988 scouts` has no writer in this crate**: the
@@ -188,7 +199,9 @@ reverted. Ours' doc comment now gives the address 005e3bd0, not 005ed1c0.
 
 (1288) **who=1's University offer on run488's 7782, 4048327 against
 3469995 (×7/6), and `scholars` 11 against 12 from 7925**: before 8377's
-word, read by no draw yet.
+word, read by no draw yet. **Again** (1293): the housed `SCHOLARS`'
+stale `orders_x/y` (+24) and `dest_angle` (120°) on 8781, parted in
+8434..8780.
 
 ## Parked by item 1264, 2026-09-30 — the Keep's conversion
 
@@ -1046,7 +1059,9 @@ answer, and its journal). The AI lane's: `group.rs`'s pool record.
 (871) **Great Lakes' pool numbering is not walked** (795 adds: the
 walkers' `group.id` 4 here against 5 there on 17662, read by equality
 only): 865's branch walked
-East Indies' dumps to block 8369; Great Lakes' are unread.
+East Indies' dumps to block 8369; Great Lakes' are unread. **Again** (1293): `group_move_id` numbers an army's group by
+its slot where the dump uses the pool slot (`who · 64 + s`), so every
+group order's id stands 6400 apart on who=1.
 
 (872) **`get_num`'s own prune**: it writes the pool list, and 865's
 branch only counts it.
@@ -2589,6 +2604,20 @@ Caravel — one grep away (the `GUY` block's `type`, then
 `enums/TypeIndex.txt`) — and the unit's domain decided the arm. A brief
 row: name each unit a booking names by its `TypeIndex` and domain before
 reading its chain. Two reaches.
+
+(1308) **A walk that stops at its word cannot say whether a mechanism
+built on that frame holds past it** (1293's Loop line): a
+`RON_WALK_ON=<frame>` knob on the long walks — lift the `break` to that
+frame and print the attributed sites — was reached for as a scratch
+edit; and a proxied trace's `CALL` records were the ground truth no dump
+prints for the birds' flight. A brief row: grep the trace's `CALL`
+records for the flier before modelling a flight. One reach.
+
+(1309) **Nothing watches the group-order row** (1293): the six group
+fields were compared only on 8785..8788, and neither open window
+(8855..8858, 11636) holds a group move, so they are back on `OrderDump`'s
+uncompared pin — the compared pin walks only the open words' windows.
+One reach.
 
 (1273) **The coverage pin counts a record read when its scanner parses
 it** (1257's Loop line): `widen_civilians` read `AMMO` for presence
