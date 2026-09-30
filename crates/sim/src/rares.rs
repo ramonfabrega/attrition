@@ -649,7 +649,10 @@ mod tests {
     fn a_nubian_merchant_s_land_rare_pays_half_again_at_home() {
         let t = Tuning::RON;
         let mut g = good_table();
-        g[10].bonus = [(Some(Resource::Wealth), 10), (Some(Resource::Knowledge), 10)];
+        g[10].bonus = [
+            (Some(Resource::Wealth), 10),
+            (Some(Resource::Knowledge), 10),
+        ];
         let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true);
         assert_eq!(home[Resource::Knowledge.index()], 240);
         assert_eq!(home[Resource::Wealth.index()], 240);

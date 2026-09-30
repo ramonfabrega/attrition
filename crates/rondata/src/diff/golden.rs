@@ -6900,12 +6900,15 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
             at_floor.len()
         );
         // **What parts under the word**, none of it a draw, pinned by key
-        // and block. The **Nubian hit points**: the caravan `0/7`, the
+        // and block. ~~The **Nubian hit points**: the caravan `0/7`, the
         // merchant `0/8` and the fur trapper `0/10` are born with 135, 135
         // and 180 in the original against this crate's 90, 90 and 120 —
         // `NUBIAN_HIT_POINTS`, "50% more" on merchants, caravans and
         // markets (`rules.xml`), which `Unit::update_hits@0060e930` reads
-        // and this crate does not apply. Player 0 is Nubia (its capital is
+        // and this crate does not apply.~~ Agree since item 1268
+        // (`Sim::unit_hits`; `docs/GOLDEN.md` §54): the caravan's by
+        // `is_caravan`, the merchant's and the trapper's by their ids.
+        // Player 0 is Nubia (its capital is
         // Napata). The citizen's and the scholar's agree. ~~And run141
         // alone carries the scout `1/0`'s `facing` from 847~~, gone since
         // `push_group` keeps an equal group's record (item 723); in run142 it stands from the
@@ -6915,18 +6918,9 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
             .filter(|((_, _, what), (f, _))| *f > FIRST && !standing(what))
             .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
             .collect();
-        let mut want: Vec<String> = [(616, 7), (621, 8), (631, 10)]
+        let mut want: Vec<String> = under_want
             .iter()
-            .flat_map(|(f, o)| {
-                ["hits:myhits", "hits_left", "myhits"]
-                    .iter()
-                    .map(move |k| format!("{f} 0/{o} {k}"))
-            })
-            .chain(
-                under_want
-                    .iter()
-                    .map(|f| format!("{f} 1/0 order:move.facing")),
-            )
+            .map(|f| format!("{f} 1/0 order:move.facing"))
             .collect();
         got.sort();
         want.sort();
