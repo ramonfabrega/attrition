@@ -15691,6 +15691,14 @@ fn stage_walk() {
     // the aircraft and missiles alone, with its health — a blast's cast is
     // on the ground.
     let all = std::env::var_os("RON_STAGE_ALL").is_some();
+    // `RON_STAGE_DRAWS=1` (item 1310, `docs/GOLDEN.md` §56): each frame's
+    // draw labels, so a mutation can be walked on the staging before any
+    // capture exists — an arm whose mutation leaves every frame's draws
+    // alone cannot be held by the chapter's walk, whatever the original does.
+    let draws = std::env::var_os("RON_STAGE_DRAWS").is_some();
+    if draws {
+        built.sim.trace_phases = true;
+    }
     let unit_name = |t: Option<usize>| {
         t.and_then(|t| loaded.unit_type_names.get(t))
             .cloned()
@@ -15706,6 +15714,10 @@ fn stage_walk() {
         applied.merge(&did);
         built.tick();
         let f = built.sim.frame - 1;
+        if draws {
+            let ours = built.frame_sites.last().map_or(&[][..], |(_, v)| v);
+            eprintln!("draws f{f} {} {}", ours.len(), ours.join(" "));
+        }
         let s = &built.sim;
         let mut now: Vec<(String, String)> = Vec::new();
         for (i, u) in s.units.iter().enumerate() {

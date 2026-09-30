@@ -1644,8 +1644,12 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             // string, read off run424's packet, is `tubs`, and `parse_type`
             // walks the unit types ahead of the technologies: `militia` is
             // the Militia's own bit, which `has_tech` reads for a unit
-            // (item 1111, `docs/GOLDEN.md` §48). SEAM: the buildings and
-            // the crafts of the same string, and the shorter prefixes
+            // (item 1111, `docs/GOLDEN.md` §48). Its `b` block walks the
+            // building types (`0x19e..0x21f`) after the units and ahead of
+            // the technologies (`parse_type@007e4050`), so `keep` is the
+            // Keep, and `gain_tech` on a building type runs step 8's
+            // conversion (item 1310, `docs/GOLDEN.md` §56). SEAM: the
+            // crafts of the same string, and the shorter prefixes
             // `parse_type` tries before it gives up.
             let exact = |names: &[String]| {
                 let want = name.replace('_', " ").to_ascii_lowercase();
@@ -1653,6 +1657,7 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             };
             let tree = exact(&loaded.unit_type_names)
                 .map(|u| loaded.unit_tree[u])
+                .or_else(|| exact(&loaded.build_type_names).map(|b| loaded.build_tree[b]))
                 .or_else(|| exact(&loaded.tech_names).map(|t| loaded.tech_tree[t]))
                 .or_else(|| type_named(&loaded.tech_names, &name).map(|t| loaded.tech_tree[t]))
                 .or_else(|| named_unit(loaded, &name).map(|u| loaded.unit_tree[u]));
