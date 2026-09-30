@@ -146,6 +146,21 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1281, 2026-09-30 — the age's snap
+
+(1298) **The merchant family's over-time piece** (run490's 11329):
+`1/19` and `1/59`'s `g.gpiece[0..1]` ours 2123/14795 against 50689,
+`track` −48/−192 against 0; no clock parts in the window.
+
+(1299) **The age snap leaving `dest_angle`** (1281's mutation B): held
+by the widening alone — no draw walk has a unit whose `dest_angle` an
+age's snap moves and a later frame reads.
+
+(1300) **`Movement::set_facing`'s `des_angle` write in its other
+callers** (`do_move`'s re-face, `go_inside`, …): whether each
+`Guy::set_angle(…, 1)` site writes `UnitData +0x58` is not read, and
+that is the error 1281 found in one of them.
+
 ## Parked by item 1286, 2026-09-30 — the city line's price
 
 (1294) **The Major City's pair in `get_cost`'s city count** (1286's
@@ -2592,6 +2607,13 @@ read "parts on no key first" while it parted on group orders that stood
 from the window's first block — the orders the word's own group attack
 reads. A per-block parting count beside the firsts would say which. One
 reach.
+
+(1301) **A field carried in one slot for two offsets names no writer's
+offset** (1281's Loop line): `set_facing`'s extra `+0x58` write was
+found only because the value walked back to "ours wrote it". A helper
+listing every writer of a `Movement` field by the offset it models, or a
+doc comment naming each writer's offset where one slot serves two, would
+have named it without the walk. One reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
