@@ -35,6 +35,8 @@ SUITES = (
     'test_lab_demo',
     'test_branch_experiment',
     'test_captures_union',
+    'test_seams',
+    'test_standing',
 )
 
 if __name__ == '__main__':
