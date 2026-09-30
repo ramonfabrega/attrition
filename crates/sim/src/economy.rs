@@ -669,10 +669,16 @@ pub fn resource_bonuses(t: &Tuning, wonders: u32, out: &mut [i32; RESOURCES]) {
 /// 100% and `FISHERMEN_BONUS` entry 0 is 0% — which is why a level-0
 /// fisherman on a fish pays exactly `BONUS_NUM × 16` and nothing else.
 ///
-/// **Seam.** `extra` — the Japanese fishing-boat bonus on the two water
-/// goods, and the Porcelain Tower and Nubian terms on everything else —
-/// is the nation and wonder layer and is always zero here. It is the only
-/// term that would scale slots 1–5 without a merchant level.
+/// **`extra`** is the term that scales slots 1–5 without a merchant level.
+/// On any good but the two water ones, and only on friendly ground
+/// (`ally`, the function's third argument, which the `else if` reads), it
+/// is `PORCELAIN_RARE` under the Porcelain Tower plus **`NUBIAN_RARE`
+/// for a leader with tribe bonus 4** (`006e0a2b`..`006e0a5f`). run492's
+/// Nubian Merchant on Dye pays 240 knowledge where 160 is the good's own
+/// (`docs/GOLDEN.md` §54). `nubian` is that tribe test.
+///
+/// **Seam.** The Japanese fishing-boat bonus on the two water goods, and
+/// the Porcelain Tower's term: the wonder layer is not modelled.
 pub fn calc_rare(
     t: &Tuning,
     good_index: usize,
@@ -680,6 +686,7 @@ pub fn calc_rare(
     fishermen: usize,
     merchants: usize,
     ally: bool,
+    nubian: bool,
 ) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
     let mut scale = [100; RESOURCES];
@@ -694,13 +701,17 @@ pub fn calc_rare(
         }
     }
     // The fishermen level is read for the two water goods and nowhere
-    // else; the `else` arm is where Porcelain and Nubian would go.
+    // else; the `else` arm is Porcelain's and the Nubians'.
     let fish_pct = if water {
         t.fishermen_bonus[fishermen.min(t.fishermen_bonus.len() - 1)]
     } else {
         0
     };
-    let extra = 0;
+    let extra = if !water && ally && nubian {
+        t.nubian_rare
+    } else {
+        0
+    };
     if fish_pct + extra != 0 || scale[0] > 100 {
         out[0] = (fish_pct + extra + scale[0]) * out[0] / 100;
     }

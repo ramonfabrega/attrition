@@ -2995,7 +2995,7 @@ impl Sim {
             let index = self
                 .find_free(who, UNIT_BASE, BUILD_BASE)
                 .unwrap_or(i16::MAX);
-            let mut unit = Unit::new(who, index, pos, self.type_hits(who, ty));
+            let mut unit = Unit::new(who, index, pos, self.unit_hits(who, ty));
             unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
             unit.type_index = self.unit_types[ty].type_index;
@@ -3281,7 +3281,7 @@ impl Sim {
             self.track_unit_type(who, old, -1);
         }
         let damage = self.units[u].max_health - self.units[u].health;
-        let hits = self.type_hits(who, rec);
+        let hits = self.unit_hits(who, rec);
         {
             let unit = &mut self.units[u];
             unit.ty = Some(rec);

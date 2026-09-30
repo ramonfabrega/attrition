@@ -9523,3 +9523,113 @@ Item 1257's, each on `8eb04e40`, restored from git and touched:
 - The sea conjunct (type `+0x218 == 1`): no staging has a computer's
   land `SIEGE` unit searching across the water.
 - The defensive arm and the captain half, for the reasons above.
+
+## 54. Chapter forty-five — `get_cost`'s library-line tail on the golden start: a military epoch under Despotism, a civic epoch with Dye held by a human's Merchant, and a commerce epoch with both (item 1268)
+
+**Premise.** Item 1251 built `TypeData::get_cost@00664090`'s switch on a
+library epoch's line (`00666b7d`, `docs/AI.md` §99.8) and parked eight
+steps no walk held (parked 1261). The booking named three: Furs, Silk and
+Papyrus. What each needs, from the listing:
+
+- **A good is "held" when a unit stands on it.** `has_rare@006e0770` is
+  `rare | rare_conquest`. `rare` is rebuilt from `rare_owned` on every
+  recompute (`Leader::gather`), and `rare_owned` is the goods an idle,
+  unpacked fisherman or merchant stands on (`Unit::do_gather`,
+  `docs/ECONOMY.md` step 6). `rare_conquest` is Conquer the World's. The
+  Porcelain Tower's pass needs a deposit too.
+- **No staging on the golden start reaches Furs, Silk or Papyrus.** Map
+  14's rares at seed 12345 are Amber, Dye, Tobacco, Cotton, Wool, Gems,
+  Citrus, Aluminum and Rubber. `run_cmd`'s `add` (case `0x4e`) calls only
+  `Objects::init_unit` or `init_build`, and no console command writes a
+  rare mask or calls `init_good`. A map style or seed that places one of
+  the three would reach it with this chapter's staging (a merchant
+  deployed on it); the golden harness reads map 14 alone (`golden()`).
+- **No staging reaches a nation step.** who=0 is the Nubians (tribe 4) and
+  who=1 the British (11). No console verb changes a nation, and the
+  profile's `<SOLO>`/`<MULTI>` blocks that `--profile KEY=N` writes carry
+  no nation field. The Turks, Persians, Dutch and Chinese need a lobby
+  whose seat plays them: a new start, not this one.
+- **Two steps are reachable, and the booking's commander took them**
+  (the item's scope, 2026-09-30):
+  - **Despotism**, the military line's second step. The listing tests
+    `has_preq` of `TECHBONUSES` rows 112, 111 and 110 as an else-chain
+    (`DESPOTISM_MILITARY_CHEAPER3`, `2`, `1`, `+0x99c`, `+0x998`,
+    `+0x994`, 15 each). The three bonus rows' one prerequisite is
+    Despotism, a government rather than a bonus row, so `has_preq@006db810`
+    is `has_tech(Despotism)`. `tech who=0 despotism on` gives it.
+  - **Dye**, the civic line's first, which only Great Sahara at Toughest
+    held until now, on the computer's side. who=0's Dye is at tile
+    (41, 161), in its own land. A **human's** packed Merchant deploys
+    itself through `Unit::think`'s rare-collector arm (`docs/ORDERS.md`
+    §23.2). **This is the first capture with a human merchant** (§23.4).
+
+**The staging** (`chapter45.cmd`), walked on run484's start: `resource
+who=0 all +500` on 600, the Merchant `0/6` at (38, 161) on 602, Despotism
+on 604, and three presses at the Library `0/2005`. The Art of War on 800
+(military, Despotism), City State on 802 (civic, Dye) and Barter on 804
+(commerce, both held, neither applying). The walk: the Merchant takes
+`[MOVE_TO (7320, 30936), CAST 656]` on 602, casts from 614 and stands on
+its corner (7296, 30912) on 761. who=0's `rare` is 0x10 (Dye) from 767.
+The three entries are 102 food, 90 food, and 60 food and 60 timber.
+
+**Run 2026-09-30 as run492**, click-free lane, `cover=0`, 802 s. No
+`I_ISSUE` refusal.
+
+**The three arms agree.** who=0's buckets on both sides, dump and walk:
+food 770 → 668 on block 802 (The Art of War, 120 × 85 / 100), 668 → 578 on
+804 (City State, 120 × 75 / 100), and 579 → 519 with timber 753 → 693 on
+806 (Barter, whole). The Library's `queue[i].cost` agrees on each block.
+The Merchant agrees field by field on every block: order stack, walk,
+cast, seat and crew.
+
+**The staging met the Nubians, and both arms were built.** The first
+widening parted on two rows beside the standing families:
+
+- **`0/6`'s `myhits` from its birth block 603, ours 90 against 135.**
+  `Unit::update_hits@0060e930`'s tail (`0060ec72`..`0060ecab`): a unit
+  whose type is one of the three merchant ids, or `is_caravan`
+  (`unit_flags2 & 8`), of a leader with tribe bonus 4, takes
+  `(NUBIAN_HIT_POINTS + 100) × hits / 100`. It is now `Sim::unit_hits`,
+  called from `init_unit`, `unit_set_type` and the Militia-line refresh.
+  Chapter seven's rows went with it: the caravan `0/7`, the merchant `0/8`
+  and the fur trapper `0/10` had stood at 90, 90 and 120 against 135, 135
+  and 180 in that widening's pin. They agree now, which confirms the id arm and
+  the caravan arm on a second capture.
+- **Dye's pay from 769: `resources[3:knowledge]` ours 160 against 240**
+  (`income[2:wealth]` 320 against 400, then `bucket[2:wealth]` 617 against
+  618 on 785). `LeaderData::calc_rare@006e08d0`: for any good but Fish and
+  Whales, on friendly ground (its third argument), `extra` is
+  `PORCELAIN_RARE` under the tower plus `NUBIAN_RARE` (`Constants +0x5bc`,
+  50) for tribe bonus 4. It is added to every slot's percentage. It is now
+  `economy::calc_rare`'s `nubian`. The Porcelain term stays a seam.
+
+**Chapter forty-five closes at 1650**, the capture's end: word, sequence
+and values. The widening is run492 whole (`[600, 1651)`) and parts in 28
+rows, every one a standing family: the birth `form`s (parked 1169, the
+Merchant's on 603), the first block's census (parked 1183) and
+`filled_gather_slots`.
+
+**Mutations**, each on the committed build, restored from git and touched,
+scored by the exit code of chapter forty-five's two tests with chapter
+seven's widening and the unit tests:
+
+| mutation | held by |
+|---|---|
+| M1: Despotism's step off | the widening (802: `bucket[0:food]` 650 against 668, `queue[0].cost[0]` 120 against 102), the line tail's unit test |
+| M2: Dye's step off | the widening (804: 548 against 578; the entry 120 against 90), the unit test |
+| M3: Despotism on the civic line too | the widening (804: 592 against 578; the entry 76 against 90), the unit test |
+| M4: `NUBIAN_RARE` off | the widening (769's four income rows, 785's wealth), `a_nubian_merchant_s_land_rare_pays_half_again_at_home` |
+| M5: `NUBIAN_HIT_POINTS` off | the widening (603), chapter seven's widening, `a_nubian_merchant_is_born_with_half_again` |
+
+**No walk holds any of them.** Research prices draw nothing on this
+window. The word stays 1650 under each, so the widening is what holds
+them.
+
+**What is not established.**
+- Furs, Silk, Papyrus, the Turks, Persians, Dutch and Chinese, for the
+  reasons above. The Americans ship at 0.
+- The Despotism tiers: the three rows name one government here, so the
+  else-chain's order is not visible (15 each).
+- The Porcelain Tower's `calc_rare` term and its pass in `calc_gather`.
+- `Unit::update_hits`' other terms (the American marines, Copper, Bananas,
+  the Iroquois, the Dutch, the Spy, General and supply upgrades).
