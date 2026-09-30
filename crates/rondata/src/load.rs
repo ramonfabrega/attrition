@@ -1470,12 +1470,20 @@ pub fn load_tables(
         });
     }
     // `BuildTypeData::to`: the successor by `FROM`, as `BuildType::init` sets
-    // it — `B[from].to = this`, unconditionally, in record order, so the last
-    // record naming a `FROM` wins. The Forbidden City (record 117) names the
-    // Small City, after the Large City (record 1) has, and the program's
-    // Small City therefore points at the Forbidden City. Reproduced as read.
+    // it — `B[from].to = this` in record order, so the last record naming a
+    // `FROM` wins, **except a record whose `obj_masks` carries `0x4000000`**
+    // (`OBJ_MASK` letter `1`, the units' hero bit): the listing tests it and
+    // skips the store (`00632da8`–`00632dbe`, `jne 0x632df1`). Two buildings
+    // carry it and name a `FROM`, the Forbidden City (record 117, `FROM`
+    // the Small City) and the Red Fort (120, `FROM` the Fort), so the Small
+    // City's `to` stays the Large City and the Fort's the Castle. Linking
+    // them anyway left `get_buildings(VILLAGE)` blind to every Large City
+    // and the AI offered no Citizen once its last Small City grew (item
+    // 1326, East Indies 12580; `docs/CITIES.md` §13 item 14).
     for i in 0..build_types.len() {
-        if let Some(f) = build_types[i].from {
+        if let Some(f) = build_types[i].from
+            && build_cols[i].obj_masks & 0x0400_0000 == 0
+        {
             build_types[f].to = Some(i);
         }
     }
@@ -2516,6 +2524,43 @@ mod tests {
         assert_eq!(l.tree.types.len(), 50 + 364 + 129 + 85);
     }
 
+    /// **`BuildTypeData::to` skips a hero-masked record** (item 1326,
+    /// `docs/CITIES.md` §13 item 14): the Forbidden City (record 117, `FROM`
+    /// the Small City) and the Red Fort (120, `FROM` the Fort) carry
+    /// `obj_masks` `0x4000000`, which `BuildType::init` tests before its
+    /// store (`00632da8`–`00632dbe`). So the Small City's successor is the
+    /// Large City and the Fort's the Castle, and `get_buildings(VILLAGE)`
+    /// counts a Large City.
+    #[test]
+    fn a_hero_masked_wonder_is_nobody_s_to() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let rec = |ti: i32| (ti - 0x19e) as usize;
+        assert_eq!(
+            l.build_types[rec(0x19e)].to,
+            Some(rec(0x19f)),
+            "VILLAGE → TOWN"
+        );
+        assert_eq!(
+            l.build_types[rec(0x19f)].to,
+            Some(rec(0x1a0)),
+            "TOWN → METROPOLIS"
+        );
+        assert_eq!(
+            l.build_types[rec(0x1bb)].to,
+            Some(rec(0x1bc)),
+            "FORTX → CASTLE"
+        );
+        assert_eq!(l.build_types[rec(0x213)].to, None, "FORBIDDENCITY");
+        assert_eq!(l.build_types[rec(0x216)].to, None, "REDFORT");
+        for (r, b) in l.build_types.iter().enumerate() {
+            assert!(
+                b.to != Some(rec(0x213)) && b.to != Some(rec(0x216)),
+                "record {r} links a hero-masked wonder as its successor"
+            );
+        }
+    }
+
     /// **An anti-air building's cycle and a building's signed `ATTENUATE`**
     /// (item 1112, `docs/COMBAT.md` §84): the Radar Air Defense takes the
     /// `<UNIT>`'s 20 and 10 frames and its one release on frame 2, and the
@@ -2805,11 +2850,12 @@ mod tests {
         let major = l.build_named("Major City").unwrap();
         assert_eq!(l.build_types[small].ident, Ident::Village);
         assert_eq!(l.build_types[large].from, Some(small));
-        // The last FROM writer wins, as in `BuildType::init`: the Forbidden
-        // City names the Small City after the Large City does.
+        // The last FROM writer wins, as in `BuildType::init` — but the
+        // Forbidden City, which names the Small City after the Large City
+        // does, is hero-masked and writes nothing (item 1326).
         let forbidden = l.build_named("Forbidden City").unwrap();
         assert_eq!(l.build_types[forbidden].from, Some(small));
-        assert_eq!(l.build_types[small].to, Some(forbidden));
+        assert_eq!(l.build_types[small].to, Some(large));
         assert_eq!(l.build_types[large].to, Some(major));
         assert_eq!(l.build_types[small].x_size, 7);
         assert_eq!(l.build_types[small].hits, 1200);
