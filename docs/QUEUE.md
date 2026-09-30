@@ -18,14 +18,15 @@ at Toughest opens at 5376, now 7785** (1221, 1241, 1251, 1260); **chapter
 forty-three opens at 1356 and closes at 2200**; **chapter forty-four
 opens at 670 and closes at 1450** (1254, 1257). 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1264, 1275, 1268**, one to each open word.
-- **The commander clears at the seam after every tenth landing**, the
-  handoff written first; the next clear is at the twentieth, the pass's.
+- **Three lanes live: 1264, 1275, 1268**, one to each open word. 1264
+  (gating) moves East Indies to 11328 and Great Sahara 7785 → 8182; tell
+  att-1275 when it lands, to take `ccc update` and work 8182.
+- **The commander clears at the seam after every tenth landing**; the
+  twentieth is the pass's.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
   and a note of what the item alone needs.
-- **The spawn follows the booking commit**; the gate runs beside it.
-  **Two lanes that touch `coverage.rs` conflict at the merge**: the one
-  that lands second takes `ccc update` and gates again (three this run).
+- **Two lanes that touch `coverage.rs` conflict at the merge**: the
+  second takes `ccc update` and gates again (three this run).
 - **A chapter is three arms of one staging at most**, from the arms a
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
