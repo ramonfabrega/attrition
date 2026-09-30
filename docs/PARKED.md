@@ -146,6 +146,13 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1241, 2026-09-30 — the enhancer's other good
+
+(1252) **`find_friends`' enhancer arm, its good comparison** (1241's
+mutation B): held by its unit test and no walk — around run470's Granary
+the only gather buildings are farms. A capture placing a Lumber Mill,
+Smelter or Refinery beside another good's gather building would hold it.
+
 ## Parked by item 1228, 2026-09-30 — the muster's other arms
 
 (1244) **`counts_in_muster`'s captain half** (1228's mutation D): held
@@ -2380,6 +2387,14 @@ reach.
 …`, so the brief's `RON_FIRSTS=1 … | python3 tools/standing.py` reads
 nothing from a chapter's widening; 1235 converted them with `sed` by
 hand. One reach.
+
+(1253) **`seams.py` does not read a "not modelled" comment in the code**
+(1241's Loop line): `find_friends`' enhancer arm said so in a comment,
+and `seams.py find_friends enhancer` answered "0 live seams" — the arm
+that decided 5376. A scan of code comments for "not modelled" / "not
+kept" inside the named functions, or a rule that such a comment is a
+`SEAM`, would have named it at step 7. With 1240, two reaches on the
+tool's reach.
 
 (1240) **`seams.py` does not list a `SEAMS:` block** (1223's Loop
 line): only the singular `SEAM`, and `do_cast`'s captain check — the
