@@ -289,6 +289,39 @@ pub struct Tuning {
     /// Taxation through Income Tax — `get_cost`'s `TVar21 − TAXATION < 4`
     /// with `has_tribe_bonus(0xb)` (`docs/AI.md` §74).
     pub british_taxation_discount: i32,
+    /// `get_cost`'s **library-line tail** (`00666b7d`, the jump table at
+    /// `006673a0` keyed on the epoch's line, `docs/AI.md` §99.8): each a
+    /// percentage off a library epoch's price, applied one at a time as
+    /// `(100 − x) × cost / 100` after [`Tuning::british_taxation_discount`].
+    /// The military line: Furs held (`has_rare(0x15)`), then the highest
+    /// `DESPOTISM_n` held, then the Turks (`has_tribe_bonus(8)`).
+    pub furs_military: i32,
+    /// `DESPOTISM_MILITARY_CHEAPER`, `…2` and `…3`, by the highest
+    /// `DESPOTISM_n` held — the military line's second step.
+    pub despotism_military_cheaper: [i32; 3],
+    /// `TURK_MILITARY_CHEAP` — the military line's third step.
+    pub turk_military_cheap: i32,
+    /// `DYE_CIVIC_COMMERCE` — the civic line: Dye held (`has_rare(10)`).
+    /// The name says commerce too; the listing's civic case alone reads it.
+    pub dye_civic_commerce: i32,
+    /// `PERSIANS_CIVIC_DISCOUNT` — the civic line's second step,
+    /// `has_tribe_bonus(0x17)`.
+    pub persians_civic_discount: i32,
+    /// `SILK_COMMERCE` — the commerce line: Silk held (`has_rare(11)`).
+    pub silk_commerce: i32,
+    /// `DUTCH_COMMERCE_DISCOUNT` — the commerce line's second step,
+    /// `has_tribe_bonus(0x16)`.
+    pub dutch_commerce_discount: i32,
+    /// `PAPYRUS_SCIENCE_MILITARY` — the science line: Papyrus held
+    /// (`has_rare(9)`). The name says military too; the listing's science
+    /// case alone reads it.
+    pub papyrus_science_military: i32,
+    /// `CHINESE_SCIENCE_DISCOUNT` — the science line's second step,
+    /// `has_tribe_bonus(0xe)`.
+    pub chinese_science_discount: i32,
+    /// `AMERICANS_SCIENCE_DISCOUNT` — the science line's third step,
+    /// `has_tribe_bonus(0x14)`. Ships as 0.
+    pub americans_science_discount: i32,
     /// The same, for the Egyptians on food.
     pub egyptian_food_commerce: i32,
     /// The same, for the French on timber.
@@ -922,6 +955,16 @@ impl Tuning {
         british_commerce: 25,
         british_taxation: 100,
         british_taxation_discount: 50,
+        furs_military: 25,
+        despotism_military_cheaper: [15, 15, 15],
+        turk_military_cheap: 33,
+        dye_civic_commerce: 25,
+        persians_civic_discount: 30,
+        silk_commerce: 25,
+        dutch_commerce_discount: 10,
+        papyrus_science_military: 25,
+        chinese_science_discount: 20,
+        americans_science_discount: 0,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
         inca_wealth_cap: 33,
@@ -1165,7 +1208,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 323] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 335] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1270,6 +1313,42 @@ impl Tuning {
             (
                 "BRITISH_TAXATION_DISCOUNT",
                 Slot::Value(T.british_taxation_discount),
+            ),
+            ("FURS_MILITARY", Slot::Value(T.furs_military)),
+            (
+                "DESPOTISM_MILITARY_CHEAPER",
+                Slot::Value(T.despotism_military_cheaper[0]),
+            ),
+            (
+                "DESPOTISM_MILITARY_CHEAPER2",
+                Slot::Value(T.despotism_military_cheaper[1]),
+            ),
+            (
+                "DESPOTISM_MILITARY_CHEAPER3",
+                Slot::Value(T.despotism_military_cheaper[2]),
+            ),
+            ("TURK_MILITARY_CHEAP", Slot::Value(T.turk_military_cheap)),
+            ("DYE_CIVIC_COMMERCE", Slot::Value(T.dye_civic_commerce)),
+            (
+                "PERSIANS_CIVIC_DISCOUNT",
+                Slot::Value(T.persians_civic_discount),
+            ),
+            ("SILK_COMMERCE", Slot::Value(T.silk_commerce)),
+            (
+                "DUTCH_COMMERCE_DISCOUNT",
+                Slot::Value(T.dutch_commerce_discount),
+            ),
+            (
+                "PAPYRUS_SCIENCE_MILITARY",
+                Slot::Value(T.papyrus_science_military),
+            ),
+            (
+                "CHINESE_SCIENCE_DISCOUNT",
+                Slot::Value(T.chinese_science_discount),
+            ),
+            (
+                "AMERICANS_SCIENCE_DISCOUNT",
+                Slot::Value(T.americans_science_discount),
             ),
             (
                 "EGYPTIAN_FOOD_COMMERCE",

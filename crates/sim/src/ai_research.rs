@@ -1299,6 +1299,55 @@ mod tests {
         assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
     }
 
+    /// `get_cost`'s library-line tail (`docs/AI.md` §99.8). run482's
+    /// who=1, the British, held Dye on 4576 and researched Empire, the
+    /// civic epoch at level 1: this crate charged 144 food and the original
+    /// 108, and the 36 stood in who=1's food bucket to the word 5782.
+    #[test]
+    fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
+        let (mut sim, t) = sim();
+        let civic1 = sim.tech_tree.epochs[Line::Civic.index()][1].unwrap();
+        for x in [civic1, t.commerce2, t.military1, t.taxation] {
+            sim.tech_tree.types[x].cost = [160, 0, 0, 0, 0, 0];
+        }
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        let price = |sim: &Sim, x| sim.tech_price(1, x)[0];
+        let (civic, commerce, military, plain) = (
+            price(&sim, civic1),
+            price(&sim, t.commerce2),
+            price(&sim, t.military1),
+            price(&sim, t.taxation),
+        );
+        // Dye: a quarter off the civic line and nothing else.
+        let rare = |sim: &mut Sim, good: usize| {
+            sim.ledgers[1].rare = 1 << (good - crate::economy::BASE_RARE);
+        };
+        rare(&mut sim, 10);
+        assert_eq!(price(&sim, civic1), civic * 75 / 100, "Dye, civic");
+        assert_eq!(price(&sim, t.commerce2), commerce, "Dye is not commerce's");
+        assert_eq!(price(&sim, t.military1), military);
+        assert_eq!(price(&sim, t.taxation), plain, "a plain tech takes no line");
+        // Silk the commerce line's, Furs the military's.
+        rare(&mut sim, 11);
+        assert_eq!(price(&sim, t.commerce2), commerce * 75 / 100, "Silk");
+        assert_eq!(price(&sim, civic1), civic);
+        rare(&mut sim, 0x15);
+        assert_eq!(price(&sim, t.military1), military * 75 / 100, "Furs");
+        // A nation's step is its own truncation after the rare's: the
+        // Turks' third off what Furs left.
+        sim.tech[1].power = Some(8);
+        assert_eq!(
+            price(&sim, t.military1),
+            (100 - 33) * (military * 75 / 100) / 100,
+            "Furs, then the Turks"
+        );
+        assert_eq!(
+            price(&sim, civic1),
+            civic,
+            "the Turks are the military line's"
+        );
+    }
+
     #[test]
     fn the_slot_is_the_category() {
         assert_eq!(slot_for(0), 10);

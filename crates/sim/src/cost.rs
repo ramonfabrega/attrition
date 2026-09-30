@@ -232,6 +232,13 @@ pub struct Modifiers {
     /// the original, after the captured-building doubling rather than before it
     /// — the Supercollider surcharge and the Indian elephant discount.
     pub late_discount: i32,
+    /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
+    /// percentages off a library epoch's price, each its own
+    /// `(100 − x) × cost / 100` in order, after
+    /// [`Modifiers::late_discount`] — the line's rare, its government or
+    /// nation, and a second nation (`docs/AI.md` §99.8). Zero is the
+    /// identity.
+    pub line_discounts: [i32; 3],
     /// How many Science levels the player is **ahead of the technology's
     /// own** — the only term of `LeaderData::calc_science_discount@006da630`,
     /// and signed: a player whose Science line is behind the tech's age pays a
@@ -430,6 +437,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
 
     cost = cost * (100 - m.late_discount) / 100;
+    for d in m.line_discounts {
+        cost = (100 - d) * cost / 100;
+    }
     if m.unassimilated {
         cost *= 2;
     }
