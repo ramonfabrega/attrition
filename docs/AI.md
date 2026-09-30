@@ -12301,7 +12301,8 @@ in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
 `run470_is_great_sahara_at_toughest_and_its_word_holds`; §99.3 and §99.4 by
 `run471_s_word_frame_is_widened_whole`. The compared pin walked run471's
 5375..5378 until item 1241 moved it to run476's (§99.7), and item 1251 to
-run483's 7069..7072 (§99.8); the coverage driver drives all three. **Read only**: nothing; §99.5's third bullet is open.
+run483's 7069..7072 (§99.8), and item 1260 to run488's 7784..7787 (§99.9);
+the coverage driver drives all four. **Read only**: nothing; §99.5's third bullet is open.
 
 ### 99.7 The Granary's friends: `find_friends`' enhancer arm (item 1241)
 
@@ -12433,8 +12434,8 @@ the frame agrees. **run483** widens it (blocks 7065..7321, 745 keys): 129
 stand on 7065 — the families above, and three of who=1's that part in the
 gap past run476, wealth 161 against 162, its `leftover` 1584 against 48 and
 `MAKE[4].val` 1431372 against 1228956 — and nothing parts again until 7075,
-so the word's block 7071 is quiet: no record prints a search. No mechanism
-is named for it.
+so the word's block 7071 is quiet: no record prints a search. ~~No mechanism
+is named for it.~~ It was the road under the search: §99.9.
 
 **Coverage.** Diff-backed: the civic step, by `run470_is_great_sahara_at_toughest_and_its_word_holds`
 (Dye's step off: the word falls to 5782) and `run482_s_goods_are_widened_whole`
@@ -12452,4 +12453,87 @@ Furs and the Turks' truncation after Furs', and Despotism and its line since
 item 1268. The Americans' step ships as 0.
 Read only: the Despotism tier's `has_preq`, read through the first
 prerequisite of each bonus as the Republic tier is.
+
+### 99.9 The road beside the Farm: `leech_codes` in the mesh's redo pass (item 1260)
+
+**The frame, both sides.** On 7070 both sides open with the same two
+`GameAccess::rnd` draws. Then each spends one road search, caravan slot 2's:
+`astar_caravan_road`'s bracket in run483's trace reads `whoA 2007, whoB 1,
+p4 2022, caravan 2`, the route of `1/52` from `1/2007` to `1/2022`, and
+ours' slot 2 is the same caravan on the same two cities. The original's
+search arrives in 2,543 nodes. Ours runs to the budget, 3,204, and resumes
+on 7071. The two searches agree node for node through node 1128. **Node 1129
+is tile (150, 123) from (151, 122), a diagonal: the original prices it 37,
+road on road, and ours 114**, plain ground. Node 1130, (149, 123), is 27
+against 237.
+
+**Every earlier search agrees.** run483's trace proxies `valid_roadcoord`
+and `calc_road_cost` over the whole game (`callwin 0..`), not just its
+window: 49 road-search frames to 7070, every one node for node with ours,
+among them caravan `1/51`'s plan from `1/2000` to `1/2022` (6379..6388)
+and `1/52`'s first plan on 6587, 1,935 nodes. So the road the original
+priced on 7070 was on both maps once, and ours lost it between 6587 and
+7070.
+
+**Where ours lost it.** Our tile masks, read every frame from 6000: the road
+(147..150, 123) is laid on 6389 when `1/51`'s road completes, and `set_diags`
+makes (147, 123). The Farm `1/2027` (`orig_type` 417, `frame_started` 6610
+in run483's `BUILDDATA`) is placed over (144..147, 121..124) on 6583 and
+masked on 6611. A Farm does not connect to roads, so `mask_me` takes the
+road off its footprint tiles, (147, 123) before (147, 124). **On 6949 ours
+clears (148, 123), (149, 123) and (150, 123) in one frame**: the stray-road
+sweep's seven cells for 6949 begin at cell (37, 30) (`docs/ROADS.md` §10.1),
+which holds all three. (148, 123)'s element claimed `SW` alone, toward
+(147, 124), now the Farm's. It claimed no road, so it was killed, and the
+two behind it went as stubs. The original's 7070 prices all three as road.
+
+**The arm.** `Roads::redo_changed_roads@0088e670` zeroes a tile's flags and
+re-derives them with `RoadsOut::mark_and_trim_directions@008935c0`, which
+recomputes east–west only when a footprint lies north or south. A footprint
+west, the Farm, left (148, 123)'s east unrecomputed and so lost. Its third
+pass runs **`RoadsOut::leech_codes@00890da0`** before `set_diags`: each
+cardinal road neighbour that claims this tile lends the claim back, and
+(149, 123) claims west. This crate had the trim and `set_diags` and not
+`leech_codes`: `docs/ROADS.md` §9.4 listed it among the texture passes. It
+is now `RoadMesh::leech_codes` in the redo pass (`docs/ROADS.md` §11). The
+trim itself was checked against the decompile and agrees with ours.
+
+**The value diff.** run483's trace on 7070: node 1129, tile (150, 123),
+ours 114 against 37 → **both 37**, and the search 3,204 nodes against 2,543
+→ **2,543 node for node**
+(`run483_s_road_searches_hold_node_for_node_to_7070`). Our (148, 123) on
+6949 now claims `E|SW` and stands. run483 parts on 134 keys where it parted
+on 745: the 129 standing on 7065 are unchanged, and five part after it,
+the first on 7144 (who=1's `peasants` 30 against 31, `1/56`'s `form` −1
+against 9).
+
+**The word moves 7070 → 7785**: ours 23 draws against 17, at index 4.
+Both sides spend two `Leader::use_market+0x1ed` and open a building
+placement (`Leader::produce_building+0x1805 < make_this < make_stuff`), ours
+three draws of it against two. The original's next is
+`Leader::make_stuff+0x221`. Ours then also buys at `make_stuff+0x63d`, and
+the animal `8/3` spends three more `Animal::do_idle` draws. **run488**
+widens it (blocks 7780..8036, 876 keys). 132 stand on 7780: run483's
+families, and who=1's `known_rares`, 3 against 4, new past run483. who=1's
+make list parts on 7782 and on 7785, where its third row is a Senate
+(`t` 438, `cat` 8) here and a Mine (419, `cat` 4) there. **On the word's
+block 7786 both sides lay a Senate, `1/2030` (`orig_type` 438), at
+(38976, 19584) here and (38784, 17760) there**, `constr_time` 100000
+against 50000, and who=1's timber and metal buckets are swapped, 78/28
+against 28/78. (Types are keyed as `orig_type` − 414 into
+`buildingrules.xml`'s rows; the Farm is 417 and the Granary 423 on that key,
+§99.4 and §99.7.) No mechanism is named for it.
+
+**The standing rows the booking named** — who=1's wealth 161 against 162,
+its `leftover[2:wealth]` 1584 against 48, `MAKE[4].val` 1431372 against
+1228956, all from run483's first block — did not enter the arm that decided
+7070. The road the search read was the road the sweep had left, and no
+goods row reaches the sweep. They still stand on 7065, as before.
+
+**Coverage.** Diff-backed: the direction arm, by
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (the step removed:
+the word falls back to 7070) and
+`run483_s_road_searches_hold_node_for_node_to_7070` (it parts at node 1129).
+The early return on a road neighbour with no element is held by the unit test
+`leech_codes_stops_at_a_road_with_no_element` alone.
 
