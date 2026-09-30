@@ -95,6 +95,15 @@ pub(crate) const TOUGHEST_ROAD_FRAME_7070: i64 = 7_070;
 /// and run471 left unprinted (item 1251).
 pub(crate) const TOUGHEST_GOODS: &str = "gamelog-run482-greatsahara-toughest-goods.txt";
 
+/// run495: run470's game at run482's `end:MISC,LEADERS=2` over blocks
+/// 6030..7066 — every leader's goods through the gap between run476's last
+/// block and run483's first, where who=1's wealth `leftover` parted
+/// (item 1275).
+pub(crate) const TOUGHEST_WEALTH: &str = "gamelog-run495-greatsahara-toughest-wealth.txt";
+
+/// **run495's window** (item 1275): blocks 6030..7066.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH: (i64, i64) = (6_030, 7_066);
+
 /// **run482's window** (item 1251): blocks 1..5378.
 pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_GOODS: (i64, i64) = (1, 5_378);
 
@@ -168,6 +177,18 @@ pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harnes
         (TOUGHEST_GOODS, WIDENING_GREAT_SAHARA_TOUGHEST_GOODS.0),
         WIDENING_GREAT_SAHARA_TOUGHEST_GOODS,
         TOUGHEST_GOODS_BLOCK_4577,
+    )
+}
+
+/// run495's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH`], walked as
+/// run482's are (item 1275): the goods of every leader through the gap.
+pub(crate) fn great_sahara_toughest_wealth_window() -> Option<crate::diff::harness::tests::Widened>
+{
+    toughest_window_over(
+        "run495",
+        (TOUGHEST_WEALTH, WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_WEALTH,
+        TOUGHEST_WORD_BLOCK_7071,
     )
 }
 
@@ -803,6 +824,27 @@ mod tests {
             "the leader rows that part on run482"
         );
         pin_eq!(w.firsts.len(), 40, "every key parted on run482");
+    }
+
+    /// **The goods through the gap, 6030..7066** (item 1275):
+    /// [`great_sahara_toughest_wealth_window`] over run495's blocks, both
+    /// directions, every field `LEADERS=2` prints for every leader.
+    #[test]
+    fn run495_s_goods_are_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = great_sahara_toughest_wealth_window() else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 0, "run495 whole: blocks 6030..7066");
+        pin_eq!(w.firsts.len(), 0, "every key parted on run495");
     }
 
     /// **Every road search to 7070, node for node** (item 1260). run483's

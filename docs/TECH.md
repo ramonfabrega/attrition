@@ -582,7 +582,12 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
    — the predecessors are owned and obsolete at once.
 8. **A building type**: every live building whose type's `upgrade == t` is
    marked obsolete (`obs_flags` of its type) and converted (`set_type`), and
-   `obs_flags.set(t.from)` if `from ≥ 0`. **A unit or a building type stops
+   `obs_flags.set(t.from)` if `from ≥ 0` — the loop over the leader's two
+   building lists at `6dde5e`–`6ddf2b`, `Wall::set_type(t, 0)` through vslot
+   `+0x84`, which moves the per-type counters and writes no hits (they
+   follow at the next wall-stats pass). Only an auto-upgrade type (`build_flags
+   & 4`) is any type's `upgrade`: the Tower becomes a Keep with Medieval Age
+   (`Sim::upgrade_buildings_to`, item 1275, `docs/AI.md` §99.10). **A unit or a building type stops
    here** — a unit `goto`s the epilogue after step 7, and everything that is
    not a tech type returns after step 8; none of the cascades below run for
    them.

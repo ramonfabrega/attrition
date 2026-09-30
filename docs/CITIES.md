@@ -740,6 +740,12 @@ all units' `do_build`, all buildings' `Wall::process`, then every site's hit
 points refreshed from the new `job_counter`. The sim reads the result through
 `BuildData::hits(0)` = `construct_hits`, `hits(1)` = `myhits`.
 
+`TOWER`, `LOOKOUT` and `MARKET` below are **lines**, `ObjectData::is(t, 0)`
+(`is(0x1b7, 0)`, `is(0x209, 0)`, `is(0x1b4, 0)` in `Wall::update_hits@0063f0d0`):
+the Keep, the Stockade and the Bunker are Towers here, and take neither the
+Senate bonus nor, for the Romans, anything but `ROMAN_FORT_HP`. run488's Keep
+`1/2015`, in a Large City, holds 1000 (item 1275, `docs/AI.md` §99.10).
+
 ```
 h = type.hits
 Maya:                                              h = (MAYA_BUILDING_HP + 100) × h / 100
