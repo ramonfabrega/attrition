@@ -3500,6 +3500,17 @@ impl Sim {
         if !self.active(me) || self.attack_of(me) == 0 {
             return;
         }
+        // **A site does not shoot** (item 1323, `docs/COMBAT.md` §8.6):
+        // `Build::process@0061edf0` returns straight after `Wall::process`
+        // unless the building is finished — `61ee1b` reads `flags & 4`
+        // inline for `Build::vftable@00b42174`, else vslot `+0x4c`, which
+        // the PE holds as `0x472350`, `WallData::is_active` (`flags & 4`
+        // again) — and `61ee31` jumps past `do_attack` to the epilogue.
+        // Chapter forty-seven's Tower site `0/2008` fired a round on 712
+        // here and never did in run514.
+        if !self.buildings[b].active {
+            return;
+        }
         // **An anti-air building's `recharging` is its `Wall::inc_time`
         // cycle's, not this countdown** (item 1112, `docs/COMBAT.md`
         // §84): `Build::do_attack@006228f0`'s head (`6228fe`..`622946`) skips the countdown for
