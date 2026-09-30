@@ -12,13 +12,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: thirteen landings.
-**East Indies' second word 8907 → 10985** (1214, 1228, 1243); **Great Sahara
-at Toughest opens at 5376, now 7785** (1221, 1241, 1251, 1260); **chapter
-forty-three opens at 1356 and closes at 2200**; **chapter forty-four
-opens at 670 and closes at 1450** (1254, 1257). 1222: the held-out map, 1851/1850, for the record.*
+*2026-09-30, the commander after the twentieth pass: fourteen landings.
+**East Indies 8907 → 10985**; **Great Sahara at Toughest opens at 5376,
+now 7785**; **chapters forty-three to forty-five opened and closed**
+(2200, 1450, 1650). 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1264, 1275, 1268**, one to each open word. 1264
+- **Three lanes live: 1264, 1275, 1278**, one to each open word. 1264
   (gating) moves East Indies to 11328 and Great Sahara 7785 → 8182; tell
   att-1275 when it lands, to take `ccc update` and work 8182.
 - **The commander clears at the seam after every tenth landing**; the
@@ -37,11 +36,11 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w10985 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w7785 of 15,432
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the commander resumes — three lanes live on 1264, 1275 and
-1268; thirteen landings counted from the twentieth pass's commit.**
+1278; fourteen landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -67,12 +66,14 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     (38976, 19584), theirs (38784, 17760). Standing from 7780: who=1's
     `known_rares` 3/4 (parked 1172's field). No mechanism is named.
 
-1268. **Chapter forty-five: `get_cost`'s library-line tail, by goods**
-    (DECISIONS 56 §3): the steps 1251 built and no walk holds (parked
-    1261) — a leader holding Furs, one holding Silk, one holding Papyrus,
-    each researching the line — nearest both open AI words, whose make
-    lists price on it. Three arms, one staging on the golden start;
-    whether a staging reaches each is the item's to establish first.
+1278. **Chapter forty-six: three arms a unit test alone holds**
+    (DECISIONS 56 §3): `disembark_squad`, a barge landing three riders
+    (parked 1238 — chapter forty-three's 1900 line restaged alone);
+    `all_gathering`'s prune, a chain member that stopped gathering read
+    by a woodcutter whose wait runs out (1255); and `leech_codes`' early
+    return, a road neighbour with no mesh element beside a tile being
+    redone (1277). One staging at most three arms; whether a staging
+    reaches each is the item's to establish first.
 
 ## How to maintain this file
 

@@ -198,7 +198,20 @@ Furs, Despotism, the Turks, the Persians, Silk, the Dutch, Papyrus and
 the Chinese are held by no walk (the Americans ship at 0); the unit test
 holds Silk, Furs and the Turks' truncation after Furs'. A capture where a
 leader holding Furs, Silk or Papyrus, or playing one of those nations,
-researches the line would hold them.
+researches the line would hold them. **No staging on the golden start
+reaches them** (1268): map 14's rares at seed 12345 are none of the
+three goods; `add` makes only units and buildings and no console verb
+writes a rare mask; who=0 is tribe 4 and who=1 tribe 11, and neither the
+console nor the profile's lobby blocks carry a nation (`--profile KEY=N`
+writes `<SOLO>`/`<MULTI>`). A map style or seed that places one of the
+goods would reach it with chapter forty-five's staging, but the golden
+harness reads map 14 alone. **Despotism is held since 1268.**
+
+(1279) **The Despotism tiers' order is invisible** (1268): three rows,
+one government, 15 each.
+
+(1280) **`calc_rare`'s Porcelain term and `Unit::update_hits`' other
+terms** (1268): no staging reaches them.
 
 (1262) **`docs/COSTS.md`'s "The discounts" does not list the
 library-line tail**: AI §99.8 has it; 1251 left COSTS alone for the
@@ -2442,7 +2455,9 @@ and the two locks be one. Repaired by hand from run467's
 `settings-backup/`. **Again** (1223's Loop line): a wait keyed on the
 lane state alone refused one take on the flock and let another lane
 launch into a cleanup; a waiter should key on the flock or the runner's
-pid too. Two reaches. **Again** (1221's Loop line): `ron_lane_state`
+pid too. Two reaches. **Again** (1268's Loop line): a launch in the
+window where `ron_lane_state` says stale and the runner's `flock` is
+still held dies before frame 0 with nothing written. **Again** (1221's Loop line): `ron_lane_state`
 reads `stale`, never `free`, after every runner exits, so a "free and
 nothing alive" wait never fires; what mattered was the INIs' own lines.
 Three reaches.
