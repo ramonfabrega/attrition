@@ -130,6 +130,11 @@ impl Sim {
                 self.fishermen_level(who),
                 self.merchants_level(who),
                 ally,
+                self.tech_tree.has_tribe_bonus(
+                    &self.setup,
+                    &self.tech[who as usize],
+                    crate::ai::tribe::NUBIANS,
+                ),
             );
             let share = crowd + 1;
             for (i, r) in rate.iter().enumerate() {
@@ -583,7 +588,7 @@ mod tests {
     fn a_fish_pays_ten_of_each_of_its_two_goods() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, false);
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, false, false);
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Timber.index()], 0);
@@ -595,7 +600,7 @@ mod tests {
     fn the_fishermen_bonus_reaches_the_food_half_alone() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 2, 0, false);
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 2, 0, false, false);
         assert_eq!(t.fishermen_bonus[2], 100);
         assert_eq!(out[Resource::Food.index()], 20 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
@@ -607,7 +612,7 @@ mod tests {
     fn the_merchants_bonus_reaches_a_fish_s_other_half() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, false);
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, false, false);
         assert_eq!(t.merchants_bonus[1], 120);
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
@@ -620,7 +625,7 @@ mod tests {
     fn friendly_ground_lets_the_merchants_bonus_reach_food() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, true);
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, true, false);
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE * 120 / 100);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
     }
@@ -632,8 +637,55 @@ mod tests {
         let t = Tuning::RON;
         let mut g = good_table();
         g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
-        let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false);
+        let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false, false);
         assert_eq!(out[Resource::Metal.index()], 10 * RATE_SCALE);
+    }
+
+    /// **The Nubians take half again, on a land rare in friendly ground**
+    /// (`NUBIAN_RARE`, `LeaderData::calc_rare`'s `else if` arm): Dye's
+    /// knowledge 160 is 240 (run492, `docs/GOLDEN.md` §54). Not abroad,
+    /// and not on the two water goods, whose arm is the fishermen's.
+    #[test]
+    fn a_nubian_merchant_s_land_rare_pays_half_again_at_home() {
+        let t = Tuning::RON;
+        let mut g = good_table();
+        g[10].bonus = [(Some(Resource::Wealth), 10), (Some(Resource::Knowledge), 10)];
+        let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true);
+        assert_eq!(home[Resource::Knowledge.index()], 240);
+        assert_eq!(home[Resource::Wealth.index()], 240);
+        let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, true);
+        assert_eq!(abroad[Resource::Knowledge.index()], 160, "abroad");
+        let other = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false);
+        assert_eq!(other[Resource::Knowledge.index()], 160, "not Nubian");
+        let fish = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, true, true);
+        assert_eq!(fish[Resource::Wealth.index()], 10 * RATE_SCALE, "a fish");
+    }
+
+    /// **A Nubian Merchant is born with half again** (`Unit::update_hits`'
+    /// `NUBIAN_HIT_POINTS` arm): run492's `0/6`, 135 on a type of 90
+    /// (`docs/GOLDEN.md` §54). Another type of the same leader, and the
+    /// same Merchant of another nation, take the type's.
+    #[test]
+    fn a_nubian_merchant_is_born_with_half_again() {
+        let (mut s, _) = sea_sim();
+        let merchant = s.add_unit_type(crate::UnitType {
+            hits: 90,
+            type_index: 0x3d,
+            ..crate::UnitType::default()
+        });
+        let other = s.add_unit_type(crate::UnitType {
+            hits: 90,
+            type_index: 0x40,
+            ..crate::UnitType::default()
+        });
+        for p in &mut s.tech {
+            p.has_city = true;
+        }
+        s.tech[0].power = Some(crate::ai::tribe::NUBIANS);
+        s.tech[1].power = Some(crate::ai::tribe::NUBIANS + 1);
+        assert_eq!(s.unit_hits(0, merchant), 135);
+        assert_eq!(s.unit_hits(0, other), 90, "not a trader");
+        assert_eq!(s.unit_hits(1, merchant), 90, "not Nubian");
     }
 
     /// **The walk, end to end.** One idle Fisherman on a fish: the rate is

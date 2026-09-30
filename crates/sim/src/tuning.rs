@@ -810,6 +810,9 @@ pub struct Tuning {
     pub red_fort_fort_hps: i32,
     /// Percent more on a Nubian market.
     pub nubian_hit_points: i32,
+    /// Percent added to a Nubian merchant's rare on friendly ground
+    /// (`LeaderData::calc_rare@006e08d0`'s `Constants +0x5bc`, `NUBIAN_RARE`).
+    pub nubian_rare: i32,
     /// Garrison slots a tower gains per fort-garrison tech level.
     pub tower_garrison_upgrade: i32,
     /// The same for a fort.
@@ -1187,6 +1190,7 @@ impl Tuning {
         taj_building_hp: 100,
         red_fort_fort_hps: 33,
         nubian_hit_points: 50,
+        nubian_rare: 50,
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
         unit_heal_rate: [20, 15, 10, 5],
@@ -1208,7 +1212,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 335] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 336] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1872,6 +1876,7 @@ impl Tuning {
             ("TAJ_BUILDING_HP", Slot::Value(T.taj_building_hp)),
             ("RED_FORT_FORT_HPS", Slot::Value(T.red_fort_fort_hps)),
             ("NUBIAN_HIT_POINTS", Slot::Value(T.nubian_hit_points)),
+            ("NUBIAN_RARE", Slot::Value(T.nubian_rare)),
             (
                 "TOWER_GARRISON_UPGRADE",
                 Slot::Value(T.tower_garrison_upgrade),

@@ -567,6 +567,11 @@ mod tests {
             WIDENING_CHAPTER_FORTY_FOUR,
         ),
         (
+            "ch45",
+            GOLDEN_WORD_CHAPTER_FORTY_FIVE,
+            WIDENING_CHAPTER_FORTY_FIVE,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,

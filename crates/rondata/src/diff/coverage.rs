@@ -621,6 +621,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch42 = golden_dump("ch42");
     let ch43 = golden_dump("ch43");
     let ch44 = golden_dump("ch44");
+    let ch45 = golden_dump("ch45");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1947,6 +1948,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [611, 631, 671] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-four carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-five, on run492** (item 1268): 603, the Nubian
+    // Merchant's birth; 769, its Dye's first pay; 804, whose five blocks
+    // hold the three research prices (802, 804, 806).
+    if let Some(p) = &ch45 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_FIVE;
+        for w in [603, 769, 804] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-five carries the window's five blocks");
             frames += n;
         }
     }

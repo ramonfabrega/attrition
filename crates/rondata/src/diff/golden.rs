@@ -13407,6 +13407,31 @@ fn chapter_forty_four_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-five** — `get_cost`'s library-line tail on the golden
+/// start (`docs/GOLDEN.md` §54, item 1268, run492): a military epoch
+/// under Despotism, a civic epoch with Dye held by a human's Merchant,
+/// and a commerce epoch with both held. Seven staged lines.
+#[test]
+fn chapter_forty_five_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch45", "chapter45", 45, 7, 1649) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-five: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_FIVE,
+        "chapter forty-five's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_FIVE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_FIVE,
+        "chapter forty-five's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §54"
+    );
+}
+
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
 /// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
@@ -13582,6 +13607,77 @@ fn chapter_forty_four_s_word_frame_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch44: what parts under the word moved");
 }
+
+/// **run492 whole, both directions** (item 1268, `docs/GOLDEN.md` §54):
+/// every dumped record on every block of the capture, the leaders at
+/// `LEADERS=5`. No pool: the capture prints no `GROUPS` (parked 735).
+#[test]
+fn chapter_forty_five_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch45",
+        "chapter45",
+        WIDENING_CHAPTER_FORTY_FIVE,
+        1649,
+        0,
+        (799, 806),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch45 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch45: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH45.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch45: what parts under the word moved");
+}
+
+/// Chapter forty-five's widening rows: run492 whole, 600 to 1650 (item
+/// 1268; `docs/GOLDEN.md` §54). The standing families only — the birth
+/// `form` (parked 1169; the Merchant `0/6`'s on 603), the first block's
+/// census (parked 1183) and `filled_gather_slots`. The three prices agree
+/// on who=0's food and timber (blocks 802, 804, 806). Before the item's
+/// two Nubian arms, `0/6`'s hits stood from 603 (ours 90, theirs 135) and
+/// the Dye's pay from 769 (`income[2:wealth]` 320 against 400,
+/// `resources[3:knowledge]` 160 against 240).
+const WANT_CH45: &[&str] = &[
+    "600 0/-1 leader:filled_gather_slots[0:food]",
+    "600 0/-1 leader:filled_gather_slots[1:timber]",
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "603 0/6 form",
+    "600 0/2000 city:busy",
+    "600 0/2000 city:filled",
+    "600 0/2000 city:gatherers",
+    "600 0/2000 city:land",
+    "600 0/2000 city:peasant_dist",
+    "600 0/2000 city:space[0]",
+    "600 0/2000 city:space[1]",
+    "600 0/2000 city:space[2]",
+    "600 0/2000 city:ter[0]",
+    "600 0/2000 city:ter[1]",
+    "600 0/2000 city:ter[3]",
+    "600 0/2000 city:ter[4]",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+    "600 1/2000 city:filled",
+    "600 1/2000 city:land",
+];
 
 /// Chapter forty-four's widening rows: run484 whole, 605 to 1450 (item
 /// 1257; `docs/GOLDEN.md` §53). The standing families only — the birth
