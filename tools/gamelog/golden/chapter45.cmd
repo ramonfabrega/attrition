@@ -18,9 +18,8 @@
 #                                                   (`Unit::think`'s
 #                                                   rare-collector arm,
 #                                                   docs/ORDERS.md §23.2)
-#   604 `tech who=0 despotism on`                   `has_preq(0x31c)`, the
-#                                                   Despotism step's first
-#                                                   test, holds
+#   604 `tech who=0 despotism on`                   the Despotism step's
+#                                                   first test holds
 #   800 `@queueup 0 572 1 2005`                     A: The Art of War, the
 #                                                   military line, at the
 #                                                   Library 0/2005
@@ -45,7 +44,7 @@
 #
 # - The tail, for a library epoch (`0x227..0x242`): each step is `(100 − x)
 #   × cost / 100`, truncated toward zero. Military: Furs (`has_rare(0x15)`),
-#   then the first of `has_preq(0x31c)`, `(0x31b)`, `(0x31a)` —
+#   then the first `has_preq` of `TECHBONUSES` rows 112, 111, 110 —
 #   `DESPOTISM_MILITARY_CHEAPER3`, `2`, `1` (`+0x99c`, `+0x998`, `+0x994`),
 #   15 each — then the Turks. Civic: Dye (`has_rare(10)`, `+0x8e0`, 25),
 #   then the Persians. Commerce: Silk (`has_rare(11)`), then the Dutch.
@@ -70,13 +69,15 @@
 # THE FALSIFIERS, and where each could first fire. The walk prints the
 # trace frame; its block is the next.
 #
-# 1. Despotism's step: the Library's first entry, or who=0's food, at 120
-#    on block 801.
-# 2. Dye's step: the second entry at 120 on block 803; or the Merchant
-#    still packed on block 762, or `rare` 0 on block 768 (the deploy, not
-#    the price).
-# 3. The line: the third entry below 60/60 on block 805 (Dye's or
+# 1. Despotism's step: the Library's first entry at 120, or who=0's food
+#    down 120, on block 802 (a press on 800 is paid on block 802).
+# 2. Dye's step: the second entry at 120 on block 804; or the Merchant
+#    still packed on block 762, or no Dye pay on block 769 (the deploy,
+#    not the price).
+# 3. The line: the third entry below 60/60 on block 806 (Dye's or
 #    Despotism's step on the commerce line).
+#
+# run492 took it: every falsifier held, and the chapter closes at 1650.
 
 0 !ai off
 600 resource who=0 all +500
