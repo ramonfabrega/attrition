@@ -3876,6 +3876,44 @@ mod tests {
         assert_eq!(sim.units[y].pos, b);
     }
 
+    /// §13.3's **gaia arm and the pushed unit's turn** (item 1332): the
+    /// stranger refusal is `cmpb $8, %dl; jb` (`5fad3c`) — a player's
+    /// unit only — so a wagon shoves gaia's animal aside where it would
+    /// refuse a stranger's; and an idle unit it pushes has guy 0 turned
+    /// toward the push by `turn_angles(bearing, &out, 1, 1)`, the body's
+    /// rate halved. run511's Supply Wagon `1/86` and peacock `8/2` on
+    /// block 9348. Made to fail on purpose with the refusal read for gaia,
+    /// with the turn dropped, and with the rate not halved.
+    #[test]
+    fn a_supply_wagon_shoves_gaia_s_animal_and_turns_it() {
+        use crate::movement::Angle;
+        let a = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let b = Pos::new(a.x + 150, a.y);
+        let run = |facing: Angle| {
+            let (mut sim, x, y) = convoy(a, b, 0);
+            sim.units[y].owner = 8;
+            sim.units[y].movement.facing = facing;
+            sim.units[y].movement.heading = facing;
+            sim.units[y].movement.turning.instant_from_stop = true;
+            sim.frame = 9347;
+            assert!(sim.detect_boat_collision(x, a, true));
+            let pushed = &sim.units[y];
+            assert_ne!(pushed.pos, b, "gaia's animal is pushed");
+            assert_eq!(
+                (pushed.collide_o, pushed.collide_who, pushed.collide_frame),
+                (7, 0, 9347),
+                "and names its pusher"
+            );
+            // Standing still, it is pushed 45° off the wagon's facing.
+            assert_eq!(pushed.movement.heading, Angle(0x6000_0000));
+            pushed.movement.facing
+        };
+        // Owing 45°, inside the halved instant rate: it snaps.
+        assert_eq!(run(Angle::EAST), Angle(0x6000_0000));
+        // Owing 135°, past it: a quarter turn, the short way round.
+        assert_eq!(run(Angle::WEST), Angle::SOUTH);
+    }
+
     /// §4.3's **escort row** (item 696): a collider whose *action* is a
     /// `GUARD` on me is soft, whatever transit leg is at its head; the same
     /// guard on another unit is not. The original's scan on run190's tick
