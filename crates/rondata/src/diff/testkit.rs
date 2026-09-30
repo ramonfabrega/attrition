@@ -5337,7 +5337,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// next draw is `Farms::inc_time+0x1ae` (seed `0x8fad03fd`). The value
 /// diff on block 713: `1/6`'s `hits:damage` ours 8 against 0,
 /// `damage_frame` 712 against 0, `hits_left` 112 against 120.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 712;
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 838;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).
