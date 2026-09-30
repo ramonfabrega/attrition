@@ -44,16 +44,24 @@ pub(crate) struct Word {
     pub sequence: i64,
     pub last: i64,
     pub row: String,
+    /// The lobby's difficulty as the simulation stood up at it, read from
+    /// the dump's own `GAME INFO` (item 1221).
+    pub difficulty: i32,
 }
 
 /// A Great Sahara capture walked from its own start dump with run381's head
 /// borrowed, until the draw stream parts (or the trace ends). `None` when
 /// the captures are not on this machine.
-pub(crate) fn walk_sahara((gamelog, tracelog): (&str, &str)) -> Option<Word> {
+pub(crate) fn walk_sahara(capture: (&str, &str)) -> Option<Word> {
+    walk_sahara_from(SAHARA_START, capture)
+}
+
+/// [`walk_sahara`] from a named start dump: run381 for the first pair's
+/// lobby, run468 for the second's (item 1221, `diff::sahara_toughest`).
+pub(crate) fn walk_sahara_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
     let inst = install()?;
-    let (Some(path), Some(sib), Some(tr)) = (dump(gamelog), dump(SAHARA_START), trace(tracelog))
-    else {
-        eprintln!("skipping: no {gamelog}/{SAHARA_START} (set RON_GAMELOG_DIR)");
+    let (Some(path), Some(sib), Some(tr)) = (dump(gamelog), dump(start), trace(tracelog)) else {
+        eprintln!("skipping: no {gamelog}/{start} (set RON_GAMELOG_DIR)");
         return None;
     };
     let loaded = crate::load::load(&inst).unwrap();
@@ -61,12 +69,13 @@ pub(crate) fn walk_sahara((gamelog, tracelog): (&str, &str)) -> Option<Word> {
     let sib_text = crate::capture::read(&sib);
     let log = Log::parse(&text);
     let sib_log = Log::parse(&sib_text);
-    let sib_init = sib_log.initial().expect("run381 is a start dump");
+    let sib_init = sib_log.initial().expect("a start dump");
     let mut init = log.initial().unwrap();
     borrow_from_siblings(&mut init, &[&sib_init]);
     borrow_pasture(&mut init, &tr);
     let mut built = build_sim(&loaded, &init, Tuning::RON);
     built.sim.trace_phases = true;
+    let difficulty = built.sim.lobby.difficulty;
     let last = tr.frames.last().map_or(0, |(n, _)| *n);
     let (mut count, mut sequence) = (None, None);
     for _ in 0..last {
@@ -125,6 +134,7 @@ pub(crate) fn walk_sahara((gamelog, tracelog): (&str, &str)) -> Option<Word> {
         sequence,
         last,
         row,
+        difficulty,
     })
 }
 

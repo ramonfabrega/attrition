@@ -1,5 +1,5 @@
 #!/bin/zsh
-# startcapture.sh [N] [MAPSTYLE] [TAG] — the `DUMP_ALL` start of a game.
+# startcapture.sh [N] [MAPSTYLE] [TAG] [PROFILE] — the `DUMP_ALL` start of a game.
 #
 # The companion to `longtrace.sh`. A long capture at the `[End Frame]`
 # thresholds gives the frames; it does **not** give the start-of-game full
@@ -15,10 +15,18 @@
 # the start dump alone is several hundred megabytes — and the end-of-game
 # dump keeps writing after the quit, so the poll waits for the file to stop
 # growing rather than for the process to end.
+#
+# `PROFILE` is `longtrace.sh`'s hook: `KEY=N` pairs for the profile's
+# `<SOLO>`/`<MULTI>` blocks through `profile.py`, written after the lobby is
+# saved and put back with it (item 1221: a start at `DIFFICULTY=5`, the
+# second pair's lobby, whose frame 0 spends draws the first pair's does not).
+# It is the fourth argument, or the environment's: `viadriver.sh` passes
+# arguments and no environment.
 set -e
 N=${1:-34}
 MAPSTYLE=${2:-18}
 TAG=${3:-start}
+PROFILE=${4:-$PROFILE}
 # See `longtrace.sh`: `-config check.ini` pins the map style to the default
 # 14 and no file can move it, so a run on any other map drops it and takes
 # the profile's lobby, which `mapstyle.py` has just written.
@@ -61,6 +69,9 @@ restore_lobby () {
 save_lobby
 
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
+if [ -n "$PROFILE" ]; then
+  python3 "$W/tools/gamelog/profile.py" ${=PROFILE}
+fi
 python3 "$W/tools/fuzz/seedini.py" 12345
 python3 "$W/tools/gamelog/window.py" stage 0 2
 
@@ -105,5 +116,6 @@ restore_lobby
 ls -la "$L/gamelog-run$N-$TAG.txt" "$L/rontrace-run$N.log"
 grep -a -m1 "MAP_STYLE" "$L/gamelog-run$N-$TAG.txt"
 grep -a -m1 "(int)seed" "$L/gamelog-run$N-$TAG.txt"
+grep -a -m1 " DIFFICULTY " "$L/gamelog-run$N-$TAG.txt" || true
 echo "run$N archived — expect MAP_STYLE $MAPSTYLE and seed 12345"
 echo "=== captured: run$N ($TAG) ==="
