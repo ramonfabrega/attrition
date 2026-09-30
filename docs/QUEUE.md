@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander after the twentieth pass: **twenty-one
+*2026-09-30, the commander after the twentieth pass: **twenty-two
 landings; the twenty-first steering pass is due.** East Indies 8907 →
 11637; Great Sahara at Toughest opens at 5376, now 8856; chapters forty-three to
-forty-five opened and closed; forty-six opens at 1902. 1222: the held-out
+forty-six opened and closed. 1222: the held-out
 map, 1851/1850, for the record.*
 
-- **No lane is refilled.** 1291 (chapter forty-six, closing at 2200) is
-  live; 1302 and 1305 are unstarted. Two lanes sat on a permission
-  prompt the commander cannot see or answer (1293's merge, 1291's
-  re-pin script); the user approved both.
+- **No lane is live and none is refilled.** 1302, 1305 and 1310 are
+  unstarted. Two lanes sat on a permission prompt the commander cannot
+  see or answer (1293's merge, 1291's re-pin script); the user approved
+  both.
 - **For the pass**: `ccc clear --then` was consumed twice without a
   clear, so the tenth-landing seam was never taken; five merge conflicts
   (`coverage.rs` twice, `TRANSPORT.md`, `sahara_toughest.rs` twice): the
@@ -30,17 +30,17 @@ map, 1851/1850, for the record.*
   landing parks as held by no walk (DECISIONS 56 §3).
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 46 GiB free**; parked 1141 and 1142.
-- **Fable backlog: 32 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289, 1296, 1301, 1308, 1309).
+- **Fable backlog: 33 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240, 1242, 1247, 1250, 1253, 1256, 1259, 1263, 1267, 1273, 1274, 1285, 1289, 1296, 1301, 1308, 1309, 1313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w11637 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w8856 of 15,432
-Golden: ch46 w1902 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-first Fable steering pass — twenty-one landings
-since the twentieth's commit; 1291 is the last lane out.**
+**Opener: the twenty-first Fable steering pass — twenty-two landings
+since the twentieth's commit; no lane is live.**
 
 ## The queue
 
@@ -64,12 +64,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     the nearest first before it, who=1's `gather_stamp` on 8856, ours
     8855 against 8799. No mechanism is named.
 
-1291. **Chapter forty-six's word: frame 1902, ours 3 draws against 2**
-    (1278), at index 0: ours `0/8`'s `Guy::set_anim+0x97a <
-    Guy::move+0x19f`, theirs `Farms::inc_time+0x1ae`; run496. Block
-    1902: the original's three riders hold one `GroupMoveOrder` each
-    (group 1901300), ours 3, 2 and 1; `0/9` at x 14856 against 14904.
-    The squad's landing (`disembark_squad`). No mechanism is named.
+1310. **Chapter forty-seven: three arms the widenings hold and no walk**
+    (DECISIONS 56 §3): a landed squad's members turned to their
+    captain's angle (parked 1312, 1291's M1); a Tower-line site standing
+    when its leader gains the Keep (1282, 1264's B); and a unit whose
+    `dest_angle` an age's snap leaves, read on a later frame (1299,
+    1281's B). Whether one staging reaches each is the item's to
+    establish first. Booked by the commander; the pass may reorder.
 
 ## How to maintain this file
 

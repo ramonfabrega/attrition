@@ -146,6 +146,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1291, 2026-09-30 — the squad's landing
+
+(1311) **A member refused on its captain's ring** (a `SEAM` in
+`disembark`): the original takes it on a later pass and moves the
+captain again; no staging reaches it.
+
+(1312) **The members' `set_angle(captain)`** (1291's M1): held by the
+widening and the unit test, not by chapter forty-six's walk — the word
+stays 2200 with it off. Booked into chapter forty-seven (1310).
+
 ## Parked by item 1293, 2026-09-30 — the flock
 
 (1306) **The flock's flight past 8856** — the order, the birth snap, the
@@ -2618,6 +2628,12 @@ fields were compared only on 8785..8788, and neither open window
 (8855..8858, 11636) holds a group move, so they are back on `OrderDump`'s
 uncompared pin — the compared pin walks only the open words' windows.
 One reach.
+
+(1313) **A change to a shared landing path moves widenings far from its
+chapter** (1291's Loop line): the snap in `land_passenger` moved
+nineteen widenings at the first gate and seven more at the merge. A
+cheap pre-gate check: run the widenings whose captures print a
+disembark (a `RON_FIRSTS` grep for `inside_up` going to −1). One reach.
 
 (1273) **The coverage pin counts a record read when its scanner parses
 it** (1257's Loop line): `widen_civilians` read `AMMO` for presence
