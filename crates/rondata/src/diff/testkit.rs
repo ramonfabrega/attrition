@@ -5004,6 +5004,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
 /// whole, 605 to its end.
 pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 
+/// Chapter forty-three's golden word (item 1223, `docs/GOLDEN.md` §52,
+/// run466): the landing's arms no walk held — **open at 1356**, the
+/// squad's boarding: ours 8 draws against 6, parting at index 2, where
+/// ours' member `0/8` draws `Unit::do_move+0xe84` and an arrival stand
+/// the original does not. The value diff on block 1357: `0/8` and `0/9`
+/// `inside` ours −1 against 10. The repaint landing on 1270 walks clean.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1356;
+
+/// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
+/// from 605, the word's block 1357 and 250 past it.
+pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1607);
+
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
 pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
@@ -5501,6 +5513,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter forty-three (item 1223): the Chariot's three shots at the
+    // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
+    ("chapter_forty_three_holds_to_the_golden_word", 3),
+    ("chapter_forty_three_s_word_frame_is_widened_whole", 3),
     // Chapter forty-one (item 1182): the Biplane's two EXITs from its
     // Airbase on the computer's sorties, 808 and 1470, each a read of the
     // ground under the base's point.
@@ -7073,6 +7089,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1223: run466, chapter forty-three, the landing's arms; open at
+    // 1356, the squad's boarding. The widening is run466 to 1607.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_THREE",
+        GOLDEN_WORD_CHAPTER_FORTY_THREE,
+        Some("chapter_forty_three_s_word_frame_is_widened_whole"),
+        1223,
+        Some(WIDENING_CHAPTER_FORTY_THREE),
     ),
     // Item 1209: run460, chapter forty-two, a ring of Barracks and four
     // walkers; closed at 1160. The widening is run460 whole.
