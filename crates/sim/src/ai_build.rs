@@ -2071,6 +2071,9 @@ mod tests {
         let mut town = bt(Ident::Town, "ean", 7, 7);
         town.from = Some(t.village);
         let town = sim.add_build_type(town);
+        let mut metropolis = bt(Ident::Metropolis, "ean", 7, 7);
+        metropolis.from = Some(town);
+        let metropolis = sim.add_build_type(metropolis);
         let priced = Price {
             kind: Kind::Building,
             class: RampClass::Building,
@@ -2097,6 +2100,14 @@ mod tests {
             p
         };
         assert!(one_small < two_small, "{one_small} against {two_small}");
+        // The Major City is the line's third pair (`+0x5562`, `+0x5d62`); no
+        // capture's leader holds one when it prices a city.
+        sim.buildings[b].ty = Some(metropolis);
+        assert_eq!(
+            sim.building_price(0, t.village)[food],
+            two_small,
+            "a Major City counts as a city"
+        );
         assert_eq!(sim.building_price(0, t.barracks)[food], barracks);
     }
 
