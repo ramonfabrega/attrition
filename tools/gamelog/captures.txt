@@ -9291,3 +9291,67 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run464.log rontrace-run465.log |
 # (run464's blocks are `DUMP_ALL`), and `|| true` keeps `samegame.py`'s own
 # exit out of the pipe status (run382).
 check: (python3 tools/gamelog/samegame.py gamelog-run464-himalayas-start.txt gamelog-run465-himalayas-longtrace.txt || true) | tee /dev/stderr | awk '/ in common /{for(i=1;i<=NF;i++) if($i=="common") c=$(i-2)+0} END{exit !(c>=2)}'
+
+# ==== item 1221: Great Sahara at Toughest, the closed map in the second pair's lobby ====
+#
+# run468 is not a stanza: it is `startcapture.sh 468 7
+# greatsahara-toughest-start DIFFICULTY=5` under `viadriver.sh`, run381's
+# `DUMP_ALL` start with the lobby's difficulty at the second pair's — the
+# height table, the checksum trace, the herds and the frame seeds the two
+# stanzas below are stood up from. At Toughest frame 0 spends draws the
+# first pair's does not (run346 against run54), so run381's seeds are not
+# this game's (`docs/RUNS.md`, run468).
+
+run: 469
+tag: greatsahara-toughest-longtrace
+item: 1221
+why: the closed map in the newest pair's lobby (DECISIONS 56 §1) — Great Sahara in run33's shape at Toughest, the one setting run382 held fixed
+# **run382's stanza with the difficulty moved and nothing else**:
+# `longtrace.sh`'s run33 defaults, the cheap window [0, 1900), `5 !ffwd 30`,
+# `1850 !quit`, `cover=1` on the queue lane (1047), `cfg: -` because
+# `-config check.ini` pins the style at 14 and never reaches the lobby's
+# difficulty (run347's first take). `profile: DIFFICULTY=5` is run346's
+# line: `rules.xml`'s `difficulties` put Toughest at 5, and the dump's own
+# `GAME INFO` line `DIFFICULTY 5` is the read-back (979, 992).
+frames: 1850
+mapstyle: 7
+cfg: -
+profile: DIFFICULTY=5
+poll_max: 240
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run469-greatsahara-toughest-longtrace.txt" | grep -qw "MAP_STYLE 7"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run469-greatsahara-toughest-longtrace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run469-greatsahara-toughest-longtrace.txt" | grep -qw "DIFFICULTY 5"
+check: grep -a -c "BEGIN FRAME" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run469-greatsahara-toughest-longtrace.txt" | awk '{print "blocks", $1; exit !($1 >= 1850)}'
+# Same game as run468: the trace's word on every frame both hold, the count
+# asserted with the verdict.
+check: python3 tools/gamelog/rngcmp.py rontrace-run468.log rontrace-run469.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=6)}'
+# The dumps' blocks in common: the count is asserted and the verdict is not
+# (run468's blocks are `DUMP_ALL`), and `|| true` keeps `samegame.py`'s own
+# exit out of the pipe status (run382).
+check: (python3 tools/gamelog/samegame.py gamelog-run468-greatsahara-toughest-start.txt gamelog-run469-greatsahara-toughest-longtrace.txt || true) | tee /dev/stderr | awk '/ in common /{for(i=1;i<=NF;i++) if($i=="common") c=$(i-2)+0} END{exit !(c>=2)}'
+# And it is not run382's game: the difficulty moves frame 0's draws.
+check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run469.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} END{exit !(d>0)}'
+
+run: 470
+tag: greatsahara-toughest-24k-trace
+item: 1221
+why: the closed map in the newest pair's lobby (DECISIONS 56 §1) — Great Sahara's draw stream at Toughest to 24,000 frames or the game's end
+# **run383's stanza with run346's `profile:` line**: `cover=0`, `end: MISC`,
+# run10's `start:` so the harness stands the sim up from the dump, `cfg: -`,
+# `profile: DIFFICULTY=5`. At Toughest the AI may end the game against an
+# idle human before 24,000 (run346 ended at 18141, run347 at 5931); the last
+# frame is recorded either way, and its last block says where and why.
+frames: 24000
+mapstyle: 7
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+profile: DIFFICULTY=5
+settle_min: 500000
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run470-greatsahara-toughest-24k-trace.txt" | grep -qw "MAP_STYLE 7"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run470-greatsahara-toughest-24k-trace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run470-greatsahara-toughest-24k-trace.txt" | grep -qw "DIFFICULTY 5"
+# The first 1,851 frames are run469's game draw for draw (cover=1 against
+# cover=0 is invisible to the simulation: run33, run53, run383).
+check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1850)}'
