@@ -9256,3 +9256,38 @@ cmd: 907 be 0
 check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch42/map-14/rontrace.log" rontrace-run461.log
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch42/map-14/rontrace.log" rontrace-run461.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=920)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run461.log" functions 2>/dev/null | grep -E "^005fccc0 " | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+# run464 (item 1222) is not a stanza: it is `startcapture.sh 464 9
+# himalayas-start` under `viadriver.sh`, run381's `DUMP_ALL` start with the
+# map moved back to 9 — the held-out map's height table, checksum trace,
+# herds and frame seeds, which run348 was diffed without (`docs/RUNS.md`,
+# run464).
+
+run: 465
+tag: himalayas-longtrace
+item: 1222
+why: the held-out map measured again with its start sibling (DECISIONS 56 §2) — Himalayas in run33's shape, the first pair's lobby, diffed once with run464 as its sibling
+# **run348's stanza again, beside run382's checks.** `longtrace.sh`'s
+# defaults are run33's and run39's — seed 12345, run10's `[Start Game]` and
+# `[End Frame]` detail, the cheap window [0, 1900), `5 !ffwd 30`, `1850
+# !quit`, `cover=1`, no input — so only the map moves (`mapstyle: 9`).
+# `cfg: -` because `-config check.ini` pins the style at 14: the lobby is
+# the profile's, run39's path. The profile read `DIFFICULTY 0` in `<SOLO>`
+# and `<MULTI>` before run464's launch and nothing here writes it. **`cover=1`
+# names the queue lane** (1047). Measured, never debugged against
+# (DECISIONS 54, 56 §2).
+frames: 1850
+mapstyle: 9
+cfg: -
+poll_max: 240
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run465-himalayas-longtrace.txt" | grep -qw "MAP_STYLE 9"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run465-himalayas-longtrace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run465-himalayas-longtrace.txt" | grep -qw "DIFFICULTY 0"
+check: grep -a -c "BEGIN FRAME" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run465-himalayas-longtrace.txt" | awk '{print "blocks", $1; exit !($1 >= 1850)}'
+# Same game as run464: the trace's word on every frame both hold, the count
+# asserted with the verdict.
+check: python3 tools/gamelog/rngcmp.py rontrace-run464.log rontrace-run465.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=6)}'
+# The dumps' blocks in common: the count is asserted and the verdict is not
+# (run464's blocks are `DUMP_ALL`), and `|| true` keeps `samegame.py`'s own
+# exit out of the pipe status (run382).
+check: (python3 tools/gamelog/samegame.py gamelog-run464-himalayas-start.txt gamelog-run465-himalayas-longtrace.txt || true) | tee /dev/stderr | awk '/ in common /{for(i=1;i<=NF;i++) if($i=="common") c=$(i-2)+0} END{exit !(c>=2)}'
