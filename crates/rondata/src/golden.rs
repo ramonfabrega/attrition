@@ -2004,6 +2004,10 @@ mod tests {
         // landing and `all_gathering`'s prune (item 1278, `docs/GOLDEN.md`
         // §55).
         ("chapter46.cmd", &[]),
+        // Chapter forty-seven: a Tower site standing when its leader gains
+        // the Keep, a squad put ashore facing away from its barge, and an
+        // age's snap on a unit mid-move (item 1310, `docs/GOLDEN.md` §56).
+        ("chapter47.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
