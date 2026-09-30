@@ -1058,13 +1058,14 @@ mod tests {
             "the Senator's crew step"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1326 re-pinned on the tree merged with 1318's.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9353 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9318, 133),
+                (9318, 127),
                 (9328, 4),
                 (9329, 4),
                 (9330, 1),
@@ -1077,9 +1078,10 @@ mod tests {
             ],
             "the blocks keys first part on, to three past the word 9352's"
         );
+        // Item 1326 re-pinned on the tree merged with 1318's: was 1802.
         pin_eq!(
             w.firsts.len(),
-            1802,
+            1796,
             "every key parted on run511 (2,069 before item 1318)"
         );
     }
@@ -1154,14 +1156,14 @@ mod tests {
             Some("9222: ours 57 theirs 71"),
             "the Senator's crew step"
         );
+        // Item 1326 re-pinned on the tree merged with 1318's.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9032, 133),
+                (9032, 127),
                 (9083, 1),
                 (9084, 2),
                 (9144, 2),
-                (9185, 1),
                 (9201, 1),
                 (9222, 4),
                 (9223, 1),
@@ -1177,9 +1179,10 @@ mod tests {
             ],
             "the blocks keys first part on"
         );
+        // Item 1326 re-pinned on the tree merged with 1318's: was 158.
         pin_eq!(
             w.firsts.len(),
-            158,
+            151,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

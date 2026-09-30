@@ -197,9 +197,11 @@ const UNREAD: &[(&str, &str)] = &[
     // valueless line, so each name is a key of its own. run356's and
     // run357's windows are the first driven ones to hold a third British
     // city; the name is read by nothing, as `London` and `Norwich` are not.
+    // **Item 1326 added `York`**, East Indies' fifth British city, first
+    // printed on run523's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Newcastle Norwich flags increment length size",
+        "London Napata Newcastle Norwich York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2345,12 +2347,17 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // row (`form_id`, `group_angle`, `group_id`, `in_group`, `oxx`,
     // `whose`) is compared on the union, and leaves this pin (measured on
     // the tree merged with 1305's).
+    // **Item 1326 moved East Indies' window to run523's 13384..13387**,
+    // walked beside 1318's Toughest window: no group move stands on the
+    // union, so the group row returns to this pin, and a cast does, so
+    // `cast_paid` and `cast_spell` leave it (measured on the tree merged
+    // with 1318's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search \
-         in_range mandatory metric new_ord non_flat_gather \
+         attempts build_type cruising_alt def_x \
+         def_y defensive ever_in_range form_id garrison_search group_angle \
+         group_id in_group in_range mandatory metric new_ord non_flat_gather oxx whose \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint",
     ),

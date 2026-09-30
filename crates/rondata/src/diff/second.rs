@@ -2073,12 +2073,20 @@ mod tests {
             "the block before the word's: a make slot the dump alone fills"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1326 re-pinned on the tree merged with 1318's: was [(12577, 210), (12582, 1)].
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12577, 210), (12582, 1)],
+            [
+                (12577, 210),
+                (12582, 1),
+                (12584, 1),
+                (12601, 1),
+                (12763, 3),
+                (12809, 2)
+            ],
             "the blocks keys first part on, to the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 1817.
@@ -2159,7 +2167,8 @@ mod tests {
             ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1103, "every key parted on run523");
+        // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
+        pin_eq!(w.firsts.len(), 1102, "every key parted on run523");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

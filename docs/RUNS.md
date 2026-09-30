@@ -12656,3 +12656,50 @@ walked from run470's start with run468's head: 158 keys, and no army
 position among them; without Forced March's speed it parts on 1,154, the
 first 179 on block 9114, the frame after the Senator's cast. Runs 518 and
 519 were reserved and not used.
+
+## run523 — run346's game at run508's detail over blocks 13380..13636: the second pair's East Indies word 13385 widened (2026-09-30, item 1326)
+
+**What it is.** run508's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 13380..13636, and `!quit` at 13650. The word's frame 13385 writes
+block 13386, so the window is six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run523 \
+    --map 18 --end-frame 13650 --timeout 5400 --log-window 13380 13637 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** run508 ends at block 12833, and no
+other dump of run346's game prints the word's blocks at detail.
+
+**Taken** 17:11–17:44 in one take, with the lane free at launch. It was
+waited on with `waitrun.sh`: `success: true`, `settings_restored: true`,
+exit 0, 1,942 s from launch to exit, 13,651 frames, map 18 and seed 12345
+verified, five files restored. The dump (672,499,669 bytes, sha256
+`6a3be7e2d44b85fc…`) and the trace (107,509,056 bytes, `0893f273ec868bc9…`)
+were moved into `Logs` as `gamelog-run523-islands-toughest-13385.txt` and
+`rontrace-run523.log`. The disk had 37 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 13,651 identical |
+| window blocks | 257, 13380..13636 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run523_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start.
+- Block 13380 stands on 212 keys; who=1's `known_rares` reads 3 against 4
+  among them.
+- The first rows before the word are on block 13383, step 8's purchase
+  (frame 13382): who=1's Trebuchet order (`num` 2) queues two in ours and
+  one in the original (`num_queued[216]` 2 against 1, `1/2024`'s `queued`
+  2 against 1), and `1/2028`'s `queue[0].cost` reads 66 against 76; timber
+  14 against 89 and metal 59 against 134.
+- Block 13385 holds `MAKE[0]`: the original's second `create_buildings`
+  puts the Farm (`t` 417, `val` 216500, city 3) in the empty head.
+- The window parts on 1,102 keys (1,103 before the tree took 1318's landing).
+
+The coverage driver walks 13385..13388.
