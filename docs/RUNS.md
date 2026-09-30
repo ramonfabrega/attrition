@@ -12304,6 +12304,38 @@ was reserved and not used.
 at 1650) and `chapter_forty_five_s_word_frame_is_widened_whole`
 (600..1650); the coverage driver's windows 603, 769 and 804.
 
+## run496 — chapter forty-six, a squad's barge ashore and `all_gathering`'s prune (2026-09-30, item 1278)
+
+`docs/GOLDEN.md` §55, `tools/gamelog/golden/chapter46.cmd`: chapter
+forty-three's cast with its `1900` line naming the barge alone, and who=1's
+City training a Citizen under a two-point gather list onto its Woodcutter's
+Camp.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch46 \
+    --map 14 --end-frame 2200 --log-window 605 2200 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter46.cmd
+```
+
+**What the disk could not answer.** No capture on disk lands a barge
+carrying a squad (run466's `1900` line was refused), and none has a chain
+member that is alive and not gathering there when a chopper's wait runs out.
+
+The lane was free: `ron_lane_state` said stale (a dead `unattended` pid from
+06:55) and the runner's `flock` was free, tested before the launch. One
+launch (07:09:34), no relaunch: `success: true`, 2,176 s launch to exit,
+2,201 frames, seed 12345, map verified, settings restored. The trace's eight
+`I_ISSUE` records carry refusal 0 and every `cmd` line returned 1. The dump
+(690,343,771 bytes, sha256 `712369f4…734c`) and the trace (13,061,024,
+`ff494d05…9abd`) stay in `~/ron-golden/ch46/map-14`. The disk had 41 GB free
+after. run497 was reserved and not used.
+
+**What it holds**: `chapter_forty_six_holds_to_the_golden_word` (1902) and
+`chapter_forty_six_s_word_frame_is_widened_whole` (605..2200); the coverage
+driver's windows 726, 1050 and 1902.
 ## run494 — run470's game at run488's detail over blocks 8177..8433: the word 8182 at Toughest, a second take of run491's window (2026-09-30, item 1275)
 
 **What it is.** run488's shape on the click-free lane at run470's lobby,

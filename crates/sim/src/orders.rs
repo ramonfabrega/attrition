@@ -9092,4 +9092,60 @@ mod all_gathering_tests {
         assert!(sim.all_gathering(camp), "the dead member is not read");
         assert!(!sim.is_gathered_by(camp, dead), "it is pruned");
     }
+
+    /// **And a live member whose action is not the gather** (item 1278,
+    /// `docs/GOLDEN.md` §55, run496's 1049): `add_gather_order` joins the
+    /// chain on the call, so a Citizen out of a City under a two-point
+    /// gather list — `[MOVE_TO waypoint (action), GATHER (action)]` — is
+    /// at the chain's head while it walks the first leg. `is_gathering_at`
+    /// reads its action, the move, and `check_gatherers` unlinks it; the
+    /// choppers are all out, and the answer is yes. Made to fail by taking
+    /// the prune out: the walker's head is a move, and the answer no.
+    #[test]
+    fn all_gathering_drops_a_member_walking_a_waypoint_first() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
+            flags: bflags::GATHER,
+            ..crate::build::BuildType::default()
+        }));
+        let put = |sim: &mut Sim, x: i32| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(1, index, Pos::new(x, 0x1000), 10);
+            u.ty = Some(citizen);
+            u.on_map = true;
+            sim.add_unit(u)
+        };
+        let chopping = put(&mut sim, 0x1100);
+        sim.add_gather_order(chopping, camp, QueuePos::New, false);
+        if let Some(Body::Gather(g)) = sim.units[chopping].orders.front_mut().map(|o| &mut o.body) {
+            g.goto_build = false;
+            g.wait = 100;
+        }
+        let walker = put(&mut sim, 0x1300);
+        sim.add_move_order(
+            walker,
+            Pos::new(0x1800, 0x1000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            true,
+        );
+        sim.add_gather_order(walker, camp, QueuePos::Last, true);
+        assert_eq!(sim.buildings[camp].gatherers[0], walker, "at the head");
+        assert!(
+            !sim.is_gathering_at(walker, camp, false),
+            "its action is the move"
+        );
+        assert!(sim.all_gathering(camp), "the walker is not read");
+        assert!(!sim.is_gathered_by(camp, walker), "it is pruned");
+        assert!(
+            sim.units[walker].alive(),
+            "alive, and still holding its gather"
+        );
+    }
 }

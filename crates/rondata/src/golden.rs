@@ -1993,6 +1993,12 @@ mod tests {
         // with both — `get_cost`'s library-line tail (item 1268,
         // `docs/GOLDEN.md` §54).
         ("chapter45.cmd", &[]),
+        // Chapter forty-six: chapter forty-three's cast with its 1900 line
+        // naming the barge alone, and who=1's City training a Citizen under
+        // a two-point gather list onto its Woodcutter's Camp — the squad's
+        // landing and `all_gathering`'s prune (item 1278, `docs/GOLDEN.md`
+        // §55).
+        ("chapter46.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

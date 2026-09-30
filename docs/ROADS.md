@@ -1297,4 +1297,8 @@ to 7070 — 49 frames — agrees node for node
 turned into a `continue`, the whole rondata suite still passes. A road
 tile with no element is a tile the mesh does not hold, and no capture
 walked here has one beside a tile being redone (§10.3 removes such a tile
-on its visit).
+on its visit). Item 1278 looked for a staging and found none: the only
+listing paths that leave a road surface without an element are
+`clear_roads@0088fef0`'s and `clear_support@0088e3f0`'s arms at a zero
+count on an element whose `is_terrain_creation` is clear, which no capture
+reaches (`docs/GOLDEN.md` §55).
