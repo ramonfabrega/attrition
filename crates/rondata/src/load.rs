@@ -1481,10 +1481,10 @@ pub fn load_tables(
     // and the AI offered no Citizen once its last Small City grew (item
     // 1326, East Indies 12580; `docs/CITIES.md` §13 item 14).
     for i in 0..build_types.len() {
-        if let Some(f) = build_types[i].from {
-            if build_cols[i].obj_masks & 0x0400_0000 == 0 {
-                build_types[f].to = Some(i);
-            }
+        if let Some(f) = build_types[i].from
+            && build_cols[i].obj_masks & 0x0400_0000 == 0
+        {
+            build_types[f].to = Some(i);
         }
     }
 
