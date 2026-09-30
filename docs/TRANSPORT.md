@@ -1349,4 +1349,7 @@ built on this path either (parked 1122's newborn lag): on 10184 the
 original's `caras` is 4 against ours' 3 after the fleet `1/79`'s birth,
 and nothing on the word's chain reads it before the sweep recounts.
 Every other death's `−1` is parked 1092's: this is the boat's close
-alone.
+alone. **Diff-held** (the journal's killers): the birth's count, the
+close's, and the population half (a barge counted parts eighteen windows
+across both pairs). **Held by no walk**: the captain half, since no boat
+on disk is a squad follower.
