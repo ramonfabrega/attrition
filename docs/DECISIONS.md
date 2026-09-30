@@ -3821,7 +3821,8 @@ and 108 waiting**, against 99, 39 and 61 by the same fold
 Two lanes waited **258 minutes** on a classifier outage and the stop
 rule (parked 1315). The commander
 ran one session, 402 k at its deepest and 1.14 USD a landing; `ccc
-clear --then` was armed three times and did not fire. Twelve value
+clear --then` was armed three times and cancelled by the commander
+itself each time a landing arrived first. Twelve value
 diffs on the word's frame, nine on the frame the state first parted,
 none partial. Twelve journals met a comparison that compared nothing,
 from sixteen; nine landings met a refused update, from six, four of
@@ -3848,9 +3849,9 @@ the tranche carried coverage.
    clock, and two lanes sat 258 minutes between them — one on five
    "no verdict (error)" answers from the auto-mode classifier in three
    minutes, after which it ended its turn by the permission-shaped rule
-   and waited 163 minutes for a person; one on the worktree guard
-   refusing a merge inside its own worktree, and the stop its commander
-   asked for. The service's outage was three minutes; the rule's was
+   and waited 163 minutes for a person; one on the auto-mode classifier
+   denying a merge into its own branch as "Git Destructive", and the
+   stop its commander asked for. The service's outage was three minutes; the rule's was
    the hours.
 3. **The instrument that conflicts is the instrument that compares
    nothing.** `coverage.rs` refused four updates; its pin is the union
@@ -3906,9 +3907,11 @@ the tranche carried coverage.
    of the pass's own; 1101 and 1114 close on two tranches without a
    reach; 1314 to 1317 are filed. The backlog is twenty-two.
 
-**Not decided, and the user's**: the worktree guard's refusal of a
-merge inside a lane's own worktree (parked 1315; the outage's half is
-`CLAUDE.md`'s now — a no-verdict is backed off, not stopped on); `ccc clear --then` (1314); whether phase 4 opens on the rules
+**Not decided, and the user's**: a conflicted `ccc update`'s path to a
+resolvable state, since the lane's own `git merge` is what the
+classifier denies (parked 1315; the outage's half is `CLAUDE.md`'s now
+— a no-verdict is backed off, not stopped on, and so is the clear's:
+the arm is the turn's last act, 1314); whether phase 4 opens on the rules
 track alone; the thesis sentence from entry 41; whether the loop hands
 itself to its pass (1141); whether a cheaper model is admitted to a
 trial (1142); and **the disk** — 40 GiB free, 13 written in the tranche,

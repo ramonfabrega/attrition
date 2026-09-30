@@ -20963,3 +20963,5 @@ the backlog is twenty-two from thirty-three. **DECISIONS 57.**
 `docs/audit/2026-09-30-fable-pass-21.md`.
 
 **The same day, corrected**: the 258 minutes were not "permission prompts" — item 1291 sat 163 minutes after five "no verdict (error)" answers from the auto-mode classifier (a three-minute service outage, 22 such answers fleet-wide that day) because the permission-shaped rule ended its turn, and 1293 sat 86 after the worktree guard refused a merge inside its own worktree; neither is the 2.1.285 update, whose date the worktree guard's refusals cross flat. `CLAUDE.md` now backs a no-verdict off on a Monitor before a turn ends (parked 1315).
+
+**And again, from the transcripts**: `ccc clear` was not at fault — the commander armed it three times and cancelled it itself each time a landing arrived before the row went idle (`CLAUDE.md`: the arm is the turn's last act, and the turn ends); and 1293's merge was denied by the auto-mode classifier as "Git Destructive", not the worktree guard — a conflicted `ccc update` has no sanctioned path to a resolvable state, which is `ccc`'s to give (parked 1315).

@@ -430,9 +430,10 @@ failures of its own, and struck the frame's own story to pay for them.
   same day from the transcripts): item 1291 met five "server-side auto
   mode classifier gave no verdict (error)" answers in three minutes,
   ended its turn by the permission-shaped rule, and sat 163 minutes
-  until a person typed "are we stuck?"; item 1293 was refused a `git
-  merge` inside its own worktree by the worktree guard, stopped as its
-  commander asked, and sat 86. The outage was the service's — 22 such
+  until a person typed "are we stuck?"; item 1293's `git merge`
+  into its own branch was denied by the auto-mode classifier as "Git
+  Destructive", `ccc update` backed out on the conflict, and it stopped
+  as its commander asked and sat 86. The outage was the service's — 22 such
   answers in six sessions on 2026-09-30, none before the 27th — and the
   hours were the rule's. The pass itself was refused four times by the
   worktree guard on commands naming nothing of git, at a turn each.

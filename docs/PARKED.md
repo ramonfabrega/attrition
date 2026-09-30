@@ -2554,13 +2554,18 @@ tried; 1105, 1119, 1138's second half, 1139, 1141, 1142, 1199, 1225
 1247, 1259, 1263, 1274, 1296, 1301 and 1308 stay; 1314 to 1317 are
 filed. The backlog is twenty-two.
 
-(1314) **`ccc clear --then` arms and does not fire** (the pass's own):
-the commander armed it at 04:53, 05:32 and 05:43 on 2026-09-30 and ran
-one session of 388 requests to 402 k of context, 25.01 USD and 1.14 a
-landing against 1.06 — the tenth-landing seam was never taken
-(`lore sessions` on `worktree-replan-pdb`: `7ecd9b33`, 02:57Z to 17:19Z).
-The tool is the user's; the commander says in its handoff when an arm
-did not fire, and takes the seam by hand at the next booking.
+(1314) **The commander cancelled its own clear three times** (the pass's
+own, corrected the same day from the transcript — `ccc` did nothing
+wrong): it armed `ccc clear 3c382923 --then continue` at 09:53, 10:32 and
+11:05Z on 2026-09-30, and each time a landing arrived before the row
+went idle it ran `ccc clear --cancel` to merge first, then re-armed; the
+third arm was cancelled to merge 1268 and never re-armed. One session
+of 388 requests to 402 k, 25.01 USD, 1.14 a landing against 1.06.
+`ccc`'s own help says the arm is "the last act after an item lands";
+`CLAUDE.md` says so now: the arm is the turn's last act and the turn
+ends, and a landing that arrives under an armed clear waits for the
+cleared session. Closes with the clause; the next pass reads whether
+the clear fired.
 
 (1315) **A classifier outage and the stop rule held two lanes 258
 minutes** (the pass's own, `tools/tranche.py`, corrected the same day
@@ -2568,18 +2573,25 @@ from the transcripts): item 1291 met "the server-side auto mode
 classifier gave no verdict (error)" five times in three minutes
 (13:54–13:57Z), on Bash and then on its `SendMessage`, ended its turn by
 the permission-shaped rule, and sat **163 minutes** until the user typed
-"are we stuck?" — by then the service answered at once. Item 1293 was
-refused `git merge --no-ff worktree-replan-pdb` inside its own worktree
-by the worktree guard, stopped as its commander asked, and sat **86**
-until the user approved. Measured across the fleet's transcripts: the
+"are we stuck?" — by then the service answered at once. Item 1293's `git
+merge --no-ff worktree-replan-pdb` inside its own worktree was **denied
+by the auto-mode classifier as "Git Destructive"** at 14:52Z; its
+commander said not to route around a denial and to take `ccc update`,
+which backs out on a conflict and leaves nothing to resolve, so the
+lane stopped as asked and sat **86** until the user approved the same
+merge in words, after which the classifier let it through. Measured across the fleet's transcripts: the
 no-verdict answers were 0 before 2026-09-27, then 3, 6, 4 and **22 on
 the 30th in six sessions** — the service's outage, on 2.1.280 and
 2.1.285 alike; the worktree guard's refusals ran 5 to 20 a day for two
 weeks (344 in September's first half, 170 since), flat across the
 2.1.285 update of the 29th, a turn each. So the hours were the rule's:
 `CLAUDE.md` now says a no-verdict is backed off on a Monitor, five
-minutes and up to an hour, before a turn ends. The guard's refusal of a
-merge inside a lane's own worktree is the harness's and the user's.
+minutes and up to an hour, before a turn ends. The merge is the open half: a
+conflicted `ccc update` has no sanctioned path to a resolvable state,
+because the lane's own `git merge` is what the classifier denies. The
+unstick that needs no human is `ccc`'s — an `update` that leaves the
+conflicted merge in place for the lane to resolve, since `ccc` runs the
+merge outside the lane's classifier — and it is the user's tool.
 
 (1316) **A landing gates twice** (the pass's own, `tools/tranche.py`):
 the gate's wait went 16.2 → 39.9 minutes a landing, and sixteen earlier

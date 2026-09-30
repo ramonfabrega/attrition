@@ -527,7 +527,12 @@ same broken waiter and the pass found it in the table (656's sequel);
 **the commander clears at the seam after every tenth landing** (`ccc
 clear <own ref> --then continue`), the handoff written first, never in
 the middle of a chain — a clear left free was not taken in three
-tranches (`docs/DECISIONS.md` entry 55). A second lane may run a
+tranches (`docs/DECISIONS.md` entry 55) — **and the arm is the turn's
+last act, and the turn ends**: it fires only on an idle row, and a
+commander that armed it and went on to merge the next landing
+cancelled its own clear three times in one tranche and ran to 402 k
+(parked 1314). A landing that arrives while the clear is armed waits
+for the cleared session. A second lane may run a
 parked value-diff row *beside* the word's frame, never instead of it — a
 rule about what it works on, never about when it is spawned.
 `docs/DECISIONS.md` entries 40 and 45.

@@ -26,8 +26,8 @@ forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
   frame's ceiling (1226), `tools/tranche.py` for a tranche's waiting.
 - **Two lanes lost 258 minutes to a classifier outage and the stop
   rule** (parked 1315): a `no verdict (error)` is backed off on a
-  Monitor, not stopped on — `CLAUDE.md` and the frame say so now; **`ccc clear --then` did not fire three times** (1314), so
-  the commander takes the seam by hand after the tenth landing.
+  Monitor, not stopped on — `CLAUDE.md` and the frame say so now; **the arm of `ccc clear --then` is the turn's last act and the
+  turn ends** — the last commander cancelled its own three (1314).
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; **the disk, 40 GiB free, 13 written a tranche**; parked
   1141 and 1142.
