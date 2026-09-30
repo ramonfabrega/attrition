@@ -17,9 +17,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 now 8786**; **chapters forty-three to forty-five opened and closed**
 (2200, 1450, 1650); **forty-six opens at 1902**. 1222: the held-out map, 1851/1850, for the record.*
 
-- **Three lanes live: 1297, 1293, 1291**, one to each open word.
-- **The commander clears at the seam after every tenth landing**; the
-  twentieth is the pass's.
+- **Lanes: 1297, 1291 live; 1293 (8786 → 8856) waits on the user**: its
+  update of the base conflicts in `sahara_toughest.rs`, and its session's
+  classifier refused the merge as destructive; nobody merged it.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
   and a note of what the item alone needs.
 - **Two lanes that touch `coverage.rs` conflict at the merge**: the
