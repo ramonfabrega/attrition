@@ -2279,6 +2279,14 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u.orders,
         clocks.join(" ")
     );
+    // A caster's craft (`mana_burn`) and its cast clock (`spell_time`),
+    // the dump's own two fields (item 1302: a General's decoy cast).
+    if u.mana_burn != 0 || u.spell_time != 0 {
+        eprintln!(
+            "  f{frame} {who}/{o} craft {} spell_time {}",
+            u.mana_burn, u.spell_time
+        );
+    }
 }
 
 /// `RON_DEBUG_SITES=<lo>-<hi>` — the frame window the site prints widen to.
