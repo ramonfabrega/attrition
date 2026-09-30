@@ -1406,7 +1406,27 @@ is in item 1235's journal).
   (item 1248, `docs/GOLDEN.md` §52), and the squad stays aboard. **run496
   lands it and parts on 1902** (`docs/GOLDEN.md` §55): the original's
   riders hold one group move each, ours 3, 2 and 1, so the per-rider
-  walk above is in question.
+  walk above is in question. ~~The per-rider walk~~ is wrong, and item
+  1291 settled it from the listing and the dump: see "The landing"
+  below.
+
+**The landing** (item 1291). `eject_contents@0064cd20`'s loop re-reads
+the boat's `inside_down` (`+0x28`) after every passenger, and
+`Unit::come_out@00617c10` takes the squad with its captain: with
+`param_1 == 0` a member climbs `o_up` to its captain first (`:173`), and
+after the captain's `set_new_location` an `o_down` whose `flags & 1` is
+set gets `come_out(o_down, 1)` (`:535`), before any of the captain's
+tail. A member's host is `get_captain()` (`617f2f`), so its spot is the
+unit-host ring around the captain, and its `set_angle(host->angle)`
+(`006191a5`) reads the captain's angle before the captain's own tail
+turns it to the boat. So one pass lands the squad, and only the chain's
+head takes `same_damage` and the squad arm, whose `Group::add` takes the
+captain and its chain: one group move on each figure. run496 block 1902:
+`0/7` (14712, 31224) at the boat's heading 1073741824, `0/8` (14712,
+31368) and `0/9` (14904, 31224) at 1084948480, `0/7`'s angle on 1901.
+`Sim::disembark` walks it (`land_passenger`, `land_tail`), and
+`a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle`
+holds it; chapter forty-six's widening holds it on run496.
 - `do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
   whose captain's current order is `CAST_SPELL` gives its frame back) is
   reached only by a member holding its own transport cast and stepped

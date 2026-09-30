@@ -9633,7 +9633,7 @@ them.
 - `Unit::update_hits`' other terms (the American marines, Copper, Bananas,
   the Iroquois, the Dutch, the Spy, General and supply upgrades).
 
-## 55. Chapter forty-six — three arms a unit test alone held: a squad's barge ashore, `all_gathering`'s prune, and `leech_codes`' early return (item 1278)
+## 55. Chapter forty-six — three arms a unit test alone held: a squad's barge ashore, `all_gathering`'s prune, and `leech_codes`' early return (items 1278, 1291)
 
 **Premise.** DECISIONS 56 §3's chapter from three landings' mutations
 that no walk held: `Sim::disembark_squad` (parked 1238, §52's mutation
@@ -9714,11 +9714,24 @@ and that each group insert re-issues to the whole squad. That is a
 hypothesis for the next item, not a finding: `docs/TRANSPORT.md` §17's
 "walks the riders in index order" was the reading it rests on.
 
-**The widening** is run496 whole (`[605, 2201)`) and parts in 349 rows
-and 6 pool rows. The 44 before 1902 are the standing families: §52's
-rows under their own frames, W's birth `form` on 726 and X's on 1401,
-and X's `DEATH` record on 1487. The 305 from 1902 are the word's: the
-squad, then the stream a draw out.
+**The landing, built: the chapter closes at 2200** (item 1291). The
+hypothesis held, and the listing says why: a captain's `come_out` takes
+its squad out with it (`00617c10:535`, each member on the captain's
+ring), and `eject_contents`' loop re-reads the boat's chain, so the
+squad arm runs once (`docs/TRANSPORT.md` §17, "The landing"). The
+members' angle is the captain's before its tail turns it: `0/8`'s and
+`0/9`'s 1084948480 is `0/7`'s on 1901. Built in `Sim::disembark`, the
+value diff on block 1902 agrees whole on both sides: `orders.len` 1 on
+each rider, `0/9` at (14904, 31224), the three headings, and the pool's
+slot 3 (`order_num` 1, the offsets). The word walks to the capture's
+end: **2200**, word, sequence and values.
+
+**The widening** is run496 whole (`[605, 2201)`). It parted in 349
+rows and 6 pool rows at item 1278, and parts in **44 rows and no pool
+row** since item 1291: the standing families, §52's rows under their
+own frames, W's birth `form` on 726 and X's on 1401, and X's `DEATH`
+record on 1487. The 305 from 1902 were the squad's and the stream a
+draw out, and all agree.
 
 **Mutations**, each on the committed build (`8b48595d`), restored from
 git and touched, scored by the exit code of chapter forty-six's and
@@ -9732,8 +9745,24 @@ forty-three's tests and the arms' unit tests:
 Chapter forty-three's two tests pass under both: §52's walk still holds
 neither arm.
 
+Item 1291's mutations, on the committed build (`bdcaa4f1`), scored the
+same way:
+
+| mutation | held by |
+|---|---|
+| M1: members turned to the boat's angle, not the captain's | exit 101: the widening alone (44 → 54 rows, `0/8`'s and `0/9`'s heading, facing and `g.angle` on 1902) and `a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle`; **the word stays 2200: no walk holds it** |
+| M2: members on the boat's ring, not the captain's | exit 101: **the word, 2200 → 1915**, and the widening (269 rows, `0/9`'s `pos` on 1902 first); the unit test passes (it does not assert places) |
+| M3: every rider its own pass (no climb, no member walk: item 1278's code) | exit 101: **the word, 2200 → 1902**, and the widening: 349 rows and the 6 pool rows, item 1278's exactly; the unit test |
+
+Chapter forty-three's two tests pass under all three.
+
 **What is not established.**
-- The squad's landing past 1902: the word is the next item's.
+- ~~The squad's landing past 1902: the word is the next item's.~~ Built
+  and closed at 2200 (item 1291, above).
+- A member `come_out` refuses on the captain's ring: the original's
+  eject loop would then take that member on a later pass and move the
+  captain again (`get_inside < 0`); a `SEAM` in `Sim::disembark`. No
+  staging crowds a shore that far.
 - `leech_codes`' early return, for the reason above (parked).
 - `all_gathering`'s prune on a member that is off the map or dead: this
   chapter reaches the `is_gathering_at` arm alone.
