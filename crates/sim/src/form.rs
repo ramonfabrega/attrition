@@ -40,10 +40,6 @@
 //!   **other** category subtracts `x_spacing[wedge] · rows[wedge]`, so a
 //!   wedge with a second category is not reproducible by anyone. This
 //!   module seeds it 0.
-//! - **Mob (formation 9) past its first member.** Slot 0 sits on the anchor,
-//!   which is exact; the rest ride concentric rings whose angle and radius
-//!   arguments the decompiler drops and no pass has recovered from the
-//!   listing. They are placed on the anchor here.
 //! - **The two type substitutions in `categorize`** — a loaded sea transport
 //!   is sized by its cargo's type, and a land unit ordered onto **water** is
 //!   sized as the leader's current Transport Barge (or Merchant Fleet for a
@@ -115,6 +111,68 @@ pub mod formation {
 /// three ids outright, the same three `UnitType::init_final_flags` does
 /// (`ai_load::Flags2Facts::trader_id`).
 const TRADER_IDS: [usize; 3] = [0x3d - 0x32, 0x3e - 0x32, 0x190 - 0x32];
+
+/// `Form::compute_dests@0072cba0`'s Mob arm (`72ce81`–`72cf3d`, read in
+/// the listing: the decompiler drops `cosx`'s and `sinx`'s arguments).
+///
+/// Slot 0 stands on the anchor. Every later captain takes the next point
+/// of a ring of `n` points, `n` 5 on the first ring and 5 more on each
+/// ring out, at a radius of `x_spacing × n / 5`:
+///
+/// ```text
+/// r = (w · n) / 5                      (the 0x66666667 divide, toward 0)
+/// x = cosx(a, r), negated when reversed;   y = sinx(a, r)
+/// count += 1
+/// a += 2 · (0xffffffff / n)            n odd
+///      0x4ccccccb                      n == 10
+///      (n / 10 + 1) · (0xffffffff / n) otherwise   (unsigned divides)
+/// count == n:  n += 5, count = 0, a += 0xffffffff / (2n)
+/// ```
+///
+/// `cosx@0092d0c0` is `sinx@0092d100` a quarter turn on
+/// ([`cos_component`], [`sin_component`]). The angle starts at
+/// `0x55555555` and runs on across the whole walk; only this arm reads or
+/// moves it.
+struct MobRing {
+    n: u32,
+    count: u32,
+    angle: u32,
+}
+
+impl MobRing {
+    const fn new() -> Self {
+        MobRing {
+            n: 5,
+            count: 0,
+            angle: 0x5555_5555,
+        }
+    }
+
+    fn place(&mut self, slot: i32, w: i32, reverse: bool) -> (i32, i32) {
+        if slot == 0 {
+            return (0, 0);
+        }
+        let r = w.wrapping_mul(self.n as i32) / 5;
+        let a = Angle(self.angle as i32);
+        let x = cos_component(a, r);
+        let y = sin_component(a, r);
+        self.count += 1;
+        let step = if self.n & 1 != 0 {
+            (u32::MAX / self.n).wrapping_mul(2)
+        } else if self.n == 10 {
+            0x4ccc_cccb
+        } else {
+            (self.n / 10 + 1).wrapping_mul(u32::MAX / self.n)
+        };
+        self.angle = self.angle.wrapping_add(step);
+        if self.count == self.n {
+            self.n += 5;
+            self.count = 0;
+            self.angle = self.angle.wrapping_add(u32::MAX / (2 * self.n));
+        }
+        (if reverse { -x } else { x }, y)
+    }
+}
 
 /// `Form::init@0072dda0`'s last statement — `FormData::density`, a constant
 /// of the formation: **2** for 0–4, **0** for Sparse, **1** for 6–9.
@@ -622,6 +680,11 @@ impl Sim {
         // scatter reads (`72d469`). Set by the same captain arm, and 0 before
         // the first.
         let mut last_slot = 0;
+        // The Mob's rings (`local_18`, `local_2c` and the angle at
+        // `-0x2c(%ebp)`): five slots on the first, and five more on each
+        // ring out; the angle starts a third of a turn round
+        // (`72cbd4`–`72cbdb`) and is shared by the whole walk.
+        let mut ring = MobRing::new();
         for (i, &u) in g.list.iter().enumerate() {
             if !self.form_member_active(u) {
                 continue;
@@ -661,7 +724,7 @@ impl Sim {
                     let y = -(slot / 3) * f.y_spacing[c];
                     (if f.reverse { -x } else { x }, y)
                 }
-                formation::MOB => (0, 0),
+                formation::MOB => ring.place(slot, w, f.reverse),
                 _ => {
                     let ncols = cols[c].max(1);
                     let col = slot % ncols;
