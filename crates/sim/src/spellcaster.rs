@@ -339,6 +339,55 @@ mod tests {
         assert!(!sim.forced_march[1] && sim.units[g].marching.is_none());
     }
 
+    /// run511's block 9318 (`docs/AI.md` §99.15): under a Forced March
+    /// every land unit of the hero's leader within the hero's radius —
+    /// `GENERAL_RADIUS × 3 / 2` tiles at no upgrade, an economic patriot's
+    /// one more — walks at `FORCED_MARCH_SPEED`, 42, unless it is faster
+    /// already; one outside it, one of the sea, another leader's and every
+    /// unit once the march runs out keep their own.
+    #[test]
+    fn a_forced_march_lifts_the_units_near_its_hero() {
+        let (mut sim, g, _) = ai_general();
+        let row = (crate::orders::spell::FORCED_MARCH - crate::orders::spell::FIRST) as usize;
+        sim.spells[row].duration = 150;
+        let at = sim.units[g].pos;
+        let t = sim.add_unit_type(crate::UnitType::default());
+        let mut o = 40;
+        let mut near = |dx: i32, who: crate::Player, speed: i32| {
+            o += 1;
+            let mut u = crate::Unit::new(who, o, crate::Pos::new(at.x + dx, at.y), 20);
+            u.ty = Some(t);
+            u.movement.speed = speed;
+            sim.add_unit(u)
+        };
+        // Nine tiles, 1,728 position units, is the General's reach.
+        let (a, edge, out, fast, theirs) = (
+            near(768, 1, 25),
+            near(1728, 1, 25),
+            near(1729, 1, 25),
+            near(0, 1, 60),
+            near(64, 0, 25),
+        );
+        assert_eq!(sim.unit_speed(a), 25, "no march yet");
+        sim.cast_march(g);
+        assert_eq!(sim.unit_speed(a), 42);
+        assert_eq!(sim.unit_speed(edge), 42, "the radius is inclusive");
+        assert_eq!(sim.unit_speed(out), 25, "one past it");
+        assert_eq!(sim.unit_speed(fast), 60, "a march never slows a unit");
+        assert_eq!(sim.unit_speed(theirs), 25, "another leader's");
+        sim.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+        sim.units[a].kind.domain = crate::attrition::Domain::Sea;
+        assert_eq!(sim.unit_speed(a), 25, "a type not of the land");
+        sim.unit_types[t].combat.domain = crate::attrition::Domain::Land;
+        sim.units[a].kind.domain = crate::attrition::Domain::Land;
+        // The Senator's reach: an economic patriot's tile more.
+        sim.units[g].type_index = 0x161;
+        assert_eq!(sim.unit_speed(out), 42, "ten tiles for a Senator");
+        let end = sim.units[g].marching.unwrap();
+        sim.process_spells(g, end + 1);
+        assert_eq!(sim.unit_speed(a), 25, "the march has run out");
+    }
+
     /// Before the coin: a guy standing (`avg_speed` 0) returns 0 with no
     /// draw, and a hero not moving takes the decoy arm — no draw, Create
     /// Decoys with the mana, and nothing while one of its leader's decoy

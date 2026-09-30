@@ -359,7 +359,9 @@ first a capture walked, a first step of 42 on a speed of 34
 (`docs/GOLDEN.md` §47). And a crew guy's step speed is the cached
 layer-1/2 value rather than `get_speed`, so it skips the action scale and
 the river halving as well; run56's scout and run67's merchant walk plain
-ground under a plain move, which is why both their tests pass.
+ground under a plain move, which is why both their tests pass. **Reached
+on run511's block 9328** (item 1318): the Senator `1/80`'s crew, guarding
+under a computer leader (`× 10/8`), steps 57 here against 71 there.
 
 ~~**One is stated, unimplemented, and reached**~~ — the out-of-world refusal
 cleared the verified-line bit and returned `Did::Nothing` where the original
@@ -1079,6 +1081,8 @@ Forced march is the interesting one: it *replaces* the speed with
 and the unit's own cached speed is larger — the comparison is against the
 cached value, before the Iroquois bonus. A fast unit is not slowed by joining a
 forced march. A non-land type returns the cached value before any of this.
+**The march is carried from item 1318** (`Sim::unit_speed`, `docs/AI.md`
+§99.15); the Iroquois bonus, Alexander's arm and the hero auras are not.
 
 ### 3. `UnitData::get_speed(x, y, flag)` — the effective speed here, now
 

@@ -12617,3 +12617,42 @@ run516 were reserved and not used.
 **What it holds**: `chapter_forty_seven_holds_to_the_golden_word` (712)
 and `chapter_forty_seven_s_word_frame_is_widened_whole` (605..1400); the
 coverage driver's windows 677, 1102 and 1111.
+
+## run517 — run470's game at run500's detail over blocks 9032..9323: the gap between run500 and run511 (2026-09-30, item 1318)
+
+**What it is.** run511's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 9032..9323, `!quit` at 9338: the dark gap 9038..9317 with six blocks
+of run500 before it and six of run511 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run517 \
+    --map 7 --end-frame 9338 --timeout 5000 --log-window 9032 9324 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** 571 keys stood on
+run511's first block 9318, 28 army positions among them, and run500 ends at
+block 9037: no dump printed the frames they parted on.
+
+**Taken** 16:28–17:02 in one launch; `ron_lane_state` read `free`. The
+runner relaunched once after 300 s (`relaunched_after_seconds`). Waited on
+with `waitrun.sh`: `success: true`, `settings_restored: true`, exit 0,
+1,718 s from launch to exit, 9,339 frames, map 7 and seed 12345 verified.
+The dump (628,627,595 bytes, sha256 `c6f4eb0bf3f101e2…`) and the trace
+(51,610,112, `08e720df29c0d44b…`) were moved into `Logs` as
+`gamelog-run517-greatsahara-toughest-9038.txt` and `rontrace-run517.log`.
+The disk had 37 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 9,339 identical |
+| window blocks | 292, 9032..9323, and the closing block 9339 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run517_s_gap_is_widened_whole` (`diff::sahara_toughest`),
+walked from run470's start with run468's head: 158 keys, and no army
+position among them; without Forced March's speed it parts on 1,154, the
+first 179 on block 9114, the frame after the Senator's cast. Runs 518 and
+519 were reserved and not used.

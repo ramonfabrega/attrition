@@ -18,8 +18,8 @@ before: East Indies 8907 → 11637, Great Sahara at Toughest 5376 → 8856,
 Himalayas 1851/1850 held out and in lockstep, chapters forty-three to
 forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 
-- **Lanes live: 1318, 1326, 1330.** Landed: 1305 (Toughest → 9323),
-  1310 and 1323 (ch47 at 712, then 838), 1302 (East Indies → 12582).
+- **Lanes live: 1326, 1330, 1332.** Landed: 1305, 1318 (Toughest →
+  9352), 1310, 1323 (ch47 → 838), 1302 (East Indies → 12582).
 - **The pass built**: the lane held through the click-free runner's
   restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
   (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
@@ -31,17 +31,17 @@ forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; **the disk, 40 GiB free, 13 written a tranche**; parked
   1141 and 1142.
-- **Fable backlog: 26 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331).
+- **Fable backlog: 27 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w12582 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9323 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9352 of 15,432
 Golden: ch47 w838 of 1,401 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1318, 1326 and 1330;
-merge each landing and refill its lane; the count is at four.**
+**Opener: the commander, on Opus — lanes live on 1326, 1330 and 1332;
+merge each landing and refill its lane; the count is at five.**
 
 ## The queue
 
@@ -57,12 +57,11 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     holds who=1's `MAKE[5]` Citizen order (`t` 50, `num` 4, `city` 2)
     the dump's alone; 1,817 keys part. No mechanism is named.
 
-1318. **Great Sahara at Toughest's word: frame 9323, ours 7 draws
-    against 5** (1305), at index 1: ours spends the AI scout `1/0`'s two
-    `Guy::set_anim+0x97a < Unit::move_step+0x823`, the original
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`; widened on run511
-    (block 9324): 571 keys stand on 9318 from the gap 9038..9317, 28 of
-    who=1's army positions among them. No mechanism is named.
+1332. **Great Sahara at Toughest's word: frame 9352, ours 35 draws
+    against 36** (1318), at index 0: the original spends
+    `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19`;
+    inside run511 (block 9353); gaia's `8/2` a unit apart on 9348. No
+    mechanism is named.
 
 1330. **Chapter forty-seven's word: frame 838, ours 6 draws against 7**
     (1323), at index 1: the original spends `Guy::set_anim+0x97a <

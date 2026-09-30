@@ -1640,12 +1640,27 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 13_385;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9323 since item 1305**: run470 parts on frame 9323, **ours 7 draws
-/// against the original's 5, at index 1** — ours spends two
-/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, the AI scout `1/0`'s,
-/// where the original goes on to `Guy::set_anim+0x97a <
-/// Guy::inc_time+0x271`. Past run500's window (its last block 9037),
-/// widened on run511 (block 9324).
+/// **9352 since item 1318**: run470 parts on frame 9352, **ours 35 draws
+/// against the original's 36, at index 0** — the original opens on
+/// `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19`
+/// (seed `0e2eda7d`, 55735), an animal's idle roll ours does not spend.
+/// Inside run511's window (block 9353): gaia's `8/2` stands a unit apart
+/// on 9348, its animation parts on 9349.
+///
+/// It was **9323** before that (item 1305), ours 7 against 5 at index 1:
+/// the AI scout `1/0` collided with the King's Longbowman `1/69` and
+/// stood twice (`Unit::move_step+0x823`), because who=1's army near the
+/// Senator `1/80` had walked 9112..9262 at its own speed where the
+/// original's Forced March lifts every land unit within the hero's radius
+/// to `FORCED_MARCH_SPEED`, 42 (`UnitData::speed@0060aae0`), and the
+/// group's `+0x4b` lets only those near it report (`docs/AI.md` §99.15).
+/// **The move's value diff** (run517, the gap 9032..9323 no dump had
+/// printed): see `run517_s_gap_is_widened_whole`; run511 block 9318,
+/// `1/69`'s `pos` ours (33412, 19136) against (33056, 18955) → agreeing
+/// to 9432; block 9324, `1/0`'s `collide_o` 69 against −1 → agreeing;
+/// run511 parts on 1,802 keys where it parted on 2,069, 133 standing on
+/// its first block where 571 stood. 9323 was widened on run511 (block
+/// 9324), past run500's last block 9037.
 ///
 /// It was **8856** before that (item 1293), ours 34 against 35 at index 0:
 /// the original opened on `Unit::think_spellcaster+0x589 <
@@ -1743,7 +1758,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 13_385;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_323;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_352;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7703,12 +7718,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1275); the word 8786 on run500 over 8781..9037 (item 1286), and the
     // word 8856 on the same blocks (item 1293); the word 9323 on run511
     // over 9318..9574 (item 1305), whose run500 test keeps the move's
-    // value diff on 8858.
+    // value diff on 8858; the word 9352 on the same blocks (item 1318),
+    // whose run517 test keeps the move's value diff over the gap
+    // 9032..9323.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run511_s_word_frame_is_widened_whole"),
-        1305,
+        1318,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9323),
     ),
 ];

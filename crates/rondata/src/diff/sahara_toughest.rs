@@ -112,8 +112,22 @@ pub(crate) const TOUGHEST_WORD_9323: &str = "gamelog-run511-greatsahara-toughest
 /// **run511's window** (item 1305): blocks 9318..9574.
 pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_9323: (i64, i64) = (9_318, 9_574);
 
-/// **The word's block, 9324**: frame 9323 writes it.
+/// **The word's block, 9324**: frame 9323 writes it — item 1318's value
+/// diff, and the coverage driver's window from item 1305.
 pub(crate) const TOUGHEST_WORD_BLOCK_9324: i64 = 9_324;
+
+/// **The word's block, 9353**: frame 9352 writes it — the word item 1318
+/// left, inside run511's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_9353: i64 = 9_353;
+
+/// run517: run470's game at run500's detail over blocks 9032..9323 — the
+/// dark gap 9038..9317 between run500's last block and run511's first,
+/// with six blocks of each either side (item 1318). The 571 keys that stood
+/// on run511's first block parted in it.
+pub(crate) const TOUGHEST_GAP_9038: &str = "gamelog-run517-greatsahara-toughest-9038.txt";
+
+/// **run517's window** (item 1318): blocks 9032..9323.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_GAP: (i64, i64) = (9_032, 9_323);
 
 /// **The road search 7070 was** (item 1260): caravan `1/52`'s replan from
 /// `1/2007` to `1/2022`, which run483's trace carries node for node.
@@ -240,6 +254,17 @@ pub(crate) fn great_sahara_toughest_9323_window() -> Option<crate::diff::harness
         "run511",
         (TOUGHEST_WORD_9323, WIDENING_GREAT_SAHARA_TOUGHEST_9323.0),
         WIDENING_GREAT_SAHARA_TOUGHEST_9323,
+        TOUGHEST_WORD_BLOCK_9353,
+    )
+}
+
+/// run517's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GAP`], walked as
+/// run511's are (item 1318).
+pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run517",
+        (TOUGHEST_GAP_9038, WIDENING_GREAT_SAHARA_TOUGHEST_GAP.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_GAP,
         TOUGHEST_WORD_BLOCK_9324,
     )
 }
@@ -247,7 +272,8 @@ pub(crate) fn great_sahara_toughest_9323_window() -> Option<crate::diff::harness
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run511 at its block 9324 since item 1305 (run500 from item 1286, at
+/// on run511 at its block 9324 since item 1305, at its block 9353 from
+/// item 1318 (run500 from item 1286, at
 /// its block 8857 from item 1293; run491
 /// from item 1264, at its block 8378 from item 1275; run488 from item 1260, run483 from item 1251, run476
 /// from item 1241, run471 before it). `coverage`'s compared pin walks these
@@ -259,7 +285,7 @@ pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness
         "run511",
         (TOUGHEST_WORD_9323, WIDENING_GREAT_SAHARA_TOUGHEST_9323.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_9324,
+        TOUGHEST_WORD_BLOCK_9353,
     )
 }
 
@@ -959,10 +985,11 @@ mod tests {
         );
     }
 
-    /// **The word 9323, widened whole** (item 1305):
+    /// **The word 9323, widened whole** (item 1305), and **the word 9352**
+    /// on the same blocks (item 1318):
     /// [`great_sahara_toughest_9323_window`] over run511's blocks
     /// 9318..9574, both directions, every record run500's detail prints.
-    /// The word's frame writes block 9324.
+    /// Frame 9323 writes block 9324, and 9352 block 9353.
     #[test]
     fn run511_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -994,45 +1021,167 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **571 stand on the window's first block**, parted in the dark
-        // gap 9038..9317 no dump prints: 28 of who=1's units' positions
-        // among them — `1/69`, a King's Longbowman of the army, ahead on
-        // its westward march in the original — where the Senator `1/80`,
-        // whose Forced March ran 9112..9262, agrees to 9469.
+        // **The move 9323 → 9352** (item 1318, `docs/AI.md` §99.15): 571
+        // keys stood on the window's first block before Forced March's
+        // speed was carried — 28 of who=1's army positions among them,
+        // `1/69` at (33412, 19136) here and (33056, 18955) there — and on
+        // the word's block 9324 the AI scout `1/0` collided with `1/69` in
+        // ours alone (`collide_o` 69 against −1). With the march's
+        // `UnitData::speed` and the group's `+0x4b`, 133 stand, no
+        // position among them; `1/69` agrees to 9432 and `1/0`'s
+        // collision to 9362.
         pin_eq!(
             row(1, 69, "pos").as_deref(),
-            Some("9318: ours (33412,19136) theirs (33056,18955)"),
-            "an army unit's position, standing"
+            Some("9433: ours (34115,19417) theirs (34130,19421)"),
+            "the army unit's position, agreeing past both words"
         );
-        // **The word 9323's block 9324**: the AI scout `1/0` collides with
-        // `1/69` and stops in ours alone — its two arrival stands.
         pin_eq!(
             row(1, 0, "collide_o").as_deref(),
-            Some("9324: ours 69 theirs -1"),
-            "the scout's collision on the word's block"
+            Some("9363: ours 58 theirs -1"),
+            "the scout's collision, agreeing on 9323's block"
+        );
+        // **The word 9352's block 9353**: the original spends an animal's
+        // `Animal::do_idle+0x19` idle roll ours does not. Gaia's `8/2`
+        // stands a unit apart on 9348 and parts its animation on 9349 —
+        // the nearest rows to the word; the Senator `1/80`'s followers
+        // part their step on 9328 (ours 57, theirs 71: `Guy::move`'s crew
+        // step takes `GuyData::get_speed`, and this crate the cached
+        // `myspeed`), as they did before the move.
+        pin_eq!(
+            row(8, 2, "gaia:pos").as_deref(),
+            Some("9348: ours (38712,20232) theirs (38711,20231)"),
+            "gaia's 8/2, a unit apart before the word"
+        );
+        pin_eq!(
+            row(1, 80, "g.last_speed[2]").as_deref(),
+            Some("9328: ours 57 theirs 71"),
+            "the Senator's crew step"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9324 + 3)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9353 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9318, 565),
-                (9319, 15),
-                (9320, 15),
-                (9321, 11),
-                (9322, 5),
-                (9323, 4),
-                (9324, 39),
-                (9325, 32),
-                (9326, 7),
-                (9327, 3)
+                (9318, 133),
+                (9328, 4),
+                (9329, 4),
+                (9330, 1),
+                (9332, 1),
+                (9333, 1),
+                (9348, 1),
+                (9349, 2),
+                (9355, 40),
+                (9356, 10)
             ],
-            "the blocks keys first part on, to three past the word's"
+            "the blocks keys first part on, to three past the word 9352's"
         );
-        // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 2069.
-        pin_eq!(w.firsts.len(), 2063, "every key parted on run511");
+        pin_eq!(
+            w.firsts.len(),
+            1802,
+            "every key parted on run511 (2,069 before item 1318)"
+        );
+    }
+
+    /// **The gap 9038..9317, widened whole** (item 1318):
+    /// [`great_sahara_toughest_gap_window`] over run517's blocks
+    /// 9032..9323, both directions, every record run500's detail prints —
+    /// the frames the 571 keys that stood on run511's first block parted
+    /// in, and the move 9323 → 9352's value diff.
+    #[test]
+    fn run517_s_gap_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_gap_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 292, "run517 whole: blocks 9032..9323");
+        pin!(
+            w.missing.is_empty(),
+            "run517 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The move 9323 → 9352's value diff** (item 1318, `docs/AI.md`
+        // §99.15). The Senator `1/80` cast Forced March on 9112, and with
+        // the march's speed not carried the gap parted on **block 9114**:
+        // 179 keys, every one of the army's 26 walkers — `1/28`'s `pos`
+        // ours (32179, 18050) against (32189, 18050), its guy's
+        // `last_speed` 15 against 25, `1/29`'s 31 against 52 — and on 9116
+        // the Senator's group 65's `speed` and `new_speed` 41 against 42,
+        // the march's `FORCED_MARCH_SPEED`. With it carried, none of them
+        // parts: 158 keys where 1,154 parted.
+        pin_eq!(row(1, 28, "pos"), None, "an army walker, agreeing");
+        pin_eq!(
+            row(1, 29, "g.last_speed[0]"),
+            None,
+            "a walker's step, agreeing"
+        );
+        pin_eq!(
+            row(1, -3, "group:65.speed"),
+            None,
+            "the Senator's group walks at 42"
+        );
+        // What still parts in the gap: group 67's speed from 9084 (ours 0
+        // against 34), before the march; and the Senator's crew step from
+        // 9222 (ours 57 against 71, `docs/MOVEMENT.md`, "the crew guy's
+        // step speed is the cached value").
+        pin_eq!(
+            row(1, -3, "group:67.speed").as_deref(),
+            Some("9084: ours 0 theirs 34"),
+            "group 67's speed, before the march"
+        );
+        pin_eq!(
+            row(1, 80, "g.last_speed[1]").as_deref(),
+            Some("9222: ours 57 theirs 71"),
+            "the Senator's crew step"
+        );
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [
+                (9032, 133),
+                (9083, 1),
+                (9084, 2),
+                (9144, 2),
+                (9185, 1),
+                (9201, 1),
+                (9222, 4),
+                (9223, 1),
+                (9236, 2),
+                (9237, 1),
+                (9268, 1),
+                (9273, 1),
+                (9274, 1),
+                (9294, 2),
+                (9295, 3),
+                (9307, 1),
+                (9310, 1)
+            ],
+            "the blocks keys first part on"
+        );
+        pin_eq!(
+            w.firsts.len(),
+            158,
+            "every key parted on run517 (1,154 without the march's speed)"
+        );
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):
