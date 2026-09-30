@@ -186,7 +186,9 @@ score yet.
 
 (1277) **`leech_codes`' early return** (1260's mutation B): held by its
 unit test and no walk — a road neighbour the mesh holds no element for,
-beside a tile being redone.
+beside a tile being redone. **No staging reaches it** (1278): the only
+writers of a road without an element are `clear_roads` and
+`clear_support` at zero count with `is_terrain_creation` clear.
 
 ## Parked by item 1257, 2026-09-30 — the rounds' value rows
 
@@ -285,17 +287,9 @@ cell in this crate; run466's second barge crosses the ghost on
 **Chapter forty-three closed at 2200 (1248) and it is still held by no
 walk** (1248's mutation D).
 
-(1238) **`disembark_squad`, a squad's passengers coming ashore as a
-group**: built, held by its unit test alone until chapter forty-three's
-word passes the landing on 1901 — three aboard one barge (1235).
-**Still held by no walk after the chapter closed** (1248's mutation E,
-with 1239 beside it): the DLL refuses chapter forty-three's 1900 line
-whole, since it names an object that does not exist; a restage with
-`1900 @move 0 15360 31200 10` alone lands a barge with three riders.
-
-(1255) **`all_gathering`'s prune** (1248's mutation B): held by no walk.
-It needs a live chain member that stopped gathering there, read by a
-woodcutter whose wait runs out.
+(1292) **`all_gathering`'s prune, its off-map arm** (1278): chapter
+forty-six holds the prune itself (1049, `1/2001`'s `gather_down` 6 → 2,
+both sides); the off-map arm no staging reached.
 
 (1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
 cause): a member with its own cast stepped before its captain. Transport
@@ -2533,7 +2527,11 @@ forty-three's 1562 and 1900 lines in part for the chapter's life; its
 `skipped` report named 1562 and not 1900, because that line half-ran.
 The golden harness now refuses such a line whole. A staging check that
 greps each capture's trace for `I_ISSUE` refusals (`cmdsran.py` decodes
-only `I_CMD`) would have named it on the take. One reach.
+only `I_CMD`) would have named it on the take. One reach. **Again**
+(1278's Loop line): `tools/trace/report.py` prints INFO records raw and
+no tool decodes `I_ISSUE`'s line and refusal (`b & 0xffff`, `b >> 16`);
+a `--issues` flag, or `cmdsran.py` reading kind 17 beside kind 9, makes
+the check one command. Two reaches.
 
 (1259) **`stage_walk` does not say why a candidate was refused** (1254's
 Loop line): three of chapter forty-four's walks were placement guesses a
