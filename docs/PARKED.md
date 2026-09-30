@@ -146,6 +146,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1260, 2026-09-30 — the mesh's redo
+
+(1276) **run483's window parts on 7144, before 7785's word**: who=1's
+`peasants` 30 against 31 and `1/56`'s `form` −1 against 9. Read by no
+score yet.
+
+(1277) **`leech_codes`' early return** (1260's mutation B): held by its
+unit test and no walk — a road neighbour the mesh holds no element for,
+beside a tile being redone.
+
 ## Parked by item 1257, 2026-09-30 — the rounds' value rows
 
 Value rows the widened `AMMO` comparison found (1257), none with a draw.
@@ -2464,7 +2474,10 @@ and `seams.py find_friends enhancer` answered "0 live seams" — the arm
 that decided 5376. A scan of code comments for "not modelled" / "not
 kept" inside the named functions, or a rule that such a comment is a
 `SEAM`, would have named it at step 7. With 1240, two reaches on the
-tool's reach.
+tool's reach. **Again** (1260): ROADS §9.4's "**Not modelled**" list
+named `leech_codes`, but the marker is a bold lead-in and the names sit
+in the bullets under it, so a list-shaped paragraph is invisible to the
+scan. Three reaches.
 
 (1256) **A staging line the DLL refuses is applied in part by the
 harness** (1248's Loop line): a line naming an object the original never
