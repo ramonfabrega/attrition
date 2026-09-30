@@ -2205,11 +2205,18 @@ heal, ejection), then the sites' `construct_hits` refresh.
     team-style branch that reads it is not modelled.
 14. **`BuildTypeData::to` is last-writer-wins** (2026-08-20, the loader,
     `docs/DATALAYER.md`): `BuildType::init` writes `B[from].to = this` for
-    every non-hero record with a `FROM`, in record order, so the Forbidden
+    every non-hero record with a `FROM`, in record order. ~~So the Forbidden
     City (record 117, `FROM Small City`) overwrites the Large City's link and
-    the program's Small City `to` is the Forbidden City. Whatever reads `to`
-    for the city line reads that. Reproduced as read by the loader; the
-    sim's lineage tests walk `from`, which is unaffected.
+    the program's Small City `to` is the Forbidden City.~~ **Corrected
+    2026-09-30, item 1326**: the Forbidden City *is* hero-masked — its
+    `obj_masks` carries `0x4000000`, the bit the listing tests before the
+    store (`00632da8`–`00632dbe`, `jne 0x632df1`) — and so is the Red Fort
+    (120, `FROM` the Fort). Neither writes, so the Small City's `to` is the
+    Large City and the Fort's the Castle. The loader had linked them
+    unconditionally; `get_buildings(VILLAGE)` then missed every Large City
+    and East Indies' AI offered no Citizen from the frame its last Small
+    City grew (12580, the word 12582). The sim's lineage tests walk `from`,
+    which is unaffected.
 15. **Behavioural checks worth running**, all cheap under `BUILDS=1` /
     `CITIES=1` per frame: two builders on one site (expect `accel +
     accel/2` a frame — settles the harmonic rule and the unit-before-building

@@ -553,9 +553,10 @@ this is the unit table's rule alone.
    along.
 2. **The `to`/`upgrade` back-links are last-writer-wins in record order.**
    `BuildType::init` writes `B[from].to = this` for every record with a
-   `FROM` (not a hero), unconditionally; the Forbidden City (record 117)
-   names the Small City after the Large City (record 1) does, so the
-   program's Small City `to` is the Forbidden City. `UnitType::init` does the
+   `FROM` whose `obj_masks` lacks `0x4000000` (the hero bit). ~~The Forbidden
+   City … is the Forbidden City.~~ It and the Red Fort carry the bit, so
+   the Small City's `to` is the Large City (item 1326, `docs/CITIES.md`
+   §13 item 14). `UnitType::init` does the
    same for `U[from].upgrade`: the Hoplites' is whichever later record named
    them last (the Greek Mercenaries), not the Phalanx. Reproduced as read.
 3. **Fields are read by tag name, from the internal string table** — see
