@@ -1259,6 +1259,8 @@ impl Sim {
                     top.flags &= !crate::orders::path_flag::TRANSPORT;
                 }
                 self.units[r].path = path;
+            } else {
+                self.disembark_squad(boat, r);
             }
         }
         self.units[boat].health = 0;
@@ -1270,6 +1272,45 @@ impl Sim {
         self.units[boat].on_map = false;
         self.coll_remove(boat);
         self.chain_remove(boat);
+    }
+
+    /// **Step 4's squad arm** (item 1223, `docs/TRANSPORT.md` §6.4,
+    /// `docs/GOLDEN.md` §52): a passenger whose type's `uber_size` is over 1
+    /// takes the boat's orders through a group, not a list move
+    /// (`Object::eject_contents@0064cd20`, the `+0x308 != 1` arm):
+    ///
+    /// 1. `Unit::reset_move_orders@005fd080` on the **boat** — every move
+    ///    order's `orig_x`/`orig_y` (`+0x44`/`+0x48`) set to its `x`/`y`, so
+    ///    the replay below walks to the point the boat was sailing for;
+    /// 2. unless the passenger is AI-driven (`unit_masks & 0x40000`) **and**
+    ///    in an army: a stack group of the boat, `Group::set_up_insert` (the
+    ///    leader's — the boat's — action-flagged orders copied aside),
+    ///    `Group::kill(boat)`, `Group::add(passenger)` — its captain and
+    ///    chain — `Groups::push_group(who, g, 1)`, and `Group::finish_insert`
+    ///    on the slot, which re-issues each copy as a group action at
+    ///    `QUEUE_LAST`.
+    ///
+    /// The path is not handed over on this arm; the replay plans afresh.
+    fn disembark_squad(&mut self, boat: usize, r: usize) {
+        for o in &mut self.units[boat].orders {
+            if let crate::orders::Body::Move(m) = &mut o.body {
+                match m.group.as_mut() {
+                    Some(gm) => gm.orig = m.dest,
+                    None => m.orig = Some(m.dest),
+                }
+            }
+        }
+        let owner = self.units[r].owner;
+        if self.ai_driven(owner) && self.army_of(r).is_some() {
+            return;
+        }
+        let mut g = crate::group::Group::stack(owner);
+        self.group_add(&mut g, boat);
+        let insert = self.group_set_up_insert(&g);
+        g.list.retain(|&m| m != boat);
+        self.group_add(&mut g, r);
+        self.push_group(&mut g, true);
+        self.group_finish_insert(&g, insert);
     }
 
     // ------------------------------------------------------------------

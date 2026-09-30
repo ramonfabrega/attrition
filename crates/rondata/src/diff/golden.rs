@@ -15159,13 +15159,18 @@ fn stage_walk() {
             now.push((
                 format!("u{i}"),
                 format!(
-                    "{}/{} {} alive={} hp={} in={:?} pos=({}, {}) z={} mana_burn={} [{}]",
+                    "{}/{} {} alive={} hp={} in={:?} ride={:?} avg={} pos=({}, {}) z={} mana_burn={} [{}]",
                     u.owner,
                     u.index,
                     unit_name(u.ty),
                     u.alive(),
                     u.health,
                     u.inside.map(|b| s.buildings[b].index),
+                    // Item 1223: the boat a passenger rides, and the
+                    // figure's running average — the repaint's standing
+                    // test on a boat that steps ashore.
+                    u.inside_unit.map(|b| s.units[b].index),
+                    u.movement.body.avg_speed,
                     u.pos.x,
                     u.pos.y,
                     u.airframe.z,
