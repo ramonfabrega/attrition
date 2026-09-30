@@ -1891,6 +1891,10 @@ mod tests {
         // §99.13): the General `1/98`'s `idle`, `order:length` and
         // `orders.len`, ours 5, 0, 0 against 0, 1, 1 on 11411 → agreeing
         // to 11538; they part on 11539 (ours 3, 0, 0 against 0, 1, 1).
+        // **Item 1302** closes 11539: the tick's `ATTACK_TO` on 11508
+        // hands the first cast's craft back and `Unit::work` restarts its
+        // clock, so the second cast is laid on 11538 on both sides
+        // (`docs/AI.md` §99.14); 11539 is `1/79`'s `dest_angle` alone.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
@@ -1907,7 +1911,7 @@ mod tests {
                 (11414, 2),
                 (11445, 2),
                 (11513, 1),
-                (11539, 4),
+                (11539, 1),
                 (11542, 1)
             ],
             "the blocks keys first part on, to the window's end"

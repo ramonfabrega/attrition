@@ -12933,6 +12933,10 @@ the three things that chapter did not reach:
 - **The census.** `plan_strategy`'s unit census skips a decoy (`testb
   $0x1, 0x68(%esi)` at `6b9f57`; §2.3 step 10). Without it,
   `create_units` passed its military gate once more on 11780.
+- **The counts.** Both of `Unit::set_type`'s `track_unit_type` calls sit
+  behind `(unit_masks & 1) == 0`. The decoy Peltasts took the age's
+  upgrade after 11637, and without the test ours took `num_units` to −2
+  (run508's block 12577).
 
 **The value diff** (the state's first parting, walked back from the word):
 - run490's block 11411: `1/98`'s `spell_time` ours 0 against 1, and its
@@ -12947,7 +12951,9 @@ the three things that chapter did not reach:
 **East Indies 11637 → 12582.** Ours 9 draws against 10, parting at index
 4: the original spends `Leader::make_stuff+0x63d` where ours goes on to
 `Guy::set_anim+0x97a < Guy::inc_time+0x271`. It lies past run506, widened
-on run508 (block 12583). No mechanism is named.
+on run508 (block 12583). The first rows before it are on block 12581:
+who=1's `MAKE[5]` holds a Citizen order (`t` 50, `num` 4, `city` 2) that
+only the dump has. No mechanism is named.
 
 **Coverage.** Diff-backed:
 - the cast, its refund and its clock, by run490's and run506's rows of

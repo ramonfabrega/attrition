@@ -12537,3 +12537,50 @@ It parts on 2,069 keys: 571 stand on 9318 (the gap 9038..9317; 28 of
 who=1's units' positions among them), and on the word's block 9324 the AI
 scout `1/0` collides with `1/69` in ours alone. The coverage driver walks
 9322..9326 and the compared pin 9322..9325.
+
+## run508 — run346's game at run506's detail over blocks 12577..12833: the second pair's East Indies word 12582 widened (2026-09-30, item 1302)
+
+**What it is.** run506's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 12577..12833, and `!quit` at 12847. The word's frame 12582 writes
+block 12583, so the window is six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run508 \
+    --map 18 --end-frame 12847 --timeout 5400 --log-window 12577 12834 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** run506 ends at block 11888, and no
+other dump of run346's game prints the word's blocks at detail.
+
+**Taken** 15:53–16:20 in one take, after about 43 minutes waiting on run511
+(item 1305) for the lane. It was waited on with `waitrun.sh`: `success:
+true`, `settings_restored: true`, exit 0, 1,564 s from launch to exit,
+12,848 frames, map 18 and seed 12345 verified, five files restored. The dump
+(660,190,929 bytes, sha256 `04924948c14aed00…`) and the trace (104,034,080
+bytes, `3ca7227631c6c327…`) were moved into `Logs` as
+`gamelog-run508-islands-toughest-12582.txt` and `rontrace-run508.log`. The
+disk had 40 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 12,848 identical |
+| window blocks | 257, 12577..12833 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run508_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start.
+- Block 12577 stands on 210 keys.
+- The first rows before the word are on block 12581: who=1's `MAKE[5]`
+  holds a Citizen order (`t` 50, `cat` 5, `num` 4, `city` 2, `escrow` 1,
+  `val` 280519) that only the dump has, and `MAKE[0]`, `[2]` and `[6]`'s
+  `city` read 0 against ours' 1.
+- Block 12582 holds `MAKE[4]`'s `city` and `val`.
+- Block 12583 holds the four Citizens queued at `1/2017`,
+  and food 122 against 356.
+- The window parts on 1,817 keys.
+
+The coverage driver walks 12582..12585.

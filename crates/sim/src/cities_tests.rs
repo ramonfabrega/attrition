@@ -5058,6 +5058,28 @@ fn a_decoy_is_placed_by_its_general_s_collision_pair() {
     let _ = spell::CREATE_DECOY;
 }
 
+/// **A decoy's type change is no count of its leader's** (item 1302,
+/// `docs/AI.md` §99.14; both of `Unit::set_type`'s `track_unit_type` calls
+/// sit behind `(unit_masks & 1) == 0`). run346's decoy Peltasts took the
+/// age's upgrade after 11637, and without the test `num_units` went to −2
+/// on run508's block 12577.
+///
+/// Made to fail with the decoy test dropped.
+#[test]
+fn a_decoy_s_type_change_is_no_count_of_its_leader_s() {
+    let (mut sim, [_, militia, _, foot], _) = untargeted_sim();
+    let d = sim.init_unit(0, foot, tile_pos(30, 30));
+    sim.track_unit_type(0, foot, -1);
+    sim.units[d].decoy = true;
+    let before = (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]);
+    sim.unit_set_type(d, militia);
+    assert_eq!(sim.units[d].ty, Some(militia));
+    assert_eq!(
+        (sim.muster[0].by_type[foot], sim.muster[0].by_type[militia]),
+        before
+    );
+}
+
 /// **A paid cast that dies before its craft hands the craft back; one
 /// that ran its course does not, and the cast clock restarts under any
 /// other order** (item 1302; run346's `1/98`: the army's `ATTACK_TO`
