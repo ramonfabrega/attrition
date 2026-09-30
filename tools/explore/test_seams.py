@@ -116,7 +116,9 @@ class TheLiveTree(unittest.TestCase):
     # function this crate carries is struck, re-worded to say what of the
     # function is missing, or booked by the frame it holds (parked by the
     # twentieth pass). A new one is one of those three before it lands.
-    DOORS = 15
+    # 15 → 14: item 1223 built `disembark`'s squad arm, whose SEAM named
+    # `push_group` as missing.
+    DOORS = 14
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)

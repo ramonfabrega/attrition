@@ -11629,6 +11629,51 @@ The word's own block, 24001, is run383's closing dump:
 0 unlinked and 0 extra over 88 units. The coverage driver reads
 23997..24000.
 
+## run466 — chapter forty-three, the landing's arms (2026-09-30, item 1223)
+
+`docs/GOLDEN.md` §52, `tools/gamelog/golden/chapter43.cmd`: a barge put
+ashore standing on its figure's sixty-fourth frame, and two Hoplite barges
+whose passengers are a squad's, on chapter twenty's lake.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch43 \
+    --map 14 --end-frame 2200 --log-window 605 2200 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter43.cmd
+```
+
+00:30–01:05, 2,074 s launch to exit, `success: true`, 2,201 frames,
+685 MB, 816,640 `GROUPDATA` blocks, settings restored. The first launch
+(22:44) was refused before the game: `unattended_capture.py`'s lock was
+held while `ron_lane_state` said stale. This one ran after the profile
+was restored from run467's backup (below).
+
+**What the disk could not answer.** No capture on disk puts a boat ashore
+on its figure's phase frame, and none disembarks a squad.
+
+**What it holds**:
+- `chapter_forty_three_holds_to_the_golden_word` (1356, open);
+- `chapter_forty_three_s_word_frame_is_widened_whole` (to 1607, the pool);
+- the coverage driver's windows 1271 and 1357.
+
+## run467 — chapter forty-three with DEATHS beside GROUPS (2026-09-30, item 1223)
+
+run466's line into `~/ron-golden/ch43d` with `DEATHS=1` added to the end
+detail (parked 1105), 22:51–23:13 on 2026-09-29, 1,262 s, 2,201 frames.
+**The receipt refused it: `GROUPS was asked for and no GROUPDATA block was
+printed`** — run404's answer again, now on a take with a ground death in
+it (a who=1 Citizen, killed on 1486 in the walk).
+
+Its cleanup failed: another lane's `longtrace.sh` (item 1221) launched at
+23:13 as this runner's game exited, and the restore refused with a game
+running (`settings_restored: false`). That lane's game then wrote its own
+dump into this directory's `gamelog.txt` (MAP_STYLE 7, 1,851 frames), which
+it copied out. So the directory holds run467's trace and receipt and
+**not its dump**. The profile was restored from this directory's
+`settings-backup` (taken 22:51, before either launch) at 00:30:27 on
+2026-09-30, and `verify_restored` matched its 5 files.
 ## run464 — the held-out map's `DUMP_ALL` start, in run381's shape (2026-09-29, item 1222)
 
 **Map 9's sibling** (DECISIONS 56 §2): the height table, checksum trace,

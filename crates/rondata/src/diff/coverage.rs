@@ -619,6 +619,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch40 = golden_dump("ch40");
     let ch41 = golden_dump("ch41");
     let ch42 = golden_dump("ch42");
+    let ch43 = golden_dump("ch43");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1883,6 +1884,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 812, 819, 907, 1157] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-two carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-three, on run466** (item 1223): 1271, the barge
+    // put ashore on its phase frame; 1357, the word, the squad's boarding.
+    if let Some(p) = &ch43 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_THREE;
+        for w in [1271, 1357] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
             frames += n;
         }
     }

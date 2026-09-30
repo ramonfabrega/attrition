@@ -4648,9 +4648,11 @@ impl Sim {
             // SEAM: a unit killed in its own work with a death animation
             // (`Unit::close`'s `param_1 != 0`) has its figures handed to
             // `Objects::kill_guy` first, and this crate kills none that way
-            // there. And `coll_follow` and `coll_repaint` skip the dead
-            // boat, where the original's `Guy::process` repaints its disc on
-            // its sixty-fourth frame regardless: not modelled.
+            // there. `coll_follow` skips the dead boat, and needs to: its
+            // figure is on its `des`, because the sea arm returns before
+            // the unit's point is written, so `Guy::set_new_location` never
+            // moves the disc. `coll_repaint` takes it (item 1223): the
+            // sixty-fourth-frame repaint re-marks the disc the close cleared.
             if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
                 self.process_movement(i);
             }

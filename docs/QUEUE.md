@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, the commander after the twentieth pass: two landings.
-**East Indies' second word 8907 → 10183** (1214, `check_target`'s head
-in the idle search). 1222 measured the held-out map with its start
-sibling: **Himalayas 1851/1850**, for the record only (DECISIONS 56 §2).*
+*2026-09-30, the commander after the twentieth pass: three landings.
+**East Indies' second word 8907 → 10183** (1214); **chapter forty-three
+opens at 1356** (1223, a squad boarding its captain's barge); 1222
+measured the held-out map: **Himalayas 1851/1850**, for the record only.*
 
-- **Three lanes live: 1228, 1223, 1221.** 1223 took 1198's repaint and
-  `eject_contents`' squad arm (1175 closed by 1167). One capture lane.
+- **Three lanes live: 1228, 1221, 1235.** 1228 reports 10185 and 1221
+  Great Sahara at Toughest's first word 5376, neither landed.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **A brief is `python3 tools/brief.py <item> --kind residue|chapter`**
@@ -30,17 +30,17 @@ sibling: **Himalayas 1851/1850**, for the record only (DECISIONS 56 §2).*
   functions**, from the arms a landing parks as held by no walk.
 - **The user's**: whether phase 4 opens on the rules track alone; **the
   disk, 53 GiB free at 11.2 GB a tranche**; parked 1141 and 1142.
-- **Fable backlog: 14 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233).
+- **Fable backlog: 16 Loop items** (1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1199, 1225, 1226, 1227, 1233, 1234, 1240).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w10183 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
+Golden: ch43 w1356 of 2,201 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the commander resumes — three lanes live on 1228, 1221 and
-1223; two landings counted from the twentieth pass's commit.**
+1235; three landings counted from the twentieth pass's commit.**
 
 ## The queue
 
@@ -66,13 +66,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     first word is pinned with its widening. No mechanism is named. The
     third lane's.
 
-1223. **Chapter forty-three: the landing's arms that no walk holds**
-    (DECISIONS 56 §3): a boat that dies stepping ashore with its
-    passengers (parked 1198; 1191's mutations B and C failed nothing)
-    and `come_out`'s building arm beside it (parked 1175). Two arms, one
-    staging on the golden start; whether a staging reaches each is the
-    item's to establish first. `DEATHS=1` beside `GROUPS=1` rides its
-    take as a second stanza (parked 1105).
+1235. **Chapter forty-three's word: frame 1356, ours 8 draws against 6**
+    (1223), parting at index 2: ours `0/8`'s `Unit::do_move+0xe84` and
+    `Guy::set_anim+0x97a < Guy::move+0x19f`, the original neither;
+    widened on run466 (to 1607). Block 1357: `inside` of `0/8` and
+    `0/9` ours −1 against 10, and `0/9` holds its move. The item
+    before's hypothesis: `do_cast`'s captain check, a `SEAMS:` block.
 
 ## How to maintain this file
 

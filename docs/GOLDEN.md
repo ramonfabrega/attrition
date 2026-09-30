@@ -9234,3 +9234,83 @@ restored from git and touched:
   stale first slot: no caller here reaches it empty.
 - `agendas`' other bits (`0x40` in run16, the AI's diplomacy): read,
   compared, and written by nothing here.
+
+## 52. Chapter forty-three — the landing's arms no walk held: a barge put ashore standing on its figure's sixty-fourth frame, and a squad's barge (item 1223)
+
+**Premise.** Item 1191 built the dead boat's `Guy::process` and parked
+two arms no walk held (parked 1198): the whole of it (its mutation B)
+and every unit that dies in its own work (C). Parked 1175 said `come_out`'s
+building arm zeroed the body's speeds. What the listing says each needs:
+
+- **1175 is closed** — item 1167 kept the speeds (`come_out_place`), and
+  zeroing them adds `902 0/5 g.avg_speed[0]` to chapter forty's widening
+  (run430). No staging owed.
+- **The dead figure is on its `des`.** `Unit::set_new_location@005f8d20`'s
+  sea arm ejects, `die`s and returns before `+0x10`/`+0x14` are written,
+  so `Guy::set_new_location`'s `move_unit` never runs on the dead figure:
+  only `Guy::move`'s at-`des` arms and `Guy::process@005e0230`'s tail, the
+  sixty-fourth-frame repaint (`(frame + o) & 63 == 0`, `avg_speed` 0, not
+  air, `+0x248` non-zero, the figure's own `get_tregion`), are left.
+- **The crew loop is empty on every boat that carries**: Transport Barge,
+  Galleon, Freighter and both Merchant Fleets are `CREW_SIZE 0`,
+  `UBER_SIZE 1`. No staging reaches it.
+- **Mutation C has one unit in this crate**: [`Sim::disembark`] is the only
+  death inside a unit's own work, so C is the boat until another is built.
+- **`eject_contents@0064cd20`'s `+0x308 != 1` arm** — the passenger a
+  squad's — `Unit::reset_move_orders@005fd080(boat)` (each move's
+  `+0x44`/`+0x48` := its `x`/`y`), then, unless the passenger is AI-driven
+  and in an army: a stack group of the boat, `Group::set_up_insert` (its
+  action-flagged orders copied), `Group::kill(boat)`,
+  `Group::add(passenger)`, `Groups::push_group(who, g, 1)`,
+  `Group::finish_insert` on the slot. The path is not handed over.
+- Not staged: a passenger `come_out` refuses leaves `num_inside != 0`, and
+  the original's boat lives on carrying it (`005f8fd8`); this crate's dies
+  (`disembark`'s SEAM).
+
+**Built from the listing before the capture**: the dead boat in
+`Sim::coll_repaint` (`crate::collide`), and `Sim::disembark_squad`
+(`crate::transport`), each with a unit test.
+
+**The staging** (`chapter43.cmd`), walked on run460's start. The repaint
+marks nothing where the barge lies on a coastal cell's water half — the
+first two shores walked — and 28 water cells at tile (75, 162), where the
+lake's north-east shore runs. A barge stopped *on* the waterline takes
+its first step onto land, so its figure stands:
+- `0/6` Chariot → deep water (640), barge `0/10`, stopped at
+  (14572, 31200) from 1081; `@move` ashore on 1269, dead on 1270 with
+  `avg_speed` 0 and `(1270 + 10) % 64 == 0`;
+- the Hoplites `0/7`..`0/9` → deep water (1300); a who=1 Citizen beside the
+  Chariot (1400), killed on 1486; the two Hoplite barges onto `0/10`'s
+  point and a tile north (1560, 1562) and ashore (1900).
+
+**Run 2026-09-30 as run466**, click-free lane, `cover=0`, 685 MB, 2,074 s.
+**run467**, the second stanza with `DEATHS=1` beside `GROUPS=1` (parked
+1105): the take ran whole and the receipt refused it — no `GROUPDATA`
+printed, as run404's. Its dump was then overwritten by another lane's
+(`docs/RUNS.md`, run467).
+
+**The word: 1356, open.** The walk agrees to 1355 in sequence and values,
+the repaint landing on 1270 among it. On 1356 ours draws 8 against 6,
+parting at index 2: both sides cast `0/7`'s Transport and init its barge;
+ours then draws `0/8`'s `Unit::do_move+0xe84` and `Guy::set_anim+0x97a <
+Guy::move+0x19f`, which the original does not. **The value diff on block
+1357**: `0/8` and `0/9` `inside` ours −1 against 10 — the original's
+members are aboard their captain's barge; ours are ashore, and `0/9` casts
+its own on 1358. The widening (run466 to 1607, every record, the pool)
+parts nothing before the word but the standing families: the birth `form`
+(parked 1169), the first block's census (parked 1183), and the pushed
+squad's `order:group.id` on 1302.
+
+**Mutations**, each on the committed build, restored from git and touched:
+
+| mutation | held by |
+|---|---|
+| the dead boat's repaint off | its unit test alone: **no walk** — nothing in this crate reads a bare bit on a water cell (a boat's step asks `detect_boat_collision`), and the second barge's crossing is past the word |
+| the squad arm off | its unit test alone: **no walk** — the squad's landing (1901) is past the word |
+
+**What is not established.**
+- Whether the original's barge reads the ghost; run466 holds the crossing
+  (1561..1850), unwalked past the word.
+- The squad arm against a dump, and the refused passenger.
+- `DEATH` records beside `GROUPDATA`: with both asked no `GROUPDATA`
+  printed, twice.
