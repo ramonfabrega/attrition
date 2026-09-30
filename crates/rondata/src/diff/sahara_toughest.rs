@@ -1141,15 +1141,37 @@ mod tests {
             "run529 carries every key: {:?}",
             w.missing
         );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 9764's block 9765**: the original spends four
+        // `Unit::do_idle+0x7d` rolls on the Catapult `1/84` (`TypeIndex`
+        // 265) and ours three. Its figures already stand apart on the
+        // window's first block — the dark gap 9575..9758 lies between
+        // run511 and run529 — the original's crew on `cur_anim` 22 with no
+        // track offset, ours walking (8, 9) on offsets (−120, 0) and
+        // (72, 216).
+        pin_eq!(
+            row(1, 84, "g.cur_anim[1]").as_deref(),
+            Some("9759: ours 8 theirs 22"),
+            "the Catapult's crew, apart on the window's first block"
+        );
+        pin_eq!(
+            row(1, 84, "g.cur_time[2]").as_deref(),
+            Some("9765: ours 10 theirs 1"),
+            "the crew figure the word's roll resets"
+        );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9765 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [],
+            [(9759, 168), (9760, 1), (9763, 2), (9765, 2), (9766, 2), (9768, 1)],
             "the blocks keys first part on, to three past the word 9764's"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run529");
+        pin_eq!(w.firsts.len(), 1077, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):

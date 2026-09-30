@@ -197,9 +197,11 @@ const UNREAD: &[(&str, &str)] = &[
     // valueless line, so each name is a key of its own. run356's and
     // run357's windows are the first driven ones to hold a third British
     // city; the name is read by nothing, as `London` and `Norwich` are not.
+    // **Item 1332 added `York`**: run529's window, Great Sahara at
+    // Toughest past 9574, holds a city no earlier window did.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Newcastle Norwich flags increment length size",
+        "London Napata Newcastle Norwich York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
