@@ -113,6 +113,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the second pair's walks: it compares no field itself, and its widenings are harness.rs's",
     ),
     (
+        "diff/sahara_toughest.rs",
+        "the third map at Toughest's walks: it compares no field itself, and its widening is harness.rs's",
+    ),
+    (
         "diff/slots.rs",
         "a guard over the harness's own source: it reads no dump and compares no field",
     ),
