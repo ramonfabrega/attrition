@@ -12268,6 +12268,7 @@ row parts on 8181 (a Merchant, `TypeIndex` 61, at 936,170 here and Trade,
 and metal part (94/164, 76/21, 5/57) and `1/2017` queues `TypeIndex` 132
 where the original queues 178. The coverage driver walks 8181..8185 and
 the compared pin 8181..8184.
+
 ## run492 — chapter forty-five, `get_cost`'s library-line tail on the golden start (2026-09-30, item 1268)
 
 `docs/GOLDEN.md` §54, `tools/gamelog/golden/chapter45.cmd`: Despotism by
