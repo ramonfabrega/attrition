@@ -9428,12 +9428,21 @@ radii of 43 to 88 units. But every one lies 71–75 units from the pivot
 node's point `(−102, −59)` (§54).
 
 `GraphicEvents::execute_game_events@008e48e0`'s release, from the listing
-(`008e4a8a`–`008e4ae7`):
+(~~`008e4a8a`–`008e4ae7`~~ **`008e4c7d`–`008e4cdb`**: item 1257; the
+first range is the kind-5 event's, a unit put out of a carrier by
+`Unit::come_out` and `set_new_location`, and the release's `add_ammo`
+returns to `8e4ced`, `execute_game_events+0x40d`, the trace's own
+caller):
 
 - `get_position(piece, node = event +0x23, anim = event +0x8, time =
-  event +0xc, param_5 = (float)angle_to_degrees(package.angle −
-  0x8000_0000), param_6 = package.pivot_angles, param_7 =
-  has_restrictions(gpiece), &v, &dir)`, then `x, y, z += cvttss2si(v)`.
+  event +0xc, param_5 = ~~`(float)angle_to_degrees(package.angle −
+  0x8000_0000)`~~ **`fast_angle_to_degrees(package.angle −
+  0x8000_0000)`** (`8e4c7d`–`8e4ca1`: `leal −0x80000000(%ebx)`, `call
+  0xa28f70`, `movss %xmm0, (%esp)`), param_6 = package.pivot_angles,
+  param_7 = has_restrictions(gpiece), &v, &dir)`, then `x, y, z +=
+  cvttss2si(v)`. The two degree functions differ by up to two degrees:
+  the Bomb Vessel of run484 faces 354 by `angle_to_degrees` and 353 by
+  the table, and only 353 puts its rounds at the dump's offset (`docs/GOLDEN.md` §53).
 - `package.pivot_angles[k]` is `fast_angle_to_degrees(turret_angles[k])`
   (`Guy::execute_events@005d99c0`, `005d9a2e`–`005d9a6d`), zero when all
   four are zero.
@@ -9456,8 +9465,8 @@ node's point `(−102, −59)` (§54).
   3] + param_5)` (`90b916`–`90b926`), both floats whole numbers;
 - y negated, all scaled by `guy_scale × RData +0x88`.
 
-So, with `d₁` the facing's degree and `t` the turret's step, both
-integers:
+So, with `d₁` the facing's degree **by the table** (`sim::pivot::
+release_rotation`) and `t` the turret's step, both integers:
 
 ```text
 v = s · (R(d₁)·P + R(d₁ + t)·E), y negated, each component truncated once
@@ -9556,16 +9565,20 @@ stays idle. Nothing is named for it.
 
 ### 55.5 What is not established
 
-- **The turned chariot's turret.** After `0/8` turns to 61.7° on 711,
+- ~~**The turned chariot's turret.** After `0/8` turns to 61.7° on 711,
   both of its rounds (729, 753) need a turret step of 1°. The bearing
   from the node gives `des` 0.06°, step 0, and this crate's is that. Only
   a turret between 1.4° and 2.8° reproduces the dump, and no reading so
   far gives one: the target stands still from 700, and the node, the
   facing and `fast_angle_to_degrees`' table are all measured. `GUYS=2`
   prints no turret. A `GUYS=4` capture over 705–760 on chapter three's
-  staging answers it in one run.
+  staging answers it in one run.~~ **Answered by item 1257 without a
+  capture** (`docs/GOLDEN.md` §53): the release's `d₁` is `fast_angle_to_degrees`', 240
+  at 61.7° less a half turn where `angle_to_degrees` gives 242, and with
+  it both rounds leave from the dump's point at the turret this crate
+  already has.
 - **Every other pivot piece that releases.** Only the Chariot's piece
-  145 has rows. Any other releases through §22's table, or from the
+  145 has rows, and the Bomb Vessel's 296 (`docs/GOLDEN.md` §53). Any other releases through §22's table, or from the
   unit's point, and skips the `node_flags` gate.
 - **`Unit::move_step`'s cavalry-archer arm** (`unit_flags & 0x200000`,
   which the Chariot's `v` sets). It re-aims every figure on
@@ -9577,13 +9590,17 @@ stays idle. Nothing is named for it.
 
 ### 55.6 Coverage
 
-- **Diff-backed**: 19 of the 21 live chariot rounds of run145 and
-  run146, launch point, height, angle and arc, on every block they print
-  (the chapter's widening; the other two are §55.5's turned chariot); chapter three's run145 draw stream and values to 900, and
+- **Diff-backed**: ~~19 of the 21~~ **all 21** live chariot rounds of
+  run145 and run146 (item 1257: the turned chariot's two with the
+  table's `d₁`), launch point, height, angle and arc, on every block they
+  print (the chapter's widening); the Bomb Vessel's three rounds of
+  run484 (`docs/GOLDEN.md` §53); chapter three's run145 draw stream and values to 900, and
   run146's to 780; the flag bits on every round.
 - **Oracle-backed** (the original's `get_position` under unicorn on
   run147's packet): the pivot branch on all 369,664 cells; the four rows'
-  entries; `fast_angle_to_degrees`' table.
+  entries; `fast_angle_to_degrees`' table. On run486's packet (item
+  1257, `tools/recomp/get_position.py`): piece 296's seven entries, its
+  scale, 277,248 release cells and its node's 361 degrees.
 - **Listing-backed**: the release call's arguments, the pivot branch's
   nested call and rotation, `set_all_pivots`' writes, `Guy::process`'
   step, the gate.

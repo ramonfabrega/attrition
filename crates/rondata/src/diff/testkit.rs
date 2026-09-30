@@ -1559,11 +1559,22 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **7070 since item 1251**: run470 parts on frame 7070, **ours 3213 draws
-/// against the original's 2552, at index 2545** — ours spends a
-/// `PathFinder::calc_road_cost+0x46` where the original's next is a
-/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Widened on run483 (block
-/// 7071).
+/// **7785 since item 1260**: run470 parts on frame 7785, **ours 23 draws
+/// against the original's 17, at index 4** — both spend two
+/// `Leader::use_market+0x1ed` and open a placement
+/// (`Leader::produce_building+0x1805 < make_this`), ours three of its draws
+/// against two, where the original's next is `Leader::make_stuff+0x221`.
+/// Widened on run488 (block 7786).
+///
+/// It was **7070** before that (item 1251), ours 3213 against 2552 at index
+/// 2545: caravan `1/52`'s road from `1/2007` to `1/2022` ran to the budget
+/// where the original's arrived, because ours had swept away (148..150, 123)
+/// on 6949 — the tile beside the Farm's footprint claimed nothing once its
+/// east was zeroed, until `RoadsOut::leech_codes` lent it back (`docs/ROADS.md`
+/// §11). **The move's value diff**, run483's trace on 7070: node 1129,
+/// tile (150, 123), ours 114 against 37 → both 37, and the search 3204
+/// nodes against 2543 → 2543 node for node; run483 parts on 134 keys where
+/// it parted on 745.
 ///
 /// It was **5782** before that (item 1241), ours 14 against 13 at index 3:
 /// a `Leader::make_stuff+0x63d` the original did not spend, who=1 queuing a
@@ -1580,7 +1591,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 11_328;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 7_070;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 7_785;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5161,19 +5172,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// the human's Bomb Vessel `0/6` refuses the computer's `1/2007` on both
 /// sides to the capture's end.
 ///
-/// **The word is 670**: ours 9 draws against 10, parting at index 3,
-/// where the original spends `Object::take_damage+0xe1` — the first
-/// round landing on `0/2007` — and ours `Farms::inc_time+0x1ae`. The
-/// value diff on block 671: `0/2007` `damage` ours 0 against 122, and
-/// `1/6`'s round (`traj 1`, `total_time` 39, `cur_time` 38 on block 670
-/// on both sides) gone from the original's dump and still in flight
-/// here. Standing from block 631: `1/6`'s turret, ours 94568448 against
-/// 96862208.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 670;
+/// ~~**The word was 670**~~ (item 1254): ours 9 draws against 10 at
+/// index 3, where the original spends `Object::take_damage+0xe1`, the
+/// first round landing on `0/2007`.
+///
+/// **Item 1257: the chapter closes at 1450**, the capture's end, word,
+/// sequence and values. The round flew 40 frames here against 39 because
+/// it left from the ship's own square: `1/6`'s release goes through
+/// `get_position`'s pivot branch (`docs/COMBAT.md` §55) with the Bomb
+/// Vessel's piece 296, which `sim::pivot` had no rows for, and at
+/// `fast_angle_to_degrees` of its facing, 353, not `angle_to_degrees`'
+/// 354. The value diff on block 633, the round's first: `sx, sy, sz`
+/// ours `(21288, 14712, 0)` against `(21301, 14867, 134)`, `total_time`
+/// 40 against 39, `angle` −2123169792 against −2120286208, `ex` 21154
+/// against 21155; all agree now. The turret on block 631, ours 94568448
+/// against 96862208, was the same piece's missing pivot node.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 
 /// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
-/// from 605, the word's block 671 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 921);
+/// whole, 605 to its end (block 1449 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 1451);
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).
@@ -7419,13 +7437,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The third map at Toughest** (DECISIONS 56 §1): its first word, 5376,
     // past run469's 1,850 blocks, was widened on run471 over 5371..5627
     // (item 1221); the word 5782 on run476 over 5777..6033 (item 1241); the
-    // word 7070 on run483 over 7065..7321 (item 1251).
+    // word 7070 on run483 over 7065..7321 (item 1251); the word 7785 on
+    // run488 over 7780..8036 (item 1260).
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run483_s_word_frame_is_widened_whole"),
-        1251,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7070),
+        Some("run488_s_word_frame_is_widened_whole"),
+        1260,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_7785),
     ),
 ];
 

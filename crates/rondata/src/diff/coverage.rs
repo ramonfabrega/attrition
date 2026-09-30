@@ -681,6 +681,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
     let r476 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5782);
     let r483 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7070);
+    let r488 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_7785);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1358,6 +1359,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_7071;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run483 carries the third map's word 7070 at Toughest");
+        frames += n;
+    }
+    // **And its word 7785, on run488** (item 1260): the frame writes block
+    // 7786, and the window is it with two either side.
+    if let Some(p) = &r488 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_7786;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run488 carries the third map's word 7785 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2195,6 +2204,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`)
     // and `coll_x`/`coll_y` are compared there, and leave this pin
     // (measured on the tree merged with 1241's and 1248's).
+    // **Item 1260 moved the Toughest window to run488's 7784..7787**, where
+    // a move's `coll` pair has left `(0, 0)`: `coll_x`/`coll_y` are compared
+    // on the union, and stay off this pin.
     // **Item 1264 moved it to run490's 11327..11330**, where no cast order
     // stands: `cast_paid` and `cast_spell` return to this pin; the group
     // row and `coll_x`/`coll_y` are still compared there.
