@@ -1308,10 +1308,13 @@ impl Sim {
             }
         }
         self.units[boat].health = 0;
-        // `Object::die(boat, 0, −1, 0)`: `close`, whose `Object::close`
-        // holds the number thirty frames (`docs/COMBAT.md` §59.3). East
-        // Indies' barge `1/62` and Merchant Fleet `1/59` were reused here
-        // at once, and the original's next births took the numbers above.
+        // `Object::die(boat, 0, −1, 0)`: `close`, whose `close_orders`
+        // takes what the passengers were not handed, and whose
+        // `Object::close` holds the number thirty frames (`docs/COMBAT.md`
+        // §59.3). East Indies' barge `1/62` and Merchant Fleet `1/59` were
+        // reused here at once, and the original's next births took the
+        // numbers above.
+        self.close_dead_orders(boat);
         self.hold_dead_slot(boat);
         self.units[boat].on_map = false;
         self.coll_remove(boat);

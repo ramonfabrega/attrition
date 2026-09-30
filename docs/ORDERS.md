@@ -1849,9 +1849,12 @@ arms — `check_gatherers` clears it only on a head drop, so
 `UnitData::gather_down` is not a reliable "am I registered" field; only the
 walk is (R4 G11, G12). `check_gatherers@0062f710`: prune every member that is dead,
 not `is_gathering_at(this)` or off the map. `is_gathered_by(o)`: membership.
-`all_gathering@0062f570`: every member's first order is a gather with
-`goto_build == 0` and `wait ≥ 0` (all out at their tiles); an empty chain is
-true. `gather_max` comes from `BuildTypeData::max_gatherers@0063c430` — **1 for
+`all_gathering@0062f570`: **`check_gatherers` first** (`62f573`), then
+every member's first order is a gather with `goto_build == 0` and `wait ≥ 0`
+(all out at their tiles); an empty chain is true. **A unit that dies leaves
+the chain on that frame**: `Unit::close@0060ee50` ends in `close_orders(this,
+flags & 1)` (`60fa1c`), and the gather order's `kill_current_order` arm is
+the `remove_gatherer` (item 1248, `docs/GOLDEN.md` §52). `gather_max` comes from `BuildTypeData::max_gatherers@0063c430` — **1 for
 a flat type** (`build_flags & 0x10000000`), else `calc_gather`'s slot output
 (`docs/ECONOMY.md`'s open item).
 

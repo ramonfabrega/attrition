@@ -3083,7 +3083,9 @@ impl Sim {
                 }
                 if !self.units[u].captain {
                     self.units[u].health = 0;
-                    // `Unit::die`, and `Object::close`'s hold (§59.3).
+                    // `Unit::die`: `Unit::close`'s orders, and
+                    // `Object::close`'s hold (§59.3).
+                    self.close_dead_orders(u);
                     self.hold_dead_slot(u);
                     continue;
                 }
@@ -4728,8 +4730,10 @@ impl Sim {
         let killed = !unit.alive();
         if killed {
             self.relink_squad(i);
-            // `Object::take_damage`'s `die`, and `close`'s thirty-frame
-            // hold on the number (`docs/COMBAT.md` §59.3).
+            // `Object::take_damage`'s `die`: `Unit::close`'s orders, and
+            // `close`'s thirty-frame hold on the number (`docs/COMBAT.md`
+            // §59.3).
+            self.close_dead_orders(i);
             self.hold_dead_slot(i);
             self.close_supply(i);
         }

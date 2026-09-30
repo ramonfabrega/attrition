@@ -1640,6 +1640,7 @@ impl Sim {
         }
         self.relink_squad(u);
         let me = crate::combat::Obj::Unit(u);
+        self.close_dead_orders(u);
         self.hold_dead_slot(u);
         self.close_supply(u);
         self.forget(me);

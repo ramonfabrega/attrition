@@ -647,6 +647,73 @@ pub enum Issued {
     },
 }
 
+impl Issued {
+    /// The objects a line names, and whether they are buildings: the list
+    /// `tracer.c`'s `issue_line` checks one by one before it issues
+    /// anything. `@eject`, `@alarm`, `@buildmask`, `@queueup`, `@unqueue`,
+    /// `@gatherpoint` and the `@launch` verbs name buildings; every other
+    /// verb names units.
+    fn named(&self) -> (i32, &[i16], bool) {
+        match self {
+            Issued::Move { who, objects, .. }
+            | Issued::Patrol { who, objects, .. }
+            | Issued::Guard { who, objects, .. }
+            | Issued::Follow { who, objects, .. }
+            | Issued::Garrison { who, objects, .. }
+            | Issued::Form { who, objects, .. }
+            | Issued::Attack { who, objects, .. }
+            | Issued::AttackMove { who, objects, .. }
+            | Issued::Explore { who, objects, .. }
+            | Issued::Flee { who, objects, .. }
+            | Issued::Flight { who, objects, .. }
+            | Issued::Strike { who, objects, .. }
+            | Issued::Build { who, objects, .. }
+            | Issued::Spell { who, objects, .. }
+            | Issued::SetTransport { who, objects, .. }
+            | Issued::Repair { who, objects, .. }
+            | Issued::Gather { who, objects, .. } => (*who, objects, false),
+            Issued::Eject { who, buildings }
+            | Issued::Alarm { who, buildings }
+            | Issued::Buildmask { who, buildings, .. }
+            | Issued::QueueUp { who, buildings, .. }
+            | Issued::Unqueue { who, buildings, .. }
+            | Issued::GatherPoint { who, buildings, .. }
+            | Issued::LaunchPatrol { who, buildings, .. }
+            | Issued::LaunchStrike { who, buildings, .. } => (*who, buildings, true),
+        }
+    }
+}
+
+/// **The DLL's refusal 3** (`tracer.c`'s `issue_line`): an object the line
+/// names that is not live, not `who`'s or — for a unit verb — not a
+/// captain refuses the **whole line**, and nothing is issued. The check
+/// runs over every name before the group is built, so a line naming one
+/// live captain beside a missing number moves nobody.
+///
+/// run466 measures it: chapter forty-three's `1900 @move 0 15360 31200 10
+/// 11` names the barge `0/10` and an `0/11` the original never made, and
+/// its trace's `I_ISSUE` on 1900 carries refusal 3 with object 11 — the
+/// barge stays at (14572, 31200) to the capture's end. This crate moved
+/// `0/10` alone and put the squad ashore on 1901 (item 1248,
+/// `docs/GOLDEN.md` §52).
+fn refused_object(built: &Built, issued: &Issued) -> Option<i16> {
+    let (who, named, on_buildings) = issued.named();
+    let player = who as sim::Player;
+    named.iter().copied().find(|&o| {
+        if on_buildings {
+            return built.sim.building_by_o(player, o).is_none();
+        }
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .filter(|&u| built.sim.units[u].alive())
+            .or_else(|| built.sim.unit_by_o(player, o));
+        unit.is_none_or(|u| !built.sim.units[u].captain)
+    })
+}
+
 /// The ctrl and alt bytes a launch line carries (item 1009): `ctrl` keeps
 /// the Bomber line, `alt` the Biplane line.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -1006,6 +1073,13 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
+    if parse_issuer(&line.text).is_some_and(|i| refused_object(built, &i).is_some()) {
+        done.skip(
+            &word,
+            "a named object is not a live captain of who's: the DLL's refusal 3",
+        );
+        return;
+    }
     // `@patrol` is `issue_patrol@00941800` with `QUEUE_NEW`, a `group` and
     // a `patrol`, whose entry is [`crate::input::group_patrol`] (item 693).
     let n = match parse_issuer(&line.text) {
@@ -2640,6 +2714,60 @@ mod tests {
         assert_eq!(parse_coord("x"), None);
         assert_eq!(parse_pos("4,40"), Some(Pos::new(864, 7776)));
         assert_eq!(parse_pos("4"), None);
+    }
+
+    /// **A line naming one object that is not a live captain moves
+    /// nobody** — the DLL's refusal 3 (`tracer.c`'s `issue_line` checks
+    /// every name before it builds the group). run466's `1900 @move 0
+    /// 15360 31200 10 11` names the barge `0/10` and an `0/11` that was
+    /// never made, and its trace's `I_ISSUE` on 1900 carries refusal 3 with
+    /// object 11 (item 1248, `docs/GOLDEN.md` §52). The same line without
+    /// the 11 issues, and a squad member that is not its captain refuses
+    /// it again. Made to fail by taking the check out of `issue`: the
+    /// barge takes the move.
+    #[test]
+    fn an_issuer_line_naming_a_missing_object_is_refused_whole() {
+        let mut sim = sim::Sim::new(sim::Tuning::RON, sim::World::new(60, 60), 2);
+        let mut barge = sim::Unit::new(0, 10, sim::Pos::new(14572, 31200), 50);
+        barge.on_map = true;
+        let barge = sim.add_unit(barge);
+        let mut member = sim::Unit::new(0, 12, sim::Pos::new(14000, 31200), 50);
+        member.on_map = true;
+        member.captain = false;
+        sim.add_unit(member);
+        let mut built = Built {
+            gaia_reseat_skip: None,
+            correction_audit: None,
+            sim,
+            units: vec![],
+            builds: vec![],
+            region_map: vec![],
+            notes: vec![],
+            frame_seeds: vec![],
+            rng_frames: vec![],
+            frame_guys: vec![],
+            frame_sites: vec![],
+            type_index: vec![],
+            unit_tree: vec![],
+        };
+        let refused = |built: &Built, text: &str| {
+            refused_object(built, &parse_issuer(text).expect("an issuer line"))
+        };
+        assert_eq!(refused(&built, "@move 0 15360 31200 10 11"), Some(11));
+        assert_eq!(refused(&built, "@move 0 15360 31200 10"), None);
+        assert_eq!(
+            refused(&built, "@move 0 15360 31200 10 12"),
+            Some(12),
+            "not a captain"
+        );
+        let script = Script::parse("1900 @move 0 15360 31200 10 11\n");
+        let mut done = Applied::default();
+        issue(&script.lines()[0], &mut built, &mut done);
+        assert_eq!(done.ran, 0);
+        assert!(
+            built.sim.units[barge].orders.is_empty(),
+            "the barge takes nothing"
+        );
     }
 
     /// A line on the wrong side of `run_cmd`'s two disjoint switches

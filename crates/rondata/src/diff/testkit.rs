@@ -5040,7 +5040,8 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
 pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 
 /// Chapter forty-three's golden word (item 1223, `docs/GOLDEN.md` §52,
-/// run466): the landing's arms no walk held — **open at 1552**.
+/// run466): the landing's arms no walk held — **2200, closed**, sequence
+/// and values.
 ///
 /// **The delta: 1356 → 1552, item 1235** — the squad boards whole
 /// (`Unit::go_inside@0061a2e0`'s `o_down` walk, `docs/TRANSPORT.md` §17).
@@ -5048,17 +5049,29 @@ pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
 /// sides (ours had −1), and `0/9`'s `orders.len` 0 on both (ours had 1,
 /// its `orders_x` 11928 against the original's 7870).
 ///
-/// **The word, 1552**: ours 31 draws against 30, parting at index 27 —
-/// ours' who=1 Citizen `1/2` draws `Unit::do_non_flat_gather+0xcc3` where
-/// the original draws the bird `9/6`'s `Guy::set_anim+0x104b`, and the
-/// original's gather roll comes on 1553 (`Guy::set_anim+0x97a <
-/// Unit::do_non_flat_gather+0xb99`). The value diff on block 1553:
-/// `1/2` `order:gather.wait` ours 324 against −1.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 1552;
+/// **1552 → 1901, item 1248: a dead gatherer leaves its chain.** 1552 was
+/// ours 31 draws against 30, parting at index 27: ours' who=1 Citizen
+/// `1/2` rerolled its chop at `Unit::do_non_flat_gather+0xcc3` where the
+/// original set −1 and walked home on 1553. The state first parted on
+/// block 1488: `1/2001`'s `gather_down` ours 6 (the Citizen `1/6`, dead
+/// on 1487) against 2 — `Unit::close` closes a dead unit's orders, and
+/// the gather arm's `remove_gatherer` takes it off the chain — and
+/// `Build::all_gathering` prunes before it walks. On 1488 `gather_down`
+/// is 2 on both sides, and on 1553 `1/2`'s `order:gather.wait` −1 on
+/// both.
+///
+/// **1901 → 2200, closed, the same item: the DLL's refusal 3.** 1901 was
+/// ours 4 draws against 3, parting at index 0 with the barge `0/10`'s
+/// `Guy::set_anim+0x97a < Guy::move+0x19f`: ours moved `0/10` ashore
+/// on `1900 @move 0 15360 31200 10 11`, and the original's trace refuses
+/// the whole line for the `0/11` it never made. The value diff on block
+/// 1902: `0/7`..`0/9` `inside` 10 on both sides (ours had −1, put
+/// ashore), and `0/10` at (14572, 31200) on both to the capture's end.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
-/// from 605, the word's block 1553 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 1803);
+/// whole, 605 to its end (block 2199 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_THREE: (i64, i64) = (605, 2201);
 
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
@@ -7134,8 +7147,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1223: run466, chapter forty-three, the landing's arms; open at
-    // 1552 (item 1235), who=1's gather. The widening is run466 to 1803.
+    // Item 1223: run466, chapter forty-three, the landing's arms; closed at
+    // 2200 (item 1248). The widening is run466 whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_THREE",
         GOLDEN_WORD_CHAPTER_FORTY_THREE,

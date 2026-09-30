@@ -30,9 +30,16 @@
 #  1400 `add citizen who=1 82,163`                  X 1/6 beside C: a ground
 #                                                   death, for run467's DEATHS
 #  1560 `@move 0 14572 31200 10`                    B2 onto B1's own point
-#  1562 `@move 0 14572 31008 11`                    B3 a tile north of it
+#  1562 `@move 0 14572 31008 11`                    B3 a tile north of it:
+#                                                   refused (no B3)
 #  1900 `@move 0 15360 31200 10 11`                 B2 and B3 ashore: the
-#                                                   squad arm, 1901 and 1910
+#                                                   DLL refuses the whole
+#                                                   line for the absent
+#                                                   `0/11` (refusal 3, item
+#                                                   1248), so B2 stays at
+#                                                   the waterline, the
+#                                                   squad aboard, and the
+#                                                   squad arm is not staged
 #
 #   run466 (item 1223), the take:
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch43 \
@@ -83,6 +90,11 @@
 # - 1901: B2 dead, 0/7 ashore holding a group move to (15384, 31368); 0/8
 #   walks from the west shore with its own; 1910: B3 dead, 0/9 ashore.
 # - 1921, 1931: 0/7 and 0/9 at their points.
+# - Run466 answers otherwise (item 1248): the 1900 line names an `0/11`
+#   that was never made, and the DLL refuses the whole line (the trace's
+#   `I_ISSUE` on 1900, refusal 3, object 11). B2 stands at the waterline
+#   with the squad aboard to the capture's end, and falsifier 3 has
+#   nothing to read.
 #
 # ---------------------------------------------------------------------------
 # THE FALSIFIERS, and where each could first fire. The walk prints the

@@ -9310,17 +9310,51 @@ has `1/6` on 1487 and not 1488; ours dropped it a block early before):
 what is left there is `gather_down` on its gather list and a `DEATH`
 record the capture does not print at its end detail.
 
-**The word: 1552, open.** Ours 31 draws against 30, parting at index 27:
-ours' who=1 Citizen `1/2` draws `Unit::do_non_flat_gather+0xcc3`, the
-original the bird `9/6`'s `Guy::set_anim+0x104b`, and the original's
-gather roll comes on 1553 (`Guy::set_anim+0x97a <
-Unit::do_non_flat_gather+0xb99`). The value diff on block 1553: `1/2`
-`order:gather.wait` ours 324 against −1. Before it the widening (run466
-to 1803, every record, the pool) parts only in the standing families and
-in rows item 1223 pinned: `0/10`'s `path_recursion` on 1357, the
-treaties on 1404 and the raid stamp on 1426 (the Citizen's staging), the
-Chariot's turret on 1479, and on 1488 `1/2001`'s `gather_down[-1]`, ours
-6 (the dead Citizen) against 2.
+**1552 → 1901, item 1248: a dead gatherer leaves its chain the frame it
+dies.** 1552 was ours 31 draws against 30, parting at index 27: ours'
+who=1 Citizen `1/2`, chopping at `1/2001`'s tile, ran its wait to 0 and
+rerolled at `Unit::do_non_flat_gather+0xcc3` (`% 100 + 300`, 324 on
+block 1553), where the original's `all_gathering` answered yes, set −1,
+and walked home on 1553 (`+0xb99`). Walked back, the state first parted
+on **block 1488**: `1/2001`'s `gather_down`, ours 6 against 2. `1/6`,
+the Citizen staged on 1400, had joined the chain's head walking to its
+tile and died to the Chariot on 1487; ours left it there, so
+`all_gathering` read its walk and answered no. Two rules of the original
+put it right, and each has a unit test:
+- **`Unit::close@0060ee50` closes the dead unit's orders**: its last
+  call before `Object::close` is `close_orders(this, flags & 1)`
+  (`60fa1c`), each order through `kill_current_order(1)`, whose gather
+  arm calls `Build::remove_gatherer` (`kill_current_order@005e2cb0:104`).
+  The `1` gates only the move family's facing hand-back (`5e3026`) of
+  the arms this crate carries. Built as `Sim::close_dead_orders` on every
+  death: damage, attrition, the missile's, the upgrade's trim and the
+  boat that dies ashore.
+- **`Build::all_gathering@0062f570` prunes first**: `62f573` calls
+  `check_gatherers` before the walk.
+
+On block 1488 `gather_down` is 2 on both sides; on 1553 `1/2`'s
+`order:gather.wait` is −1 on both; everything item 1235 pinned from 1553
+to 1803 agrees.
+
+**1901 → 2200, closed, the same item: the DLL's refusal 3.** 1901 was
+ours 4 draws against 3, parting at index 0: the barge `0/10`'s
+`Guy::set_anim+0x97a < Guy::move+0x19f` on its step ashore. The line is
+`1900 @move 0 15360 31200 10 11`, and `0/11` was never made (item 1235).
+`tracer.c`'s `issue_line` checks every name before it issues and refuses
+the **whole line** if one is not a live captain of `who`; run466's trace
+carries that `I_ISSUE` on 1900, refusal 3, object 11. Ours moved `0/10`
+alone. **The value diff on block 1902**: `0/7`, `0/8` and `0/9` `inside`
+10 on both sides (ours had −1, put ashore at (14712, 31224) and near it),
+and `0/10` alive at (14572, 31200) on both; the original's barge stands
+there to 2199. The pump now refuses the line as the DLL does
+(`rondata::golden`'s `refused_object`). **Sequence and values agree to
+2200**, and the widening, run466 whole, parts in 43 rows, every one a
+standing family: the birth `form` (parked 1169), the first block's census
+(parked 1183) and `filled_gather_slots`, the pushed squad's
+`order:group.id` on 1302, the barge's `path_recursion` on 1357, the
+treaty and raid stamps of the Citizen's staging, the Chariot's turret on
+1479, and `1/6`'s `DEATH` record on 1488, which the capture does not print
+at its end detail. The pool agrees whole.
 
 **Mutations**, each on the committed build, restored from git and touched:
 

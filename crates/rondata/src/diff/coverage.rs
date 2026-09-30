@@ -1899,10 +1899,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // **Chapter forty-three, on run466** (item 1223): 1271, the barge
     // put ashore on its phase frame; 1357, the squad's boarding (item
-    // 1235); 1553, the word, who=1's gather.
+    // 1235); 1553, who=1's gather with its dead gatherer gone, and 1902,
+    // the refused landing, the squad aboard (item 1248).
     if let Some(p) = &ch43 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_THREE;
-        for w in [1271, 1357, 1553] {
+        for w in [1271, 1357, 1553, 1902] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-three carries the window's five blocks");
             frames += n;
