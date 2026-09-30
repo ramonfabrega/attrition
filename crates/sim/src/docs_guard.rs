@@ -2077,7 +2077,6 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("sim/src/group.rs", 5),
     ("sim/src/lib.rs", 2),
     ("sim/src/orders.rs", 12),
-    ("sim/src/pivot.rs", 1),
     ("sim/src/rally.rs", 5),
     ("sim/src/roads.rs", 1),
     ("sim/src/site_recruit.rs", 2),
