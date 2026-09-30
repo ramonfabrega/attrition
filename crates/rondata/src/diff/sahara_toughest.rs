@@ -688,15 +688,48 @@ mod tests {
             "run491 carries every key: {:?}",
             w.missing
         );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The make list parts before the word**: on 8181 who=1's fifth
+        // row is a Merchant (`TypeIndex` 61, `unitrules.xml`) at 936,170
+        // here and Trade (`TypeIndex` 560, `techrules.xml`) at 307,560
+        // there. On the word's block 8183 who=1's food, timber and metal
+        // part (94/164, 76/21, 5/57) and `1/2017` queues `TypeIndex` 132
+        // where the original queues 178.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[4].t").as_deref(),
+            Some("8181: ours 61 theirs 560"),
+            "who=1's fifth make row"
+        );
+        pin_eq!(
+            row(1, -1, "leader:MAKE[4].val").as_deref(),
+            Some("8181: ours 936170 theirs 307560"),
+            "its offer"
+        );
+        pin_eq!(
+            row(1, -1, "leader:bucket[0:food]").as_deref(),
+            Some("8183: ours 94 theirs 164"),
+            "the word's block: who=1's food"
+        );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8183 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(0, 0)],
+            [
+                (8177, 136),
+                (8178, 1),
+                (8181, 8),
+                (8183, 14),
+                (8184, 14),
+                (8186, 5)
+            ],
             "the blocks keys first part on, to three past the word's"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run491");
+        pin_eq!(w.firsts.len(), 967, "every key parted on run491");
     }
 
     /// **The goods, every frame to the first word's block** (item 1251):

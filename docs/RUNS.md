@@ -12221,3 +12221,50 @@ item): piece 296's seven entries and its scale 0.8; the original's
 `angle_to_degrees` gives 354. The tables are in
 `~/ron-data/lab-experiments/2026-09-30-item-1257/`. `docs/GOLDEN.md` §53.
 run487 was reserved and not used.
+
+## run491 — run470's game at run488's detail over blocks 8177..8433: the third map's word 8182 at Toughest widened (2026-09-30, item 1264)
+
+**What it is.** run488's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8177..8433, `!quit` at 8447. The word's frame 8182 writes block
+8183: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run491 \
+    --map 7 --end-frame 8447 --timeout 4800 --log-window 8177 8434 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1264's Keep
+conversion moved Great Sahara at Toughest's word from 7785 to 8182; run488
+ends at block 8036 and run470 prints `MISC` alone.
+
+**Taken** 06:34:37–06:54:39 in one take. The lane was held by another
+lane's capture (pid 32921, from 06:12:52); run491's launcher waited on
+`ron_lane_state` for 20 minutes. The first launch, at 06:34:06, came as
+that lock read stale while its `flock` was still held, and
+`unattended_capture.py` refused with `BlockingIOError` before staging
+anything; the second, 31 s later, took it. Waited on with `waitrun.sh`:
+`success: true`, `settings_restored: true`, exit 0, 1,173 s from launch to
+exit, 8,448 frames, map 7 and seed 12345 verified, five files restored. The
+dump (530,155,767 bytes, sha256 `6178dae7a2a6837b…`) and the trace
+(45,947,552, `5e20430a914f3dbc…`) were moved into `Logs` as
+`gamelog-run491-greatsahara-toughest-8182.txt` and `rontrace-run491.log`.
+The disk had 42 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 8,448 identical |
+| window blocks | 257, 8177..8433 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run491_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head.
+It parts on 967 keys: 136 stand on 8177 (who=1's `known_rares` 4 against
+0, `leftover[2:wealth]` 1398 against 7062 among them), who=1's fifth make
+row parts on 8181 (a Merchant, `TypeIndex` 61, at 936,170 here and Trade,
+560, at 307,560 there), and on the word's block 8183 who=1's food, timber
+and metal part (94/164, 76/21, 5/57) and `1/2017` queues `TypeIndex` 132
+where the original queues 178. The coverage driver walks 8181..8185 and
+the compared pin 8181..8184.
