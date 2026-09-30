@@ -749,9 +749,8 @@ impl Sim {
     /// `SpellType::init`: 150 and 75 frames), `unit_masks |= 0x8000` and
     /// the leader's `0x8000` (`docs/AI.md` §99.13).
     ///
-    /// SEAM: what the march does — `UnitData::speed`'s
-    /// `forced_march_speed` for every unit `HeroesData::find_hero` puts
-    /// near a marching hero of its leader's — is not carried.
+    /// What the march does is [`Sim::unit_speed`]'s and the group's
+    /// `march` flag's (`docs/AI.md` §99.14).
     pub(crate) fn cast_march(&mut self, g: usize) {
         let Some(d) = self.spell(crate::orders::spell::FORCED_MARCH) else {
             return;
@@ -783,6 +782,103 @@ impl Sim {
         {
             self.forced_march[who as usize] = false;
         }
+    }
+
+    /// `HeroData::get_radius@00739e50` for the hero `h`, in tiles: the
+    /// general radius scaled by `(general_upgrade + 3) / 2`, Parmenio's
+    /// (`0x168`) 8.8 scale, Wellington's (`0x170`) and Kutosov's (`0x176`)
+    /// percentages, the Terra Cotta Army's range, then a military patriot's
+    /// (`0x160`, `0x162`, `0x164`) or an economic patriot's (`0x161`,
+    /// `0x163`, `0x165`) bonus — [`crate::supply::general_radius`] in that
+    /// order. run470's Senator `1/80` is type 353, `0x161`: 6 × 3 / 2 + 1.
+    ///
+    /// SEAM: `get_general_upgrade` is [`GENERAL_UPGRADE`]; the wonder test
+    /// (`has_wonder(0x211)`) is read as absent — `TERRA_COTTA_RANGE` ships 0;
+    /// the patriot tests are `is(t, 1)`, taken as the type itself.
+    pub(crate) fn hero_radius(&self, h: usize) -> i32 {
+        use crate::supply::Patriot;
+        let t = self.units[h].type_index;
+        let patriot = match t {
+            0x160 | 0x162 | 0x164 => Some(Patriot::Military),
+            0x161 | 0x163 | 0x165 => Some(Patriot::Economic),
+            _ => None,
+        };
+        crate::supply::general_radius(
+            &self.tuning,
+            &crate::supply::General {
+                upgrades: GENERAL_UPGRADE,
+                parmenio: t == 0x168,
+                wellington: t == 0x170,
+                kutosov: t == 0x176,
+                terra_cotta: false,
+                patriot,
+            },
+        )
+    }
+
+    /// `ObjectData::has_general(u, 0x8000, -1) >= 0` (`00646b00`): `u` is
+    /// itself a hero (`UnitData::is_hero`, vslot `+0xc4`, `unit_flags2 &
+    /// 0x20`) on a Forced March, or `HeroesData::find_hero@0073a1b0` finds
+    /// one of its owner's: a hero record active (`hero_flags & 1`, from
+    /// `Heroes::init_hero` at `Unit::init` to `close_hero`), its unit
+    /// active (vslot `+0x8`) and on the map (vslot `+0xbc`,
+    /// `UnitData::is_on_map`, `inside_up < 0`), with `unit_masks & 0x8000`,
+    /// and `vector_dist(|dx|, |dy|) − 0 ≤ get_radius × 0xc0` (`0073a2c9`–
+    /// `0073a2ea`; the `− 0` is a building's footprint, vslot `+0x20`, 0
+    /// for a unit).
+    pub(crate) fn near_marching_hero(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        if unit.marching.is_some() && self.is_hero_unit(u) {
+            return true;
+        }
+        let (who, at) = (unit.owner, unit.pos);
+        (0..self.units.len()).any(|h| {
+            let x = &self.units[h];
+            x.owner == who
+                && x.alive()
+                && x.on_map
+                && x.marching.is_some()
+                && self.is_hero_unit(h)
+                && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                    <= self.hero_radius(h) * 0xc0
+        })
+    }
+
+    /// Whether `u`'s leader has a hero on a Forced March —
+    /// `LeaderData::leader_flags & 0x8000`, [`Sim::forced_march`]. Gaia's
+    /// is never set.
+    pub(crate) fn leader_marching(&self, u: usize) -> bool {
+        self.forced_march
+            .get(self.units[u].owner as usize)
+            .copied()
+            .unwrap_or(false)
+    }
+
+    /// `UnitData::speed@0060aae0` — layer two of the speed pipeline
+    /// (`docs/MOVEMENT.md`, "The speed pipeline"): the cached `myspeed`,
+    /// and a type not of the land (`+0x218 != 0`) takes nothing more.
+    ///
+    /// **Forced March** (`0060ad0x`–`0060ae10`): under the leader's
+    /// `0x8000` and [`Sim::near_marching_hero`], the speed is
+    /// `FORCED_MARCH_SPEED × UNIT_MOVE_SPEED` — 42, no shift on this arm
+    /// (`0060add1`–`0060addc`) — or `myspeed` when that is larger
+    /// (`cmovle`, `0060ae0e`): a march never slows a unit.
+    ///
+    /// SEAM: the Iroquois spear bonus in allied ground; Alexander's arm
+    /// (the hero or the unit `is(0x166)`/`is(0x167)`, `× 384 >> 8`); and
+    /// the hero auras below it — Spitamenes, Blucher, Porus, Charles,
+    /// Napoleon — each behind a nation power no capture's leader holds.
+    pub(crate) fn unit_speed(&self, u: usize) -> i32 {
+        let speed = self.units[u].movement.speed;
+        if self.units[u].is_gaia()
+            || self.unit_domain_of(u) != crate::attrition::Domain::Land
+            || !self.leader_marching(u)
+            || !self.near_marching_hero(u)
+        {
+            return speed;
+        }
+        let march = self.tuning.forced_march_speed * crate::combat::UNIT_MOVE_SPEED;
+        march.max(speed)
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type

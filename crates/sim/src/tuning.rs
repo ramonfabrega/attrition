@@ -160,6 +160,13 @@ pub struct Tuning {
     pub mil_patriot_radius_bonus: i32,
     /// Added to it for an economic patriot.
     pub econ_patriot_radius_bonus: i32,
+    /// `FORCED_MARCH_SPEED`, written `42m`: the speed, in `MOVES` points,
+    /// a Forced March lifts every unit near a marching hero to
+    /// (`UnitData::speed@0060aae0`, `0060add1`–`0060ae10`).
+    pub forced_march_speed: i32,
+    /// `ALEXANDER_FORCED_MARCH_SPEED`, `3/2` loaded as 8.8: the same
+    /// march under Alexander (`0060ade2`–`0060ae04`); no capture has him.
+    pub alexander_forced_march_speed: i32,
     /// Period, in frames, at which supply repairs damage. Zero means never,
     /// which is what ships.
     pub supply_heal_rate: i32,
@@ -911,6 +918,8 @@ impl Tuning {
         kutosov_radius: 300,
         mil_patriot_radius_bonus: 3,
         econ_patriot_radius_bonus: 1,
+        forced_march_speed: 42,
+        alexander_forced_march_speed: 384,
         supply_heal_rate: 0,
         french_supply_heal_rate: 20,
         versailles_supply_heal_rate: 20,
@@ -1212,7 +1221,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 336] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 338] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1295,6 +1304,11 @@ impl Tuning {
             (
                 "ECON_PATRIOT_RADIUS_BONUS",
                 Slot::Value(T.econ_patriot_radius_bonus),
+            ),
+            ("FORCED_MARCH_SPEED", Slot::Value(T.forced_march_speed)),
+            (
+                "ALEXANDER_FORCED_MARCH_SPEED",
+                Slot::Ratio256(T.alexander_forced_march_speed),
             ),
             ("SUPPLY_HEAL_RATE", Slot::Value(T.supply_heal_rate)),
             (
