@@ -5102,19 +5102,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_THREE: i64 = 2200;
 /// the human's Bomb Vessel `0/6` refuses the computer's `1/2007` on both
 /// sides to the capture's end.
 ///
-/// **The word is 670**: ours 9 draws against 10, parting at index 3,
-/// where the original spends `Object::take_damage+0xe1` — the first
-/// round landing on `0/2007` — and ours `Farms::inc_time+0x1ae`. The
-/// value diff on block 671: `0/2007` `damage` ours 0 against 122, and
-/// `1/6`'s round (`traj 1`, `total_time` 39, `cur_time` 38 on block 670
-/// on both sides) gone from the original's dump and still in flight
-/// here. Standing from block 631: `1/6`'s turret, ours 94568448 against
-/// 96862208.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 670;
+/// ~~**The word was 670**~~ (item 1254): ours 9 draws against 10 at
+/// index 3, where the original spends `Object::take_damage+0xe1`, the
+/// first round landing on `0/2007`.
+///
+/// **Item 1257: the chapter closes at 1450**, the capture's end, word,
+/// sequence and values. The round flew 40 frames here against 39 because
+/// it left from the ship's own square: `1/6`'s release goes through
+/// `get_position`'s pivot branch (`docs/COMBAT.md` §55) with the Bomb
+/// Vessel's piece 296, which `sim::pivot` had no rows for, and at
+/// `fast_angle_to_degrees` of its facing, 353, not `angle_to_degrees`'
+/// 354. The value diff on block 633, the round's first: `sx, sy, sz`
+/// ours `(21288, 14712, 0)` against `(21301, 14867, 134)`, `total_time`
+/// 40 against 39, `angle` −2123169792 against −2120286208, `ex` 21154
+/// against 21155; all agree now. The turret on block 631, ours 94568448
+/// against 96862208, was the same piece's missing pivot node.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_FOUR: i64 = 1450;
 
 /// `chapter_forty_four_s_word_frame_is_widened_whole`'s window: run484
-/// from 605, the word's block 671 and 250 past it.
-pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 921);
+/// whole, 605 to its end (block 1449 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_FOUR: (i64, i64) = (605, 1451);
 
 /// `chapter_forty_three_s_word_frame_is_widened_whole`'s window: run466
 /// whole, 605 to its end (block 2199 is the one the dump does not carry).

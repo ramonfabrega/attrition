@@ -1207,8 +1207,9 @@ impl Sim {
     /// (`005d8ed7`–`005d8f02`: the unsigned difference, `~` past a half
     /// turn, below `0xaaa_aaaa`). The ±45° test does not gate the write.
     ///
-    /// SEAM: the node's vector is pinned for the Chariot's figure only
-    /// (`pivot::NODES`); any other piece bears from the unit's point.
+    /// SEAM: the node's vector is pinned for the Chariot's figure and the
+    /// Bomb Vessel's only (`pivot::NODES`); any other piece bears from the
+    /// unit's point.
     /// SEAM: an `ATTACK_GROUND` order with no aim bears on the order's
     /// point in the original; this crate writes nothing for it.
     pub(crate) fn set_all_pivots(&mut self, i: usize, g: usize, target: Option<Obj>) -> bool {
