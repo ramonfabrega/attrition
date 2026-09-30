@@ -5050,7 +5050,10 @@ fn a_decoy_is_placed_by_its_general_s_collision_pair() {
         sim.units[before].pos.x - sim.units[g].pos.x,
         sim.units[before].pos.y - sim.units[g].pos.y,
     );
-    assert!((0x150..0x200).contains(&d), "on the first ring, snapped: {d}");
+    assert!(
+        (0x150..0x200).contains(&d),
+        "on the first ring, snapped: {d}"
+    );
     let _ = spell::CREATE_DECOY;
 }
 
