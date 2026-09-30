@@ -1983,6 +1983,11 @@ mod tests {
         // squad's — the landing's arms no walk held (item 1223,
         // `docs/GOLDEN.md` §52).
         ("chapter43.cmd", &[]),
+        // Chapter forty-four: a computer's Bomb Vessel takes a human's
+        // Barracks across the regions and out of its range, and a human's
+        // refuses a computer's — `check_target`'s head (item 1254,
+        // `docs/GOLDEN.md` §53).
+        ("chapter44.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
