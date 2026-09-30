@@ -146,6 +146,26 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1214, 2026-09-29 — the head's unheld arms
+
+(1229) **The coastal-refined region in `check_target`'s head**: the
+search and the guard's call read `tregion_alt`; with `tregion` in its
+place (1214's mutation B) no walk and no unit test fails. No capture has
+a search whose two regions differ only by the coastal refinement.
+
+(1230) **A computer's `SIEGE` ship searching across regions** (1214's
+mutation C): the exception is built on the listing; its unit test fails
+without it, no walk does.
+
+(1231) **The head's defensive arm**: a `DEFENSIVE` unit off duty, with
+an order and an out-of-range candidate, refuses (1214's mutation D);
+held by its unit test and no walk. The duty exemption beside it is
+diff-held (chapters one and eight).
+
+(1232) **`find_nearby_target`'s naval refusal**: a searcher whose type
+has `+0x2b4 & 0x400` skips a sea candidate (`local_50`), the refusal
+`do_attack_to_tail`'s seam names. Read, not built.
+
 ## Parked by item 1209, 2026-09-29 — the ring's other arms
 
 (1218) **`do_move`'s sites 1 and 3, held by no walk** (GOLDEN §51): site
@@ -2281,6 +2301,33 @@ worker used. The pass's journal table could count the rows a journal
 cites by number or obeys in its first hour, and a row no journal of two
 tranches reached be struck from the checklist, which takes it out of the
 frame. One reach.
+
+(1227) **A decision that books a held-out capture does not name its
+run** (1222's Loop line): `test_the_held_out_map_s_captures_are_the_pinned_ones`
+asks a steering pass to add the run to `HELD_OUT_RUNS`, DECISIONS 56 §2
+decided the measurement and added none, and the worker added `'465'` on
+the entry's word. The decision could name the run in the same commit, or
+the guard's comment say the item's worker adds it. One reach.
+
+(1233) **`seams.py --item` reads the draw chain of the side that spent**
+(1214's Loop line): at 8907 ours spent nothing, so the chain it read was
+the original's (`think_scout`, `do_idle`), and the seam that named the
+cause sat on ours' own path — the auto-attack arm's `find_melee_target`
+→ `find_nearby_target` → `check_target` — which only `RON_DEBUG_UNIT`'s
+order print showed. A brief row: when one side spends nothing, run
+`seams.py` on the chain of the order the other side took instead. One
+reach.
+
+(1234) **The lane is handed over before the settings are restored**
+(the commander's, 2026-09-29, from 1223 and 1221): run467's game exited
+at 23:13, the lock released, and 1221's long trace launched into it
+before `unattended_capture.py`'s `finally` restored the profile — its
+`require_closed` then refused, `settings_restored` false, and 1221
+staged 1223's staged set as its "originals". The same lane's run466 was
+refused by the script's `flock` while `ron_lane_state` said stale: two
+locks, two answers. The lock could be held to the end of the restore,
+and the two locks be one. Repaired by hand from run467's
+`settings-backup/`. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

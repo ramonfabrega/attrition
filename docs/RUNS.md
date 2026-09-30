@@ -10125,7 +10125,9 @@ and the same one run382 and run383 ran. The lane lock was stale (att-1040's
 pid 37944, dead) and no `RonDriver` was running. The disk had 70 GB free.
 `waitrun.sh` under `WAITRUN_RUNNER=gamelog/startcapture.sh` exits 2 on
 this script, which prints no banner, so the log's tail is the verdict: it
-read `MAP_STYLE 7` and `seed 12345`.
+read `MAP_STYLE 7` and `seed 12345`. ~~Exits 2~~ — no longer: the script
+prints its banner now, and `waitrun.sh` exited 0 on it for run464 (item
+1222).
 
 **`GAME INFO` is run39's 85 lines, line for line, except `MAP_STYLE 7`**.
 `DIFFICULTY 0` reads back. The profile and `check.ini` were copied before
@@ -11289,6 +11291,43 @@ make list on 15982, and the word's block 15983 on who=1's new site
 pin and the coverage driver walk 15981..15985.
 
 
+## run462 — run346's game at run445's detail over blocks 10178..10434: the second pair's East Indies word 10183 widened (2026-09-29, item 1214)
+
+**What it is.** run445's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10178..10434, `!quit` at 10448. The word's frame 10183 writes
+block 10184: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run462 \
+    --map 18 --end-frame 10448 --timeout 5400 --log-window 10178 10435 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run445 ends at block
+9071; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 22:20–22:44 in one take. The lane was held by item 1222's
+capture; mine waited **11.5 minutes** (690 s) for it, then took the stale
+lock. It was waited on with `waitrun.sh`: `success: true`, exit 0, 1,423 s
+from launch to exit, 10,449 frames, map 18 and seed 12345 verified, five
+files restored. The dump (619.1 MB) and the trace (93.2 MB) were moved into
+`Logs` as `gamelog-run462-islands-toughest-10183.txt` and
+`rontrace-run462.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 10,449 identical |
+| window blocks | 257, 10178..10434 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run462_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 10178 stands on 182 keys, among them
+who=1's `num_units[268]` ours 0 against 1; the make list parts from 10181,
+and the word's block 10184 on nine keys. The window parts on 1,055 keys.
+The coverage driver and the compared pin walk 10183..10186.
 ## run445 — run346's game at run439's detail over blocks 8815..9071: the second pair's East Indies word 8820 widened (2026-09-29, item 1191)
 
 **What it is.** run439's shape on the click-free lane: run346's lobby,
@@ -11635,3 +11674,83 @@ it copied out. So the directory holds run467's trace and receipt and
 **not its dump**. The profile was restored from this directory's
 `settings-backup` (taken 22:51, before either launch) at 00:30:27 on
 2026-09-30, and `verify_restored` matched its 5 files.
+## run464 — the held-out map's `DUMP_ALL` start, in run381's shape (2026-09-29, item 1222)
+
+**Map 9's sibling** (DECISIONS 56 §2): the height table, checksum trace,
+herds and frame seeds run348 was diffed without. It is run381's recipe with
+the map moved back to 9:
+`zsh tools/gamelog/viadriver.sh tools/gamelog/startcapture.sh 464 9
+himalayas-start` — two `DUMP_ALL` frame blocks, `cover=1 window=0-1`, `2
+!quit`, the profile's lobby (no `-config`, which pins the style at 14).
+One take: launched at 21:59:45, the start clicked at 22:00:44, settled at
+22:07:44. The lane lock was stale (att-1209's pids 62648 and 62588, dead),
+no `RonDriver` was running, and the disk had 57 GB free before and after.
+`waitrun.sh` under `WAITRUN_RUNNER=gamelog/startcapture.sh` exited 0 on the
+script's banner (`=== captured: run464 (himalayas-start) ===`). The dump is
+150,354,413 bytes with blocks 1, 5 and 6, and the trace 10,999,456 bytes.
+The DLL is the install's, sha256 `399a9791…addd3` (built
+2026-09-29T15:50:33Z, the one run465's runner printed nine minutes later);
+`startcapture.sh` prints no hash of its own.
+
+**`GAME INFO` is run348's 85 lines, line for line** — run39's except
+`MAP_STYLE 9`. Seed 12345 and `DIFFICULTY 0` read back. The profile read
+`DIFFICULTY 0` in `<SOLO>` and `<MULTI>` before the launch, and after it
+`MAP_STYLE 14` and `DIFFICULTY 0` again, restored by the script.
+
+The harness reads it as `sibling gamelog-run464-himalayas-start.txt: 146
+checksum records, 58081 heights`.
+
+## run465 — the held-out map measured again, with its start sibling (2026-09-29, item 1222)
+
+**Map 9, Himalayas, measured once more and read no further** (DECISIONS 54,
+56 §2). This is run348's stanza with the run number moved and run382's two
+same-game checks added, through `viadriver.sh tools/gamelog/runqueue.sh -
+1222` on the queue lane (`cover=1`, 1047): seed 12345, run10's detail, the
+window `[0, 1900)`, `5 !ffwd 30`, `1850 !quit`, `mapstyle: 9`, `cfg: -`,
+`poll_max: 240`. One take, 22:08:07 to 22:19:51, the start clicked at
+22:09:07. The dump is 183,936,036 bytes with 1,851 blocks and the trace
+11,896,224 bytes. The DLL is sha256 `399a9791…addd3`, a later build than
+run348's `b451aeb6…3dca`. The held-out guard
+(`tools/explore/test_gamelog_checks.py`, `HELD_OUT_RUNS`) takes 465 on
+DECISIONS 56 §2's word.
+
+| check | result |
+|---|---|
+| `MAP_STYLE 9`, `seed 12345`, `DIFFICULTY 0`, blocks ≥ 1850 | pass (1,851) |
+| `rngcmp.py` against run464 | 6 in common, 0 differ |
+| `samegame.py` against run464, the count | 2 in common, 2 differ (run464's blocks are `DUMP_ALL`, as run381 against run382) |
+| `rngcmp.py` against run348, by hand | **1,851 in common, 0 differ**: run348's game, frame for frame, on a new DLL |
+
+**The number: ticks 1851, orders 1850**, against run348's 1 and 0.
+
+```
+rondata <install> --gamelog gamelog-run465-himalayas-longtrace.txt \
+        --sibling gamelog-run464-himalayas-start.txt \
+        --trace rontrace-run465.log --diff        # on a08efe7a
+
+  sibling gamelog-run464-himalayas-start.txt: 146 checksum records, 58081 heights
+  note: world: 3600 cells from the WORLD dump, 2 regions, land kinds ["BASELAND", "SANDY", "OCEAN", "NONE"], 57600 tile masks, heights pinned per tile
+  note: rng: frame 0: ours 111 draws, the original's 111 — installed 0x4f20a14d
+  1851 frames stepped, 29845 unit-frames compared, 0 unit-frames the sim has no unit for
+  ticks before divergence: 1851
+  no unit ever diverged
+  mylos: 29845 unit-frames compared, every one matched
+  order lists: 29845 unit-frames compared, 563 order disagreements, 0 path-stack disagreements
+  ticks before an order diverges: 1850
+  by kind: group 558, length 5
+  who 0 o 1..5: first order disagreement at frame 1851 — Length { ours: 1, theirs: 0 }
+  who 1 o 9..11: first order disagreement at frame 1277 — Group { field: "id", ours: 1276001, theirs: 1282501 }
+  who 1 o 12..14: first order disagreement at frame 1787 — Group { field: "id", ours: 1786101, theirs: 1792701 }
+  player 0: no divergence over 1851 frames
+  player 1: no divergence over 1851 frames
+```
+
+The same binary on run348 alone, with no sibling (`note: world: … no
+height table (flat)`), reads 1 and 0 with run348's own first breaker,
+`1/0`'s move `x` 44,280 against 39,672 on frame 1. The two invocations
+differ in the `--sibling` argument and the capture's DLL, and the captures
+are one game. Nothing here names which part of the sibling decides it, and
+by rule nothing was run to find out. Of the 563 order rows, `group` 558
+is the group id, a declared stand-in `OrderMismatch::scores` does not
+score; the five `length` rows are the citizens `0/1..5` on the shutdown
+block 1851, and they are what hold the order number at 1850.
