@@ -167,7 +167,7 @@ pub(crate) fn walk_second_probed(
 /// 1174 moved it to 7512, inside it; item 1185 moved it to 8519, and the
 /// walk to run439; item 1191 moved it to 8820, and the walk to run445;
 /// item 1197 moved it to 8907, inside it; item 1214 moved it to 10183,
-/// and the walk to run462. `None`
+/// and the walk to run462; item 1228 moved it to 10185, inside it. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -1143,8 +1143,9 @@ mod tests {
         // Item 1174: 304 → 299 and the first block 160 → 155, who=1's
         // `escrow` on its five goods (`docs/AI.md` §98).
         // Item 1197: 299 → 182, the dead transports' numbers held
-        // (`docs/COMBAT.md` §59.3).
-        pin_eq!(w.firsts.len(), 182, "every key parted on run419");
+        // (`docs/COMBAT.md` §59.3). Item 1228: 182 → 179, who=1's
+        // Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 179, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1247,7 +1248,7 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (6604, 156),
+                (6604, 152),
                 (6614, 1),
                 (6633, 1),
                 (6670, 2),
@@ -1267,8 +1268,9 @@ mod tests {
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
-        // (`docs/COMBAT.md` §59.3).
-        pin_eq!(w.firsts.len(), 189, "every key parted on run420");
+        // (`docs/COMBAT.md` §59.3). Item 1228: 189 → 185, and the first
+        // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 185, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1382,7 +1384,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (7377, 161),
+                (7377, 158),
                 (7381, 4),
                 (7382, 1),
                 (7384, 4),
@@ -1390,7 +1392,7 @@ mod tests {
                 (7406, 1),
                 (7419, 3),
                 (7424, 2),
-                (7478, 2),
+                (7478, 1),
                 (7485, 5),
                 (7501, 1)
             ],
@@ -1398,8 +1400,9 @@ mod tests {
         );
         // Item 1174: 1182 → 614. Item 1185: 614 → 317.
         // Item 1197: 317 → 187, the dead transports' numbers held
-        // (`docs/COMBAT.md` §59.3).
-        pin_eq!(w.firsts.len(), 187, "every key parted on run425");
+        // (`docs/COMBAT.md` §59.3). Item 1228: 187 → 183, the first block's
+        // 161 → 158 and 7478's 2 → 1, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 183, "every key parted on run425");
     }
 
     /// **The second pair's East Indies word 8519, widened whole** (item
@@ -1478,11 +1481,12 @@ mod tests {
                 .filter(|(b, _)| **b <= 8_520)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8514, 180)],
+            [(8514, 176)],
             "the blocks keys first part on, to the old word's block 8520"
         );
-        // Item 1191: 1243 → 608. Item 1197: 608 → 198.
-        pin_eq!(w.firsts.len(), 198, "every key parted on run439");
+        // Item 1191: 1243 → 608. Item 1197: 608 → 198. Item 1228: 198 →
+        // 194, and block 8514's 180 → 176, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 194, "every key parted on run439");
     }
 
     /// **The second pair's East Indies word 8820, widened whole** (item
@@ -1579,18 +1583,22 @@ mod tests {
                 .filter(|(b, _)| **b <= 8908)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8815, 183)],
+            [(8815, 178)],
             "the blocks keys first part on, to the old word's block 8908"
         );
         // Item 1197: 1176 → 627, and block 8815's 504 → 183. Item 1214:
-        // 627 → 195; the first key past block 8815 parts on 8947.
-        pin_eq!(w.firsts.len(), 195, "every key parted on run445");
+        // 627 → 195; the first key past block 8815 parts on 8947. Item
+        // 1228: 195 → 190, and block 8815's 183 → 178, who=1's
+        // Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 190, "every key parted on run445");
     }
 
     /// **The second pair's East Indies word 10183, widened whole** (item
     /// 1214): run462 is run346's game at run445's detail over blocks
     /// 10178..10434, walked from run346's own start — every dumped record
     /// on the word's block 10184 and the six before it, both directions.
+    /// **Since item 1228 the word is 10185**, block 10186, inside the same
+    /// window (8 blocks after its first and 248 before its last).
     #[test]
     fn run462_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -1632,15 +1640,43 @@ mod tests {
         // run445's 8815 (0 against 2) — and the make list parts from 10181.
         // Its block 10184 parts on nine keys, the make list's head among
         // them.
+        //
+        // **The word 10185** (item 1228, `docs/TRANSPORT.md` §6.5): the
+        // Merchant Fleet is counted, so who=1's `control`, `effective_pop`
+        // and `num_units[268]` agree from the first block, and the second
+        // `create_units` pass on 10183 fails the population gate on both
+        // sides. Ours 9 draws against 10 on 10185, at index 1: the
+        // original's second `Leader::use_market`, then its Senate. On
+        // 10185 the Senate offers stand at a quarter of the original's —
+        // `check_income` finds it unaffordable here — and the word's block
+        // 10186 holds the Senate's foundation `1/2026` on the dump alone.
+        for key in [
+            "leader:num_units[268]",
+            "leader:control",
+            "leader:effective_pop",
+            "leader:MAKE[0].t",
+            "leader:active",
+        ] {
+            pin_eq!(
+                row(1, -1, key),
+                None,
+                "who=1's {key} agrees on the window (item 1228)"
+            );
+        }
         pin_eq!(
-            row(1, -1, "leader:num_units[268]").as_deref(),
-            Some("10178: ours 0 theirs 1"),
-            "who=1 is a Merchant Fleet short from the first block"
+            row(1, -1, "leader:MAKE[0].val").as_deref(),
+            Some("10185: ours 1200000 theirs 4800000"),
+            "the block before the word's: the Senate at a quarter"
         );
         pin_eq!(
-            row(1, -1, "leader:MAKE[0].t").as_deref(),
-            Some("10184: ours 228 theirs 597"),
-            "the word's block: the make list's head"
+            row(1, -1, "leader:bucket[2:wealth]").as_deref(),
+            Some("10186: ours 57 theirs 7"),
+            "the word's block: the original has paid for the Senate"
+        );
+        pin!(
+            row(1, 2026, "build:unlinked").is_some_and(|r| r.starts_with("10186:")),
+            "the word's block: the Senate's foundation, the dump's alone: {:?}",
+            row(1, 2026, "build:unlinked")
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -1651,10 +1687,20 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10178, 182), (10181, 6), (10182, 2), (10183, 3), (10184, 9)],
+            [
+                (10178, 179),
+                (10181, 6),
+                (10182, 2),
+                (10183, 3),
+                (10184, 4),
+                (10185, 4),
+                (10186, 38)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1055, "every key parted on run462");
+        // Item 1228: 1055 → 1398; the window now walks past 10185, and
+        // who=1's make list and its Senate part from there.
+        pin_eq!(w.firsts.len(), 1398, "every key parted on run462");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
@@ -1730,10 +1776,10 @@ mod tests {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [
-                (6567, 158),
+                (6567, 155),
                 (6570, 3),
                 (6576, 4),
-                (6577, 4),
+                (6577, 3),
                 (6582, 1),
                 (6587, 4),
                 (6601, 1)
@@ -1741,8 +1787,9 @@ mod tests {
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 277 → 175, the dead transports' numbers held
-        // (`docs/COMBAT.md` §59.3).
-        pin_eq!(w.firsts.len(), 175, "every key parted on run421");
+        // (`docs/COMBAT.md` §59.3). Item 1228: 175 → 171, the first
+        // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §6.5).
+        pin_eq!(w.firsts.len(), 171, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item

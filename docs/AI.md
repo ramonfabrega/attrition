@@ -4441,12 +4441,18 @@ that table is what the diff checks.
   0 or 1 dies inside either window, so no diff reaches it — the gap
   predates this item and is `by_type`'s as much as `active`'s. It wants
   its own item, and the capture that would settle it is a window over a
-  frame where the original's `num_units` **falls**.
+  frame where the original's `num_units` **falls**. *(Item 1228: the boat
+  that dies putting its passenger ashore now takes its own `−1`,
+  `docs/TRANSPORT.md` §6.5; every other death is still without one.)*
 - **The zero-pop predicate.** The original counts a `control_cost == 0`
   unit only when `is(0x134)` or `is_gov_hero`; this crate's muster seams
   apply no such test and its sweep skips every zero-pop unit outright.
   The two disagree on paper and no unit in either window is zero-pop, so
-  nothing on disk separates them.
+  nothing on disk separates them. *(Item 1228: the transport's birth and
+  close apply the population half, `Sim::counts_in_muster`, and run462
+  separates it: the zero-pop barge `1/78` is out of the original's
+  `num_units`, `docs/TRANSPORT.md` §6.5. The `is(0x134)`/governor-hero
+  half, and `init_unit`'s own unconditional count, stand.)*
 - **Why `combat` lags and `active` does not.** The original's `combat`
   moves only on a sweep (3 → 4 at block 7576, the same frame this crate
   sweeps) while `active` moves live. That this crate's sweep cadence is
