@@ -5337,6 +5337,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// next draw is `Farms::inc_time+0x1ae` (seed `0x8fad03fd`). The value
 /// diff on block 713: `1/6`'s `hits:damage` ours 8 against 0,
 /// `damage_frame` 712 against 0, `hits_left` 112 against 120.
+///
+/// **712 → 838** (item 1323): a site does not shoot — `Build::process`
+/// returns before `do_attack` unless `WallData::is_active` (`flags & 4`),
+/// `docs/COMBAT.md` §8.6. Now ours 6 draws against 7 at index 1: the
+/// original spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where ours'
+/// next is `Guy::set_anim+0x97a < Guy::inc_time+0x271` (seed
+/// `0x3de49d86`). The value diff, walked back to block 838: the Citizen
+/// `0/9`'s `orders.len` ours 1 against 0, `orders_x/orders_y` (3864,
+/// 36888) against (3840, 36864).
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 838;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514

@@ -13855,7 +13855,8 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
 
 /// Chapter forty-seven's widening rows (item 1310): run514 whole, 605 to
 /// 1400 (`docs/GOLDEN.md` §56). **The chapter opens with a parting at
-/// 712**, and these are pinned as they stand, 517 rows:
+/// 712**, now 838 (item 1323), and these are pinned as they stand, 539
+/// rows:
 ///
 /// - the standing families on 605 (parked 1169, 1183) and the births'
 ///   `form` (607, 609, 681, 708); the squad's `order:group.id` on 614;
@@ -13865,9 +13866,14 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
 ///   part from 685;
 /// - **706**, the site's first blow: `0/2008`'s `damage` 3 against 4 and
 ///   `job_counter` 9900 against 9850;
-/// - **713**, the word's block: who=1's `1/6` `hits:damage` 8 against 0,
-///   the site's round (ours alone) landed on 712;
-/// - from 744, the cascade.
+/// - ~~**713**, the word's block: who=1's `1/6` `hits:damage` 8 against 0,
+///   the site's round (ours alone) landed on 712; from 744, the
+///   cascade~~ — closed by item 1323 (a site does not shoot), 517 → 539
+///   rows, every one from 713 to 837 gone and none opened before the
+///   word;
+/// - **838**, the word's walk-back: `0/9`'s `orders.len` ours 1 against
+///   0, `orders_x/orders_y` (3864, 36888) against (3840, 36864); from
+///   839, the cascade.
 ///
 /// **The original converts the site**, read off the dump by hand:
 /// `0/2008`'s `gpiece` 51364 → 51365, `myhits` 750 → 1000 and
