@@ -1904,6 +1904,11 @@ mod tests {
         // `docs/GOLDEN.md` §50).
         ("chapter41.cmd", &[]),
         ("chapter42.cmd", &[]),
+        // Chapter forty-three: a barge put ashore standing on its figure's
+        // sixty-fourth frame, and two Hoplite barges whose passengers are a
+        // squad's — the landing's arms no walk held (item 1223,
+        // `docs/GOLDEN.md` §52).
+        ("chapter43.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

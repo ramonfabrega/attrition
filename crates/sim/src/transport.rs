@@ -1140,10 +1140,11 @@ impl Sim {
     /// at `618022`..`618044`, so the two share
     /// [`Sim::come_out_unit_host_spot`] — `docs/CITIES.md` §6.5.1.
     ///
-    /// SEAM: the `uber_size > 1` arm of step 4, which instead calls
-    /// `Unit::reset_move_orders` on the boat and moves the boat's **group**
-    /// membership to the passenger through a `push_group` insert. No
-    /// capture disembarks a squad.
+    /// Step 4's `uber_size > 1` arm is [`Sim::disembark_squad`] (item 1223).
+    /// SEAM: `num_inside != 0` after the loop — a passenger `come_out`
+    /// refused — leaves the original's boat alive and carrying it
+    /// (`005f8fd8`); this crate kills the boat regardless. No staging has
+    /// crowded a shore enough to refuse a ring.
     pub(crate) fn disembark(&mut self, boat: usize) {
         let bearing = self.units[boat].movement.heading;
         let riders: Vec<usize> = (0..self.units.len())
@@ -1259,6 +1260,8 @@ impl Sim {
                     top.flags &= !crate::orders::path_flag::TRANSPORT;
                 }
                 self.units[r].path = path;
+            } else {
+                self.disembark_squad(boat, r);
             }
         }
         self.units[boat].health = 0;
@@ -1270,6 +1273,45 @@ impl Sim {
         self.units[boat].on_map = false;
         self.coll_remove(boat);
         self.chain_remove(boat);
+    }
+
+    /// **Step 4's squad arm** (item 1223, `docs/TRANSPORT.md` §6.4,
+    /// `docs/GOLDEN.md` §52): a passenger whose type's `uber_size` is over 1
+    /// takes the boat's orders through a group, not a list move
+    /// (`Object::eject_contents@0064cd20`, the `+0x308 != 1` arm):
+    ///
+    /// 1. `Unit::reset_move_orders@005fd080` on the **boat** — every move
+    ///    order's `orig_x`/`orig_y` (`+0x44`/`+0x48`) set to its `x`/`y`, so
+    ///    the replay below walks to the point the boat was sailing for;
+    /// 2. unless the passenger is AI-driven (`unit_masks & 0x40000`) **and**
+    ///    in an army: a stack group of the boat, `Group::set_up_insert` (the
+    ///    leader's — the boat's — action-flagged orders copied aside),
+    ///    `Group::kill(boat)`, `Group::add(passenger)` — its captain and
+    ///    chain — `Groups::push_group(who, g, 1)`, and `Group::finish_insert`
+    ///    on the slot, which re-issues each copy as a group action at
+    ///    `QUEUE_LAST`.
+    ///
+    /// The path is not handed over on this arm; the replay plans afresh.
+    fn disembark_squad(&mut self, boat: usize, r: usize) {
+        for o in &mut self.units[boat].orders {
+            if let crate::orders::Body::Move(m) = &mut o.body {
+                match m.group.as_mut() {
+                    Some(gm) => gm.orig = m.dest,
+                    None => m.orig = Some(m.dest),
+                }
+            }
+        }
+        let owner = self.units[r].owner;
+        if self.ai_driven(owner) && self.army_of(r).is_some() {
+            return;
+        }
+        let mut g = crate::group::Group::stack(owner);
+        self.group_add(&mut g, boat);
+        let insert = self.group_set_up_insert(&g);
+        g.list.retain(|&m| m != boat);
+        self.group_add(&mut g, r);
+        self.push_group(&mut g, true);
+        self.group_finish_insert(&g, insert);
     }
 
     // ------------------------------------------------------------------
@@ -1802,6 +1844,121 @@ mod tests {
             f.sim.units[boat].guys[0].anim,
             crate::anim::DEFAULT,
             "and its figure took the arrival stand on the way out"
+        );
+    }
+
+    /// A barge a step off the shore with `rider` aboard and a move for the
+    /// land, standing — its body on its unit, facing its waypoint, its
+    /// figure's running average `avg`.
+    fn landing(f: &mut Fix, rider: usize, avg: i32) -> (usize, Pos) {
+        let b = barge(&mut f.sim);
+        let at = Pos::new(32 * UNITS_PER_TILE + 4, tile_pos(32, 14).y);
+        let boat = unit(&mut f.sim, 1, b, at);
+        f.sim.units[boat].auto_transport = true;
+        f.sim.init_guys(boat, Some(b));
+        f.sim.board(rider, boat);
+        f.sim.add_move_order(
+            boat,
+            tile_pos(30, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        let bearing = crate::movement::Angle(-1_130_299_392);
+        let u = &mut f.sim.units[boat];
+        u.movement.speed = 25;
+        u.movement.turning.type_turn_speed = i32::MAX;
+        u.movement.facing = bearing;
+        u.movement.heading = bearing;
+        u.movement.body.pos = at;
+        u.movement.body.avg_speed = avg;
+        (boat, at)
+    }
+
+    /// **A boat that dies stepping ashore repaints its disc on its
+    /// sixty-fourth frame** (item 1223, `docs/GOLDEN.md` §52):
+    /// `Guy::process@005e0230`'s tail runs on the dead boat's figure, and
+    /// with `avg_speed` 0 on `(frame + o) % 64 == 0` it re-marks the cells
+    /// `Object::close` has just cleared. Standing in the open sea, the
+    /// barge's cell is its own region's, so the mark lands.
+    ///
+    /// Made to fail by leaving `coll_repaint`'s guard at alive and on the
+    /// map: the cell is clear after the death.
+    #[test]
+    fn a_boat_that_dies_standing_on_its_phase_frame_leaves_its_disc_marked() {
+        let mut f = fix();
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let (boat, at) = landing(&mut f, rider, 0);
+        f.sim.coll_add(boat);
+        let o = i64::from(f.sim.units[boat].index);
+        f.sim.frame = 64 * 100 - o;
+        f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        let c = crate::collide::ucell(at);
+        assert!(
+            f.sim.coll.get(c.x, c.y),
+            "the dead figure's repaint marked its own cell"
+        );
+    }
+
+    /// And off its phase frame the death leaves the cell clear: the mark is
+    /// the repaint's, not a close that forgot to clear it.
+    #[test]
+    fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
+        let mut f = fix();
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let (boat, at) = landing(&mut f, rider, 0);
+        f.sim.coll_add(boat);
+        let o = i64::from(f.sim.units[boat].index);
+        f.sim.frame = 64 * 100 - o + 1;
+        f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        let c = crate::collide::ucell(at);
+        assert!(!f.sim.coll.get(c.x, c.y), "the close cleared the cell");
+    }
+
+    /// **A squad's passenger takes the boat's orders through a group**
+    /// (item 1223, `docs/TRANSPORT.md` §6.4): `eject_contents`'
+    /// `uber_size > 1` arm resets the boat's move orders to their own point,
+    /// pushes a group of the passenger (`push_group(who, g, 1)`) and replays
+    /// the boat's action orders onto it with `finish_insert` — a group move
+    /// to where the boat was sailing, where the one-man arm hands the list
+    /// over whole.
+    ///
+    /// Made to fail by dropping [`Sim::disembark_squad`]'s call: the
+    /// passenger comes ashore with no order and in no group.
+    #[test]
+    fn a_squad_s_passenger_comes_ashore_with_the_boat_s_move_as_a_group() {
+        let mut f = fix();
+        let mut t = f.sim.unit_types[f.citizen].clone();
+        t.combat.uber_size = 3;
+        let squad = f.sim.add_unit_type(t);
+        let rider = unit(&mut f.sim, 1, squad, tile_pos(30, 14));
+        let (boat, _) = landing(&mut f, rider, 25);
+        // A player's move carries the action bit (run466's barges print
+        // `flags 5`), and `set_up_insert` copies only what does.
+        f.sim.units[boat].orders[0].flags |= crate::orders::flag::ACTION;
+        let crate::orders::Body::Move(sailing) = f.sim.units[boat].orders[0].body else {
+            panic!("the boat's move");
+        };
+        f.sim.process_unit(boat, 1, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        assert!(f.sim.units[rider].on_map, "its passenger is out");
+        let front = f.sim.units[rider].orders.front().expect("an order");
+        let crate::orders::Body::Move(m) = front.body else {
+            panic!("a move, not {:?}", front.body);
+        };
+        assert_eq!(
+            m.group.map_or(m.dest, |g| g.orig),
+            sailing.dest,
+            "to the boat's point"
+        );
+        assert!(
+            f.sim
+                .pushed
+                .iter()
+                .any(|p| p.who == 1 && p.list == vec![rider]),
+            "in a pushed group of its own"
         );
     }
 

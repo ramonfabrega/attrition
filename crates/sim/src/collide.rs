@@ -679,7 +679,18 @@ impl Sim {
     /// SEAM: `crates/sim` marks one figure a unit (§2), so this repaints guy
     /// 0's disc and no other's; `squad_size` is thereby always satisfied.
     pub(crate) fn coll_repaint(&mut self, u: usize) {
-        if !(self.units[u].alive() && self.units[u].on_map) {
+        // **And a boat that stepped ashore in its own work repaints too**
+        // (item 1223, `docs/GOLDEN.md` §52): `Unit::process@00610bc0` runs
+        // `Guy::process` over the dead boat's figure after the think that
+        // killed it, and `Guy::process@005e0230`'s tail asks nothing of the
+        // unit but its type — so on its sixty-fourth frame, standing, the
+        // figure re-marks the disc `Object::close` has just cleared, and
+        // nothing owns the bits after. [`Sim::process_unit`] reaches here
+        // for a dead unit on that one arm alone.
+        let dead_boat = !self.units[u].alive()
+            && !self.units[u].on_map
+            && self.units[u].kind.domain == crate::attrition::Domain::Sea;
+        if !(self.units[u].alive() && self.units[u].on_map) && !dead_boat {
             return;
         }
         // `avg_speed` (`GuyData +0x84`) is `Guy::move`'s running quarter of
