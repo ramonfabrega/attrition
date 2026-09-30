@@ -52,6 +52,19 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_5782: (i64, i64) = (5_777, 6_033
 /// **The word's block, 5783**: frame 5782 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_5783: i64 = 5_783;
 
+/// run482: run470's game at `end:MISC,LEADERS=2` over blocks 1..5378 —
+/// every leader's goods record, `LeaderDataEncrypt::log_data` and the
+/// gather-slot arrays beside it, on every frame the dark gap between run469
+/// and run471 left unprinted (item 1251).
+pub(crate) const TOUGHEST_GOODS: &str = "gamelog-run482-greatsahara-toughest-goods.txt";
+
+/// **run482's window** (item 1251): blocks 1..5378.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_GOODS: (i64, i64) = (1, 5_378);
+
+/// **The block the goods first parted on, 4577**: frame 4576, the script
+/// step that researches who=1's Empire (item 1251).
+pub(crate) const TOUGHEST_GOODS_BLOCK_4577: i64 = 4_577;
+
 /// run471's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST`], walked from
 /// run470's start with run468's head, as `third::sahara_17623_window` walks
 /// run449: every record run449's detail prints, the group record and the
@@ -74,6 +87,17 @@ pub(crate) fn great_sahara_toughest_5782_window() -> Option<crate::diff::harness
         (TOUGHEST_WORD_5782, WIDENING_GREAT_SAHARA_TOUGHEST_5782.0),
         WIDENING_GREAT_SAHARA_TOUGHEST_5782,
         TOUGHEST_WORD_BLOCK_5783,
+    )
+}
+
+/// run482's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GOODS`], walked as
+/// run471's are (item 1251): the goods of every leader from block 1.
+pub(crate) fn great_sahara_toughest_goods_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run482",
+        (TOUGHEST_GOODS, WIDENING_GREAT_SAHARA_TOUGHEST_GOODS.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_GOODS,
+        TOUGHEST_GOODS_BLOCK_4577,
     )
 }
 
@@ -399,6 +423,27 @@ mod tests {
             "who=1's metal"
         );
         pin_eq!(w.firsts.len(), 1_296, "every key parted on run476");
+    }
+
+    /// **The goods, every frame to the first word's block** (item 1251):
+    /// [`great_sahara_toughest_goods_window`] over run482's blocks 1..5378,
+    /// both directions, every field `LEADERS=2` prints for every leader.
+    #[test]
+    fn run482_s_goods_are_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = great_sahara_toughest_goods_window() else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 5_378, "run482 whole: blocks 1..5378");
+        pin!(w.firsts.len() < 1_000_000, "{}", w.firsts.len());
     }
 
     /// **The third map's word at Toughest** (item 1221): run470, the draw

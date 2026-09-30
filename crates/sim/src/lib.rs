@@ -2348,12 +2348,74 @@ impl Sim {
                 } else {
                     0
                 },
+                line_discounts: self.line_discounts(who, t),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `TypeData::get_cost`'s **library-line tail** (`00666b7d`, the jump
+    /// table at `006673a0`): a library epoch's price takes up to three more
+    /// percentages, chosen by its line, after every other tech discount —
+    /// `docs/AI.md` §99.8.
+    ///
+    /// | line | first | second | third |
+    /// |---|---|---|---|
+    /// | military | Furs | the highest `DESPOTISM_n` held | the Turks |
+    /// | civic | Dye | the Persians | — |
+    /// | commerce | Silk | the Dutch | — |
+    /// | science | Papyrus | the Chinese | the Americans |
+    ///
+    /// Anything that is not a library epoch — an age, a plain tech, a
+    /// unit — takes none of them.
+    fn line_discounts(&self, who: Player, t: tech::TypeId) -> [i32; 3] {
+        let tech::Kind::Epoch { line, .. } = self.tech_tree.kind(t) else {
+            return [0; 3];
+        };
+        let w = who as usize;
+        let tu = &self.tuning;
+        let rare = |good: usize, x: i32| if self.has_rare(who, good) { x } else { 0 };
+        let tribe = |n: usize, x: i32| {
+            if self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[w], n)
+            {
+                x
+            } else {
+                0
+            }
+        };
+        match line {
+            tech::Line::Military => {
+                let despot = match self.bonus_level(who, &self.tech_tree.roles.despotism_preq) {
+                    0 => 0,
+                    n => tu.despotism_military_cheaper[n - 1],
+                };
+                [
+                    rare(0x15, tu.furs_military),
+                    despot,
+                    tribe(8, tu.turk_military_cheap),
+                ]
+            }
+            tech::Line::Civic => [
+                rare(10, tu.dye_civic_commerce),
+                tribe(0x17, tu.persians_civic_discount),
+                0,
+            ],
+            tech::Line::Commerce => [
+                rare(11, tu.silk_commerce),
+                tribe(0x16, tu.dutch_commerce_discount),
+                0,
+            ],
+            tech::Line::Science => [
+                rare(9, tu.papyrus_science_military),
+                tribe(0xe, tu.chinese_science_discount),
+                tribe(0x14, tu.americans_science_discount),
+            ],
+        }
     }
 
     /// How many Science levels `who` is ahead of technology `t` —

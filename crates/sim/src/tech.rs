@@ -358,6 +358,12 @@ pub struct Roles {
     /// `REPUBLIC_COMMERCE_BONUS` to every capped good (`docs/AI.md` §72).
     /// A row the tree does not know is not held.
     pub republic_preq: [Option<TypeId>; 3],
+    /// `DESPOTISM_1`–`DESPOTISM_3`' prerequisites, in level order —
+    /// bonuses 110–112 (`0x31a`–`0x31c` off `BASE_BONUSTYPES`), each
+    /// **Despotism** in the shipped file. `get_cost`'s military-line tail
+    /// asks `has_preq` of the three from the top down and takes that
+    /// tier's `DESPOTISM_MILITARY_CHEAPER` (`docs/AI.md` §99.8).
+    pub despotism_preq: [Option<TypeId>; 3],
     /// The five *enhancer and taxation* ladders, in level order — the
     /// `TECHBONUSES` rows `docs/ECONOMY.md`'s indexed arithmetic is keyed
     /// by, and the same shape as [`Roles::merchants_preq`]: a row the tree
