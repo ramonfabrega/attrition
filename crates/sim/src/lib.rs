@@ -3757,6 +3757,25 @@ impl Sim {
         }
     }
 
+    /// **The gate both of the count's per-object writers share**
+    /// (`docs/TRANSPORT.md` §6.5): `Unit::set_type@00612fa0`'s `+1` block
+    /// on a birth and `Unit::close@0060ee50`'s `−1` at `0060f3db` on a
+    /// close each move `num_units`, `control` and `active` only for a
+    /// unit that is no squad follower (`is_captain`, `+0x8e`) and whose
+    /// type has population (`+0x2f0 control_cost`) — the `pop == 0` arm
+    /// admits `is(0x134)` and a governor-hero alone — with `+0x68 & 1`
+    /// clear. So a Merchant Fleet (`POP` 1) is counted and a Transport
+    /// Barge (`POP` 0) is not: run462's block 10178 holds the barge `1/78`
+    /// and the fleet `1/83`, and its `num_units` has `[268]` 1 and no
+    /// `[270]`.
+    ///
+    /// SEAM: the `pop == 0` arm's `is(0x134)` and `is_gov_hero` are not
+    /// read here, and answer no; `+0x68 & 1` has no state here.
+    pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        unit.captain && unit.ty.is_some_and(|t| self.unit_types[t].price.pop != 0)
+    }
+
     /// `Leader::track_unit_type`, and the two lines every one of its call
     /// sites carries beside it: `control` and **`active`**.
     ///
