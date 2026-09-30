@@ -255,7 +255,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// three more of the row are [`RESIDUE`]); **137** with run461 (item
 /// 1209: chapter forty-two at `cover=1`, `docs/GOLDEN.md` §51;
 /// `Unit::resolve_block@005fccc0` on 621, the Knight's `TAKE` on the
-/// ring's corner).
+/// ring's corner); **138** with item 1241's cite of
+/// `BuildTypeData::get_enhancing_good@00639880` (`docs/AI.md` §99.7): the
+/// Granary it decides is placed on run470 and run476, both at `cover=0`.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -269,7 +271,8 @@ pub const NEVER: &[u32] = &[
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_8850,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
-    0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
+    0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_9880, 0x0063_e390,
+    0x0064_40c0,
     0x0064_e4a0,
     0x0065_cfd0, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
