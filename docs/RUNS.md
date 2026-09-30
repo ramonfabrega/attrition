@@ -12656,3 +12656,44 @@ walked from run470's start with run468's head: 158 keys, and no army
 position among them; without Forced March's speed it parts on 1,154, the
 first 179 on block 9114, the frame after the Senator's cast. Runs 518 and
 519 were reserved and not used.
+
+## run529 — run470's game at run500's detail over blocks 9759..10015: the third map's word 9764 at Toughest widened (2026-09-30, item 1332)
+
+**What it is.** run511's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 9759..10015, `!quit` at 10030: six blocks before the word's block
+9765 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run529 \
+    --map 7 --end-frame 10030 --timeout 5000 --log-window 9759 10016 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1332 moved the
+word 9352 → 9764, and run511, the last dump of this game, ends at block
+9574: no dump printed the word's frame.
+
+**Taken** 17:49–18:10 in one launch; `ron_lane_state` read `free`. Waited
+on with `waitrun.sh`: `success: true`, `settings_restored: true`, exit 0,
+1,226 s from launch to exit, 10,031 frames, map 7 and seed 12345 verified.
+The dump (553,788,238 bytes, sha256 `d9401ab7b7401a35…`) and the trace
+(55,813,696, `5fcf22dcb38433da…`) were moved into `Logs` as
+`gamelog-run529-greatsahara-toughest-9764.txt` and `rontrace-run529.log`.
+The disk had 37 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 10,031 identical |
+| window blocks | 257, 9759..10015 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run529_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head:
+1,077 keys, 168 standing on block 9759 — among them the Catapult `1/84`'s
+figures (`cur_anim` 22 in the original, walking 8 and 9 here) — and the
+word's block 9765 parts `1/84`'s `g.cur_time[2]` (10 against 1) and
+`1/69`'s `dest_angle`. The compared pin and the coverage driver walk its
+blocks 9763..9767; its CITY records print `York`, which nothing reads
+(`coverage.rs`'s pin). Runs 530 and 531 were reserved and not used.

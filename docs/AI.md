@@ -13003,7 +13003,10 @@ it is clear, or when it has a marching hero near. `Sim::group_set_march`.
 **What moved**: 9323 → 9352 (the constant's comment has the value diff).
 **The word 9352**: ours 35 draws against 36 at index 0, the original's
 `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19`; gaia's
-`8/2` stands a unit apart on run511's 9348. No mechanism is named.
+`8/2` stands a unit apart on run511's 9348. ~~No mechanism is named.~~
+**Answered by item 1332** (`docs/COLLISION.md` §13.3): the Supply Wagon
+`1/86` pushes the peacock `8/2` aside, which this crate's stranger refusal
+forbade for gaia, and turns it; 9352 → 9764.
 
 **Not established**: Alexander's arm, the Iroquois bonus and the hero
 auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`

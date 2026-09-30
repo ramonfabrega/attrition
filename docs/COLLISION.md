@@ -2838,7 +2838,11 @@ Listing `5fa8b0`–`5faf24`. It returns 1, "handled", except where noted.
 - **In contact**, it returns 0 when the pusher is a transport
   (`unit_flags & 0x10`) and the other has an attack, or when the other's
   player is not the pusher's and not a mutual ally (`LeaderData::who`,
-  `diplos == 2` both ways) and is below 8. A land pusher also returns 0
+  `diplos == 2` both ways) and is below 8 — `5fad3c`'s `cmpb $0x8, %dl;
+  jb 5faf0e`, the other's `who` byte, so **gaia is never refused**: a
+  land pusher shoves an animal aside. This crate asked the ally test
+  alone until item 1332, and a wagon that met gaia handed its step to the
+  land scan instead (run511's peacock, below). A land pusher also returns 0
   for a packer that is not packed or is unpacking, for `unit_masks &
   0x2000000`, and for a ~~cargo (`+0x110`, `is_cargo`)~~ **tank**: the
   `+0x110` there is on the *type's* vtable, `**(other+0x18) + 0x110`, and
@@ -2856,6 +2860,22 @@ Listing `5fa8b0`–`5faf24`. It returns 1, "handled", except where noted.
   `collide_o`/`collide_who`, and when it has no orders it is `set_angle`d
   and its guy 0 turned. Its `collide_frame` is stamped whenever it is
   pushed.
+- **The turn** (`5faeb1`–`5faedb`, item 1332): `Guy::turn_angles(guy 0,
+  bearing, &out, 1, 1)@005d98c0` is `turn_towards` at
+  `GuyData::turn_speed(1)` — the body's rate, on the guy's own
+  `last_speed` — **halved** by its fourth argument; inside three degrees,
+  or inside the halved rate, `out` is the bearing. `Guy::do_turn(bearing,
+  out, 1, 1)@005d97a0` then sets `guy_flags & 2` when `out` is not the
+  guy's angle, asks for `CHAR_TURN_RIGHT`/`LEFT` by `bearing − angle` when
+  the guy has the turn bit (`& 8`), writes `out` as the angle and hands it
+  to the trackless crew (`Guy::set_angle(out, 0)`), restoring guy 0's
+  `des_angle` — the bearing `set_angle` wrote. A standing foot or animal
+  guy turns at the instant rate, so half of it is a quarter turn: run511's
+  peacock `8/2`, pushed by the Supply Wagon `1/86` on tick 9347, comes
+  round 71° in the frame (block 9348, `angle == des_angle`, `guy_flags`
+  18), and on tick 9352 the second push lands it on 16711680 where this
+  crate left it owing 4° and walked it a frame longer.
+  `Sim::push_turn`; the draw's chain is `sim::anim::SITE_TURN_PUSHED`.
 
 **So a navy never blocks itself.** The Bark and `1/32` share the navy's
 group, and a group-mate is skipped.
@@ -2898,8 +2918,9 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
   candidates include gaia, its refusals are an unpacked or unpacking
   packer, an entrenched unit and a tank, and it records itself on every
   unit it pushes. Chapter eleven 724 → 726.
-- **The pushed unit's guy turn** (`Guy::turn_angles`, `Guy::do_turn` at
-  `5faec8`/`5faedb`) is not modelled. Its `set_angle` is.
+- ~~**The pushed unit's guy turn** (`Guy::turn_angles`, `Guy::do_turn` at
+  `5faec8`/`5faedb`) is not modelled. Its `set_angle` is.~~ **Built** (item 1332, `Sim::push_turn`, §13.3's
+  turn): Great Sahara at Toughest's peacock on run511's 9348 and 9353.
 - **`find_units`' list path** indexes its cell grid with tile coordinates
   (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`.
 - ~~**No capture has shown a push.**~~ run190 shows a land one (above),
