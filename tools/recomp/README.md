@@ -37,6 +37,12 @@ nothing from the install is committed.
   exact functions it called (and whether they lift), `--watch` for who
   writes a range, `--find` for the instruction that first produces a
   value. Step 4 of the charter, and how item 327 was read.
+- `get_position.py` — `GraphicPieces::get_position@0090b750` on a packet
+  (packed SSE, so it does not lift): a piece's `AttachPos` entries and
+  `RData +0x88` scale (`entries`), the non-pivot arm at every whole degree
+  (`sweep`), and the pivot arm on every facing and turret step (`pivot`).
+  How a release node's rows are read for `sim::launch` and `sim::pivot`
+  (items 602, 1194, 1257).
 - `snapshot.py` — the lab's `frame-snapshot-v1` stream as guest memory.
 - `scan.py` — lifts and compiles every function a set of documents cites,
   and groups the failures by the instruction that stopped them.

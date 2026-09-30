@@ -12097,3 +12097,35 @@ run485 was reserved and not used.
 
 **What it holds**: `chapter_forty_four_holds_to_the_golden_word` (word
 670) and `chapter_forty_four_s_word_frame_is_widened_whole` (605..920).
+
+## run486 — chapter forty-four's staging, a packet at logger frame 670 (2026-09-30, item 1257)
+
+**What it is.** `chapter44.cmd` whole, to 672, with a `RON_STATE_FRAME=670`
+packet (819,149,816 bytes; run144's plan) and `AMMO=5`, `GUYS=4` over
+660..672. 57 s launch to exit, `success: true`, 673 frames, seed 12345,
+map verified; the lane lock was stale (no runner alive). `rngcmp.py`
+against run484's trace: 673 frames, none differ; block 670's round is
+run484's field for field.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run486 \
+    --map 14 --end-frame 672 --log-window 660 672 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter44.cmd \
+    --tracer-def RON_STATE_FRAME=670 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'
+```
+
+**What the disk could not answer.** The Bomb Vessel's `AttachPos` entries
+and `RData +0x88`: no dump prints them, and no packet on disk came from a
+game that fields the type (the entries are built when its first unit is).
+
+**What it answered** (`tools/recomp/get_position.py`, committed by this
+item): piece 296's seven entries and its scale 0.8; the original's
+`get_position` on 277,248 release cells and the node's 361 degrees; and
+`fast_angle_to_degrees` of the ship's facing, 353, where
+`angle_to_degrees` gives 354. The tables are in
+`~/ron-data/lab-experiments/2026-09-30-item-1257/`. `docs/GOLDEN.md` §53.
+run487 was reserved and not used.
