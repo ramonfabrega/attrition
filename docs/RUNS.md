@@ -11950,3 +11950,30 @@ The disk had 51 GB free after.
 It parts on 1,296 keys: 103 stand on 5777, who=1's make list parts on 5779
 and 5781, and on the word's block 5783 who=1 queues one more unit at
 `1/2017` than the original does.
+
+## run484 — chapter forty-four, the idle search's head on a computer's fleet (2026-09-30, item 1254)
+
+`docs/GOLDEN.md` §53, `tools/gamelog/golden/chapter44.cmd`: a computer's
+Bomb Vessel and a human's, each by a Barracks of the other's across the
+water and out of range, in the middle and the south lakes.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch44 \
+    --map 14 --end-frame 1450 --log-window 605 1450 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter44.cmd
+```
+
+03:39–03:50, one take on a stale lock with no runner or game alive and
+`gamelog.ini`'s `LogFile` in `Logs`; waited on with `waitrun.sh`:
+`success: true`, exit 0, 679 s launch to exit, 1,451 frames, seed 12345,
+map verified, settings restored, no `GROUPDATA` (none asked). No issuer
+lines, so no `I_ISSUE` to check. The dump (250,489,617 bytes, sha256
+`8cad1d48…e496`) and the trace (10,928,704, `8c6ff91b…0963`) stay in
+`~/ron-golden/ch44/map-14`; 275 MB. The disk had 50 GB free after.
+run485 was reserved and not used.
+
+**What it holds**: `chapter_forty_four_holds_to_the_golden_word` (word
+670) and `chapter_forty_four_s_word_frame_is_widened_whole` (605..920).
