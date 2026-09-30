@@ -12193,3 +12193,106 @@ holds a unit the other does not (7485).
     arguments.
 - **Read only**: `do_repair`'s escrow draw. No walk reaches a repair
   under escrow.
+
+## 99. Great Sahara at Toughest: the closed map in the second pair's lobby, and its first word 5376 (2026-09-30, item 1221)
+
+DECISIONS 56 §1: a closed map is succeeded by the same map in the newest
+pair's lobby. §83's Great Sahara closed at its trace's end, 24,000, on
+item 1206; this is the same game — map 7, seed 12345, the profile's lobby
+without `-config` — with the one setting the first pair held fixed moved
+to the second pair's, `DIFFICULTY 5`, Toughest (§80.1). Its row in
+`AI_WORDS` is `GreatSaharaToughest`, on the `Third map` line after the
+closed `GreatSahara`. No mechanism is named here.
+
+### 99.1 The lever, and the read-back
+
+`profile: DIFFICULTY=5` on both stanzas, as run346's; and on the start,
+`startcapture.sh`'s new fourth argument, which writes the same profile
+field (`docs/RUNS.md` run468). **run468's and run469's `GAME INFO` are one,
+and it is run381's with one line apart, `DIFFICULTY 5` against 0**
+(`run469_is_great_sahara_at_toughest_and_nothing_else_moved`); run470's and
+run471's read `DIFFICULTY 5` back. The harness stands the simulation up at
+difficulty 5 from the dump's own `GAME INFO` (the lobby gate, §80.5).
+
+### 99.2 Standing up, the score, and where the game ends
+
+run468 stands the map up exactly as run381 does (146 checksum records,
+58,081 heights). Frame 0 spends **100 draws against 100**, one more than
+the first pair's 99, and the AI's personality rolls where the original's
+did. **run469 scores 1850 and 1850**
+(`run469_s_score_holds`), run382's to the row: one `mylos` row on `1/0`
+at 202 and the human citizens' order lengths on the shutdown block. Its
+draw stream agrees on all 1,850 frames (`run469_s_trace_holds_to_its_end`).
+
+**run470 ends at 15432**: the idle human `defeated_by 1` on the closing
+block 15433, the AI's score 8,165. That is the row's length. At Easiest the
+same game ran to 24,000 with nobody defeated.
+
+### 99.3 The word, 5376
+
+**Frame 5376: ours 45 draws against the original's 40, parting at index
+1** (`run470_is_great_sahara_at_toughest_and_its_word_holds`). By site:
+
+| site | ours | theirs |
+|---|---|---|
+| `Leader::produce_building+0x1805` | **4** | **1** |
+| `Animal::think_bird+0x82`, `+0xa6`, `+0x1f8` | 10 each | 10 each |
+| `Guy::set_anim+0x97a < Guy::inc_time+0x271` | 3 | 3 |
+| `Guy::set_anim+0x104b` | **5** | **3** |
+| `Farms::inc_time+0x1ae` | 3 | 3 |
+
+Both sides open on one `produce_building` draw; ours then spends three more
+before the birds.
+
+### 99.4 The widening, run471
+
+run471 is run470's game at run449's detail over blocks 5371..5627
+(`rngcmp.py`: 5,642 frames, 0 differing), and
+`run471_s_word_frame_is_widened_whole` walks it from run470's start with
+run468's head, both directions, every record the capture prints; none is
+left unprinted. It parts on 1,121 keys.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 5371 | both | 86 standing keys: `form`, the human's census and city rows, `SITE[i].reg`, who=1's army groups' `role` and pools | | |
+| 5371 | `1/-1` | `bucket[0:food]` | 381 | 417 |
+| 5376 | `1/-1` | `SITE[2].reg` | 1 | 0 |
+| **5377** | `1/2023` | `build:x_internal`, `y_internal` | **40608, 19680** | **41184, 15072** |
+| **5377** | `1/12` | `order:kind`; `orders_x`, `orders_y` | 3; 40440, 19128 | 7; 38232, 16632 |
+| **5377** | `1/8` | `order:kind`; `orders_x`, `orders_y` | 1; 39624, 14424 | 3; 40632, 14856 |
+
+**The value diff is the building.** `1/2023` is on neither side's block
+5376 and on both sides' 5377: a site laid on the word's frame. Its
+`orig_type` 423 is `buildingrules.xml`'s tenth row, the **Granary** (a city
+is 414, the first). The original lays it at (41184, 15072) with
+`frame_started -1`; ours lays it at (40608, 19680). The citizens part with
+their orders on the same block.
+
+**Walked back, the site list agrees.** Who=1's `SITE` rows — `wx`, `wy`,
+`val`, `rank`, `dist` — agree on every slot until 5576. What parts before
+the word is only `.reg`, ours 1 against 0. It stands on 5371 on both leaders'
+slots 0, 1 and 3, and reaches slot 2 on 5376. `SITE[i].reg` is one of the
+standing families this crate reads (`tools/standing.py`: 58 readers of `reg`
+in `sim`, `ai_build.rs` among them). So does who=1's food bucket, 381 against
+417 from the window's first block.
+
+### 99.5 What this has *not* established
+
+- **Why the Granary goes elsewhere.** The site list agrees and `.reg` does
+  not. Whether `.reg` or the food bucket enters `produce_building`'s
+  placement is the next item's to read, from the listing of the arm that
+  spends `+0x1805`. It is not established here.
+- **What parts between 1851 and 5371.** No dump covers those frames at
+  detail. The 86 standing keys may include one that parted in that gap and
+  matters here; the families match the first pair's standing rows.
+- **The two extra `Guy::set_anim+0x104b`.** They are after the birds on
+  both sides and may follow from the orders above. Unread.
+
+### 99.6 Coverage
+
+**Diff-backed**: §99.1 by `run469_is_great_sahara_at_toughest_and_nothing_else_moved`;
+§99.2 by `run469_s_score_holds`, `run469_s_trace_holds_to_its_end` and
+`run470_is_great_sahara_at_toughest_and_its_word_holds`; §99.3 and §99.4 by
+`run471_s_word_frame_is_widened_whole`. The compared pin walks run471's
+5375..5378 (`great_sahara_toughest_word_window`), and the coverage driver
+drives 5375..5379. **Read only**: nothing; §99.5 is open.

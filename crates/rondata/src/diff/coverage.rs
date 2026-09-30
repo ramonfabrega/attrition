@@ -675,6 +675,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r449 = crate::testenv::dump(super::third::SAHARA_WORD_17623);
     let r457 = crate::testenv::dump(super::third::SAHARA_GAP_17140);
     let r458 = crate::testenv::dump(super::third::SAHARA_END);
+    let r471 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_5376);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1307,6 +1308,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 4, b, &mut paths);
         assert!(n >= 4, "run458 carries the third map's closing blocks: {n}");
+        frames += n;
+    }
+    // **The third map at Toughest, on run471** (item 1221, DECISIONS 56
+    // §1): its first word, frame 5376, writes block 5377, and the window is
+    // it with two either side, at run449's detail.
+    if let Some(p) = &r471 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run471 carries the third map's word at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2118,10 +2128,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1228 moved it to 10185**, blocks 10184..10187: the Caravan
     // `1/40`'s cast was spent on 10183, so no cast stands there and
     // `cast_paid` and `cast_spell` return to this pin.
+    // **Item 1221 walks the third map at Toughest beside it**, run471's
+    // 5375..5378, where a move's `coll` pair has left `(0, 0)`:
+    // `coll_x`/`coll_y` are compared on the union, and leave this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
@@ -2144,10 +2157,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // one does on the third map's run428 window (item 1177), so
     // `job_counter` stays off. **Item 1206 closed the third map**, and
     // with only run439's window walked `job_counter` returns to this pin.
+    // **Item 1221 opened the third map at Toughest**: its word's window on
+    // run471, 5375..5378, holds an unfinished site, so `job_counter` is
+    // compared and off this pin again.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -2167,8 +2183,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
 /// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174;
-/// run439 at 8519 since item 1185)
-/// walked from run346's start —
+/// run439 at 8519 since item 1185), and since item 1221 the third map at
+/// Toughest's, `sahara_toughest::great_sahara_toughest_word_window` on
+/// run471 walked from run470's start, and East Indies' from run346's —
 /// walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key
@@ -2186,10 +2203,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // walked under the same recorder, and a field is compared when a site on
     // either window compared it.
     // Item 1206 closed the third map at its trace's end, 24000, so its
-    // row names its endpoint and no window, and only the second pair's
-    // East Indies word is open.
+    // row names its endpoint and no window; item 1221 opened the same map
+    // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
+    // walked here beside East Indies'.
+    let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
     let seen = compared::stop();
-    let Some(w) = walked else {
+    let (Some(w), Some(_)) = (walked, toughest) else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };
