@@ -800,11 +800,25 @@ impl Sim {
                     self.unit_set_angle(u, facing);
                 }
                 crate::anim::UNPACK
+            } else if self.is_hero_unit(u)
+                && matches!(s, spell::AMBUSH | spell::FORCED_MARCH | spell::RALLY)
+            {
+                // A hero's three crafts of its own (`005eca5b`–`005eca9a`):
+                // an attack slot each, asked with the third argument 0.
+                match s {
+                    spell::AMBUSH => crate::anim::ATTACK1,
+                    spell::FORCED_MARCH => crate::anim::ATTACK2,
+                    _ => crate::anim::ATTACK3,
+                }
             } else {
                 crate::anim::DEFAULT
             };
+            let reroll = !matches!(
+                anim,
+                crate::anim::ATTACK1 | crate::anim::ATTACK2 | crate::anim::ATTACK3
+            );
             self.mark(crate::anim::SITE_CAST);
-            self.set_anim(u, anim, false, true);
+            self.set_anim(u, anim, false, reroll);
             if s == spell::TRANSPORT {
                 let barge = self.transport_type_for(u);
                 let spot = barge.and_then(|b| {
@@ -847,12 +861,17 @@ impl Sim {
         }
         // The untargeted crafts of chapter thirty-nine, behind the same
         // `is_castable(o, who, 1) == 3` (`docs/GOLDEN.md` §48).
-        if matches!(s, spell::TO_ARMS | spell::CIVILIAN | spell::CREATE_DECOY)
-            && self.spell_castable(s, u)
+        // …and the General's Forced March (`cast_march`, `docs/AI.md`
+        // §99.13). SEAM: Ambush's `cast_ambush` and Rally's are not built.
+        if matches!(
+            s,
+            spell::TO_ARMS | spell::CIVILIAN | spell::CREATE_DECOY | spell::FORCED_MARCH
+        ) && self.spell_castable(s, u)
         {
             match s {
                 spell::TO_ARMS => self.cast_to_arms(u),
                 spell::CIVILIAN => self.cast_civilian(u),
+                spell::FORCED_MARCH => self.cast_march(u),
                 _ => self.cast_create_decoy(u),
             }
         }

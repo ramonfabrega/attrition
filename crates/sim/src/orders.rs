@@ -175,6 +175,15 @@ pub mod spell {
     /// Citizen's and Scholar's `TO_ARMS` (no flags, `JOB_TIME 5`), handed
     /// to `cast_civilian@006704a0` and `cast_to_arms@00670880`.
     pub const CREATE_DECOY: i32 = 0x27a;
+    /// The General's two crafts behind its moving arm
+    /// (`Unit::think_spellcaster`'s hero arm, `docs/AI.md` §99.13):
+    /// `AMBUSH` and `FORCED_MARCH`, untargeted. What they do when cast is
+    /// not carried.
+    pub const AMBUSH: i32 = 0x27b;
+    pub const FORCED_MARCH: i32 = 0x27c;
+    /// `Rally!`, the row before `CREATE_DECOY` — the third craft
+    /// `Unit::do_cast` plays a hero's attack slot for.
+    pub const RALLY: i32 = 0x279;
     pub const CIVILIAN: i32 = 0x293;
     pub const TO_ARMS: i32 = 0x294;
 
@@ -235,6 +244,11 @@ pub struct SpellType {
     pub mana: i32,
     /// `FROM`/`FROM2`, the caster lineages `is_castable`'s head tests.
     pub from: [Option<crate::tech::TypeId>; 2],
+    /// `SpellTypeData::duration` and `duration_upgrade` (`+0x1d4`,
+    /// `+0x1d8`), in frames: the row's `DURATION` and `DURATION_UPGRADE`
+    /// seconds × 15, as `SpellType::init@00674a80` stores them.
+    pub duration: i32,
+    pub duration_upgrade: i32,
 }
 
 impl SpellType {
