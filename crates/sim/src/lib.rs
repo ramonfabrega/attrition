@@ -3116,7 +3116,10 @@ impl Sim {
             if !self.buildings[b].alive || self.buildings[b].owner != who {
                 continue;
             }
-            let Some(tree) = self.buildings[b].ty.and_then(|ty| self.build_types[ty].tree) else {
+            let Some(tree) = self.buildings[b]
+                .ty
+                .and_then(|ty| self.build_types[ty].tree)
+            else {
                 continue;
             };
             if self.tech_tree.types[tree].upgrade != Some(t) {

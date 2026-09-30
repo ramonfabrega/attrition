@@ -1463,7 +1463,11 @@ fn a_gained_building_type_converts_the_standing_type_it_upgrades() {
         "placed as a Tower: `orig_type` 439 on run488"
     );
     assert!(sim.tech[0].obs[tower_t], "the Tower's type is obsolete");
-    assert_eq!(sim.buildings[theirs].ty, Some(tower), "not another player's");
+    assert_eq!(
+        sim.buildings[theirs].ty,
+        Some(tower),
+        "not another player's"
+    );
     assert_eq!(sim.buildings[shop].ty, Some(market), "not outside the line");
     assert_eq!(sim.num_buildings_of(0, keep), 1, "the counters moved");
     assert_eq!(sim.num_buildings_of(0, tower), 0);
