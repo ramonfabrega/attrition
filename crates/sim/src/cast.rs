@@ -776,8 +776,9 @@ impl Sim {
     /// `(0, −1, 0.0)`, and returns from `process` before the rest of the
     /// unit's frame. `close` with a zero first argument spends no death
     /// draw and writes no `DEATH_OBJS`, and its population arm is gated on
-    /// `unit_masks & 1` clear, so a copy hands back nothing (`cast_create_
-    /// decoy` already did). What is left is the squad relink, the orders,
+    /// `unit_masks & 1` clear, so a copy hands back nothing
+    /// (`cast_create_decoy` already did). What is left is the squad relink,
+    /// the orders,
     /// the supply and collision slots, and `Object::close`'s thirty-frame
     /// hold — not `Object::die`'s, so no shot in flight lengthens it.
     ///
