@@ -4473,7 +4473,10 @@ mod flak_tests {
         s.process_building_combat(b, phase0);
         assert_eq!(s.buildings[b].visible, 1, "the latch held it");
         s.process_building_combat(b, phase0 + 32);
-        assert_eq!(s.buildings[b].visible, 0, "cleared on the phase, latch down");
+        assert_eq!(
+            s.buildings[b].visible, 0,
+            "cleared on the phase, latch down"
+        );
     }
 
     #[test]
