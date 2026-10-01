@@ -2684,11 +2684,10 @@ impl Sim {
     /// it is **`0/6`**, `0/7`'s captain, that carries the ATTACKORDER at the
     /// end of that frame, with `0/7` and `0/8` taking theirs a frame later.
     ///
-    /// SEAM: the loop's other arm, taken **before** the captain walk at each
-    /// level — a group member whose type is *not* combat-role
-    /// (`type +0x2c8 & 0x10000`) forwards to `Group::target_opportunity`
-    /// instead. Every unit in the golden record's two squads is combat-role,
-    /// so no run on disk takes it (`docs/GROUPS.md` §13).
+    /// The loop's other arm, taken at each level of the captain walk — a
+    /// group member whose type is *not* combat-role (`type +0x2c8 &
+    /// 0x10000`) forwards to `Group::target_opportunity` — is built
+    /// (item 1403, `docs/GOLDEN.md` §58): see [`Sim::target_opportunity_in`].
     fn target_opportunity(&mut self, victim: usize, attacker: Obj, _frame: i64) {
         self.target_opportunity_in(victim, attacker, false);
     }
