@@ -2772,7 +2772,27 @@ the verb. Open on ccc's fixture: whether a notification arriving after
 the clear reaches the cleared session, and the shape of the prompt-box
 read failure. A turn-end firing mode is not built: ccc has no
 turn-ended signal short of a Stop hook, and a `/clear` typed mid-turn
-destroys the turn's output (measured 2026-09-06).
+destroys the turn's output (measured 2026-09-06). **Measured by ccc the
+same day** (one run, a Sonnet fixture, auto mode; `worktree-v2`
+2801a29, 6505517, 5490a0d, unreleased): (a) **a notification that
+arrives after the clear is delivered to the cleared session, queued
+behind the `--then` turn** — a backgrounded task's own notification
+and a cross-session message both landed in the new transcript, in
+order, after the `--then` turn, and nothing was written to the old one;
+`/clear` did not kill the background task. So "a landing that arrives
+while the clear is armed waits for the cleared session" holds, and it
+arrives as that session's next turn. (b) **The unreadable shape was not
+identified and was not a state the commander chose**: the 02:43Z fire
+hit a genuinely idle row (turn ended 02:43:25.7Z, read refused
+02:43:31Z, nothing in until 02:57Z), the 01:29Z arm the same; three
+fixture shapes read fine; the app keeps no log. Two changes instead:
+the fire re-reads the box for up to 10 s (reads only) before giving
+up, and a refusal records what it saw — cursor at col/row of WxH on
+the row's text, hidden, or undrawn — in `--status`'s `last:` field.
+**And a caveat for the rule**: while a clear is actually firing (attach,
+type, land), `--status` says "no clear is armed" with no `last` for
+some seconds; the record follows within ~20 s, and that is not
+"dropped".
 
 (1390) **The chain's remote delete missed once** (the pass's own):
 `origin/worktree-att-1379` stood merged on the remote at the pass, the
