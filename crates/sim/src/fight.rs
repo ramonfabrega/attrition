@@ -2802,8 +2802,8 @@ impl Sim {
     /// 0xe`), then every member that is alive, on the map, a captain and
     /// combat-role takes `Unit::target_opportunity(member, o, who, 1)`.
     ///
-    /// SEAM: the arm that runs a member's own `find_melee_target` (an
-    /// action order absent or idle, `order_type` `NONE`, `ATTACK_TO` or
+    /// SEAM: the arm that runs a member's own melee search (an
+    /// action order absent or idle, the head order of kind `NONE`, `ATTACK_TO` or
     /// `GROUP_ATTACK_TO`, and the member not the asker's captain) is not
     /// modelled; no capture on disk has a combat-role captain beside a
     /// non-combat-role member that takes a hit.
