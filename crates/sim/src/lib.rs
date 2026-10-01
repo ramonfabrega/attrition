@@ -2439,7 +2439,8 @@ impl Sim {
         let slot = self.buildings[at].queue.push(ty, &charges);
         self.muster[who as usize].queued_by_type[ty] += 1;
         self.track_tree_queued(who, ty, 1);
-        self.economy_changed(who);
+        // No `economy_changed` (item 1398, `docs/AI.md` §103): `Build::queue_up`
+        // never raises `leader_flags & 0x2000000`.
         Ok(slot)
     }
 
@@ -2680,7 +2681,6 @@ impl Sim {
         );
         let slot = self.buildings[at].queue.push_tech(t, &charges);
         self.tech[who as usize].queued[t] += 1;
-        self.economy_changed(who);
         Ok(slot)
     }
 
@@ -2701,7 +2701,6 @@ impl Sim {
         } else {
             self.untrack_queued(who, item.ty);
         }
-        self.economy_changed(who);
         Some(item)
     }
 
@@ -3159,7 +3158,21 @@ impl Sim {
         {
             self.train_first_point(unit, at, q);
         }
-        self.economy_changed(who);
+        // **The economy is dirty only where the original says so** (item
+        // 1398, `docs/AI.md` §103): `Unit::go_inside@0061a2e0:81` for a
+        // Scholar (`0x34`, `0x35`), and `Unit::come_out@00617c10:6180ea` for
+        // an exit from a University or an Oil Platform (`is(0x1a4)` or
+        // `is(0x1a6)` on the container). Every other trained unit is born
+        // clean; `Build::queue_up` raises nothing either.
+        // SEAM: `Unit::init`'s two tribe arms (Lakota food gatherers, the
+        // Americans' Barracks) and `insert_inside`'s are not modelled.
+        let container = matches!(
+            self.building_ident(at),
+            crate::build::Ident::University | crate::build::Ident::OilPlatform
+        );
+        if matches!(self.unit_types[ty].type_index, 0x34 | 0x35) || container {
+            self.economy_changed(who);
+        }
         Produced { unit, ty, at }
     }
 
@@ -4162,6 +4175,30 @@ impl Sim {
             muster.by_group[g] += delta;
         }
         self.ai[who as usize].census.active += delta;
+        self.track_civilian_type(who, ty, delta);
+    }
+
+    /// The live half of the census's civilian counts (item 1398,
+    /// `docs/AI.md` §103): `Leader::track_unit_type@006e0dd0` moves
+    /// `peasants` (`+0x978`) and `scholars` (`+0x97c`) by the type's
+    /// predicate, and `Unit::set_type@00612fa0` and `Unit::close@0060ee50`
+    /// move `caras` (`+0x980`), so a unit born or closed between two
+    /// sweeps is already in the count `create_units` and `make_stuff` read.
+    /// The sweep zeroes and recounts them, as the original's does.
+    fn track_civilian_type(&mut self, who: Player, ty: usize, delta: i32) {
+        let worker = self.unit_types[ty].worker;
+        let caravan = worker == crate::orders::Worker::None
+            && self.unit_types[ty].tree.is_some_and(|t| {
+                !ai_census::ty::MERCHANTS.contains(&t)
+                    && self.tech_tree.is(t, ai_census::ty::CARAVAN, false)
+            });
+        let census = &mut self.ai[who as usize].census;
+        match worker {
+            crate::orders::Worker::Citizen => census.peasants += delta,
+            crate::orders::Worker::Scholar => census.scholars += delta,
+            crate::orders::Worker::None if caravan => census.caras += delta,
+            crate::orders::Worker::None => {}
+        }
     }
 
     /// Builds one unit of a type, if the player can pay for it and has room.

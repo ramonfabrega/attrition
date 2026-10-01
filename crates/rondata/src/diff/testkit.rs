@@ -1739,7 +1739,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_009;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **11382 since item 1388** (`docs/AI.md` §102): `Muster::library_cities`
+/// **11882 since item 1398** (`docs/AI.md` §103): the census's live half.
+/// `Leader::track_unit_type@006e0dd0` and `Unit::set_type@00612fa0` move
+/// `peasants`, `scholars` and `caras` the frame a unit is born or closed,
+/// and this crate recounted them at the sweep alone — who=1's `peasants`
+/// 42 against 43 on 11345 and `caras` 3 against 4 on 11372. And the
+/// economy's dirty flag (`leader_flags & 0x2000000`) is raised by a
+/// Scholar's `go_inside` and an exit from a University or an Oil Platform,
+/// never by `Build::queue_up` or an ordinary trained unit's birth: ours
+/// reassembled the holdings on 11183, the original not until 11391, and
+/// the rare count `calc_gather` sums (`known_rares` 5 against 0) put a
+/// Merchant offer (`t` 61, 931,034) above the Bombard on block 11381.
+/// **The move's value diff** (run571): `peasants` 42 → 43 on 11345,
+/// `caras` 3 → 4 on 11372, `gather_stamp` and `known_rares` on 11184 and
+/// `MAKE[2]`/`MAKE[3]` on 11381 → agreeing; 419 keys → 122. **The new
+/// word: ours 7 draws against the original's 11 on frame 11882, parting
+/// at index 2** (`Guy::set_anim+0x97a < Guy::inc_time+0x271` against
+/// `Guy::init_real+0x52`), past run571's window.
+///
+/// **11382 before it, since item 1388** (`docs/AI.md` §102): `Muster::library_cities`
 /// was never written, so the first library's queue advanced one slot where
 /// `LeaderData::get_building_cities@006e06f0` lets it advance one per city
 /// holding a library — who=1's Trade (`560`) and Conscription (`575`)
@@ -2008,7 +2026,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_009;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_382;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_882;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
