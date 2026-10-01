@@ -2881,14 +2881,11 @@ fn a_towers_arrow_leads_a_target_that_is_walking() {
             sim.order_move(b, Pos::new(1000 + 5 * 192, 1000 + 40 * 192));
         }
         run(&mut sim, 17);
-        sim.projectiles[0].landing
+        sim.projectiles[0].landing.y - sim.pos_of(Obj::Unit(b)).y
     };
-    let still = landing(false);
-    let walk = landing(true);
-    assert!(
-        walk.y > still.y + 50,
-        "led south: {walk:?} against {still:?}"
-    );
+    // The shot is aimed at the Hoplite's own position; a walker's is led.
+    let (still, walk) = (landing(false), landing(true));
+    assert!(walk > still + 50, "led south: {walk} against {still}");
 }
 
 /// **A site holds its fire** (item 1323, `docs/COMBAT.md` §8.6):

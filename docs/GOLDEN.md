@@ -10146,8 +10146,8 @@ scored by the exit code and failed tests' names of `cargo test --release
 | mutation | held by |
 |---|---|
 | K1: `get_shot` never 0 (the type's `PROJ_SPEED` always) | exit 101, both tests: **the word, 1750 → 1481**; the unit test |
-| K2: no lead on a building's shot | exit 101, both tests: **the word → 1503**; |
-| K3: `ages` 2 reads 1, not 0 (the boundary at 2 / 3 moved) | K3_RESULT |
+| K2: no lead on a building's shot | exit 101, both walk tests: **the word → 1503**; `a_towers_arrow_leads_a_target_that_is_walking` |
+| K3: `ages` 2 reads 1, not 0 (the boundary at 2 / 3 moved) | exit 0 on the walk and the widening — **an arm no walk holds** (who=1 is below the third age); the unit test alone, which asks ages 0, 2 and 3 |
 
 **What is not established.**
 - ~~The word at 1450, and the blow behind it~~: step 18's armour, item
