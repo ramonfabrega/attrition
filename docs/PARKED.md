@@ -146,6 +146,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1419, 2026-10-01 — chapter fifty's close
+
+(1424) **Parts left under chapter fifty's closed word** (GOLDEN §59),
+all draw-silent and pinned in `WANT_CH50`: the Scout's `death:extra`
+on 751 (chapter forty-eight's family, beside 1405), `0/7`'s
+`order:target` on 700 (a representation), and the group pool's `0/9`
+dropped on 932. Value rows past a closed word; names no score.
+
 ## Parked by item 1415, 2026-10-01 — a building's reach
 
 (1420) **The tech-bit range arrays and `general_building_range`**
@@ -2838,6 +2846,13 @@ the handoff, and the arms' worktrees and branches reaped. **Judged at
 the next steer with the user; model and effort move only on that
 verdict** (DECISIONS 59). Runs before the twenty-fourth tranche, at
 the weekly reset.
+
+(1425) **A SEAM's "writers" claim is a reading, not a citation**
+(1419's Loop line): `vision.rs`'s `visible` SEAM said neither writer
+had a building path while `Build::do_attack` is a third writer, and
+`seams.py` listed it as written; the claim stood unchecked until the
+word parted on it. A SEAM that names its writers could be checked
+against `seams.py --field`'s writer list. One reach.
 
 (1421) **`tranche.py` reads a gap's class off the Bash text before
 it** (the pass's own): a gate run through a script in the job's tmp —
