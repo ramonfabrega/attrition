@@ -2374,7 +2374,7 @@ mod tests {
         pin_eq!(w.firsts.len(), 243, "every key parted on run544");
     }
 
-    /// **run572 — the second pair's East Indies word 16160, widened whole**
+    /// **run572 — the second pair's East Indies word 16179, widened whole**
     /// (item 1383): run544's detail over blocks 16155..16411, walked from
     /// run346's start.
     #[test]
@@ -2409,26 +2409,42 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        // **The word 16160** (item 1383): ours 46 draws and the original 44,
-        // at index 4 — two `do_cast`s and one `init_real` against ours'
-        // `do_cast`, `init_real`, `do_cast`, `init_real`.
-        // The word's own block 16161 parts on 107 keys: a Transport Galleon
-        // `1/167` (type 321, `TRANSPORTGALLEON`) the original's build made
-        // on 16160 — 73 keys of its own — and the boarders `1/128` (type 98,
-        // `ARQUEBUSIERS`: `inside` ours 167 against −1, `orders.len` 0
-        // against 2, `path:length` 0 against 50) and `1/143` (type 179,
-        // `KINGSYEOMANRY`: `inside` ours 168 against 167). Block 16155
-        // stands on 189 keys, who=0's `SITE[n].reg` (ours 65, theirs 0)
-        // among them, who=0 being the human the crate never steps.
+        // **The word 16160 was item 1383's** (ours 46 draws, the original
+        // 44): the decoy `1/128`'s transport cast, which the original's
+        // `is_castable` refuses (item 1401, `docs/AI.md` §104) — block
+        // 16161 107 keys → 1 (`1/167`'s `form`).
+        // **The word 16179** (item 1401): ours 11 draws and the original
+        // 11, at index 2 — ours `Unit::do_idle`'s `set_anim` where the
+        // original spends `Guy::set_anim+0x104b`. The Galleon `1/171`
+        // (born on 16175 by `1/87`'s cast, in both) is gone from this crate
+        // on 16178: its boarders `1/79`, `1/86` and `1/87` stand ashore on
+        // 16179 (`inside` ours -1 against 171, positions and angles),
+        // where the original's boat sails on; `1/171` is the dump's alone.
+        // The count parts later, **on 16187** (4 against 5, index 0: the
+        // original's `Unit::move_step+0x823` first, `1/112` converting its
+        // move to a cast; block 16188's `order:kind` 2 against 14). Block
+        // 16155 stands on 189 keys, who=0's `SITE[n].reg` (ours 65,
+        // theirs 0) among them, who=0 being the human the crate never
+        // steps.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16155, 189), (16161, 107)],
+            [
+                (16155, 189),
+                (16161, 1),
+                (16163, 1),
+                (16171, 4),
+                (16172, 1),
+                (16176, 18),
+                (16179, 40),
+                (16180, 17)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 2987, "every key parted on run572");
+        // Item 1401: 2987 -> 3416.
+        pin_eq!(w.firsts.len(), 3416, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

@@ -845,7 +845,12 @@ impl Sim {
         // `SpellType::cast@00676ce0` — the switch, behind an `is_castable`
         // that has to answer **3**. The two arms this crate reaches:
         if s == spell::TRANSPORT {
-            if self.unit_can_transport(u) {
+            // `is_castable`'s head (`00675c9f`): a **decoy** (`unit_masks & 1`)
+            // answers 0 to every craft but pack and unpack, so
+            // `SpellType::cast` is a no-op for it and the order stays at the
+            // head with the clock back at 0 (item 1401: East Indies' `1/128`
+            // on 16160 spends its figure's draw and builds no boat).
+            if self.unit_can_transport(u) && !self.units[u].decoy {
                 // `is_castable`'s `0x28a` case, the only test it makes for
                 // this spell; a cast that fails it falls out of
                 // `SpellType::cast` doing nothing at all.
