@@ -12929,3 +12929,47 @@ and ours still holds queued (`queue:queued` 1 against 0), and who=1's
 census with it (`peasants` 38 against 39). The compared pin walks its
 blocks 10143..10146 and the coverage driver 10143..10147. Runs 548 and 549 were
 reserved and not used.
+
+## run562 — run470's game at run547's detail over blocks 10774..11030: the third map's word 10779 at Toughest widened (2026-09-30, item 1371)
+
+**What it is.** run547's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10774..11030, `!quit` at 11045: six blocks before the word's block
+10780 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run562-take2 \
+    --map 7 --end-frame 11045 --timeout 5000 --log-window 10774 11031 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1371 moved the
+word 10391 → 10779, and run547, the last dump of this game, ends at block
+10395: no dump printed the word's frame.
+
+**Taken** 23:09–23:33 in two launches; `ron_lane_state` read `free` before
+each. The first (`~/ron-data/lab-captures/2026-09-30-run562`) died 5 s
+after launch with a page fault in Wine, before frame 0 — its trace 832
+bytes, the receipt `extra lifecycle or fault records` — and was taken again
+once (1150). The second, waited on with `waitrun.sh`: `success: true`,
+`settings_restored: true`, exit 0, 1,408 s from launch to exit, 11,046
+frames, map 7 and seed 12345 verified. The dump (586,054,259 bytes, sha256
+`d6c59659fa67c3eb…`) and the trace (60,860,896, `79747af775510684…`) were
+moved into `Logs` as `gamelog-run562-greatsahara-toughest-10779.txt` and
+`rontrace-run562.log`. The disk had 213 GB free before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 11,046 identical |
+| window blocks | 257, 10774..11030, and the closing block 11046 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run562_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head:
+1,803 keys, 119 standing on block 10774 after the 378 dark frames
+10396..10773, and the word's block 10780 parts 19 — who=1's make list
+(`MAKE[0].val` ours 1152000 against 672000, `MAKE[2].cat` 7 against 8) and
+`0/3`'s walk (`orders_x` 5112 against 5304). The compared pin walks its
+blocks 10778..10781 and the coverage driver 10778..10782. Runs 563 and 564
+were reserved and not used.
