@@ -199,10 +199,12 @@ const UNREAD: &[(&str, &str)] = &[
     // city; the name is read by nothing, as `London` and `Norwich` are not.
     // **Item 1332 added `York`**: run529's window, Great Sahara at
     // Toughest past 9574, holds a city no earlier window did.
-    // Item 1326 met it too, on run523's East Indies window.
+    // Item 1326 met it too, on run523's East Indies window. **Item 1379
+    // added `Edinburgh`**: run571's window, past 11177, holds a city no
+    // earlier window did.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Newcastle Norwich York flags increment length size",
+        "Edinburgh London Napata Newcastle Norwich York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -701,6 +703,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r529 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9764);
     let r547 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10144);
     let r562 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10779);
+    let r571 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_11182);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1559,6 +1562,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "run562 carries the third map's word 10779 at Toughest"
+        );
+        frames += n;
+    }
+    // **And its word 11182, on run571** (item 1379): the frame writes
+    // block 11183, past run562's last block 11030.
+    if let Some(p) = &r571 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_11183;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(
+            n, 5,
+            "run571 carries the third map's word 11182 at Toughest"
         );
         frames += n;
     }

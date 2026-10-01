@@ -12973,3 +12973,44 @@ moved into `Logs` as `gamelog-run562-greatsahara-toughest-10779.txt` and
 `0/3`'s walk (`orders_x` 5112 against 5304). The compared pin walks its
 blocks 10778..10781 and the coverage driver 10778..10782. Runs 563 and 564
 were reserved and not used.
+
+## run571 — run470's game at run562's detail over blocks 11177..11433: the third map's word 11182 at Toughest widened (2026-10-01, item 1379)
+
+**What it is.** run562's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 11177..11433, `!quit` at 11448: six blocks before the word's block
+11183 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run571 \
+    --map 7 --end-frame 11448 --timeout 5000 --log-window 11177 11434 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1379 moved the
+word 10779 → 11182, and run562, the last dump of this game, ends at block
+11030: no dump printed the word's frame.
+
+**Taken** 00:26–00:47 in one launch; `ron_lane_state` read `free` before
+it, and `waitrun.sh` waited on it: `success: true`, `settings_restored:
+true`, exit 0, 1,279 s from launch to exit, 11,449 frames, map 7 and seed
+12345 verified. The dump (589,177,977 bytes, sha256 `67cf3dd4bfbe8883…`)
+and the trace (66,659,424, `f5d35a3880ea8207…`) were moved into `Logs` as
+`gamelog-run571-greatsahara-toughest-11182.txt` and `rontrace-run571.log`.
+The disk had 214 GB free before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 11,449 identical |
+| window blocks | 257, 11177..11433, and the closing block 11449 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run571_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head:
+1,270 keys, 125 standing on block 11177 after the 146 dark frames
+11031..11176, and who=1's make list parts on 11181 — the original's head
+the Scholars (`t 52`) at 9,999,999, ours Monotheism at 1,123,200 — two
+blocks before the word's block 11183 (15 keys there). The compared pin
+walks its blocks 11181..11184 and the coverage driver 11181..11185. Runs
+572 and 573 were reserved and not used.
