@@ -13,15 +13,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
-`docs/audit/2026-10-01-fable-pass-22.md`); **eight landings since**,
+`docs/audit/2026-10-01-fable-pass-22.md`); **nine landings since**,
 all Sonnet: chapters forty-eight (1380) and forty-nine (1393, 1403)
-closed, fifty opened at 686 (1404); Toughest 11182 → 11382 (1388); East Indies
+closed, fifty opened at 686 (1404); Toughest 11182 → 11882 (1388, 1398); East Indies
 16009 → 16221 (1383, 1401, 1407). The tranche before the pass: East Indies 11637 →
 16009 in seven, Toughest 8856 → 11182 in nine, one chapter closed; a
 landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 
 - **Three lanes, Sonnet 5.5** (the trial, verified from 1383's
-  transcript): 1398, 1410 and 1415 live.
+  transcript): 1410 and 1415 live; 1416 waits for the pass.
 - **The pass built** `seams.py --field <first parted field>` (frame row
   7; six answers sat on the field's writer or reader), the section
   guard's honest strike pairing, and the runs ledger's fence guard.
@@ -35,12 +35,12 @@ landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16221 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11382 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11882 of 15,432
 Golden: ch50 w686 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the commander, on Opus — draining (the user, 2026-10-01): merge
-and book 1398, 1410 and 1415 (Sonnet trial, DECISIONS 58), spawn nothing;
+and book 1410 and 1415 (Sonnet trial, DECISIONS 58), spawn nothing;
 the steering pass follows the last landing.**
 
 ## The queue
@@ -57,12 +57,11 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     `1/110`'s `order:kind` 14 against 2, `orders.len` 2 against 1; the
     count parts on 16228, 14 against 12. run572. No mechanism is named.
 
-1398. **Great Sahara at Toughest's word: frame 11382, ours 17 draws
-    against 16** (1388), at index 0: ours spends `Leader::use_market+0x1ed`
-    where the original spends `Leader::make_stuff+0x221`; who=1's
-    `MAKE[2]` parts on block 11381, ours `t` 61 at 931,034 against the
-    original's Bombard (267) at 604,160; earlier `caras` 3 against 4
-    (11372). Widened on run571 (block 11383). No mechanism is named.
+1416. **Great Sahara at Toughest's word: frame 11882, ours 7 draws
+    against 11** (1398), at index 2: ours spends `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` where the original spends `Guy::init_real+0x52`.
+    No capture holds the frame: the widening is owed, and the capture is
+    the item's first step (run574). No mechanism is named.
 
 1415. **Chapter fifty's word: frame 686, ours 8 draws against 12**
     (1404), at index 0: the original's Stockades fire at the Scout from
