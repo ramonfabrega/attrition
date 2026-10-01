@@ -1131,7 +1131,7 @@ impl Sim {
         // is already on the boat's own side of the shore.
         let mut path = std::mem::take(&mut self.units[u].path);
         if let Some(top) = path.last_mut()
-            && self.world.region_of(top.to.cell()) == self.world.region_of(spot.cell())
+            && self.world.tregion_alt(top.to.tile()) == self.world.tregion_alt(spot.tile())
         {
             top.flags &= !crate::orders::path_flag::TRANSPORT;
         }
