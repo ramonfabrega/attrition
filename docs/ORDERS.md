@@ -1345,10 +1345,16 @@ stated reason, exactly as `UnitOrder::flags` is:
 
 **`goto STEP` lands past the pause check**, and it is worth stating as a
 rule rather than leaving in §4.4's pseudocode. The straight-line check's
-success jumps to `STEP`; only the re-plan's `TAKE` comes back through
-`STEP_IF_MOVING`, and only a unit that *already* held `unit_masks & 8` at
-entry reaches the check at all. So **a unit that re-verifies its line this
-frame steps this frame, and its collision `pause` does not tick.**
+success jumps to `STEP`; the re-plan's `TAKE` goes to `STEP_IF_MOVING`
+(`LAB_005f8c60`), **which is past the check too** (the export's
+`do_move:699` → `:743`; the check at `:729` is the `else` of the whole
+`masks & 8 == 0` block). Only a unit that *already* held `unit_masks & 8`
+at entry reaches the check at all. So **a unit that re-verifies its line
+this frame, or re-plans and verifies the new top, steps this frame, and
+its collision `pause` does not tick.** The re-plan half was first read
+the other way and is struck: East Indies' Supply Wagon `1/153` on frame
+16009 re-plans with `pause` 15, steps (here a turn in place) and leaves
+`pause` 15 with no stand draw (item 1383, `docs/AI.md` §101).
 
 run10's `1/2` is the worked example, and the dump carries every field of
 it. Frame 572: `resolve_unit_collision` writes `pause 3`, `coll_x/coll_y

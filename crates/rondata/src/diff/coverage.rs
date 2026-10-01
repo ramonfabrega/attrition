@@ -682,6 +682,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
     let r535 = crate::testenv::dump("gamelog-run535-islands-toughest-14141.txt");
     let r544 = crate::testenv::dump("gamelog-run544-islands-toughest-15862.txt");
+    let r572 = crate::testenv::dump("gamelog-run572-islands-toughest-16160.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1334,6 +1335,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run544 carries the second pair's East Indies word 16009's blocks"
+        );
+        frames += n;
+    }
+    // Item 1383 moved it to 16160 (block 16161), past run544: run572 is
+    // its widening.
+    if let Some(p) = &r572 {
+        let n = drive_capture(p, 16_160, 16_163, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run572 carries the second pair's East Indies word 16160's blocks"
         );
         frames += n;
     }
@@ -2491,10 +2502,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // army 0's group 71 stands moved on it, so the group row is compared
     // on the union and leaves this pin (measured on the tree merged with
     // 1354's).
+    // **Item 1383 moved East Indies' window to run572's 16159..16162**: a
+    // cast stands on it (`1/128` and `1/143`, the Galleon's boarders), so
+    // `cast_paid` and `cast_spell` leave this pin (measured on the tree
+    // after `ccc update`'s base, f0991ca8).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x \
+         attempts build_type cruising_alt def_x \
          def_y defensive ever_in_range garrison_search \
          in_range mandatory metric new_ord non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
