@@ -13219,3 +13219,55 @@ its move's `pause`, 14 against 15.
   and `defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site`.
 - **Reading only**: the strict near-Tower identity. Item 1377 did not
   search the captures for a Keep placed within 0x600 of a Tower.
+
+## 102. The first library's queue advances one slot per library city (2026-10-01, item 1388)
+
+Great Sahara at Toughest's word on **11182**: ours 11 draws against 12,
+parting at index 0 — ours spends `Leader::use_market+0x1ed` where the
+original spends `Leader::make_stuff+0x221 < Leader::production_ai+0x1fa
+< Leader::plan_strategy+0x47` (seed `340a6de6`). who=1's `MAKE` list parts
+on block 11181: the original's head the Scholars (`t` 52, cat 4) and the
+Citizens (`t` 50, cat 5) at 9,999,999, where ours holds Monotheism and
+Democracy.
+
+### 102.1 The event: who=1's research ran two at a time
+
+`run562`, who=1's `1/2005` (the first library), blocks 10774..10903:
+the original's queue is **Trade (560) at 18,700 and Conscription (575)
+at 13,500, both +100 a frame**; ours Trade at 13,500 and Conscription at
+0, the head alone advancing. The standing rows `queue[0].job_counter` and
+`queue[1].job_counter` were on block 10774 of the widening — 119 keys no
+earlier item read. Trade lands on 10903 in the original (`epoch[2]` 3,
+`epochs` 13, `queued` 2 → 1, `resource_cap` 3,792 → 4,800 on 10904, who=1's
+pop cap 110 → 137); ours lands it later, who=1 a tech behind from there
+— and the make list's values (`check_income`, the affordability factor
+the Scholars' and Citizens' offers wrap through) with it.
+
+### 102.2 The rule and the fix
+
+`Sim::process_queues` took `Muster::library_cities` for the fan-out
+(`docs/PRODUCTION.md`, "At a library"), and **nothing outside the tests
+ever wrote it**: every research queue ran one slot. The original's count is
+`LeaderData::get_building_cities@006e06f0` — over the leader's
+`city_mark` cities, those with `city_flags & 1` and `race == who` that
+hold at least one `CityData::count_buildings(LIBRARY, 0, 1)` (active). Now
+`process_queues` counts those (`cities_of` and `count_buildings(…,
+Ident::Library, true)`) and takes the larger of that and the field, so the
+tests that set the field keep their value.
+
+### 102.3 Coverage
+
+- **Diff-backed**: run562's `1/2005` queue rows, `epoch[2]`, `epochs`,
+  `queued` (10903), `resource_cap` ×5 (10904) and `MAKE[3].t` (10985)
+  → agreeing (144 → 130 keys); run571's block 11181 (21 keys) and 11183
+  (15) → agreeing, 1,270 → 419 keys, nothing parting before block 11184.
+  Frame 11182's draws agree.
+- **Not established**: `city_flags & 1` is read as "alive" and the
+  active flag as `Build` flag `& 4` from the listing of `count_buildings`;
+  no walk holds a library city whose library is under construction. No
+  unit test builds a city fixture — the walks are the guard.
+- **The new word: 11382**, ours 17 draws against 16 at index 0 (the same
+  pair); who=1's `MAKE[2]` parts on block 11381 (ours `t` 61 at 931,034,
+  the original's the Bombard at 604,160), `caras` ours 3 against 4 on
+  11372, `peasants` 42 against 43 on 11345. Widened on run571 (block
+  11383, 419 keys).
