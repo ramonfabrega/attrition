@@ -192,9 +192,9 @@ def main(argv=None):
     ap.add_argument('log', help='a cargo test log holding "N pins moved:" reports')
     ap.add_argument('--write', action='store_true', help='rewrite the literal sites (default: report)')
     ap.add_argument('--root', default=str(ROOT))
-    a = ap.parse_args(argv)
-    root = Path(a.root)
-    sites = parse(Path(a.log).read_text())
+    args = ap.parse_args(argv)
+    root = Path(args.root)
+    sites = parse(Path(args.log).read_text())
     edits, by_hand = plan(sites, root)
     n = sum(len(v) for v in edits.values())
     print(f'{len(sites)} site(s) moved: {n} literal, {len(by_hand)} by hand')
@@ -205,10 +205,10 @@ def main(argv=None):
             print(f'  {file}:{line}: {text[a:b].strip()} -> {new}')
     for file, line, why, msg, got, want in by_hand:
         print(f'  by hand: {file}:{line}: {why} — {msg}' + (f' (got {got}, want {want})' if got else ''))
-    if a.write and edits:
+    if args.write and edits:
         apply(edits, root)
         print(f'wrote {n} pin(s) in {len(edits)} file(s)')
-    elif not a.write and edits:
+    elif not args.write and edits:
         print('nothing written: pass --write')
     return 0
 

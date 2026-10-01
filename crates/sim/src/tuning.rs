@@ -296,6 +296,9 @@ pub struct Tuning {
     /// Taxation through Income Tax — `get_cost`'s `TVar21 − TAXATION < 4`
     /// with `has_tribe_bonus(0xb)` (`docs/AI.md` §74).
     pub british_taxation_discount: i32,
+    /// Democracy's non-library research discount, highest held tier only.
+    /// `DEMOCRACY_TECH_BONUS` and `DEMOCRACY_TECH_BONUS2` (`docs/AI.md` §109).
+    pub democracy_tech_bonus: [i32; 2],
     /// `get_cost`'s **library-line tail** (`00666b7d`, the jump table at
     /// `006673a0` keyed on the epoch's line, `docs/AI.md` §99.8): each a
     /// percentage off a library epoch's price, applied one at a time as
@@ -985,6 +988,7 @@ impl Tuning {
         british_commerce: 25,
         british_taxation: 100,
         british_taxation_discount: 50,
+        democracy_tech_bonus: [20, 20],
         furs_military: 25,
         despotism_military_cheaper: [15, 15, 15],
         turk_military_cheap: 33,
@@ -1243,7 +1247,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 342] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 344] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1353,6 +1357,14 @@ impl Tuning {
             (
                 "BRITISH_TAXATION_DISCOUNT",
                 Slot::Value(T.british_taxation_discount),
+            ),
+            (
+                "DEMOCRACY_TECH_BONUS",
+                Slot::Value(T.democracy_tech_bonus[0]),
+            ),
+            (
+                "DEMOCRACY_TECH_BONUS2",
+                Slot::Value(T.democracy_tech_bonus[1]),
             ),
             ("FURS_MILITARY", Slot::Value(T.furs_military)),
             (

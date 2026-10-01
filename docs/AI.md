@@ -9360,8 +9360,8 @@ Taxation now costs the British half.
 
 - **The rest of `get_cost`'s tech tail.** Nothing in this crate applies
   the age-behind terms (`TECH_AGE_BEHIND_*`, and the colour pair),
-  Incense on Temple research, Democracy's research discount, the Greek
-  terms, the lobby's `tech_cost`, the Hanging Gardens or German industry
+  Incense on Temple research, ~~Democracy's research discount~~
+  (built and diff-backed in §109), the Greek terms, the lobby's `tech_cost`, the Hanging Gardens or German industry
   discounts, or Versailles. Where two of them apply to one tech, the
   order truncates. Of these, only Versailles comes after the British term
   in the original. None is measured. The age-behind term is live on
@@ -13642,3 +13642,82 @@ the `patriot` trait is re-typed by `unit_set_type`, which already carries
   on block 11976 (`g.angle[0]` ours 1431655765 against 0, `orders_x/y`
   21984/18912 against 22008/18936), then who=1's `MAKE[2]` on 11979 (`t`
   561 against 604, `val` 86400 against 237600).
+
+
+## 109. Toughest at frame 11985: the non-library research price (item 1426)
+
+### 109.1 Before implementation
+
+Direct Codex work from `99fdee9f`, without worker lanes. run574's whole
+widening reproduces 979 first-parted keys; run470 reproduces frame 11985,
+15 draws against 10, index 3, `Leader::produce_building` against
+`Animal::do_idle`. The original frame's first seed is `f4b47418`.
+
+The first new unit, Scholar `1/124` (type 52, land), differs from block
+11976 in figure angle and `orders_x/y`, but remains inside University
+`1/121`. Those fields also stand on earlier Scholars; a first row is
+not a cause. On block 11979, Medicine's offer is 59,400 here against
+237,600, swapping with Mercantilism. On 11983, Temple `1/2028`'s queued
+Monotheism costs 165 food and wealth here against 132 each, leaving the
+leader's buckets 31/81 against 64/114. Our subsequent Keep construction
+on tick 11985 accounts for four placement draws and one purchase draw.
+
+Hypotheses and killers, before the build:
+
+- **Missing Democracy price term.** `tech_price` explicitly leaves it
+  out. Apply the original's eligibility and truncation, then require
+  Monotheism's queued cost and Medicine's offer to agree. A remaining
+  11985 word kills the claim that this term explains the booked draw.
+- **Scholar initialization causes this word.** Leave its fields alone
+  in the price probe. If the word moves while its rows remain, they do
+  not explain this frame and are not this item's implementation.
+- **A price term placed incorrectly.** Test excluded ages, library
+  epochs and plain Library research, the highest bonus only, full
+  prerequisites, and sequential truncation before the British term.
+
+### 109.2 Rule under test
+
+`TypeData::get_cost@00664090`, listing `006667a4`–`00666914`: ages and
+library epochs bypass the Democracy arm, as does `where == LIBRARY`.
+For other technologies, test `DEMOCRACY_2`'s prerequisites first, then
+`DEMOCRACY_1`; apply only the selected percentage as
+`cost * (100 - bonus) / 100`. This follows Science and precedes the
+British taxation term. `Constants::init` loads both bonuses with
+`get_item`; both ship as 20. The bonus rows retain all three prerequisite
+slots. The rule is currently a reading plus a price observation; the
+implementation and differential verdict follow below. Untested arms
+must remain identified as reading-only, pending independent review.
+
+### 109.3 Measured result and coverage
+
+The discount moves the run470 sequence word **11985 → 12538** (+553).
+At 12538 both sides spend seven draws, parting at index 1: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
+The count first parts at 12569. run574 ends its detailed window at
+12132, so the scored constant stays at the witnessed floor 11985 until
+item 1429 captures and widens the new frame. No cause for it is assumed.
+
+**Value diff**: on block 11979 Medicine's offer becomes 237,600, agreeing;
+on 11983 Monotheism's paid food/wealth become 132 each, agreeing, and
+who=1's buckets become 64/114. The extra Keep and its builder's move on
+11986 disappear. The whole widening falls **979 → 144** keys. Its test
+asserts those named keys agree throughout the window as well as its count.
+Scholar `1/124` still differs in all three fields on 11976: that kills
+its initialization as an explanation of this word. It is parked, not fixed.
+
+**Built** in `Sim::tech_price`/`democracy_tech_discount`, `cost::Modifiers`,
+the bonus prerequisite loader, and the two `Tuning` slots. The research
+price feeds both AI affordability and the queued purchase. The focused
+`democracy_prices_non_library_research_before_british_taxation` test
+covers the price, affordability, excluded ages/epochs/plain Library techs,
+full prerequisites, the exclusive tier choice and sequential rounding.
+The loader test checks the shipped bonus prerequisites against Democracy.
+
+**Diff-backed**: the shipped second tier's purchase and AI consequence
+on run574, and 11985's removed draws on run470. **Reading-only, tested
+against the implementation but awaiting independent review**: distinct
+first-tier selection, modified multi-slot or disabled prerequisites,
+Library exclusions and composition with the British discount. Both shipped
+tiers require Democracy and carry 20%, so this run alone cannot distinguish
+the tier order. Other omitted cost terms from §74.6 remain omitted.

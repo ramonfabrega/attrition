@@ -338,6 +338,9 @@ pub struct Roles {
     /// and the government it answers. `docs/TECH.md` §"The government
     /// patriot".
     pub gov_bonuses: Vec<([Preq; 3], TypeId)>,
+    /// Full prerequisites of `DEMOCRACY_1` and `DEMOCRACY_2`, in tier
+    /// order. An unknown bonus is not held (`docs/AI.md` §109).
+    pub democracy_preqs: [Option<[Preq; 3]>; 2],
     /// `FISHERMEN1`–`FISHERMEN3`' prerequisites, in level order — the
     /// twentieth, twenty-first and twenty-second of `rules.xml`'s
     /// `TECHBONUSES` (`0x2bf`–`0x2c1`; Agriculture, Crop Rotation and Food

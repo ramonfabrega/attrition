@@ -1621,6 +1621,12 @@ pub fn load_tables(
         Some((preqs, gov))
     })
     .collect();
+    // Democracy's non-library research price: preserve all prerequisites,
+    // as get_cost's has_preq does, with tier two taking precedence.
+    tree.roles.democracy_preqs = [
+        bonus_preqs.get(0x322 - 0x2ac).copied(),
+        bonus_preqs.get(0x323 - 0x2ac).copied(),
+    ];
     tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
     tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
     // `REPUBLIC_1..3` (`0x31d`–`0x31f`): the commerce cap's republic term
@@ -2985,6 +2991,11 @@ mod tests {
         assert_eq!(
             t.roles.senate,
             Some(l.build_tree[l.build_named("Senate").unwrap()])
+        );
+        let democracy = l.tech_tree[l.tech_named("Democracy").unwrap()];
+        assert_eq!(
+            t.roles.democracy_preqs,
+            [Some([Preq::Of(democracy), Preq::None, Preq::None]); 2]
         );
         assert_eq!(t.roles.fort_line.len(), 8);
         assert_eq!(t.roles.final_needs.len(), 5);

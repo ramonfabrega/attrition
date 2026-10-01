@@ -521,8 +521,9 @@ shape carries no information and the predicates do:
   nine tenths, so Salt is worth 10% and the constant is decoration.
 - **Governments.** Despotism has three tiers on barracks units, Monarchy two on
   stable units, Socialism one on siege, aircraft and ships, Democracy two on
-  research. Despotism's three are an else-chain, so only the highest tier the
-  player holds applies rather than all three compounding.
+  research. Each uses the highest held tier, not compounded tiers.
+  Democracy's non-library term is built; see `docs/AI.md` §109 for the
+  rule, run574's paid-price diff, and the remaining review debt.
 - **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per **Military tech level**
   the player holds above the unit's own `MILITARY_LEVEL`, and
   `MILITARY_UPGRADE_DISCOUNT` is 10% per level when researching the upgrade

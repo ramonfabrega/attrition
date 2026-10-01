@@ -1304,6 +1304,83 @@ mod tests {
         assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
     }
 
+    /// The price feeds both AI affordability and the purchase: run574's
+    /// Medicine offer and Monotheism charge (`docs/AI.md` §109).
+    #[test]
+    fn democracy_prices_non_library_research_before_british_taxation() {
+        use crate::tech::Preq;
+        let (mut sim, t) = sim();
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        sim.tech[1].has_city = true;
+        sim.tech_tree.types[t.religion].cost = [15, 0, 15, 0, 0, 0];
+        sim.tech_tree.types[t.agriculture].cost = [18, 0, 18, 0, 0, 0];
+        sim.ledgers[1].bucket = [193, 189, 242, 619, 218, 0];
+        let income = |s: &Sim| s.check_income(1, t.agriculture, 0x400, None, true, -1, 1, 0);
+        assert_eq!(sim.tech_price(1, t.religion), [165, 0, 165, 0, 0, 0]);
+        assert_eq!(income(&sim), 0x40, "198 food exceeds the 193 held");
+        let lower = [Preq::Of(t.gov_a), Preq::None, Preq::None];
+        let higher = [Preq::Of(t.gov_b), Preq::Of(t.gov_a), Preq::None];
+        sim.tech_tree.roles.democracy_preqs = [Some(lower), Some(higher)];
+        sim.tech[1].tech[t.gov_b] = true;
+        assert_eq!(
+            sim.tech_price(1, t.religion)[0],
+            165,
+            "all prerequisite slots matter"
+        );
+        sim.tech[1].tech[t.gov_a] = true;
+        assert_eq!(sim.tech_price(1, t.religion), [132, 0, 132, 0, 0, 0]);
+        assert_eq!(sim.tech_price(1, t.agriculture)[0], 158);
+        assert_eq!(
+            income(&sim),
+            0x100,
+            "Medicine's affordability multiplier quadruples"
+        );
+
+        // Separate tiers so the else-chain cannot accidentally compound them
+        // or select the lower one: shipped bonuses are both 20.
+        sim.tuning.democracy_tech_bonus = [10, 20];
+        assert_eq!(sim.tech_price(1, t.religion)[0], 132);
+        sim.tech[1].tech[t.gov_b] = false;
+        assert_eq!(sim.tech_price(1, t.religion)[0], 148);
+        sim.tech_tree.roles.democracy_preqs[0] =
+            Some([Preq::Of(t.gov_a), Preq::None, Preq::Disabled]);
+        assert_eq!(
+            sim.tech_price(1, t.religion)[0],
+            165,
+            "disabled prerequisite refuses"
+        );
+        sim.tech_tree.roles.democracy_preqs[0] = Some(lower);
+        sim.tuning.democracy_tech_bonus = [20, 20];
+
+        let library = sim.build_types[t.library].tree.unwrap();
+        for (id, kind) in [
+            (t.classical, "age"),
+            (t.science1, "epoch"),
+            (t.taxation, "plain library tech"),
+        ] {
+            sim.tech_tree.types[id].cost = [15, 0, 15, 0, 0, 0];
+            sim.tech_tree.types[id].where_ = Some(library);
+            sim.tech[1].tech[t.gov_a] = false;
+            let price = sim.tech_price(1, id);
+            sim.tech[1].tech[t.gov_a] = true;
+            assert_eq!(sim.tech_price(1, id), price, "{kind} is excluded");
+        }
+        // Even a mislocated age/epoch is excluded by its kind first.
+        for id in [t.classical, t.science1] {
+            sim.tech_tree.types[id].where_ = sim.tech_tree.types[t.religion].where_;
+            assert_eq!(sim.democracy_tech_discount(1, id), 0);
+        }
+        sim.tech_tree.roles.taxation_line = vec![t.religion];
+        sim.tech[1].power = Some(0xb);
+        // A base that distinguishes the two sequential truncations.
+        sim.tech_tree.types[t.religion].cost = [13, 0, 13, 0, 0, 0];
+        assert_eq!(
+            sim.tech_price(1, t.religion)[0],
+            57,
+            "143 -> 114 -> 57; reversed gives 56"
+        );
+    }
+
     /// `get_cost`'s Silver arm (`docs/AI.md` §99.16). run470's who=1 held
     /// Silver on 9955 and paid 382 food and 382 knowledge for the
     /// Gunpowder Age, `(100 − 15) × 450 / 100`; this crate charged 450.

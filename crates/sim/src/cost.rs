@@ -257,6 +257,9 @@ pub struct Modifiers {
     /// [`Modifiers::discount`] because the shape is a subtraction rather than a
     /// scale — see [`science_discount`].
     pub science_ahead: i32,
+    /// Non-library technology discount, after Science and before the
+    /// British taxation term. Its own truncation (`docs/AI.md` §109).
+    pub democracy: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
@@ -442,6 +445,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         }
     }
 
+    if m.democracy != 0 {
+        cost = cost.wrapping_mul(100 - m.democracy) / 100;
+    }
     cost = cost * (100 - m.late_discount) / 100;
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;

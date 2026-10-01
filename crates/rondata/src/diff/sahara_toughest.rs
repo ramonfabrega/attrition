@@ -1290,19 +1290,35 @@ mod tests {
                 .collect::<Vec<_>>(),
             // 128 stand on the window's first block, after the frames
             // between run571's last block and it that no dump prints.
-            [
-                (11876, 128),
-                (11976, 3),
-                (11979, 6),
-                (11983, 4),
-                (11984, 2),
-                (11985, 1),
-                (11986, 34),
-                (11987, 2)
-            ],
+            [(11876, 128), (11976, 3)],
             "the blocks keys first part on, to one past the word's"
         );
-        pin_eq!(w.firsts.len(), 979, "every key parted on run574");
+        // Item 1426 (`docs/AI.md` §109): the 11985 word agrees after
+        // Democracy's research discount. These keys name the price,
+        // affordability and purchase, not merely the aggregate improvement.
+        for (o, key) in [
+            (-1, "leader:MAKE[2].val"),
+            (-1, "leader:MAKE[2].t"),
+            (-1, "leader:bucket[0:food]"),
+            (-1, "leader:bucket[2:wealth]"),
+            (2028, "queue:queue[0].cost[0]"),
+            (2028, "queue:queue[0].cost[1]"),
+            (2046, "build:extra"),
+        ] {
+            pin_eq!(
+                row(1, o, key),
+                None,
+                "Democracy price/purchase agrees: 1/{o} {key}"
+            );
+        }
+        pin_eq!(
+            row(1, 124, "g.angle[0]"),
+            Some("11976: ours 1431655765 theirs 0".into()),
+            "the Scholar residue remains while the AI word moves"
+        );
+        // Next measured word: 12538, beyond this capture. The constant
+        // stays at its witnessed floor 11985 until item 1429 widens it.
+        pin_eq!(w.firsts.len(), 144, "every key parted on run574");
     }
 
     /// **The word 11182, widened whole** (item 1379):

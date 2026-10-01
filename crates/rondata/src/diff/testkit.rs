@@ -1822,6 +1822,16 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_482;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
+/// **Item 1426 measures 12538; the pin stays 11985** until item 1429
+/// captures the new word, beyond run574's window (`docs/AI.md` §109).
+/// Democracy's research discount removes 11985's five extra draws and
+/// run574's keys fall 979 -> 144. Monotheism's queued food/wealth cost
+/// 165 against 132 -> 132 each; Medicine's offer 59400 against 237600
+/// -> 237600. New sequence delta: 7 draws each at 12538, index 1,
+/// ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+/// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
+/// Count first parts at 12569. No mechanism is booked for the new word.
+///
 /// **11985 since item 1416** (`docs/AI.md` §108): the other arm of
 /// `Build::finished`'s Senate tail. Who=1's Senate finishes Democracy on
 /// 11882 with The Senator `1/80` standing, and the original `set_type`s it

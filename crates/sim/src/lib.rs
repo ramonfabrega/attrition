@@ -2461,10 +2461,11 @@ impl Sim {
 
     /// A technology's price for `who` — `TypeData::get_cost` over a tech
     /// record: `COST × TECH_COST_FACTOR`, the **science discount**, no ramp,
-    /// the British taxation discount, and the redirect for a good the player
-    /// does not have (`docs/COSTS.md` §"The redirect"). The rest of the
-    /// discount tail — being behind in ages, the lobby's tech-cost setting,
-    /// the final-tech ramp, Democracy, Incense — is [`cost::Modifiers`]'s
+    /// Democracy's non-library discount, the British taxation discount,
+    /// and the redirect for a good the player does not have
+    /// (`docs/COSTS.md` §"The redirect"). The rest of the discount tail —
+    /// being behind in ages, the lobby's tech-cost setting, the final-tech
+    /// ramp, Incense — is [`cost::Modifiers`]'s
     /// and arrives as the undiscounted price until the layers that produce
     /// it exist, as [`Sim::price_of`] does for a unit.
     ///
@@ -2490,6 +2491,7 @@ impl Sim {
             cost::Counts::default(),
             &cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
+                democracy: self.democracy_tech_discount(who, t),
                 late_discount: if british_taxation {
                     self.tuning.british_taxation_discount
                 } else {
@@ -2503,6 +2505,36 @@ impl Sim {
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// The highest held Democracy bonus, for non-library technologies
+    /// only (`docs/AI.md` §109). `where` is tested directly, not by lineage.
+    fn democracy_tech_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        if matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Age(_) | tech::Kind::Epoch { .. }
+        ) || self.tech_tree.types[t]
+            .where_
+            .and_then(|at| self.build_record(at))
+            .is_some_and(|at| self.build_types[at].ident == build::Ident::Library)
+        {
+            return 0;
+        }
+        self.tech_tree
+            .roles
+            .democracy_preqs
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_, preqs)| {
+                preqs.is_some_and(|qs| {
+                    qs.iter().all(|&q| {
+                        self.tech_tree
+                            .has_tech_p(&self.setup, &self.tech[who as usize], q)
+                    })
+                })
+            })
+            .map_or(0, |(tier, _)| self.tuning.democracy_tech_bonus[tier])
     }
 
     /// `TypeData::get_cost`'s **Silver arm** (`00666af0`..`00666b51`): an

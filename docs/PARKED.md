@@ -52,6 +52,17 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by direct item 1426, 2026-10-01 — no word moved by these fields
+
+(1430) **Scholar birth orientation and stored order destination**:
+run574 block 11976, Scholar `1/124` inside University `1/121`, has
+`g.angle[0]` ours 1431655765 against 0 and `orders_x/y` 21984/18912
+against 22008/18936. The same field family stands on earlier Scholars
+and recurs on `1/125` at 11993. Item 1426 moved the sequence word to
+12538 while leaving all three fields apart, killing them as the cause
+of 11985. No formula is established and no fix is built. Revisit when
+a score names their reader; `docs/AI.md` §109 records the experiment.
+
 ## Parked by the nineteenth Fable pass, 2026-09-29 — names no score
 
 (1134) **The domain is one fact in three fields** (parked 1130,
@@ -2847,10 +2858,6 @@ the next steer with the user; model and effort move only on that
 verdict** (DECISIONS 59). Runs before the twenty-fourth tranche, at
 the weekly reset.
 
-(1428) **`tools/repin.py` dies with two sites to rewrite** (1418's
-Loop line): `a.write` fails on a name shadowed by an int in `main`
-(line 208) when one log names two sites; the worker re-pinned by hand.
-A tool the frame names, broken on its second shape. One reach.
 
 (1425) **A SEAM's "writers" claim is a reading, not a citation**
 (1419's Loop line): `vision.rs`'s `visible` SEAM said neither writer

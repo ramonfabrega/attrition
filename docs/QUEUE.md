@@ -12,24 +12,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, **the twenty-third steering pass is in** (DECISIONS 59):
-the Sonnet trial read cheap — 5.13 USD a landing against 13.65 — **and
-is withdrawn as a decision**: it ran at effort `medium` against Opus's
-`high`, and it failed on its purpose, three lanes landing to nobody and
-the commander asleep 3h34 (1412); the frame names the tool now and **a
-spawn is followed by an idle subscription**. The pass spawned, which no
-pass does. Built: `tools/mutate.py`, `tools/repin.py`, `seams.py
---unwritten` (1391, 1349, 1411, 1397). No score moved.*
+*2026-10-01, direct Codex branch: item 1426 moves Toughest's measured
+sequence word **11985 → 12538** (+553); the floor stays 11985 until
+1429's capture. Democracy's non-library research price is now applied.
+run574: Monotheism's paid food/wealth 165 against 132 → 132 each;
+Medicine's offer 59400 against 237600 → 237600; keys 979 → 144.*
 
-- **The three lanes landed**: chapter fifty closed (1419); Toughest →
-  11985 (1416); East Indies → 16760, floor 16482 until 1427's capture (1418).
-- **No refill after they land.** At the weekly reset the commander runs
-  parked 1422's matrix (twelve arms on three landed items, never merged),
-  writes its results page and the handoff; the model and `--effort` are the steer's.
+- **Branch only**: `codex/direct-advancement`; the Claude commander is
+  paused, no lanes or refill. The user authorized one direct item.
+- **East Indies** remains measured at 16760, floor 16482 until 1427.
+  Chapter fifty is closed. Item 1428's re-pin CLI crash is fixed here.
+- **Steer handoff**: review this branch's commits, journal and review
+  debt; no model trial or matrix ran here. The paused commander's
+  existing weekly-reset matrix (parked 1422) remains its own plan.
 - **East Indies closes at 18,140**: that booking books the third pair's
-  first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
+  first capture too (DECISIONS 56 §1, nation moved).
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 20 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1428).
+- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,9 +37,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — no lane live, no
-refill; at the weekly reset run parked 1422's matrix, write its
-results page and the handoff: the twenty-fourth pass is due.**
+**Opener: the direct item is complete; review its journal and gate verdict.
+No automatic continuation or commander restart. Item 1429 books the next
+Toughest word; it has not started.**
 
 ## The queue
 
@@ -57,12 +56,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     floor 16482; run227 spans the frame but is run54's game, not run346's,
     so the capture is first (run583). No mechanism is named.
 
-1426. **Great Sahara at Toughest's word: frame 11985, ours 15 draws
-    against 10** (1416), at index 3: ours spends
-    `Leader::produce_building+0x1805` where the original spends
-    `Guy::set_anim+0x97a < Animal::do_idle+0x19`. Widened on run574
-    (block 11986); the first state part is `1/124` on 11976, `g.angle[0]`
-    ours `0x55555555` against 0. No mechanism is named.
+1429. **Great Sahara at Toughest's word: frame 12538, seven draws
+    on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
+    Count first parts at 12569. run574's detail ends at 12132, so no
+    record of this game's word is on disk; capture first (run584), then
+    widen. The floor stays 11985. No mechanism is named (1426).
 
 1423. **Chapter fifty-one: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): `Group::target_opportunity`'s 15-frame cooldown
