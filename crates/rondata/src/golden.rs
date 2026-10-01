@@ -2008,6 +2008,11 @@ mod tests {
         // the Keep, a squad put ashore facing away from its barge, and an
         // age's snap on a unit mid-move (item 1310, `docs/GOLDEN.md` §56).
         ("chapter47.cmd", &[]),
+        // Chapter forty-eight: a who=1 Tower site on who=0's land, struck
+        // by a squad and bombed while its builders work — the carry in a
+        // site's lost progress, an aircraft's blow and building attrition
+        // (item 1358, `docs/GOLDEN.md` §57).
+        ("chapter48.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
