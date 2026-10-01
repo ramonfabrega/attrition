@@ -146,6 +146,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1404, 2026-10-01 — chapter fifty's staging
+
+(1413) **`Group::target_opportunity`'s 15-frame cooldown and its member
+`find_melee_target` arm** (1403's mutation): chapter fifty stages both
+(`@amove` of a Scout and a Hoplite squad through two Stockades). With the
+cooldown dropped, nothing fails, because the hand-off retargets before the
+second hit. The member arm is unbuilt, and the original's behaviour falls
+past the word 686. These come back once the word closes. 1335 stays parked
+as well: walked and not reached (GOLDEN §59).
+
 ## Parked by item 1401, 2026-10-01 — the decoy's cast
 
 (1408) **A held decoy's cast after 16160**: the original spends no
@@ -2883,6 +2893,11 @@ calls); 1401, which did load it, reached the commander. The frame's
 "send me one line" names no tool. Nothing else wakes an idle commander:
 the remedy is the frame naming `ToolSearch("select:SendMessage")` and
 the commander spawning with an idle notice. One reach.
+
+(1414) **A new chapter's first walk panics with no word printed** (1404's
+Loop line): `GROUND_INEXACT`'s guard panics at drop on a chapter's first
+`stage_walk`, before the word is printed, so the pin has to be guessed (it was seven)
+before the first run. One reach.
 
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774
