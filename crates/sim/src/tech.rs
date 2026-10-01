@@ -401,6 +401,12 @@ pub struct Roles {
     /// it breaks at the first `has_preq` that fails — and that count
     /// indexes `ATTRITION_IMPROVED` (`docs/ATTRITION.md`, "Strength").
     pub attrition_preq: [Option<TypeId>; 4],
+    /// `TROOPS_LOS_1..3`, bonuses 61–63 (`0x2e9..0x2eb`): Herbal Lore,
+    /// Medicine and Pharmaceuticals in the shipped file.
+    /// `LeaderData::get_troops_los_upgrade@006e1110` counts **every** one
+    /// held, not a leading run, and `Unit::update_los` multiplies the
+    /// count by `TROOPS_UPGRADE_LOS` (`docs/VISION.md` §2, term 6).
+    pub troops_los_preq: [Option<TypeId>; 3],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

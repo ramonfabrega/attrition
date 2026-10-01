@@ -1641,6 +1641,9 @@ pub fn load_tables(
     tree.roles.fort_borders_preq = [bonus_at(37), bonus_at(38), bonus_at(39)];
     // `ATTRITION1..4` (`0x2dd`): the steps `Leader::calc_attrition` counts.
     tree.roles.attrition_preq = [bonus_at(49), bonus_at(50), bonus_at(51), bonus_at(52)];
+    // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`
+    // counts (`docs/VISION.md` §2, term 6).
+    tree.roles.troops_los_preq = [bonus_at(61), bonus_at(62), bonus_at(63)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

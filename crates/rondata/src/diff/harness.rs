@@ -64,7 +64,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         {
             r.los_compared += 1;
             compared::note("UnitDump", &["mylos"]);
-            let ours_los = built.sim.unit_los(link.unit);
+            let ours_los = built.sim.units[link.unit].mylos;
             if i64::from(ours_los) != theirs_los {
                 r.los_diverged.push(LosDivergence {
                     frame: frame.n,
@@ -1825,7 +1825,7 @@ pub(crate) fn widen_block(
                     them.recharging,
                 ),
                 ("start_dist", i64::from(un.start_dist), them.start_dist),
-                ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
+                ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
                     i64::from(un.half_step),

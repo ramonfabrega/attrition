@@ -1168,12 +1168,12 @@ mod tests {
         for key in ["g.track_dx[1]", "g.cur_time[0]", "g.cur_time[2]"] {
             pin_eq!(row(1, 84, key), None, "the Trebuchet's {key} agrees");
         }
-        // Its guy 1's slot parts again on 10004, past the word 9999 (item
-        // 1346): a consequence of the new word, not the old one's row.
+        // Its guy 1's slot parted again on 10004, past the word 9999 (item
+        // 1346), and agrees since the move 9999 → 10144 (item 1354).
         pin_eq!(
-            row(1, 84, "g.cur_anim[1]").as_deref(),
-            Some("10004: ours 1 theirs 0"),
-            "the Trebuchet's g.cur_anim[1], past the word 9999"
+            row(1, 84, "g.cur_anim[1]"),
+            None,
+            "the Trebuchet's g.cur_anim[1] agrees"
         );
         // **The move 9982 → 9999** (item 1346, `docs/AI.md` §99.16): the
         // Gunpowder Age at 382 with Silver, bought by the cheap tick of
@@ -1195,25 +1195,30 @@ mod tests {
             None,
             "the age queued at `1/2005`"
         );
-        // **The word 9999's block 10000**: ours' Explorer `1/0` has no order
-        // on block 9999 and thinks as a scout on 9999; the original's still
-        // holds one, 24 off ours' last in both coordinates, and its
-        // `tolerance` stands from 9943.
+        // **The move 9999 → 10144** (item 1354, `docs/VISION.md` §2): who=1
+        // takes Herbal Lore (`TROOPS_LOS_1`) on 9782, and every Barracks
+        // and Stable unit it owns sees two tiles more from block 9784 —
+        // the next leader pass after `gain_tech`'s `|= 0xc000000`. The
+        // value diff: on 9784 the Explorer `1/0`'s `mylos` ours 12 against
+        // 14, `1/28`'s 11 against 13 and `1/38`'s 8 against 10, 29 keys,
+        // → agreeing; the Explorer's path on 9839 (`path[1].to` (26616,
+        // 13560) against (26616, 14328)) and its `pos` from 9840 →
+        // agreeing; the word 9999's block 9999, `orders.len` ours 0
+        // against 1 → agreeing, and the `tolerance` from 9943 with it.
+        for (o, key) in [
+            (0, "mylos"),
+            (28, "mylos"),
+            (38, "mylos"),
+            (0, "path[1].to"),
+            (0, "pos"),
+            (0, "orders.len"),
+            (0, "tolerance"),
+        ] {
+            pin_eq!(row(1, o, key), None, "1/{o}'s {key} agrees");
+        }
+        // The new word, 10144, is past this window's last block 10015.
         pin_eq!(
-            row(1, 0, "orders.len").as_deref(),
-            Some("9999: ours 0 theirs 1"),
-            "the Explorer's order, the original's alone"
-        );
-        pin_eq!(
-            row(1, 0, "tolerance").as_deref(),
-            Some("9943: ours 0 theirs 384"),
-            "the Explorer's tolerance, standing before the word"
-        );
-        pin_eq!(
-            by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10000 + 3)
-                .map(|(b, n)| (*b, *n))
-                .collect::<Vec<_>>(),
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (9759, 83),
                 (9763, 1),
@@ -1225,32 +1230,26 @@ mod tests {
                 (9776, 3),
                 (9781, 1),
                 (9782, 4),
-                (9784, 29),
                 (9799, 1),
                 (9801, 1),
                 (9824, 1),
-                (9839, 5),
-                (9840, 19),
-                (9841, 2),
-                (9845, 1),
-                (9855, 1),
-                (9856, 1),
-                (9943, 1),
                 (9981, 2),
                 (9982, 1),
                 (9985, 1),
                 (9989, 1),
                 (9993, 1),
                 (9994, 1),
-                (9999, 4),
-                (10000, 16)
+                (10004, 1),
+                (10011, 1),
+                (10014, 1)
             ],
-            "the blocks keys first part on, to three past the word 9999's"
+            "the blocks keys first part on, the whole window"
         );
         // Item 1338, on the tree merged with 1326's: 1,075 → 557.
         // Item 1330, on the tree merged with 1338's: 557 → 505, the births' `form` (`docs/GROUPS.md` §24.3).
         // Item 1346, on the tree merged with 1330's: 505 → 262.
-        pin_eq!(w.firsts.len(), 262, "every key parted on run529");
+        // Item 1354, the troops term and the `mylos` cache: 262 → 114.
+        pin_eq!(w.firsts.len(), 114, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
