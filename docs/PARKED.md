@@ -146,6 +146,13 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1415, 2026-10-01 — a building's reach
+
+(1420) **The tech-bit range arrays and `general_building_range`**
+(GOLDEN §59): 1415 built the British Tower-line term and `Build::process`'s
+`near_o` attack. The other range terms are read, and no capture holds
+them; they name no score.
+
 ## Parked by item 1398, 2026-10-01 — the census's live half
 
 (1417) **The census's unbuilt arms** (AI §103): `Unit::init`'s Lakota and

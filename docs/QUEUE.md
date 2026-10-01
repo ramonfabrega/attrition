@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
-`docs/audit/2026-10-01-fable-pass-22.md`); **ten landings since**,
-all Sonnet: chapters forty-eight (1380) and forty-nine (1393, 1403)
-closed, fifty opened at 686 (1404); Toughest 11182 → 11882 (1388, 1398); East Indies
-16009 → 16250 (1383, 1401, 1407, 1410). The tranche before the pass: East Indies 11637 →
-16009 in seven, Toughest 8856 → 11182 in nine, one chapter closed; a
-landing 80 minutes, 50 of them waiting on suite, capture and gate.*
+*2026-10-01, **the twenty-third steering pass is due**, early by the
+user's word: the tranche was drained at eleven landings, all Sonnet
+(DECISIONS 58's trial). Chapters forty-eight (1380) and forty-nine (1393,
+1403) closed, fifty opened at 686 and moved to 819 (1404, 1415); Toughest
+11182 → 11882 (1388, 1398); East Indies 16009 → 16250 (1383, 1401, 1407,
+1410). **Three Sonnet lanes sent no done line, and the commander slept
+3h40** (1412): the trial's first datum. A brief that names the tool
+fixed it for every lane after.*
 
-- **Three lanes, Sonnet 5.5** (the trial, verified from 1383's
-  transcript): 1415 live; 1416 and 1418 wait for the pass.
-- **The pass built** `seams.py --field <first parted field>` (frame row
+- **No lanes live.** 1416, 1418 and 1419 wait for the pass, one to a word.
+- **The twenty-second pass built** `seams.py --field <first parted field>` (frame row
   7; six answers sat on the field's writer or reader), the section
   guard's honest strike pairing, and the runs ledger's fence guard.
 - **East Indies closes at 18,140**: that booking books the third pair's
@@ -36,12 +36,11 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16250 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11882 of 15,432
-Golden: ch50 w686 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
+Golden: ch50 w819 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — draining (the user, 2026-10-01): merge
-and book 1415 (Sonnet trial, DECISIONS 58), spawn nothing;
-the steering pass follows the last landing.**
+**Opener: the twenty-third steering pass, on Fable — score the Sonnet
+trial (1406, 1412), then refill three lanes with 1416, 1418 and 1419.**
 
 ## The queue
 
@@ -63,10 +62,10 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     No capture holds the frame: the widening is owed, and the capture is
     the item's first step (run574). No mechanism is named.
 
-1415. **Chapter fifty's word: frame 686, ours 8 draws against 12**
-    (1404), at index 0: the original's Stockades fire at the Scout from
-    14.7 and 15.8 tiles (`1/2006 ammo[0]` on 687, `1/2007` on 692), ours
-    from about 11 (715, 714); units agree through 686. run577. No
+1419. **Chapter fifty's word: frame 819, ours 6 draws against 10**
+    (1415), at index 0: ours spends `Unit::find_attack_pos+0xea9 <
+    Unit::fight+0xcb4`; the first state part is `0/7` on 700,
+    `order:kind` 2 against 10, `orders.len` 1 against 2. run577. No
     mechanism is named.
 
 ## How to maintain this file
