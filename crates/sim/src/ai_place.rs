@@ -308,8 +308,13 @@ impl Sim {
     ) -> i32 {
         let bt = &self.build_types[rec];
         let ident = bt.ident;
-        let tower_like = matches!(ident, Ident::Tower | Ident::Lookout);
-        if (bt.attack != 0 && !tower_like) || ident == Ident::Woodcutter {
+        // `is(0x1b7, 0)`, `is(0x209, 0)` and `is(0x1a2, 0)` — the Tower, the
+        // Lookout and the Woodcutter **lines** (`00639270`–`006392c0`): a
+        // Keep counts its gather neighbours as a Tower does (item 1377).
+        let types = &self.build_types;
+        let lookout = crate::build::is(types, rec, Ident::Lookout);
+        let tower_like = crate::build::is_tower(types, rec) || lookout;
+        if (bt.attack != 0 && !tower_like) || crate::build::is(types, rec, Ident::Woodcutter) {
             return 0;
         }
         let needs_city = !bt.has(flags::NO_CITY);
@@ -346,7 +351,7 @@ impl Sim {
                 if nb_gather && ni != Ident::University {
                     n += 2;
                 } else if nb_wonder {
-                    n += if ident == Ident::Lookout { 8 } else { 4 };
+                    n += if lookout { 8 } else { 4 };
                 }
             } else if ident == Ident::Farm {
                 if matches!(ni, Ident::Farm | Ident::Granary) {
@@ -365,6 +370,21 @@ impl Sim {
             }
         }
         n
+    }
+
+    /// `produce_building`'s two line tests, `(local_84, is_fort)`.
+    /// `local_84` is `is(0x1b7, 0)` — the Tower **line**, so a Keep or a
+    /// Stockade answers it — asked only inside the `e` arm (`006e1580`,
+    /// `frame != 0 && +0x2c0 & 0x10`); everywhere else it stays 0, a Tower
+    /// at frame 0 included. It gates the spiral's start, the friends'
+    /// square, the near-Tower eighth and the stride. `is_fort` is `is(0x1bb,
+    /// 0)`, the Fort line (a Castle, a Fortress), asked ungated at
+    /// `006e2129` (item 1377, `docs/AI.md` §100).
+    pub(crate) fn placement_lines(&self, rec: usize, nocity: bool) -> (bool, bool) {
+        (
+            nocity && crate::build::is_tower(&self.build_types, rec),
+            crate::build::is_fort(&self.build_types, rec),
+        )
     }
 
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
@@ -398,8 +418,7 @@ impl Sim {
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
         let is_dock = crate::build::is_dock(&self.build_types, rec);
-        let tower = ident == Ident::Tower;
-        let is_fort = ident == Ident::Fort;
+        let (tower, is_fort) = self.placement_lines(rec, nocity);
         let circle = circle();
         let mut start = 0usize;
         let mut fortlike = false;
@@ -626,7 +645,12 @@ impl Sim {
                         }
                     }
                 } else {
-                    // `danger[]` is not kept: nothing added.
+                    // SEAM: the fort arm's first term, `score += danger[who]
+                    // [cell / 2] / 4` (`006e2131`–`006e216b`), is not added,
+                    // though `World::danger_half` now carries the grid; nor
+                    // is the team-style arm's `×16` for the leader's own
+                    // target (`006e2206`–`006e2225`). No walk reaches a Fort
+                    // placement on a cell with danger (`docs/AI.md` §100).
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {
@@ -1146,6 +1170,60 @@ mod tests {
             sim.find_friends(granary, at, None, 0),
             0,
             "another player's farms are nobody's friends"
+        );
+    }
+
+    /// **A Keep's friends are a Tower's** (item 1377): `find_friends`'
+    /// tower arm is `is(0x1b7, 0)`, the line, so a Keep (`FROM` Tower)
+    /// counts each gather neighbour `+2` as a Tower does, and its arrows do
+    /// not send it to the early zero. East Indies' Keep `1/2047` on frame
+    /// 15985 is this arm: two farms beside (51, 28) make it `(4 + 2)² ×
+    /// 1000` where every friendless cell scores 1255.
+    #[test]
+    fn a_keep_counts_its_gather_neighbours_as_a_tower_does() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let mut ty = |ident: Ident, from: Option<usize>, letters: &str, attack: i32| {
+            let rec = sim.build_types.len();
+            sim.build_types.push(crate::build::BuildType {
+                ident,
+                from,
+                flags: flags::parse(letters),
+                attack,
+                x_size: 2,
+                y_size: 2,
+                hits: 100,
+                ..crate::build::BuildType::default()
+            });
+            rec
+        };
+        let farm = ty(Ident::Farm, None, "gda", 0);
+        let tower = ty(Ident::Tower, None, "ean", 12);
+        let keep = ty(Ident::Other, Some(tower), "ecan", 16);
+        let mut put = |rec: usize, x: i32, y: i32| {
+            let pos = Pos::new(x * 768 + 384, y * 768 + 384);
+            let b = sim.add_building(1, pos, 8);
+            sim.buildings[b].ty = Some(rec);
+            let corner = sim.tile_corner(rec, pos);
+            for t in sim.footprint(rec, corner) {
+                sim.world
+                    .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+            }
+        };
+        put(farm, 50, 28);
+        put(farm, 50, 29);
+        // And the placement's own `local_84`: the line, inside the `e` arm.
+        assert_eq!(sim.placement_lines(keep, true), (true, false));
+        assert_eq!(sim.placement_lines(keep, false), (false, false), "frame 0");
+        let at = Cell::new(51, 28);
+        assert_eq!(
+            sim.find_friends(tower, at, None, 1),
+            4,
+            "two farms, +2 each"
+        );
+        assert_eq!(
+            sim.find_friends(keep, at, None, 1),
+            4,
+            "the Keep is of the Tower's line"
         );
     }
 }

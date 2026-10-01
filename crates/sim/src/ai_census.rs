@@ -862,7 +862,7 @@ impl Sim {
         let mut reg_defense: Vec<(usize, i32)> = Vec::new();
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
-            if !bd.alive || bd.owner != who || !bd.active {
+            if !bd.alive || bd.owner != who {
                 continue;
             }
             let Some(rec) = bd.ty else {
@@ -870,7 +870,11 @@ impl Sim {
             };
             let bt = &self.build_types[rec];
             let reg = self.world.region_of(bd.pos.cell());
-            if bt.has(build::flags::GATHER)
+            // **The active test gates the gather slots alone**: its `je`
+            // at `006bb09c` lands on `006bb15a`, the defensive count's own
+            // guard, so an unfinished Keep counts (item 1377).
+            if bd.active
+                && bt.has(build::flags::GATHER)
                 && let Some(good) = crate::ai_place::gather_good(bt.ident)
             {
                 slots[good] += bd.gather_max.unwrap_or(0);
@@ -1826,6 +1830,34 @@ mod tests {
         assert_eq!(f.sim.ai[1].census.defense, 3);
         let r = f.sim.world.region_of(Cell::new(5, 5)).unwrap() as usize;
         assert_eq!(f.sim.ai[1].census.reg_defense[r], 3);
+    }
+
+    /// **`defense` between sweeps, and an unfinished site in one** (item
+    /// 1377): `Build::init` adds 1 for a type with arrows the moment it is
+    /// placed, `Build::activate` 1 more, `Build::close` takes 1; the sweep
+    /// recounts and counts the site, because its `is_active` test gates the
+    /// gather slots alone (`006bb09c` → `006bb15a`). A human's tally is
+    /// never moved here: this crate does not sweep a human.
+    #[test]
+    fn defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site() {
+        let mut f = fix();
+        f.sim.census(1);
+        assert_eq!(f.sim.ai[1].census.defense, 0);
+        let site = f.sim.init_build(1, f.tower, tile_pos(28, 20), false);
+        assert_eq!(f.sim.ai[1].census.defense, 1, "`Build::init`'s +1");
+        f.sim.census(1);
+        assert_eq!(
+            f.sim.ai[1].census.defense, 1,
+            "the sweep counts the unfinished site"
+        );
+        let r = f.sim.world.region_of(Cell::new(7, 5)).unwrap() as usize;
+        assert_eq!(f.sim.ai[1].census.reg_defense[r], 1);
+        f.sim.activate(site, false, true);
+        assert_eq!(f.sim.ai[1].census.defense, 2, "`Build::activate`'s +1");
+        f.sim.close_building(site, true);
+        assert_eq!(f.sim.ai[1].census.defense, 1, "`Build::close`'s -1");
+        f.sim.init_build(0, f.tower, tile_pos(28, 28), false);
+        assert_eq!(f.sim.ai[0].census.defense, 0, "a human's is not moved");
     }
 
     /// The maxima only ever climb, and the escrow rate switches on at the

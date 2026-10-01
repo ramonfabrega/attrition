@@ -2741,6 +2741,11 @@ mod tests {
     /// `create_buildings`' head test, so `MAKE[1]`, `[3]` and `[4]`'s
     /// `escrow` close and the `t`/`val` they drove with them (`MAKE[2].val`,
     /// `MAKE[3].t`, `[3].val`, `[4].val`). None arrived.
+    ///
+    /// **72 → 71 on item 1377**, `1/defense`: the building lifecycle's
+    /// own writers (`Build::init`, `Build::activate`, `Build::close`) move
+    /// it between sweeps, and the sweep counts an unfinished site too
+    /// (`docs/AI.md` §2, step 11). None arrived.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2806,7 +2811,6 @@ mod tests {
         (1, "SITE[8].val"),
         (1, "SITE[8].wx"),
         (1, "SITE[8].wy"),
-        (1, "defense"),
         (1, "gather_stamp"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),

@@ -1712,7 +1712,28 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Unit::move_step+0x823` (`1/88`'s) where the original goes on to
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271` (seed `732a71ea`). Inside
 /// run544's window (block 15986).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_985;
+///
+/// **15985 → 16009 on item 1377** (`docs/AI.md` §100): the Tower line in
+/// the placement. `Leader::produce_building`'s `local_84` is `is(0x1b7,
+/// 0)` inside the `e` arm and `find_friends`' tower arm is `is(0x1b7, 0)`
+/// — the **line**, so a Keep (440, `FROM` Tower) answers both; this crate
+/// asked `ident == Tower`. Who=1's Keep `1/2047` for its city at (49, 30)
+/// scored every friendless cell 1255 and took the last tie; the original
+/// gives a Keep beside two farms `(4 + 2)² × 1000` and takes (51, 28).
+/// **The move's value diff (run544's block 15986, the word's own):**
+/// `1/2047`'s `build:x_internal`/`y_internal` ours (35904, 25728) against
+/// (39744, 21888) → agreeing; `1/88`'s order kind 3 against 7 and
+/// `1/122`'s 7 against 3 (the builder each side called) → agreeing, with
+/// both units' figures; who=1's `defense` ours 1 against 2 →
+/// agreeing (`Build::init`'s `+1`, item 1377). run544's keys went 982 →
+/// 662. Frame 15985's draws went 50 against 49 → agreeing. **The new
+/// word's delta: ours 9 draws and the original 6 on frame 16009, parting
+/// at index 1**: ours spends `Guy::set_anim+0x97a < Unit::do_move+0x11cf`
+/// where the original goes on to `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. Inside run544's window (block 16010), where the
+/// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
+/// figures and its move's `pause`, 14 against 15.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_009;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -7930,12 +7951,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // past it, widened on run508; item 1326 to 13385, past it, widened on
     // run523; item 1341 to 14141, past it, widened on run535; item 1351
     // to 15862, past it, widened on run544; item 1362 to 15883, inside it;
-    // item 1370 to 15985, inside it.
+    // item 1370 to 15985, inside it; item 1377 to 16009, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run544_s_word_frame_is_widened_whole"),
-        1370,
+        1377,
         Some(WIDENING_SECOND_EAST_INDIES_15862),
     ),
     (
