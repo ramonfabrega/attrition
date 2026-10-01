@@ -12792,6 +12792,44 @@ walked from run346's start.
 The compared pin and the coverage driver walk 14140..14143. Runs 536 and
 537 were reserved and not used.
 
+## run550 and run551 — chapter forty-eight, a who=1 Tower site on who=0's land, struck by a squad and bombed while its builders work (2026-09-30, item 1358)
+
+`docs/GOLDEN.md` §57, `tools/gamelog/golden/chapter48.cmd`: a cast of its
+own on the golden start.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch48 \
+    --map 14 --end-frame 1750 --log-window 605 1750 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter48.cmd
+```
+
+**What the disk could not answer.** No capture on disk has a building on
+enemy land (`docs/CITIES.md` §9.5's table), and none bombs a site under
+construction: run404's and run223's Bombers strike finished Barracks.
+
+**run550** is the same stanza with `end:…,DEATHS=1`. It was taken
+21:59–22:16 on the click-free lane, `cover=0`, with the lane read
+`free`, and ran 1,751 frames. The runner refused it, `success: false`:
+the dump holds no `GROUPDATA` block and a `WORLD` block on every frame
+(2,293), the shape of run404's and run437's, which both asked
+`end:DEATHS`. Its five `@` lines issued with refusal 0. It walks to the
+same word as run551 and widens to the same 649 rows. It stays in
+`~/ron-golden/ch48-run550` and nothing reads it.
+
+**run551**, taken 22:18–22:46 the same way: `success: true`,
+`settings_restored: true`, 1,751 frames, seed 12345, map 14 verified,
+586,240 `GROUPDATA` blocks, 1,680 s launch to exit. `issuesmatch.py
+--none-refused`: all five `@` lines issued, refusal 0. The dump
+(513,332,181 bytes, sha256 `93d96241…7e2d08`) and the trace (12,182,048,
+`c346ae34…988d7b`) stay in `~/ron-golden/ch48/map-14`. The disk had 213 GB
+free after. Run 552 was reserved and not used.
+
+**What it holds**: `chapter_forty_eight_holds_to_the_golden_word` (1450)
+and `chapter_forty_eight_s_word_frame_is_widened_whole` (605..1750); the
+coverage driver's windows 683, 935, 983, 1094 and 1451.
 **Item 1351** closed the decoys at their age (`docs/GOLDEN.md` §48): the
 seventeen rows of 14137 and `1/93`'s of 14138 agree, block 14136 stands on
 its 138 keys alone up to the word, and the window parts on 163 keys. The

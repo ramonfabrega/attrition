@@ -2821,7 +2821,8 @@ strikes within the section.
 the arguments of the call a value parts through, was answered by a
 scratch `eprintln!` in `do_damage`; nothing prints `get_damage`'s inputs
 per melee blow (`RON_DEBUG_AMMO` covers rounds). A candidate for the
-harness on its third reach.
+harness on its third reach. **Again** (1358), the second reach: a
+Pikeman's blow on a site, 122 sixteenths against 133, read by hand.
 
 (1364) **A capture beside a release test run dies before frame 0**
 (1351's Loop line): run544's first two takes both died on the documented
@@ -2841,6 +2842,13 @@ Loop line): `docs/PRODUCTION.md` called the speed-upgrade counts inert on
 disk, false from 9782 of a capture booked a week later. A list of inert
 arms is a scan waiting to be written: each arm's predicate as a grep of
 the techs and nations the captures' players hold.
+
+(1376) **An issuer's attack on an unseen building is silently
+retargeted** (1358's Loop line): an `@attack` or `@strike` on an enemy
+building is invalid until the attacker's player has seen it (`ever_seen`,
+every eighth frame); a staging that adds an attacker and attacks on the
+next line gets a retarget or nothing. The stage walk could warn when an
+issuer line's building target is unseen by the issuing player.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

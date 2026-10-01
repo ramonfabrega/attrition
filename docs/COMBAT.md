@@ -881,8 +881,14 @@ passed on).
    tests (`0065234e`–`0065237c`, `00652341`) were not carried: run514's
    Keep site lost 200 on 738 where the original lost 250. Both built in
    `Sim::damage_building`. **Diff-backed** on run514's site, every blow
-   (`docs/GOLDEN.md` §56); the aircraft arm and the attrition arm rest on
-   the listing and the unit test alone.
+   (`docs/GOLDEN.md` §56); ~~the aircraft arm and the attrition arm rest on
+   the listing and the unit test alone~~ — **both diff-backed on run551**
+   (item 1358, `docs/GOLDEN.md` §57). A Bomber's bombs on a Tower site
+   leave its `job_counter` climbing at the builders' rate (blocks
+   1094..1099), and so does its enemy-land hit (block 683). Removing the
+   aircraft skip moves the chapter's word 1450 → 1360; removing the
+   attrition skip moves its widening. The carry is on run551 too: the
+   fourth blow, on 983, takes 450.
 6. T **not** Build-proper (a unit, a wall): the AI's peasant-alarm (a
    citizen hit inside a city with a finished city building: push an alarm
    group). No change to the numbers.
