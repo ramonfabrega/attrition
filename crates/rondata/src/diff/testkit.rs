@@ -5838,8 +5838,19 @@ pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
 
 /// **Chapter fifty** (item 1404, `docs/GOLDEN.md` §59, run577): two
 /// Stockades at the first age and a Scout led through their range by a
-/// group attack-move, a Hoplite squad behind it. Open at the word below.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 819;
+/// group attack-move, a Hoplite squad behind it.
+///
+/// **Closed at the trace's end by item 1419.** The word stood at 819 (686
+/// before item 1415): the Hoplite captain `0/7` took an `ATTACK` on the
+/// Stockade `1/2006` on 700 under `Group::target_opportunity`, because
+/// `Object::valid_target` asks the target's `is_seen`, and a building's is
+/// `visible & (1 << who)` first. `Build::do_attack@006228f0` (`622b5b`..
+/// `622bd0`) writes it after each round it fires (`1/2006` prints
+/// `visible 1` from 687); this crate never set it, so the Stockade, 26 tiles
+/// from the Hoplite and never in the human's sight, was no target.
+///
+/// **The delta**, this constant's: +281, 819 → 1100 (the trace's end).
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 1100;
 
 /// `chapter_fifty_s_word_frame_is_widened_whole`'s window: run577 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY: (i64, i64) = (605, 1101);

@@ -1213,6 +1213,8 @@ impl Sim {
             farm: crate::Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            visible: 0,
+            attacking: false,
         });
         // `Build::init@00629740` line 74: a type with arrows (`+0x1e8`)
         // counts in its owner's `defense` the moment it is placed, ungated;
