@@ -172,7 +172,8 @@ pub(crate) fn walk_second_probed(
 /// 11328, and the walk to run490; item 1281 moved it to 11549, inside it;
 /// item 1297 moved it to 11637, and the walk to run506; item 1302 moved
 /// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
-/// the walk to run523. `None`
+/// the walk to run523; item 1341 moved it to 14141, and the walk to
+/// run535. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -184,7 +185,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run523-islands-toughest-13385.txt",
+        "gamelog-run535-islands-toughest-14141.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2128,16 +2129,17 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        // **The word 13385** (item 1326; no mechanism is named): ours 4
-        // draws against 54, at index 0, where the original's step-11
-        // `make_stuff` spends `Leader::use_market+0x1ed` and places a Farm.
-        // The lists agree through block 13384; on 13385 the original's
-        // second `create_buildings` puts the Farm (`t` 417, `val` 216500,
-        // city 3) in the empty head, and ours offers nothing there. The
-        // first rows are two blocks earlier, on 13383, step 8's purchase
-        // (frame 13382): who=1's Trebuchet order (`num` 2) queues two here
-        // and one there, the original's at `1/2028` for 76 timber and 76
-        // metal where ours' first costs 66 and its second 85.
+        // **The word 13385** (item 1326): ours 4 draws against 54, at
+        // index 0, where the original's step-11 `make_stuff` spends
+        // `Leader::use_market+0x1ed` and places a Farm. The first rows
+        // were two blocks earlier, on 13383, step 8's purchase (frame
+        // 13382): who=1's Trebuchet order (`num` 2) queued two here and
+        // one there, the original's at `1/2028` for 76 timber and 76 metal
+        // where ours' first cost 66 and its second 85. **Item 1341**
+        // (`docs/AI.md` §56.5): `get_cost`'s bump loop — the Bombard's
+        // research queued at `1/2024` makes a Trebuchet's base 8, so 80 ×
+        // 95/100 = 76, and the second, 100 × 95/100 = 95, is past the 89
+        // timber left. Both rows agree, and blocks 13383..13385 with them.
         let row = |who: i64, o: i64, what: &str| {
             w.firsts
                 .get(&(who, o, what.to_string()))
@@ -2145,30 +2147,96 @@ mod tests {
         };
         pin_eq!(
             row(1, -1, "leader:num_queued[216]").as_deref(),
-            Some("13383: ours 2 theirs 1"),
+            None,
             "the Trebuchets queued on step 8's purchase"
         );
         pin_eq!(
             row(1, 2028, "queue:queue[0].cost[0]").as_deref(),
-            Some("13383: ours 66 theirs 76"),
+            None,
             "the first Trebuchet's price"
+        );
+        // Item 1341: [(13380, 127), (13383, 7), (13384, 1), (13385, 6), (13386, 35)] before the bump loop (on the tree merged with 1330's).
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= 13_386)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(13380, 127), (13386, 2)],
+            "the blocks keys first part on, to the word 13385's"
+        );
+        // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
+        // Item 1341, the bump loop: 1015 → 138 (on the tree merged with
+        // 1330's, whose birth `form` took 1102 → 1015).
+        pin_eq!(w.firsts.len(), 138, "every key parted on run523");
+    }
+
+    /// **run535 — the second pair's East Indies word 14141, widened whole**
+    /// (item 1341): run523's detail over blocks 14136..14392, walked from
+    /// run346's start.
+    #[test]
+    fn run535_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run535",
+            "gamelog-run535-islands-toughest-14141.txt",
+            WIDENING_SECOND_EAST_INDIES_14141,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run535 whole: blocks 14136..14392");
+        pin!(
+            w.missing.is_empty(),
+            "run535 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **The word 14141** (item 1341; no mechanism is named): ours 5
+        // draws against 4, at index 1, where ours spends a second
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271` and the original
+        // goes on to `Guy::set_anim+0x104b`. Block 14136 stands on 138
+        // keys. The first rows are actors only ours holds: `1/104`..`1/120`
+        // on 14137 and `1/93` on 14138, units the original's dump no
+        // longer prints. The word's own block 14142 parts on nothing.
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        pin_eq!(
+            row(1, 104, "extra").as_deref(),
+            Some("14137: this crate holds it alone"),
+            "the first of the seventeen ours alone holds"
+        );
+        pin_eq!(
+            row(1, 93, "extra").as_deref(),
+            Some("14138: this crate holds it alone"),
+            "and the one a block later"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (13380, 127),
-                (13383, 7),
-                (13384, 1),
-                (13385, 6),
-                (13386, 35)
-            ],
+            [(14136, 138), (14137, 17), (14138, 1)],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
-        pin_eq!(w.firsts.len(), 1015, "every key parted on run523");
+        // Measured on the tree merged with 1330's (1818 before it).
+        pin_eq!(w.firsts.len(), 1730, "every key parted on run535");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

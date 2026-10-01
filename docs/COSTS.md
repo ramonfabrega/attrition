@@ -604,12 +604,28 @@ this player? A bit per type id in the leader's availability set — `leader +
 **Available** — you are building one, and the ramp above is what happens. With
 one addition that an earlier draft could not place. Before the cost factor is
 applied, the engine walks every unit type with something *queued*, and for each
-one whose `FROM` resolves to this type, or which lies on this type's graft
-chain, adds `max(0, that type's base − this type's base)` per resource. So
+one whose `FROM` resolves to this type, or which lies on this type's `JUMP`
+chain (each link through the nation's graft), adds `max(0, that type's base −
+this type's base)` per resource. So
 **ordering the upgrade makes the old unit cost the new one's price while the
 research is in the queue**: start researching Musketeers and the Arquebusiers
 you keep training in the meantime are charged at the Musketeer's base. It is
-added to the unscaled base, so the cost factor multiplies it too.
+added to the unscaled base, so the cost factor multiplies it too, and so is
+the ramp's ceiling, which is a percentage of the factored base.
+
+**Built, 2026-09-30 (item 1341)**: `Sim::upgrade_bump`, read into
+`Sim::price_with`'s base. The listing is `0066446d`..`006646cb`: the test is
+`num_queued[p] != 0` (`+0x5a22`), which a queued *research* of `p` raises as
+much as a queued unit, and each hit adds `max(0, p.cost − this.cost)` to the
+unscaled base before `× UNIT_COST_FACTOR` at `006645ae`. Diff-backed on one
+purchase: East Indies' Trebuchet at `1/2028` on run523's block 13383, while
+the Bombard's research stood at `1/2024`. It cost 76 timber and 76 metal on
+both sides (80 × 95/100), and the second Trebuchet of the order, 95, was past
+the 89 timber left. Before the loop, this crate charged 66 and then 85, and
+queued both (`docs/AI.md` §56.5). Only the `FROM` arm is diff-backed: the
+Bombard is the Trebuchet's `FROM` successor and its `JUMP` alike, so a
+mutation that drops the `JUMP` walk holds every walk, and that arm rests on
+the reading and on `a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base`.
 
 **Not available** — you are paying to *research* it, and instead of the ramp:
 

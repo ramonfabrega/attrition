@@ -12,36 +12,31 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the twenty-first Fable pass (`docs/audit/2026-09-30-fable-pass-21.md`,
-DECISIONS 57): **the count starts at zero from its commit.** The tranche
-before: East Indies 8907 → 11637, Great Sahara at Toughest 5376 → 8856,
-Himalayas 1851/1850 held out and in lockstep, chapters forty-three to
-forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
+*2026-09-30, the commander's seam at ten landings since the twenty-first
+Fable pass (the pass commit `d4aeabbe`, DECISIONS 57). East Indies 11637 →
+14141 (1302, 1326, 1341), Great Sahara at Toughest 8856 → 9982 (1305,
+1318, 1332, 1338), chapter forty-seven opened at 712 and walked to 904
+(1310, 1323, 1330). Every booking gate green; one went to origin red
+before its exit was read (Loop 1345), fixed by `5098706e`.*
 
-- **Lanes live: 1341, 1346, 1350.** Landed: Toughest → 9982 (four),
-  ch47 → 904 (three), East Indies → 13385 (two).
-- **The pass built**: the lane held through the click-free runner's
-  restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
-  (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
-  frame's ceiling (1226), `tools/tranche.py` for a tranche's waiting.
-- **Two lanes lost 258 minutes to a classifier outage and the stop
-  rule** (parked 1315): a `no verdict (error)` is backed off on a
-  Monitor, not stopped on — `CLAUDE.md` and the frame say so now; **the arm of `ccc clear --then` is the turn's last act and the
-  turn ends** — the last commander cancelled its own three (1314).
+- **Lanes live: 1346, 1350, 1351**, one to a word, each cut off a
+  booking commit; 1346 holds `docs/AI.md` §99.16.
+- **Three Loop items share one shape** (1337, 1340 with three reaches,
+  1318/1332/1338): the answer was a seam on the first parted field's
+  writer, not on the word's chain — a checklist row is due.
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
-  track alone; **the disk, 40 GiB free, 13 written a tranche**; parked
-  1141 and 1142.
-- **Fable backlog: 31 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349).
+  track alone; the disk, 217 GiB free; parked 1141 and 1142.
+- **Fable backlog: 32 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w13385 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w14141 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9982 of 15,432
 Golden: ch47 w904 of 1,401 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1341, 1346 and 1350;
-merge each landing and refill its lane; the count is at nine.**
+**Opener: the commander, on Opus — lanes live on 1346, 1350 and 1351;
+merge each landing and refill its lane; the count is at ten.**
 
 ## The queue
 
@@ -51,12 +46,12 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1341. **East Indies' fourth word: frame 13385, ours 4 draws against
-    54** (1326), at index 0: the original's step-11 `make_stuff` spends
-    `Leader::use_market+0x1ed` and places a Farm; widened on run523
-    (block 13386): block 13383 holds who=1's Trebuchet order queued twice
-    in ours and once in the original, `1/2028`'s `queue[0].cost` 66
-    against 76. No mechanism is named.
+1351. **East Indies' fifth word: frame 14141, ours 5 draws against 4**
+    (1341), at index 1: ours spends a second `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` where the original goes on to
+    `Guy::set_anim+0x104b` (seed `c55509fc`); widened on run535 (block
+    14142): its first rows are `1/104`..`1/120`, ours alone on 14137,
+    and `1/93` on 14138. No mechanism is named.
 
 1346. **Great Sahara at Toughest's word: frame 9982, ours 13 draws
     against 16** (1338), at index 0: the original first spends two

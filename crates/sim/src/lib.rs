@@ -2165,6 +2165,65 @@ impl Sim {
         d
     }
 
+    /// **`get_cost`'s bump loop** (`TypeData::get_cost@00664090:158`–`205`,
+    /// listing `0066446d`..`006646cb`): a unit trained while its upgrade is
+    /// queued is charged the upgrade's base. Only for a type whose
+    /// availability bit (`leader + 0x6c18`) is set — the train arm; a clear
+    /// bit skips the loop whatever [`Sim::research_modifiers`] decides.
+    ///
+    /// Every unit type `p` below `0x192` whose `num_queued[p]` (`+0x5a22`,
+    /// a research of `p` included) is not zero is a hit when `p`'s `FROM`,
+    /// through the nation's graft, is this type, or when `p` lies on this
+    /// type's `JUMP` chain, each link through the graft — the research
+    /// refit's walk with the two ends swapped. Per resource, a hit adds
+    /// `max(0, p.base − base)` to the base (`006646b9`–`006646c9`), and
+    /// `UNIT_COST_FACTOR` multiplies the sum after the loop (`006645ae`),
+    /// so the ramp's ceiling is measured against the bumped base too.
+    /// `docs/AI.md` §56.5; run523's block 13383, where the Bombard's
+    /// research at `1/2024` makes `1/2028`'s Trebuchet 80 × 95/100.
+    pub fn upgrade_bump(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
+        let mut bump = [0; economy::RESOURCES];
+        let unit = &self.unit_types[ty];
+        let Some(t) = unit.tree else {
+            return bump;
+        };
+        let w = who as usize;
+        if !self.tech[w].tech.get(t).copied().unwrap_or(false) {
+            return bump;
+        }
+        let tree = &self.tech_tree;
+        let resolve = |x: Option<tech::TypeId>| tree.get_graft(&self.setup, &self.tech[w], x);
+        for (prec, p) in self.unit_types.iter().enumerate() {
+            let Some(pt) = p.tree.filter(|_| !p.gaia) else {
+                continue;
+            };
+            if self.muster[w].queued_by_type[prec] == 0 {
+                continue;
+            }
+            let mut hit = resolve(tree.types[pt].from) == Some(t);
+            let mut j = resolve(tree.types[t].jump);
+            let mut guard = 0;
+            while !hit && let Some(x) = j {
+                hit = x == pt;
+                j = resolve(tree.types[x].jump);
+                guard += 1;
+                if guard > 64 {
+                    break;
+                }
+            }
+            if !hit {
+                continue;
+            }
+            for (out, (theirs, ours)) in bump
+                .iter_mut()
+                .zip(p.price.base.iter().zip(unit.price.base))
+            {
+                *out += (theirs - ours).max(0);
+            }
+        }
+        bump
+    }
+
     /// [`Sim::price_of`], with the discount tail supplied.
     pub fn price_with(
         &self,
@@ -2186,9 +2245,21 @@ impl Sim {
                 .group
                 .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
         };
+        let bump = self.upgrade_bump(who, ty);
+        let bumped;
+        let price = if bump.iter().all(|&b| b == 0) {
+            &unit.price
+        } else {
+            let mut p = unit.price.clone();
+            for (base, b) in p.base.iter_mut().zip(bump) {
+                *base += b;
+            }
+            bumped = p;
+            &bumped
+        };
         cost::charges(
             &self.tuning,
-            &unit.price,
+            price,
             counts,
             m,
             &holdings.available,
