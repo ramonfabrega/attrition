@@ -4177,13 +4177,17 @@ blind list 141 unmoved; the loop idle 92 minutes before the pass.
    pass also **spawned**, which no pass had ever done — every earlier
    pass found the lanes drained and wrote the opener for the
    commander — and **ratified** what only the user decides. So: **the
-   workers return to Opus 5.5 at effort high; one lane runs Sonnet
-   5.5 with `--effort high` set explicitly**, the unconfounded second
-   tranche of the trial, scored first on whether the commander ever
-   waited on a person and second in USD a frame, and **decided by the
-   user at the pass, never ratified by it**. The three Sonnet-medium
-   lanes the pass put out land as data, not precedent. The kill rules
-   stand as written in `CLAUDE.md`. **The pass never spawns.**
+   workers return to Opus 5.5 at effort high**, and the model question
+   is answered the way it should have been asked — **a matrix on
+   landed items** (parked 1422: three landed items re-run from their
+   own bases under Opus-high, Opus-medium, Sonnet-high and
+   Sonnet-medium, never merged, scored against the landed word in
+   frames per dollar, wall clock, and whether the done line came), run
+   by the commander as a Loop item before the next tranche and
+   **judged at the steer with the user, never ratified by it**. The
+   three Sonnet-medium lanes the pass put out land as data, not
+   precedent. The kill rules stand as written in `CLAUDE.md`. **The
+   pass never spawns.**
 2. **A spawn is followed by an idle subscription.** A done line is the
    lane's, and three lanes of eleven sent none; nothing else wakes an
    idle commander, and a person did, three and a half hours on. The

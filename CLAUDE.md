@@ -422,15 +422,11 @@ said "refill", and ratified a trial only the user decides (DECISIONS
 Opus 5.5 at effort high** (`ccc spawn --model 'claude-opus-5-5[1m]'
 --effort high`, the model and effort verified from each worker's
 transcript — the harness's defaults differ by model, and a trial once
-moved two settings for one), and **one lane runs Sonnet 5.5 with
-`--effort high`** as the trial's second tranche (DECISIONS 58, 59,
-parked 1142): the commander stays Opus, the frame and the gates are
-the control, the two kill rules stand — a landing whose mechanism the
-floor did not catch (a red booking gate on its merge) returns that
-lane to Opus, and a lane that lands nothing in three attempts on one
-word gets an Opus successor — and the pass scores it first on whether
-the commander ever waited on a person, then in USD a frame, and the
-user decides. The model is said in user-visible text each time. **A commit's trailer names the model the worker's own system prompt
+moved two settings for one). **A model or an effort is admitted by a
+matrix on landed items, never by a live tranche** — the arms re-run a
+landed item from its own base, never merge, and are scored against the
+landed word (parked 1422) — **and judged at a steer with the user**
+(DECISIONS 59). The model is said in user-visible text each time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row

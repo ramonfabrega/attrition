@@ -2809,6 +2809,36 @@ and 1374 on two tranches without a reach; 1119, 1138's second half,
 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392,
 1402, 1409 and 1414 stay; 1421 is filed. The backlog is seventeen.
 
+(1422) **The model matrix** (the pass's own, with Ramon): the Sonnet
+trial of the twenty-third tranche ran at effort `medium` against
+Opus's `high` and failed on autonomy, so the question — do our tokens
+do more work on a cheaper model or a lower effort — is asked on
+labelled items instead of a live tranche. **Three landed items, each
+with its dump on disk, re-run from its own base**: 1388 (Toughest's
+`library_cities`, run571; base `f0991ca8`), 1401 (the decoy's refused
+cast, run572; base `bdc1359f`), 1380 (chapter forty-eight's Tower
+arrow; base `f0991ca8`). **Four arms each, `--effort` set
+explicitly**: Opus-high (the control — the loop as it runs),
+Opus-medium, Sonnet-high, Sonnet-medium; twelve lanes, two or three at
+a time, no commander lane live, ceiling 150 USD list. **An arm**: a
+branch at the item's base (`eval/1388-opus-high` at `f0991ca8`), a
+worktree spawned on it (`ccc spawn --base <that branch> --model …
+--effort …`), its brief composed by `brief.compose` from the base's
+own `docs/QUEUE.md` (the live queue no longer books the item) with
+today's frame and the landing's original note where the commander's
+transcript still holds it; **it never merges, mints no number, and its
+journal stays on its branch**. **Scored on its tip**: the word reached
+against the landed one, in frames; its `--lane` gate's verdict;
+`tools/tranche.py` (USD, requests, peak context, working and waiting
+minutes); whether the done line came with both gate lines; the
+journal's size; and the commander reads each diff against the landed
+one — the same mechanism, another that moves the word, or none. **The
+products**: a results table in `docs/audit/<date>-model-matrix.md`,
+the handoff, and the arms' worktrees and branches reaped. **Judged at
+the next steer with the user; model and effort move only on that
+verdict** (DECISIONS 59). Runs before the twenty-fourth tranche, at
+the weekly reset.
+
 (1421) **`tranche.py` reads a gap's class off the Bash text before
 it** (the pass's own): a gate run through a script in the job's tmp —
 the frame's own row for a command the guard refuses — folds into

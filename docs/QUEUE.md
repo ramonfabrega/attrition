@@ -24,12 +24,13 @@ pass does. Built: `tools/mutate.py`, `tools/repin.py`, `seams.py
 - **Three lanes live on Sonnet 5.5 at medium** — 1418 (East Indies),
   1416 (Toughest, owing run574), 1419 (chapter fifty) — the pass's, to
   land as data; their done lines and idle notices reach this job.
-- **At each refill: `--effort high`, Opus 5.5 — except the third map's
-  lane, Sonnet 5.5**; count landings from this pass's commit, stop at twenty.
+- **No refill after they land.** At the weekly reset the commander runs
+  parked 1422's matrix (twelve arms on three landed items, never merged),
+  writes its results page and the handoff; the model and `--effort` are the steer's.
 - **East Indies closes at 18,140**: that booking books the third pair's
   first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 17 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421).
+- **Fable backlog: 18 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,10 +39,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11882 of 15,432
 Golden: ch50 w819 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — merge the three lanes in flight as
-they land; refill with `--effort high`, Opus on two lanes and Sonnet
-on the third map's, an idle subscription after each spawn; stop at
-twenty landings from the twenty-third pass's commit.**
+**Opener: the commander, on Opus — land the three lanes in flight, no
+refill; at the weekly reset run parked 1422's matrix, write its
+results page and the handoff: the twenty-fourth pass is due.**
 
 ## The queue
 
