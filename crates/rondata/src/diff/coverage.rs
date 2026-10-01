@@ -677,6 +677,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r506 = crate::testenv::dump("gamelog-run506-islands-toughest-11637.txt");
     let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
     let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
+    let r535 = crate::testenv::dump("gamelog-run535-islands-toughest-14141.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1285,6 +1286,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run523 carries the second pair's East Indies word 13385's blocks"
+        );
+        frames += n;
+    }
+    // Item 1341 moved it to 14141 (block 14142), past run523: run535 is
+    // its widening.
+    if let Some(p) = &r535 {
+        let n = drive_capture(p, 14_141, 14_144, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run535 carries the second pair's East Indies word 14141's blocks"
         );
         frames += n;
     }
@@ -2370,10 +2381,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // union, so the group row returns to this pin, and a cast does, so
     // `cast_paid` and `cast_spell` leave it (measured on the tree merged
     // with 1318's).
+    // **Item 1341 moved East Indies' window to run535's 14140..14143**: no
+    // cast stands on the union, so `cast_paid` and `cast_spell` return to
+    // this pin (measured on the tree merged with 1338's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle \
          group_id in_group in_range mandatory metric new_ord non_flat_gather oxx whose \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \

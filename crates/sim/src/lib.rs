@@ -2195,7 +2195,10 @@ impl Sim {
             if !hit {
                 continue;
             }
-            for (out, (theirs, ours)) in bump.iter_mut().zip(p.price.base.iter().zip(unit.price.base)) {
+            for (out, (theirs, ours)) in bump
+                .iter_mut()
+                .zip(p.price.base.iter().zip(unit.price.base))
+            {
                 *out += (theirs - ours).max(0);
             }
         }
