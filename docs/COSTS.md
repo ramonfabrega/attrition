@@ -618,7 +618,10 @@ purchase: East Indies' Trebuchet at `1/2028` on run523's block 13383, while
 the Bombard's research stood at `1/2024`. It cost 76 timber and 76 metal on
 both sides (80 × 95/100), and the second Trebuchet of the order, 95, was past
 the 89 timber left. Before the loop, this crate charged 66 and then 85, and
-queued both (`docs/AI.md` §56.5).
+queued both (`docs/AI.md` §56.5). Only the `FROM` arm is diff-backed: the
+Bombard is the Trebuchet's `FROM` successor and its `JUMP` alike, so a
+mutation that drops the `JUMP` walk holds every walk, and that arm rests on
+the reading and on `a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base`.
 
 **Not available** — you are paying to *research* it, and instead of the ramp:
 

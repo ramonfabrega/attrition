@@ -12746,3 +12746,48 @@ word's block 9765 parts `1/84`'s `g.cur_time[2]` (10 against 1) and
 `1/69`'s `dest_angle`. The compared pin and the coverage driver walk its
 blocks 9763..9767; its CITY records print `York`, which nothing reads
 (`coverage.rs`'s pin). Runs 530 and 531 were reserved and not used.
+
+## run535 — run346's game at run523's detail over blocks 14136..14392: the second pair's East Indies word 14141 widened (2026-09-30, item 1341)
+
+**What it is.** run523's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 14136..14392, and `!quit` at 14406. The word's frame 14141 writes
+block 14142, so the window is six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run535 \
+    --map 18 --end-frame 14406 --timeout 5400 --log-window 14136 14393 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** Item 1341 moved the word 13385 →
+14141. run523, the last dump of this game at detail, ends at block 13636,
+so no dump printed the word's blocks.
+
+**Taken** 19:02–19:32 in one take; `ron_lane_state` read `free` at launch.
+It was waited on with `waitrun.sh`: `success: true`, `settings_restored:
+true`, exit 0, 1,764 s from launch to exit, 14,407 frames, map 18 and seed
+12345 verified, five files restored. The dump (666,507,462 bytes, sha256
+`503e518945425f37…`) and the trace (109,923,872 bytes, `63ff3624af0c4fc1…`)
+were moved into `Logs` as `gamelog-run535-islands-toughest-14141.txt` and
+`rontrace-run535.log`. The disk had 219 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 14,407 identical |
+| window blocks | 257, 14136..14392 (and the closing block 14407) |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run535_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start.
+- Block 14136 stands on 226 keys.
+- The first rows are actors only ours holds: `1/104`..`1/120` on 14137 and
+  `1/93` on 14138. On 14136 both sides hold them, each with `mana_burn`
+  2499.
+- The word's own block 14142 parts on nothing.
+- The window parts on 1,818 keys.
+
+The compared pin and the coverage driver walk 14140..14143. Runs 536 and
+537 were reserved and not used.
