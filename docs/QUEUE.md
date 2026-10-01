@@ -21,24 +21,24 @@ spawn is followed by an idle subscription**. The pass spawned, which no
 pass does. Built: `tools/mutate.py`, `tools/repin.py`, `seams.py
 --unwritten` (1391, 1349, 1411, 1397). No score moved.*
 
-- **1419 closed chapter fifty at 1100**, every chapter closed (1423 next,
-  unspawned); **1416 moved Toughest 11882 → 11985**; 1418 live.
+- **The three lanes landed**: chapter fifty closed (1419); Toughest →
+  11985 (1416); East Indies → 16760, floor 16482 until 1427's capture (1418).
 - **No refill after they land.** At the weekly reset the commander runs
   parked 1422's matrix (twelve arms on three landed items, never merged),
   writes its results page and the handoff; the model and `--effort` are the steer's.
 - **East Indies closes at 18,140**: that booking books the third pair's
   first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
+- **Fable backlog: 20 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1428).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w16250 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w16482 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — land the lane in flight, no
+**Opener: the commander, on Opus — no lane live, no
 refill; at the weekly reset run parked 1422's matrix, write its
 results page and the handoff: the twenty-fourth pass is due.**
 
@@ -50,11 +50,12 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1418. **East Indies' thirteenth word: frame 16250, ours 12 draws
-    against 13** (1410), at index 1: ours spends `move_step+0x823` where
-    the original spends `do_cast`; `1/109`'s `half_step` parts first on
-    16239, ours 1 against 0, and ours' scan names `1/119` soft. run572.
-    No mechanism is named.
+1427. **East Indies' fourteenth word: frame 16760, ours 97 draws
+    against 39** (1418), at index 0: ours spends `Guy::set_anim+0x97a <
+    Animal::do_idle+0x19` where the original spends `Guy::set_anim+0x97a
+    < Unit::move_step+0x823`. Past run579's window, so the pin stays the
+    floor 16482; run227 spans the frame but is run54's game, not run346's,
+    so the capture is first (run583). No mechanism is named.
 
 1426. **Great Sahara at Toughest's word: frame 11985, ours 15 draws
     against 10** (1416), at index 3: ours spends

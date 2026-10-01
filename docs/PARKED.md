@@ -2847,6 +2847,11 @@ the next steer with the user; model and effort move only on that
 verdict** (DECISIONS 59). Runs before the twenty-fourth tranche, at
 the weekly reset.
 
+(1428) **`tools/repin.py` dies with two sites to rewrite** (1418's
+Loop line): `a.write` fails on a name shadowed by an int in `main`
+(line 208) when one log names two sites; the worker re-pinned by hand.
+A tool the frame names, broken on its second shape. One reach.
+
 (1425) **A SEAM's "writers" claim is a reading, not a citation**
 (1419's Loop line): `vision.rs`'s `visible` SEAM said neither writer
 had a building path while `Build::do_attack` is a third writer, and
