@@ -2300,7 +2300,7 @@ mod tests {
         // own block 15986 parts on 47 keys: `1/2047` placed at (35904,
         // 25728) against (39744, 21888), and `1/88` and `1/122` each on the
         // other's order. **Item 1377 builds the Tower line in the
-        // placement** (`docs/AI.md` §11.4): a Keep is `is(0x1b7, 0)`, so its
+        // placement** (`docs/AI.md` §100): a Keep is `is(0x1b7, 0)`, so its
         // spiral starts at the anchor, its friends are squared and two
         // farms put it on (51, 28); 15986 goes 47 → 0, who=1's `defense`
         // with it (`Build::init`'s `+1`). Who=0's `production_step` on

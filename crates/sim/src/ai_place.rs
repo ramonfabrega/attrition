@@ -372,6 +372,21 @@ impl Sim {
         n
     }
 
+    /// `produce_building`'s two line tests, `(local_84, is_fort)`.
+    /// `local_84` is `is(0x1b7, 0)` — the Tower **line**, so a Keep or a
+    /// Stockade answers it — asked only inside the `e` arm (`006e1580`,
+    /// `frame != 0 && +0x2c0 & 0x10`); everywhere else it stays 0, a Tower
+    /// at frame 0 included. It gates the spiral's start, the friends'
+    /// square, the near-Tower eighth and the stride. `is_fort` is `is(0x1bb,
+    /// 0)`, the Fort line (a Castle, a Fortress), asked ungated at
+    /// `006e2129` (item 1377, `docs/AI.md` §100).
+    pub(crate) fn placement_lines(&self, rec: usize, nocity: bool) -> (bool, bool) {
+        (
+            nocity && crate::build::is_tower(&self.build_types, rec),
+            crate::build::is_fort(&self.build_types, rec),
+        )
+    }
+
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
     /// placed (the original's 0). `near` is the reference building — a city
     /// centre for `place_building_with_cost`, any building for the orphan
@@ -403,15 +418,7 @@ impl Sim {
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
         let is_dock = crate::build::is_dock(&self.build_types, rec);
-        // `local_84`, `is(0x1b7, 0)` — the Tower **lineage**, so a Keep or a
-        // Stockade answers it — and only inside the `e` arm (`006e1580`,
-        // `frame != 0 && +0x2c0 & 0x10`); everywhere else it stays 0, a
-        // Tower at frame 0 included. It gates the spiral's start, the
-        // friends' square, the near-Tower eighth and the stride. `is_fort`
-        // is `is(0x1bb, 0)`, the Fort lineage (a Castle, a Fortress), asked
-        // ungated at `006e2129` (item 1377, `docs/AI.md` §11).
-        let tower = nocity && crate::build::is_tower(&self.build_types, rec);
-        let is_fort = crate::build::is_fort(&self.build_types, rec);
+        let (tower, is_fort) = self.placement_lines(rec, nocity);
         let circle = circle();
         let mut start = 0usize;
         let mut fortlike = false;
@@ -638,7 +645,12 @@ impl Sim {
                         }
                     }
                 } else {
-                    // `danger[]` is not kept: nothing added.
+                    // SEAM: the fort arm's first term, `score += danger[who]
+                    // [cell / 2] / 4` (`006e2131`–`006e216b`), is not added,
+                    // though `World::danger_half` now carries the grid; nor
+                    // is the team-style arm's `×16` for the leader's own
+                    // target (`006e2206`–`006e2225`). No walk reaches a Fort
+                    // placement on a cell with danger (`docs/AI.md` §100).
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {
@@ -1199,6 +1211,9 @@ mod tests {
         };
         put(farm, 50, 28);
         put(farm, 50, 29);
+        // And the placement's own `local_84`: the line, inside the `e` arm.
+        assert_eq!(sim.placement_lines(keep, true), (true, false));
+        assert_eq!(sim.placement_lines(keep, false), (false, false), "frame 0");
         let at = Cell::new(51, 28);
         assert_eq!(
             sim.find_friends(tower, at, None, 1),

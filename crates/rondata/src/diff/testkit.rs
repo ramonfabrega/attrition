@@ -1713,7 +1713,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271` (seed `732a71ea`). Inside
 /// run544's window (block 15986).
 ///
-/// **15985 → 16009 on item 1377** (`docs/AI.md` §11.4): the Tower line in
+/// **15985 → 16009 on item 1377** (`docs/AI.md` §100): the Tower line in
 /// the placement. `Leader::produce_building`'s `local_84` is `is(0x1b7,
 /// 0)` inside the `e` arm and `find_friends`' tower arm is `is(0x1b7, 0)`
 /// — the **line**, so a Keep (440, `FROM` Tower) answers both; this crate
