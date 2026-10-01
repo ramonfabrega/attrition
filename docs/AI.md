@@ -13219,3 +13219,115 @@ its move's `pause`, 14 against 15.
   and `defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site`.
 - **Reading only**: the strict near-Tower identity. Item 1377 did not
   search the captures for a Keep placed within 0x600 of a Tower.
+
+## 101. The re-plan's step past `do_move`'s pause check (2026-10-01, item 1383)
+
+### 101.1 The event: a Supply Wagon that re-plans with `pause` 15
+
+East Indies' word 16009 (run544, block 16010). Both sides spend
+`Unit::do_move+0xe84` (the grid roll of a re-plan) for the Supply Wagon
+`1/153` (`GUY` type 63, `SUPPLYWAGON`, group 71, army 0). Ours then spends
+three `Guy::set_anim+0x97a < Unit::do_move+0x11cf` (one stand a figure);
+the original spends none, and its next draw is the 1/19's `inc_time`.
+The original's wagon record, 16009 → 16010: `pause` 15 → 15, `unit_masks`
+`8650754` → `8650760` (bit 8 set), a new path (`size` 60 → 80), `dest` 0
+→ 1, and a turn in place (`angle`, `des_angle`, figures' `cur_anim` 9 → 7,
+`stopped` 1 → 0). The position does not change. Ours ticked the pause
+(14) and stood.
+
+### 101.2 The reading
+
+`do_move@005f7b30` (the export's `do_move:593`–`:747`): the pause check
+(`:729`, `if (pause != 0) { pause -= 1; …; set_anim(CHAR_DEFAULT, 0, 1) }`)
+is the `else` of the `masks & 8 == 0` block. The re-plan's `TAKE` ends
+`goto LAB_005f8c60` (`:699`, `:743`), which is **past** it: `if
+(masks & 8) == 0 return 1`, then `move_step`. `docs/ORDERS.md` §4.4 had
+said only `goto STEP` skips the check and the `TAKE` "comes back through
+`STEP_IF_MOVING`" as a place that ticks; that half is struck
+(`docs/ORDERS.md` §4.4's rule). `Sim::do_move` now sets
+`straight_to_step` at the end of the `TAKE` block.
+
+### 101.3 What moved
+
+- East Indies **16009 → 16160**. Block 16010's 23 keys, all the wagon's,
+  went to none; run544's keys 662 → 243. Frame 16009's draws went 9
+  against 6 → agreeing.
+- No other pin moved on the full `rondata` run; the Great Lakes and Great
+  Sahara walks hold.
+- **The mutation** (the one line removed): the floor walk
+  `run346_is_east_indies_at_toughest_and_its_word_holds`, and the
+  widenings run544's and run572's, fail. No unit test fails without it
+  (a synthetic wagon's first `find_path` verifies the line, never
+  reaching `TAKE`); the walk holds the arm.
+
+### 101.4 The new word, 16160, and what is not established
+
+Ours 46 draws, the original 44, parting at index 4: ours `do_cast`,
+`init_real`, `do_cast`, `init_real`; the original `do_cast`, `do_cast`,
+`init_real`. On the word's block 16161 (run572): who=1 holds a new
+`TRANSPORTGALLEON` `1/167` (type 321) beside the boarders `1/128` (type 98,
+`ARQUEBUSIERS`) and `1/143` (type 179, `KINGSYEOMANRY`): `1/128`'s
+`inside` ours 167 against −1, `orders.len` 0 against 2, `path:length` 0
+against 50; `1/143`'s `inside` ours 168 against 167. **No mechanism is
+named** — `docs/TRANSPORT.md` is the document; the first reading is the
+cast order's `do_cast` on a unit boarding a ship the same frame it is
+built.
+
+### 101.5 Coverage
+
+- **Diff-backed**: the arm, by the floor walk, run544's `order:move.pause`
+  row, and run572's block 16161.
+- **Reading only**: the other entrants to `LAB_005f8c60` (`:699` is the
+  only one in the export).
+
+## 102. The first library's queue advances one slot per library city (2026-10-01, item 1388)
+
+Great Sahara at Toughest's word on **11182**: ours 11 draws against 12,
+parting at index 0 — ours spends `Leader::use_market+0x1ed` where the
+original spends `Leader::make_stuff+0x221 < Leader::production_ai+0x1fa
+< Leader::plan_strategy+0x47` (seed `340a6de6`). who=1's `MAKE` list parts
+on block 11181: the original's head the Scholars (`t` 52, cat 4) and the
+Citizens (`t` 50, cat 5) at 9,999,999, where ours holds Monotheism and
+Democracy.
+
+### 102.1 The event: who=1's research ran two at a time
+
+`run562`, who=1's `1/2005` (the first library), blocks 10774..10903:
+the original's queue is **Trade (560) at 18,700 and Conscription (575)
+at 13,500, both +100 a frame**; ours Trade at 13,500 and Conscription at
+0, the head alone advancing. The standing rows `queue[0].job_counter` and
+`queue[1].job_counter` were on block 10774 of the widening — 119 keys no
+earlier item read. Trade lands on 10903 in the original (`epoch[2]` 3,
+`epochs` 13, `queued` 2 → 1, `resource_cap` 3,792 → 4,800 on 10904, who=1's
+pop cap 110 → 137); ours lands it later, who=1 a tech behind from there
+— and the make list's values (`check_income`, the affordability factor
+the Scholars' and Citizens' offers wrap through) with it.
+
+### 102.2 The rule and the fix
+
+`Sim::process_queues` took `Muster::library_cities` for the fan-out
+(`docs/PRODUCTION.md`, "At a library"), and **nothing outside the tests
+ever wrote it**: every research queue ran one slot. The original's count is
+`LeaderData::get_building_cities@006e06f0` — over the leader's
+`city_mark` cities, those with `city_flags & 1` and `race == who` that
+hold at least one `CityData::count_buildings(LIBRARY, 0, 1)` (active). Now
+`process_queues` counts those (`cities_of` and `count_buildings(…,
+Ident::Library, true)`) and takes the larger of that and the field, so the
+tests that set the field keep their value.
+
+### 102.3 Coverage
+
+- **Diff-backed**: run562's `1/2005` queue rows, `epoch[2]`, `epochs`,
+  `queued` (10903), `resource_cap` ×5 (10904) and `MAKE[3].t` (10985)
+  → agreeing (144 → 130 keys); run571's block 11181 (21 keys) and 11183
+  (15) → agreeing, 1,270 → 419 keys, nothing parting before block 11184.
+  Frame 11182's draws agree.
+- **Not established**: `city_flags & 1` is read as "alive" and the
+  active flag as `Build` flag `& 4` from the listing of `count_buildings`;
+  no walk holds a library city whose library is under construction. No
+  unit test builds a city fixture — the walks are the guard.
+- **The new word: 11382**, ours 17 draws against 16 at index 0 (the same
+  pair); who=1's `MAKE[2]` parts on block 11381 (ours `t` 61 at 931,034,
+  the original's the Bombard at 604,160), `caras` ours 3 against 4 on
+  11372, `peasants` 42 against 43 on 11345. Widened on run571 (block
+  11383, 419 keys).
