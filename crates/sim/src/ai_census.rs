@@ -862,7 +862,7 @@ impl Sim {
         let mut reg_defense: Vec<(usize, i32)> = Vec::new();
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
-            if !bd.alive || bd.owner != who || !bd.active {
+            if !bd.alive || bd.owner != who {
                 continue;
             }
             let Some(rec) = bd.ty else {
@@ -870,7 +870,11 @@ impl Sim {
             };
             let bt = &self.build_types[rec];
             let reg = self.world.region_of(bd.pos.cell());
-            if bt.has(build::flags::GATHER)
+            // **The active test gates the gather slots alone**: its `je`
+            // at `006bb09c` lands on `006bb15a`, the defensive count's own
+            // guard, so an unfinished Keep counts (item 1377).
+            if bd.active
+                && bt.has(build::flags::GATHER)
                 && let Some(good) = crate::ai_place::gather_good(bt.ident)
             {
                 slots[good] += bd.gather_max.unwrap_or(0);

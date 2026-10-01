@@ -308,8 +308,13 @@ impl Sim {
     ) -> i32 {
         let bt = &self.build_types[rec];
         let ident = bt.ident;
-        let tower_like = matches!(ident, Ident::Tower | Ident::Lookout);
-        if (bt.attack != 0 && !tower_like) || ident == Ident::Woodcutter {
+        // `is(0x1b7, 0)`, `is(0x209, 0)` and `is(0x1a2, 0)` — the Tower, the
+        // Lookout and the Woodcutter **lines** (`00639270`–`006392c0`): a
+        // Keep counts its gather neighbours as a Tower does (item 1377).
+        let types = &self.build_types;
+        let lookout = crate::build::is(types, rec, Ident::Lookout);
+        let tower_like = crate::build::is_tower(types, rec) || lookout;
+        if (bt.attack != 0 && !tower_like) || crate::build::is(types, rec, Ident::Woodcutter) {
             return 0;
         }
         let needs_city = !bt.has(flags::NO_CITY);
@@ -346,7 +351,7 @@ impl Sim {
                 if nb_gather && ni != Ident::University {
                     n += 2;
                 } else if nb_wonder {
-                    n += if ident == Ident::Lookout { 8 } else { 4 };
+                    n += if lookout { 8 } else { 4 };
                 }
             } else if ident == Ident::Farm {
                 if matches!(ni, Ident::Farm | Ident::Granary) {
@@ -398,8 +403,15 @@ impl Sim {
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
         let is_dock = crate::build::is_dock(&self.build_types, rec);
-        let tower = ident == Ident::Tower;
-        let is_fort = ident == Ident::Fort;
+        // `local_84`, `is(0x1b7, 0)` — the Tower **lineage**, so a Keep or a
+        // Stockade answers it — and only inside the `e` arm (`006e1580`,
+        // `frame != 0 && +0x2c0 & 0x10`); everywhere else it stays 0, a
+        // Tower at frame 0 included. It gates the spiral's start, the
+        // friends' square, the near-Tower eighth and the stride. `is_fort`
+        // is `is(0x1bb, 0)`, the Fort lineage (a Castle, a Fortress), asked
+        // ungated at `006e2129` (item 1377, `docs/AI.md` §11).
+        let tower = nocity && crate::build::is_tower(&self.build_types, rec);
+        let is_fort = crate::build::is_fort(&self.build_types, rec);
         let circle = circle();
         let mut start = 0usize;
         let mut fortlike = false;
