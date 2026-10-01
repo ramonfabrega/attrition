@@ -2130,7 +2130,17 @@ impl Sim {
         if self.is_enemy(who, tw) {
             self.ai[tw as usize].frame_attacked = frame;
             self.ai[tw as usize].attacked_by = i32::from(who);
-            // `send_navy` — `docs/TRANSPORT.md` §8.3, a navy hint (seam).
+            // **The escort** (`find_target@006f69b0:1061`–`1087`): a land
+            // army whose own point stands in another cell region than the
+            // target's hands the target to the navy, before its point is
+            // moved onto the target below (`docs/TRANSPORT.md` §8.3).
+            if !self.armies[w].list[slot].navy {
+                let mine = self.world.region_of(self.armies[w].list[slot].pos.cell());
+                let theirs = self.world.region_of(self.pos_of(target).cell());
+                if mine != theirs {
+                    self.send_navy(who, target, mine, theirs);
+                }
+            }
         }
         let cpos = self.cities[c].pos;
         let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
@@ -2140,6 +2150,39 @@ impl Sim {
             a.muster_angle = Angle(a.muster_angle.0.wrapping_add(i32::MIN));
         } else {
             self.close_army(who, slot);
+        }
+    }
+
+    /// `Armies::send_navy(who, o, target_who, reg_a, reg_b)@006f2c90`
+    /// (`docs/TRANSPORT.md` §8.3): every valid navy of an AI leader with
+    /// more than two captains, in a sea region that coasts both the land
+    /// army's region and the target's, takes the same target and is
+    /// `Army::process(0)`ed at once — the gated call, which does nothing
+    /// off its own frames but count `human_frame` down.
+    fn send_navy(&mut self, who: Player, target: Obj, reg_a: Option<u16>, reg_b: Option<u16>) {
+        let w = who as usize;
+        // `leader_flags & 5 == 1`: active and not human. `leader_flags2 &
+        // 0xa`, the stop bits, are never set here (the module doc).
+        if self.nation[w].human || self.defeated[w] {
+            return;
+        }
+        let (Some(a), Some(b)) = (reg_a, reg_b) else {
+            return;
+        };
+        for k in 0..SLOTS {
+            let n = &self.armies[w].list[k];
+            if !n.valid || !n.navy || n.num_captains <= 2 {
+                continue;
+            }
+            // `reg > 0x3f`: a sea region, by the original's numbering —
+            // here the region's terrain, since the sim numbers its own.
+            let Some(sea) = n.reg.filter(|&r| self.world.terrain(r) == Terrain::Sea) else {
+                continue;
+            };
+            if self.world.is_coast(sea, a) && self.world.is_coast(sea, b) {
+                self.armies[w].list[k].target = Some(target);
+                self.army_process(who, k, false);
+            }
         }
     }
 
@@ -4054,6 +4097,60 @@ mod tests {
         assert_eq!(sim.armies[1].list[s].muster, Cell::new(16, 17));
         assert_eq!(sim.armies[1].list[s].muster_angle, find_angle(0, 1));
         assert!(!sim.cities[c].no_muster);
+    }
+
+    /// **The escort** (`Armies::send_navy@006f2c90`, `docs/TRANSPORT.md`
+    /// §8.3): a land army's enemy target in another region is handed to
+    /// every navy of more than two captains whose sea coasts both regions,
+    /// and that navy is processed at once — off its frames, which only
+    /// counts `human_frame` down. East Indies' army 3 (corvettes,
+    /// fireships, a frigate) took army 0's target this way on 15612 and
+    /// kept it on its own turn, 15862.
+    #[test]
+    fn send_navy_hands_the_target_to_the_navy_that_coasts_both_regions() {
+        let (mut sim, c, b, _) = sim_with_army();
+        // Land A | sea S | land B | sea T: S coasts A and B, T only B.
+        let a = sim.world.add_region(Terrain::Land);
+        let sea = sim.world.add_region(Terrain::Sea);
+        let bb = sim.world.add_region(Terrain::Land);
+        let t = sim.world.add_region(Terrain::Sea);
+        for y in 0..60 {
+            for x in 0..60 {
+                let r = match x {
+                    0..20 => a,
+                    20..30 => sea,
+                    30..40 => bb,
+                    _ => t,
+                };
+                sim.world.set_region(Cell::new(x, y), r);
+            }
+        }
+        sim.world.rebuild_coasts();
+        let mut navy = |reg: u16, captains: i32| {
+            let k = sim.init_army(1, Some(c));
+            let n = &mut sim.armies[1].list[k];
+            n.navy = true;
+            n.reg = Some(reg);
+            n.num_captains = captains;
+            n.human_frame = 5;
+            k
+        };
+        let escort = navy(sea, 3);
+        let elsewhere = navy(t, 3);
+        let small = navy(sea, 2);
+        let target = Obj::Building(b);
+        sim.send_navy(1, target, Some(a), Some(bb));
+        let n = &sim.armies[1].list;
+        assert_eq!(n[escort].target, Some(target), "S coasts A and B");
+        assert_eq!(n[escort].human_frame, 4, "and is processed at once");
+        assert_eq!(n[elsewhere].target, None, "T does not coast A");
+        assert_eq!(n[elsewhere].human_frame, 5);
+        assert_eq!(n[small].target, None, "two captains are not enough");
+        // A human leader sends nothing.
+        sim.nation[1].human = true;
+        sim.armies[1].list[small].num_captains = 3;
+        sim.send_navy(1, target, Some(a), Some(bb));
+        assert_eq!(sim.armies[1].list[small].target, None);
     }
 
     #[test]

@@ -7,7 +7,9 @@
 
 use super::*;
 
-use crate::diff::harness::{attributed_sites, debug_leader, debug_watch, site_window};
+use crate::diff::harness::{
+    attributed_sites, debug_armies, debug_leader, debug_watch, site_window,
+};
 use crate::diff::testkit::*;
 use crate::testenv::{dump, install};
 
@@ -75,6 +77,7 @@ pub(crate) fn walk_second_probed(
     for f in 0..last {
         built.tick();
         debug_leader(&built, f);
+        debug_armies(&built, f);
         // `RON_DEBUG_UNIT`, on every frame of the long walk: a unit's
         // history before a widening's first block (item 1106's `1/14`).
         debug_watch(&built, f + 1);
@@ -119,8 +122,10 @@ pub(crate) fn walk_second_probed(
             for (i, l) in ours.iter().enumerate() {
                 eprintln!("    ours  {i}: {l}");
             }
-            for (i, l) in theirs.iter().enumerate() {
-                eprintln!("    thrs  {i}: {l}");
+            // Each of the original's draws with the word before its step
+            // (item 922: a seed makes every roll on the frame readable).
+            for (i, (l, d)) in theirs.iter().zip(trace.frame_draws(*f)).enumerate() {
+                eprintln!("    thrs  {i}: {l} (seed {:08x})", d.seed);
             }
         }
     }
@@ -173,7 +178,8 @@ pub(crate) fn walk_second_probed(
 /// item 1297 moved it to 11637, and the walk to run506; item 1302 moved
 /// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
 /// the walk to run523; item 1341 moved it to 14141, and the walk to
-/// run535; item 1351 moved it to 15862, and the walk to run544. `None`
+/// run535; item 1351 moved it to 15862, and the walk to run544; item 1362
+/// moved it to 15883, inside it. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -2234,7 +2240,7 @@ mod tests {
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
     /// (item 1351): run535's detail over blocks 15857..16113, walked from
-    /// run346's start.
+    /// run346's start. Item 1362 moved the word to 15883, inside it.
     #[test]
     fn run544_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -2267,15 +2273,19 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        // **The word 15862** (item 1351; no mechanism is named): ours 11
-        // draws against 7, at index 0, where ours spends four
-        // `Army::find_target+0x7df` before the original's first. Block
-        // 15857 stands on 140 keys. The first rows past it are who=1's
-        // group 70 on 15859 — the original's holds fifteen slots at
-        // `(0, 0)`, `ox` 0 and `role` 1379597, and ours none, `ox` −1 —
-        // beside group 65's `held` [158, 159, 160] ours alone. On the
-        // word's own block 15863, 88: `1/30` and four more of who=1's
-        // hold a one-order stack in the original and none here.
+        // **The word 15862** (item 1351) was ours four `find_target`
+        // scores on who=1's navy, army 3, retargeting from its own
+        // Newcastle. **Item 1362 builds the escort** (`Armies::send_navy`,
+        // `docs/TRANSPORT.md` §8.3): army 0's take of who=0's Napata on
+        // 15612 hands the navy that target, and on 15862 it keeps it. The
+        // word's own block 15863 went 88 → 0: `1/30` and the four others of
+        // group 72 hold the original's one order to (33240, 25800). Block
+        // 15857 stands on 140 keys, and who=1's group 70 on 15859 (the
+        // original's fifteen slots and ours none, `ox` 0 against −1) beside
+        // group 65's `held` [158, 159, 160] ours alone stand as they did.
+        // Army 0's group 71 parts on 15869 — every member's order
+        // `group.id` — and on 15882 `1/132`'s figures, ahead of the new
+        // word 15883 (block 15884, where nothing new parts).
         let row = |who: i64, o: i64, what: &str| {
             w.firsts
                 .get(&(who, o, what.to_string()))
@@ -2288,18 +2298,30 @@ mod tests {
         );
         pin_eq!(
             row(1, 30, "orders.len").as_deref(),
-            Some("15863: ours 0 theirs 1"),
-            "and on the word's own block"
+            None,
+            "the navy's one order on 15863 agrees (item 1362)"
+        );
+        pin_eq!(
+            row(1, 132, "pos").as_deref(),
+            Some("15882: ours (42029,40414) theirs (42031,40399)"),
+            "the new word's unit, a block before it"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15857, 140), (15859, 49), (15863, 88)],
+            [
+                (15857, 140),
+                (15859, 49),
+                (15869, 82),
+                (15882, 30),
+                (15883, 1)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1386, "every key parted on run544");
+        // Item 1362, the escort: 1386 → 1380.
+        pin_eq!(w.firsts.len(), 1380, "every key parted on run544");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

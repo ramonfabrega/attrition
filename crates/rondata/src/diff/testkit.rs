@@ -1668,7 +1668,28 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `Army::find_target+0x7df` before the original's first, `Guy::set_anim+
 /// 0x97a < Animal::do_idle+0x19` (seed `5faaa95a`). Past run535's window
 /// (its last block 14392), widened on run544 (block 15863).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
+///
+/// **15862 → 15883 on item 1362** (`docs/TRANSPORT.md` §8.3): the escort.
+/// A land army whose `find_target` takes an enemy target in another cell
+/// region than its own point hands the target to every navy of more than
+/// two captains whose sea coasts both (`Armies::send_navy`). Army 0 took
+/// who=0's Napata on 15612 from region 12; the original gave it to the
+/// navy, army 3 (`1/30`, `1/35` corvettes, `1/61`, `1/67` fireships, `1/57`
+/// a frigate), and on army 3's own turn, 15862, `do_marching` kept an
+/// enemy's city. This crate had left the call a seam, so army 3 still
+/// held who=1's own Newcastle, and an untroubled city of one's own is
+/// retargeted: four `find_target` scores. **The move's value diff (run544's
+/// block 15863, the word's own):** `1/30`'s `orders.len` ours 0 against
+/// 1 → agreeing (its `orders_x/y` (33240, 25800) on both), the same for
+/// `1/35`, `1/57`, `1/61` and `1/67`, and group 72's `order_num` 55
+/// against 56 and `o` (33590, 25667) against (33225, 25790) → agreeing.
+/// run544's block 15863 went 88 → 0 keys. Frame 15862's draws went 11
+/// against 7 → agreeing. **The new word's delta: ours 11 draws and the
+/// original 8 on frame 15883, parting at index 5**: ours spends three
+/// more `Guy::set_anim+0x97a < Guy::inc_time+0x271`, all `1/132`'s, where
+/// the original goes on to `Farms::inc_time+0x1ae` (seed `34d7c105`).
+/// Inside run544's window (block 15884).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_883;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -7810,12 +7831,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
     // past it, widened on run508; item 1326 to 13385, past it, widened on
     // run523; item 1341 to 14141, past it, widened on run535; item 1351
-    // to 15862, past it, widened on run544.
+    // to 15862, past it, widened on run544; item 1362 to 15883, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run544_s_word_frame_is_widened_whole"),
-        1351,
+        1362,
         Some(WIDENING_SECOND_EAST_INDIES_15862),
     ),
     (
