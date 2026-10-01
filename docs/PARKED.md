@@ -146,6 +146,11 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1351, 2026-09-30 — the decoy's close
+
+(1363) **A decoy's attrition, every seventh frame on another's ground**
+(`cast.rs`'s remaining seam): no window has reached it.
+
 ## Parked by item 1350, 2026-09-30 — the site's armour
 
 (1359) **The Senator's building armour** (`WallData::armor`'s
@@ -2795,6 +2800,13 @@ the arguments of the call a value parts through, was answered by a
 scratch `eprintln!` in `do_damage`; nothing prints `get_damage`'s inputs
 per melee blow (`RON_DEBUG_AMMO` covers rounds). A candidate for the
 harness on its third reach.
+
+(1364) **A capture beside a release test run dies before frame 0**
+(1351's Loop line): run544's first two takes both died on the documented
+`wow64cpu+0x1139` fault, each with a full `cargo test -p rondata` beside
+it; the third, on a quiet box, ran clean, and run416's first take was
+the same shape. Rule 1150 retakes once; a row could say a capture is
+taken on a quiet box.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
