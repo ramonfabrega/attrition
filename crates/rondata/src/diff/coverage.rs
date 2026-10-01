@@ -628,6 +628,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch45 = golden_dump("ch45");
     let ch46 = golden_dump("ch46");
     let ch47 = golden_dump("ch47");
+    let ch48 = golden_dump("ch48");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2167,6 +2168,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [677, 839, 905, 1102, 1111] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-seven carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-eight, on run551** (item 1358): 683, the site's
+    // first hit on who=0's land; 935, the squad's first blow on it (the
+    // chapter's first parting); 983, the blow whose sixteenths carry; 1094,
+    // the first bomb; 1451, the word's block.
+    if let Some(p) = &ch48 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_EIGHT;
+        for w in [683, 935, 983, 1094, 1451] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-eight carries the window's five blocks");
             frames += n;
         }
     }

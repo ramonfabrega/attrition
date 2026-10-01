@@ -9958,3 +9958,120 @@ forty-six's and forty-three's tests and the arms' unit tests
   is the candidate. No walk can hold it either way.
 - The members' angle on a walk: nothing on this crate's draw stream
   reads a landed member's heading before its first step.
+
+## 57. Chapter forty-eight — three arms the unit tests or a widening held and no walk: a site's carry, a bomb on a site, and a site in enemy land (item 1358)
+
+**Premise.** DECISIONS 56 §3's chapter from item 1350's mutations that no
+walk held, in `Object::take_damage@00652020`'s site arm (`docs/COMBAT.md`
+§7.2 step 5): M2, the progress a blow takes counting its sixteenths'
+carry (§56's widening held it); M3, an attacker in use whose type's
+`domain` is 2 costing none (`0065234e`–`0065237c`); M4, the attrition
+flag costing none (`00652341`), whose one caller is `Wall::process`'s
+enemy-land hit (`docs/CITIES.md` §9.5). M3 and M4 were held by
+`a_site_loses_progress_by_the_points_a_blow_took_and_none_to_an_aircraft`
+alone, and **no capture on disk had a building on enemy land at all**
+(§9.5's table, East Indies and Great Lakes).
+
+**What one staging can reach, established on the walk first.** Each arm
+moves a site's `job_counter`. A site's health is its job's share of its
+hits, so progress lost shows on the draw stream only where the site
+finishing or dying moves something that draws. A builder-less site
+dying a frame early moved none in §56. So all three arms are put on one
+site with its builders working, and its **finish** is the event a walk
+reads: the builders walk off, and the Tower starts shooting. Three facts
+shaped the staging, each found on the walk and each the original's rule
+as this crate reads it:
+
+- **A who=1 site cannot stand on neutral ground near its capital.** A
+  non-city building needs friendly land under every tile (`docs/CITIES.md`
+  §2.6.1). A Fort or City on unowned ground must be the region's first
+  (§2.5), and this crate's place answered `NeutralTerritory` for a Fort. So
+  the enemy land comes to the site instead: an `add`ed Fort for who=0, at
+  who=0's Civic 6, claims who=1's southern edge, the site's cell (55, 30)
+  with it (`RON_STAGE_MAP`), and no other who=1 building.
+- **A Fort is obsolete once its leader holds the Medieval age**
+  (`reset_obs_flags`: the Castle auto-upgrades from it), and `age who=1 2`
+  is that age. The site is a Tower, under `library who=1 1`.
+- **A building target is seen through its `ever_seen` byte**
+  (`BuildData::is_seen@0062e1a0`), updated every eighth frame. A squad
+  `@attack`ed onto the site the frame it is added finds the target
+  invalid and retargets a builder (`find_new_target`). A who=0 Scout put
+  beside the site at 860 lights it first, and lights it for the bomber's
+  strike too.
+
+**The staging** (`chapter48.cmd`), walked on run514's start:
+`library who=0 6` and `library who=1 1` (600). Three who=1 Citizens A
+`1/6`..`1/8` (602) lay the Tower site T `1/2006` at (42624, 23424) under
+`be 1` (606). An Airbase `0/2007` and a Bomber `0/6` follow, flown home
+(610–640). Fort F `0/2008` goes at tile (222, 178) (650), Scout S `0/7`
+at (226, 128) (860), and Elite Pikemen P `0/8`..`0/10` (900), `@attack`ed
+onto T (902). The bomber `@strike`s T (950), and P is walked off (1040).
+The walk: T's first enemy-land hit on 682, then one every 32 frames; P's
+blows from 934 to 1034, with sixteenths; the bomber's passes at 1093,
+1220 and 1347; T finished on 1444 at 109 hits; a fourth pass kills it on
+1482. Walked against itself under `RON_STAGE_DRAWS`, each mutation parts
+the draws: M2 on 1448, M3 on 1360, M4 on 1450.
+
+**Run 2026-09-30 as run550, refused, and run551.** run550 (click-free
+lane, `cover=0`) asked `end:…,DEATHS=1` beside `GROUPS=1`. That shape
+prints no `GROUPDATA` and a `WORLD` block on every frame, as run404's
+and run437's do. The runner's own check refused it (parked 735).
+run551 is the same script without `end:DEATHS`: 1,751 frames, 1,680 s,
+and all five `@` lines carry refusal 0.
+
+**All three arms agree on the dump's own record, read by hand** (T's
+`BUILDDATA`):
+
+- **Enemy land costs no progress.** Block 683: `damage` 0 → 8 and
+  `job_counter` 11149 → 11332, one frame's work by three builders. T's
+  `flags` go 3 → 19 on the same block.
+- **A bomb costs no progress.** Blocks 1094..1099: `damage` 178 → 242
+  while `job_counter` climbs 64308 → 64716 at the builders' quarter rate.
+- **The carry.** P's blows land on 935, 951, 967 and 983, at 8 5/16
+  each. The fourth carries: `damage` 104/15 → 113/4 and 450 of progress
+  on 983, where the first three took 400 each.
+
+**The chapter opens with a parting at 1450** and ends there. Ours draws 13
+against 11 at index 0 (seed `0x4a70e914`): ours spends the builder `1/6`'s
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, which the original spends
+on 1451, where the original's first draws are the finished Tower's
+(`64cc85`, `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`). **The value diff,
+walked back:** T finishes on block 1445 here and 1447 in the original
+(`job_counter` 0, `flags` 23). Its first parted field is block 935, P's
+first blow: `damage`/`damage_frac` ours 71/10 against 72/5, and
+`job_counter` 56960 against 56910. The original's blow is 133
+sixteenths and ours 122, 12 a figure against 11 by §56's sum, so it
+costs 400 of progress against 350. Every blow after is a point light,
+and T finishes two frames early. No mechanism is named: the blow's
+inputs are the next item's (Elite Pikemen, `ELITEPIKE`, against a Tower site,
+who=0 at `library 6`).
+
+**The widening** is run551 whole (`[605, 1751)`): 649 rows and 8 pool
+rows, pinned as they stand. Before the word: the standing families on
+605; who=1's City's `city:bordering` on 656 (F's claim, ours 0 against
+3); P's `order:target` on 901 (§56's reader row); T's blow on 935; and
+the builders' `order:kind` from 1445, T finished here and not there.
+
+**Mutations**, each on the committed build (`a58d3cf9`), restored from
+git and touched, scored by the exit code and failed tests' names of
+`cargo test --release -p rondata chapter_forty_eight` and `-p sim a_site_`
+(`--test-threads 2`):
+
+| mutation | held by |
+|---|---|
+| M2: progress from `hit.whole`, no carry | exit 101: **the word, 1450 → 1448**, and the widening (649 → 646); the unit test |
+| M3: an aircraft's blow costs progress | exit 101: **the word, 1450 → 1360**, and the widening (649 → 642); the unit test |
+| M4: attrition costs progress | exit 101: **the widening alone** (649 → 629: `1/2006 build:job_counter` ours 10932 against 11332 on 683); the unit test. **The word stays 1450**: M4's own parting falls on it |
+
+**What is not established.**
+- The word at 1450, and the blow behind it: the next item's, booked by
+  its frame.
+- M4 on a walk: it parts the walk on the word's own frame, so once
+  T's blows agree the walk is expected to hold it. Until then the
+  widening does.
+- §9.5's 16-frame phase under rush rules before war is allowed (not
+  modelled; this lobby has neither), a ghost on enemy land
+  (`Object::disband`), and a dock's `check_enemy_adjacent`: T was started
+  before F's claim reached it.
+- T's `flags` bit `0x10`, set on its first enemy-land hit: read off the
+  dump, not by this crate's widening.
