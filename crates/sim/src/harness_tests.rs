@@ -1945,6 +1945,65 @@ fn a_research_is_charged_for_the_army_it_refits() {
 }
 
 #[test]
+fn a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base() {
+    // `get_cost:158`–`205` (`0066446d`..`006646cb`): an owned type is
+    // charged, per resource, `max(0, p.base − base)` for every type `p`
+    // with `num_queued[p] != 0` whose `FROM` is this type or which lies on
+    // this type's `JUMP` chain — before the factor. run523's block 13383:
+    // the Bombard's research queued, a Trebuchet costs 80 × 95/100 = 76.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let factory = tree.add(TypeDef::building("Siege Factory"));
+    let cat_t = tree.add(TypeDef::unit("Catapult", UnitTraits::default()).at(factory));
+    let treb_t = tree.add(
+        TypeDef::unit("Trebuchet", UnitTraits::default())
+            .at(factory)
+            .from(cat_t),
+    );
+    let bomb_t = tree.add(
+        TypeDef::unit("Bombard", UnitTraits::default())
+            .at(factory)
+            .from(treb_t),
+    );
+    tree.types[cat_t].jump = Some(treb_t);
+    tree.types[treb_t].jump = Some(bomb_t);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let typ = |t, food, wealth| UnitType {
+        tree: Some(t),
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, food)
+                .with_base(economy::Resource::Wealth, wealth)
+        },
+        ..citizen_type()
+    };
+    let cat = sim.add_unit_type(typ(cat_t, 7, 9));
+    let treb = sim.add_unit_type(typ(treb_t, 7, 9));
+    let bomb = sim.add_unit_type(typ(bomb_t, 8, 6));
+    let (food, wealth) = (
+        economy::Resource::Food.index(),
+        economy::Resource::Wealth.index(),
+    );
+    let pair = |p: [i32; economy::RESOURCES]| (p[food], p[wealth]);
+    sim.tech[0].tech[cat_t] = true;
+    sim.tech[0].tech[treb_t] = true;
+    assert_eq!(pair(sim.price_of(0, treb)), (70, 90), "nothing queued");
+    // The Bombard's research queued: the Trebuchet, its `FROM`, pays the
+    // Bombard's food, and its own wealth — the difference never runs
+    // negative.
+    sim.muster[0].queued_by_type[bomb] = 1;
+    assert_eq!(pair(sim.price_of(0, treb)), (80, 90), "the FROM arm");
+    // The Catapult reaches the Bombard along its `JUMP` chain.
+    assert_eq!(pair(sim.price_of(0, cat)), (80, 90), "the JUMP arm");
+    // Unowned, the Trebuchet is a research and the loop never runs.
+    sim.tech[0].tech[treb_t] = false;
+    assert_eq!(sim.upgrade_bump(0, treb), [0; economy::RESOURCES]);
+}
+
+#[test]
 fn wine_takes_a_fifth_off_a_research_and_nothing_off_a_train() {
     // `get_cost:427`–`428` (`00664edd`): the research arm takes
     // `WINE_UNIT_UPGRADES` off before the premium when `rare` holds Wine.

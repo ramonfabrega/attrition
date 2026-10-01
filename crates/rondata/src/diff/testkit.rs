@@ -1634,7 +1634,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `+0xc99`, 4 `+0x1805`, `Farms::add`) and two `+0x221`; ours' step 11
 /// finds its head empty and spends nothing. Past run508's window (its
 /// last block 12833), widened on run523 (block 13386).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 13_385;
+///
+/// **13385 → 14141 on item 1341** (`docs/AI.md` §56.7): `get_cost`'s
+/// bump loop. An owned type is charged, per resource, the base of any
+/// upgrade of it that is queued; the Bombard's research at `1/2024`
+/// makes the Trebuchet 8m/8t, so `1/2028`'s first costs 80 × 95/100 and
+/// the second is past who=1's timber. **The move's value diff (run523's
+/// block 13383, step 8's purchase on frame 13382):** who=1's
+/// `num_queued[216]` ours 2 against 1 → agreeing, `1/2024`'s `queued` 2
+/// against 1 → agreeing, `1/2028`'s `queue[0].cost[0]`/`[1]` 66 against
+/// 76 → agreeing, and `bucket[1:timber]` 14 against 89 and
+/// `bucket[4:metal]` 59 against 134 → agreeing; on 13385 `MAKE[0]` takes
+/// the Farm on both. run523's keys went 1102 → 225. Frame 13385's draws
+/// went 4 against 54 → agreeing. **The new word's delta: ours 5 draws
+/// and the original 4 on frame 14141, parting at index 1**: ours spends
+/// a second `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+/// original goes on to `Guy::set_anim+0x104b` (seed `c55509fc`). Past
+/// run523's window (its last block 13636), widened on run535 (block
+/// 14142).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
