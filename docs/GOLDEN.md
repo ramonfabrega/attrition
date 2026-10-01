@@ -10236,31 +10236,51 @@ entries to type 217.
   left. The flight time at 200 is what lands them there; at 90 they would
   be a dozen frames later.
 
-**The chapter opens with a parting at 934.** Ours draws 3 against 6 at
-index 0 (seed `0x72a004cf`): the original spends the Tower's fifth shot
-on `0/7` (`64cc85`, `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`) where ours
-spends none. **The value diff, walked back:** `0/7`'s **fourth wound
-lands on 912 on both sides** (`damage` 48, hp 2), and on that frame its
-**order stack parts**: ours has a `FLEE_TO` to (39672, 21720)
-(`orders.len` 1, `orders_x/y` 39672/21720, `dest_angle` −710737920), the
-original has none (`orders.len` 0, `orders_x/y` 41000/22500, `dest_angle`
-−579731456) and the Scout stands at (41000, 22500) through block 940 and
-beyond. Ours runs away out of the Tower's range, and the Tower has
-nothing to shoot on 934. The first Scout `0/6` took the same flee on
-620–624 on both sides (nothing parts there). **No mechanism is named**:
-`Sim::flee_from` (`fight.rs`, `Unit::target_opportunity`'s flee arm) is
-asked by the hit, and its gate (`is_idle`, `is_worker`, `type->attack`,
-the captain walk's responder) is the booking's next reading; the two
-wounds differ in who had an order at the hit's frame: `0/7` had walked
-there on a `@move` and arrived idle 11 frames before, `0/6` was
-a fresh spawn.
+**The chapter opened with a parting at 934, and closes at 1500** (item
+1403). Ours drew 3 against 6 at index 0 (seed `0x72a004cf`): the original
+spent the Tower's fifth shot on `0/7` where ours spent none. **The value
+diff, walked back:** `0/7`'s fourth wound lands on 912 on both sides
+(`damage` 48, hp 2), and on that frame its order stack parted — ours a
+`FLEE_TO` (39672, 21720) (`orders.len` 1, `dest_angle` −710737920), the
+original none (`orders.len` 0, `orders_x/y` 41000/22500, `dest_angle`
+−579731456), the Scout standing at (41000, 22500) through block 940 and
+beyond.
 
-**The widening** is run576 whole (`[605, 1499)`): 305 rows and 5 pool
-rows, pinned as they stand: the standing families on 605 and 625
-(`filled_gather_slots`, `treaties`), `0/7`'s order stack from 912 and
-the cascade of civilians' paths from 943 (the Tower's fifth shot's draws
-shift everything), and the pool's `622 slot 1`, `702 slot 0` and
-`963 slot 2`.
+**The cause is `Unit::target_opportunity@005fffc0`'s first arm, not the
+flee gate.** Block 912 prints `0/7` with `group 2` (the pool slot the
+`@move` seated it on) and `unit_masks 14`; the Scout is not combat-role
+(`type +0x2c8 & 0x10000`). The function's loop opens with `param_3 == 0 &&
+group >= 0 && !combat_role && GroupData::member(group, o, who, 1)` and
+for such a unit calls `Group::target_opportunity@007107d0` and returns —
+so it neither flees nor retaliates, and the group's own walk takes only a
+member that is alive, on the map, a captain and combat-role. `0/6` fled on
+618 because it was ungrouped (`group` −1) when hit; its later `group 0` is
+the `@move` of 640. This crate carried the arm as a stated SEAM ("no run on
+disk takes it"); it is built now: `Sim::target_opportunity_in` walks the
+captain chain applying the test at each level, and
+`Sim::group_target_opportunity` is the 15-frame cooldown
+(`GroupState::opportunity`, `+0x38`, zeroed by `Group::clear`) and the
+member walk. **The value diff on the word's frame:** `0/7 orders.len` ours
+1 against 0 on 912 → agreeing, `orders_x/y` 39672/21720 against 41000/22500
+→ agreeing; frame 934's draws 3 against 6 → agreeing, and the walk runs to
+the trace's end (1500; sequence 618 as before). The chapter is closed.
+
+**Not modelled** (a SEAM in `group_target_opportunity`): the arm that runs
+a member's own `find_melee_target` at `min(dist + 0xc0,
+unit_respond_range × 0x240)` (an idle or `NONE`/`ATTACK_TO`/`GROUP_ATTACK_TO`
+combat-role captain that is not the asker's captain). No capture on disk
+has a combat-role captain beside a non-combat member that takes a hit; the
+cooldown's own `> 0xe` gate is held by no walk either (a one-member group
+cannot tell it).
+
+**The widening** is run576 whole (`[605, 1501)`): 30 rows and 4 pool rows,
+pinned as they stand — the standing families on 605 and 625
+(`filled_gather_slots`, `treaties`, `form`, the city's counts), `0/7`'s
+`death:extra` on 943 (ours holds a death record the original does not; the
+same family as chapter forty-eight's 1487 and 1488), and the pool's `622
+slot 1` and `702 slot 0`. **The 305 rows and 5 pool rows of 1393's pin that
+were 912's order stack, the civilians' paths from 943 and `963 slot 2`
+are gone with the flee.**
 
 **Mutations**, each on `7e3455f1`, `git diff --stat` read one line in one
 file, restored from git and touched, scored by exit code and failed tests'
@@ -10275,9 +10295,15 @@ on the queue's line 1393 in every row and is not the mutation's):
 | K3: the sixteen-frame review also runs under the pack arm (1370's M3) | exit 0 on the walk, the widening and every sim test: **equivalent, as read above** |
 
 **What is not established.**
-- The word at 934 and the flee behind it (above).
+- `group_target_opportunity`'s `find_melee_target` arm and its cooldown gate (above).
 - `get_shot`'s exact-type arms and `ages` ≥ 5 (this chapter reaches 3).
 - The sixteen-frame review under the pack arm: unreachable, parked.
 - The bump loop's `FROM` arm on its own, and a research priced with a
   hit through `JUMP` alone on the research arm (`research_modifiers`'s
   mirror loop): the train arm only here.
+
+**Item 1403's mutation**, on `9a57917c`, `git diff --stat` one
+line in one file: the group arm dropped (`if !from_group && false`) fails
+**the word (1500 falls back) and the widening** and
+`a_hit_group_member_of_a_non_combat_type_keeps_its_orders`, exit 101. The
+cooldown's gate is the finding above: no walk holds it.

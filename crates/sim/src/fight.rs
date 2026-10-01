@@ -2684,15 +2684,49 @@ impl Sim {
     /// it is **`0/6`**, `0/7`'s captain, that carries the ATTACKORDER at the
     /// end of that frame, with `0/7` and `0/8` taking theirs a frame later.
     ///
-    /// SEAM: the loop's other arm, taken **before** the captain walk at each
-    /// level — a group member whose type is *not* combat-role
-    /// (`type +0x2c8 & 0x10000`) forwards to `Group::target_opportunity`
-    /// instead. Every unit in the golden record's two squads is combat-role,
-    /// so no run on disk takes it (`docs/GROUPS.md` §13).
+    /// The loop's other arm, taken at each level of the captain walk — a
+    /// group member whose type is *not* combat-role (`type +0x2c8 &
+    /// 0x10000`) forwards to `Group::target_opportunity` — is built
+    /// (item 1403, `docs/GOLDEN.md` §58): see [`Sim::target_opportunity_in`].
     fn target_opportunity(&mut self, victim: usize, attacker: Obj, _frame: i64) {
+        self.target_opportunity_in(victim, attacker, false);
+    }
+
+    /// [`Sim::target_opportunity`] with the original's `param_3`: `true`
+    /// when `Group::target_opportunity` is the caller, which skips the
+    /// group arm below (`005fffc0`'s `param_3 == 0` test).
+    fn target_opportunity_in(&mut self, victim: usize, attacker: Obj, from_group: bool) {
         let (a, b) = (self.units[victim].owner, self.owner_of(attacker));
         if !self.at_war_with(a, b) && !self.at_war_with(b, a) {
             return;
+        }
+        // **The group arm** (item 1403, `docs/GOLDEN.md` §58): at each
+        // level of the captain walk, a unit that names a group, is listed
+        // by it (`GroupData::member(group, o, who, 1)`) and whose type is
+        // **not** combat-role (`type +0x2c8 & 0x10000`) hands the hit to
+        // `Group::target_opportunity` and returns — it never flees and
+        // never retaliates itself. A Scout walked by `@move` is such a
+        // unit: the golden record's `0/7` takes its fourth wound on 912
+        // and keeps no order.
+        if !from_group {
+            let mut at = victim;
+            loop {
+                if !self.profile(Obj::Unit(at)).combat_role
+                    && self.units[at].on_map
+                    && let Some(seat) = self.seat_of(at)
+                    && self.seat_list(seat).contains(&at)
+                {
+                    self.group_target_opportunity(seat, attacker);
+                    return;
+                }
+                if self.units[at].captain {
+                    break;
+                }
+                match self.units[at].o_up {
+                    Some(c) if c != at && self.units[c].alive() => at = c,
+                    _ => break,
+                }
+            }
         }
         let responder = self.squad_captain(victim);
         let me = Obj::Unit(responder);
@@ -2761,6 +2795,37 @@ impl Sim {
             }
         }
         self.retarget(me, Some(attacker), false);
+    }
+
+    /// `Group::target_opportunity@007107d0` for a hit its member `asker`
+    /// took: a 15-frame cooldown on the group (`+0x38`, `frame − last >
+    /// 0xe`), then every member that is alive, on the map, a captain and
+    /// combat-role takes `Unit::target_opportunity(member, o, who, 1)`.
+    ///
+    /// SEAM: the arm that runs a member's own melee search (an
+    /// action order absent or idle, the head order of kind `NONE`, `ATTACK_TO` or
+    /// `GROUP_ATTACK_TO`, and the member not the asker's captain) is not
+    /// modelled; no capture on disk has a combat-role captain beside a
+    /// non-combat-role member that takes a hit.
+    fn group_target_opportunity(&mut self, seat: crate::group::Seat, attacker: Obj) {
+        let frame = self.frame;
+        {
+            let (_, st) = self.seat_parts(seat);
+            if frame - st.opportunity <= 0xe {
+                return;
+            }
+            st.opportunity = frame;
+        }
+        let members = self.seat_list(seat).clone();
+        for m in members {
+            if self.units[m].alive()
+                && self.units[m].on_map
+                && self.units[m].captain
+                && self.profile(Obj::Unit(m)).combat_role
+            {
+                self.target_opportunity_in(m, attacker, true);
+            }
+        }
     }
 
     /// **`Unit::on_duty@005fff70`**: a combat-role type (`+0x2c8 &
@@ -4560,6 +4625,50 @@ mod tests {
             before,
             "a unit already fleeing answers the hit again"
         );
+    }
+
+    /// **A hit group member of a non-combat type neither flees nor
+    /// retaliates** (item 1403, `docs/GOLDEN.md` §58):
+    /// `Unit::target_opportunity@005fffc0`'s group arm hands the hit to
+    /// `Group::target_opportunity@007107d0` and returns, and that
+    /// function's 15-frame cooldown (`+0x38`) is set. The golden record's
+    /// Scout `0/7`, walked by `@move`, takes its fourth wound on 912 with
+    /// no order.
+    ///
+    /// Made to fail first with the arm removed: the same unit fled.
+    #[test]
+    fn a_hit_group_member_of_a_non_combat_type_keeps_its_orders() {
+        let (mut sim, soldier) = at_war();
+        let scout = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            combat: Profile {
+                attack: 0,
+                max_range: 0,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
+        let foe = put(&mut sim, 1, soldier, Pos::new(0x4600, 0x4000));
+        sim.pushed.push(crate::group::Pushed {
+            who: 0,
+            list: vec![me],
+            state: crate::group::GroupState {
+                pool: Some(2),
+                ..crate::group::GroupState::default()
+            },
+            builds: Vec::new(),
+        });
+        sim.units[me].group_ptr = Some(2);
+        sim.frame = 912;
+        sim.target_opportunity(me, Obj::Unit(foe), 912);
+        assert!(sim.units[me].orders.is_empty(), "a group member fled");
+        assert_eq!(sim.pushed[0].state.opportunity, 912);
+        // Without the seat, the same hit is the flee arm's.
+        sim.units[me].group_ptr = None;
+        sim.target_opportunity(me, Obj::Unit(foe), 913);
+        assert_eq!(sim.units[me].orders.len(), 1, "ungrouped, it flees");
     }
 
     /// **`Unit::think`'s step 3 needs the military bit as well as the

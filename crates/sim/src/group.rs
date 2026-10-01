@@ -187,6 +187,10 @@ pub struct GroupState {
     /// [`Sim::groups_process`]'s cursor selects on, so an army and a
     /// pushed group are reset on the frames the original resets them.
     pub pool: Option<u8>,
+    /// `+0x38`: the frame `Group::target_opportunity` last ran on this
+    /// group, which it gates at fifteen frames. `Group::clear` zeroes it
+    /// and `copy_group` is taken to leave the previous occupant's.
+    pub opportunity: i64,
 }
 
 impl GroupState {
@@ -274,6 +278,7 @@ impl Default for GroupState {
             new_speed: 0,
             march: false,
             pool: None,
+            opportunity: 0,
         }
     }
 }
@@ -910,7 +915,7 @@ impl Sim {
         }
     }
 
-    fn seat_parts(&mut self, seat: Seat) -> (&mut Vec<usize>, &mut GroupState) {
+    pub(crate) fn seat_parts(&mut self, seat: Seat) -> (&mut Vec<usize>, &mut GroupState) {
         match seat {
             Seat::Army(w, a) => {
                 let x = &mut self.armies[w as usize].list[a];
