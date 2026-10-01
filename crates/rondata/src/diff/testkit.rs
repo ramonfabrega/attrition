@@ -5755,10 +5755,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1750;
 
 /// Chapter forty-nine's golden word (item 1393, run576, `docs/GOLDEN.md` §58).
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 934;
+///
+/// **Closed at the trace's end by item 1403.** The word stood at 934 on a
+/// Scout's order stack: `Unit::target_opportunity@005fffc0`'s group arm
+/// (`param_3 == 0`, `group >= 0`, type not combat-role, `GroupData::member`)
+/// hands a hit on a group member to `Group::target_opportunity` and
+/// returns, so a Scout walked by `@move` takes its fourth wound on 912
+/// with no `FLEE_TO` where this crate fled it out of the Tower's range.
+///
+/// **The delta**, this constant's: +566, 934 → 1500 (the trace's end).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 1500;
 
 /// `chapter_forty_nine_s_word_frame_is_widened_whole`'s window: run576 whole.
-pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1499);
+pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
