@@ -321,6 +321,17 @@ and two through `+0xb6`, and the same site fires on every arrival
 afterwards — 6511, 6766, 7021 — one draw or three depending on what the
 figures were playing.
 
+**A leg can also end short of its last node** (item 1371, diff-backed).
+`do_move`'s waypoint take probes the final node once, and a hit under a
+`TRADE_ROUTE` action kills the move where the caravan stands
+(`docs/COLLISION.md` §5.1; `5f8721`'s `cmpl $0xf` is the first of the
+four actions it tests). The next frame's `do_trade` is then an arrival like
+any other, and the box test decides it. Great Sahara at Toughest's
+`1/52` (`CARA`, TypeIndex 59) stopped so at (28261, 24026) on 10390, its
+last node (28320, 24288) under a Citizen on a build order, `1/87`, and the
+draw `Unit::do_trade+0x40` was 10391's first. This crate widened the
+tolerance instead until item 1371.
+
 The tail proper is two halves.
 
 **The arrival test** is made against exactly one of the two cities: the
