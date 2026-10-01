@@ -5754,6 +5754,12 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 /// **The delta**, this constant's: +269, 1481 → 1750 (the trace's end).
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1750;
 
+/// Chapter forty-nine's golden word (item 1393, run576, `docs/GOLDEN.md` §58).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 934;
+
+/// `chapter_forty_nine_s_word_frame_is_widened_whole`'s window: run576 whole.
+pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1499);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -7879,6 +7885,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_forty_eight_s_word_frame_is_widened_whole"),
         1358,
         Some(WIDENING_CHAPTER_FORTY_EIGHT),
+    ),
+    // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
+    // third age and a Catapult trained under a queued Bombard; open at 934.
+    // The widening is run576 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_NINE",
+        GOLDEN_WORD_CHAPTER_FORTY_NINE,
+        Some("chapter_forty_nine_s_word_frame_is_widened_whole"),
+        1393,
+        Some(WIDENING_CHAPTER_FORTY_NINE),
     ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
     // and `all_gathering`'s prune, closed at 2200. The widening is run496
