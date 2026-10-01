@@ -13332,6 +13332,78 @@ tests that set the field keep their value.
   11372, `peasants` 42 against 43 on 11345. Widened on run571 (block
   11383, 419 keys).
 
+## 103. The census counts a birth at once, and the economy is dirtied where the original dirties it (2026-10-01, item 1398)
+
+Item 1388 left Great Sahara at Toughest on frame 11382: ours 17 draws
+against 16 at index 0, `Leader::use_market+0x1ed` against
+`Leader::make_stuff+0x221`. The booking named no mechanism; two came of
+walking the first parted fields back, and the second was the cause.
+
+### 103.1 The event
+
+run571's window, first partings by block (`RON_FIRSTS`): `gather_stamp`
+and `known_rares` on 11184 (ours 11183 and 5, the original's 11159 and 0),
+`peasants` 42 against 43 on 11345, `caras` 3 against 4 on 11372, and on
+11381 who=1's `MAKE[2]` — ours the Merchant (`t` 61, 931,034, cat 4), the
+original the Bombard (267, 604,160, cat 7) — and `MAKE[3]`. `births.py`
+puts a Citizen born on frame 11345 and a caravan on 11372.
+
+### 103.2 Two rules
+
+1. **`peasants`, `scholars` and `caras` are live.** `Leader::track_unit_type
+   @006e0dd0` adds the delta to `+0x978` (`TypeData::is_peasant`) and
+   `+0x97c` (`is_scholar`); `Unit::set_type@00612fa0` and `Unit::close@0060ee50`
+   move `+0x980` for a caravan. This crate recounted all three at the sweep
+   alone, so a unit born between sweeps was missing from `create_units`'
+   `civilians` (parked 1122's newborn lag). `Sim::track_unit_type` now
+   calls `track_civilian_type`; the sweep still zeroes and recounts.
+   **Not built**: the military-flag count beside them, and the decompile's reading of
+   `set_type`'s caravan predicate, taken here as the census's own
+   (`CARAVAN` line, not a Merchant).
+2. **The economy's dirty flag (`leader_flags & 0x2000000`) is not raised by
+   `Build::queue_up`, by its tech twin, by `cancel`, or by an ordinary
+   trained unit's birth.** The grep over the export names the setters:
+   `Unit::go_inside@0061a2e0:81` for a Scholar (`0x34`/`0x35`),
+   `Unit::come_out@00617c10` (listing `6180ea`) for an exit from a University
+   (`is(0x1a4)`) or an Oil Platform (`is(0x1a6)`), `Unit::init`'s two tribe
+   arms, `Build::activate`, `Leader::gain_tech` and the rest of the list
+   `docs/ECONOMY.md` §"membership changes" gives. Ours called
+   `economy_changed` on all four: on frame 11182 the make step's four queued
+   items dirtied who=1, `calc_gather` recomputed on 11183 (`(1 + frame) % 8
+   == 0`) and `known_rares` took the five rares the borders' zero had left
+   unsummed since 11159, where the original's stays 0 until 11391. With
+   `known_rares` 5 the Merchant arm of `create_units`
+   (`known_rares − queued − units > 0`) offered a Merchant at 1,000,000
+   scaled and outbid the Bombard.
+
+`build_train` now dirties only for a Scholar or a University/Oil Platform
+trainer. **SEAM**: `Unit::init`'s Lakota and American arms and
+`insert_inside`'s are not modelled.
+
+### 103.3 Coverage
+
+- **Diff-backed**: run571's `peasants` (11345), `caras` (11372),
+  `gather_stamp`, `known_rares`, `MAKE[2..3]` → agreeing, 419 → 122 keys;
+  run471…run562's keys 144 → 140, 102 → 98, 75 → 72, 85 → 82, 101 → 95,
+  94 → 91, 98 → 95, 98 → 95 (gap), 113 → 110, 86 → 83, 130 → 126; the
+  leader-record residues of runs 19, 84, 91, 107, 111, 115, 117 lose
+  `peasants`, `scholars`, `gather_stamp` and `known_rares` rows. The one
+  key that grew is run403's `0/-1 peasants` (79 → 80), standing from its
+  first block beside `num_units[0]`, which the original's dump reads 0 for.
+- **Pinned**: `a_birth_moves_the_census_s_civilian_counts_before_the_sweep`.
+  No unit test builds the dirty arms; the walks are the guard (§103.4).
+- **A mutation I did**: dropping a birth's `economy_changed` altogether
+  moves the third map's word 11882 → 5782; the Scholar/University arms are
+  what hold it.
+- **The new word: 11882**, ours 7 draws against 11 at index 2 (ours
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the original
+  `Guy::init_real+0x52`), past run571's window (11177..11433). No capture
+  holds it.
+
+### 103.4 Mutations
+
+See the journal.
+
 ## 104. A decoy's transport cast is refused (2026-10-01, item 1401)
 
 *Sonnet 5.5 lane att-1401, base `bdc1359f`. East Indies' word 16160 →

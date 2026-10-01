@@ -10307,3 +10307,74 @@ line in one file: the group arm dropped (`if !from_group && false`) fails
 **the word (1500 falls back) and the widening** and
 `a_hit_group_member_of_a_non_combat_type_keeps_its_orders`, exit 101. The
 cooldown's gate is the finding above: no walk holds it.
+
+## 59. Chapter fifty — three arms the unit tests held and no walk: a Stockade's shot, a group's cooldown and member search, a march's `+0x4b`; opens with a parting at 686 (item 1404)
+
+**Premise.** DECISIONS 56 §3's third chapter: (1) `BuildData::get_shot@0062dd90`'s
+exact-type arms (parked 1394); (2) `Group::target_opportunity@007107d0`'s
+15-frame cooldown and its member `find_melee_target` arm, a combat-role
+captain beside a non-combat member under hit (item 1403's mutation); (3) the
+group's `+0x4b` speed arm (1335, item 1318's M3). Whether one staging
+reaches each was the first question.
+
+**Arm 1 is reached by a Stockade at the first age.** The switch names
+STOCKADE (`0x1b9`, shot 1), BUNKER, FORTRESS, REDOUBT, the observation post
+and the anti-air types. A Stockade (`add stockade who=1`, no `library`) at
+`ages` 0 reads 1 where the default arm reads 0, so its arrow flies at the
+type's `PROJ_SPEED` (200) and not at 90. **Mutation** (the exact arm dropped,
+`.filter(|_| false)`): the widening fails, exit 101; the word does not move,
+which falls earlier (below). So 1394 is held by a walk once the word is past.
+
+**Arm 2 is reached by `@amove` of a Scout and a Hoplite squad** through two
+Stockades' range: the Scout leads, is hit (hp 50 → 26 on 722 in this crate's
+walk, then 748 and 750, two frames apart), the squad's captain is
+combat-role and the group is on `GROUP_ATTACK_TO`. **Mutation** (the
+cooldown's `> 0xe` gate dropped): **exit 0 on the walk and the widening** —
+held by no walk even here: the hit's own hand-off already leaves the squad
+retargeting before the second hit, so the gate has nothing to refuse. The
+member `find_melee_target` arm is unbuilt (a SEAM in
+`Sim::group_target_opportunity`); whether the original takes it is the
+capture's, past the word.
+
+**Arm 3 is walked and not reached; parked.** A General's Forced March
+(`@spell 0 636 -1 -1 0 0 <general>` after `add general`, 150 frames,
+`mana_burn` 1000) with `@move` of a Hoplite squad, a General and a far
+Citizen: `group_set_march` fires only when the **group's leader** is near
+the marching hero (the leader here is the Hoplite captain, `leader u63`), and
+`near_marching_hero` is `hero_radius` = 9 tiles for a General. The setting
+that fired it (a squad beside the General) left every follower inside the
+nine tiles, and a far Citizen never took the formation arm that reports
+(no report in the walk). Mutating the arm (`march = false`) moved no unit's
+position on either walk (`stage_walk`, run576's start, to 1000). The arm
+needs a **follower in formation more than nine tiles from the marching hero
+and slower than the leader**, which a formation of a dozen squads might
+give; no staging here does. **Parked** with that reason.
+
+**The staging** (`chapter50.cmd`, run577, 6 lines): two Stockades `1/2006`
+(222, 122) and `1/2007` (226, 118); Scout `0/6` (236, 138) and Hoplites
+`0/7..9` (244, 146); `@amove 0 38000 22000 6 7` on 640. `issuesmatch.py
+--none-refused`: issued, refusal 0.
+
+**The word, 686: ours 8 draws against 12, index 0.** The original spends
+`Ammo::init+0xcd9`/`+0xd0b` (the Stockade's round) where ours spends the
+Hoplites'/farm's draws. **The value diff:** `1/2006 ammo[0]` the dump holds
+alone on 687 (`whom 0`, `ox 6`, `sx/sy` 42605/23412, `ex/ey` 44194/25158,
+`total_time` 14, `accuracy` 146), `1/2007 ammo[1]` alone on 692 (`sx/sy`
+43431/22566); this crate's rounds are `1/2007` on 714 and `1/2006` on 715. No
+unit part before it: the Scout is at (44568, 25459) on both sides on 686,
+**14.7 tiles from `1/2006` and 15.8 from `1/2007`** by Euclid; this crate
+fires when it is at about 11. **The Stockade's reach is longer than its
+`RANGE 0-11rng` here**: ours takes `find_target`'s radius `(max(x_size,
+y_size) + 2 × max_range) × 0x60` = 2,304 (12 tiles) and `is_in_range`'s
+11 × 0xc0 + 6. `BuildTypeData::get_building_range@00639990` adds nothing for a
+leader without the range techs (`FORT_UPGRADE_RANGE[0]`, `TOWER_FORT_RANGE[0]`
+are 0). No mechanism is named: the next item is the frame, 686.
+
+**The widening** is run577 whole (`[605, 1101)`): 446 rows and 14 pool rows,
+pinned as they stand; the first is a cascade from 686 (the shots, then
+the Scout's death and the Hoplites' path), `0/7` damage on 1001. The ground
+guard stands at 7 reads (`GROUND_INEXACT`).
+
+**What is not established.** The cooldown gate's and the member search's
+effect in the original (no walk reaches them before 686); a Fortress, Bunker,
+Redoubt or observation post shooting; the march's `+0x4b` arm.

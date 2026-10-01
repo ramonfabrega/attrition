@@ -392,7 +392,9 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
-    let word = THIRD_WORD_GREAT_SAHARA_TOUGHEST;
+    // The word left run571's window on item 1398 (11382 → 11882); the
+    // pin keeps the block it left until a capture holds the new one.
+    let word = TOUGHEST_WORD_BLOCK_11383 - 1;
     toughest_window_over(
         "run571",
         (TOUGHEST_WORD_11182, WIDENING_GREAT_SAHARA_TOUGHEST_11182.0),
@@ -602,7 +604,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5371, 62), (5376, 1)],
+            [(5371, 60), (5376, 1)],
             "the blocks keys first part on, to the first word's"
         );
         // **The first word's value diff, block 5377, closed by item 1241**:
@@ -639,7 +641,7 @@ mod tests {
         // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 167 → 144, the
         // 23 Citizens' `mylos` of block 5544, ours 4 against 2 a frame
         // ahead of the original's refresh.
-        pin_eq!(w.firsts.len(), 144, "every key parted on run471");
+        pin_eq!(w.firsts.len(), 140, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item
@@ -703,7 +705,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_5783)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5777, 73)],
+            [(5777, 71)],
             "the blocks keys first part on, to the old word's"
         );
         // **The old word's value diff, block 5783, closed by item 1251**:
@@ -721,7 +723,7 @@ mod tests {
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
-        pin_eq!(w.firsts.len(), 102, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 98, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -792,7 +794,7 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 72)],
+            [(7065, 71)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -803,13 +805,13 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 72), (7144, 1), (7152, 1), (7201, 1)],
+            [(7065, 71), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 124.
         pin_eq!(
             w.firsts.len(),
-            75,
+            72,
             "every key parted on run483 (132 before item 1281, 134 before item 1275, 745 before item 1260)"
         );
     }
@@ -880,13 +882,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 76), (7782, 2)],
+            [(7780, 75), (7782, 2)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 138.
         pin_eq!(
             w.firsts.len(),
-            85,
+            82,
             "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }
@@ -934,12 +936,12 @@ mod tests {
         // there. It still does.
         pin_eq!(
             row(1, -1, "leader:MAKE[4].t").as_deref(),
-            Some("8181: ours 61 theirs 560"),
+            None,
             "who=1's fifth make row"
         );
         pin_eq!(
             row(1, -1, "leader:MAKE[4].val").as_deref(),
-            Some("8181: ours 936170 theirs 307560"),
+            None,
             "its offer"
         );
         // **The word 8182 moved** (item 1275): the Barracks `1/2017` took
@@ -979,13 +981,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8177, 80), (8181, 3), (8201, 1), (8209, 15), (8210, 2),],
+            [(8177, 77), (8201, 1), (8209, 15), (8210, 2)],
             "the blocks keys first part on, to three past the word 8377's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            101,
+            95,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
@@ -1065,7 +1067,7 @@ mod tests {
         // 8858 to 8962, where who=1's `peasants` read 34 against 35.
         pin_eq!(
             row(1, -1, "leader:gather_stamp").as_deref(),
-            Some("8856: ours 8855 theirs 8799"),
+            None,
             "who=1's gather_stamp, the first before the word's block"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
@@ -1075,13 +1077,13 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             // Item 1377: 8781 81 → 80, who=1's `defense` standing no more.
-            [(8781, 80), (8782, 3), (8785, 8), (8801, 1), (8856, 1)],
+            [(8781, 79), (8782, 3), (8785, 8), (8801, 1)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 149.
         pin_eq!(
             w.firsts.len(),
-            94,
+            91,
             "every key parted on run500 (737 before item 1305, 1,808 before item 1293, \
              1,816 before item 1281)"
         );
@@ -1178,15 +1180,13 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9318, 77),
+                (9318, 76),
                 (9328, 4),
                 (9329, 4),
                 (9330, 1),
                 (9332, 1),
                 (9333, 1),
                 (9355, 1),
-                (9363, 1),
-                (9368, 1),
                 (9376, 1),
                 (9401, 1),
                 (9446, 1),
@@ -1205,7 +1205,7 @@ mod tests {
         // of the original's refresh.
         pin_eq!(
             w.firsts.len(),
-            98,
+            95,
             "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
     }
@@ -1270,17 +1270,17 @@ mod tests {
         // 604160; `caras` ours 3 against 4 on 11372.
         pin_eq!(
             row(1, -1, "leader:MAKE[2].t").as_deref(),
-            Some("11381: ours 61 theirs 267"),
+            None,
             "who=1's make list, its third"
         );
         pin_eq!(
             row(1, -1, "leader:MAKE[2].val").as_deref(),
-            Some("11381: ours 931034 theirs 604160"),
+            None,
             "who=1's make list, its third's value"
         );
         pin_eq!(
             row(1, -1, "leader:caras").as_deref(),
-            Some("11372: ours 3 theirs 4"),
+            None,
             "who=1's caravans"
         );
         pin_eq!(
@@ -1290,21 +1290,11 @@ mod tests {
                 .collect::<Vec<_>>(),
             // 120 stand on the window's first block, after 146 frames no
             // dump of this game prints (11031..11176).
-            [
-                (11177, 120),
-                (11184, 2),
-                (11201, 1),
-                (11345, 1),
-                (11372, 1),
-                (11376, 1),
-                (11381, 8),
-                (11383, 8),
-                (11384, 9)
-            ],
+            [(11177, 119), (11201, 1), (11376, 1)],
             "the blocks keys first part on, to one past the word's"
         );
         // Measured on the tree after 1388's change.
-        pin_eq!(w.firsts.len(), 419, "every key parted on run571");
+        pin_eq!(w.firsts.len(), 122, "every key parted on run571");
     }
 
     /// **The word 10779, widened whole** (item 1371):
@@ -1376,14 +1366,14 @@ mod tests {
             // dump of this game prints (10396..10773) — 119 before item
             // 1388, whose parallel research took `1/2005`'s two queue rows;
             // nothing parts on the word's block or the next.
-            [(10774, 117)],
+            [(10774, 113)],
             "the blocks keys first part on, to one past the word's"
         );
         // Measured on the tree merged with 1377's: 1,803 → 1,802 by item
         // 1377 (who=1's `defense` on 10929), → 144 by item 1379, → 130 by
         // item 1388 (the research queue's two rows, `epoch[2]`, `epochs`,
         // `queued`, `resource_cap` ×5 and `MAKE[3].t`).
-        pin_eq!(w.firsts.len(), 130, "every key parted on run562");
+        pin_eq!(w.firsts.len(), 126, "every key parted on run562");
     }
 
     /// **The word 10144, widened whole** (item 1354):
@@ -1442,7 +1432,7 @@ mod tests {
         // next sweep — `peasant_high` is 38 on both sides.
         pin_eq!(
             row(1, -1, "leader:peasants").as_deref(),
-            Some("10145: ours 38 theirs 39"),
+            None,
             "who=1's citizens, the newborn lag"
         );
         // **The move's value diff on the word 10391** (item 1371,
@@ -1464,7 +1454,7 @@ mod tests {
             // `MAKE[3].val` 276800 against 283200 (10382) — and nothing
             // from 10383 to 10395. Its `defense` 1 against 2 on 10178
             // left with item 1377 (`Build::init`'s `+1`).
-            [(10139, 82), (10145, 1), (10152, 1), (10201, 1), (10382, 1),],
+            [(10139, 81), (10201, 1), (10382, 1)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1371: 156 → 87, the caravan's 39 + 19 + 9 + 2 gone
@@ -1472,7 +1462,7 @@ mod tests {
         // who=1's `defense` on 10178.
         pin_eq!(
             w.firsts.len(),
-            86,
+            83,
             "every key parted on run547 (156 before item 1371)"
         );
     }
@@ -1576,10 +1566,8 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9759, 82),
-                (9763, 1),
+                (9759, 81),
                 (9765, 1),
-                (9768, 1),
                 (9773, 3),
                 (9774, 3),
                 (9775, 1),
@@ -1606,7 +1594,7 @@ mod tests {
         // Item 1346, on the tree merged with 1330's: 505 → 262.
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
         // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
-        pin_eq!(w.firsts.len(), 113, "every key parted on run529");
+        pin_eq!(w.firsts.len(), 110, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
@@ -1683,9 +1671,8 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9032, 78),
+                (9032, 76),
                 (9084, 2),
-                (9144, 1),
                 (9201, 1),
                 (9222, 4),
                 (9223, 1),
@@ -1695,7 +1682,7 @@ mod tests {
                 (9273, 1),
                 (9274, 1),
                 (9294, 2),
-                (9295, 3),
+                (9295, 3)
             ],
             "the blocks keys first part on"
         );
@@ -1706,7 +1693,7 @@ mod tests {
         // against −363239852 → agreeing (`docs/ANIM.md` §11).
         pin_eq!(
             w.firsts.len(),
-            98,
+            95,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

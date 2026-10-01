@@ -5612,3 +5612,27 @@ fn a_builder_leading_its_group_turns_the_group_s_mirror_as_it_faces_the_site() {
         "a turn of 90° or more toggles the leader's group's mirror"
     );
 }
+
+/// **The census's civilian counts move the frame a unit is born or
+/// closed** (item 1398, `docs/AI.md` §103): `Leader::track_unit_type`
+/// adds to `peasants` and `scholars` by the type's predicate, so a
+/// citizen born between two sweeps is already in the count `create_units`
+/// reads. run571's who=1 read 42 against 43 on 11345.
+///
+/// Made to fail with `track_civilian_type` dropped.
+#[test]
+fn a_birth_moves_the_census_s_civilian_counts_before_the_sweep() {
+    use crate::orders::Worker;
+    let (mut sim, [_, _, _, foot], _) = untargeted_sim();
+    sim.unit_types[foot].worker = Worker::Citizen;
+    sim.track_unit_type(0, foot, 1);
+    assert_eq!(sim.ai[0].census.peasants, 1);
+    sim.track_unit_type(0, foot, -1);
+    assert_eq!(sim.ai[0].census.peasants, 0);
+    sim.unit_types[foot].worker = Worker::Scholar;
+    sim.track_unit_type(0, foot, 1);
+    assert_eq!(
+        (sim.ai[0].census.scholars, sim.ai[0].census.peasants),
+        (1, 0)
+    );
+}

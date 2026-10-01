@@ -146,6 +146,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1398, 2026-10-01 — the census's live half
+
+(1417) **The census's unbuilt arms** (AI §103): `Unit::init`'s Lakota and
+American dirty arms and `insert_inside`'s; the military-flag count beside
+the civilian counts; `Unit::close`'s `caras −1` split from
+`track_unit_type`. No walk reaches one yet; names no score.
+
+## Parked by item 1404, 2026-10-01 — chapter fifty's staging
+
+(1413) **`Group::target_opportunity`'s 15-frame cooldown and its member
+`find_melee_target` arm** (1403's mutation): chapter fifty stages both
+(`@amove` of a Scout and a Hoplite squad through two Stockades). With the
+cooldown dropped, nothing fails, because the hand-off retargets before the
+second hit. The member arm is unbuilt, and the original's behaviour falls
+past the word 686. These come back once the word closes. 1335 stays parked
+as well: walked and not reached (GOLDEN §59).
+
 ## Parked by item 1401, 2026-10-01 — the decoy's cast
 
 (1408) **A held decoy's cast after 16160**: the original spends no
@@ -2872,7 +2889,9 @@ a predicate on another field. One reach.
 line): run143's floor, run419-421, run480/490/506/523 and run572's keys
 all moved with one `transport.rs` edit, and the first slice-replace
 mangled `second.rs`. A re-pin helper that prints each failing pin's new
-value would save the edits. One reach.
+value would save the edits. **The second reach** (1398's Loop line): a
+census-wide fix re-pinned about 85 pins by hand; a `repin` helper reading
+`Pins::hold`'s got/want would do it.
 
 (1412) **Three Sonnet landings sent no done line, and the commander slept
 3h40** (the trial's own, found 2026-10-01 after the user's `/clear`):
@@ -2884,12 +2903,19 @@ calls); 1401, which did load it, reached the commander. The frame's
 the remedy is the frame naming `ToolSearch("select:SendMessage")` and
 the commander spawning with an idle notice. One reach.
 
+(1414) **A new chapter's first walk panics with no word printed** (1404's
+Loop line): `GROUND_INEXACT`'s guard panics at drop on a chapter's first
+`stage_walk`, before the word is printed, so the pin has to be guessed (it was seven)
+before the first run. One reach.
+
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774
 held `1/2005`'s two `queue[].job_counter` rows, which `standing.py`
 lists and nobody reads by unit; a writer grep of `Muster::library_cities`
 (none outside tests) found the cause in a minute. Kin to 1382: a field
-nothing writes. One reach.
+nothing writes. **The second reach** (1398's Loop line): the standing 120
+rows of a window's first block held the cause again, `gather_stamp` and
+`known_rares`.
 
 (1402) **A specification's pseudo-code label read as a place** (1383's
 Loop line): `docs/ORDERS.md` §4.4's "STEP_IF_MOVING" read as where the

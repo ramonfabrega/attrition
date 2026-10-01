@@ -1805,7 +1805,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **11382 since item 1388** (`docs/AI.md` §102): `Muster::library_cities`
+/// **11882 since item 1398** (`docs/AI.md` §103): the census's live half.
+/// `Leader::track_unit_type@006e0dd0` and `Unit::set_type@00612fa0` move
+/// `peasants`, `scholars` and `caras` the frame a unit is born or closed,
+/// and this crate recounted them at the sweep alone — who=1's `peasants`
+/// 42 against 43 on 11345 and `caras` 3 against 4 on 11372. And the
+/// economy's dirty flag (`leader_flags & 0x2000000`) is raised by a
+/// Scholar's `go_inside` and an exit from a University or an Oil Platform,
+/// never by `Build::queue_up` or an ordinary trained unit's birth: ours
+/// reassembled the holdings on 11183, the original not until 11391, and
+/// the rare count `calc_gather` sums (`known_rares` 5 against 0) put a
+/// Merchant offer (`t` 61, 931,034) above the Bombard on block 11381.
+/// **The move's value diff** (run571): `peasants` 42 → 43 on 11345,
+/// `caras` 3 → 4 on 11372, `gather_stamp` and `known_rares` on 11184 and
+/// `MAKE[2]`/`MAKE[3]` on 11381 → agreeing; 419 keys → 122. **The new
+/// word: ours 7 draws against the original's 11 on frame 11882, parting
+/// at index 2** (`Guy::set_anim+0x97a < Guy::inc_time+0x271` against
+/// `Guy::init_real+0x52`), past run571's window.
+///
+/// **11382 before it, since item 1388** (`docs/AI.md` §102): `Muster::library_cities`
 /// was never written, so the first library's queue advanced one slot where
 /// `LeaderData::get_building_cities@006e06f0` lets it advance one per city
 /// holding a library — who=1's Trade (`560`) and Conscription (`575`)
@@ -2074,7 +2092,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_382;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_882;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5818,6 +5836,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 1500;
 /// `chapter_forty_nine_s_word_frame_is_widened_whole`'s window: run576 whole.
 pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
 
+/// **Chapter fifty** (item 1404, `docs/GOLDEN.md` §59, run577): two
+/// Stockades at the first age and a Scout led through their range by a
+/// group attack-move, a Hoplite squad behind it. Open at the word below.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 686;
+
+/// `chapter_fifty_s_word_frame_is_widened_whole`'s window: run577 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY: (i64, i64) = (605, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6339,6 +6365,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
+    ("chapter_fifty_holds_to_the_golden_word", 7),
+    ("chapter_fifty_s_word_frame_is_widened_whole", 7),
     // East Indies' long walk past the word 16179 (item 1401): 25 reads of
     // a non-exact corner in the diverged tail to the endpoint, which the
     // decoy's refused cast had kept out of the walk until 16160.
@@ -7949,6 +7978,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1358,
         Some(WIDENING_CHAPTER_FORTY_EIGHT),
     ),
+    // Item 1404: run577, chapter fifty, two Stockades at the first age and a
+    // group attack-move through their range. The widening is run577 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY",
+        GOLDEN_WORD_CHAPTER_FIFTY,
+        Some("chapter_fifty_s_word_frame_is_widened_whole"),
+        1404,
+        Some(WIDENING_CHAPTER_FIFTY),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -8173,9 +8211,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run571_s_word_frame_is_widened_whole"),
-        1388,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_11182),
+        // Item 1398 moved the word to 11882, past run571's window: no
+        // widening holds it, and item 1416, which books it, owes the
+        // capture. run571's test keeps the move's value diff on
+        // 11345..11381.
+        None,
+        1416,
+        None,
     ),
 ];
 

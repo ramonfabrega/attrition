@@ -13048,6 +13048,37 @@ disk had 209 GB free after. Run 577 was reserved and not used.
 `chapter_forty_nine_s_word_frame_is_widened_whole` (605..1498); the coverage
 driver's windows 912 and 934.
 
+## run577 — chapter fifty, two Stockades at the first age and a group attack-move through their range (2026-10-01, item 1404)
+
+`docs/GOLDEN.md` §59, `tools/gamelog/golden/chapter50.cmd`: a cast of its
+own on the golden start.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch50 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter50.cmd
+```
+
+**What the disk could not answer.** No capture on disk has a Stockade (or
+any of `get_shot`'s named types) shooting (parked 1394), and none has a
+combat-role captain beside a non-combat member under hit (item 1403's
+mutation).
+
+**Taken** on the click-free lane, `cover=0`, `ron_lane_state` `free`,
+`success: true`, `settings_restored: true`, 1,101 frames, seed 12345, map 14
+verified, 253,440 `GROUPDATA` blocks, 671 s launch to exit, exit 0.
+`issuesmatch.py --none-refused`: the one `@` line issued, refusal 0. The dump
+(217,106,509 bytes, sha256 `5d0d042a…aa7fc470`) and the trace (11,207,328,
+`5281f0fc…be9c36b0`) stay in `~/ron-golden/ch50/map-14`. The disk had 209 GB
+free after. Run 579 was reserved and not used.
+
+**What it holds**: `chapter_fifty_holds_to_the_golden_word` (686) and
+`chapter_fifty_s_word_frame_is_widened_whole` (605..1099); the coverage
+driver's window 686.
+
 ## run572 — run346's game at run544's detail over blocks 16155..16411: the second pair's East Indies word 16160 widened (2026-10-01, item 1383)
 
 **What it is.** run544's shape on the click-free lane: run346's lobby,

@@ -46,7 +46,7 @@ const CELL: i32 = 0x300;
 /// `TypeIndex` values the sweep hardcodes and the simulation cannot name any
 /// other way. Citizens (`0x32`/`0x33`) and scholars (`0x34`/`0x35`) are
 /// [`Worker`] instead, which is how `rondata` loads them.
-mod ty {
+pub(crate) mod ty {
     use crate::tech::TypeId;
     /// `MERCHANT`, `ECHINESEMERCHANT`, `MERCHANT2` — the three base types
     /// the merchant test compares against exactly.

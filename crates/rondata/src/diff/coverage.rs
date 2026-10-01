@@ -632,6 +632,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch47 = golden_dump("ch47");
     let ch48 = golden_dump("ch48");
     let ch49 = golden_dump("ch49");
+    let ch50 = golden_dump("ch50");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2247,6 +2248,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             assert_eq!(n, 5, "chapter forty-nine carries the window's five blocks");
             frames += n;
         }
+    }
+    // **Chapter fifty, on run577** (item 1404): 686, the Stockade's first
+    // shot, the original's alone.
+    if let Some(p) = &ch50 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FIFTY;
+        let n = drive_capture(p, 684, 688, &mut paths);
+        assert_eq!(n, 5, "chapter fifty carries the window's five blocks");
+        frames += n;
     }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
