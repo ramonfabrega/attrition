@@ -4970,6 +4970,51 @@ fn a_general_s_decoys_copy_the_armed_land_captains_near_it() {
     assert_eq!(sim.units[d].mana_burn, age + 1, "a decoy ages a frame");
 }
 
+/// **A decoy closes when its age reaches `(general_upgrade + 2) ×
+/// DECOY_TIME / 2`, 2,500 frames, silently** (item 1351, `docs/GOLDEN.md`
+/// §48; run535's `1/104`..`1/120` at `mana_burn` 2499 on block 14136 and
+/// gone on 14137, `1/93` at 2498 a block later). The copy at 2499 closes on
+/// its next frame, the one at 2498 a frame after; the close leaves no
+/// death object, and the General and the squad it copied stand.
+///
+/// Made to fail with the close dropped, and with `<=` taken as `<`.
+#[test]
+fn a_decoy_closes_at_its_age_and_leaves_no_death() {
+    use crate::orders::spell;
+    let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let near = sim.init_unit(0, foot, tile_pos(33, 30));
+    let before = sim.units.len();
+    assert_eq!(press(&mut sim, g, spell::CREATE_DECOY), 1);
+    for _ in 0..100 {
+        sim.tick();
+    }
+    let copies: Vec<usize> = (before..sim.units.len())
+        .filter(|&d| sim.units[d].decoy)
+        .collect();
+    assert!(!copies.is_empty(), "the near squad is copied");
+    let (first, late) = (copies[0], *copies.last().unwrap());
+    for &d in &copies {
+        sim.units[d].mana_burn = if d == late && late != first {
+            2498
+        } else {
+            2499
+        };
+    }
+    let deaths = sim.deaths.len();
+    sim.tick();
+    assert!(!sim.units[first].alive(), "2499 + 1 reaches the life");
+    if late != first {
+        assert!(sim.units[late].alive(), "2498 + 1 does not");
+        assert_eq!(sim.units[late].mana_burn, 2499);
+        sim.tick();
+        assert!(!sim.units[late].alive(), "and a frame later it does");
+    }
+    assert_eq!(sim.deaths.len(), deaths, "a close of 0 leaves no death");
+    assert!(copies.iter().all(|&d| sim.units[d].orders.is_empty()));
+    assert!(sim.units[g].alive() && sim.units[near].alive());
+}
+
 /// **A computer's General standing in its army orders Create Decoys on
 /// the army's spellcaster turn, and the copies join that army** (item
 /// 1302; run346's `1/98`, `spell_time` 1 and `mana_burn` 1,000 on block

@@ -749,11 +749,15 @@ impl Sim {
         }
         // `Unit::process@00610bc0`'s other arm, `unit_masks & 1`: a decoy's
         // `mana_burn` is its age, one a frame from 0 (run422: 1 on its first
-        // block). SEAM: the close at `(general_upgrade + 2) × DECOY_TIME /
-        // 2` (2,500 frames here, past every window) and the attrition it
+        // block), and it closes once the age reaches `(general_upgrade + 2)
+        // × DECOY_TIME / 2` ([`Self::close_decoy`]). SEAM: the attrition it
         // takes every seventh frame on another's ground.
         if self.units[u].decoy {
             self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
+            let life = (GENERAL_UPGRADE + 2) * self.tuning.decoy_time / 2;
+            if life <= i32::from(self.units[u].mana_burn) {
+                self.close_decoy(u);
+            }
             return;
         }
         let unit = &self.units[u];
@@ -763,6 +767,30 @@ impl Sim {
         let step = i16::try_from(((frame & 1) + 2) / 2).unwrap_or(1);
         let unit = &mut self.units[u];
         unit.mana_burn -= step.min(unit.mana_burn);
+    }
+
+    /// **A decoy's close** (item 1351, `docs/GOLDEN.md` §48): the listing
+    /// at `610c3e`..`610c8a` takes `+0x96` up one, and at `(general_upgrade
+    /// + 2) × decoy_time / 2 <= mana_burn` calls vslot `+0x150` — read off
+    /// the PE at `Unit::vftable` `0xb417d0`, `Unit::close@0060ee50` — with
+    /// `(0, −1, 0.0)`, and returns from `process` before the rest of the
+    /// unit's frame. `close` with a zero first argument spends no death
+    /// draw and writes no `DEATH_OBJS`, and its population arm is gated on
+    /// `unit_masks & 1` clear, so a copy hands back nothing
+    /// (`cast_create_decoy` already did). What is left is the squad relink,
+    /// the orders,
+    /// the supply and collision slots, and `Object::close`'s thirty-frame
+    /// hold — not `Object::die`'s, so no shot in flight lengthens it.
+    ///
+    /// run535: who=1's `1/104`..`1/120` stand at `mana_burn` 2499 on block
+    /// 14136 and are gone on 14137; `1/93`, at 2498, a block later.
+    pub(crate) fn close_decoy(&mut self, u: usize) {
+        self.units[u].health = self.units[u].health.min(0);
+        self.relink_squad(u);
+        self.close_dead_orders(u);
+        self.units[u].hold_frames = Self::CLOSE_HOLD;
+        self.close_supply(u);
+        self.forget(Obj::Unit(u));
     }
 
     /// `SpellType::cast_march@00671500` — Forced March on a hero: an

@@ -8527,7 +8527,14 @@ It is not staged here.
 - **A decoy's frame** (`Unit::process@00610bc0`, its `unit_masks & 1` arm):
   `mana_burn` is its age, +1 a frame, and it closes at `(general_upgrade +
   2) × DECOY_TIME / 2`, 2,500 frames. It sees one tile (`Unit::update_los`'s
-  last line).
+  last line). **The close** (item 1351, the listing `610c3e`..`610c8a`):
+  the age is taken up first and compared after, `life <= mana_burn`; the
+  call is vslot `+0x150`, read off the PE at `Unit::vftable` `0xb417d0` as
+  `Unit::close@0060ee50`, with `(0, −1, 0.0)`, and `process` returns. A
+  zero first argument skips `close`'s death arm (no draw, no `DEATH_OBJS`),
+  and its population arm is gated on the decoy bit clear. Diff-backed by
+  run535: who=1's `1/104`..`1/120` at 2499 on block 14136 are gone on
+  14137, and `1/93`, at 2498, on 14138 (`Sim::close_decoy`).
 - **A Citizen and the Militia line**: `Object::update_hits@00647010` gives a
   Citizen the hits of the newest held MILITIA/MINUTEMAN/PARTISAN, and
   `Unit::update_los` adds 2 a held bit.
@@ -8649,9 +8656,10 @@ priced step at 15986 agree now (`crates/rondata/src/diff/world.rs`).
 the Militia rest on the listing, the emulator and the sim tests: no capture
 wounds a converting unit or presses To Arms on enemy land.~~ Diff-backed by
 run430 (§49, item 1167): D wounded both ways, To Arms refused before the
-Militia and on who=1's land. The decoy's close
-at 2,500 frames and its attrition every seventh frame on another's ground
-are read, not built. The Citizen's LOS takes the nomad term as before;
+Militia and on who=1's land. ~~The decoy's close
+at 2,500 frames~~ (built and diff-backed by item 1351, above) and its
+attrition every seventh frame on another's ground ~~are~~ is read, not
+built. The Citizen's LOS takes the nomad term as before;
 PARTISAN's share of it and the tribe substitutions are unreached.
 `get_general_upgrade` is 0 throughout; Porus's and Kutosov's multiples and
 a computer General's army are SEAMs. ~~The alarm's all-clear and a Militia's
