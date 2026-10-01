@@ -1468,6 +1468,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run529 carries the third map's word 9764 at Toughest");
         frames += n;
     }
+    // **And its word 9982, on the same capture** (item 1338): the frame
+    // writes block 9983, and the window is it with two either side.
+    if let Some(p) = &r529 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_9983;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run529 carries the third map's word 9982 at Toughest");
+        frames += n;
+    }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
     // five blocks around the make list it was taken for, so the leader
     // record's paths are on this map's window too —

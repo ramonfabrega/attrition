@@ -132,6 +132,10 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_9764: (i64, i64) = (9_759, 10_01
 /// left, past run511's window.
 pub(crate) const TOUGHEST_WORD_BLOCK_9765: i64 = 9_765;
 
+/// **The word's block, 9983**: frame 9982 writes it — the word item 1338
+/// left, inside run529's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_9983: i64 = 9_983;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -1148,41 +1152,78 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word 9764's block 9765**: the original spends four
-        // `Unit::do_idle+0x7d` rolls on the Catapult `1/84` (`TypeIndex`
-        // 265) and ours three. Its figures already stand apart on the
-        // window's first block — the dark gap 9575..9758 lies between
-        // run511 and run529 — the original's crew on `cur_anim` 22 with no
-        // track offset, ours walking (8, 9) on offsets (−120, 0) and
-        // (72, 216).
+        // **The move 9764 → 9982** (item 1338, `docs/ANIM.md` §11, §4):
+        // the Catapult `1/84` became a Trebuchet (`TypeIndex` 266) on 9710,
+        // and its crew is fresh and trackless in the original — ours kept
+        // the Catapult's tracks (−120, 0) and (72, 216) and walked them
+        // (`g.cur_anim[1]` 8 against 22 on 9759); and its guy 0, still
+        // turning on slot 22, rolled an idle every frame where the
+        // original's rolls on 9755 and 9764 only (`g.cur_time[0]` 1
+        // against 4 on 9759). The word's own row, `g.cur_time[2]` 10
+        // against 1 on 9765, agrees with both.
+        for key in [
+            "g.track_dx[1]",
+            "g.cur_anim[1]",
+            "g.cur_time[0]",
+            "g.cur_time[2]",
+        ] {
+            pin_eq!(row(1, 84, key), None, "the Trebuchet's {key} agrees");
+        }
+        // **The word 9982's block 9983**: the original spends two
+        // `Leader::produce_building+0x1805` under `make_this` ahead of
+        // `make_stuff+0x221`; who=1's make list parts from 9979, and its
+        // timber escrow on the word's block.
         pin_eq!(
-            row(1, 84, "g.cur_anim[1]").as_deref(),
-            Some("9759: ours 8 theirs 22"),
-            "the Catapult's crew, apart on the window's first block"
+            row(1, -1, "leader:escrow[1:timber]").as_deref(),
+            Some("9983: ours 0 theirs 57"),
+            "who=1's timber, escrowed in the original on the word's block"
         );
         pin_eq!(
-            row(1, 84, "g.cur_time[2]").as_deref(),
-            Some("9765: ours 10 theirs 1"),
-            "the crew figure the word's roll resets"
+            row(1, -1, "leader:MAKE[5].t").as_deref(),
+            Some("9983: ours -1 theirs 50"),
+            "who=1's Citizen entry, the original's alone"
         );
-        // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9765 + 3)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9983 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9759, 111),
-                (9760, 1),
-                (9763, 1),
-                (9765, 2),
-                (9766, 2),
-                (9768, 1)
+                (9759, 134),
+                (9763, 2),
+                (9765, 1),
+                (9768, 1),
+                (9773, 3),
+                (9774, 3),
+                (9775, 1),
+                (9776, 3),
+                (9781, 1),
+                (9782, 4),
+                (9784, 29),
+                (9799, 1),
+                (9801, 1),
+                (9824, 1),
+                (9839, 5),
+                (9840, 19),
+                (9841, 2),
+                (9845, 1),
+                (9855, 1),
+                (9856, 1),
+                (9943, 1),
+                (9956, 6),
+                (9977, 2),
+                (9979, 9),
+                (9981, 9),
+                (9982, 12),
+                (9983, 41),
+                (9984, 5),
+                (9985, 8),
+                (9986, 59)
             ],
-            "the blocks keys first part on, to three past the word 9764's"
+            "the blocks keys first part on, to three past the word 9982's"
         );
-        // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index: was 1077.
-        pin_eq!(w.firsts.len(), 1023, "every key parted on run529");
+        // Item 1338, on the tree merged with 1326's: 1,075 → 557.
+        pin_eq!(w.firsts.len(), 557, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
@@ -1272,14 +1313,18 @@ mod tests {
                 (9274, 1),
                 (9294, 2),
                 (9295, 3),
-                (9307, 1),
+                (9310, 1)
             ],
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 158.
+        // Item 1338: 151 → 150. The Scout `1/0` is upgraded to an Explorer
+        // (`TypeIndex` 71) on 9306, and its fresh crew figure is seated at
+        // guy 0's angle: `1/0`'s `g.angle[1]` on 9307, ours −402259968
+        // against −363239852 → agreeing (`docs/ANIM.md` §11).
         pin_eq!(
             w.firsts.len(),
-            99,
+            150,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

@@ -2715,7 +2715,10 @@ functions too.
 answer sat in the pusher's function; the booking named only the pushed
 animal's chain. When the first parted field is a `collide_o` another
 unit wrote, run `seams.py` on the writer's function by name — the same
-shape as 1337.
+shape as 1337. **Again** (1338), the third reach in one
+tranche: the seam sat in the conversion's function, 254 frames before
+the word; a checklist row — `seams.py` on the writers of the first
+parted field, by name, every time, before any reading.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the

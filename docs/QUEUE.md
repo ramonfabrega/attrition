@@ -18,8 +18,8 @@ before: East Indies 8907 → 11637, Great Sahara at Toughest 5376 → 8856,
 Himalayas 1851/1850 held out and in lockstep, chapters forty-three to
 forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 
-- **Lanes live: 1330, 1338, 1341.** Landed: 1305, 1318, 1332 (Toughest
-  → 9764), 1310, 1323 (ch47 → 838), 1302, 1326 (East Indies → 13385).
+- **Lanes live: 1330, 1341, 1346.** Landed: 1305, 1318, 1332, 1338
+  (Toughest → 9982), 1310, 1323 (ch47 → 838), 1302, 1326 (EI → 13385).
 - **The pass built**: the lane held through the click-free runner's
   restore (1234), `seams.py` reading comments, `SEAMS:` blocks and lists
   (1253, 1240), `standing.py` reading a chapter's firsts (1250), the
@@ -36,12 +36,12 @@ forty-six closed; 13.7 USD a landing, 142 minutes of which 108 waiting.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w13385 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9764 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9982 of 15,432
 Golden: ch47 w838 of 1,401 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1330, 1338 and 1341;
-merge each landing and refill its lane; the count is at seven.**
+**Opener: the commander, on Opus — lanes live on 1330, 1341 and 1346;
+merge each landing and refill its lane; the count is at eight.**
 
 ## The queue
 
@@ -58,11 +58,11 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     in ours and once in the original, `1/2028`'s `queue[0].cost` 66
     against 76. No mechanism is named.
 
-1338. **Great Sahara at Toughest's word: frame 9764, ours 10 draws
-    against 11** (1332), at index 4: the original spends a fourth
-    `Guy::set_anim+0x97a < Unit::set_anim+0xb6 < Unit::do_idle+0x7d` on
-    the Catapult `1/84` (seed `c84aaf40`); widened on run529 (block
-    9765). No mechanism is named.
+1346. **Great Sahara at Toughest's word: frame 9982, ours 13 draws
+    against 16** (1338), at index 0: the original first spends two
+    `Leader::produce_building+0x1805 < Leader::make_this+0x328 <
+    Leader::make_stuff+0xf6`; inside run529 (block 9983). No mechanism
+    is named.
 
 1330. **Chapter forty-seven's word: frame 838, ours 6 draws against 7**
     (1323), at index 1: the original spends `Guy::set_anim+0x97a <
