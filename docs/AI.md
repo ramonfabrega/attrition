@@ -13357,7 +13357,7 @@ puts a Citizen born on frame 11345 and a caravan on 11372.
    alone, so a unit born between sweeps was missing from `create_units`'
    `civilians` (parked 1122's newborn lag). `Sim::track_unit_type` now
    calls `track_civilian_type`; the sweep still zeroes and recounts.
-   **Not built**: the `0x988` count, and the decompile's reading of
+   **Not built**: the military-flag count beside them, and the decompile's reading of
    `set_type`'s caravan predicate, taken here as the census's own
    (`CARAVAN` line, not a Merchant).
 2. **The economy's dirty flag (`leader_flags & 0x2000000`) is not raised by
