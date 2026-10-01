@@ -168,6 +168,13 @@ pub const SPICE: usize = 12;
 /// [`Ledger::rare`] already ([`crate::Sim::has_rare`]).
 pub const TOBACCO: usize = 19;
 
+/// `TypeIndex::SILVER` — the rare `TypeData::get_cost@00664090`'s **age**
+/// arm reads: `testb $0x10, 0x6da5(%ecx,%eax)`, else the same at `0x6dcd`
+/// (`00666b1b`), byte 1 bit 4 of `rare` or of `rare_conquest`, which is bit
+/// `18 - `[`BASE_RARE`]` = 12`. Holding it takes `SILVER_AGE_COST` off an
+/// age's price (`docs/COSTS.md`, "The discounts").
+pub const SILVER: usize = 18;
+
 /// `TypeIndex::AMBER` — the one rare the **market** reads.
 ///
 /// `LeaderData::calc_market_prices@006dc2a0` tests `rare.ptr[1] & 8`, byte

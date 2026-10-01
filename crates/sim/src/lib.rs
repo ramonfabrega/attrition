@@ -2369,12 +2369,26 @@ impl Sim {
                     0
                 },
                 line_discounts: self.line_discounts(who, t),
+                silver: self.silver_age_discount(who, t),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `TypeData::get_cost`'s **Silver arm** (`00666af0`..`00666b51`): an
+    /// age (`0x220..0x226`, the `is_age_type` slot) priced for a leader whose
+    /// `rare` or `rare_conquest` carries bit 12, `SILVER`, takes
+    /// `SILVER_AGE_COST` off — `docs/COSTS.md`, "The discounts". Anything
+    /// that is not an age takes nothing.
+    fn silver_age_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        if matches!(self.tech_tree.kind(t), tech::Kind::Age(_)) && self.has_rare(who, economy::SILVER) {
+            self.tuning.silver_age_cost
+        } else {
+            0
+        }
     }
 
     /// `TypeData::get_cost`'s **library-line tail** (`00666b7d`, the jump

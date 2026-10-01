@@ -239,6 +239,12 @@ pub struct Modifiers {
     /// nation, and a second nation (`docs/AI.md` §99.8). Zero is the
     /// identity.
     pub line_discounts: [i32; 3],
+    /// `SILVER_AGE_COST` when the price is an age's and the player holds
+    /// Silver, else zero: `get_cost`'s `00666b13`..`00666b51`, its own
+    /// `(100 − x) × cost / 100` after [`Modifiers::late_discount`] and
+    /// before [`Modifiers::line_discounts`] — which an age never takes, so
+    /// the two never meet.
+    pub silver: i32,
     /// How many Science levels the player is **ahead of the technology's
     /// own** — the only term of `LeaderData::calc_science_discount@006da630`,
     /// and signed: a player whose Science line is behind the tech's age pays a
@@ -437,6 +443,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
 
     cost = cost * (100 - m.late_discount) / 100;
+    if m.silver != 0 {
+        cost = (100 - m.silver) * cost / 100;
+    }
     for d in m.line_discounts {
         cost = (100 - d) * cost / 100;
     }
