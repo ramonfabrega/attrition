@@ -3298,13 +3298,13 @@ pub(crate) mod tests {
             "the packed bit is the original's on every unit-frame: {:?}",
             packed_bad.first()
         );
-        // …and `mylos` has exactly the one disagreement run39 pins on its
-        // own 1,850 frames — the AI scout's Science level, which this
-        // crate's pure function reports on the frame the level lands and
-        // the original's cached field reports one level later (item 35,
-        // `docs/VISION.md` §7). Over 94,338 unit-frames here it is still
-        // the only one, and the AI's two Fishermen — the only units on
-        // this capture that are ever packed — are not among them.
+        // …and `mylos` has no disagreement up to the word. It had exactly
+        // one, the AI scout's Science level on 202, which this crate's pure
+        // function reported on the frame the level landed and the
+        // original's cached field one level later (item 35); **item 1354**
+        // made `mylos` the cache the original keeps (`docs/VISION.md` §2).
+        // Over 94,338 unit-frames the AI's two Fishermen — the only units
+        // on this capture that are ever packed — agree with it.
         let los_early: Vec<LosDivergence> = los_bad
             .iter()
             .copied()
@@ -3312,14 +3312,8 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             los_early,
-            vec![LosDivergence {
-                frame: 202,
-                who: 1,
-                o: 0,
-                ours: 6,
-                theirs: 4,
-            }],
-            "mylos is the original's up to the word but for the cache"
+            Vec::<LosDivergence>::new(),
+            "mylos is the original's up to the word"
         );
         assert!(
             packed_seen >= RUN58_PACKED_FRAMES && los_seen >= RUN58_PACKED_FRAMES,
