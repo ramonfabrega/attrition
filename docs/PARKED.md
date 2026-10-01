@@ -189,7 +189,9 @@ on the ally's land.
 ## Parked by item 1370, 2026-09-30 — the Bombard's pack
 
 (1378) **The sixteen-frame review skipped under the pack arm** (1370's
-M3): held by no walk and no unit test.
+M3): held by no walk and no unit test. **Closed by 1393** as an
+equivalent mutant (GOLDEN §58): after `Packing` the head is a cast, after
+`Held` the order is its own action, and the review does nothing either way.
 
 ## Parked by item 1365, 2026-09-30 — the training step
 
@@ -241,7 +243,9 @@ by `ai_research.rs`'s research timers.
 
 (1352) **`get_cost`'s bump loop's `JUMP` arm** (1341's M2): held by no
 walk; a capture with an upgrade queued two links ahead of a unit being
-trained would hold it.
+trained would hold it. **Closed by 1393**: chapter forty-nine reaches
+it through `jumpable` (Catapult `cost[0]` 72, never 63) and its widening
+holds it (GOLDEN §58).
 
 ## Parked by item 1330, 2026-09-30 — the birth's form
 
@@ -2835,7 +2839,9 @@ checklist spells in prose (784, 907); the next pass's build.
 Loop line): `--field total_time` printed "writers none" for a field this
 crate writes in four places, all by struct-literal initialisation; the
 search is by exact assignment. 1382's kin: both want a scan that knows
-a struct literal from a declaration. One reach.
+a struct literal from a declaration. **The second reach** (1393's Loop
+line): `--field FleeTo` printed "writers none" for a `MoveKind` variant
+used in three places — a variant is not a field.
 
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774

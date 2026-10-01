@@ -13,14 +13,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
-`docs/audit/2026-10-01-fable-pass-22.md`); **three landings since**,
-all Sonnet: chapter forty-eight closed at 1750 (1380); Toughest 11182
-→ 11382 (1388); East Indies 16009 → 16160 (1383). The tranche before the pass: East Indies 11637 →
+`docs/audit/2026-10-01-fable-pass-22.md`); **four landings since**,
+all Sonnet: chapter forty-eight closed at 1750 (1380) and forty-nine
+opened at 934 (1393); Toughest 11182 → 11382 (1388); East Indies
+16009 → 16160 (1383). The tranche before the pass: East Indies 11637 →
 16009 in seven, Toughest 8856 → 11182 in nine, one chapter closed; a
 landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 
 - **Three lanes, Sonnet 5.5** (the trial, verified from 1383's
-  transcript): 1393, 1398 and 1401 live.
+  transcript): 1398, 1401 and 1403 live.
 - **The pass built** `seams.py --field <first parted field>` (frame row
   7; six answers sat on the field's writer or reader), the section
   guard's honest strike pairing, and the runs ledger's fence guard.
@@ -35,11 +36,11 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16160 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11382 of 15,432
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed
+Golden: ch49 w934 of 1,499 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — three lanes live (1393, 1398,
-1401), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
+**Opener: the commander, on Opus — three lanes live (1398, 1401,
+1403), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
 DECISIONS 58); merge and refill as each lands; stop at twenty.**
 
 ## The queue
@@ -64,13 +65,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     original's Bombard (267) at 604,160; earlier `caras` 3 against 4
     (11372). Widened on run571 (block 11383). No mechanism is named.
 
-1393. **Chapter forty-nine: three arms the unit tests hold and no
-    walk** (DECISIONS 56 §3): a Tower's arrow past its owner's second
-    age, where `get_shot` gives the type's `PROJ_SPEED` (1380's K3); the
-    sixteen-frame review skipped under the Bombard's pack arm (1378); and
-    `get_cost`'s bump loop's `JUMP` arm, an upgrade queued two links
-    ahead of a unit in training (1352). Whether one staging reaches each
-    is the item's to establish first.
+1403. **Chapter forty-nine's word: frame 934, ours 3 draws against 6**
+    (1393), at index 0 (seed `0x72a004cf`): the original's Tower fires a
+    fifth time at the Scout `0/7`; walked back to block 912, where both
+    sides' fourth wound lands and `0/7`'s orders part — ours `FLEE_TO`
+    (39672, 21720), the original's none, standing at (41000, 22500).
+    run576. No mechanism is named.
 
 ## How to maintain this file
 
