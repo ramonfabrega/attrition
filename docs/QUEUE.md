@@ -39,9 +39,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11382 of 15,432
 Golden: ch50 w686 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — three lanes live (1398, 1410,
-1415), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
-DECISIONS 58); merge and refill as each lands; stop at twenty.**
+**Opener: the commander, on Opus — draining (the user, 2026-10-01): merge
+and book 1398, 1410 and 1415 (Sonnet trial, DECISIONS 58), spawn nothing;
+the steering pass follows the last landing.**
 
 ## The queue
 
