@@ -101,7 +101,7 @@ two, so a term is worth a *fog* cell only when it reaches 2.
 
 ~~Terms 6–11 are read and not implemented~~ — **term 6 is built** (item
 1354): `LeaderData::get_troops_los_upgrade@006e1110` counts every one of
-`TROOPS_LOS_1..3` held (bonus rows 61–63, `0x2e9..0x2eb`: Herbal Lore,
+`TROOPS_LOS_1..3` held (`TECHBONUSES` rows 61–63: Herbal Lore,
 Medicine and Pharmaceuticals), and a type whose trainer — `UnitTypeData
 +0x40`, this crate's `where_` — is exactly the Barracks, the Stable or the
 Auto Plant takes `TROOPS_UPGRADE_LOS` (2) per level, after 5's clamp and
