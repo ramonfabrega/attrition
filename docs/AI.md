@@ -6981,9 +6981,14 @@ run125's last, so its widening is owed a capture.
   `WINE_UNIT_UPGRADES` before the premium~~ (built, §94), `SPECIAL_UPGRADE` (every one of
   the 364 records has an empty `<UPGRADE/>`), and the American and Dutch
   discounts after the military one. None is loaded.
-- **The available arm's bump loop** (`get_cost:159`–`205`): the old unit
+- ~~**The available arm's bump loop** (`get_cost:159`–`205`): the old unit
   charged the new one's base while the upgrade is queued. It is unbuilt, and
-  now reachable, since this crate queues upgrades.
+  now reachable, since this crate queues upgrades.~~ **Built by item 1341**
+  (`Sim::upgrade_bump`; `docs/COSTS.md`, "Researching an upgrade is not
+  building a unit"). It was the second pair's East Indies word 13385: the
+  Bombard's research at `1/2024` made `1/2028`'s Trebuchet 76 rather than
+  66, so who=1 queued one Trebuchet, not two. Diff-backed by
+  `diff::second::tests::run523_s_word_frame_is_widened_whole`.
 - **The age-span scaling** of both discounts, and `get_preq(1, −1)`'s scaled
   arm, are read and not exercised. Every capture is Ancient to Information.
   The span arithmetic is built. The scaled `get_preq` is not.

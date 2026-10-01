@@ -146,6 +146,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1341, 2026-09-30 — the bump loop
+
+(1352) **`get_cost`'s bump loop's `JUMP` arm** (1341's M2): held by no
+walk; a capture with an upgrade queued two links ahead of a unit being
+trained would hold it.
+
 ## Parked by item 1330, 2026-09-30 — the birth's form
 
 (1347) **The `@spell` group's `form` reset**: chapter forty's 802, ours 9
@@ -2749,6 +2755,12 @@ pins with scratch scripts keyed on each pin's printed `got`/`want` — the
 third reach of that shape, a candidate for `tools/`. And 62 comments in
 `rondata::diff` still call the birth `form` a standing row: the pins
 were re-measured, the prose was not.
+
+(1353) **A union merge of `docs/RUNS.md` folds two sections** (1341's
+Loop line): run523's and run529's commands ended in the same two lines,
+and the union merge deduplicated them into one block. A guard that each
+`## runN` section's code fence opens and closes before the next heading
+would catch it at the merge (the merged tree holds today).
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

@@ -1634,7 +1634,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `+0xc99`, 4 `+0x1805`, `Farms::add`) and two `+0x221`; ours' step 11
 /// finds its head empty and spends nothing. Past run508's window (its
 /// last block 12833), widened on run523 (block 13386).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 13_385;
+///
+/// **13385 → 14141 on item 1341** (`docs/AI.md` §56.5): `get_cost`'s
+/// bump loop. An owned type is charged, per resource, the base of any
+/// upgrade of it that is queued; the Bombard's research at `1/2024`
+/// makes the Trebuchet 8m/8t, so `1/2028`'s first costs 80 × 95/100 and
+/// the second is past who=1's timber. **The move's value diff (run523's
+/// block 13383, step 8's purchase on frame 13382):** who=1's
+/// `num_queued[216]` ours 2 against 1 → agreeing, `1/2024`'s `queued` 2
+/// against 1 → agreeing, `1/2028`'s `queue[0].cost[0]`/`[1]` 66 against
+/// 76 → agreeing, and `bucket[1:timber]` 14 against 89 and
+/// `bucket[4:metal]` 59 against 134 → agreeing; on 13385 `MAKE[0]` takes
+/// the Farm on both. run523's keys went 1015 → 138 (on the tree merged with 1330's). Frame 13385's draws
+/// went 4 against 54 → agreeing. **The new word's delta: ours 5 draws
+/// and the original 4 on frame 14141, parting at index 1**: ours spends
+/// a second `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+/// original goes on to `Guy::set_anim+0x104b` (seed `c55509fc`). Past
+/// run523's window (its last block 13636), widened on run535 (block
+/// 14142).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2272,6 +2290,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_12582: (i64, i64) = (12_577, 12_833
 /// run508's detail, blocks 13380..13636 — six blocks before the word
 /// 13385's block 13386 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_13385: (i64, i64) = (13_380, 13_636);
+
+/// **run535's window** (item 1341): the second pair's East Indies at
+/// run523's detail, blocks 14136..14392 — six blocks before the word
+/// 14141's block 14142 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_14141: (i64, i64) = (14_136, 14_392);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -7712,13 +7735,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 11328, past it, widened on run490; item 1281 to 11549, inside it;
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
     // past it, widened on run508; item 1326 to 13385, past it, widened on
-    // run523.
+    // run523; item 1341 to 14141, past it, widened on run535.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run523_s_word_frame_is_widened_whole"),
-        1326,
-        Some(WIDENING_SECOND_EAST_INDIES_13385),
+        Some("run535_s_word_frame_is_widened_whole"),
+        1341,
+        Some(WIDENING_SECOND_EAST_INDIES_14141),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
