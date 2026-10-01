@@ -261,7 +261,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **140** with item 1305's cites of `SpellType::cast_march@00671500` and
 /// `Leader::verify_spell_flags@006ce190` (`docs/AI.md` §99.13): run470
 /// casts the march on 9112 and holds 9240's coin by its flag, but at
-/// `cover=0` its trace enters no function.
+/// `cover=0` its trace enters no function; **141** with item 1365's cite
+/// of `LeaderData::get_vehicle_speed_upgrade@006da8a0`
+/// (`docs/PRODUCTION.md`, "The tail's first caller"): no traced game
+/// trains a tank, siege or vehicle unit.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -282,7 +285,7 @@ pub const NEVER: &[u32] = &[
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006c_e190, 0x006d_0370, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10,
     0x006d_5230, 0x006d_6740,
-    0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
+    0x006d_6e80, 0x006d_a740, 0x006d_a8a0, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0,
     0x0070_0010, 0x0070_20c0,
     0x0070_84c0,

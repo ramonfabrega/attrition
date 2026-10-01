@@ -471,7 +471,7 @@ t = (10 - n) * t / 10                 # 0065102d, the 0x66666667 divide, truncat
 counter (`LeaderData::get_ships_speed_upgrade@006da800`,
 `get_troops_speed_upgrade@006da850`, `get_vehicle_speed_upgrade@006da8a0`)
 walks three bonuses and counts **every** one `has_preq` answers — not a
-leading run — and the `BUY_SELL` arm each carries compares `0x2ad`
+leading run — and the `BUY_SELL` arm each carries compares that bonus
 against types its loop never reaches, so it is dead. In the shipped
 `TECHBONUSES` the troops' ladder is rows 58–60 (Herbal Lore, Medicine,
 Pharmaceuticals — the same three as the line-of-sight ladder, rows 61–63,
