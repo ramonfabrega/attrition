@@ -2651,7 +2651,7 @@ conflicted `ccc update` has no sanctioned path to a resolvable state,
 because the lane's own `git merge` is what the classifier denies. The
 unstick that needs no human is `ccc`'s — an `update` that leaves the
 conflicted merge in place for the lane to resolve, since `ccc` runs the
-merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's. **The same day, ccc built it** (branch `worktree-v2`, unreleased): `ccc update <ref> --keep-conflicts [--json]` — on conflicted files the worktree is left mid-merge with markers, every conflicted path printed, exit 3; a dirty tree is refused first with exit 1; a merge that fails without conflicted files still backs out; the lane resolves, `git add`s and `git commit`s, and the commit lands as a real merge with the base as its second parent (tested by ccc). The lanes' recorded base is `worktree-replan-pdb` (every `ccc update` merge of the tranche says so), so it merges the right thing. The `CLAUDE.md` line waits for the release that carries it.
+merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's. **The same day, ccc built it** (branch `worktree-v2`, unreleased): `ccc update <ref> --keep-conflicts [--json]` — on conflicted files the worktree is left mid-merge with markers, every conflicted path printed, exit 3; a dirty tree is refused first with exit 1; a merge that fails without conflicted files still backs out; the lane resolves, `git add`s and `git commit`s, and the commit lands as a real merge with the base as its second parent (tested by ccc). The lanes' recorded base is `worktree-replan-pdb` (every `ccc update` merge of the tranche says so), so it merges the right thing. **Released as ccc 0.1.38 the same evening**, verified on the installed binary's help, and the `CLAUDE.md` clause is written. Closes at the next pass on the first conflicted update taken this way.
 
 (1316) **A landing gates twice** (the pass's own, `tools/tranche.py`):
 the gate's wait went 16.2 → 39.9 minutes a landing, and sixteen earlier
@@ -2792,7 +2792,10 @@ the row's text, hidden, or undrawn — in `--status`'s `last:` field.
 **And a caveat for the rule**: while a clear is actually firing (attach,
 type, land), `--status` says "no clear is armed" with no `last` for
 some seconds; the record follows within ~20 s, and that is not
-"dropped".
+"dropped". **Released as ccc 0.1.38 (255) the same evening**, verified
+on the installed binary (`--status` prints the 02:43Z refusal as its
+`last:`), and the `CLAUDE.md` clause is written. Closes at the next
+pass on its read: whether a clear fired.
 
 (1390) **The chain's remote delete missed once** (the pass's own):
 `origin/worktree-att-1379` stood merged on the remote at the pass, the

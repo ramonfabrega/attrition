@@ -447,7 +447,11 @@ has not landed, and a wrapper that echoes the exit has hidden it
 moved**: the lane takes `ccc update` at the gate's exit, lands on that
 verdict if the update is clean and says which base the gate ran on, and
 gates again only if the update conflicted — four were stopped in one
-tranche, on no rule (entry 56). **A message that
+tranche, on no rule (entry 56). **A conflicted update is taken with
+`ccc update <ref> --keep-conflicts`** (exit 3, the markers left in the
+worktree): the lane resolves, `git add`s and `git commit`s the merge
+itself — its own `git merge` is what the classifier denies, and one
+lane sat 86 minutes for want of this (parked 1315; ccc 0.1.38). **A message that
 arrives during a gate says it is to be applied after it**, and the worker
 holds its write-ups until the gate exits. **An instruction about what to
 start is never one about what to stop**: "pause new lanes" is answered
@@ -531,8 +535,14 @@ tranches (`docs/DECISIONS.md` entry 55) — **and the arm is the turn's
 last act, and the turn ends**: it fires only on an idle row, and a
 commander that armed it and went on to merge the next landing
 cancelled its own clear three times in one tranche and ran to 402 k
-(parked 1314). A landing that arrives while the clear is armed waits
-for the cleared session. A second lane may run a
+(parked 1314). **A landing that re-invokes the commander under an
+armed clear is merged and the turn ends without cancelling**: the arm
+stays through that turn and fires at its end; `ccc clear <ref>
+--status` is the only question asked of it — never `--cancel`, and
+`--status` reads "not armed" for some seconds while a fire is in
+flight, which is not "dropped" (parked 1392; ccc 0.1.38). A landing
+that arrives while the clear fires reaches the cleared session as the
+turn after its prompt, measured. A second lane may run a
 parked value-diff row *beside* the word's frame, never instead of it — a
 rule about what it works on, never about when it is spawned.
 `docs/DECISIONS.md` entries 40 and 45.
