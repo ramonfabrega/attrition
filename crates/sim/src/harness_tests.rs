@@ -2781,6 +2781,48 @@ fn a_tower_site_does_not_shoot_until_it_is_finished() {
     assert_eq!(sim.projectiles.len(), 1);
 }
 
+/// **A site holds half its armour** (item 1350, `docs/COMBAT.md` §4.2):
+/// a building's `armor()` is `WallData::armor@0063fa60`, whose tail
+/// halves it toward zero while the building is not `is_active`. A
+/// Hoplite's 12 attack on armour 5: `(120 + 5) / 10 − 5` = 7 on the
+/// finished tower, and `− 5 / 2` = 10 on the same tower as a site.
+#[test]
+fn a_site_holds_half_its_armour() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        armor: 5,
+        x_size: 1,
+        y_size: 1,
+        big_radius: 96,
+        ..combat::Profile::default()
+    });
+    sim.buildings[tower].hits = 400;
+    sim.buildings[tower].health = 400;
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 192, 1000),
+        movement::Angle::WEST,
+    );
+    let (at, site) = (Obj::Unit(b), Obj::Building(tower));
+    sim.buildings[tower].active = true;
+    assert_eq!(sim.armor_of(site), 5);
+    sim.do_damage(at, site, movement::Angle::WEST, false, 0x100, false, true, 1);
+    sim.buildings[tower].active = false;
+    assert_eq!(sim.armor_of(site), 2, "5 / 2, toward zero");
+    sim.do_damage(at, site, movement::Angle::WEST, false, 0x100, false, true, 2);
+    let dealt: Vec<i32> = sim
+        .hits
+        .iter()
+        .filter(|h| h.target == site)
+        .map(|h| h.damage)
+        .collect();
+    assert_eq!(dealt, vec![7, 10], "the finished tower, then the site");
+}
+
 #[test]
 fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
     let mut sim = arena();

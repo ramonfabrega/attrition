@@ -296,6 +296,25 @@ Antipater inside.
 `ObjectData::armor` — `type.armor`, plus the Dutch `ages × dutch_attack_bonus`
 on the same unit kinds (the patriot exclusion only from patch version 9).
 
+**A building's is `WallData::armor@0063fa60`** (vslot `+0x124`, read off
+the PE at `Build::vftable + 0x124`; `get_damage` reads the target's
+through that slot), and it is `ObjectData::armor` with two arms after it,
+in this order (item 1350, the listing):
+
+1. **The Senator** (`63fab0`–`63fb1f`): when the owner's leader has its
+   `+0x59c0` set, `HeroesData::find_hero` for a `THESENATOR` (`0x161`)
+   within `(type +0x234 + type +0x238) × 96` (zero when vslot `+0x20` is
+   clear); one found adds `thesenator_build_armor`. A Senator itself takes
+   the first arm (`63fa84`–`63faae`). **Not modelled** (`Sim::armor_of`'s
+   `SEAM`).
+2. **A building not `is_active`** (`flags & 4` clear, `63fb31`–`63fb41`)
+   **holds half**: `cltd; sub edx; sar` — a signed `/ 2`, toward zero.
+   run514's Keep site, armour 4, took every Hoplite blow at 2: 13 whole
+   hits, 69 sixteenths a figure (block 706, `damage` 4 and `damage_frac`
+   5), where this crate's 11 dealt 58 and the site lived to 965 against
+   the original's 901. Built in `Sim::armor_of`. **Diff-backed**: run514's
+   site, every blow to its death on 901 (`docs/GOLDEN.md` §56).
+
 `Unit::update_armor` caches `ObjectData::armor` (+ `cattle_citizen_armor` for
 citizens with the Cattle bonus) into `myarmor` on every figure of the squad;
 `UnitData::armor` returns `myarmor` plus `general_rally_armor × (general
