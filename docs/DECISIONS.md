@@ -69,6 +69,7 @@ is append-only and amended in place, as it always was.
 - 55 extended by 56 — A closed game chooses nothing, code is not fenced, and the third map's word opens
 - 56 extended by 57 — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
 - 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
+- 58 standing — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
 
 ## 1. Fidelity before divergence
 
@@ -3953,3 +3954,125 @@ peak against 402 k, and whether a clear fired; a landing's 142 minutes,
 clock against 16.1 hours; the disk against 40 GiB; the price a landing
 against 13.7 at the day's table with the tranche before re-priced
 beside it; and the count at twenty.
+
+## 58. The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
+
+**Decided 2026-10-01**, the twenty-second Fable pass, in the main
+thread (`docs/audit/2026-10-01-fable-pass-22.md`). Extends entries 41,
+53, 54, 55, 56 and 57; amends entry 57's estimate; overturns nothing.
+
+**What was measured.** Twenty-two landings since the twenty-first pass
+by the log from `d4aeabbe`, 16:22 on 2026-09-30 to 01:21 on 2026-10-01
+— ten hours and thirty-nine minutes from the pass's session end, eight
+hours and fifty-nine from the first merge, against sixteen and five —
+at three lanes, every worker on Opus 5.5 by transcript. **East Indies
+11637 → 16009** in seven landings, 625 frames each against 455, 2,131
+short of its end; **Great Sahara at Toughest 8856 → 11182** in nine,
+258 each; **chapter forty-seven closed at 1400 in four** and
+forty-eight opened at 1450 and stands at 1481 after two — one chapter
+closed against the estimate's four in eight. Workers **300.29 USD,
+13.65 a landing** at today's table, against 13.66 for the tranche
+before at the same table (300.50; the table did not move): East Indies
+14.4 from 13.1, the third map 12.3 from 16.4, the rules lane 14.8 from
+13.0. The deepest worker 513 k from 560 k. **A landing took 80
+minutes, 30 working and 50 waiting**, against 109, 31 and 78 by the
+same fold re-read (`tools/tranche.py`; the twenty-first pass's own read
+of that tranche was 142, 33 and 108): the suite 15.5 against 15.2, a
+capture 15.3 against 27.8, the gate 11.7 against 11.5, a status
+message and then nothing 1.4 against 19.6. **No lane met a classifier
+answer**, against 258 minutes; none stopped for a moved base; **one
+update refused**, against nine, and `coverage.rs` conflicted once,
+against four. The commander ran one session, 322 k at its deepest and
+0.70 USD a landing against 1.14; **no clear fired, because the
+commander's own `ccc clear --cancel`, run as a question, consumed the
+arm twice** (parked 1392). Seven value diffs on the word's frame,
+fourteen on the frame the state first parted, one partial. Three
+journals met a comparison that compared nothing, from twelve. Five
+mutations failed nothing and ten were held by a unit test alone, from
+thirteen; ten earlier gates on nine landings were red on the worker's
+own, from sixteen on thirteen. **Something had written the cause down
+on eighteen of twenty-two**, and `tools/seams.py` printed it on five
+first reads and on five second calls named by hand — the seam sat on
+the first parted field's writer, reader or gate, never on the word's
+chain, six times. Three dead takes beside a release suite, from none.
+No `FABLE:` row stood. The blind list 138 → 141 by citation; no trace
+of the tranche carried coverage. The disk 212 GiB from 40, the user's
+clearing between the passes.
+
+**What it means.**
+
+1. **The waiting halved, and what fell was the stops.** The two rules
+   that cost 258 minutes the tranche before cost nothing: no
+   classifier outage, no stop for a moved base, one refused update. The
+   machine's three classes stand — the suite, a capture, the gate — at
+   fifteen, fifteen and twelve minutes, and the suite's single longest
+   wait was a re-pin by hand (1349).
+2. **The seam was on the field.** Six landings' answers sat in a `SEAM`
+   on the first parted field's pusher, converter, reader or gate, where
+   `seams.py --item` reads the chain and cannot see it. The verb that
+   names the field's writers and readers itself is built (1340, 1337,
+   1322), and the frame's row says to run it.
+3. **A strike never closed was the section ceiling's defect**, not the
+   pairing alone (1357): `AI.md` §9's item 4 opened a strike on
+   2026-08-25 and closed nothing, so every later pair in the file was
+   the wrong pair — §15 read 5,650 live bytes with 26,923, §99 6,374
+   with 51,545, and two lanes' opposite verdicts on one section were
+   both measurements of that. Paired within the section, the strike
+   closed, the two sections pinned honest.
+4. **The compared pin's number fell without its redesign** (1225): one
+   conflict from four, three comparisons that compared nothing from
+   twelve. The design stands and the build returns at three conflicts.
+5. **The blind list is not the rules track's measure** (1317): a
+   chapter's `cover=1` twin is taken only when an item on that chapter
+   names a never-executed function it needs, and then the trace is the
+   instrument.
+6. **The count stays twenty and the lanes stay three.** The capture
+   lane stays one: 2.3 minutes a landing waited on another lane's
+   capture, against the ten it returns at.
+7. **Five Loop items are built, each made to fail first** — 1340 with
+   1337 and 1322, 1357, 1353; eleven close — 1345 on a wrong claim,
+   1314 on its read, 1317 on a decision, and 1105, 1199, 1242, 1247,
+   1263, 1274, 1296 and 1308 on two tranches without a reach; three
+   fold; 1392, 1390 and 1391 are filed. The backlog is twenty-three.
+
+**Not decided, and the user's**: a `ccc clear` that answers "armed?"
+without consuming the arm (1392) and a conflicted `ccc update`'s path
+to a resolvable state (1315); whether phase 4 opens on the rules track
+alone; the thesis sentence from entry 41; whether the loop hands itself
+to its pass (1141); whether a cheaper model is admitted to a trial
+(1142), its table standing again at `target/pass22/journals-22.md`.
+
+**The estimate, written down to be wrong on record.** Entry 57's: East
+Indies passed 13,500 by 2,509 at 16009; Toughest passed 11,000 by 182;
+the rules lane closed one chapter in four landings, not four in eight,
+at 14.8 a landing against the 15 named; a landing waited 50 minutes
+against the 80 named. This one: **East Indies closes by the next pass**
+and its booking opens the third pair (entry 56 §1, nation moved);
+**Great Sahara at Toughest passes 13,000**; **chapter forty-eight
+closes and forty-nine opens, four landings between them**; and **a
+landing waits under 45 minutes**, with the suite the largest class.
+
+**The measure for the next pass**: East Indies against 16009 and 625
+frames a landing, and whether it closed and the third pair's capture
+was booked in the same booking; Great Sahara at Toughest against 11182
+and 258; chapter forty-eight's 1481 and the chapters closed, against
+one in four; the rules lane's price against 14.8 and its deepest worker
+against 513 k; mutations held by a unit test alone against ten and
+failing nothing against five; "a comparison that compared nothing"
+against three; the cause something had written down and whether
+`seams.py --field` printed it on the first read, against five of
+eighteen with five more on a second call; refused updates against one
+and `coverage.rs`'s one; earlier red gates against ten on nine, and
+how many were a cross-lane pin; dead takes beside a release suite
+against three; the lane lock's incidents against two; `UNBUILT`
+against 132, `NO_SUCH_SECTION` thirteen, `UNSCANNED_SEAMS`
+forty-three, the doors seventeen, `UNCOMPARED_BY_THE_INSTRUMENT`
+seventy-four; the blind list against 141 with `entered` 7,901 by
+construction; the frame against 12,999 and its ceiling; the commander's
+price against 0.70 and its peak against 322 k, and whether a clear
+fired or was queried; a landing's 80 minutes, 30 working and 50
+waiting, by `tools/tranche.py`, with the suite against 15.5; the
+tranche's wall clock against 10.7 hours; the disk against 212 GiB; the
+price a landing against 13.65 at the day's table with the tranche
+before re-priced beside it; the backlog against twenty-three; and the
+count at twenty.

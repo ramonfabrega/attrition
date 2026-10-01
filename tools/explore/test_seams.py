@@ -160,6 +160,64 @@ class Seams(unittest.TestCase):
         self.assertTrue(rows[0][3].startswith('**Not modelled'))
 
 
+FIELD_SOURCE = '''
+impl Sim {
+    /// SEAM: the pushed animal's turn is not carried.
+    fn push_collider(&mut self, u: usize, o: usize) {
+        self.units[u].collide_o = o;
+        self.units[u].collide_frame += 1;
+    }
+
+    fn read_collider(&self, u: usize) -> bool {
+        // The spellcasters' turn (`6f9441`): the generals behind
+        // `num_standard` — a seam.
+        self.units[u].collide_o != 0
+    }
+
+    fn unrelated(&self) -> usize {
+        self.units.len()
+    }
+
+    fn literal(&self) -> Unit {
+        Unit { collide_o: 0, ..Unit::default() }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn a_test_that_writes_the_field_is_not_a_writer() {
+        s.units[0].collide_o = 3;
+    }
+}
+'''
+
+
+class ByField(unittest.TestCase):
+    # Parked 1340, six reaches in one tranche (with 1337): the answer sat
+    # in a `SEAM` on the first parted field's writer or reader, not on
+    # the word's chain, so `seams.py --item` could not print it and a
+    # second call by name did, five times. `--field` names those
+    # functions itself, writers first.
+
+    def test_a_field_s_writers_and_readers_are_named(self):
+        self.assertEqual(seams.field_functions(FIELD_SOURCE, 'collide_o'),
+                         {'push_collider': 'w', 'read_collider': 'r', 'literal': 'w'})
+
+    def test_a_field_s_seam_is_found_through_its_writer(self):
+        fns = seams.field_functions(FIELD_SOURCE, 'collide_o')
+        rx = seams.matcher(['collide_o'] + list(fns))
+        hits = [fn for _, fn, text, struck in seams.seams(FIELD_SOURCE)
+                if not struck and (rx.search(text) or rx.fullmatch(fn))]
+        self.assertEqual(hits, ['push_collider'])
+
+    def test_a_lower_case_seam_is_a_seam_without_the_word(self):
+        # Parked 1322: `army.rs`'s "The spellcasters' turn — a seam." had
+        # no `SEAM:` and was half of 1305's word.
+        found = seams.left_out(FIELD_SOURCE)
+        self.assertEqual([fn for _, fn, _ in found], ['read_collider'])
+
+
 class TheLiveTree(unittest.TestCase):
     # Exact, and it may only fall: a seam that names, as missing, a
     # function this crate carries is struck, re-worded to say what of the

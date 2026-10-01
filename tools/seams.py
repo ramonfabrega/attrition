@@ -46,7 +46,7 @@ ABSENCES = ('no capture', 'no run', 'never entered', 'no dump', 'not on disk',
             'has not been captured', 'no trace')
 LEFT_OUT = re.compile(
     r'not (?:yet )?model+ed|not (?:yet )?built|unbuilt|simplif|not carried|does not carry'
-    r'|\bstub\b|left out|not wired|unwired', re.I)
+    r'|\bstub\b|left out|not wired|unwired|\ba seam\b', re.I)
 MISSING = re.compile(
     r'not (?:yet )?built|unbuilt|not carried|does not carry|is not here|until .{0,40}? is built'
     r'|has no\b|not (?:yet )?model+ed', re.I)
@@ -163,6 +163,46 @@ def left_out(text):
     return out
 
 
+FN_LINE = re.compile(r'(?:pub(?:\([a-z]+\))? )?(?:const )?fn ([a-z0-9_]+)')
+
+
+def field_functions(text, field):
+    """`{function: 'w' | 'r'}` for every function of a source text that
+    writes or reads a field by that name (parked 1340, six reaches in one
+    tranche, with 1337): the seam that was the answer sat on the first
+    parted field's writer or reader, never on the word's chain. A write
+    is `.field =`, `.field +=` and its kin, or `field:` in a struct
+    literal; any other `.field` is a read. A declaration (`pub field:
+    Type,`) and a comment are neither."""
+    f = re.escape(field)
+    write = re.compile(rf'\.{f}\s*(?:=[^=]|[-+*/|&^]=|\.(?:push|insert|clear|set|retain|extend|remove|drain|sort|truncate)\b)')
+    literal = re.compile(rf'(?<![A-Za-z0-9_.]){f}\s*:')
+    read = re.compile(rf'\.{f}(?![A-Za-z0-9_])')
+    out = {}
+    fn = ''
+    # A test module's writes are a fixture's, not the simulation's.
+    live = text.split('#[cfg(test)]')[0]
+    prev = ''
+    for line in live.split('\n'):
+        s = line.strip()
+        m = FN_LINE.match(s)
+        if m:
+            # A `#[test]` outside a test module is a fixture too.
+            fn = '' if prev.startswith('#[test]') else m.group(1)
+            prev = s
+            continue
+        if s:
+            prev = s
+        if not fn or s.startswith('//'):
+            continue
+        code = s.split('//')[0]
+        if write.search(code) or (literal.search(code) and not re.match(r'(?:pub(?:\([a-z]+\))? )?[a-z0-9_]+\s*:', code)):
+            out[fn] = 'w'
+        elif read.search(code) and fn not in out:
+            out[fn] = 'r'
+    return out
+
+
 def unscanned(seam):
     low = seam.lower()
     return any(a in low for a in ABSENCES) and 'scan: `' not in low
@@ -240,6 +280,9 @@ def main():
     ap.add_argument('names', nargs='*', help='function, field or constant names')
     ap.add_argument('--item', type=int, help="read the names off a queue item's chain and keys")
     ap.add_argument('--chain', help='a draw chain as the queue writes one')
+    ap.add_argument('--field', action='append', default=[],
+                    help="a parted field: its writers and readers in `crates/sim` are "
+                         "named too, writers first (parked 1340)")
     ap.add_argument('--doors', action='store_true',
                     help='list the live seams that name a function this crate now carries')
     ap.add_argument('--width', type=int, default=260)
@@ -262,6 +305,15 @@ def main():
         return 2
     if args.chain:
         names += chain_names(args.chain)
+    for field in args.field:
+        fns = {}
+        for f in sorted(SIM.rglob('*.rs')):
+            fns.update(field_functions(f.read_text(), field))
+        writers = sorted(n for n, k in fns.items() if k == 'w')
+        readers = sorted(n for n, k in fns.items() if k == 'r')
+        print(f'field `{field}`: writers ' + (', '.join(writers) or 'none')
+              + '; readers ' + (', '.join(readers) or 'none'))
+        names += [field] + writers + readers
     rx = matcher(names)
     if rx is None:
         ap.error('no name given: pass names, --item or --chain')

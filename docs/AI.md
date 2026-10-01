@@ -1575,7 +1575,7 @@ The script side: §3.
    `docs/audit/2026-08-25-army.md`; the sea half's part stays in
    `docs/TRANSPORT.md` §8. ~~The state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
-   not exist yet. **The sea half of it is read** (2026-08-25,
+   not exist yet.~~ **The sea half of it is read** (2026-08-25,
    `docs/TRANSPORT.md`): `check_transport`, the docks registry,
    `think_civilian_transport`, `do_mustering`'s transporting arm,
    `do_transporting`, `init_navy` / `send_navy`.

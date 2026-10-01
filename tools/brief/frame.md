@@ -73,10 +73,11 @@ Before any reading of the original, in this order:
    (1176). **A row that agrees is quiet, not proven** while another
    writer reached the state or a value it reads is wrong elsewhere (898,
    1039).
-7. **Run `python3 tools/seams.py --item {item}`**, and again with the
-   parted fields' readers by name: every live `SEAM`, every comment that
-   says "not modelled" without the word, every such paragraph or list of
-   a specification (830, 860, 1146, 1159, 1193, 1253, 1240). **When one
+7. **Run `python3 tools/seams.py --item {item} --field <first parted
+   field>`** (writers, readers): `SEAM`s, a comment saying "not
+   modelled" or "a seam" without the word, such paragraphs or lists of
+   a specification (830, 860, 1146, 1159, 1193, 1253, 1240, 1340, 1337,
+   1322). **When one
    side spent nothing on the frame, run it on the chain of the order the
    other side took** (1233). A seam that says no capture holds its arm is
    an absence as of the day it was written: run its `scan:`, or write one

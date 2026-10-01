@@ -12,24 +12,24 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, **twenty-two landings since the twenty-first Fable pass** (the
-pass commit `d4aeabbe`): **the steering pass is due.** East Indies
-11637 → 16009 (seven landings), Great Sahara at Toughest 8856 → 11182
-(nine), chapter forty-seven opened at 712 and closed at 1400, chapter
-forty-eight opened at 1450 and walked to 1481 (six). Every booking gate
-green; one went to origin before its exit was read (Loop 1345).*
+*2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
+`docs/audit/2026-10-01-fable-pass-22.md`); zero landings since. The
+tranche before it: East Indies 11637 → 16009 in seven, Great Sahara at
+Toughest 8856 → 11182 in nine, chapter forty-seven closed and
+forty-eight opened; a landing 80 minutes, 50 of them waiting on the
+suite, a capture and the gate — no stop on a classifier or a moved
+base. No score moved in the pass; none was meant to.*
 
-- **No lane is live.** 1380, 1383 and 1388 are unstarted, one to a
-  word, for after the pass.
-- **Six reaches of one shape** (Loop 1340, with 1337): the answer was a
-  seam on the first parted field's writer or reader, not on the word's
-  chain — `seams.py` on those by name is the checklist row the tranche
-  earned. **And the section ceiling does not measure** (1357).
-- **`ccc clear --then` was consumed unfired four times** (memory, not
-  a rule): the commander ran the tranche in one session from the tenth.
-- **The user's**: the classifier's refusals (1315); phase 4 on the rules
-  track alone; the disk, 213 GiB free; parked 1141 and 1142.
-- **Fable backlog: 40 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361, 1364, 1369, 1374, 1376, 1382, 1387).
+- **No lane is live.** 1383, 1388 and 1380 are unstarted, one to a word.
+- **The pass built** `seams.py --field <first parted field>` (frame row
+  7; six answers sat on the field's writer or reader), the section
+  guard's honest strike pairing, and the runs ledger's fence guard.
+- **East Indies closes at 18,140**: that booking books the third pair's
+  first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
+- **The clear is never queried with `--cancel`** (1392); the chain's
+  last step deletes the lane's remote branch (1390). **The user's**:
+  1392, 1315, phase 4 on the rules track, 1141, 1142.
+- **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,8 +38,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11182 of 15,432
 Golden: ch48 w1481 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-second Fable pass, in the main thread — the count
-is at twenty-two; the commander spawns nothing until it lands.**
+**Opener: the commander, on Opus — spawn 1383, 1388 and 1380, one to a
+lane, briefs by `tools/brief.py`; count landings from the pass's commit
+and stop at twenty.**
 
 ## The queue
 

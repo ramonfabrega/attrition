@@ -115,9 +115,23 @@ const SECTION_CEILING: usize = 16_000;
 /// the split, and it costs nothing a reader needs.
 const OVER: &[(&str, &str, usize)] = &[
     // 71_928 -> 71_076 by the tenth pass, struck text no longer counted;
-    // `AI.md` §15 left this table the same day — 27,421 bytes of which
-    // 21,771 were struck, so it is 5,650 live bytes and under the ceiling.
+    // `AI.md` §15 left this table the same day as "5,650 live bytes" —
+    // a measurement of a strike §9 never closed, which paired every
+    // later marker of the file with the wrong one (parked 1357, the
+    // twenty-second pass). Paired within the section, §15 is 26,923 live
+    // and §99 51,545; both are pinned below at that size and may only
+    // shrink.
     ("AI.md", "2. The production AI — read", 71_076),
+    (
+        "AI.md",
+        "15. The behavioural run — run18, 2026-08-25",
+        26_923,
+    ),
+    (
+        "AI.md",
+        "99. Great Sahara at Toughest: the closed map in the second pair's lobby, and its first word 5376 (2026-09-30, item 1221)",
+        51_545,
+    ),
     ("CITIES.md", "3. Construction", 16_280),
     // The three rows below were lowered by the tenth pass (2026-09-22)
     // when struck text stopped counting (parked 480): a section's pin is
@@ -176,7 +190,11 @@ fn sections(text: &str) -> Vec<(String, usize)> {
     }
     // A `~~~` is a code fence, not a marker; a span never crosses a
     // heading — an unpaired marker would otherwise strike the rest of
-    // the file — so a span is credited up to its section's end at most.
+    // the file. **The pair is made within the section** (parked 1357):
+    // an opener the next section's marker closed credited most of
+    // `AI.md`'s `## 99.` as struck, so a marker in a later section than
+    // the open one is a fresh opener, and the unpaired one strikes
+    // nothing.
     let bytes = text.as_bytes();
     let fence =
         |i: usize| (i > 0 && bytes[i - 1] == b'~') || bytes.get(i + 2).is_some_and(|&c| c == b'~');
@@ -189,8 +207,11 @@ fn sections(text: &str) -> Vec<(String, usize)> {
             None => open = Some(i + 2),
             Some(start) => {
                 let sec = bounds.partition_point(|&b| b <= start);
-                let end = bounds.get(sec).map_or(i, |&next| i.min(next));
-                out[sec].1 -= end.saturating_sub(start);
+                if bounds.partition_point(|&b| b <= i) != sec {
+                    open = Some(i + 2);
+                    continue;
+                }
+                out[sec].1 -= i.saturating_sub(start);
             }
         }
     }
@@ -216,6 +237,26 @@ fn struck_text_is_not_counted_against_a_section() {
     let m = sections(multi);
     assert_eq!(m[1].1, "## A\n\n~~\n\n".len() + "~~".len());
     assert_eq!(m[2].1, "## B\n\n~~~~\n".len());
+    // Parked 1357 (the twenty-first tranche): an unpaired marker in one
+    // section was closed by the next section's opener, so the pairing
+    // credited most of `AI.md`'s `## 99.` as struck — 49,913 bytes on
+    // disk read 6,374 by the guard, and one lane's red on that section
+    // and another's green were both measurements of the pairing. A
+    // marker is paired within its section or not at all: the unpaired
+    // one counts as live text, and the next section's strikes are its
+    // own.
+    let unpaired = "## A\n\n~~never closed\nmore live text\n\n## B\n\n~~x~~ live\n";
+    let u = sections(unpaired);
+    assert_eq!(
+        u[1].1,
+        "## A\n\n~~never closed\nmore live text\n\n".len(),
+        "an unpaired marker strikes nothing"
+    );
+    assert_eq!(
+        u[2].1,
+        "## B\n\n~~~~ live\n".len(),
+        "the next section's pair is its own"
+    );
 }
 
 #[test]
@@ -772,6 +813,63 @@ fn no_runs_section_heading_stands_twice() {
             .any(|l| l.split_whitespace().collect::<Vec<_>>() == ["docs/RUNS.md", "merge=union"]),
         ".gitattributes no longer merges docs/RUNS.md with the union driver; two lanes' \
          captures will conflict at the append point again (parked 428)"
+    );
+}
+
+/// The `## runN` sections of a runs ledger whose code fences do not close
+/// before the next heading (parked 1353, the twenty-first tranche): the
+/// union merge folds two sections whose commands end in the same lines —
+/// run523's and run529's did — into one block, and the fold leaves a
+/// fence open across the heading. A fence is a line that opens with
+/// three backticks or tildes; the count is per section and must be even.
+fn unclosed_fences(text: &str) -> Vec<(String, usize)> {
+    let mut out = Vec::new();
+    let mut heading = String::new();
+    let mut open = false;
+    let mut at = 0usize;
+    for (i, line) in text.lines().enumerate() {
+        if let Some(h) = line.strip_prefix("## ") {
+            if open {
+                out.push((heading.clone(), at));
+            }
+            heading = h.to_string();
+            open = false;
+            continue;
+        }
+        let t = line.trim_start();
+        if t.starts_with("```") || t.starts_with("~~~") {
+            open = !open;
+            at = i + 1;
+        }
+    }
+    if open {
+        out.push((heading, at));
+    }
+    out
+}
+
+/// The fence rule, made to fail first on the fold's own shape: two
+/// sections whose fences balance pass, and a fold that leaves one open
+/// names the section and the line of the fence left open.
+#[test]
+fn a_fence_left_open_across_a_heading_is_named() {
+    let clean = "## run1\n\n```\ncmd\n```\n\n## run2\n\n```sh\ncmd\n```\n";
+    assert_eq!(unclosed_fences(clean), vec![]);
+    let folded = "## run1\n\n```\ncmd\n\n## run2\n\n```\ncmd\n```\n";
+    assert_eq!(unclosed_fences(folded), vec![("run1".to_string(), 3)]);
+    let tail = "## run3\n\n~~~\ncmd\n";
+    assert_eq!(unclosed_fences(tail), vec![("run3".to_string(), 3)]);
+}
+
+/// **Every `docs/RUNS.md` section closes its fences** (parked 1353): the
+/// live ledger, read whole.
+#[test]
+fn every_runs_section_closes_its_fences() {
+    let open = unclosed_fences(&read("RUNS.md"));
+    assert!(
+        open.is_empty(),
+        "docs/RUNS.md leaves a code fence open across a heading — the union merge folded \
+         two sections, or a fence was dropped: {open:?}"
     );
 }
 

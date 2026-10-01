@@ -20965,3 +20965,28 @@ the backlog is twenty-two from thirty-three. **DECISIONS 57.**
 **The same day, corrected**: the 258 minutes were not "permission prompts" — item 1291 sat 163 minutes after five "no verdict (error)" answers from the auto-mode classifier (a three-minute service outage, 22 such answers fleet-wide that day) because the permission-shaped rule ended its turn, and 1293 sat 86 after the worktree guard refused a merge inside its own worktree; neither is the 2.1.285 update, whose date the worktree guard's refusals cross flat. `CLAUDE.md` now backs a no-verdict off on a Monitor before a turn ends (parked 1315).
 
 **And again, from the transcripts**: `ccc clear` was not at fault — the commander armed it three times and cancelled it itself each time a landing arrived before the row went idle (`CLAUDE.md`: the arm is the turn's last act, and the turn ends); and 1293's merge was denied by the auto-mode classifier as "Git Destructive", not the worktree guard — a conflicted `ccc update` has no sanctioned path to a resolvable state, which is `ccc`'s to give (parked 1315).
+
+## 2026-10-01 — the twenty-second Fable pass: the waiting halved, the seam was on the field, and a strike never closed
+
+Twenty-two landings since the twenty-first pass, in under eleven hours
+at three lanes, every worker on Opus 5.5 by transcript: East Indies
+11637 → 16009 in seven at 625 frames a landing, Great Sahara at
+Toughest 8856 → 11182 in nine, chapter forty-seven closed at 1400 in
+four and forty-eight opened. Workers 300.29 USD, 13.65 a landing at
+today's table against 13.66 for the tranche before at the same table.
+**A landing took 80 minutes, 30 working and 50 waiting**, against 109,
+31 and 78 by the same fold: no lane met a classifier answer, none
+stopped for a moved base, one update refused; what is left is the
+suite, a capture and the gate at fifteen, fifteen and twelve. The
+commander's clear did not fire because the commander ran `ccc clear
+--cancel` as a question, twice (1392). Six landings found their answer
+in a `SEAM` on the first parted field's writer or reader, never on the
+word's chain, so `tools/seams.py --field <name>` names them itself
+(1340, 1337, 1322). The section ceiling's honest pairing (1357) found
+a strike `AI.md` §9 never closed since 2026-08-25, which had paired
+every later marker of the file with the wrong one — §15 is 26,923 live
+bytes, not 5,650, and §99 51,545; both pinned. The runs ledger's
+fences are guarded (1353). Five Loop items built, eleven closed, three
+folded, three filed; the backlog is twenty-three. The blind list is
+not the rules track's measure (1317). **DECISIONS 58.**
+`docs/audit/2026-10-01-fable-pass-22.md`.

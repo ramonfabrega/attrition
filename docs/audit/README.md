@@ -404,6 +404,13 @@ failures of its own, and struck the frame's own story to pay for them.
   `do_cast`'s captain check sat in a `SEAMS:` block, and ROADS §9.4's
   `leech_codes` in the bullets under "**Not modelled**". The scan's
   widening found three more doors (14 → 17, parked 1224).
+- **The first parted field's writers and readers are read for seams by
+  name, before any reading** (1340, 1337, 1322; `tools/seams.py
+  --field`): six landings of the twenty-first tranche found the answer
+  in a `SEAM` on the field's pusher, converter, reader or gate — none on
+  the word's chain — and five of them on a second, hand-named call. The
+  verb names those functions itself, writers first, and a comment that
+  says "a seam" without the word is a seam.
 - **A chapter's `chNN f…` firsts pipe through `standing.py` as the AI
   track's `first …` do** (1250): item 1235 converted them with `sed`.
 - **The lane is held through the runner's restore and released after**
