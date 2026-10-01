@@ -73,6 +73,32 @@ specification and item journal. Prefer executable differential evidence where
 possible. A later Fable steer can review the commits, outcomes, methodological
 changes, and open review debt. Do not self-ratify that debt or launch a steer.
 
+## Local data and shared tooling
+
+Keep using the established install, Wine prefix, ignored directories, captures,
+packets, decompile exports, and local tool dependencies at their documented
+paths. Read the relevant runbook and resolve symlinks before writing. A git
+worktree isolates tracked edits, not shared data outside it. Do not relocate or
+duplicate the data corpus, or rewrite tools merely to fit the sandbox; use the
+environment's permission mechanism for necessary writes outside this checkout.
+Routine local staging required by the documented capture flow is within scope.
+
+Ignored, untracked, and outside-repository files are not disposable. Preserve
+pre-existing files and evidence: no blanket cleanup, `git clean`, pruning,
+deletion, or destructive overwrite without explicit user authorization. Check
+that a new run/output path is unused and keep experiment outputs distinct.
+Before a tool replaces a shared configuration, executable, or rolling log,
+inspect its write behavior and preserve the existing contents using the
+runbook's backup/archive flow (or a distinct backup if none exists). Restore
+temporary configuration changes after the experiment and record any intentional
+shared-state change. Never remove capture locks by hand.
+
+Scratch files created by this session may be cleaned up only when known to be
+disposable and unused; retain captures, packets, logs, and other evidence cited
+by a result. Record durable evidence paths and reproduction commands in the
+item journal/run ledger so a later steer can find them. Keep proprietary data
+out of git even when it is essential to the work.
+
 ## Bookkeeping and validation
 
 This single session owns both implementation and the bookkeeping normally split
