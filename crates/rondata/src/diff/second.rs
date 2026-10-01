@@ -2135,7 +2135,7 @@ mod tests {
         // 13382): who=1's Trebuchet order (`num` 2) queued two here and
         // one there, the original's at `1/2028` for 76 timber and 76 metal
         // where ours' first cost 66 and its second 85. **Item 1341**
-        // (`docs/AI.md` §56.7): `get_cost`'s bump loop — the Bombard's
+        // (`docs/AI.md` §56.5): `get_cost`'s bump loop — the Bombard's
         // research queued at `1/2024` makes a Trebuchet's base 8, so 80 ×
         // 95/100 = 76, and the second, 100 × 95/100 = 95, is past the 89
         // timber left. Both rows agree, and blocks 13383..13385 with them.

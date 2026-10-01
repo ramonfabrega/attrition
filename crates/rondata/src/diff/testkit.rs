@@ -1635,7 +1635,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// finds its head empty and spends nothing. Past run508's window (its
 /// last block 12833), widened on run523 (block 13386).
 ///
-/// **13385 → 14141 on item 1341** (`docs/AI.md` §56.7): `get_cost`'s
+/// **13385 → 14141 on item 1341** (`docs/AI.md` §56.5): `get_cost`'s
 /// bump loop. An owned type is charged, per resource, the base of any
 /// upgrade of it that is queued; the Bombard's research at `1/2024`
 /// makes the Trebuchet 8m/8t, so `1/2028`'s first costs 80 × 95/100 and
