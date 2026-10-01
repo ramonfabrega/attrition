@@ -1474,6 +1474,16 @@ pub struct Building {
     /// player's fog (`docs/VISION.md` §6.1).
     pub ever_seen: u8,
     pub ever_seen_completed: u8,
+    /// **`ObjectData::visible` (`+0x40`) of a building** — the players it
+    /// has shown itself to by shooting them (`Build::do_attack@006228f0`,
+    /// `622b5b`..`622bd0`, `docs/GOLDEN.md` §59): the fallback arm of
+    /// `BuildData::is_seen`, so a Stockade nobody has seen is still a
+    /// legal target for the unit it shot.
+    pub visible: u8,
+    /// `SubObjectData::flags & 0x80` of a building: raised by a round
+    /// fired, dropped at the head of the next `do_attack`; it holds
+    /// [`Building::visible`] against the 32-frame clear.
+    pub attacking: bool,
 }
 
 pub use farms::Farm;
@@ -2347,6 +2357,8 @@ impl Sim {
             farm: Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            visible: 0,
+            attacking: false,
         });
         self.buildings.len() - 1
     }

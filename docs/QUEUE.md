@@ -13,34 +13,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-third steering pass is in** (DECISIONS 59):
-the Sonnet trial scored and **the model stays on all three lanes, with
-the kill rules** — eleven landings at 5.13 USD against 13.65, Toughest
-350 frames a landing, two chapters closed in five, East Indies 60 a
-landing where the Opus lane's last three ran 49. The excess was a
-commander asleep 3h34 after three lanes never loaded `SendMessage`
-(1412): the frame names the tool, and **a spawn is followed by an idle
-subscription** (`CLAUDE.md`). Built: `tools/mutate.py` (1391),
-`tools/repin.py` (1349, 1411), `seams.py --unwritten` (1397). No score moved.*
+the Sonnet trial read cheap — 5.13 USD a landing against 13.65 — **and
+is withdrawn as a decision**: it ran at effort `medium` against Opus's
+`high`, and it failed on its purpose, three lanes landing to nobody and
+the commander asleep 3h34 (1412); the frame names the tool now and **a
+spawn is followed by an idle subscription**. The pass spawned, which no
+pass does. Built: `tools/mutate.py`, `tools/repin.py`, `seams.py
+--unwritten` (1391, 1349, 1411, 1397). No score moved.*
 
-- **Three lanes live on Sonnet 5.5**: 1418 (East Indies), 1416 (Toughest,
-  owing run574) and 1419 (chapter fifty), spawned at the pass's end.
-- **The commander counts landings from this pass's commit** and stops
-  at twenty; the clear at the seam after the tenth, armed last.
+- **1419 closed chapter fifty at 1100**, every chapter closed (1423 is
+  next, unspawned); 1418 and 1416 (owing run574) live, Sonnet-medium.
+- **No refill after they land.** At the weekly reset the commander runs
+  parked 1422's matrix (twelve arms on three landed items, never merged),
+  writes its results page and the handoff; the model and `--effort` are the steer's.
 - **East Indies closes at 18,140**: that booking books the third pair's
   first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 17 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421).
+- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16250 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11882 of 15,432
-Golden: ch50 w819 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — three lanes live on Sonnet 5.5;
-merge, book, refill, subscribe to each lane's idle; the twenty-fourth
-pass at twenty landings from the twenty-third's commit.**
+**Opener: the commander, on Opus — land the two lanes in flight, no
+refill; at the weekly reset run parked 1422's matrix, write its
+results page and the handoff: the twenty-fourth pass is due.**
 
 ## The queue
 
@@ -62,11 +62,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     No capture holds the frame: the widening is owed, and the capture is
     the item's first step (run574). No mechanism is named.
 
-1419. **Chapter fifty's word: frame 819, ours 6 draws against 10**
-    (1415), at index 0: ours spends `Unit::find_attack_pos+0xea9 <
-    Unit::fight+0xcb4`; the first state part is `0/7` on 700,
-    `order:kind` 2 against 10, `orders.len` 1 against 2. run577. No
-    mechanism is named.
+1423. **Chapter fifty-one: the arms the unit tests hold and no walk**
+    (DECISIONS 56 §3): `Group::target_opportunity`'s 15-frame cooldown
+    and member `find_melee_target` arm (1413, back now that fifty is
+    closed); a building's `visible` clear gate and its
+    `update_local_seen_build` fog arm (1419). Whether one staging
+    reaches each is the item's to establish first. run582.
 
 ## How to maintain this file
 
