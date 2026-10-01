@@ -13581,6 +13581,13 @@ nothing for the new disc. `Sim::coll_move` takes the form; test
   `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
   `Guy::init_real+0x52` (a guy born). Past run572's window (16155..16411): the
   next widening needs a capture.
+- **On the tree merged with item 1416's §108** the word 16482 dissolves (run579
+  block 16483's 20 keys → 0, the window's 1,659 keys → 316) and the floor walk
+  stops at **16760**: ours 97 draws against 39, index 0, ours
+  `Guy::set_anim+0x97a < Animal::do_idle+0x19` where the original spends
+  `Guy::set_anim+0x97a < Unit::move_step+0x823`. Past run579's window
+  (16476..16733): the next widening needs a capture; the pin constant stays at
+  16482 inside run579, the lower floor, until it is taken.
 - **Not established**: the "no block" return (§2.4); the ghost's later life
   (a later clear by a unit leaving the cell, or a repaint) is read only at the
   tick of the probe.

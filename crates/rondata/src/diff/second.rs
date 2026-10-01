@@ -2518,16 +2518,20 @@ mod tests {
         // `num_units[303]`/`[305]` (ours 1/0 against 0/1), the three
         // figures' `g.cur_time`/`g.end_time`/`g.track_dx` and `1/55`'s and
         // `1/66`'s `g.cur_anim`. Item 1418: the first draw parts at index 0,
-        // a guy born in the original's frame.
+        // a guy born in the original's frame. **On the tree merged with
+        // item 1416's** (a Senate's second government re-types its patriot,
+        // `docs/AI.md` §108) block 16483's 20 keys agree and the sequence
+        // runs on to 16760: 1,659 keys -> 316, the word's block 20 -> 0
+        // (measured after `ccc update`'s base, bea9b695).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16476, 223), (16483, 20)],
+            [(16476, 223)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1659, "every key parted on run579");
+        pin_eq!(w.firsts.len(), 316, "every key parted on run579");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
