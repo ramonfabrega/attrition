@@ -1299,6 +1299,72 @@ mod tests {
         assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
     }
 
+    /// `get_cost`'s Silver arm (`docs/AI.md` §99.16). run470's who=1 held
+    /// Silver on 9955 and paid 382 food and 382 knowledge for the
+    /// Gunpowder Age, `(100 − 15) × 450 / 100`; this crate charged 450.
+    #[test]
+    fn silver_takes_its_percent_off_an_age_and_nothing_else() {
+        let (mut sim, t) = sim();
+        for x in [t.classical, t.science1, t.taxation] {
+            sim.tech_tree.types[x].cost = [45, 0, 0, 45, 0, 0];
+        }
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        let (age, epoch, plain) = (
+            sim.tech_price(1, t.classical),
+            sim.tech_price(1, t.science1),
+            sim.tech_price(1, t.taxation),
+        );
+        sim.ledgers[1].rare = 1 << (crate::economy::SILVER - crate::economy::BASE_RARE);
+        let silvered = sim.tech_price(1, t.classical);
+        assert_eq!(silvered[0], age[0] * 85 / 100, "Silver, an age's food");
+        assert_eq!(silvered[3], age[3] * 85 / 100, "and its knowledge");
+        assert_eq!(sim.tech_price(1, t.science1), epoch, "an epoch is no age");
+        assert_eq!(sim.tech_price(1, t.taxation), plain, "nor a plain tech");
+    }
+
+    /// `plan_strategy`'s cheap research tick asks `Leader::can_pay(0)`, the
+    /// head slot's own test with its escrow flag (`docs/AI.md` §2.3,
+    /// §99.16): run470's who=1 held 402 food with 93 of it escrowed for
+    /// the Gunpowder Age at 382, and the original's tick of 9955 bought it.
+    #[test]
+    fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
+        let (mut sim, t) = sim();
+        city(&mut sim, &t, 1, 5, 5);
+        building(&mut sim, 1, t.library, 12, 5);
+        sim.tech_tree.types[t.science1].cost = [10, 0, 0, 0, 0, 0];
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        let price = sim.tech_price(1, t.science1)[0];
+        let head = |escrow| crate::ai::MakeObject {
+            t: t.science1 as i32,
+            val: 1000,
+            escrow,
+            num: 1,
+            cat: 8,
+            ..crate::ai::MakeObject::EMPTY
+        };
+        let ready = |sim: &mut Sim, escrow| {
+            sim.ai[1].make_list.list[0] = head(escrow);
+            sim.ledgers[1].bucket = [price + 1; RESOURCES];
+            sim.ledgers[1].escrow = [0; RESOURCES];
+            sim.ledgers[1].escrow[0] = 10;
+        };
+        // An unescrowed head is priced against the bucket less the
+        // reservation, and the tick passes it by.
+        ready(&mut sim, 0);
+        sim.research_tick(1);
+        assert!(
+            !sim.researching(1, t.science1),
+            "price {price} > bucket − escrow"
+        );
+        // The escrowed head is the reservation's, and the tick buys it.
+        ready(&mut sim, 1);
+        sim.research_tick(1);
+        assert!(
+            sim.researching(1, t.science1),
+            "the escrowed head is bought"
+        );
+    }
+
     /// `get_cost`'s library-line tail (`docs/AI.md` §99.8). run482's
     /// who=1, the British, held Dye on 4576 and researched Empire, the
     /// civic epoch at level 1: this crate charged 144 food and the original

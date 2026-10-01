@@ -13015,7 +13015,9 @@ it is clear, or when it has a marching hero near. `Sim::group_set_march`.
 forbade for gaia, and turns it; 9352 → 9764. **The word 9764** — the
 Trebuchet `1/84`'s fourth crew roll — **answered by item 1338**
 (`docs/ANIM.md` §11): its upgrade's crew is fresh and trackless; 9764 →
-9982.
+9982. **The word 9982** — two `produce_building+0x1805` the original spent
+first — **answered by item 1346** (§99.16): the Gunpowder Age with
+Silver, bought by the cheap tick; 9982 → 9999.
 
 **Not established**: Alexander's arm, the Iroquois bonus and the hero
 auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`
@@ -13028,3 +13030,41 @@ group's `+0x4b` arm and a follower's `has_general` report (mutated: the
 walk, run511 and run517 pass; every follower of the march stood inside the
 Senator's ten tiles). The value diff: without the march, run517 parts on
 block 9114, all 26 walkers; with it, no army position parts.
+
+### 99.16 The Gunpowder Age's price: Silver, and the cheap tick's escrow (item 1346)
+
+**`TypeData::get_cost@00664090`'s Silver arm** (`00666af0`–`00666b51`):
+a type whose `is_age_type` slot (`+0x34`) answers `0x220..0x226`, priced
+for a leader whose `rare` or `rare_conquest` has bit 12 (`testb $0x10,
+0x6da5`, else `0x6dcd`: `SILVER` 18 − `BASE_RARE` 6), takes
+`(100 − SILVER_AGE_COST) × cost / 100` — `15%` in `rules.xml` — after
+the Versailles term and before the library-line tail (§99.8), which an
+age never takes. `Tuning::silver_age_cost`, `cost::Modifiers::silver`,
+`Sim::silver_age_discount`.
+
+**`plan_strategy@006b9620`'s cheap tick** (§2.3) asks `can_pay(this, 0)`:
+`Leader::can_pay@006c9b90` is the slot's own test, `can_pay_cost(who,
+slot[3], slot[5], slot[2])` against `slot[6]`, the escrow flag the fourth
+argument — the same call `make_stuff` makes. This crate's tick passed
+`false`, so an escrowed head was priced against the bucket less its own
+reservation. `research_tick` now asks `Sim::can_pay_slot`.
+
+**What moved**: 9982 → 9999 (the constant's comment has the value
+diff). who=1 gains Silver on 9951; the tick of 9955 (phase 180) buys
+the Gunpowder Age at 382 food and 382 knowledge from 402 and 698, 93 of
+the food escrowed. Either half alone leaves the word at 9982.
+**The word 9999**: ours 56 draws against 8 at index 0; ours opens on two
+`Unit::do_idle+0x7d` rolls, `think_spellcaster+0x413` and 45
+`Unit::think_scout`, the original on `Unit::do_guard+0x7f4`. On run529
+block 9999 the Explorer `1/0`'s `orders.len` is ours 0 against 1, its
+`tolerance` 0 against 384 from 9943. No mechanism is named.
+
+**Not established**: the age-behind discount (`get_cost`'s two loops
+after `calc_science_discount`) and `GREEK_AGE_KNOWLEDGE` (ships 0%) are not carried; no capture prices
+an age with an opponent ahead or for the Greeks.
+
+**Coverage.** Diff-backed by the run470 walk (9999) and
+`run529_s_word_frame_is_widened_whole`; unit tests
+`silver_takes_its_percent_off_an_age_and_nothing_else` and
+`the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket`. Each
+half mutated alone puts the walk back on 9982.

@@ -136,6 +136,10 @@ pub(crate) const TOUGHEST_WORD_BLOCK_9765: i64 = 9_765;
 /// left, inside run529's window.
 pub(crate) const TOUGHEST_WORD_BLOCK_9983: i64 = 9_983;
 
+/// **The word's block, 10000**: frame 9999 writes it — the word item 1346
+/// left, inside run529's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_10000: i64 = 10_000;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -1161,31 +1165,53 @@ mod tests {
         // original's rolls on 9755 and 9764 only (`g.cur_time[0]` 1
         // against 4 on 9759). The word's own row, `g.cur_time[2]` 10
         // against 1 on 9765, agrees with both.
-        for key in [
-            "g.track_dx[1]",
-            "g.cur_anim[1]",
-            "g.cur_time[0]",
-            "g.cur_time[2]",
-        ] {
+        for key in ["g.track_dx[1]", "g.cur_time[0]", "g.cur_time[2]"] {
             pin_eq!(row(1, 84, key), None, "the Trebuchet's {key} agrees");
         }
-        // **The word 9982's block 9983**: the original spends two
-        // `Leader::produce_building+0x1805` under `make_this` ahead of
-        // `make_stuff+0x221`; who=1's make list parts from 9979, and its
-        // timber escrow on the word's block.
+        // Its guy 1's slot parts again on 10004, past the word 9999 (item
+        // 1346): a consequence of the new word, not the old one's row.
         pin_eq!(
-            row(1, -1, "leader:escrow[1:timber]").as_deref(),
-            Some("9983: ours 0 theirs 57"),
-            "who=1's timber, escrowed in the original on the word's block"
+            row(1, 84, "g.cur_anim[1]").as_deref(),
+            Some("10004: ours 1 theirs 0"),
+            "the Trebuchet's g.cur_anim[1], past the word 9999"
+        );
+        // **The move 9982 → 9999** (item 1346, `docs/AI.md` §99.16): the
+        // Gunpowder Age at 382 with Silver, bought by the cheap tick of
+        // frame 9955 off the head's escrowed purse. Block 9956's leader rows
+        // and the word 9982's block 9983 rows agree.
+        for key in [
+            "leader:MAKE[0].val",
+            "leader:bucket[0:food]",
+            "leader:bucket[3:knowledge]",
+            "leader:escrow[0:food]",
+            "leader:escrow[3:knowledge]",
+            "leader:escrow[1:timber]",
+            "leader:MAKE[5].t",
+        ] {
+            pin_eq!(row(1, -1, key), None, "who=1's {key} agrees");
+        }
+        pin_eq!(
+            row(1, 2005, "queue:queued"),
+            None,
+            "the age queued at `1/2005`"
+        );
+        // **The word 9999's block 10000**: ours' Explorer `1/0` has no order
+        // on block 9999 and thinks as a scout on 9999; the original's still
+        // holds one, 24 off ours' last in both coordinates, and its
+        // `tolerance` stands from 9943.
+        pin_eq!(
+            row(1, 0, "orders.len").as_deref(),
+            Some("9999: ours 0 theirs 1"),
+            "the Explorer's order, the original's alone"
         );
         pin_eq!(
-            row(1, -1, "leader:MAKE[5].t").as_deref(),
-            Some("9983: ours -1 theirs 50"),
-            "who=1's Citizen entry, the original's alone"
+            row(1, 0, "tolerance").as_deref(),
+            Some("9943: ours 0 theirs 384"),
+            "the Explorer's tolerance, standing before the word"
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_9983 + 3)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10000 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
@@ -1210,21 +1236,21 @@ mod tests {
                 (9855, 1),
                 (9856, 1),
                 (9943, 1),
-                (9956, 6),
-                (9977, 2),
-                (9979, 9),
-                (9981, 9),
-                (9982, 12),
-                (9983, 41),
-                (9984, 5),
-                (9985, 8),
-                (9986, 59)
+                (9981, 2),
+                (9982, 1),
+                (9985, 1),
+                (9989, 1),
+                (9993, 1),
+                (9994, 1),
+                (9999, 4),
+                (10000, 16)
             ],
-            "the blocks keys first part on, to three past the word 9982's"
+            "the blocks keys first part on, to three past the word 9999's"
         );
         // Item 1338, on the tree merged with 1326's: 1,075 → 557.
         // Item 1330, on the tree merged with 1338's: 557 → 505, the births' `form` (`docs/GROUPS.md` §24.3).
-        pin_eq!(w.firsts.len(), 505, "every key parted on run529");
+        // Item 1346, on the tree merged with 1330's: 505 → 262.
+        pin_eq!(w.firsts.len(), 262, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
