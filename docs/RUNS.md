@@ -13151,7 +13151,43 @@ from launch to exit. Copied into `Logs` as
 `this=1/109`: `collide_here` ucx 607 ucy 810 → 1, `will_be_corner hit
 (606, 809)`, fifteen `is_here` calls all 0 (`1/119` first), no
 `is_corner`. The live block (37, 50) beside this crate's has 13 bits more
-(`docs/AI.md` §107.1). Run 579 was reserved and not used.
+(`docs/AI.md` §107.1). Run 579 widens the word it moved.
+## run579 — run346's game at run572's detail over blocks 16476..16733: the second pair's East Indies word 16482 widened (2026-10-01, item 1418)
+
+**What it is.** run572's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 16476..16733, `!quit` at 16746. The word's frame 16482 writes block
+16483: seven blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run579 \
+    --map 18 --end-frame 16746 --timeout 5400 --log-window 16476 16733 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** Item 1418 moved the word 16250 →
+16482; run572, the last dump of this game at detail, ends at block 16411.
+
+**Taken** 13:13–13:42, the first take; `ron_lane_state` read `free` before.
+`success: true`, `settings_restored: true`, 1,717 s from launch to exit. The
+dump (781,001,089 bytes) and the trace (150,843,200 bytes) were copied into
+`Logs` as `gamelog-run579-islands-toughest-16476.txt` and
+`rontrace-run579.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 16,747 identical |
+| window blocks | 257, 16476..16733 |
+| receipt | `map_style 18`, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run579_s_word_frame_is_widened_whole`
+(`diff::second`), walked from run346's start. Block 16476 stands on 223
+keys; the word's block 16483 parts on 20 (`1/98`'s figures' `gpiece` 303
+against 305 and the leader's `num_units[303]`/`[305]`); the window parts on
+1,659. The compared pin walks 16481..16484 and the coverage driver
+16482..16485.
+
 ## run574 — run470's game at run571's detail over blocks 11876..12133: the third map's word 11882 at Toughest widened (2026-10-01, item 1416)
 
 **What it is.** run571's shape on the click-free lane at run470's lobby,
