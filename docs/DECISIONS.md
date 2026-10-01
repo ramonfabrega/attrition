@@ -4048,8 +4048,30 @@ lines wait for the release that carries them, and the rule accepted
 is "arm last, handle a re-invoking notification, end the turn without
 cancelling" (parked 1392); whether phase 4 opens on the rules track
 alone; the thesis sentence from entry 41; whether the loop hands itself
-to its pass (1141); whether a cheaper model is admitted to a trial
-(1142), its table standing again at `target/pass22/journals-22.md`.
+to its pass (1141); ~~whether a cheaper model is admitted to a trial
+(1142), its table standing again at `target/pass22/journals-22.md`~~.
+
+**Decided the same evening, with Ramon**: (a) **the twenty-third
+tranche's workers run Sonnet 5.5 on all three lanes** — `ccc spawn
+--model claude-sonnet-5-5[1m]`, the model and window verified from the
+first worker's transcript — with the commander on Opus, the frame and
+the gates as the control, and two kill rules: a landing whose
+mechanism the floor did not catch (a red booking gate on its merge)
+ends the trial, and a lane that lands nothing in three attempts on one
+word gets an Opus successor on that word. The twenty-third pass scores
+each lane against this tranche's on the same track — East Indies 625
+frames a landing at 14.4 USD, Toughest 258 at 12.3, the rules lane
+14.8 — in **USD a frame**, wall clock, hypotheses built after a kill,
+earlier red gates and mutations held by a walk, and decides whether
+the model stays; the reason it is run now is the weekly limit at 94 %
+with the alternative an idle week. (b) **Phase 4 waits for East Indies
+to close**, days away, and opens then as a fourth lane that contends
+for no word and no capture lane, scoped to rendering one closed golden
+chapter's recorded state against the original's frames; the pass that
+opens it writes the entry. (c) **Effort stays at its default on every
+lane this tranche** — one setting moved at a time; its measure is on
+record for a later trial: thinking tokens a landing and working
+minutes a landing by `tools/tranche.py`, against frames a landing.
 
 **The estimate, written down to be wrong on record.** Entry 57's: East
 Indies passed 13,500 by 2,509 at 16009; Toughest passed 11,000 by 182;

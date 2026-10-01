@@ -415,7 +415,14 @@ loop's own items** — tooling, guards, the queue's rules — which live in
 `docs/PARKED.md`'s Loop section and are never spawned to a worker; **a
 Loop item that two tranches running did not reach closes at the pass**,
 its text kept in the pass's record, and its next reach files it again
-(`docs/DECISIONS.md` entry 54). It writes the next opener. Never Sonnet; the model is said in user-visible text each
+(`docs/DECISIONS.md` entry 54). It writes the next opener. Never Sonnet
+on a reading or an adjudication; **the twenty-third tranche's workers
+run Sonnet 5.5 as a trial** (`ccc spawn --model claude-sonnet-5-5[1m]`,
+the window verified from the first worker's transcript; DECISIONS 58,
+parked 1142) — the commander stays Opus, the frame and the gates are
+the control, a landing whose mechanism the floor did not catch ends
+the trial, and the next pass scores each lane against the tranche
+before in USD a frame. The model is said in user-visible text each
 time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**

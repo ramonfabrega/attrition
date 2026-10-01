@@ -2542,7 +2542,7 @@ journals and the two compared cell by cell. Not run. **The twentieth
 pass**: the table for the trial stands again,
 `target/pass20/journals-20.md`, twenty-two journals against twenty-one
 columns by a lean subagent on Opus 5.5 (verified by transcript). Still
-the user's to open. **The twenty-first pass**: the table stands again, `target/pass21/journals-21.md`, twenty-two journals against twenty-seven columns by a lean subagent on Opus 5.5 (verified by its transcript). Still the user's. **The twenty-second pass**: again, `target/pass22/journals-22.md`, twenty-five columns. Still the user's.
+the user's to open. **The twenty-first pass**: the table stands again, `target/pass21/journals-21.md`, twenty-two journals against twenty-seven columns by a lean subagent on Opus 5.5 (verified by its transcript). Still the user's. **The twenty-second pass**: again, `target/pass22/journals-22.md`, twenty-five columns. Still the user's. **Opened the same evening, with Ramon** (DECISIONS 58, amended): the twenty-third tranche's workers run Sonnet 5.5 on all three lanes, the commander on Opus, two kill rules, scored per lane in USD a frame against the twenty-second tranche. The table trial runs in the same pass at no risk. Closes at the twenty-third pass on its score.
 
 (1139) **The capture lane is one prefix, one install and one profile**
 (the nineteenth pass, on the user's question): `~/wine-ron`'s lock,

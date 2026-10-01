@@ -26,7 +26,7 @@ base. No score moved in the pass; none was meant to.*
   guard's honest strike pairing, and the runs ledger's fence guard.
 - **East Indies closes at 18,140**: that booking books the third pair's
   first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
-- **The clear is never queried with `--cancel`** (1392); the chain's
+- **The clear is asked with `--status`, never `--cancel`** (1392); the chain's
   last step deletes the lane's remote branch (1390). **The user's**:
   1392, 1315, phase 4 on the rules track, 1141, 1142.
 - **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391).
@@ -39,8 +39,9 @@ Golden: ch48 w1481 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 clo
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the commander, on Opus — spawn 1383, 1388 and 1380, one to a
-lane, briefs by `tools/brief.py`; count landings from the pass's commit
-and stop at twenty.**
+lane, briefs by `tools/brief.py`, every worker `--model
+claude-sonnet-5-5[1m]` (the Sonnet trial, DECISIONS 58; verify model
+and window from the first transcript); stop at twenty.**
 
 ## The queue
 
