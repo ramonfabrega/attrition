@@ -146,6 +146,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1403, 2026-10-01 — the group's answer to a hit
+
+(1405) **`0/7`'s `death:extra` on chapter forty-nine's 943**: ours holds
+the record, the original's does not (chapter forty-eight's family); a
+value row past the closed word, naming no score.
+
 ## Parked by item 1388, 2026-10-01 — the library's cities
 
 (1399) **`get_building_cities`' active flag** (`city_flags & 1`, read
@@ -2842,6 +2848,13 @@ search is by exact assignment. 1382's kin: both want a scan that knows
 a struct literal from a declaration. **The second reach** (1393's Loop
 line): `--field FleeTo` printed "writers none" for a `MoveKind` variant
 used in three places — a variant is not a field.
+
+(1406) **A Sonnet landing's done line quoted neither verdict line**
+(1403, the trial's own): "gate red only on your two lines", with no
+`Lane verdict:` or `Gate steps:` quoted and no verdict commit; the
+commander read them from the lane's `gate2.txt` (finished after the
+tip). The brief's Landing rows say both; a datum for the trial's score.
+One reach.
 
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774
