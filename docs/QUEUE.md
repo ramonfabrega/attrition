@@ -13,15 +13,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
-`docs/audit/2026-10-01-fable-pass-22.md`); **five landings since**,
+`docs/audit/2026-10-01-fable-pass-22.md`); **six landings since**,
 all Sonnet: chapters forty-eight (1380) and forty-nine (1393, 1403)
 closed; Toughest 11182 → 11382 (1388); East Indies
-16009 → 16160 (1383). The tranche before the pass: East Indies 11637 →
+16009 → 16179 (1383, 1401). The tranche before the pass: East Indies 11637 →
 16009 in seven, Toughest 8856 → 11182 in nine, one chapter closed; a
 landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 
 - **Three lanes, Sonnet 5.5** (the trial, verified from 1383's
-  transcript): 1398, 1401 and 1404 live.
+  transcript): 1398, 1404 and 1407 live.
 - **The pass built** `seams.py --field <first parted field>` (frame row
   7; six answers sat on the field's writer or reader), the section
   guard's honest strike pairing, and the runs ledger's fence guard.
@@ -30,17 +30,17 @@ landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 - **The clear is asked with `--status`, never `--cancel`** (1392); the chain's
   last step deletes the lane's remote branch (1390). **The user's**:
   1392, 1315, phase 4 on the rules track, 1141, 1142.
-- **Fable backlog: 27 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391, 1397, 1400, 1402, 1406).
+- **Fable backlog: 28 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391, 1397, 1400, 1402, 1406, 1409).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w16160 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w16179 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11382 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — three lanes live (1398, 1401,
-1404), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
+**Opener: the commander, on Opus — three lanes live (1398, 1404,
+1407), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
 DECISIONS 58); merge and refill as each lands; stop at twenty.**
 
 ## The queue
@@ -51,12 +51,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1401. **East Indies' tenth word: frame 16160, ours 46 draws against 44**
-    (1383), at index 4: ours spends `Guy::init_real+0x52` where the
-    original spends the second `Guy::set_anim+0x97a < do_cast`; inside
-    run572 (block 16161): a new Transport Galleon `1/167` and boarders
-    `1/128` (type 98) and `1/143` (type 179) part on `inside`,
-    `orders.len` and `path:length`. No mechanism is named.
+1407. **East Indies' eleventh word: frame 16179, ours 11 draws against
+    11** (1401), at index 2: ours spends `Unit::do_idle`'s `set_anim`
+    where the original spends `Guy::set_anim+0x104b`; ours' Galleon
+    `1/171` (born 16175) is gone on 16178 where the original's sails
+    on, and `1/79`, `1/86`, `1/87` stand ashore, `inside` −1 against
+    171; the count parts on 16187, 4 against 5. run572. No mechanism is
+    named.
 
 1398. **Great Sahara at Toughest's word: frame 11382, ours 17 draws
     against 16** (1388), at index 0: ours spends `Leader::use_market+0x1ed`
