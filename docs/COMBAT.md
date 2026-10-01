@@ -296,6 +296,25 @@ Antipater inside.
 `ObjectData::armor` — `type.armor`, plus the Dutch `ages × dutch_attack_bonus`
 on the same unit kinds (the patriot exclusion only from patch version 9).
 
+**A building's is `WallData::armor@0063fa60`** (vslot `+0x124`, read off
+the PE at `Build::vftable + 0x124`; `get_damage` reads the target's
+through that slot), and it is `ObjectData::armor` with two arms after it,
+in this order (item 1350, the listing):
+
+1. **The Senator** (`63fab0`–`63fb1f`): when the owner's leader has its
+   `+0x59c0` set, `HeroesData::find_hero` for a `THESENATOR` (`0x161`)
+   within `(type +0x234 + type +0x238) × 96` (zero when vslot `+0x20` is
+   clear); one found adds `thesenator_build_armor`. A Senator itself takes
+   the first arm (`63fa84`–`63faae`). **Not modelled** (`Sim::armor_of`'s
+   `SEAM`).
+2. **A building not `is_active`** (`flags & 4` clear, `63fb31`–`63fb41`)
+   **holds half**: `cltd; sub edx; sar` — a signed `/ 2`, toward zero.
+   run514's Keep site, armour 4, took every Hoplite blow at 2: 13 whole
+   hits, 69 sixteenths a figure (block 706, `damage` 4 and `damage_frac`
+   5), where this crate's 11 dealt 58 and the site lived to 965 against
+   the original's 901. Built in `Sim::armor_of`. **Diff-backed**: run514's
+   site, every blow to its death on 901 (`docs/GOLDEN.md` §56).
+
 `Unit::update_armor` caches `ObjectData::armor` (+ `cattle_citizen_armor` for
 citizens with the Cattle bonus) into `myarmor` on every figure of the squad;
 `UnitData::armor` returns `myarmor` plus `general_rally_armor × (general
@@ -855,7 +874,15 @@ passed on).
 5. A building under construction (not `WallData::is_active`), hit by
    something other than an aircraft, in combat, with `whole > 0`: its
    `WallData::job_counter` loses `whole * 50` (clamped at 0). Hits knock
-   progress off a building site.
+   progress off a building site. **`whole` is step 4's, the carry
+   added** (item 1350): the listing stores it back over `param_1` at
+   `0065230b` and the `imul $0x32` at `0065239b` reads that slot. This
+   crate took the blow's own whole hits, and the aircraft and combat-only
+   tests (`0065234e`–`0065237c`, `00652341`) were not carried: run514's
+   Keep site lost 200 on 738 where the original lost 250. Both built in
+   `Sim::damage_building`. **Diff-backed** on run514's site, every blow
+   (`docs/GOLDEN.md` §56); the aircraft arm and the attrition arm rest on
+   the listing and the unit test alone.
 6. T **not** Build-proper (a unit, a wall): the AI's peasant-alarm (a
    citizen hit inside a city with a finished city building: push an alarm
    group). No change to the numbers.

@@ -9894,6 +9894,24 @@ original's dead on 901. The widening goes 539 → 449 rows; before the
 word only who=1's squad's `order:target` moves, 681 → 682. No mechanism
 is named.
 
+**Item 1350: the site's blows, and the chapter closes at 1400.** The
+site outlived the original's by 64 frames because every blow was light.
+Walked back to the first, block 706: `0/2008`'s `damage`/`damage_frac`
+ours 3/10 against 4/5, `job_counter` 9900 against 9850. Ours dealt
+`(130 × 114 / 100 + 5) / 10 − 4` = 11; the original's 69 sixteenths a
+Hoplite figure is 13, the same sum against armour 2. **A building's
+`armor()` is `WallData::armor@0063fa60`, and an unfinished one holds
+half** (`docs/COMBAT.md` §4.2; the combat table was not it, Hoplites
+against every building are 114 in both). With it the blows agree, and a
+second row opens on 738, `job_counter` ours 9250 against 9200: the blow
+that carried a sixteenth took five points and cost the original 250, not
+200. **A site loses `lost × 50`, carry included** (§7.2 step 5, where
+the aircraft and combat-only exemptions were also missing). The site dies
+on 901 on both sides, who=1's squad turns from it as the original's does,
+and **the word walks to 1400**, the capture's end: word, sequence and
+values. The widening goes 449 → 40 rows, none past the site's death but
+1001's `city:free` and 1021's squad `order:group.id`, both held before.
+
 **The widening** is run514 whole (`[605, 1401)`): 517 rows and 8 pool
 rows, pinned as they stand. Before the word: the standing families and
 the births; the builders' `@move` on 680, `order:kind` ours 19 against

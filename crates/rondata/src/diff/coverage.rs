@@ -2120,7 +2120,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter forty-seven, on run514** (item 1310): 677, the Keep gained
     // on a standing Tower site; 1102, the squad's landing; 1111, the age's
     // snap; 839, the word's block (item 1323); 905, the word's block
-    // (item 1330).
+    // (item 1330), kept since the chapter closed (item 1350).
     if let Some(p) = &ch47 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SEVEN;
         for w in [677, 839, 905, 1102, 1111] {
