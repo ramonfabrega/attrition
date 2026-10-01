@@ -15685,12 +15685,19 @@ fn stage_walk() {
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={}",
+                    "B {}/{} {} alive={} hp={} active={} damage={}/{} job={} under_attack={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),
                     b.alive,
                     b.health,
+                    // Item 1358: a site's progress and its wound, which a
+                    // blow, a bomb and the enemy land each charge.
+                    b.active,
+                    b.damage,
+                    b.damage_frac,
+                    b.job_counter,
+                    b.under_attack,
                     b.pos.x,
                     b.pos.y,
                     queue,
