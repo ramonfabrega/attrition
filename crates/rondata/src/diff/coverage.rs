@@ -1326,6 +1326,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             "run544 carries the second pair's East Indies word 15985's blocks"
         );
         frames += n;
+        // Item 1377 moved it to 16009 (block 16010), inside run544.
+        let n = drive_capture(p, 16_009, 16_012, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run544 carries the second pair's East Indies word 16009's blocks"
+        );
+        frames += n;
     }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);

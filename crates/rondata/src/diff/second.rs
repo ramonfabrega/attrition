@@ -179,7 +179,8 @@ pub(crate) fn walk_second_probed(
 /// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
 /// the walk to run523; item 1341 moved it to 14141, and the walk to
 /// run535; item 1351 moved it to 15862, and the walk to run544; item 1362
-/// moved it to 15883, inside it; item 1370 moved it to 15985, inside it.
+/// moved it to 15883, inside it; item 1370 moved it to 15985, inside it;
+/// item 1377 moved it to 16009, inside it.
 /// `None`
 /// when the captures are
 /// not on this machine.
@@ -2296,7 +2297,14 @@ mod tests {
         // word's frame 15985 stood before the item and stand; the word's
         // own block 15986 parts on 47 keys: `1/2047` placed at (35904,
         // 25728) against (39744, 21888), and `1/88` and `1/122` each on the
-        // other's order.
+        // other's order. **Item 1377 builds the Tower line in the
+        // placement** (`docs/AI.md` §11.4): a Keep is `is(0x1b7, 0)`, so its
+        // spiral starts at the anchor, its friends are squared and two
+        // farms put it on (51, 28); 15986 goes 47 → 0, who=1's `defense`
+        // with it (`Build::init`'s `+1`). Who=0's `production_step` on
+        // 16001 is the human the crate never steps (`docs/AI.md` §23.1); the
+        // new word's block 16010 parts on 23 keys, all the Supply Wagon
+        // `1/153`'s: its figures and its move's `pause`, 14 against 15.
         let row = |who: i64, o: i64, what: &str| {
             w.firsts
                 .get(&(who, o, what.to_string()))
@@ -2324,8 +2332,18 @@ mod tests {
         );
         pin_eq!(
             row(1, 2047, "build:x_internal").as_deref(),
-            Some("15986: ours 35904 theirs 39744"),
-            "the new word's block: who=1's site placed elsewhere"
+            None,
+            "the Keep's site on (51, 28) agrees: the Tower line (item 1377)"
+        );
+        pin_eq!(
+            row(1, 88, "order:kind").as_deref(),
+            None,
+            "the Keep's builder agrees: `1/122` is called, `1/88` gathers"
+        );
+        pin_eq!(
+            row(1, -1, "leader:defense").as_deref(),
+            None,
+            "who=1's `defense` counts the placed Keep (`Build::init`, item 1377)"
         );
         pin_eq!(
             by.iter()
@@ -2338,12 +2356,14 @@ mod tests {
                 (15869, 47),
                 (15924, 1),
                 (15985, 1),
-                (15986, 47)
+                (16001, 1),
+                (16010, 23)
             ],
             "the blocks keys first part on, to the word's"
         );
         // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
-        pin_eq!(w.firsts.len(), 982, "every key parted on run544");
+        // Item 1377, the Keep's site: 982 → 662.
+        pin_eq!(w.firsts.len(), 662, "every key parted on run544");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
