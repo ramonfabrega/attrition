@@ -4390,6 +4390,58 @@ mod tests {
         );
     }
 
+    /// §5.1's kill arm under a **`TRADE_ROUTE`**: the same walk onto the
+    /// same parked unit, with a trade order beneath the move, is not
+    /// widened but killed where the caravan stands — `5f8721`'s `cmpl
+    /// $0xf` is the first of the four actions the listing tests, ahead of
+    /// `GATHER`, `ATTACK` and `BUILD_AT`. Great Sahara at Toughest's
+    /// caravan `1/52` stopped so on frame 10390, a builder on its last
+    /// node, and its `do_trade` rolled the next frame (item 1371). The
+    /// same walk under a move alone widens (the test above).
+    #[test]
+    fn a_trade_walk_onto_a_parked_unit_is_killed_where_it_stands() {
+        let a = Pos::new(34 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(24 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        sim.enqueue_order(
+            x,
+            Order {
+                flags: 0,
+                body: Body::Trade(crate::orders::TradeOrder {
+                    home: 0,
+                    dest: Some(1),
+                    started: true,
+                    loaded: false,
+                }),
+            },
+            QueuePos::New,
+        );
+        sim.add_move_order(
+            x,
+            b,
+            crate::orders::MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        assert!(matches!(sim.units[x].orders[0].body, Body::Move(_)));
+        assert_eq!(sim.action_of(x), Some(1), "the trade is the action");
+        sim.tick();
+        assert_eq!(sim.units[x].pos, a, "not one step of the walk was taken");
+        assert_eq!(
+            sim.units[x].orders.len(),
+            1,
+            "the move is gone: {:?}",
+            sim.units[x].orders
+        );
+        assert!(matches!(sim.units[x].orders[0].body, Body::Trade(_)));
+        assert_eq!(sim.units[x].collide_o, sim.units[y].index);
+        assert_ne!(
+            sim.units[x].tolerance,
+            3 * 48,
+            "and the tolerance was never widened"
+        );
+    }
+
     /// §2.1: the generated spiral is the Chebyshev disc, ring by ring, and
     /// its first nine entries are the compass the pathfinder uses.
     #[test]
