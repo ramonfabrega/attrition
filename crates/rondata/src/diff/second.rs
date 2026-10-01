@@ -2446,16 +2446,15 @@ mod tests {
                 (16176, 2),
                 (16182, 1),
                 (16184, 1),
-                (16192, 9),
-                (16193, 15),
-                (16199, 2),
-                (16200, 10),
+                (16200, 1),
                 (16201, 1),
                 (16210, 1),
-                (16216, 9),
-                (16217, 15),
-                (16221, 6),
-                (16222, 4)
+                (16239, 1),
+                (16240, 7),
+                (16241, 3),
+                (16244, 4),
+                (16250, 7),
+                (16251, 1)
             ],
             "the blocks keys first part on, to the word's"
         );
@@ -2469,7 +2468,13 @@ mod tests {
         // index 4). `1/115`'s path parts first on 16216 (length 60 against
         // 48, `path[47]` (28344, 37224) against (28872, 37992)).
         // Item 1407: 3416 -> 2279, the Galleon `1/171`'s embark flag.
-        pin_eq!(w.firsts.len(), 2279, "every key parted on run572");
+        // **The word 16250** (item 1410, `docs/AI.md` §106): ours 12 draws
+        // and the original 13, at index 1 — ours `Unit::move_step+0x823`
+        // where the original spends `do_cast`; `1/109` carries a Cast at
+        // its head in the original (`order:kind` 2 against 14). Its first
+        // parting is `half_step` on 16239 (ours 1, theirs 0).
+        // Item 1410: 2279 -> 1694, `1/111`'s transport cast is waited on.
+        pin_eq!(w.firsts.len(), 1694, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

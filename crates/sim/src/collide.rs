@@ -2184,7 +2184,21 @@ impl Sim {
 
         // Step 5: wait for it, when the thing in the way is going
         // somewhere and neither of us has given up.
-        if its_move && its_order != index::FLEE_TO {
+        //
+        // **A transport cast is the eighth kind** (item 1410,
+        // `005fa4f4`–`005fa559`): past the move family the listing tests
+        // `order_type == CAST_SPELL` and the spell's `+0x20` against
+        // `0x28a`, and a hit joins the same wait. A unit that stands
+        // casting its boat's spell is something to wait for, not to walk
+        // around — step 4's sidestep keeps the seven.
+        let its_transport_cast = its_order == index::CAST_SPELL
+            && other.is_some_and(|o| {
+                matches!(
+                    self.current_order(o).map(|x| x.body),
+                    Some(Body::Cast(c)) if c.spell == crate::orders::spell::TRANSPORT
+                )
+            });
+        if (its_move || its_transport_cast) && its_order != index::FLEE_TO {
             let cap = if self.repaths[who as usize] > 3 {
                 0x80
             } else {
@@ -3268,6 +3282,37 @@ mod tests {
             "the walk finished; it stalled at {:?} with {:?}",
             sim.units[x].pos, sim.units[x].path
         );
+    }
+
+    /// **Step 5 waits on a transport cast as on a move** (item 1410,
+    /// `005fa4f4`): `y` stands with a `TRANSPORT` cast at its head and the
+    /// move under it; `x` walking into it waits where it stands, and
+    /// repaths for any other spell.
+    #[test]
+    fn a_collider_casting_the_transport_spell_is_waited_for() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let run = |spell: i32| {
+            let (mut sim, x, y) = pair(a, b);
+            sim.order_move(x, goal);
+            sim.order_move(y, Pos::new(35 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+            sim.tick();
+            sim.add_cast_order(y, spell);
+            sim.units[x].collide_o = sim.units[y].index;
+            sim.units[x].collide_who = 0;
+            sim.units[x].waiting_on = false;
+            sim.units[y].collide_o = -1;
+            sim.units[y].collide_who = -1;
+            sim.units[y].waiting_on = false;
+            sim.resolve_unit_collision(x);
+            sim.units[x].waiting_on
+        };
+        assert!(
+            run(crate::orders::spell::TRANSPORT),
+            "waits for the boat's cast"
+        );
+        assert!(!run(crate::orders::spell::PACK), "another cast is repathed");
     }
 
     /// §6's tail, the mechanic's **only** draw — and the two guards that
