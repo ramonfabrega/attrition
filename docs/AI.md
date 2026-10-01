@@ -3506,11 +3506,30 @@ naming them moved the long capture's *sequence* number from 6780 to
 that spends the draw ([`sim::ai_units`], [`sim::ai_build`]) and the
 addresses in `rondata::trace::SITES`, per that table's own rule.
 
-**Not established.** `upgrade_units`' site has never fired in the
+~~**Not established.** `upgrade_units`' site has never fired in the
 original on any capture here — it is named against the listing, and the
 frame that would exercise it is the frame this crate stopped spending it
 on (`docs/TECH.md`, "The starting position is a function of the
-nation"). If it ever fires on both sides, the label is what will say so.
+nation"). If it ever fires on both sides, the label is what will say so.~~
+**Fired, on both sides** (item 1379): run470's frame 10779, Great Sahara
+at Toughest, four `upgrade_units+0x5a4` rolls for who=1 — the label is
+diff-backed, one roll per type that reaches the draw.
+
+**Which types reach it: `researching`'s unit arm** (item 1379). The
+gate before the value is `LeaderData::researching(t, −1, 0, 0)`
+(`6c657e`..`6c6587` push `0, 0, −1, t`), and with `param_4` 0 its unit
+arm (`6db5d9`..`6db62c`) counts a queued entry of a unit type `u` with
+neither `u`'s bit nor `t`'s set and `t.is(u, 0)` — so a rung of `t`'s own
+line in research hides `t`, not only `t` itself (`docs/PRODUCTION.md`,
+the research arm). On 10779 who=1 had the Heavy Horse Archers
+(`CAVARCHERS`, 188) in research, queued before its Gunpowder age-up; the
+Dragoon (189) is a jump unit, `RESEARCHABLE` while that rung is not
+available, and this crate offered it on the tech equality alone — a
+fifth roll, and a make-list head of 1,152,000 where the original's is the
+Elite Knight's 672,000 (run562, block 10780). **Diff-backed** by run562's
+widening and the walk (10779 → 11182). `produce_tech` asks the same
+`researching(t, −1, 0, 0)` and still takes the equality alone: a `SEAM`
+there, no capture read for it.
 
 ---
 
