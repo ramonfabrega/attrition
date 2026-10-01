@@ -1756,7 +1756,27 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_160;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **11182 since item 1379** (`docs/AI.md` §28.1): `upgrade_units` asks
+/// **11382 since item 1388** (`docs/AI.md` §102): `Muster::library_cities`
+/// was never written, so the first library's queue advanced one slot where
+/// `LeaderData::get_building_cities@006e06f0` lets it advance one per city
+/// holding a library — who=1's Trade (`560`) and Conscription (`575`)
+/// ran together in the original from before block 10774. **The move's
+/// value diff** (run562, block 10774): `1/2005`'s `queue[0].job_counter`
+/// ours 13500 against 18700 and `queue[1]` 0 against 13500 → agreeing, and
+/// with them who=1's `epoch[2]` and `epochs` on 10903, `queued` on 10903,
+/// `resource_cap` on 10904 and `MAKE[3].t` on 10985 (run562's keys 144 →
+/// 101); run571's block 11181 — the original's head Scholars and
+/// Citizens at 9,999,999 — and the word's block 11183 agree, 1,270 keys →
+/// 419 with nothing parting before block 11184. Frame 11182's draws went
+/// 11 against 12 parting at index 0 → agreeing. **The new word's delta:
+/// ours 17 draws and the original 16 on frame 11382, parting at index 0**,
+/// the same pair (`Leader::use_market+0x1ed` where the original spends
+/// `Leader::make_stuff+0x221`); who=1's `MAKE[2]` parts on block 11381 —
+/// ours `t` 61 at 931034, the original's the Bombard (267) at 604160 — and
+/// `caras` ours 3 against 4 on 11372, `peasants` 42 against 43 on 11345;
+/// widened on run571 (block 11383).
+///
+/// **11182 before it (item 1379)** (`docs/AI.md` §28.1): `upgrade_units` asks
 /// `researching(t, −1, 0, 0)` (`6c657e`), whose unit arm counts a rung of
 /// `t`'s line in research (`6db5d9`..`6db62c`) — who=1's Heavy Horse
 /// Archers were, so the original never reaches the Dragoon's roll, where
@@ -2005,7 +2025,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_160;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_182;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_382;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5721,8 +5741,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 /// Scout `0/7`, `ammo[0].total_time` ours 7 against 16 and `v1z` ours
 /// 2.849108 against 69.087502, its ends agreeing. No mechanism is named.
 ///
-/// **The delta**, this constant's: +31, 1450 → 1481.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1481;
+/// **Item 1380: 1750, closed.** `BuildData::get_shot@0062dd90` is 0 for a
+/// Tower in the first three ages (the owner's `ages` ≤ 2), and
+/// `Ammo::init@0067bbf0`'s building arm then flies the arrow at
+/// `unit_move_speed × 0x5a` — 16 frames over 1,463 units where the type's
+/// `PROJ_SPEED` 200 made ours 7. The word walked to 1503 on that alone;
+/// the Scout's lead (`0067cf1a`, shared by a unit shooter and a building)
+/// was the second, the Tower's second shot landing 374 and 572 units
+/// short of the original's on 1482. With both the walk reaches the end of
+/// the trace.
+///
+/// **The delta**, this constant's: +269, 1481 → 1750 (the trace's end).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1750;
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
@@ -8064,7 +8094,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run571_s_word_frame_is_widened_whole"),
-        1379,
+        1388,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_11182),
     ),
 ];

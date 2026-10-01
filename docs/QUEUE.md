@@ -13,14 +13,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-second Fable pass landed** (DECISIONS 58,
-`docs/audit/2026-10-01-fable-pass-22.md`); zero landings since. The
-tranche before it: East Indies 11637 → 16009 in seven, Great Sahara at
-Toughest 8856 → 11182 in nine, chapter forty-seven closed and
-forty-eight opened; a landing 80 minutes, 50 of them waiting on the
-suite, a capture and the gate — no stop on a classifier or a moved
-base. No score moved in the pass; none was meant to.*
+`docs/audit/2026-10-01-fable-pass-22.md`); **two landings since**:
+chapter forty-eight closed at 1750 (1380); Toughest 11182 → 11382
+(1388), both Sonnet. The tranche before the pass: East Indies 11637 →
+16009 in seven, Toughest 8856 → 11182 in nine, one chapter closed; a
+landing 80 minutes, 50 of them waiting on suite, capture and gate.*
 
-- **No lane is live.** 1383, 1388 and 1380 are unstarted, one to a word.
+- **Three lanes, Sonnet 5.5** (the trial, verified from 1383's
+  transcript): 1383, 1393 and 1398 live.
 - **The pass built** `seams.py --field <first parted field>` (frame row
   7; six answers sat on the field's writer or reader), the section
   guard's honest strike pairing, and the runs ledger's fence guard.
@@ -29,19 +29,18 @@ base. No score moved in the pass; none was meant to.*
 - **The clear is asked with `--status`, never `--cancel`** (1392); the chain's
   last step deletes the lane's remote branch (1390). **The user's**:
   1392, 1315, phase 4 on the rules track, 1141, 1142.
-- **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391).
+- **Fable backlog: 25 Loop items** (1119, 1138, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344, 1349, 1361, 1364, 1369, 1374, 1382, 1387, 1392, 1390, 1391, 1397, 1400).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16009 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11182 of 15,432
-Golden: ch48 w1481 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11382 of 15,432
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — spawn 1383, 1388 and 1380, one to a
-lane, briefs by `tools/brief.py`, every worker `--model
-claude-sonnet-5-5[1m]` (the Sonnet trial, DECISIONS 58; verify model
-and window from the first transcript); stop at twenty.**
+**Opener: the commander, on Opus — three lanes live (1383, 1393,
+1398), every worker `--model claude-sonnet-5-5[1m]` (the Sonnet trial,
+DECISIONS 58); merge and refill as each lands; stop at twenty.**
 
 ## The queue
 
@@ -58,17 +57,20 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     16010): the Supply Wagon `1/153` (type 63) of group 71 parts on its
     figures and its move's `pause`, 14 against 15. No mechanism is named.
 
-1388. **Great Sahara at Toughest's word: frame 11182, ours 11 draws
-    against 12** (1379), at index 0: ours spends `Leader::use_market+0x1ed`
-    where the original spends `Leader::make_stuff+0x221` (seed
-    `340a6de6`); who=1's `MAKE` list parts on block 11181 (the original's
-    head Scholars `t` 52 at 9999999); widened on run571 (block 11183,
-    1,270 keys). No mechanism is named.
+1398. **Great Sahara at Toughest's word: frame 11382, ours 17 draws
+    against 16** (1388), at index 0: ours spends `Leader::use_market+0x1ed`
+    where the original spends `Leader::make_stuff+0x221`; who=1's
+    `MAKE[2]` parts on block 11381, ours `t` 61 at 931,034 against the
+    original's Bombard (267) at 604,160; earlier `caras` 3 against 4
+    (11372). Widened on run571 (block 11383). No mechanism is named.
 
-1380. **Chapter forty-eight's word: frame 1481, ours 4 draws against 8**
-    (1375), at index 1 (seed `0x1db3b76a`), walked back to block 1451:
-    `1/2006`'s `ammo[0].total_time` ours 7 against 16 — the finished
-    Tower's first shot on the Scout `0/7`. No mechanism is named.
+1393. **Chapter forty-nine: three arms the unit tests hold and no
+    walk** (DECISIONS 56 §3): a Tower's arrow past its owner's second
+    age, where `get_shot` gives the type's `PROJ_SPEED` (1380's K3); the
+    sixteen-frame review skipped under the Bombard's pack arm (1378); and
+    `get_cost`'s bump loop's `JUMP` arm, an upgrade queued two links
+    ahead of a unit in training (1352). Whether one staging reaches each
+    is the item's to establish first.
 
 ## How to maintain this file
 

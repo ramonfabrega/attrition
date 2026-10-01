@@ -183,6 +183,10 @@ pub struct BuildType {
     pub tree: Option<tech::TypeId>,
     /// Its combat columns, for a building that shoots — `docs/COMBAT.md`.
     pub combat: Option<combat::Profile>,
+    /// `BuildData::get_shot@0062dd90`'s exact-type arms (`TypeIndex`, not
+    /// a line): `Some(n)` for the types its switch names, `None` for every
+    /// other type, which reads the owner's `ages` (`docs/COMBAT.md` §9.1).
+    pub shot: Option<i32>,
     /// `BuildType::mask` — the per-tile blocking template
     /// `BuildType::init_build_mask@006310b0` reads, `x_size × y_size` bytes
     /// row-major by `y` (`mask[y × x_size + x]`), 1 where

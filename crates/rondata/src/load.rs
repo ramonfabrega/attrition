@@ -1447,6 +1447,15 @@ pub fn load_tables(
         };
         build_types.push(BuildType {
             ident: ident_of(i),
+            // `BuildData::get_shot@0062dd90`'s switch, by `TypeIndex`.
+            shot: match 0x19e + i {
+                0x1b9 | 0x1bd => Some(1),
+                0x1ba | 0x20b | 0x20c => Some(2),
+                0x1be => Some(4),
+                0x209 | 0x20a => Some(0),
+                0x20d => Some(5),
+                _ => None,
+            },
             from: c.from,
             to: None,
             x_size: c.x_size,

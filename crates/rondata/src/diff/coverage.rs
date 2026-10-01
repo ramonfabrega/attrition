@@ -1579,11 +1579,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **And its word 11182, on run571** (item 1379): the frame writes
     // block 11183, past run562's last block 11030.
     if let Some(p) = &r571 {
-        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_11183;
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_11383;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(
             n, 5,
-            "run571 carries the third map's word 11182 at Toughest"
+            "run571 carries the third map's word 11382 at Toughest"
         );
         frames += n;
     }
