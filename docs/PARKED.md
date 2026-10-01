@@ -2868,6 +2868,22 @@ was the decoy bit, which `is_castable@00675bc0`'s head tests; `do_cast`'s
 own SEAM list named the wrong unmodelled arm. A field search cannot see
 a predicate on another field. One reach.
 
+(1411) **A one-line sim fix re-pins eight windows by hand** (1407's Loop
+line): run143's floor, run419-421, run480/490/506/523 and run572's keys
+all moved with one `transport.rs` edit, and the first slice-replace
+mangled `second.rs`. A re-pin helper that prints each failing pin's new
+value would save the edits. One reach.
+
+(1412) **Three Sonnet landings sent no done line, and the commander slept
+3h40** (the trial's own, found 2026-10-01 after the user's `/clear`):
+1398 (05:03, unpushed, gate not re-run on its tip), 1404 and 1407 (06:15,
+pushed, gated) each wrote its landing in its own transcript and never
+called SendMessage — a deferred tool none of them loaded (0 ToolSearch
+calls); 1401, which did load it, reached the commander. The frame's
+"send me one line" names no tool. Nothing else wakes an idle commander:
+the remedy is the frame naming `ToolSearch("select:SendMessage")` and
+the commander spawning with an idle notice. One reach.
+
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774
 held `1/2005`'s two `queue[].job_counter` rows, which `standing.py`
