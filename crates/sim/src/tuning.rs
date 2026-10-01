@@ -747,6 +747,10 @@ pub struct Tuning {
     /// British arm, on any type whose domain is the sea
     /// (`docs/PRODUCTION.md`, "The tail").
     pub british_ship_speed: i32,
+    /// Tiles added to the range of a British Tower-line or Fort-line
+    /// building (`BuildTypeData::get_building_range@00639990`'s first
+    /// block, `docs/GOLDEN.md` §59). Ships as `2 range increase`.
+    pub british_tower_range: i32,
     /// Percent faster British creation of the Archers line. Ships as zero,
     /// so the arm is live and inert at once.
     pub british_archer_speed: i32,
@@ -1176,6 +1180,7 @@ impl Tuning {
         spice_caravan_income: 20,
         indians_caravan: 15,
         british_ship_speed: 33,
+        british_tower_range: 2,
         british_archer_speed: 0,
         british_aa_speed: 33,
         dutch_fort_speed: 0,
@@ -1238,7 +1243,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 341] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 342] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1822,6 +1827,7 @@ impl Tuning {
             ("SPICE_CARAVAN_INCOME", Slot::Value(T.spice_caravan_income)),
             ("INDIANS_CARAVAN", Slot::Value(T.indians_caravan)),
             ("BRITISH_SHIP_SPEED", Slot::Value(T.british_ship_speed)),
+            ("BRITISH_TOWER_RANGE", Slot::Value(T.british_tower_range)),
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
             ("DUTCH_FORT_SPEED", Slot::Value(T.dutch_fort_speed)),

@@ -4372,6 +4372,78 @@ mod flak_tests {
     /// Radar still holds `attack_ox 6` on block 1007, after `0/6` was shot
     /// down on 1006, so `Build::process` runs `do_attack` on tick 1007 and
     /// its `find_target` turns it to `0/7`.
+    /// A stockade-shaped building: range 11, a ground unit 13 tiles away.
+    fn stockade_and_scout(s: &mut Sim) -> (usize, usize) {
+        let b = building(
+            s,
+            1,
+            Pos::new(22272, 16512),
+            combat::Profile {
+                attack: 12,
+                recharge: 30,
+                max_range: 11,
+                to_hit: 110,
+                proj_speed: 200,
+                ammo_per_att: 1,
+                base_arrows: 1,
+                most_shots: 2,
+                x_size: 2,
+                y_size: 2,
+                ..combat::Profile::default()
+            },
+        );
+        let sc = unit(
+            s,
+            0,
+            Pos::new(22272 + 13 * 192 + 192 + 72, 16512),
+            combat::Profile {
+                domain: Domain::Land,
+                ..combat::Profile::default()
+            },
+        );
+        (b, sc)
+    }
+
+    /// **`get_building_range`'s British term** (item 1415, `docs/GOLDEN.md`
+    /// §59): a British owner's Tower-line building reaches `BRITISH_TOWER_RANGE`
+    /// further; anyone else's, or a non-tower's, does not.
+    #[test]
+    fn a_british_tower_line_building_reaches_two_tiles_further() {
+        let mut s = sim();
+        let (b, _) = stockade_and_scout(&mut s);
+        let mut tower = crate::build::BuildType::default();
+        tower.ident = crate::build::Ident::Tower;
+        let bt = s.add_build_type(tower);
+        s.buildings[b].ty = Some(bt);
+        let me = Obj::Building(b);
+        assert_eq!(s.max_range_of(me), 11, "not British");
+        s.nation[1].british = true;
+        assert_eq!(s.max_range_of(me), 13, "British Tower line");
+        let other = s.add_build_type(crate::build::BuildType::default());
+        s.buildings[b].ty = Some(other);
+        assert_eq!(s.max_range_of(me), 11, "British, not a tower");
+    }
+
+    /// **`Build::process`'s early trigger** (item 1415): a building with no
+    /// target runs `do_attack` off its 32-frame phase when `near_o` is in
+    /// range.
+    #[test]
+    fn a_building_with_a_sighting_in_range_attacks_off_its_phase() {
+        let mut s = sim();
+        let (b, sc) = stockade_and_scout(&mut s);
+        s.units[sc].pos = Pos::new(22272 + 8 * 192, 16512);
+        let frame = (5 - i64::from(s.buildings[b].index)).rem_euclid(32);
+        s.process_building_combat(b, frame);
+        assert_eq!(s.buildings[b].target, None, "no sighting, off phase");
+        s.buildings[b].near = Some(Obj::Unit(sc));
+        s.process_building_combat(b, frame);
+        assert_eq!(
+            s.buildings[b].target,
+            Some(Obj::Unit(sc)),
+            "sighting in range"
+        );
+    }
+
     #[test]
     fn a_building_keeps_a_dead_target_until_do_attack_replaces_it() {
         let mut s = sim();
