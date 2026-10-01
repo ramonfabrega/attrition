@@ -1805,6 +1805,23 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
+/// **11985 since item 1416** (`docs/AI.md` §108): the other arm of
+/// `Build::finished`'s Senate tail. Who=1's Senate finishes Democracy on
+/// 11882 with The Senator `1/80` standing, and the original `set_type`s it
+/// to The President (353 → 355) where this crate left it. **The move's
+/// value diff** (run574, block 11883): who=1's `num_units[303]` ours 1
+/// against 0 and `[305]` 0 against 1, `1/80`'s `gpiece[0..2]` 303/12975/
+/// 25647 against 305/12977/25649, `cur_anim`, `end_time`, `des_x/y`,
+/// `track_dx` → agreeing; run574's keys 1,280 → 979. Frame 11882's draws
+/// went 7 against 11 parting at index 2 → agreeing. **The new word's
+/// delta: ours 15 draws and the original 10 on frame 11985, parting at
+/// index 3**: ours spends `Leader::produce_building+0x1805` where the
+/// original spends `Guy::set_anim+0x97a < Animal::do_idle+0x19`. The
+/// first state part is `1/124` on block 11976 (`g.angle[0]` ours
+/// 1431655765 against 0, `orders_x/y` 21984/18912 against 22008/18936);
+/// who=1's `MAKE[2]` parts on 11979 (`t` 561 against 604). Widened on
+/// run574 (block 11986).
+///
 /// **11882 since item 1398** (`docs/AI.md` §103): the census's live half.
 /// `Leader::track_unit_type@006e0dd0` and `Unit::set_type@00612fa0` move
 /// `peasants`, `scholars` and `caras` the frame a unit is born or closed,
@@ -2092,7 +2109,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_882;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 11_985;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8222,13 +8239,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        // Item 1398 moved the word to 11882, past run571's window: no
-        // widening holds it, and item 1416, which books it, owes the
-        // capture. run571's test keeps the move's value diff on
-        // 11345..11381.
-        None,
+        // Item 1398 moved the word to 11882, past run571's window; item
+        // 1416 widened it on run574 over 11876..12133. run571's test keeps
+        // the move's value diff on 11345..11381.
+        Some("run574_s_word_frame_is_widened_whole"),
         1416,
-        None,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_11882),
     ),
 ];
 
