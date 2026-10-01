@@ -1213,6 +1213,12 @@ impl Sim {
             ever_seen: 0,
             ever_seen_completed: 0,
         });
+        // `Build::init@00629740` line 74: a type with arrows (`+0x1e8`)
+        // counts in its owner's `defense` the moment it is placed, ungated;
+        // the sweep's recount replaces the tally (`docs/AI.md` §2, step 11).
+        if bt.attack != 0 {
+            self.defense_add(who, 1);
+        }
         // `start_me(1)`: reserve the footprint.
         let corner = self.tile_corner(ty, pos);
         for t in self.footprint(ty, corner) {
@@ -1289,6 +1295,27 @@ impl Sim {
             self.buildings[b].gather_max = Some(self.max_gatherers(b));
         }
         b
+    }
+
+    /// `LeaderData::defense` (`+0x954`) moved by one of the building
+    /// lifecycle's three writers — `Build::init`, `Build::activate`,
+    /// `Build::close` — between the sweeps that recount it.
+    ///
+    /// **Not for a human, and that is this crate's gap, not the
+    /// original's.** The original sweeps every leader (`strategy_all`'s
+    /// gate is `leader_flags & 3 == 3`) and its recount puts the human back
+    /// to its towers and forts — run346's who=0 reads `defense 2` at the
+    /// start dump (its city, placed and activated) and 0 by 15857. This
+    /// crate sweeps no human ([`Sim::strategy_all`], `docs/AI.md` §23.1),
+    /// so a tally it moved would never be recounted; a human's stays at
+    /// nought, which is the original's value whenever it holds no tower.
+    fn defense_add(&mut self, who: Player, n: i32) {
+        if self.nation.get(who as usize).is_some_and(|n| n.human) {
+            return;
+        }
+        if let Some(l) = self.ai.get_mut(who as usize) {
+            l.census.defense += n;
+        }
     }
 
     /// `BuildData::construct_time(0)` for a building.
@@ -1759,6 +1786,11 @@ impl Sim {
             self.update_seen_build(b);
             return;
         };
+        // `Build::activate@00623e20` line 1240, ungated: `defense += 1` again
+        // for a type with arrows, until the next sweep recounts.
+        if self.build_types[ty].attack != 0 {
+            self.defense_add(who, 1);
+        }
         // Chinese cities are founded as Large Cities.
         if build::is_city(&self.build_types, ty)
             && !captured
@@ -2025,6 +2057,14 @@ impl Sim {
             return;
         }
         let who = self.buildings[b].owner;
+        // `Build::close@00628980` line 59, its first act: `defense -= 1`
+        // for a type with arrows.
+        if self.buildings[b]
+            .ty
+            .is_some_and(|t| self.build_types[t].attack != 0)
+        {
+            self.defense_add(who, -1);
+        }
         // `Build::close@00628980` line 95: the economy's dirty flag.
         self.economy_changed(who);
         // `clean_queue(refund)`.

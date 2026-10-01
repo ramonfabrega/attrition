@@ -219,7 +219,7 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
 11. **The building census** — every active building of mine (the build
     and wall lists): a finished gather building (vslot `+0x90` on its
     type) adds its `gather_max` (`Build+0x80`) to `gather_slots[good]`;
-    every active building with `type+0x1e8` (`attack`) set counts `defense
+    ~~every active building~~ any building (§100) with `type+0x1e8` (`attack`) set counts `defense
     += 1` for a tower (`is(0x1b7)`) or `2` for a fort (vslot `+0xfc` =
     `is_fort`, `docs/CITIES.md` §1.5 — corrected from "has arrows" by the
     `create_buildings` reading), and `reg_defense[r]` the same. **The guard
@@ -13092,3 +13092,130 @@ an age with an opponent ahead or for the Greeks.
 `silver_takes_its_percent_off_an_age_and_nothing_else` and
 `the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket`. Each
 half mutated alone puts the walk back on 9982.
+
+## 100. The Tower line in the placement, and `defense` between sweeps (2026-10-01, item 1377)
+
+East Indies' second-pair word on **15985**: ours 50 draws against 49,
+parting at index 46. Both sides spend the same 46 first — `use_market`,
+four `produce_building+0x1805`, three `make_stuff+0x221`, 34
+`produce_building+0xc99` (a farm's spiral), three `+0x1805`,
+`make_stuff+0x63d`. Then ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` for `1/88`, and the original `Guy::set_anim+0x97a
+< Guy::inc_time+0x271` (seed `732a71ea`).
+
+### 100.1 The event: a Keep placed on another cell
+
+On run544's block 15986, who=1's make list fires its head, a **Keep**
+(`MAKE[0].t` 440, `FROM` Tower, `BUILD_FLAGS` `ecan`), for its city at
+cell (49, 30). Both sides place it as `1/2047`:
+
+- **the original** at (39744, 21888): cell (51, 28), jittered one tile east;
+- **ours** at (35904, 25728): cell (46, 33).
+
+Each side then calls the nearest citizen. The original takes `1/122`
+(`PEASANTS`, type 50, a woodcutter) and ours `1/88` (`PEASANTS`, also a
+woodcutter). Ours' walking `1/88` is the extra draw. The Farm `1/2048`
+placed after it agrees.
+
+Printed in ours' spiral, every friendless cell within 4 scored
+`1000 + 0xff − val` = 1255, and ties go to the later cell (`local_40 <=
+local_14`). So ours took the last 1255 of the spiral.
+
+### 100.2 `local_84` and `find_friends` read the line
+
+`Leader::produce_building@006e1400` computes `local_84 = is(0x1b7, 0)` at
+`006e15b7`. That is the Tower **line**, through the type's vslot `+0x60`.
+It is computed only inside the `e` arm (`frame != 0 && +0x2c0 & 0x10`),
+and is 0 everywhere else. It gates four things:
+
+- the spiral's start: with `local_84` set, no start at `circle_radius[3]`;
+- the friends' square, `score *= f + 2`;
+- the near-Tower eighth;
+- the stride.
+
+`local_74`, and the fort arm at `006e2129`, ask `is(0x1bb, 0)`, the Fort
+line.
+
+`BuildTypeData::find_friends@00639270` tests the same lines:
+
+- `is(0x1b7, 0)` and `is(0x209, 0)` exempt a type with arrows from the
+  early zero, and choose the tower arm;
+- in the tower arm, a gather neighbour (not a University) adds 2, and a
+  wonder adds 4, or 8 for the Lookout line;
+- `is(0x1a2, 0)` is the Woodcutter line.
+
+This crate tested each by identity (`ident == Tower`), so a Keep was a
+plain building. With the line, the Keep beside the two farms at (50, 28)
+and (50, 29) scores `(4 + 2) × 1000 × (4 + 2) + 255` = 36255. The last
+36255 in the spiral is (51, 28).
+
+**The near-Tower search is strict, and stays an identity.** It is
+`find_building(…, 0x600, 0, FILTER_TYPE, 0x1b7, 0)`. `valid_filter`'s
+arm 0 (`0067dbc3`, read off the jump table at `0067e57c`) calls the
+object's vslot `+0xb8`, which is `ObjectData::is(t, 1)`. Strict `is` on a
+building falls to `is_slow`, which returns 0 for anything that is not a
+unit type (`00661ae0`). That leaves `type == 0x1b7`.
+
+### 100.3 `defense` has four writers
+
+`LeaderData::defense` (`+0x954`) is written in four places:
+
+1. the sweep, which recounts it (§2 step 11);
+2. `Build::init@00629740` line 74, +1;
+3. `Build::activate@00623e20` line 1240, +1;
+4. `Build::close@00628980` line 59, −1.
+
+Writers 2 to 4 apply to any type with `+0x1e8` set, with no other gate.
+
+The sweep's `is_active` test is a `je` at `006bb09c` that lands on
+`006bb15a`, the defensive count's own guard. So it gates the gather
+slots alone, and **an unfinished site counts**. §2 step 11 said "every
+active building"; it is struck there and points here.
+
+On block 15986 the original's `defense` is 2 while `reg_defense` still
+sums 1: that is `Build::init`'s own +1. This crate now carries all four
+writers.
+
+**A human's tally is not moved here.** The original sweeps the human
+too: run346's who=0 reads `defense 2` at the start dump (its city,
+placed and activated) and 0 by 15857. This crate sweeps no human (§23.1),
+so a tally it moved would never be recounted.
+
+### 100.4 What moved
+
+**East Indies 15985 → 16009.**
+
+- run544's block 15986 went from 47 keys to none: `1/2047`'s position,
+  `1/88`'s and `1/122`'s orders and figures, and who=1's `defense`.
+- run544's keys went 982 → 662.
+- Who=1's `defense` left seven other widenings (runs 476, 500, 529, 547,
+  562, 352 and 355) and run84's leader residue.
+
+**The new word, 16009**: ours 9 draws against 6, at index 1. Ours spends
+`Guy::set_anim+0x97a < Unit::do_move+0x11cf`, and the original
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. On block 16010 the Supply
+Wagon `1/153` (type 63) of army 0's group 71 parts on its figures and on
+its move's `pause`, 14 against 15.
+
+### 100.5 What is not established
+
+- **The fort arm's danger term**: `score += danger[who][cell/2] / 4`
+  (`006e2131`–`006e216b`). It is a live `SEAM` in `ai_place.rs`; the grid
+  exists, and no walk reaches a Fort placed on a cell with danger.
+- **The team-style arm's ×16** for the leader's own target
+  (`006e2206`–`006e2225`). Also a live `SEAM` in `ai_place.rs`.
+- **The enemy-seen cell flag**: a cell whose byte has `& 2` costs an
+  enemy search inside 0xf00 and is skipped on a find (`ObjectsData::find`
+  after the score test). It is not carried.
+- **A human's `defense`** waits on the human's sweep (§23.1).
+
+### 100.6 Coverage
+
+- **Diff-backed**: the Keep's site, its builder and who=1's `defense`, by
+  `run544_s_word_frame_is_widened_whole` and the run346 walk.
+- **The `defense` writers and the sweep's gate**: the seven widenings
+  above and `run84_s_window_is_the_original_s_whole_leader_record`.
+- **Unit tests**: `a_keep_counts_its_gather_neighbours_as_a_tower_does`
+  and `defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site`.
+- **Reading only**: the strict near-Tower identity. Item 1377 did not
+  search the captures for a Keep placed within 0x600 of a Tower.

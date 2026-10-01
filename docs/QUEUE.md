@@ -12,14 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, **twenty landings since the twenty-first Fable pass** (the
+*2026-10-01, **twenty-one landings since the twenty-first Fable pass** (the
 pass commit `d4aeabbe`): **the steering pass is due.** East Indies
-11637 → 15985 (six landings), Great Sahara at Toughest 8856 → 10779
+11637 → 16009 (seven landings), Great Sahara at Toughest 8856 → 10779
 (eight), chapter forty-seven opened at 712 and closed at 1400, chapter
 forty-eight opened at 1450 and walked to 1481 (six). Every booking gate
 green; one went to origin before its exit was read (Loop 1345).*
 
-- **Lanes live: 1377, 1379**, landing into the pass; 1380 is unstarted.
+- **Lane live: 1379**, landing into the pass; 1380 and 1383 are
+  unstarted.
 - **Five reaches of one shape** (Loop 1340, with 1337): the answer was a
   seam on the first parted field's writer or reader, not on the word's
   chain — `seams.py` on those by name is the checklist row the tranche
@@ -28,17 +29,17 @@ green; one went to origin before its exit was read (Loop 1345).*
   a rule): the commander ran the tranche in one session from the tenth.
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; the disk, 213 GiB free; parked 1141 and 1142.
-- **Fable backlog: 39 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361, 1364, 1369, 1374, 1376, 1382).
+- **Fable backlog: 40 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361, 1364, 1369, 1374, 1376, 1382, 1387).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w15985 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w16009 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w10779 of 15,432
 Golden: ch48 w1481 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-second Fable pass, in the main thread — the count
-is at twenty; the commander spawns nothing until it lands.**
+is at twenty-one; the commander spawns nothing until it lands.**
 
 ## The queue
 
@@ -48,11 +49,12 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1377. **East Indies' eighth word: frame 15985, ours 50 draws against
-    49** (1370), at index 46: ours spends `1/88`'s `Guy::set_anim+0x97a
-    < Unit::move_step+0x823`, the original `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271` (seed `732a71ea`); inside run544 (block 15986).
-    No mechanism is named.
+1383. **East Indies' ninth word: frame 16009, ours 9 draws against 6**
+    (1377), at index 1: ours spends `Guy::set_anim+0x97a <
+    Unit::do_move+0x11cf` where the original spends
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`; inside run544 (block
+    16010): the Supply Wagon `1/153` (type 63) of group 71 parts on its
+    figures and its move's `pause`, 14 against 15. No mechanism is named.
 
 1379. **Great Sahara at Toughest's word: frame 10779, ours 15 draws
     against 14** (1371), at index 4: ours spends a fifth

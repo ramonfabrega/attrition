@@ -716,7 +716,8 @@ mod tests {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees on 5783");
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
-        pin_eq!(w.firsts.len(), 103, "every key parted on run476");
+        // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
+        pin_eq!(w.firsts.len(), 102, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1069,13 +1070,14 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8857 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8781, 81), (8782, 3), (8785, 8), (8801, 1), (8856, 1)],
+            // Item 1377: 8781 81 → 80, who=1's `defense` standing no more.
+            [(8781, 80), (8782, 3), (8785, 8), (8801, 1), (8856, 1)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 149.
         pin_eq!(
             w.firsts.len(),
-            95,
+            94,
             "every key parted on run500 (737 before item 1305, 1,808 before item 1293, \
              1,816 before item 1281)"
         );
@@ -1359,8 +1361,9 @@ mod tests {
             [(10774, 119)],
             "the blocks keys first part on, to one past the word's"
         );
-        // Measured on the tree merged with 1375's (1,803 before item 1379).
-        pin_eq!(w.firsts.len(), 145, "every key parted on run562");
+        // Measured on the tree merged with 1377's: 1,803 → 1,802 by item
+        // 1377 (who=1's `defense` on 10929), → 144 by item 1379.
+        pin_eq!(w.firsts.len(), 144, "every key parted on run562");
     }
 
     /// **The word 10144, widened whole** (item 1354):
@@ -1436,25 +1439,20 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Between the newborn lag and the window's end, one row each:
-            // who=1's `gather_stamp` 10151 against 10023 (10152), its
-            // `defense` 1 against 2 (10178), who=0's `production_step` 0
-            // against 1 (10201), who=1's `MAKE[3].val` 276800 against
-            // 283200 (10382) — and nothing from 10383 to 10395.
-            [
-                (10139, 82),
-                (10145, 1),
-                (10152, 1),
-                (10178, 1),
-                (10201, 1),
-                (10382, 1),
-            ],
+            // who=1's `gather_stamp` 10151 against 10023 (10152),
+            // who=0's `production_step` 0 against 1 (10201), who=1's
+            // `MAKE[3].val` 276800 against 283200 (10382) — and nothing
+            // from 10383 to 10395. Its `defense` 1 against 2 on 10178
+            // left with item 1377 (`Build::init`'s `+1`).
+            [(10139, 82), (10145, 1), (10152, 1), (10201, 1), (10382, 1),],
             "the blocks keys first part on, the whole window"
         );
         // Item 1371: 156 → 87, the caravan's 39 + 19 + 9 + 2 gone
-        // (measured on the tree merged with 1358's).
+        // (measured on the tree merged with 1358's). Item 1377: 87 → 86,
+        // who=1's `defense` on 10178.
         pin_eq!(
             w.firsts.len(),
-            87,
+            86,
             "every key parted on run547 (156 before item 1371)"
         );
     }
@@ -1558,7 +1556,7 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9759, 83),
+                (9759, 82),
                 (9763, 1),
                 (9765, 1),
                 (9768, 1),
@@ -1587,7 +1585,8 @@ mod tests {
         // Item 1330, on the tree merged with 1338's: 557 → 505, the births' `form` (`docs/GROUPS.md` §24.3).
         // Item 1346, on the tree merged with 1330's: 505 → 262.
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
-        pin_eq!(w.firsts.len(), 114, "every key parted on run529");
+        // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
+        pin_eq!(w.firsts.len(), 113, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
