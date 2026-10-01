@@ -2791,6 +2791,103 @@ fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
     );
 }
 
+/// **A Tower's arrow flies at 90** (item 1380, `docs/GOLDEN.md` §57):
+/// `BuildData::get_shot@0062dd90` is 0 for a type its switch does not
+/// name while the owner's `ages` is at most 2, and `Ammo::init`'s
+/// building arm then divides by `unit_move_speed × 0x5a`, not by the
+/// type's `PROJ_SPEED`. From the fourth age it is 1 and the type's
+/// speed applies.
+#[test]
+fn a_towers_arrow_flies_at_ninety_until_the_fourth_age() {
+    let flight = |ages: i32| {
+        let mut sim = arena();
+        let hop = sim.add_unit_type(hoplite_type());
+        let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+        sim.buildings[tower].combat = Some(combat::Profile {
+            attack: 80,
+            armor: 2,
+            recharge: 60,
+            max_range: 8,
+            to_hit: 400,
+            proj_speed: 200,
+            ammo_per_att: 1,
+            base_arrows: 1,
+            x_size: 1,
+            y_size: 1,
+            big_radius: 96,
+            ..combat::Profile::default()
+        });
+        sim.buildings[tower].hits = 400;
+        sim.buildings[tower].health = 400;
+        sim.tech[0].ages = ages;
+        let b = combatant(
+            &mut sim,
+            1,
+            hop,
+            Pos::new(1000 + 5 * 192, 1000),
+            movement::Angle::WEST,
+        );
+        sim.set_stance(b, Stance::HoldFire);
+        run(&mut sim, 17);
+        let p = sim.projectiles[0];
+        let dx = i64::from(p.landing.x - p.launch.x);
+        let dy = i64::from(p.landing.y - p.launch.y);
+        (p.total_time, dx * dx + dy * dy)
+    };
+    let (t0, d0) = flight(0);
+    assert_eq!(t0, combat::flight_time(d0, 90));
+    let (t2, d2) = flight(2);
+    assert_eq!(t2, combat::flight_time(d2, 90), "the third age is still 0");
+    let (t3, d3) = flight(3);
+    assert_eq!(t3, combat::flight_time(d3, 200));
+    assert!(t0 > 2 * t3, "{t0} against {t3}");
+}
+
+/// **A building's shot leads a moving target** (item 1380): the lead
+/// `Ammo::init` shares between a unit shooter and a building pushes the
+/// landing along the target's heading, so a Hoplite walking away is
+/// aimed past where it stands.
+#[test]
+fn a_towers_arrow_leads_a_target_that_is_walking() {
+    let landing = |walking: bool| {
+        let mut sim = arena();
+        let hop = sim.add_unit_type(hoplite_type());
+        let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+        sim.buildings[tower].combat = Some(combat::Profile {
+            attack: 80,
+            armor: 2,
+            recharge: 60,
+            max_range: 8,
+            to_hit: 400,
+            proj_speed: 200,
+            ammo_per_att: 1,
+            base_arrows: 1,
+            x_size: 1,
+            y_size: 1,
+            big_radius: 96,
+            ..combat::Profile::default()
+        });
+        sim.buildings[tower].hits = 400;
+        sim.buildings[tower].health = 400;
+        let b = combatant(
+            &mut sim,
+            1,
+            hop,
+            Pos::new(1000 + 5 * 192, 1000),
+            movement::Angle::WEST,
+        );
+        sim.set_stance(b, Stance::HoldFire);
+        if walking {
+            sim.order_move(b, Pos::new(1000 + 5 * 192, 1000 + 40 * 192));
+        }
+        run(&mut sim, 17);
+        sim.projectiles[0].landing.y - sim.pos_of(Obj::Unit(b)).y
+    };
+    // The shot is aimed at the Hoplite's own position; a walker's is led.
+    let (still, walk) = (landing(false), landing(true));
+    assert!(walk > still + 50, "led south: {walk} against {still}");
+}
+
 /// **A site holds its fire** (item 1323, `docs/COMBAT.md` §8.6):
 /// `Build::process@0061edf0` returns before `do_attack` while the
 /// building is not `WallData::is_active` (`flags & 4`). The same tower,

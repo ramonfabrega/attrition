@@ -5699,8 +5699,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 /// Scout `0/7`, `ammo[0].total_time` ours 7 against 16 and `v1z` ours
 /// 2.849108 against 69.087502, its ends agreeing. No mechanism is named.
 ///
-/// **The delta**, this constant's: +31, 1450 → 1481.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1481;
+/// **Item 1380: 1750, closed.** `BuildData::get_shot@0062dd90` is 0 for a
+/// Tower in the first three ages (the owner's `ages` ≤ 2), and
+/// `Ammo::init@0067bbf0`'s building arm then flies the arrow at
+/// `unit_move_speed × 0x5a` — 16 frames over 1,463 units where the type's
+/// `PROJ_SPEED` 200 made ours 7. The word walked to 1503 on that alone;
+/// the Scout's lead (`0067cf1a`, shared by a unit shooter and a building)
+/// was the second, the Tower's second shot landing 374 and 572 units
+/// short of the original's on 1482. With both the walk reaches the end of
+/// the trace.
+///
+/// **The delta**, this constant's: +269, 1481 → 1750 (the trace's end).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1750;
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
