@@ -2422,12 +2422,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1341 moved East Indies' window to run535's 14140..14143**: no
     // cast stands on the union, so `cast_paid` and `cast_spell` return to
     // this pin (measured on the tree merged with 1338's).
+    // **Item 1362 moved East Indies' window to run544's 15882..15885**:
+    // army 0's group 71 stands moved on it, so the group row is compared
+    // on the union and leaves this pin (measured on the tree merged with
+    // 1354's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range form_id garrison_search group_angle \
-         group_id in_group in_range mandatory metric new_ord non_flat_gather oxx whose \
+         def_y defensive ever_in_range garrison_search \
+         in_range mandatory metric new_ord non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint",
     ),
