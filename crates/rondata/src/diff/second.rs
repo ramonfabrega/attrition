@@ -2359,7 +2359,7 @@ mod tests {
         // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
         // Item 1377, the Keep's site: 982 → 662.
         // Item 1383, the re-plan's step past the pause: 662 → 243.
-        pin_eq!(w.firsts.len(), 243, "every key parted on run544");
+        pin_eq!(w.firsts.len(), 242, "every key parted on run544");
     }
 
     /// **run572 — the second pair's East Indies word 16160, widened whole**
@@ -2413,10 +2413,10 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16155, 189), (16161, 107)],
+            [(16155, 188), (16161, 107)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 2987, "every key parted on run572");
+        pin_eq!(w.firsts.len(), 2984, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

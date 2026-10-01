@@ -8111,9 +8111,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run571_s_word_frame_is_widened_whole"),
-        1388,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_11182),
+        // Item 1398 moved the word to 11882, past run571's window: no
+        // widening holds it, and the item that books it (here 1398, whose
+        // number the commander's booking replaces) owes the capture.
+        // run571's test keeps the move's value diff on 11345..11381.
+        None,
+        1398,
+        None,
     ),
 ];
 
