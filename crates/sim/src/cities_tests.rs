@@ -5348,3 +5348,128 @@ fn to_arms_is_refused_on_another_player_s_land() {
     }
     assert_eq!(sim.units[c].ty, Some(militia));
 }
+
+/// **A newborn's `form` is `Unit::init`'s** (item 1330, `docs/GROUPS.md`
+/// §24.3): 9 for the four civilian ids (`PEASANTS`..`SCHOLARSKOREAN`) and
+/// 0 for every other type, where this crate had −1 for both.
+///
+/// Made to fail with [`crate::init_form`]'s call removed from
+/// `Sim::init_unit`.
+#[test]
+fn a_citizen_is_born_in_the_mob_and_a_soldier_in_the_line() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut ct = citizen_type(t.village);
+    ct.type_index = 0x32;
+    let citizen = sim.add_unit_type(ct);
+    let mut ht = hoplite_type(t.barracks);
+    ht.type_index = 0x52;
+    let hoplite = sim.add_unit_type(ht);
+    let c = sim.init_unit(0, citizen, tile_pos(40, 40));
+    let h = sim.init_unit(0, hoplite, tile_pos(44, 40));
+    assert_eq!(sim.units[c].form, 9, "a citizen is born in the mob");
+    assert_eq!(sim.units[h].form, 0, "a soldier in the line");
+    assert_eq!(sim.units[c].form_width, -1, "and the width twin is −1");
+    for k in 0x32..=0x35 {
+        assert_eq!(crate::init_form(k), 9, "type {k:#x}");
+    }
+    assert_eq!(crate::init_form(0x31), 0);
+    assert_eq!(crate::init_form(0x36), 0);
+}
+
+/// **Three Citizens sent together walk three plain moves** (item 1330,
+/// run514's `@move 0 3840 36864 9 10 11` on 678): born in form 9, their
+/// group's `get_form` is 9, and form 9 is one of the arms that keep a
+/// member off the `GroupMoveOrder` (`705f00`–`705f61`). The Mob lays them
+/// out on its rings, so no two share a destination.
+///
+/// Made to fail with the citizens born −1: one group move, and all three
+/// sent to the anchor.
+#[test]
+fn three_citizens_sent_together_walk_three_plain_moves_to_the_mob_s_rings() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut ct = citizen_type(t.village);
+    ct.type_index = 0x32;
+    ct.combat.x_spacing = 144;
+    ct.combat.y_spacing = 144;
+    let citizen = sim.add_unit_type(ct);
+    let us: Vec<usize> = (0..3)
+        .map(|i| sim.init_unit(0, citizen, tile_pos(40 + 2 * i, 44)))
+        .collect();
+    for &u in &us {
+        sim.units[u].on_map = true;
+    }
+    let mut g = crate::group::Group::stack(0);
+    for &u in &us {
+        sim.group_add(&mut g, u);
+    }
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_move_to(
+        &g,
+        tile_pos(24, 50),
+        QueuePos::New,
+        false,
+        movement::Angle(0),
+        MoveKind::MoveTo,
+        false,
+    );
+    let mut dests = Vec::new();
+    for &u in &us {
+        match sim.units[u].orders.front().map(|o| o.body) {
+            Some(Body::Move(m)) => {
+                assert_eq!(m.kind, MoveKind::MoveTo);
+                assert!(m.group.is_none(), "a plain move, not a group move");
+                dests.push(m.dest);
+            }
+            other => panic!("a move, not {other:?}"),
+        }
+    }
+    dests.sort_by_key(|p| (p.x, p.y));
+    dests.dedup();
+    assert_eq!(dests.len(), 3, "three points on the Mob's rings: {dests:?}");
+}
+
+/// **A builder that leads its group turns the group's mirror as it faces
+/// the site** (item 1330): `Unit::do_build@005eebf0:155` turns it through
+/// `Unit::set_angle`, whose turn of 90° or more toggles `GroupData::facing`
+/// of the group it leads. run514's builders' group reads `facing` 1 from
+/// block 624, the frame `0/9` turned 122.5° to its Tower site, and the
+/// flag is the mirror of the group's next move.
+///
+/// Made to fail with `do_build`'s turn through `Movement::set_heading`
+/// again.
+#[test]
+fn a_builder_leading_its_group_turns_the_group_s_mirror_as_it_faces_the_site() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.nation[0].human = true;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    let site = sim.place_building(0, t.farm, tile_pos(44, 20)).unwrap();
+    assert!(!sim.buildings[site].active);
+    let builder = spawn(&mut sim, 0, citizen, tile_pos(43, 20));
+    sim.units[builder].on_map = true;
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, builder);
+    assert!(sim.push_group(&mut g, true));
+    let g = sim.group_of(builder).expect("the builder's group");
+    let before = sim.gstate(&g).expect("a pushed record").facing;
+    sim.units[builder].movement.heading = movement::Angle::WEST;
+    sim.add_build_order(builder, site, QueuePos::New, true);
+    let mut frames = 0;
+    while sim.units[builder].movement.heading == movement::Angle::WEST {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 50, "the builder should face its site");
+    }
+    let g = sim.group_of(builder).expect("still grouped");
+    assert_eq!(
+        sim.gstate(&g).expect("a pushed record").facing,
+        !before,
+        "a turn of 90° or more toggles the leader's group's mirror"
+    );
+}

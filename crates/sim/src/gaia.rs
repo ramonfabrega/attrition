@@ -221,6 +221,7 @@ impl Sim {
         // bird that carried the default −1 was a bird whose animation
         // could never resolve (`docs/SYNC.md` §3.9).
         unit.type_index = self.unit_types[ty].type_index;
+        unit.form = crate::init_form(unit.type_index);
         // The flight reads both (`crate::air`): `MOVES` is already position
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.
         unit.movement.speed = self.type_speed(BIRD_OWNER, ty);

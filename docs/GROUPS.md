@@ -531,7 +531,9 @@ value the last frame's `GROUPDATA` printed. Two writers move it:
   `reversing` window. Every marching leader does this the moment it turns
   onto a new bearing, so a live group's `facing 1` is ordinarily just "the
   leader has turned round since the last layout". A follower's turn does
-  nothing: it calls `find_leader` and compares.
+  nothing: it calls `find_leader` and compares. A builder's turn to its
+  site is one (`do_build@005eebf0:155`, item 1330); the gather arms'
+  turns here still write the heading alone.
 - **`Unit::kill_current_order@005e2cb0`**, on a dying order of the move
   family (`{1, 2, 3, 4, 0x12, 0x13, 0x15}`), reads the order's own
   `MoveOrder +0x28 facing` — the mirror **that** order was laid out with —
@@ -742,7 +744,8 @@ for c in 0 ..= cat:
 
 **Column** is `X = ((slot+1) % 3 − 1)·w`, `Y = −(slot/3)·d`, and **Mob**
 puts slot 0 on the anchor and the rest on concentric rings of 5, 10, 15, …
-Both then take the rank stack above. **Square has no placement arm at
+at radius `w·n/5` — the arithmetic is `form.rs`'s `MobRing`, read in the
+listing (`72ce81`, item 1330). Both then take the rank stack above. **Square has no placement arm at
 all** — see the four limits below.
 
 `to[i]` is the destination rotated by the formation angle:
@@ -880,10 +883,8 @@ Each is the original's, not the port's:
    *other* category subtracts `x_spacing[wedge] · rows[wedge]`, so **a
    wedge with a second category is not reproducible by anyone**, us
    included. The simulation seeds it 0.
-3. **Mob past its first member.** Slot 0 on the anchor is exact; the rings
-   need `cosx`/`sinx` arguments the decompiler drops and no pass has
-   recovered from the listing (`72ce96`–`72cec5`, magic-number divides and
-   a wrapping counter that grows its period by 5).
+3. ~~**Mob past its first member.**~~ Recovered by item 1330 (above);
+   the second ring, a Mob of six or more, is on no capture.
 4. **`categorize`'s two type substitutions.** A loaded sea transport is
    sized by its **cargo's** type; a land unit ordered onto **water** — the
    test is `compute_form`'s own `(terrain & 0x30) == 0x20` at the
@@ -2053,7 +2054,8 @@ Still open:
 - ~~**`Form::compute`'s slot table** (§6.4), the largest gap.~~
   **Closed 2026-08-26**, and the four things left in it are the
   original's, not ours: Square is dead code, a wedge's row count is seeded
-  from uninitialised stack, Mob's rings are unrecovered, and
+  from uninitialised stack, ~~Mob's rings are unrecovered~~ (recovered by
+  item 1330, §6.4), and
   `categorize`'s two type substitutions have no cargo list to read. Each
   is stated with its own falsifying capture at the end of §6.4. On the way
   the three sub-questions this entry named were all answered:
@@ -3340,6 +3342,17 @@ the test, not inside it, as §6.6 step 1 already says. This crate had put
 both inside. So a citizen in a group carries the group's width, 50, and
 keeps its own `form`. That is run157's `1/1` on 990: `form 9` stands,
 and `form_mod` goes from −1 to 50.
+
+**And the `form` it keeps is its birth's** (item 1330, parked 646):
+`Unit::init@00612100:81`–`86` writes `+0xaa` as **9** for the type's
+`+4` in `0x32`–`0x35` and **0** for every other type, and `+0xab` as −1.
+This crate bore every unit −1 (`crate::init_form`, called from
+`Sim::init_unit` and the bird's and pasture animal's births since). The
+difference is not only a dump row: a group of Citizens has `get_form` 9,
+and form 9 keeps each member off the `GroupMoveOrder` (§6.6 step 6), so
+run514's three builders `@move`d on 678 walk three plain `MOVE_TO`s to
+the Mob's rings (§6.4) where this crate gave them one group move to one
+point.
 
 ### 24.4 This crate
 

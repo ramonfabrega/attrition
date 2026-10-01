@@ -12702,7 +12702,7 @@ walked from run346's start.
   puts the Farm (`t` 417, `val` 216500, city 3) in the empty head.
 - The window parts on 1,102 keys (1,103 before the tree took 1318's landing).
 - Since item 1341 (`get_cost`'s bump loop) blocks 13383..13385 agree, and
-  the window parts on 225 keys.
+  the window parts on 225 keys (138 on the tree merged with 1330's).
 
 The coverage driver walks 13385..13388.
 
@@ -12782,12 +12782,12 @@ were moved into `Logs` as `gamelog-run535-islands-toughest-14141.txt` and
 
 **What it holds**: `run535_s_word_frame_is_widened_whole` (`diff::second`),
 walked from run346's start.
-- Block 14136 stands on 226 keys.
+- Block 14136 stands on 138 keys (226 before 1330's birth `form`).
 - The first rows are actors only ours holds: `1/104`..`1/120` on 14137 and
   `1/93` on 14138. On 14136 both sides hold them, each with `mana_burn`
   2499.
 - The word's own block 14142 parts on nothing.
-- The window parts on 1,818 keys.
+- The window parts on 1,730 keys (1,818 before 1330's landing).
 
 The compared pin and the coverage driver walk 14140..14143. Runs 536 and
 537 were reserved and not used.
