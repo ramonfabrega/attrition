@@ -13219,3 +13219,63 @@ its move's `pause`, 14 against 15.
   and `defence_moves_with_a_site_s_life_and_the_sweep_counts_a_site`.
 - **Reading only**: the strict near-Tower identity. Item 1377 did not
   search the captures for a Keep placed within 0x600 of a Tower.
+
+## 101. The re-plan's step past `do_move`'s pause check (2026-10-01, item 1383)
+
+### 101.1 The event: a Supply Wagon that re-plans with `pause` 15
+
+East Indies' word 16009 (run544, block 16010). Both sides spend
+`Unit::do_move+0xe84` (the grid roll of a re-plan) for the Supply Wagon
+`1/153` (`GUY` type 63, `SUPPLYWAGON`, group 71, army 0). Ours then spends
+three `Guy::set_anim+0x97a < Unit::do_move+0x11cf` (one stand a figure);
+the original spends none, and its next draw is the 1/19's `inc_time`.
+The original's wagon record, 16009 → 16010: `pause` 15 → 15, `unit_masks`
+`8650754` → `8650760` (bit 8 set), a new path (`size` 60 → 80), `dest` 0
+→ 1, and a turn in place (`angle`, `des_angle`, figures' `cur_anim` 9 → 7,
+`stopped` 1 → 0). The position does not change. Ours ticked the pause
+(14) and stood.
+
+### 101.2 The reading
+
+`do_move@005f7b30` (the export's `do_move:593`–`:747`): the pause check
+(`:729`, `if (pause != 0) { pause -= 1; …; set_anim(CHAR_DEFAULT, 0, 1) }`)
+is the `else` of the `masks & 8 == 0` block. The re-plan's `TAKE` ends
+`goto LAB_005f8c60` (`:699`, `:743`), which is **past** it: `if
+(masks & 8) == 0 return 1`, then `move_step`. `docs/ORDERS.md` §4.4 had
+said only `goto STEP` skips the check and the `TAKE` "comes back through
+`STEP_IF_MOVING`" as a place that ticks; that half is struck
+(`docs/ORDERS.md` §4.4's rule). `Sim::do_move` now sets
+`straight_to_step` at the end of the `TAKE` block.
+
+### 101.3 What moved
+
+- East Indies **16009 → 16160**. Block 16010's 23 keys, all the wagon's,
+  went to none; run544's keys 662 → 243. Frame 16009's draws went 9
+  against 6 → agreeing.
+- No other pin moved on the full `rondata` run; the Great Lakes and Great
+  Sahara walks hold.
+- **The mutation** (the one line removed): the floor walk
+  `run346_is_east_indies_at_toughest_and_its_word_holds`, and the
+  widenings run544's and run572's, fail. No unit test fails without it
+  (a synthetic wagon's first `find_path` verifies the line, never
+  reaching `TAKE`); the walk holds the arm.
+
+### 101.4 The new word, 16160, and what is not established
+
+Ours 46 draws, the original 44, parting at index 4: ours `do_cast`,
+`init_real`, `do_cast`, `init_real`; the original `do_cast`, `do_cast`,
+`init_real`. On the word's block 16161 (run572): who=1 holds a new
+`TRANSPORTGALLEON` `1/167` (type 321) beside the boarders `1/128` (type 98,
+`ARQUEBUSIERS`) and `1/143` (type 179, `KINGSYEOMANRY`): `1/128`'s
+`inside` ours 167 against −1, `orders.len` 0 against 2, `path:length` 0
+against 50; `1/143`'s `inside` ours 168 against 167. **No mechanism is
+named** — `docs/TRANSPORT.md` is the document; the first reading is the
+cast order's `do_cast` on a unit boarding a ship the same frame it is
+built.
+
+### 101.5 Coverage
+
+- **Diff-backed**: the arm, by the floor walk, run544's `order:move.pause`
+  row, and run572's block 16161.
+- **Reading only**: the other entrants to `LAB_005f8c60` (`:699` is the
+  only one in the export).
