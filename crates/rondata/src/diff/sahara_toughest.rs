@@ -1189,8 +1189,8 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (9759, 134),
-                (9763, 2),
+                (9759, 83),
+                (9763, 1),
                 (9765, 1),
                 (9768, 1),
                 (9773, 3),
@@ -1223,7 +1223,8 @@ mod tests {
             "the blocks keys first part on, to three past the word 9982's"
         );
         // Item 1338, on the tree merged with 1326's: 1,075 → 557.
-        pin_eq!(w.firsts.len(), 557, "every key parted on run529");
+        // Item 1330, on the tree merged with 1338's: 557 → 505, the births' `form` (`docs/GROUPS.md` §24.3).
+        pin_eq!(w.firsts.len(), 505, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
@@ -1313,7 +1314,6 @@ mod tests {
                 (9274, 1),
                 (9294, 2),
                 (9295, 3),
-                (9310, 1)
             ],
             "the blocks keys first part on"
         );
@@ -1324,7 +1324,7 @@ mod tests {
         // against −363239852 → agreeing (`docs/ANIM.md` §11).
         pin_eq!(
             w.firsts.len(),
-            150,
+            98,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }
