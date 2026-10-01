@@ -10370,7 +10370,30 @@ y_size) + 2 × max_range) × 0x60` = 2,304 (12 tiles) and `is_in_range`'s
 leader without the range techs (`FORT_UPGRADE_RANGE[0]`, `TOWER_FORT_RANGE[0]`
 are 0). No mechanism is named: the next item is the frame, 686.
 
-**The widening** is run577 whole (`[605, 1101)`): 446 rows and 14 pool rows,
+**Item 1415 — the word moves 686 → 819, ours 6 draws against 10.** Two
+terms, both absent: (1) `BuildTypeData::get_building_range@00639990`'s
+first block adds `BRITISH_TOWER_RANGE` (rules.xml `2 range increase`) to a
+Tower-line or Fort-line building of a `has_tribe_bonus(0xb)` owner; who=1 is
+tribe 11 in run577's `LEADERDATA`, and the Stockade is the Tower line, so its
+reach is **13**, not 11 (`d` 2462 ≤ 13 × 0xc0 + 6 = 2502 on 686; 2534 on 685).
+(2) `Build::process@0061edf0` (`61ee9e`..`61eec4`) runs `do_attack` for a
+target-less building on `(o + frame) & 0x1f == 0` **or** when its `near_o`/
+`near_who` (+0x34/+0x36), the last search's nearest sighting, is in range;
+this crate had the pair on units only. Ours first saw the Scout at 682
+(search radius now 2,688), found it out of range and waited for the next
+phase (714); the sighting fires it the frame it comes in. **Value diff:** the
+rounds on 686 agree in count (12 against 12); the dump's `1/2006` AMMO on 687
+holds `total_time 14`. The state's first part is now `0/7` on 700 (`order:kind`
+ours 2, theirs 10, `orders.len` 1 against 2), and the draw word is 819, ours 6
+against 10, the original's at `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`.
+**Killers** (committed, then mutated; both fail
+`chapter_fifty_holds_to_the_golden_word`, word falls to 686): the British term
+returning 0, and the `near` clause forced true. Unit tests in `air::flak_tests`.
+**Not carried:** `COLOSSEUM_FORT_RANGE` (0), the `FORT_UPGRADE_RANGE`/
+`TOWER_FORT_RANGE` tech-bit arrays (entry 0 is 0), `general_building_range`.
+No other pin in `rondata` moved.
+
+**The widening** is run577 whole (`[605, 1101)`): 414 rows and 13 pool rows (446 and 14 at 686),
 pinned as they stand; the first is a cascade from 686 (the shots, then
 the Scout's death and the Hoplites' path), `0/7` damage on 1001. The ground
 guard stands at 7 reads (`GROUND_INEXACT`).

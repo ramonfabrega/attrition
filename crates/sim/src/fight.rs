@@ -3369,9 +3369,9 @@ impl Sim {
         // `006498de`: the pair survives only if the nearest candidate the
         // rings saw is inside `0xf00`, and is cleared otherwise — so an
         // empty search *overwrites* a good incumbent rather than leaving
-        // it standing. SEAM: this crate holds the pair on a unit only;
-        // the original's is an `ObjectData` field and a building carries
-        // one too, read by nothing either crate models.
+        // it standing. A building carries the pair too, and
+        // `Build::process` reads it ([`Sim::process_building_combat`],
+        // item 1415).
         let near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
         match attacker {
             Obj::Unit(me) => self.units[me].near = near,
