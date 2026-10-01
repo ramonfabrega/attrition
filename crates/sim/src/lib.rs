@@ -2862,9 +2862,21 @@ impl Sim {
                 // its own slot, so deeper slots complete first. Walking the
                 // slots in reverse is that order, and it also keeps the lower
                 // indices stable when a deeper entry is removed.
-                let slots =
-                    production::parallel_slots(self.muster[who as usize].library_cities, queued)
-                        .max(1);
+                // `LeaderData::get_building_cities@006e06f0` counts the
+                // live cities that hold an active library. Nothing wrote
+                // `Muster::library_cities` before item 1388, so every
+                // research queue ran one slot at a time; a test that sets
+                // the field keeps its value.
+                let cities = self
+                    .cities_of(who)
+                    .into_iter()
+                    .filter(|&c| self.count_buildings(c, build::Ident::Library, true) != 0)
+                    .count();
+                let slots = production::parallel_slots(
+                    self.muster[who as usize].library_cities.max(cities),
+                    queued,
+                )
+                .max(1);
                 for slot in (0..slots).rev() {
                     if let Advanced::Trained(p) = self.advance_slot(at, slot) {
                         out.push(p);
