@@ -1176,6 +1176,7 @@ impl Sim {
             recharging: 0,
             target: None,
             ordered: false,
+            near: None,
             targeted: 0,
             ty: Some(ty),
             orig_ty: Some(ty),

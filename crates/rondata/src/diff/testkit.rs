@@ -5839,7 +5839,7 @@ pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
 /// **Chapter fifty** (item 1404, `docs/GOLDEN.md` §59, run577): two
 /// Stockades at the first age and a Scout led through their range by a
 /// group attack-move, a Hoplite squad behind it. Open at the word below.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 686;
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 819;
 
 /// `chapter_fifty_s_word_frame_is_widened_whole`'s window: run577 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY: (i64, i64) = (605, 1101);

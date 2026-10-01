@@ -314,7 +314,33 @@ impl Sim {
         if p.max_range == 0 {
             return 0;
         }
-        p.max_range + self.mods[self.owner_of(o) as usize].range
+        p.max_range + self.mods[self.owner_of(o) as usize].range + self.british_building_range(o)
+    }
+
+    /// **`BuildTypeData::get_building_range@00639990`'s first block**
+    /// (`docs/GOLDEN.md` §59): a Tower-line or Fort-line building of a
+    /// British owner (`has_tribe_bonus(0xb)`) adds `BRITISH_TOWER_RANGE`.
+    /// Chapter fifty's Stockades `1/2006` and `1/2007` reach 13 tiles, not
+    /// 11, in run577. The colosseum's `COLOSSEUM_FORT_RANGE` (0 as shipped),
+    /// the Roman and the tech-bit arrays (`FORT_UPGRADE_RANGE`,
+    /// `TOWER_FORT_RANGE`, entry 0 is 0) and `general_building_range` are
+    /// not carried; no capture holds them.
+    fn british_building_range(&self, o: Obj) -> i32 {
+        let Obj::Building(b) = o else {
+            return 0;
+        };
+        let Some(t) = self.buildings[b].ty else {
+            return 0;
+        };
+        let who = self.buildings[b].owner as usize;
+        if self.nation[who].british
+            && (crate::build::is_tower(&self.build_types, t)
+                || crate::build::is_fort(&self.build_types, t))
+        {
+            self.tuning.british_tower_range
+        } else {
+            0
+        }
     }
 
     fn hits_left(&self, o: Obj) -> i32 {
@@ -3343,11 +3369,13 @@ impl Sim {
         // `006498de`: the pair survives only if the nearest candidate the
         // rings saw is inside `0xf00`, and is cleared otherwise — so an
         // empty search *overwrites* a good incumbent rather than leaving
-        // it standing. SEAM: this crate holds the pair on a unit only;
-        // the original's is an `ObjectData` field and a building carries
-        // one too, read by nothing either crate models.
-        if let Obj::Unit(me) = attacker {
-            self.units[me].near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
+        // it standing. A building carries the pair too, and
+        // `Build::process` reads it ([`Sim::process_building_combat`],
+        // item 1415).
+        let near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
+        match attacker {
+            Obj::Unit(me) => self.units[me].near = near,
+            Obj::Building(b) => self.buildings[b].near = near,
         }
         best.map(|(_, o)| o)
     }
@@ -3656,7 +3684,12 @@ impl Sim {
         let bd = &self.buildings[b];
         let phase = bd.phase(frame) & 0x1f;
         // Without a target, `do_attack` runs every 32nd frame.
-        if bd.target.is_none() && phase != 0 {
+        // **Or on any frame its nearest sighting is in range** — the head of
+        // `Build::process@0061edf0` (`61ee9e`..`61eec4`, `docs/GOLDEN.md`
+        // §59): with no target, `do_attack` runs when `(o + frame) & 0x1f`
+        // is 0, else when `near_o`/`near_who` (+0x34/+0x36), the last
+        // search's nearest sighting inside `0xf00`, is in range.
+        if bd.target.is_none() && phase != 0 && !bd.near.is_some_and(|n| self.is_in_range(me, n)) {
             return;
         }
         if !cycles && bd.recharging > 0 {

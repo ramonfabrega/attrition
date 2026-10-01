@@ -1377,6 +1377,8 @@ pub struct Building {
     /// flag.
     pub recharging: i32,
     pub target: Option<combat::Obj>,
+    /// `ObjectData::near_o`/`near_who` — see [`Unit::near`].
+    pub near: Option<combat::Obj>,
     pub ordered: bool,
     /// `ObjectData::targeted`.
     pub targeted: i32,
@@ -2312,6 +2314,7 @@ impl Sim {
             recharging: 0,
             target: None,
             ordered: false,
+            near: None,
             targeted: 0,
             ty: None,
             orig_ty: None,
