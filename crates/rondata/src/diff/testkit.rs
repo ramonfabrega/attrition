@@ -1689,7 +1689,30 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// more `Guy::set_anim+0x97a < Guy::inc_time+0x271`, all `1/132`'s, where
 /// the original goes on to `Farms::inc_time+0x1ae` (seed `34d7c105`).
 /// Inside run544's window (block 15884).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_883;
+///
+/// **15883 → 15985 on item 1370** (`docs/ORDERS.md` §6.9.2): the pack
+/// before a march. `Unit::work`'s pack arm — a packing type standing
+/// unpacked under a move-family head — puts a `0x28b` cast on top of the
+/// move, and the unit stands through its 80 frames before it walks
+/// (`cast_pack` sets the bit). Army 0's march reached its Bombard `1/132`
+/// (type 267) deployed on 15868; this crate had no pack, so it turned and
+/// walked at once. **The move's value diff (run544's block 15869, the
+/// state's first parting, walked back from the word):** `1/132`'s
+/// `orders.len` ours 1 against 2 (the original's `CASTORDER` `spell 651`
+/// over the `GROUPATTACKTOORDER`) → agreeing, its `g.cur_anim` ours 22
+/// against 23 (`CHAR_PACK`) → agreeing, and group 71's `speed` ours 23
+/// against 25 → agreeing; and on the word's own block 15884, `1/132`'s
+/// `pos` ours (42029, 40414) against (42031, 40399), `g.cur_time` 1
+/// against 14 and `g.stopped` 0 against 1 → agreeing. `1/132` parts on no
+/// scored key to run544's end, the pack's end on 15947 included (block
+/// 15948: the bit, `mylos` 4, the packed piece). run544's keys went 1380
+/// → 982. Frame 15883's draws went 11 against 8 → agreeing. **The new
+/// word's delta: ours 50 draws and the original 49 on frame 15985,
+/// parting at index 46**: ours spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823` (`1/88`'s) where the original goes on to
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` (seed `732a71ea`). Inside
+/// run544's window (block 15986).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_985;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -7831,12 +7854,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
     // past it, widened on run508; item 1326 to 13385, past it, widened on
     // run523; item 1341 to 14141, past it, widened on run535; item 1351
-    // to 15862, past it, widened on run544; item 1362 to 15883, inside it.
+    // to 15862, past it, widened on run544; item 1362 to 15883, inside it;
+    // item 1370 to 15985, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run544_s_word_frame_is_widened_whole"),
-        1362,
+        1370,
         Some(WIDENING_SECOND_EAST_INDIES_15862),
     ),
     (

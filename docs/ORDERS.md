@@ -2472,7 +2472,7 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
 | the packed `mylos` clamp | **diff** — the same test, 94,338 unit-frames with the one known cache row (item 35) |
 | the 55 rows are `0x275 … 0x2ab` in file order | the file, and `0x292`'s `FROM Fishermen` against §6.8's `add_cast_order` rewrite |
 | `is_castable` must answer 3, and its pack/unpack cases | reading (`00675bc0`) — and the 4989 cast is what a wrong answer would have moved |
-| the pack arm, and `CHAR_PACK` | reading; nothing in any capture packs |
+| the pack arm, and `CHAR_PACK` | **diff** since item 1370 — run544's Bombard `1/132`, §6.9.2 |
 | the rare collector's re-seat, and that it snaps the crew | **diff** — run75's block 6145 has `1/24`'s crew figure on `(40706, 14716)` at its driver's angle the frame the unpack starts, four frames before it could have walked there, and the re-seat took Great Lakes' word 6151 → **6463** (item 210) |
 | `good_merchant_spot` gating that re-seat | reading — no capture has it refuse; run58's Fisherman and run53's Merchant both pass it |
 
@@ -2513,6 +2513,88 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
   on a `tile_mask & 3 == 3` cell with a friendly building. No craft index
   reaches it; it is what an order carrying a *unit* type in its spell slot
   would do, and nothing issues one.
+
+### 6.9.2 `Unit::work`'s pack arm, and `SpellType::cast_pack` (item 1370, 2026-09-30)
+
+Established from the listing (`0060d440`–`0060d626`) and the decompile
+of `cast_pack@00670be0`, `add_cast_order@005e4a60` and
+`is_castable@00675bc0`, and **diff-backed on run544's whole window**
+(blocks 15857..16113). It is what East Indies' second-pair word sat on at
+15883.
+
+**Where it sits.** `Unit::work`, for a move-family head order
+(`MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`, `CHANGE_FORM`,
+`GROUP_MOVE`, `GROUP_ATTACK_TO`), tests at `0060d440` whether the type
+packs (`+0x2b8 & 4`) and the unit is **unpacked** (`unit_masks & 0x80000`
+clear). Either fails → the sixteen-frame review of `docs/COMBAT.md` §36
+(`0060d635`). Both hold → the review is skipped and one of three arms
+runs, in this order:
+
+1. **Held** (`0060d45d`–`0060d5a3`): the head carries the action bit
+   (`flags & 4`), it is the only order (`+0xd8`, the order list's
+   `length`), and `vector_dist` from the unit to the order's point
+   (`get_move_order`, vslot `+0xb8`, `+4`/`+8`) is under the type's
+   `block_radius` (`+0x240`). The order's point, waypoint (`+0x2c`) and
+   `last` (`+0x34`) become the unit's own position and its `tolerance`
+   (`+0x14`) 0; then, when it is pathed (vslot `+0x24`) and the path
+   stack is not empty, legs are popped down to the first `FINAL`
+   (`flags & 1`), which is popped too and replaced by the unit's
+   position carrying that leg's tolerance and flags. The move then runs.
+2. **Killed** (`0060d5a8`–`0060d5fa` → `0060d94d`): the unit stands in
+   the point's 48-unit cell (`div_3_table[x >> 4]`, both axes):
+   `kill_current_order(0)` and `work` returns.
+3. **Packing** (`0060d600`): `add_cast_order(−1, −1, −1, −1, 0x28b,
+   QUEUE_FIRST, 0)`, then `update_order` (`0060d710`), so the cast's first
+   frame is this frame's `do_job` and plays `CHAR_PACK` (§6.9 step 2).
+
+`add_cast_order` re-aims `0x28b` with the unpack's three tests: the
+machine-gun lineage `0x28d`, the three merchant ids `0x28f`, the
+`FISHERMEN` lineage `0x291`. On the cast's last frame `is_castable`
+answers for `0x28b`/`0x28d`/`0x28f`/`0x291` when the unit is a map unit
+**not** packed, and `cast_pack` runs: for a merchant the four tiles under
+it are released (`set_blocked_at(…, 0)`, `cast_unpack`'s order) and the
+leader's `0x2000000` goes up; then `unit_masks |= 0x80000`,
+`announce_frame = −1`, `update_los` (`+0x160`), `update_seen(0)`
+(`+0x174`), `update_gpiece`, and `set_new_location` on the unit's own
+position. Built as `Sim::pack_before_move` and `Sim::cast_pack`.
+
+**What run544 shows.** who=1's Bombard `1/132` (type 267) stands deployed
+at (42031, 40399) when army 0's march (`GROUPATTACKTOORDER` to (7224,
+4200)) reaches it on 15868. Block 15869: a `CASTORDER` `spell 651` over
+the march, `spell_time 1`, every crew figure on `cur_anim 23`
+(`CHAR_PACK`), `end_time 80`, `stopped 1`, one path leg; group 71's
+`speed` stays 25, because a packing member is not in formation and
+reports nothing (`docs/GROUPS.md` §14). The cast runs 79 blocks; block
+15948 prints the bit (`unit_masks` 9175040), `mylos` 4 where it stood at
+14 through the cast, and the packed piece (`gpiece` 217 → 6553). The
+march resumes on 15949. This crate had no arm: the Bombard turned
+(`cur_anim 22`) and walked on 15868, reported 23 to the group, and on
+15883 spent three walk wraps the original did not. Every `1/132` row and
+group 71's `speed` now agree to the window's end; only the `group.id`
+stand-in remains (`rondata::diff::order`, it does not score).
+
+| claim | backed by |
+| --- | --- |
+| arm 3, the cast on top and the march under it | **diff** — run544, blocks 15869..15947 |
+| `cast_pack`'s bit, `mylos` clamp and packed piece | **diff** — run544, block 15948 |
+| the packing member reports no speed to its group | **diff** — group 71's `speed` 25 on 15869 |
+| arms 1 and 2 | reading — the listing; the unit test `an_unpacked_packer_s_short_move_dies_or_holds` |
+| the pack rewrites (`0x28d`, `0x28f`, `0x291`) | reading — `add_cast_order@005e4a60`; no capture packs a machine gun, a merchant or a fishing boat |
+| `cast_pack`'s merchant arm | reading — `00670be0`; no capture packs a merchant |
+
+**What is not established.**
+
+- **`get_job_time`'s `0x28b`/`0x28c` arms** (§6.9): the Turkish
+  `turk_pack` percentage, Napoleon's `napoleon_pack` behind a general,
+  a half for the `is(0x10f, 1)` and `is(0x116, 1)` lineages and a quarter
+  for `is(0x111, 1)`. This crate reads the raw `JOB_TIME`, for the unpack
+  as before and for the pack now; run544's Bombard waits exactly 80.
+- **The order's `tolerance`** (`MoveOrder +0x14`), which arm 1 zeroes,
+  is not a field this crate's move carries.
+- **The MOVE_TO re-add above it** (`0060d36a`, `unit_masks & 0x4000000`),
+  which runs before the pack test for a `MOVE_TO` head, is not this
+  item's.
+- `announce_frame` and `options->rebuild`, which feed the interface.
 
 ---
 
