@@ -5643,18 +5643,25 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 
 /// **Chapter forty-eight's golden word** (item 1358, `docs/GOLDEN.md`
-/// §57, run551): **1450**, ours 13 draws against 11, parting at index 0
-/// (seed `0x4a70e914`): ours spends the builder `1/6`'s `Guy::set_anim+
-/// 0x97a < Unit::move_step+0x823`, which the original spends on 1451,
-/// where the original's first draws are the finished Tower's
-/// (`64cc85`, `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`). The value diff,
-/// walked back: the site `1/2006` finishes on block 1445 here and 1447 in
-/// the original (`job_counter` 0, `flags` 23), and its first parted field
-/// is block 935, the squad's first blow: `damage`/`damage_frac` ours 71/10
-/// against 72/5, `job_counter` 56960 against 56910 — the original's blow
-/// is 133 sixteenths, ours 122 (12 a figure against 11), and it costs 400
-/// of progress against 350. No mechanism is named.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1450;
+/// §57, run551): ~~**1450**~~, ours 13 draws against 11, walked back to
+/// block 935, the Elite Pikemen's first blow on the Tower site `1/2006`:
+/// `damage`/`damage_frac` ours 71/10 against 72/5, 122 sixteenths against
+/// 133.
+///
+/// **Item 1375: 1481.** The site stands on who=0's claim, and
+/// `get_damage` step 18 asks `WallData::in_unfriendly_territory@0063eca0`
+/// (the target's vslot `+0x184`), which zeroes its armour; this crate
+/// never set the flag and dealt at the site's halved armour 2. With it the
+/// blow is 133 on both sides, the site finishes on 1447 on both, and the
+/// word walks to **1481**, ours 4 draws against 8, parting at index 1:
+/// the original spends the Tower's second shot (`64cc85`, `64ccb6`,
+/// `Ammo::init+0xcd9`, `+0xd0b`) where ours spends `Guy::set_anim+0x104b`.
+/// The value diff, walked back: block 1451, the Tower's first shot on the
+/// Scout `0/7`, `ammo[0].total_time` ours 7 against 16 and `v1z` ours
+/// 2.849108 against 69.087502, its ends agreeing. No mechanism is named.
+///
+/// **The delta**, this constant's: +31, 1450 → 1481.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1481;
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
