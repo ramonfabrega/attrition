@@ -146,6 +146,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1377, 2026-10-01 — the Tower line in the placement
+
+(1384) **The fort arm's `danger[who][cell/2] / 4` term and the
+team-style ×16**: live `SEAM`s; the danger grid exists, and no walk
+reaches a Fort placement on a cell with danger.
+
+(1385) **The enemy-seen cell flag's search in the same loop**: not
+carried.
+
+(1386) **A human's `defense`**: waits on the human's sweep (AI §23.1).
+
 ## Parked by item 1375, 2026-10-01 — the site's ground
 
 (1381) **`COMBAT.md` §6 step 18 under a one-way alliance** (1375's K3):
@@ -2870,6 +2881,14 @@ assigned by no non-test line looks exactly like a modelled one, and
 `seams.py` cannot see it, since nothing says "not modelled". A guard
 could list every field of such input structs that no non-test line
 assigns.
+
+(1387) **A Tower read by identity where the original reads the line**
+(1377's Loop line): the second time (§99.10's `update_hits`, then
+`produce_building` and `find_friends`); `grep "ident == Ident::Tower"`
+is a cheap checklist row — what is left in `sim` is exact by the
+listing. And the mutation script let a worker edit sources while it
+ran: it should refuse a dirty tree and check the tree is unchanged
+before each run.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
