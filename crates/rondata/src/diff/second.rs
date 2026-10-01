@@ -2460,8 +2460,9 @@ mod tests {
         // where the original spends `do_cast`; `1/109` carries a Cast at
         // its head in the original (`order:kind` 2 against 14). Its first
         // parting is `half_step` on 16239 (ours 1, theirs 0).
-        // Item 1410: 2279 -> 1694, `1/111`'s transport cast is waited on.
-        pin_eq!(w.firsts.len(), 1694, "every key parted on run572");
+        // Item 1410: 2276 -> 1691 (2279 -> 1694 before 1398's three keys),
+        // `1/111`'s transport cast is waited on.
+        pin_eq!(w.firsts.len(), 1691, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

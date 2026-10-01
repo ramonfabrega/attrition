@@ -13528,7 +13528,7 @@ Step 4's sidestep reads only the seven. `collide.rs` step 5 now takes
 ### 106.3 Coverage
 
 - **Diff-backed**: run572 block 16192's 9 keys, 16193's 15, 16216's 9, 16217's
-  15, 16221's 6, 16222's 4 → 0; keys 2,279 → 1,694. No other window moved.
+  15, 16221's 6, 16222's 4 → 0; keys 2,279 → 1,691. No other window moved.
 - **The new word: 16250**, ours 12 draws against 13, index 1: ours
   `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original spends
   `Guy::set_anim+0x97a < do_cast`; `1/109` `order:kind` 2 against 14,
