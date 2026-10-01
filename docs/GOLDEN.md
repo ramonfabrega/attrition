@@ -10393,6 +10393,44 @@ returning 0, and the `near` clause forced true. Unit tests in `air::flak_tests`.
 `TOWER_FORT_RANGE` tech-bit arrays (entry 0 is 0), `general_building_range`.
 No other pin in `rondata` moved.
 
+**Item 1419 — the word moves 819 → 1100, the trace's end; the chapter
+closes.** The state part was 119 frames before the word: `0/7`'s order stack
+on 700 (`order:kind` 2 against 10 = `ATTACK`, `orders.len` 1 against 2; the
+dump's new order is `ox 2006`, `whom 1`, `new_ord 1`). Who pushed it: the
+Scout `0/6`'s wound lands on 700 (both sides' round `t14/14`), `0/6` is not
+combat-role, so `Unit::target_opportunity@005fffc0`'s group arm hands the hit
+to `Group::target_opportunity@007107d0`, and the captain `0/7` takes
+`Unit::target_opportunity(…, 1)` — this crate reached that call on 699 and
+returned at its first gate, `Object::valid_target`. The refusal is the
+**seen** test: `0/7` is 26 tiles from `1/2006` and no player-0 unit has it in
+sight. The original's `BuildData::is_seen@0062e1a0` answers `visible & (1 <<
+who)` first, and `Build::do_attack@006228f0` (`622b5b`..`622bd0`) writes it
+after `fire_ammo`: `flags |= 0x80`, then, if the target owner's bit is not in
+`+0x40`, sets it and, if `ever_seen` (`+0x62`) lacks the bit too, calls vslot
+`+0x164` (`update_local_seen`). The dump holds it: `1/2006 visible 1` from 687
+(the first round), `1/2007` from 692, `1/2007` back to 0 on 778 and 1 on 810
+(the head of `do_attack` clears it on the building's 32-frame phase,
+`(frame + o) & 0x1f == 0`, with the latch down; the latch drops every call).
+This crate had a `SEAM` that said the byte's writers were `set_attacking` and
+`do_cast` and had no building path: wrong, `do_attack` is the third.
+**Built:** `Building::visible`/`attacking`, the write and the clear in
+`process_building_combat`, `build_is_seen`'s first arm, `visible_of` for a
+building, and `update_local_seen_build`'s mask term. **Value diff on the
+moved state:** `0/7 orders.len` ours 1 → 2, `order:kind` ours 2 → 10 on 700
+(the rows leave the widening); the draw word goes 819 → 1100 (no draw part to
+the end). **Killers** (committed, then `tools/mutate.py`): the bit never set,
+and `build_is_seen`'s first arm dropped — both fail
+`chapter_fifty_holds_to_the_golden_word` and the widening (exit 101); the
+clear's gate dropped is held by the unit test
+`a_building_that_fires_shows_itself_to_the_player_it_shot` alone (no walk: the
+Stockade fires every recharge here, so the latch never lets the bit go).
+**Parts left under the closed word** (pinned, 36 rows against 414 and 13
+pool rows): the Scout's `death:extra` on 751 (ours 1, theirs 0), `0/7
+order:target` on 700 (ours keeps the target on the unit, the dump's order
+carries it), and the group's pool (`curr[]`, `list`/`num` on 932 — the dump's
+group loses `0/9`, ours keeps it; no draw follows). No other pin in `rondata`
+moved; `sim`'s own tests ran with the gate.
+
 **The widening** is run577 whole (`[605, 1101)`): 414 rows and 13 pool rows (446 and 14 at 686),
 pinned as they stand; the first is a cascade from 686 (the shots, then
 the Scout's death and the Hoplites' path), `0/7` damage on 1001. The ground
