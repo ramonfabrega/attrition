@@ -1142,8 +1142,8 @@ stamp removed.
 
 **Not established, and each a seam in the code:**
 
-- **The `set_type` arm.** It turns a standing patriot into the new
-  government's patriot. No capture reaches a second government.
+- ~~**The `set_type` arm.**~~ Reached on Great Sahara at Toughest's 11882
+  (item 1416, `docs/AI.md` §108): the Senator becomes The President.
 - **The respawn.** `Unit::close@0060ee50` sets `gov_hero_frame = frame +
   15 × GOV_HERO_RESPAWN` when a patriot dies. `Build::process@0061edf0`
   trains one at a Senate on the frame before that.

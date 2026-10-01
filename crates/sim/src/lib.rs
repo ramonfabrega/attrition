@@ -1474,6 +1474,16 @@ pub struct Building {
     /// player's fog (`docs/VISION.md` §6.1).
     pub ever_seen: u8,
     pub ever_seen_completed: u8,
+    /// **`ObjectData::visible` (`+0x40`) of a building** — the players it
+    /// has shown itself to by shooting them (`Build::do_attack@006228f0`,
+    /// `622b5b`..`622bd0`, `docs/GOLDEN.md` §59): the fallback arm of
+    /// `BuildData::is_seen`, so a Stockade nobody has seen is still a
+    /// legal target for the unit it shot.
+    pub visible: u8,
+    /// `SubObjectData::flags & 0x80` of a building: raised by a round
+    /// fired, dropped at the head of the next `do_attack`; it holds
+    /// [`Building::visible`] against the 32-frame clear.
+    pub attacking: bool,
 }
 
 pub use farms::Farm;
@@ -2347,6 +2357,8 @@ impl Sim {
             farm: Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            visible: 0,
+            attacking: false,
         });
         self.buildings.len() - 1
     }
@@ -3007,11 +3019,14 @@ impl Sim {
     /// 14982: who=1's Senate finishes Despotism (`docs/TECH.md` §"The
     /// government patriot").
     ///
-    /// SEAM: the other arm. With a patriot already born, the original
-    /// looks for one of its own within `0x20000` of the Senate
-    /// (`FILTER_GOV_HERO`) and `set_type`s it to the new government's —
-    /// a Despot becomes a Monarch. No capture reaches a second
-    /// government.
+    /// **The other arm** (item 1416): with a patriot already born, the
+    /// original asks `ObjectsData::find_unit(Senate x/y, SEARCH_FRIENDLY,
+    /// who, −1, 0x20000, FILTER_GOV_HERO)` — the **global** scan, since
+    /// `0x20000` is a flag of the sixth argument and the range is −1 — and
+    /// `set_type`s the nearest of its own patriots (a later slot on a tie:
+    /// the scan keeps `dist <= find_dist`) to the new government's: Great
+    /// Sahara at Toughest's Senator `1/80` becomes The President on frame
+    /// 11882, Republic (624) giving way to Democracy (626).
     fn senate_gov_hero(&mut self, at: usize) {
         if !self.building_is(at, build::Ident::Senate) {
             return;
@@ -3021,12 +3036,34 @@ impl Sim {
         let Some(hero) = self.tech_tree.get_gov_hero(&self.setup, p) else {
             return;
         };
+        let Some(rec) = self.unit_record(hero) else {
+            return;
+        };
         if p.gov_hero_frame >= 0 {
+            let site = self.buildings[at].pos;
+            let mut best: Option<(i32, usize)> = None;
+            for u in 0..self.units.len() {
+                if !self.units[u].alive() || self.units[u].owner != who {
+                    continue;
+                }
+                let is_patriot = self
+                    .unit_tree(u)
+                    .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot));
+                if !is_patriot {
+                    continue;
+                }
+                let pos = self.units[u].pos;
+                let d = world::vector_dist(pos.x - site.x, pos.y - site.y);
+                if best.is_none_or(|(b, _)| d <= b) {
+                    best = Some((d, u));
+                }
+            }
+            if let Some((_, u)) = best {
+                self.unit_set_type(u, rec);
+            }
             return;
         }
-        if let Some(rec) = self.unit_record(hero) {
-            self.build_train(at, rec);
-        }
+        self.build_train(at, rec);
     }
 
     /// `Build::train@0062f9b0` — a unit born at a building.

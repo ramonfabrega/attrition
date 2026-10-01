@@ -758,14 +758,12 @@ impl Sim {
         if who >= 8 {
             return 0;
         }
-        // SEAM: `ObjectData::visible` (`+0x40`) is the third term of the
-        // mask and nothing here sets it; its writers in the original are
-        // `Unit::set_attacking` and `Unit::do_cast`, neither of which has a
-        // building path. §7.
+        // `ObjectData::visible` (`+0x40`) is the third term of the mask;
+        // `Build::do_attack` writes it after a round (`docs/GOLDEN.md` §59).
         let mask = if self.build_types[ty].wonder && self.buildings[b].started {
             0xff
         } else {
-            self.buildings[b].ever_seen | (1u8 << who)
+            self.buildings[b].ever_seen | self.buildings[b].visible | (1u8 << who)
         };
         let corner = self.tile_corner(ty, self.buildings[b].pos);
         let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);

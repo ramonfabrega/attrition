@@ -13584,3 +13584,54 @@ nothing for the new disc. `Sim::coll_move` takes the form; test
 - **Not established**: the "no block" return (§2.4); the ghost's later life
   (a later clear by a unit leaving the cell, or a repaint) is read only at the
   tick of the probe.
+
+## 108. A Senate's second government re-types the standing patriot (2026-10-01, item 1416)
+
+*Sonnet 5.5 lane att-1416, base `1765a40e`. Great Sahara at Toughest's word
+11882 → 11985.*
+
+### 108.1 The event, from run574
+
+Run574 (`docs/RUNS.md`) widens frame 11882: ours spent 7 draws against 11,
+parting at index 2 (`Guy::set_anim+0x97a < Guy::inc_time+0x271` against
+`Guy::init_real+0x52`). The first parted keys on block 11883: who=1's
+`num_units[303]` ours 1 against 0 and `[305]` 0 against 1, and the unit
+`1/80`'s `gpiece[0..2]` 303/12975/25647 against 305/12977/25649,
+`cur_anim`, `end_time`, `des_x/y`, `track_dx`. The dump's own `type` on
+`1/80`: 353 (`THESENATOR`) through frame 11882, 355 (`THEPRESIDENT`) from
+11883. The same block's leader record: `gov` 624 (Republic) → 626
+(Democracy), `discovered_get()` 37 → 38. Ours made the government change
+and left the Senator.
+
+### 108.2 The rule
+
+`Build::finished@00628490`'s Senate tail, after its `get_gov_hero`:
+`gov_hero_frame >= 0` (a patriot was born) takes the other arm,
+`ObjectsData::find_unit@0065ca80(Senate x, y, SEARCH_FRIENDLY, who, −1,
+0x20000, FILTER_GOV_HERO, …)` and `set_type(hero, 0)` on what it returns.
+`0x20000` is a flag in the sixth argument (the one the listing tests
+against `param_6 & 0x20000`), **not a range**: the range is −1, which
+takes the global scan of the owner's objects, nearest by `vector_dist`
+with `<=` so a later slot wins a tie. Built in `Sim::senate_gov_hero`
+(`crates/sim/src/lib.rs`): the nearest own live unit whose tree type has
+the `patriot` trait is re-typed by `unit_set_type`, which already carries
+`Unit::set_type`'s `reinit_guys`.
+
+### 108.3 Coverage
+
+- **Diff-backed**: run574's block 11883 (27 keys), 11884 (2), 11885 (10),
+  11886 (22) and the rest to 11975 → 0; keys 1,280 → 979. The compared
+  pins and every other widening held (`rondata` 675 passed; the two reds
+  are the commander's handoff line and the run574 test's own first pin,
+  re-pinned).
+- **Not established**: the global scan's `0x20000` flag (its skipped
+  `+0xbc` test: the slot is not read here); that a squad's crew, which
+  the scan also meets, are handled by a captain-only re-type (this crate
+  walks units whose tree type has the trait, and one Senator is all any
+  capture has); a patriot dead or inside a building.
+- **The new word: 11985**, ours 15 draws against 10, index 3: ours
+  `Leader::produce_building+0x1805` where the original spends
+  `Guy::set_anim+0x97a < Animal::do_idle+0x19`. First state part: `1/124`
+  on block 11976 (`g.angle[0]` ours 1431655765 against 0, `orders_x/y`
+  21984/18912 against 22008/18936), then who=1's `MAKE[2]` on 11979 (`t`
+  561 against 604, `val` 86400 against 237600).

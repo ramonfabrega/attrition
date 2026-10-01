@@ -3968,6 +3968,13 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
         Some(monarch_t),
         "get_gov answers the first bonus in its own order"
     );
+    // **The other arm** (item 1416): the standing patriot is `set_type`d
+    // to the new government's, where the original's `find_unit` finds it.
+    let standing: Vec<_> = (0..sim.units.len())
+        .filter(|&u| sim.units[u].alive() && sim.units[u].owner == 0)
+        .filter_map(|u| sim.units[u].ty)
+        .collect();
+    assert_eq!(standing, [monarch], "the Despot became the Monarch");
     sim.tech[0].no_patriots = true;
     assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
 }

@@ -13152,3 +13152,39 @@ from launch to exit. Copied into `Logs` as
 (606, 809)`, fifteen `is_here` calls all 0 (`1/119` first), no
 `is_corner`. The live block (37, 50) beside this crate's has 13 bits more
 (`docs/AI.md` §107.1). Run 579 was reserved and not used.
+## run574 — run470's game at run571's detail over blocks 11876..12133: the third map's word 11882 at Toughest widened (2026-10-01, item 1416)
+
+**What it is.** run571's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 11876..12133, `!quit` at 12147: six blocks before the word's block
+11883 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run574 \
+    --map 7 --end-frame 12147 --timeout 5000 --log-window 11876 12133 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1398 moved the
+word 11382 → 11882, and run571, the last dump of this game, ends at block
+11433: no dump printed the word's frame.
+
+**Taken** 12:02–12:25 in one launch (a first attempt died at once because
+the output directory had been made by hand: `os.mkdir` refuses an existing
+one); `ron_lane_state` read `free`, `waitrun.sh` waited: `success: true`,
+`settings_restored: true`, exit 0, 1,381 s from launch to exit, 12,148
+frames, map 7 and seed 12345 verified. The dump (607,350,495 bytes, sha256
+`b44ecd18a88ce3cd…`) and the trace (69,145,024, `70fbd6c3a5361496…`) were
+moved into `Logs` as `gamelog-run574-greatsahara-toughest-11882.txt` and
+`rontrace-run574.log`. The disk had 209 GB free before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 12,148 identical |
+| window blocks | 257, 11876..12132, and the closing block 12148 |
+
+**What it holds**: `run574_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`): 1,280 keys, 128 standing on block 11876, and the
+Senator's re-type parts on 11883 (27 keys). The compared pin walks blocks
+11985..11988. Run 575 was reserved and not used.

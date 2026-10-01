@@ -2267,6 +2267,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let n = drive_capture(p, 684, 688, &mut paths);
         assert_eq!(n, 5, "chapter fifty carries the window's five blocks");
         frames += n;
+        // Item 1419: 700, the Hoplite captain's `ATTACK` on the Stockade
+        // under `Group::target_opportunity` (the word 819, then closed).
+        for w in [700, 819] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter fifty carries the window's five blocks");
+            frames += n;
+        }
     }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
