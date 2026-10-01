@@ -783,8 +783,8 @@ impl Sim {
         // SEAM: the original asks `researching(t, -1, 0, 0)` here too
         // (`produce_tech@006ca980`), whose unit arm counts a queued rung of
         // `t`'s lineage ([`Sim::researching_unit`]); only `upgrade_units`
-        // takes that arm so far (item 1379), and no capture has been read
-        // for a unit upgrade bought while a rung below it is in research.
+        // takes that arm so far (item 1379), and no walk here holds a unit
+        // upgrade bought while a rung below it is in research.
         if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) || self.researching(who, t) {
             return true;
         }

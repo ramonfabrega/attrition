@@ -3529,7 +3529,7 @@ fifth roll, and a make-list head of 1,152,000 where the original's is the
 Elite Knight's 672,000 (run562, block 10780). **Diff-backed** by run562's
 widening and the walk (10779 → 11182). `produce_tech` asks the same
 `researching(t, −1, 0, 0)` and still takes the equality alone: a `SEAM`
-there, no capture read for it.
+there, which no walk holds yet.
 
 ---
 
