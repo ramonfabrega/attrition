@@ -162,8 +162,6 @@ Before any reading of the original, in this order:
   take with `@` lines is read with `python3 tools/gamelog/issuesmatch.py
   <trace> --none-refused` first** (966, 1256).
 - **A table row that will not fit says where the row goes** (932, 949).
-- A chapter's script never writes a frame below its predecessor's; the
-  interpreter clamps it and a test refuses it.
 
 ## build
 
@@ -230,7 +228,9 @@ Before any reading of the original, in this order:
 - **Your journal is `docs/journal/<the day you land>-item-{item}.md`**,
   yours alone. Name every module you touched. Put anything for the
   steering pass on one line headed "for the Loop".
-- **When you are done, send me one line**: your tip SHA, and that `git
-  log <base>..<branch>` is non-empty. Ninety minutes after your spawn
-  without a landing, send one line instead: the step you are on and
-  whether a gate, a packet or a capture is running.
+- **When you are done, send me one line** — `ToolSearch("select:
+  SendMessage")`, then `SendMessage` to `attrition` (1412): your tip
+  SHA, that `git log <base>..<branch>` is non-empty, and the `Lane
+  verdict:` and `Gate steps:` lines (1406). Ninety minutes after your
+  spawn without a landing, send the step you are on and whether a gate,
+  a packet or a capture runs.

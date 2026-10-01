@@ -181,6 +181,27 @@ impl Sim {
     fn literal(&self) -> Unit {
         Unit { collide_o: 0, ..Unit::default() }
     }
+
+    fn spanning_literal(&self) -> Unit {
+        Unit {
+            total_time: 0,
+            ..Unit::default()
+        }
+    }
+}
+
+/// A declaration after a function: its fields are nobody's writes.
+pub(crate) struct Later {
+    pub total_time: u32,
+    collide_o: usize,
+    /// Read by `read_never`, written by no non-test line.
+    pub never: u8,
+}
+
+impl Later {
+    fn read_never(&self) -> u8 {
+        self.never
+    }
 }
 
 #[cfg(test)]
@@ -203,6 +224,27 @@ class ByField(unittest.TestCase):
     def test_a_field_s_writers_and_readers_are_named(self):
         self.assertEqual(seams.field_functions(FIELD_SOURCE, 'collide_o'),
                          {'push_collider': 'w', 'read_collider': 'r', 'literal': 'w'})
+
+    def test_a_struct_literal_that_spans_lines_is_a_write(self):
+        # Parked 1397, two reaches (1380's `total_time`, 1407's `last_x`):
+        # a `field: value,` line of a literal read as a declaration's.
+        self.assertEqual(seams.field_functions(FIELD_SOURCE, 'total_time'),
+                         {'spanning_literal': 'w'})
+
+    def test_a_struct_s_fields_no_non_test_line_writes_are_listed(self):
+        # Parked 1382 and 1400, three reaches: `combat::Side`'s fields,
+        # `Muster::library_cities`, `gather_stamp` — each read by the sim,
+        # written by nothing but a test, and reading as modelled.
+        d = Path(tempfile.mkdtemp())
+        (d / 'a.rs').write_text(FIELD_SOURCE)
+        self.assertEqual(seams.unwritten('Later', d),
+                         (['total_time', 'collide_o', 'never'], ['never']))
+        self.assertEqual(seams.unwritten('Nobody', d), ([], []))
+
+    def test_a_name_that_is_no_field_says_where_it_occurs(self):
+        # Parked 1397's second reach: `--field FleeTo` printed "writers
+        # none" for a variant used in three places.
+        self.assertEqual(seams.functions_naming(FIELD_SOURCE, 'collide_frame'), ['push_collider'])
 
     def test_a_field_s_seam_is_found_through_its_writer(self):
         fns = seams.field_functions(FIELD_SOURCE, 'collide_o')

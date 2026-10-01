@@ -416,14 +416,16 @@ loop's own items** — tooling, guards, the queue's rules — which live in
 Loop item that two tranches running did not reach closes at the pass**,
 its text kept in the pass's record, and its next reach files it again
 (`docs/DECISIONS.md` entry 54). It writes the next opener. Never Sonnet
-on a reading or an adjudication; **the twenty-third tranche's workers
-run Sonnet 5.5 as a trial** (`ccc spawn --model claude-sonnet-5-5[1m]`,
-the window verified from the first worker's transcript; DECISIONS 58,
+on a reading or an adjudication; **the workers run Sonnet 5.5 since
+the twenty-third tranche** (`ccc spawn --model claude-sonnet-5-5[1m]`,
+the model verified from each worker's transcript; DECISIONS 58 and 59,
 parked 1142) — the commander stays Opus, the frame and the gates are
-the control, a landing whose mechanism the floor did not catch ends
-the trial, and the next pass scores each lane against the tranche
-before in USD a frame. The model is said in user-visible text each
-time. **A commit's trailer names the model the worker's own system prompt
+the control, and the two kill rules stand: a landing whose mechanism
+the floor did not catch (a red booking gate on its merge) returns that
+lane to Opus, and a lane that lands nothing in three attempts on one
+word gets an Opus successor on that word; each pass scores every lane
+in USD a frame against the tranche before. The model is said in
+user-visible text each time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row
@@ -518,7 +520,14 @@ commit. **The spawn follows the booking commit, and the gate runs
 beside the new worker**: a landing frees a lane, and the turn that books
 it refills it with the queue's first unstarted item on that track,
 before its own gate — a lane stood empty through every booking gate of a
-tranche. A red booking gate is a second commit and one line to every
+tranche. **And a spawn is followed by an idle subscription** —
+`SendMessage` to the lane with `notify_when_idle: true` and no
+message — re-armed at every notice that brings no landing on the
+lane's branch: three lanes of one tranche wrote their landing in their
+own transcript with the message tool never loaded, and the commander
+slept three hours and thirty-four minutes until a person asked (parked
+1412); a done line is the lane's, and the notice is what wakes a
+commander when the line does not come. A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to

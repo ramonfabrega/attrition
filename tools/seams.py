@@ -164,6 +164,7 @@ def left_out(text):
 
 
 FN_LINE = re.compile(r'(?:pub(?:\([a-z]+\))? )?(?:const )?fn ([a-z0-9_]+)')
+DECL_LINE = re.compile(r'(?:pub(?:\([a-z]+\))? )?(?:struct|enum|union) [A-Za-z0-9_]+')
 
 
 def field_functions(text, field):
@@ -183,8 +184,24 @@ def field_functions(text, field):
     # A test module's writes are a fixture's, not the simulation's.
     live = text.split('#[cfg(test)]')[0]
     prev = ''
+    # A struct's or enum's declaration ends a function and declares its
+    # fields; a `field: value,` line inside one is a declaration, and the
+    # same line inside a function is a struct literal's write (parked 1397:
+    # `total_time` is written in four places, every one a literal that
+    # spans lines, and the scan read each as a declaration).
+    decl_indent = None
     for line in live.split('\n'):
         s = line.strip()
+        indent = len(line) - len(line.lstrip())
+        if decl_indent is not None:
+            if s == '}' and indent == decl_indent:
+                decl_indent = None
+            continue
+        if DECL_LINE.match(s):
+            fn = ''
+            if s.endswith('{'):
+                decl_indent = indent
+            continue
         m = FN_LINE.match(s)
         if m:
             # A `#[test]` outside a test module is a fixture too.
@@ -196,11 +213,54 @@ def field_functions(text, field):
         if not fn or s.startswith('//'):
             continue
         code = s.split('//')[0]
-        if write.search(code) or (literal.search(code) and not re.match(r'(?:pub(?:\([a-z]+\))? )?[a-z0-9_]+\s*:', code)):
+        if write.search(code) or literal.search(code):
             out[fn] = 'w'
         elif read.search(code) and fn not in out:
             out[fn] = 'r'
     return out
+
+
+def functions_naming(text, name):
+    """The functions of a source text whose code names an identifier."""
+    rx = re.compile(rf'(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])')
+    out, fn = [], ''
+    for line in text.split('#[cfg(test)]')[0].split('\n'):
+        s = line.strip()
+        m = FN_LINE.match(s)
+        if m:
+            fn = m.group(1)
+            continue
+        if fn and not s.startswith('//') and rx.search(s.split('//')[0]) and fn not in out:
+            out.append(fn)
+    return out
+
+
+def declared_fields(text, struct):
+    """The field names a `struct` declaration of that name carries."""
+    m = re.search(rf'(?:pub(?:\([a-z]+\))? )?struct {re.escape(struct)}\b[^{{;]*\{{(.*?)\n\}}', text, re.S)
+    if not m:
+        return []
+    return re.findall(r'^\s*(?:pub(?:\([a-z]+\))? )?([a-z][a-z0-9_]*)\s*:', m.group(1), re.M)
+
+
+def unwritten(struct, root=None):
+    """`(fields, unwritten)`: the fields a struct declares, and those no
+    non-test line of `crates/sim` writes (parked 1382, 1400 — three reaches:
+    `combat::Side`'s, `Muster::library_cities`, `gather_stamp`). A field no
+    one writes reads exactly like a modelled one, and nothing says "not
+    modelled"."""
+    root = root or SIM
+    files = [f.read_text() for f in sorted(root.rglob('*.rs'))]
+    fields = []
+    for text in files:
+        fields = declared_fields(text, struct)
+        if fields:
+            break
+    silent = []
+    for field in fields:
+        if not any(k == 'w' for text in files for k in field_functions(text, field).values()):
+            silent.append(field)
+    return fields, silent
 
 
 def unscanned(seam):
@@ -285,6 +345,8 @@ def main():
                          "named too, writers first (parked 1340)")
     ap.add_argument('--doors', action='store_true',
                     help='list the live seams that name a function this crate now carries')
+    ap.add_argument('--unwritten', metavar='STRUCT',
+                    help='list the fields of a `crates/sim` struct that no non-test line writes')
     ap.add_argument('--width', type=int, default=260)
     args = ap.parse_args()
 
@@ -294,6 +356,15 @@ def main():
             print(f'{f}:{line}  in `{fn}`  names {", ".join("`%s`" % b for b in built)}')
             print(f'    {clip(seam, args.width)}')
         print(f'{len(rows)} live seams name, as missing, a function this crate carries')
+        return 0
+
+    if args.unwritten:
+        fields, silent = unwritten(args.unwritten)
+        if not fields:
+            print(f'no struct `{args.unwritten}` under crates/sim', file=sys.stderr)
+            return 2
+        print(f'`{args.unwritten}`: {len(fields)} fields, {len(silent)} written by no non-test line'
+              + (': ' + ', '.join(silent) if silent else ''))
         return 0
 
     names = list(args.names)
@@ -313,6 +384,12 @@ def main():
         readers = sorted(n for n, k in fns.items() if k == 'r')
         print(f'field `{field}`: writers ' + (', '.join(writers) or 'none')
               + '; readers ' + (', '.join(readers) or 'none'))
+        if not fns:
+            # A variant or a constant is not a field (parked 1397's second
+            # reach): say where the bare name occurs instead of "none".
+            where = sorted({fn for f in sorted(SIM.rglob('*.rs'))
+                            for fn in functions_naming(f.read_text(), field)})
+            print(f'    no `.{field}`; the name occurs in ' + (', '.join(where) or 'no function'))
         names += [field] + writers + readers
     rx = matcher(names)
     if rx is None:
