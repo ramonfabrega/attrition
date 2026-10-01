@@ -1827,7 +1827,15 @@ impl Sim {
             let Some(wrec) = self.build_record(wt) else {
                 continue;
             };
-            if self.buildings_of_line(who, wrec) == 0 || self.researching(who, t) {
+            // `LeaderData::researching(t, -1, 0, 0)`: `param_4` is 0, so the
+            // unit arm's lineage counts — the Heavy Horse Archers (`CAVARCHERS`)
+            // in research are researching the Dragoon too (item 1379), which the tech
+            // equality of [`Sim::researching`] does not see.
+            let researching = self.unit_record(t).map_or_else(
+                || self.researching(who, t),
+                |r| self.researching_unit(who, r),
+            );
+            if self.buildings_of_line(who, wrec) == 0 || researching {
                 continue;
             }
             // The predecessor chain: what I own of it and whether any of it
@@ -2948,6 +2956,70 @@ mod tests {
         sim.upgrade_units(0);
         assert_eq!(draws(&mut sim, before), 0);
         assert_eq!(sim.ai[0].make_list.list[7].t, -1);
+    }
+
+    /// **An upgrade whose line is already in research is not offered**
+    /// (item 1379). `upgrade_units` asks `LeaderData::researching(t, -1, 0,
+    /// 0)` (`6c657e`..`6c6587`), and with `param_4` 0 the unit arm counts a
+    /// queued entry of any type in `t`'s lineage whose bit is clear
+    /// (`6db5d9`..`6db62c`): Great Sahara at Toughest's who=1 had the
+    /// Heavy Horse Archers (`CAVARCHERS`) in research on 10779, and the original drew for
+    /// four upgrades where this crate drew for the Dragoon too.
+    #[test]
+    fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
+        let (mut sim, ids) = barracks_sim(false);
+        // Two rungs above the trained type: Hoplites → Phalanx → Elite.
+        let mut tree = sim.tech_tree.clone();
+        let mid = tree.add(tech::TypeDef::unit(
+            "Phalanx",
+            tech::UnitTraits {
+                combat: true,
+                ..tech::UnitTraits::default()
+            },
+        ));
+        // The top rung is a jump unit, as the Dragoon is: researchable
+        // while the rung below it is not available.
+        let top = tree.add(tech::TypeDef::unit(
+            "Elite Phalanx",
+            tech::UnitTraits {
+                combat: true,
+                jumpable: true,
+                ..tech::UnitTraits::default()
+            },
+        ));
+        let build = tree.types[ids.unit].where_;
+        tree.types[mid].where_ = build;
+        tree.types[mid].from = Some(ids.unit);
+        tree.types[top].where_ = build;
+        tree.types[top].from = Some(mid);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        sim.tech[0].tech[ids.unit] = true;
+        sim.tech[0].tech[build.expect("the barracks")] = true;
+        for t in [mid, top] {
+            let mut ty = sim.unit_types[ids.rec].clone();
+            ty.tree = Some(t);
+            sim.add_unit_type(ty);
+        }
+        sim.muster[0].by_type[ids.rec] = 1;
+        sim.lobby.difficulty = 5;
+        let offered = |sim: &mut Sim| {
+            sim.ai[0].make_list.clear();
+            let before = sim.rng;
+            sim.upgrade_units(0);
+            draws(sim, before)
+        };
+        assert_eq!(sim.type_avail(0, mid), tech::RESEARCHABLE);
+        assert_eq!(sim.type_avail(0, top), tech::RESEARCHABLE);
+        assert_eq!(offered(&mut sim), 2, "both rungs, nothing in research");
+        // The first rung's research laid at the barracks.
+        let mid_rec = sim.unit_record(mid).expect("registered");
+        sim.queue_up(ids.b, mid_rec).expect("the research is laid");
+        assert!(
+            !sim.researching(0, top),
+            "the tech equality does not see it"
+        );
+        assert_eq!(offered(&mut sim), 0, "the rung itself and the one above it");
     }
 
     /// `Build::queue_up(t, escrow)` (`docs/AI.md` §98): the affordability
