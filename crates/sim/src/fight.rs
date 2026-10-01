@@ -324,7 +324,7 @@ impl Sim {
     /// 11, in run577. The colosseum's `COLOSSEUM_FORT_RANGE` (0 as shipped),
     /// the Roman and the tech-bit arrays (`FORT_UPGRADE_RANGE`,
     /// `TOWER_FORT_RANGE`, entry 0 is 0) and `general_building_range` are
-    /// not carried (SEAM: no capture holds them).
+    /// not carried; no capture holds them.
     fn british_building_range(&self, o: Obj) -> i32 {
         let Obj::Building(b) = o else {
             return 0;
