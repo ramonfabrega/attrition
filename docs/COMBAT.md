@@ -874,7 +874,15 @@ passed on).
 5. A building under construction (not `WallData::is_active`), hit by
    something other than an aircraft, in combat, with `whole > 0`: its
    `WallData::job_counter` loses `whole * 50` (clamped at 0). Hits knock
-   progress off a building site.
+   progress off a building site. **`whole` is step 4's, the carry
+   added** (item 1350): the listing stores it back over `param_1` at
+   `0065230b` and the `imul $0x32` at `0065239b` reads that slot. This
+   crate took the blow's own whole hits, and the aircraft and combat-only
+   tests (`0065234e`–`0065237c`, `00652341`) were not carried: run514's
+   Keep site lost 200 on 738 where the original lost 250. Both built in
+   `Sim::damage_building`. **Diff-backed** on run514's site, every blow
+   (`docs/GOLDEN.md` §56); the aircraft arm and the attrition arm rest on
+   the listing and the unit test alone.
 6. T **not** Build-proper (a unit, a wall): the AI's peasant-alarm (a
    citizen hit inside a city with a finished city building: push an alarm
    group). No change to the numbers.
