@@ -129,11 +129,14 @@ impl Sim {
     // §2 — the line of sight
     // ------------------------------------------------------------------
 
-    /// `Unit::update_los@0060e4d0` into `UnitData::los@006100c0`, as far as
-    /// this simulation models it: the type's own `LOS`, the citizen terms,
-    /// the science term, and the two clamps. `docs/VISION.md` §2 tabulates
-    /// the seven terms that are read and not implemented; none of them can
-    /// fire in any capture on disk.
+    /// `Unit::update_los@0060e4d0`'s value, as far as this simulation models
+    /// it: the type's own `LOS`, the citizen terms, the science term, the
+    /// two clamps and the troops term. It is the **derivation**; what the
+    /// fog and the follower read is the cache [`Sim::update_los`] writes
+    /// into [`crate::Unit::mylos`] at the original's call sites.
+    /// `docs/VISION.md` §2 tabulates the terms that are read and not
+    /// implemented (7–11 and term 6's archers' sub-arm); none fires in any
+    /// capture on disk.
     ///
     /// Zero for a unit whose type has no `LOS`. The head's other exit —
     /// `leader_flags & 1`, an unused leader slot — has no counterpart here,

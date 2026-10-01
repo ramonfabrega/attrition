@@ -680,8 +680,13 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   through the bit, and in a normal game neither runs: `ConsoleWin::run_cmd`
   and the scenario functions are their only callers.
 
-  **What that does not yet explain**, and it is the open question this
-  document owes: run10's one disagreement is player 1's Scout, `mylos` 4
+  ~~**What that does not yet explain**~~ **Answered by item 1354 as to the
+  value**: with the cache refreshed on the leader pass after a gain, run10's
+  scout, run349's and run382's agree on 202, and so do chapter
+  twenty-six's `0/0` on 1023 and every Citizen row of run174's, run99's,
+  run416's and run471's windows (§2). What the flag
+  reading below says is still unexplained: run10's one disagreement was
+  player 1's Scout, `mylos` 4
   through frame 202 and 6 from 203, and the per-frame `LEADERDATA` (at
   `LEADERS=1`, free on every capture) shows **no** `0x4000000` on player 1
   at the end of either frame — where player 0 carries it at 202 and is
