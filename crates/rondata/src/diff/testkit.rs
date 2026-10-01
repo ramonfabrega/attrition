@@ -1734,6 +1734,21 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
 /// figures and its move's `pause`, 14 against 15.
 ///
+/// **16221 → 16250 on item 1410** (`docs/AI.md` §106):
+/// `resolve_unit_collision`'s step 5 waits on a collider whose current
+/// order is a transport cast (spell `0x28a`, `005fa4f4`) as on a move,
+/// where this crate repathed. East Indies' `1/110` (block 16192: path
+/// length ours 57 against 51, `path[50]` (28488, 37608) flags 2 against
+/// (29016, 38376) flags 4, `dest` 0 against 1, position (29256, 38520)
+/// against (29239, 38541)) walked into `1/111`, which stands casting. The
+/// 16192 block's 9 keys, 16193's 15, 16216's 9, 16217's 15, 16221's 6 and
+/// 16222's 4 → 0; run572's keys 2279 → 1694. **The new word's delta:
+/// ours 12 draws against 13 on frame 16250, at index 1**: ours
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original
+/// spends `Guy::set_anim+0x97a < do_cast`; `1/109` `order:kind` 2 against
+/// 14, `orders.len` 1 against 2, `orders_x/y` (7704, 4872) against
+/// (29003, 38668).
+///
 /// **16179 → 16221 on item 1407** (`docs/AI.md` §105): `cast_transport`
 /// clears the handed-over path's top embark flag when
 /// `get_tregion(top) == get_tregion(spot)`, and `get_tregion` is the
@@ -1784,7 +1799,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
 /// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
 /// 16161).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_221;
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's

@@ -13499,3 +13499,44 @@ boat accepted the line; with the refinement the flag clears, and the first
   (28872, 37992), `collide_o` −1 against 111 on 16217).
 - **Not established**: whether `1/110`'s cast is the decoy gate again or
   the cargo's order list; no chain read.
+
+## 106. A collider casting the boat's spell is waited for (2026-10-01, item 1410)
+
+### 106.1 The event
+
+Frame 16221 (run572): ours 12 draws against 12, index 0 — ours `do_cast`'s
+`set_anim` where the original spends `Guy::do_turn+0x4a < Unit::move_step+0x389`,
+with `1/110`'s `order:kind` 14 against 2. The first parting was earlier, on
+block 16192: `1/110` (a land unit walking its group's route, group 71)
+collided with `1/111` at (29190, 38596), which stood with a `TRANSPORT` cast
+(spell 650, `paid` 1 on 16191) at the head of its orders. The original's
+`1/110` stood stopped (`collide` 1 → 2, path length 51, top (29016, 38376)
+flags 4, move `dest` 1); ours repathed and stepped (`path:length` 57,
+`path[50]` (28488, 37608) flags 2, `dest` 0, position (29256, 38520) against
+(29239, 38541)). `1/115` parted the same way on 16216.
+
+### 106.2 The rule and the fix
+
+`Unit::resolve_unit_collision@005f9d30` step 5 (`005fa4f4`–`005fa559`): when
+the collider's order type is not the move family, the listing tests
+`order_type == CAST_SPELL` and the spell record's `+0x20` against `0x28a`
+(`TRANSPORT`), and a hit jumps to the same wait (`LAB_005fa559`) as a move.
+Step 4's sidestep reads only the seven. `collide.rs` step 5 now takes
+`its_transport_cast`; unit test
+`a_collider_casting_the_transport_spell_is_waited_for`.
+
+### 106.3 Coverage
+
+- **Diff-backed**: run572 block 16192's 9 keys, 16193's 15, 16216's 9, 16217's
+  15, 16221's 6, 16222's 4 → 0; keys 2,279 → 1,691. No other window moved.
+- **The new word: 16250**, ours 12 draws against 13, index 1: ours
+  `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original spends
+  `Guy::set_anim+0x97a < do_cast`; `1/109` `order:kind` 2 against 14,
+  `orders.len` 1 against 2, `orders_x/y` (7704, 4872) against (29003, 38668).
+  Its first parting is `half_step` on block 16239, ours 1 against 0: the step
+  into (29183, 38908) names `1/119` (same group, front a move) a *soft*
+  collider in ours, where the original raises no one-shot and no hit; the
+  position parts on 16240 (ours' half step, (29174, 38896) against
+  (29165, 38884)).
+- **Not established**: why the original's scan does not reach `1/119` as soft
+  (its `is_here` or the occupancy grid's timing); no chain read.
