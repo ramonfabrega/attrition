@@ -933,6 +933,11 @@ impl Sim {
         if bd.owner == who {
             return true;
         }
+        // `visible & (1 << who)`, the first arm: a building that has fired
+        // on `who` is seen by it (`Build::do_attack`'s write).
+        if bd.visible & Self::who_bit(who) != 0 {
+            return true;
+        }
         let mask = self.seen_ally_mask(who);
         (bd.started || mask & Self::who_bit(bd.owner) != 0) && bd.ever_seen & mask != 0
     }
@@ -963,7 +968,7 @@ impl Sim {
     pub(crate) fn visible_of(&self, o: Obj) -> u8 {
         match o {
             Obj::Unit(u) => self.units[u].visible,
-            Obj::Building(_) => 0,
+            Obj::Building(b) => self.buildings[b].visible,
         }
     }
 
@@ -3696,6 +3701,14 @@ impl Sim {
             self.buildings[b].recharging -= 1;
             return;
         }
+        // **The head of `do_attack` past the countdown** (`62295a`..
+        // `622978`): on the building's 32-frame phase, with the latch
+        // down, `visible` is cleared; the latch drops every call.
+        if phase == 0 && !self.buildings[b].attacking {
+            self.buildings[b].visible = 0;
+        }
+        self.buildings[b].attacking = false;
+        let bd = &self.buildings[b];
         let p = self.profile(me);
         // The garrison's arrows: the input the earlier mechanic took, plus
         // what the squads actually inside contribute (`docs/CITIES.md` §6).
@@ -3820,6 +3833,18 @@ impl Sim {
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
             });
+        }
+        // `do_attack`'s tail after `fire_ammo` (`622b5b`..`622bd0`): the
+        // latch is raised, and the target's player gets the building's
+        // `visible` bit; a player that has never seen it has the building
+        // light itself into its fog (vslot `+0x164`).
+        self.buildings[b].attacking = true;
+        let bit = Self::who_bit(self.owner_of(target));
+        if self.buildings[b].visible & bit == 0 {
+            self.buildings[b].visible |= bit;
+            if self.buildings[b].ever_seen & bit == 0 {
+                self.update_local_seen_build(b);
+            }
         }
         self.buildings[b].recharging = p.recharge / arrows;
     }

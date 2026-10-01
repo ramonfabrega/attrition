@@ -4445,6 +4445,37 @@ mod flak_tests {
         );
     }
 
+    /// **`Build::do_attack`'s `visible` write** (item 1419, `docs/GOLDEN.md`
+    /// §59, `622b5b`..`622bd0`): a round fired sets the target owner's bit
+    /// on the building, which is `BuildData::is_seen`'s first arm; the
+    /// 32-frame phase with the latch down clears it.
+    #[test]
+    fn a_building_that_fires_shows_itself_to_the_player_it_shot() {
+        let mut s = sim();
+        let (b, sc) = stockade_and_scout(&mut s);
+        s.units[sc].pos = Pos::new(22272 + 8 * 192, 16512);
+        s.buildings[b].near = Some(Obj::Unit(sc));
+        let frame = (5 - i64::from(s.buildings[b].index)).rem_euclid(32);
+        assert_eq!(s.buildings[b].visible, 0);
+        s.process_building_combat(b, frame);
+        assert!(!s.projectiles.is_empty(), "it fired");
+        assert_eq!(s.buildings[b].visible, 1, "the Scout's owner's bit");
+        assert!(s.buildings[b].attacking);
+        assert!(s.build_is_seen(b, 0), "seen by who it shot");
+        assert!(!s.build_is_seen(b, 2), "and by nobody else");
+        // The next phase call, with nothing to shoot: the latch holds the
+        // bit and drops; the one after clears it.
+        let phase0 = (32 - i64::from(s.buildings[b].index)).rem_euclid(32);
+        s.buildings[b].recharging = 0;
+        s.buildings[b].target = None;
+        s.buildings[b].near = None;
+        s.units[sc].pos = Pos::new(0, 0);
+        s.process_building_combat(b, phase0);
+        assert_eq!(s.buildings[b].visible, 1, "the latch held it");
+        s.process_building_combat(b, phase0 + 32);
+        assert_eq!(s.buildings[b].visible, 0, "cleared on the phase, latch down");
+    }
+
     #[test]
     fn a_building_keeps_a_dead_target_until_do_attack_replaces_it() {
         let mut s = sim();
