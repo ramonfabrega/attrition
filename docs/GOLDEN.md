@@ -10262,6 +10262,18 @@ the cascade of civilians' paths from 943 (the Tower's fifth shot's draws
 shift everything), and the pool's `622 slot 1`, `702 slot 0` and
 `963 slot 2`.
 
+**Mutations**, each on `7e3455f1`, `git diff --stat` read one line in one
+file, restored from git and touched, scored by exit code and failed tests'
+names of `cargo test --release -p rondata chapter_forty_nine` and `-p sim
+--lib` (`--test-threads 2`; `docs_guard::an_item_number_is_minted…` is red
+on the queue's line 1393 in every row and is not the mutation's):
+
+| mutation | held by |
+|---|---|
+| K1: `ages` 3 reads 0 (a Tower at the third age flies at 90) | exit 101: **the word (934 moves) and the widening**; `a_towers_arrow_flies_at_ninety_until_the_fourth_age`. **Item 1380's K3 is held by a walk now** |
+| K2: the bump loop's `JUMP` walk dropped (`while false`) | exit 101: **the widening alone** (the Catapult's queue cost and the buckets, 72 → 63); the unit test `a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base`. The word stays 934, which parts first |
+| K3: the sixteen-frame review also runs under the pack arm (1370's M3) | exit 0 on the walk, the widening and every sim test: **equivalent, as read above** |
+
 **What is not established.**
 - The word at 934 and the flee behind it (above).
 - `get_shot`'s exact-type arms and `ages` ≥ 5 (this chapter reaches 3).
