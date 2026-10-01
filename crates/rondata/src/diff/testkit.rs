@@ -5769,6 +5769,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 1500;
 /// `chapter_forty_nine_s_word_frame_is_widened_whole`'s window: run576 whole.
 pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
 
+/// **Chapter fifty** (item 1404, `docs/GOLDEN.md` §59, run577): two
+/// Stockades at the first age and a Scout led through their range by a
+/// group attack-move, a Hoplite squad behind it. Open at the word below.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 686;
+
+/// `chapter_fifty_s_word_frame_is_widened_whole`'s window: run577 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY: (i64, i64) = (605, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6290,6 +6298,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
+    ("chapter_fifty_holds_to_the_golden_word", 7),
+    ("chapter_fifty_s_word_frame_is_widened_whole", 7),
     // Chapter forty-three (item 1223): the Chariot's three shots at the
     // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
     ("chapter_forty_three_holds_to_the_golden_word", 3),
@@ -7894,6 +7905,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_forty_eight_s_word_frame_is_widened_whole"),
         1358,
         Some(WIDENING_CHAPTER_FORTY_EIGHT),
+    ),
+    // Item 1404: run577, chapter fifty, two Stockades at the first age and a
+    // group attack-move through their range. The widening is run577 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY",
+        GOLDEN_WORD_CHAPTER_FIFTY,
+        Some("chapter_fifty_s_word_frame_is_widened_whole"),
+        1404,
+        Some(WIDENING_CHAPTER_FIFTY),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
