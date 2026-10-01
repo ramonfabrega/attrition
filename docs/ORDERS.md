@@ -2586,8 +2586,8 @@ stand-in remains (`rondata::diff::order`, it does not score).
 
 - **`get_job_time`'s `0x28b`/`0x28c` arms** (§6.9): the Turkish
   `turk_pack` percentage, Napoleon's `napoleon_pack` behind a general,
-  a half for the `is(0x10f, 1)` and `is(0x116, 1)` lineages and a quarter
-  for `is(0x111, 1)`. This crate reads the raw `JOB_TIME`, for the unpack
+  a half for two lineages and a quarter for a third
+  (`get_job_time@00675800`). This crate reads the raw `JOB_TIME`, for the unpack
   as before and for the pack now; run544's Bombard waits exactly 80.
 - **The order's `tolerance`** (`MoveOrder +0x14`), which arm 1 zeroes,
   is not a field this crate's move carries.
