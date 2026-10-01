@@ -2651,7 +2651,7 @@ conflicted `ccc update` has no sanctioned path to a resolvable state,
 because the lane's own `git merge` is what the classifier denies. The
 unstick that needs no human is `ccc`'s — an `update` that leaves the
 conflicted merge in place for the lane to resolve, since `ccc` runs the
-merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's.
+merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's. **The same day, ccc built it** (branch `worktree-v2`, unreleased): `ccc update <ref> --keep-conflicts [--json]` — on conflicted files the worktree is left mid-merge with markers, every conflicted path printed, exit 3; a dirty tree is refused first with exit 1; a merge that fails without conflicted files still backs out; the lane resolves, `git add`s and `git commit`s, and the commit lands as a real merge with the base as its second parent (tested by ccc). The lanes' recorded base is `worktree-replan-pdb` (every `ccc update` merge of the tranche says so), so it merges the right thing. The `CLAUDE.md` line waits for the release that carries it.
 
 (1316) **A landing gates twice** (the pass's own, `tools/tranche.py`):
 the gate's wait went 16.2 → 39.9 minutes a landing, and sixteen earlier
@@ -2749,15 +2749,30 @@ half, 1139, 1141, 1142, 1225, 1259, 1301, 1315, 1316, 1325, 1329, 1344,
 1349, 1361, 1364, 1369, 1374, 1382 and 1387 stay. The backlog is
 twenty-three.
 
-(1392) **A `--cancel` run as a question consumes the arm** (the pass's
-own, from the commander's transcript): the commander armed `ccc clear
+(1392) **Both arms were dropped by `ccc`'s fire path, and the cancel
+found nothing** (the pass's own, from the commander's transcript;
+**corrected the same day with ccc**): the commander armed `ccc clear
 3c382923 --then continue` at 01:29Z and 02:43Z on 2026-10-01 and ran
 `ccc clear 3c382923 --cancel` at 02:20Z and 02:57Z "to check whether
-the clear is still armed" — so no clear fired in a tranche whose
-session peaked at 322 k. The rule's half: a query is never a cancel,
-and an armed clear is left armed until it fires. The tool's half is
-`ccc`'s, the user's: a `ccc clear <ref>` that answers "armed?" without
-consuming the arm.
+the clear is still armed" — and both cancels printed "no clear was
+armed on 3c382923". ccc's own record for 02:43Z: "the clear did not
+fire: 3c382923's prompt box cannot be read; nothing was typed" — the
+row went idle, the pane attached, the prompt-row reader did not
+recognise the box, and the arm was dropped rather than typed blind;
+the 01:29Z arm is not recorded (one record per row is kept) and by the
+cancel's answer went the same way. The pass's first reading — that the
+cancel consumed the arm — was wrong. **ccc ships** (branch
+`worktree-v2`, unreleased): `ccc clear <ref> --status [--json]`,
+read-only; and the rule it proposes, which this pass accepts: arm last;
+a notification that re-invokes the commander is handled, `--status` if
+it must know, and the turn ends without cancelling — the arm stays
+through that turn and fires at its end, a dirty tree refusing rather
+than losing it. The `CLAUDE.md` lines wait for the release that carries
+the verb. Open on ccc's fixture: whether a notification arriving after
+the clear reaches the cleared session, and the shape of the prompt-box
+read failure. A turn-end firing mode is not built: ccc has no
+turn-ended signal short of a Stop hook, and a `/clear` typed mid-turn
+destroys the turn's output (measured 2026-09-06).
 
 (1390) **The chain's remote delete missed once** (the pass's own):
 `origin/worktree-att-1379` stood merged on the remote at the pass, the

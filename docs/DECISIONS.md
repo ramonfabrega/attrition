@@ -3983,9 +3983,12 @@ message and then nothing 1.4 against 19.6. **No lane met a classifier
 answer**, against 258 minutes; none stopped for a moved base; **one
 update refused**, against nine, and `coverage.rs` conflicted once,
 against four. The commander ran one session, 322 k at its deepest and
-0.70 USD a landing against 1.14; **no clear fired, because the
-commander's own `ccc clear --cancel`, run as a question, consumed the
-arm twice** (parked 1392). Seven value diffs on the word's frame,
+0.70 USD a landing against 1.14; **no clear fired: both arms were
+dropped by `ccc`'s fire path — "the prompt box cannot be read; nothing
+was typed" — and the commander's two `--cancel` queries found nothing
+armed** (parked 1392; the pass first wrote that the cancel consumed
+the arm, and corrected it the same day from ccc's own record and the
+cancels' printed answers). Seven value diffs on the word's frame,
 fourteen on the frame the state first parted, one partial. Three
 journals met a comparison that compared nothing, from twelve. Five
 mutations failed nothing and ten were held by a unit test alone, from
@@ -4035,9 +4038,15 @@ clearing between the passes.
    1263, 1274, 1296 and 1308 on two tranches without a reach; three
    fold; 1392, 1390 and 1391 are filed. The backlog is twenty-three.
 
-**Not decided, and the user's**: a `ccc clear` that answers "armed?"
+**Not decided, and the user's**: ~~a `ccc clear` that answers "armed?"
 without consuming the arm (1392) and a conflicted `ccc update`'s path
-to a resolvable state (1315); whether phase 4 opens on the rules track
+to a resolvable state (1315)~~ — **both built by ccc the same day on
+its `worktree-v2`, unreleased**: `ccc clear <ref> --status` and `ccc
+update <ref> --keep-conflicts` (exit 3, the worktree left mid-merge
+with markers, the lane resolves, adds and commits); the `CLAUDE.md`
+lines wait for the release that carries them, and the rule accepted
+is "arm last, handle a re-invoking notification, end the turn without
+cancelling" (parked 1392); whether phase 4 opens on the rules track
 alone; the thesis sentence from entry 41; whether the loop hands itself
 to its pass (1141); whether a cheaper model is admitted to a trial
 (1142), its table standing again at `target/pass22/journals-22.md`.

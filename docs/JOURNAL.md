@@ -20990,3 +20990,12 @@ fences are guarded (1353). Five Loop items built, eleven closed, three
 folded, three filed; the backlog is twenty-three. The blind list is
 not the rules track's measure (1317). **DECISIONS 58.**
 `docs/audit/2026-10-01-fable-pass-22.md`.
+
+**The same day, corrected with ccc**: the commander's `--cancel` did
+not consume the arm — both cancels printed "no clear was armed", and
+ccc's own record says the 02:43Z arm was dropped by its fire path
+("the prompt box cannot be read; nothing was typed"). ccc built, the
+same afternoon and unreleased, `ccc clear <ref> --status` and `ccc
+update <ref> --keep-conflicts` (parked 1392 and 1315); the rule
+accepted is arm last, handle a re-invoking notification, end the turn
+without cancelling, and the `CLAUDE.md` lines wait for the release.
