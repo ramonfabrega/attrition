@@ -525,6 +525,8 @@ impl Sim {
             // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
             // animal is not a worker type and takes the `default:` 0.
             unit.stance = self.init_stance(9, ty);
+            // `Unit::init`'s formation byte: not a civilian, so 0.
+            unit.form = crate::init_form(self.unit_types[ty].type_index);
             unit.farm_animal = Some(FarmAnimal { build: b, slot });
             let u = self.add_unit(unit);
             match borrowed {

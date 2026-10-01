@@ -146,6 +146,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1330, 2026-09-30 — the birth's form
+
+(1347) **The `@spell` group's `form` reset**: chapter forty's 802, ours 9
+against −1 — likely `action_begin`'s `GroupData::form = −1`.
+
+(1348) **The other `Unit::set_angle` callers ours turns through
+`Movement::set_heading`** (`do_gather`, `do_non_flat_gather`, the oil
+well): a gatherer that leads a group keeps its group's mirror still
+here. No capture on file is known to reach it.
+
 ## Parked by item 1326, 2026-09-30 — the Small City's `to`
 
 (1342) **run508's `MAKE[4].val` on 12582**: the Farm, 194250 against
@@ -600,10 +610,9 @@ run422's slot 0 is refreshed to 24 on 662 and slot 2 to 25 on 702,
 neither on its `frame mod 64` frame; ours reach them on 704 and 706, and
 slot 1 on 641 agrees. `WANT_CH39_POOL`'s two `speed` rows.
 
-(1169) **The standing birth `form`**: `Unit::init` writes 9 for a
-Citizen and 0 otherwise, and this crate writes −1 — a standing row in
-every chapter. Chapter thirty-nine's casts write the byte, and
-`GroupData::get_form` reads it, so it can reach a draw now.
+(1169) closed 2026-09-30 by item 1330: **the standing birth `form`** —
+`Unit::init`'s 9 for a Citizen and 0 otherwise, built; what stands is
+the `@spell` group's −1 on chapter forty's 802 (1347).
 
 ## Parked by item 1156, 2026-09-29 — the barge's path flag
 
@@ -1651,7 +1660,8 @@ flight.** It names no score until an air unit is dumped (651).
 
 ## Parked by item 642, 2026-09-23 — under East Indies' 13640
 
-(646) **run159's five rows from block 11793**, none spending a draw before
+(646) closed 2026-09-30 by item 1330 (`Unit::init`'s birth `form`,
+built; `docs/GROUPS.md` §6.3): **run159's five rows from block 11793**, none spending a draw before
 the word: the boat `1/44`'s `form` −1 against 0 (the Merchant's `form`
 residue); its order's `facing` 0 against 1, inherited from the scout's
 first-block row; the scout's `avg_speed` 25/24 against 18/18 and its
@@ -2733,6 +2743,12 @@ closure read as a reference to an unbooked number. Two rows: the read of
 the gate's exit and the push are never one batch; and the commander's
 pre-commit guard run includes `tools/queueledger.py`, which
 `tools/guard.sh <filters>` skips.
+
+(1349) **A re-pin tool** (1330's Loop line): 1330 re-pinned about 140
+pins with scratch scripts keyed on each pin's printed `got`/`want` — the
+third reach of that shape, a candidate for `tools/`. And 62 comments in
+`rondata::diff` still call the birth `form` a standing row: the pins
+were re-measured, the prose was not.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

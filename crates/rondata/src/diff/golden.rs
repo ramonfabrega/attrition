@@ -2700,8 +2700,8 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     //   three citizens, an idle length beside it~~: closed by item 1281,
     //   the age's `update_gpiece` (`docs/TECH.md`, "The piece moves with
     //   the age").
-    // - **611 and 616, the births**: `form` −1 against 0 on all six
-    //   hoplites.
+    // - ~~**611 and 616, the births**: `form` −1 against 0 on all six
+    //   hoplites.~~ Closed by item 1330, `Unit::init`'s `form`.
     // - **616, the army group's `speed`/`new_speed`**, 0 against 25 on
     //   every block run110 prints: `Group::add` ends in `compute_speed`
     //   for a group with an id, and this crate's army group takes its
@@ -2728,17 +2728,11 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("form 0/3", 605),
         ("form 0/4", 605),
         ("form 0/5", 605),
-        ("form 0/6", 611),
-        ("form 0/7", 611),
-        ("form 0/8", 611),
         ("form 1/1", 605),
         ("form 1/2", 605),
         ("form 1/3", 605),
         ("form 1/4", 605),
         ("form 1/5", 605),
-        ("form 1/6", 616),
-        ("form 1/7", 616),
-        ("form 1/8", 616),
         ("group:new_speed 1/army0", 616),
         ("group:speed 1/army0", 616),
     ];
@@ -6862,7 +6856,8 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         // against 64 there (a05f90a6, item 870): who=1's building groups
         // take a pool slot before the scout's first push, as the
         // original's do (`docs/GROUPS.md` §28.4, §29).
-        .zip([(27usize, &[][..] as &[i64]), (30usize, &[][..])])
+        // Item 1330 took ch7c's three staged births' `form` (30 → 27).
+        .zip([(27usize, &[][..] as &[i64]), (27usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -6973,7 +6968,8 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
+    // The births' `form` closed with item 1330 (`docs/GROUPS.md` §24.3).
+    let want: Vec<String> = Vec::new();
     pin_eq!(got, want, "ch6: what parts under the word moved");
 }
 
@@ -7051,15 +7047,10 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         })
         .collect();
     got.sort();
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/6 order:target",
-        "616 1/6 form",
-        "616 1/6 order:target",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = ["611 0/6 order:target", "616 1/6 order:target"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
     want.sort();
     pin_eq!(got, want, "ch6b: what parts under the word moved");
 }
@@ -7183,17 +7174,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // `0/4` on 1172, `1/3` on 1188 and `1/1`'s gather `wait` on 1189. With
     // it no row parts past 1001: the list below is the standing family
     // (parked 275's row, as on 1139, gone since `push_group` keeps an equal group's record (item 723)).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-        "615 0/10 form",
-        "1001 1/6 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch11: what parts under the word moved");
 }
@@ -7258,17 +7239,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     // rows goes. The chariot's 24 hops and its rest, the hoplites' legs
     // under the doubled `k`, both turns and every follower's final stand
     // agree to run204's end, block for block.
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-        "615 0/10 form",
-        "617 0/11 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch12: what parts under the word moved");
 }
@@ -7338,15 +7309,7 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     // and `come_out` pushes the squad, and `0/7`–`0/9` read group 3 on 903
     // on both sides. What stays is the births' `form`, `Unit::init`'s
     // (parked 646).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "615 0/7 form",
-        "615 0/8 form",
-        "615 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch13: what parts under the word moved");
 }
@@ -7411,15 +7374,6 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     // original's is `who·64 +` the pool slot, 701101 against 707501
     // (parked 689).
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/10 form",
-        "613 0/11 form",
-        "613 0/9 form",
-        "615 0/12 form",
-        "615 0/13 form",
-        "615 0/14 form",
         "702 0/10 order:group.id",
         "702 0/11 order:group.id",
         "702 0/12 order:group.id",
@@ -7642,13 +7596,6 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // the list was not asked for. The target last prints on 808 on both
     // sides.
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/10 form",
-        "613 0/11 form",
-        "613 0/9 form",
-        "615 1/6 form",
         "622 0/10 order:group.id",
         "622 0/11 order:group.id",
         "622 0/6 order:group.id",
@@ -7745,15 +7692,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     // **Built → 1250, closed** (item 738): `MoveOrder::orig` on a plain
     // move, set by `action_move_near`'s plain arm, and `finish_insert`
     // replaying to it. All 67 keys past the births went.
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch16: what parts under the word moved");
     // **What parts in the pool.** Slot 0 is the squad's explore (641),
@@ -8001,16 +7940,9 @@ const WANT_CH21: &[&str] = &[
     "1021 1/6 order:group.id",
     "1021 1/7 order:group.id",
     "1021 1/8 order:group.id",
-    "611 1/6 form",
-    "611 1/7 form",
-    "611 1/8 form",
     "635 1/6 order:target",
     "635 1/7 order:target",
     "635 1/8 order:target",
-    "771 0/6 form",
-    "773 0/7 form",
-    "775 0/8 form",
-    "777 0/9 form",
 ];
 // **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
@@ -8050,8 +7982,6 @@ const WANT_CH20: &[&str] = &[
     // its disembark, 1160, ours 0 against 15, and its turn after — until
     // item 1164 put it ashore at the average it boarded with
     // (`docs/TRANSPORT.md` §6.4): ten rows, all agreeing.
-    "611 0/6 form",
-    "613 0/7 form",
     "704 0/8 form",
     "830 0/9 form",
 ];
@@ -8581,7 +8511,7 @@ fn run249_s_transport_is_the_original_s_unit_for_unit() {
 // command entered, 1100, closed** (605, 1101): past the births only the
 // Spy's birth `form` stands. Its figure's `stopped` on 756 went with
 // `Guy::set_angle`'s third argument (`crate::cast`).
-const WANT_CH19: &[&str] = &["611 0/6 form"];
+const WANT_CH19: &[&str] = &[];
 // **What parts in the pool**: the pushed selection's `ox`/`oy`, (0, 0)
 // there and (−1, −1) here, chapter seventeen's and eighteen's standing
 // family: a point no craft reads.
@@ -8662,15 +8592,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
     // of the walks, every block of construction, the completions, and
     // `0/8`'s help on 1097 once the one-unit swarm asked whose builder it
     // is (an `EXPLORETOORDER` there before).
-    let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "615 0/8 form",
-        "617 0/9 form",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch18: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's pushed
@@ -8791,7 +8713,7 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
 // action bit cleared; on 1385 `0/6` and on 1489 `0/7` each hold one
 // `AIRPATROLORDER`, flags 0, `oxx` 2007, point (21120, 16512),
 // `returning` 0, `cruising_alt` 1400 and 1600, on both sides; 13 → 9).
-const WANT_CH22: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
+const WANT_CH22: &[&str] = &[];
 
 // **What parts in the pool** on run265: chapter seventeen's ten, the
 // pushed flight groups' point (parked 760) and item 738's `get_num` speeds;
@@ -8882,7 +8804,7 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
 // the births' and chapter one's clocks (611–655). 1585 agrees on both
 // walks: this crate's `do_launch` kills `0/6`'s unflagged patrol, and
 // under the cleared bit so does the original's.
-const WANT_CH23: &[&str] = &["611 0/6 form", "613 0/7 form", "615 0/8 form"];
+const WANT_CH23: &[&str] = &[];
 
 // **What parts in the pool** on run281: chapter twenty-two's ten. ~~And the
 // building group `[2007]` the original's `process_group` pushes into
@@ -8991,29 +8913,16 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
 // `orders_x` by `Unit::check_target_path@005e22d0` (nothing targets
 // these squads).
 const WANT_CH24: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "856 0/10 form",
-    "856 0/11 form",
     "856 0/11 orders_x",
     "856 0/11 orders_y",
-    "856 0/12 form",
     "856 0/12 orders_x",
     "856 0/12 orders_y",
-    "1060 0/13 form",
-    "1060 0/14 form",
     "1060 0/14 orders_x",
     "1060 0/14 orders_y",
-    "1060 0/15 form",
     "1060 0/15 orders_x",
     "1060 0/15 orders_y",
-    "1272 0/16 form",
-    "1272 0/17 form",
     "1272 0/17 orders_x",
     "1272 0/17 orders_y",
-    "1272 0/18 form",
     "1272 0/18 orders_x",
     "1272 0/18 orders_y",
 ];
@@ -9117,22 +9026,12 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
 // layout (none in run292), `orders_x` by `Unit::check_target_path@
 // 005e22d0` (nothing targets these squads).
 const WANT_CH25: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "965 0/10 form",
-    "965 0/11 form",
     "965 0/11 orders_x",
     "965 0/11 orders_y",
-    "965 0/12 form",
     "965 0/12 orders_x",
     "965 0/12 orders_y",
-    "1216 0/13 form",
-    "1216 0/14 form",
     "1216 0/14 orders_x",
     "1216 0/14 orders_y",
-    "1216 0/15 form",
     "1216 0/15 orders_x",
     "1216 0/15 orders_y",
 ];
@@ -9243,16 +9142,9 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
 // `docs/VISION.md`'s open question on the cached `mylos`, run10's Scout
 // the same shape. Its reader is the fog disc; the stream agrees to 1492.
 const WANT_CH26: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
     "1023 0/0 mylos",
-    "1106 0/10 form",
-    "1106 0/11 form",
     "1106 0/11 orders_x",
     "1106 0/11 orders_y",
-    "1106 0/12 form",
     "1106 0/12 orders_x",
     "1106 0/12 orders_y",
 ];
@@ -9345,25 +9237,12 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
 // `form` on every non-citizen it makes (611, 615, 617, and the squads on
 // 1111 and 1307) and the followers' tile-centred `orders_x/y`.
 const WANT_CH27: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "617 0/10 form",
-    "617 0/11 form",
-    "617 0/12 form",
-    "1111 0/13 form",
-    "1111 0/14 form",
     "1111 0/14 orders_x",
     "1111 0/14 orders_y",
-    "1111 0/15 form",
     "1111 0/15 orders_x",
     "1111 0/15 orders_y",
-    "1307 0/16 form",
-    "1307 0/17 form",
     "1307 0/17 orders_x",
     "1307 0/17 orders_y",
-    "1307 0/18 form",
     "1307 0/18 orders_x",
     "1307 0/18 orders_y",
 ];
@@ -9475,43 +9354,24 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
 // the first walk. What stands is `Unit::init@00612100`'s (parked 646):
 // `form` on every birth and the followers' tile-centred `orders_x/y`.
 const WANT_CH28: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "825 0/10 form",
-    "825 0/11 form",
     "825 0/11 orders_x",
     "825 0/11 orders_y",
-    "825 0/12 form",
     "825 0/12 orders_x",
     "825 0/12 orders_y",
-    "876 0/13 form",
-    "876 0/14 form",
     "876 0/14 orders_x",
     "876 0/14 orders_y",
-    "876 0/15 form",
     "876 0/15 orders_x",
     "876 0/15 orders_y",
-    "1067 0/16 form",
-    "1067 0/17 form",
     "1067 0/17 orders_x",
     "1067 0/17 orders_y",
-    "1067 0/18 form",
     "1067 0/18 orders_x",
     "1067 0/18 orders_y",
-    "1126 0/19 form",
-    "1126 0/20 form",
     "1126 0/20 orders_x",
     "1126 0/20 orders_y",
-    "1126 0/21 form",
     "1126 0/21 orders_x",
     "1126 0/21 orders_y",
-    "1324 0/22 form",
-    "1324 0/23 form",
     "1324 0/23 orders_x",
     "1324 0/23 orders_y",
-    "1324 0/24 form",
     "1324 0/24 orders_x",
     "1324 0/24 orders_y",
 ];
@@ -9632,10 +9492,6 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
 // `Unit::init@00612100`'s seat (parked 646), the point's one writer; the
 // plane never leaves the base, so nothing reads it on the run.
 const WANT_CH29: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -9779,12 +9635,9 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // **The tank, built** (item 836, `docs/ORDERS.md` §38.1): `mana_burn`
     // +1 a frame on the map, so `check_fuel`'s empty arm turns `0/7` for
     // home on 1212 and `0/8` on 1214, `returning 1` on both sides, and
-    // each flight home agrees to 1400. What stands is the births' nine.
-    let mut want: Vec<String> = ["611 0/6 form", "613 0/7 form", "615 0/8 form"]
-        .iter()
-        .map(|r| r.to_string())
-        .collect();
-    want.sort();
+    // each flight home agrees to 1400. ~~What stands is the births' nine.~~
+    // Nothing stands since item 1330: the births' `form` is `Unit::init`'s.
+    let want: Vec<String> = Vec::new();
     pin_eq!(got, want, "ch17: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's
     // pushed selection missing here — the refused strike's pair in slot 1
@@ -9954,10 +9807,6 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
         "622 0/6 order:patrol.id",
         "642 0/7 order:group.id",
         "642 0/7 order:patrol.id",
@@ -10049,10 +9898,6 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "613 0/7 form",
-        "613 0/8 form",
-        "613 0/9 form",
         "642 0/7 order:group.id",
         "642 0/8 order:group.id",
         "642 0/9 order:group.id",
@@ -10128,13 +9973,6 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let mut want: Vec<String> = [
-        "611 0/6 form",
-        "611 0/7 form",
-        "611 0/8 form",
-        "613 0/9 form",
-        "616 1/6 form",
-        "616 1/7 form",
-        "616 1/8 form",
         "660 0/-1 leader:treaties[1]",
         "660 0/7 damage_frac",
         "660 0/7 hits:damage",
@@ -10199,7 +10037,9 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // `group` on block 605, 65 here against 64 there, gone since
         // who=1's building groups take a pool slot first (a05f90a6, item
         // 870; `docs/GROUPS.md` §29).
-        let floor = if run == "ch7b" { 27 } else { 30 };
+        // Item 1330 took the control's three staged births' `form` (30 →
+        // 27, `docs/GROUPS.md` §24.3).
+        let floor = 27;
         pin!(
             at_floor
                 .iter()
@@ -12383,15 +12223,9 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
 // rows: the 70 of 1060..1079 go, and the Bowmen's three `form` rows stay
 // (parked 646).
 const WANT_CH30: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "760 0/10 form",
     "856 0/11 order:group.id",
     "856 0/12 order:group.id",
     "856 0/13 order:group.id",
-    "953 0/14 form",
     "953 0/14 g.des_x[0]",
     "953 0/14 g.des_y[0]",
     "953 0/14 g.x[0]",
@@ -12399,7 +12233,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/14 orders_x",
     "953 0/14 orders_y",
     "953 0/14 pos",
-    "953 0/15 form",
     "953 0/15 g.des_x[0]",
     "953 0/15 g.des_y[0]",
     "953 0/15 g.x[0]",
@@ -12407,7 +12240,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/15 orders_x",
     "953 0/15 orders_y",
     "953 0/15 pos",
-    "953 0/16 form",
     "953 0/16 g.des_x[0]",
     "953 0/16 g.des_y[0]",
     "953 0/16 g.x[0]",
@@ -12415,9 +12247,6 @@ const WANT_CH30: &[&str] = &[
     "953 0/16 orders_x",
     "953 0/16 orders_y",
     "953 0/16 pos",
-    "1060 0/17 form",
-    "1060 0/18 form",
-    "1060 0/19 form",
 ];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's
@@ -12542,17 +12371,9 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
 // 1167: the builder's gather clears `+0x80` (`docs/GOLDEN.md` §49). 15 →
 // 14 rows.
 const WANT_CH31: &[&str] = &[
-    "611 0/6 form",
-    "615 0/7 form",
-    "615 0/8 form",
-    "615 0/9 form",
-    "616 0/10 form",
-    "718 0/11 form",
-    "824 0/12 form",
     "858 0/13 order:group.id",
     "858 0/14 order:group.id",
     "858 0/15 order:group.id",
-    "938 0/16 form",
     "953 0/17 order:group.id",
     "953 0/18 order:group.id",
     "953 0/19 order:group.id",
@@ -12673,10 +12494,6 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
 // 13920), theirs (11640, 13944) — `Unit::init@00612100`'s (parked 646).
 // It leaves on 1747 on the EXIT, where both sides agree.
 const WANT_CH32: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -12809,10 +12626,6 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
 // EXIT kills, are not read (the EXIT's own `set_angle(0)` turns 6° and
 // cannot flip it).
 const WANT_CH33: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -13132,11 +12945,6 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
 /// kills them on both sides; and two citizens' animation clocks on
 /// 617..655, a residue outside the nuke that moves no draw.
 const WANT_CH37: &[&str] = &[
-    "2951 0/6 form",
-    "2953 0/7 form",
-    "2955 0/8 form",
-    "2957 0/9 form",
-    "3022 0/10 form",
     "3022 0/10 g.des_x[0]",
     "3022 0/10 g.des_y[0]",
     "3022 0/10 g.x[0]",
@@ -13627,7 +13435,6 @@ const WANT_CH45: &[&str] = &[
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
-    "603 0/6 form",
     "600 0/2000 city:busy",
     "600 0/2000 city:filled",
     "600 0/2000 city:gatherers",
@@ -13687,9 +13494,7 @@ const WANT_CH44: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 1/6 form",
     "611 1/6 order:target",
-    "613 0/6 form",
     "671 0/-1 leader:treaties[1]",
     "671 1/-1 leader:treaties[0]",
 ];
@@ -13784,17 +13589,11 @@ const WANT_CH46: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/6 form",
-    "613 0/7 form",
-    "613 0/8 form",
-    "613 0/9 form",
     "704 0/10 form",
-    "726 1/6 form",
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
     "1357 0/10 path_recursion",
-    "1401 1/7 form",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -13883,6 +13682,151 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
 /// site's death — the original's on 901, ours on 965, and with the site
 /// left a Tower (1264's mutation B) ours on 901 and 480 rows.
 const WANT_CH47: &[&str] = &[
+    "1001 0/2000 city:free",
+    "1016 0/5 dest_angle",
+    "1016 0/5 order:kind",
+    "1016 0/5 order:length",
+    "1016 0/5 orders.len",
+    "1016 0/5 orders_x",
+    "1016 0/5 orders_y",
+    "1017 0/5 g.angle[0]",
+    "1017 0/5 g.avg_speed[0]",
+    "1017 0/5 g.cur_anim[0]",
+    "1017 0/5 g.cur_time[0]",
+    "1017 0/5 g.des_angle[0]",
+    "1017 0/5 g.des_x[0]",
+    "1017 0/5 g.des_y[0]",
+    "1017 0/5 g.end_time[0]",
+    "1017 0/5 g.last_speed[0]",
+    "1017 0/5 g.last_time[0]",
+    "1017 0/5 g.stopped[0]",
+    "1017 0/5 g.x[0]",
+    "1017 0/5 g.y[0]",
+    "1017 0/5 heading",
+    "1017 0/5 mirror",
+    "1017 0/5 path:length",
+    "1017 0/5 pos",
+    "1019 1/7 half_step",
+    "1021 1/6 order:group.id",
+    "1021 1/7 order:group.id",
+    "1021 1/7 path[1].to",
+    "1021 1/8 order:group.id",
+    "1021 1/8 path[1].to",
+    "1025 0/5 order:flags",
+    "1025 0/5 order:move.dest",
+    "1033 1/5 order:move.angle",
+    "1034 1/5 order:move.dest_x",
+    "1034 1/5 order:move.dest_y",
+    "1034 1/5 path[0].to",
+    "1056 0/4 mirror",
+    "1077 0/9 g.cur_time[0]",
+    "1077 0/9 g.last_time[0]",
+    "1077 1/3 order:move.dest_x",
+    "1077 1/3 order:move.dest_y",
+    "1077 1/3 path[0].to",
+    "1085 1/4 angle:Facing",
+    "1085 1/4 angle:Heading",
+    "1087 1/2 order:gather.wait",
+    "1138 0/5 order:move.off_x",
+    "1138 0/5 order:move.off_y",
+    "1138 0/5 order:move.x",
+    "1138 0/5 order:move.y",
+    "1163 0/8 g.cur_anim[0]",
+    "1163 0/8 g.end_time[0]",
+    "1164 0/7 g.cur_anim[0]",
+    "1164 0/7 g.end_time[0]",
+    "1165 1/0 dest_angle",
+    "1165 1/0 order:move.angle",
+    "1165 1/0 order:move.y",
+    "1165 1/0 orders_y",
+    "1165 1/0 path:length",
+    "1165 1/0 path[0].to",
+    "1166 1/0 g.angle[0]",
+    "1166 1/0 g.des_angle[0]",
+    "1166 1/0 g.des_angle[1]",
+    "1166 1/0 g.des_x[0]",
+    "1166 1/0 g.des_x[1]",
+    "1166 1/0 g.des_y[0]",
+    "1166 1/0 g.des_y[1]",
+    "1166 1/0 g.x[0]",
+    "1166 1/0 g.y[0]",
+    "1166 1/0 heading",
+    "1166 1/0 order:move.dest_x",
+    "1166 1/0 order:move.dest_y",
+    "1166 1/0 pos",
+    "1166 1/0 tolerance",
+    "1167 1/0 g.angle[1]",
+    "1167 1/0 g.y[1]",
+    "1168 1/0 g.x[1]",
+    "1169 1/0 g.avg_speed[1]",
+    "1169 1/0 g.last_speed[0]",
+    "1169 1/0 g.last_speed[1]",
+    "1170 0/2 order:gather.wait",
+    "1171 1/0 g.cur_anim[1]",
+    "1172 1/0 g.avg_speed[0]",
+    "1179 0/4 order:flags",
+    "1179 0/4 order:move.angle",
+    "1179 0/4 order:move.dest",
+    "1189 1/0 order:move.dest",
+    "1196 0/8 g.cur_time[0]",
+    "1196 0/8 g.last_time[0]",
+    "1197 0/7 g.cur_time[0]",
+    "1197 0/7 g.last_time[0]",
+    "1201 0/6 g.cur_anim[0]",
+    "1201 0/6 g.end_time[0]",
+    "1216 1/0 order:length",
+    "1216 1/0 orders.len",
+    "1216 1/0 orders_x",
+    "1217 1/0 g.cur_time[0]",
+    "1217 1/0 g.cur_time[1]",
+    "1217 1/0 g.last_time[0]",
+    "1217 1/0 g.last_time[1]",
+    "1217 1/0 idle",
+    "1217 1/0 order:move.x",
+    "1217 1/0 path[1].to",
+    "1217 1/0 path[2].to",
+    "1217 1/0 path[3].to",
+    "1217 1/0 path[4].to",
+    "1217 1/0 path[5].to",
+    "1217 1/0 path[6].to",
+    "1217 1/0 path[7].to",
+    "1217 1/0 path[8].to",
+    "1217 1/0 path[9].to",
+    "1234 0/6 g.cur_time[0]",
+    "1234 0/6 g.last_time[0]",
+    "1265 0/0 g.cur_anim[0]",
+    "1265 0/0 g.cur_anim[1]",
+    "1265 0/0 g.end_time[0]",
+    "1266 0/5 order:move.angle",
+    "1268 0/5 angle:Facing",
+    "1268 0/5 angle:Heading",
+    "1291 1/1 order:gather.wait",
+    "1326 0/0 g.cur_time[0]",
+    "1326 0/0 g.cur_time[1]",
+    "1326 0/0 g.last_time[0]",
+    "1329 0/1 dest_angle",
+    "1329 0/1 g.cur_anim[0]",
+    "1329 0/1 g.cur_time[0]",
+    "1329 0/1 g.last_time[0]",
+    "1329 0/1 order:kind",
+    "1329 0/1 order:length",
+    "1329 0/1 orders.len",
+    "1330 0/1 order:gather.goto_build",
+    "1331 0/1 angle:Facing",
+    "1331 0/1 angle:Heading",
+    "1331 0/1 g.angle[0]",
+    "1331 0/1 g.des_angle[0]",
+    "1331 0/1 g.end_time[0]",
+    "1331 0/1 g.stopped[0]",
+    "1331 0/1 heading",
+    "1331 0/1 mirror",
+    "1337 1/3 angle:Heading",
+    "1354 0/3 angle:Facing",
+    "1354 0/3 angle:Heading",
+    "1376 1/2000 city:peasant_dist",
+    "1398 0/5 order:move.dest_x",
+    "1398 0/5 order:move.dest_y",
+    "1398 0/5 path[0].to",
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
@@ -13910,192 +13854,21 @@ const WANT_CH47: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "607 0/6 form",
-    "607 0/7 form",
-    "607 0/8 form",
-    "609 0/10 form",
-    "609 0/11 form",
-    "609 0/9 form",
     "614 0/6 order:group.id",
     "614 0/7 order:group.id",
     "614 0/8 order:group.id",
-    "680 0/10 g.angle[0]",
-    "680 0/10 g.avg_speed[0]",
-    "680 0/10 g.des_angle[0]",
-    "680 0/10 g.des_x[0]",
-    "680 0/10 g.des_y[0]",
-    "680 0/10 g.last_speed[0]",
-    "680 0/10 g.x[0]",
-    "680 0/10 g.y[0]",
-    "680 0/10 heading",
-    "680 0/10 order:kind",
-    "680 0/10 orders_y",
-    "680 0/10 path:length",
-    "680 0/10 path[0].to",
-    "680 0/10 path[1].to",
-    "680 0/10 path[1].tolerance",
-    "680 0/10 pos",
-    "680 0/10 tolerance",
-    "680 0/11 g.angle[0]",
-    "680 0/11 g.avg_speed[0]",
-    "680 0/11 g.des_angle[0]",
-    "680 0/11 g.des_x[0]",
-    "680 0/11 g.des_y[0]",
-    "680 0/11 g.last_speed[0]",
-    "680 0/11 g.x[0]",
-    "680 0/11 g.y[0]",
-    "680 0/11 heading",
-    "680 0/11 order:kind",
-    "680 0/11 orders_x",
-    "680 0/11 orders_y",
-    "680 0/11 path:length",
-    "680 0/11 path[0].to",
-    "680 0/11 path[1].to",
-    "680 0/11 path[1].tolerance",
-    "680 0/11 pos",
-    "680 0/11 tolerance",
-    "680 0/9 order:kind",
-    "681 1/6 form",
-    "681 1/6 order:target",
-    "681 1/7 form",
-    "681 1/7 order:target",
-    "681 1/8 form",
-    "681 1/8 order:target",
-    "685 0/11 half_step",
-    "688 0/10 g.cur_anim[0]",
-    "692 0/11 g.cur_anim[0]",
-    "692 0/11 g.cur_time[0]",
-    "692 0/11 g.end_time[0]",
-    "692 0/11 g.last_time[0]",
-    "697 0/9 half_step",
-    "698 0/9 g.avg_speed[0]",
-    "698 0/9 g.des_x[0]",
-    "698 0/9 g.des_y[0]",
-    "698 0/9 g.last_speed[0]",
-    "698 0/9 g.x[0]",
-    "698 0/9 g.y[0]",
-    "698 0/9 pos",
-    "699 0/9 g.angle[0]",
-    "699 0/9 g.des_angle[0]",
-    "699 0/9 heading",
-    "703 0/11 g.stopped[0]",
+    "682 1/6 order:target",
+    "682 1/7 order:target",
+    "682 1/8 order:target",
     "706 0/-1 leader:treaties[1]",
     "706 0/2008 build:damage",
     "706 0/2008 build:damage_frac",
     "706 0/2008 build:job_counter",
     "706 1/-1 leader:treaties[0]",
     "708 0/12 form",
-    "711 0/10 half_step",
-    "745 0/9 path:length",
-    "787 0/9 tolerance",
-    "838 0/9 order:length",
-    "838 0/9 orders.len",
-    "838 0/9 orders_x",
-    "838 0/9 orders_y",
-    "839 0/9 g.cur_time[0]",
-    "839 0/9 g.last_time[0]",
-    "839 0/9 idle",
-    "840 0/11 order:length",
-    "840 0/11 orders.len",
-    "840 0/9 g.cur_anim[0]",
-    "840 0/9 g.end_time[0]",
-    "840 0/9 g.stopped[0]",
-    "841 0/11 idle",
-    "841 1/6 g.cur_anim[0]",
-    "847 1/0 dest_angle",
-    "847 1/0 order:move.angle",
-    "847 1/0 order:move.facing",
-    "847 1/0 order:move.x",
-    "847 1/0 order:move.y",
-    "847 1/0 orders_x",
-    "847 1/0 orders_y",
-    "847 1/0 path:length",
-    "847 1/0 path[0].to",
-    "847 1/0 path[10].to",
-    "847 1/0 path[1].to",
-    "847 1/0 path[2].to",
-    "847 1/0 path[3].to",
-    "847 1/0 path[4].to",
-    "847 1/0 path[5].to",
-    "847 1/0 path[6].to",
-    "847 1/0 path[7].to",
-    "847 1/0 path[8].to",
-    "847 1/0 path[9].to",
-    "848 1/0 g.angle[0]",
-    "848 1/0 g.angle[1]",
-    "848 1/0 g.des_angle[0]",
-    "848 1/0 g.des_angle[1]",
-    "848 1/0 g.des_x[1]",
-    "848 1/0 g.des_y[0]",
-    "848 1/0 g.des_y[1]",
-    "848 1/0 g.last_speed[0]",
-    "848 1/0 g.x[1]",
-    "848 1/0 g.y[0]",
-    "848 1/0 g.y[1]",
-    "848 1/0 heading",
-    "848 1/0 mirror",
-    "848 1/0 order:move.dest_y",
-    "848 1/0 pos",
-    "848 1/7 g.cur_anim[0]",
-    "849 1/0 g.des_x[0]",
-    "849 1/0 g.x[0]",
-    "850 1/0 g.avg_speed[0]",
-    "850 1/0 g.avg_speed[1]",
-    "850 1/0 g.last_speed[1]",
-    "851 1/0 g.cur_anim[1]",
-    "853 0/10 g.stopped[0]",
-    "853 0/10 order:flags",
-    "853 0/10 order:move.dest",
-    "853 0/10 order:move.facing",
-    "853 0/10 order:move.off_y",
-    "853 0/10 order:move.y",
-    "854 0/10 order:move.dest_x",
-    "854 0/10 order:move.dest_y",
-    "859 1/0 order:move.dest",
-    "860 0/10 mirror",
-    "860 0/10 order:length",
-    "860 0/10 orders.len",
-    "860 0/10 orders_x",
-    "861 0/10 g.cur_time[0]",
-    "861 0/10 g.last_time[0]",
-    "861 0/10 idle",
-    "862 0/10 g.end_time[0]",
-    "870 0/9 angle:Facing",
-    "870 0/9 mirror",
-    "872 0/11 mirror",
-    "876 0/3 order:move.off_x",
-    "876 0/3 order:move.off_y",
-    "876 0/3 order:move.x",
-    "876 0/3 order:move.y",
-    "876 0/3 orders_x",
-    "876 0/3 orders_y",
-    "877 0/3 dest_angle",
-    "877 0/3 g.angle[0]",
-    "877 0/3 g.avg_speed[0]",
-    "877 0/3 g.cur_anim[0]",
-    "877 0/3 g.cur_time[0]",
-    "877 0/3 g.des_angle[0]",
-    "877 0/3 g.des_x[0]",
-    "877 0/3 g.des_y[0]",
-    "877 0/3 g.end_time[0]",
-    "877 0/3 g.last_speed[0]",
-    "877 0/3 g.last_time[0]",
-    "877 0/3 g.stopped[0]",
-    "877 0/3 g.x[0]",
-    "877 0/3 g.y[0]",
-    "877 0/3 heading",
-    "877 0/3 mirror",
-    "877 0/3 order:kind",
-    "877 0/3 order:length",
-    "877 0/3 orders.len",
-    "877 0/3 path:length",
-    "877 0/3 pos",
-    "878 0/3 order:flags",
-    "878 0/3 order:move.dest",
-    "883 1/0 order:move.dest_x",
     "902 0/2008 build:extra",
-    "902 1/8 g.cur_anim[0]",
     "905 1/6 dest_angle",
+    "905 1/6 g.cur_anim[0]",
     "905 1/6 g.end_time[0]",
     "905 1/6 near",
     "905 1/6 order:kind",
@@ -14116,7 +13889,10 @@ const WANT_CH47: &[&str] = &[
     "906 1/6 heading",
     "906 1/6 mirror",
     "906 1/6 pos",
+    "907 0/11 g.cur_anim[0]",
+    "907 0/11 g.end_time[0]",
     "911 1/7 dest_angle",
+    "911 1/7 g.cur_anim[0]",
     "911 1/7 g.end_time[0]",
     "911 1/7 order:kind",
     "911 1/7 order:length",
@@ -14145,14 +13921,13 @@ const WANT_CH47: &[&str] = &[
     "913 1/7 g.cur_time[0]",
     "913 1/7 g.last_time[0]",
     "913 1/7 path:length",
-    "916 1/5 dest_angle",
-    "916 1/5 order:move.angle",
     "916 1/5 order:move.off_x",
     "916 1/5 order:move.off_y",
     "916 1/5 order:move.x",
     "916 1/5 order:move.y",
     "916 1/5 orders_x",
     "916 1/5 orders_y",
+    "917 1/5 dest_angle",
     "917 1/5 g.angle[0]",
     "917 1/5 g.avg_speed[0]",
     "917 1/5 g.cur_anim[0]",
@@ -14177,12 +13952,12 @@ const WANT_CH47: &[&str] = &[
     "918 1/5 order:move.dest",
     "920 1/6 g.cur_time[0]",
     "920 1/6 g.last_time[0]",
-    "921 1/5 order:move.dest_x",
-    "921 1/5 order:move.dest_y",
-    "921 1/5 path[0].to",
     "923 0/1 order:gather.wait",
     "926 1/6 path:length",
+    "927 0/10 g.cur_anim[0]",
+    "927 0/10 g.end_time[0]",
     "934 1/8 dest_angle",
+    "934 1/8 g.cur_anim[0]",
     "934 1/8 g.end_time[0]",
     "934 1/8 order:kind",
     "934 1/8 order:length",
@@ -14211,6 +13986,8 @@ const WANT_CH47: &[&str] = &[
     "939 1/4 order:move.y",
     "939 1/4 orders_x",
     "939 1/4 orders_y",
+    "940 0/11 g.cur_time[0]",
+    "940 0/11 g.last_time[0]",
     "940 1/4 collide_o",
     "940 1/4 collide_who",
     "940 1/4 g.angle[0]",
@@ -14241,34 +14018,24 @@ const WANT_CH47: &[&str] = &[
     "942 0/4 order:move.y",
     "942 0/4 orders_x",
     "942 0/4 orders_y",
-    "943 0/4 dest_angle",
-    "943 0/4 g.angle[0]",
-    "943 0/4 g.avg_speed[0]",
-    "943 0/4 g.cur_anim[0]",
-    "943 0/4 g.cur_time[0]",
-    "943 0/4 g.des_angle[0]",
-    "943 0/4 g.des_x[0]",
-    "943 0/4 g.des_y[0]",
-    "943 0/4 g.end_time[0]",
-    "943 0/4 g.last_speed[0]",
-    "943 0/4 g.last_time[0]",
-    "943 0/4 g.stopped[0]",
-    "943 0/4 g.x[0]",
-    "943 0/4 g.y[0]",
-    "943 0/4 heading",
-    "943 0/4 mirror",
-    "943 0/4 order:kind",
-    "943 0/4 order:length",
-    "943 0/4 orders.len",
-    "943 0/4 path:length",
-    "943 0/4 pos",
+    "943 0/4 order:move.dest_x",
+    "943 0/4 order:move.dest_y",
+    "943 0/4 path[0].to",
     "943 1/7 order:coll",
     "943 1/7 order:move.dest_x",
     "943 1/7 order:move.dest_y",
-    "944 0/4 order:flags",
-    "944 0/4 order:move.dest",
+    "944 0/4 angle:Facing",
+    "944 0/4 angle:Heading",
+    "944 0/4 g.angle[0]",
+    "944 0/4 g.des_angle[0]",
+    "944 0/4 heading",
     "945 1/7 order:move.dest",
     "945 1/7 path[52].to",
+    "948 0/4 g.avg_speed[0]",
+    "948 0/4 g.des_y[0]",
+    "948 0/4 g.last_speed[0]",
+    "948 0/4 g.y[0]",
+    "948 0/4 pos",
     "949 1/3 dest_angle",
     "949 1/3 order:move.angle",
     "949 1/3 order:move.off_x",
@@ -14299,13 +14066,28 @@ const WANT_CH47: &[&str] = &[
     "950 1/3 orders.len",
     "950 1/3 path:length",
     "950 1/3 pos",
+    "950 1/4 order:move.dest_x",
+    "950 1/4 order:move.dest_y",
+    "950 1/4 path[0].to",
+    "951 0/4 g.des_x[0]",
+    "951 0/4 g.x[0]",
     "951 1/3 order:flags",
     "951 1/3 order:move.dest",
-    "952 1/3 order:move.dest_x",
-    "952 1/3 order:move.dest_y",
-    "952 1/3 path[0].to",
+    "953 0/4 dest_angle",
+    "953 0/4 order:kind",
+    "953 0/4 order:length",
+    "953 0/4 orders.len",
+    "953 0/4 path:length",
+    "954 0/4 g.cur_anim[0]",
+    "954 0/4 g.cur_time[0]",
+    "954 0/4 g.end_time[0]",
+    "954 0/4 g.last_time[0]",
+    "954 0/4 g.stopped[0]",
+    "960 0/10 g.cur_time[0]",
+    "960 0/10 g.last_time[0]",
     "969 1/6 order:move.dest_x",
     "969 1/6 order:move.dest_y",
+    "974 1/3 angle:Facing",
     "974 1/8 order:move.dest",
     "974 1/8 path:length",
     "975 1/7 tolerance",
@@ -14313,130 +14095,48 @@ const WANT_CH47: &[&str] = &[
     "975 1/8 tolerance",
     "980 1/6 order:move.dest",
     "981 1/6 half_step",
+    "989 0/3 order:move.off_x",
+    "989 0/3 order:move.off_y",
+    "989 0/3 order:move.x",
+    "989 0/3 order:move.y",
+    "989 0/3 orders_x",
+    "989 0/3 orders_y",
+    "990 0/3 dest_angle",
+    "990 0/3 g.angle[0]",
+    "990 0/3 g.avg_speed[0]",
+    "990 0/3 g.cur_anim[0]",
+    "990 0/3 g.cur_time[0]",
+    "990 0/3 g.des_angle[0]",
+    "990 0/3 g.des_x[0]",
+    "990 0/3 g.des_y[0]",
+    "990 0/3 g.end_time[0]",
+    "990 0/3 g.last_speed[0]",
+    "990 0/3 g.last_time[0]",
+    "990 0/3 g.stopped[0]",
+    "990 0/3 g.x[0]",
+    "990 0/3 g.y[0]",
+    "990 0/3 heading",
+    "990 0/3 order:kind",
+    "990 0/3 order:length",
+    "990 0/3 orders.len",
+    "990 0/3 path:length",
+    "990 0/3 pos",
+    "991 0/3 order:flags",
+    "991 0/3 order:move.angle",
+    "991 0/3 order:move.dest",
+    "991 0/9 g.cur_anim[0]",
+    "991 0/9 g.end_time[0]",
+    "992 0/3 mirror",
+    "992 0/3 order:move.dest_x",
+    "992 0/3 order:move.dest_y",
+    "992 0/3 path[0].to",
     "992 1/8 order:move.dest_y",
-    "1001 0/2000 city:free",
-    "1019 1/7 half_step",
-    "1021 0/0 g.cur_anim[0]",
-    "1021 0/0 g.cur_anim[1]",
-    "1021 0/0 g.end_time[0]",
-    "1021 1/6 order:group.id",
-    "1021 1/7 order:group.id",
-    "1021 1/7 path[1].to",
-    "1021 1/8 order:group.id",
-    "1021 1/8 path[1].to",
-    "1025 0/5 order:move.off_x",
-    "1025 0/5 order:move.off_y",
-    "1025 0/5 order:move.x",
-    "1025 0/5 order:move.y",
-    "1025 0/5 orders_x",
-    "1025 0/5 orders_y",
-    "1026 0/5 order:move.dest_x",
-    "1026 0/5 order:move.dest_y",
-    "1026 0/5 path[0].to",
-    "1027 0/5 angle:Facing",
-    "1027 0/5 angle:Heading",
-    "1027 0/5 g.angle[0]",
-    "1027 0/5 g.des_angle[0]",
-    "1027 0/5 heading",
-    "1031 0/5 g.avg_speed[0]",
-    "1031 0/5 g.des_y[0]",
-    "1031 0/5 g.last_speed[0]",
-    "1031 0/5 g.y[0]",
-    "1031 0/5 pos",
-    "1034 0/5 g.des_x[0]",
-    "1034 0/5 g.x[0]",
-    "1036 0/5 dest_angle",
-    "1036 0/5 order:kind",
-    "1036 0/5 order:length",
-    "1036 0/5 orders.len",
-    "1036 0/5 path:length",
-    "1037 0/5 g.cur_anim[0]",
-    "1037 0/5 g.cur_time[0]",
-    "1037 0/5 g.end_time[0]",
-    "1037 0/5 g.last_time[0]",
-    "1037 0/5 g.stopped[0]",
-    "1069 1/5 angle:Facing",
-    "1069 1/5 angle:Heading",
-    "1082 0/0 g.cur_time[0]",
-    "1082 0/0 g.cur_time[1]",
-    "1082 0/0 g.last_time[0]",
-    "1087 1/2 order:gather.wait",
-    "1096 1/0 tolerance",
-    "1100 1/3 angle:Facing",
-    "1100 1/3 angle:Heading",
-    "1126 1/0 order:move.off_x",
-    "1126 1/0 order:move.off_y",
-    "1143 0/5 mirror",
-    "1149 0/5 order:flags",
-    "1149 0/5 order:move.angle",
-    "1149 0/5 order:move.dest",
-    "1150 1/-1 leader:bucket[2:wealth]",
-    "1163 0/8 g.cur_anim[0]",
-    "1163 0/8 g.end_time[0]",
-    "1164 0/7 g.cur_anim[0]",
-    "1164 0/7 g.end_time[0]",
-    "1164 1/0 order:length",
-    "1164 1/0 orders.len",
-    "1165 1/0 g.cur_time[0]",
-    "1165 1/0 g.cur_time[1]",
-    "1165 1/0 g.last_time[0]",
-    "1165 1/0 g.last_time[1]",
-    "1165 1/0 idle",
-    "1168 0/6 g.cur_anim[0]",
-    "1168 0/6 g.end_time[0]",
-    "1170 0/2 order:gather.wait",
-    "1171 0/4 order:move.dest_x",
-    "1171 0/4 order:move.dest_y",
-    "1171 0/4 path[0].to",
-    "1197 0/7 g.cur_time[0]",
-    "1197 0/7 g.last_time[0]",
-    "1201 0/6 g.cur_time[0]",
-    "1201 0/6 g.last_time[0]",
-    "1205 0/8 g.cur_time[0]",
-    "1205 0/8 g.last_time[0]",
-    "1219 0/3 order:move.angle",
-    "1220 0/3 order:move.dest_x",
-    "1220 0/3 order:move.dest_y",
-    "1220 0/3 path[0].to",
-    "1266 1/0 g.cur_anim[0]",
-    "1291 1/1 order:gather.wait",
-    "1312 1/0 g.end_time[0]",
-    "1312 1/0 g.end_time[1]",
-    "1312 1/0 g.stopped[0]",
-    "1312 1/0 g.stopped[1]",
-    "1314 0/4 angle:Facing",
-    "1314 0/4 angle:Heading",
-    "1329 0/1 dest_angle",
-    "1329 0/1 g.cur_anim[0]",
-    "1329 0/1 g.cur_time[0]",
-    "1329 0/1 g.last_time[0]",
-    "1329 0/1 order:kind",
-    "1329 0/1 order:length",
-    "1329 0/1 orders.len",
-    "1330 0/1 order:gather.goto_build",
-    "1331 0/1 angle:Facing",
-    "1331 0/1 angle:Heading",
-    "1331 0/1 g.angle[0]",
-    "1331 0/1 g.des_angle[0]",
-    "1331 0/1 g.end_time[0]",
-    "1331 0/1 g.stopped[0]",
-    "1331 0/1 heading",
-    "1331 0/1 mirror",
 ];
 
 /// Chapter forty-seven's pool rows (item 1310): run514 whole — slot 0,
 /// the builders' `@build` group on 622..624 (`ox`/`oy`, `facing`) and
 /// their `@move` group on 680 (`form`, the offsets).
-const WANT_CH47_POOL: &[&str] = &[
-    "622 slot 0 ox",
-    "622 slot 0 oy",
-    "624 slot 0 facing",
-    "680 slot 0 curr[1]",
-    "680 slot 0 curr[2]",
-    "680 slot 0 form",
-    "680 slot 0 off[1]",
-    "680 slot 0 off[2]",
-];
+const WANT_CH47_POOL: &[&str] = &["622 slot 0 ox", "622 slot 0 oy"];
 
 /// **run466 whole, both directions** (items 1223, 1235, 1248,
 /// `docs/GOLDEN.md` §52): every dumped record on every block, the leaders
@@ -14522,16 +14222,11 @@ const WANT_CH43: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/6 form",
-    "613 0/7 form",
-    "613 0/8 form",
-    "613 0/9 form",
     "704 0/10 form",
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
     "1357 0/10 path_recursion",
-    "1401 1/6 form",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -14583,12 +14278,9 @@ const WANT_CH42: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "615 0/6 form",
     "622 0/6 order:target",
     "623 0/-1 leader:treaties[1]",
     "623 1/-1 leader:treaties[0]",
-    "701 0/7 form",
-    "901 1/6 form",
 ];
 
 /// Chapter forty-one's widening rows (items 1182, 1200): run437 whole,
@@ -14632,12 +14324,6 @@ const WANT_CH41: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "609 1/6 form",
-    "613 1/7 form",
-    "615 0/6 form",
-    "617 0/7 form",
-    "617 0/8 form",
-    "617 0/9 form",
     "632 0/6 order:target",
     "672 1/2000 city:raid_stamp",
     "902 1/6 group",
@@ -14732,7 +14418,6 @@ const WANT_CH40: &[&str] = &[
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
-    "605 0/6 form",
     "605 1/1 form",
     "605 1/2 form",
     "605 1/2000 city:filled",
@@ -14740,11 +14425,6 @@ const WANT_CH40: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 0/7 form",
-    "615 0/8 form",
-    "617 0/9 form",
-    "619 0/10 form",
-    "621 0/11 form",
     "801 0/2000 city:free",
 ];
 
@@ -14752,8 +14432,10 @@ const WANT_CH40: &[&str] = &[
 /// `ox`/`oy` (0 against −1, chapters nineteen's, thirty-four's and
 /// thirty-nine's family); the `speed`/`new_speed` refreshes the original
 /// makes off its cursor's frame (chapter thirty-nine's parked pair); and
-/// slot 4's `form` on 702, D's group, which takes the Citizen's birth
-/// `form` 9 (parked 1169).
+/// slot 4's `form` ~~on 702, D's group, which takes the Citizen's birth
+/// `form` 9 (parked 1169)~~ — agreeing from 702 since item 1330 bore the
+/// Citizen in form 9, and parting on 802, where the `@spell`'s group reads
+/// −1 in the original and 9 here.
 const WANT_CH40_POOL: &[&str] = &[
     "608 slot 1 ox",
     "608 slot 1 oy",
@@ -14773,7 +14455,10 @@ const WANT_CH40_POOL: &[&str] = &[
     "662 slot 3 speed",
     "662 slot 5 ox",
     "662 slot 5 oy",
-    "702 slot 4 form",
+    // Item 1330: from 802, not 702: the Militia `0/7`'s group reads 9
+    // through 801 on both sides now, and the original's `@spell` on 800
+    // resets the record's `form` to −1 where ours keeps 9.
+    "802 slot 4 form",
     "702 slot 5 new_speed",
     "702 slot 5 speed",
     "882 slot 4 new_speed",
@@ -14846,24 +14531,7 @@ fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
 /// Citizen, 0 else, against this crate's −1) on every unit the script adds
 /// and on the six decoys of 821 — the standing row of every chapter; a cast
 /// writes the byte, and from each conversion on it agrees.
-const WANT_CH39: &[&str] = &[
-    "607 0/6 form",
-    "609 0/7 form",
-    "611 0/8 form",
-    "613 0/9 form",
-    "615 0/10 form",
-    "615 0/11 form",
-    "615 0/12 form",
-    "617 0/13 form",
-    "617 0/14 form",
-    "617 0/15 form",
-    "821 0/16 form",
-    "821 0/17 form",
-    "821 0/18 form",
-    "821 0/19 form",
-    "821 0/20 form",
-    "821 0/21 form",
-];
+const WANT_CH39: &[&str] = &[];
 
 /// Chapter thirty-nine's pool rows (item 1111): each press's pushed
 /// selection's `ox`/`oy` (0 against −1, chapters nineteen's and
@@ -15340,12 +15008,7 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// `block_radius` (`UnitType::init@0061ab50:753`), the splash's inner
 /// radius the loader had left at 0.
 const WANT_CH38: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
     "619 1/2007 build:constr_time",
-    "621 1/6 form",
-    "621 1/7 form",
-    "621 1/8 form",
     "743 1/9 g.des_turret0[0]",
     "743 1/9 g.turret0[0]",
     "761 1/9 ammo[1]",
@@ -15455,7 +15118,6 @@ const WANT_CH38: &[&str] = &[
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
 /// (+24, +24: parked 646's family, run371's `0/10` again).
 const WANT_CH36: &[&str] = &[
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -15463,7 +15125,6 @@ const WANT_CH36: &[&str] = &[
     "1746 0/9 orders_x",
     "1746 0/9 orders_y",
     "1746 0/9 pos",
-    "2431 0/10 form",
     "2431 0/10 g.des_x[0]",
     "2431 0/10 g.des_y[0]",
     "2431 0/10 g.x[0]",
@@ -15471,10 +15132,8 @@ const WANT_CH36: &[&str] = &[
     "2431 0/10 orders_x",
     "2431 0/10 orders_y",
     "2431 0/10 pos",
-    "2446 0/11 form",
     "2446 0/11 mirror",
     "2659 0/12 dest_angle",
-    "2659 0/12 form",
     "2659 0/12 g.des_x[0]",
     "2659 0/12 g.des_y[0]",
     "2659 0/12 g.last_z[0]",
@@ -15488,8 +15147,6 @@ const WANT_CH36: &[&str] = &[
     "2719 0/12 heading",
     "2720 0/12 angle:Facing",
     "2720 0/12 g.angle[0]",
-    "2741 0/13 form",
-    "2926 0/14 form",
     "2926 0/14 g.des_x[0]",
     "2926 0/14 g.des_y[0]",
     "2926 0/14 g.x[0]",
@@ -15497,7 +15154,6 @@ const WANT_CH36: &[&str] = &[
     "2926 0/14 orders_x",
     "2926 0/14 orders_y",
     "2926 0/14 pos",
-    "2931 0/15 form",
     "2931 0/15 g.des_x[0]",
     "2931 0/15 g.des_y[0]",
     "2931 0/15 g.x[0]",
@@ -15505,9 +15161,6 @@ const WANT_CH36: &[&str] = &[
     "2931 0/15 orders_x",
     "2931 0/15 orders_y",
     "2931 0/15 pos",
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
     // **The rounds' fields, compared from item 1257**: chapter
     // thirty-five's two families on the same start — the Bombers'
     // `accuracy` (0 here) and the targets cleared on 1080.
@@ -16095,10 +15748,6 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // parting. What stands is the birth seats and the second Helicopter's
 // bearing, parked.
 const WANT_CH35: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",
@@ -16106,7 +15755,6 @@ const WANT_CH35: &[&str] = &[
     "1746 0/9 orders_x",
     "1746 0/9 orders_y",
     "1746 0/9 pos",
-    "2431 0/10 form",
     "2431 0/10 g.des_x[0]",
     "2431 0/10 g.des_y[0]",
     "2431 0/10 g.x[0]",
@@ -16114,10 +15762,8 @@ const WANT_CH35: &[&str] = &[
     "2431 0/10 orders_x",
     "2431 0/10 orders_y",
     "2431 0/10 pos",
-    "2446 0/11 form",
     "2446 0/11 mirror",
     "2659 0/12 dest_angle",
-    "2659 0/12 form",
     "2659 0/12 g.des_x[0]",
     "2659 0/12 g.des_y[0]",
     "2659 0/12 g.last_z[0]",
@@ -16265,10 +15911,6 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
 // `0/2008`, whose tile is −42: 21 → 17 on 2399). 421 → 17: chapter
 // thirty-two's seventeen alone.
 const WANT_CH34: &[&str] = &[
-    "611 0/6 form",
-    "613 0/7 form",
-    "615 0/8 form",
-    "1746 0/9 form",
     "1746 0/9 g.des_x[0]",
     "1746 0/9 g.des_y[0]",
     "1746 0/9 g.x[0]",

@@ -9874,6 +9874,26 @@ ours still holds the move. Its chain parted long before: `order:kind`
 19 against 1 on 680, the position on 698, `path:length` 3 against 2 on
 745, `tolerance` 384 against 0 on 787. No mechanism is named.
 
+**Item 1330: the builders walk three plain moves, 838 → 904.** The
+parting on 680 was a group move where the original gave each Citizen a
+plain `MOVE_TO` (kind 19 against 1). Three things ours lacked, each on
+the dump: a Citizen is born in **form 9** (`Unit::init@00612100:81`–`86`;
+ours −1), and form 9 keeps a member off the `GroupMoveOrder`; the Mob
+lays its members on **rings** (`form.rs`'s `MobRing`, read in the
+listing at `72ce81`: run514's slots 1 and 2 at (3768, 36984) and
+(3960, 36792)); and the layout is **unmirrored** because `0/9`'s 122.5°
+turn onto its site on 623 went through `Unit::set_angle`
+(`do_build@005eebf0:155`), which toggles its group's `facing`, 1 from
+block 624 in the original (`docs/GROUPS.md` §6.3, §6.4, §24.3). **The
+word is 904**, ours 35 draws against 32 at index 25 (seed `0x041e0e77`):
+ours spends `1/6`'s `Guy::set_anim+0xf2f < Guy::inc_time+0x271`. The
+value diff on block 905: `1/6`'s `order:kind` ours 10 against 2 and
+`orders_x/orders_y` (7368, 33816) against (38664, 13320), `near` (2008,
+0) against (−1, −1): the site `0/2008` is ours alone from 902, the
+original's dead on 901. The widening goes 539 → 449 rows; before the
+word only who=1's squad's `order:target` moves, 681 → 682. No mechanism
+is named.
+
 **The widening** is run514 whole (`[605, 1401)`): 517 rows and 8 pool
 rows, pinned as they stand. Before the word: the standing families and
 the births; the builders' `@move` on 680, `order:kind` ours 19 against
@@ -9904,7 +9924,8 @@ forty-six's and forty-three's tests and the arms' unit tests
   alone, and why, is its hypothesis.~~ Item 1323: ours alone, and
   closed; the word is 838, `0/9`'s arrival.
 - The site's death past the word: the per-blow damage on a site (3
-  against 4 on 706) and its progress loss.
+  against 4 on 706) and its progress loss — the next word's neighbour
+  (904: the original's site died on 901, ours stands).
 - The snap's `dest_angle` on a chapter: a unit left idle with its
   `dest_angle` apart from its heading when the age lands — a human's
   unit trained at a building, whose `come_out` skips `update_action`,
