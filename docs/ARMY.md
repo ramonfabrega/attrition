@@ -1134,7 +1134,8 @@ the same `>=`.
 an enemy: `L.frame_attacked = frame`, `L.attacked_by = me`, and a land army
 whose region differs from the target's cell region asks the navy —
 `Armies::send_navy(me, o, L, my region, its region)` (`docs/TRANSPORT.md`
-§8.3). Then `x, y = target.x, target.y + 0x300` clamped to the world,
+§8.3; built by item 1362, where "my region" is the cell region of the
+army's own point before it moves). Then `x, y = target.x, target.y + 0x300` clamped to the world,
 `find_muster_spot(o, L, 0)` (§13) → `muster_angle += 0x80000000` (face
 away from the spot), return; no spot → `close()`.
 

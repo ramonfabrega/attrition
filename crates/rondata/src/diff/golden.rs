@@ -9135,14 +9135,11 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
 // with them. What stands is **`Unit::init@00612100`'s** (parked 646),
 // chapter twenty-five's shape: `form` on every non-citizen it makes (611,
 // 615, the Hoplites on 1106) and the followers' tile-centred `orders_x/y`.
-// And **1023 `0/0` `mylos`**, ours 6 and theirs 4 (the first walk had it
-// on 1024, ours 4 and theirs 6): Written Word's `SCIENCE_LOS`, which this
-// crate computes on read (`Sim::unit_los`) and the original caches in
-// `Unit::update_los@0060e4d0`, refreshed a block after the gain —
-// `docs/VISION.md`'s open question on the cached `mylos`, run10's Scout
-// the same shape. Its reader is the fog disc; the stream agrees to 1492.
+// ~~And **1023 `0/0` `mylos`**, ours 6 and theirs 4~~: Written Word's
+// `SCIENCE_LOS`, which this crate computed on read and the original caches
+// in `Unit::update_los@0060e4d0`, refreshed a block after the gain. It
+// agrees since item 1354 made `mylos` the cache (`docs/VISION.md` §2).
 const WANT_CH26: &[&str] = &[
-    "1023 0/0 mylos",
     "1106 0/11 orders_x",
     "1106 0/11 orders_y",
     "1106 0/12 orders_x",

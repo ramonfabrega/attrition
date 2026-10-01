@@ -64,7 +64,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         {
             r.los_compared += 1;
             compared::note("UnitDump", &["mylos"]);
-            let ours_los = built.sim.unit_los(link.unit);
+            let ours_los = built.sim.units[link.unit].mylos;
             if i64::from(ours_los) != theirs_los {
                 r.los_diverged.push(LosDivergence {
                     frame: frame.n,
@@ -1825,7 +1825,7 @@ pub(crate) fn widen_block(
                     them.recharging,
                 ),
                 ("start_dist", i64::from(un.start_dist), them.start_dist),
-                ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
+                ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
                     i64::from(un.half_step),
@@ -2092,7 +2092,13 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for b in built.sim.buildings.iter().filter(|b| b.alive) {
+    for (at, b) in built
+        .sim
+        .buildings
+        .iter()
+        .enumerate()
+        .filter(|(_, b)| b.alive)
+    {
         let ty = b.orig_ty.map_or_else(
             || "-".to_string(),
             |t| format!("{:?}#{t}", built.sim.build_types[t].ident),
@@ -2109,8 +2115,22 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
                 format!("{t}@{}", i.job_counter)
             })
             .collect();
+        // The head's target as `do_queue` computes it this frame, and the
+        // population test `Build::finished` reads (item 1365).
+        let head = if b.queue.items.is_empty() {
+            String::new()
+        } else {
+            let m = &built.sim.muster[b.owner as usize];
+            format!(
+                " target{} cap{} control{} owned{}",
+                built.sim.queue_target(at, 0),
+                m.cap,
+                m.control,
+                m.by_type[b.queue.items[0].ty]
+            )
+        };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]{head}",
             b.owner,
             b.index,
             b.pos.x,
@@ -3298,13 +3318,13 @@ pub(crate) mod tests {
             "the packed bit is the original's on every unit-frame: {:?}",
             packed_bad.first()
         );
-        // …and `mylos` has exactly the one disagreement run39 pins on its
-        // own 1,850 frames — the AI scout's Science level, which this
-        // crate's pure function reports on the frame the level lands and
-        // the original's cached field reports one level later (item 35,
-        // `docs/VISION.md` §7). Over 94,338 unit-frames here it is still
-        // the only one, and the AI's two Fishermen — the only units on
-        // this capture that are ever packed — are not among them.
+        // …and `mylos` has no disagreement up to the word. It had exactly
+        // one, the AI scout's Science level on 202, which this crate's pure
+        // function reported on the frame the level landed and the
+        // original's cached field one level later (item 35); **item 1354**
+        // made `mylos` the cache the original keeps (`docs/VISION.md` §2).
+        // Over 94,338 unit-frames the AI's two Fishermen — the only units
+        // on this capture that are ever packed — agree with it.
         let los_early: Vec<LosDivergence> = los_bad
             .iter()
             .copied()
@@ -3312,14 +3332,8 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             los_early,
-            vec![LosDivergence {
-                frame: 202,
-                who: 1,
-                o: 0,
-                ours: 6,
-                theirs: 4,
-            }],
-            "mylos is the original's up to the word but for the cache"
+            Vec::<LosDivergence>::new(),
+            "mylos is the original's up to the word"
         );
         assert!(
             packed_seen >= RUN58_PACKED_FRAMES && los_seen >= RUN58_PACKED_FRAMES,
@@ -11564,7 +11578,11 @@ pub(crate) mod tests {
         // **Item 718 took four (134 → 130)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        pin_eq!(past, 120, "the keys first parting after 12537");
+        // Item 1354 took 29 (120 → 91): the AI Citizens' `mylos` on 12563,
+        // ours 4 against 2 — the Militia line's term reaching the
+        // derivation a frame before the original's cache (`docs/VISION.md`
+        // §2).
+        pin_eq!(past, 91, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -11588,7 +11606,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (212/336 → 196/320): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (196, 320).
         // Item 1330 took 46 (188/312 → 142/264): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, firsts.len()), (142, 264), "the floor");
+        // Item 1354 took 29 (142/264 → 142/235): the Citizens' `mylos` on 12563, the cache (`docs/VISION.md` §2).
+        pin_eq!((under, firsts.len()), (142, 235), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11797,6 +11816,7 @@ pub(crate) mod tests {
         // Item 1115 took the caravan's four rows here ((348, 25, 373) → (344, 25, 369); `docs/CARAVAN.md` §11.3).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (320, 13, 333).
         // Item 1330 took 48 (312/13/325 → 264/8/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         pin_eq!(
             (under, mid.len(), firsts.len()),
             // Item 718: six trained units' `orders_x`/`orders_y`; item 723
@@ -11814,7 +11834,7 @@ pub(crate) mod tests {
             // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
-            (264, 8, 272),
+            (235, 8, 243),
             "the floor"
         );
     }
@@ -11958,7 +11978,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (349/4/353 → 333/4/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (333, 4, 337).
         // Item 1330 took 53 (325/4/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, own.len(), firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, own.len(), firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -12090,7 +12111,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12242,7 +12264,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12398,7 +12421,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12523,7 +12547,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12672,7 +12697,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -14985,7 +15011,11 @@ pub(crate) mod tests {
         // average they boarded with and its order point the landing
         // (`docs/TRANSPORT.md` §6.4).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(under, 118, "the floor under the word");
+        // Item 1354 took fifteen (118 → 103): who=1's Citizens' `mylos`
+        // standing on 10164, ours 4 against the original's cached 2 — the
+        // Militia term the original had not yet refreshed, which this
+        // crate's cache now holds back too (`docs/VISION.md` §2).
+        pin_eq!(under, 103, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,

@@ -99,6 +99,43 @@ crate kept no packing state; the state is `combat.packed` now and
 implemented; each is an addition to a value whose consumer divides it by
 two, so a term is worth a *fog* cell only when it reaches 2.
 
+~~Terms 6–11 are read and not implemented~~ — **term 6 is built** (item
+1354): `LeaderData::get_troops_los_upgrade@006e1110` counts every one of
+`TROOPS_LOS_1..3` held (`TECHBONUSES` rows 61–63: Herbal Lore,
+Medicine and Pharmaceuticals), and a type whose trainer — `UnitTypeData
++0x40`, this crate's `where_` — is exactly the Barracks, the Stable or the
+Auto Plant takes `TROOPS_UPGRADE_LOS` (2) per level, after 5's clamp and
+5b's replacement (`Sim::troops_los_level`, `Sim::trainer_ident`). The
+listing's `BUY_SELL` arm compares a type the loop never reaches and is
+dead. Its archers' sub-arm (objmask `0x4000`/`0x400` and Obsidian, `rare`
+bit 26) adds `OBSIDIAN_ARCHERS_RANGE`, which ships as 0, and is not
+carried. **Diff-backed** on run529: who=1 takes Herbal Lore on 9782, and
+from block 9784 every one of its Barracks and Stable units — the Explorer
+`1/0` 12 → 14, Elite Longbowmen 11 → 13, Elite Javelineers and
+Cataphracts 8 → 10, Horse Archers 9 → 11 — sees two tiles more, while its
+Citizens, Caravans, Merchants, Senator and Trebuchet do not. Terms 7–11
+stay read and not implemented.
+
+**`mylos` is a cache** (item 1354). `update_los` *writes*
+`ObjectData::mylos` (`+0x3c`), and `UnitData::los@006100c0` — what the fog
+sweep and `do_follow`'s spacing read — reads it back. The writers are the
+vtable `+0x160` calls on a unit: `Unit::init` (after the packed bit, before
+`add_to_world`'s disc), `Unit::set_type@00612fa0:235`,
+`Leader::calc_unit_stats@006cf970` over every live unit of the player,
+`SpellType::cast_unpack`, `cast_pack` (which nothing here casts) and
+`cast_create_decoy` (after `unit_masks |= 1`). This crate keeps the cache as
+`Unit::mylos` and writes it with `Sim::update_los` at exactly those sites;
+`Sim::unit_los` is the derivation. **`calc_unit_stats` runs at
+`Leader::process` on `leader_flags & 0x4000000`**, whose writers are
+`Leader::gather` on a change of the rare mask, **`Leader::gain_tech`'s tail
+— `|= 0xc000000`, both stats flags, on every tech that reaches it,
+Herbal Lore among them** — beside its militia
+arm, and the **wonder** arms of `Build::activate@00623e20:1970` (`TypeIndex
+0x20e..0x21e`, every other building jumping past to `00626f11`) and
+`Build::close@00628980:319`. So a gained tech reaches the fog at the next
+leader pass: run529's 29 rows of `mylos` part on 9783 with the term
+computed live and agree with the cache.
+
 `epoch[Science]` is `LeaderDataEncrypt::epoch[3]` — the type record makes
 `+0xe8 int[4] epoch` and `+0xf4` its fourth entry, and the `^ 0x87` in the
 decompile is the low byte of the `^ 0x63187` the sibling `int` reads use.
@@ -596,8 +633,10 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   it as clear.
 - **`SubObjectData.flags & 0x40`**, the whole of `seen3`. Unnamed here,
   unset in the simulation, and the plane it gates is not modelled.
-- **`update_los` terms 6–11.** Read, tabulated in §2, not implemented; no
-  run reaches one. Each would have to reach 2 to move a fog cell.
+- ~~**`update_los` terms 6–11.** Read, tabulated in §2, not implemented; no
+  run reaches one.~~ Term 6 is built and diff-backed on run529 (§2); terms
+  7–11 are read and not implemented, and no run reaches one. Each would
+  have to reach 2 to move a fog cell.
 - ~~**`Unit::update_local_seen`**, and with it `ObjectData::visible` and
   `type->x_size` as a radius. Not modelled.~~ **Answered 2026-09-21 by item
   457, §9** — all three, with the radius settled as the XML's
@@ -611,7 +650,13 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   mechanic's *caller* and not its trigger: the reveal hangs off the **tile**
   test (`p >> 6`) and the goody off the **cell** test (`p >> 8`), which is
   §6's outer one.
-- **`mylos` is a cached value, and this simulation computes it fresh.**
+- ~~**`mylos` is a cached value, and this simulation computes it fresh.**~~
+  **Modelled by item 1354 (§2)**: the cache, its six writers and the
+  flag's. The reading below said `gain_tech` raises `0x4000000` only on
+  its militia arm; the tail's `|= 0xc000000` (`orl $0xc000000, (%ebx)` at
+  `006e0315`, decompile line 2313) raises it on every tech that
+  reaches the tail, and run529's block 9784 is that. Whether any of
+  `gain_tech`'s early returns skips it is not established.
   `Leader::calc_unit_stats@006cf970` walks a player's units calling
   `update_los`, and `Leader::process` calls *it* only when `leader_flags &
   0x4000000` is set — the twin of the `0x8000000` this simulation already
@@ -635,8 +680,13 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   through the bit, and in a normal game neither runs: `ConsoleWin::run_cmd`
   and the scenario functions are their only callers.
 
-  **What that does not yet explain**, and it is the open question this
-  document owes: run10's one disagreement is player 1's Scout, `mylos` 4
+  ~~**What that does not yet explain**~~ **Answered by item 1354 as to the
+  value**: with the cache refreshed on the leader pass after a gain, run10's
+  scout, run349's and run382's agree on 202, and so do chapter
+  twenty-six's `0/0` on 1023 and every Citizen row of run174's, run99's,
+  run416's and run471's windows (§2). What the flag
+  reading below says is still unexplained: run10's one disagreement was
+  player 1's Scout, `mylos` 4
   through frame 202 and 6 from 203, and the per-frame `LEADERDATA` (at
   `LEADERS=1`, free on every capture) shows **no** `0x4000000` on player 1
   at the end of either frame — where player 0 carries it at 202 and is

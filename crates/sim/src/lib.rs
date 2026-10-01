@@ -312,6 +312,12 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// `ObjectData::mylos` (`+0x3c`): the line of sight in tiles **as
+    /// `Unit::update_los` last wrote it** — a cache, not a derivation. The
+    /// fog sweep and the follower's spacing read it; [`Sim::update_los`]
+    /// is its one writer, called where the original calls vtable `+0x160`
+    /// on a unit (`docs/VISION.md` §2).
+    pub mylos: i32,
     /// **`UnitData::unit_masks2` (`+0x6c`)** — carried as the word the dump
     /// prints, and one bit of it is written: [`combat::umask2::NOT_FIRING`]
     /// (`docs/COMBAT.md` §43.2, `docs/ANIM.md` §5).
@@ -903,6 +909,7 @@ impl Unit {
             carry: 0,
             cant_reach: false,
             decoy: false,
+            mylos: 0,
             unit_masks2: 0,
             avoid: None,
             guys: Vec::new(),
@@ -992,9 +999,10 @@ pub struct Sim {
     pub good_types: Vec<economy::GoodType>,
     /// One per player: whether `Leader::calc_unit_stats` is owed — the
     /// `LeaderData` flag `0x4000000`, which `Leader::process` acts on
-    /// **the frame it is raised**, before any unit moves. The one writer
-    /// modelled here is a change in the player's rare mask
-    /// (`Sim::calc_unit_stats`).
+    /// at its next pass, before any unit moves. Its writers modelled here:
+    /// a change in the player's rare mask (`Sim::calc_unit_stats`),
+    /// `Leader::gain_tech`'s tail, and a wonder's `Build::activate` and
+    /// `Build::close` (`docs/VISION.md` §2).
     pub unit_stats_dirty: Vec<bool>,
     /// One per player: what they have built, and the population it occupies.
     pub muster: Vec<Muster>,
@@ -1839,6 +1847,10 @@ impl Sim {
             let who = self.units[i].owner;
             self.units[i].caravan = self.init_caravan(who, i);
         }
+        // `Unit::init@00612100`'s own `update_los` (vtable `+0x160`), on the
+        // finished unit — packed bit and all — before `add_to_world` reads
+        // it for the disc (`docs/VISION.md` §2).
+        self.update_los(i);
         // `Object::add_to_world`: both collision indices
         // (`docs/COLLISION.md` §2, §3) **and the vision disc**.
         self.coll_add(i);
@@ -2007,6 +2019,19 @@ impl Sim {
         self.price_with(who, ty, &m)
     }
 
+    /// The building type a unit type is trained at — `UnitTypeData +0x40`,
+    /// this crate's `where_` — by its [`build::Ident`], exactly and not by
+    /// lineage. `get_cost`'s Stable arm and `Unit::update_los`'s troops
+    /// term both compare it to fixed `TypeIndex`es.
+    pub fn trainer_ident(&self, ty: usize) -> Option<build::Ident> {
+        self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_)
+            .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
+            .map(|b| b.ident)
+    }
+
     /// `TypeData::get_cost@00664090`'s Horses and Rubber arm, in the
     /// pre-ramp tail after the nations and Terra Cotta: a unit whose
     /// trainer (`UnitTypeData +0x40`, this crate's `where_`) is **exactly**
@@ -2016,11 +2041,7 @@ impl Sim {
     /// kinds, as the listing tests them. [`Sim::has_rare`] is the union of
     /// `rare` and `rare_conquest` the arm reads. `docs/AI.md` §62.
     pub fn stable_rare_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
-        let trainer = self.unit_types[ty]
-            .tree
-            .and_then(|t| self.tech_tree.types[t].where_)
-            .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
-            .map(|b| b.ident);
+        let trainer = self.trainer_ident(ty);
         if !matches!(
             trainer,
             Some(build::Ident::Stable | build::Ident::AutoPlant)
@@ -2736,9 +2757,10 @@ impl Sim {
     }
 
     /// The national block of `ObjectData::train_time`'s tail, in the
-    /// original's own order — as far as it is built.
+    /// original's own order — as far as it is built — and the
+    /// speed-upgrade step after it (item 1365).
     ///
-    /// **Only the British arm is here**, and that is a scope claim rather
+    /// **Of the national arms only the British is here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where
@@ -2750,8 +2772,9 @@ impl Sim {
     /// The President, the Mongol stable, the Japanese barracks and carrier,
     /// the Chinese citizen — are all absent from this game: the handicap is
     /// zero on both players and the rest are other nations' powers, so
-    /// starting the tail here is exact rather than approximate. The ones
-    /// after it are the queue's own item.
+    /// starting the tail here is exact rather than approximate. Of the ones
+    /// after it, the speed-upgrade step is built; the rest are the queue's
+    /// own item.
     fn train_tail(&self, who: Player, ty: usize) -> Vec<production::Adjust> {
         let mut tail = Vec::new();
         // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
@@ -2768,7 +2791,45 @@ impl Sim {
                 tail.push(production::Adjust::Faster(self.tuning.british_aa_speed));
             }
         }
+        // The French, German and Roman arms, and `TROOPS_FASTER` (`role &
+        // 0x10000`, three-quarters), stand between: the first three are
+        // other nations' powers, and the bonus's prerequisite is `Disable`
+        // in the shipped file, so no player holds it.
+        //
+        // **The speed-upgrade step** (`0065102d`): `t = (10 − n) × t / 10`,
+        // `n` the ships' count for a sea unit (`+0x218 == 1`), else the
+        // troops' for `obj_masks` `F` or `M`, else the vehicles' for `V` —
+        // the first arm that holds and no other (`docs/PRODUCTION.md`, "The
+        // tail's first caller").
+        let t = &self.unit_types[ty];
+        let roles = &self.tech_tree.roles;
+        let ladder = if t.combat.domain == attrition::Domain::Sea {
+            Some(&roles.ships_speed_preq)
+        } else if t.combat.obj_masks & (combat::mask::FOOT | combat::mask::MOUNTED) != 0 {
+            Some(&roles.troops_speed_preq)
+        } else if t.combat.obj_masks & combat::mask::VEHICLE != 0 {
+            Some(&roles.vehicles_speed_preq)
+        } else {
+            None
+        };
+        if let Some(ladder) = ladder {
+            let n = self.speed_upgrade_level(who, ladder);
+            tail.push(production::Adjust::Ratio(10 - n, 10));
+        }
         tail
+    }
+
+    /// `LeaderData::get_ships_speed_upgrade@006da800` and its two
+    /// siblings: how many of a ladder's three bonuses the player holds,
+    /// every one counted. The listing's `BUY_SELL` arm compares `0x2ad`
+    /// against types the loops never reach, so it is dead in all three.
+    fn speed_upgrade_level(&self, who: Player, ladder: &[Option<tech::TypeId>; 3]) -> i32 {
+        let p = &self.tech[who as usize];
+        ladder
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .count() as i32
     }
 
     /// Advances every building's queue by one frame — `Build::do_queue`.
@@ -3428,6 +3489,9 @@ impl Sim {
         self.units[u].kind = self.unit_types[rec].kind;
         self.units[u].type_index = self.unit_types[rec].type_index;
         self.units[u].movement.speed = self.type_speed(who, rec);
+        // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
+        // `update_armor` and `update_speed` on the new type.
+        self.update_los(u);
         self.units[u].movement.turning = self.turning_for(rec);
         self.reinit_guys(u, rec);
         if captain {
@@ -3885,7 +3949,12 @@ impl Sim {
     /// are stale, since a tech can change a site's clock and a building's
     /// hits.
     fn apply_gained(&mut self, who: Player) {
+        // `Leader::gain_tech@006dcb60`'s tail: `leader_flags |= 0xc000000`,
+        // both stats flags, on every tech that reaches it — so the units'
+        // cached line of sight is refreshed by the next `Leader::process`
+        // (`docs/VISION.md` §2).
         self.wall_stats_dirty[who as usize] = true;
+        self.unit_stats_dirty[who as usize] = true;
         self.calc_attrition(who);
         self.sync_researched();
         self.sync_goods_available(who);
@@ -4838,6 +4907,11 @@ impl Sim {
         // before the heal and the work.
         self.process_spells(i, frame);
         self.recover_mana(i, frame);
+        // A decoy whose age has run out was closed there, and `process`
+        // returns before the rest of its frame (item 1351).
+        if !self.units[i].alive() {
+            return;
+        }
         // `process_healing` runs for every unit, inside or out: the
         // garrison branch inside, and on the map the civilian heal
         // (`crate::heal`, `docs/COMBAT.md` §72).

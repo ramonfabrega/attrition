@@ -679,6 +679,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
     let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
     let r535 = crate::testenv::dump("gamelog-run535-islands-toughest-14141.txt");
+    let r544 = crate::testenv::dump("gamelog-run544-islands-toughest-15862.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -698,6 +699,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r500 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8786);
     let r511 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9323);
     let r529 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9764);
+    let r547 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10144);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1300,6 +1302,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // Item 1351 moved it to 15862 (block 15863), past run535: run544 is
+    // its widening.
+    if let Some(p) = &r544 {
+        let n = drive_capture(p, 15_862, 15_865, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run544 carries the second pair's East Indies word 15862's blocks"
+        );
+        frames += n;
+        // Item 1362 moved it to 15883 (block 15884), inside run544.
+        let n = drive_capture(p, 15_883, 15_886, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run544 carries the second pair's East Indies word 15883's blocks"
+        );
+        frames += n;
+    }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
         assert_eq!(
@@ -1493,6 +1512,28 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10000;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run529 carries the third map's word 9999 at Toughest");
+        frames += n;
+    }
+    // **And its word 10144, on run547** (item 1354): the frame writes
+    // block 10145, past run529's last block 10015.
+    if let Some(p) = &r547 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10145;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(
+            n, 5,
+            "run547 carries the third map's word 10144 at Toughest"
+        );
+        frames += n;
+    }
+    // **And its word 10391** (item 1365): the frame writes block 10392,
+    // inside run547's window.
+    if let Some(p) = &r547 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10392;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(
+            n, 5,
+            "run547 carries the third map's word 10391 at Toughest"
+        );
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2405,12 +2446,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1341 moved East Indies' window to run535's 14140..14143**: no
     // cast stands on the union, so `cast_paid` and `cast_spell` return to
     // this pin (measured on the tree merged with 1338's).
+    // **Item 1362 moved East Indies' window to run544's 15882..15885**:
+    // army 0's group 71 stands moved on it, so the group row is compared
+    // on the union and leaves this pin (measured on the tree merged with
+    // 1354's).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cast_paid cast_spell cruising_alt def_x \
-         def_y defensive ever_in_range form_id garrison_search group_angle \
-         group_id in_group in_range mandatory metric new_ord non_flat_gather oxx whose \
+         def_y defensive ever_in_range garrison_search \
+         in_range mandatory metric new_ord non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint",
     ),

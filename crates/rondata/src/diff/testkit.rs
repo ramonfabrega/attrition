@@ -1652,13 +1652,89 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// original goes on to `Guy::set_anim+0x104b` (seed `c55509fc`). Past
 /// run523's window (its last block 13636), widened on run535 (block
 /// 14142).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
+///
+/// **14141 → 15862 on item 1351** (`docs/GOLDEN.md` §48): a decoy closes
+/// at `(general_upgrade + 2) × DECOY_TIME / 2`. `Unit::process`'s decoy
+/// arm takes its age up a frame and, at 2,500, calls `Unit::close(0, −1,
+/// 0.0)` — no death draw — and returns. This crate aged its copies and
+/// never closed them, so who=1's `1/110` was still standing to spend 14141's
+/// second `Guy::set_anim+0x97a`. **The move's value diff (run535's block
+/// 14137, the state's first parting, walked back from the word):**
+/// `1/104`..`1/120` ours alone (each `mana_burn` 2499 on 14136 on both
+/// sides) → closed on both, and `1/93` ours alone on 14138 → closed on
+/// both. run535's keys went 1730 → 163. Frame 14141's draws went 5
+/// against 4 → agreeing. **The new word's delta: ours 11 draws and the
+/// original 7 on frame 15862, parting at index 0**: ours spends four
+/// `Army::find_target+0x7df` before the original's first, `Guy::set_anim+
+/// 0x97a < Animal::do_idle+0x19` (seed `5faaa95a`). Past run535's window
+/// (its last block 14392), widened on run544 (block 15863).
+///
+/// **15862 → 15883 on item 1362** (`docs/TRANSPORT.md` §8.3): the escort.
+/// A land army whose `find_target` takes an enemy target in another cell
+/// region than its own point hands the target to every navy of more than
+/// two captains whose sea coasts both (`Armies::send_navy`). Army 0 took
+/// who=0's Napata on 15612 from region 12; the original gave it to the
+/// navy, army 3 (`1/30`, `1/35` corvettes, `1/61`, `1/67` fireships, `1/57`
+/// a frigate), and on army 3's own turn, 15862, `do_marching` kept an
+/// enemy's city. This crate had left the call a seam, so army 3 still
+/// held who=1's own Newcastle, and an untroubled city of one's own is
+/// retargeted: four `find_target` scores. **The move's value diff (run544's
+/// block 15863, the word's own):** `1/30`'s `orders.len` ours 0 against
+/// 1 → agreeing (its `orders_x/y` (33240, 25800) on both), the same for
+/// `1/35`, `1/57`, `1/61` and `1/67`, and group 72's `order_num` 55
+/// against 56 and `o` (33590, 25667) against (33225, 25790) → agreeing.
+/// run544's block 15863 went 88 → 0 keys. Frame 15862's draws went 11
+/// against 7 → agreeing. **The new word's delta: ours 11 draws and the
+/// original 8 on frame 15883, parting at index 5**: ours spends three
+/// more `Guy::set_anim+0x97a < Guy::inc_time+0x271`, all `1/132`'s, where
+/// the original goes on to `Farms::inc_time+0x1ae` (seed `34d7c105`).
+/// Inside run544's window (block 15884).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_883;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9999 since item 1346** (`docs/AI.md` §99.16, `docs/COSTS.md` "The
+/// **10391 since item 1365** (`docs/PRODUCTION.md`, "The tail's first
+/// caller"): `train_time`'s speed-upgrade step, `t = (10 − n) × t / 10`
+/// with `n` the troops' ladder for a foot or mounted type — and a Citizen
+/// is foot. who=1 takes Herbal Lore (`TROOPS_FASTER_1`) on 9782 and its
+/// next Citizen, at `1/2022`, queued at the ramp's ceiling of 18,000.
+/// **The move's value diff** (run547): on block 10144 `1/2022`'s
+/// `queue[0].job_counter` is 16200 on both sides, the original's target
+/// and ours 18000; on the word 10144's block 10145 the Citizen `1/89` the
+/// original's alone and `1/2022`'s `queue:queued` ours 1 against 0 →
+/// agreeing. run547's keys went 1,850 → 156. Frame 10144's draws went 42
+/// against 42 parting at index 33 → agreeing. **The new word's delta: ours
+/// 6 draws and the original 7 on frame 10391, parting at index 0**: the
+/// original spends `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+/// Unit::do_trade+0x40` (seed `10810bb6`) where ours spends
+/// `Unit::do_non_flat_gather+0xcc3`; `1/52`'s `pos` parts on block 10391,
+/// ours (28260, 24052) against (28261, 24026), its order a move (kind 1,
+/// two long) against kind 15. Inside run547's window (block 10392).
+///
+/// It was **10144** after item 1354 (`docs/VISION.md` §2): `Unit::update_los`'s
+/// troops term — `TROOPS_UPGRADE_LOS` per `TROOPS_LOS_n` held, for a unit
+/// the Barracks, the Stable or the Auto Plant trains — and `mylos` kept as
+/// the cache the original keeps, refreshed by `calc_unit_stats` on the
+/// leader pass after `gain_tech`'s `|= 0xc000000`. who=1 takes Herbal Lore
+/// on 9782. **The move's value diff** (run529): on block 9784 the Explorer
+/// `1/0`'s `mylos` ours 12 against 14, the Elite Longbowmen `1/28`'s 11
+/// against 13, the Elite Javelineers `1/38`'s 8 against 10 — 29 keys →
+/// agreeing (the term computed live parted them on 9783 instead); the
+/// Explorer's route on 9839 (`path:length` 5 against 6, `path[1].to`
+/// (26616, 13560) against (26616, 14328)) and its `pos` from 9840 →
+/// agreeing; on the word 9999's block 9999 its `orders.len` 0 against 1
+/// and `orders_x/y` (28128, 14304) against (28152, 14328) → agreeing.
+/// run529's keys went 262 → 114. Frame 9999's draws went 56 against 8 →
+/// agreeing. **The new word's delta: ours 42 draws and the original 42 on
+/// frame 10144, parting at index 33** (the count parts on 10162): the
+/// original spends `Guy::init_real+0x52 < Unit::init+0xb97 <
+/// Objects::init_unit+0xbd` (seed `8530fb47`), a birth, where ours spends
+/// `1/44`'s `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run529's
+/// window (its last block 10015), widened on run547 (block 10145).
+///
+/// It was **9999** after item 1346 (`docs/AI.md` §99.16, `docs/COSTS.md` "The
 /// discounts"): who=1 holds Silver, and `get_cost` takes `SILVER_AGE_COST`
 /// off an age, so the Gunpowder Age is 382 food and 382 knowledge rather
 /// than 450; and `plan_strategy`'s cheap research tick asks
@@ -1832,7 +1908,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_999;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_391;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -2315,6 +2391,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_13385: (i64, i64) = (13_380, 13_636
 /// run523's detail, blocks 14136..14392 — six blocks before the word
 /// 14141's block 14142 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_14141: (i64, i64) = (14_136, 14_392);
+
+/// **run544's window** (item 1351): the second pair's East Indies at
+/// run535's detail, blocks 15857..16113 — six blocks before the word
+/// 15862's block 15863 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_15862: (i64, i64) = (15_857, 16_113);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -7799,13 +7880,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 11328, past it, widened on run490; item 1281 to 11549, inside it;
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
     // past it, widened on run508; item 1326 to 13385, past it, widened on
-    // run523; item 1341 to 14141, past it, widened on run535.
+    // run523; item 1341 to 14141, past it, widened on run535; item 1351
+    // to 15862, past it, widened on run544; item 1362 to 15883, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run535_s_word_frame_is_widened_whole"),
-        1341,
-        Some(WIDENING_SECOND_EAST_INDIES_14141),
+        Some("run544_s_word_frame_is_widened_whole"),
+        1362,
+        Some(WIDENING_SECOND_EAST_INDIES_15862),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
@@ -7859,13 +7941,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 9032..9323; the word 9764 on run529 over 9759..10015 (item 1332),
     // whose run511 test keeps the move's value diff on 9348..9355; the
     // word 9982 on the same blocks (item 1338), whose run529 test keeps
-    // the move's value diff on 9759..9765.
+    // the move's value diff on 9759..9765; the word 10144 on run547 over
+    // 10139..10395 (item 1354), whose run529 test keeps the move's value
+    // diff on 9784..9999; the word 10391 on the same blocks (item 1365),
+    // whose run547 test keeps the move's value diff on 10144..10145.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run529_s_word_frame_is_widened_whole"),
-        1338,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9764),
+        Some("run547_s_word_frame_is_widened_whole"),
+        1365,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_10144),
     ),
 ];
 

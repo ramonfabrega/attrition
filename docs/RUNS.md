@@ -12830,3 +12830,102 @@ free after. Run 552 was reserved and not used.
 **What it holds**: `chapter_forty_eight_holds_to_the_golden_word` (1450)
 and `chapter_forty_eight_s_word_frame_is_widened_whole` (605..1750); the
 coverage driver's windows 683, 935, 983, 1094 and 1451.
+**Item 1351** closed the decoys at their age (`docs/GOLDEN.md` §48): the
+seventeen rows of 14137 and `1/93`'s of 14138 agree, block 14136 stands on
+its 138 keys alone up to the word, and the window parts on 163 keys. The
+compared pin and the coverage driver moved to run544.
+
+## run544 — run346's game at run535's detail over blocks 15857..16113: the second pair's East Indies word 15862 widened (2026-09-30, item 1351)
+
+**What it is.** run535's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 15857..16113, and `!quit` at 16127. The word's frame 15862 writes
+block 15863, so the window is six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run544 \
+    --map 18 --end-frame 16127 --timeout 5400 --log-window 15857 16114 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** Item 1351 moved the word 14141 →
+15862. run535, the last dump of this game at detail, ends at block 14392,
+so no dump printed the word's blocks.
+
+**Taken** 20:31–20:59, the third take; `ron_lane_state` read `free` before
+each. The first two (20:14 and 20:15) died 3.7 s after launch, before
+frame 0, on `wine: Unhandled page fault on read access to 00004ECD at
+address 7BF21139` (`wow64cpu+0x1139`, `docs/ORACLE.md`, "What `7BF21139`
+actually is"), with exit code 40 and the receipt's `extra lifecycle or
+fault records`; both had a full `cargo test -p rondata` running beside
+them, the third did not. Their directories are kept as
+`~/ron-data/lab-captures/2026-09-30-run544-take1` and `-take2`. The third,
+waited on with `waitrun.sh`: `success: true`, `settings_restored: true`,
+exit 0, 1,696 s from launch to exit, five files restored. The dump
+(752,607,179 bytes, sha256 `a22e551fcf2e420f…`) and the trace
+(135,309,568 bytes, `a87ecf48d9ed141a…`) were moved into `Logs` as
+`gamelog-run544-islands-toughest-15862.txt` and `rontrace-run544.log`.
+The disk had 217 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 16,128 identical |
+| window blocks | 257, 15857..16113 |
+| receipt | `map_style 18`, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run544_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start.
+- Block 15857 stands on 140 keys.
+- The first rows past it are who=1's group 70 on 15859 (49 keys): the
+  original's holds fifteen slots at `(0, 0)`, `ox` 0 and `role` 1379597,
+  and ours none, `ox` −1; beside it group 65's `held` [158, 159, 160]
+  ours alone.
+- The word's own block 15863 parts on 88 keys: `1/30` and four more of
+  who=1's hold a one-order stack in the original and none here.
+- The window parts on 1,386 keys.
+
+The compared pin walks 15861..15864 and the coverage driver 15862..15865. Runs 545 and
+546 were reserved and not used.
+
+## run547 — run470's game at run529's detail over blocks 10139..10395: the third map's word 10144 at Toughest widened (2026-09-30, item 1354)
+
+**What it is.** run529's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10139..10395, `!quit` at 10410: six blocks before the word's block
+10145 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run547 \
+    --map 7 --end-frame 10410 --timeout 5000 --log-window 10139 10396 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1354 moved the
+word 9999 → 10144, and run529, the last dump of this game, ends at block
+10015: no dump printed the word's frame.
+
+**Taken** 21:10–21:32 in one launch; `ron_lane_state` read `free`. Waited
+on with `waitrun.sh`: `success: true`, `settings_restored: true`, exit 0,
+1,255 s from launch to exit, 10,411 frames, map 7 and seed 12345 verified.
+The dump (559,521,384 bytes, sha256 `2746301dfd35c209…`) and the trace
+(57,684,160, `3776c81b2b9805c8…`) were moved into `Logs` as
+`gamelog-run547-greatsahara-toughest-10144.txt` and `rontrace-run547.log`.
+The disk had 216 GB free before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 10,411 identical |
+| window blocks | 257, 10139..10395 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run547_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head:
+1,850 keys, 82 standing on block 10139, and the word's block 10145 parts
+seven — the Citizen `1/89`, which the original has trained out of `1/2022`
+and ours still holds queued (`queue:queued` 1 against 0), and who=1's
+census with it (`peasants` 38 against 39). The compared pin walks its
+blocks 10143..10146 and the coverage driver 10143..10147. Runs 548 and 549 were
+reserved and not used.

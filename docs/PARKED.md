@@ -146,6 +146,32 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1365, 2026-09-30 — the training step
+
+(1372) **`train_time`'s ships' and vehicles' arms**: built, reached by
+no capture shown.
+
+(1373) **The rows between 10144 and 10391 on run547**: `gather_stamp`,
+`defense`, `production_step`, `MAKE[3].val` — naming no score yet.
+
+## Parked by item 1354, 2026-09-30 — the unit's sight
+
+(1366) **Terms 7–11 of `Unit::update_los` and term 6's archers'
+sub-arm** (Obsidian; `OBSIDIAN_ARCHERS_RANGE` ships 0): read, not built.
+
+(1367) **A building's `mylos` is derived live** (`build_los`): the
+original caches it in `Wall::update_los`, refreshed at
+`calc_wall_stats`, `Build::activate`, `capture_city` and `swap_team`;
+the cache and its refresh sites are not modelled.
+
+(1368) **run99's Citizens**: which path set the Militia bit without a
+sight refresh.
+
+## Parked by item 1351, 2026-09-30 — the decoy's close
+
+(1363) **A decoy's attrition, every seventh frame on another's ground**
+(`cast.rs`'s remaining seam): no window has reached it.
+
 ## Parked by item 1350, 2026-09-30 — the site's armour
 
 (1359) **The Senator's building armour** (`WallData::armor`'s
@@ -730,7 +756,8 @@ CARAVAN §11): the census's newborn lag — `caras` +1 at
 AI `go_to_city` tail and `add_trade_order`'s transport tail, both
 unreached on disk. **Again** (1228): the boat's `caras` +1/−1 lags
 3 against 4 on run462's 10184, read by `create_units`' `civilians` and
-not decisive there.
+not decisive there. **Again** (1365): `peasants` on run547's
+10145.
 
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
@@ -2795,6 +2822,25 @@ the arguments of the call a value parts through, was answered by a
 scratch `eprintln!` in `do_damage`; nothing prints `get_damage`'s inputs
 per melee blow (`RON_DEBUG_AMMO` covers rounds). A candidate for the
 harness on its third reach.
+
+(1364) **A capture beside a release test run dies before frame 0**
+(1351's Loop line): run544's first two takes both died on the documented
+`wow64cpu+0x1139` fault, each with a full `cargo test -p rondata` beside
+it; the third, on a quiet box, ran clean, and run416's first take was
+the same shape. Rule 1150 retakes once; a row could say a capture is
+taken on a quiet box.
+
+(1369) **A cache's timing moves widenings and no word** (1354's Loop
+line): `mylos` refreshing a frame late moved nine widenings and no
+walk; run382's row 202 had stood one frame early since item 35. A row
+that sits one frame early across many windows is a rule waiting (1176's
+"three widenings make a rule"), and no instrument lists such rows.
+
+(1374) **A document's "inert in every capture" goes stale** (1365's
+Loop line): `docs/PRODUCTION.md` called the speed-upgrade counts inert on
+disk, false from 9782 of a capture booked a week later. A list of inert
+arms is a scan waiting to be written: each arm's predicate as a grep of
+the techs and nations the captures' players hold.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
