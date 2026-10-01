@@ -13057,7 +13057,12 @@ the food escrowed. Either half alone leaves the word at 9982.
 `Unit::do_idle+0x7d` rolls, `think_spellcaster+0x413` and 45
 `Unit::think_scout`, the original on `Unit::do_guard+0x7f4`. On run529
 block 9999 the Explorer `1/0`'s `orders.len` is ours 0 against 1, its
-`tolerance` 0 against 384 from 9943. No mechanism is named.
+`tolerance` 0 against 384 from 9943. ~~No mechanism is named.~~
+**Answered by item 1354** (`docs/VISION.md` §2, the word to 10144): the
+Explorer's `pos` had parted from 9840 and its route on 9839, downstream of
+its `mylos` 12 against 14 on 9784 — who=1's Herbal Lore, `update_los`'s
+troops term, which this crate did not carry, refreshed into the cache on
+the leader pass after the gain.
 
 **Not established**: the age-behind discount (`get_cost`'s two loops
 after `calc_science_discount`) and `GREEK_AGE_KNOWLEDGE` (ships 0%) are not carried; no capture prices

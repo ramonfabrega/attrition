@@ -443,6 +443,10 @@ pub struct Tuning {
     /// (`docs/AI.md` §62).
     pub horses_stable_cost: i32,
     pub rubber_autoplant_cost: i32,
+    /// `TROOPS_UPGRADE_LOS` — tiles of line of sight per `TROOPS_LOS_n`
+    /// level held, for a unit the Barracks, the Stable or the Auto Plant
+    /// trains (`Unit::update_los@0060e4d0`'s term 6, `docs/VISION.md` §2).
+    pub troops_upgrade_los: i32,
     /// Percentage off a unit's **research** when the player holds Wine —
     /// `get_cost`'s research arm, before `RESEARCH_PREMIUM` (`00664eef`;
     /// `docs/AI.md` §94). Ships as `20%`.
@@ -1033,6 +1037,7 @@ impl Tuning {
         military_unit_discount: 5,
         military_upgrade_discount: 10,
         horses_stable_cost: 15,
+        troops_upgrade_los: 2,
         rubber_autoplant_cost: 15,
         wine_unit_upgrades: 20,
 
@@ -1233,7 +1238,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 340] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 341] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1542,6 +1547,7 @@ impl Tuning {
                 Slot::Value(T.military_upgrade_discount),
             ),
             ("HORSES_STABLE_COST", Slot::Value(T.horses_stable_cost)),
+            ("TROOPS_UPGRADE_LOS", Slot::Value(T.troops_upgrade_los)),
             (
                 "RUBBER_AUTOPLANT_COST",
                 Slot::Value(T.rubber_autoplant_cost),

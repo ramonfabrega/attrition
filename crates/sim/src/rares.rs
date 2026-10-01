@@ -358,8 +358,9 @@ impl Sim {
         }
     }
 
-    /// `Leader::calc_unit_stats@006cf970`, the speed third of it: every one
-    /// of the player's live units takes its cached speed again.
+    /// `Leader::calc_unit_stats@006cf970`, its line of sight and speed: every
+    /// one of the player's live units runs `update_los` (vtable `+0x160`,
+    /// before the listing's `+0xe8` test) and takes its cached speed again.
     pub(crate) fn calc_unit_stats(&mut self, who: Player) {
         for u in 0..self.units.len() {
             let unit = &self.units[u];
@@ -367,6 +368,7 @@ impl Sim {
                 continue;
             }
             let Some(ty) = unit.ty else { continue };
+            self.update_los(u);
             self.units[u].movement.speed = self.type_speed(who, ty);
         }
     }
