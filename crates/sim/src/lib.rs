@@ -2384,7 +2384,9 @@ impl Sim {
     /// `SILVER_AGE_COST` off — `docs/COSTS.md`, "The discounts". Anything
     /// that is not an age takes nothing.
     fn silver_age_discount(&self, who: Player, t: tech::TypeId) -> i32 {
-        if matches!(self.tech_tree.kind(t), tech::Kind::Age(_)) && self.has_rare(who, economy::SILVER) {
+        if matches!(self.tech_tree.kind(t), tech::Kind::Age(_))
+            && self.has_rare(who, economy::SILVER)
+        {
             self.tuning.silver_age_cost
         } else {
             0
