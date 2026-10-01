@@ -146,6 +146,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1388, 2026-10-01 — the library's cities
+
+(1399) **`get_building_cities`' active flag** (`city_flags & 1`, read
+in `count_buildings`; AI §102.3): read from the listing, not carried;
+`process_queues` counts every city holding a library.
+
 ## Parked by item 1380, 2026-10-01 — the Tower's arrow
 
 (1394) **`BuildData::get_shot`'s exact-type arms**: the switch's arms
@@ -2830,6 +2836,13 @@ Loop line): `--field total_time` printed "writers none" for a field this
 crate writes in four places, all by struct-literal initialisation; the
 search is by exact assignment. 1382's kin: both want a scan that knows
 a struct literal from a declaration. One reach.
+
+(1400) **A first parted field stood among a window's first block's
+standing keys** (1388's Loop line): run562's 119 standing keys on 10774
+held `1/2005`'s two `queue[].job_counter` rows, which `standing.py`
+lists and nobody reads by unit; a writer grep of `Muster::library_cities`
+(none outside tests) found the cause in a minute. Kin to 1382: a field
+nothing writes. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
