@@ -140,6 +140,18 @@ pub(crate) const TOUGHEST_WORD_BLOCK_9983: i64 = 9_983;
 /// left, inside run529's window.
 pub(crate) const TOUGHEST_WORD_BLOCK_10000: i64 = 10_000;
 
+/// run547: run470's game at run529's detail over blocks 10139..10395, the
+/// word 10144's widening (item 1354) — six blocks before the word's block
+/// 10145 and 250 after, on the click-free lane.
+pub(crate) const TOUGHEST_WORD_10144: &str = "gamelog-run547-greatsahara-toughest-10144.txt";
+
+/// **run547's window** (item 1354): blocks 10139..10395.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_10144: (i64, i64) = (10_139, 10_395);
+
+/// **The word's block, 10145**: frame 10144 writes it — the word item 1354
+/// left, past run529's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_10145: i64 = 10_145;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -289,6 +301,17 @@ pub(crate) fn great_sahara_toughest_9764_window() -> Option<crate::diff::harness
     )
 }
 
+/// run547's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_10144`], walked as
+/// run529's are (item 1354).
+pub(crate) fn great_sahara_toughest_10144_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run547",
+        (TOUGHEST_WORD_10144, WIDENING_GREAT_SAHARA_TOUGHEST_10144.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_10144,
+        TOUGHEST_WORD_BLOCK_10145,
+    )
+}
+
 /// run517's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GAP`], walked as
 /// run511's are (item 1318).
 pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -303,7 +326,8 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run529 at its block 9765 since item 1332 (run511 from item 1305,
+/// on run547 at its block 10145 since item 1354 (run529 at its block 9765
+/// from item 1332, run511 from item 1305,
 /// at its block 9353 from item 1318; run500 from item 1286, at
 /// its block 8857 from item 1293; run491
 /// from item 1264, at its block 8378 from item 1275; run488 from item 1260, run483 from item 1251, run476
@@ -313,10 +337,10 @@ pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
     let word = THIRD_WORD_GREAT_SAHARA_TOUGHEST;
     toughest_window_over(
-        "run529",
-        (TOUGHEST_WORD_9764, WIDENING_GREAT_SAHARA_TOUGHEST_9764.0),
+        "run547",
+        (TOUGHEST_WORD_10144, WIDENING_GREAT_SAHARA_TOUGHEST_10144.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_9765,
+        TOUGHEST_WORD_BLOCK_10145,
     )
 }
 
@@ -1125,6 +1149,39 @@ mod tests {
             98,
             "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
+    }
+
+    /// **The word 10144, widened whole** (item 1354):
+    /// [`great_sahara_toughest_10144_window`] over run547's blocks
+    /// 10139..10395, both directions, every record run529's detail prints.
+    /// Frame 10144 writes block 10145.
+    #[test]
+    fn run547_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_10144_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 257, "run547 whole: blocks 10139..10395");
+        pin!(
+            w.missing.is_empty(),
+            "run547 carries every key: {:?}",
+            w.missing
+        );
+        pin_eq!(w.firsts.len(), 0, "every key parted on run547");
     }
 
     /// **The word 9764, widened whole** (item 1332):

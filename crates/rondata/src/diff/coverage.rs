@@ -697,6 +697,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r500 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_8786);
     let r511 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9323);
     let r529 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9764);
+    let r547 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10144);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1492,6 +1493,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10000;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run529 carries the third map's word 9999 at Toughest");
+        frames += n;
+    }
+    // **And its word 10144, on run547** (item 1354): the frame writes
+    // block 10145, past run529's last block 10015.
+    if let Some(p) = &r547 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10145;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run547 carries the third map's word 10144 at Toughest");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
