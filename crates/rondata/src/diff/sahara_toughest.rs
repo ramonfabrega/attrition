@@ -1180,6 +1180,76 @@ mod tests {
         );
     }
 
+    /// **The word 10779, widened whole** (item 1371):
+    /// [`great_sahara_toughest_10779_window`] over run562's blocks
+    /// 10774..11030, both directions, every record run547's detail prints.
+    /// Frame 10779 writes block 10780.
+    #[test]
+    fn run562_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_10779_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 257, "run562 whole: blocks 10774..11030");
+        pin!(
+            w.missing.is_empty(),
+            "run562 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 10779's block 10780** (item 1371): ours spends a fifth
+        // `Leader::upgrade_units+0x5a4` roll where the original spends
+        // four, and who=1's make list parts on the same block — none of its
+        // rows stands on 10774. `0/3`'s move offset, ours 504 against 696,
+        // is where the shifted stream's `Unit::do_job` roll lands.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[0].val").as_deref(),
+            Some("10780: ours 1152000 theirs 672000"),
+            "who=1's make list, its head"
+        );
+        pin_eq!(
+            row(1, -1, "leader:MAKE[2].cat").as_deref(),
+            Some("10780: ours 7 theirs 8"),
+            "who=1's make list, its third entry's category"
+        );
+        pin_eq!(
+            row(0, 3, "orders_x").as_deref(),
+            Some("10780: ours 5112 theirs 5304"),
+            "0/3's walk, the shifted roll"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10780 + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            // 119 stand on the window's first block, after 378 frames no
+            // dump of this game prints (10396..10773); 19 part on the
+            // word's block, 12 on the next.
+            [(10774, 119), (10780, 19), (10781, 12)],
+            "the blocks keys first part on, to one past the word's"
+        );
+        // Measured on the tree merged with 1358's and 1370's.
+        pin_eq!(w.firsts.len(), 1803, "every key parted on run562");
+    }
+
     /// **The word 10144, widened whole** (item 1354):
     /// [`great_sahara_toughest_10144_window`] over run547's blocks
     /// 10139..10395, both directions, every record run529's detail prints.
