@@ -5506,7 +5506,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// `orders_x/orders_y` (7368, 33816) against (38664, 13320), `near`
 /// (2008, 0) against (−1, −1); the site `0/2008` is ours alone from 902
 /// (the original's died on 901).
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 904;
+///
+/// **904 → 1400, closed** (item 1350): the capture's end — word, sequence
+/// and values. The site died late because its blows were light: walked
+/// back to block 706, its first blow, `0/2008`'s `damage`/`damage_frac`
+/// ours 3/10 against 4/5 and `job_counter` 9900 against 9850. A
+/// building's `armor()` is `WallData::armor@0063fa60`, which halves it
+/// while the building is not `is_active` (`63fb31`–`63fb41`): the Keep
+/// site's 4 is 2, a Hoplite deals 13 where ours dealt 11. And a site loses
+/// `lost × 50` of progress, `lost` with the sixteenths' carry
+/// (`Object::take_damage@00652020`, `65230b`, `65239b`): on 738 the
+/// original took 250 and ours 200. Both built (`Sim::armor_of`,
+/// `Sim::damage_building`); the site dies on 901 on both sides.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).
@@ -7606,14 +7618,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1310: run514, chapter forty-seven, the Keep on a standing
-    // Tower site, a squad ashore facing away from its barge, and an age's
-    // snap mid-move. The widening is run514 whole.
+    // Items 1310 and 1350: run514, chapter forty-seven, the Keep on a
+    // standing Tower site, a squad ashore facing away from its barge, and
+    // an age's snap mid-move; closed at 1400. The widening is run514 whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_SEVEN",
         GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
         Some("chapter_forty_seven_s_word_frame_is_widened_whole"),
-        1310,
+        1350,
         Some(WIDENING_CHAPTER_FORTY_SEVEN),
     ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing

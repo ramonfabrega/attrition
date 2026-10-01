@@ -2295,13 +2295,9 @@ impl Sim {
         }
         self.first_wound_draws(b, by, attrition);
         let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
-        if site {
-            if matches!(by, Some(Obj::Building(_))) {
-                hit.whole *= 4;
-                hit.frac *= 4;
-            }
-            let bd = &mut self.buildings[b];
-            bd.job_counter = (bd.job_counter - combat_progress_lost(hit.whole)).max(0);
+        if site && matches!(by, Some(Obj::Building(_))) {
+            hit.whole *= 4;
+            hit.frac *= 4;
         }
         let bd = &self.buildings[b];
         let share = bd.health;
@@ -2309,6 +2305,23 @@ impl Sim {
         let lost = match taken {
             Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
         };
+        if site {
+            // **The progress a site loses is the points the blow took,
+            // carry and all** (item 1350): the listing rewrites `param_1`,
+            // the blow's whole hits, as `whole + (frac + hit.frac) / 16`
+            // at `0065230b`, and the `imul $0x32` at `0065239b` reads it
+            // back. run514's Keep site, a blow of 4 whole and 5 sixteenths:
+            // 200 off its `job_counter` on 706, and 250 on 738, where the
+            // sixteenths carried. **An aircraft's blow costs nothing**
+            // (`0065234e`–`0065237c`): an attacker in use whose type's
+            // `domain` (`+0x218`) is 2 sets the skip, and so does
+            // attrition (`param_5`, `00652341`).
+            let air = by.is_some_and(|o| matches!(self.profile(o).domain, Domain::Air));
+            if !attrition && !air {
+                let bd = &mut self.buildings[b];
+                bd.job_counter = (bd.job_counter - combat_progress_lost(lost)).max(0);
+            }
+        }
         let city = self.building_is_city(b);
         let bd = &mut self.buildings[b];
         bd.damage_frac = frac;
@@ -3970,7 +3983,8 @@ impl Sim {
     }
 }
 
-/// `Object::take_damage` on a site: `whole × 50` off the progress.
+/// `Object::take_damage` on a site: `lost × 50` off the progress, `lost`
+/// the whole points the blow took after its sixteenths carried.
 const fn combat_progress_lost(whole: i32) -> i32 {
     crate::build::progress_lost(whole)
 }

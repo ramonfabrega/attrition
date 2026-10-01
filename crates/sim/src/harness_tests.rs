@@ -2869,10 +2869,28 @@ fn a_site_holds_half_its_armour() {
     let (at, site) = (Obj::Unit(b), Obj::Building(tower));
     sim.buildings[tower].active = true;
     assert_eq!(sim.armor_of(site), 5);
-    sim.do_damage(at, site, movement::Angle::WEST, false, 0x100, false, true, 1);
+    sim.do_damage(
+        at,
+        site,
+        movement::Angle::WEST,
+        false,
+        0x100,
+        false,
+        true,
+        1,
+    );
     sim.buildings[tower].active = false;
     assert_eq!(sim.armor_of(site), 2, "5 / 2, toward zero");
-    sim.do_damage(at, site, movement::Angle::WEST, false, 0x100, false, true, 2);
+    sim.do_damage(
+        at,
+        site,
+        movement::Angle::WEST,
+        false,
+        0x100,
+        false,
+        true,
+        2,
+    );
     let dealt: Vec<i32> = sim
         .hits
         .iter()
@@ -2880,6 +2898,68 @@ fn a_site_holds_half_its_armour() {
         .map(|h| h.damage)
         .collect();
     assert_eq!(dealt, vec![7, 10], "the finished tower, then the site");
+}
+
+/// **A site loses the points a blow took, carry and all** (item 1350,
+/// `Object::take_damage@00652020`): the listing rewrites the blow's whole
+/// hits as `whole + (frac + hit.frac) / 16` at `0065230b`, and the
+/// `imul $0x32` at `0065239b` reads it back. A blow of 4 and 5/16 on a
+/// site holding 12/16: 5 points, 250 off its progress; the next, from
+/// 1/16, 4 points and 200. An aircraft's blow costs nothing
+/// (`domain` 2, `0065236d`), and neither does attrition (`param_5`).
+#[test]
+fn a_site_loses_progress_by_the_points_a_blow_took_and_none_to_an_aircraft() {
+    use crate::attrition::Domain;
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let mut plane = hoplite_type();
+    plane.kind.domain = Domain::Air;
+    plane.combat.domain = Domain::Air;
+    let plane = sim.add_unit_type(plane);
+    let tower_ty = sim.add_build_type(crate::build::BuildType::default());
+    let site = sim.add_building(0, Pos::new(1000, 1000), 0);
+    {
+        let bd = &mut sim.buildings[site];
+        bd.ty = Some(tower_ty);
+        bd.active = false;
+        bd.hits = 1000;
+        bd.construct_hits = 1000;
+        bd.health = 1000;
+        bd.job_counter = 10_000;
+        bd.damage_frac = 12;
+    }
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 192, 1000),
+        movement::Angle::WEST,
+    );
+    let p = combatant(
+        &mut sim,
+        1,
+        plane,
+        Pos::new(1000, 1000 + 192),
+        movement::Angle::NORTH,
+    );
+    sim.units[p].kind.domain = Domain::Air;
+    let blow = combat::Sixteenths { whole: 4, frac: 5 };
+    sim.damage_building(site, blow, Some(Obj::Unit(b)), 1, false);
+    assert_eq!(
+        sim.buildings[site].job_counter, 9_750,
+        "5 points: 12 + 5 carried"
+    );
+    sim.damage_building(site, blow, Some(Obj::Unit(b)), 2, false);
+    assert_eq!(
+        sim.buildings[site].job_counter, 9_550,
+        "4 points: 1 + 5 did not"
+    );
+    sim.damage_building(site, blow, Some(Obj::Unit(p)), 3, false);
+    assert_eq!(sim.buildings[site].job_counter, 9_550, "an aircraft's blow");
+    sim.damage_building(site, blow, None, 4, true);
+    assert_eq!(sim.buildings[site].job_counter, 9_550, "attrition");
+    // 12 + 5 carries, 1 + 5 and 6 + 5 do not, 11 + 5 does: 5 + 4 + 4 + 5.
+    assert_eq!(sim.buildings[site].damage, 18, "every blow still lands");
 }
 
 #[test]
