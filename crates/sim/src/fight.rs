@@ -287,9 +287,25 @@ impl Sim {
         base + self.mods[self.owner_of(o) as usize].attack
     }
 
-    /// `armor()` (§4.2).
+    /// `armor()` (§4.2). **A building that is not finished holds half its
+    /// armour** (item 1350): a building's `armor()` is vslot `+0x124`,
+    /// `WallData::armor@0063fa60` (read off the PE at `Build::vftable +
+    /// 0x124`), and its tail at `63fb25`–`63fb41` tests `is_active`
+    /// (`flags & 4`) and, when it is clear, halves with `cltd; sub; sar`
+    /// — toward zero, as `/ 2` does here. run514's Keep site, armour 4,
+    /// took a Hoplite's blow at 2: 13 whole hits, 69 sixteenths a figure.
+    ///
+    /// SEAM: the Senator's arm above the halving (`63fab0`–`63fb1f`):
+    /// with a leader whose `+0x59c0` is set, `HeroesData::find_hero` for a
+    /// `THESENATOR` (`0x161`) within `(type +0x234 + +0x238) × 96` adds
+    /// `thesenator_build_armor` before the halving. Not modelled; scan:
+    /// a building struck in a capture whose `GUY` blocks hold type 353.
     pub fn armor_of(&self, o: Obj) -> i32 {
-        self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor
+        let armor = self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor;
+        match o {
+            Obj::Building(b) if !self.buildings[b].active => armor / 2,
+            _ => armor,
+        }
     }
 
     /// `max_range()` (§4.4): zero stays zero.
