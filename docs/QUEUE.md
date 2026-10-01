@@ -12,31 +12,31 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, thirteen landings since the twenty-first
+*2026-09-30, fourteen landings since the twenty-first
 Fable pass (the pass commit `d4aeabbe`, DECISIONS 57). East Indies 11637 →
-15862 (1302, 1326, 1341, 1351), Great Sahara at Toughest 8856 → 9999 (1305,
-1318, 1332, 1338, 1346), chapter forty-seven opened at 712 and closed at 1400
+15862 (1302, 1326, 1341, 1351), Great Sahara at Toughest 8856 → 10144 (1305,
+1318, 1332, 1338, 1346, 1354), chapter forty-seven opened at 712 and closed at 1400
 (1310, 1323, 1330, 1350). Every booking gate green; one went to origin red
 before its exit was read (Loop 1345), fixed by `5098706e`.*
 
-- **Lanes live: 1354, 1358, 1362**, one to a word, each cut off a
-  booking commit; `ccc clear --then` was consumed unfired again.
+- **Lanes live: 1358, 1362, 1365**, one to a word, each cut off a
+  booking commit; `ccc clear --then` was consumed unfired twice more.
 - **Three Loop items share one shape** (1337, 1340 with three reaches,
   1318/1332/1338): the answer was a seam on the first parted field's
   writer, not on the word's chain — a checklist row is due.
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; the disk, 217 GiB free; parked 1141 and 1142.
-- **Fable backlog: 35 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361, 1364).
+- **Fable backlog: 36 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361, 1364, 1369).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w15862 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9999 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w10144 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1354, 1358 and 1362;
-merge each landing and refill its lane; the count is at thirteen.**
+**Opener: the commander, on Opus — lanes live on 1358, 1362 and 1365;
+merge each landing and refill its lane; the count is at fourteen.**
 
 ## The queue
 
@@ -54,12 +54,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     ours none), group 65's `held` ours alone; on 15863 `1/30` and four
     more hold an order there and none here. No mechanism is named.
 
-1354. **Great Sahara at Toughest's word: frame 9999, ours 56 draws
-    against 8** (1346), at index 0: ours opens on two
-    `Unit::do_idle+0x7d` rolls, `think_spellcaster+0x413` and 45
-    `Unit::think_scout`, the original on `Unit::do_guard+0x7f4`; inside
-    run529 (block 10000): the Explorer `1/0`'s `orders.len` 0 against 1
-    on block 9999. No mechanism is named.
+1365. **Great Sahara at Toughest's word: frame 10144, ours 42 draws
+    against 42** (1354), at index 33: the original spends
+    `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+    (seed `8530fb47`) — `1/89`'s birth from `1/2022`, ours still queued
+    — where ours spends `1/44`'s `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`; widened on run547 (block 10145). No mechanism
+    is named.
 
 1358. **Chapter forty-eight: three arms the unit tests or a widening
     hold and no walk** (DECISIONS 56 §3), 1350's M2–M4: the carry in a

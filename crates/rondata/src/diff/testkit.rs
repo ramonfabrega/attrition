@@ -1695,7 +1695,28 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_883;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9999 since item 1346** (`docs/AI.md` §99.16, `docs/COSTS.md` "The
+/// **10144 since item 1354** (`docs/VISION.md` §2): `Unit::update_los`'s
+/// troops term — `TROOPS_UPGRADE_LOS` per `TROOPS_LOS_n` held, for a unit
+/// the Barracks, the Stable or the Auto Plant trains — and `mylos` kept as
+/// the cache the original keeps, refreshed by `calc_unit_stats` on the
+/// leader pass after `gain_tech`'s `|= 0xc000000`. who=1 takes Herbal Lore
+/// on 9782. **The move's value diff** (run529): on block 9784 the Explorer
+/// `1/0`'s `mylos` ours 12 against 14, the Elite Longbowmen `1/28`'s 11
+/// against 13, the Elite Javelineers `1/38`'s 8 against 10 — 29 keys →
+/// agreeing (the term computed live parted them on 9783 instead); the
+/// Explorer's route on 9839 (`path:length` 5 against 6, `path[1].to`
+/// (26616, 13560) against (26616, 14328)) and its `pos` from 9840 →
+/// agreeing; on the word 9999's block 9999 its `orders.len` 0 against 1
+/// and `orders_x/y` (28128, 14304) against (28152, 14328) → agreeing.
+/// run529's keys went 262 → 114. Frame 9999's draws went 56 against 8 →
+/// agreeing. **The new word's delta: ours 42 draws and the original 42 on
+/// frame 10144, parting at index 33** (the count parts on 10162): the
+/// original spends `Guy::init_real+0x52 < Unit::init+0xb97 <
+/// Objects::init_unit+0xbd` (seed `8530fb47`), a birth, where ours spends
+/// `1/44`'s `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Past run529's
+/// window (its last block 10015), widened on run547 (block 10145).
+///
+/// It was **9999** after item 1346 (`docs/AI.md` §99.16, `docs/COSTS.md` "The
 /// discounts"): who=1 holds Silver, and `get_cost` takes `SILVER_AGE_COST`
 /// off an age, so the Gunpowder Age is 382 food and 382 knowledge rather
 /// than 450; and `plan_strategy`'s cheap research tick asks
@@ -1869,7 +1890,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_883;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_999;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_144;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7870,13 +7891,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 9032..9323; the word 9764 on run529 over 9759..10015 (item 1332),
     // whose run511 test keeps the move's value diff on 9348..9355; the
     // word 9982 on the same blocks (item 1338), whose run529 test keeps
-    // the move's value diff on 9759..9765.
+    // the move's value diff on 9759..9765; the word 10144 on run547 over
+    // 10139..10395 (item 1354), whose run529 test keeps the move's value
+    // diff on 9784..9999.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run529_s_word_frame_is_widened_whole"),
-        1338,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9764),
+        Some("run547_s_word_frame_is_widened_whole"),
+        1354,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_10144),
     ),
 ];
 

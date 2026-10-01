@@ -3865,7 +3865,7 @@ impl Sim {
         let me = self.units[u].pos;
         let tp = self.units[t].pos;
         let d = vector_dist((tp.x - me.x).abs(), (tp.y - me.y).abs());
-        let los = self.unit_los(u);
+        let los = self.units[u].mylos;
         let mut k = if self.unit_speed(t) < self.unit_speed(u) {
             los * 0x60
         } else {

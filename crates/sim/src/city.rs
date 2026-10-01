@@ -1734,6 +1734,17 @@ impl Sim {
     }
 
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
+    /// A building type the tree files as a wonder — the test
+    /// `Build::activate` and `Build::close` gate the unit-stats flag on.
+    pub(crate) fn is_wonder_building(&self, ty: usize) -> bool {
+        self.build_types[ty].tree.is_some_and(|t| {
+            matches!(
+                self.tech_tree.kind(t),
+                crate::tech::Kind::Building { wonder: true, .. }
+            )
+        })
+    }
+
     pub fn activate(&mut self, b: usize, captured: bool, counted: bool) {
         if !self.buildings[b].started {
             self.start_building(b);
@@ -1781,6 +1792,14 @@ impl Sim {
         // which is how a nomad's other sites lose the ×3 once the first city
         // stands.
         self.wall_stats_dirty[who as usize] = true;
+        // `Build::activate@00623e20:1970`: a **wonder** (`TypeIndex`
+        // `0x20e..0x21e`, else the type's own test) raises `0x4000000` too,
+        // so every unit's line of sight is refreshed at the next
+        // `Leader::process`; any other building jumps past it to `00626f11`
+        // (`docs/VISION.md` §2).
+        if self.is_wonder_building(ty) {
+            self.unit_stats_dirty[who as usize] = true;
+        }
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
         // §5.1–§5.2).
@@ -2062,6 +2081,14 @@ impl Sim {
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
         self.wall_stats_dirty[who as usize] = true;
+        // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
+        // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
+        if self.buildings[b]
+            .ty
+            .is_some_and(|t| self.is_wonder_building(t))
+        {
+            self.unit_stats_dirty[who as usize] = true;
+        }
         self.removed.push(b);
         self.forget(Obj::Building(b));
         if self.building_is_city(b) {

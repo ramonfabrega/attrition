@@ -546,19 +546,15 @@ mod tests {
         // rows parted on blocks 1..3. **Item 979's** (§81): with run38's
         // frame words — an Easiest game's — no longer installed over this
         // one, the scout's walk parting (`orders_x` 38136 against 41976 on
-        // block 97) closed too; its first row now is its sight count on
-        // block 202.
+        // block 97) closed too; its first row was its sight count on block
+        // 202, ours 6 against 4 — the Science epoch reaching the derivation
+        // a frame before the original refreshed its cache — and **item
+        // 1354** closed that with the cache (`docs/VISION.md` §2).
         pin_eq!(row(1, 0, "orders_x"), None, "the scout's walk agrees");
-        pin_eq!(
-            row(1, 0, "mylos").as_deref(),
-            Some("202: ours 6 theirs 4"),
-            "the scout's first parting"
-        );
+        pin_eq!(row(1, 0, "mylos"), None, "the scout's sight count agrees");
         pin!(
-            !w.firsts
-                .iter()
-                .any(|((who, o, _), (f, _))| (*who, *o) == (1, 0) && *f < 202),
-            "none of the scout's rows parts before block 202"
+            !w.firsts.keys().any(|(who, o, _)| (*who, *o) == (1, 0)),
+            "none of the scout's rows parts"
         );
         // **And run38's clocks**: block 1's 46 gaia `cur_anim` rows and
         // `1/1`'s `g.end_time[0]` 232 against 33 were the sibling's

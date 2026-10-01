@@ -129,11 +129,14 @@ impl Sim {
     // §2 — the line of sight
     // ------------------------------------------------------------------
 
-    /// `Unit::update_los@0060e4d0` into `UnitData::los@006100c0`, as far as
-    /// this simulation models it: the type's own `LOS`, the citizen terms,
-    /// the science term, and the two clamps. `docs/VISION.md` §2 tabulates
-    /// the seven terms that are read and not implemented; none of them can
-    /// fire in any capture on disk.
+    /// `Unit::update_los@0060e4d0`'s value, as far as this simulation models
+    /// it: the type's own `LOS`, the citizen terms, the science term, the
+    /// two clamps and the troops term. It is the **derivation**; what the
+    /// fog and the follower read is the cache [`Sim::update_los`] writes
+    /// into [`crate::Unit::mylos`] at the original's call sites.
+    /// `docs/VISION.md` §2 tabulates the terms that are read and not
+    /// implemented (7–11 and term 6's archers' sub-arm); none fires in any
+    /// capture on disk.
     ///
     /// Zero for a unit whose type has no `LOS`. The head's other exit —
     /// `leader_flags & 1`, an unused leader slot — has no counterpart here,
@@ -190,12 +193,57 @@ impl Sim {
             // radius that ignores everything above.
             los = epoch + 4;
         }
+        // Term 6: **the troops upgrades** (`0060e64c`..`0060e70b`). A type
+        // whose trainer — `UnitTypeData +0x40`, this crate's `where_` — is
+        // exactly the Barracks, the Stable or the Auto Plant (`0x1ab`..
+        // `0x1ad`) takes `TROOPS_UPGRADE_LOS` per `TROOPS_LOS_n` held,
+        // added after term 5's clamp and 5b's replacement. Its archers'
+        // sub-arm — `objmask 0x4000` or `0x400` and Obsidian — adds
+        // `OBSIDIAN_ARCHERS_RANGE`, which ships as 0, and is not carried.
+        // run529's who=1 takes Herbal Lore on 9782, and every Barracks and
+        // Stable unit it owns sees two tiles more from block 9784
+        // (`docs/VISION.md` §2).
+        if matches!(
+            self.trainer_ident(rec),
+            Some(
+                crate::build::Ident::Barracks
+                    | crate::build::Ident::Stable
+                    | crate::build::Ident::AutoPlant
+            )
+        ) {
+            los += self.troops_los_level(unit.owner) * self.tuning.troops_upgrade_los;
+        }
         // The last word: a decoy (`unit_masks & 1`) sees one tile
         // (`0060e84a`; run422's decoys print `mylos 1`).
         if unit.decoy {
             return 1;
         }
         los
+    }
+
+    /// `Unit::update_los@0060e4d0` itself: [`Sim::unit_los`] written into
+    /// the unit's [`crate::Unit::mylos`]. Called where the original calls
+    /// vtable `+0x160` on a unit — `Unit::init`, `Unit::set_type`,
+    /// `Leader::calc_unit_stats` and the unpack and decoy casts — and
+    /// nowhere else, so a change to its inputs reaches the fog only at the
+    /// next of those (`docs/VISION.md` §2).
+    pub(crate) fn update_los(&mut self, u: usize) {
+        self.units[u].mylos = self.unit_los(u);
+    }
+
+    /// `LeaderData::get_troops_los_upgrade@006e1110`: how many of
+    /// `TROOPS_LOS_1..3` the player holds. The listing's `BUY_SELL` arm —
+    /// the Nubians' waiver of `has_preq` — compares a type the loop never
+    /// reaches (`0x2ad` against `0x2e9..0x2eb`), so it is dead here.
+    pub(crate) fn troops_los_level(&self, who: crate::Player) -> i32 {
+        let p = &self.tech[who as usize];
+        self.tech_tree
+            .roles
+            .troops_los_preq
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .count() as i32
     }
 
     /// `UnitData::is_packing@0060aa60` — the unit's **current** order is a
@@ -221,7 +269,8 @@ impl Sim {
     /// Split out from [`Sim::update_seen`] so the arithmetic can be tested
     /// without a fog grid.
     pub fn seen_sweep(&self, u: usize, ring_pass: bool) -> Option<Sweep> {
-        let los = self.unit_los(u);
+        // `UnitData::los@006100c0` reads the cache `update_los` wrote.
+        let los = self.units[u].mylos;
         if los == 0 {
             return None;
         }
@@ -1001,7 +1050,92 @@ mod tests {
         assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(2));
         s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
         assert_eq!(s.unit_los(u), 6);
+        // §2: `mylos` is a cache. The sweep reads what `update_los` last
+        // wrote, so the level reaches the fog only at the next refresh.
+        assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(2));
+        s.update_los(u);
         assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(3));
+    }
+
+    /// Term 6's fixture: a Barracks and a Market, a unit trained at each
+    /// (`LOS 6`), and Herbal Lore as `TROOPS_LOS_1`. Player 0 is the AI.
+    fn troops_sim() -> (crate::Sim, usize, usize, crate::tech::TypeId) {
+        use crate::build::{BuildType, Ident};
+        use crate::tech::{TechTree, TypeDef};
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        assert!(world.set_fog(vec![0; 80 * 80]));
+        let mut s = crate::Sim::new(Tuning::RON, world, 2);
+        let barracks = s.add_build_type(BuildType {
+            ident: Ident::Barracks,
+            ..BuildType::default()
+        });
+        let market = s.add_build_type(BuildType {
+            ident: Ident::Market,
+            ..BuildType::default()
+        });
+        let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+        let barracks_id = tree.add(TypeDef::building("Barracks"));
+        let market_id = tree.add(TypeDef::building("Market"));
+        let herbal = tree.add(TypeDef::plain("Herbal Lore", 0));
+        let explorer_id =
+            tree.add(TypeDef::unit("Explorer", crate::tech::UnitTraits::default()).at(barracks_id));
+        let merchant_id =
+            tree.add(TypeDef::unit("Merchant", crate::tech::UnitTraits::default()).at(market_id));
+        tree.roles.troops_los_preq = [Some(herbal), None, None];
+        s.set_tech_tree(tree);
+        s.build_types[barracks].tree = Some(barracks_id);
+        s.build_types[market].tree = Some(market_id);
+        let mut add = |tree_id| {
+            let t = s.add_unit_type(crate::UnitType {
+                hits: 20,
+                moves: 40,
+                los: 6,
+                tree: Some(tree_id),
+                ..crate::UnitType::default()
+            });
+            let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+            let mut u = crate::Unit::new(0, 0, at, 20);
+            u.ty = Some(t);
+            s.add_unit(u)
+        };
+        let (explorer, merchant) = (add(explorer_id), add(merchant_id));
+        (s, explorer, merchant, herbal)
+    }
+
+    /// §2 term 6: `TROOPS_UPGRADE_LOS` per `TROOPS_LOS_n` held, for a unit
+    /// whose trainer is the Barracks, the Stable or the Auto Plant — and
+    /// for nothing else. run529's who=1 Explorer is 12 and then 14, and
+    /// its Market-trained Merchant stays where it was.
+    #[test]
+    fn a_troops_los_level_adds_two_tiles_to_a_barracks_unit_only() {
+        let (mut s, explorer, merchant, herbal) = troops_sim();
+        assert_eq!((s.unit_los(explorer), s.unit_los(merchant)), (6, 6));
+        s.tech[0].tech[herbal] = true;
+        assert_eq!(s.troops_los_level(0), 1);
+        assert_eq!(
+            (s.unit_los(explorer), s.unit_los(merchant)),
+            (6 + s.tuning.troops_upgrade_los, 6)
+        );
+        assert_eq!(s.tuning.troops_upgrade_los, 2);
+    }
+
+    /// §2: the tech reaches a unit's `mylos` through `gain_tech`'s tail —
+    /// `leader_flags |= 0xc000000` — and the next `Leader::process`'s
+    /// `calc_unit_stats`, not on the frame it is gained. run529: Herbal
+    /// Lore on 9782, every Barracks and Stable unit two tiles more from
+    /// block 9784.
+    #[test]
+    fn a_gained_tech_reaches_the_cache_at_the_next_leader_pass() {
+        let (mut s, explorer, _, herbal) = troops_sim();
+        assert_eq!(s.units[explorer].mylos, 6);
+        s.gain_tech(0, herbal);
+        assert_eq!(s.unit_los(explorer), 8, "the derivation sees it at once");
+        assert_eq!(s.units[explorer].mylos, 6, "the cache does not");
+        assert!(s.unit_stats_dirty[0], "the tail raised 0x4000000");
+        s.tick();
+        assert_eq!(s.units[explorer].mylos, 8, "the next leader pass wrote it");
+        assert!(!s.unit_stats_dirty[0]);
     }
 
     /// §3: a small land unit sees from a half-cell in front of its nose,

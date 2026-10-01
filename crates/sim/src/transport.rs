@@ -943,6 +943,9 @@ impl Sim {
             self.economy_changed(who);
         }
         self.units[u].combat.packed = false;
+        // `cast_unpack@006709c0`'s `update_los` (vtable `+0x160`): the
+        // clamp lifts here and nowhere earlier (`docs/VISION.md` §2).
+        self.update_los(u);
         self.update_seen(u, false);
         self.update_gpiece(u);
     }

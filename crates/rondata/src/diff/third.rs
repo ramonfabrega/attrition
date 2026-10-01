@@ -510,17 +510,19 @@ mod tests {
         ] {
             pin_eq!(first(1, 2, what), None, "1/2's {what} agrees");
         }
-        // **The first parting past block 1 is now block 202, one key**: the
-        // AI scout `1/0`'s `mylos`, ours 6 against 4. It moves no draw and
-        // no order over run382's 1,850 frames.
+        // **Block 202's one key agrees since item 1354**: the AI scout
+        // `1/0`'s `mylos` was ours 6 against 4 — the Science epoch reaching
+        // the derivation a frame before the original's `calc_unit_stats`
+        // refreshed its cache. With the cache (`docs/VISION.md` §2) nothing
+        // parts past block 1.
         pin_eq!(
             first(1, 0, "mylos"),
-            Some((202, "ours 6 theirs 4".to_string())),
-            "the scout's line of sight, the first parting past block 1"
+            None,
+            "the scout's line of sight agrees"
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 22), (202, 1)],
+            [(1, 22)],
             "the blocks keys first part on"
         );
         // Gaia's herds hold over the whole window.
@@ -528,7 +530,8 @@ mod tests {
             w.firsts.iter().all(|((who, _, _), _)| *who < 8),
             "gaia's animals agree to block 259"
         );
-        pin_eq!(w.firsts.len(), 23, "keys parted over the window");
+        // Item 1354, the `mylos` cache: 23 → 22.
+        pin_eq!(w.firsts.len(), 22, "keys parted over the window");
     }
 
     /// **The third map's long word, 12783, widened whole** (item 1133):
@@ -626,7 +629,10 @@ mod tests {
             "the Feudalism offer's value agrees"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 248.
-        pin_eq!(w.firsts.len(), 198, "every key parted on run416");
+        // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 198 → 175, the
+        // 23 Citizens' `mylos` of block 12944, ours 4 against 2 a frame
+        // ahead of the original's refresh.
+        pin_eq!(w.firsts.len(), 175, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):

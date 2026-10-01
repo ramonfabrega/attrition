@@ -12850,3 +12850,44 @@ walked from run346's start.
 
 The compared pin walks 15861..15864 and the coverage driver 15862..15865. Runs 545 and
 546 were reserved and not used.
+
+## run547 — run470's game at run529's detail over blocks 10139..10395: the third map's word 10144 at Toughest widened (2026-09-30, item 1354)
+
+**What it is.** run529's shape on the click-free lane at run470's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 10139..10395, `!quit` at 10410: six blocks before the word's block
+10145 and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-30-run547 \
+    --map 7 --end-frame 10410 --timeout 5000 --log-window 10139 10396 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1354 moved the
+word 9999 → 10144, and run529, the last dump of this game, ends at block
+10015: no dump printed the word's frame.
+
+**Taken** 21:10–21:32 in one launch; `ron_lane_state` read `free`. Waited
+on with `waitrun.sh`: `success: true`, `settings_restored: true`, exit 0,
+1,255 s from launch to exit, 10,411 frames, map 7 and seed 12345 verified.
+The dump (559,521,384 bytes, sha256 `2746301dfd35c209…`) and the trace
+(57,684,160, `3776c81b2b9805c8…`) were moved into `Logs` as
+`gamelog-run547-greatsahara-toughest-10144.txt` and `rontrace-run547.log`.
+The disk had 216 GB free before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run470.log` | **0 differing**, 10,411 identical |
+| window blocks | 257, 10139..10395 |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 7` |
+
+**What it holds**: `run547_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`), walked from run470's start with run468's head:
+1,850 keys, 82 standing on block 10139, and the word's block 10145 parts
+seven — the Citizen `1/89`, which the original has trained out of `1/2022`
+and ours still holds queued (`queue:queued` 1 against 0), and who=1's
+census with it (`peasants` 38 against 39). The compared pin walks its
+blocks 10143..10146 and the coverage driver 10143..10147. Runs 548 and 549 were
+reserved and not used.

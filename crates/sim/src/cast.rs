@@ -694,6 +694,9 @@ impl Sim {
             while let Some(x) = at {
                 self.units[x].decoy = true;
                 self.units[x].mana_burn = 0;
+                // `cast_create_decoy@00674370`'s `update_los`: term 12's
+                // one tile, on the cache.
+                self.update_los(x);
                 at = self.units[x].o_down;
             }
             made += 1;
