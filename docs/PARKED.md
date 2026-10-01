@@ -146,6 +146,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1365, 2026-09-30 — the training step
+
+(1372) **`train_time`'s ships' and vehicles' arms**: built, reached by
+no capture shown.
+
+(1373) **The rows between 10144 and 10391 on run547**: `gather_stamp`,
+`defense`, `production_step`, `MAKE[3].val` — naming no score yet.
+
 ## Parked by item 1354, 2026-09-30 — the unit's sight
 
 (1366) **Terms 7–11 of `Unit::update_los` and term 6's archers'
@@ -748,7 +756,8 @@ CARAVAN §11): the census's newborn lag — `caras` +1 at
 AI `go_to_city` tail and `add_trade_order`'s transport tail, both
 unreached on disk. **Again** (1228): the boat's `caras` +1/−1 lags
 3 against 4 on run462's 10184, read by `create_units`' `civilians` and
-not decisive there.
+not decisive there. **Again** (1365): `peasants` on run547's
+10145.
 
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
@@ -2826,6 +2835,12 @@ line): `mylos` refreshing a frame late moved nine widenings and no
 walk; run382's row 202 had stood one frame early since item 35. A row
 that sits one frame early across many windows is a rule waiting (1176's
 "three widenings make a rule"), and no instrument lists such rows.
+
+(1374) **A document's "inert in every capture" goes stale** (1365's
+Loop line): `docs/PRODUCTION.md` called the speed-upgrade counts inert on
+disk, false from 9782 of a capture booked a week later. A list of inert
+arms is a scan waiting to be written: each arm's predicate as a grep of
+the techs and nations the captures' players hold.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

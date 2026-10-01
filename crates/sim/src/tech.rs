@@ -407,6 +407,18 @@ pub struct Roles {
     /// held, not a leading run, and `Unit::update_los` multiplies the
     /// count by `TROOPS_UPGRADE_LOS` (`docs/VISION.md` §2, term 6).
     pub troops_los_preq: [Option<TypeId>; 3],
+    /// The three ladders `ObjectData::train_time@006508c0`'s speed-upgrade
+    /// step counts (`docs/PRODUCTION.md`, "The tail's first caller"):
+    /// `SHIPS_FASTER_1..3`, `TROOPS_FASTER_1..3` and `VEHICLES_FASTER_1..3`,
+    /// `TECHBONUSES` rows 64–66, 58–60 and 76–78 — Forage, Supply and
+    /// Logistics for ships and vehicles, Herbal Lore, Medicine and
+    /// Pharmaceuticals for troops, in the shipped file. Each counter
+    /// (`LeaderData::get_ships_speed_upgrade@006da800`,
+    /// `get_troops_speed_upgrade@006da850`,
+    /// `get_vehicle_speed_upgrade@006da8a0`) counts **every** one held.
+    pub ships_speed_preq: [Option<TypeId>; 3],
+    pub troops_speed_preq: [Option<TypeId>; 3],
+    pub vehicles_speed_preq: [Option<TypeId>; 3],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,
