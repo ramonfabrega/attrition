@@ -446,9 +446,50 @@ approximate.** Everything the original applies before it is absent from this
 game: the lobby handicap is `0` on both players in run38's dump, and The
 President, the Mongol stable, the Japanese barracks and carrier and the
 Chinese citizen are all other nations' powers, gated by the same
-`has_tribe_bonus` this player fails. What comes *after* it — `TROOPS_FASTER`,
-the speed-upgrade counts, the rares, the governments, the unit wonders — is
-unbuilt and listed under what is not established.
+`has_tribe_bonus` this player fails. What comes *after* it — the rares, the governments, the unit wonders — is
+unbuilt and listed under what is not established; the speed-upgrade counts
+are built (below), and `TROOPS_FASTER` is exact by absence.
+
+**The speed-upgrade step** (item 1365, 2026-09-30). Two steps after the
+British arm — past the French, German and Roman arms, other nations'
+powers — `TROOPS_FASTER` takes three-quarters off a type whose `role` has
+`0x10000`; its one prerequisite is `Disable` in the shipped `TECHBONUSES`
+(row 105), so no player holds it and skipping it is exact. Then, off the
+listing (`00650f74`–`0065104b`), one `if`/`else if` chain:
+
+```
+if domain == 1 (sea):                 n = get_ships_speed_upgrade()
+elif obj_masks & 0x20  (F, foot):     n = get_troops_speed_upgrade()
+elif obj_masks & 0x1000 (M, mounted): n = get_troops_speed_upgrade()
+elif obj_masks & 0x200000 (V):        n = get_vehicle_speed_upgrade()
+else: skip
+t = (10 - n) * t / 10                 # 0065102d, the 0x66666667 divide, truncating
+```
+
+`obj_masks` is the type's `+0x1e4`, the `OBJ_MASK` letters
+(`docs/COMBAT.md` §3); the domain is `+0x218`, the British arm's. Each
+counter (`LeaderData::get_ships_speed_upgrade@006da800`,
+`get_troops_speed_upgrade@006da850`, `get_vehicle_speed_upgrade@006da8a0`)
+walks three bonuses and counts **every** one `has_preq` answers — not a
+leading run — and the `BUY_SELL` arm each carries compares `0x2ad`
+against types its loop never reaches, so it is dead. In the shipped
+`TECHBONUSES` the troops' ladder is rows 58–60 (Herbal Lore, Medicine,
+Pharmaceuticals — the same three as the line-of-sight ladder, rows 61–63,
+`docs/VISION.md` §2), and the ships' and the vehicles' are rows 64–66 and
+76–78 (Forage, Supply, Logistics both). **A Citizen is foot** (`FCWP`), so
+a Citizen trains a tenth faster per level, exactly as a Barracks unit
+does. A sea type that carries `F` takes the ships' ladder and no other.
+
+`crates/sim`'s `Sim::train_tail` carries the step and `Roles::ships_speed_preq`,
+`troops_speed_preq` and `vehicles_speed_preq` the ladders.
+**Diff-backed, the troops' arm only** (run547): who=1 takes Herbal Lore on
+9782, and its next trained Citizen — `1/2022`'s, queued at 38 owned, at the
+ramp's ceiling of 18,000 — completes at **16,200**, on frame 10144; block
+10144's `queue[0].job_counter` is 16200 and block 10145's queue is empty.
+Without the step it ran to 18,000, the Citizen `1/89` was born eighteen
+frames late, and the third map's word at Toughest stood at 10144. The
+ships' and vehicles' arms are the same arithmetic on a predicate no
+capture on disk has been shown to reach.
 
 ---
 
@@ -2042,9 +2083,11 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   the handicap, The President, the Mongol stable, the Japanese barracks and
   carrier, the Chinese citizen, the French siege and special, the German air
   and submarine and the Roman legion are read here and implemented nowhere,
-  as are `TROOPS_FASTER`, the ship/troop/vehicle speed-upgrade counts, the
-  rares, Monarchy, Socialism, the unit wonders, the Kremlin and
-  `INSTANT_UNIT_BONUS`. Each is inert in every capture on disk. The Chinese
+  as are the rares, Monarchy, Socialism, the unit wonders, the Kremlin and
+  `INSTANT_UNIT_BONUS`. Each is inert in every capture on disk.
+  ~~`TROOPS_FASTER` and the ship/troop/vehicle speed-upgrade counts~~ —
+  built, the troops' arm diff-backed (item 1365; "The tail's first
+  caller", "The speed-upgrade step"). The Chinese
   arm is the one whose *predicate* is not settled: the decompiler prints its
   final test as `extraout_ECX[0xae] & 8` on a pointer it lost, and the
   listing is what would settle which flag of which record that is.

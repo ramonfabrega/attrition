@@ -1674,7 +1674,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **10144 since item 1354** (`docs/VISION.md` §2): `Unit::update_los`'s
+/// **10391 since item 1365** (`docs/PRODUCTION.md`, "The tail's first
+/// caller"): `train_time`'s speed-upgrade step, `t = (10 − n) × t / 10`
+/// with `n` the troops' ladder for a foot or mounted type — and a Citizen
+/// is foot. who=1 takes Herbal Lore (`TROOPS_FASTER_1`) on 9782 and its
+/// next Citizen, at `1/2022`, queued at the ramp's ceiling of 18,000.
+/// **The move's value diff** (run547): on block 10144 `1/2022`'s
+/// `queue[0].job_counter` is 16200 on both sides, the original's target
+/// and ours 18000; on the word 10144's block 10145 the Citizen `1/89` the
+/// original's alone and `1/2022`'s `queue:queued` ours 1 against 0 →
+/// agreeing. run547's keys went 1,850 → 156. Frame 10144's draws went 42
+/// against 42 parting at index 33 → agreeing. **The new word's delta: ours
+/// 6 draws and the original 7 on frame 10391, parting at index 0**: the
+/// original spends `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+/// Unit::do_trade+0x40` (seed `10810bb6`) where ours spends
+/// `Unit::do_non_flat_gather+0xcc3`; `1/52`'s `pos` parts on block 10391,
+/// ours (28260, 24052) against (28261, 24026), its order a move (kind 1,
+/// two long) against kind 15. Inside run547's window (block 10392).
+///
+/// It was **10144** after item 1354 (`docs/VISION.md` §2): `Unit::update_los`'s
 /// troops term — `TROOPS_UPGRADE_LOS` per `TROOPS_LOS_n` held, for a unit
 /// the Barracks, the Stable or the Auto Plant trains — and `mylos` kept as
 /// the cache the original keeps, refreshed by `calc_unit_stats` on the
@@ -1869,7 +1887,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_144;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_391;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7872,12 +7890,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // word 9982 on the same blocks (item 1338), whose run529 test keeps
     // the move's value diff on 9759..9765; the word 10144 on run547 over
     // 10139..10395 (item 1354), whose run529 test keeps the move's value
-    // diff on 9784..9999.
+    // diff on 9784..9999; the word 10391 on the same blocks (item 1365),
+    // whose run547 test keeps the move's value diff on 10144..10145.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run547_s_word_frame_is_widened_whole"),
-        1354,
+        1365,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_10144),
     ),
 ];

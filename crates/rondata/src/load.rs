@@ -1644,6 +1644,11 @@ pub fn load_tables(
     // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`
     // counts (`docs/VISION.md` §2, term 6).
     tree.roles.troops_los_preq = [bonus_at(61), bonus_at(62), bonus_at(63)];
+    // The three speed-upgrade ladders `train_time` counts, rows 64–66,
+    // 58–60 and 76–78 (`docs/PRODUCTION.md`, "The tail's first caller").
+    tree.roles.ships_speed_preq = [bonus_at(64), bonus_at(65), bonus_at(66)];
+    tree.roles.troops_speed_preq = [bonus_at(58), bonus_at(59), bonus_at(60)];
+    tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

@@ -152,6 +152,10 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_10144: (i64, i64) = (10_139, 10_
 /// left, past run529's window.
 pub(crate) const TOUGHEST_WORD_BLOCK_10145: i64 = 10_145;
 
+/// **The word's block, 10392**: frame 10391 writes it — the word item 1365
+/// left, inside run547's window.
+pub(crate) const TOUGHEST_WORD_BLOCK_10392: i64 = 10_392;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -326,7 +330,8 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run547 at its block 10145 since item 1354 (run529 at its block 9765
+/// on run547 at its block 10392 since item 1365 (at its block 10145 from
+/// item 1354, run529 at its block 9765
 /// from item 1332, run511 from item 1305,
 /// at its block 9353 from item 1318; run500 from item 1286, at
 /// its block 8857 from item 1293; run491
@@ -340,7 +345,7 @@ pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness
         "run547",
         (TOUGHEST_WORD_10144, WIDENING_GREAT_SAHARA_TOUGHEST_10144.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_10145,
+        TOUGHEST_WORD_BLOCK_10392,
     )
 }
 
@@ -1186,34 +1191,68 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word's block 10145** (item 1354): the original has trained
-        // the Citizen `1/89` out of `1/2022` on frame 10144 — the birth its
-        // draw stream opens index 33 on — and ours still holds it queued.
+        // **The move's value diff on block 10145** (item 1365, `docs/PRODUCTION.md`,
+        // "The tail's first caller"): the original trains the Citizen `1/89`
+        // out of `1/2022` on frame 10144 at a target of 16,200 — the troops'
+        // speed upgrade, Herbal Lore held — and ours now does too. Before it
+        // the Citizen was the original's alone and `1/2022`'s `queue:queued`
+        // ours 1 against 0 (item 1354's word block).
         pin_eq!(
-            row(1, 89, "unlinked").as_deref(),
-            Some("10145: the dump holds it alone"),
-            "the Citizen 1/89, the original's alone"
+            row(1, 89, "unlinked"),
+            None,
+            "the Citizen 1/89, born on both sides"
         );
         pin_eq!(
-            row(1, 2022, "queue:queued").as_deref(),
-            Some("10145: ours 1 theirs 0"),
-            "1/2022's queue, ours still holding it"
+            row(1, 2022, "queue:queued"),
+            None,
+            "1/2022's queue, emptied on both sides"
         );
+        // The census's newborn lag (parked 1122): `Unit::set_type` adds the
+        // Citizen to `peasants` at once, and this crate counts it at the
+        // next sweep — `peasant_high` is 38 on both sides.
         pin_eq!(
             row(1, -1, "leader:peasants").as_deref(),
             Some("10145: ours 38 theirs 39"),
-            "who=1's citizens"
+            "who=1's citizens, the newborn lag"
+        );
+        // **The word 10391's block 10392** (item 1365): `1/52`'s position
+        // parts on block 10391 — the frame before the draw — its order a
+        // move two long against the original's kind 15.
+        pin_eq!(
+            row(1, 52, "pos").as_deref(),
+            Some("10391: ours (28260,24052) theirs (28261,24026)"),
+            "1/52's position, a block before the word's"
+        );
+        pin_eq!(
+            row(1, 52, "orders.len").as_deref(),
+            Some("10391: ours 2 theirs 1"),
+            "1/52's order stack"
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10145 + 1)
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10392 + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(10139, 82), (10145, 7), (10146, 1)],
+            // Between the newborn lag and the word, one row each: who=1's
+            // `gather_stamp` 10151 against 10023 (10152), its `defense` 1
+            // against 2 (10178), who=0's `production_step` 0 against 1
+            // (10201), who=1's `MAKE[3].val` 276800 against 283200 (10382).
+            [
+                (10139, 82),
+                (10145, 1),
+                (10152, 1),
+                (10178, 1),
+                (10201, 1),
+                (10382, 1),
+                (10391, 39),
+                (10392, 19),
+                (10393, 9),
+            ],
             "the blocks keys first part on, to one past the word's"
         );
-        // Measured on the tree merged with 1350's and 1351's landings.
-        pin_eq!(w.firsts.len(), 1850, "every key parted on run547");
+        // Item 1365: 1850 → 156, the birth's rows and everything downstream
+        // of them gone (measured on the tree merged with 1350's and 1351's).
+        pin_eq!(w.firsts.len(), 156, "every key parted on run547");
     }
 
     /// **The word 9764, widened whole** (item 1332):
