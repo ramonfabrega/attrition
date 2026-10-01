@@ -591,7 +591,9 @@ goes 0 → 1 — **once per leg** — and ends that block with
 - if the waypoint is **final** (`flags & 1`) and the unit's *action* is
   `TRADE_ROUTE`, `GATHER`, `ATTACK` or `BUILD_AT` → `kill_current_order`.
   The walk is abandoned where the unit stands, and the action re-decides
-  next frame.
+  next frame. The listing tests `0xf` first (`5f8721`–`5f873f`). The
+  `TRADE_ROUTE` arm is diff-backed since item 1371: Great Sahara at
+  Toughest's caravan `1/52`, 10390 (`docs/CARAVAN.md` §7).
 - otherwise, if the collider's **current order is not a move**
   (`UnitOrder +0x14`, `is_move` — the same set §6 step 4 lists), the unit's
   tolerance is widened to `other.big_radius × 3` and the path top is
