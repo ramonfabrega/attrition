@@ -3394,6 +3394,11 @@ impl Sim {
         if captain {
             self.track_unit_type(who, rec, 1);
         }
+        // The tail's `Guy::set_new_location(guy, x, y, 1)` over the squad
+        // (`61368b`): guy 0's, with `param_3` set, writes each crew
+        // figure's destination from the new piece's track and puts it
+        // there (`005d86f0`) — or, trackless, on guy 0's own point.
+        self.seat_guys(u);
     }
 
     /// The squad a captain heads, captain first — `o_down` walked.

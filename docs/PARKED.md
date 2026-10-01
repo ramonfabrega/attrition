@@ -2715,12 +2715,24 @@ functions too.
 answer sat in the pusher's function; the booking named only the pushed
 animal's chain. When the first parted field is a `collide_o` another
 unit wrote, run `seams.py` on the writer's function by name — the same
-shape as 1337.
+shape as 1337. **Again** (1338), the third reach in one
+tranche: the seam sat in the conversion's function, 254 frames before
+the word; a checklist row — `seams.py` on the writers of the first
+parted field, by name, every time, before any reading.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the
 harness compared ours' index against the dump's. A guard that names the
 unit of each side of a comparison would have caught it.
+
+(1345) **The commander pushed a red booking** (2026-09-30, 1326's
+booking `9efe2cd0`): the gate's tail and `ccc push --base` went out in
+one parallel batch, so the push ran before the exit was read, and the
+gate was red on the queue ledger — a section row written as an item
+closure read as a reference to an unbooked number. Two rows: the read of
+the gate's exit and the push are never one batch; and the commander's
+pre-commit guard run includes `tools/queueledger.py`, which
+`tools/guard.sh <filters>` skips.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
@@ -3150,7 +3162,7 @@ window contains one of them.
 
 (325) closed 2026-09-30 by item 1326: **`MAKE[*].city` is ours + 1** —
 the harness compared two index spaces; the loader and `own_city`'s rank
-now agree with the dump (`docs/CITIES.md` §13 item 14).
+now agree with the dump (`docs/CITIES.md` §13, its fourteenth row).
 
 (326) **Three tech `val`s part from before run19's window** — Empire
 2,100,000 against 1,800,000, Mercenaries 165,000 against 216,000,

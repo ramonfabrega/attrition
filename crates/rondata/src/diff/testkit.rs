@@ -1658,7 +1658,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9764 since item 1332** (`docs/COLLISION.md` §13.3): the Supply
+/// **9982 since item 1338** (`docs/ANIM.md` §11, §4): the Catapult `1/84`
+/// is upgraded to a Trebuchet (`TypeIndex` 266) on 9710, and
+/// `Unit::set_type` kills its whole crew and seats fresh figures on the new
+/// pieces' tracks — none for a Trebuchet's — where this crate kept the
+/// Catapult's two tracks, (−120, 0) and (72, 216), and walked them; and a
+/// guy still turning on slot `0x15`/`0x16` is not idled, so the Trebuchet's
+/// guy 0 rolls on 9755 and 9764 and not between. **The move's value diff**
+/// (run529): on block 9759 `1/84`'s `g.track_dx[1]` ours −120 against 0 →
+/// agreeing, `g.cur_anim[1]` 8 against 22 → agreeing, `g.cur_time[0]` 1
+/// against 4 → agreeing; on the word's block 9765 `g.cur_time[2]` 10
+/// against 1 → agreeing (with the crew alone, the word 9756, ours 15
+/// against 13: guy 0's roll on its turn). run529's keys went 1,075 → 557.
+/// Frame 9764's draws went 10 against 11 → agreeing. **The new word's
+/// delta: ours 13 draws and the original 16 on frame 9982, parting at
+/// index 0**: the original opens on two `Leader::produce_building+0x1805 <
+/// Leader::make_this+0x328 < Leader::make_stuff+0xf6` (seeds `1b6bb976`,
+/// `a952625d`) ahead of `make_stuff+0x221`, where ours opens on
+/// `make_stuff+0x221`. Inside run529's window (block 9983).
+///
+/// It was **9764** before that (item 1332, `docs/COLLISION.md` §13.3): the Supply
 /// Wagon `1/86` pushes gaia's peacock `8/2` (`HERDPEACOCK`, 413) on tick
 /// 9347 in the original, whose stranger refusal (`5fad3c`, `cmpb $8`)
 /// spares gaia, and this crate refused gaia and pushed nothing; and the
@@ -1793,7 +1812,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_764;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_982;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -7756,12 +7775,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // value diff on 8858; the word 9352 on the same blocks (item 1318),
     // whose run517 test keeps the move's value diff over the gap
     // 9032..9323; the word 9764 on run529 over 9759..10015 (item 1332),
-    // whose run511 test keeps the move's value diff on 9348..9355.
+    // whose run511 test keeps the move's value diff on 9348..9355; the
+    // word 9982 on the same blocks (item 1338), whose run529 test keeps
+    // the move's value diff on 9759..9765.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         Some("run529_s_word_frame_is_widened_whole"),
-        1332,
+        1338,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_9764),
     ),
 ];

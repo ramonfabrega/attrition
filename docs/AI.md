@@ -13012,7 +13012,10 @@ it is clear, or when it has a marching hero near. `Sim::group_set_march`.
 `8/2` stands a unit apart on run511's 9348. ~~No mechanism is named.~~
 **Answered by item 1332** (`docs/COLLISION.md` §13.3): the Supply Wagon
 `1/86` pushes the peacock `8/2` aside, which this crate's stranger refusal
-forbade for gaia, and turns it; 9352 → 9764.
+forbade for gaia, and turns it; 9352 → 9764. **The word 9764** — the
+Trebuchet `1/84`'s fourth crew roll — **answered by item 1338**
+(`docs/ANIM.md` §11): its upgrade's crew is fresh and trackless; 9764 →
+9982.
 
 **Not established**: Alexander's arm, the Iroquois bonus and the hero
 auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`
