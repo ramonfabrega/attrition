@@ -3632,11 +3632,12 @@ impl Sim {
     /// one the step is taken along, is turned by `Guy::do_turn` and is not
     /// touched here.
     ///
-    /// Only `Unit::move_step`'s call is modelled — the one a marching unit
-    /// makes every frame. The other seventeen callers (`do_build`,
-    /// `do_gather`, `fight`, `come_out`, …) are turns this simulation does
-    /// not yet make, and each is a place a group's flag would move that
-    /// this one leaves still.
+    /// `Unit::move_step`'s call is modelled — the one a marching unit
+    /// makes every frame — and `Unit::do_build`'s turn to its site (item
+    /// 1330). The other callers (`do_gather`, `fight`, `come_out`, …) are
+    /// turns this simulation makes through `Movement::set_heading` or not
+    /// at all, and each is a place a group's flag would move that this one
+    /// leaves still.
     ///
     /// **And the tail of it is `Guy::set_angle(guy 0, angle, 0)`**, whose
     /// crew loop rewrites every tracked figure's `des_angle` and `des`

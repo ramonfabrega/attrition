@@ -5450,7 +5450,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// `0x3de49d86`). The value diff, walked back to block 838: the Citizen
 /// `0/9`'s `orders.len` ours 1 against 0, `orders_x/orders_y` (3864,
 /// 36888) against (3840, 36864).
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 838;
+///
+/// **838 → 904** (item 1330): the builders' walk. `Unit::init` bears a
+/// Citizen in form 9, so the three walk plain moves to the Mob's rings
+/// (`form.rs`'s `MobRing`, from the listing), laid out unmirrored because
+/// `do_build`'s turn toggles the leader's group mirror through
+/// `Unit::set_angle` (`docs/GROUPS.md` §6.3, §6.4, §24.3). Now ours 35
+/// draws against 32 at index 25 (seed `0x041e0e77`): ours spends `1/6`'s
+/// `Guy::set_anim+0xf2f < Guy::inc_time+0x271`, where the original's next
+/// is the bird's `Guy::set_anim+0x104b`. The value diff on block 905:
+/// `1/6`'s `order:kind` ours 10 against 2, `orders.len` 2 against 1,
+/// `orders_x/orders_y` (7368, 33816) against (38664, 13320), `near`
+/// (2008, 0) against (−1, −1); the site `0/2008` is ours alone from 902
+/// (the original's died on 901).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 904;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).

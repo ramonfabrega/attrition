@@ -686,6 +686,25 @@ pub fn turning_of(t: &UnitType) -> movement::Turning {
     }
 }
 
+/// A newborn's formation byte (`UnitData +0xaa`, the dump's `form`) —
+/// `Unit::init@00612100:81`–`86`: **9** for the four civilian ids,
+/// `PEASANTS` to `SCHOLARSKOREAN` (`0x32`–`0x35`, the type's `+4`), and
+/// **0** for every other type. Its width twin (`+0xab`) is born −1, which
+/// [`Unit::new`] already holds.
+///
+/// `Sim::group_action_move_to` reads it through `get_form`, and form 9
+/// is one of the arms that keep a formation's member off the
+/// `GroupMoveOrder`: two Citizens sent together walk two plain moves in the
+/// original. Born −1 here, a group of Citizens took form 0 and one group
+/// move (item 1330, chapter forty-seven's 838; parked 646).
+pub fn init_form(type_index: i32) -> i8 {
+    if (0x32..=0x35).contains(&type_index) {
+        9
+    } else {
+        0
+    }
+}
+
 /// A unit type the simulation knows how to build.
 ///
 /// The price is the data's, the kind is what attrition and supply read, and
@@ -3019,6 +3038,7 @@ impl Sim {
             unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
             unit.type_index = self.unit_types[ty].type_index;
+            unit.form = init_form(unit.type_index);
             // The stance is a switch on the *type's* stance kind and then,
             // when the trainer shares that kind, the trainer's own byte —
             // `Unit::init@00612100:282–309` and `Build::train@0062f9b0:86`
