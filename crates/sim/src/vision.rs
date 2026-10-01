@@ -205,7 +205,11 @@ impl Sim {
         // (`docs/VISION.md` §2).
         if matches!(
             self.trainer_ident(rec),
-            Some(crate::build::Ident::Barracks | crate::build::Ident::Stable | crate::build::Ident::AutoPlant)
+            Some(
+                crate::build::Ident::Barracks
+                    | crate::build::Ident::Stable
+                    | crate::build::Ident::AutoPlant
+            )
         ) {
             los += self.troops_los_level(unit.owner) * self.tuning.troops_upgrade_los;
         }

@@ -515,7 +515,11 @@ mod tests {
         // the derivation a frame before the original's `calc_unit_stats`
         // refreshed its cache. With the cache (`docs/VISION.md` §2) nothing
         // parts past block 1.
-        pin_eq!(first(1, 0, "mylos"), None, "the scout's line of sight agrees");
+        pin_eq!(
+            first(1, 0, "mylos"),
+            None,
+            "the scout's line of sight agrees"
+        );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(1, 22)],

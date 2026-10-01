@@ -2083,7 +2083,10 @@ impl Sim {
         self.wall_stats_dirty[who as usize] = true;
         // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
         // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
-        if self.buildings[b].ty.is_some_and(|t| self.is_wonder_building(t)) {
+        if self.buildings[b]
+            .ty
+            .is_some_and(|t| self.is_wonder_building(t))
+        {
             self.unit_stats_dirty[who as usize] = true;
         }
         self.removed.push(b);

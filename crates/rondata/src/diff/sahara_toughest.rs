@@ -1181,7 +1181,39 @@ mod tests {
             "run547 carries every key: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run547");
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word's block 10145** (item 1354): the original has trained
+        // the Citizen `1/89` out of `1/2022` on frame 10144 — the birth its
+        // draw stream opens index 33 on — and ours still holds it queued.
+        pin_eq!(
+            row(1, 89, "unlinked").as_deref(),
+            Some("10145: the dump holds it alone"),
+            "the Citizen 1/89, the original's alone"
+        );
+        pin_eq!(
+            row(1, 2022, "queue:queued").as_deref(),
+            Some("10145: ours 1 theirs 0"),
+            "1/2022's queue, ours still holding it"
+        );
+        pin_eq!(
+            row(1, -1, "leader:peasants").as_deref(),
+            Some("10145: ours 38 theirs 39"),
+            "who=1's citizens"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_10145 + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(10139, 82), (10145, 7), (10146, 1)],
+            "the blocks keys first part on, to one past the word's"
+        );
+        // Measured on the tree merged with 1350's and 1351's landings.
+        pin_eq!(w.firsts.len(), 1850, "every key parted on run547");
     }
 
     /// **The word 9764, widened whole** (item 1332):

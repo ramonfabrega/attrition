@@ -1511,7 +1511,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r547 {
         let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10145;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run547 carries the third map's word 10144 at Toughest");
+        assert_eq!(
+            n, 5,
+            "run547 carries the third map's word 10144 at Toughest"
+        );
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
