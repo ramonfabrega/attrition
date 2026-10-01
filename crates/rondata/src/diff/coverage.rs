@@ -1341,12 +1341,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // Item 1383 moved it to 16160 (block 16161), past run544: run572 is
     // its widening.
-    // Item 1401 moved it to 16179, inside run572.
+    // Item 1401 moved it to 16179, inside run572; item 1407 to 16221.
     if let Some(p) = &r572 {
-        let n = drive_capture(p, 16_179, 16_182, &mut paths);
+        let n = drive_capture(p, 16_221, 16_224, &mut paths);
         assert_eq!(
             n, 4,
-            "run572 carries the second pair's East Indies word 16179's blocks"
+            "run572 carries the second pair's East Indies word 16221's blocks"
         );
         frames += n;
     }

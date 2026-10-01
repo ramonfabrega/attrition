@@ -13378,3 +13378,52 @@ other crafts.
   boarders `1/79`, `1/86`, `1/87` stand ashore on 16179 (`inside` −1
   against 171) where the original's boat sails on. Widened on run572
   (3,416 keys, block 16188 on 24).
+
+## 105. The boat's embark flag reads the coastal `get_tregion` (2026-10-01, item 1407)
+
+### 105.1 The event
+
+Frame 16179 (run572, block 16179): ours 11 draws against 11, parting at
+index 2 — ours spends `Unit::do_idle`'s `set_anim` for `1/79` and `1/86`
+where the original spends `Guy::set_anim+0x104b`, because ours' Galleon
+`1/171` (born 16175 by `1/87`'s cast) was gone on 16178 and its boarders
+stood ashore. The first parting was earlier than the word: block 16176,
+`1/171`: `path:length` ours 49 against 50, `path[48].flags` 4 against 0,
+`path_recursion` 1 against 2, move `dest` (29160, 38040) against
+(29124, 37884), `last_x/last_y` −1 against (29352, 37992).
+
+### 105.2 The rule and the fix
+
+`cast_transport` step 7 (`docs/TRANSPORT.md` §6.2): the handed-over path's
+top loses its embark flag (4) when `get_tregion(top)` equals
+`get_tregion(spot)`. This crate read `World::region_of` of the two cells;
+`get_tregion@006b52e0` is the coastal refinement (a `0x100` cell on ocean
+answers its `region2`), `World::tregion_alt` — the one `do_move`'s region
+check already used. The top (29160, 38040) is a coastal cell: the plain
+regions differed, so the flag stayed and `find_path`'s first march of the
+boat accepted the line; with the refinement the flag clears, and the first
+`find_path` runs twice (`path_recursion` 2) and leaves the extra top
+(29124, 37884) — both as the original's (read off a temporary trace of
+`1/171`'s `find_path` calls, not kept).
+
+### 105.3 Coverage
+
+- **Diff-backed**: run572 block 16176 18 keys → 2, 16179's 40 → 0, 16180's
+  17 → 0, keys 3,416 → 2,279; and eight older windows lose one key each
+  (run143's floor 101/114/117 → 101/113/116; run419 121 → 120; run420 130 →
+  129; run421 117 → 116 — `1/42`'s `path[16].flags` 4 against 0 on 6576;
+  run480 and run506 139 → 138; run490 153 → 152; run523 138 → 137). With
+  the old `region_of` the floor walk `run346_is_east_indies_at_toughest_and_its_word_holds`
+  stops at 16179 against the 16221 floor.
+- **The new word: 16221**, ours 12 draws against 12, index 0: ours
+  `Guy::set_anim+0x97a < do_cast` where the original spends
+  `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
+  Block 16222's value diff: `1/110` (inside `1/115`, `unit_masks`
+  0x830049) `order:kind` ours 14 against 2, `orders.len` 2 against 1,
+  `orders_x/y` (29256, 38024) against (6744, 4584). The count parts on
+  16228 (14 against 12, index 4: ours `Unit::move_step+0x823` where the
+  original has `Guy::inc_time+0x271`). `1/115`'s path parts first on 16216
+  (`path:length` 60 against 48, `path[47]` (28344, 37224) against
+  (28872, 37992), `collide_o` −1 against 111 on 16217).
+- **Not established**: whether `1/110`'s cast is the decoy gate again or
+  the cargo's order list; no chain read.

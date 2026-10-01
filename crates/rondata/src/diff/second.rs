@@ -1151,7 +1151,7 @@ mod tests {
             // and `6417`'s 3 → 2, the births' `form` (`docs/GROUPS.md` §24.3).
             [
                 (6316, 106),
-                (6393, 2),
+                (6393, 1),
                 (6401, 1),
                 (6417, 2),
                 (6434, 2),
@@ -1167,7 +1167,8 @@ mod tests {
         // Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took 4: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 175.
-        pin_eq!(w.firsts.len(), 121, "every key parted on run419");
+        // Item 1407: 121 → 120, a boat's embark flag (`docs/AI.md` §105).
+        pin_eq!(w.firsts.len(), 120, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1272,7 +1273,7 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (6604, 104),
+                (6604, 103),
                 (6670, 2),
                 (6671, 2),
                 (6685, 4),
@@ -1291,7 +1292,8 @@ mod tests {
         // block's 156 → 152, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 184.
-        pin_eq!(w.firsts.len(), 130, "every key parted on run420");
+        // Item 1407: 130 → 129 (6604's 104 → 103).
+        pin_eq!(w.firsts.len(), 129, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -1831,7 +1833,8 @@ mod tests {
         // (1490 → 220).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 211.
-        pin_eq!(w.firsts.len(), 139, "every key parted on run480");
+        // Item 1407: 139 → 138.
+        pin_eq!(w.firsts.len(), 138, "every key parted on run480");
     }
 
     /// **run490 — the second pair's East Indies word 11328, widened whole**
@@ -1931,7 +1934,7 @@ mod tests {
                 (11411, 2),
                 (11413, 6),
                 (11414, 2),
-                (11445, 2),
+                (11445, 1),
                 (11513, 1),
                 (11539, 1),
                 (11542, 1)
@@ -1945,7 +1948,8 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 226.
         pin_eq!(
             w.firsts.len(),
-            153,
+            // Item 1407: 153 → 152 (11445's 2 → 1).
+            152,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
@@ -2025,7 +2029,8 @@ mod tests {
         // Item 1302 took 1151: the six squads' records, the group's list,
         // and what followed them (1375 before).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 224.
-        pin_eq!(w.firsts.len(), 139, "every key parted on run506");
+        // Item 1407: 139 → 138.
+        pin_eq!(w.firsts.len(), 138, "every key parted on run506");
     }
 
     /// **run508 — the second pair's East Indies word 12582, widened whole**
@@ -2174,7 +2179,8 @@ mod tests {
         // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
         // Item 1341, the bump loop: 1015 → 138 (on the tree merged with
         // 1330's, whose birth `form` took 1102 → 1015).
-        pin_eq!(w.firsts.len(), 138, "every key parted on run523");
+        // Item 1407: 138 → 137.
+        pin_eq!(w.firsts.len(), 137, "every key parted on run523");
     }
 
     /// **run535 — the second pair's East Indies word 14141, widened whole**
@@ -2432,19 +2438,38 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (16155, 189),
+                (16155, 188),
                 (16161, 1),
                 (16163, 1),
                 (16171, 4),
                 (16172, 1),
-                (16176, 18),
-                (16179, 40),
-                (16180, 17)
+                (16176, 2),
+                (16182, 1),
+                (16184, 1),
+                (16192, 9),
+                (16193, 15),
+                (16199, 2),
+                (16200, 10),
+                (16201, 1),
+                (16210, 1),
+                (16216, 9),
+                (16217, 15),
+                (16221, 6),
+                (16222, 4)
             ],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1401: 2987 -> 3416.
-        pin_eq!(w.firsts.len(), 3416, "every key parted on run572");
+        // **The word 16221** (item 1407, `docs/AI.md` §105): ours 12 draws
+        // and the original 12, at index 0 — ours `do_cast`'s `set_anim`
+        // where the original spends `Guy::do_turn+0x4a <
+        // Unit::move_step+0x389`; `1/110` (aboard `1/115`) carries a Cast
+        // at its head here (`order:kind` 14 against 2, `orders.len` 2
+        // against 1), its `orders_x`/`orders_y` (29256, 38024) against
+        // (6744, 4584). The count parts later, on 16228 (14 against 12,
+        // index 4). `1/115`'s path parts first on 16216 (length 60 against
+        // 48, `path[47]` (28344, 37224) against (28872, 37992)).
+        // Item 1407: 3416 -> 2279, the Galleon `1/171`'s embark flag.
+        pin_eq!(w.firsts.len(), 2279, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
@@ -2510,8 +2535,8 @@ mod tests {
         // and `1/42`'s `path[16].flags` 4 against 0 on 6576.
         pin_eq!(
             row(1, 42, "path[16].flags").as_deref(),
-            Some("6576: PathField { slot: 16, field: \"flags\", ours: 4, theirs: 0 }"),
-            "a flag on a slot the original leaves clear"
+            None,
+            "a flag on a slot the original leaves clear (item 1407 took it: `cast_transport`'s tregion)"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -2524,7 +2549,7 @@ mod tests {
             [
                 (6567, 103),
                 (6570, 2),
-                (6576, 4),
+                (6576, 3),
                 (6577, 2),
                 (6582, 1),
                 (6587, 4),
@@ -2537,7 +2562,8 @@ mod tests {
         // block's 158 → 155 and 6577's 4 → 3, who=1's Merchant Fleets counted (`docs/TRANSPORT.md` §16).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 170.
-        pin_eq!(w.firsts.len(), 117, "every key parted on run421");
+        // Item 1407: 117 → 116, `1/42`'s `path[16].flags`.
+        pin_eq!(w.firsts.len(), 116, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
