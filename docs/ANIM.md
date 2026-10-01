@@ -508,6 +508,12 @@ unit on open ground reaches, in the order the function tests them:
    run13's sheep 0 at sim-frame 101, `SLOG 11/16 → DEFAULT 0/90`, one draw.
    Any other request whose category equals the current one and whose clock
    has not run out returns too, unless the second argument forces it.
+   **And a turn still turning**: an idle request on the *slot* `0x15` or
+   `0x16` (`CHAR_TURN_LEFT`/`RIGHT`) while the guy's `des_angle != angle`
+   (`+0x64` against `+0x18`) takes the walk's nothing-or-rewind and no
+   roll. A packing type's guy 0 plays its turn to the end of the turn;
+   its trackless crew, whose pair `Guy::do_turn` writes equal, rolls
+   (item 1338, §11).
 2. **The idle roll** (`:254–320`), when the requested category is 0. First
    the group-idle gate: a captain (`o_up < 0`, every standalone unit) whose
    piece has a `GROUP_IDLE2` animation skips the roll one frame in sixteen,
@@ -2210,16 +2216,55 @@ rows parted to 2, and the nine agree from 11923 to the word.
   and `init_variant` is `init_real`'s ladder, so the two sides gave
   `1/41` different rolls. Which roll went to which unit is on no disk:
   run136's call records end at 11910.
-- **SEAM**: `init_real`'s turret zeroing (`+0x20..+0x3c`), its
-  `reset_pivots`, and its `+0x54`/`+0x58` track zeroing, which
-  `set_type`'s `update_gpiece` may rewrite. No converted type on a
-  measured frame has a pivot or a tracked crew.
+- **SEAM**: `init_real`'s turret zeroing (`+0x20..+0x3c`) and its
+  `reset_pivots`. No converted type on a measured frame has a pivot.
+  ~~Its `+0x54`/`+0x58` track zeroing, which `set_type`'s
+  `update_gpiece` may rewrite.~~ Answered below (item 1338).
+
+**Only guy 0 is kept; the crew is new** (item 1338, 2026-09-30). The
+listing, not the decompile's loop names, says which figures survive:
+`6131bf`–`61325e` runs `Objects::kill_guy`, `Guy::clear` and the recycler
+from the **old** type's `+0x304` (the squad size, 1) to `+0xe8`, the
+whole old crew, and `613306`–`61334a` pops and `Guy::clear`s every slot
+from the new type's `+0x304` to its `crew_size + squad_size`. Then
+`init_real(guy, 1)` zeroes `+0x54`/`+0x58` after its own `update_gpiece`,
+the tail's `Unit::update_gpiece@005e2920` (squad and crew) writes them
+from the **new** piece — zero where it names no track — and the tail's
+`Guy::set_new_location(guy 0, x, y, 1)` seats each crew figure on its
+offset at guy 0's angle (`005d86f0`, the `param_3` arm). This crate kept
+every crew figure's old track and body. `Sim::reinit_guys` now makes the
+crew fresh and `Sim::unit_set_type` ends with `Sim::seat_guys`.
+
+What it moved: Great Sahara at Toughest's word **9764 → 9982**. The
+Catapult `1/84` (dump `type` 266, `TREBUCHET`, after the upgrade) is
+converted on 9710 (`Unit::set_type+0x40c`, three `+0x4a1`); the
+Catapult's crew walks on tracks (−120, 0) and (72, 216), and the
+Trebuchet's has none, so the original's crew stands trackless on guy 0's
+point while this crate's walked its old offsets (run529 block 9759:
+`g.track_dx[1]` −120 against 0, `g.cur_anim[1]` 8 against 22). With the
+crew fixed, guy 0 rolled an idle on every frame of its turn where the
+original rolls on 9755 and 9764 alone (the word 9756, 15 draws against
+13): that is §4's turn-slot early return. A second instance: the Scout
+`1/0` becomes an `EXPLORER` (71) on 9306, and its fresh tracked crew
+figure is seated at guy 0's angle (run517 block 9307, `g.angle[1]`
+−402259968 against −363239852 → agreeing).
+
+*Not established*: a fresh crew figure that is never seated — the
+`SET_TYPE_LOAD` path — and `Objects::kill_guy`'s own effects on the old
+crew; neither reaches a capture. Kept and fresh crew figures are the
+same state here once seated (mutation M2 of item 1338 held every walk),
+so the kill is read off the listing, not a diff.
 
 **Coverage.** *Diff-backed*: the four fields on nine figures, block
 11922 (`run136_s_word_frame_is_widened_whole`,
-`run163_s_word_frame_is_widened_whole`); the word, from run53. *Guard*:
+`run163_s_word_frame_is_widened_whole`); the word, from run53; the
+crew's tracks and seat, run529's 9759..9765 and run517's 9307
+(`run529_s_word_frame_is_widened_whole`,
+`run517_s_gap_is_widened_whole`) and the run470 walk to 9982. *Guard*:
 `a_figure_converted_mid_walk_stands_with_its_speeds_zeroed`, made to
-fail without the reset. *Listing-backed*: the offsets, against the
+fail without the reset; `an_upgraded_unit_s_crew_is_fresh_and_seated_on_the_new_pieces`
+and `a_guy_still_turning_on_its_turn_slot_rolls_no_idle`, each made to
+fail by item 1338's mutations. *Listing-backed*: the offsets, against the
 decompile of `init_real` and the §1 table, which names `+0x9d` and
 `+0x84`.
 
