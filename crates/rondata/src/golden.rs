@@ -2018,6 +2018,10 @@ mod tests {
         // `docs/GOLDEN.md` §58).
         ("chapter49.cmd", &[]),
         ("chapter5.cmd", &[]),
+        // Chapter fifty: two Stockades at the first age shooting a Scout led
+        // through their range by a group attack-move (item 1404,
+        // `docs/GOLDEN.md` §59).
+        ("chapter50.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),
