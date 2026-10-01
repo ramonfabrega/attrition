@@ -449,6 +449,11 @@ row is empty of `FLAGS`, `COST`, `COST2` and `MANA`, and its `JOB_TIME` is
    unit of a land type in `0x32..=0x19d`; the head's "who may cast this"
    test exempts `0x28a` by name.
 
+**A decoy casts nothing** (item 1401, `docs/AI.md` §104): the head of
+`is_castable` answers 0 for a unit with `unit_masks & 1` and any craft but
+pack and unpack, so a decoy's transport cast is spent (its `set_anim`
+draw) and then does nothing; the order stays at the head.
+
 `cast_transport` then **does not kill the order**: it has already moved the
 whole list onto the boat, and the boat's own `kill_current_order` throws
 this cast away there. `0x28a` is the *only* index that gets that; every

@@ -146,6 +146,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1401, 2026-10-01 — the decoy's cast
+
+(1408) **A held decoy's cast after 16160**: the original spends no
+`do_cast` draw for `1/128` on 16161, and this crate would spend one a
+frame; names no score yet.
+
 ## Parked by item 1403, 2026-10-01 — the group's answer to a hit
 
 (1405) **`0/7`'s `death:extra` on chapter forty-nine's 943**: ours holds
@@ -2855,6 +2861,12 @@ used in three places — a variant is not a field.
 commander read them from the lane's `gate2.txt` (finished after the
 tip). The brief's Landing rows say both; a datum for the trial's score.
 One reach.
+
+(1409) **A gate's "who may cast" lives in a callee's head** (1401's Loop
+line): `seams.py --field inside` named 25 writers and readers and none
+was the decoy bit, which `is_castable@00675bc0`'s head tests; `do_cast`'s
+own SEAM list named the wrong unmodelled arm. A field search cannot see
+a predicate on another field. One reach.
 
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774
