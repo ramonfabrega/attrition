@@ -146,6 +146,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1380, 2026-10-01 — the Tower's arrow
+
+(1394) **`BuildData::get_shot`'s exact-type arms**: the switch's arms
+for the types it names, beside the default's `ages` test; no capture
+shows one of those types shooting.
+
+(1395) **`death_type`'s REDOUBT 3 can read `Sim::building_shot`**: the
+arm stays as it was; no window shows a Redoubt's kill.
+
+(1396) **The Bomber's `ox`/`whom` kept after a hit on `0/6`'s `ammo`**:
+value rows only, naming no score.
+
 ## Parked by item 1379, 2026-10-01 — the research that hides a unit
 
 (1389) **`produce_tech`'s `researching` arm**: the same unit arm
@@ -2810,6 +2822,14 @@ refuses a dirty tree, applies the patch, runs the command, restores
 from git whatever happens, `touch`es what it restored and refuses to
 report if the tree changed under it. The third reach of a shape the
 checklist spells in prose (784, 907); the next pass's build.
+
+## Loop, filed 2026-10-01 — the twenty-third tranche's
+
+(1397) **`seams.py --field` misses a struct literal's writers** (1380's
+Loop line): `--field total_time` printed "writers none" for a field this
+crate writes in four places, all by struct-literal initialisation; the
+search is by exact assignment. 1382's kin: both want a scan that knows
+a struct literal from a declaration. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

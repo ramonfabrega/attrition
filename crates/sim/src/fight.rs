@@ -1667,6 +1667,52 @@ impl Sim {
         );
     }
 
+    /// The lead `Ammo::init@0067bbf0` pushes the landing by (`0067cf1a`'s
+    /// block, shared by a unit shooter and a building's): a unit target
+    /// whose order is a move or an air order, `sinx`/`cosx` of its
+    /// `UnitData +0x50` at its first figure's `avg_speed`, times the
+    /// time of flight, `WorldData::restrict`ed. The building arm takes it
+    /// too (item 1380: the Tower's shot at the moving Scout on 1482).
+    fn lead_landing(&self, target: Option<Obj>, landing: Pos, total_time: i32) -> Pos {
+        let Some(Obj::Unit(t)) = target else {
+            return landing;
+        };
+        let k = self.order_type(t);
+        if !(crate::orders::index::is_move_family(k) || crate::orders::index::is_air_family(k)) {
+            return landing;
+        }
+        let u = &self.units[t];
+        let angle = u.movement.heading;
+        let avg = u
+            .guys
+            .first()
+            .and_then(|g| g.follow)
+            .map_or(u.movement.body.avg_speed, |f| f.body.avg_speed);
+        let q = Pos::new(
+            landing.x + crate::movement::sin_component(angle, avg) * total_time,
+            landing.y - crate::movement::cos_component(angle, avg) * total_time,
+        );
+        Pos::new(
+            q.x.clamp(0, self.world.width() * UNITS_PER_CELL - 1),
+            q.y.clamp(0, self.world.height() * UNITS_PER_CELL - 1),
+        )
+    }
+
+    /// `BuildData::get_shot@0062dd90`: the exact-type arms
+    /// ([`build::BuildType::shot`]), else the owner's `ages` — 0 up to the
+    /// third, 1 for the fourth and fifth, 2 past them.
+    fn building_shot(&self, b: usize) -> i32 {
+        let bl = &self.buildings[b];
+        if let Some(n) = bl.ty.and_then(|t| self.build_types[t].shot) {
+            return n;
+        }
+        match self.tech[bl.owner as usize].ages {
+            a if a < 3 => 0,
+            a if a < 5 => 1,
+            _ => 2,
+        }
+    }
+
     /// `Ammo::init@0067bbf0`, for either aim.
     ///
     /// **Ground fire is the shooter's order, not its type.**
@@ -1838,27 +1884,7 @@ impl Sim {
         // run373's `0/1` on 5024 was led by the original and missed by
         // this crate. `UnitData +0x50` is `angle`, which is
         // [`crate::Movement::heading`] here, not the figure's facing.
-        if let Some(Obj::Unit(t)) = target
-            && {
-                let k = self.order_type(t);
-                crate::orders::index::is_move_family(k) || crate::orders::index::is_air_family(k)
-            }
-        {
-            let u = &self.units[t];
-            let angle = u.movement.heading;
-            let avg = u
-                .guys
-                .first()
-                .and_then(|g| g.follow)
-                .map_or(u.movement.body.avg_speed, |f| f.body.avg_speed);
-            landing = clamp(
-                Pos::new(
-                    landing.x + crate::movement::sin_component(angle, avg) * total_time,
-                    landing.y - crate::movement::cos_component(angle, avg) * total_time,
-                ),
-                &self.world,
-            );
-        }
+        landing = self.lead_landing(target, landing, total_time);
         let _ = frame;
         // **A strafer's round never rolls** (`67c548`..`67c557`, item
         // 1200): the unit-strafer test jumps past `67c633`, where flag `4`
@@ -3655,10 +3681,20 @@ impl Sim {
             let launch = Pos::new(centre.x - xs / 2 + ox, centre.y - ys / 2 + oy);
             let angle = find_angle(target_pos.x - launch.x, target_pos.y - launch.y);
             let landing = combat::scatter_point(&mut self.rng, target_pos, s);
-            let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
+            // **A building's arrow flies at 90, not at its type's
+            // `PROJ_SPEED`** (`Ammo::init@0067bbf0`'s building arm,
+            // `0067d1e0`): `get_shot() == 0` divides by
+            // `unit_move_speed × 0x5a`. A Tower in the first three ages
+            // reads 0 (item 1380, `docs/GOLDEN.md` §57).
+            let d = if self.building_shot(b) == 0 {
+                i64::from(combat::UNIT_MOVE_SPEED) * 0x5a
+            } else {
+                i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED)
+            };
             let dx = i64::from(landing.x - launch.x);
             let dy = i64::from(landing.y - launch.y);
             let total_time = combat::flight_time(dx * dx + dy * dy, d).max(1);
+            let landing = self.lead_landing(Some(target), landing, total_time);
             // `Object::fire_ammo`'s building arm: 250 above the building's
             // own `z` (§46.1).
             let sz = self.world.tile_z(centre.tile()) + 0xfa;
