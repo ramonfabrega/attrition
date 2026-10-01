@@ -329,6 +329,12 @@ pub struct Tuning {
     /// `AMERICANS_SCIENCE_DISCOUNT` — the science line's third step,
     /// `has_tribe_bonus(0x14)`. Ships as 0.
     pub americans_science_discount: i32,
+    /// `SILVER_AGE_COST` — percentage off an **age**'s price for a leader
+    /// holding Silver: `get_cost`'s `00666b13`..`00666b51`, `rare` or
+    /// `rare_conquest` bit 12 (`SILVER` 18 − `BASE_RARE` 6), then
+    /// `(100 − x) × cost / 100`, after Versailles and before the
+    /// library-line tail (`docs/COSTS.md`, "The discounts").
+    pub silver_age_cost: i32,
     /// The same, for the Egyptians on food.
     pub egyptian_food_commerce: i32,
     /// The same, for the French on timber.
@@ -981,6 +987,7 @@ impl Tuning {
         papyrus_science_military: 25,
         chinese_science_discount: 20,
         americans_science_discount: 0,
+        silver_age_cost: 15,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
         inca_wealth_cap: 33,
@@ -1373,6 +1380,7 @@ impl Tuning {
                 "AMERICANS_SCIENCE_DISCOUNT",
                 Slot::Value(T.americans_science_discount),
             ),
+            ("SILVER_AGE_COST", Slot::Value(T.silver_age_cost)),
             (
                 "EGYPTIAN_FOOD_COMMERCE",
                 Slot::Value(T.egyptian_food_commerce),

@@ -1674,7 +1674,27 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **9982 since item 1338** (`docs/ANIM.md` §11, §4): the Catapult `1/84`
+/// **9999 since item 1346** (`docs/AI.md` §99.16, `docs/COSTS.md` "The
+/// discounts"): who=1 holds Silver, and `get_cost` takes `SILVER_AGE_COST`
+/// off an age, so the Gunpowder Age is 382 food and 382 knowledge rather
+/// than 450; and `plan_strategy`'s cheap research tick asks
+/// `Leader::can_pay(0)` with the head's own escrow flag, so the escrowed
+/// head is priced against the whole bucket. The tick of frame 9955 (phase
+/// 180) buys it. **The move's value diff** (run529): on block 9956 who=1's
+/// `MAKE[0].val` ours 4590000 against 45900 → agreeing, `bucket[0:food]`
+/// 402 against 20 → agreeing, `bucket[3:knowledge]` 698 against 316 →
+/// agreeing, `escrow[0:food]` 93 against 0 → agreeing, `1/2005`'s
+/// `queue:queued` 1 against 2 → agreeing; on the word's block 9983
+/// `escrow[1:timber]` 0 against 57 and `MAKE[5].t` −1 against 50 →
+/// agreeing. run529's keys went 557 → 314. Frame 9982's draws went 13
+/// against 16 → agreeing. **The new word's delta: ours 56 draws and the
+/// original 8 on frame 9999, parting at index 0**: ours opens on two
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, a `think_spellcaster+0x413`
+/// and 45 `Unit::think_scout`, where the original opens on
+/// `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_guard+0x7f4`.
+/// Inside run529's window (block 10000).
+///
+/// It was **9982** after item 1338 (`docs/ANIM.md` §11, §4): the Catapult `1/84`
 /// is upgraded to a Trebuchet (`TypeIndex` 266) on 9710, and
 /// `Unit::set_type` kills its whole crew and seats fresh figures on the new
 /// pieces' tracks — none for a Trebuchet's — where this crate kept the
@@ -1828,7 +1848,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_982;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 9_999;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).

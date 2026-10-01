@@ -146,6 +146,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1346, 2026-09-30 — the Gunpowder Age's price
+
+(1355) **The age-behind discount and `GREEK_AGE_KNOWLEDGE` (0%)**: not
+carried; no window prices an age with an opponent an age ahead.
+
+(1356) **who=1's standing `tech_frame`/`tech_cat_frame`, ours 0**: read
+by `ai_research.rs`'s research timers.
+
 ## Parked by item 1341, 2026-09-30 — the bump loop
 
 (1352) **`get_cost`'s bump loop's `JUMP` arm** (1341's M2): held by no
@@ -2761,6 +2769,14 @@ Loop line): run523's and run529's commands ended in the same two lines,
 and the union merge deduplicated them into one block. A guard that each
 `## runN` section's code fence opens and closes before the next heading
 would catch it at the merge (the merged tree holds today).
+
+(1357) **The section ceiling measures the strike pairing, not the
+section** (1346's Loop line): `docs_guard` pairs `~~` across the whole
+file, so a misaligned pair credits most of a section as struck. `AI.md`'s
+`## 99.` is 49,913 bytes on disk and 6,374 by the guard (8,706 after
+§99.16), against 16,000 — 1305's red on that section and 1346's green
+are both measurements of the pairing. Made to fail first: pair the
+strikes within the section.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
