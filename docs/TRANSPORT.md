@@ -841,6 +841,41 @@ the same `target_o` / `target_who` and `Army::process(0)`ed at once. The
 escort call. `Army::process` also forces `set_stance(3)` on a navy every
 step (line 185).
 
+**Built (item 1362, 2026-09-30)**: `army.rs::send_navy`, called from
+`find_target`'s taking arm. The call's own test (`find_target:1061`–`1087`)
+sits inside the `L` is an enemy arm, beside the `frame_attacked` stamp:
+`L != me`, at war either way, the army not a navy (`+0x24 == 0`), and
+`reg_a`, the cell region of the army's **own point** (`+0x38`/`+0x3c`,
+read before the point is moved onto the target three lines on), differs
+from `reg_b`, the target's cell region. The navy's `reg > 0x3f` is a
+sea region by the original's numbering; the harness numbers its regions
+in the order the start dump meets them, so this crate asks the region's
+terrain. `process(0)` is the gated call: off the navy's two cadence
+frames it only counts `human_frame` down.
+
+*How it was established*: East Indies' word 15862 (run346, widened on
+run544). Ours spent four `find_target` scores on who=1's army 3 — `1/30`
+and `1/35` Corvettes, `1/61` and `1/67` Fireships, `1/57` a Frigate —
+retargeting from who=1's own Newcastle, as
+it had every 256 frames since 14070 and as the original had too (group
+72's `order_num` climbs by two, a retarget's double form, at each one
+through 15606). On 15862 the original spent nothing and moved group 72
+once — `order_num` 55 → 56, `o` (33590, 25667) → (33225, 25790) — which
+is `do_marching` keeping its target. On 15612 army 0 had taken who=0's
+Napata from its own point in another region, and in this crate the
+escort was a seam. **Diff-backed**: with it built, run544's block 15863
+goes 88 → 0 keys and frame 15862's draws agree. The killer between this
+and the other reading — that the original simply kept Newcastle — is
+Newcastle's `city_flags & 0x2000`: kept, the navy's step-4
+`find_muster_spot` at its own city finds a cell and clears the mark
+(ours did, under the probe that kept it), and the original's dump holds
+it set on 15863.
+
+*Not established*: `leader_flags2 & 0xa` is read as never set, as
+everywhere in `army.rs`; the navy's `num_captains` is whatever its last
+`normalize` left, as the original's is. No capture has a second navy, so
+the walk order across two qualifying navies is the listing's alone.
+
 `LeaderData::get_ships_speed_upgrade@006da800`: the count of
 `SHIPS_FASTER_1 …` (0x2ec, 0x2ed, 0x2ee) held, where the middle one
 (`BUY_SELL`, 0x2ed — the enum's name for that slot) is also granted by
@@ -1073,7 +1108,8 @@ embark tail and `find_wpath`'s pull-back gate, `world.rs` has
 `army.rs::go_here` answers bit 1.
 `do_transporting` (§8.2) is `army.rs::do_transporting` since `docs/ARMY.md`
 (2026-08-25), with the region-first-cell distance of B.55a; `init_navy`
-on `create_units`' sea branch and `send_navy` are still seams there.
+on `create_units`' sea branch ~~and `send_navy` are still seams there~~
+is built (`ai_units.rs`), and so is `send_navy` (§8.3, item 1362).
 
 Checks, cheapest first:
 
