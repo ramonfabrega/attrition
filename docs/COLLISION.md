@@ -261,6 +261,33 @@ widening this item landed, §8.4), and the whole 277-block window carries
 and with the repaint in, none do, and `1/35` walks the original's own point
 for the entire run-up.
 
+### 2.4 `move_unit`'s one-block form: a move inside one world cell is gated by the old tile alone (2026-10-01, item 1418)
+
+`CollCheck::move_unit@00682ad0` has two shapes, and the head of the function
+chooses. When `|Δx| + 2·size < 16` and `|Δy| + 2·size < 16` and the two
+discs' bounding box lies in **one** world cell (`(max + size) >> 4 ==
+(min − size) >> 4` on both axes, the cell valid), it looks the block up once —
+`get_coll_block(cell, get_tregion(old tile))`, which answers −1 when the
+cell's `region` is not that — and a −1 or a missing block **ends the call
+before either pass**. Otherwise both passes run on that one block, **ungated**.
+The general form (§2) gates the clear pass by the old tile's region and the
+set pass by the new tile's, per cell.
+
+The two differ where a unit's new tile has another region than its old one:
+a Galleon born on the land half of a coastal cell and moved onto its water
+half in one step. The general form's set pass takes the water tile's `region2`
+against the cell's `region` and marks nothing; the one-block form sets the new
+disc whole. run572's `1/170` (born 16171 at unit cell (604, 805), moved to
+(603, 810) in the same cell) leaves that disc set in the original — the
+ghost that `1/109`'s probe on tick 16238 read as its hit cell (606, 809)
+(run578, `RON_COLLIDE_PROBE`), where this crate's walk stopped on (606, 811)
+and found `1/119` soft. `Sim::coll_move` takes the form since item 1418; test
+`a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region`.
+
+**Not established**: the original's "no block allocated" return (a cell no
+unit has marked yet) — this crate's flat grid has no allocation to ask, so
+the form is taken as if the block existed.
+
 ## 3. The object chain
 
 `WData::down`/`down_who` (`+0x8`/`+0xa`) name the head object of a world

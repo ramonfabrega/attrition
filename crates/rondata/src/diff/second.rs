@@ -181,7 +181,8 @@ pub(crate) fn walk_second_probed(
 /// run535; item 1351 moved it to 15862, and the walk to run544; item 1362
 /// moved it to 15883, inside it; item 1370 moved it to 15985, inside it;
 /// item 1377 moved it to 16009, inside it; item 1383 moved it to 16160,
-/// and the walk to run572.
+/// and the walk to run572; item 1418 moved it to 16482, and the walk to
+/// run579.
 /// `None`
 /// when the captures are
 /// not on this machine.
@@ -194,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run572-islands-toughest-16160.txt",
+        "gamelog-run579-islands-toughest-16476.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2436,12 +2437,14 @@ mod tests {
                 (16200, 1),
                 (16201, 1),
                 (16210, 1),
-                (16239, 1),
-                (16240, 7),
-                (16241, 3),
-                (16244, 4),
-                (16250, 7),
-                (16251, 1)
+                (16270, 1),
+                (16273, 1),
+                (16288, 1),
+                (16315, 1),
+                (16367, 3),
+                (16369, 2),
+                (16376, 2),
+                (16381, 53)
             ],
             "the blocks keys first part on, to the word's"
         );
@@ -2462,7 +2465,69 @@ mod tests {
         // parting is `half_step` on 16239 (ours 1, theirs 0).
         // Item 1410: 2276 -> 1691 (2279 -> 1694 before 1398's three keys),
         // `1/111`'s transport cast is waited on.
-        pin_eq!(w.firsts.len(), 1691, "every key parted on run572");
+        // **The word 16482** (item 1418, `docs/AI.md` §107): past this
+        // window (16155..16411) — `move_unit`'s one-block form sets the
+        // Galleon `1/170`'s disc by the old tile's region, `1/109`'s
+        // `half_step` on 16239 and the 1,428 keys behind it agree: 1691 ->
+        // 263. The keys left part from 16270 on, the last 53 on 16381.
+        pin_eq!(w.firsts.len(), 263, "every key parted on run572");
+    }
+
+    /// **run579 — the second pair's East Indies word 16482, widened whole**
+    /// (item 1418): run572's detail over blocks 16476..16733, walked from
+    /// run346's start.
+    #[test]
+    fn run579_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run579",
+            "gamelog-run579-islands-toughest-16476.txt",
+            WIDENING_SECOND_EAST_INDIES_16482,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run579 whole: blocks 16476..16733");
+        pin!(
+            w.missing.is_empty(),
+            "run579 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **The word 16482** (item 1418, `docs/AI.md` §107): ours 9 draws
+        // and the original 17, at index 0 — ours `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271` where the original spends
+        // `Guy::init_real+0x52`. Block 16476 stands on 223 keys, who=0's
+        // `SITE[n].reg` among them (the human the crate never steps); the
+        // word's block 16483 parts on 20: `1/98`'s figures' `gpiece` 303
+        // (EAGLEFB) against 305 (STRATEGICBOMBER) and the leader's
+        // `num_units[303]`/`[305]` (ours 1/0 against 0/1), the three
+        // figures' `g.cur_time`/`g.end_time`/`g.track_dx` and `1/55`'s and
+        // `1/66`'s `g.cur_anim`. Item 1418: the first draw parts at index 0,
+        // a guy born in the original's frame.
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(16476, 223), (16483, 20)],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 1659, "every key parted on run579");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

@@ -13540,3 +13540,47 @@ Step 4's sidestep reads only the seven. `collide.rs` step 5 now takes
   (29165, 38884)).
 - **Not established**: why the original's scan does not reach `1/119` as soft
   (its `is_here` or the occupancy grid's timing); no chain read.
+
+## 107. A boat's first step inside one world cell sets its disc by the old tile (2026-10-01, item 1418)
+
+### 107.1 The event
+
+Frame 16250's parting, walked back (run572): the first key is `1/109`'s
+`half_step` on block 16239, ours 1 against 0 — the step from (29201, 38932)
+into (29183, 38908), tick 16238, unit cell (608, 811) → (607, 810). Ours'
+walk stopped on hit cell (606, 811) and named `1/119` a soft group-mate
+(`is_here` 1, same group, front a move); the original raised no one-shot.
+`1/109`'s own order stack and `1/119`'s, `group`, `start_dist` and
+`unit_masks` agree on both sides, so the predicate was never the difference.
+
+**run578** (`RON_COLLIDE_PROBE`, callwin 16237..16240, a second game of
+run346's seed, `rngcmp` against run346 0 differing of 16,247) prints the
+original's probe: `collide_here(1/109)` hit **(606, 809)**,
+`will_be_corner` 1, and `is_here` 0 for every candidate, `1/119` first. The
+live block (37, 50) against this crate's at the same probe differs in 13
+bits, all in the box of a size-3 disc centred (603, 810): the original has
+them set, ours has not — (600, 807..813), (601..602, 809..810), (603, 813),
+(606, 809). `1/170`, a Transport Galleon, was born on 16171 in that box.
+
+### 107.2 The rule and the fix
+
+`CollCheck::move_unit@00682ad0`'s head: both discs inside one world cell
+→ one block by the old tile's region, both passes ungated (`docs/COLLISION.md`
+§2.4). `1/170` is born at its caster's cell (604, 805) on land, moved to
+(603, 810) — water — in one step; the general form this crate ran marked
+nothing for the new disc. `Sim::coll_move` takes the form; test
+`a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region`.
+
+### 107.3 Coverage
+
+- **Diff-backed**: run572's keys 1,691 → 263; the word moves 16250 → 16482
+  (the floor walk `run346_is_east_indies_at_toughest_and_its_word_holds`), 232
+  frames. Run578's probe is the value diff (above); it holds no widening of
+  its own — its window is the probe's.
+- **The new word: 16482**, ours 9 draws against 17, index 0: ours
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
+  `Guy::init_real+0x52` (a guy born). Past run572's window (16155..16411): the
+  next widening needs a capture.
+- **Not established**: the "no block" return (§2.4); the ghost's later life
+  (a later clear by a unit leaving the cell, or a repaint) is read only at the
+  tick of the probe.

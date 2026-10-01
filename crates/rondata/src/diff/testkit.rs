@@ -1734,6 +1734,23 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
 /// figures and its move's `pause`, 14 against 15.
 ///
+/// **16250 → 16482 on item 1418** (`docs/AI.md` §107): `CollCheck::
+/// move_unit@00682ad0` takes a **one-block form** when both discs lie in
+/// one world cell — the block is found by the *old* tile's region and both
+/// passes run on it ungated — where this crate gated the set pass by the
+/// new tile's. A Galleon born on the land half of a coastal cell and moved
+/// onto its water half in one step (run572's `1/170`, born 16171 at
+/// (604, 805) and moved to (603, 810)) leaves its new disc set in the
+/// original and nothing in ours. **The move's value diff** (run578's
+/// `RON_COLLIDE_PROBE` over tick 16238): `1/109`'s `collide_here` hit
+/// cell (606, 809) in the original against (606, 811) in ours — the
+/// ghost's bit against `1/119`'s — and `is_here(1/119)` 0 against 1;
+/// block 16239's `1/109` `half_step` ours 1 against 0 → agreeing, run572's
+/// keys 1691 → 263. **The new word's delta: ours 9 draws against 17 on
+/// frame 16482, at index 0**: ours `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` where the original spends `Guy::init_real+0x52`;
+/// past run572's window (16155..16411).
+///
 /// **16221 → 16250 on item 1410** (`docs/AI.md` §106):
 /// `resolve_unit_collision`'s step 5 waits on a collider whose current
 /// order is a transport cast (spell `0x28a`, `005fa4f4`) as on a move,
@@ -1799,7 +1816,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
 /// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
 /// 16161).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_250;
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_482;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2585,6 +2602,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_15862: (i64, i64) = (15_857, 16_113
 /// run544's detail, blocks 16155..16411 — six blocks before the word
 /// 16160's block 16161 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_16160: (i64, i64) = (16_155, 16_411);
+
+/// **run579's window** (item 1418): the second pair's East Indies at
+/// run572's detail, blocks 16476..16733 — six blocks before the word
+/// 16482's block 16483 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_16482: (i64, i64) = (16_476, 16_733);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8140,13 +8162,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 15862, past it, widened on run544; item 1362 to 15883, inside it;
     // item 1370 to 15985, inside it; item 1377 to 16009, inside it; item
     // 1383 to 16160, past it, widened on run572; item 1401 to 16179,
-    // inside it.
+    // inside it; item 1418 to 16482, past it, widened on run579.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run572_s_word_frame_is_widened_whole"),
-        1383,
-        Some(WIDENING_SECOND_EAST_INDIES_16160),
+        Some("run579_s_word_frame_is_widened_whole"),
+        1418,
+        Some(WIDENING_SECOND_EAST_INDIES_16482),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

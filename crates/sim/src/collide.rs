@@ -847,6 +847,42 @@ impl Sim {
         }
         let disc = spiral(size);
         let ra = self.world.tregion_alt(from.tile());
+        // **The one-block form** (`CollCheck::move_unit@00682ad0`, its
+        // head, `docs/COLLISION.md` §2.4): when both discs lie inside one
+        // world cell — `|Δ| + 2·size < 16` on both axes and the box's
+        // corners share a cell — the original looks the block up once, by
+        // the **old** tile's region, and runs both passes on it ungated:
+        // a region that is not the cell's ends the call before either pass.
+        // The two-ended form below is the general one.
+        let n = UCELLS_PER_CELL;
+        let (lo_x, lo_y) = (a.x.min(b.x) - size, a.y.min(b.y) - size);
+        let (hi_x, hi_y) = (a.x.max(b.x) + size, a.y.max(b.y) + size);
+        let one_cell = (a.x - b.x).abs() + 2 * size < n
+            && (a.y - b.y).abs() + 2 * size < n
+            && hi_x.div_euclid(n) == lo_x.div_euclid(n)
+            && hi_y.div_euclid(n) == lo_y.div_euclid(n)
+            && lo_x >= 0
+            && lo_y >= 0
+            && lo_x.div_euclid(n) < self.world.width()
+            && lo_y.div_euclid(n) < self.world.height();
+        if one_cell {
+            if !self.coll_region_ok(ra, Pos::new(lo_x, lo_y)) {
+                return;
+            }
+            for (dx, dy) in &disc {
+                let p = Pos::new(a.x + dx, a.y + dy);
+                if (p.x - b.x).abs() > size || (p.y - b.y).abs() > size {
+                    self.coll.set(p.x, p.y, false);
+                }
+            }
+            for (dx, dy) in &disc {
+                let p = Pos::new(b.x + dx, b.y + dy);
+                if (p.x - a.x).abs() > size || (p.y - a.y).abs() > size {
+                    self.coll.set(p.x, p.y, true);
+                }
+            }
+            return;
+        }
         for (dx, dy) in &disc {
             let p = Pos::new(a.x + dx, a.y + dy);
             if ((p.x - b.x).abs() > size || (p.y - b.y).abs() > size) && self.coll_region_ok(ra, p)
@@ -2570,6 +2606,63 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// **A move inside one world cell is gated by the old tile alone**
+    /// (`CollCheck::move_unit@00682ad0`, `docs/COLLISION.md` §2.4): a boat
+    /// born on the land half of a coastal cell and first moved onto its
+    /// water half, both discs inside the cell, sets its new disc ungated —
+    /// the block was found by the **old** tile's region. run572's Galleon
+    /// `1/170` leaves that block set behind it, and `1/109`'s step on tick
+    /// 16238 reads the ghost as the hit cell.
+    ///
+    /// Written by making it fail: with the one-block form removed the set
+    /// pass takes the water tile's `region2` against the cell's `region`
+    /// and marks nothing, so the cells west of the old disc stay clear.
+    #[test]
+    fn a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region() {
+        let mut world = World::new(8, 8);
+        let land = world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let c = Cell::new(4, 4);
+        let mut d = world.cell_data(c);
+        d.flags |= crate::world::cell::HALFLAND;
+        d.region2 = Some(land + 1);
+        world.set_cell_data(c, d);
+        // The cell's two western tile columns are ocean, the rest land.
+        for tx in 16..18 {
+            for ty in 16..20 {
+                world.set_tile_field(
+                    Pos::new(tx, ty),
+                    crate::world::tile::SURFACE,
+                    crate::world::tile::SURFACE_OCEAN,
+                );
+            }
+        }
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            combat: crate::combat::Profile {
+                block_radius: 3 * 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let at = |x: i32, y: i32| Pos::new(x * 48 + 24, y * 48 + 24);
+        let from = at(75, 70);
+        let to = at(68, 70);
+        let mut b = Unit::new(0, 1, from, 40);
+        b.ty = Some(ty);
+        let b = sim.add_unit(b);
+        sim.coll_add(b);
+        assert!(sim.coll.get(78, 70), "the birth disc stands on the land tile");
+        assert!(!sim.coll.get(65, 70), "and does not reach the west");
+        sim.coll_move(b, from, to);
+        assert!(!sim.coll.get(78, 70), "the old disc's far edge is cleared");
+        assert!(
+            sim.coll.get(65, 70),
+            "the new disc is set whole though its tile is water"
+        );
     }
 
     /// **A snap onto the point the unit already holds still seats the

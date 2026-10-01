@@ -13114,3 +13114,41 @@ keys; the word's block 16161 parts on 107 (a new Transport Galleon
 `1/167` and its boarders `1/128` and `1/143`); the window parts on 2,987.
 The compared pin walks 16159..16162 and the coverage driver 16160..16163.
 Run 573 was reserved and not used.
+
+## run578 — run346's game under `RON_COLLIDE_PROBE` over ticks 16237..16240: the second pair's East Indies word 16250's first parting, read from inside (2026-10-01, item 1418)
+
+**What it is.** run572's lobby and seed (`--map 18`, `DIFFICULTY=5`, the
+click-free lane, `cover=0`), the tracer built `--tracer-def
+RON_COLLIDE_PROBE` with `--callwin 16237 16240` and the detail window
+16236..16242, `!ffwd 19` from frame 37 and `!quit` at 16246.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run578 \
+    --map 18 --end-frame 16246 --timeout 5400 --log-window 16236 16242 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5 --tracer-def RON_COLLIDE_PROBE --callwin 16237 16240
+```
+
+**What the disk could not answer.** run572's first key is `1/109`'s
+`half_step` on block 16239 (ours 1, theirs 0); every field it carries on
+`1/109` and `1/119` agrees, so the step's scan was the only place left —
+the cell `collide_here` returned, and who `is_here` named — and no dump
+prints it (`collide_o` is cleared two instructions after the probe).
+
+**Taken** 12:26–12:28, the first take; the lane was `free` after waiting
+on another lane's capture. `success: true`, `settings_restored: true`, 98.8 s
+from launch to exit. Copied into `Logs` as
+`gamelog-run578-islands-toughest-16236-probe.txt` and `rontrace-run578.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 16,247 identical |
+| window blocks | 16236..16241 |
+| receipt | `map_style 18`, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: no test of its own — the probe is read with
+`python3 tools/trace/report.py rontrace-run578.log calls`. Tick 16238
+`this=1/109`: `collide_here` ucx 607 ucy 810 → 1, `will_be_corner hit
+(606, 809)`, fifteen `is_here` calls all 0 (`1/119` first), no
+`is_corner`. The live block (37, 50) beside this crate's has 13 bits more
+(`docs/AI.md` §107.1). Run 579 was reserved and not used.
