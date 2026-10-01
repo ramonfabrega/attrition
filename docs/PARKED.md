@@ -146,6 +146,11 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1379, 2026-10-01 — the research that hides a unit
+
+(1389) **`produce_tech`'s `researching` arm**: the same unit arm
+`upgrade_units` now asks; a live `SEAM`.
+
 ## Parked by item 1377, 2026-10-01 — the Tower line in the placement
 
 (1384) **The fort arm's `danger[who][cell/2] / 4` term and the
@@ -2806,7 +2811,11 @@ the word; a checklist row — `seams.py` on the writers of the first
 parted field, by name, every time, before any reading. **Again** (1370), the
 fourth reach: the parted field's readers (`work`, `add_cast_order`)
 named the two seams that were the answer. **Again** (1371), the fifth:
-`seams.py --item` missed a seam on the first parted field's writer.
+`seams.py --item` missed a seam on the first parted field's writer. **Again**
+(1379), the sixth, on the parted field's gate: `researching_unit`
+existed one call away; a grep of every caller of a function this crate
+spells twice (`researching` / `researching_unit`) against the original's
+callers of the one function would have found it in a minute.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the

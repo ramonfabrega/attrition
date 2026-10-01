@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, **twenty-one landings since the twenty-first Fable pass** (the
+*2026-10-01, **twenty-two landings since the twenty-first Fable pass** (the
 pass commit `d4aeabbe`): **the steering pass is due.** East Indies
-11637 → 16009 (seven landings), Great Sahara at Toughest 8856 → 10779
-(eight), chapter forty-seven opened at 712 and closed at 1400, chapter
+11637 → 16009 (seven landings), Great Sahara at Toughest 8856 → 11182
+(nine), chapter forty-seven opened at 712 and closed at 1400, chapter
 forty-eight opened at 1450 and walked to 1481 (six). Every booking gate
 green; one went to origin before its exit was read (Loop 1345).*
 
-- **Lane live: 1379**, landing into the pass; 1380 and 1383 are
-  unstarted.
-- **Five reaches of one shape** (Loop 1340, with 1337): the answer was a
+- **No lane is live.** 1380, 1383 and 1388 are unstarted, one to a
+  word, for after the pass.
+- **Six reaches of one shape** (Loop 1340, with 1337): the answer was a
   seam on the first parted field's writer or reader, not on the word's
   chain — `seams.py` on those by name is the checklist row the tranche
   earned. **And the section ceiling does not measure** (1357).
@@ -34,12 +34,12 @@ green; one went to origin before its exit was read (Loop 1345).*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w16009 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w10779 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11182 of 15,432
 Golden: ch48 w1481 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-second Fable pass, in the main thread — the count
-is at twenty-one; the commander spawns nothing until it lands.**
+is at twenty-two; the commander spawns nothing until it lands.**
 
 ## The queue
 
@@ -56,13 +56,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     16010): the Supply Wagon `1/153` (type 63) of group 71 parts on its
     figures and its move's `pause`, 14 against 15. No mechanism is named.
 
-1379. **Great Sahara at Toughest's word: frame 10779, ours 15 draws
-    against 14** (1371), at index 4: ours spends a fifth
-    `Leader::upgrade_units+0x5a4 < Leader::production_ai+0x1ca <
-    Leader::plan_strategy+0x47` where the original goes on to `0/3`'s
-    `GameAccess::rnd+0x20 < Unit::do_job+0x67` (seed `8d12ace5`); who=1's
-    `MAKE` list parts on block 10780; widened on run562 (block 10780). No
-    mechanism is named.
+1388. **Great Sahara at Toughest's word: frame 11182, ours 11 draws
+    against 12** (1379), at index 0: ours spends `Leader::use_market+0x1ed`
+    where the original spends `Leader::make_stuff+0x221` (seed
+    `340a6de6`); who=1's `MAKE` list parts on block 11181 (the original's
+    head Scholars `t` 52 at 9999999); widened on run571 (block 11183,
+    1,270 keys). No mechanism is named.
 
 1380. **Chapter forty-eight's word: frame 1481, ours 4 draws against 8**
     (1375), at index 1 (seed `0x1db3b76a`), walked back to block 1451:
