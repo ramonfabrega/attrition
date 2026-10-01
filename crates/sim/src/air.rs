@@ -4411,9 +4411,10 @@ mod flak_tests {
     fn a_british_tower_line_building_reaches_two_tiles_further() {
         let mut s = sim();
         let (b, _) = stockade_and_scout(&mut s);
-        let mut tower = crate::build::BuildType::default();
-        tower.ident = crate::build::Ident::Tower;
-        let bt = s.add_build_type(tower);
+        let bt = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Tower,
+            ..crate::build::BuildType::default()
+        });
         s.buildings[b].ty = Some(bt);
         let me = Obj::Building(b);
         assert_eq!(s.max_range_of(me), 11, "not British");
