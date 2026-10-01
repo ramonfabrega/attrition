@@ -10095,10 +10095,68 @@ restored from git and touched, scored as above:
 | M3 again | exit 101: **the word, 1481 → 1243**, the widening 398 → 685 |
 | M4 again | exit 101: **the word, 1481 → 1362**, the widening 398 → 637: **the walk holds it now** |
 
+**Item 1380: a Tower's arrow flies at 90, takes the lead, and chapter
+forty-eight closes at 1750.** Two writers of `total_time` on a building's
+shot, neither of them modelled; the record that named them is the
+original's own, not a reading. *The first shot (1451)*: the original's
+`ammo[0]` has `total_time` 16 over ~1,463 units, `dx` 91.458 a frame.
+`Ammo::init@0067bbf0`'s building arm (`0067d1e0`..`0067d267`) calls
+`BuildData::get_shot@0062dd90` and, on 0, divides the distance by
+`unit_move_speed × 0x5a`; any other answer divides by the type's
+`PROJ_SPEED` (`+0x20c`). 1,463 / 90 = 16; this crate's 200 made 7.
+`get_shot`'s switch names the Stockade and Fortress (1), the Bunker,
+Air Defense Gun and Radar (2), the Redoubt (4), the Lookout and
+Observation Post (0) and the SAM (5); **every other type reads the
+owner's `ages` (`LeaderDataEncrypt +0xdc`, key `0x62766`): at most 2 → 0,
+3 and 4 → 1, past them 2.** A Tower is none of the named, so its arrows
+fly at 90 in the first three ages. Built: `BuildType::shot` (loaded by
+`TypeIndex`), `Sim::building_shot`. *The second (1482)*: with the
+flight right, the Tower's second shot at the Scout `0/7` — on a move
+order, `orders_x/y` 44376/25944 — landed 374 and 572 short of the
+original's (43807, 25152 against 44181, 25724): the lead. The original's
+lead block (`0067cf1a`, gated on `local_4c._12_4_`, the shooter's ground
+order and `local_30`, all zero for a building) pushes a unit target's
+landing by `sinx`/`cosx` of its heading at its first figure's
+`avg_speed`, times `total_time` (§9.1); this crate's building arm
+skipped it. It is one function now (`Sim::lead_landing`), shared by the
+unit and the building arm. Both values agree on the dump: the original's
+Tower shot on 1482 has `total_time` 22 (2,004 units to the Scout, / 90 =
+22) and lands (44181, 25724), 365 and 578 past the Scout's own
+position — 22 frames of its 16.6 / 26.3.
+
+**The word walks 1481 → 1503 → 1750**, the end of the trace
+(`walk_script`'s `1749`, as chapter forty-seven's 1399 reads 1400): after
+`get_shot` alone it parts at 1503, ours 4 draws against 2, ours spending
+`Ammo::do_damage+0xc59`/`+0xc7e` (a miss's two landing draws) where the
+original's shot hit the Scout (`damage` 24 against ours 12, on 1502
+against ours' 1465); with the lead it agrees to the end. **The
+chapter is closed.** No draw parts on its whole length; the widening is
+**55 rows** (398 before), the pool unchanged at 8. What stands: the
+Bomber's six rounds on 1468..1482 (`ammo[0..7].accuracy/ex/sx/v1z`, and
+the original keeping `ox`/`whom` on them where ours forgets them), the
+standing families on 605, `raid_stamp` on 1490, `order:target` on 901
+and the two `treaties` on 935. None parts a draw; each is a value row
+the next chapter's widening may take up.
+
+**Item 1380's mutations**, on `c52236e1`, restored from git and touched,
+scored by the exit code and failed tests' names of `cargo test --release
+-p rondata chapter_forty_eight` and `-p sim a_towers_arrow`
+(`--test-threads 2`):
+
+| mutation | held by |
+|---|---|
+| K1: `get_shot` never 0 (the type's `PROJ_SPEED` always) | exit 101, both tests: **the word, 1750 → 1481**; the unit test |
+| K2: no lead on a building's shot | exit 101, both tests: **the word → 1503**; |
+| K3: `ages` 2 reads 1, not 0 (the boundary at 2 / 3 moved) | K3_RESULT |
+
 **What is not established.**
 - ~~The word at 1450, and the blow behind it~~: step 18's armour, item
-  1375. The word at 1481, and the Tower's shot behind it: the next
-  item's, booked by its frame.
+  1375. ~~The word at 1481, and the Tower's shot behind it~~: `get_shot`
+  and the lead, item 1380. The chapter is closed at 1750.
+- `get_shot`'s exact-type arms (Stockade, Fortress, Bunker, Redoubt,
+  Lookout, Observation Post, Air Defense Gun, Radar, SAM) and its ages
+  3 and above: the loader maps them, no capture on disk has such a
+  building firing, and §6's `death_type` still reads a Redoubt's 3 as 2.
 - ~~M4 on a walk: it parts the walk on the word's own frame, so once
   T's blows agree the walk is expected to hold it. Until then the
   widening does.~~ The walk holds it from item 1375: the word 1481 →
