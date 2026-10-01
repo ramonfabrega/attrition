@@ -631,6 +631,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch46 = golden_dump("ch46");
     let ch47 = golden_dump("ch47");
     let ch48 = golden_dump("ch48");
+    let ch49 = golden_dump("ch49");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2221,6 +2222,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [683, 935, 983, 1094, 1451, 1482] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-eight carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-nine, on run576** (item 1393): 912, the Scout's
+    // fourth wound (the word's value diff: ours flees, theirs stands);
+    // 934, the Tower's fifth shot, the original's alone.
+    if let Some(p) = &ch49 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_NINE;
+        for w in [912, 934] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-nine carries the window's five blocks");
             frames += n;
         }
     }

@@ -2013,6 +2013,10 @@ mod tests {
         // site's lost progress, an aircraft's blow and building attrition
         // (item 1358, `docs/GOLDEN.md` §57).
         ("chapter48.cmd", &[]),
+        // Chapter forty-nine: a Tower at its owner's third age and a
+        // Catapult trained under a queued Bombard (item 1393,
+        // `docs/GOLDEN.md` §58).
+        ("chapter49.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

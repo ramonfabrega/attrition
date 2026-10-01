@@ -13014,3 +13014,36 @@ the Scholars (`t 52`) at 9,999,999, ours Monotheism at 1,123,200 — two
 blocks before the word's block 11183 (15 keys there). The compared pin
 walks its blocks 11181..11184 and the coverage driver 11181..11185. Runs
 572 and 573 were reserved and not used.
+
+## run576 — chapter forty-nine, a Tower's arrow at its owner's third age and a Catapult trained under a queued Bombard (2026-10-01, item 1393)
+
+`docs/GOLDEN.md` §58, `tools/gamelog/golden/chapter49.cmd`: a cast of its
+own on the golden start.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch49 \
+    --map 14 --end-frame 1500 --log-window 605 1500 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter49.cmd
+```
+
+**What the disk could not answer.** No capture on disk has a Tower firing
+past its owner's second age (`get_shot`'s `ages` arm, item 1380's K3), and
+none queues a Bombard's research under a Catapult in training (`get_cost`'s
+bump loop's `JUMP` arm, item 1352): run523's Bombard is the Trebuchet's
+`FROM` as well as its `JUMP`.
+
+**Taken** on the click-free lane, `cover=0`, `ron_lane_state` `free` (the
+launch waited on another lane's capture), `success: true`,
+`settings_restored: true`, 1,501 frames, seed 12345, map 14 verified,
+458,240 `GROUPDATA` blocks, 1,118 s launch to exit, exit 0.
+`issuesmatch.py --none-refused`: all six `@` lines issued, refusal 0. The
+dump (382,265,219 bytes, sha256 `edc7f6a4…7ea3e95a`) and the trace
+(11,686,400, `88b9fea1…44464c36`) stay in `~/ron-golden/ch49/map-14`. The
+disk had 209 GB free after. Run 577 was reserved and not used.
+
+**What it holds**: `chapter_forty_nine_holds_to_the_golden_word` (934) and
+`chapter_forty_nine_s_word_frame_is_widened_whole` (605..1498); the coverage
+driver's windows 912 and 934.
