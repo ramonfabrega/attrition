@@ -2092,7 +2092,13 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for b in built.sim.buildings.iter().filter(|b| b.alive) {
+    for (at, b) in built
+        .sim
+        .buildings
+        .iter()
+        .enumerate()
+        .filter(|(_, b)| b.alive)
+    {
         let ty = b.orig_ty.map_or_else(
             || "-".to_string(),
             |t| format!("{:?}#{t}", built.sim.build_types[t].ident),
@@ -2109,8 +2115,22 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
                 format!("{t}@{}", i.job_counter)
             })
             .collect();
+        // The head's target as `do_queue` computes it this frame, and the
+        // population test `Build::finished` reads (item 1365).
+        let head = if b.queue.items.is_empty() {
+            String::new()
+        } else {
+            let m = &built.sim.muster[b.owner as usize];
+            format!(
+                " target{} cap{} control{} owned{}",
+                built.sim.queue_target(at, 0),
+                m.cap,
+                m.control,
+                m.by_type[b.queue.items[0].ty]
+            )
+        };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]{head}",
             b.owner,
             b.index,
             b.pos.x,

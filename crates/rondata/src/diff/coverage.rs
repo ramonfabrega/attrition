@@ -1524,6 +1524,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // **And its word 10391** (item 1365): the frame writes block 10392,
+    // inside run547's window.
+    if let Some(p) = &r547 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10392;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(
+            n, 5,
+            "run547 carries the third map's word 10391 at Toughest"
+        );
+        frames += n;
+    }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
     // five blocks around the make list it was taken for, so the leader
     // record's paths are on this map's window too —

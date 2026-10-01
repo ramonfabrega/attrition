@@ -3668,6 +3668,100 @@ fn the_british_ship_bonus_is_a_third_off_the_clock() {
     );
 }
 
+/// **The speed-upgrade step of `train_time`'s tail** — `docs/PRODUCTION.md`,
+/// "The tail's first caller". `t = (10 − n) × t / 10` (`0065102d`), `n`
+/// counted on **one** ladder: the ships' for a sea type, else the troops'
+/// for `obj_masks` `F` or `M`, else the vehicles' for `V`, else none.
+///
+/// The numbers are run547's: who=1's Citizen at `1/2022`, `JOB_TIME 50`
+/// and 38 owned, sits at the ramp's ceiling, 18,000; Herbal Lore
+/// (`TROOPS_FASTER_1`'s prerequisite) takes it to **16,200**, the counter
+/// the original trains `1/89` on at frame 10144.
+#[test]
+fn a_speed_upgrade_takes_a_tenth_per_level_off_its_own_ladder_only() {
+    use crate::combat::mask;
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+    let herbal = tree.add(TypeDef::plain("Herbal Lore", 0));
+    let medicine = tree.add(TypeDef::plain("Medicine", 0));
+    let forage = tree.add(TypeDef::plain("Forage", 0));
+    tree.roles.troops_speed_preq = [Some(herbal), Some(medicine), None];
+    tree.roles.ships_speed_preq = [Some(forage), None, None];
+    tree.roles.vehicles_speed_preq = [Some(forage), None, None];
+    sim.set_tech_tree(tree);
+    let typed = |sim: &mut Sim, masks: u32, sea: bool| {
+        let mut u = citizen_type(t.barracks);
+        u.times.job_time = 50;
+        u.times.job_extra_time = 10;
+        u.times.research_premium_time = 2;
+        u.combat.obj_masks = masks;
+        if sea {
+            u.combat.domain = attrition::Domain::Sea;
+        }
+        sim.add_unit_type(u)
+    };
+    // The Citizen's `FCWP`, a horseman's `M`, a tank's `V`, a boat that
+    // carries `F` as well, and a type with none of the three.
+    let citizen = typed(&mut sim, mask::FOOT | mask::CIVILIAN, false);
+    let rider = typed(&mut sim, mask::MOUNTED, false);
+    let tank = typed(&mut sim, mask::VEHICLE, false);
+    let boat = typed(&mut sim, mask::FOOT, true);
+    let other = typed(&mut sim, mask::SIEGE, false);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(38, 32), false);
+    finish(&mut sim, b);
+    let all = [citizen, rider, tank, boat, other];
+    for ty in all {
+        sim.muster[0].researched[ty] = true;
+        sim.muster[0].by_type[ty] = 38;
+    }
+    let target = |sim: &mut Sim, ty: usize| {
+        let slot = sim.queue_up(b, ty).expect("the barracks takes the order");
+        let t = sim.queue_target(b, slot);
+        sim.cancel(b, slot);
+        t
+    };
+    let targets = |sim: &mut Sim| all.map(|ty| target(sim, ty));
+
+    assert_eq!(
+        targets(&mut sim),
+        [18_000; 5],
+        "the ramp's ceiling, 3 × 6000"
+    );
+    sim.tech[0].tech[herbal] = true;
+    assert_eq!(
+        targets(&mut sim),
+        [16_200, 16_200, 18_000, 18_000, 18_000],
+        "TROOPS_FASTER_1: foot and mounted, and not a boat that is foot too"
+    );
+    sim.tech[0].tech[medicine] = true;
+    assert_eq!(
+        targets(&mut sim),
+        [14_400, 14_400, 18_000, 18_000, 18_000],
+        "every level held is counted"
+    );
+    sim.tech[0].tech[forage] = true;
+    assert_eq!(
+        targets(&mut sim),
+        [14_400, 14_400, 16_200, 16_200, 18_000],
+        "the ships' and the vehicles' ladders"
+    );
+    // A research job — the availability bit clear — never reaches it: the
+    // step sits inside the availability branch.
+    sim.muster[0].researched[citizen] = false;
+    let held = target(&mut sim, citizen);
+    for t in [herbal, medicine, forage] {
+        sim.tech[0].tech[t] = false;
+    }
+    assert_eq!(
+        target(&mut sim, citizen),
+        held,
+        "the research half is untouched"
+    );
+}
+
 /// **A dock's own warships are born off its bad water** (`docs/ORDERS.md`
 /// §25). `BuildType::mask_me`'s `is(DOCK)` arm marks every ocean tile of the
 /// footprint grown by three `BAD_PATH`, and a sea type with an attack may
