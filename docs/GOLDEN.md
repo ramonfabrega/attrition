@@ -10043,7 +10043,7 @@ first blow: `damage`/`damage_frac` ours 71/10 against 72/5, and
 sixteenths and ours 122, 12 a figure against 11 by §56's sum, so it
 costs 400 of progress against 350. Every blow after is a point light,
 and T finishes two frames early. No mechanism is named: the blow's
-inputs are the next item's (Elite Pikemen `0x87` against a Tower site,
+inputs are the next item's (Elite Pikemen, `ELITEPIKE`, against a Tower site,
 who=0 at `library 6`).
 
 **The widening** is run551 whole (`[605, 1751)`): 649 rows and 8 pool
