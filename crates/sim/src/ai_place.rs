@@ -1160,4 +1160,55 @@ mod tests {
             "another player's farms are nobody's friends"
         );
     }
+
+    /// **A Keep's friends are a Tower's** (item 1377): `find_friends`'
+    /// tower arm is `is(0x1b7, 0)`, the line, so a Keep (`FROM` Tower)
+    /// counts each gather neighbour `+2` as a Tower does, and its arrows do
+    /// not send it to the early zero. East Indies' Keep `1/2047` on frame
+    /// 15985 is this arm: two farms beside (51, 28) make it `(4 + 2)² ×
+    /// 1000` where every friendless cell scores 1255.
+    #[test]
+    fn a_keep_counts_its_gather_neighbours_as_a_tower_does() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let mut ty = |ident: Ident, from: Option<usize>, letters: &str, attack: i32| {
+            let rec = sim.build_types.len();
+            sim.build_types.push(crate::build::BuildType {
+                ident,
+                from,
+                flags: flags::parse(letters),
+                attack,
+                x_size: 2,
+                y_size: 2,
+                hits: 100,
+                ..crate::build::BuildType::default()
+            });
+            rec
+        };
+        let farm = ty(Ident::Farm, None, "gda", 0);
+        let tower = ty(Ident::Tower, None, "ean", 12);
+        let keep = ty(Ident::Other, Some(tower), "ecan", 16);
+        let mut put = |rec: usize, x: i32, y: i32| {
+            let pos = Pos::new(x * 768 + 384, y * 768 + 384);
+            let b = sim.add_building(1, pos, 8);
+            sim.buildings[b].ty = Some(rec);
+            let corner = sim.tile_corner(rec, pos);
+            for t in sim.footprint(rec, corner) {
+                sim.world
+                    .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+            }
+        };
+        put(farm, 50, 28);
+        put(farm, 50, 29);
+        let at = Cell::new(51, 28);
+        assert_eq!(
+            sim.find_friends(tower, at, None, 1),
+            4,
+            "two farms, +2 each"
+        );
+        assert_eq!(
+            sim.find_friends(keep, at, None, 1),
+            4,
+            "the Keep is of the Tower's line"
+        );
+    }
 }

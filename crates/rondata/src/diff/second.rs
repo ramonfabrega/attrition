@@ -758,7 +758,8 @@ mod tests {
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1571, 74), (1576, 5), (1601, 1)],
+            // Item 1377: 1571 74 → 73, who=1's `defense` 0 against 1.
+            [(1571, 73), (1576, 5), (1601, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -841,7 +842,8 @@ mod tests {
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(3771, 73), (3801, 1), (3805, 3)],
+            // Item 1377: 3805 3 → 2, who=1's `defense` 0 against 1.
+            [(3771, 73), (3801, 1), (3805, 2)],
             "the blocks keys first part on, the first three"
         );
     }
