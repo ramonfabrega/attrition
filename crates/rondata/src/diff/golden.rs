@@ -13232,6 +13232,117 @@ fn chapter_forty_eight_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-nine** — three arms the unit tests hold and no walk
+/// (`docs/GOLDEN.md` §58, item 1393, run576): a Tower's arrow past its
+/// owner's second age, and `get_cost`'s bump loop's `JUMP` arm (a Catapult
+/// trained under a queued Bombard). Fifteen staged lines on the golden
+/// start.
+#[test]
+fn chapter_forty_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch49", "chapter49", 49, 15, 1499) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-nine: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_NINE,
+        "chapter forty-nine's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_NINE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_NINE,
+        "chapter forty-nine's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §58"
+    );
+}
+
+/// **run576 whole, both directions** (item 1393, `docs/GOLDEN.md` §58):
+/// every dumped record on every block, the leaders at `LEADERS=5`, the
+/// rounds at `AMMO=5`, and who=0's `GROUPDATA` pool.
+#[test]
+fn chapter_forty_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch49",
+        "chapter49",
+        WIDENING_CHAPTER_FORTY_NINE,
+        1499,
+        0,
+        (933, 936),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch49 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch49: {} rows", got.len());
+    let pool = widen_pool("ch49", "chapter49", WIDENING_CHAPTER_FORTY_NINE, 0)
+        .expect("run576 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch49 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH49.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch49: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH49_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch49: what parts in the pool moved");
+}
+
+const WANT_CH49: &[&str] = &[
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "625 0/-1 leader:treaties[1]",
+    "625 1/-1 leader:treaties[0]",
+    "943 0/7 death:extra",
+];
+
+const WANT_CH49_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "702 slot 0 new_speed",
+    "702 slot 0 speed",
+];
+
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
 /// `be 0` on the issuing frame: the DLL issued both who=1 commands (its

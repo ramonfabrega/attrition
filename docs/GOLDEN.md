@@ -10167,3 +10167,143 @@ scored by the exit code and failed tests' names of `cargo test --release
   before F's claim reached it.
 - T's `flags` bit `0x10`, set on its first enemy-land hit: read off the
   dump, not by this crate's widening.
+
+## 58. Chapter forty-nine — a Tower's arrow at its owner's third age and a Catapult trained under a queued Bombard: two arms the unit tests held and no walk, one parked as an equivalent mutant (item 1393)
+
+**Premise.** DECISIONS 56 §3's chapter from three arms booked after
+items 1380, 1370 and 1341: (1) `BuildData::get_shot@0062dd90` on `ages`
+3 and above, where a Tower's arrow flies at the type's `PROJ_SPEED` and
+not at 90 (item 1380's K3, held by the unit test alone); (2) the
+sixteen-frame review skipped under the Bombard's pack arm (item 1370's
+M3); (3) `get_cost`'s bump loop's `JUMP` arm (item 1341's M2, parked as
+1352). Whether one staging reaches each was the item's first question,
+settled from each arm's own predicate.
+
+**Arm 2 is an equivalent mutant, and no staging separates it.**
+`Unit::work@0060d180`'s pack test (`0060d440`) sends a type that packs
+and stands unpacked down one of three arms, and the review sits on the
+other branch. Arm 3 (Packing) pushes a cast order to the front before
+the head is read again, and `check_target_path_review` returns when the
+head is not a move; arm 1 (Held) needs the head to carry the action bit
+with itself the only order, so `action_of` answers the move itself, which
+the review's `match` ignores; arm 2 returns. Running the review after the
+arm therefore does nothing in this crate on any input, which is what the
+mutation measured (1370: holds on the walk, the widening and the unit
+tests). **Parked with that reason**; the original's own branch is not
+in question, only that this crate cannot tell the two apart.
+
+**Arm 1 is reached by who=1 holding `library 3`** (the Gunpowder age,
+`ages` 3): its Tower is none of `get_shot`'s named types, so the
+`ages` arm answers 1 and the arrow takes the type's `PROJ_SPEED` (200)
+against the 90 of the first three ages.
+
+**Arm 3 is reached through `jumpable`, and only through it.** Bombard
+carries flag `j` (`unit_flags & 0x200`), so `get_availability` returns 4
+for it with no `FROM` check: with a Catapult owned and no Trebuchet, a
+Bombard research queues, and a Catapult behind it is a train job of a
+type two `JUMP` links behind the queued one (Catapult → Trebuchet →
+Bombard) whose own `FROM` is none. Its price is `(70 + max(0, 80 − 70)) ×
+0.9`, the 0.9 being the military unit discount at the Gunpowder age: 72,
+and 63 without the loop. The research is priced 160 (80 × 2, the Bombard's
+`RESEARCH_PREMIUM_COST`).
+
+**The staging** (`chapter49.cmd`), walked on run514's start (`ch47`):
+`library who=0 3` and `library who=1 3` (600), `tech who=0 catapult on`,
+`resource all +2000` for both (601), a Siege Factory `0/2007` for who=0 at
+(200, 150) (602), a Tower `1/2006` for who=1 at (222, 122) (603), a Scout
+`0/6` at (226, 128) (606), `@queueup 0 267 1 2007` (the Bombard's research,
+620), `@queueup 0 265 1 2007` (a Catapult, 622), the Scout walked off
+(640), a second Catapult (700), and a second Scout `0/7` walked past the
+Tower (800, 802). The walk: the Tower shoots the first Scout on 618, 649,
+680, 711 and the second on 810, 841, 872, 903 (every 31 frames, four
+draws each); the queue reads `[(217, 160), (215, 72), (215, 90)]` on 623
+and 701; the Bombard's research ends on 1071, converting both Catapult
+entries to type 217.
+
+**Run 2026-10-01 as run576**, click-free lane, `cover=0`, 1,501 frames,
+1,118 s; all six `@` lines issued with refusal 0.
+
+**Both arms agree on the dump's own record.**
+- **Arm 3.** The original's `queue[…].cost[0]` reads **72** in 749 lines
+  and **90** in 1,353, and **63 in none**; the research's 160 in 450. Without
+  the `JUMP` loop this crate prices 63. No leader-bucket row parts on 621
+  or 623, and no BUILDDATA queue row.
+- **Arm 1.** The Tower's draws match the original's count on every one
+  of its eight shots 618..903 (ours labelled `buildings`, theirs `64cc85`,
+  `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`, the pre-existing label
+  difference of §57), and the Scouts' four wounds land on 816, 843, 876
+  and 912 on both sides: `0/7`'s `damage` 12, 24, 36, 48 (dump), hp 2
+  left. The flight time at 200 is what lands them there; at 90 they would
+  be a dozen frames later.
+
+**The chapter opened with a parting at 934, and closes at 1500** (item
+1403). Ours drew 3 against 6 at index 0 (seed `0x72a004cf`): the original
+spent the Tower's fifth shot on `0/7` where ours spent none. **The value
+diff, walked back:** `0/7`'s fourth wound lands on 912 on both sides
+(`damage` 48, hp 2), and on that frame its order stack parted — ours a
+`FLEE_TO` (39672, 21720) (`orders.len` 1, `dest_angle` −710737920), the
+original none (`orders.len` 0, `orders_x/y` 41000/22500, `dest_angle`
+−579731456), the Scout standing at (41000, 22500) through block 940 and
+beyond.
+
+**The cause is `Unit::target_opportunity@005fffc0`'s first arm, not the
+flee gate.** Block 912 prints `0/7` with `group 2` (the pool slot the
+`@move` seated it on) and `unit_masks 14`; the Scout is not combat-role
+(`type +0x2c8 & 0x10000`). The function's loop opens with `param_3 == 0 &&
+group >= 0 && !combat_role && GroupData::member(group, o, who, 1)` and
+for such a unit calls `Group::target_opportunity@007107d0` and returns —
+so it neither flees nor retaliates, and the group's own walk takes only a
+member that is alive, on the map, a captain and combat-role. `0/6` fled on
+618 because it was ungrouped (`group` −1) when hit; its later `group 0` is
+the `@move` of 640. This crate carried the arm as a stated SEAM ("no run on
+disk takes it"); it is built now: `Sim::target_opportunity_in` walks the
+captain chain applying the test at each level, and
+`Sim::group_target_opportunity` is the 15-frame cooldown
+(`GroupState::opportunity`, `+0x38`, zeroed by `Group::clear`) and the
+member walk. **The value diff on the word's frame:** `0/7 orders.len` ours
+1 against 0 on 912 → agreeing, `orders_x/y` 39672/21720 against 41000/22500
+→ agreeing; frame 934's draws 3 against 6 → agreeing, and the walk runs to
+the trace's end (1500; sequence 618 as before). The chapter is closed.
+
+**Not modelled** (a SEAM in `group_target_opportunity`): the arm that runs
+a member's own `find_melee_target` at `min(dist + 0xc0,
+unit_respond_range × 0x240)` (an idle or `NONE`/`ATTACK_TO`/`GROUP_ATTACK_TO`
+combat-role captain that is not the asker's captain). No capture on disk
+has a combat-role captain beside a non-combat member that takes a hit; the
+cooldown's own `> 0xe` gate is held by no walk either (a one-member group
+cannot tell it).
+
+**The widening** is run576 whole (`[605, 1501)`): 30 rows and 4 pool rows,
+pinned as they stand — the standing families on 605 and 625
+(`filled_gather_slots`, `treaties`, `form`, the city's counts), `0/7`'s
+`death:extra` on 943 (ours holds a death record the original does not; the
+same family as chapter forty-eight's 1487 and 1488), and the pool's `622
+slot 1` and `702 slot 0`. **The 305 rows and 5 pool rows of 1393's pin that
+were 912's order stack, the civilians' paths from 943 and `963 slot 2`
+are gone with the flee.**
+
+**Mutations**, each on `7e3455f1`, `git diff --stat` read one line in one
+file, restored from git and touched, scored by exit code and failed tests'
+names of `cargo test --release -p rondata chapter_forty_nine` and `-p sim
+--lib` (`--test-threads 2`; `docs_guard::an_item_number_is_minted…` is red
+on the queue's line 1393 in every row and is not the mutation's):
+
+| mutation | held by |
+|---|---|
+| K1: `ages` 3 reads 0 (a Tower at the third age flies at 90) | exit 101: **the word (934 moves) and the widening**; `a_towers_arrow_flies_at_ninety_until_the_fourth_age`. **Item 1380's K3 is held by a walk now** |
+| K2: the bump loop's `JUMP` walk dropped (`while false`) | exit 101: **the widening alone** (the Catapult's queue cost and the buckets, 72 → 63); the unit test `a_unit_trained_while_its_upgrade_is_queued_pays_the_upgrade_s_base`. The word stays 934, which parts first |
+| K3: the sixteen-frame review also runs under the pack arm (1370's M3) | exit 0 on the walk, the widening and every sim test: **equivalent, as read above** |
+
+**What is not established.**
+- `group_target_opportunity`'s `find_melee_target` arm and its cooldown gate (above).
+- `get_shot`'s exact-type arms and `ages` ≥ 5 (this chapter reaches 3).
+- The sixteen-frame review under the pack arm: unreachable, parked.
+- The bump loop's `FROM` arm on its own, and a research priced with a
+  hit through `JUMP` alone on the research arm (`research_modifiers`'s
+  mirror loop): the train arm only here.
+
+**Item 1403's mutation**, on `9a57917c`, `git diff --stat` one
+line in one file: the group arm dropped (`if !from_group && false`) fails
+**the word (1500 falls back) and the widening** and
+`a_hit_group_member_of_a_non_combat_type_keeps_its_orders`, exit 101. The
+cooldown's gate is the finding above: no walk holds it.

@@ -19161,7 +19161,8 @@ pub(crate) mod tests {
         // an AI's ordered where it lands (`docs/TRANSPORT.md` §6.4).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (127, 147, 155).
         // Item 1330 took 26 (127/142/147 → 101/114/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (100, 110, 113), "the floor");
+        // Item 1407 took one (101/114/117 → 101/113/116): a boat's embark flag (`docs/AI.md` §105).
+        pin_eq!((first, under, firsts.len()), (101, 113, 116), "the floor");
     }
 
     #[test]

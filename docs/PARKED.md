@@ -146,6 +146,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1401, 2026-10-01 — the decoy's cast
+
+(1408) **A held decoy's cast after 16160**: the original spends no
+`do_cast` draw for `1/128` on 16161, and this crate would spend one a
+frame; names no score yet.
+
+## Parked by item 1403, 2026-10-01 — the group's answer to a hit
+
+(1405) **`0/7`'s `death:extra` on chapter forty-nine's 943**: ours holds
+the record, the original's does not (chapter forty-eight's family); a
+value row past the closed word, naming no score.
+
 ## Parked by item 1388, 2026-10-01 — the library's cities
 
 (1399) **`get_building_cities`' active flag** (`city_flags & 1`, read
@@ -189,7 +201,9 @@ on the ally's land.
 ## Parked by item 1370, 2026-09-30 — the Bombard's pack
 
 (1378) **The sixteen-frame review skipped under the pack arm** (1370's
-M3): held by no walk and no unit test.
+M3): held by no walk and no unit test. **Closed by 1393** as an
+equivalent mutant (GOLDEN §58): after `Packing` the head is a cast, after
+`Held` the order is its own action, and the review does nothing either way.
 
 ## Parked by item 1365, 2026-09-30 — the training step
 
@@ -241,7 +255,9 @@ by `ai_research.rs`'s research timers.
 
 (1352) **`get_cost`'s bump loop's `JUMP` arm** (1341's M2): held by no
 walk; a capture with an upgrade queued two links ahead of a unit being
-trained would hold it.
+trained would hold it. **Closed by 1393**: chapter forty-nine reaches
+it through `jumpable` (Catapult `cost[0]` 72, never 63) and its widening
+holds it (GOLDEN §58).
 
 ## Parked by item 1330, 2026-09-30 — the birth's form
 
@@ -2835,7 +2851,22 @@ checklist spells in prose (784, 907); the next pass's build.
 Loop line): `--field total_time` printed "writers none" for a field this
 crate writes in four places, all by struct-literal initialisation; the
 search is by exact assignment. 1382's kin: both want a scan that knows
-a struct literal from a declaration. One reach.
+a struct literal from a declaration. **The second reach** (1393's Loop
+line): `--field FleeTo` printed "writers none" for a `MoveKind` variant
+used in three places — a variant is not a field.
+
+(1406) **A Sonnet landing's done line quoted neither verdict line**
+(1403, the trial's own): "gate red only on your two lines", with no
+`Lane verdict:` or `Gate steps:` quoted and no verdict commit; the
+commander read them from the lane's `gate2.txt` (finished after the
+tip). The brief's Landing rows say both; a datum for the trial's score.
+One reach.
+
+(1409) **A gate's "who may cast" lives in a callee's head** (1401's Loop
+line): `seams.py --field inside` named 25 writers and readers and none
+was the decoy bit, which `is_castable@00675bc0`'s head tests; `do_cast`'s
+own SEAM list named the wrong unmodelled arm. A field search cannot see
+a predicate on another field. One reach.
 
 (1400) **A first parted field stood among a window's first block's
 standing keys** (1388's Loop line): run562's 119 standing keys on 10774

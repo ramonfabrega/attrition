@@ -1734,6 +1734,40 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
 /// figures and its move's `pause`, 14 against 15.
 ///
+/// **16179 → 16221 on item 1407** (`docs/AI.md` §105): `cast_transport`
+/// clears the handed-over path's top embark flag when
+/// `get_tregion(top) == get_tregion(spot)`, and `get_tregion` is the
+/// coastal refinement ([`World::tregion_alt`]), where this crate had read
+/// the plain region. East Indies' Galleon `1/171` (born 16175) took the
+/// top (29160, 38040) with flags 4 and tolerance 0 where the original's
+/// has flags 0, and the original's first `find_path` of the boat answered
+/// that flagged top's relaxed water test differently: `path_recursion` 2
+/// and an extra top (29124, 37884) in the original (run572 block 16176:
+/// path length ours 49 against 50, `path[48].flags` 4 against 0, move
+/// `dest` (29160, 38040) against (29124, 37884), `last_x` −1 against
+/// 29352), and the boat was ashore on 16178 here. Block 16176's 18 keys →
+/// 2, 16179's 40 → 0, 16180's 17 → 0; run572's keys 3416 → 2279. **The
+/// new word's delta** is on `docs/AI.md` §105.
+///
+/// **16160 → 16179 on item 1401** (`docs/AI.md` §104): `is_castable`'s
+/// head answers 0 to a decoy (`unit_masks & 1`) for every craft but pack
+/// and unpack, and `do_cast` had asked only `can_transport`. East Indies'
+/// `1/128` (Arquebusiers, a decoy of the General's) held a transport cast
+/// on 16160 that the original's `SpellType::cast` refuses: it spent its
+/// figure's draw and built no boat, where this crate built a second
+/// Galleon (`1/168`) and boarded both squads. **The move's value diff**
+/// (run572, block 16161): `1/128`'s `inside` ours 167 against −1,
+/// `orders.len` 0 against 2, `path:length` 0 against 50; `1/119` and
+/// `1/120` `inside` 167 against −1; `1/142`..`1/144` `inside` 168 against
+/// 167; `1/168` ours alone → agreeing (the block's 107 keys → 1). Frame
+/// 16160's draws went 46 against 44 → agreeing. **The new word's delta:
+/// ours 11 draws and the original 11 on frame 16179, parting at index 2**
+/// (the sequence; the count parts later, on 16187, 4 against 5 at index
+/// 0): ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where the
+/// original spends `Guy::set_anim+0x104b`. Ours' Galleon `1/171` (born on
+/// 16175 by `1/87`'s cast, in both) is gone on 16178 and its boarders
+/// `1/79`, `1/86`, `1/87` stand ashore.
+///
 /// **16009 → 16160 on item 1383** (`docs/AI.md` §101): the re-plan's
 /// `TAKE` lands past `do_move`'s pause check (`do_move:699` → `:743`; the
 /// check at `:729` is the `else` of the `masks & 8 == 0` block), so a unit
@@ -1750,7 +1784,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
 /// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
 /// 16161).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_160;
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_221;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -5772,6 +5806,21 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 /// **The delta**, this constant's: +269, 1481 → 1750 (the trace's end).
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1750;
 
+/// Chapter forty-nine's golden word (item 1393, run576, `docs/GOLDEN.md` §58).
+///
+/// **Closed at the trace's end by item 1403.** The word stood at 934 on a
+/// Scout's order stack: `Unit::target_opportunity@005fffc0`'s group arm
+/// (`param_3 == 0`, `group >= 0`, type not combat-role, `GroupData::member`)
+/// hands a hit on a group member to `Group::target_opportunity` and
+/// returns, so a Scout walked by `@move` takes its fourth wound on 912
+/// with no `FLEE_TO` where this crate fled it out of the Tower's range.
+///
+/// **The delta**, this constant's: +566, 934 → 1500 (the trace's end).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_NINE: i64 = 1500;
+
+/// `chapter_forty_nine_s_word_frame_is_widened_whole`'s window: run576 whole.
+pub(crate) const WIDENING_CHAPTER_FORTY_NINE: (i64, i64) = (605, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6293,6 +6342,11 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // East Indies' long walk past the word 16179 (item 1401): 25 reads of
+    // a non-exact corner in the diverged tail to the endpoint, which the
+    // decoy's refused cast had kept out of the walk until 16160.
+    ("run346_is_east_indies_at_toughest_and_its_word_holds", 25),
+    ("run413_s_and_run415_s_fog_grids_are_ours", 25),
     // Chapter forty-three (item 1223): the Chariot's three shots at the
     // who=1 Citizen from (15384, 31224), 1419, 1445 and 1469.
     ("chapter_forty_three_holds_to_the_golden_word", 3),
@@ -7898,6 +7952,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1358,
         Some(WIDENING_CHAPTER_FORTY_EIGHT),
     ),
+    // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
+    // third age and a Catapult trained under a queued Bombard; open at 934.
+    // The widening is run576 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_NINE",
+        GOLDEN_WORD_CHAPTER_FORTY_NINE,
+        Some("chapter_forty_nine_s_word_frame_is_widened_whole"),
+        1393,
+        Some(WIDENING_CHAPTER_FORTY_NINE),
+    ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
     // and `all_gathering`'s prune, closed at 2200. The widening is run496
     // whole.
@@ -8040,7 +8104,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run523; item 1341 to 14141, past it, widened on run535; item 1351
     // to 15862, past it, widened on run544; item 1362 to 15883, inside it;
     // item 1370 to 15985, inside it; item 1377 to 16009, inside it; item
-    // 1383 to 16160, past it, widened on run572.
+    // 1383 to 16160, past it, widened on run572; item 1401 to 16179,
+    // inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
