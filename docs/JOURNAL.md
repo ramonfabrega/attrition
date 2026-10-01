@@ -20999,3 +20999,33 @@ same afternoon and unreleased, `ccc clear <ref> --status` and `ccc
 update <ref> --keep-conflicts` (parked 1392 and 1315); the rule
 accepted is arm last, handle a re-invoking notification, end the turn
 without cancelling, and the `CLAUDE.md` lines wait for the release.
+
+## 2026-10-01 — the twenty-third Fable pass: the Sonnet trial scored, the commander that slept, and three tools (Fable 5.1, steering)
+
+Eleven landings since the twenty-second pass, called early by the
+user's word, in seven hours and twenty-three minutes at three lanes —
+three hours and thirty-four of them a commander asleep — **every
+worker on Sonnet 5.5 by transcript**: East Indies 16009 → 16250 in
+four, every word a Galleon's transport cast; Great Sahara at Toughest
+11182 → 11882 in two; chapter forty-eight closed, forty-nine opened and
+closed, fifty opened and moved to 819. Workers 56.47 USD, **5.13 a
+landing against 13.65** at one table; by USD a frame, Toughest 0.021
+against 0.048, the rules lane two chapters for the price of the Opus
+lane's thirty-one frames, and East Indies 0.068 against 0.249 for the
+Opus lane's last three landings in the same transport cluster — the
+tranche's own 60 frames a landing against 625 is the region's number.
+Neither kill rule tripped; no hypothesis was built after its kill; a
+landing took 55 minutes, 15.6 working, without the sleeping lane. What
+Sonnet did not write: journals a third the length, the gate quoted in
+three of eleven, **three lanes that never loaded `SendMessage` and
+landed to nobody** — the frame's done line names the tool and the
+address now, and the chain subscribes to each lane's idle at the
+spawn. Two lean subagents, Opus and Sonnet, wrote the pass's journal
+table from one brief: Sonnet missed ten quotes of 275 cells and took a
+third of the time. **The model stays, with the kill rules.** Built,
+each made to fail first: `tools/mutate.py` (1391), `tools/repin.py`
+(1349, 1411), and `seams.py`'s literal-aware field scan with
+`--unwritten` (1397, 1382, 1400), after four "writers none" on a cause
+in one tranche. Seven Loop items closed, four built, 1421 filed; the
+backlog is seventeen. **DECISIONS 59.**
+`docs/audit/2026-10-01-fable-pass-23.md`.

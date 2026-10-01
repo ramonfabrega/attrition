@@ -74,7 +74,8 @@ Before any reading of the original, in this order:
    writer reached the state or a value it reads is wrong elsewhere (898,
    1039).
 7. **Run `python3 tools/seams.py --item {item} --field <first parted
-   field>`** (writers, readers): `SEAM`s, a comment saying "not
+   field>`** (writers, readers) and `--unwritten <Struct>` (1397,
+   1382, 1400): `SEAM`s, a comment saying "not
    modelled" or "a seam" without the word, such paragraphs or lists of
    a specification (830, 860, 1146, 1159, 1193, 1253, 1240, 1340, 1337,
    1322). **When one
@@ -133,9 +134,6 @@ Before any reading of the original, in this order:
   runner holds the lane through its restore and releases it after
   (1234). **A first take that dies before frame 0 is taken again once**
   (1150).
-- **A release node is read with the `get_position` sweep on a packet**;
-  the item that reaches it next commits the sweep under `tools/recomp/`
-  (1208).
 
 ## chapter
 
@@ -167,7 +165,8 @@ Before any reading of the original, in this order:
 
 - **Per reading, a killer that tests the claim's own unit and that the
   readings disagree on** (789), run as a mutation on the built tree
-  (864). **Commit, mutate, restore from git and `touch`** (784, 907).
+  (864). **Run it through `tools/mutate.py`**, which refuses a dirty
+  tree: commit first (784, 907, 1391).
 - **A mutation is scored against the walk** — `cargo test --release -p
   rondata <the pin>` — and the landing names the pin that failed; `git
   diff --stat` is non-empty first, **and the mutation means what it is
@@ -177,7 +176,8 @@ Before any reading of the original, in this order:
   finding: name the arm; it is what the rules track stages next.
 - **The tests a re-pin touches run green before a mutation is scored**
   (1083). A floor or widening test takes `let _pins = Pins::hold();` and
-  `pin_eq!`/`pin_ne!`/`pin!`, so one run shows every pin that moved.
+  `pin_eq!`/`pin_ne!`/`pin!`, so one run shows every pin that moved,
+  and `tools/repin.py <log> --write` rewrites them (1349, 1411).
   "Stands from N" says whether N is the window's first block or the
   gap's first frame.
 - **A gate's own test uses a key the measured table lacks** (1126). **A

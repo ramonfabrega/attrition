@@ -69,7 +69,8 @@ is append-only and amended in place, as it always was.
 - 55 extended by 56 — A closed game chooses nothing, code is not fenced, and the third map's word opens
 - 56 extended by 57 — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
 - 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
-- 58 standing — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
+- 58 extended by 59 — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
+- 59 standing — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
 
 ## 1. Fidelity before divergence
 
@@ -4107,3 +4108,120 @@ tranche's wall clock against 10.7 hours; the disk against 212 GiB; the
 price a landing against 13.65 at the day's table with the tranche
 before re-priced beside it; the backlog against twenty-three; and the
 count at twenty.
+
+## 59. The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
+
+**Decided 2026-10-01**, the twenty-third Fable pass, in the main
+thread (`docs/audit/2026-10-01-fable-pass-23.md`), called early by the
+user's word at eleven landings. Extends entries 54, 55, 56, 57 and 58;
+amends entry 58's model clause; overturns nothing.
+
+**What was measured.** Eleven landings since the twenty-second pass by
+the log from `a4eb8111`, 03:14 to 10:04 on 2026-10-01 — seven hours
+and twenty-three minutes from the trial's commit, **of which three
+hours and thirty-four minutes were a commander asleep** between its
+sixth landing and a person's "what happened here?" — at three lanes,
+**every worker on Sonnet 5.5 by transcript**, the commander on Opus 5.5
+in two sessions. **East Indies 16009 → 16250** in four landings, 60
+frames each, every one a transport cast of the Galleon's family;
+**Great Sahara at Toughest 11182 → 11882** in two, 350 each; **chapter
+forty-eight closed at 1750, forty-nine opened at 934 and closed at
+1500, fifty opened at 686 and stands at 819** — two chapters closed in
+five landings against one in four. Workers **56.47 USD, 5.13 a
+landing** at today's table against 13.65 for the tranche before at the
+same table (300.29, re-folded: the table did not move). **USD a
+frame**: East Indies 0.068 against 0.023 over the Opus tranche and
+**0.249 for its last three landings in the same region** (49 frames a
+landing against Sonnet's 60); Toughest 0.021 against 0.048 and 0.034;
+the rules lane 25.60 USD for two chapters closed and a third moved 133
+against 25.58 for the Opus lane's last two landings, thirty-one frames
+and no chapter. **Neither kill rule tripped**: every booking gate ran
+6 of 6 but a waiter flake re-run green and the commander's own golden
+line before its commit; no word took three attempts. No hypothesis
+was built after its kill (five killed); one earlier red gate, the
+waiter; three mutations failed nothing and one was held by a unit test
+alone, from five and ten. **A landing took 55 minutes, 15.6 working
+and 39 waiting** without the sleeping lane, against 80, 30 and 50; the
+suite 12.4, a capture 10.3, the gate 5.3 where the class reader saw it.
+**What Sonnet did not write**: journals a third the length (3.2 KB
+against 10.4), silent on the gate in eight of eleven, **three lanes
+that never loaded the message tool and landed to nobody**, one done
+line with no verdict in it, a booking's frame wrong once and its
+mechanism wrong once, both caught by the lane. The table trial of
+parked 1142, two lean subagents on the same brief: Opus found a quote
+Sonnet missed in ten cells of 275, Sonnet one Opus missed, nineteen
+were a derivable "no" Sonnet left silent; Sonnet in a third of the
+time. `seams.py --field` printed "writers none" on a cause four times.
+The commander 0.89 USD a landing against 0.70, its deepest turn's mean
+context 184 k; no clear armed. The disk 209 GiB; the remote clean; the
+blind list 141 unmoved; the loop idle 92 minutes before the pass.
+
+**What it means.**
+
+1. **The model stays, on all three lanes, with the kill rules.** On the
+   two lanes whose regions are comparable it was cheaper a frame by
+   two and a half times and faster a landing; on the third the
+   tranche's own number read ten times worse and the region's number
+   read four times better. A landing costs a third and the lane's
+   working minutes halve; what it costs is a thinner record and a
+   landing that does not announce itself, and both are rows now. The
+   kill rules stand as written in `CLAUDE.md`: a mechanism the floor
+   did not catch returns that lane to Opus; three attempts on one word
+   get an Opus successor. Each pass scores every lane in USD a frame
+   against the tranche before, in the same region where it can.
+2. **A spawn is followed by an idle subscription.** A done line is the
+   lane's, and three lanes of eleven sent none; nothing else wakes an
+   idle commander, and a person did, three and a half hours on. The
+   commander sends `SendMessage` to the lane with `notify_when_idle:
+   true` and no message at every spawn, re-armed at every notice that
+   brings no landing on the lane's branch (`CLAUDE.md`, the chain);
+   the frame's done line names `ToolSearch("select:SendMessage")`, the
+   address and the two verdict lines (parked 1412, 1406).
+3. **Three shapes reached three times are tools** (`CLAUDE.md`'s
+   rule): `tools/mutate.py` (1391), `tools/repin.py` (1349, 1411) and
+   `seams.py`'s literal-aware scan with `--unwritten` (1397, 1382,
+   1400) — each made to fail first, two through the new runner.
+4. **The count stays twenty and the lanes stay three.** Seven Loop
+   items close, four are built, seventeen stand; 1421 is filed.
+
+**Not decided, and the user's**: whether the loop hands itself to its
+pass (1141 — the idle before the pass was 92 minutes, the sleep
+mid-tranche 214, and only the second is built against); whether phase
+4 opens when East Indies closes, as entry 58 wrote; the thesis sentence
+from entry 41.
+
+**The estimate, written down to be wrong on record.** Entry 58's: East
+Indies did not close (16250 of 18,140, the trial's tranche eleven
+landings not twenty); Toughest passed 11,000 and not 13,000; chapter
+forty-eight closed and forty-nine opened *and closed* with fifty open,
+against "four landings between them"; a landing waited 39 minutes
+against the 45 named, with the suite the largest class, as named. This
+one: **East Indies closes by the next pass** and its booking opens the
+third pair; **Great Sahara at Toughest passes 13,000**; **chapter fifty
+closes and fifty-one opens**; **a landing waits under 35 minutes**;
+**eleven of eleven landings send a done line with both verdict lines**,
+and the commander sleeps for nobody.
+
+**The measure for the next pass**: East Indies against 16250 and 60
+frames a landing in its region, and whether it closed and the third
+pair's capture was booked in the same booking; Great Sahara at
+Toughest against 11882 and 350; chapter fifty's 819 and the chapters
+closed, against two in five; **each lane's USD a frame against this
+tranche's 0.068, 0.021 and 25.60 a chapter-and-a-third**, and the
+model's kill rules; hypotheses built after a kill against none;
+earlier red gates against one; mutations failing nothing against three
+and held by a unit test alone against one; done lines against eight of
+eleven and journals quoting the gate against three of eleven; the
+commander's sleep against 214 minutes and whether an idle notice woke
+it; `seams.py --field` "writers none" on a cause against four, with
+the scan rebuilt; the cause something had written down, against seven
+of eleven; refused updates against none; `UNBUILT` against 132,
+`NO_SUCH_SECTION` thirteen, `UNSCANNED_SEAMS` forty-three, the doors
+seventeen; the blind list against 141; the frame against 12,993 and
+its ceiling; the commander's price against 0.89; a landing's 55
+minutes, 15.6 working and 39 waiting, by `tools/tranche.py`, with the
+suite against 12.4 and the gate class read (1421); the tranche's wall
+clock against 7.4 hours and its sleep against 3.6; the disk against
+209 GiB; the price a landing against 5.13 at the day's table with the
+tranche before re-priced beside it; the backlog against seventeen; and
+the count at twenty.

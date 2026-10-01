@@ -2542,7 +2542,7 @@ name, or a recorder that outlives its thread; the AI track's pin walks
 both open words now and no round is printed on either. **The twentieth
 pass**: not built; sixteen journals of twenty-two met a comparison that
 compared nothing, against nineteen of twenty, and the rules lane's six
-were among them. **The twenty-first pass**: not built; twelve journals of twenty-two met a comparison that compared nothing, from sixteen, and `coverage.rs` was the tranche's merge conflict four times (1225). Stays. **The twenty-second pass**: not built; three journals met one, from twelve, and 1331 — a Tower's own cycle keyed to anti-air types, unread on every golden widening — is this item's reach. Stays.
+were among them. **The twenty-first pass**: not built; twelve journals of twenty-two met a comparison that compared nothing, from sixteen, and `coverage.rs` was the tranche's merge conflict four times (1225). Stays. **The twenty-second pass**: not built; three journals met one, from twelve, and 1331 — a Tower's own cycle keyed to anti-air types, unread on every golden widening — is this item's reach. Stays. **The twenty-third pass**: not built; one journal of eleven met a comparison that compared nothing (1383's `cast_paid`/`cast_spell`), none on the rules lane. Stays.
 
 (1138) **Half a landing's wall clock is waiting on the machine** (the
 nineteenth pass; the twentieth built its first half). A worker of the
@@ -2567,7 +2567,7 @@ walk one window, and `Log::parse` takes a text and no path, so nothing
 can be kept between them; a parse kept by path, length and date for the
 tests that share a window is the second half, with the memory cap's
 headroom measured first. And the commander's booking gate is still the
-whole gate where the merge added nothing the lane's had not seen. **The twenty-first pass**: by `tools/tranche.py` the suite's wait went 12.9 → 15.2 minutes a landing and the gate's 16 → 40 — a landing gates twice (parked 1316); the second half is not built. **The twenty-second pass**: the suite 15.5 minutes a landing and the largest class, 102 of 1330's a re-pin by scratch scripts (1349); not built.
+whole gate where the merge added nothing the lane's had not seen. **The twenty-first pass**: by `tools/tranche.py` the suite's wait went 12.9 → 15.2 minutes a landing and the gate's 16 → 40 — a landing gates twice (parked 1316); the second half is not built. **The twenty-second pass**: the suite 15.5 minutes a landing and the largest class, 102 of 1330's a re-pin by scratch scripts (1349); not built. **The twenty-third pass**: the suite 12.4 minutes a landing without 1398's sleep, still the largest class; not built.
 
 (1141) **The loop waits on a person twice a cycle, and could hand
 itself over** (the nineteenth pass, on the user's question): the
@@ -2585,22 +2585,7 @@ commit a person can revert; **after two passes nobody read, the loop
 stops and waits**; and what is the user's — spend, the irreversible,
 what the project is — is never decided by either. **The twentieth
 pass**: the loop stood idle some twenty minutes before this pass. Still
-the user's, and not built. **The twenty-first pass**: the loop stood idle sixty-seven minutes before the pass. Still the user's. **The twenty-second pass**: idle seven minutes before the pass. Still the user's.
-
-(1142) **A cheaper model is admitted by a trial, and the first trial
-is the pass's own table** (the nineteenth pass, on the user's question
-about a newer Sonnet): `CLAUDE.md` says never Sonnet, for readings whose
-errors were in the predicates (`docs/DECISIONS.md` entries 22 and 23),
-and which model runs is spend, so it is the user's to open. A worker's
-cost is its cache reads and half its landing is the machine's, so a
-cheaper worker buys tokens and no wall clock. The trial that risks no
-score: the pass's journal table, which a lean subagent on Opus wrote
-this pass, written again by the candidate from the same twenty
-journals and the two compared cell by cell. Not run. **The twentieth
-pass**: the table for the trial stands again,
-`target/pass20/journals-20.md`, twenty-two journals against twenty-one
-columns by a lean subagent on Opus 5.5 (verified by transcript). Still
-the user's to open. **The twenty-first pass**: the table stands again, `target/pass21/journals-21.md`, twenty-two journals against twenty-seven columns by a lean subagent on Opus 5.5 (verified by its transcript). Still the user's. **The twenty-second pass**: again, `target/pass22/journals-22.md`, twenty-five columns. Still the user's. **Opened the same evening, with Ramon** (DECISIONS 58, amended): the twenty-third tranche's workers run Sonnet 5.5 on all three lanes, the commander on Opus, two kill rules, scored per lane in USD a frame against the twenty-second tranche. The table trial runs in the same pass at no risk. Closes at the twenty-third pass on its score.
+the user's, and not built. **The twenty-first pass**: the loop stood idle sixty-seven minutes before the pass. Still the user's. **The twenty-second pass**: idle seven minutes before the pass. Still the user's. **The twenty-third pass**: idle 92 minutes before the pass, and 214 mid-tranche with the commander asleep — the second is 1412's, built as an idle subscription at the spawn. Still the user's.
 
 (1139) **The capture lane is one prefix, one install and one profile**
 (the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
@@ -2617,7 +2602,7 @@ fifty-four minutes in all, two and a half a landing — and eleven said
 they did not. Captures were taken on eighteen landings against nine,
 which is where the lane's share of a landing's waiting rose (23 minutes
 against 13, by the last instruction before each wait). Not built; it
-returns at ten minutes a landing waited on another lane. **The twenty-first pass, measured**: five journals waited on another lane's capture, some 205 minutes, 9.3 a landing — under the ten it returns at by 0.7, from 2.5. Not built. **The twenty-second pass, measured**: two journals, some 50 minutes on one capture, 2.3 a landing. Not built.
+returns at ten minutes a landing waited on another lane. **The twenty-first pass, measured**: five journals waited on another lane's capture, some 205 minutes, 9.3 a landing — under the ten it returns at by 0.7, from 2.5. Not built. **The twenty-second pass, measured**: two journals, some 50 minutes on one capture, 2.3 a landing. Not built. **The twenty-third pass, measured**: 0 minutes on another lane's capture in four journals, seven silent. Not built.
 
 ## Loop, filed 2026-09-29 — the twentieth tranche's
 
@@ -2647,20 +2632,20 @@ of the instrument: about eighty fields, from seventy-nine, with
 `coll_x`, `coll_y` and `job_counter` leaving and returning again. A row
 could say what is uncompared and on what condition, the window's history
 go to the journals, and the measure be the fields no window of any game
-has compared. One reach. **The twenty-first pass, the second and third reach**: `coverage.rs` was the merge conflict at four landings' `ccc update` (1228, 1241, 1243, 1260), the group-order row fell off the pin the moment no open window held a group move (1309), and a record parsed for presence alone counted as read (1273). The design: a row names a field and the condition it is uncompared under; the window history goes to the journals; the measure is the fields no window ever walked has compared — a monotone `EVER_COMPARED` per record that a landing only appends to, so two lanes conflict on one field or not at all, and the pin's count only falls. Not built by this pass; it is the next pass's build. **The twenty-second pass**: `coverage.rs` conflicted once, from four, and three journals met a comparison that compared nothing, from twelve; the design stands, and the build returns at three conflicts in a tranche.
+has compared. One reach. **The twenty-first pass, the second and third reach**: `coverage.rs` was the merge conflict at four landings' `ccc update` (1228, 1241, 1243, 1260), the group-order row fell off the pin the moment no open window held a group move (1309), and a record parsed for presence alone counted as read (1273). The design: a row names a field and the condition it is uncompared under; the window history goes to the journals; the measure is the fields no window ever walked has compared — a monotone `EVER_COMPARED` per record that a landing only appends to, so two lanes conflict on one field or not at all, and the pin's count only falls. Not built by this pass; it is the next pass's build. **The twenty-second pass**: `coverage.rs` conflicted once, from four, and three journals met a comparison that compared nothing, from twelve; the design stands, and the build returns at three conflicts in a tranche. **The twenty-third pass**: `coverage.rs` conflicted nowhere and one journal met a comparison that compared nothing; the build returns at three conflicts.
 
 (1259) **`stage_walk` does not say why a candidate was refused** (1254's
 Loop line): three of chapter forty-four's walks were placement guesses a
 one-line reason — `valid_target`'s seen test, `check_target`'s head, the
 radius — would have answered, and the lane built a scratch instrument to
-see the ship's first mark was unseen. One reach. **The twenty-first pass**: one reach; stays. **The twenty-second pass, the second reach** (1376): an issuer's `@attack` on a building its player has not seen is silently retargeted, and the stage walk says nothing of that either; the walk's silence on a refusal and on a retarget is one row. Builds on the third.
+see the ship's first mark was unseen. One reach. **The twenty-first pass**: one reach; stays. **The twenty-second pass, the second reach** (1376): an issuer's `@attack` on a building its player has not seen is silently retargeted, and the stage walk says nothing of that either; the walk's silence on a refusal and on a retarget is one row. Builds on the third. **The twenty-third pass**: no reach; stays one tranche.
 
 (1301) **A field carried in one slot for two offsets names no writer's
 offset** (1281's Loop line): `set_facing`'s extra `+0x58` write was
 found only because the value walked back to "ours wrote it". A helper
 listing every writer of a `Movement` field by the offset it models, or a
 doc comment naming each writer's offset where one slot serves two, would
-have named it without the walk. One reach. **The twenty-first pass**: one reach; stays. **The twenty-second pass, the second reach** (1362's Loop line): the writers of a field by the offset each models. Builds on the third.
+have named it without the walk. One reach. **The twenty-first pass**: one reach; stays. **The twenty-second pass, the second reach** (1362's Loop line): the writers of a field by the offset each models. Builds on the third. **The twenty-third pass**: no reach; stays one tranche.
 
 ## Loop, filed 2026-09-30 — the twenty-first tranche's
 
@@ -2709,7 +2694,7 @@ conflicted `ccc update` has no sanctioned path to a resolvable state,
 because the lane's own `git merge` is what the classifier denies. The
 unstick that needs no human is `ccc`'s — an `update` that leaves the
 conflicted merge in place for the lane to resolve, since `ccc` runs the
-merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's. **The same day, ccc built it** (branch `worktree-v2`, unreleased): `ccc update <ref> --keep-conflicts [--json]` — on conflicted files the worktree is left mid-merge with markers, every conflicted path printed, exit 3; a dirty tree is refused first with exit 1; a merge that fails without conflicted files still backs out; the lane resolves, `git add`s and `git commit`s, and the commit lands as a real merge with the base as its second parent (tested by ccc). The lanes' recorded base is `worktree-replan-pdb` (every `ccc update` merge of the tranche says so), so it merges the right thing. **Released as ccc 0.1.38 the same evening**, verified on the installed binary's help, and the `CLAUDE.md` clause is written. Closes at the next pass on the first conflicted update taken this way.
+merge outside the lane's classifier — and it is the user's tool. **The twenty-second pass**: no classifier answer met in twenty-two journals; one `ccc update` refused (1341, `second.rs`) and hand-merged. The merge half stays the user's. **The same day, ccc built it** (branch `worktree-v2`, unreleased): `ccc update <ref> --keep-conflicts [--json]` — on conflicted files the worktree is left mid-merge with markers, every conflicted path printed, exit 3; a dirty tree is refused first with exit 1; a merge that fails without conflicted files still backs out; the lane resolves, `git add`s and `git commit`s, and the commit lands as a real merge with the base as its second parent (tested by ccc). The lanes' recorded base is `worktree-replan-pdb` (every `ccc update` merge of the tranche says so), so it merges the right thing. **Released as ccc 0.1.38 the same evening**, verified on the installed binary's help, and the `CLAUDE.md` clause is written. Closes at the next pass on the first conflicted update taken this way. **The twenty-third pass**: no `--keep-conflicts` update reported; 1410 resolved one conflict at `ccc update` and did not say how. Closes at the next pass on the first taken, or on two tranches without one.
 
 (1316) **A landing gates twice** (the pass's own, `tools/tranche.py`):
 the gate's wait went 16.2 → 39.9 minutes a landing, and sixteen earlier
@@ -2718,63 +2703,14 @@ another lane's landing had moved: the compared pin three times, the
 blind list twice, a widening, the doors, `UNSCANNED_SEAMS`, a section
 ceiling. A lane gate that reported the cross-lane pins and left them to
 the booking gate would halve it; the risk is a lane's own break
-passing. Not built; returns with the next measure, beside 1225. **The twenty-second pass, measured**: the gate's wait 39.9 → 11.7 minutes a landing and the earlier reds sixteen → ten on nine landings, three of them `a_constant_a_document_names_is_built_or_pinned`; not built.
-
-(1325) **Two snaps under one name** (1310's Loop line): a cheat's age
-(`age`, `library`) snaps at the pump, before the units' step; an age a
-research finishes lands after it (`gain_tech`'s comment, run86), the
-kind 1281 measured on East Indies. A staging row for "an arm the snap
-reaches" says which it means. **The twenty-second pass**: one reach; a row when the frame has room.
-
-(1329) **`births.py` names a guy where a booking wants a type** (1302's
-Loop line): the booking said "eighteen Peltasts"; the block's births
-were three types (84, 179, 134) under the label `guy=`. A births line
-labelled `type`, printing the decoy bit (`unit_masks & 1`), would have
-named the event in one command. **The twenty-second pass**: one reach; stays.
-
-(1344) **A comparison of two index spaces** (1326's Loop line): a
-booking's `MAKE[k].city` row read as a parting for months while the
-harness compared ours' index against the dump's. A guard that names the
-unit of each side of a comparison would have caught it. **The twenty-second pass**: one reach; stays.
-
-(1349) **A re-pin tool** (1330's Loop line): 1330 re-pinned about 140
-pins with scratch scripts keyed on each pin's printed `got`/`want` — the
-third reach of that shape, a candidate for `tools/`. And 62 comments in
-`rondata::diff` still call the birth `form` a standing row: the pins
-were re-measured, the prose was not. **The twenty-second pass**: 1330's re-pin was 102 minutes on the suite, the tranche's longest single wait; the tool is `diff::testkit::pins`' report (973) with a `--write`, and it is the next pass's build if a landing re-pins by hand again.
-
-(1361) **No `RON_DEBUG_HITS`** (1350's Loop line): the brief's step 2,
-the arguments of the call a value parts through, was answered by a
-scratch `eprintln!` in `do_damage`; nothing prints `get_damage`'s inputs
-per melee blow (`RON_DEBUG_AMMO` covers rounds). A candidate for the
-harness on its third reach. **Again** (1358), the second reach: a
-Pikeman's blow on a site, 122 sixteenths against 133, read by hand. **The twenty-second pass**: two reaches; builds on the third.
+passing. Not built; returns with the next measure, beside 1225. **The twenty-second pass, measured**: the gate's wait 39.9 → 11.7 minutes a landing and the earlier reds sixteen → ten on nine landings, three of them `a_constant_a_document_names_is_built_or_pinned`; not built. **The twenty-third pass, measured**: one earlier red on the gates quoted, a waiter under load; the gate 5.3 minutes a landing where the class reader saw it (1421). Not built.
 
 (1364) **A capture beside a release test run dies before frame 0**
 (1351's Loop line): run544's first two takes both died on the documented
 `wow64cpu+0x1139` fault, each with a full `cargo test -p rondata` beside
 it; the third, on a quiet box, ran clean, and run416's first take was
 the same shape. Rule 1150 retakes once; a row could say a capture is
-taken on a quiet box. **The twenty-second pass, the third reach**: three dead takes in the tranche (1351's two on `wow64cpu+0x1139`, 1371's one on a Wine page fault), each beside a release suite, against none the tranche before. A capture rule, not a probe shape: the runner could print the `cargo test` processes it sees at launch beside the retake it already takes; stays with the count.
-
-(1369) **A cache's timing moves widenings and no word** (1354's Loop
-line): `mylos` refreshing a frame late moved nine widenings and no
-walk; run382's row 202 had stood one frame early since item 35. A row
-that sits one frame early across many windows is a rule waiting (1176's
-"three widenings make a rule"), and no instrument lists such rows. **The twenty-second pass**: one reach; stays.
-
-(1374) **A document's "inert in every capture" goes stale** (1365's
-Loop line): `docs/PRODUCTION.md` called the speed-upgrade counts inert on
-disk, false from 9782 of a capture booked a week later. A list of inert
-arms is a scan waiting to be written: each arm's predicate as a grep of
-the techs and nations the captures' players hold. **The twenty-second pass**: one reach; stays.
-
-(1382) **A field declared and never written reads as modelled**
-(1375's Loop line): a `combat::Side` field documented in its step and
-assigned by no non-test line looks exactly like a modelled one, and
-`seams.py` cannot see it, since nothing says "not modelled". A guard
-could list every field of such input structs that no non-test line
-assigns. **The twenty-second pass**: tried as a regex scan of `combat::Side` and not landed — it read eleven of twenty-three fields unwritten because a literal's `field: self…` matched the declaration's shape; the guard wants a scan that knows a struct literal from a declaration. One reach; stays.
+taken on a quiet box. **The twenty-second pass, the third reach**: three dead takes in the tranche (1351's two on `wow64cpu+0x1139`, 1371's one on a Wine page fault), each beside a release suite, against none the tranche before. A capture rule, not a probe shape: the runner could print the `cargo test` processes it sees at launch beside the retake it already takes; stays with the count. **The twenty-third pass**: no dead take in three captures; stays with the count.
 
 (1387) **A Tower read by identity where the original reads the line**
 (1377's Loop line): the second time (§99.10's `update_hits`, then
@@ -2782,7 +2718,7 @@ assigns. **The twenty-second pass**: tried as a regex scan of `combat::Side` and
 is a cheap checklist row — what is left in `sim` is exact by the
 listing. And the mutation script let a worker edit sources while it
 ran: it should refuse a dirty tree and check the tree is unchanged
-before each run. **The twenty-second pass**: the grep is a row when the frame has room; the runner is 1391. One reach; stays.
+before each run. **The twenty-second pass**: the grep is a row when the frame has room; the runner is 1391. One reach; stays. **The twenty-third pass**: no reach; the runner is built (1391). Stays one tranche.
 
 ## Loop, filed 2026-10-01 — the twenty-second tranche's
 
@@ -2853,81 +2789,50 @@ some seconds; the record follows within ~20 s, and that is not
 "dropped". **Released as ccc 0.1.38 (255) the same evening**, verified
 on the installed binary (`--status` prints the 02:43Z refusal as its
 `last:`), and the `CLAUDE.md` clause is written. Closes at the next
-pass on its read: whether a clear fired.
+pass on its read: whether a clear fired. **The twenty-third pass**: no clear was armed — the commander slept at its sixth landing and the user cleared it (1412) — so the read is not in. Stays one tranche.
 
 (1390) **The chain's remote delete missed once** (the pass's own):
 `origin/worktree-att-1379` stood merged on the remote at the pass, the
 one branch of twenty-two; 727 was the sweep and this pass swept it.
-One reach.
-
-(1391) **A mutation runner** (1387's second half, the pass's own):
-seventy-eight mutations in twenty-two landings, each a scratch
-"commit, mutate, run, restore, `touch`" script, and one let the worker
-edit sources while it ran. `tools/mutate.py <patch> -- <test command>`
-refuses a dirty tree, applies the patch, runs the command, restores
-from git whatever happens, `touch`es what it restored and refuses to
-report if the tree changed under it. The third reach of a shape the
-checklist spells in prose (784, 907); the next pass's build.
+One reach. **The twenty-third pass**: the remote held no merged lane branch. Stays one tranche.
 
 ## Loop, filed 2026-10-01 — the twenty-third tranche's
 
-(1397) **`seams.py --field` misses a struct literal's writers** (1380's
-Loop line): `--field total_time` printed "writers none" for a field this
-crate writes in four places, all by struct-literal initialisation; the
-search is by exact assignment. 1382's kin: both want a scan that knows
-a struct literal from a declaration. **The second reach** (1393's Loop
-line): `--field FleeTo` printed "writers none" for a `MoveKind` variant
-used in three places — a variant is not a field.
+**The twenty-third pass, 2026-10-01, ruled thirty-one**
+(`docs/audit/2026-10-01-fable-pass-23.md`, DECISIONS 59): **built
+four, each made to fail first** — `tools/mutate.py` (1391),
+`tools/repin.py` (1349, 1411), `seams.py`'s struct-literal writers,
+bare-name fallback and `--unwritten` (1397, 1382, 1400), and the
+frame's done line with the chain's idle subscription (1412, 1406) —
+**closed seven**: 1142 on its score, and 1325, 1329, 1344, 1361, 1369
+and 1374 on two tranches without a reach; 1119, 1138's second half,
+1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392,
+1402, 1409 and 1414 stay; 1421 is filed. The backlog is seventeen.
 
-(1406) **A Sonnet landing's done line quoted neither verdict line**
-(1403, the trial's own): "gate red only on your two lines", with no
-`Lane verdict:` or `Gate steps:` quoted and no verdict commit; the
-commander read them from the lane's `gate2.txt` (finished after the
-tip). The brief's Landing rows say both; a datum for the trial's score.
-One reach.
+(1421) **`tranche.py` reads a gap's class off the Bash text before
+it** (the pass's own): a gate run through a script in the job's tmp —
+the frame's own row for a command the guard refuses — folds into
+"other", and a lane idle after its landing folds into whatever ran
+last: six of eleven gates read as other or suite, and 1398's 334
+minutes waiting for a commander's reply read as the suite. Two
+classes to add: a script whose text names the gate, and a gap that
+ends at an inbound message. One reach.
 
 (1409) **A gate's "who may cast" lives in a callee's head** (1401's Loop
 line): `seams.py --field inside` named 25 writers and readers and none
 was the decoy bit, which `is_castable@00675bc0`'s head tests; `do_cast`'s
 own SEAM list named the wrong unmodelled arm. A field search cannot see
-a predicate on another field. One reach.
-
-(1411) **A one-line sim fix re-pins eight windows by hand** (1407's Loop
-line): run143's floor, run419-421, run480/490/506/523 and run572's keys
-all moved with one `transport.rs` edit, and the first slice-replace
-mangled `second.rs`. A re-pin helper that prints each failing pin's new
-value would save the edits. **The second reach** (1398's Loop line): a
-census-wide fix re-pinned about 85 pins by hand; a `repin` helper reading
-`Pins::hold`'s got/want would do it.
-
-(1412) **Three Sonnet landings sent no done line, and the commander slept
-3h40** (the trial's own, found 2026-10-01 after the user's `/clear`):
-1398 (05:03, unpushed, gate not re-run on its tip), 1404 and 1407 (06:15,
-pushed, gated) each wrote its landing in its own transcript and never
-called SendMessage — a deferred tool none of them loaded (0 ToolSearch
-calls); 1401, which did load it, reached the commander. The frame's
-"send me one line" names no tool. Nothing else wakes an idle commander:
-the remedy is the frame naming `ToolSearch("select:SendMessage")` and
-the commander spawning with an idle notice. One reach.
+a predicate on another field. One reach. **The twenty-third pass**: one reach; stays.
 
 (1414) **A new chapter's first walk panics with no word printed** (1404's
 Loop line): `GROUND_INEXACT`'s guard panics at drop on a chapter's first
 `stage_walk`, before the word is printed, so the pin has to be guessed (it was seven)
-before the first run. One reach.
-
-(1400) **A first parted field stood among a window's first block's
-standing keys** (1388's Loop line): run562's 119 standing keys on 10774
-held `1/2005`'s two `queue[].job_counter` rows, which `standing.py`
-lists and nobody reads by unit; a writer grep of `Muster::library_cities`
-(none outside tests) found the cause in a minute. Kin to 1382: a field
-nothing writes. **The second reach** (1398's Loop line): the standing 120
-rows of a window's first block held the cause again, `gather_stamp` and
-`known_rares`.
+before the first run. One reach. **The twenty-third pass**: one reach; stays.
 
 (1402) **A specification's pseudo-code label read as a place** (1383's
 Loop line): `docs/ORDERS.md` §4.4's "STEP_IF_MOVING" read as where the
 pause ticks, and the listing's jump target said otherwise; a label is
-a reading, the target's line the evidence. One reach.
+a reading, the target's line the evidence. One reach. **The twenty-third pass**: one reach; stays.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

@@ -350,9 +350,11 @@ had been broken by the landings that filed it.
 - **A first take that dies before frame 0 is taken again once** before
   anything is read into it (1150): run416's and run420's first takes
   faulted inside Wine within four seconds of the launch.
-- **A release node is read with the `get_position` sweep on a packet**
+- ~~**A release node is read with the `get_position` sweep on a packet**
   (1208): reached three times from one scratch file; the item that
-  reaches it next commits it under `tools/recomp/`.
+  reaches it next commits it under `tools/recomp/`.~~ Struck by the
+  twenty-third pass to pay for the done line's tool: one reach since the
+  twentieth pass, and the sweep is still the scratch file's.
 - **A script that stages nothing still exits `success: true`** (1170),
   and **a command to another player's units holds `be` across the pump**
   (1205): two of run422's three takes and run436's first were lost to
@@ -447,6 +449,42 @@ failures of its own, and struck the frame's own story to pay for them.
 - **The frame has a ceiling and may only fall** (1226, the pass's own):
   12,959 characters at the twentieth pass, 13,969 with this pass's rows,
   12,963 after the story left it and three one-reach rows stayed parked.
+
+## The brief checklist, from the twenty-third pass
+
+The first tranche on Sonnet 5.5 (DECISIONS 58, 59): eleven landings,
+every word moved or chapter opened as booked, and the lanes' silences
+were where the rows went. The pass added these and struck two rows to
+pay: the chapter-script row that item 1094's test already guards, and
+the release-node row below, one reach since the twentieth pass.
+
+- **The done line names its tool and its address** (1412, 1406): three
+  lanes wrote their landing in their own transcript and never loaded
+  `SendMessage` — a deferred tool, 0 `ToolSearch` calls in each — and
+  the commander slept three hours and thirty-four minutes until a
+  person asked; a fourth sent "red only on your two lines" with neither
+  `Lane verdict:` nor `Gate steps:` in it. The row reads
+  `ToolSearch("select:SendMessage")`, then `SendMessage` to
+  `attrition`, with the two lines quoted; and the chain subscribes to
+  each lane's idle at the spawn, so the notice ends the next sleep.
+- **A mutation runs through `tools/mutate.py`** (1391, with 784 and
+  907's prose): it refuses a dirty tree, a mutation that took nothing
+  and a tree that changed under the command — the mutated file itself
+  included — and its exit is the command's. Seventy-eight scratch
+  scripts in one tranche, one of which let the worker edit sources
+  while it ran.
+- **A re-pin runs through `tools/repin.py <cargo log> --write`** (1349,
+  1411): it rewrites every literal `want` the `N pins moved:` report
+  names and lists by hand the rest; 140, 8 and 85 pins were rewritten
+  by scratch script before it. The delta in the constant's comment and
+  the word's block in its widening stay yours (`CLAUDE.md`).
+- **`seams.py --field` knows a struct literal from a declaration, says
+  where a bare name occurs when it is no field, and `--unwritten
+  <Struct>` lists the fields no non-test line writes** (1397, 1382,
+  1400): four "writers none" on a cause in one tranche — two literals
+  spanning lines, a variant, a gate in a callee's head — 1409 stays —
+  and the standing rows of a window's first block held a field nothing
+  wrote, twice.
 
 ## How a second reading is run
 
