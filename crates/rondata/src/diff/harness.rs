@@ -11564,7 +11564,11 @@ pub(crate) mod tests {
         // **Item 718 took four (134 → 130)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        pin_eq!(past, 120, "the keys first parting after 12537");
+        // Item 1354 took 29 (120 → 91): the AI Citizens' `mylos` on 12563,
+        // ours 4 against 2 — the Militia line's term reaching the
+        // derivation a frame before the original's cache (`docs/VISION.md`
+        // §2).
+        pin_eq!(past, 91, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -11588,7 +11592,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (212/336 → 196/320): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (196, 320).
         // Item 1330 took 46 (188/312 → 142/264): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, firsts.len()), (142, 264), "the floor");
+        // Item 1354 took 29 (142/264 → 142/235): the Citizens' `mylos` on 12563, the cache (`docs/VISION.md` §2).
+        pin_eq!((under, firsts.len()), (142, 235), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11797,6 +11802,7 @@ pub(crate) mod tests {
         // Item 1115 took the caravan's four rows here ((348, 25, 373) → (344, 25, 369); `docs/CARAVAN.md` §11.3).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (320, 13, 333).
         // Item 1330 took 48 (312/13/325 → 264/8/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
         pin_eq!(
             (under, mid.len(), firsts.len()),
             // Item 718: six trained units' `orders_x`/`orders_y`; item 723
@@ -11814,7 +11820,7 @@ pub(crate) mod tests {
             // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
-            (264, 8, 272),
+            (235, 8, 243),
             "the floor"
         );
     }
@@ -11958,7 +11964,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (349/4/353 → 333/4/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (333, 4, 337).
         // Item 1330 took 53 (325/4/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, own.len(), firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, own.len(), firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -12090,7 +12097,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12242,7 +12250,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12398,7 +12407,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12523,7 +12533,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12672,7 +12683,8 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, mid, firsts.len()), (272, 0, 272), "the floor");
+        // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        pin_eq!((under, mid, firsts.len()), (243, 0, 243), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**

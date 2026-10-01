@@ -555,7 +555,10 @@ mod tests {
             "the make list's city stands"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 202.
-        pin_eq!(w.firsts.len(), 167, "every key parted on run471");
+        // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 167 → 144, the
+        // 23 Citizens' `mylos` of block 5544, ours 4 against 2 a frame
+        // ahead of the original's refresh.
+        pin_eq!(w.firsts.len(), 144, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item
@@ -1107,16 +1110,19 @@ mod tests {
                 (9447, 1),
                 (9512, 1),
                 (9513, 1),
-                (9533, 4),
                 (9574, 1)
             ],
             "the blocks keys first part on, the whole window"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 1802.
         // Item 1326 re-pinned on the tree merged with 1332's, the make list's `city` compared as the leader's own index: was 159.
+        // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 102 → 98, the
+        // four rows of block 9533 — the Explorer `1/0` ours 12 against 10
+        // and the Caravans `1/22`..`1/24` 7 against 6, ours a frame ahead
+        // of the original's refresh.
         pin_eq!(
             w.firsts.len(),
-            102,
+            98,
             "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
     }

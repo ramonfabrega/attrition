@@ -3021,6 +3021,12 @@ mod tests {
         // 26,433 → **26,701** with item 98 (the script's statics): `1/10`
         // is trained at last, and its 268 unit-frames are the difference.
         // The one disagreement is unmoved through all five.
+        //
+        // **Item 1354 closed it** (`docs/VISION.md` §2): the scout `1/0`
+        // was 6 against 4 on frame 202 — the Science epoch gained on 201
+        // reaching this crate's live derivation a frame before the
+        // original's `calc_unit_stats` refreshed its cache. `mylos` is the
+        // cache here now, refreshed at the next leader pass.
         let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
         assert_eq!(los_seen, 26_701, "every compared unit-frame carries mylos");
         let bad: Vec<LosDivergence> = report
@@ -3030,14 +3036,8 @@ mod tests {
             .collect();
         assert_eq!(
             bad,
-            vec![LosDivergence {
-                frame: 202,
-                who: 1,
-                o: 0,
-                ours: 6,
-                theirs: 4,
-            }],
-            "the scout's science level, one frame ahead of the original's cache"
+            Vec::<LosDivergence>::new(),
+            "every unit's line of sight, the cache refreshed where the original's is"
         );
 
         // **The collision block over the whole run** (`docs/COLLISION.md`
