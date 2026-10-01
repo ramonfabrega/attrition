@@ -4676,6 +4676,115 @@ mod tests {
         }
     }
 
+    /// An unpacked packer (`Profile::packs`, the bit clear) standing at
+    /// `(0x4000, 0x4000)`, with the pack's row in the craft table at
+    /// `JOB_TIME` 80 — `craftrules.xml`'s `0x28b`.
+    fn unpacked_packer(block_radius: i32) -> (Sim, usize) {
+        let (mut sim, _) = at_war();
+        sim.spells = vec![crate::orders::SpellType::default(); 55];
+        let row =
+            usize::try_from(crate::orders::spell::PACK - crate::orders::spell::FIRST).unwrap();
+        sim.spells[row].job_time = 80;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                uber_size: 1,
+                siege: true,
+                packs: true,
+                block_radius,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 1, ty, Pos::new(0x4000, 0x4000));
+        sim.units[me].combat.packed = false;
+        (sim, me)
+    }
+
+    /// **An unpacked packer told to march packs first** (`Unit::work@0060d180`'s
+    /// pack arm, `0060d600`, item 1370): the move stays under a `0x28b`
+    /// cast, and the bit goes up on the cast's eightieth frame with the
+    /// move at the head again. run544's Bombard `1/132` on 15868. Made to
+    /// fail with [`Sim::pack_before_move`] answering `Not`.
+    #[test]
+    fn an_unpacked_packer_told_to_march_packs_before_it_walks() {
+        use crate::orders::{Body, MoveKind, QueuePos, spell};
+        let (mut sim, me) = unpacked_packer(48);
+        let far = Pos::new(0x4000 + 20 * 192, 0x4000);
+        sim.add_move_order(me, far, MoveKind::AttackTo, QueuePos::New, true);
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Cast(c)) if c.spell == spell::PACK),
+            "no pack at the head: {:?}",
+            sim.units[me].orders
+        );
+        assert_eq!(sim.units[me].orders.len(), 2, "the march stays under it");
+        assert_eq!(sim.units[me].pos, Pos::new(0x4000, 0x4000), "it walked");
+        assert_eq!(sim.units[me].spell_time, 1, "the cast's first frame ran");
+        for _ in 1..80 {
+            assert!(!sim.units[me].combat.packed, "packed before the 80th frame");
+            let frame = sim.frame;
+            sim.work(me, frame);
+        }
+        assert!(sim.units[me].combat.packed, "cast_pack never set the bit");
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Move(m)) if m.kind == MoveKind::AttackTo),
+            "the march is not back at the head: {:?}",
+            sim.units[me].orders
+        );
+        // A packed packer is not the arm: the march runs.
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert!(
+            matches!(
+                sim.units[me].orders.front().map(|o| o.body),
+                Some(Body::Move(_))
+            ),
+            "a packed packer packed again"
+        );
+    }
+
+    /// The pack arm's other two (`0060d45d`–`0060d5fa`): a point in the
+    /// unit's own 48-unit cell kills the order and `work` ends; a sole
+    /// action move inside the type's `block_radius` is re-aimed at the
+    /// unit's own position and nothing is cast. Each made to fail by
+    /// swapping the arm's answer.
+    #[test]
+    fn an_unpacked_packer_s_short_move_dies_or_holds() {
+        use crate::orders::{Body, MoveKind, PackArm, QueuePos};
+        let (mut sim, me) = unpacked_packer(48);
+        sim.add_move_order(
+            me,
+            Pos::new(0x4000 + 20, 0x4000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            false,
+        );
+        assert_eq!(sim.pack_before_move(me), PackArm::Killed);
+        assert!(
+            sim.units[me].orders.is_empty(),
+            "the same cell: {:?}",
+            sim.units[me].orders
+        );
+
+        let (mut sim, me) = unpacked_packer(192);
+        let near = Pos::new(0x4000 + 100, 0x4000);
+        sim.add_move_order(me, near, MoveKind::MoveTo, QueuePos::New, true);
+        assert_eq!(sim.pack_before_move(me), PackArm::Held);
+        let front = sim.units[me].orders.front().map(|o| o.body);
+        assert!(
+            matches!(front, Some(Body::Move(m)) if m.dest == Pos::new(0x4000, 0x4000)),
+            "inside the block radius: {front:?}"
+        );
+        // Without the action bit the same short move is no hold: it packs.
+        let (mut sim, me) = unpacked_packer(192);
+        sim.add_move_order(me, near, MoveKind::MoveTo, QueuePos::New, false);
+        assert_eq!(sim.pack_before_move(me), PackArm::Packing);
+    }
+
     /// **A packed packer in range of its attack unpacks first**
     /// (`Unit::fight@005fd4d0:512`–`543`, item 1182): a human's packed
     /// catapult holding an attack on a building in range is given the

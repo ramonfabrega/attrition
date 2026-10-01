@@ -146,6 +146,11 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1370, 2026-09-30 — the Bombard's pack
+
+(1378) **The sixteen-frame review skipped under the pack arm** (1370's
+M3): held by no walk and no unit test.
+
 ## Parked by item 1365, 2026-09-30 — the training step
 
 (1372) **`train_time`'s ships' and vehicles' arms**: built, reached by
@@ -2781,7 +2786,9 @@ unit wrote, run `seams.py` on the writer's function by name — the same
 shape as 1337. **Again** (1338), the third reach in one
 tranche: the seam sat in the conversion's function, 254 frames before
 the word; a checklist row — `seams.py` on the writers of the first
-parted field, by name, every time, before any reading.
+parted field, by name, every time, before any reading. **Again** (1370), the
+fourth reach: the parted field's readers (`work`, `add_cast_order`)
+named the two seams that were the answer.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the

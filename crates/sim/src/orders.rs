@@ -300,6 +300,21 @@ pub mod flag {
     pub const FIRED: u8 = 0x80;
 }
 
+/// Which arm of `Unit::work`'s pack test a unit took
+/// ([`Sim::pack_before_move`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum PackArm {
+    /// Not an unpacked packer under a move: the sixteen-frame review runs.
+    Not,
+    /// Arm 1, the point inside the block radius: the move is re-aimed at
+    /// the unit's own position and runs.
+    Held,
+    /// Arm 2, already in the point's cell: the order died and `work` ends.
+    Killed,
+    /// Arm 3: a pack cast went on top, and it is what the dispatch runs.
+    Packing,
+}
+
 /// What `find_melee_target`'s squad head answers ([`Sim::melee_squad_head`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SquadHead {
@@ -2141,8 +2156,10 @@ impl Sim {
     /// (`docs/ORDERS.md` §6.8).
     ///
     /// The machine gun's arm (`is(0x7b, 0)` → `0x28e`) is modelled for
-    /// the unpack, which `think_attack`'s packed arm reaches. SEAM: the
-    /// pack rewrite (`0x28b` → `0x28d`/`0x28f`/`0x291`) has no caller.
+    /// the unpack, which `think_attack`'s packed arm reaches. ~~SEAM: the
+    /// pack rewrite (`0x28b` → `0x28d`/`0x28f`/`0x291`) has no caller.~~
+    /// `Unit::work`'s pack arm reaches it since item 1370
+    /// ([`Self::pack_before_move`]).
     pub fn add_cast_order(&mut self, u: usize, spell: i32) {
         self.add_cast_order_at(u, spell, QueuePos::First);
     }
@@ -2156,9 +2173,20 @@ impl Sim {
         // original's own order: the machine-gun lineage (`is(0x7b, 0)`)
         // first, then the three **exact** merchant ids, then the
         // `FISHERMEN` lineage. The machine gun's unpack is reached by
-        // `think_attack`'s packed arm ([`Self::think_attack_packed`]);
-        // no caller here issues a pack (`0x28b`) at all.
-        let id = if spell != crate::fish::UNPACK {
+        // `think_attack`'s packed arm ([`Self::think_attack_packed`]),
+        // and the pack (`0x28b`) by `Unit::work`'s pack arm
+        // ([`Self::pack_before_move`]), which the same three tests re-aim.
+        let id = if spell == spell::PACK {
+            if self.unit_line_is(u, MACHINEGUN) {
+                spell::PACK_MACHINEGUN
+            } else if self.is_merchant(u) {
+                spell::PACK_MERCHANT
+            } else if self.unit_line_is(u, crate::fish::FISHERMEN) {
+                spell::PACK_FISHERMEN
+            } else {
+                spell
+            }
+        } else if spell != crate::fish::UNPACK {
             spell
         } else if self.unit_line_is(u, MACHINEGUN) {
             spell::UNPACK_MACHINEGUN
@@ -2388,7 +2416,13 @@ impl Sim {
         // `Unit::work@0060d180:440` — **the chase's sixteen-frame review**,
         // and it sits above the dispatch, so a chase it ends is answered by
         // the order underneath in the *same* frame (`docs/COMBAT.md` §36).
-        self.check_target_path_review(u, frame);
+        // An unpacked packer under a move takes the pack arm in its place
+        // (`0060d440`, `docs/ORDERS.md` §6.9.2).
+        match self.pack_before_move(u) {
+            PackArm::Not => self.check_target_path_review(u, frame),
+            PackArm::Killed => return,
+            PackArm::Held | PackArm::Packing => {}
+        }
         // `Unit::work@0060d180:283-313`, after the review and before the
         // dispatch: an action that is an `ATTACK` with a target marks the
         // attacker's squad in danger, and the target's when it is a unit.
@@ -2766,6 +2800,84 @@ impl Sim {
         }
     }
 
+    /// **The pack arm** of `Unit::work@0060d180` (`0060d440`–`0060d626`,
+    /// `docs/ORDERS.md` §6.9.2): a type that packs (`+0x2b8 & 4`,
+    /// [`crate::combat::Profile::packs`]) standing **unpacked** under a
+    /// move-family head order does not take the sixteen-frame review. It
+    /// takes one of three arms instead, in this order:
+    ///
+    /// 1. **Held** — the head carries the action bit, it is the only order
+    ///    (`+0xd8 length == 1`), and its point is inside the type's
+    ///    `block_radius` (`+0x240`) by `vector_dist`: the order's point,
+    ///    waypoint and `last` become the unit's own position and its
+    ///    `tolerance` 0 (`get_move_order`, vslot `+0x40`); and when the
+    ///    order is pathed with a path standing, the stack is popped down to
+    ///    its first `FINAL` leg, which is popped too and replaced by the
+    ///    unit's own position carrying that leg's tolerance and flags. The
+    ///    move then runs as usual.
+    /// 2. **Killed** — the unit stands in the order point's 48-unit cell
+    ///    (`div_3_table[x >> 4]`, both axes): `kill_current_order(0)`, and
+    ///    `work` returns there.
+    /// 3. **Packing** — `add_cast_order(PACK, QUEUE_FIRST, 0)`, then the
+    ///    head is read again (`update_order`), so the cast's first frame
+    ///    is this frame's dispatch.
+    ///
+    /// run544's Bombard `1/132` (type 267) is arm 3: its army's march to
+    /// (7224, 4200) reaches it on 15868 standing deployed at (42031,
+    /// 40399), and block 15869 holds a `CASTORDER` `spell 651` over the
+    /// `GROUPATTACKTOORDER`, `cur_anim 23` (`CHAR_PACK`) for 80 frames.
+    ///
+    /// SEAM: the order's `tolerance` (`MoveOrder +0x14`), which arm 1
+    /// zeroes, is not a field this crate's move carries.
+    pub(crate) fn pack_before_move(&mut self, u: usize) -> PackArm {
+        let Some(&head) = self.current_order(u) else {
+            return PackArm::Not;
+        };
+        let Body::Move(m) = head.body else {
+            return PackArm::Not;
+        };
+        let packs = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs);
+        if !packs || self.units[u].combat.packed {
+            return PackArm::Not;
+        }
+        let at = self.units[u].pos;
+        if head.has(flag::ACTION)
+            && self.units[u].orders.len() == 1
+            && crate::world::vector_dist((at.x - m.dest.x).abs(), (at.y - m.dest.y).abs())
+                < self.profile(Obj::Unit(u)).block_radius
+        {
+            if let Some(front) = self.units[u].orders.front_mut()
+                && let Some(mo) = front.move_mut()
+            {
+                mo.dest = at;
+                mo.waypoint = at;
+                mo.last = Some(at);
+            }
+            if head.has(flag::PATHED) && !self.units[u].path.is_empty() {
+                let path = &mut self.units[u].path;
+                while let Some(top) = path.pop() {
+                    if top.flags & path_flag::FINAL != 0 {
+                        path.push(PathData {
+                            to: at,
+                            tolerance: top.tolerance,
+                            flags: top.flags,
+                        });
+                        break;
+                    }
+                }
+            }
+            return PackArm::Held;
+        }
+        if crate::collide::ucell(at) == crate::collide::ucell(m.dest) {
+            self.kill_current_order(u);
+            return PackArm::Killed;
+        }
+        self.add_cast_order(u, spell::PACK);
+        PackArm::Packing
+    }
+
     /// `Unit::work@0060d180:440`'s gate on [`Self::check_target_path`] —
     /// **one frame in sixteen, phased by `o`** (`docs/COMBAT.md` §36).
     ///
@@ -2785,9 +2897,11 @@ impl Sim {
     /// re-read, so `do_guard` answers on the same frame with a fresh post
     /// (`docs/ORDERS.md` §24). Off that phase it does nothing.
     ///
-    /// SEAM — the guard above it that no capture has reached:
+    /// ~~SEAM — the guard above it that no capture has reached:
     /// `ptype +0x2b8 & 4` with `unit_masks & 0x80000` (the packable
-    /// lineage, which takes an `add_cast_order` branch instead).
+    /// lineage, which takes an `add_cast_order` branch instead).~~ Built
+    /// as [`Self::pack_before_move`] (item 1370): run544's Bombard `1/132`
+    /// packs under its army's march on 15868.
     ///
     /// SEAM — the head-order conjunct `head->vt+0x2c() == 0 ||
     /// head->vt+0x94()` names *me*: a group move's head is reviewed only

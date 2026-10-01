@@ -863,6 +863,11 @@ impl Sim {
             // unit that is still packed.
             self.cast_unpack(u);
         }
+        if spell::is_pack(s) && !self.units[u].combat.packed {
+            // …and its `0x28b`/`0x28d`/`0x28f`/`0x291` mirror: a map unit
+            // that is still unpacked (`00675bc0`, item 1370).
+            self.cast_pack(u);
+        }
         // The untargeted crafts of chapter thirty-nine, behind the same
         // `is_castable(o, who, 1) == 3` (`docs/GOLDEN.md` §48).
         // …and the General's Forced March (`cast_march`, `docs/AI.md`
@@ -948,6 +953,40 @@ impl Sim {
         self.update_los(u);
         self.update_seen(u, false);
         self.update_gpiece(u);
+    }
+
+    /// `SpellType::cast_pack(o, who)@00670be0` — `cast_unpack`'s mirror,
+    /// what `Unit::work`'s pack arm casts ([`Sim::pack_before_move`],
+    /// `docs/ORDERS.md` §6.9.2).
+    ///
+    /// For a unit alive and on the map: the merchant arm first — the four
+    /// tiles under a trader are **released**, `set_blocked_at(…, 0)` in
+    /// `cast_unpack`'s own order, and the leader's `0x2000000` goes up —
+    /// then `unit_masks |= 0x80000`, `update_los` (`+0x160`), which takes
+    /// the packed four-tile clamp, `update_seen(0)` (`+0x174`),
+    /// `update_gpiece`, and `set_new_location` on the unit's own position.
+    /// run544's Bombard `1/132` finishes its pack on 15947: block 15948
+    /// prints the bit and `mylos 4`, where it stood at 14 through the
+    /// whole cast.
+    ///
+    /// SEAMS: `MiscAccess::options->rebuild = 1` and `UnitData::
+    /// announce_frame = −1` (`+0x14c`), which feed the interface and no
+    /// record here.
+    pub(crate) fn cast_pack(&mut self, u: usize) {
+        if !self.units[u].alive() || !self.units[u].on_map {
+            return;
+        }
+        if self.is_merchant(u) {
+            self.merchant_footprint(u, false);
+            let who = self.units[u].owner;
+            self.economy_changed(who);
+        }
+        self.units[u].combat.packed = true;
+        self.update_los(u);
+        self.update_seen(u, false);
+        self.update_gpiece(u);
+        let at = self.units[u].pos;
+        self.set_new_location(u, at, true);
     }
 
     /// **A deployed merchant's four tiles** — the two-by-two whose

@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, seventeen landings since the twenty-first
+*2026-09-30, eighteen landings since the twenty-first
 Fable pass (the pass commit `d4aeabbe`, DECISIONS 57). East Indies 11637 →
-15883 (1302, 1326, 1341, 1351, 1362), Great Sahara at Toughest 8856 → 10391 (1305,
+15985 (1302, 1326, 1341, 1351, 1362, 1370), Great Sahara at Toughest 8856 → 10391 (1305,
 1318, 1332, 1338, 1346, 1354, 1365), chapter forty-seven opened at 712 and closed at 1400
 (1310, 1323, 1330, 1350); chapter forty-eight opens at 1450 (1358). Every booking gate green; one went to origin red
 before its exit was read (Loop 1345), fixed by `5098706e`.*
 
-- **Lanes live: 1370, 1371, 1375**, one to a word, each cut off a
+- **Lanes live: 1371, 1375, 1377**, one to a word, each cut off a
   booking commit; `ccc clear --then` was consumed unfired twice more.
 - **Three Loop items share one shape** (1337, 1340 with three reaches,
   1318/1332/1338): the answer was a seam on the first parted field's
@@ -30,13 +30,13 @@ before its exit was read (Loop 1345), fixed by `5098706e`.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w15883 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w15985 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w10391 of 15,432
 Golden: ch48 w1450 of 1,751 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1370, 1371 and 1375;
-merge each landing and refill its lane; the count is at seventeen.**
+**Opener: the commander, on Opus — lanes live on 1371, 1375 and 1377;
+merge each landing and refill its lane; the count is at eighteen.**
 
 ## The queue
 
@@ -46,12 +46,11 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1370. **East Indies' seventh word: frame 15883, ours 11 draws against
-    8** (1362), at index 5: ours spends three more `1/132`'s
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original goes
-    on to `Farms::inc_time+0x1ae` (seed `34d7c105`); inside run544
-    (block 15884): army 0's group 71 parts first on 15869 (`order
-    group.id`, `speed` 23 against 25). No mechanism is named.
+1377. **East Indies' eighth word: frame 15985, ours 50 draws against
+    49** (1370), at index 46: ours spends `1/88`'s `Guy::set_anim+0x97a
+    < Unit::move_step+0x823`, the original `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` (seed `732a71ea`); inside run544 (block 15986).
+    No mechanism is named.
 
 1371. **Great Sahara at Toughest's word: frame 10391, ours 6 draws
     against 7** (1365), at index 0: the original spends

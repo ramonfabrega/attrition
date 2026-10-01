@@ -179,7 +179,8 @@ pub(crate) fn walk_second_probed(
 /// it to 12582, and the walk to run508; item 1326 moved it to 13385, and
 /// the walk to run523; item 1341 moved it to 14141, and the walk to
 /// run535; item 1351 moved it to 15862, and the walk to run544; item 1362
-/// moved it to 15883, inside it. `None`
+/// moved it to 15883, inside it; item 1370 moved it to 15985, inside it.
+/// `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -2284,8 +2285,18 @@ mod tests {
         // original's fifteen slots and ours none, `ox` 0 against −1) beside
         // group 65's `held` [158, 159, 160] ours alone stand as they did.
         // Army 0's group 71 parts on 15869 — every member's order
-        // `group.id` — and on 15882 `1/132`'s figures, ahead of the new
-        // word 15883 (block 15884, where nothing new parts).
+        // `group.id` — and on 15882 `1/132`'s figures, ahead of the word
+        // 15883 (block 15884). **Item 1370 builds the pack before a march**
+        // (`Unit::work`'s pack arm, `docs/ORDERS.md` §6.9.2): the Bombard
+        // `1/132` stands deployed when army 0's march reaches it on 15868,
+        // and the original packs it for 80 frames first. Group 71's `speed`
+        // (23 against 25) and every `1/132` row leave; 15869 keeps the 47
+        // `group.id` rows, the declared stand-in that does not score. Who=1's
+        // `caras` on 15924 (ours 3, theirs 2) and `MAKE[1].val` on the new
+        // word's frame 15985 stood before the item and stand; the word's
+        // own block 15986 parts on 47 keys: `1/2047` placed at (35904,
+        // 25728) against (39744, 21888), and `1/88` and `1/122` each on the
+        // other's order.
         let row = |who: i64, o: i64, what: &str| {
             w.firsts
                 .get(&(who, o, what.to_string()))
@@ -2303,8 +2314,18 @@ mod tests {
         );
         pin_eq!(
             row(1, 132, "pos").as_deref(),
-            Some("15882: ours (42029,40414) theirs (42031,40399)"),
-            "the new word's unit, a block before it"
+            None,
+            "the Bombard's pack agrees to the window's end (item 1370)"
+        );
+        pin_eq!(
+            row(1, -3, "group:71.speed").as_deref(),
+            None,
+            "the march's speed agrees: the packing Bombard reports none"
+        );
+        pin_eq!(
+            row(1, 2047, "build:x_internal").as_deref(),
+            Some("15986: ours 35904 theirs 39744"),
+            "the new word's block: who=1's site placed elsewhere"
         );
         pin_eq!(
             by.iter()
@@ -2314,14 +2335,15 @@ mod tests {
             [
                 (15857, 140),
                 (15859, 49),
-                (15869, 82),
-                (15882, 30),
-                (15883, 1)
+                (15869, 47),
+                (15924, 1),
+                (15985, 1),
+                (15986, 47)
             ],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1362, the escort: 1386 → 1380.
-        pin_eq!(w.firsts.len(), 1380, "every key parted on run544");
+        // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
+        pin_eq!(w.firsts.len(), 982, "every key parted on run544");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
