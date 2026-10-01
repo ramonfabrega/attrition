@@ -2655,7 +2655,10 @@ mod tests {
         b.ty = Some(ty);
         let b = sim.add_unit(b);
         sim.coll_add(b);
-        assert!(sim.coll.get(78, 70), "the birth disc stands on the land tile");
+        assert!(
+            sim.coll.get(78, 70),
+            "the birth disc stands on the land tile"
+        );
         assert!(!sim.coll.get(65, 70), "and does not reach the west");
         sim.coll_move(b, from, to);
         assert!(!sim.coll.get(78, 70), "the old disc's far edge is cleared");
