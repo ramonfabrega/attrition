@@ -4158,17 +4158,32 @@ blind list 141 unmoved; the loop idle 92 minutes before the pass.
 
 **What it means.**
 
-1. **The model stays, on all three lanes, with the kill rules.** On the
+1. ~~**The model stays, on all three lanes, with the kill rules.** On the
    two lanes whose regions are comparable it was cheaper a frame by
    two and a half times and faster a landing; on the third the
    tranche's own number read ten times worse and the region's number
    read four times better. A landing costs a third and the lane's
    working minutes halve; what it costs is a thinner record and a
-   landing that does not announce itself, and both are rows now. The
-   kill rules stand as written in `CLAUDE.md`: a mechanism the floor
-   did not catch returns that lane to Opus; three attempts on one word
-   get an Opus successor. Each pass scores every lane in USD a frame
-   against the tranche before, in the same region where it can.
+   landing that does not announce itself, and both are rows now.~~
+   **Withdrawn the same afternoon, with Ramon.** Two things the pass
+   had not weighed: **the trial was confounded** — every Sonnet request
+   ran at effort `medium` where every Opus worker before ran at `high`
+   (the transcripts' own `effort` field; the spawn line set none, and
+   the harness gives the two models different defaults), so two
+   settings moved where entry 58(c) said one; and **on the purpose the
+   user opened it for — a loop that runs without a person — the trial
+   failed**: three lanes landed to nobody and the commander slept
+   until he asked. USD a frame was the paper's criterion, not his. The
+   pass also **spawned**, which no pass had ever done — every earlier
+   pass found the lanes drained and wrote the opener for the
+   commander — and **ratified** what only the user decides. So: **the
+   workers return to Opus 5.5 at effort high; one lane runs Sonnet
+   5.5 with `--effort high` set explicitly**, the unconfounded second
+   tranche of the trial, scored first on whether the commander ever
+   waited on a person and second in USD a frame, and **decided by the
+   user at the pass, never ratified by it**. The three Sonnet-medium
+   lanes the pass put out land as data, not precedent. The kill rules
+   stand as written in `CLAUDE.md`. **The pass never spawns.**
 2. **A spawn is followed by an idle subscription.** A done line is the
    lane's, and three lanes of eleven sent none; nothing else wakes an
    idle commander, and a person did, three and a half hours on. The

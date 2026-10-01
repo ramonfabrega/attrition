@@ -13,19 +13,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-01, **the twenty-third steering pass is in** (DECISIONS 59):
-the Sonnet trial scored and **the model stays on all three lanes, with
-the kill rules** — eleven landings at 5.13 USD against 13.65, Toughest
-350 frames a landing, two chapters closed in five, East Indies 60 a
-landing where the Opus lane's last three ran 49. The excess was a
-commander asleep 3h34 after three lanes never loaded `SendMessage`
-(1412): the frame names the tool, and **a spawn is followed by an idle
-subscription** (`CLAUDE.md`). Built: `tools/mutate.py` (1391),
-`tools/repin.py` (1349, 1411), `seams.py --unwritten` (1397). No score moved.*
+the Sonnet trial read cheap — 5.13 USD a landing against 13.65 — **and
+is withdrawn as a decision**: it ran at effort `medium` against Opus's
+`high`, and it failed on its purpose, three lanes landing to nobody and
+the commander asleep 3h34 (1412); the frame names the tool now and **a
+spawn is followed by an idle subscription**. The pass spawned, which no
+pass does. Built: `tools/mutate.py`, `tools/repin.py`, `seams.py
+--unwritten` (1391, 1349, 1411, 1397). No score moved.*
 
-- **Three lanes live on Sonnet 5.5**: 1418 (East Indies), 1416 (Toughest,
-  owing run574) and 1419 (chapter fifty), spawned at the pass's end.
-- **The commander counts landings from this pass's commit** and stops
-  at twenty; the clear at the seam after the tenth, armed last.
+- **Three lanes live on Sonnet 5.5 at medium** — 1418 (East Indies),
+  1416 (Toughest, owing run574), 1419 (chapter fifty) — the pass's, to
+  land as data; their done lines and idle notices reach this job.
+- **At each refill: `--effort high`, Opus 5.5 — except the third map's
+  lane, Sonnet 5.5**; count landings from this pass's commit, stop at twenty.
 - **East Indies closes at 18,140**: that booking books the third pair's
   first capture too (DECISIONS 56 §1, nation moved); no pass is waited on.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
@@ -38,9 +38,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11882 of 15,432
 Golden: ch50 w819 of 1,099 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — three lanes live on Sonnet 5.5;
-merge, book, refill, subscribe to each lane's idle; the twenty-fourth
-pass at twenty landings from the twenty-third's commit.**
+**Opener: the commander, on Opus — merge the three lanes in flight as
+they land; refill with `--effort high`, Opus on two lanes and Sonnet
+on the third map's, an idle subscription after each spawn; stop at
+twenty landings from the twenty-third pass's commit.**
 
 ## The queue
 

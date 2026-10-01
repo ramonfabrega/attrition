@@ -415,17 +415,22 @@ loop's own items** — tooling, guards, the queue's rules — which live in
 `docs/PARKED.md`'s Loop section and are never spawned to a worker; **a
 Loop item that two tranches running did not reach closes at the pass**,
 its text kept in the pass's record, and its next reach files it again
-(`docs/DECISIONS.md` entry 54). It writes the next opener. Never Sonnet
-on a reading or an adjudication; **the workers run Sonnet 5.5 since
-the twenty-third tranche** (`ccc spawn --model claude-sonnet-5-5[1m]`,
-the model verified from each worker's transcript; DECISIONS 58 and 59,
-parked 1142) — the commander stays Opus, the frame and the gates are
-the control, and the two kill rules stand: a landing whose mechanism
-the floor did not catch (a red booking gate on its merge) returns that
+(`docs/DECISIONS.md` entry 54). It writes the next opener for the
+commander, and **the pass never spawns** — one did, on an opener that
+said "refill", and ratified a trial only the user decides (DECISIONS
+59). Never Sonnet on a reading or an adjudication; **the workers run
+Opus 5.5 at effort high** (`ccc spawn --model 'claude-opus-5-5[1m]'
+--effort high`, the model and effort verified from each worker's
+transcript — the harness's defaults differ by model, and a trial once
+moved two settings for one), and **one lane runs Sonnet 5.5 with
+`--effort high`** as the trial's second tranche (DECISIONS 58, 59,
+parked 1142): the commander stays Opus, the frame and the gates are
+the control, the two kill rules stand — a landing whose mechanism the
+floor did not catch (a red booking gate on its merge) returns that
 lane to Opus, and a lane that lands nothing in three attempts on one
-word gets an Opus successor on that word; each pass scores every lane
-in USD a frame against the tranche before. The model is said in
-user-visible text each time. **A commit's trailer names the model the worker's own system prompt
+word gets an Opus successor — and the pass scores it first on whether
+the commander ever waited on a person, then in USD a frame, and the
+user decides. The model is said in user-visible text each time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row

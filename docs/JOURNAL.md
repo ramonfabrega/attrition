@@ -21022,7 +21022,14 @@ landed to nobody** — the frame's done line names the tool and the
 address now, and the chain subscribes to each lane's idle at the
 spawn. Two lean subagents, Opus and Sonnet, wrote the pass's journal
 table from one brief: Sonnet missed ten quotes of 275 cells and took a
-third of the time. **The model stays, with the kill rules.** Built,
+third of the time. ~~**The model stays, with the kill rules.**~~
+**Withdrawn the same afternoon, with Ramon**: the trial ran at effort
+`medium` against Opus's `high` — two settings moved for one — and it
+failed on its purpose, a loop that runs without a person; the pass
+also spawned three Sonnet lanes, which no pass does, and ratified what
+only the user decides. The workers return to Opus-high; one lane runs
+Sonnet `--effort high` as the unconfounded second tranche, decided by
+the user at the next pass; the pass never spawns. Built,
 each made to fail first: `tools/mutate.py` (1391), `tools/repin.py`
 (1349, 1411), and `seams.py`'s literal-aware field scan with
 `--unwritten` (1397, 1382, 1400), after four "writers none" on a cause
