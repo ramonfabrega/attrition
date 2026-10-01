@@ -15,7 +15,7 @@ use crate::cost;
 use crate::economy::RESOURCES;
 use crate::place::Blocked;
 use crate::territory;
-use crate::world::{Owner, Pos, UNITS_PER_TILE, tile, vector_dist};
+use crate::world::{Pos, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Building, Player, Sim};
 
 /// The nation, wonder and tech inputs this mechanic reads per player — the
@@ -2173,9 +2173,7 @@ impl Sim {
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0
             && !self.nation[who as usize].disable_building_attrition
-            && let Owner::Player(t) = self.world.owner_at(self.buildings[b].pos)
-            && t != who
-            && !self.is_ally(who, t)
+            && self.in_unfriendly_territory(b)
         {
             if !self.buildings[b].started {
                 self.disband_building(b, false);

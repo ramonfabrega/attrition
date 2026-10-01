@@ -2193,10 +2193,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter forty-eight, on run551** (item 1358): 683, the site's
     // first hit on who=0's land; 935, the squad's first blow on it (the
     // chapter's first parting); 983, the blow whose sixteenths carry; 1094,
-    // the first bomb; 1451, the word's block.
+    // the first bomb; 1451, the Tower's first shot (item 1375's
+    // walk-back); 1482, the word's block (item 1375).
     if let Some(p) = &ch48 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_EIGHT;
-        for w in [683, 935, 983, 1094, 1451] {
+        for w in [683, 935, 983, 1094, 1451, 1482] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-eight carries the window's five blocks");
             frames += n;

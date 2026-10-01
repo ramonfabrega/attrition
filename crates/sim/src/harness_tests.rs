@@ -2900,6 +2900,81 @@ fn a_site_holds_half_its_armour() {
     assert_eq!(dealt, vec![7, 10], "the finished tower, then the site");
 }
 
+/// **A building in unfriendly territory holds no armour** (item 1375,
+/// `docs/COMBAT.md` §6 step 18): `get_damage` asks the target's vslot
+/// `+0x184`, `WallData::in_unfriendly_territory@0063eca0` — the cell
+/// under it owned by a player who is not its owner and not allied both
+/// ways — and zeroes the armour, quadrupling the blow only when the
+/// building has no attack. A Hoplite's 12 on a site of armour 5 and attack
+/// 12: 10 on its owner's ground, 12 on the attacker's, 10 again once the
+/// two are allied both ways; with no attack, `(480 + 5) / 10` = 48.
+#[test]
+fn a_building_on_unfriendly_ground_holds_no_armour() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        armor: 5,
+        attack: 12,
+        x_size: 1,
+        y_size: 1,
+        big_radius: 96,
+        ..combat::Profile::default()
+    });
+    sim.buildings[tower].hits = 4000;
+    sim.buildings[tower].health = 4000;
+    sim.buildings[tower].active = false;
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 192, 1000),
+        movement::Angle::WEST,
+    );
+    let (at, site) = (Obj::Unit(b), Obj::Building(tower));
+    let cell = sim.buildings[tower].pos.cell();
+    // A site's hits follow its progress, so each blow starts it whole.
+    let blow = |sim: &mut Sim, frame: i64| {
+        sim.buildings[tower].damage = 0;
+        sim.buildings[tower].health = 4000;
+        sim.do_damage(
+            at,
+            site,
+            movement::Angle::WEST,
+            false,
+            0x100,
+            false,
+            true,
+            frame,
+        );
+    };
+    sim.world.set_owner(cell, Owner::Player(0), Owner::None);
+    assert!(!sim.in_unfriendly_territory(tower));
+    blow(&mut sim, 1);
+    sim.world.set_owner(cell, Owner::Player(1), Owner::None);
+    assert!(sim.in_unfriendly_territory(tower));
+    blow(&mut sim, 2);
+    sim.allied[0][1] = true;
+    assert!(
+        sim.in_unfriendly_territory(tower),
+        "allied one way is not enough"
+    );
+    sim.allied[1][0] = true;
+    assert!(!sim.in_unfriendly_territory(tower));
+    blow(&mut sim, 3);
+    sim.allied[0][1] = false;
+    sim.allied[1][0] = false;
+    sim.buildings[tower].combat.as_mut().unwrap().attack = 0;
+    blow(&mut sim, 4);
+    let dealt: Vec<i32> = sim
+        .hits
+        .iter()
+        .filter(|h| h.target == site)
+        .map(|h| h.damage)
+        .collect();
+    assert_eq!(dealt, vec![10, 12, 10, 48]);
+}
+
 /// **A site loses the points a blow took, carry and all** (item 1350,
 /// `Object::take_damage@00652020`): the listing rewrites the blow's whole
 /// hits as `whole + (frac + hit.frac) / 16` at `0065230b`, and the
