@@ -180,7 +180,8 @@ pub(crate) fn walk_second_probed(
 /// the walk to run523; item 1341 moved it to 14141, and the walk to
 /// run535; item 1351 moved it to 15862, and the walk to run544; item 1362
 /// moved it to 15883, inside it; item 1370 moved it to 15985, inside it;
-/// item 1377 moved it to 16009, inside it.
+/// item 1377 moved it to 16009, inside it; item 1383 moved it to 16160,
+/// and the walk to run572.
 /// `None`
 /// when the captures are
 /// not on this machine.
@@ -193,7 +194,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run544-islands-toughest-15862.txt",
+        "gamelog-run572-islands-toughest-16160.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2256,7 +2257,7 @@ mod tests {
             "run544",
             "gamelog-run544-islands-toughest-15862.txt",
             WIDENING_SECOND_EAST_INDIES_15862,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            &[16_010],
             true,
             true,
         ) else {
@@ -2333,6 +2334,11 @@ mod tests {
             "the march's speed agrees: the packing Bombard reports none"
         );
         pin_eq!(
+            row(1, 153, "order:move.pause").as_deref(),
+            None,
+            "the wagon's re-plan steps past the pause check (item 1383)"
+        );
+        pin_eq!(
             row(1, 2047, "build:x_internal").as_deref(),
             None,
             "the Keep's site on (51, 28) agrees: the Tower line (item 1377)"
@@ -2349,7 +2355,7 @@ mod tests {
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .filter(|(b, _)| **b <= 16_010)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
@@ -2358,14 +2364,71 @@ mod tests {
                 (15869, 47),
                 (15924, 1),
                 (15985, 1),
-                (16001, 1),
-                (16010, 23)
+                (16001, 1)
             ],
             "the blocks keys first part on, to the word's"
         );
         // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
         // Item 1377, the Keep's site: 982 → 662.
-        pin_eq!(w.firsts.len(), 662, "every key parted on run544");
+        // Item 1383, the re-plan's step past the pause: 662 → 243.
+        pin_eq!(w.firsts.len(), 243, "every key parted on run544");
+    }
+
+    /// **run572 — the second pair's East Indies word 16160, widened whole**
+    /// (item 1383): run544's detail over blocks 16155..16411, walked from
+    /// run346's start.
+    #[test]
+    fn run572_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run572",
+            "gamelog-run572-islands-toughest-16160.txt",
+            WIDENING_SECOND_EAST_INDIES_16160,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run572 whole: blocks 16155..16411");
+        pin!(
+            w.missing.is_empty(),
+            "run572 carries every key: {:?}",
+            w.missing
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **The word 16160** (item 1383): ours 46 draws and the original 44,
+        // at index 4 — two `do_cast`s and one `init_real` against ours'
+        // `do_cast`, `init_real`, `do_cast`, `init_real`.
+        // The word's own block 16161 parts on 107 keys: a Transport Galleon
+        // `1/167` (type 321, `TRANSPORTGALLEON`) the original's build made
+        // on 16160 — 73 keys of its own — and the boarders `1/128` (type 98,
+        // `ARQUEBUSIERS`: `inside` ours 167 against −1, `orders.len` 0
+        // against 2, `path:length` 0 against 50) and `1/143` (type 179,
+        // `KINGSYEOMANRY`: `inside` ours 168 against 167). Block 16155
+        // stands on 189 keys, who=0's `SITE[n].reg` (ours 65, theirs 0)
+        // among them, who=0 being the human the crate never steps.
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(16155, 189), (16161, 107)],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 2987, "every key parted on run572");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

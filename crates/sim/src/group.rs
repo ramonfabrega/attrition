@@ -6350,6 +6350,37 @@ mod tests {
         assert_eq!(case(&[0x700]), 0, "out of reach: 0x700 > 0x600");
     }
 
+    /// `do_move`'s re-plan lands past the pause check (item 1383): the
+    /// export's `do_move:699` is `goto LAB_005f8c60`, past the `else` that
+    /// ticks `pause` and stands an unarmed attack-mover (`:729`). A Supply
+    /// Wagon on an attack-move whose line is not yet verified, holding the
+    /// fifteen, re-plans on its first frame and steps with the pause
+    /// untouched.
+    /// East Indies' 16009, the wagon `1/153`.
+    #[test]
+    fn a_replan_steps_past_the_pause_it_stands_out_afterwards() {
+        let mut s = sim();
+        let wagon = wagon_type(&mut s);
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x2000, 0x2000));
+        s.add_move_order(
+            w,
+            Pos::new(0x6000, 0x2000),
+            MoveKind::AttackTo,
+            QueuePos::New,
+            true,
+        );
+        if let Some(Body::Move(m)) = s.units[w].orders.front_mut().map(|o| &mut o.body) {
+            m.pause = 15;
+        }
+        s.units[w].line_ok = false;
+        s.tick();
+        assert_eq!(
+            s.current_move(w).expect("still a move").pause,
+            15,
+            "the re-plan's step does not tick the pause"
+        );
+    }
+
     /// `do_guard`'s reposition: a guard off its post beside a moving
     /// target is given an `ATTACK_TO` leg to the post, at the head,
     /// without the action bit, stepped the same frame — so its `timer`,
