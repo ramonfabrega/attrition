@@ -2788,7 +2788,8 @@ tranche: the seam sat in the conversion's function, 254 frames before
 the word; a checklist row — `seams.py` on the writers of the first
 parted field, by name, every time, before any reading. **Again** (1370), the
 fourth reach: the parted field's readers (`work`, `add_cast_order`)
-named the two seams that were the answer.
+named the two seams that were the answer. **Again** (1371), the fifth:
+`seams.py --item` missed a seam on the first parted field's writer.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the
