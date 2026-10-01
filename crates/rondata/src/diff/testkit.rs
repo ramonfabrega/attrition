@@ -1733,7 +1733,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Guy::inc_time+0x271`. Inside run544's window (block 16010), where the
 /// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
 /// figures and its move's `pause`, 14 against 15.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_009;
+///
+/// **16009 → 16160 on item 1383** (`docs/AI.md` §101): the re-plan's
+/// `TAKE` lands past `do_move`'s pause check (`do_move:699` → `:743`; the
+/// check at `:729` is the `else` of the `masks & 8 == 0` block), so a unit
+/// that re-plans and verifies its line steps with its `pause` untouched
+/// and stands no frame. **The move's value diff (run544's block 16010, the
+/// word's own):** the Supply Wagon `1/153`'s move `pause` ours 14 against
+/// 15 → agreeing, its figures' `g.cur_anim` ours 0 against 7/9/9, `g.stopped`
+/// 1 against 0, `angle`, `heading`, `g.angle`, `g.des_angle`, `g.cur_time`,
+/// `g.end_time` and `g.last_time` → agreeing (the turn in place the
+/// original's step takes). Block 16010 went 23 → 0 keys; run544's keys
+/// went 662 → 243. Frame 16009's draws went 9 against 6 → agreeing. **The
+/// new word's delta: ours 46 draws and the original 44 on frame 16160,
+/// parting at index 4**: ours spends `Guy::init_real+0x52` (after `1/128`'s
+/// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
+/// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
+/// 16161).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_160;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2514,6 +2531,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_14141: (i64, i64) = (14_136, 14_392
 /// run535's detail, blocks 15857..16113 — six blocks before the word
 /// 15862's block 15863 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_15862: (i64, i64) = (15_857, 16_113);
+
+/// **run572's window** (item 1383): the second pair's East Indies at
+/// run544's detail, blocks 16155..16411 — six blocks before the word
+/// 16160's block 16161 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_16160: (i64, i64) = (16_155, 16_411);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8017,13 +8039,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // past it, widened on run508; item 1326 to 13385, past it, widened on
     // run523; item 1341 to 14141, past it, widened on run535; item 1351
     // to 15862, past it, widened on run544; item 1362 to 15883, inside it;
-    // item 1370 to 15985, inside it; item 1377 to 16009, inside it.
+    // item 1370 to 15985, inside it; item 1377 to 16009, inside it; item
+    // 1383 to 16160, past it, widened on run572.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run544_s_word_frame_is_widened_whole"),
-        1377,
-        Some(WIDENING_SECOND_EAST_INDIES_15862),
+        Some("run572_s_word_frame_is_widened_whole"),
+        1383,
+        Some(WIDENING_SECOND_EAST_INDIES_16160),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

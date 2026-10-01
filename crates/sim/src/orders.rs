@@ -4800,6 +4800,13 @@ impl Sim {
                     self.units[u].tolerance = t.tolerance;
                 }
                 self.store_move(u, mo, flags);
+                // `goto LAB_005f8c60` (the export's `do_move:699`): the
+                // re-plan's `TAKE` lands past the pause check, as `goto
+                // STEP` does — the check (`:729`) is the `else` of the
+                // whole `masks & 8 == 0` block, so a unit that re-plans
+                // steps with its `pause` untouched and stands no frame
+                // (East Indies 16009: the Supply Wagon `1/153`, item 1383).
+                straight_to_step = true;
             }
         }
 

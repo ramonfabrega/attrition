@@ -2844,6 +2844,11 @@ lists and nobody reads by unit; a writer grep of `Muster::library_cities`
 (none outside tests) found the cause in a minute. Kin to 1382: a field
 nothing writes. One reach.
 
+(1402) **A specification's pseudo-code label read as a place** (1383's
+Loop line): `docs/ORDERS.md` §4.4's "STEP_IF_MOVING" read as where the
+pause ticks, and the listing's jump target said otherwise; a label is
+a reading, the target's line the evidence. One reach.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

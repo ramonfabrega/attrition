@@ -13014,3 +13014,39 @@ the Scholars (`t 52`) at 9,999,999, ours Monotheism at 1,123,200 — two
 blocks before the word's block 11183 (15 keys there). The compared pin
 walks its blocks 11181..11184 and the coverage driver 11181..11185. Runs
 572 and 573 were reserved and not used.
+
+## run572 — run346's game at run544's detail over blocks 16155..16411: the second pair's East Indies word 16160 widened (2026-10-01, item 1383)
+
+**What it is.** run544's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 16155..16411, and `!quit` at 16425. The word's frame 16160 writes
+block 16161: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run572 \
+    --map 18 --end-frame 16425 --timeout 5400 --log-window 16155 16412 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** Item 1383 moved the word 16009 →
+16160; run544, the last dump of this game at detail, ends at block 16113.
+
+**Taken** 03:10–03:41, the first take; `ron_lane_state` read `free`
+before. `success: true`, `settings_restored: true`, exit 0, 1,812 s from
+launch to exit. The dump (764,517,955 bytes) and the trace (144,795,296
+bytes) were copied into `Logs` as
+`gamelog-run572-islands-toughest-16160.txt` and `rontrace-run572.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 16,426 identical |
+| window blocks | 257, 16155..16411 |
+| receipt | `map_style 18`, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run572_s_word_frame_is_widened_whole`
+(`diff::second`), walked from run346's start. Block 16155 stands on 189
+keys; the word's block 16161 parts on 107 (a new Transport Galleon
+`1/167` and its boarders `1/128` and `1/143`); the window parts on 2,987.
+The compared pin walks 16159..16162 and the coverage driver 16160..16163.
+Run 573 was reserved and not used.
