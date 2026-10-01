@@ -10046,8 +10046,28 @@ and T finishes two frames early. No mechanism is named: the blow's
 inputs are the next item's (Elite Pikemen, `ELITEPIKE`, against a Tower site,
 who=0 at `library 6`).
 
+**Item 1375: a building on unfriendly ground holds no armour, and the
+word walks to 1481.** T stands on F's claim, so `get_damage` step 18 asks
+the target's vslot `+0x184` — `WallData::in_unfriendly_territory@0063eca0`
+on `Build`, `BuildData` and `WallData` alike, read off the PE — and the
+answer zeroes the armour (`docs/COMBAT.md` §6 step 18). This crate never
+set the flag, so P dealt at T's halved armour 2: 23 whole hits against 25,
+122 sixteenths against 133. With it the blow agrees on 935 and every blow
+after, T finishes on 1447 on both sides, and the builders' cascade is
+gone. **The word is 1481**, ours 4 draws against 8 at index 1 (seed
+`0x1db3b76a`): the original spends the Tower's second shot (`64cc85`,
+`64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`) where ours spends `Guy::set_anim+
+0x104b`. **The value diff, walked back:** block 1451, the Tower's first
+shot, on the Scout `0/7` (`whom` 0, `ox` 7): `ammo[0].total_time` ours 7
+against 16 and `v1z` ours 2.849108 against 69.087502, with `sx`/`sy`/`ex`/
+`ey` agreeing (42690, 23493 → 43510, 24705, ~1463 units; the original's
+`dx` 91.46 a frame, `traj` 1). The original's round is still flying on
+1457, where ours has landed and wounded the Scout. No mechanism is named.
+
 **The widening** is run551 whole (`[605, 1751)`): 649 rows and 8 pool
-rows, pinned as they stand. Before the word: the standing families on
+rows, pinned as they stand; **398 rows from item 1375**, the pool
+unchanged, with 935's three `1/2006` rows and everything from 1445 to
+1450 gone, and 1451's shot the first row past 935's two `leader:treaties`. Before the word: the standing families on
 605; who=1's City's `city:bordering` on 656 (F's claim, ours 0 against
 3); P's `order:target` on 901 (§56's reader row); T's blow on 935; and
 the builders' `order:kind` from 1445, T finished here and not there.
@@ -10063,12 +10083,26 @@ git and touched, scored by the exit code and failed tests' names of
 | M3: an aircraft's blow costs progress | exit 101: **the word, 1450 → 1360**, and the widening (649 → 642); the unit test |
 | M4: attrition costs progress | exit 101: **the widening alone** (649 → 629: `1/2006 build:job_counter` ours 10932 against 11332 on 683); the unit test. **The word stays 1450**: M4's own parting falls on it |
 
+**Item 1375's mutations**, each on `1bb3b568` (the merged tree),
+restored from git and touched, scored as above:
+
+| mutation | held by |
+|---|---|
+| K1: `in_unfriendly_territory` never set (the tree before) | exit 101: **the word, 1481 → 1450**, the widening 398 → 649; `a_building_on_unfriendly_ground_holds_no_armour` |
+| K2: step 18 quadruples every blow, attack or none | exit 101: **the word, 1481 → 1035**, the widening 398 → 672; the unit test |
+| K3: allied one way is enough | exit 0 on the walk and the widening; **the unit test alone**: no lobby on disk has an alliance |
+| M2 again | exit 101: **the word, 1481 → 1456**, the widening 398 → 634 |
+| M3 again | exit 101: **the word, 1481 → 1243**, the widening 398 → 685 |
+| M4 again | exit 101: **the word, 1481 → 1362**, the widening 398 → 637: **the walk holds it now** |
+
 **What is not established.**
-- The word at 1450, and the blow behind it: the next item's, booked by
-  its frame.
-- M4 on a walk: it parts the walk on the word's own frame, so once
+- ~~The word at 1450, and the blow behind it~~: step 18's armour, item
+  1375. The word at 1481, and the Tower's shot behind it: the next
+  item's, booked by its frame.
+- ~~M4 on a walk: it parts the walk on the word's own frame, so once
   T's blows agree the walk is expected to hold it. Until then the
-  widening does.
+  widening does.~~ The walk holds it from item 1375: the word 1481 →
+  1362 (the table below).
 - §9.5's 16-frame phase under rush rules before war is allowed (not
   modelled; this lobby has neither), a ghost on enemy land
   (`Object::disband`), and a dock's `check_enemy_adjacent`: T was started

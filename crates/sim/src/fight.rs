@@ -324,6 +324,21 @@ impl Sim {
         }
     }
 
+    /// `WallData::in_unfriendly_territory@0063eca0`: the cell under the
+    /// building is owned (`>= 0`) by a player who is not its owner and not
+    /// allied with it both ways (`diplos == 2` each way). `get_damage` reads
+    /// it through the target's vslot `+0x184` (step 18, `0063eca0` off the
+    /// PE at `Build::vftable`, `BuildData::vftable` and `WallData::vftable`
+    /// alike), and there it zeroes the armour (item 1375: run551's Tower
+    /// site on who=0's claim took the Elite Pikemen's blow at 133
+    /// sixteenths, where its halved armour 2 dealt 122). The same predicate
+    /// as `Wall::process`'s enemy-land hit (`crate::city`).
+    pub(crate) fn in_unfriendly_territory(&self, b: usize) -> bool {
+        let who = self.buildings[b].owner;
+        matches!(self.world.owner_at(self.buildings[b].pos),
+            crate::Owner::Player(t) if t != who && !self.is_ally(who, t))
+    }
+
     /// The side of the damage formula an object presents as a **target**.
     fn target_side(&self, o: Obj, attacker: Obj) -> Side {
         match o {
@@ -362,6 +377,7 @@ impl Sim {
                     build_proper: true,
                     under_construction: !bd.active,
                     attacks: self.attack_of(o) != 0,
+                    in_unfriendly_territory: self.in_unfriendly_territory(b),
                     z: self.world.object_z(bd.pos.tile()),
                     tile_owned_by_attacker: self
                         .world

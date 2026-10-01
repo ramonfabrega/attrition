@@ -146,6 +146,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1375, 2026-10-01 — the site's ground
+
+(1381) **`COMBAT.md` §6 step 18 under a one-way alliance** (1375's K3):
+the walk that would hold it is a lobby with an alliance and a building
+on the ally's land.
+
 ## Parked by item 1370, 2026-09-30 — the Bombard's pack
 
 (1378) **The sixteen-frame review skipped under the pack arm** (1370's
@@ -2788,7 +2794,8 @@ tranche: the seam sat in the conversion's function, 254 frames before
 the word; a checklist row — `seams.py` on the writers of the first
 parted field, by name, every time, before any reading. **Again** (1370), the
 fourth reach: the parted field's readers (`work`, `add_cast_order`)
-named the two seams that were the answer.
+named the two seams that were the answer. **Again** (1371), the fifth:
+`seams.py --item` missed a seam on the first parted field's writer.
 
 (1344) **A comparison of two index spaces** (1326's Loop line): a
 booking's `MAKE[k].city` row read as a parting for months while the
@@ -2856,6 +2863,13 @@ building is invalid until the attacker's player has seen it (`ever_seen`,
 every eighth frame); a staging that adds an attacker and attacks on the
 next line gets a retarget or nothing. The stage walk could warn when an
 issuer line's building target is unseen by the issuing player.
+
+(1382) **A field declared and never written reads as modelled**
+(1375's Loop line): a `combat::Side` field documented in its step and
+assigned by no non-test line looks exactly like a modelled one, and
+`seams.py` cannot see it, since nothing says "not modelled". A guard
+could list every field of such input structs that no non-test line
+assigns.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

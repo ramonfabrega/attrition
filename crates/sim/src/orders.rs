@@ -4507,21 +4507,23 @@ impl Sim {
             // the frame the waypoint is taken — and asks whether somebody
             // is already standing where this leg ends.
             //
-            // A **final** waypoint under a `GATHER`, `ATTACK` or
-            // `BUILD_AT` action is then not worth walking at all: the walk
-            // dies here and the action picks somewhere else next frame.
-            // That is how a farmer whose re-picked cell a sibling already
-            // works stays where it is (`docs/COLLISION.md` §8).
+            // A **final** waypoint under a `TRADE_ROUTE`, `GATHER`,
+            // `ATTACK` or `BUILD_AT` action is then not worth walking at
+            // all: the walk dies here and the action picks somewhere else
+            // next frame (`5f8714`–`5f873f`: `top.flags & 1`, then
+            // `action_type` against `0xf`, `7`, `0xa`, `6`, each to the
+            // `kill_current_order(0)` at `5f8851`). That is how a farmer
+            // whose re-picked cell a sibling already works stays where it
+            // is (`docs/COLLISION.md` §8), and how a caravan whose last
+            // node a builder stands on arrives where it is — its
+            // `do_trade` runs the next frame (Great Sahara at Toughest's
+            // 10391, item 1371).
             //
             // Otherwise a **parked** collider — one whose own current order
             // is not a move, so it is not going to get out of the way —
             // widens the tolerance to three of its `big_radius`
             // (`ObjectType +0x244`): give up short of it rather than walk
             // into it.
-            //
-            // SEAM: the original also spells `TRADE_ROUTE` in the kill's
-            // action set, which is not modelled — `docs/ORDERS.md` §4.4.
-            // (The region check just above is, since item 1143.)
             //
             // **And a ship never asks.** The call is `(x, y, 0, 0, 0, 0, 0)`
             // on the listing (`5f86f9`–`5f8707`); with `boats` zero the
@@ -4539,7 +4541,7 @@ impl Sim {
                 if top.flags & path_flag::FINAL != 0
                     && matches!(
                         action,
-                        Some(index::GATHER | index::ATTACK | index::BUILD_AT)
+                        Some(index::TRADE_ROUTE | index::GATHER | index::ATTACK | index::BUILD_AT)
                     )
                 {
                     self.kill_current_order(u);

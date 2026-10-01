@@ -713,6 +713,19 @@ tmask  = T.type.obj_masks
 18. **Unfriendly territory**: T is a building and `WallData::in_unfriendly_
     territory` and the game is not in balance-test mode: `armor = 0`; if T is
     not Build-proper (a wall) or T's type has zero attack: `base *= 4`.
+    The predicate is the target's vslot `+0x184`, `0063eca0` on `Build`,
+    `BuildData` and `WallData` alike (read off the PE): the cell under the
+    building owned (`>= 0`) by a player who is not its owner (`LeaderData
+    +0x8 who`) and not allied with it both ways (`diplos`, `+0x74`, `== 2`
+    each way) — `Sim::in_unfriendly_territory`, the same test `Wall::process`
+    makes for the enemy-land hit (`docs/CITIES.md` §9.5). ~~This crate never
+    set the flag~~ (item 1375). **Diff-backed** for a Tower site with attack:
+    run551's site on who=0's claim took the Elite Pikemen's blow at armour
+    0, 133 sixteenths, not ×4 (`docs/GOLDEN.md` §57); the walk holds both
+    the armour (the word 1481 → 1450 without it) and the attack gate (1035
+    with ×4 for every building). Not reached: a wall or a building with no
+    attack (the ×4), an alliance one way, and balance-test mode (the
+    semaphore's `& 2`, not carried).
 19. **Flanking.** Only if A and T are both units; neither `amask` nor `tmask`
     has **CIVILIAN**; neither has **AIR**; `amask & NAVAL == tmask & NAVAL` and
     `tmask` lacks NAVAL. Let `d = T.angle − angle` (the `angle` argument is

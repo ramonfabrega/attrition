@@ -700,6 +700,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r511 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9323);
     let r529 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_9764);
     let r547 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10144);
+    let r562 = crate::testenv::dump(super::sahara_toughest::TOUGHEST_WORD_10779);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1543,6 +1544,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // **And its word 10779, on run562** (item 1371): the frame writes
+    // block 10780, past run547's last block 10395.
+    if let Some(p) = &r562 {
+        let b = super::sahara_toughest::TOUGHEST_WORD_BLOCK_10780;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(
+            n, 5,
+            "run562 carries the third map's word 10779 at Toughest"
+        );
+        frames += n;
+    }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
     // five blocks around the make list it was taken for, so the leader
     // record's paths are on this map's window too —
@@ -2181,10 +2193,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter forty-eight, on run551** (item 1358): 683, the site's
     // first hit on who=0's land; 935, the squad's first blow on it (the
     // chapter's first parting); 983, the blow whose sixteenths carry; 1094,
-    // the first bomb; 1451, the word's block.
+    // the first bomb; 1451, the Tower's first shot (item 1375's
+    // walk-back); 1482, the word's block (item 1375).
     if let Some(p) = &ch48 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_EIGHT;
-        for w in [683, 935, 983, 1094, 1451] {
+        for w in [683, 935, 983, 1094, 1451, 1482] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-eight carries the window's five blocks");
             frames += n;

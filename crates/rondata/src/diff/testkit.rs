@@ -1718,7 +1718,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_985;
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
 ///
-/// **10391 since item 1365** (`docs/PRODUCTION.md`, "The tail's first
+/// **10779 since item 1371** (`docs/COLLISION.md` §5.1, `docs/CARAVAN.md`
+/// §7): `do_move`'s waypoint take kills a move whose **final** node is
+/// occupied when the action under it is a `TRADE_ROUTE` — `5f8721`'s `cmpl
+/// $0xf`, the first of the four the listing tests — where this crate
+/// widened the tolerance instead. **The move's value diff** (run547): on
+/// block 10391 the caravan `1/52` (`CARA`), its last node under the
+/// Citizen `1/87`, `pos` ours (28260,24052) against (28261,24026),
+/// `orders.len` 2 against 1, `collide_o` −1 against 87, `tolerance` 144
+/// against 96 → agreeing. run547's keys went 156 → 87, nothing parting from
+/// 10383 to its last block 10395. Frame 10391's draws went 6 against 7
+/// parting at index 0 → agreeing. **The new word's delta: ours 15 draws
+/// and the original 14 on frame 10779, parting at index 4**: ours spends a
+/// fifth `Leader::upgrade_units+0x5a4 < Leader::production_ai+0x1ca <
+/// Leader::plan_strategy+0x47` where the original goes on to `0/3`'s
+/// `GameAccess::rnd+0x20 < Unit::do_job+0x67` (seed `8d12ace5`). Past
+/// run547's window (its last block 10395), widened on run562 (block
+/// 10780).
+///
+/// It was **10391** after item 1365 (`docs/PRODUCTION.md`, "The tail's first
 /// caller"): `train_time`'s speed-upgrade step, `t = (10 − n) × t / 10`
 /// with `n` the troops' ladder for a foot or mounted type — and a Citizen
 /// is foot. who=1 takes Herbal Lore (`TROOPS_FASTER_1`) on 9782 and its
@@ -1931,7 +1949,7 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_985;
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_391;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 10_779;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -5625,18 +5643,25 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 
 /// **Chapter forty-eight's golden word** (item 1358, `docs/GOLDEN.md`
-/// §57, run551): **1450**, ours 13 draws against 11, parting at index 0
-/// (seed `0x4a70e914`): ours spends the builder `1/6`'s `Guy::set_anim+
-/// 0x97a < Unit::move_step+0x823`, which the original spends on 1451,
-/// where the original's first draws are the finished Tower's
-/// (`64cc85`, `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`). The value diff,
-/// walked back: the site `1/2006` finishes on block 1445 here and 1447 in
-/// the original (`job_counter` 0, `flags` 23), and its first parted field
-/// is block 935, the squad's first blow: `damage`/`damage_frac` ours 71/10
-/// against 72/5, `job_counter` 56960 against 56910 — the original's blow
-/// is 133 sixteenths, ours 122 (12 a figure against 11), and it costs 400
-/// of progress against 350. No mechanism is named.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1450;
+/// §57, run551): ~~**1450**~~, ours 13 draws against 11, walked back to
+/// block 935, the Elite Pikemen's first blow on the Tower site `1/2006`:
+/// `damage`/`damage_frac` ours 71/10 against 72/5, 122 sixteenths against
+/// 133.
+///
+/// **Item 1375: 1481.** The site stands on who=0's claim, and
+/// `get_damage` step 18 asks `WallData::in_unfriendly_territory@0063eca0`
+/// (the target's vslot `+0x184`), which zeroes its armour; this crate
+/// never set the flag and dealt at the site's halved armour 2. With it the
+/// blow is 133 on both sides, the site finishes on 1447 on both, and the
+/// word walks to **1481**, ours 4 draws against 8, parting at index 1:
+/// the original spends the Tower's second shot (`64cc85`, `64ccb6`,
+/// `Ammo::init+0xcd9`, `+0xd0b`) where ours spends `Guy::set_anim+0x104b`.
+/// The value diff, walked back: block 1451, the Tower's first shot on the
+/// Scout `0/7`, `ammo[0].total_time` ours 7 against 16 and `v1z` ours
+/// 2.849108 against 69.087502, its ends agreeing. No mechanism is named.
+///
+/// **The delta**, this constant's: +31, 1450 → 1481.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1481;
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
@@ -7968,13 +7993,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the move's value diff on 9759..9765; the word 10144 on run547 over
     // 10139..10395 (item 1354), whose run529 test keeps the move's value
     // diff on 9784..9999; the word 10391 on the same blocks (item 1365),
-    // whose run547 test keeps the move's value diff on 10144..10145.
+    // whose run547 test keeps the move's value diff on 10144..10145; the
+    // word 10779 on run562 over 10774..11030 (item 1371), whose run547
+    // test keeps the move's value diff on 10391..10395.
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
-        Some("run547_s_word_frame_is_widened_whole"),
-        1365,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_10144),
+        Some("run562_s_word_frame_is_widened_whole"),
+        1371,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_10779),
     ),
 ];
 
