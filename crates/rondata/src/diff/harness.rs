@@ -14991,7 +14991,11 @@ pub(crate) mod tests {
         // average they boarded with and its order point the landing
         // (`docs/TRANSPORT.md` §6.4).
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
-        pin_eq!(under, 118, "the floor under the word");
+        // Item 1354 took fifteen (118 → 103): who=1's Citizens' `mylos`
+        // standing on 10164, ours 4 against the original's cached 2 — the
+        // Militia term the original had not yet refreshed, which this
+        // crate's cache now holds back too (`docs/VISION.md` §2).
+        pin_eq!(under, 103, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
