@@ -1734,6 +1734,21 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Supply Wagon `1/153` (type 63) of army 0's group 71 parts on its
 /// figures and its move's `pause`, 14 against 15.
 ///
+/// **16179 → 16221 on item 1407** (`docs/AI.md` §105): `cast_transport`
+/// clears the handed-over path's top embark flag when
+/// `get_tregion(top) == get_tregion(spot)`, and `get_tregion` is the
+/// coastal refinement ([`World::tregion_alt`]), where this crate had read
+/// the plain region. East Indies' Galleon `1/171` (born 16175) took the
+/// top (29160, 38040) with flags 4 and tolerance 0 where the original's
+/// has flags 0, and the original's first `find_path` of the boat answered
+/// that flagged top's relaxed water test differently: `path_recursion` 2
+/// and an extra top (29124, 37884) in the original (run572 block 16176:
+/// path length ours 49 against 50, `path[48].flags` 4 against 0, move
+/// `dest` (29160, 38040) against (29124, 37884), `last_x` −1 against
+/// 29352), and the boat was ashore on 16178 here. Block 16176's 18 keys →
+/// 2, 16179's 40 → 0, 16180's 17 → 0; run572's keys 3416 → 2279. **The
+/// new word's delta** is on `docs/AI.md` §105.
+///
 /// **16160 → 16179 on item 1401** (`docs/AI.md` §104): `is_castable`'s
 /// head answers 0 to a decoy (`unit_masks & 1`) for every craft but pack
 /// and unpack, and `do_cast` had asked only `can_transport`. East Indies'
@@ -1769,7 +1784,7 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
 /// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
 /// 16161).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_179;
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_221;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's

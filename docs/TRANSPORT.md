@@ -496,7 +496,9 @@ to the water; the caster never enters it.
    restores the order it was in, so the boat inherits the route whole; the
    boat's `unit_masks |= 0x800000`;
 7. the top waypoint's embark flag (`4`) is cleared when
-   `get_tregion(top)` equals `get_tregion(spot)` — the boat is already on
+   `get_tregion(top)` equals `get_tregion(spot)` (the coastal refinement,
+   `World::tregion_alt`, not the plain region — item 1407, `docs/AI.md`
+   §105) — the boat is already on
    that side of the shore and must not board a transport of its own;
 8. `clear_orders(caster)`, the selection swap, `replace_hotunit`, and
    `go_inside(caster, boat)`.
