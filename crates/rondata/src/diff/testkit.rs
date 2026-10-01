@@ -5601,6 +5601,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// `Sim::damage_building`); the site dies on 901 on both sides.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 
+/// **Chapter forty-eight's golden word** (item 1358, `docs/GOLDEN.md`
+/// §57, run551): **1450**, ours 13 draws against 11, parting at index 0
+/// (seed `0x4a70e914`): ours spends the builder `1/6`'s `Guy::set_anim+
+/// 0x97a < Unit::move_step+0x823`, which the original spends on 1451,
+/// where the original's first draws are the finished Tower's
+/// (`64cc85`, `64ccb6`, `Ammo::init+0xcd9`, `+0xd0b`). The value diff,
+/// walked back: the site `1/2006` finishes on block 1445 here and 1447 in
+/// the original (`job_counter` 0, `flags` 23), and its first parted field
+/// is block 935, the squad's first blow: `damage`/`damage_frac` ours 71/10
+/// against 72/5, `job_counter` 56960 against 56910 — the original's blow
+/// is 133 sixteenths, ours 122 (12 a figure against 11), and it costs 400
+/// of progress against 350. No mechanism is named.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_EIGHT: i64 = 1450;
+
+/// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
+/// whole, 605 to its end (block 1749 is the one the dump does not carry).
+pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
+
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_SEVEN: (i64, i64) = (605, 1401);
@@ -6218,6 +6236,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase",
         44,
     ),
+    // Chapter forty-eight (item 1358): the Bomber's four passes on T, on
+    // run551's ground: 32 reads (pinned at 31, it fails).
+    ("chapter_forty_eight_holds_to_the_golden_word", 32),
+    ("chapter_forty_eight_s_word_frame_is_widened_whole", 32),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -7708,6 +7730,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_forty_seven_s_word_frame_is_widened_whole"),
         1350,
         Some(WIDENING_CHAPTER_FORTY_SEVEN),
+    ),
+    // Item 1358: run551, chapter forty-eight, a who=1 Tower site on who=0's
+    // land, struck and bombed while its builders work. The widening is
+    // run551 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_FORTY_EIGHT,
+        Some("chapter_forty_eight_s_word_frame_is_widened_whole"),
+        1358,
+        Some(WIDENING_CHAPTER_FORTY_EIGHT),
     ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
     // and `all_gathering`'s prune, closed at 2200. The widening is run496

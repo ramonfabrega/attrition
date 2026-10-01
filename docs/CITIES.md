@@ -2001,6 +2001,16 @@ the attrition flag (so `docs/ATTRITION.md`'s unit rules do not apply; the
 call is unconditional on supply). The building half of the mechanic
 `docs/ATTRITION.md` specifies for units.
 
+**Diff-backed for a started site since run551** (item 1358,
+`docs/GOLDEN.md` §57). A who=1 Tower site on ground an `add`ed who=0
+Fort's claim took is hit on 682 and every 32 frames after: `damage` 0 → 8
+on block 683, and its `job_counter` rises by one frame's work, so the
+attrition flag costs no progress (`docs/COMBAT.md` §7.2 step 5). The
+chapter's widening holds that exemption: removing it moves the widening
+(683, `job_counter`) and leaves the walk's word where it stands.
+Not reached: the rush-rules phase, a ghost's `disband`, and a dock's
+`check_enemy_adjacent`.
+
 ---
 
 ## 10. Constants
