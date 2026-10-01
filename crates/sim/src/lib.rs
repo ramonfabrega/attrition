@@ -4867,6 +4867,11 @@ impl Sim {
         // before the heal and the work.
         self.process_spells(i, frame);
         self.recover_mana(i, frame);
+        // A decoy whose age has run out was closed there, and `process`
+        // returns before the rest of its frame (item 1351).
+        if !self.units[i].alive() {
+            return;
+        }
         // `process_healing` runs for every unit, inside or out: the
         // garrison branch inside, and on the map the civilian heal
         // (`crate::heal`, `docs/COMBAT.md` §72).

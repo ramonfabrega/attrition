@@ -146,6 +146,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1351, 2026-09-30 — the decoy's close
+
+(1363) **A decoy's attrition, every seventh frame on another's ground**
+(`cast.rs`'s remaining seam): no window has reached it.
+
+## Parked by item 1350, 2026-09-30 — the site's armour
+
+(1359) **The Senator's building armour** (`WallData::armor`'s
+`63fab0`–`63fb1f`, `thesenator_build_armor`): the `SEAM` is in
+`Sim::armor_of`; its scan is a building struck within a who's Senator's
+reach. East Indies (`1/60`) and run470 (`1/80`) have Senators, and
+neither long capture shows such a strike.
+
+(1360) **who=1's squad's `order:target` on chapter forty-seven's 682**:
+ours none against the site, `order:kind` agreeing; a standing row to
+the site's death, naming no score.
+
 ## Parked by item 1346, 2026-09-30 — the Gunpowder Age's price
 
 (1355) **The age-behind discount and `GREEK_AGE_KNOWLEDGE` (0%)**: not
@@ -2777,6 +2794,19 @@ file, so a misaligned pair credits most of a section as struck. `AI.md`'s
 §99.16), against 16,000 — 1305's red on that section and 1346's green
 are both measurements of the pairing. Made to fail first: pair the
 strikes within the section.
+
+(1361) **No `RON_DEBUG_HITS`** (1350's Loop line): the brief's step 2,
+the arguments of the call a value parts through, was answered by a
+scratch `eprintln!` in `do_damage`; nothing prints `get_damage`'s inputs
+per melee blow (`RON_DEBUG_AMMO` covers rounds). A candidate for the
+harness on its third reach.
+
+(1364) **A capture beside a release test run dies before frame 0**
+(1351's Loop line): run544's first two takes both died on the documented
+`wow64cpu+0x1139` fault, each with a full `cargo test -p rondata` beside
+it; the third, on a quiet box, ran clean, and run416's first take was
+the same shape. Rule 1150 retakes once; a row could say a capture is
+taken on a quiet box.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

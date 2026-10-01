@@ -287,9 +287,25 @@ impl Sim {
         base + self.mods[self.owner_of(o) as usize].attack
     }
 
-    /// `armor()` (§4.2).
+    /// `armor()` (§4.2). **A building that is not finished holds half its
+    /// armour** (item 1350): a building's `armor()` is vslot `+0x124`,
+    /// `WallData::armor@0063fa60` (read off the PE at `Build::vftable +
+    /// 0x124`), and its tail at `63fb25`–`63fb41` tests `is_active`
+    /// (`flags & 4`) and, when it is clear, halves with `cltd; sub; sar`
+    /// — toward zero, as `/ 2` does here. run514's Keep site, armour 4,
+    /// took a Hoplite's blow at 2: 13 whole hits, 69 sixteenths a figure.
+    ///
+    /// SEAM: the Senator's arm above the halving (`63fab0`–`63fb1f`):
+    /// with a leader whose `+0x59c0` is set, `HeroesData::find_hero` for a
+    /// `THESENATOR` (`0x161`) within `(type +0x234 + +0x238) × 96` adds
+    /// `thesenator_build_armor` before the halving. Not modelled; scan:
+    /// a building struck in a capture whose `GUY` blocks hold type 353.
     pub fn armor_of(&self, o: Obj) -> i32 {
-        self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor
+        let armor = self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor;
+        match o {
+            Obj::Building(b) if !self.buildings[b].active => armor / 2,
+            _ => armor,
+        }
     }
 
     /// `max_range()` (§4.4): zero stays zero.
@@ -2279,13 +2295,9 @@ impl Sim {
         }
         self.first_wound_draws(b, by, attrition);
         let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
-        if site {
-            if matches!(by, Some(Obj::Building(_))) {
-                hit.whole *= 4;
-                hit.frac *= 4;
-            }
-            let bd = &mut self.buildings[b];
-            bd.job_counter = (bd.job_counter - combat_progress_lost(hit.whole)).max(0);
+        if site && matches!(by, Some(Obj::Building(_))) {
+            hit.whole *= 4;
+            hit.frac *= 4;
         }
         let bd = &self.buildings[b];
         let share = bd.health;
@@ -2293,6 +2305,23 @@ impl Sim {
         let lost = match taken {
             Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
         };
+        if site {
+            // **The progress a site loses is the points the blow took,
+            // carry and all** (item 1350): the listing rewrites `param_1`,
+            // the blow's whole hits, as `whole + (frac + hit.frac) / 16`
+            // at `0065230b`, and the `imul $0x32` at `0065239b` reads it
+            // back. run514's Keep site, a blow of 4 whole and 5 sixteenths:
+            // 200 off its `job_counter` on 706, and 250 on 738, where the
+            // sixteenths carried. **An aircraft's blow costs nothing**
+            // (`0065234e`–`0065237c`): an attacker in use whose type's
+            // `domain` (`+0x218`) is 2 sets the skip, and so does
+            // attrition (`param_5`, `00652341`).
+            let air = by.is_some_and(|o| matches!(self.profile(o).domain, Domain::Air));
+            if !attrition && !air {
+                let bd = &mut self.buildings[b];
+                bd.job_counter = (bd.job_counter - combat_progress_lost(lost)).max(0);
+            }
+        }
         let city = self.building_is_city(b);
         let bd = &mut self.buildings[b];
         bd.damage_frac = frac;
@@ -3954,7 +3983,8 @@ impl Sim {
     }
 }
 
-/// `Object::take_damage` on a site: `whole × 50` off the progress.
+/// `Object::take_damage` on a site: `lost × 50` off the progress, `lost`
+/// the whole points the blow took after its sixteenths carried.
 const fn combat_progress_lost(whole: i32) -> i32 {
     crate::build::progress_lost(whole)
 }

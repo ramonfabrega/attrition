@@ -678,6 +678,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r508 = crate::testenv::dump("gamelog-run508-islands-toughest-12582.txt");
     let r523 = crate::testenv::dump("gamelog-run523-islands-toughest-13385.txt");
     let r535 = crate::testenv::dump("gamelog-run535-islands-toughest-14141.txt");
+    let r544 = crate::testenv::dump("gamelog-run544-islands-toughest-15862.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1297,6 +1298,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run535 carries the second pair's East Indies word 14141's blocks"
+        );
+        frames += n;
+    }
+    // Item 1351 moved it to 15862 (block 15863), past run535: run544 is
+    // its widening.
+    if let Some(p) = &r544 {
+        let n = drive_capture(p, 15_862, 15_865, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run544 carries the second pair's East Indies word 15862's blocks"
         );
         frames += n;
     }
@@ -2129,7 +2140,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter forty-seven, on run514** (item 1310): 677, the Keep gained
     // on a standing Tower site; 1102, the squad's landing; 1111, the age's
     // snap; 839, the word's block (item 1323); 905, the word's block
-    // (item 1330).
+    // (item 1330), kept since the chapter closed (item 1350).
     if let Some(p) = &ch47 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_SEVEN;
         for w in [677, 839, 905, 1102, 1111] {

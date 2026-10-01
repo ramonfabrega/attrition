@@ -641,7 +641,8 @@ pub const fn site_hits(full: i32, job_counter: i32, construct_time: i32, wonder:
     }
 }
 
-/// `Object::take_damage` on a site: `whole × 50` off `job_counter` per hit.
+/// `Object::take_damage` on a site: `lost × 50` off `job_counter` per hit,
+/// `lost` the whole points taken after the sixteenths carry (item 1350).
 pub const fn progress_lost(whole: i32) -> i32 {
     whole * 50
 }

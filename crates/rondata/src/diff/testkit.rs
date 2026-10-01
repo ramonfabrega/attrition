@@ -1652,7 +1652,23 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// original goes on to `Guy::set_anim+0x104b` (seed `c55509fc`). Past
 /// run523's window (its last block 13636), widened on run535 (block
 /// 14142).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 14_141;
+///
+/// **14141 → 15862 on item 1351** (`docs/GOLDEN.md` §48): a decoy closes
+/// at `(general_upgrade + 2) × DECOY_TIME / 2`. `Unit::process`'s decoy
+/// arm takes its age up a frame and, at 2,500, calls `Unit::close(0, −1,
+/// 0.0)` — no death draw — and returns. This crate aged its copies and
+/// never closed them, so who=1's `1/110` was still standing to spend 14141's
+/// second `Guy::set_anim+0x97a`. **The move's value diff (run535's block
+/// 14137, the state's first parting, walked back from the word):**
+/// `1/104`..`1/120` ours alone (each `mana_burn` 2499 on 14136 on both
+/// sides) → closed on both, and `1/93` ours alone on 14138 → closed on
+/// both. run535's keys went 1730 → 163. Frame 14141's draws went 5
+/// against 4 → agreeing. **The new word's delta: ours 11 draws and the
+/// original 7 on frame 15862, parting at index 0**: ours spends four
+/// `Army::find_target+0x7df` before the original's first, `Guy::set_anim+
+/// 0x97a < Animal::do_idle+0x19` (seed `5faaa95a`). Past run535's window
+/// (its last block 14392), widened on run544 (block 15863).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 15_862;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2336,6 +2352,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_13385: (i64, i64) = (13_380, 13_636
 /// run523's detail, blocks 14136..14392 — six blocks before the word
 /// 14141's block 14142 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_14141: (i64, i64) = (14_136, 14_392);
+
+/// **run544's window** (item 1351): the second pair's East Indies at
+/// run535's detail, blocks 15857..16113 — six blocks before the word
+/// 15862's block 15863 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_15862: (i64, i64) = (15_857, 16_113);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -5527,7 +5548,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SIX: i64 = 2200;
 /// `orders_x/orders_y` (7368, 33816) against (38664, 13320), `near`
 /// (2008, 0) against (−1, −1); the site `0/2008` is ours alone from 902
 /// (the original's died on 901).
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 904;
+///
+/// **904 → 1400, closed** (item 1350): the capture's end — word, sequence
+/// and values. The site died late because its blows were light: walked
+/// back to block 706, its first blow, `0/2008`'s `damage`/`damage_frac`
+/// ours 3/10 against 4/5 and `job_counter` 9900 against 9850. A
+/// building's `armor()` is `WallData::armor@0063fa60`, which halves it
+/// while the building is not `is_active` (`63fb31`–`63fb41`): the Keep
+/// site's 4 is 2, a Hoplite deals 13 where ours dealt 11. And a site loses
+/// `lost × 50` of progress, `lost` with the sixteenths' carry
+/// (`Object::take_damage@00652020`, `65230b`, `65239b`): on 738 the
+/// original took 250 and ours 200. Both built (`Sim::armor_of`,
+/// `Sim::damage_building`); the site dies on 901 on both sides.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_SEVEN: i64 = 1400;
 
 /// `chapter_forty_seven_s_word_frame_is_widened_whole`'s window: run514
 /// whole, 605 to its end (block 1399 is the one the dump does not carry).
@@ -7627,14 +7660,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1310: run514, chapter forty-seven, the Keep on a standing
-    // Tower site, a squad ashore facing away from its barge, and an age's
-    // snap mid-move. The widening is run514 whole.
+    // Items 1310 and 1350: run514, chapter forty-seven, the Keep on a
+    // standing Tower site, a squad ashore facing away from its barge, and
+    // an age's snap mid-move; closed at 1400. The widening is run514 whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_SEVEN",
         GOLDEN_WORD_CHAPTER_FORTY_SEVEN,
         Some("chapter_forty_seven_s_word_frame_is_widened_whole"),
-        1310,
+        1350,
         Some(WIDENING_CHAPTER_FORTY_SEVEN),
     ),
     // Items 1278 and 1291: run496, chapter forty-six, the squad's landing
@@ -7776,13 +7809,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 11328, past it, widened on run490; item 1281 to 11549, inside it;
     // item 1297 to 11637, past it, widened on run506; item 1302 to 12582,
     // past it, widened on run508; item 1326 to 13385, past it, widened on
-    // run523; item 1341 to 14141, past it, widened on run535.
+    // run523; item 1341 to 14141, past it, widened on run535; item 1351
+    // to 15862, past it, widened on run544.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run535_s_word_frame_is_widened_whole"),
-        1341,
-        Some(WIDENING_SECOND_EAST_INDIES_14141),
+        Some("run544_s_word_frame_is_widened_whole"),
+        1351,
+        Some(WIDENING_SECOND_EAST_INDIES_15862),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

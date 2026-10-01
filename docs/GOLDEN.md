@@ -8527,7 +8527,14 @@ It is not staged here.
 - **A decoy's frame** (`Unit::process@00610bc0`, its `unit_masks & 1` arm):
   `mana_burn` is its age, +1 a frame, and it closes at `(general_upgrade +
   2) × DECOY_TIME / 2`, 2,500 frames. It sees one tile (`Unit::update_los`'s
-  last line).
+  last line). **The close** (item 1351, the listing `610c3e`..`610c8a`):
+  the age is taken up first and compared after, `life <= mana_burn`; the
+  call is vslot `+0x150`, read off the PE at `Unit::vftable` `0xb417d0` as
+  `Unit::close@0060ee50`, with `(0, −1, 0.0)`, and `process` returns. A
+  zero first argument skips `close`'s death arm (no draw, no `DEATH_OBJS`),
+  and its population arm is gated on the decoy bit clear. Diff-backed by
+  run535: who=1's `1/104`..`1/120` at 2499 on block 14136 are gone on
+  14137, and `1/93`, at 2498, on 14138 (`Sim::close_decoy`).
 - **A Citizen and the Militia line**: `Object::update_hits@00647010` gives a
   Citizen the hits of the newest held MILITIA/MINUTEMAN/PARTISAN, and
   `Unit::update_los` adds 2 a held bit.
@@ -8649,9 +8656,10 @@ priced step at 15986 agree now (`crates/rondata/src/diff/world.rs`).
 the Militia rest on the listing, the emulator and the sim tests: no capture
 wounds a converting unit or presses To Arms on enemy land.~~ Diff-backed by
 run430 (§49, item 1167): D wounded both ways, To Arms refused before the
-Militia and on who=1's land. The decoy's close
-at 2,500 frames and its attrition every seventh frame on another's ground
-are read, not built. The Citizen's LOS takes the nomad term as before;
+Militia and on who=1's land. ~~The decoy's close
+at 2,500 frames~~ (built and diff-backed by item 1351, above) and its
+attrition every seventh frame on another's ground ~~are~~ is read, not
+built. The Citizen's LOS takes the nomad term as before;
 PARTISAN's share of it and the tribe substitutions are unreached.
 `get_general_upgrade` is 0 throughout; Porus's and Kutosov's multiples and
 a computer General's army are SEAMs. ~~The alarm's all-clear and a Militia's
@@ -9893,6 +9901,24 @@ value diff on block 905: `1/6`'s `order:kind` ours 10 against 2 and
 original's dead on 901. The widening goes 539 → 449 rows; before the
 word only who=1's squad's `order:target` moves, 681 → 682. No mechanism
 is named.
+
+**Item 1350: the site's blows, and the chapter closes at 1400.** The
+site outlived the original's by 64 frames because every blow was light.
+Walked back to the first, block 706: `0/2008`'s `damage`/`damage_frac`
+ours 3/10 against 4/5, `job_counter` 9900 against 9850. Ours dealt
+`(130 × 114 / 100 + 5) / 10 − 4` = 11; the original's 69 sixteenths a
+Hoplite figure is 13, the same sum against armour 2. **A building's
+`armor()` is `WallData::armor@0063fa60`, and an unfinished one holds
+half** (`docs/COMBAT.md` §4.2; the combat table was not it, Hoplites
+against every building are 114 in both). With it the blows agree, and a
+second row opens on 738, `job_counter` ours 9250 against 9200: the blow
+that carried a sixteenth took five points and cost the original 250, not
+200. **A site loses `lost × 50`, carry included** (§7.2 step 5, where
+the aircraft and combat-only exemptions were also missing). The site dies
+on 901 on both sides, who=1's squad turns from it as the original's does,
+and **the word walks to 1400**, the capture's end: word, sequence and
+values. The widening goes 449 → 40 rows, none past the site's death but
+1001's `city:free` and 1021's squad `order:group.id`, both held before.
 
 **The widening** is run514 whole (`[605, 1401)`): 517 rows and 8 pool
 rows, pinned as they stand. Before the word: the standing families and

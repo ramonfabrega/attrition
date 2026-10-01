@@ -866,6 +866,10 @@ pub struct Tuning {
     /// frame (`Unit::process@00610bc0`'s air arm, `docs/ORDERS.md` §38).
     /// `2 craft per frame`.
     pub air_unit_mana_recharge: i32,
+    /// A decoy's life: `Unit::process@00610bc0` closes a copy whose
+    /// `mana_burn`, its age, reaches `(general_upgrade + 2) × DECOY_TIME
+    /// / 2` (`docs/GOLDEN.md` §48). `2500 frames`.
+    pub decoy_time: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
 }
@@ -1224,6 +1228,7 @@ impl Tuning {
         unit_board_distance: 576,
         unit_disembark_distance: 576,
         air_unit_mana_recharge: 2,
+        decoy_time: 2500,
         lakota_raze_price: 0,
     };
 
@@ -1935,6 +1940,7 @@ impl Tuning {
                 "AIR_UNIT_MANA_RECHARGE",
                 Slot::Value(T.air_unit_mana_recharge),
             ),
+            ("DECOY_TIME", Slot::Value(T.decoy_time)),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
         ]
     }
