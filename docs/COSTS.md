@@ -495,7 +495,11 @@ shape carries no information and the predicates do:
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
   Marble, Bison and Incense each cheapen one category (Horses and Rubber
   are built as of item 613, `docs/AI.md` §62: **both** take their 15% off
-  a Stable **or** an Auto Plant unit, whatever the constants' names say); Sugar, Coal, Gold and
+  a Stable **or** an Auto Plant unit, whatever the constants' names say);
+  **Silver takes `SILVER_AGE_COST`, 15%, off every age** — its own
+  truncation after Versailles and before the library-line tail
+  (`get_cost`, `00666b13`, `rare`/`rare_conquest` bit 12), built and
+  diff-backed by item 1346 (`docs/AI.md` §99.16); Sugar, Coal, Gold and
   Iron each cheapen one *resource* across every category; Gypsum cheapens
   everything.
 - **Wonders.** The Terra Cotta Army on barracks and stables, Angkor Wat on

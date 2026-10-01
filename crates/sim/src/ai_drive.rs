@@ -102,7 +102,13 @@ impl Sim {
 
     /// The cheap tick: buy the top research when it becomes affordable —
     /// the head must be an age or a tech, affordable, not had, not queued.
-    fn research_tick(&mut self, who: Player) {
+    ///
+    /// "Affordable" is `Leader::can_pay(0)@006c9b90`, the slot's own test
+    /// — `can_pay_cost(who, city, o, escrow) >= num` with **the slot's
+    /// escrow flag** — the same [`Sim::can_pay_slot`] `make_stuff` asks, so
+    /// an escrowed head is priced against the whole bucket rather than the
+    /// bucket less its reservation (`docs/AI.md` §2.3).
+    pub(crate) fn research_tick(&mut self, who: Player) {
         let w = who as usize;
         let head = *self.ai[w].make_list.head();
         if head.t < 0 {
@@ -112,7 +118,7 @@ impl Sim {
         if t >= self.tech_tree.types.len() || !self.tech_tree.kind(t).is_tech() {
             return;
         }
-        if self.type_affordable(who, t, false) == 0
+        if !self.can_pay_slot(who, &head)
             || self.tech_tree.has_tech(&self.setup, &self.tech[w], t)
             || self.researching(who, t)
         {

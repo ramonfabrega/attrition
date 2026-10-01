@@ -130,7 +130,7 @@ impl Sim {
 
     /// `Leader::can_pay(slot)@006c9b90`: `can_pay_cost(who, city, o, escrow)
     /// >= num`.
-    fn can_pay_slot(&self, who: Player, m: &MakeObject) -> bool {
+    pub(crate) fn can_pay_slot(&self, who: Player, m: &MakeObject) -> bool {
         let Ok(t) = usize::try_from(m.t) else {
             return false;
         };
