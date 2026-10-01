@@ -12,31 +12,31 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-30, the commander's seam at eleven landings since the twenty-first
+*2026-09-30, twelve landings since the twenty-first
 Fable pass (the pass commit `d4aeabbe`, DECISIONS 57). East Indies 11637 →
 14141 (1302, 1326, 1341), Great Sahara at Toughest 8856 → 9999 (1305,
-1318, 1332, 1338, 1346), chapter forty-seven opened at 712 and walked to 904
-(1310, 1323, 1330). Every booking gate green; one went to origin red
+1318, 1332, 1338, 1346), chapter forty-seven opened at 712 and closed at 1400
+(1310, 1323, 1330, 1350). Every booking gate green; one went to origin red
 before its exit was read (Loop 1345), fixed by `5098706e`.*
 
-- **Lanes live: 1350, 1351, 1354**, one to a word, each cut off a
-  booking commit.
+- **Lanes live: 1351, 1354, 1358**, one to a word, each cut off a
+  booking commit; `ccc clear --then` was consumed unfired again.
 - **Three Loop items share one shape** (1337, 1340 with three reaches,
   1318/1332/1338): the answer was a seam on the first parted field's
   writer, not on the word's chain — a checklist row is due.
 - **The user's**: the classifier's refusals (1315); phase 4 on the rules
   track alone; the disk, 217 GiB free; parked 1141 and 1142.
-- **Fable backlog: 33 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357).
+- **Fable backlog: 34 Loop items** (1105, 1119, 1138, 1139, 1141, 1142, 1199, 1225, 1242, 1247, 1259, 1263, 1273, 1274, 1296, 1301, 1308, 1309, 1314, 1315, 1316, 1317, 1322, 1325, 1329, 1331, 1337, 1340, 1344, 1345, 1349, 1353, 1357, 1361).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w14141 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w9999 of 15,432
-Golden: ch47 w904 of 1,401 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the commander, on Opus — lanes live on 1350, 1351 and 1354;
-merge each landing and refill its lane; the count is at eleven.**
+**Opener: the commander, on Opus — lanes live on 1351, 1354 and 1358;
+merge each landing and refill its lane; the count is at twelve.**
 
 ## The queue
 
@@ -60,12 +60,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     run529 (block 10000): the Explorer `1/0`'s `orders.len` 0 against 1
     on block 9999. No mechanism is named.
 
-1350. **Chapter forty-seven's word: frame 904, ours 35 draws against
-    32** (1330), at index 25 (seed `0x041e0e77`): ours spends `1/6`'s
-    `Guy::set_anim+0xf2f < Guy::inc_time+0x271`, the original's next is
-    `Guy::set_anim+0x104b`; on block 905 `1/6`'s `order:kind` ours 10
-    against 2, `orders_x/y` (7368, 33816) against (38664, 13320), and
-    the site `0/2008` ours alone from 902. No mechanism is named.
+1358. **Chapter forty-eight: three arms the unit tests or a widening
+    hold and no walk** (DECISIONS 56 §3), 1350's M2–M4: the carry in a
+    site's lost progress (the widening holds it; the walk's site dies on
+    902 against 901 with no draw moved); an aircraft striking a site;
+    and building attrition on a site (`docs/CITIES.md` §9.5). Whether
+    one staging reaches each is the item's to establish first.
 
 ## How to maintain this file
 
