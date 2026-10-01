@@ -146,6 +146,19 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1354, 2026-09-30 — the unit's sight
+
+(1366) **Terms 7–11 of `Unit::update_los` and term 6's archers'
+sub-arm** (Obsidian; `OBSIDIAN_ARCHERS_RANGE` ships 0): read, not built.
+
+(1367) **A building's `mylos` is derived live** (`build_los`): the
+original caches it in `Wall::update_los`, refreshed at
+`calc_wall_stats`, `Build::activate`, `capture_city` and `swap_team`;
+the cache and its refresh sites are not modelled.
+
+(1368) **run99's Citizens**: which path set the Militia bit without a
+sight refresh.
+
 ## Parked by item 1351, 2026-09-30 — the decoy's close
 
 (1363) **A decoy's attrition, every seventh frame on another's ground**
@@ -2807,6 +2820,12 @@ harness on its third reach.
 it; the third, on a quiet box, ran clean, and run416's first take was
 the same shape. Rule 1150 retakes once; a row could say a capture is
 taken on a quiet box.
+
+(1369) **A cache's timing moves widenings and no word** (1354's Loop
+line): `mylos` refreshing a frame late moved nine widenings and no
+walk; run382's row 202 had stood one frame early since item 35. A row
+that sits one frame early across many windows is a rule waiting (1176's
+"three widenings make a rule"), and no instrument lists such rows.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
