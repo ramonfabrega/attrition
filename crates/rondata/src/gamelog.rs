@@ -2795,8 +2795,10 @@ pub struct Initial<'a> {
     pub units: Vec<UnitDump>,
     pub builds: Vec<BuildDump>,
     pub leaders: Vec<LeaderDump>,
-    /// The setup path's checksum trace, in call order — empty unless the
-    /// run had `[Misc Logging] CHECKSUM ≥ 1` and `check_all_level ≥ 14`.
+    /// The setup path's checksum trace, in call order, when the run had
+    /// `[Misc Logging] CHECKSUM ≥ 1` and `check_all_level ≥ 14`; otherwise
+    /// the initial FULL DUMP's seed checkpoint, if present. That fallback
+    /// has no personality bracket.
     pub checksums: Vec<Checksum<'a>>,
     /// The terrain's `master_land_heights` — `(4·xs + 1) × (4·ys + 1)`
     /// corner heights, row-major, each in **millionths** — the log prints
@@ -3904,6 +3906,19 @@ impl<'a> Log<'a> {
         init.builds = builds;
         init.leaders = leaders;
         init.checksums = self.checksums();
+        // A full initial dump carries its own sync seed even when Misc
+        // Logging CHECKSUM was off (run595/597). It is the same setup
+        // checkpoint, sufficient for matching a sibling's clocks, but it
+        // supplies no earlier personality-roll bracket. Never substitute a
+        // later frame's dump, or replace an available setup-path trace.
+        if init.checksums.is_empty()
+            && let Some(start) = game
+                .children()
+                .take_while(|b| !b.name().starts_with("FRAME"))
+                .find(|b| b.name() == "FULL DUMP")
+        {
+            init.checksums = checksums_in(start.fields()).into_iter().take(1).collect();
+        }
         // **The start-of-game state is read from the start of the game.**
         // These four used to be whole-log searches, which on a capture with
         // no `DUMP_ALL` head walked every frame to answer `None` — and
@@ -4981,6 +4996,31 @@ BEGIN GAME
                 },
             ],
             "the third record has no seed line and is dropped"
+        );
+    }
+
+    #[test]
+    fn initial_dump_seed_fills_only_an_absent_preamble() {
+        let full = " BEGIN FULL DUMP\n  CHECKSUM 9\n   FILE gamelog.cpp\n   LINE 135\n  game_random seed -1\n";
+        let text = format!("BEGIN GAME\n{full} BEGIN FRAME 1\n");
+        let log = Log::parse(&text);
+        assert!(
+            log.checksums().is_empty(),
+            "the preamble reader stays literal"
+        );
+        assert_eq!(log.initial().unwrap().checksums[0].seed, u32::MAX);
+        let text = format!("CHECKSUM 2\n FILE game.cpp\n LINE 5024\ngame_random seed 123\n{text}");
+        let log = Log::parse(&text);
+        assert_eq!(
+            log.initial().unwrap().checksums[0].seed,
+            123,
+            "preamble wins"
+        );
+        let text = format!("BEGIN GAME\n BEGIN FRAME 1\n{full}");
+        let log = Log::parse(&text);
+        assert!(
+            log.initial().unwrap().checksums.is_empty(),
+            "no borrowing from a later dump"
         );
     }
 

@@ -158,6 +158,21 @@ class RunnerTest(unittest.TestCase):
         log.write_text(' MAP_STYLE 18\nBEGIN FRAME 37\n GameInfo closing\n')
         self.assertEqual(runner.verify_game(log,18,36,detail=['end:GROUPS=0'])['groupdata_blocks'],0)
 
+    def test_starting_groups_do_not_satisfy_a_later_window(self):
+        log=self.root/'game.log'
+        text=(' MAP_STYLE 18\n BEGIN GROUPDATA\n END GROUPDATA\n'
+              'BEGIN FRAME 10\nBEGIN FRAME 11\nBEGIN FRAME 37\n GameInfo closing\n')
+        log.write_text(text)
+        with self.assertRaisesRegex(ValueError,'GROUPDATA'):
+            runner.verify_game(log,18,36,detail=['end:GROUPS=1'],log_window=[10,12])
+        text=text.replace('BEGIN FRAME 10\n','BEGIN FRAME 10\n BEGIN GROUPDATA\n END GROUPDATA\n')
+        log.write_text(text)
+        with self.assertRaisesRegex(ValueError,'GROUPDATA'):
+            runner.verify_game(log,18,36,detail=['end:GROUPS=1'],log_window=[10,12])
+        log.write_text(text.replace('BEGIN FRAME 11\n','BEGIN FRAME 11\n BEGIN GROUPDATA\n END GROUPDATA\n'))
+        self.assertEqual(runner.verify_game(log,18,36,detail=['end:GROUPS=1'],
+                                           log_window=[10,12])['groupdata_frames'],[10,11])
+
     def test_one_map_and_the_staged_knobs_reach_the_receipt(self):
         # The golden record is one map, a late window and a command file; the
         # receipt must say what ran, not what the caller typed.

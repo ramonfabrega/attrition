@@ -144,6 +144,7 @@ def stage(args):
         if window != (0, 2):
             raise ValueError('full start requires log window 0 2')
         wanted.setdefault('[Start Game]', {})['WORLD'] = 6
+        wanted.setdefault('[Misc Logging]', {})['CHECKSUM'] = 2
     if output.is_relative_to(install) or output.is_relative_to(profile):
         raise ValueError('output must be outside the install and profile trees')
     if not (install / 'riseofnations.exe').is_file():
@@ -151,6 +152,8 @@ def stage(args):
     commands = parse_commands(cmd_file, end) if cmd_file else []
     # Validate all edits before changing shared settings.
     rise = key((profile / 'rise.ini').read_text(), 'InitialDump', int(full_start))
+    if full_start:
+        rise = key(rise, 'check_all_level', 14)
     rise2 = key(key((profile / 'rise2.ini').read_text(), 'LogStartFrame', window[0]),
                 'LogEndFrame', window[1])
     # Wine Z: maps the host root. Keep backslashes out of re.sub replacement strings.

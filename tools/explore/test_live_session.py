@@ -26,11 +26,11 @@ class SessionTest(unittest.TestCase):
         (self.install / 'riseofnations.exe').write_bytes(b'fixture only')
         (self.install / 'Data').mkdir()
         self.original = {
-            'rise.ini': b'InitialDump=1\r\n',
+            'rise.ini': b'InitialDump=1\r\ncheck_all_level=0\r\n',
             'rise2.ini': b'LogStartFrame=4\r\nLogEndFrame=8\r\n',
             'gamelog.ini': (b'[Logging Options]\nDUMP_ALL=1\nLogFile=old\nDumpFileName=old\n'
                             b'[End Frame]\nUNITS=0\nBUILDS=9\nLEADERS=9\n'
-                            b'[Start Game]\nWORLD=6\n[Misc Logging]\nCOMMANDMANAGER=0\n'),
+                            b'[Start Game]\nWORLD=6\n[Misc Logging]\nCOMMANDMANAGER=0\nCHECKSUM=0\n'),
         }
         for name, data in self.original.items():
             (self.profile / name).write_bytes(data)
@@ -59,6 +59,8 @@ class SessionTest(unittest.TestCase):
         self.assertIn('InitialDump=1', (self.profile/'rise.ini').read_text())
         self.assertIn('DUMP_ALL=1', (self.profile/'gamelog.ini').read_text())
         self.assertIn('WORLD=6', (self.profile/'gamelog.ini').read_text())
+        self.assertIn('CHECKSUM=2', (self.profile/'gamelog.ini').read_text())
+        self.assertIn('check_all_level=14', (self.profile/'rise.ini').read_text())
         self.assertIn('LogStartFrame=0', (self.profile/'rise2.ini').read_text())
         self.assertIn('LogEndFrame=2', (self.profile/'rise2.ini').read_text())
         module.restore(self.output)

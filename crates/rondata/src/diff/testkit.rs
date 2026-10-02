@@ -1858,6 +1858,15 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// have zero off/unlinked/extra/torn. SUPPLY, "Upgrade speed".
 pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 
+/// Third pair baseline, item 1442: East Indies 986, 387 vs 6 draws;
+/// index 0 is road-cost versus farm-clock. run602 block 987 widens it.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 986;
+/// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
+/// run601 block 2577 widens it. These are frames, not mechanism bookings.
+pub(crate) const THIRD_PAIR_WORD_GREAT_LAKES: i64 = 2576;
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (981, 993);
+pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
+
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
 /// `DUMP_ALL` start (`diff::sahara_toughest`).
@@ -8257,6 +8266,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1383 to 16160, past it, widened on run572; item 1401 to 16179,
     // inside it; item 1418 to 16482, past it, widened on run579.
     (
+        "THIRD_PAIR_WORD_EAST_INDIES",
+        THIRD_PAIR_WORD_EAST_INDIES,
+        Some("run602_s_word_frame_is_widened_whole"),
+        1442,
+        Some(WIDENING_FRENCH_EAST_INDIES),
+    ),
+    (
+        "THIRD_PAIR_WORD_GREAT_LAKES",
+        THIRD_PAIR_WORD_GREAT_LAKES,
+        Some("run601_s_word_frame_is_widened_whole"),
+        1442,
+        Some(WIDENING_FRENCH_GREAT_LAKES),
+    ),
+    (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run594_s_word_frame_is_widened_whole"),
@@ -8552,9 +8575,27 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 
 /// The pair whose lower open word is the AI track's default
 /// (`docs/DECISIONS.md` 41 §1, 53 §2).
-pub(crate) const NEWEST_PAIR: &str = "Second pair";
+pub(crate) const NEWEST_PAIR: &str = "Third pair";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    AiWord {
+        line: "Third pair",
+        map: "EastIndiesFrench",
+        named: "East Indies (French)",
+        word: THIRD_PAIR_WORD_EAST_INDIES,
+        length: 17_379,
+        endpoint: None,
+        window: Some("french_east_indies_word_window"),
+    },
+    AiWord {
+        line: "Third pair",
+        map: "GreatLakesFrench",
+        named: "Great Lakes (French)",
+        word: THIRD_PAIR_WORD_GREAT_LAKES,
+        length: 5_638,
+        endpoint: None,
+        window: Some("french_great_lakes_word_window"),
+    },
     AiWord {
         line: "Second pair",
         map: "EastIndies",

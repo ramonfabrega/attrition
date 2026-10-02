@@ -1142,6 +1142,18 @@ the terrain heights (below) its best site is the original's `(52, 14)/370`
 (`docs/AI.md` §12.1). Run9 and run10 predate the trace; `rondata --diff
 --sibling` and `diff::run_traced` borrow it from run11, the same lobby.
 
+**An initial full dump can supply the final setup seed without the preamble**
+(item 1442). run595 and run597 disabled Misc Logging CHECKSUM but their
+first FULL DUMP still prints `gamelog.cpp` 135 and `game_random seed`.
+Those values equal the last setup checkpoint in the matched run600 and
+run598 traces. The initial-state reader uses that one explicit checkpoint
+only when the preamble has none, and only before the first FRAME. This
+lets the unchanged seed-equality check borrow the starting figure clocks.
+It does not reconstruct the earlier personality bracket: that still needs
+the setup trace. The first attempted walk without this fallback loaded zero
+figures; after it, every opening figure and personality field agrees on
+both maps. A later full dump is explicitly refused as an initial seed.
+
 **Two corrections that fell out.** `TERRAIN` under `[Start Game]` does
 *not* dump the height table — `full_dump` never dispatches it (nor
 `MAPMAKE`, `PATHFINDER`, `CHECKSUM`); the earlier claim above is wrong. The
@@ -1701,7 +1713,9 @@ calling `WorldData::log_data` **twice** — which is why a frame shows two
 small `WORLD` blocks with `WORLD=0` — leaving `current_type` at `WORLD`
 and `current_detail` high. With `WORLD=0` the pool is then dropped
 silently: `GROUPS=1` is on, `dump_groups` runs, and not one line survives
-`check_accept`. The start-of-game dump escaped it only because that
+`check_accept`. run599 repeated this combination (item 1442) and its receipt
+rejected it. The runner now also checks every requested window frame, so
+a start-only pool cannot stand in for a missing per-frame one. The start-of-game dump escaped it only because that
 section had `WORLD=6`.
 
 The fix that works, and the settings run31 used:
@@ -2867,13 +2881,19 @@ nation as AI player 1 and human Nubians as player 0. This is the current
 pair's fixed-human contract, not a general multiplayer lobby editor.
 
 `--dump-all-start` sets `InitialDump=1`, `DUMP_ALL=1` and Start Game
-`WORLD=6`, with a required `[0,2)` log window. It refuses a wider or later
+`WORLD=6`, Misc Logging `CHECKSUM=2` and `check_all_level=14`, with a
+required `[0,2)` log window. It refuses a wider or later
 window before touching shared settings. Keep `--end-frame 36` for this
 short sibling and size the timeout for the full initial and closing dumps.
 Both outputs and backups live in a fresh capture directory; the installed
 tracer and existing rolling logs are untouched. A long trace uses the same
 nation, seed, difficulty and map without `--dump-all-start`; compare its
 shared trace frames and initial state to the sibling before borrowing data.
+Request `misc:CHECKSUM=2` on a long trace and retain `check_all_level=14`;
+request End Game unit/building/city/leader detail too. The runner clears
+unrequested sections: run596 lost both the personality seed bracket and
+the closing units this way, despite a complete draw-stream trace. A new
+pair refuses that incomplete input before measuring its word.
 
 ## A packet is a capture too (2026-09-23, the eleventh Fable pass)
 

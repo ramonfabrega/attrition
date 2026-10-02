@@ -202,9 +202,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1326 met it too, on run523's East Indies window. **Item 1379
     // added `Edinburgh`**: run571's window, past 11177, holds a city no
     // earlier window did.
+    // Item 1442: French Paris is another bare display-name line, not a sim field.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Edinburgh London Napata Newcastle Norwich York flags increment length size",
+        "Edinburgh London Napata Newcastle Norwich Paris York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -688,6 +689,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
     let r594 = crate::testenv::dump("gamelog-run594-islands-toughest-18060.txt");
+    let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
+    let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
     let r589 = crate::testenv::dump("gamelog-run589-islands-toughest-17890.txt");
     let r588 = crate::testenv::dump("gamelog-run588-islands-toughest-17754.txt");
     let r585 = crate::testenv::dump("gamelog-run585-islands-toughest-17501.txt");
@@ -2332,6 +2335,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // Third pair's own word blocks, on each map's own new capture.
+    for (path, word) in [
+        (&r602, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        (&r601, super::testkit::THIRD_PAIR_WORD_GREAT_LAKES),
+    ] {
+        if let Some(path) = path {
+            let n = drive_capture(path, word - 1, word + 3, &mut paths);
+            assert_eq!(n, 5, "the French pair carries its word window");
+            frames += n;
+        }
+    }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
     let actual = unread(&paths);
@@ -2671,8 +2685,10 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
     // walked here beside East Indies'.
     let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
+    let french_east = super::third_pair::french_east_indies_word_window();
+    let french_lakes = super::third_pair::french_great_lakes_word_window();
     let seen = compared::stop();
-    let (Some(w), Some(_)) = (walked, toughest) else {
+    let (Some(w), Some(_), Some(_), Some(_)) = (walked, toughest, french_east, french_lakes) else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };

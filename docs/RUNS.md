@@ -13577,3 +13577,204 @@ SHA-256 `e76857a541b6b070488ee35086eb53126b4f90149b682cb594391a3eb1e6b9fe`;
 SHA-256 `045bf7fdf7bf921636cf5972a7d483c7cbfd37a7c29772b29295c9d37cfede99`.
 Receipts, trace comparison and widening logs remain under
 `~/ron-data/lab-experiments/2026-10-02-item-1439-codex/`.
+
+## run595 — French AI East Indies full start (2026-10-02, item 1442)
+
+The third pair keeps human Nubians, seed 12345 and Toughest and changes
+the AI nation to French. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`~/ron-data/lab-captures/2026-10-02-run595 --map 18 --end-frame 36
+--timeout 1200 --dump-all-start --ai-tribe 10 --profile DIFFICULTY=5`.
+The bounded full dump uses `[0,2)`, InitialDump and DUMP_ALL, Start Game
+WORLD=6; `36 !quit`, `cover=0`. No clicks or installed tracer replacement.
+
+Receipt and waiter exit 0: 37 contiguous trace frames through 36, complete
+lifecycle, closing block 37, map 18 and seed read back. PLAYER records
+are `(who,tribe,flags) = (0,4,7),(1,10,1)`. Five settings files restored
+byte-for-byte. Launch 337.233 s, total 348.080 s. The harness confirms
+GAME INFO and numeric PLAYER settings are the previous pair's, apart
+from the AI tribe; its nation-derived display name also changes.
+
+Archived `gamelog-run595-islands-french-toughest-start.txt`, 153429333
+bytes, sha256 `a5f070630c8418cb97abbff41ec921efb69770ad79e88c2b44565c67fec9d7a6`;
+`rontrace-run595.log`, 10098944 bytes, sha256
+`473ef1aa17506f573f0f1b4ea8ebcfe1cf025b20cfe3b80313c9a448d8c2af32`.
+Source, backups and receipt remain in the capture directory; independent
+validation is in `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run595-validation.json`.
+This is the new game's own start sibling; long-trace comparison follows.
+
+## run596 — French East Indies trace, incomplete setup and closing detail (2026-10-02, item 1442)
+
+Through `viadriver.sh tools/explore/golden_capture.sh`, source
+`~/ron-data/lab-captures/2026-10-02-run596/map-18`: map 18, seed 12345,
+Toughest, `--ai-tribe 10`, end 24000, timeout 2400, window `[0,24001)`,
+`end:MISC` and run346's Start Game detail. Cover 0, `37 !ffwd 27`,
+`24000 !quit`. Launch 83.297 s, total 90.893 s. The game exits 0 early
+at 17379; the requested-endpoint receipt fails and `waitrun.sh` exits 2.
+The failure is retained. Independent validation at the actual end passes:
+17380 contiguous frames, complete lifecycle, closing marker 17380, map 18,
+seed 12345 and players `(0,4,7),(1,10,1)`. Five settings files restored.
+Against run595: 37 shared trace frames, zero differences.
+
+**Not a complete scoring capture.** Unspecified logging sections are zeroed
+by this runner. Missing Misc Logging CHECKSUM means no Leader::init seed
+bracket; missing End Game detail leaves only the closing marker, no units.
+The exploratory walk diverged at frame 0 with the wrong personality, and
+a whole opening comparison made that visible. That is an instrument
+failure, not a gameplay score. `run596_is_refused_as_a_complete_pair_capture`
+keeps the negative example. Run600 replaces it with both sections explicit;
+run595 still supplies the original heights, herds and goods.
+
+Archived `gamelog-run596-islands-french-toughest-24k-trace.txt`, 10991042
+bytes, sha256 `60b795a16f08e8744c7e6316e2605483a935b14e941f8cd3c53f3ca283316c01`;
+`rontrace-run596.log`, 237283680 bytes, sha256
+`67ef9ff4520ac5d95d4b748c40ce236e54bd3220f6b68f802de0c8d5a59b0a2e`.
+Independent validation: `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run596-validation.json`.
+
+## run597 — French AI Great Lakes full start (2026-10-02, item 1442)
+
+Run595's recipe on map 14, through `viadriver.sh tools/explore/golden_capture.sh`
+in `~/ron-data/lab-captures/2026-10-02-run597/map-14`. Same seed 12345,
+human Nubians, AI French, Toughest, `[0,2)` full-start window, end 36.
+Receipt and waiter exit 0: 37 contiguous frames, closing block 37 and full
+lifecycle; PLAYER records `(0,4,7),(1,10,1)`, map and seed read back.
+Launch 332.610 s, total 343.136 s; five settings files restored byte-for-byte.
+Like run595, this version predates the full-start checksum extension: it
+supplies heights/herds/goods, while the long sibling must supply the
+personality seed bracket through explicit Misc Logging CHECKSUM=2.
+
+Archived `gamelog-run597-lakes-french-toughest-start.txt`, 150762815 bytes,
+sha256 `0bfdbbf57768dd419cddc3ecc748298f2c7c5a199aa3f7625c2fcc2d4a96b581`;
+`rontrace-run597.log`, 8877056 bytes, sha256
+`c5ad03c821e3bd2739497a10ca9fc98127a202ca7c8d056047ea232e75dbcc96`.
+Source and backups retained; independent validation is in
+`~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run597-validation.json`.
+
+## run598 — French AI Great Lakes complete trace (2026-10-02, item 1442)
+
+Source `~/ron-data/lab-captures/2026-10-02-run598/map-14`,
+through the click-free lane. Seed 12345, human Nubians, French AI, Toughest;
+end 24000, timeout 2400, `[0,24001)`, `cover=0`, `37 !ffwd 27`.
+Run346's Start Game detail, End Frame MISC, explicit Misc Logging CHECKSUM=2
+(with the restored profile's check_all_level=14), and explicit End Game
+unit/building/city/figure/leader/death detail. The closing state is nested
+inside the last FRAME and the ordinary frame reader reads it; final_state
+is the separate reader for trailing siblings and correctly returns None.
+
+Process exit 0 at 5638; the requested-endpoint receipt fails and waiter
+exits 2, both retained. Independent validation at the actual end passes:
+5639 contiguous frames, full lifecycle, closing block 5639, map, seed
+and players `(0,4,7),(1,10,1)` read back. Five settings files restored.
+Launch 54.831 s, total 62.005 s.
+Against start run597: 37 shared trace frames, zero differences.
+The initial word is measured only after all starting figure clocks and
+AI personality checkpoints are available; no missing-input run is a floor.
+
+`gamelog-run598-lakes-french-toughest-24k-trace.txt`, 12612244 bytes, sha256 `fbd95d5944b60a730d9daebecfd5755b7bd0aea9e82c8f97a7e8e4411424c2e0`.
+`rontrace-run598.log`, 32982720 bytes, sha256 `a263b30a23cca24d0f2767a1c48ad504f74d549cdc53db0586518e5aaa41c80f`.
+Independent validation and the original failed receipt:
+`~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run598-validation.json`.
+
+## run600 — French AI East Indies complete trace (2026-10-02, item 1442)
+
+Source `~/ron-data/lab-captures/2026-10-02-run600/map-18`,
+through the click-free lane. Seed 12345, human Nubians, French AI, Toughest;
+end 24000, timeout 2400, `[0,24001)`, `cover=0`, `37 !ffwd 27`.
+Run346's Start Game detail, End Frame MISC, explicit Misc Logging CHECKSUM=2
+(with the restored profile's check_all_level=14), and explicit End Game
+unit/building/city/figure/leader/death detail. The closing state is nested
+inside the last FRAME and the ordinary frame reader reads it; final_state
+is the separate reader for trailing siblings and correctly returns None.
+
+Process exit 0 at 17379; the requested-endpoint receipt fails and waiter
+exits 2, both retained. Independent validation at the actual end passes:
+17380 contiguous frames, full lifecycle, closing block 17380, map, seed
+and players `(0,4,7),(1,10,1)` read back. Five settings files restored.
+Launch 89.094 s, total 96.690 s.
+Against start run595: 37 shared trace frames, zero differences.
+The initial word is measured only after all starting figure clocks and
+AI personality checkpoints are available; no missing-input run is a floor.
+
+`gamelog-run600-islands-french-toughest-24k-trace.txt`, 13742613 bytes, sha256 `06a6023d1ccf2e5e83c2240999bfebe9af45d1ee0de433d0cad7ebdc7c439dc4`.
+`rontrace-run600.log`, 237279264 bytes, sha256 `4af8e88231ae40bdda3448200a9708e8e6467b828d54a02f3dd463fffa6d60cc`.
+Independent validation and the original failed receipt:
+`~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run600-validation.json`.
+
+## run599 — French East Indies word, group capture refused (2026-10-02, item 1442)
+
+**Disk gap.** The long trace does not print the frame-986 records. This first detailed window enabled DEATHS, suppressing GROUPDATA through the documented inherited logger filter. It is preserved as partial evidence, not a complete widening.
+
+```sh
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run599 \
+  --map 18 --end-frame 1242 --timeout 2400 --log-window 981 1238 \
+  --detail 'end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5,DEATHS=1' \
+  --detail 'start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1' \
+  --detail 'misc:CHECKSUM=2' \
+  --detail 'endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1' \
+  --ai-tribe 10 --profile DIFFICULTY=5
+```
+
+Process exit **0**; original receipt **failed**. Trace has 1,243 frames,
+ends at 1242; closing marker 1243. Seed 12345 and player tribes
+4/10 read back; all five settings files restored. Launch-to-exit
+960.347 s, total 978.493 s.
+Wait wrapper exit **2**, reporting the runner exception; GROUPDATA count **0**.
+Independent endpoint/identity validation does not erase the failed receipt.
+
+Archive `gamelog-run599-islands-french-toughest-986.txt`, 506,790,886 bytes,
+SHA-256 `5cce6c72437b6db1d84636ede79842c3b955dc63eaabb4c2a377ec88e6af8ba1`.
+
+Archive `rontrace-run599.log`, 12,733,792 bytes,
+SHA-256 `d68e629ca380cf14104d19503c139c73782d5c03c5a4b9ba65a51e542054248c`.
+
+Full receipt and validation: `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run599-validation.json`.
+
+## run601 — French Great Lakes word, complete short window (2026-10-02, item 1442)
+
+**Disk gap.** run598 prints no whole records at frame 2576. A thirteen-block window covers the word and six neighbors each side; DEATHS is off and UNITS=9 preserves the group pool.
+
+```sh
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run601 \
+  --map 14 --end-frame 2588 --timeout 1200 --log-window 2571 2584 \
+  --detail 'end:MISC,UNITS=9,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5' \
+  --detail 'start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1' \
+  --detail 'misc:CHECKSUM=2' \
+  --detail 'endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1' \
+  --ai-tribe 10 --profile DIFFICULTY=5
+```
+
+Process exit **0**; original receipt **passed**. Trace has 2,589 frames,
+ends at 2588; closing marker 2589. Seed 12345 and player tribes
+4/10 read back; all five settings files restored. Launch-to-exit
+95.441 s, total 103.569 s.
+Wait wrapper exit **0**; all thirteen frames carry 512 GROUPDATA slots.
+The shared 2,589 trace frames match run598 with zero draw differences.
+
+Archive `gamelog-run601-lakes-french-toughest-2576.txt`, 37,542,224 bytes,
+SHA-256 `42a3df455f5c93cb3665aab87880020649eee1351b1b71f0b1125ee9554e220e`.
+
+Archive `rontrace-run601.log`, 15,426,944 bytes,
+SHA-256 `b6c1d1aa113d2ab22e979db70e211f37f25e267ab3ba92fb23998af29c01f0c7`.
+
+Full receipt and validation: `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run601-validation.json`.
+
+## run602 — French East Indies word with its group pool (2026-10-02, item 1442)
+
+**Disk gap.** run599 printed no groups and is not a complete widening.
+This corrected capture uses run601's category recipe, map **18**, window
+**[981,994)**, end **998**, timeout **1200**, fresh output
+`~/ron-data/lab-captures/2026-10-02-run602`. Human Nubians, French AI,
+seed 12345, Toughest. The thirteen blocks center on word block 987;
+shortening the tail changes coverage extent, not per-record detail.
+
+Process, receipt and wait exits **0**. Trace frames **999**, closing marker
+999; the 999 shared frames match run600 with zero draw differences.
+All thirteen blocks print 512 GROUPDATA slots; five settings files restored.
+Launch-to-exit 98.030 s, total 106.025 s.
+
+Archive `gamelog-run602-islands-french-toughest-986.txt`, 39,815,828 bytes,
+SHA-256 `e7af09c6315e5f1135aa50aada3620cf8065e2345a8e87904be9964343ab0f72`.
+
+Archive `rontrace-run602.log`, 12,083,488 bytes,
+SHA-256 `4fcd4dc4cc3edf42b8617c2e0f709dee082b94993626628a96bf6c26829e1505`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run602-validation.json`.

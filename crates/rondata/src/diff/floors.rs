@@ -202,6 +202,11 @@ mod tests {
         the_handoff_carries("Second pair");
     }
 
+    #[test]
+    fn the_handoff_s_third_pair_is_the_pinned_words() {
+        the_handoff_carries("Third pair");
+    }
+
     /// **The third map's line is its pinned word** (parked 1080, the
     /// nineteenth pass): item 1066 pinned `LONG_WORD_GREAT_SAHARA` and the
     /// commander wrote a `Third map:` line that no guard read. Made to

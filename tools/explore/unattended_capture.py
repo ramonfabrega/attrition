@@ -117,13 +117,14 @@ def stalled_before_frame_zero(gamelog):
         return True
 
 
-def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None):
+def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
     closing = False
     frame = None
     groupdata = 0
+    group_frames = set()
     with path.open(errors='strict') as f:
         for line in f:
             m = re.fullmatch(r'\s*MAP_STYLE (\d+)\s*', line)
@@ -136,6 +137,8 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None):
                 closing = True
             if line.strip() == 'BEGIN GROUPDATA':
                 groupdata += 1
+                if frame is not None and 1 <= frame <= end:
+                    group_frames.add(frame)
     if styles != {style} or not closing:
         raise ValueError(f'game identity/closing dump mismatch: maps={styles}, closing={closing}')
     if seed is not None and seeds != {seed}:
@@ -146,6 +149,14 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None):
     asked = any(cats.get('GROUPS', 0) > 0 for cats in live_session.parse_detail(detail or ()).values())
     if asked and groupdata == 0:
         raise ValueError('GROUPS was asked for and no GROUPDATA block was printed (parked 735)')
+    # A start dump cannot prove that the requested per-frame pool survived
+    # the logger's inherited detail filter (item 1442).
+    end_groups = live_session.parse_detail(detail or ()).get('[End Frame]', {}).get('GROUPS', 0)
+    if end_groups and log_window:
+        lo, hi = log_window
+        missing = set(range(max(1, lo), min(end + 1, hi))) - group_frames
+        if missing:
+            raise ValueError(f'GROUPDATA missing in requested window: {sorted(missing)}')
     players = initial_players(path)
     if ai_tribe is not None:
         by_who = {p.get('who'): p for p in players}
@@ -154,7 +165,7 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None):
                 or not by_who[0].get('flags', 0) & 4 or by_who[1].get('flags', 0) & 4):
             raise ValueError(f'player read-back mismatch: {players}')
     return {'map_style': style, 'closing_frame': end+1, 'seed_observed': sorted(seeds),
-            'groupdata_blocks': groupdata, 'players': players}
+            'groupdata_blocks': groupdata, 'groupdata_frames': sorted(group_frames), 'players': players}
 
 
 def verify_restored(output, profile):
@@ -225,7 +236,8 @@ def capture(args, output, style):
         report['staged'] = {'log_window': getattr(args, 'log_window', None) or ([0, 2] if full_start else list(live_session.DEFAULT_WINDOW)),
                             'dump_all_start': full_start,
                             'detail': list(getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL)
-                                      + (['start:WORLD=6'] if full_start else []),
+                                      + (['start:WORLD=6', 'misc:CHECKSUM=2'] if full_start else []),
+                            'check_all_level': 14 if full_start else None,
                             'cover': getattr(args, 'cover', None) or 'cover=0',
                             'callwin': staged_callwin(output),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
@@ -287,7 +299,8 @@ def capture(args, output, style):
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code']))
         report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed,
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
-                                  ai_tribe=report['ai_tribe_requested']))
+                                  ai_tribe=report['ai_tribe_requested'],
+                                  log_window=getattr(args, 'log_window', None)))
         report['map_verified'] = True
         report['seed_requested'] = args.seed
         report['success'] = True

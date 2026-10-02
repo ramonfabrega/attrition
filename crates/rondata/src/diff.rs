@@ -51,6 +51,8 @@ mod shutdown;
 mod slots;
 #[cfg(test)]
 mod third;
+#[cfg(test)]
+mod third_pair;
 mod unit;
 
 #[cfg(test)]

@@ -59,6 +59,12 @@ pub(crate) fn walk_sahara(capture: (&str, &str)) -> Option<Word> {
 /// [`walk_sahara`] from a named start dump: run381 for the first pair's
 /// lobby, run468 for the second's (item 1221, `diff::sahara_toughest`).
 pub(crate) fn walk_sahara_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
+    walk_from(start, (gamelog, tracelog))
+}
+
+/// The same draw-stream walk with an explicit full-start sibling on any map.
+/// No map-specific state is supplied beyond the named captures.
+pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Option<Word> {
     let inst = install()?;
     let (Some(path), Some(sib), Some(tr)) = (dump(gamelog), dump(start), trace(tracelog)) else {
         eprintln!("skipping: no {gamelog}/{start} (set RON_GAMELOG_DIR)");

@@ -13721,3 +13721,80 @@ first-tier selection, modified multi-slot or disabled prerequisites,
 Library exclusions and composition with the British discount. Both shipped
 tiers require Democracy and carry 20%, so this run alone cannot distinguish
 the tier order. Other omitted cost terms from §74.6 remain omitted.
+
+## 110. The French third pair: new baselines and whole records (2026-10-02, item 1442)
+
+The second pair is closed. Per DECISIONS 53 §2 and 56 §1, the next pair
+changes only player 1's nation selection to **French (10)**. Human Nubians
+(4), seed 12345, Toughest (5), and the two maps remain fixed. The tests
+compare every GAME INFO field and every numeric PLAYER setting, excluding
+only player 1's tribe; the nation-derived display name changes too. A new
+nation can alter setup's random stream, so each map owns a fresh full start.
+
+| map | full start | long trace | natural end | first count / sequence difference | whole window |
+|---|---|---|---:|---:|---|
+| East Indies | run595 | run600 | 17379 | 986 / 986 | run602, blocks 981–993 |
+| Great Lakes | run597 | run598 | 5638 | 2576 / 2576 | run601, blocks 2571–2583 |
+
+These are new baselines, not a regression of the second pair. Its closed
+18140 / 5930 floors and closing-state comparisons remain. No simulation
+behavior changes in this item. `diff::third_pair` owns the new tests;
+`testkit::AI_WORDS` selects East Indies (French) as the lower open word.
+
+### Inputs that must agree before the score means anything
+
+The first long East Indies capture, run596, lacks the personality seed
+bracket and closing units. Its apparent frame-0 failure is rejected by a
+negative fixture test, not booked as a mechanic. run600 replaces it with
+explicit Misc CHECKSUM and End Game categories. Natural ends before the
+requested 24000 leave their original failed endpoint receipts intact;
+independent validation establishes the actual contiguous trace endpoint,
+closing marker, lobby identity and restored settings (RUNS).
+
+The full starts carry a seed in the initial FULL DUMP, but initially omitted
+the checksum preamble. `Log::initial` now uses that explicit checkpoint only
+when the preamble is absent and only before the first FRAME. A later dump
+cannot supply it, and an existing preamble wins. This allows the existing
+same-board/same-seed sibling loader to borrow figure clocks; it does not
+invent the absent personality bracket. Both starts match their long trace's
+seed and every starting building identity and position. Opening figure and
+personality comparisons agree, though other opening fields still differ.
+Future `--dump-all-start` captures enable the full checksum preamble too.
+
+### The whole-record result, and what it does not establish
+
+Both windows contain all thirteen blocks, all 512 group slots per block,
+and no unprinted record keys in the widening. East Indies compares 16,744
+record rows and 27,638 leader rows, with **71** differing field keys; Great
+Lakes compares 25,337 and 27,638, with **83**. Both original and simulated
+projectile lists are empty throughout, asserted separately. Coverage drives
+the new words' five central blocks and both comparison windows. These
+counts expose residue; they are not claims of whole-record parity.
+
+East Indies frame **986** draws **387 versus 6**, index 0 our
+`PathFinder::calc_road_cost+0x46` versus the original's
+`Farms::inc_time+0x1ae`. Its block **987** says building **1/2010**, a
+woodcutter's camp (`orig_type 418`), has `city -1 / 0`, `damage 1 / 0`,
+and gather-list length **0 / 48**. Building 1/2009's `city_down` is
+**-1 / 2010**; several city members have `regen_roads 1 / 0`.
+The city's missing member is the next hypothesis, not yet the cause.
+Kill it if a decision-local correction of membership fails to remove the
+extra draws, or if walking back shows another writer causes the flags.
+The timber slot count **6 / 7** already differs at the opening, so its
+causal relationship to this later camp is also unestablished.
+
+Great Lakes frame **2576** draws **36 versus 42**, index 4 our bird think
+versus `Leader::make_stuff+0x221`. At block **2577**, AI SITE[8] is
+**(55,31), value 3960** versus **(53,32), value 9342**, with SITE[9]
+swapped; timber slots are **5 / 6**, already different at the opening.
+These values identify competing readings, not a booked implementation.
+A correction must move this word and compare the site decision itself.
+
+run599 is retained as partial evidence: DEATHS suppressed its group pool,
+as ORACLE's inherited-filter warning predicts, and the runner rejected it.
+Its empty-group differences are instrumentation artifacts. The corrected
+captures disable that category and use UNITS=9. Thirteen blocks instead of
+257 preserve the word's complete records while bounding capture time to
+about 104–106 seconds. They establish nothing beyond their windows.
+No reading-only gameplay formula was introduced; no independent audit is
+claimed. Remaining causes belong to subsequent scored items.
