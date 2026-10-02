@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-02, direct Codex run: East Indies measures closed at **18140**,
 from 17785 in five items (+355). Item 1441 wires supply-upgrade speed;
 191 closing units have zero off/unlinked/extra/torn. The second pair's
-words are both closed. Items 1440–1441 await their batch gate; 1437–1439
-have combined validation (journal 1439). This is a milestone, not full
+words are both closed. Both batches have combined validation (journals
+1439 and 1441), with all fidelity checks passing. This is a milestone, not full
 record parity or the end of the phase.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is

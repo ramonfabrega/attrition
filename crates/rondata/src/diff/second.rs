@@ -156,7 +156,9 @@ pub(crate) fn walk_second_probed(
     })
 }
 
-/// **The compared pin's window** (items 1061 and 1106, DECISIONS 54 §2):
+/// **The retained closing coverage window** (item 1441): the same
+/// instrument as the formerly open word, now retained as a closed floor.
+/// History (items 1061 and 1106, DECISIONS 54 §2):
 /// the newest pair's lower map's word — East Indies at Toughest,
 /// [`SECOND_WORD_EAST_INDIES`] — its block and two on either side, on the
 /// word's own widening walked from run346's start with the group record
@@ -186,7 +188,7 @@ pub(crate) fn walk_second_probed(
 /// `None`
 /// when the captures are
 /// not on this machine.
-pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
+pub(crate) fn east_indies_closing_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
     // The pair is closed: retain the last three running blocks and the
     // closing block, without asking beyond the saved capture.

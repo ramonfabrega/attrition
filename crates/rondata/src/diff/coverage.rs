@@ -2638,9 +2638,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 
 /// **Every field the parser carries is compared by the shared instrument
 /// on every open word's own window, or pinned above.** The window is
-/// `second::east_indies_word_window` since item 1106 (the third map's,
+/// `second::east_indies_closing_window`, retained after item 1441 closed
+/// the second pair (formerly its word window since item 1106). The third map's,
 /// `third::sahara_word_window`, was walked beside it from the nineteenth
-/// pass until item 1206 closed that map at its end) — the second pair's
+/// pass until item 1206 closed that map at its end. The second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
@@ -2658,7 +2659,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
     compared::start();
-    let walked = super::second::east_indies_word_window();
+    let walked = super::second::east_indies_closing_window();
     // **Every open word's window** (parked 1067 and 1080, the nineteenth
     // pass; `floors::the_compared_pin_walks_every_open_ai_word` holds the
     // list to `AI_WORDS`): the third map's, run416's blocks around its word
@@ -2675,7 +2676,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };
-    assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
+    assert!(w.blocks >= 4, "the closing window is {} blocks", w.blocks);
     assert!(
         !seen.is_empty(),
         "the instrument registered nothing on {} blocks",
