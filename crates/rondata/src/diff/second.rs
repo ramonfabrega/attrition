@@ -195,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run588-islands-toughest-17754.txt",
+        "gamelog-run589-islands-toughest-17890.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2704,6 +2704,79 @@ mod tests {
     }
 
     #[test]
+    fn run589_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run589",
+            "gamelog-run589-islands-toughest-17890.txt",
+            WIDENING_SECOND_EAST_INDIES_17907,
+            &[17_907, 17_908],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 64, "the complete run589 window");
+        pin!(
+            w.missing.is_empty(),
+            "all record keys are read: {:?}",
+            w.missing
+        );
+        pin_eq!(w.firsts.len(), 634, "run589 record baseline");
+        let word = w
+            .standing
+            .get(&17_908)
+            .expect("the successor closing block");
+        for o in [155, 156, 157] {
+            pin_eq!(
+                word.get(&(1, o, "inside".into())).map(String::as_str),
+                Some("ours -1 theirs 167"),
+                "the original has boarded 1/{o}"
+            );
+        }
+        pin!(
+            word.contains_key(&(1, 167, "unlinked".into())),
+            "the original alone holds the new transport"
+        );
+        let Some(a) = widen_second_ammo(
+            "gamelog-run589-islands-toughest-17890.txt",
+            WIDENING_SECOND_EAST_INDIES_17907,
+        ) else {
+            return;
+        };
+        eprintln!(
+            "run589 ammo pin {} {} {} {} {} {:?}",
+            a.frames,
+            a.theirs,
+            a.ours,
+            a.fields,
+            a.firsts.len(),
+            a.unmodelled
+        );
+        pin_eq!(a.frames, 64, "run589 ammo window");
+        pin_eq!(
+            (a.theirs, a.ours, a.fields),
+            (1084, 1113, 20060),
+            "all live rounds and paired fields"
+        );
+        pin_eq!(a.firsts.len(), 331, "run589 projectile baseline");
+        pin_eq!(
+            a.unmodelled,
+            (90, 4975466785581637854),
+            "original-only engine fields"
+        );
+    }
+
+    #[test]
     fn run588_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
         let Some(w) = widen_east_indies_on(
@@ -2713,7 +2786,7 @@ mod tests {
             ),
             "run588",
             "gamelog-run588-islands-toughest-17754.txt",
-            (17_754, 17_818),
+            WIDENING_SECOND_EAST_INDIES_17785,
             &[17_785, 17_786],
             true,
             true,
@@ -2753,7 +2826,7 @@ mod tests {
         );
         let Some(a) = widen_second_ammo(
             "gamelog-run588-islands-toughest-17754.txt",
-            (17_754, 17_818),
+            WIDENING_SECOND_EAST_INDIES_17785,
         ) else {
             return;
         };

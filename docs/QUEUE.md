@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-02, long direct Codex run: item 1437 measures East Indies
 **17785 → 17907** (+122) by using the President's own decoy radius.
 run588 restores the missing member and group list; focused checks pass.
-The floor stays 17785 until run589 widens the successor. This checkpoint
-awaits the next bounded batch gate; 1434–1436 passed theirs on e94137b2.*
+run589 widens and pins the successor. This checkpoint awaits the next
+bounded batch gate; 1434–1436 passed theirs on e94137b2.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -32,12 +32,12 @@ awaits the next bounded batch gate; 1434–1436 passed theirs on e94137b2.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w17785 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w17907 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: finish run589's successor widening and re-pin, then take 1438.
+**Opener: 1438 is next, widened and pinned by run589.
 The direct run is sequential; the commander remains paused.**
 
 ## The queue
@@ -51,9 +51,10 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 1438. **East Indies' successor: frame 17907, five draws against seven**,
     index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, original
     `Guy::set_anim+0x97a < do_cast`. The radius correction closes 17785;
-    no existing detail reaches 17907. run589 is capturing whole records
-    and ammo at 17890..17954. Widen and name the first parted state
-    before accepting a cause; the floor remains 17785 until then.
+    run589 widens all records and ammo at 17890..17954. Block 17908
+    puts 1/155–157 inside original-only transport 167; ours stay ashore.
+    Move flags first part on 17906, then speed and destination on 17907.
+    Walk those inputs back; no cause is accepted yet.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

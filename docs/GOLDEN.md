@@ -10476,3 +10476,11 @@ with 19,460 paired field comparisons. Remaining keys stay pinned.
 A synthetic cast checks ordinary-General strict boundaries at 1728 and
 the President's at 1920, including the booked distance 1888. It passes.
 The successor lies beyond run588; run589 is capturing its whole records.
+
+Run589 closes the successor evidence gap: 634 record keys and 331 ammo
+keys across all 64 blocks, no missing dumped keys; the word and coverage
+registry move to 17907. Its next value difference is boarding: original
+passengers 155–157 are inside original-only transport 167 on block 17908.
+Item 1438 walks the prior move flags back. Removing the patriot radius
+makes the synthetic boundary test and run588 fail, both exit 101; the
+mutation is restored. Full batch validation remains pending.

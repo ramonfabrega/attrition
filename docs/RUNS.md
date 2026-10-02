@@ -13396,3 +13396,29 @@ and 199 differing round/field keys. Original-only engine fields are
 fingerprinted separately. At block 17786 group 66 holds 21 members in
 the sim against 22 in the original, whose unit 154 is absent here.
 This is item 1437's observed successor, not an accepted mechanism.
+
+## run589 — East Indies successor 17890..17954 (2026-10-02, item 1437)
+
+**Disk gap.** The patriot's radius correction moves the word to 17907,
+past run588's last block 17817. A 64-block detail window carries every
+record and AMMO around that successor before its mechanism is named.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run589 \
+    --map 18 --end-frame 17959 --timeout 2400 --log-window 17890 17954 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; map, lifecycle and seed 12345 verified.
+Closing frame 17960; all five backed-up settings files restored. Launch
+479.038 s, total 491.512 s. Independent trace comparison against run346:
+**17,960 shared frames, zero differences**. Source and backups retained.
+
+Archives: `gamelog-run589-islands-toughest-17890.txt`, 191,980,938 bytes,
+SHA-256 `b3a98f188a577d0c693fc0cf2e7c96d0edbd0d47f6dfb67a4ce83383cde55206`;
+`rontrace-run589.log`, 174,914,304 bytes,
+SHA-256 `d47c3eba6291666d6afc83fab374618548048b2a6ed40938570223dff05925b0`.
+Source/archive hashes match. Receipt, hashes and trace comparison are in
+`~/ron-data/lab-experiments/2026-10-02-item-1437-codex/`. The comparison
+and successor values are recorded with the item before re-pinning.
