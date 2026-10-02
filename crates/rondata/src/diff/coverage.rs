@@ -1365,7 +1365,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // Item 1427's measured successor, including the prior 16760 word.
     if let Some(p) = &r583 {
-        let n = drive_capture(p, 16_877, 16_882, &mut paths);
+        let n = drive_capture(p, 16_939, 16_944, &mut paths);
         assert_eq!(n, 6, "run583 carries the current East Indies word");
         frames += n;
     }

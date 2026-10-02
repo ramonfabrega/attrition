@@ -2575,3 +2575,45 @@ walk (each falls back under the mutation). **Listing-backed**:
 `6f4daa`–`6f4e2b`, `sinx@0092d100`, and `do_forming`'s `6f45e9`–`6f465a`
 (read, not built). **Built**: `army::march_origin`, with
 `an_engaged_army_forms_a_cell_behind_its_point`.
+
+
+## 24. Census seeding visits regions in numeric order (item 1432, 2026-10-01)
+
+run583's whole-record widening places the next East Indies word at 16878:
+six draws against twelve, with six original `Army::find_target` draws
+before the otherwise matching tail. Multiple members' stance is zero
+against one on block 16879. The group's own identity matters: group 75
+already carries army 6 against army 7 before the word. run579 places that
+disagreement on block 16625, when the group is created. The record's pool
+slot is not substituted for its army identity.
+
+An in-decision lifecycle probe shows the census at frame 16375 creating
+armies in free slots 6, 7, 8 for cities 3, 4, 5, whose regions are 6, 11,
+5. The implementation enumerated regions in city creation order. The
+original `Leader::plan_strategy@006b9620` initializes its region loop at
+zero, increments it after army seeding, and ends after 63. Thus region 5
+gets the first free slot, region 6 the second, and region 11 the third.
+City scoring and the choice within a region are unchanged.
+
+This is observable behavior: an army's slot determines its 256-frame
+processing phase. The replay processed an empty army 7 at 16878 and the
+actual group under army 6 two frames later. Sorting the unique city
+regions before seeding puts the army on its original phase; this is not
+a special-case scheduling correction on the word's frame.
+
+run583 differing field keys fall **878 → 699**, and run579 **288 → 267**.
+Group 75's army 6 against 7 becomes 7; the named members' stance becomes
+one on block 16879. The measured word advances **16878 → 16940** (+62), four draws against
+five at the successor, idle against animation wrap at index zero. Both
+other open-map words are unchanged. The synthetic census test deliberately
+creates cities in region order 6, 11, 5 and checks the assigned army slots
+and resulting processing phase. The run583 widening checks group 75's
+army and the previously divergent members' stance.
+
+No fresh capture was needed: run579 and run583 already hold both the
+first changed group field and the word's state. The original has no
+ARMYDATA category here, so the internal allocation is established through
+the original group's army field plus the differential payoff; the probe
+of this implementation alone is not claimed as an original army dump.
+Other city-scoring and army predicates retain their existing limits and
+review debt. No independent reading was performed.

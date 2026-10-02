@@ -2948,6 +2948,10 @@ impl Sim {
                 regions.push(r);
             }
         }
+        // `plan_strategy` visits region ids in increasing order. City
+        // creation order changes free-slot allocation and each army's
+        // processing phase (docs/ARMY.md §24).
+        regions.sort_unstable();
         for reg in regions {
             let here = self.armies[w]
                 .valid()
@@ -3135,6 +3139,35 @@ mod tests {
             traded_with: [0; 8],
         });
         (sim, c)
+    }
+
+    #[test]
+    fn census_seeds_armies_in_region_order_not_city_creation_order() {
+        let (mut sim, c) = sim_with_city();
+        sim.cities[c].reg = Some(6);
+        for region in [11, 5] {
+            let mut city = sim.cities[c].clone();
+            city.reg = Some(region);
+            city.capital = false;
+            sim.cities.push(city);
+        }
+        sim.census_seed_army(1);
+        let armies: Vec<_> = sim.armies[1]
+            .valid()
+            .map(|(slot, a)| (slot, a.reg, a.city))
+            .collect();
+        assert_eq!(
+            armies,
+            vec![
+                (0, Some(5), Some(2)),
+                (1, Some(6), Some(0)),
+                (2, Some(11), Some(1))
+            ]
+        );
+        assert!(
+            sim.armies[1].list[1].ticks_on(250),
+            "region six gets slot one's phase, independent of city order"
+        );
     }
 
     // ---- the order-issuing half (§8, §9, §11, §14; docs/GROUPS.md) ----

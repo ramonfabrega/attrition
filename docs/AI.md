@@ -272,7 +272,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
     `world+0x34`: `< 1` clears bit 8; `== 2` and no war/ally bits → bit 8
     if some *other* region with region flag 8 has no city of anyone; `≥ 3`
     and no war/ally bits → bit 8.
-16. **Army seeding** (computer leaders only): count my armies (16 slots per
+16. **Army seeding** (computer leaders only, regions in increasing numeric
+    order — `docs/ARMY.md` §24): count my armies (16 slots per
     leader) that are active (`Army+0x4 & 1`) or flag `0x20` in this region;
     if fewer than two, score every city of mine in the region that has no
     active army assigned: `level × 20 × ((barracks + siegeworks + stables)
@@ -280,8 +281,7 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
     army of mine is near (`Armies::find_army < 0`) else `× (find_dist / 4 +
     6)`; the best → **`Armies::init_army(who, city)`** — the lowest-numbered
     free slot, or the one with the smallest `+0x10`, re-`init`ed. This is
-    where armies come from; `docs/ARMY.md` owns `Army::init` and the rest
-    of the family (2026-08-25); `army.rs::census_seed_army` is this step.
+    implemented by `army.rs::census_seed_army`; `docs/ARMY.md` owns the family.
 17. **Tail**, unless `semaphore[1] & 2`: `check_orphaned_buildings()`
     (§2.8), `compute_sites(0)` (§2.7), **`production_step = 1`**.
 

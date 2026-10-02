@@ -2533,8 +2533,7 @@ mod tests {
                 (16571, 3),
                 (16601, 1),
                 (16609, 1),
-                (16623, 1),
-                (16625, 9),
+                (16625, 8),
                 (16635, 15),
                 (16637, 7),
                 (16640, 1),
@@ -2544,14 +2543,7 @@ mod tests {
                 (16679, 2),
                 (16681, 1),
                 (16685, 1),
-                (16688, 2),
-                (16689, 1),
-                (16694, 6),
-                (16695, 5),
-                (16696, 2),
-                (16697, 1),
-                (16706, 1),
-                (16713, 2)
+                (16706, 1)
             ],
             "the blocks keys first part on, to the word's"
         );
@@ -2565,7 +2557,7 @@ mod tests {
                 );
             }
         }
-        pin_eq!(w.firsts.len(), 288, "every key parted on run579");
+        pin_eq!(w.firsts.len(), 267, "every key parted on run579");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -2581,7 +2573,7 @@ mod tests {
             "run583",
             "gamelog-run583-islands-toughest-16754.txt",
             WIDENING_SECOND_EAST_INDIES_16760,
-            &[16_761, SECOND_WORD_EAST_INDIES + 1],
+            &[16_761, 16_879, SECOND_WORD_EAST_INDIES + 1],
             true,
             true,
         ) else {
@@ -2623,7 +2615,20 @@ mod tests {
                 .all(|(_, _, field)| field == "form"),
             "1/189 differs beyond its standing form field"
         );
-        pin_eq!(w.firsts.len(), 878, "every key parted on run583");
+        let at_army_word = w.standing.get(&16_879).expect("army word block");
+        pin!(
+            !at_army_word.contains_key(&(1, -3, "group:75.army".into())),
+            "group 75 must retain the original army identity"
+        );
+        for o in [
+            53, 55, 60, 93, 97, 141, 145, 155, 156, 157, 158, 159, 160, 161, 162, 163,
+        ] {
+            pin!(
+                !at_army_word.contains_key(&(1, o, "stance".into())),
+                "1/{o} stance differs on the army processing frame"
+            );
+        }
+        pin_eq!(w.firsts.len(), 699, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
