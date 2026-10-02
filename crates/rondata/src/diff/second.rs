@@ -2714,7 +2714,7 @@ mod tests {
             "run594",
             "gamelog-run594-islands-toughest-18060.txt",
             WIDENING_SECOND_EAST_INDIES_18076,
-            &[18_076, 18_077, 18_141],
+            &[18_076, 18_077, 18_089, 18_090, 18_141],
             true,
             true,
         ) else {
@@ -2731,20 +2731,27 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 1218, "run594 record baseline");
+        pin_eq!(w.firsts.len(), 1146, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((18_077, "ours 0 theirs 1")),
-            "the successor's figure animation is a value difference"
+            Some((18135, "ours 1 theirs 0")),
+            "the old word now agrees; this later idle residue stays visible"
         );
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "g.end_time[2]".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((18_077, "ours 80 theirs 59")),
-            "the cannon crew's timer also parts on the successor block"
+            None,
+            "the cannon crew timer agrees throughout the window"
+        );
+        pin_eq!(
+            w.firsts
+                .get(&(1, 190, "pos".into()))
+                .map(|(f, r)| (*f, r.as_str())),
+            Some((18_090, "ours (29904,39006) theirs (29881,39018)")),
+            "the next word has a blocked-step position difference"
         );
         let Some(a) = widen_second_ammo(
             "gamelog-run594-islands-toughest-18060.txt",
@@ -2764,10 +2771,10 @@ mod tests {
         pin_eq!(a.frames, 81, "run594 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1326, 1352, 16100),
+            (1326, 1340, 20980),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 395, "run594 projectile baseline");
+        pin_eq!(a.firsts.len(), 421, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),

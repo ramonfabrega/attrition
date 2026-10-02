@@ -13957,3 +13957,54 @@ The observed arm is differential-backed. Other nearby-search callers,
 not established by this result. No independent blind reading is claimed.
 run594 captures the successor through the ending, beyond run589's last
 block; its full-record and projectile pins accompany the new word.
+
+## 89. The strike re-seats its crew before animation (item 1440, 2026-10-02)
+
+**Booking.** East Indies 18076 spends 20 draws against 19, first parting
+at index 6: an idle wrap against a crew attack roll. run594 compares the
+whole cast. On block 18077 cannon 1/132's tracked crew figure 2 has end
+time 80 versus 59 and hold_attack 1 versus 0. Unit 1/181's idle variant
+also differs on this block. The latter could be downstream of the stream;
+its earlier state or persistence after correcting the cannon would kill
+that explanation. A mid-decision probe, not the block boundary, tests
+whether the cannon's own third attack roll is deferred.
+
+**The ordering.** `Unit::fight@005fd4d0` sets the heading and desired
+angles, then calls `Unit::set_new_location@005f8d20` on its own 48-unit
+cell center with figure movement enabled, immediately before the swing's
+`Unit::set_anim@00616f40` call. This second seating is distinct from the
+entry seating (§7.11): changing heading between them changes the crew's
+desired position and angle. `Guy::set_new_location@005d86f0` seats the
+tracked crew around guy 0's current facing, which has not yet turned.
+
+At tick 18076 the cannon's heading changes from 221642752 to -211943424.
+The tracked crew stands at (7673,11045), while the heading setter asks it
+for (7659,10943). Without the second seating, `guy_set_anim` defers that
+crew's attack. The original spends three crew attack rolls; the sim only
+two. Seating resets this crew's destination to its current point and its
+desired angle to its current facing. It attacks immediately; guy 0 still
+owes its turn. The existing location setter implements this, including
+the same-position case (COLLISION §6); no new animation exception is used.
+
+A payoff restricted to the booked strike moves the word to 18089. The
+general strike path, with the frame and identity restrictions removed,
+has the same payoff and holds the other two map words. The regression
+constructs a turning unit with tracked crew, asks it to strike, and
+checks that the leader defers while the seated crew attacks.
+
+**Values and limits.** **18076 → 18089 (+13)**. Across run594's 82 record
+blocks, differing keys fall **1218 → 1146**. Crew 2's end time now agrees
+throughout; 1/181's first animation difference moves from 18077 to 18135.
+At closing block 18141, unit disagreements fall 13 → 11, with the same
+one torn record and no unlinked or extra units. This is not closure.
+The 81 pre-closing projectile blocks now have 1,326 original and 1,340
+simulated records, 20,980 paired fields versus 16,100, and **421** differing
+keys versus 395. More rounds pair, exposing more field comparisons;
+remaining projectile differences are not hidden or called agreement.
+Original-only fingerprint 115 / 16282458979908766585 is unchanged.
+
+run594 also widens 18089 and 18090. Unit 1/190's first position difference
+is (29904,39006) versus (29881,39018), with collision owner/index -1/-1
+versus 1/185. Item 1441 books this blocked-step observation. No independent
+blind reading is claimed; the ordering is backed by the booked trace and
+value changes, not a claim that all strike branches have been exercised.

@@ -1098,6 +1098,12 @@ impl Sim {
         if angle != self.units[i].movement.heading {
             self.unit_set_angle(i, angle);
         }
+        // The strike re-seats the figures after changing heading and
+        // before asking for the attack. Guy 0 still turns; its tracked
+        // crew is snapped to its current facing and may attack now.
+        // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
+        let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
+        self.set_new_location(i, snap, true);
         self.swing_anim(i, direct);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
@@ -7444,6 +7450,39 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn a_strike_reseats_tracked_crew_before_requesting_their_attack() {
+        let (mut sim, ty) = at_war();
+        let at = Pos::new(4632, 4632);
+        let me = put(&mut sim, 0, ty, at);
+        let foe = put(&mut sim, 1, ty, Pos::new(at.x + 192, at.y));
+        sim.units[me].movement.heading = Angle::NORTH;
+        sim.units[me].movement.facing = Angle::NORTH;
+        sim.units[me].guys.push(crate::anim::Guy::fresh(-1));
+        let mut crew = sim.units[me].guys[0];
+        crew.follow = Some(crate::anim::Follow {
+            body: crate::movement::Body::at(Pos::new(at.x + 48, at.y)),
+            des: Pos::new(at.x + 48, at.y),
+            facing: Angle::NORTH,
+            des_angle: Angle::NORTH,
+            track: (48, 0),
+        });
+        sim.units[me].guys.push(crew);
+        sim.fight(me, Obj::Unit(foe), 0);
+        let crew = sim.units[me].guys[1];
+        let follow = crew.follow.unwrap();
+        assert_eq!(sim.units[me].movement.heading, Angle::EAST);
+        assert_eq!(sim.units[me].movement.facing, Angle::NORTH);
+        assert_eq!(
+            sim.units[me].guys[0].pending_attack, 1,
+            "the gun still owes its turn"
+        );
+        assert_eq!(follow.body.pos, follow.des);
+        assert_eq!(follow.facing, follow.des_angle);
+        assert_eq!(crew.pending_attack, 0, "the crew can attack immediately");
+        assert_eq!(crate::anim::category(crew.anim), 12);
     }
 
     #[test]

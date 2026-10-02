@@ -1389,7 +1389,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     if let Some(p) = &r594 {
-        let n = drive_capture(p, 18_075, 18_080, &mut paths);
+        let n = drive_capture(p, 18_088, 18_093, &mut paths);
         assert_eq!(n, 6, "run594 carries the current East Indies word");
         frames += n;
     }
@@ -2588,10 +2588,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1437: run589 compares those group fields again, but carries
     // no paired cast on the word window: cast_paid/cast_spell return.
     // Item 1439: run594 carries a paired cast; both fields leave again.
+    // Item 1440: 18089 has no paired cast; both return to the pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt \
+         attempts build_type cast_paid cast_spell cruising_alt \
          garrison_search \
          metric non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \

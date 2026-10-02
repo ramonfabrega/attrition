@@ -1850,7 +1850,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1439: packed siege takes its army target; 18076 has 20 draws
 /// versus 19, index 6 inc_time wrap versus Unit::set_anim. run594 widens
 /// the successor through the closing state. COMBAT §88.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_076;
+/// Item 1440: the strike re-seats its crew before animation; 18089
+/// has 21 draws vs 22, index 5 inc_time vs move_step+0x823. run594
+/// widens the new word; the crew timer now agrees. COMBAT §89.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_089;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -8254,7 +8257,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run594_s_word_frame_is_widened_whole"),
-        1439,
+        1440,
         Some(WIDENING_SECOND_EAST_INDIES_18076),
     ),
     (
