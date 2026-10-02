@@ -2608,8 +2608,9 @@ mod tests {
                 "1/189 {field} still differs on the restored collision frame"
             );
         }
-        // Investigation baseline: deliberately fails until the capture is measured.
-        pin_eq!(w.firsts.len(), 0, "every key parted on run583");
+        // Item 1427: the coastal candidate gate removes 558 differing keys.
+        // The remaining path disagreement starts on block 16761.
+        pin_eq!(w.firsts.len(), 1104, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

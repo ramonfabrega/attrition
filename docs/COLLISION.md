@@ -3753,11 +3753,13 @@ that earlier gain is not attributed to this correction.
 ### 21.3 Coverage and limits
 
 - run579's differing keys **316 → 288**, including `1/189`'s block-16700
-  position and speed above. The full run583 widening and its value rows
-  are recorded in the item journal when the capture finishes.
+  position and speed above. run583's full 257-block widening goes
+  **1662 → 1104** keys, with none unprinted; on block 16761, `1/189`'s
+  position, collision count, animation and last speed now agree.
 - `push_candidates_use_each_coastal_tile_in_both_search_strategies`
   exercises both candidate collectors: include a coastal tile in another
-  primary region, exclude a dry tile in the query's own cell.
+  primary region, exclude a dry tile in the query's own cell. Restoring
+  the old search fails this test and both captured-data assertions.
 - The new word **16762** is five draws against six, first difference at
   index 1: the original spends `Unit::do_move+0x11cf`. At block 16761,
   `1/189`'s path length is still 9 against 16 and `start_dist` 1056 against

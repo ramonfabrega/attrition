@@ -13224,3 +13224,42 @@ moved into `Logs` as `gamelog-run574-greatsahara-toughest-11882.txt` and
 (`diff::sahara_toughest`): 1,280 keys, 128 standing on block 11876, and the
 Senator's re-type parts on 11883 (27 keys). The compared pin walks blocks
 11985..11988. Run 575 was reserved and not used.
+
+## run583 — East Indies Toughest, blocks 16754..17011 (2026-10-01, item 1427)
+
+**What the disk could not answer.** The measured word 16760 was past
+run579's last detailed block. run227 covers the frame in another lobby's
+game, not run346's Toughest game. The fresh baseline after item 1426
+confirmed 16760 before launching.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run583 \
+    --map 18 --end-frame 17024 --timeout 5400 --log-window 16754 17011 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+The first take succeeded through RonDriver. Lane state was `free`, output
+and archive paths unused. Receipt: `success: true`, exit 0, lifecycle and
+map verified, seed 12345, closing frame 17025, 17,025 trace frames; five
+backed-up files restored and verified. Launch to exit 1,774.459 s, total
+1,802.800 s. `waitrun.sh` returned 0. No shared rolling log was replaced.
+
+`rngcmp.py rontrace-run346.log rontrace-run583.log`: **17,025 identical
+frames, zero differing**, a nonempty comparison over the entire new trace.
+This check supplies fidelity evidence beyond the receipt's lifecycle and
+map verification; the receipt itself correctly leaves fidelity unclaimed.
+
+Archive copies: `gamelog-run583-islands-toughest-16754.txt` and
+`rontrace-run583.log` under the existing profile's `Logs`. Source and
+archive SHA-256 match; hashes, sizes, receipts and checks are retained in
+`~/ron-data/lab-experiments/2026-10-01-item-1427-codex/`. Source capture,
+settings backups and build artifacts remain under
+`~/ron-data/lab-captures/2026-10-01-run583/map-18/`.
+
+`run583_s_word_frame_is_widened_whole` walks every dumped record from
+run346's start over the full window. It covers the old word 16760 and
+successor 16762. The coverage driver reads both and the compared-field
+pin now walks the newest word's window; six group-order fields are
+observed there and leave the uncompared pin. See COLLISION §21 and the
+item journal for the correction and full-window totals.
