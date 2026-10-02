@@ -1853,7 +1853,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1440: the strike re-seats its crew before animation; 18089
 /// has 21 draws vs 22, index 5 inc_time vs move_step+0x823. run594
 /// widens the new word; the crew timer now agrees. COMBAT §89.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_089;
+/// Item 1441: supply upgrade speed closes the word at 18140. run594
+/// pins the old blocked step and the closing record; 191 endpoint units
+/// have zero off/unlinked/extra/torn. SUPPLY, "Upgrade speed".
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -8257,7 +8260,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run594_s_word_frame_is_widened_whole"),
-        1440,
+        1441,
         Some(WIDENING_SECOND_EAST_INDIES_18076),
     ),
     (
@@ -8558,8 +8561,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies",
         word: SECOND_WORD_EAST_INDIES,
         length: 18_140,
-        endpoint: None,
-        window: Some("east_indies_word_window"),
+        endpoint: Some("run346_is_east_indies_at_toughest_and_its_word_holds"),
+        window: None,
     },
     AiWord {
         line: "Second pair",

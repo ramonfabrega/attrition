@@ -39,8 +39,8 @@
 //!   and it is the wonder layer's.
 //! - **`rare_conquest`**, Conquer-the-World's own mask; always empty here.
 //! - **Everything else `update_speed` does** — the transport and marine
-//!   bonuses, the gunpowder foot line's corrections, Bantu, French siege,
-//!   Versailles, aluminium, the spy/general/supply upgrade counts and the two
+//!   bonuses, Bantu, French siege,
+//!   Versailles, aluminium, the spy/general upgrade counts and the two
 //!   Aztec types (`docs/MOVEMENT.md`, "The speed pipeline"). None of them is
 //!   modelled anywhere in this crate, so recomputing a unit's cached speed
 //!   from its type's `MOVES` loses nothing that was ever there.
@@ -195,6 +195,8 @@ impl Sim {
     /// Mechanized Infantry `×36/32`, Infantry `×34/32`, Rifleman `×32/27`,
     /// Arquebusiers `×30/24`. run404 prints Infantry at **34** on a `MOVES`
     /// of 32 from its birth on 621 (item 1109).
+    /// The supply-bit upgrade adds `level * speed / 4` after those terms
+    /// (SUPPLY, "Upgrade speed", item 1441).
     pub(crate) fn type_speed(&self, who: Player, ty: usize) -> i32 {
         let mut speed = self.unit_types[ty].moves;
         let naval = self.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
@@ -206,9 +208,16 @@ impl Sim {
             INFANTRY => (34, 32),
             RIFLEMAN => (32, 27),
             ARQUEBUSIERS => (30, 24),
-            _ => return speed,
+            _ => (1, 1),
         };
-        speed * num / den
+        speed = speed * num / den;
+        if self.unit_types[ty]
+            .cols
+            .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        {
+            speed += self.supply_upgrade_level(who) * speed / 4;
+        }
+        speed
     }
 
     /// `LeaderData::has_rare@006e0770` — a good's bit in the player's
@@ -885,6 +894,57 @@ mod tests {
         s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
         s.calc_unit_stats(1);
         assert_eq!(s.units[u].movement.speed, 40 * 120 / 100);
+    }
+
+    #[test]
+    fn supply_upgrade_speed_counts_sparse_steps_and_refreshes_existing_units() {
+        use crate::ai_load::uflags2;
+        let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
+        let mut tree = tech::TechTree::new();
+        let steps = [
+            tree.add(tech::TypeDef::plain("step one", 0)),
+            tree.add(tech::TypeDef::plain("step two", 0)),
+            tree.add(tech::TypeDef::plain("step three", 0)),
+        ];
+        tree.roles.supply_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let wagon = s.add_unit_type(crate::UnitType {
+            moves: 25,
+            hits: 90,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::SUPPLY_OR_HERO,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let hero = s.add_unit_type(crate::UnitType {
+            moves: 25,
+            hits: 90,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::GENERAL,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let mut unit = crate::Unit::new(0, 0, Pos::new(792, 792), 90);
+        unit.ty = Some(wagon);
+        let u = s.add_unit(unit);
+        s.calc_unit_stats(0);
+        assert_eq!(s.units[u].movement.speed, 25);
+        // Grant the last step first: this is a count, not a prefix.
+        for (step, expected) in [(steps[2], 31), (steps[0], 37), (steps[1], 43)] {
+            let old = s.units[u].movement.speed;
+            s.gain_tech(0, step);
+            assert_eq!(s.type_speed(0, wagon), expected);
+            assert_eq!(s.type_speed(1, wagon), 25, "other owner");
+            assert_eq!(s.type_speed(0, hero), 25, "general-only bit");
+            assert_eq!(
+                s.units[u].movement.speed, old,
+                "cached until the leader pass"
+            );
+            s.tick();
+            assert_eq!(s.units[u].movement.speed, expected);
+        }
     }
 
     /// **A fisherman going idle drops the economy's period to eight

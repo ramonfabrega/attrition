@@ -1389,8 +1389,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     if let Some(p) = &r594 {
-        let n = drive_capture(p, 18_088, 18_093, &mut paths);
-        assert_eq!(n, 6, "run594 carries the current East Indies word");
+        let n = drive_capture(p, 18_136, 18_141, &mut paths);
+        assert_eq!(n, 6, "run594 carries East Indies through its closing state");
         frames += n;
     }
     if let Some(p) = &r356 {

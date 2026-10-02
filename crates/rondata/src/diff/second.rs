@@ -188,7 +188,8 @@ pub(crate) fn walk_second_probed(
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
-    // Frame `f` writes block `f + 1`, and the walk reads `first..=tail + 1`.
+    // The pair is closed: retain the last three running blocks and the
+    // closing block, without asking beyond the saved capture.
     crate::diff::harness::tests::widen_east_indies_on(
         (
             "gamelog-run346-islands-toughest-24k-trace.txt",
@@ -196,7 +197,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
         ),
         "the second pair's word's window",
         "gamelog-run594-islands-toughest-18060.txt",
-        (word - 1, word + 2),
+        (word - 2, word),
         &[word + 1],
         true,
         true,
@@ -2731,13 +2732,13 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 1146, "run594 record baseline");
+        pin_eq!(w.firsts.len(), 260, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((18135, "ours 1 theirs 0")),
-            "the old word now agrees; this later idle residue stays visible"
+            None,
+            "the idle variant agrees throughout the closed window"
         );
         pin_eq!(
             w.firsts
@@ -2750,9 +2751,15 @@ mod tests {
             w.firsts
                 .get(&(1, 190, "pos".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((18_090, "ours (29904,39006) theirs (29881,39018)")),
-            "the next word has a blocked-step position difference"
+            None,
+            "the blocked step now agrees throughout the closed window"
         );
+        for field in ["pos", "myspeed"] {
+            pin!(
+                !w.firsts.contains_key(&(1, 185, field.into())),
+                "the supply wagon's {field} agrees throughout the window"
+            );
+        }
         let Some(a) = widen_second_ammo(
             "gamelog-run594-islands-toughest-18060.txt",
             WIDENING_SECOND_EAST_INDIES_18076,
@@ -2771,10 +2778,10 @@ mod tests {
         pin_eq!(a.frames, 81, "run594 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1326, 1340, 20980),
+            (1326, 1343, 26520),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 421, "run594 projectile baseline");
+        pin_eq!(a.firsts.len(), 351, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),
@@ -4010,6 +4017,16 @@ mod tests {
             w.count,
             w.sequence,
             w.last
+        );
+        let e = w.endpoint.expect("run346 closes on a whole-map state");
+        assert_eq!(e.frame, 18_141);
+        assert_eq!(e.compared, 191);
+        assert!(e.torn.is_empty(), "no torn closing unit records");
+        assert_eq!(
+            e.counts(),
+            [0, 0, 0, 0, 0, 6, 0],
+            "closing positions/orders, buildings and cities: {:?}",
+            e.off
         );
     }
 

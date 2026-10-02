@@ -177,9 +177,9 @@ description means by "Radius/Speed/HP":
   spy and general counts; this is the one that reads `get_supply_upgrade`.
 
 Both test the same `is_supply` bit, so both apply to the military patriots as
-well. The HP half is not implemented — hit points are combat's, and combat does
-not exist here yet — but it is the answer to an open question this document
-used to carry.
+well. The HP half remains unimplemented; ~~combat does not exist here yet~~
+was the historical reason, not the current one. The speed half is now
+diff-backed under "Upgrade speed" below (item 1441).
 
 ### The query
 
@@ -605,3 +605,48 @@ original's, and~~ The wagon's position now agrees on every block (item
 569), so each veto is decided at the original's own distance. The 13–23
 tile bracket is the capture's, and it stands.
 
+
+
+## Upgrade speed (item 1441, 2026-10-02)
+
+East Indies 18089 first parts on a blocked-step draw. run594's whole
+cast shows the would-be blocker, supply wagon 1/185, already moving at
+25 versus 31 on block 18060, at (30945,39394) versus (30925,39382).
+Its 90 versus 110 HP independently points to the held supply upgrade.
+That kills a collision-rule explanation with matching input state.
+The formula was already specified above and in MOVEMENT's speed pipeline;
+the live `type_speed` implementation omitted it.
+
+`LeaderData::get_supply_upgrade@006e0880` counts every satisfied bonus
+763..765, not a contiguous prefix. The loader binds their prerequisite
+techs from TECHBONUSES rows 79..81. `Unit::update_speed@006055c0` adds
+`count * current_speed / 4`, truncated toward zero, for `unit_flags2 &
+0x40`; the military patriots inherit that bit, a general-only `0x20`
+does not. It follows the existing Whales and gunpowder-foot corrections.
+The ordinary cached-speed path applies it at creation, retyping and the
+next leader stats pass after a gain. No map, frame or unit-id special case.
+
+The change alone moves **18089 → 18140**, the capture's ending. run346's
+closing block 18141 compares **191 units, zero off/unlinked/extra/torn**;
+buildings have zero unlinked/diverged, and six closing city records lack
+ids just as the other closed maps' instrument reports. Both second-pair
+words are now closed. Great Sahara at Toughest remains at its previous
+measured word. The result closes these captures, not every rule.
+
+run594's 82 full-record blocks fall **1146 → 260** differing keys. Wagon
+1/185's speed and position, unit 1/190's blocked step and 1/181's idle
+variants agree throughout. Across 81 pre-closing projectile blocks all
+1,326 original live-round observations now pair (26,520 fields), against
+1,343 simulated observations; differing keys fall **421 → 351**. The
+original-only fingerprint remains 115 / 16282458979908766585. Remaining
+HP, group-id, standing form, closing-lifecycle and projectile residues
+are still visible; the word and closing position/order scores do not
+claim full-record parity.
+
+A regression grants the last upgrade first, then the other two: speeds
+25, 31, 37, 43 pin truncation and count semantics. It checks another owner,
+the general-only bit, and the existing unit's cache before and after the
+next leader pass. The HP term and the radius counter's live wiring remain
+outside this item; no independent blind reading or ratification is claimed.
+The measured speed, positions, collision and complete draw stream are the
+fidelity evidence. Item 1442 books the next pair with the AI nation moved.

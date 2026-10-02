@@ -433,6 +433,20 @@ pub const fn reload_frames(
     }
 }
 
+impl crate::Sim {
+    /// Count every held supply-upgrade prerequisite, not a leading run.
+    pub(crate) fn supply_upgrade_level(&self, who: Player) -> i32 {
+        let p = &self.tech[who as usize];
+        self.tech_tree
+            .roles
+            .supply_upgrade_preq
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .count() as i32
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

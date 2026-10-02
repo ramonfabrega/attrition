@@ -410,6 +410,8 @@ pub struct Roles {
     /// held, not a leading run, and `Unit::update_los` multiplies the
     /// count by `TROOPS_UPGRADE_LOS` (`docs/VISION.md` §2, term 6).
     pub troops_los_preq: [Option<TypeId>; 3],
+    /// SUPPLY_WAGONS_1..3, bonus rows 79..81 (SUPPLY, "Upgrade speed").
+    pub supply_upgrade_preq: [Option<TypeId>; 3],
     /// The three ladders `ObjectData::train_time@006508c0`'s speed-upgrade
     /// step counts (`docs/PRODUCTION.md`, "The tail's first caller"):
     /// `SHIPS_FASTER_1..3`, `TROOPS_FASTER_1..3` and `VEHICLES_FASTER_1..3`,

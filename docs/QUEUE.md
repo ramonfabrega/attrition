@@ -12,12 +12,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-02, long direct Codex run: items 1437–1439 measure East Indies
-**17785 → 18076** (+291): decoy radius, retained figure cleanup and
-the packed siege army-target shortcut. Landing, boarding and cannon
-order/position values agree; run594 widens through the ending. The
-first batch has combined validation (journal 1439). Item 1440 advances
-18076 → 18089 with crew seating; the second batch is pending its gate.*
+*2026-10-02, direct Codex run: East Indies measures closed at **18140**,
+from 17785 in five items (+355). Item 1441 wires supply-upgrade speed;
+191 closing units have zero off/unlinked/extra/torn. The second pair's
+words are both closed. Items 1440–1441 await their batch gate; 1437–1439
+have combined validation (journal 1439). This is a milestone, not full
+record parity or the end of the phase.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -26,35 +26,35 @@ first batch has combined validation (journal 1439). Item 1440 advances
 - **Steer handoff**: review this branch's commits, journal and review
   debt; no model trial or matrix ran here. The paused commander's
   existing weekly-reset matrix (parked 1422) remains its own plan.
-- **East Indies closes at 18,140**: that booking books the third pair's
-  first capture too (DECISIONS 56 §1, nation moved).
+- **Third pair booked**: item 1442 varies the AI nation, keeping the
+  seed and Toughest lobby; the old pair stays a closed floor.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
 - **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w18089 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1441 is next, widened and pinned by run594.
+**Opener: 1442 captures the third pair; the second pair is closed.
 The direct run is sequential; the commander remains paused.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Three tracks, worked
 sequentially here**: the golden word for the rules, the third map's, and the newest pair's,
-lower map first — East Indies (Great Lakes is closed at its end).
+lower map first — closed; the third pair is booked below.
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1441. **East Indies' successor: frame 18089, 21 draws against 22**,
-    index 5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, original
-    `Guy::set_anim+0x97a < Unit::move_step+0x823`. run594 widens the
-    full cast and projectiles. At block 18090 unit 1/190 stands at
-    (29904,39006) vs (29881,39018), collision owner/index -1/-1 vs
-    1/185. A blocked-step hypothesis must explain those values first.
+1442. **Third pair, nation moved** (DECISIONS 53 §2 and 56 §1):
+    retain seed 12345, human Nubians and Toughest; set the AI to French
+    (tribe 10) on East Indies and Great Lakes. Confirm the chosen lobby
+    and player fields from the dumps. Acquire each DUMP_ALL start and
+    trace to 24000 or natural end, score and widen the lower word,
+    keep the closed pair's pins. Reserve run595 onward for this item.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
