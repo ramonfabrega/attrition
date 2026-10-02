@@ -16,7 +16,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 word **16762 → 17507** (+745), with floor 16940 pending run585.
 Recovery stride +116, army region order +62, AI transport terrain mode
 +567. run583 keys 1104 → 286; transport 172's path and passenger 91's
-disembarkation agree. Full release validation is pending the batch gate.*
+disembarkation agree. Full required-fixture release gate: all six stages
+passed on 62a646ec, 2,004 Rust tests and zero missing fixtures.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -37,9 +38,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1431–1433 are checkpointed; finish the batch release gate.
-Next is 1434: capture run585 and widen the measured East Indies 17507
-word before naming a mechanism. The Claude commander stays paused.**
+**Opener: 1431–1433 are complete and batch-validated. Next is 1434:
+capture run585 and widen the measured East Indies 17507 word before
+naming a mechanism. The Claude commander stays paused.**
 
 ## The queue
 

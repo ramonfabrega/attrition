@@ -876,8 +876,8 @@ impl Sim {
     /// stride, the row width, the direction increment and `toff`.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
         let work_cap = if step == STEP_UNIT { 500 } else { 50 } * 64;
-        // The recovery grid advances by half the collision diameter, rounded
-        // up. Larger units also check the intermediate diagonal positions.
+        // The recovery grid uses max(1, (collision size + 1) / 2).
+        // Larger units also check the intermediate diagonal positions.
         // `docs/PATHFINDER.md` §30 (item 1431).
         let su: i32 = if step == STEP_UNIT {
             ((self.coll_size(u) + 1) / 2).max(1)
