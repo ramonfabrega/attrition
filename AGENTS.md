@@ -119,7 +119,9 @@ resuming another checkout is a separate user-directed action.
 For an implementation landing, commit the work before the full release gate,
 then record its actual verdict in a follow-up commit. Run
 `python3 tools/release_gate.py <install> --test-threads 4` without `--lane`,
-logging to a file without a pipe that hides the exit status. Do not edit the
+logging to a file without a pipe that hides the exit status. On this machine,
+add `--require-fixtures`: the corpus is present, and missing evidence must fail
+rather than silently skip a replay. Do not edit the
 validated tree while the gate runs. Use focused checks and `tools/guard.sh`
 during development; do not repeatedly run the full gate without a new reason.
 The user also authorizes experiments to reduce redundant gates. Preserve the
