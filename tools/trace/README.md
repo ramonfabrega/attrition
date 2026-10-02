@@ -138,6 +138,16 @@ log's sites from the log itself (`site_table`, `Trace::site_va`) rather
 than from whichever table the reader happens to carry. A log older than
 that has `0` in the id slot and falls back to the id table.
 
+`RON_SITE_PROBE` (item 1444, runs606–608) occupies its own call-site lane:
+`Leader::compute_site_stats`, `BuildTypeData::blocked_site` and
+`BuildTypeData::blocked_tcoord`. Use a narrow `callwin`, including frame 0
+for initial site selection. The candidate return record carries four output
+integers, not a return value: output x, value, distance and output y.
+`report.py calls` decodes all four signed 32-bit words. The generic Rust
+`TraceCall.out` byte is not a decoder for the fourth word. The other two
+probes report the ordinary return verdict. Combining this definition with
+another lane that claims these IDs fails at compile time.
+
 ## Staging a scenario from a file: `rontrace.cmd`
 
 The third instrument (`docs/ORACLE.md`, "The cheat channel"). One entry per

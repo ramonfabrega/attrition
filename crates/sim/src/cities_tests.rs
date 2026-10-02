@@ -430,6 +430,46 @@ fn a_building_marks_its_own_cell_and_unmarks_it_when_it_closes() {
     );
 }
 
+/// Goody ruins are a cell flag; visibility changes the refusal, not its presence.
+#[test]
+fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
+    let mut sim = world_sim();
+    let types = install_types(&mut sim);
+    let at = Pos::new(32, 32);
+    let cell = World::cell_of_tile(at);
+    let mut data = sim.world.cell_data(cell);
+    data.flags |= cell::GOODY;
+    sim.world.set_cell_data(cell, data);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    let verdict = |s: &Sim| s.blocked_tcoord(Some(0), types.town, at, None);
+
+    sim.lobby.reveal_map = 1;
+    assert_eq!(verdict(&sim), Blocked::Seen, "not even territorially seen");
+    sim.lobby.reveal_map = 2;
+    assert_eq!(
+        verdict(&sim),
+        Blocked::Unseen,
+        "seen without revealing ruins"
+    );
+    sim.lobby.reveal_map = 3;
+    assert_eq!(verdict(&sim), Blocked::Ruins, "fully revealed");
+    sim.lobby.reveal_map = 1;
+    assert!(sim.world.set_seen2_only(at.x >> 1, at.y >> 1, 1));
+    assert_eq!(verdict(&sim), Blocked::Ruins, "actually explored");
+    assert_eq!(
+        sim.blocked_tcoord(None, types.town, at, None),
+        Blocked::Ruins
+    );
+
+    data.flags &= !cell::GOODY;
+    sim.world.set_cell_data(cell, data);
+    assert_eq!(
+        verdict(&sim),
+        Blocked::Clear,
+        "collected ruins cease to block"
+    );
+}
+
 /// **`blocked_tcoord`'s two cell arms** (`docs/CITIES.md` §2.5, item 904,
 /// `docs/AI.md` §78). A rock cell refuses every type but the oil pair
 /// (`006370b2`), which needs the cell's oil instead (`00637105`); and a

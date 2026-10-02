@@ -1865,10 +1865,13 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 7356;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
-pub(crate) const THIRD_PAIR_WORD_GREAT_LAKES: i64 = 2576;
+/// Item 1444: the goody-ruins placement gate closes the stream at 5638.
+/// run601 holds the corrected sites; run598 scores the closing state.
+pub(crate) const THIRD_PAIR_WORD_GREAT_LAKES: i64 = 5638;
 pub(crate) const WIDENING_FRENCH_CAPACITY: (i64, i64) = (981, 993);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (7351, 7363);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
+pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -8278,9 +8281,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_GREAT_LAKES",
         THIRD_PAIR_WORD_GREAT_LAKES,
-        Some("run601_s_word_frame_is_widened_whole"),
-        1442,
-        Some(WIDENING_FRENCH_GREAT_LAKES),
+        Some("run609_s_closing_frame_is_widened_whole"),
+        1444,
+        Some(WIDENING_FRENCH_LAKES_CLOSING),
     ),
     (
         "SECOND_WORD_EAST_INDIES",
@@ -8596,8 +8599,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Lakes (French)",
         word: THIRD_PAIR_WORD_GREAT_LAKES,
         length: 5_638,
-        endpoint: None,
-        window: Some("french_great_lakes_word_window"),
+        endpoint: Some("run598_french_great_lakes_closing_state"),
+        window: None,
     },
     AiWord {
         line: "Second pair",

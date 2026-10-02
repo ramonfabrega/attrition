@@ -12,12 +12,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-02, direct Codex run: 1443 moves French East Indies
-986 → **7356** (+6370): the French worker slot keeps the camp alive;
-its complete old-word record agrees. Great Lakes stays **2576**, now
-lower. The second pair remains closed. Item 1442 has combined validation.
-1443 is pending batch validation; the new East Indies word is captured
-in run603. Continue at Great Lakes' already-widened frame 2576.*
+*2026-10-02, direct Codex run: 1444 closes French Great Lakes
+2576 → **5638**, its natural end. The goody-ruins placement guard restores
+the initial site ranking; 40 closing units agree in position and order.
+French East Indies remains **7356**, now the lower open word. Items
+1443–1444 are pending batch validation; 1442 has combined validation.
+Continue at East Indies' already-widened frame 7356 (run603).*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -27,35 +27,34 @@ in run603. Continue at Great Lakes' already-widened frame 2576.*
   debt; no model trial or matrix ran here. The paused commander's
   existing weekly-reset matrix (parked 1422) remains its own plan.
 - **Third pair**: item 1442 changed only the AI nation setting; seed,
-  human nation and Toughest stay fixed. Great Lakes (French) is lower.
+  human nation and Toughest stay fixed. East Indies (French) is the lower open word.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
 - **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w7356 of 17,379 · GreatLakesFrench w2576 of 5,638
+Third pair: EastIndiesFrench w7356 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1444 takes French Great Lakes frame 2576, widened in run601.
+**Opener: 1445 takes French East Indies frame 7356, widened in run603.
 The direct run is sequential; the commander remains paused.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Three tracks, worked
 sequentially here**: the golden word for the rules, the third map's, and the newest pair's,
-lower map first — Great Lakes (French).
+lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1444. **French Great Lakes frame 2576, 36 versus 42 draws**, index 4:
-    ours `Animal::think_bird+0x82`, theirs `Leader::make_stuff+0x221`.
-    run601 block 2577 widens it whole. SITE[8] is (55,31), value 3960
-    versus (53,32), value 9342; SITE[9] is swapped. Capacity now agrees.
-    Inspect the actual make decision and its inputs; no mechanism promised.
-    The other French word is 7356, widened in run603, and is higher.
+1445. **French East Indies frame 7356, four versus two draws**, index 0:
+    ours `Guy::init_real+0x52`, theirs `Guy::set_anim+0x97a` under `inc_time`.
+    run603 block 7357 widens it whole: extra unit 1/45, active/control
+    47 versus 46 and scholars 13 versus 12. Great Lakes is closed at 5638.
+    Inspect the actual birth decision and its inputs; no mechanism promised.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

@@ -88,6 +88,49 @@ fn run598_french_great_lakes_word() {
     );
 }
 
+#[test]
+fn run598_french_great_lakes_closing_state() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(LAKES_LONG.0), dump(LAKES_START), trace(LAKES_LONG.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "French Great Lakes closing: frame {} units {} counts {:?} torn {:?} off {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off
+    );
+    assert_eq!(e.frame, 5639);
+    eprintln!(
+        "Closing city fields: {:?}",
+        harness::compare(&built, &fin, 8).city_diverged
+    );
+    assert_eq!(e.compared, 40);
+    assert!(e.torn.is_empty());
+    assert_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 8]);
+}
+
 fn incomplete_long(log: &Log<'_>) -> Vec<&'static str> {
     let init = log.initial().expect("initial state");
     let mut errors = Vec::new();
@@ -209,7 +252,7 @@ fn run603_s_word_frame_is_widened_whole() {
 }
 
 /// run601: the third pair's Great Lakes word, whole records around frame 2576.
-pub(crate) fn french_great_lakes_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_great_lakes_ruins_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[LAKES_START],
         true,
@@ -218,9 +261,45 @@ pub(crate) fn french_great_lakes_word_window() -> Option<harness::tests::Widened
         &[("gamelog-run601-lakes-french-toughest-2576.txt", 2571)],
         WIDENING_FRENCH_GREAT_LAKES,
         1,
-        &[THIRD_PAIR_WORD_GREAT_LAKES + 1],
+        &[2577],
         true,
     )
+}
+
+pub(crate) fn french_great_lakes_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKES_START],
+        true,
+        LAKES_LONG,
+        "run609",
+        &[(
+            "gamelog-run609-lakes-french-toughest-closing-window.txt",
+            5633,
+        )],
+        WIDENING_FRENCH_LAKES_CLOSING,
+        1,
+        &[5639],
+        true,
+    )
+}
+
+#[test]
+fn run609_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_great_lakes_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 7, "six running blocks and closing state");
+    pin!(
+        w.missing.is_empty(),
+        "every record key is read: {:?}",
+        w.missing
+    );
+    pin_eq!(
+        w.firsts.len(),
+        110,
+        "run609 closing residue, not whole-record parity"
+    );
 }
 
 #[test]
@@ -251,7 +330,7 @@ fn run602_s_word_frame_is_widened_whole() {
 #[test]
 fn run601_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_great_lakes_word_window() else {
+    let Some(w) = french_great_lakes_ruins_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -260,13 +339,18 @@ fn run601_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 81, "run601 after French worker capacity");
+    pin_eq!(w.firsts.len(), 71, "run601 after ruins placement");
+    pin!(
+        w.firsts.keys().all(|(who, _, field)| *who != 1
+            || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),
+        "both formerly swapped site records agree throughout the window"
+    );
 }
 
 /// An empty projectile comparison still checks both sides, while a missing
 /// group dumper must never masquerade as an empty original pool.
 #[test]
-fn third_pair_windows_have_groups_and_no_projectiles_on_either_side() {
+fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
     let Some(inst) = crate::testenv::install() else {
         return;
     };
@@ -289,6 +373,12 @@ fn third_pair_windows_have_groups_and_no_projectiles_on_either_side() {
             LAKES_LONG,
             "gamelog-run601-lakes-french-toughest-2576.txt",
             WIDENING_FRENCH_GREAT_LAKES,
+        ),
+        (
+            LAKES_START,
+            LAKES_LONG,
+            "gamelog-run609-lakes-french-toughest-closing-window.txt",
+            WIDENING_FRENCH_LAKES_CLOSING,
         ),
     ] {
         let (Some(start), Some(base_path), Some(path)) = (dump(start), dump(base.0), dump(capture))
@@ -316,6 +406,9 @@ fn third_pair_windows_have_groups_and_no_projectiles_on_either_side() {
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
         let mut compared = 0;
+        let mut ammo_counts = (0, 0, 0);
+        let mut ammo_differences = std::collections::BTreeSet::new();
+        let mut ammo_unmodelled = std::collections::BTreeSet::new();
         for n in 1..=window.1 {
             built.tick();
             if n < window.0 {
@@ -333,16 +426,91 @@ fn third_pair_windows_have_groups_and_no_projectiles_on_either_side() {
                 !crate::gamelog::groups(block).is_empty(),
                 "{capture} block {n}: group dumper missing"
             );
-            assert!(
-                crate::diff::ammo::blocks(&raw).is_empty(),
-                "{capture} block {n}: original projectiles now present"
-            );
-            assert!(
-                built.sim.projectiles.is_empty(),
-                "{capture} block {n}: simulated projectiles now present"
-            );
+            let mut theirs = std::collections::BTreeMap::new();
+            for (a, fields) in crate::diff::ammo::blocks(&raw) {
+                assert_eq!(fields, 27, "every printed ammo field");
+                assert_eq!(a.flags & 3, 2, "live projectile, no unmodelled crash round");
+                assert!(theirs.insert((a.who, a.o, n - a.cur_time), a).is_none());
+                ammo_unmodelled.insert((
+                    a.traj,
+                    a.dx,
+                    a.start_roll_angle,
+                    a.bank_dx,
+                    a.bank_dy,
+                    a.gpiece,
+                    a.graph_index,
+                    a.flags & !0x1f,
+                ));
+            }
+            let sim = &built.sim;
+            let mut ours = std::collections::BTreeMap::new();
+            for p in &sim.projectiles {
+                let (who, o) = super::golden::obj_ident(sim, p.shooter);
+                assert!(
+                    ours.insert((who, o, n - i64::from(p.cur_time)), p)
+                        .is_none()
+                );
+            }
+            ammo_counts.0 += theirs.len();
+            ammo_counts.1 += ours.len();
+            let keys: std::collections::BTreeSet<_> =
+                theirs.keys().chain(ours.keys()).copied().collect();
+            for key in keys {
+                let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                    ammo_differences.insert((
+                        n,
+                        key,
+                        "presence",
+                        i64::from(ours.contains_key(&key)),
+                        i64::from(theirs.contains_key(&key)),
+                    ));
+                    continue;
+                };
+                let mut rows = super::golden::ammo_value_rows(sim, p, a);
+                rows.push(("index", i64::from(p.slot), a.index));
+                for (field, mine, dumped) in rows {
+                    ammo_counts.2 += 1;
+                    if mine != dumped {
+                        ammo_differences.insert((n, key, field, mine, dumped));
+                    }
+                }
+            }
             compared += 1;
         }
-        assert_eq!(compared, 13);
+        assert_eq!(compared, window.1 - window.0 + 1);
+        eprintln!(
+            "{capture}: ammo counts {ammo_counts:?}, differences {ammo_differences:?}, unmodelled {ammo_unmodelled:?}"
+        );
+        if window == WIDENING_FRENCH_LAKES_CLOSING {
+            assert_eq!(
+                ammo_counts,
+                (7, 7, 140),
+                "every lifetime and twenty comparisons per record"
+            );
+            assert_eq!(
+                ammo_differences,
+                std::collections::BTreeSet::from([
+                    (5633, (1, 22, 5625), "angle", -1111097344, -1111425024),
+                    (5633, (1, 22, 5625), "sx", 4944, 4945),
+                    (5633, (1, 22, 5625), "sy", 30710, 30709),
+                ]),
+                "three launch-geometry differences remain explicit"
+            );
+            assert_eq!(
+                ammo_unmodelled,
+                std::collections::BTreeSet::from([
+                    (1, 155512146, 0, 0, 0, 60348, 90, 0),
+                    (1, 161070679, 0, 0, 0, 60348, 91, 0),
+                    (1, 161980988, 0, 0, 0, 60348, 92, 0),
+                ]),
+                "engine-only fields are evidence, not sim parity"
+            );
+        } else {
+            assert_eq!(
+                ammo_counts,
+                (0, 0, 0),
+                "both pools empty on earlier windows"
+            );
+        }
     }
 }

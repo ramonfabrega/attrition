@@ -13815,5 +13815,26 @@ run603 widens the new East Indies word, with the original's group pool and
 both empty projectile lists checked. Its 120 differing keys include extra
 unit 1/45 on block 7357, active/control 47/46 and scholars 13/12. No mechanism
 is named for it. Great Lakes' current run601 has 81 differing keys; its
-frame-2576 make decision is the next item, with the capacity discrepancy
-removed from the standing evidence. Closed-pair floors remain unchanged.
+~~frame-2576 make decision is the next item~~ — answered by item 1444
+below, with the capacity discrepancy removed from the standing evidence. Closed-pair floors remain unchanged.
+
+
+## 112. Ruins placement closes French Great Lakes (2026-10-02, item 1444)
+
+Great Lakes moves **2576 → 5638**, its natural end; East Indies holds 7356.
+CITIES §2.5 and §11 carry the corrected placement predicate and limits.
+The original's GOODY cell refuses the initial candidate (51,12), sliding
+it to (53,11). Missing that guard swaps site ranks and the final two city
+offers on 2576, changing duplicate retention and one expiry draw. Decision
+outputs in runs604/606–608 establish each link; the make formula is unchanged.
+
+run601 removes all ten swapped-site field differences, 81 → 71 keys.
+Forty closing units agree in positions/orders, with no unmatched units or
+torn orders; eight city fields still differ. run609 compares all records
+on blocks 5633..5639, including the closing state: 110 differing keys,
+none missing. Group pools are present. Seven projectile records match by shooter and birth
+frame on both sides; 140 field comparisons expose three launch-geometry
+differences, separately pinned with the engine-only fields.
+The 5639-frame passive trace matches run598 throughout. Closing a word and
+its position/order endpoint does not assert whole-record parity. East Indies
+7356 is the next scored item, already widened in run603.

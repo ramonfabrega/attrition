@@ -270,6 +270,11 @@ typedef struct {
                                  defined(RON_LEADER_PROBE) || defined(RON_COLLIDE_PROBE))
 #error "RON_GUARD_PROBE claims call-site ids 8 through 13 too"
 #endif
+#if defined(RON_SITE_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || \
+    defined(RON_LEADER_PROBE) || defined(RON_COLLIDE_PROBE) || defined(RON_GUARD_PROBE) || \
+    defined(RON_SEARCH_CENSUS))
+#error "RON_SITE_PROBE requires its own call-site lane"
+#endif
 
 static const CallSite CALLS[] = {
     /* PathFinder::astar_path@00683770(Stack<PathData>*, step, anti) — the
@@ -359,6 +364,18 @@ static const CallSite CALLS[] = {
     /* Leader::make_this@006c94f0(slot) — the purchase, `ret 4`; the
      * answer is whether it bought. push ebp; mov ebp,esp; and esp,-8 */
     {0x2c94f0, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
+#endif
+#ifdef RON_SITE_PROBE
+    /* Leader::compute_site_stats@006cd040: ten stack arguments, ret 0x28.
+     * The six-byte prologue has no relative instruction. CALL keeps the
+     * input cell/city/unit. This site's RET carries its four output words:
+     * moved x, score, distance, moved y (rather than argument pointers).
+     * Selection happens inside compute_sites, before any frame-end dump. */
+    {0x2cd040, 6, 10, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* Its placement gate: BuildTypeData::blocked_site@00636a50, ret 0x14. */
+    {0x236a50, 6, 5, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0, 0, 0, 0}},
+    /* Its per-tile gate: BuildTypeData::blocked_tcoord@00636db0, ret 0x10. */
+    {0x236db0, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0, 0, 0, 0}},
 #endif
 #ifdef RON_COLLIDE_PROBE
     /* The collision sweep, read from inside (`docs/COLLISION.md` 9, item
@@ -1576,6 +1593,14 @@ static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     u32 out = 0xffffffffu;
     if (site < NCALLS && CALLS[site].out7 && a7 > 0x10000u) out = *(u8 *)a7;
+#ifdef RON_SITE_PROBE
+    if (site < NCALLS && CALLS[site].rva == 0x2cd040) {
+        a4 = *(u32 *)a4;
+        a5 = *(u32 *)a5;
+        a6 = *(u32 *)a6;
+        out = *(u32 *)a7;
+    }
+#endif
     emit(K_RET, site, ret, a4, a5, a6, out);
 #ifdef RON_SEARCH_CENSUS
     if (site == 0 && ret == 0xffffffffu) census_suspension();
@@ -1662,7 +1687,16 @@ static u32 build_proxy(u8 *s, const CallSite *h, u32 site) {
     s[n++] = 0xD0;
 
     s[n++] = 0x50; /* push eax — the answer, saved under our arguments */
-    for (i32 i = 7; i >= 4; i--) n = emit_arg(s, n, h, (u32)i);
+    for (i32 i = 7; i >= 4; i--) {
+        u32 arg = (u32)i;
+#ifdef RON_SITE_PROBE
+        if (h->rva == 0x2cd040) {
+            if (i == 4) arg = 8;
+            if (i == 7) arg = 9;
+        }
+#endif
+        n = emit_arg(s, n, h, arg);
+    }
     s[n++] = 0x50; /* push eax — the answer, as an argument */
     n = emit_logcall(s, n, site, (void *)on_ret);
     s[n++] = 0x58; /* pop eax */

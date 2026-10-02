@@ -366,8 +366,8 @@ impl Sim {
         (first, slots)
     }
 
-    /// `BuildTypeData::blocked_tcoord`: one tile. Visibility is taken as
-    /// granted everywhere (`docs/CITIES.md` §11).
+    /// `BuildTypeData::blocked_tcoord`: one tile. The ruins arm reads
+    /// visibility; other refusal messages retain the §11 visibility seam.
     pub fn blocked_tcoord(
         &self,
         who: Option<Player>,
@@ -381,6 +381,15 @@ impl Sim {
         }
         let cell = crate::World::cell_of_tile(t);
         let mask = self.world.tile_mask(t);
+        // CITIES §2.5, item 1444: the signed WData short is flags,
+        // whose high bit denotes goody ruins; it is not the region id.
+        if self.world.cell_data(cell).flags & crate::world::cell::GOODY != 0 {
+            return match who {
+                Some(w) if !self.was_seen_fog(t.x >> 1, t.y >> 1, w) => Blocked::Seen,
+                Some(w) if !self.was_really_seen_fog(t.x >> 1, t.y >> 1, w) => Blocked::Unseen,
+                _ => Blocked::Ruins,
+            };
+        }
         let Some(reg) = self.world.region_of(cell) else {
             return Blocked::Ruins;
         };

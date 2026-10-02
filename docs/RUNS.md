@@ -13799,3 +13799,117 @@ Archive `rontrace-run603.log`, 62,985,824 bytes,
 SHA-256 `75846bfc9fcd6bd4a9176def8670650c80e71cfd964ed4542b9791d72709074f`.
 
 Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1443-codex/run603-validation.json`.
+
+## run604 — French Great Lakes make decision (2026-10-02, item 1444)
+
+**Disk gap.** run601 prints the lists but not the make decision outputs.
+Same seed 12345, map 14, Nubian human/French AI, Toughest lobby as run601.
+Fresh output `~/ron-data/lab-captures/2026-10-02-run604`; complete
+category recipe recorded in the validation JSON. Window [2571, 2584],
+call window [2540, 2580], tracer definitions `['RON_LEADER_PROBE']`.
+Commands: `['37 !ffwd 3', '2588 !quit']`.
+
+Process, receipt and wait exits **0**; five settings files restored.
+All 2,589 trace frames match run598; all thirteen detail blocks match run601.
+
+Archive `gamelog-run604-lakes-french-toughest-make-probe.txt`, 37,542,269 bytes,
+SHA-256 `d69bfc8ee48e137be9e206ede48cdbc0c37274cd8dcd2af1dcf159c911f5e586`.
+
+Archive `rontrace-run604.log`, 10,496,960 bytes,
+SHA-256 `5c623bb9f9b7effbb5000d1ddc7bc6a89f012a670a40ccb7e47fd911342cfacf`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run604-validation.json`.
+
+## run605 — unnecessary leader history, interrupted (2026-10-02, item 1444)
+
+Booked a full leader history on French Great Lakes before noticing that
+run597 already exposed the site swap at frame 1. Output remains at
+`~/ron-data/lab-captures/2026-10-02-run605/map-14`. Same lobby as run604,
+LEADERS=9 throughout, requested end 2588. Logging advanced only about 150
+frames in six minutes; after the disk answer was confirmed, this session
+terminated its own game process. Process exit **1**, wait exit **2**; no
+endpoint claim. The partial log and trace are preserved, not archived as a
+completed capture. Five settings files restored before the next launch.
+Booking and partial verdict: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/`.
+
+## run606 — initial city-site outputs (2026-10-02, item 1444)
+
+**Disk gap.** run597 already prints the swapped initial ranks, but not candidate outputs.
+Same seed 12345, map 14, Nubian human/French AI, Toughest lobby as run601.
+Fresh output `~/ron-data/lab-captures/2026-10-02-run606`; complete
+category recipe recorded in the validation JSON. Window [0, 2],
+call window [0, 0], tracer definitions `['RON_SITE_PROBE']`.
+Commands: `['36 !quit']`.
+
+Process, receipt and wait exits **0**; five settings files restored.
+All 37 trace frames match run598; block 1 contains all 512 groups.
+
+Archive `gamelog-run606-lakes-french-toughest-site-probe.txt`, 14,263,906 bytes,
+SHA-256 `e59cc1ae425af3abb744ac150a17b8e0b3ab95ae86b44f2d9bb58ebcdbe79c03`.
+
+Archive `rontrace-run606.log`, 8,757,216 bytes,
+SHA-256 `ddbb12b64009ce0d698e3852a8f728dff24e135826730b49190e640ec3eac3b4`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run606-validation.json`.
+
+## run607 — candidate footprint verdicts (2026-10-02, item 1444)
+
+**Disk gap.** run606 localizes one shifted candidate; no footprint return verdict is on disk.
+Same seed 12345, map 14, Nubian human/French AI, Toughest lobby as run601.
+Fresh output `~/ron-data/lab-captures/2026-10-02-run607`; complete
+category recipe recorded in the validation JSON. Window [0, 2],
+call window [0, 0], tracer definitions `['RON_SITE_PROBE']`.
+Commands: `['36 !quit']`.
+
+Process, receipt and wait exits **0**; five settings files restored.
+All 37 trace frames and the full block 1 match run606.
+
+Archive `gamelog-run607-lakes-french-toughest-placement-probe.txt`, 14,263,907 bytes,
+SHA-256 `94d349a423be33f08f35d239e7004291c904c7edcebbc418aa95b37b20c5e991`.
+
+Archive `rontrace-run607.log`, 8,762,784 bytes,
+SHA-256 `09de0d0957e88a2c5c919c649fa0ae485d1f3f06643093ea0caef738089d90bf`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run607-validation.json`.
+
+## run608 — per-tile ruins refusal (2026-10-02, item 1444)
+
+**Disk gap.** run607 returns 35, but no existing record identifies which tile refused placement.
+Same seed 12345, map 14, Nubian human/French AI, Toughest lobby as run601.
+Fresh output `~/ron-data/lab-captures/2026-10-02-run608`; complete
+category recipe recorded in the validation JSON. Window [0, 2],
+call window [0, 0], tracer definitions `['RON_SITE_PROBE']`.
+Commands: `['36 !quit']`.
+
+Process, receipt and wait exits **0**; five settings files restored.
+All 37 trace frames and the full block 1 match run607.
+
+Archive `gamelog-run608-lakes-french-toughest-tile-probe.txt`, 14,263,906 bytes,
+SHA-256 `7c6247d45293495c3bcaa2a55324645fcf810b21adff554dc0faa78283a2fb36`.
+
+Archive `rontrace-run608.log`, 8,959,488 bytes,
+SHA-256 `3643b06d9b756f72b91724f863a0bfae667c0e649dbde4b10c6f52db32753c4b`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run608-validation.json`.
+
+## run609 — French Great Lakes closing records (2026-10-02, item 1444)
+
+**Disk gap.** run598 closes the game without full final-window groups and projectiles.
+Same seed 12345, map 14, Nubian human/French AI, Toughest lobby as run601.
+Fresh output `~/ron-data/lab-captures/2026-10-02-run609`; complete
+category recipe recorded in the validation JSON. Window [5633, 5639],
+call window [0, 0], tracer definitions `None`.
+Commands: `['37 !ffwd 7', '5638 !quit']`.
+
+Process, receipt and wait exits **0**; five settings files restored.
+All 5,639 trace frames match run598. Six running blocks and closing block
+5639 each contain 512 groups. Unlike earlier French windows, live AMMO
+records are present; their comparison is kept beside the closing widening.
+
+Archive `gamelog-run609-lakes-french-toughest-closing-window.txt`, 24,702,515 bytes,
+SHA-256 `fde3898935c1833ca72a5768cdf534fec33e28939aaada12a2b6302bd6b27e31`.
+
+Archive `rontrace-run609.log`, 12,994,240 bytes,
+SHA-256 `9d14abb6d730d48d3b502b120b8049a44f2f8539bf57711647d38dc87e16b796`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run609-validation.json`.

@@ -347,7 +347,7 @@ numbers are what is returned.
 ```
 off the tile map → OFF_MAP 0x22
 W = cell(u,v); T = tdata[u,v]
-W.region < 0 → RUINS 4
+W.flags & 0x8000 → RUINS 4 (visibility above)
 (T & 3) == 3 → BUILDING 1
 not a dock:
     domain == 1: owner cannot transport and not editor → CANT_TRANSPORT 0x2e;  (T & 0x30) != 0x20 → LAND 0xf
@@ -2096,6 +2096,16 @@ heal, ejection), then the sites' `construct_hits` refresh.
   measured number on any capture, because `was_seen`'s first arm is
   territorial and every footprint an AI considers is inside its own border,
   so it is booked rather than landed blind (`docs/AI.md` §18, queue).
+  **Partial correction, item 1444:** the goody-ruins arm now reads both
+  visibility predicates. Its signed short is `WData.flags`, not `region`:
+  `blocked_tcoord@00636db0` reads the cell's first two bytes. run608 observes
+  `BLOCKED_UNSEEN` (35) on tiles (201..203,48..51) of the French Great Lakes
+  initial Town query at cell (51,12). The cell is territorially seen but not
+  really seen. run606's candidate (51,12) consequently moves to (53,11),
+  score 138 and distance 28, while the omitted guard stays at (51,12),
+  score 554 and distance 27. The other 51 candidate outputs agree.
+  Other visibility refusals and the majority-footprint rule remain unmodelled;
+  no independent audit or general placement-visibility parity is claimed.
 - **The editor relaxations are not modelled.** `semaphore[1] & 8` is always
   clear.
 - **The cancel refund and the unfinished-building plunder are pinned

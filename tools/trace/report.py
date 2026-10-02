@@ -89,6 +89,11 @@ BY_RVA.update({
     # it is read.
     0x2c9be0: ("make_me", ("t", "val", "escrow", "cat", "city", "up", "p7")),
     0x2c94f0: ("make_this", ("slot",)),
+    # RON_SITE_PROBE uses the return slots for the four output words.
+    0x2cd040: ("compute_site_stats", ("wx", "wy", "city", "unit",
+                                      "out_wx", "val", "dist")),
+    0x236a50: ("blocked_site", ("x", "y", "who", "exclude", "slots_ptr")),
+    0x236db0: ("blocked_tcoord", ("tx", "ty", "who", "exclude")),
 })
 # RON_COLLIDE_PROBE's five (ids 8-12 in that build): the collision sweep read
 # from inside, `docs/COLLISION.md` 9. `will_be_corner`'s first two arguments
@@ -547,6 +552,9 @@ def main():
                          f"to {args[2]},{args[3]} (c{args[2] // step},{args[3] // step})",
                          f"dir {args[4]} step {args[5]} depth {args[6]}"]
             out = "" if r[6] == 0xFFFFFFFF else f"  out {r[6]}"
+            if name == "compute_site_stats":
+                print(f"f{cf:<5} {'  ' * depth}{name}  {'  '.join(parts)}  out_wy={s32(r[6])}")
+                continue
             print(f"f{cf:<5} {'  ' * depth}{name}  {'  '.join(parts)} = {s32(r[2])}{out}")
         for cf, csite, this, a03 in stack:
             name = sites.get(csite, (0, f"site{csite}", ()))[1]

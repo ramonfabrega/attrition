@@ -338,7 +338,8 @@ const UNREAD: &[(&str, &str)] = &[
     // (`golden::Script`), and no field of the simulation reads it.
     (
         "GAME",
-        "console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        // Item 1444: run609 prints the closing marker as GameInfo closing.
+        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -2340,13 +2341,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     for (path, word) in [
         (&r602, 986),
         (&r603, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
-        (&r601, super::testkit::THIRD_PAIR_WORD_GREAT_LAKES),
+        (&r601, 2576),
     ] {
         if let Some(path) = path {
             let n = drive_capture(path, word - 1, word + 3, &mut paths);
             assert_eq!(n, 5, "the French pair carries its word window");
             frames += n;
         }
+    }
+    if let Some(path) =
+        crate::testenv::dump("gamelog-run609-lakes-french-toughest-closing-window.txt")
+    {
+        let n = drive_capture(&path, 5633, 5639, &mut paths);
+        assert_eq!(n, 7, "six French Lakes running blocks and closing state");
+        frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
@@ -2689,7 +2697,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // walked here beside East Indies'.
     let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
     let french_east = super::third_pair::french_east_indies_word_window();
-    let french_lakes = super::third_pair::french_great_lakes_word_window();
+    let french_lakes = super::third_pair::french_great_lakes_closing_window();
     let seen = compared::stop();
     let (Some(w), Some(_), Some(_), Some(_)) = (walked, toughest, french_east, french_lakes) else {
         eprintln!("skipping: the open words' captures are not all on disk");
