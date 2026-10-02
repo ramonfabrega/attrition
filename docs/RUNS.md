@@ -13263,3 +13263,36 @@ successor 16762. The coverage driver reads both and the compared-field
 pin now walks the newest word's window; six group-order fields are
 observed there and leave the uncompared pin. See COLLISION §21 and the
 item journal for the correction and full-window totals.
+
+## run585 — East Indies Toughest, blocks 17501..17758 (2026-10-01, item 1434)
+
+**What the disk could not answer.** run583 ends at 17010; item 1433
+measured a word at 17507. No dump of run346's lobby covered its state.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run585 \
+    --map 18 --end-frame 17771 --timeout 5400 --log-window 17501 17758 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+One launch through RonDriver, lane free and paths unused. `waitrun.sh`
+returned 0. Receipt: success, map 18, seed 12345, lifecycle verified,
+closing frame 17772; five backed-up files restored and byte-verified.
+Launch to exit 1722.777 s, total 1748.794 s. Rolling logs were redirected.
+`rngcmp.py` against run346: **17,772 shared frames, all identical**.
+This is the separate fidelity check; the receipt makes no fidelity claim.
+
+The full 257-block window is archived as
+`gamelog-run585-islands-toughest-17501.txt` (757,798,978 bytes, SHA-256
+`3af35f612e7c406e4c977357658228c43a765b0db27538fd5764bce5258aa539`)
+and `rontrace-run585.log` (172,894,304 bytes, SHA-256
+`aafa301bc6bc7e98c0e2b512f378dbb7c96773d2cbdb52e00e3611d241e1f7b1`).
+Copies match source hashes; sources, backups and build artifacts remain
+in the capture directory. Receipts and hashes are retained in
+`~/ron-data/lab-experiments/2026-10-01-item-1434-codex/`.
+
+`run585_s_word_frame_is_widened_whole` covers every record and unit,
+including 17507 and successor 17653. The compared-field window and raw
+coverage driver follow that successor. COLLISION §22 and the item journal
+record the retained collision-slot correction and its validation.

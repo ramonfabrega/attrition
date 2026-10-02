@@ -3767,3 +3767,45 @@ that earlier gain is not attributed to this correction.
   difference; it remains a separate measured successor.
 - Reading-only generalization beyond the captured contact and synthetic
   coastal cases awaits independent review. No blind review ran here.
+
+
+## 22. A collision wait chain reads the retained slot (2026-10-01, item 1434)
+
+**Measured trigger.** East Indies run346 first parts at frame 17507,
+eight draws against seven. The extra idle belongs to passenger `1/160`
+disembarking early. run585's whole-record comparison already finds its
+transport `1/111` on a different path at block 17501: seven entries against
+17, position (34724,32123) against (34200,32016). On block 17507 those
+positions are (34856,32249) against (34200,32196); on 17508 the passenger
+is out at (34824,32472) here but remains inside in the original.
+
+**The decision, not the boundary.** An in-decision probe at tick 17485
+finds `1/111` colliding with moving transport `1/120`, which is waiting
+on object `1/112`. The newest occupant of 112 is already closed and off
+map, but retains `waiting_on=true`. Two older incarnations of the number
+also remain in the Rust vector, with the bit clear. The live-only
+`collider_of` lookup finds none and permits waiting. It therefore skips
+the recovery search; this is not an A* expansion error.
+
+`Unit::resolve_unit_collision@005f9d30`'s chain predicate (the block
+at `005fa5d2`–`005fa5fd`, §6 step 5) directly reads the slot named by the
+collider's `collide_o`/`collide_who`, with no alive gate. Read the newest
+occupant of that slot, including a closed one. Keep the direct collider's
+lookup and the other wait predicates unchanged. The retained wait bit
+refuses waiting and lets the normal recovery search run.
+
+**Differential evidence.** With that correction the measured word is
+**17653**, +146 frames: 14 draws against 13, index 5 an `inc_time` wrap
+against `Guy::set_anim+0x104b`. On the completed prefix of run585,
+17501..17512, differing field keys fall 277 → 203. Transport 111's
+compared fields all agree except its standing `form`; passengers
+158..160 also agree. The complete capture's counts and validation are
+recorded in the item journal after its receipt is verified.
+
+**Falsification and limits.** The local-animation hypothesis is killed
+by the earlier path difference. The synthetic test
+`a_collision_wait_chain_reads_the_latest_retained_slot` varies live/closed
+and clear/set wait bits, with an older occupant holding the opposite bit;
+it checks both the wait and recovery outcomes. The original slot read and
+this captured consequence are corroborated; behavior for an absent slot
+is not established. No independent blind reading was performed here.

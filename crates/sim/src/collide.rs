@@ -2252,10 +2252,19 @@ impl Sim {
             // names nobody refuses the wait — the `-1 < sVar13` half, and
             // the crate used to grant it (2026-09-05, R8). Nothing here
             // reads my own flag.
+            // The chain reads the latest occupant of the slot, even after
+            // disembarkation closed it. A live-only lookup loses its wait
+            // bit and wrongly permits waiting instead of recovery (§22).
             let its_chain_blocks = self.units[o].collide_o < 0
                 || self
-                    .collider_of(o)
-                    .is_some_and(|v| self.units[v].waiting_on);
+                    .units
+                    .iter()
+                    .rev()
+                    .find(|v| {
+                        i16::from(v.owner) == i16::from(self.units[o].collide_who)
+                            && v.index == self.units[o].collide_o
+                    })
+                    .is_some_and(|v| v.waiting_on);
             if i32::from(self.units[o].collide) < cap
                 && i32::from(self.units[u].collide) < cap
                 && !self.at_war_with(who, self.units[o].owner)
@@ -3412,6 +3421,55 @@ mod tests {
             "waits for the boat's cast"
         );
         assert!(!run(crate::orders::spell::PACK), "another cast is repathed");
+    }
+
+    /// A wait chain reads a retained slot, including a closed transport.
+    /// Older occupants of the same number must not shadow the newest one.
+    #[test]
+    fn a_collision_wait_chain_reads_the_latest_retained_slot() {
+        for alive in [false, true] {
+            for waiting in [false, true] {
+                let a = ucell_centre(Pos::new(30, 30));
+                let b = ucell_centre(Pos::new(28, 30));
+                let (mut sim, x, y) = pair(a, b);
+                sim.order_move(x, ucell_centre(Pos::new(20, 30)));
+                sim.order_move(y, ucell_centre(Pos::new(35, 30)));
+                sim.tick();
+                sim.units[x].path.push(PathData {
+                    to: ucell_centre(Pos::new(29, 30)),
+                    tolerance: 0,
+                    flags: path_flag::SIDESTEP,
+                });
+                // Two incarnations of object 2: the previous one has the
+                // opposite bit, so reading the first match is observable.
+                for current in [false, true] {
+                    let mut z = Unit::new(0, 2, ucell_centre(Pos::new(50, 50)), 40);
+                    z.health = if current && alive { 40 } else { 0 };
+                    z.on_map = current && alive;
+                    z.waiting_on = if current { waiting } else { !waiting };
+                    sim.add_unit(z);
+                }
+                sim.repaths[0] = 0;
+                sim.units[x].collide = 0;
+                sim.units[y].collide = 0;
+                sim.units[x].collide_o = sim.units[y].index;
+                sim.units[x].collide_who = 0;
+                sim.units[x].waiting_on = false;
+                sim.units[y].collide_o = 2;
+                sim.units[y].collide_who = 0;
+                sim.units[y].waiting_on = true;
+                sim.resolve_unit_collision(x);
+                assert_eq!(
+                    sim.units[x].waiting_on, !waiting,
+                    "alive={alive}, waiting={waiting}"
+                );
+                assert_eq!(
+                    sim.repaths[0] > 0,
+                    waiting,
+                    "recovery must replace a blocked wait"
+                );
+            }
+        }
     }
 
     /// §6's tail, the mechanic's **only** draw — and the two guards that

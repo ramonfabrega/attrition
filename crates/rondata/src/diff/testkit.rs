@@ -1828,10 +1828,14 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// stance 0 -> 1 on block 16879, and advances 16878 -> 16940. Four draws
 /// against five, index 0 inc_time against Unit::do_idle; run583 widens it.
 /// Item 1433 measures 17507 (eight draws against seven, index 1 do_idle
-/// against inc_time). Keep this covered floor until item 1434/run585
-/// widens that word; run583 ends at 17010. Transport 172's path and
+/// against inc_time). It kept floor 16940 pending item 1434/run585:
+/// run583 ends at 17010. Transport 172's path and
 /// passenger 91's disembarkation now agree throughout run583.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_940;
+/// Item 1434: reading the retained collision-chain slot moves 17507 to
+/// 17653 (14 draws against 13, index 5 inc_time against set_anim+0x104b).
+/// run585 widens both words; transport 111's recovery and its passengers
+/// agree at the old word. COLLISION §22.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_653;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2652,6 +2656,9 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_16482: (i64, i64) = (16_476, 16_733
 
 /// run583, item 1427: the 16760 word and its successor 16762, whole records.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_16760: (i64, i64) = (16_754, 17_011);
+
+/// run585, item 1434: the 17507 word and its successor, whole records.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_17507: (i64, i64) = (17_501, 17_758);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8222,9 +8229,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run583_s_word_frame_is_widened_whole"),
-        1427,
-        Some(WIDENING_SECOND_EAST_INDIES_16760),
+        Some("run585_s_word_frame_is_widened_whole"),
+        1434,
+        Some(WIDENING_SECOND_EAST_INDIES_17507),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

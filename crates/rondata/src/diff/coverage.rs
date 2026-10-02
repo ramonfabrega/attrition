@@ -687,6 +687,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r572 = crate::testenv::dump("gamelog-run572-islands-toughest-16160.txt");
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
+    let r585 = crate::testenv::dump("gamelog-run585-islands-toughest-17501.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1366,7 +1367,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Item 1427's measured successor, including the prior 16760 word.
     if let Some(p) = &r583 {
         let n = drive_capture(p, 16_939, 16_944, &mut paths);
-        assert_eq!(n, 6, "run583 carries the current East Indies word");
+        assert_eq!(n, 6, "run583 carries the previous East Indies word");
+        frames += n;
+    }
+    if let Some(p) = &r585 {
+        let n = drive_capture(p, 17_652, 17_657, &mut paths);
+        assert_eq!(n, 6, "run585 carries the current East Indies word");
         frames += n;
     }
     if let Some(p) = &r356 {
@@ -2559,12 +2565,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // on the tree after `ccc update`'s base, 1765a40e).
     // Item 1427: run583's 16761..16765 carries group moves, so those
     // six fields are compared again and leave the pin.
+    // Item 1434: run585's new word compares the attack-order fields;
+    // no cast stands on the union, so cast_paid/cast_spell return.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt def_x \
-         def_y defensive ever_in_range garrison_search \
-         in_range mandatory metric new_ord non_flat_gather \
+         attempts build_type cast_paid cast_spell cruising_alt \
+         garrison_search \
+         metric non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint ",
     ),

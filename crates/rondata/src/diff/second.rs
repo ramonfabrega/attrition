@@ -195,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run583-islands-toughest-16754.txt",
+        "gamelog-run585-islands-toughest-17501.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2560,6 +2560,49 @@ mod tests {
         pin_eq!(w.firsts.len(), 267, "every key parted on run579");
     }
 
+    /// run585: whole-record, whole-cast baseline of the 17507 word (item 1434).
+    #[test]
+    fn run585_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run585",
+            "gamelog-run585-islands-toughest-17501.txt",
+            WIDENING_SECOND_EAST_INDIES_17507,
+            &[17_501, 17_507, 17_508, SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run585 whole: blocks 17501..17758");
+        pin!(
+            w.missing.is_empty(),
+            "run585 carries every key: {:?}",
+            w.missing
+        );
+        for block in [17_501, 17_507, 17_508] {
+            let rows = w.standing.get(&block).expect("the whole old-word block");
+            for o in [111, 158, 159, 160] {
+                pin!(
+                    rows.keys()
+                        .filter(|(who, unit, _)| (*who, *unit) == (1, o))
+                        .all(|(_, _, field)| field == "form"),
+                    "block {block}: transport/passenger 1/{o} differs beyond standing form"
+                );
+            }
+        }
+        pin_eq!(w.firsts.len(), 2664, "every key parted on run585");
+    }
+
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
     /// (item 1427). Every dumped record, both sides, including the full cast.
     #[test]
@@ -2573,7 +2616,7 @@ mod tests {
             "run583",
             "gamelog-run583-islands-toughest-16754.txt",
             WIDENING_SECOND_EAST_INDIES_16760,
-            &[16_761, 16_879, SECOND_WORD_EAST_INDIES + 1],
+            &[16_761, 16_879, 16_941],
             true,
             true,
         ) else {
