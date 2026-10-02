@@ -124,6 +124,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "diff/third.rs",
         "the third map's walks: it compares no field itself, and its widening is harness.rs's",
     ),
+    (
+        "diff/third_pair.rs",
+        "the third pair's fixture checks and delegated walks; per-record comparisons live in harness.rs",
+    ),
 ];
 
 /// The parser's own containers, which carry no field the original writes:

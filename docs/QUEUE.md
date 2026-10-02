@@ -17,7 +17,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 Both batches have combined validation (journals 1439 and 1441).
 1442 establishes the French third pair at **986 / 2576** (lengths
 17379 / 5638), with complete whole-record windows and coverage.
-New baselines, no sim behavior changed; full gate pending.
+New baselines, no sim behavior changed; combined validation in journal 1442.
 1443 takes East Indies 986: camp membership is a hypothesis.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
