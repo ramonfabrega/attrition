@@ -9,10 +9,11 @@ engineering rules with the explicit overrides below. `CLAUDE.md` remains the
 Claude commander's operating agreement; this file is deliberately a regular
 file rather than a symlink to it.
 
-This session is one agent working directly with the user on one agreed queue
-item. No subagents, parallel agent lanes, commander loop, automatic refill,
-model trial, or scheduled continuation. The paused Claude loop stays paused.
-The user may extend the scope later; a nonempty queue alone does not extend it.
+This session is one agent working directly with the user through the queue
+sequentially, authorized on 2026-10-01. No subagents, parallel agent lanes,
+commander loop, model trial, or scheduled continuation. The paused Claude loop
+stays paused. Choose the next item from measured evidence and leave a durable
+handoff at each landing; a natural stopping point need not exhaust the queue.
 
 ## Autonomy and completion
 
@@ -45,11 +46,12 @@ Claude's Monitor, idle subscription, automatic re-invocation, `/clear`, and
 progress updates during long work. Context compaction is not an item boundary:
 preserve the state needed to resume and continue the same item.
 
-Finish at the agreed item's boundary, or report a genuine blocker or explicit
-user pause. A final report states what changed, the measured score and value
+An item boundary is a checkpoint, not a required end to the turn. Continue
+sequentially while the path is clear; stop at a useful review boundary, a genuine
+blocker, or an explicit user pause. A final report states what changed, the measured score and value
 diffs (including no movement), validation, commit, and unresolved questions.
 Do not claim a gate passed, a commit landed, or a push happened before verifying
-that action. Completing an item does not start the next one.
+that action. Keep the next item and any change of direction visible to the user.
 
 ## Evidence and review
 
@@ -120,5 +122,9 @@ then record its actual verdict in a follow-up commit. Run
 logging to a file without a pipe that hides the exit status. Do not edit the
 validated tree while the gate runs. Use focused checks and `tools/guard.sh`
 during development; do not repeatedly run the full gate without a new reason.
+The user also authorizes experiments to reduce redundant gates. Preserve the
+checks that establish correctness and fidelity; record any changed validation
+coverage and its rationale for the later steer. Until an alternative is
+established, the full release gate above remains the landing default.
 An instruction-only adaptation needs diff/link checks and relevant paperwork
 checks, not a game-data release run; state that limited validation explicitly.

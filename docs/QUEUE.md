@@ -19,7 +19,7 @@ run574: Monotheism's paid food/wealth 165 against 132 → 132 each;
 Medicine's offer 59400 against 237600 → 237600; keys 979 → 144.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
-  paused, no lanes or refill. The user authorized one direct item.
+  paused, no lanes or refill. The user authorized sequential direct work.
 - **East Indies** remains measured at 16760, floor 16482 until 1427.
   Chapter fifty is closed. Item 1428's re-pin CLI crash is fixed here.
 - **Steer handoff**: review this branch's commits, journal and review
@@ -37,9 +37,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the direct item is complete; review its journal and gate verdict.
-No automatic continuation or commander restart. Item 1429 books the next
-Toughest word; it has not started.**
+**Opener: direct Codex work continues with 1427; remeasure East Indies
+before its capture. Work sequentially under AGENTS.md, with no commander
+restart. Item 1429 follows on Toughest; it has not started.**
 
 ## The queue
 
