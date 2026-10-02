@@ -3749,7 +3749,8 @@ mod tests {
         // `1/34`'s `form` on 4909 (no mechanism is named).
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4841, 91), (4997, 5), (5001, 2)],
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            [(4841, 81), (4997, 5), (5001, 2)],
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3784,7 +3785,11 @@ mod tests {
         // citizen leaves its gather chain as it dies: `0/2001`'s and
         // `0/2002`'s `gather_down`, and who=0's `income`, `resources`,
         // `bucket`, `leftover` and `gather_stamp` from 5001).
-        pin_eq!(w.firsts.len(), 103, "every key parted on run373");
+        pin_eq!(
+            w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            93,
+            "every key parted on run373"
+        );
     }
 
     /// **The second pair's Great Lakes word, 5105, widened whole** (item
@@ -3911,7 +3916,11 @@ mod tests {
         // 127 → 114 on item 1248: a dead citizen leaves its gather chain
         // as it dies (`0/2001`..`0/2004`'s `gather_down`, and who=0's
         // `income`, `resources`, `bucket`, `leftover`, `gather_stamp`).
-        pin_eq!(w.firsts.len(), 96, "every key parted on run396");
+        pin_eq!(
+            w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            92,
+            "every key parted on run396"
+        );
     }
 
     /// **The second pair's Great Lakes word, 5930, the game's end, widened**

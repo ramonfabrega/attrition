@@ -10793,7 +10793,11 @@ pub(crate) mod tests {
         // Item 1072 took four (207 → 203): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1206 took sixteen (199 → 183): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 183.
-        pin_eq!(under, 131, "the floor under the word");
+        pin_eq!(
+            under, // Item 1444: the ruins guard removes stale site fields (batch replay).
+            116,
+            "the floor under the word"
+        );
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -11392,7 +11396,11 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (199/212 → 183/196): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (183, 196).
         // Item 1330 took 44 (177/188 → 133/142): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((under, firsts.len()), (131, 140), "the floor");
+        pin_eq!(
+            (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (116, 125),
+            "the floor"
+        );
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11607,7 +11615,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (196, 320).
         // Item 1330 took 46 (188/312 → 142/264): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (142/264 → 142/235): the Citizens' `mylos` on 12563, the cache (`docs/VISION.md` §2).
-        pin_eq!((under, firsts.len()), (140, 232), "the floor");
+        pin_eq!(
+            (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (125, 217),
+            "the floor"
+        );
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11803,7 +11815,11 @@ pub(crate) mod tests {
         // Item 1072 took four (311 → 307): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (307 → 306): who=0's `gather_stamp`, the border pass's economy flag (`docs/AI.md` §84).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 166.
-        pin_eq!(standing_n, 113, "every row standing on 14651");
+        pin_eq!(
+            standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
+            98,
+            "every row standing on 14651"
+        );
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
@@ -11832,7 +11848,8 @@ pub(crate) mod tests {
             // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
-            (232, 6, 238),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (217, 6, 223),
             "the floor"
         );
     }
@@ -11954,7 +11971,11 @@ pub(crate) mod tests {
         // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 169.
         // Item 1330 took 51 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
-        pin_eq!(standing_n, 112, "every row standing on 14983");
+        pin_eq!(
+            standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
+            97,
+            "every row standing on 14983"
+        );
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
@@ -11977,7 +11998,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (333, 4, 337).
         // Item 1330 took 53 (325/4/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, own.len(), firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -12078,7 +12103,8 @@ pub(crate) mod tests {
             // Item 1115 took four (309 → 305): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
-            113,
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            98,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -12110,7 +12136,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, mid, firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12230,7 +12260,8 @@ pub(crate) mod tests {
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
             // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (113, 113),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (98, 98),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -12263,7 +12294,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, mid, firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12391,7 +12426,8 @@ pub(crate) mod tests {
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
             // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (111, 111),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (96, 96),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -12420,7 +12456,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, mid, firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12524,7 +12564,8 @@ pub(crate) mod tests {
             // Item 1114 took four (308 → 304): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (165 → 114): the births' `form` (`docs/GROUPS.md` §24.3).
-            114,
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            99,
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -12546,7 +12587,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, mid, firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12674,7 +12719,8 @@ pub(crate) mod tests {
             // `MAKE[0]`, `[1]` and `[8]`'s `city` and `SITE[1].reg`.
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
-            (113, 113, 112),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (98, 98, 97),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12696,7 +12742,11 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
-        pin_eq!((under, mid, firsts.len()), (238, 0, 238), "the floor");
+        pin_eq!(
+            (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (223, 0, 223),
+            "the floor"
+        );
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -12790,7 +12840,8 @@ pub(crate) mod tests {
             (tail, carried),
             // 28 before item 899: `1/60`'s 23 went.
             // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (112, 4),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (97, 4),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12851,7 +12902,8 @@ pub(crate) mod tests {
                 firsts.len(),
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (112, 4, 1, 117),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            (97, 4, 1, 102),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -12860,7 +12912,8 @@ pub(crate) mod tests {
             // 341 before item 899: `1/60`'s 29 went, and who=0's
             // `production_step` (0 here, 1 there) stands on this block and
             // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            116,
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            101,
             "every row standing on the old word's block"
         );
     }
@@ -12924,12 +12977,13 @@ pub(crate) mod tests {
         // units, because the quit block prints no order list.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
             [
                 // Item 1072 took four (310 → 306): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
                 // Item 1115 took four (306 → 302): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
                 // Item 1111 took the AI citizens' Militia-line rows (`docs/GOLDEN.md` §48).
                 // Item 1330 took 51 (166 → 115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-                (WIDENING_GREAT_LAKES_END.0, 114),
+                (WIDENING_GREAT_LAKES_END.0, 99),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
@@ -12951,7 +13005,8 @@ pub(crate) mod tests {
                 .get(&(WIDENING_GREAT_LAKES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
             // Item 1072 took four (310 → 306): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            114,
+            // Item 1444: the ruins guard removes stale site fields (batch replay).
+            99,
             "the floor stands on the second block, and nothing joins it"
         );
     }
