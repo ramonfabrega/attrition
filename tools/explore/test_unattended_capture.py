@@ -107,6 +107,33 @@ class RunnerTest(unittest.TestCase):
         log.write_text('MAP_STYLE 18\n')
         with self.assertRaises(ValueError):runner.verify_game(log,18,36)
 
+    def test_ai_nation_edit_requires_one_computer_slot_and_changes_only_its_tribe(self):
+        profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
+        path=profile/'PlayerProfile'/'Player.dat'
+        original=b'<LAST_SLOT1 value="1"/><XPACK_LAST_TRIBE0 value="4"/><XPACK_LAST_TRIBE1 value="24"/>'
+        path.write_bytes(original)
+        runner.set_ai_tribe(profile,10)
+        self.assertEqual(path.read_bytes(),original.replace(b'TRIBE1 value="24"',b'TRIBE1 value="10"'))
+        for bad in (original.replace(b'SLOT1 value="1"',b'SLOT1 value="0"'),
+                    original+original,original.replace(b'XPACK_LAST_TRIBE1',b'missing')):
+            path.write_bytes(bad)
+            with self.assertRaises(ValueError):runner.set_ai_tribe(profile,10)
+            self.assertEqual(path.read_bytes(),bad)
+
+    def test_nation_receipt_reads_players_instead_of_trusting_the_profile(self):
+        log=self.root/'game.log'
+        good=('  BEGIN PLAYER\n   flags 7\n   tribe 4\n   who 0\n  Player\n'
+              '  BEGIN PLAYER\n   flags 1\n   tribe 10\n   who 1\n  AI\n'
+              'BEGIN GAME\n MAP_STYLE 18\n (int)seed 12345\n'
+              'BEGIN FRAME 37\n GameInfo closing\n')
+        log.write_text(good)
+        self.assertEqual(runner.verify_game(log,18,36,12345,ai_tribe=10)['players'],
+                         [{'who':0,'tribe':4,'flags':7},{'who':1,'tribe':10,'flags':1}])
+        for bad in (good.replace('tribe 10','tribe 11'),good.replace('flags 1','flags 7'),
+                    good.replace('tribe 4','tribe 5'),good.replace('who 1','who 2')):
+            log.write_text(bad)
+            with self.assertRaisesRegex(ValueError,'player'):runner.verify_game(log,18,36,12345,ai_tribe=10)
+
     def test_a_stall_is_no_gamelog_at_all(self):
         # Parked 762: the two stalls on record had no gamelog.txt; a game
         # past the device has bytes there and is the timeout's to judge.

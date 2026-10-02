@@ -2857,6 +2857,24 @@ rather than from the command that asked for it, and a category the ini does not
 have is **refused** — the failure that guard catches is a correctly-numbered
 window whose blocks come back empty because `end:UNIT=3` was a typo.
 
+## A new nation's start on the click-free lane (2026-10-02, item 1442)
+
+`golden_capture.sh --ai-tribe N` changes only slot 1's
+`XPACK_LAST_TRIBE1`, after requiring that slot to be a computer. It uses
+`live_session`'s whole-profile backup and restoration. An explicit nation
+is 0..23; the receipt requires the initial PLAYER records to show that
+nation as AI player 1 and human Nubians as player 0. This is the current
+pair's fixed-human contract, not a general multiplayer lobby editor.
+
+`--dump-all-start` sets `InitialDump=1`, `DUMP_ALL=1` and Start Game
+`WORLD=6`, with a required `[0,2)` log window. It refuses a wider or later
+window before touching shared settings. Keep `--end-frame 36` for this
+short sibling and size the timeout for the full initial and closing dumps.
+Both outputs and backups live in a fresh capture directory; the installed
+tracer and existing rolling logs are untouched. A long trace uses the same
+nation, seed, difficulty and map without `--dump-all-start`; compare its
+shared trace frames and initial state to the sibling before borrowing data.
+
 ## A packet is a capture too (2026-09-23, the eleventh Fable pass)
 
 PR #7 merged the lab's `RON_STATE_FRAME` tracer build: two hooks, at

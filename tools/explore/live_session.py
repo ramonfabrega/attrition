@@ -120,7 +120,8 @@ def stage(args):
     install, output, profile = args.install.resolve(), args.output.resolve(), args.profile.resolve()
     end = getattr(args, 'end_frame', 36)
     fast = getattr(args, 'fast_forward', False)
-    window = tuple(getattr(args, 'log_window', None) or DEFAULT_WINDOW)
+    full_start = getattr(args, 'dump_all_start', False)
+    window = tuple(getattr(args, 'log_window', None) or ((0, 2) if full_start else DEFAULT_WINDOW))
     detail = list(getattr(args, 'detail', None) or DEFAULT_DETAIL)
     cover = getattr(args, 'cover', None) or 'cover=0'
     callwin = getattr(args, 'callwin', None)
@@ -139,19 +140,23 @@ def stage(args):
     if minute is not None and not 1 <= minute <= 27:
         raise ValueError('ffwd-minute must be 1..27 (fast_forward_frame = minute * 900)')
     wanted = parse_detail(detail)
+    if full_start:
+        if window != (0, 2):
+            raise ValueError('full start requires log window 0 2')
+        wanted.setdefault('[Start Game]', {})['WORLD'] = 6
     if output.is_relative_to(install) or output.is_relative_to(profile):
         raise ValueError('output must be outside the install and profile trees')
     if not (install / 'riseofnations.exe').is_file():
         raise ValueError('install has no riseofnations.exe')
     commands = parse_commands(cmd_file, end) if cmd_file else []
     # Validate all edits before changing shared settings.
-    rise = key((profile / 'rise.ini').read_text(), 'InitialDump', 0)
+    rise = key((profile / 'rise.ini').read_text(), 'InitialDump', int(full_start))
     rise2 = key(key((profile / 'rise2.ini').read_text(), 'LogStartFrame', window[0]),
                 'LogEndFrame', window[1])
     # Wine Z: maps the host root. Keep backslashes out of re.sub replacement strings.
     wine_output = 'Z:' + str(output).replace('/', '\\')
     log = (profile / 'gamelog.ini').read_text()
-    for name, value in [('DUMP_ALL', 0), ('LogFile', wine_output + '\\gamelog.txt'),
+    for name, value in [('DUMP_ALL', int(full_start)), ('LogFile', wine_output + '\\gamelog.txt'),
                         ('DumpFileName', wine_output + '\\dumplog.txt')]:
         log = section_key(log, '[Logging Options]', name, value)
     lines, section, seen = [], '', {}
@@ -236,6 +241,8 @@ def main():
                    help='rontrace.cmd lines to stage before the !quit, `<sim-frame> <text>`')
     s.add_argument('--ffwd-minute', type=int,
                    help='schedule `!ffwd MINUTE` (fast_forward_frame = MINUTE * 900) at frame 37')
+    s.add_argument('--dump-all-start', action='store_true',
+                   help='full initial dump and WORLD=6, bounded to log window 0 2')
     r = modes.add_parser('restore')
     r.add_argument('output', type=Path)
     args = ap.parse_args()

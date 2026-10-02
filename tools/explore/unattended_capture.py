@@ -66,6 +66,46 @@ def set_lobby(profile, pairs):
     path.write_bytes(text.encode('utf-8'))
 
 
+def set_ai_tribe(profile, tribe):
+    """Select the first computer slot's nation, under the staged profile backup."""
+    if tribe is None:
+        return
+    if not 0 <= tribe < 24:
+        raise ValueError('AI tribe must be an explicit nation 0..23')
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    if re.findall(r'<LAST_SLOT1 value="(-?\d+)"/>', text) != ['1']:
+        raise ValueError('expected exactly one computer in player slot 1')
+    text, n = re.subn(r'<XPACK_LAST_TRIBE1 value="-?\d+"/>',
+                      f'<XPACK_LAST_TRIBE1 value="{tribe}"/>', text)
+    if n != 1:
+        raise ValueError(f'expected one player-1 tribe field, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
+def initial_players(path):
+    """Read the header's PLAYER scalars; stop before the potentially huge game dump."""
+    players, current, depth = [], None, None
+    with path.open() as stream:
+        for line in stream:
+            text = line.strip()
+            indent = len(line) - len(line.lstrip())
+            if current is not None and text and indent <= depth:
+                players.append(current)
+                current = None
+            if text == 'BEGIN GAME':
+                break
+            if text == 'BEGIN PLAYER':
+                current, depth = {}, indent
+            elif current is not None:
+                m = re.fullmatch(r'(who|tribe|flags) (-?\d+)', text)
+                if m:
+                    current[m[1]] = int(m[2])
+    if current is not None:
+        players.append(current)
+    return players
+
+
 def stalled_before_frame_zero(gamelog):
     """True while the game has written no gamelog at all — what a launch
     stalled in DXVK's device setup looks like (parked 762). A gamelog with
@@ -77,7 +117,7 @@ def stalled_before_frame_zero(gamelog):
         return True
 
 
-def verify_game(path, style, end, seed=None, detail=None):
+def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
@@ -106,8 +146,15 @@ def verify_game(path, style, end, seed=None, detail=None):
     asked = any(cats.get('GROUPS', 0) > 0 for cats in live_session.parse_detail(detail or ()).values())
     if asked and groupdata == 0:
         raise ValueError('GROUPS was asked for and no GROUPDATA block was printed (parked 735)')
+    players = initial_players(path)
+    if ai_tribe is not None:
+        by_who = {p.get('who'): p for p in players}
+        if (len(players) != 2 or set(by_who) != {0, 1}
+                or by_who[0].get('tribe') != 4 or by_who[1].get('tribe') != ai_tribe
+                or not by_who[0].get('flags', 0) & 4 or by_who[1].get('flags', 0) & 4):
+            raise ValueError(f'player read-back mismatch: {players}')
     return {'map_style': style, 'closing_frame': end+1, 'seed_observed': sorted(seeds),
-            'groupdata_blocks': groupdata}
+            'groupdata_blocks': groupdata, 'players': players}
 
 
 def verify_restored(output, profile):
@@ -166,6 +213,7 @@ def capture(args, output, style):
                                            end_frame=args.end_frame,
                                            fast_forward=args.end_frame>37 and minute is None,
                                            hide_scene=False, ffwd_minute=minute,
+                                           dump_all_start=getattr(args, 'dump_all_start', False),
                                            log_window=getattr(args, 'log_window', None),
                                            detail=getattr(args, 'detail', None),
                                            cover=getattr(args, 'cover', None),
@@ -173,8 +221,11 @@ def capture(args, output, style):
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
-        report['staged'] = {'log_window': getattr(args, 'log_window', None) or list(live_session.DEFAULT_WINDOW),
-                            'detail': getattr(args, 'detail', None) or list(live_session.DEFAULT_DETAIL),
+        full_start = getattr(args, 'dump_all_start', False)
+        report['staged'] = {'log_window': getattr(args, 'log_window', None) or ([0, 2] if full_start else list(live_session.DEFAULT_WINDOW)),
+                            'dump_all_start': full_start,
+                            'detail': list(getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL)
+                                      + (['start:WORLD=6'] if full_start else []),
                             'cover': getattr(args, 'cover', None) or 'cover=0',
                             'callwin': staged_callwin(output),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
@@ -185,6 +236,8 @@ def capture(args, output, style):
         mute(args.profile)
         report['lobby'] = getattr(args, 'lobby', None) or []
         set_lobby(args.profile, report['lobby'])
+        report['ai_tribe_requested'] = getattr(args, 'ai_tribe', None)
+        set_ai_tribe(args.profile, report['ai_tribe_requested'])
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
@@ -233,7 +286,8 @@ def capture(args, output, style):
         report['launch_to_exit_seconds'] = time.monotonic()-launch
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code']))
         report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed,
-                                  detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL))
+                                  detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
+                                  ai_tribe=report['ai_tribe_requested']))
         report['map_verified'] = True
         report['seed_requested'] = args.seed
         report['success'] = True
@@ -359,6 +413,10 @@ def main():
                     help='extra tracer.c define, repeatable (e.g. RON_TARGET_PROBE)')
     ap.add_argument('--cmd-file',type=Path)
     ap.add_argument('--ffwd-minute',type=int)
+    ap.add_argument('--dump-all-start', action='store_true',
+                    help='full initial dump and WORLD=6, bounded to log window 0 2')
+    ap.add_argument('--ai-tribe', type=int, choices=range(24),
+                    help='explicit nation for computer slot 1; receipt requires human Nubians in slot 0')
     ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
                     help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
                          "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")

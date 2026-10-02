@@ -53,6 +53,26 @@ class SessionTest(unittest.TestCase):
         module.restore(self.output)
         self.assert_restored()
 
+    def test_full_start_is_bounded_and_restores_the_profile(self):
+        self.args.dump_all_start = True
+        module.stage(self.args)
+        self.assertIn('InitialDump=1', (self.profile/'rise.ini').read_text())
+        self.assertIn('DUMP_ALL=1', (self.profile/'gamelog.ini').read_text())
+        self.assertIn('WORLD=6', (self.profile/'gamelog.ini').read_text())
+        self.assertIn('LogStartFrame=0', (self.profile/'rise2.ini').read_text())
+        self.assertIn('LogEndFrame=2', (self.profile/'rise2.ini').read_text())
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_full_start_refuses_a_long_or_late_window_before_writing(self):
+        self.args.dump_all_start = True
+        for window in ([0, 36], [1, 2]):
+            self.args.log_window = window
+            with self.assertRaisesRegex(ValueError, 'full start'):
+                module.stage(self.args)
+            self.assertFalse(self.output.exists())
+            self.assert_restored()
+
     def test_invalid_long_run_never_changes_settings(self):
         for end, fast, hide in [(35, False, False), (24001, False, False),
                                  (36, True, False), (37, True, False), (8000, True, True)]:
