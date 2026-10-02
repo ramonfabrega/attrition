@@ -2602,15 +2602,28 @@ mod tests {
             .standing
             .get(&16_761)
             .expect("the original word's whole block");
-        for field in ["pos", "collide", "g.cur_anim[0]", "g.last_speed[0]"] {
+        for field in [
+            "pos",
+            "collide",
+            "g.cur_anim[0]",
+            "g.last_speed[0]",
+            "path:length",
+            "start_dist",
+        ] {
             pin!(
                 !at_word.contains_key(&(1, 189, field.into())),
                 "1/189 {field} still differs on the restored collision frame"
             );
         }
-        // Item 1427: the coastal candidate gate removes 558 differing keys.
-        // The remaining path disagreement starts on block 16761.
-        pin_eq!(w.firsts.len(), 1104, "every key parted on run583");
+        // Item 1431: the large-unit stride restores the entire howitzer path.
+        pin!(
+            w.firsts
+                .keys()
+                .filter(|(who, o, _)| (*who, *o) == (1, 189))
+                .all(|(_, _, field)| field == "form"),
+            "1/189 differs beyond its standing form field"
+        );
+        pin_eq!(w.firsts.len(), 878, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

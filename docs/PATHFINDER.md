@@ -787,7 +787,7 @@ The transport tail's shoreline result is now threaded to the halfland
 multiplier the way `00685773`–`006858b9` threads it — the `depth == 1`
 probe overwrites the `from → to` one, and the multiplier is gated on
 whichever ran last.
-Big-unit strides and the transport tail are implemented as dormant seams;
+~~Big-unit strides were dormant~~ — implemented and diff-backed by item 1431 (§30); the transport tail remains as documented;
 suspend returns −1 without stashing (its restorer has no caller until
 collision recovery exists); `find_upath` is complete and tested, and
 **`resolve_unit_collision` now calls it** (`docs/COLLISION.md` §6 step 6),
@@ -2959,3 +2959,45 @@ through run294 and run243; the end through run80 and the endpoint.
 `path::tests::an_army_is_armed_unworked_and_off_the_river`. With the term
 out, it fails, and so do both run240 tests (item 899's journal).
 
+
+
+## 30. Large units recover on their own stride (item 1431, 2026-10-01)
+
+East Indies run583 widens the frame-16762 word, every record and unit.
+Before the word, block 16761's Howitzer 1/189 had nine path entries
+against sixteen and `start_dist` 1056 against zero. Its recovery suspended
+here while the original completed. The next block's x was 38904 against
+38934. The collision itself agreed after item 1427.
+
+The implementation still fixed the unit-grid stride at one. The existing
+§4 specification already states the missing rule: `astar_path@00683770`
+derives `max(1, (collision + 1) / 2)` for the 48-unit grid, and one for
+the other grids. This Howitzer's collision radius is three, so it searches
+in 96-unit steps. An in-decision probe on frame 16760 measured the old
+search suspending after 503 probes with limit 500; changing the stride
+lets it finish. Raising the budget is not the correction.
+
+Large diagonal expansions test every intermediate 48-unit position,
+short-circuiting on refusal. Cardinal expansions test their endpoint.
+The diagonal validity memo uses position-unit offsets from the current
+node's metric, while endpoint node metrics use direction-grid offsets.
+This surprising distinction is confirmed in the executable listing
+`00684350`–`00684371`, not inferred from decompiler local names. The Rust
+implementation expresses the stride and probe sequence directly; no
+original function body is transcribed.
+
+With both stride and diagonal probes, the word moves **16762 → 16878**
+(+116). Whole-window differing field keys drop **1104 → 878**. On block
+16761 the path length is sixteen and start_dist zero; on block 16762 x
+is 38934. Across all 257 blocks, every compared field of 1/189 agrees
+except the standing `form` field (-1 against 0). The run583 widening
+asserts that stronger per-unit result in addition to its aggregate pin.
+The synthetic large-recovery test rejects jumping a refused intermediate
+point and checks both small and large strides. The coverage driver moves
+to the new word's window. Other open-map words are unchanged.
+
+The next word is still inside run583. Multiple army members' stance
+first differs on block 16879; its cause is not established by this item.
+The captured Howitzer path backs the reached large-unit behavior. Other
+collision radii and the unusual memo-key generalization retain reading-only
+review debt; no independent reading was performed in this single-agent run.

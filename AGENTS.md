@@ -137,3 +137,11 @@ combined validation, not a claim that the original full gate passed. Changes
 to simulation behavior or comparison coverage still require the full gate.
 An instruction-only adaptation needs diff/link checks and relevant paperwork
 checks, not a game-data release run; state that limited validation explicitly.
+
+For an explicitly bounded sequential batch, intermediate implementation commits
+may use focused differential checks, relevant unit tests, and paperwork guards,
+with the full gate deferred to the batch boundary. Mark every checkpoint as
+pending batch validation. Run the complete required-fixture gate on the final
+committed tree before reporting the batch complete; diagnose regressions back
+to their item and revalidate corrections. This reduces repeated full-corpus
+runs without removing checks. Keep the tree frozen during that final gate.

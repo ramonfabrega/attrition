@@ -1820,7 +1820,11 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// first differing label at index 1); run583 widens both. The coastal
 /// candidate-region fix restores 1/189's block-16700 position from
 /// (40374,24330) to the original's (40374,24328). COLLISION §13.3.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_762;
+/// Item 1431: the large-unit recovery stride moves 16762 to 16878;
+/// Six draws against twelve, index 0 move_step against Army::find_target.
+/// run583 pins the whole new word and restores 1/189's path (9 -> 16
+/// entries) and start_dist (1056 -> 0) on block 16761. PATHFINDER §30.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_878;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's

@@ -869,10 +869,14 @@ impl Sim {
     /// stride, the row width, the direction increment and `toff`.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
         let work_cap = if step == STEP_UNIT { 500 } else { 50 } * 64;
-        // SEAM: the unit-grid stride is `(type collision + 1) / 2`, which
-        // is 1 for every `BLOCK_RADIUS 1` type — all of them in every
-        // capture so far (`docs/COLLISION.md` §2).
-        let su: i32 = 1;
+        // The recovery grid advances by half the collision diameter, rounded
+        // up. Larger units also check the intermediate diagonal positions.
+        // `docs/PATHFINDER.md` §30 (item 1431).
+        let su: i32 = if step == STEP_UNIT {
+            ((self.coll_size(u) + 1) / 2).max(1)
+        } else {
+            1
+        };
         let stride = su * step;
         let width = i64::from(self.world.width());
         let row = match step {
@@ -1105,10 +1109,22 @@ impl Sim {
                         self.invalid_loc(u, p.tile(), false, true, true, true, false) == loc::VALID
                     }
                     _ => {
-                        // Big units re-check every sub-step on diagonals;
-                        // with stride 1 the single probe is the whole
-                        // check.
-                        self.valid_ucoord(u, p, metric)
+                        if su > 1 && d & 1 != 0 {
+                            (1..=su).all(|n| {
+                                let dx = MOVE_X[d] * step * n;
+                                let dy = MOVE_Y[d] * step * n;
+                                // The original's diagonal memo uses position-unit
+                                // offsets, unlike the endpoint's grid offsets
+                                // (listing 00684350..00684371).
+                                self.valid_ucoord(
+                                    u,
+                                    Pos::new(cur.x + dx, cur.y + dy),
+                                    cur.metric + i64::from(dx) + i64::from(dy) * row,
+                                )
+                            })
+                        } else {
+                            self.valid_ucoord(u, p, metric)
+                        }
                     }
                 };
                 if !valid {
@@ -2248,6 +2264,51 @@ mod tests {
         assert!(sim.find_tpath(u) > 1, "expected a tile route");
         let vetoed: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
         assert_eq!(vetoed, plain, "the veto puts the half-tile back");
+    }
+
+    /// A large unit searches at its own stride and cannot jump a refused
+    /// intermediate diagonal cell (PATHFINDER §30).
+    #[test]
+    fn large_recovery_steps_check_intermediate_diagonals() {
+        for radius in [48, 144] {
+            let mut sim = flat_sim(8);
+            let start = Pos::new(1560, 1560);
+            let u = walker(&mut sim, start);
+            let ty = sim.add_unit_type(crate::UnitType {
+                combat: crate::combat::Profile {
+                    block_radius: radius,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            sim.units[u].ty = Some(ty);
+            sim.trace_costs = true;
+            sim.probe_refuse = Some(RefuseProbe {
+                frame: sim.frame,
+                unit: (0, 1),
+                cell: crate::collide::ucell(Pos::new(start.x + 48, start.y + 48)),
+            });
+            push_goal(&mut sim, u, Pos::new(start.x + 960, start.y + 960));
+            assert!(sim.find_upath(u, false) > 0);
+            let first: Vec<_> = sim
+                .cost_marks
+                .iter()
+                .filter(|m| m.from == (start.x, start.y))
+                .collect();
+            assert!(!first.is_empty());
+            let stride = if radius == 48 { 48 } else { 96 };
+            assert!(
+                first
+                    .iter()
+                    .all(|m| { (m.to.0 - start.x).abs().max((m.to.1 - start.y).abs()) == stride })
+            );
+            assert!(
+                !first
+                    .iter()
+                    .any(|m| m.to == (start.x + stride, start.y + stride)),
+                "the refused intermediate point blocks the diagonal"
+            );
+        }
     }
 
     /// **The suspend, and the resume that finishes what it started**
