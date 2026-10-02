@@ -13855,5 +13855,5 @@ none missing. At 8182, 15 versus 47 draws first part at index 2,
 produce_building+0x1805 versus +0xc99. Block8183 building 1/2024 appears at
 (37440,24384) versus (34944,21888), city -1/2 and construction time
 42000/15000. Unit1/57 takes a different build route. These are measurements,
-not a promised placement mechanism; the make list and positions already
-carry differences on the first block. Item 1446 starts from that evidence.
+not a promised placement mechanism; positions differ on the first block, and the make list first parts on
+block 8180, before the word. Item 1446 starts from that evidence.
