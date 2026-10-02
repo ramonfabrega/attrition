@@ -1816,7 +1816,11 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// `do_cast`) where the original spends the second `Guy::set_anim+0x97a <
 /// do_cast` (`1/143`'s). Past run544's window; widened on run572 (block
 /// 16161).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_482;
+/// Item 1427: the measured 16760 moves to 16762 (five draws against six,
+/// first differing label at index 1); run583 widens both. The coastal
+/// candidate-region fix restores 1/189's block-16700 position from
+/// (40374,24330) to the original's (40374,24328). COLLISION §13.3.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_762;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2634,6 +2638,9 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_16160: (i64, i64) = (16_155, 16_411
 /// run572's detail, blocks 16476..16733 — six blocks before the word
 /// 16482's block 16483 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_16482: (i64, i64) = (16_476, 16_733);
+
+/// run583, item 1427: the 16760 word and its successor 16762, whole records.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_16760: (i64, i64) = (16_754, 17_011);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8204,9 +8211,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run579_s_word_frame_is_widened_whole"),
-        1418,
-        Some(WIDENING_SECOND_EAST_INDIES_16482),
+        Some("run583_s_word_frame_is_widened_whole"),
+        1427,
+        Some(WIDENING_SECOND_EAST_INDIES_16760),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

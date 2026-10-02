@@ -618,27 +618,30 @@ impl Sim {
     /// `5fa953`): the circle walk over the object chains while
     /// `circle_radius[ring]` is within the live unit count, the object
     /// arrays with `vector_dist <= range` past it, and the `0x200` region
-    /// gate either way (`docs/ORDERS.md` §5.10). The list path's
-    /// tile-indexed region lookup is not reproduced, as in
-    /// `build_crowd`.
+    /// gate either way (`docs/COLLISION.md` §13.3). Region membership is
+    /// tested on each candidate's tile, including the coastal refinement;
+    /// a cell's primary region cannot stand in for all its occupants.
     fn find_push_candidates(&self, u: usize, at: Pos, range: i32) -> Vec<usize> {
         let circle = crate::ai_place::circle();
         let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
         let live = self.units.iter().filter(|x| x.alive()).count();
-        let region = self.world.region_of(at.cell());
+        let region = self.world.tregion_alt(at.tile());
         let mut out = Vec::new();
         if circle.radius[ring] <= live {
             let c0 = at.cell();
             for i in 0..circle.radius[ring] {
                 let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
-                if !self.world.contains(c) || self.world.region_of(c) != region {
+                if !self.world.contains(c) {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
                 let mut next = self.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
-                    if o != u && self.units[o].alive() {
+                    if o != u
+                        && self.units[o].alive()
+                        && self.world.tregion_alt(self.units[o].pos.tile()) == region
+                    {
                         out.push(o);
                     }
                 }
@@ -649,7 +652,7 @@ impl Sim {
                 if o == u
                     || !self.units[o].alive()
                     || !self.units[o].on_map
-                    || self.world.region_of(p.cell()) != region
+                    || self.world.tregion_alt(p.tile()) != region
                     || vector_dist(p.x - at.x, p.y - at.y) > range
                 {
                     continue;
@@ -3984,6 +3987,58 @@ mod tests {
         let x = make(&mut sim, 7, a, wagon);
         let y = make(&mut sim, 6, b, other);
         (sim, x, y)
+    }
+
+    /// Both search strategies must include a neighbour across a cell-region
+    /// boundary when its coastal tile shares the query's region, and exclude
+    /// a dry tile in the query's own cell. Item 1427, COLLISION §13.3.
+    #[test]
+    fn push_candidates_use_each_coastal_tile_in_both_search_strategies() {
+        for chains in [false, true] {
+            let mut world = World::new(12, 12);
+            let land = world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(11, 11));
+            let other_land = world.add_region(Terrain::Land);
+            let sea = world.add_region(Terrain::Sea);
+            world.set_region(Cell::new(4, 3), other_land);
+            for c in [Cell::new(3, 3), Cell::new(4, 3)] {
+                let mut d = world.cell_data(c);
+                d.flags |= crate::world::cell::HALFLAND;
+                d.region2 = Some(sea);
+                world.set_cell_data(c, d);
+            }
+            for t in [Pos::new(15, 13), Pos::new(16, 13)] {
+                world.set_tile_field(t, tile::SURFACE, tile::SURFACE_OCEAN);
+            }
+            let at = Pos::new(3048, 2592);
+            let wet = Pos::new(3096, 2592);
+            let dry = Pos::new(3048, 2450);
+            assert_eq!(world.region_of(at.cell()), Some(land));
+            assert_eq!(world.region_of(wet.cell()), Some(other_land));
+            let mut sim = Sim::new(Tuning::RON, world, 2);
+            let u = sim.add_unit(Unit::new(0, 0, at, 40));
+            let same = sim.add_unit(Unit::new(0, 1, wet, 40));
+            let different = sim.add_unit(Unit::new(0, 2, dry, 40));
+            let threshold = crate::ai_place::circle().radius[1];
+            if chains {
+                for o in 3..=threshold {
+                    sim.add_unit(Unit::new(0, o as i16, Pos::new(7000, 7000), 40));
+                }
+            }
+            assert_eq!(
+                threshold <= sim.units.len(),
+                chains,
+                "exercise both search branches"
+            );
+            let found = sim.find_push_candidates(u, at, 144);
+            assert!(
+                found.contains(&same),
+                "same coastal region across cells: {chains}"
+            );
+            assert!(
+                !found.contains(&different),
+                "different tile region in same cell: {chains}"
+            );
+        }
     }
 
     /// §13.3's **land half** (item 696): a supply wagon takes

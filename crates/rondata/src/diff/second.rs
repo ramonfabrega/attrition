@@ -182,7 +182,7 @@ pub(crate) fn walk_second_probed(
 /// moved it to 15883, inside it; item 1370 moved it to 15985, inside it;
 /// item 1377 moved it to 16009, inside it; item 1383 moved it to 16160,
 /// and the walk to run572; item 1418 moved it to 16482, and the walk to
-/// run579.
+/// run579; item 1427 to 16762, and the walk to run583.
 /// `None`
 /// when the captures are
 /// not on this machine.
@@ -195,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run579-islands-toughest-16476.txt",
+        "gamelog-run583-islands-toughest-16754.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2528,10 +2528,88 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16476, 223)],
+            [
+                (16476, 223),
+                (16571, 3),
+                (16601, 1),
+                (16609, 1),
+                (16623, 1),
+                (16625, 9),
+                (16635, 15),
+                (16637, 7),
+                (16640, 1),
+                (16643, 1),
+                (16649, 1),
+                (16674, 1),
+                (16679, 2),
+                (16681, 1),
+                (16685, 1),
+                (16688, 2),
+                (16689, 1),
+                (16694, 6),
+                (16695, 5),
+                (16696, 2),
+                (16697, 1),
+                (16706, 1),
+                (16713, 2)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 316, "every key parted on run579");
+        // Item 1427: the per-candidate coastal region restores both howitzers'
+        // movements, including 1/189's block-16700 y 24330 -> 24328.
+        for o in [188, 189] {
+            for field in ["pos", "g.last_speed[0]", "g.des_angle[0]"] {
+                assert!(
+                    !w.firsts.contains_key(&(1, o, field.into())),
+                    "howitzer 1/{o} {field} still differs before the new word"
+                );
+            }
+        }
+        pin_eq!(w.firsts.len(), 288, "every key parted on run579");
+    }
+
+    /// **run583 — East Indies frame 16760, widened before naming a mechanism**
+    /// (item 1427). Every dumped record, both sides, including the full cast.
+    #[test]
+    fn run583_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run583",
+            "gamelog-run583-islands-toughest-16754.txt",
+            WIDENING_SECOND_EAST_INDIES_16760,
+            &[16_761, SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run583 whole: blocks 16754..17011");
+        pin!(
+            w.missing.is_empty(),
+            "run583 carries every key: {:?}",
+            w.missing
+        );
+        let at_word = w
+            .standing
+            .get(&16_761)
+            .expect("the original word's whole block");
+        for field in ["pos", "collide", "g.cur_anim[0]", "g.last_speed[0]"] {
+            assert!(
+                !at_word.contains_key(&(1, 189, field.into())),
+                "1/189 {field} still differs on the restored collision frame"
+            );
+        }
+        // Investigation baseline: deliberately fails until the capture is measured.
+        pin_eq!(w.firsts.len(), 0, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

@@ -2858,7 +2858,8 @@ Listing `5fa8b0`–`5faf24`. It returns 1, "handled", except where noted.
   third argument is set, unless the pusher's action is index 10. It must
   not be the unit the pusher already collided with this frame
   (`collide_o`/`collide_who`/`collide_frame`), and its own `push_size`
-  must be non-zero.
+  must be non-zero. The region gate is each candidate's `get_tregion`,
+  not its cell's primary region; §21 records the correction.
 - **The overlap.** Take `d` as the least distance over every pair of
   circle centres. The distance is `5fabf3`'s: the longer leg plus the
   shorter's square over twice the longer, unsigned, and past 60,000 on
@@ -3714,3 +3715,53 @@ player's units with a higher object number, and every other owner's.
   `collide::tests::the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block`,
   which fails with `later` ignored. Removing the call in
   `start_of_game` fails all four third-map tests.
+
+## 21. Push candidates use their coastal tile's region (2026-10-01, item 1427)
+
+### 21.1 The cause, before the random stream parts
+
+The East Indies Toughest word 16760 has 97 draws against 39. The original
+spends `Unit::move_step+0x823` and `Unit::resolve_unit_collision+0xb52`
+before the animal updates; the replay omits those two draws. Animal rolls
+then use different seeds. Naming animals from the first differing label
+would have named an effect.
+
+Run583's whole-record comparison points back to Howitzers `1/188` and
+`1/189`. Run579 already holds the first position difference: block 16700,
+`1/189` at (40374,24330) against (40374,24328), `g.last_speed` 30 against
+28. Its `collide_frame` stays 16698 where the original stamps 16699.
+The replay's in-decision candidate list omits the other howitzer. Correcting
+the region gate removes both howitzers' movement differences through
+run579's end, leaving their pre-existing `form` rows.
+
+### 21.2 The rule and its evidence
+
+`Objects::find_units@0065a620`, both the cell-chain and array scans, calls
+`WorldData::get_tregion@006b52e0` on the query tile and on each candidate's
+own tile when flag `0x200` is set. That function uses `region2` on ocean
+tiles of a coastal cell, otherwise the cell's primary region. The cell
+chain chooses which objects to inspect; it cannot reject a whole cell by
+its primary region. `Sim::find_push_candidates` now uses `tregion_alt`
+per candidate in both search strategies. §13.3's other gates are unchanged.
+
+Confidence is high for this captured contact: the pre-word position and
+speed now agree, and the collision's two draws return on 16760. The
+measured word moves **16760 → 16762**, two frames. The newly witnessed
+floor also incorporates the earlier item's already-measured 16482 → 16760;
+that earlier gain is not attributed to this correction.
+
+### 21.3 Coverage and limits
+
+- run579's differing keys **316 → 288**, including `1/189`'s block-16700
+  position and speed above. The full run583 widening and its value rows
+  are recorded in the item journal when the capture finishes.
+- `push_candidates_use_each_coastal_tile_in_both_search_strategies`
+  exercises both candidate collectors: include a coastal tile in another
+  primary region, exclude a dry tile in the query's own cell.
+- The new word **16762** is five draws against six, first difference at
+  index 1: the original spends `Unit::do_move+0x11cf`. At block 16761,
+  `1/189`'s path length is still 9 against 16 and `start_dist` 1056 against
+  0. The correction does not establish the cause of that replanning
+  difference; it remains a separate measured successor.
+- Reading-only generalization beyond the captured contact and synthetic
+  coastal cases awaits independent review. No blind review ran here.
