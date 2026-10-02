@@ -5071,6 +5071,32 @@ fn a_general_s_decoys_copy_the_armed_land_captains_near_it() {
     assert_eq!(sim.units[d].mana_burn, age + 1, "a decoy ages a frame");
 }
 
+/// The President's decoy reach includes its extra tile, while the
+/// ordinary General retains nine tiles. The boundary is strict (§60).
+#[test]
+fn a_patriot_s_decoy_cast_uses_its_own_radius() {
+    for (caster_type, offset, expected) in [
+        (0x36, 1727, 1),
+        (0x36, 1728, 0),
+        (0x163, 1888, 1),
+        (0x163, 1919, 1),
+        (0x163, 1920, 0),
+    ] {
+        let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+        sim.unit_types[general].type_index = caster_type;
+        let g = sim.init_unit(0, general, tile_pos(30, 30));
+        let p = sim.units[g].pos;
+        sim.init_unit(0, foot, Pos::new(p.x + offset, p.y));
+        let before = sim.units.len();
+        sim.cast_create_decoy(g);
+        assert_eq!(
+            sim.units.len() - before,
+            expected,
+            "caster {caster_type}, distance {offset}"
+        );
+    }
+}
+
 /// **A decoy closes when its age reaches `(general_upgrade + 2) ×
 /// DECOY_TIME / 2`, 2,500 frames, silently** (item 1351, `docs/GOLDEN.md`
 /// §48; run535's `1/104`..`1/120` at `mana_burn` 2499 on block 14136 and

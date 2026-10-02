@@ -637,13 +637,9 @@ impl Sim {
             .iter()
             .filter(|x| x.alive() && x.owner == who && x.captain && x.decoy)
             .count() as i32;
-        let radius = crate::supply::general_radius(
-            &self.tuning,
-            &crate::supply::General {
-                upgrades: GENERAL_UPGRADE,
-                ..Default::default()
-            },
-        ) * 0xc0;
+        // The caster may be a patriot: its own hero radius includes the
+        // subtype's bonus (GOLDEN §60, run588's President).
+        let radius = self.hero_radius(g) * 0xc0;
         let centre = self.units[g].pos;
         // `unit_masks & 0x40000` (a computer's unit): the General's army,
         // which every copy joins (`Army::add_unit`, the call at `674712`) before its

@@ -10439,3 +10439,40 @@ guard stands at 7 reads (`GROUND_INEXACT`).
 **What is not established.** The cooldown gate's and the member search's
 effect in the original (no walk reaches them before 686); a Fortress, Bunker,
 Redoubt or observation post shooting; the march's `+0x4b` arm.
+
+## 60. A patriot casts decoys with its own radius (item 1437)
+
+Run588's whole-record widening puts the first missing state at block
+17786: group 66 has 21 members against 22, and unit 154 is original-only.
+The cast's seven figure-init draws are six here. Its caster, 1/98, is
+THEPRESIDENT (TypeIndex 355), not the plain General. Candidate 1/55,
+type 212, stands 1888 units from it; the cast incorrectly hardcodes the
+plain radius, 9 tiles or 1728 units. The existing `hero_radius` includes
+the economic patriot's one-tile bonus, giving 1920 units.
+
+`SpellType::cast_create_decoy@00674370` calls `HeroData::get_radius@00739e50`
+on the caster's hero. Its candidate test is strict distance < radius ×
+192. Reuse that existing helper; do not change the radius arithmetic,
+upgrade count, candidate ordering or creation limit. A payoff restricted
+to frame 17785 copies 1/55 at (33384,41448), exactly run588's missing
+unit 154, and moves the word to 17907 (+122). General-upgrade and special
+hero seams remain as documented; this item has not established them.
+
+Hypothesis killers: the candidate-selection claim fails if 1/55 is
+visited and eligible; the placement claim fails if a point is returned;
+the limit claim fails if the cast ends below its limit. The probe visits
+1/55, refuses its radius alone, and ends at four copied captains against
+a limit of ten. With the patriot radius it creates the fifth at the
+original's coordinates. This is differential evidence for this patriot
+arm; general behavior and broader regression validation are pending.
+
+The unrestricted fix reaches the same 17907 and leaves both other map
+words unchanged. On the identical 64 run588 blocks, whole-record keys
+fall **365 → 246**, projectile keys **199 → 173**. Group 66's list and
+count now agree; unit 154 agrees in every compared field except the
+standing path-recursion stamp, including its type, position and clock.
+The projectile lifetime census becomes 978 simulated against 973 original,
+with 19,460 paired field comparisons. Remaining keys stay pinned.
+A synthetic cast checks ordinary-General strict boundaries at 1728 and
+the President's at 1920, including the booked distance 1888. It passes.
+The successor lies beyond run588; run589 is capturing its whole records.

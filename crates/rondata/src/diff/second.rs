@@ -2731,17 +2731,25 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 365, "run588 record baseline");
+        pin_eq!(w.firsts.len(), 246, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
+        for field in ["group:66.num", "group:66.list"] {
+            pin!(
+                !word.contains_key(&(1, -3, field.into())),
+                "the restored decoy's group {field}"
+            );
+        }
         pin_eq!(
-            word.get(&(1, -3, "group:66.num".into()))
+            word.get(&(1, 154, "path_recursion".into()))
                 .map(String::as_str),
-            Some("ours 21 theirs 22"),
-            "the whole group exposes the missing member"
+            Some("ours 0 theirs 1"),
+            "the restored member is compared"
         );
         pin!(
-            word.contains_key(&(1, 154, "unlinked".into())),
-            "the original alone holds unit 154 at the word"
+            word.keys()
+                .filter(|(who, o, _)| (*who, *o) == (1, 154))
+                .all(|(_, _, field)| field == "path_recursion"),
+            "the restored decoy agrees beyond its standing recursion stamp"
         );
         let Some(a) = widen_second_ammo(
             "gamelog-run588-islands-toughest-17754.txt",
@@ -2761,10 +2769,10 @@ mod tests {
         pin_eq!(a.frames, 64, "run588 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (973, 989, 18640),
+            (973, 978, 19460),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 199, "run588 projectile baseline");
+        pin_eq!(a.firsts.len(), 173, "run588 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (71, 10002085738206419128),
