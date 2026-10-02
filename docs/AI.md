@@ -13777,7 +13777,9 @@ East Indies frame **986** draws **387 versus 6**, index 0 our
 woodcutter's camp (`orig_type 418`), has `city -1 / 0`, `damage 1 / 0`,
 and gather-list length **0 / 48**. Building 1/2009's `city_down` is
 **-1 / 2010**; several city members have `regen_roads 1 / 0`.
-The city's missing member is the next hypothesis, not yet the cause.
+~~The city's missing member is the next hypothesis, not yet the cause.~~
+**Answered by 1443**: the camp joins correctly, then the script destroys it
+on a capacity of four instead of five (ECONOMY, "French timber capacity").
 Kill it if a decision-local correction of membership fails to remove the
 extra draws, or if walking back shows another writer causes the flags.
 The timber slot count **6 / 7** already differs at the opening, so its
@@ -13798,3 +13800,20 @@ captures disable that category and use UNITS=9. Thirteen blocks instead of
 about 104–106 seconds. They establish nothing beyond their windows.
 No reading-only gameplay formula was introduced; no independent audit is
 claimed. Remaining causes belong to subsequent scored items.
+
+
+## 111. French timber capacity preserves the camp (2026-10-02, item 1443)
+
+East Indies moves **986 → 7356**; Great Lakes remains **2576** and becomes
+the lower map. `docs/ECONOMY.md`, "French timber capacity", records the
+formula, script-local decision probe, hypothesis kill and full value diff.
+The missing capacity slot makes the AI destroy its correctly joined camp
+on 976, triggering the road work on 986. Adding the term preserves the camp;
+all its compared fields agree in run602 and the two opening capacities agree.
+
+run603 widens the new East Indies word, with the original's group pool and
+both empty projectile lists checked. Its 120 differing keys include extra
+unit 1/45 on block 7357, active/control 47/46 and scholars 13/12. No mechanism
+is named for it. Great Lakes' current run601 has 81 differing keys; its
+frame-2576 make decision is the next item, with the capacity discrepancy
+removed from the standing evidence. Closed-pair floors remain unchanged.

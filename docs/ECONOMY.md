@@ -2623,3 +2623,61 @@ run346 and 4555's on run347, and by run352's and run355's word blocks.
 **Listing-backed**: the tail, its gate and the region it flags.
 **Export-backed only**: the daemon's cycle and the two re-entries
 (unit-tested, and never exercised by a capture).
+
+## French timber capacity (2026-10-02, item 1443)
+
+**Established by the French pair below.**
+`BuildTypeData::calc_gather@00639e40`'s timber count adds the tuning value
+`FRENCH_WOODIES` (shipped **1**) after rounding the surveyed cell count and
+before the access cap, only when the count is nonzero and the owner's
+`has_tribe_bonus(10)` holds. `max_gatherers@0063c430` uses this same count
+for a prospective site and a placed building's own MiningList. The cached
+`nation.french` represents that predicate, including disabled nation powers
+and the city's existence (NATIONS). Empty or already-taken ground gains
+nothing; flat gatherers return before this term. The access limit still wins.
+The other nation and wonder capacity terms remain unimplemented.
+
+The third pair exposes two effects to test. Opening timber capacities are
+6/7 on East Indies and 5/6 on Great Lakes. Later, East Indies camp 1/2010
+has city -1/0, damage 1/0 and gather length 0/48 by run602 block 987.
+The AI's shipped `aibestbuildlibrary.bhs`, `place_woodcutter`, destroys a
+new camp below its five-worker threshold. A capacity error could therefore
+remove a correctly joined camp, then flag its city's roads for regeneration.
+This is a hypothesis: inspect the capacity and destruction decisions inside
+the script host, then require the frame-986 draw word and entire camp record
+to improve. If they do not, the membership reading is not established.
+
+The export and shipped constant supply the proposed arithmetic. Unit checks
+cover existing lists, surveys, empty ground, access limits and flat farms;
+original-run comparisons must establish the active French predicate. No
+blind second reading is claimed. The active French arm is diff-backed;
+empty/taken ground, non-French/flat exclusion and access-cap ordering have
+unit and export support, not a dedicated original capture for every branch.
+
+### What the decision and the diff establish
+
+A temporary probe inside the script host (removed before landing) measures
+frame **976**, camp **1/2010**: alive, city handle 1, list length 48, capacity
+**4** followed immediately by `destroy_building`. The city handle is the
+sim's global vector index; the dump's city 0 is owner-local. Thus membership
+lookup was right: destruction removes it. With the formula, capacity is
+**5**, the destroy call disappears and the camp remains alive. No state was
+patched at a frame boundary.
+
+**East Indies 986 → 7356 (+6370)**. run602's full old-word window goes from
+71 differing keys to **55**, none added. The fifteen standing keys removed
+are timber slots/high-water mark, script_step, eight road flags, 1/2009's
+city_down, and the camp's city/damage/gather length; the sixteenth is gaia
+8/0's downstream animation at 989. Every compared field of 1/2010 agrees,
+including block 987 city **0**, damage **0**, and **48** gather tiles.
+Great Lakes stays **2576**, with 83 → **81** keys as its two capacity counters
+agree. Both opening timber counts now agree (7 and 6 respectively).
+
+The successor is widened in run603, blocks **7351–7363**: 45,032 record
+rows, 27,638 leader rows, **120** differing field keys, none unprinted.
+Frame **7356** draws **4 / 2**, our `Guy::init_real+0x52` versus the original's
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. Block **7357** has an extra
+unit **1/45**, leader active/control **47 / 46**, scholars **13 / 12**.
+This is not yet diagnosed. Original and simulated projectile lists are
+empty over all three French windows, and groups are present in every block.
+The lower word is now Great Lakes; item 1444 takes its measured decision.

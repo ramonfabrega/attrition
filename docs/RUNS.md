@@ -13778,3 +13778,24 @@ Archive `rontrace-run602.log`, 12,083,488 bytes,
 SHA-256 `4fcd4dc4cc3edf42b8617c2e0f709dee082b94993626628a96bf6c26829e1505`.
 
 Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1442-codex/run602-validation.json`.
+
+## run603 — French East Indies successor at 7356 (2026-10-02, item 1443)
+
+**Disk gap.** run602 ends its detailed window at 993; run599 ends at
+1242 and has no groups. Long run600 has no whole records on 7356.
+Use run602's complete category recipe and lobby, with fresh output
+`~/ron-data/lab-captures/2026-10-02-run603`, window **[7351,7364)**,
+end **7368**, timeout **1200**, map **18**, French AI at Toughest.
+
+Process, receipt and wait exits **0**. All 7,369 shared trace frames match
+run600 with zero draw differences. Closing marker 7369; the thirteen
+window blocks each contain 512 groups. Seed and both nations verified;
+five settings files restored. Launch-to-exit 118.964 s, total 127.604 s.
+
+Archive `gamelog-run603-islands-french-toughest-7356.txt`, 42,400,540 bytes,
+SHA-256 `91a030ab1c0afb3d4011131c096194790fe8eed4b196bd909875830808276dc2`.
+
+Archive `rontrace-run603.log`, 62,985,824 bytes,
+SHA-256 `75846bfc9fcd6bd4a9176def8670650c80e71cfd964ed4542b9791d72709074f`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1443-codex/run603-validation.json`.

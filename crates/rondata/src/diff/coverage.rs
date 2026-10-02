@@ -202,10 +202,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1326 met it too, on run523's East Indies window. **Item 1379
     // added `Edinburgh`**: run571's window, past 11177, holds a city no
     // earlier window did.
-    // Item 1442: French Paris is another bare display-name line, not a sim field.
+    // Items 1442/1443: Paris, Brest and Nantes are bare display-name lines, not sim fields.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Edinburgh London Napata Newcastle Norwich Paris York flags increment length size",
+        "Brest Edinburgh London Nantes Napata Newcastle Norwich Paris York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -689,6 +689,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
     let r594 = crate::testenv::dump("gamelog-run594-islands-toughest-18060.txt");
+    let r603 = crate::testenv::dump("gamelog-run603-islands-french-toughest-7356.txt");
     let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
     let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
     let r589 = crate::testenv::dump("gamelog-run589-islands-toughest-17890.txt");
@@ -2337,7 +2338,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // Third pair's own word blocks, on each map's own new capture.
     for (path, word) in [
-        (&r602, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        (&r602, 986),
+        (&r603, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
         (&r601, super::testkit::THIRD_PAIR_WORD_GREAT_LAKES),
     ] {
         if let Some(path) = path {
@@ -2601,12 +2603,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Toughest union; the six group-move fields return to this pin.
     // Item 1437: run589 compares those group fields again, but carries
     // no paired cast on the word window: cast_paid/cast_spell return.
+    // Item 1443: run603 has paired cast orders; both fields leave the pin.
     // Item 1439: run594 carries a paired cast; both fields leave again.
     // Item 1440: 18089 has no paired cast; both return to the pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt \
+         attempts build_type cruising_alt \
          garrison_search \
          metric non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \

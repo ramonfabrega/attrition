@@ -1860,11 +1860,14 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 
 /// Third pair baseline, item 1442: East Indies 986, 387 vs 6 draws;
 /// index 0 is road-cost versus farm-clock. run602 block 987 widens it.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 986;
+/// Item 1443: French timber capacity preserves the camp and moves 986 to
+/// 7356, 4 vs 2 draws, init_real versus inc_time. run603 block7357 widens it.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 7356;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 pub(crate) const THIRD_PAIR_WORD_GREAT_LAKES: i64 = 2576;
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (981, 993);
+pub(crate) const WIDENING_FRENCH_CAPACITY: (i64, i64) = (981, 993);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (7351, 7363);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
@@ -8268,8 +8271,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run602_s_word_frame_is_widened_whole"),
-        1442,
+        Some("run603_s_word_frame_is_widened_whole"),
+        1443,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

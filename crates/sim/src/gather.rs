@@ -103,9 +103,10 @@
 //!   `docs/AI.md` §60) it is that range. Without them
 //!   [`Sim::mountain_range`] rebuilds one as the connected component of
 //!   mountain cells. The *arithmetic* on top of it is the original's.
-//! - **The nation and wonder layer.** `french_woodies`, `taj_farms`,
+//! - **The remaining nation and wonder layer.** `taj_farms`,
 //!   `kremlin_farms`, `german_miners` and the Iroquois food bonus all add to
-//!   the count and are not modelled.
+//!   the count and are not modelled. French timber capacity is implemented
+//!   in item 1443 (`docs/ECONOMY.md`, "French timber capacity").
 //! - **`TData.mask & 0x8000`**, which `has_gather_access` requires, is
 //!   unnamed here and in `world::tile`. It is set on 1,711 tiles of run9's
 //!   map — enough that the access cap never binds there.
@@ -332,8 +333,12 @@ impl Sim {
         if slots == 0 && walk.taken {
             return -1;
         }
-        // The nation and wonder additions (`french_woodies`, `taj_farms`,
-        // `kremlin_farms`) belong here and are not modelled.
+        // `calc_gather@00639e40`: positive timber capacity takes the
+        // French term before the access cap. Empty/taken ground stays so.
+        if slots > 0 && timber && self.nation[who as usize].french {
+            slots += self.tuning.french_woodies;
+        }
+        // The wonder additions (`taj_farms`, `kremlin_farms`) remain unmodelled.
         let list: &[Pos] = match from {
             Source::List(l) => l,
             Source::Survey => &walk.found,
@@ -1150,6 +1155,71 @@ mod tests {
         let ty = camp(&mut s);
         let b = s.init_build(0, ty, tile_pos(21, 21), false);
         assert_eq!(s.max_gatherers(b), 0);
+    }
+
+    #[test]
+    fn french_timber_capacity_adds_a_worker_to_survey_and_existing_list() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        for c in [Cell::new(5, 5), Cell::new(6, 5), Cell::new(5, 6)] {
+            forest_cell(&mut s, c);
+        }
+        let corner = Pos::new(21, 21);
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 3);
+        s.nation[0].french = true;
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 4);
+        s.tuning.french_woodies = 3;
+        assert_eq!(
+            s.max_gatherers_at(ty, 0, corner),
+            6,
+            "the tuning value is used"
+        );
+        s.tuning.french_woodies = 1;
+        let b = s.init_build(0, ty, tile_pos(21, 21), false);
+        assert_eq!(s.max_gatherers(b), 4);
+        s.nation[0].french = false;
+        assert_eq!(s.max_gatherers(b), 3);
+    }
+
+    #[test]
+    fn french_timber_capacity_needs_trees_and_respects_access() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        s.nation[0].french = true;
+        let corner = Pos::new(21, 21);
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 0, "bare ground");
+        for c in [Cell::new(5, 5), Cell::new(6, 5), Cell::new(5, 6)] {
+            for v in 0..TILES_PER_CELL {
+                for u in 0..TILES_PER_CELL {
+                    s.world.set_tile_bits(
+                        Pos::new(c.x * TILES_PER_CELL + u, c.y * TILES_PER_CELL + v),
+                        tile::SURFACE_FOREST,
+                    );
+                }
+            }
+        }
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 0, "no access");
+        // One accessible tile caps both ordinary and French capacity at two.
+        s.world.set_tile_bits(Pos::new(27, 23), GATHERABLE);
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 2, "bonus precedes cap");
+        let mut farm = bt(Ident::Farm, 4, 4);
+        farm.flags |= flags::FLAT;
+        let farm = s.add_build_type(farm);
+        assert_eq!(s.max_gatherers_at(farm, 0, corner), 1, "no flat-farm bonus");
+    }
+
+    #[test]
+    fn french_timber_capacity_keeps_the_taken_site_sentinel() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        s.nation[0].french = true;
+        for c in [Cell::new(3, 5), Cell::new(7, 5)] {
+            forest_cell(&mut s, c);
+            s.world.set_tile_bits(c.centre_tile(), GATHERED_FROM);
+        }
+        let corner = Pos::new(21, 21);
+        assert_eq!(s.site_gather_count(ty, 0, corner, None), -1);
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 0);
     }
 
     /// Ring `(8 + 3) / 4 = 2` and `vector_dist <= 8` between the anchor tile

@@ -164,18 +164,48 @@ fn third_pair_openings_have_the_original_figures_and_personality() {
 }
 
 /// run602: the third pair's East Indies word, whole records around frame 986.
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run602",
         &[("gamelog-run602-islands-french-toughest-986.txt", 981)],
+        WIDENING_FRENCH_CAPACITY,
+        1,
+        &[987],
+        true,
+    )
+}
+
+/// run603: the successor word after French timber capacity, frame 7356.
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run603",
+        &[("gamelog-run603-islands-french-toughest-7356.txt", 7351)],
         WIDENING_FRENCH_EAST_INDIES,
         1,
         &[THIRD_PAIR_WORD_EAST_INDIES + 1],
         true,
     )
+}
+
+#[test]
+fn run603_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(
+        w.missing.is_empty(),
+        "all record keys are read: {:?}",
+        w.missing
+    );
+    pin_eq!(w.firsts.len(), 120, "initial run603 baseline");
 }
 
 /// run601: the third pair's Great Lakes word, whole records around frame 2576.
@@ -196,7 +226,7 @@ pub(crate) fn french_great_lakes_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run602_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_capacity_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -205,7 +235,17 @@ fn run602_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 71, "initial run602 baseline");
+    pin_eq!(w.firsts.len(), 55, "run602 after French worker capacity");
+    assert!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2010)),
+        "the preserved camp agrees in every compared field"
+    );
+    assert!(
+        w.firsts
+            .keys()
+            .all(|(who, _, field)| *who != 1 || !field.ends_with("gather_slots[1:timber]")),
+        "the opening timber slot deficit is gone"
+    );
 }
 
 #[test]
@@ -220,7 +260,7 @@ fn run601_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 83, "initial run601 baseline");
+    pin_eq!(w.firsts.len(), 81, "run601 after French worker capacity");
 }
 
 /// An empty projectile comparison still checks both sides, while a missing
@@ -235,8 +275,14 @@ fn third_pair_windows_have_groups_and_no_projectiles_on_either_side() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run602-islands-french-toughest-986.txt",
+            "gamelog-run603-islands-french-toughest-7356.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run602-islands-french-toughest-986.txt",
+            WIDENING_FRENCH_CAPACITY,
         ),
         (
             LAKES_START,
