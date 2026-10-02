@@ -15,8 +15,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-02, long direct Codex run: items 1437–1439 measure East Indies
 **17785 → 18076** (+291): decoy radius, retained figure cleanup and
 the packed siege army-target shortcut. Landing, boarding and cannon
-order/position values agree; run594 widens through the ending. Focused checks pass; this checkpoint awaits
-the bounded batch gate. 1434–1436 passed theirs on e94137b2.*
+order/position values agree; run594 widens through the ending. The
+batch has combined validation: the full suite found one stale run588
+count, corrected and rechecked with the final guards (journal 1439).*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.

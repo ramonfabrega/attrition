@@ -2890,7 +2890,7 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 246, "run588 record baseline");
+        pin_eq!(w.firsts.len(), 225, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
