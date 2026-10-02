@@ -13684,9 +13684,9 @@ For other technologies, test `DEMOCRACY_2`'s prerequisites first, then
 `cost * (100 - bonus) / 100`. This follows Science and precedes the
 British taxation term. `Constants::init` loads both bonuses with
 `get_item`; both ship as 20. The bonus rows retain all three prerequisite
-slots. The rule is currently a reading plus a price observation; the
-implementation and differential verdict follow below. Untested arms
-must remain identified as reading-only, pending independent review.
+slots. At booking this was a reading plus a price observation; §109.3
+records the implementation and differential verdict. Arms that the run
+cannot distinguish remain reading-only, pending independent review.
 
 ### 109.3 Measured result and coverage
 
