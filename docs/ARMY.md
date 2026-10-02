@@ -2617,3 +2617,50 @@ the original group's army field plus the differential payoff; the probe
 of this implementation alone is not claimed as an original army dump.
 Other city-scoring and army predicates retain their existing limits and
 review debt. No independent reading was performed.
+
+## 25. Cavalry counts toward target strength (item 1435, 2026-10-01)
+
+**Established by** run585's complete whole-record window and run586's
+validated army packet at tick 17650, then a decision-local probe at
+17646. The booked word was 17653, an extra idle draw from unit 190.
+Army 5's inputs agree with the original, but army 7 has already taken
+its own capital rather than the human capital. Original region indices
+map to sim regions by adding one; original AI city indices likewise
+map past the human city. Those are representation differences, not bugs.
+
+`find_target`'s strength gate (§12, `Army::find_target@006f69b0`) counts
+non-decoy Cataphract-line units as well as hoplites and twice the siege
+count. The implementation omitted the cavalry term despite documenting
+it. Army 7 has three such cavalry and one siege unit, so strength is
+five, not two. `GroupData::count` routes `COUNT_NON_DECOY_TYPE` through
+the non-strict type-lineage query after excluding decoys. The existing
+loaded tech tree supplies that lineage; no install data is added to git.
+
+Including the term only inside army 7's 17646 target decision restores
+its target to human object 2000, point (6240,7776), muster (10,3), matching
+the packet. Vacating its former muster frees army 5's search four ticks
+later. The general correction moves **17653 → 17698 (+45)**. On run585's
+same 257 blocks, differing keys fall **2664 → 587**. At block 17647 group
+75's order count changes from 7 to the original 9, its destination from
+(35091,37372) to (8010,2873), and its orientation agrees. At blocks 17651
+and 17654 unit 190 agrees except its pre-existing recursion stamp:
+block 17651 position (19034,37210), moving animation 7/time 1, one order,
+instead of stationary (19032,37176), idle animation 0/time 28, no order.
+
+The longer replay also reached a local API error in city stabling:
+`stable_in_city` passed unit/building object indices to `can_garrison`,
+which accepts type indices. Resolving both types fixes the bounds panic;
+typeless objects take the existing nearby-move fallback. GROUPS §6.5
+states the behavior. Its regression uses object indices beyond the type
+table and checks both the move and permitted-garrison arms.
+
+**Coverage and limits.** The cavalry target choice and its downstream
+movement are differential evidence; the synthetic strength test checks
+upgrades, decoys and dead members. `run585_s_word_frame_is_widened_whole`
+pins the full cast and the named group/unit fields. The new word 17698
+is eight draws versus seven, index 5 `Object::take_damage+0xe1` versus
+`Farms::inc_time+0x1ae`; this capture covers it. The separate supply-wagon
+availability gate remains unimplemented (§20.4), and no new independent
+blind audit is claimed. The packet validates ranges, anchors and receipt,
+not thread quiescence or atomicity. Evidence and temporary probes remain
+outside git under `~/ron-data/lab-experiments/2026-10-01-item-1435-codex/`.

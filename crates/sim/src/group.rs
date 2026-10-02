@@ -3413,7 +3413,11 @@ impl Sim {
     fn stable_in_city(&mut self, u: usize, c: usize, angle: Angle) {
         let b = self.cities[c].building;
         let p = self.cities[c].pos;
-        if self.can_garrison(u, b) {
+        if self.units[u]
+            .ty
+            .zip(self.buildings[b].ty)
+            .is_some_and(|(ut, bt)| self.can_garrison(ut, bt))
+        {
             self.add_garrison_order(u, b, false, QueuePos::New, false);
             return;
         }
@@ -5849,6 +5853,16 @@ mod tests {
             trade_val: 0,
             traded_with: [0; 8],
         });
+        // Object indices deliberately exceed the type table: stabling
+        // must query the types, not index that table by an object id.
+        for _ in 0..8 {
+            spawn(&mut s, 0, foot, Pos::new(0x800, 0x800));
+        }
+        let bt = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Village,
+            ..crate::build::BuildType::default()
+        });
+        s.buildings[bldg].ty = Some(bt);
         let slot = s.init_army(1, Some(c));
         let f = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
         let m = spawn(&mut s, 1, siege, Pos::new(0x1100, 0x1000));
@@ -5892,6 +5906,13 @@ mod tests {
             !matches!(s.order_type(m), index::ATTACK_TO | index::GROUP_ATTACK_TO),
             "the siege is sent into the city instead, not at it: {}",
             s.order_type(m)
+        );
+        s.unit_types[siege].garrison.fortify = true;
+        s.stable_in_city(m, c, Angle(0));
+        assert_eq!(
+            s.order_type(m),
+            index::GARRISON,
+            "the same objects take a garrison order when their types permit it"
         );
     }
 

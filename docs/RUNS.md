@@ -13296,3 +13296,40 @@ in the capture directory. Receipts and hashes are retained in
 including 17507 and successor 17653. The compared-field window and raw
 coverage driver follow that successor. COLLISION §22 and the item journal
 record the retained collision-slot correction and its validation.
+
+## run586 — East Indies army packet at 17650 (2026-10-01, item 1435)
+
+**What the disk could not answer.** run585 locates group 75's decision
+at 17646 and army 5's at 17650 but prints no army target/muster/status.
+The packet compares those inputs before interpreting unit 190's idle.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run586 \
+    --map 18 --end-frame 17657 --timeout 1200 --log-window 17648 17653 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=17650 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, wait exit 0, map/lifecycle verified, seed 12345,
+closing frame and trace length 17658; five settings files restored.
+Launch 88.880 s, total 98.208 s. Separate `rngcmp.py` against run346:
+**17,658 shared frames, zero differences**. Source/backups remain under
+`~/ron-data/lab-captures/2026-10-01-run586/map-18/`.
+
+`frame_snapshot.py` validates frame 17650/trace frame 17649, 184 ranges,
+873,664,512 payload bytes, anchors, unchanged logger return and completion
+receipt. Packet size 874,003,816 bytes, SHA-256
+`eaf1f7658908174a2c2b39f1aca92566e44aa2ecad1459684f71344ef639c874`.
+Copy 220 ms, receipt 224 ms; this makes no atomicity/quiescence claim.
+Army root and slot layouts were decoded from the bound PDB type stream.
+
+Archive `gamelog-run586-islands-toughest-17648.txt`: 14,691,221 bytes,
+SHA-256 `2ad0f7bdaf64214e4a7b69c79309e7941d8e5d9cfa01933e7c6e62e8c195115e`;
+`rontrace-run586.log`: 170,735,872 bytes,
+SHA-256 `cf65779d5cb380e53e0a2bb10956603b7e42d2940b13643475073071bbb722d5`.
+Copies match source hashes. Receipt, validation, decoder, decoded armies,
+trace comparison and archive hashes live in
+`~/ron-data/lab-experiments/2026-10-01-item-1435-codex/`. ARMY §25 names
+the differing target and its measured correction.

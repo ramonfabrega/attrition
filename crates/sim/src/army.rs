@@ -34,7 +34,7 @@ use crate::{Player, Sim};
 /// | --- | --- | --- |
 /// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `popwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
-/// | `type_avail(SUPPLYWAGON)`, `is(CATAPHRACT)` | two of §12's strength-gate terms | a wagon-less army is not weak for it; cataphracts count 0 |
+/// | `type_avail(SUPPLYWAGON)` | §12's wagon availability gate | a wagon-less army is not weak for it |
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals, which also admits the government patriots |
 /// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
@@ -549,6 +549,23 @@ impl Sim {
 
     fn army_count_generals(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, Sim::is_general)
+    }
+
+    /// `COUNT_NON_DECOY_TYPE, CATAPHRACT`: the complete lineage (§25),
+    /// including upgrades and unique grafts; dead units and decoys do not count.
+    fn army_count_cataphracts(&self, who: Player, slot: usize) -> i32 {
+        self.army_count(who, slot, |s, u| {
+            !s.units[u].decoy
+                && s.units[u]
+                    .ty
+                    .and_then(|t| s.unit_types[t].tree)
+                    .is_some_and(|t| {
+                        s.tech_tree
+                            .roles
+                            .cataphract
+                            .is_some_and(|c| s.tech_tree.is(t, c, false))
+                    })
+        })
     }
 
     fn army_count_hoplites(&self, who: Player, slot: usize) -> i32 {
@@ -1801,7 +1818,8 @@ impl Sim {
         };
         let siege = self.army_count_siege(who, slot);
         let supply = self.army_count_supply(who, slot);
-        let weak_army = !navy && self.army_count_hoplites(who, slot) + 2 * siege < 4;
+        let cavalry = self.army_count_cataphracts(who, slot);
+        let weak_army = !navy && self.army_count_hoplites(who, slot) + 2 * siege + cavalry < 4;
         let capital = self
             .cities_of(who)
             .into_iter()
@@ -3168,6 +3186,60 @@ mod tests {
             sim.armies[1].list[1].ticks_on(250),
             "region six gets slot one's phase, independent of city order"
         );
+    }
+
+    #[test]
+    fn target_strength_counts_living_nondecoy_cavalry_lineage() {
+        use crate::tech::{TypeDef, UnitTraits};
+        for (last_decoy, last_dead, expected) in
+            [(false, false, 4), (true, false, 3), (false, true, 3)]
+        {
+            let (mut sim, c) = sim_with_city();
+            sim.lobby.difficulty = 5;
+            sim.ai[1].pers.early_army = 1;
+            sim.world
+                .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+            sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
+            let root = sim
+                .tech_tree
+                .add(TypeDef::unit("Cataphract", UnitTraits::default()));
+            let upgrade = sim
+                .tech_tree
+                .add(TypeDef::unit("Knight", UnitTraits::default()).from(root));
+            sim.tech_tree.roles.cataphract = Some(root);
+            let t = soldier_type(&mut sim);
+            sim.unit_types[t].tree = Some(upgrade);
+            let slot = sim.init_army(1, Some(c));
+            for i in 0..4 {
+                let u = put(&mut sim, 1, t, Pos::new(0x3000 + i * 48, 0x3000));
+                sim.army_add_unit(1, slot, u);
+                if i == 3 {
+                    sim.units[u].decoy = last_decoy;
+                    if last_dead {
+                        sim.units[u].health = 0;
+                    }
+                }
+            }
+            assert_eq!(sim.army_count_cataphracts(1, slot), expected);
+            sim.cities[c].no_muster = true;
+            let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
+            let mut foe = sim.cities[c].clone();
+            foe.owner = 0;
+            foe.founder = 0;
+            foe.no_muster = false;
+            foe.building = fb;
+            foe.pos = sim.buildings[fb].pos;
+            let fc = sim.cities.len();
+            sim.cities.push(foe);
+            sim.buildings[fb].city = Some(fc);
+            sim.declare_war(1, 0);
+            sim.find_target(1, slot);
+            assert_eq!(
+                sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+                expected == 4,
+                "only four live real cavalry admit an enemy city"
+            );
+        }
     }
 
     // ---- the order-issuing half (§8, §9, §11, §14; docs/GROUPS.md) ----

@@ -4875,3 +4875,11 @@ run404's twenty. **Listing-backed**: `72d454`–`72d50f`, `5f82df`–`5f8390`.
 and `the_scatter_truncates_and_keeps_a_negative_remainder`; the pack with
 `air.rs`'s `a_walking_modern_infantry_packs_on_its_own_phase`. The
 mutations are item 1113's journal.
+
+## 35. Stabling queries type indices (item 1435, 2026-10-01)
+
+*Implementation correction, item 1435*: the stabling query resolves both
+objects' type indices before calling `can_garrison`. Object indices are
+not type indices; run346's longer replay exposed that bounds error.
+Typeless objects take the nearby-move fallback. The hurrying-army test
+uses distinct object/type indices and exercises both outcomes (ARMY §25).

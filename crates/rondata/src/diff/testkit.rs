@@ -1835,7 +1835,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// 17653 (14 draws against 13, index 5 inc_time against set_anim+0x104b).
 /// run585 widens both words; transport 111's recovery and its passengers
 /// agree at the old word. COLLISION §22.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_653;
+/// Item 1435: including the cavalry lineage in target strength moves
+/// 17653 to 17698 (8 draws vs 7, index 5 take_damage vs Farms::inc_time).
+/// run585 covers both; army 7's target and army 5's orders agree. ARMY §25.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_698;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's

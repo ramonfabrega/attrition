@@ -2572,7 +2572,15 @@ mod tests {
             "run585",
             "gamelog-run585-islands-toughest-17501.txt",
             WIDENING_SECOND_EAST_INDIES_17507,
-            &[17_501, 17_507, 17_508, SECOND_WORD_EAST_INDIES + 1],
+            &[
+                17_501,
+                17_507,
+                17_508,
+                17_647,
+                17_651,
+                17_654,
+                SECOND_WORD_EAST_INDIES + 1,
+            ],
             true,
             true,
         ) else {
@@ -2600,7 +2608,25 @@ mod tests {
                 );
             }
         }
-        pin_eq!(w.firsts.len(), 2664, "every key parted on run585");
+        for block in [17_651, 17_654] {
+            let rows = w
+                .standing
+                .get(&block)
+                .expect("the army decision's whole block");
+            pin!(
+                rows.keys()
+                    .filter(|(who, o, _)| (*who, *o) == (1, 190))
+                    .all(|(_, _, field)| field == "path_recursion"),
+                "block {block}: unit 190 differs beyond its standing recursion stamp"
+            );
+        }
+        for field in ["ox", "oy", "order_num", "o_angle"] {
+            pin!(
+                !w.firsts.contains_key(&(1, -3, format!("group:75.{field}"))),
+                "army 7's group {field} parts in the window"
+            );
+        }
+        pin_eq!(w.firsts.len(), 587, "every key parted on run585");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**

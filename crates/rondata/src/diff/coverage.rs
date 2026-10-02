@@ -1371,7 +1371,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     if let Some(p) = &r585 {
-        let n = drive_capture(p, 17_652, 17_657, &mut paths);
+        let n = drive_capture(p, 17_697, 17_702, &mut paths);
         assert_eq!(n, 6, "run585 carries the current East Indies word");
         frames += n;
     }
@@ -2453,10 +2453,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `down_who` no site compares. `damage_o`/`damage_who` are compared
     // only where both sides hold a live wound window, and no unit is
     // wounded on these blocks (Great Lakes' war window compared them).
-    (
-        "UnitDump",
-        "damage_o damage_who down down_who flags infiltrated uid up up_who",
-    ),
+    ("UnitDump", "down down_who flags infiltrated uid up up_who"),
     // `Guy`: `ox`/`whom`, the figure's aim, are compared since item 1061;
     // `last_pos` is run86's widening's (item 271); `kind`, `guy_num` and
     // `guy_flags` no site compares. **The turret's four** — `node_flags`,
@@ -2567,10 +2564,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // six fields are compared again and leave the pin.
     // Item 1434: run585's new word compares the attack-order fields;
     // no cast stands on the union, so cast_paid/cast_spell return.
+    // Item 1435: the 17698 window compares casts and damage attribution.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt \
+         attempts build_type cruising_alt \
          garrison_search \
          metric non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
