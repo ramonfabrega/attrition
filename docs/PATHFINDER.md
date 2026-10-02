@@ -2964,7 +2964,7 @@ out, it fails, and so do both run240 tests (item 899's journal).
 ## 30. Large units recover on their own stride (item 1431, 2026-10-01)
 
 East Indies run583 widens the frame-16762 word, every record and unit.
-Before the word, block 16761's Howitzer 1/189 had nine path entries
+Before the word, block 16761's Transport Galleon 1/189 had nine path entries
 against sixteen and `start_dist` 1056 against zero. Its recovery suspended
 here while the original completed. The next block's x was 38904 against
 38934. The collision itself agreed after item 1427.
@@ -2972,7 +2972,7 @@ here while the original completed. The next block's x was 38904 against
 The implementation still fixed the unit-grid stride at one. The existing
 §4 specification already states the missing rule: `astar_path@00683770`
 derives `max(1, (collision + 1) / 2)` for the 48-unit grid, and one for
-the other grids. This Howitzer's collision radius is three, so it searches
+the other grids. This Transport Galleon's collision radius is three, so it searches
 in 96-unit steps. An in-decision probe on frame 16760 measured the old
 search suspending after 503 probes with limit 500; changing the stride
 lets it finish. Raising the budget is not the correction.
@@ -2998,6 +2998,56 @@ to the new word's window. Other open-map words are unchanged.
 
 The next word is still inside run583. Multiple army members' stance
 first differs on block 16879; its cause is not established by this item.
-The captured Howitzer path backs the reached large-unit behavior. Other
+The captured Transport Galleon path backs the reached large-unit behavior. Other
 collision radii and the unusual memo-key generalization retain reading-only
 review debt; no independent reading was performed in this single-agent run.
+
+
+## 31. AI transport types clear the terrain preference (item 1433, 2026-10-01)
+
+run583 places Transport Galleon 1/172's first disagreement at block
+16933: path length 26 against 33, start_dist 2064 against zero. The next
+block has collide 2 against 1 and position (12744,24744) against
+(12744,24714). On 16940 the original's passenger 1/91 has disembarked at
+(12792,24264); ours remains inside 172 at its old (29281,38031).
+The random word parts at 16940, four draws against five. These whole-record
+rows, not the first idle label, identify the recovery as the upstream cause.
+
+A probe inside the 16932 decision confirms collision radius three and
+stride two after item 1431. The search still suspends at 506 valid probes
+against limit 500. Its north step is valid, but `avoid_land=1` prices an
+embark later in the original's detour at 2000 before the unit-grid shift.
+The existing §4.1 exception was still a seam: for a same-region search,
+a type with `unit_flags & 0x10` and a unit with `unit_masks & 0x40000`
+sets both avoidance modes to zero. `astar_path@00683770` tests both bits
+before choosing the ordinary water/land modes. Here the latter bit means
+AI-controlled; it is not a terrain or collision-size flag.
+
+The implementation now checks the transport type flag and `ai_driven`
+inside the same-region branch, for every grid. Human transports, ordinary
+AI units, and the separate cross-region fleeing rule retain their own
+modes. The synthetic matrix covers both predicates independently, land
+and water, and all three grids. The simulator's existing `ai_driven`
+helper does not model AI takeover of a human slot; that remains review
+and implementation debt, rather than a claim of complete flag fidelity.
+
+The measured word advances **16940 → 17507** (+567); the other open-map
+words are unchanged. run583 differing field keys drop **699 → 286**.
+Every compared field for passenger 91 and transport 172 now agrees,
+except the transport's standing form field. The named widening asserts
+that whole-record result: the 33-entry path, zero start_dist, correct
+movement and disembarkation are included. The new random word lies past
+run583's last block, so the floor stays 16940 and item 1434 owes run585
+before any mechanism is booked on 17507.
+
+**Identity correction.** The original GUY records for 172, 188 and 189
+name type 321, TRANSPORTGALLEON in the PDB enum. Internal `Unit.ty=271`
+is an index into this crate's compact type table, not original type 271
+(HOWITZER). Earlier item 1427/1431 write-ups used the latter name in
+error. COLLISION §21 and §30 above are corrected; the historical journals
+remain intact and this is their correction record. No simulation identity
+or comparison changed as part of that terminology correction.
+
+The reached path and passenger state are diff-backed. Generalization of
+the exception outside these captures retains independent-reading debt.
+No original body was transcribed and no blind review was simulated.

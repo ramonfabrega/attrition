@@ -1827,6 +1827,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1432: numeric region order restores group 75's army 6 -> 7,
 /// stance 0 -> 1 on block 16879, and advances 16878 -> 16940. Four draws
 /// against five, index 0 inc_time against Unit::do_idle; run583 widens it.
+/// Item 1433 measures 17507 (eight draws against seven, index 1 do_idle
+/// against inc_time). Keep this covered floor until item 1434/run585
+/// widens that word; run583 ends at 17010. Transport 172's path and
+/// passenger 91's disembarkation now agree throughout run583.
 pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 16_940;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):

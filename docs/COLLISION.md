@@ -3726,12 +3726,12 @@ before the animal updates; the replay omits those two draws. Animal rolls
 then use different seeds. Naming animals from the first differing label
 would have named an effect.
 
-Run583's whole-record comparison points back to Howitzers `1/188` and
+Run583's whole-record comparison points back to Transport Galleons `1/188` and
 `1/189`. Run579 already holds the first position difference: block 16700,
 `1/189` at (40374,24330) against (40374,24328), `g.last_speed` 30 against
 28. Its `collide_frame` stays 16698 where the original stamps 16699.
-The replay's in-decision candidate list omits the other howitzer. Correcting
-the region gate removes both howitzers' movement differences through
+The replay's in-decision candidate list omits the other transport galleon. Correcting
+the region gate removes both transport galleons' movement differences through
 run579's end, leaving their pre-existing `form` rows.
 
 ### 21.2 The rule and its evidence

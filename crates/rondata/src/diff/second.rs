@@ -2547,13 +2547,13 @@ mod tests {
             ],
             "the blocks keys first part on, to the word's"
         );
-        // Item 1427: the per-candidate coastal region restores both howitzers'
+        // Item 1427: the per-candidate coastal region restores both transport galleons'
         // movements, including 1/189's block-16700 y 24330 -> 24328.
         for o in [188, 189] {
             for field in ["pos", "g.last_speed[0]", "g.des_angle[0]"] {
                 assert!(
                     !w.firsts.contains_key(&(1, o, field.into())),
-                    "howitzer 1/{o} {field} still differs before the new word"
+                    "transport galleon 1/{o} {field} still differs before the new word"
                 );
             }
         }
@@ -2607,7 +2607,7 @@ mod tests {
                 "1/189 {field} still differs on the restored collision frame"
             );
         }
-        // Item 1431: the large-unit stride restores the entire howitzer path.
+        // Item 1431: the large-unit stride restores the entire transport galleon path.
         pin!(
             w.firsts
                 .keys()
@@ -2628,7 +2628,16 @@ mod tests {
                 "1/{o} stance differs on the army processing frame"
             );
         }
-        pin_eq!(w.firsts.len(), 699, "every key parted on run583");
+        for o in [91, 172] {
+            pin!(
+                w.firsts
+                    .keys()
+                    .filter(|(who, unit, _)| (*who, *unit) == (1, o))
+                    .all(|(_, _, field)| field == "form"),
+                "transport/passenger 1/{o} differs beyond standing form"
+            );
+        }
+        pin_eq!(w.firsts.len(), 286, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

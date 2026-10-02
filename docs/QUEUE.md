@@ -12,11 +12,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, direct Codex batch: 1431 and 1432 move East Indies' word
-**16762 → 16940** (+178). Collision-sized recovery strides gain 116;
-numeric region order for army seeding gains 62. run583 keys 1104 → 699;
-group 75 army 6 against 7 → 7, members' stance 0 against 1 → 1.
-Focused checks passed; full release validation is pending the batch gate.*
+*2026-10-01, direct Codex batch: 1431–1433 move East Indies' measured
+word **16762 → 17507** (+745), with floor 16940 pending run585.
+Recovery stride +116, army region order +62, AI transport terrain mode
++567. run583 keys 1104 → 286; transport 172's path and passenger 91's
+disembarkation agree. Full release validation is pending the batch gate.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -37,9 +37,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1431 and 1432 are checkpointed; 1433 is next, already widened on run583.
-Continue this three-item sequential batch, then run its full release gate.
-Work under AGENTS.md; the Claude commander stays paused.**
+**Opener: 1431–1433 are checkpointed; finish the batch release gate.
+Next is 1434: capture run585 and widen the measured East Indies 17507
+word before naming a mechanism. The Claude commander stays paused.**
 
 ## The queue
 
@@ -49,12 +49,12 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1433. **East Indies' word: frame 16940, four draws against five**,
-    index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, original
-    `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. run583 widens it whole.
-    Transport 1/172's collide first parts on block 16934 (2 against 1);
-    on 16940 it remains here alone and passenger 1/91 remains inside,
-    at (29281,38031) against the original's (12792,24264). Cause unproved.
+1434. **East Indies' measured word: frame 17507, eight draws against
+    seven**, index 1: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
+    original `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run583's detail
+    ends at 17010, so the disk cannot supply this word's value comparison.
+    Capture run585 first, then widen every record and unit. Floor stays
+    16940 until that evidence is present. No mechanism is named (1433).
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

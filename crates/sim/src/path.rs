@@ -842,8 +842,15 @@ impl Sim {
             } else {
                 self.world.tile_mask(start.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
             };
-            // SEAM: the amphibious exception (`unit_flags & 0x10` with
-            // `unit_masks & 0x40000`) never fires.
+            // Computer-controlled transport types can cross either terrain
+            // without the same-region preference (PATHFINDER §31).
+            if self.ai_driven(self.units[u].owner)
+                && self.units[u].ty.is_some_and(|t| {
+                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                })
+            {
+                return (0, 0);
+            }
             if on_water {
                 return (1, 0);
             }
@@ -2264,6 +2271,53 @@ mod tests {
         assert!(sim.find_tpath(u) > 1, "expected a tile route");
         let vetoed: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
         assert_eq!(vetoed, plain, "the veto puts the half-tile back");
+    }
+
+    #[test]
+    fn only_ai_transport_types_drop_same_region_terrain_preferences() {
+        for water in [false, true] {
+            for human in [false, true] {
+                for transport in [false, true] {
+                    let mut sim = flat_sim(4);
+                    sim.nation[0].human = human;
+                    if water {
+                        sim.world
+                            .fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(3, 3));
+                    }
+                    let start = Pos::new(384, 384);
+                    let goal = Pos::new(1152, 384);
+                    if water {
+                        for p in [start, goal] {
+                            sim.world
+                                .set_tile_field(p.tile(), tile::SURFACE, tile::SURFACE_OCEAN);
+                            let mut data = sim.world.cell_data(p.cell());
+                            data.land = 1;
+                            sim.world.set_cell_data(p.cell(), data);
+                        }
+                    }
+                    let u = walker(&mut sim, start);
+                    let ty = sim.add_unit_type(crate::UnitType::default());
+                    sim.units[u].ty = Some(ty);
+                    if transport {
+                        sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::TRANSPORT;
+                    }
+                    let want = if !human && transport {
+                        (0, 0)
+                    } else if water {
+                        (1, 0)
+                    } else {
+                        (0, 1)
+                    };
+                    for step in [STEP_WORLD, STEP_TILE, STEP_UNIT] {
+                        assert_eq!(
+                            sim.avoid_flags(u, start, goal, step),
+                            want,
+                            "water={water} human={human} transport={transport} step={step}"
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /// A large unit searches at its own stride and cannot jump a refused
