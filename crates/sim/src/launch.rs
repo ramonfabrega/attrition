@@ -360,6 +360,68 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // King's Yeomanry: run586 get_position sweep, checked against
+    // run587's actual arrows (COMBAT §87, item 1436).
+    (
+        129,
+        11,
+        6,
+        Bay {
+            right: -3361,
+            fwd: 82393,
+            dz: 169,
+        },
+    ),
+    (
+        129,
+        11,
+        22,
+        Bay {
+            right: -3361,
+            fwd: 82393,
+            dz: 169,
+        },
+    ),
+    (
+        129,
+        12,
+        4,
+        Bay {
+            right: -15899,
+            fwd: 81974,
+            dz: 137,
+        },
+    ),
+    (
+        129,
+        12,
+        22,
+        Bay {
+            right: -3361,
+            fwd: 82393,
+            dz: 169,
+        },
+    ),
+    (
+        129,
+        13,
+        10,
+        Bay {
+            right: 10521,
+            fwd: 70321,
+            dz: 185,
+        },
+    ),
+    (
+        129,
+        13,
+        24,
+        Bay {
+            right: 4876,
+            fwd: 65759,
+            dz: 184,
+        },
+    ),
     // **The Trireme, piece 290** (`docs/COMBAT.md` §50.2, items 542 and
     // 1200). Its `<RELEASEEVENT>`s are `400`, `666` and `1200` ms on node
     // 0, frames 5, 9 and 17, and node 0 walks down the keel as the swing
@@ -1107,6 +1169,28 @@ mod tests {
             bay(33, crate::anim::ATTACK2, 6, 0).is_some(),
             "all three of the piece's events have a row"
         );
+    }
+
+    /// run587's two arrows from 1/135, independent of the packet sweep
+    /// used to fit the bays (COMBAT §87). Both launch at the same facing.
+    #[test]
+    fn run587_s_yeoman_arrows_leave_the_bow_hand() {
+        let pos = Pos::new(6408, 9960);
+        let facing = Angle(-240_975_872);
+        for (time, x, y, z) in [(4, 6364, 9890, 198), (22, 6376, 9885, 230)] {
+            let at = launch_point(pos, facing, 129, crate::anim::ATTACK2, time, 0);
+            assert_eq!((at.x, at.y), (x, y));
+            assert_eq!(
+                61 + release_dz(129, crate::anim::ATTACK2, time, 0).unwrap(),
+                z
+            );
+        }
+        for (anim, time) in [(11, 6), (11, 22), (12, 4), (12, 22), (13, 10), (13, 24)] {
+            assert!(
+                bay(129, anim, time, 0).is_some(),
+                "every measured release event"
+            );
+        }
     }
 
     #[test]

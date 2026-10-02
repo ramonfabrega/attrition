@@ -687,6 +687,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r572 = crate::testenv::dump("gamelog-run572-islands-toughest-16160.txt");
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
+    let r588 = crate::testenv::dump("gamelog-run588-islands-toughest-17754.txt");
     let r585 = crate::testenv::dump("gamelog-run585-islands-toughest-17501.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
@@ -1372,7 +1373,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     if let Some(p) = &r585 {
         let n = drive_capture(p, 17_697, 17_702, &mut paths);
-        assert_eq!(n, 6, "run585 carries the current East Indies word");
+        assert_eq!(n, 6, "run585 carries the previous East Indies word");
+        frames += n;
+    }
+    if let Some(p) = &r588 {
+        let n = drive_capture(p, 17_784, 17_789, &mut paths);
+        assert_eq!(n, 6, "run588 carries the current East Indies word");
         frames += n;
     }
     if let Some(p) = &r356 {
@@ -2565,12 +2571,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1434: run585's new word compares the attack-order fields;
     // no cast stands on the union, so cast_paid/cast_spell return.
     // Item 1435: the 17698 window compares casts and damage attribution.
+    // Item 1436: no group move stands on the new 17785 window or the
+    // Toughest union; the six group-move fields return to this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
          attempts build_type cruising_alt \
-         garrison_search \
-         metric non_flat_gather \
+         form_id garrison_search group_angle group_id in_group \
+         metric non_flat_gather oxx whose \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
          strafe_yy tolerance uid waypoint ",
     ),

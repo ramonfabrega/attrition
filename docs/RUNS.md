@@ -13333,3 +13333,66 @@ Copies match source hashes. Receipt, validation, decoder, decoded armies,
 trace comparison and archive hashes live in
 `~/ron-data/lab-experiments/2026-10-01-item-1435-codex/`. ARMY §25 names
 the differing target and its measured correction.
+
+## run587 — East Indies projectile window 17673..17701 (2026-10-01, item 1436)
+
+**What the disk could not answer.** run585's whole records show unit 0's
+late wound and farm 2006's extra fractional hit, but contain no AMMO
+record. The local projectile probe names a one-tick-late arrow from
+1/135; this capture distinguishes launch time from flight geometry.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run587 \
+    --map 18 --end-frame 17705 --timeout 1800 --log-window 17673 17701 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0, seed 12345, map and lifecycle verified;
+17,706 frames, closing frame 17706, five backed-up files restored.
+Launch 231.760 s, total 241.742 s. The first sandboxed watcher could
+not see the detached process; the watcher with process access reports
+the actual successful exit. Separate `rngcmp.py`: **17,706 shared frames,
+zero differences** against run346. Source and settings backups retained.
+
+The 28 blocks contain 131 live AMMO records, 27 fields each. Archives:
+`gamelog-run587-islands-toughest-17673.txt`, 83,681,879 bytes, SHA-256
+`7a563b3b157a6e95f947738a2cfbee883972eb8d50f3144e9f25c7bfca9fb306`;
+`rontrace-run587.log`, 172,083,072 bytes, SHA-256
+`5b404c94b9416aa4ac1fac0f5e6c3f30676121207220684c420f7857fdb6810a`.
+Source/archive hashes match. Receipt, trace comparison, raw unit/projectile
+readings and the run586 release-node sweep are retained under
+`~/ron-data/lab-experiments/2026-10-01-item-1436-codex/`. COMBAT §87
+records the launch geometry and its validation.
+
+## run588 — East Indies successor window 17754..17818 (2026-10-01, item 1436)
+
+**What the disk could not answer.** The bow-node fix advances the word
+past run585's last block 17757 to 17785. This overlapping 64-block
+window preserves the whole cast and projectiles around the successor.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-01-run588 \
+    --map 18 --end-frame 17823 --timeout 2400 --log-window 17754 17818 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; seed 12345, map and lifecycle verified.
+Closing frame 17824; all five settings files restored. Launch 474.484 s,
+total 486.541 s. Independent trace comparison: **17,824 shared frames,
+zero differences** against run346. Source and settings backups retained.
+
+Archives: `gamelog-run588-islands-toughest-17754.txt`, 192,510,485 bytes,
+SHA-256 `b76f49e7a5b9b47d7f5ca1ca382c41b80355c1fddfdd8ed95773a9f093a935fa`;
+`rontrace-run588.log`, 173,478,848 bytes,
+SHA-256 `915d7dc585575fa38fbaaab418c4e35a2f5987d3c1abd4e00afd1ea6fd8cf52f`.
+Source/archive hashes match. Receipts and comparison are preserved in
+`~/ron-data/lab-experiments/2026-10-01-item-1436-codex/`.
+
+The whole-record baseline pins 365 differing keys; projectiles contain
+973 original and 989 simulated live records, 18,640 paired field checks
+and 199 differing round/field keys. Original-only engine fields are
+fingerprinted separately. At block 17786 group 66 holds 21 members in
+the sim against 22 in the original, whose unit 154 is absent here.
+This is item 1437's observed successor, not an accepted mechanism.

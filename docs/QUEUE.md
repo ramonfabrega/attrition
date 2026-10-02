@@ -12,11 +12,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-01, extended direct Codex run: items 1434–1435 move East Indies
-**17507 → 17698** (+191). Retained collision slots restore the transport;
-counting cavalry restores army 7's target and army 5's movement. run585
-widens both, run586 validates the army state. Focused validation is in
-progress; the checkpoints await the final required-fixture batch gate.*
+*2026-10-02, extended direct Codex run: items 1434–1436 move East Indies
+**17507 → 17785** (+278). Retained collision slots restore the transport;
+cavalry strength restores army targets; measured bow nodes restore arrow
+impacts. run585/run587 pin the fixes, run588 widens the successor.
+Focused checks pass; the final required-fixture batch gate is pending.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -32,14 +32,13 @@ progress; the checkpoints await the final required-fixture batch gate.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w17698 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w17785 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1436 is next, already covered by run585. Finish focused checks
-and commit 1435 first. Full release validation is deferred to this bounded
-batch's final committed tree.**
+**Opener: 1437 is next, already widened by run588. Finish this bounded batch's
+required-fixture gate before reporting completion. The commander remains paused.**
 
 ## The queue
 
@@ -49,12 +48,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1436. **East Indies' successor: frame 17698, eight draws against
-    seven**, index 5: ours `Object::take_damage+0xe1`, original
-    `Farms::inc_time+0x1ae`. run585 widens the whole word; human unit 0's
-    damage already differs on block 17698 (3 vs 7) and farm 2006's
-    damage fraction parts on 17699. Identify the damage emitter and
-    walk its first parted input back. No mechanism is named.
+1437. **East Indies' successor: frame 17785, 21 draws against 23**,
+    index 8: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, original
+    `Guy::init_real+0x52`. run588 widens every record and projectile;
+    block 17786 has group 66 with 21 members against 22, original-only
+    unit 154. Unit 98 emits six figure-init draws against seven. Walk
+    that missing member back to its first parted input; no cause is
+    accepted yet. run588's 365 record keys and 199 ammo keys are pinned.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

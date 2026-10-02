@@ -1838,7 +1838,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1435: including the cavalry lineage in target strength moves
 /// 17653 to 17698 (8 draws vs 7, index 5 take_damage vs Farms::inc_time).
 /// run585 covers both; army 7's target and army 5's orders agree. ARMY §25.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_698;
+/// Item 1436: measured Yeomanry release nodes move 17698 to 17785
+/// (21 draws vs 23, index 8 idle wrap vs Guy::init_real+0x52).
+/// run588 widens the successor; run587 pins the booked arrows. COMBAT §87.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_785;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2662,6 +2665,9 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_16760: (i64, i64) = (16_754, 17_011
 
 /// run585, item 1434: the 17507 word and its successor, whole records.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_17507: (i64, i64) = (17_501, 17_758);
+
+/// run588, item 1436: whole records and projectiles around the new word.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_17785: (i64, i64) = (17_754, 17_818);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8232,9 +8238,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run585_s_word_frame_is_widened_whole"),
-        1434,
-        Some(WIDENING_SECOND_EAST_INDIES_17507),
+        Some("run588_s_word_frame_is_widened_whole"),
+        1436,
+        Some(WIDENING_SECOND_EAST_INDIES_17785),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

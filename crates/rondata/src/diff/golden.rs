@@ -10492,7 +10492,7 @@ struct ChapterThreeWidening {
 /// crash round, so its side of `rolling` is the zero `init` writes.
 /// An object's `(who, o)` as the dump prints it: a unit's owner and
 /// index, or a building's.
-fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
+pub(super) fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
     match o {
         sim::combat::Obj::Unit(u) => (i64::from(sim.units[u].owner), i64::from(sim.units[u].index)),
         sim::combat::Obj::Building(b) => (
@@ -10507,7 +10507,7 @@ fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
 /// launch and landing, the target, the accuracy, the splash, the heights,
 /// the bearing, the arc and the flag bits. `traj`, `dx`, the roll and
 /// bank angles, `gpiece` and `graph_index` are not carried.
-fn ammo_value_rows(
+pub(super) fn ammo_value_rows(
     sim: &sim::Sim,
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,

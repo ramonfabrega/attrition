@@ -195,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run585-islands-toughest-17501.txt",
+        "gamelog-run588-islands-toughest-17754.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2560,6 +2560,218 @@ mod tests {
         pin_eq!(w.firsts.len(), 267, "every key parted on run579");
     }
 
+    type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;
+    struct AmmoWindow {
+        frames: usize,
+        theirs: usize,
+        ours: usize,
+        fields: usize,
+        firsts: AmmoFirsts,
+        unmodelled: (usize, u64),
+    }
+
+    /// Match every round by shooter and birth frame; a pool slot is a
+    /// compared field, not its identity. Refuse ambiguous births.
+    fn widen_second_ammo(capture: &str, window: (i64, i64)) -> Option<AmmoWindow> {
+        use std::collections::{BTreeMap, BTreeSet};
+        let path = dump(capture)?;
+        let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+        let mut firsts = BTreeMap::new();
+        let mut unmodelled = BTreeSet::new();
+        let (mut frames, mut theirs_count, mut ours_count, mut fields) = (0, 0, 0, 0);
+        walk_second_probed(
+            "gamelog-run346-islands-toughest-24k-trace.txt",
+            "rontrace-run346.log",
+            true,
+            &mut |f, built| {
+                let n = f + 1;
+                if !(window.0..window.1).contains(&n) {
+                    return;
+                }
+                let at = ix
+                    .frames()
+                    .iter()
+                    .position(|x| x.number == n)
+                    .expect("every capture block");
+                let raw = ix.read_frame(at).unwrap();
+                frames += 1;
+                let mut theirs = BTreeMap::new();
+                for (a, count) in crate::diff::ammo::blocks(&raw) {
+                    assert_eq!(count, 27, "all dumped projectile fields");
+                    if a.flags & 2 == 0 {
+                        continue;
+                    }
+                    assert!(
+                        theirs.insert((a.who, a.o, n - a.cur_time), a).is_none(),
+                        "ambiguous projectile birth identity"
+                    );
+                    unmodelled.insert((
+                        a.traj,
+                        a.dx,
+                        a.start_roll_angle,
+                        a.bank_dx,
+                        a.bank_dy,
+                        a.gpiece,
+                        a.graph_index,
+                        a.flags & !0x1f,
+                    ));
+                }
+                let sim = &built.sim;
+                let mut ours = BTreeMap::new();
+                for p in &sim.projectiles {
+                    let (w, o) = crate::diff::golden::obj_ident(sim, p.shooter);
+                    assert!(
+                        ours.insert((w, o, n - i64::from(p.cur_time)), p).is_none(),
+                        "ambiguous simulated projectile birth identity"
+                    );
+                }
+                theirs_count += theirs.len();
+                ours_count += ours.len();
+                let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+                for key in keys {
+                    let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                        firsts.entry((key, "presence")).or_insert((
+                            n,
+                            format!(
+                                "ours {} theirs {}",
+                                ours.contains_key(&key),
+                                theirs.contains_key(&key)
+                            ),
+                        ));
+                        continue;
+                    };
+                    let mut rows = crate::diff::golden::ammo_value_rows(sim, p, a);
+                    rows.push(("index", i64::from(p.slot), a.index));
+                    for (field, mine, dumped) in rows {
+                        fields += 1;
+                        if mine != dumped {
+                            firsts
+                                .entry((key, field))
+                                .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                        }
+                    }
+                }
+            },
+        )?;
+        eprintln!(
+            "{capture} ammo: frames {frames} theirs {theirs_count} ours {ours_count} compared {fields} firsts {} unmodelled {unmodelled:?}",
+            firsts.len()
+        );
+        for (key, row) in &firsts {
+            eprintln!("  ammo {key:?}: {row:?}");
+        }
+        // Engine-only fields have no sim counterpart. Pin their complete
+        // observed tuples, without calling their stability parity.
+        let mut fingerprint = 0xcbf2_9ce4_8422_2325u64;
+        for &(a, b, c, d, e, f, g, h) in &unmodelled {
+            for v in [a, b, c, d, e, f, g, h] {
+                for byte in v.to_le_bytes() {
+                    fingerprint = (fingerprint ^ u64::from(byte)).wrapping_mul(0x100_0000_01b3);
+                }
+            }
+        }
+        Some(AmmoWindow {
+            frames,
+            theirs: theirs_count,
+            ours: ours_count,
+            fields,
+            firsts,
+            unmodelled: (unmodelled.len(), fingerprint),
+        })
+    }
+
+    /// run587 adds the missing projectile record to run585's whole cast.
+    #[test]
+    fn run587_s_projectiles_are_compared_whole() {
+        let Some(w) = widen_second_ammo(
+            "gamelog-run587-islands-toughest-17673.txt",
+            (17_673, 17_701),
+        ) else {
+            return;
+        };
+        assert_eq!(w.frames, 28);
+        assert_eq!(w.theirs, 131);
+        assert_eq!(w.ours, w.theirs, "all projectile lifetimes");
+        assert_eq!(w.fields, 2620, "twenty comparisons per paired record");
+        assert!(
+            w.firsts
+                .keys()
+                .all(|((who, o, _), _)| (*who, *o) != (1, 135)),
+            "every compared field of both booked arrows agrees"
+        );
+        assert_eq!(w.firsts.len(), 33, "unmeasured pieces remain visible");
+        assert_eq!(w.unmodelled, (19, 0x80fd_4385_9445_ed39));
+    }
+
+    #[test]
+    fn run588_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run588",
+            "gamelog-run588-islands-toughest-17754.txt",
+            (17_754, 17_818),
+            &[17_785, 17_786],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 64, "the complete run588 window");
+        pin!(
+            w.missing.is_empty(),
+            "all record keys are read: {:?}",
+            w.missing
+        );
+        pin_eq!(w.firsts.len(), 365, "run588 record baseline");
+        let word = w.standing.get(&17_786).expect("the word's closing state");
+        pin_eq!(
+            word.get(&(1, -3, "group:66.num".into()))
+                .map(String::as_str),
+            Some("ours 21 theirs 22"),
+            "the whole group exposes the missing member"
+        );
+        pin!(
+            word.contains_key(&(1, 154, "unlinked".into())),
+            "the original alone holds unit 154 at the word"
+        );
+        let Some(a) = widen_second_ammo(
+            "gamelog-run588-islands-toughest-17754.txt",
+            (17_754, 17_818),
+        ) else {
+            return;
+        };
+        eprintln!(
+            "run588 ammo pin {} {} {} {} {} {:?}",
+            a.frames,
+            a.theirs,
+            a.ours,
+            a.fields,
+            a.firsts.len(),
+            a.unmodelled
+        );
+        pin_eq!(a.frames, 64, "run588 ammo window");
+        pin_eq!(
+            (a.theirs, a.ours, a.fields),
+            (973, 989, 18640),
+            "all live rounds and paired fields"
+        );
+        pin_eq!(a.firsts.len(), 199, "run588 projectile baseline");
+        pin_eq!(
+            a.unmodelled,
+            (71, 10002085738206419128),
+            "original-only engine fields"
+        );
+    }
+
     /// run585: whole-record, whole-cast baseline of the 17507 word (item 1434).
     #[test]
     fn run585_s_word_frame_is_widened_whole() {
@@ -2572,15 +2784,7 @@ mod tests {
             "run585",
             "gamelog-run585-islands-toughest-17501.txt",
             WIDENING_SECOND_EAST_INDIES_17507,
-            &[
-                17_501,
-                17_507,
-                17_508,
-                17_647,
-                17_651,
-                17_654,
-                SECOND_WORD_EAST_INDIES + 1,
-            ],
+            &[17_501, 17_507, 17_508, 17_647, 17_651, 17_654, 17_699],
             true,
             true,
         ) else {
@@ -2626,7 +2830,23 @@ mod tests {
                 "army 7's group {field} parts in the window"
             );
         }
-        pin_eq!(w.firsts.len(), 587, "every key parted on run585");
+        for block in [17_698, 17_699] {
+            let rows = w
+                .standing
+                .get(&block)
+                .expect("the arrow impact's whole block");
+            pin!(
+                rows.keys()
+                    .filter(|(who, o, _)| (*who, *o) == (0, 0))
+                    .all(|(_, _, field)| field == "form"),
+                "block {block}: the citizen differs beyond standing form"
+            );
+            pin!(
+                !rows.contains_key(&(0, 2006, "build:damage_frac".into())),
+                "block {block}: farm 2006 took the missed arrow"
+            );
+        }
+        pin_eq!(w.firsts.len(), 312, "every key parted on run585");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**

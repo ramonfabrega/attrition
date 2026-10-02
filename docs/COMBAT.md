@@ -13835,3 +13835,77 @@ So the region arm and the duty exemption are diff-held, and since item
 parts on 626, and the unit test asks a human's siege ship. The coastal
 refinement and the defensive arm's own refusal are built on the listing
 alone.
+
+## 87. King's Yeomanry release nodes (item 1436, 2026-10-01)
+
+**Booking and evidence.** East Indies 17698 adds a building first-wound
+roll. run585's whole cast shows citizen 0/0 first losing the wrong amount
+on block 17698; the original's attacker is 1/135. The in-flight probe
+finds its arrow still flying at tick 17697, then missing the citizen and
+striking farm 2006 one tick later. This kills the damage-formula hypothesis.
+run585 prints no ammo. run587 adds the complete AMMO record over
+17673..17701, with 17,706 identical trace frames against run346.
+
+The arrow launches on the same tick on both sides, but from the wrong
+point: ours (6408,9960,61), original (6364,9890,198). Its flight is 24
+versus 23 frames, and its lead lands at (5180,7061) rather than
+(5195,7087). The next arrow likewise flies 30 rather than 29, from the
+same unit center instead of (6376,9885,230). The original first arrow
+hits the citizen at 17697; at 17698 the citizen has moved beyond its
+hit radius. This is the existing unmeasured-release-node fallback,
+not a change to flight arithmetic.
+
+**Measurement.** Piece 129 is King's Yeomanry (type 179). run586's
+already-validated packet holds its six AttachPos entries. The existing
+`tools/recomp/get_position.py` emulator calls
+`GraphicPieces::get_position@0090b750` for every event at degrees 0..360;
+its argument is `whole_degrees(facing) - 180` (§70.2). Fitting the
+existing integer `launch::Bay` gives these thousandth-unit coefficients:
+
+| animation | event frame | right | forward | height |
+|---|---:|---:|---:|---:|
+| ATTACK1 | 6, 22 | -3361 | 82393 | 169 |
+| ATTACK2 | 4 | -15899 | 81974 | 137 |
+| ATTACK2 | 22 | -3361 | 82393 | 169 |
+| ATTACK3 | 10 | 10521 | 70321 | 185 |
+| ATTACK3 | 24 | 4876 | 65759 | 184 |
+
+Every row reproduces all 361 truncated planar outputs and heights
+exactly. The executable, packet, raw rows, sweep and fitting scripts
+remain outside git in the item's evidence directory. These are measured
+constants in the existing integer rotation, not copied function bodies.
+The first scratch sweep wrongly treated incidental EAX as a Boolean
+success code; the tool returns a vector and `Liberr` zero on success.
+The completed sweep validates that vector instead.
+
+The packet proves the table for this installed executable and the current
+piece, not other pieces, art packs, or arbitrary sub-degree rotations;
+no independent blind reading has been claimed.
+
+**Measured payoff.** Adding the six bays moves **17698 → 17785 (+87)**.
+run585's same 257 blocks fall **587 → 312** differing keys; citizen 0/0
+now agrees at blocks 17698/17699 except standing form, including damage
+7 plus 4/16 and damage_frame 17697. Farm 2006 takes no stray fraction.
+The other open-map words hold. The successor is 21 draws versus 23,
+index 8 an idle wrap against `Guy::init_real+0x52`, beyond run585; run588
+books a shorter overlapping 17754..17818 window before naming a cause.
+
+`run587_s_projectiles_are_compared_whole` matches every round by shooter
+and birth frame, rejecting duplicate identities rather than pairing pool
+slots. The same 28 blocks go from 136 simulated versus 131 original
+records to **131 on both sides**. Twenty comparisons per paired record
+cover every carried field, including the slot as a value: differing
+round/field keys fall **147 → 33**, all fields of both 1/135 arrows agree.
+Remaining rows name other, unmeasured pieces and stay pinned. Seven
+uncarried engine fields plus the remaining flag bits are explicitly fingerprinted as original-only
+observations, not called agreement. The raw scanner requires all 27
+fields on every record. The same comparison widens run588's arrows.
+
+All 14 launch tests pass, including a new check against the two actual
+arrows' launch positions and heights. Whole-cast run585 and the 131-round
+run587 checks pass. The six-event, 361-heading sweep matches every
+truncated x/y/z output; its raw output remains outside git. run588 pins all 64 successor blocks: 365 record keys, 973 original
+versus 989 simulated live arrows, 18,640 paired field comparisons and
+199 projectile keys. At block 17786 group 66 has 21 versus 22 members,
+with original-only unit 154. This measured successor is booked as 1437;
+no causal claim is made. Final batch validation remains pending.
