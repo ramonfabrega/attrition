@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-02, direct Codex run: 1445 advances French East Indies
 7356 → **8182** by refusing an eighth university scholar. The surplus
 queue and birth disappear; Great Lakes stays closed at **5638**.
-Items 1443–1445 are pending the batch gate. East Indies is the lower
-open word; run610 widens frame 8182 before the next mechanism is booked.*
+Items 1443–1445 pass the full required-fixture gate. East Indies is the
+lower open word; run610 widens frame 8182 before the next mechanism is booked.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
