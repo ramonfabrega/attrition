@@ -13908,4 +13908,7 @@ truncated x/y/z output; its raw output remains outside git. run588 pins all 64 s
 versus 989 simulated live arrows, 18,640 paired field comparisons and
 199 projectile keys. At block 17786 group 66 has 21 versus 22 members,
 with original-only unit 154. This measured successor is booked as 1437;
-no causal claim is made. Final batch validation remains pending.
+no causal claim is made. The full six-stage required-fixture batch gate
+passes on e94137b2 (2,010 tests, no missing requested fixtures). Disabling
+the bays makes the launch, projectile and whole-record regressions fail;
+the mutation is restored before that gate.
