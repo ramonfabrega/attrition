@@ -1847,7 +1847,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1438: reused figures clear their retained point at birth; 17944
 /// has 100 draws vs 118, index 92 do_guard vs find_attack_pos. run589
 /// widens it; run585 pins the corrected landing. COLLISION §23.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_944;
+/// Item 1439: packed siege takes its army target; 18076 has 20 draws
+/// versus 19, index 6 inc_time wrap versus Unit::set_anim. run594 widens
+/// the successor through the closing state. COMBAT §88.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_076;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -2677,6 +2680,9 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_17785: (i64, i64) = (17_754, 17_818
 
 /// run589, item 1437: whole records and projectiles at the successor.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_17907: (i64, i64) = (17_890, 17_954);
+
+/// run594, item 1439: the successor through the natural ending.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_18076: (i64, i64) = (18_060, 18_142);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -8247,9 +8253,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run589_s_word_frame_is_widened_whole"),
-        1438,
-        Some(WIDENING_SECOND_EAST_INDIES_17907),
+        Some("run594_s_word_frame_is_widened_whole"),
+        1439,
+        Some(WIDENING_SECOND_EAST_INDIES_18076),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

@@ -7446,6 +7446,73 @@ mod tests {
         }
     }
 
+    #[test]
+    fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
+        use crate::orders::{Body, MoveKind, QueuePos};
+        for case in [
+            "inside",
+            "boundary",
+            "human",
+            "unpacked",
+            "not siege",
+            "easiest",
+            "no target",
+        ] {
+            let (mut sim, foe_ty) = at_war();
+            sim.nation[0].human = case == "human";
+            sim.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 4,
+                    packs: true,
+                    siege: case != "not siege",
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let at = Pos::new(0x1200, 0x1200);
+            let me = put(&mut sim, 0, ty, at);
+            sim.units[me].combat.packed = case != "unpacked";
+            let limit = sim.tuning.unit_respond_range * 0x180;
+            let distance = if case == "boundary" {
+                limit
+            } else {
+                limit - 48
+            };
+            let foe = put(&mut sim, 1, foe_ty, Pos::new(at.x + distance + 48, at.y));
+            assert_eq!(sim.attack_dist(Obj::Unit(me), Obj::Unit(foe)), distance);
+            let army = sim.init_army(0, None);
+            sim.army_add_unit(0, army, me);
+            sim.armies[0].list[army].target = (case != "no target").then_some(Obj::Unit(foe));
+            let dest = Pos::new(0x6000, 0x1200);
+            sim.add_move_order(me, dest, MoveKind::AttackTo, QueuePos::New, true);
+            let dest = sim.units[me].orders[0].move_dest().unwrap();
+            sim.do_attack_to_tail(me, 15, dest);
+            let mandatory = matches!(sim.units[me].orders.front().map(|o| o.body),
+                Some(Body::Attack(_)) if sim.units[me].combat.mandatory);
+            assert_eq!(
+                mandatory,
+                case == "inside",
+                "{case}: {:?}",
+                sim.units[me].orders
+            );
+            if mandatory {
+                assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(foe)));
+                assert_eq!(
+                    sim.units[me].orders.back().unwrap().index(),
+                    crate::orders::index::ATTACK_TO
+                );
+                assert_eq!(
+                    sim.units[foe].combat.targeted, 0,
+                    "the normal search was bypassed"
+                );
+            }
+        }
+    }
+
     /// run190's guard, in miniature: a player's chariot-ranged unit on its
     /// post (3480, 12264) guarding a standing wagon, with an attack on an
     /// enemy stacked above its `GUARD`.

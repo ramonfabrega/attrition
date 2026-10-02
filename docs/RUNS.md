@@ -13548,3 +13548,32 @@ external evidence directory. The full-frame entry reaches an uncaptured
 network pointer; the object-phase entry reaches the clearing instruction
 and deliberately stops there. This is a writer identification, not a claim
 of complete emulated frame fidelity (`docs/COLLISION.md` §23).
+
+## run594 — East Indies successor through the ending (2026-10-02, item 1439)
+
+**Disk gap.** run589 ends at 17953; the packed siege shortcut moves the
+word to 18076. No existing full-record capture covers that frame.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run594 \
+    --map 18 --end-frame 18147 --timeout 2400 --log-window 18060 18142 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --profile DIFFICULTY=5
+```
+
+The requested-endpoint receipt **fails**: the game ends naturally at
+18140, before requested 18147. Process exit is 0; the six lifecycle
+events and every contiguous frame validate with the existing receipt
+validator at the actual endpoint 18140. `verify_game` independently
+confirms map 18, seed 12345, closing block 18141 and 41,984 group records.
+All five settings files match their backups after restoration. Launch
+587.959 s, total 595.810 s. Against run346: **18,141 shared trace frames,
+zero differences**. The failed original receipt and separate actual-end
+validation are both preserved; the requested-endpoint gate was not passed.
+
+Archives: `gamelog-run594-islands-toughest-18060.txt`, 246,339,902 bytes,
+SHA-256 `e76857a541b6b070488ee35086eb53126b4f90149b682cb594391a3eb1e6b9fe`;
+`rontrace-run594.log`, 176,617,472 bytes,
+SHA-256 `045bf7fdf7bf921636cf5972a7d483c7cbfd37a7c29772b29295c9d37cfede99`.
+Receipts, trace comparison and widening logs remain under
+`~/ron-data/lab-experiments/2026-10-02-item-1439-codex/`.

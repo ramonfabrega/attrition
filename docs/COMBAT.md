@@ -10433,8 +10433,9 @@ minimum. With the re-search off, the retaliation keeps its order.
 
 - **`local_5c`**, a computer's packed siege engine, which keeps an
   out-of-range candidate when the candidate is not a unit. This crate
-  does not set it. No capture on disk has a computer's packed engine
-  searching.
+  does not set it. ~~No capture on disk has a computer's packed engine
+  searching.~~ run589 reaches the earlier army-target shortcut (§88);
+  it does not establish this ordinary-search fallback.
 - **The building's gate.** A building sets `local_24` with `local_5c`
   clear, so from the listing it skips every out-of-range candidate. This
   crate keeps an out-of-range unit or armed target for a building with
@@ -10443,8 +10444,8 @@ minimum. With the re-search off, the retaliation keeps its order.
 - **The guarding arm** (`local_2c`, activity 12) of the same gate.
 - **The found-target branch of §60.3** for a packer, meaning the
   stand-ground hold, `find_attack_pos` and the chase on the new target.
-  No capture reaches it with a packer, so it runs the arm this crate
-  already had.
+  ~~No capture reaches it with a packer~~; run589 now reaches the
+  mandatory army-target chase (§88). The other branches remain open.
 - `find_new_target`'s DEFENSIVE `find_def_pos` arm, its `repath`, the
   group-order kill, and the leader's `searches` count.
 
@@ -13912,3 +13913,47 @@ no causal claim is made. The full six-stage required-fixture batch gate
 passes on e94137b2 (2,010 tests, no missing requested fixtures). Disabling
 the bays makes the launch, projectile and whole-record regressions fail;
 the mutation is restored before that gate.
+
+## 88. Packed siege takes its army target (item 1439, 2026-10-02)
+
+**Evidence and scope.** East Indies first parts at 17944, with 100 draws
+against 118. run589's whole cast first separates cannon 1/132's order
+on block 17944 (kind 2 versus 10), then its position on 17945:
+(7174,12276) versus (7176,12312). The trace enters `find_attack_pos`
+where the sim guards. This is an order-selection difference before
+movement, not evidence for changing the destination solver.
+
+`Object::find_nearby_target@00648da0` has an early army-target arm for a
+packed, packing-capable siege unit owned by a computer outside the
+`search_ai` difficulty exception. It accepts a valid army target at
+strictly less than `unit_respond_range * 0x180` attack distance, adds a
+mandatory first attack order, and returns before ordinary candidate
+ranking and its targeted-counter increment. The decision probe at
+17943 finds army 0 targeting the city, distance 4489 against limit 4608.
+The hypothesis would fail if the target were absent, invalid, out of
+range, or the shortcut did not change the booked order.
+
+Installing that order only at 17943 corrects the head but leaves the
+word at 17944: the packer's chase kills and re-searches its target on
+the following tick. `take_siege_army_target` therefore serves both the
+attack-move search and this chase, ahead of their existing ordinary
+searches. No dump values or frame checks enter the implementation.
+
+**Payoff and limits.** The shared shortcut moves **17944 → 18076 (+132)**.
+The other two map words hold. Over run589's 64 blocks, differing record
+keys fall **321 → 257** and projectile keys **298 → 279**. Cannon 1/132's
+head order kind and unit position agree throughout. Its target-id row
+still reports None versus (0,2000), and crew figure 2's speed, position
+and angle retain differences; this is not whole-unit parity. The full
+ammo comparison counts 1,084 original and 1,096 simulated live records,
+21,680 paired fields, with the unchanged original-only fingerprint.
+
+The boundary test varies human ownership, packed state, siege type,
+easiest difficulty, target absence, and the exact distance boundary.
+Only the eligible inside case takes the mandatory army-target arm;
+it preserves the underlying attack-move and bypasses candidate targeting.
+The observed arm is differential-backed. Other nearby-search callers,
+§60.5's ordinary range exception and the remaining chase branches are
+not established by this result. No independent blind reading is claimed.
+run594 captures the successor through the ending, beyond run589's last
+block; its full-record and projectile pins accompany the new word.

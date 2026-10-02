@@ -687,6 +687,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r572 = crate::testenv::dump("gamelog-run572-islands-toughest-16160.txt");
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
+    let r594 = crate::testenv::dump("gamelog-run594-islands-toughest-18060.txt");
     let r589 = crate::testenv::dump("gamelog-run589-islands-toughest-17890.txt");
     let r588 = crate::testenv::dump("gamelog-run588-islands-toughest-17754.txt");
     let r585 = crate::testenv::dump("gamelog-run585-islands-toughest-17501.txt");
@@ -1384,7 +1385,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     if let Some(p) = &r589 {
         let n = drive_capture(p, 17_943, 17_948, &mut paths);
-        assert_eq!(n, 6, "run589 carries the current East Indies word");
+        assert_eq!(n, 6, "run589 carries the previous East Indies word");
+        frames += n;
+    }
+    if let Some(p) = &r594 {
+        let n = drive_capture(p, 18_075, 18_080, &mut paths);
+        assert_eq!(n, 6, "run594 carries the current East Indies word");
         frames += n;
     }
     if let Some(p) = &r356 {
@@ -2581,10 +2587,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Toughest union; the six group-move fields return to this pin.
     // Item 1437: run589 compares those group fields again, but carries
     // no paired cast on the word window: cast_paid/cast_spell return.
+    // Item 1439: run594 carries a paired cast; both fields leave again.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt \
+         attempts build_type cruising_alt \
          garrison_search \
          metric non_flat_gather \
          orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \

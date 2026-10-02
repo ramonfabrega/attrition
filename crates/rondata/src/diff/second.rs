@@ -195,7 +195,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run589-islands-toughest-17890.txt",
+        "gamelog-run594-islands-toughest-18060.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -2704,6 +2704,78 @@ mod tests {
     }
 
     #[test]
+    fn run594_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run594",
+            "gamelog-run594-islands-toughest-18060.txt",
+            WIDENING_SECOND_EAST_INDIES_18076,
+            &[18_076, 18_077, 18_141],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 82, "the complete run594 window");
+        pin!(
+            w.missing.is_empty(),
+            "all record keys are read: {:?}",
+            w.missing
+        );
+        pin_eq!(w.firsts.len(), 1218, "run594 record baseline");
+        pin_eq!(
+            w.firsts
+                .get(&(1, 181, "g.cur_anim[0]".into()))
+                .map(|(f, r)| (*f, r.as_str())),
+            Some((18_077, "ours 0 theirs 1")),
+            "the successor's figure animation is a value difference"
+        );
+        pin_eq!(
+            w.firsts
+                .get(&(1, 132, "g.end_time[2]".into()))
+                .map(|(f, r)| (*f, r.as_str())),
+            Some((18_077, "ours 80 theirs 59")),
+            "the cannon crew's timer also parts on the successor block"
+        );
+        let Some(a) = widen_second_ammo(
+            "gamelog-run594-islands-toughest-18060.txt",
+            WIDENING_SECOND_EAST_INDIES_18076,
+        ) else {
+            return;
+        };
+        eprintln!(
+            "run594 ammo pin {} {} {} {} {} {:?}",
+            a.frames,
+            a.theirs,
+            a.ours,
+            a.fields,
+            a.firsts.len(),
+            a.unmodelled
+        );
+        pin_eq!(a.frames, 81, "run594 ammo window");
+        pin_eq!(
+            (a.theirs, a.ours, a.fields),
+            (1326, 1352, 16100),
+            "all live rounds and paired fields"
+        );
+        pin_eq!(a.firsts.len(), 395, "run594 projectile baseline");
+        pin_eq!(
+            a.unmodelled,
+            (115, 16282458979908766585),
+            "original-only engine fields"
+        );
+    }
+
+    #[test]
     fn run589_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
         let Some(w) = widen_east_indies_on(
@@ -2731,20 +2803,20 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 321, "run589 record baseline");
+        pin_eq!(w.firsts.len(), 257, "run589 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((17_944, "Kind { ours: 2, theirs: 10 }")),
-            "the successor's order difference is already present at its entry"
+            None,
+            "the cannon's order agrees throughout the old word window"
         );
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "pos".into()))
                 .map(|(f, r)| (*f, r.as_str())),
-            Some((17_945, "ours (7174,12276) theirs (7176,12312)")),
-            "the successor's first position difference"
+            None,
+            "the cannon's position agrees throughout the old word window"
         );
         let word = w
             .standing
@@ -2779,10 +2851,10 @@ mod tests {
         pin_eq!(a.frames, 64, "run589 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1084, 1100, 21680),
+            (1084, 1096, 21680),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 298, "run589 projectile baseline");
+        pin_eq!(a.firsts.len(), 279, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),

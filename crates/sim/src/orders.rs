@@ -2624,6 +2624,9 @@ impl Sim {
                 self.add_attack_order(u, t, QueuePos::First, mandatory, false);
             }
             SquadHead::Search => {
+                if self.take_siege_army_target(u).is_some() {
+                    return;
+                }
                 if let Some(t) = self.find_melee_target(u, -1) {
                     self.attack_move_add(u, t);
                 }
@@ -2676,6 +2679,33 @@ impl Sim {
                 Some(t)
             }
         }
+    }
+
+    /// `Object::find_nearby_target@00648da0`'s packed AI siege shortcut:
+    /// take a valid army target strictly inside the response radius,
+    /// mandatory and QUEUE_FIRST, before ranking nearby candidates.
+    /// Used by the attack-move look and packer's chase re-search
+    /// (`docs/COMBAT.md` §88); other search callers remain unestablished.
+    fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
+        let who = self.units[u].owner;
+        let p = self.profile(Obj::Unit(u));
+        if !p.packs
+            || !p.siege
+            || !self.units[u].combat.packed
+            || !self.ai_driven(who)
+            || self.search_ai(who)
+        {
+            return None;
+        }
+        let slot = self.army_of(u)?;
+        let target = self.armies[who as usize].list.get(slot)?.target?;
+        if !self.valid_target(Obj::Unit(u), target)
+            || self.attack_dist(Obj::Unit(u), target) >= self.tuning.unit_respond_range * 0x180
+        {
+            return None;
+        }
+        self.add_attack_order(u, target, QueuePos::First, true, false);
+        Some(target)
     }
 
     fn melee_squad_head(&self, u: usize) -> SquadHead {
@@ -8594,16 +8624,20 @@ impl Sim {
         // put: run146's `0/6` on 868, 870 and 871.
         let target = if packs {
             self.kill_current_order(u);
-            let Some(t) = self.find_melee_target(u, -1) else {
-                return;
-            };
-            let pos = if state.stance == combat::Stance::Defensive {
-                QueuePos::First
+            if let Some(t) = self.take_siege_army_target(u) {
+                t
             } else {
-                QueuePos::New
-            };
-            self.add_attack_order(u, t, pos, false, false);
-            t
+                let Some(t) = self.find_melee_target(u, -1) else {
+                    return;
+                };
+                let pos = if state.stance == combat::Stance::Defensive {
+                    QueuePos::First
+                } else {
+                    QueuePos::New
+                };
+                self.add_attack_order(u, t, pos, false, false);
+                t
+            }
         } else {
             target
         };
