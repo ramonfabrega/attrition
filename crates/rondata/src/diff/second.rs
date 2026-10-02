@@ -2603,7 +2603,7 @@ mod tests {
             .get(&16_761)
             .expect("the original word's whole block");
         for field in ["pos", "collide", "g.cur_anim[0]", "g.last_speed[0]"] {
-            assert!(
+            pin!(
                 !at_word.contains_key(&(1, 189, field.into())),
                 "1/189 {field} still differs on the restored collision frame"
             );

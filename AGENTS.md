@@ -128,5 +128,12 @@ The user also authorizes experiments to reduce redundant gates. Preserve the
 checks that establish correctness and fidelity; record any changed validation
 coverage and its rationale for the later steer. Until an alternative is
 established, the full release gate above remains the landing default.
+After a complete release-suite run has only an isolated test-structure or
+paperwork failure, a correction that leaves simulation and comparison logic
+unchanged may reuse the passing results. Re-run every affected test and guard,
+lint, formatting and paperwork checks; verify fixture completeness; record the
+original failed verdict, exact corrective diff and follow-up exits. This is
+combined validation, not a claim that the original full gate passed. Changes
+to simulation behavior or comparison coverage still require the full gate.
 An instruction-only adaptation needs diff/link checks and relevant paperwork
 checks, not a game-data release run; state that limited validation explicitly.
