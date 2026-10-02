@@ -13913,3 +13913,24 @@ Archive `rontrace-run609.log`, 12,994,240 bytes,
 SHA-256 `9d14abb6d730d48d3b502b120b8049a44f2f8539bf57711647d38dc87e16b796`.
 
 Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1444-codex/run609-validation.json`.
+
+## run610 — French East Indies 8182 whole records (2026-10-02, item 1445)
+
+**Disk gap.** run603 detail ends 7363; no existing detail reaches 8182.
+Same seed 12345/map 18/Nubian human/French AI/Toughest lobby as run603,
+complete category recipe unchanged. Fresh output
+`~/ron-data/lab-captures/2026-10-02-run610`, window **[8177,8190)**,
+call window8175..8190, end8194, timeout1200, no extra probe definition.
+
+Process, receipt and wait exits **0**. Five settings files restored; all
+8195 shared trace frames match run600. Thirteen blocks each contain512 groups;
+projectile pools are empty on both sides. Closing marker 8195.
+Launch-to-exit127.024s, total135.689s.
+
+Archive `gamelog-run610-islands-french-toughest-8182.txt`, 43,182,165 bytes,
+SHA-256 `cabfeb5da05cecf7c13701d9839963c2973b993238bbda89d1b159c3d9df3199`.
+
+Archive `rontrace-run610.log`, 21,414,720 bytes,
+SHA-256 `345687580cdb6e1cd4eeebf07cccb3350e3b112996e7a4a7887bbd43dad86422`.
+
+Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1445-codex/run610-validation.json`.

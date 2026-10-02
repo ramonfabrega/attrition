@@ -13837,4 +13837,23 @@ frame on both sides; 140 field comparisons expose three launch-geometry
 differences, separately pinned with the engine-only fields.
 The 5639-frame passive trace matches run598 throughout. Closing a word and
 its position/order endpoint does not assert whole-record parity. East Indies
-7356 is the next scored item, already widened in run603.
+~~7356 is the next scored item~~ — answered by item 1445 below, using run603.
+
+
+## 113. University admission removes a surplus birth (2026-10-02, item 1445)
+
+French East Indies moves **7356 → 8182**; Great Lakes stays closed at 5638.
+PRODUCTION, "The university admission limit", gives the predicate and
+boundaries. The decision on 7176 had seven gatherers and no queued scholar;
+refusing the eighth removes the extra birth on 7356. Whole run603 keys fall
+120 → 108: the university queue, surplus unit, scholar/active/control counts
+now agree, explicitly asserted over its window. No completion clock changes.
+
+run610 widens blocks 8177..8189, with all group slots and both projectile
+pools explicitly checked (empty). There are 237 differing field keys and
+none missing. At 8182, 15 versus 47 draws first part at index 2,
+produce_building+0x1805 versus +0xc99. Block8183 building 1/2024 appears at
+(37440,24384) versus (34944,21888), city -1/2 and construction time
+42000/15000. Unit1/57 takes a different build route. These are measurements,
+not a promised placement mechanism; the make list and positions already
+carry differences on the first block. Item 1446 starts from that evidence.

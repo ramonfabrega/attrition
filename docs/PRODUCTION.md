@@ -118,11 +118,13 @@ Then two gates, in this order:
     `QUEUE_CANT_TRAIN`.
   - `queued < queue_size`. Failing sets `QUEUE_FULL`.
   - one special case: a **University** (`0x1a4`) queueing a **Scholar**
-    (`0x34`/`0x35`) refuses when its queued scholars plus its current
-    gatherers would exceed six, also as `QUEUE_FULL`. (An earlier draft called
+    (`0x34`/`0x35`) refuses when its **existing** queued scholars plus
+    current gatherers exceed six, also as `QUEUE_FULL`. Six admits one more;
+    seven refuses before charging (item 1445). (An earlier draft called
     this a dock's six-fishing-boat rule; the `is` argument is `0x1a4` and the
     type test is `0x34 || 0x35`, which by position in the shipped files are the
-    University and the Scholar. The rule is not implemented either way.)
+    University and the Scholar.) Implemented by `unit_queue_has_room`, shared
+    by admission, AI city offers, producer selection and the script gate.
 
 Note what is **not** here: the population cap. A player at the cap can queue
 freely. What the cap stops is further down, at completion.
@@ -2163,8 +2165,8 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
   because the simulation has neither caravans nor aircraft; the missile-silo
   gate in `do_queue`; ~~the infinite-queue flag~~ (built, "The infinite
-  queue"); the University's six-scholar
-  rule; the library quirk that removes an entry on a negative answer. Each is
+  queue"); ~~the University's six-scholar
+  rule~~ (implemented by item 1445, "The university admission limit"); the library quirk that removes an entry on a negative answer. Each is
   named where it belongs above and each is a small addition once the thing it
   depends on exists.
 - **Which building is a library** is, in the simulation, a flag on the
@@ -2193,3 +2195,28 @@ advance; and the first of a unit type completes through `gain_tech` and trains
 nothing. The one point resolved for the earlier draft: frames-to-complete as
 written here (the second reader's `ceil(T/a)` is off by one). Every open
 question the second reading closed is struck above with its answer.
+
+
+## The university admission limit (2026-10-02, item 1445)
+
+`BuildData::could_queue@0062da50` reads the current queue count of the
+Scholar lineage and `num_gatherers(0,0)` after ordinary capacity. For a
+University receiving a Scholar, their sum **greater than six** refuses.
+The new request is not included in that sum. Gatherers includes the seated
+scholars and those already assigned but still walking; decoys are not
+filtered. The simulation uses its loaded Scholar worker role for both
+scholar forms and the existing gatherer counter, in integer arithmetic.
+No production clock or completion condition changes.
+
+French East Indies frame 7176 admits an eighth Scholar at university
+1/2016 here: the decision probe reads seven gatherers, zero queued.
+run603 block7351 already shows the original's seven-member garrison chain
+21 → 27 → 33 → 31 → 42 → 39 → 34, each type52, and queued **0** where the
+simulation had **1**. By 7357 the simulation alone held unit1/45 and
+scholars **13/12**, active/control **47/46**. Refusing that admission moves
+the word **7356 → 8182**, with the queue, extra birth and census differences
+removed. run603's differing keys fall **120 → 108**. This is a differential
+check of the live refusal arm; no independent audit is claimed. Unit tests
+cover the boundary, queued-plus-seated sum, unchanged stockpile/counters
+on refusal, producer/worker exclusions and ordinary capacity. Original-run
+coverage of every excluded type and the in-transit boundary remains open.

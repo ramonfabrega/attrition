@@ -2456,7 +2456,7 @@ impl Sim {
         if cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
             return Err(production::QueueFail::Cost);
         }
-        if !self.buildings[at].queue.has_room() {
+        if !self.unit_queue_has_room(at, ty) {
             return Err(production::QueueFail::Full);
         }
         cost::pay(

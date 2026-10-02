@@ -690,6 +690,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r579 = crate::testenv::dump("gamelog-run579-islands-toughest-16476.txt");
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
     let r594 = crate::testenv::dump("gamelog-run594-islands-toughest-18060.txt");
+    let r610 = crate::testenv::dump("gamelog-run610-islands-french-toughest-8182.txt");
     let r603 = crate::testenv::dump("gamelog-run603-islands-french-toughest-7356.txt");
     let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
     let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
@@ -2340,7 +2341,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Third pair's own word blocks, on each map's own new capture.
     for (path, word) in [
         (&r602, 986),
-        (&r603, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        (&r603, 7356),
+        (&r610, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2698,8 +2700,13 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
     let french_east = super::third_pair::french_east_indies_word_window();
     let french_lakes = super::third_pair::french_great_lakes_closing_window();
+    // Item 1445: retain run603's cast orders after moving the open window.
+    // Their comparisons still run; a quiet successor must not erase coverage.
+    let french_scholars = super::third_pair::french_east_indies_scholar_window();
     let seen = compared::stop();
-    let (Some(w), Some(_), Some(_), Some(_)) = (walked, toughest, french_east, french_lakes) else {
+    let (Some(w), Some(_), Some(_), Some(_), Some(_)) =
+        (walked, toughest, french_east, french_lakes, french_scholars)
+    else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };

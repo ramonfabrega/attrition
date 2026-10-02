@@ -1073,7 +1073,7 @@ impl ScriptHost<'_> {
                 };
                 // `could_queue`: can_make and room.
                 let bd = &self.sim.buildings[b];
-                if !bd.active || !bd.alive || !bd.queue.has_room() {
+                if !bd.active || !bd.alive || !self.sim.unit_queue_has_room(b, rec) {
                     return BAD;
                 }
                 b

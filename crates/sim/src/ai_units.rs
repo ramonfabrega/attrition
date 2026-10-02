@@ -364,6 +364,9 @@ impl Sim {
     /// `City::could_queue(city, t)`: any member of the city chain can make
     /// `t` and has room.
     fn city_could_queue(&self, c: usize, t: TypeId) -> bool {
+        let Some(rec) = self.unit_record(t) else {
+            return false;
+        };
         let Some(wt) = self.tech_tree.types[t].where_ else {
             return false;
         };
@@ -371,7 +374,7 @@ impl Sim {
             let bd = &self.buildings[b];
             bd.alive
                 && bd.active
-                && bd.queue.has_room()
+                && self.unit_queue_has_room(b, rec)
                 && !self.building_unassimilated(b)
                 && self.building_of_type(b, wt)
         })
@@ -2080,7 +2083,7 @@ impl Sim {
             let mut best_score = 0;
             for b in self.city_chain(c) {
                 let bd = &self.buildings[b];
-                if !bd.alive || !bd.active || !bd.queue.has_room() {
+                if !bd.alive || !bd.active || !self.unit_queue_has_room(b, rec) {
                     continue;
                 }
                 let ok = self.building_of_type(b, wt)
@@ -2102,7 +2105,7 @@ impl Sim {
             let mut best_score = 0;
             for b in 0..self.buildings.len() {
                 let bd = &self.buildings[b];
-                if bd.owner != who || !bd.alive || !bd.active || !bd.queue.has_room() {
+                if bd.owner != who || !bd.alive || !bd.active || !self.unit_queue_has_room(b, rec) {
                     continue;
                 }
                 if !self.building_of_type(b, wt) {

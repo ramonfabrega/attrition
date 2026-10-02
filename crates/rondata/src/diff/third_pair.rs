@@ -221,17 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
-/// run603: the successor word after French timber capacity, frame 7356.
+/// run610: the successor after the university admission limit, frame 8182.
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run610",
+        &[("gamelog-run610-islands-french-toughest-8182.txt", 8177)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[8183],
+        true,
+    )
+}
+
+#[test]
+fn run610_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 237, "initial run610 baseline");
+}
+
+/// run603: the successor word after French timber capacity, frame 7356.
+pub(crate) fn french_east_indies_scholar_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run603",
         &[("gamelog-run603-islands-french-toughest-7356.txt", 7351)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_SCHOLAR,
         1,
-        &[THIRD_PAIR_WORD_EAST_INDIES + 1],
+        &[7357],
         true,
     )
 }
@@ -239,7 +265,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run603_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_scholar_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -248,7 +274,22 @@ fn run603_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 120, "initial run603 baseline");
+    pin_eq!(w.firsts.len(), 108, "run603 after scholar admission");
+    assert!(
+        !w.firsts.keys().any(|(who, o, field)| *who == 1
+            && ((*o == 45 && field == "extra")
+                || (*o == 2016 && field == "queue:queued")
+                || (*o == -1
+                    && matches!(
+                        field.as_str(),
+                        "leader:scholars"
+                            | "leader:active"
+                            | "leader:control"
+                            | "leader:num_units[2]"
+                            | "leader:num_queued[2]"
+                    )))),
+        "the surplus queue, birth and census counts agree"
+    );
 }
 
 /// run601: the third pair's Great Lakes word, whole records around frame 2576.
@@ -359,8 +400,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run603-islands-french-toughest-7356.txt",
+            "gamelog-run610-islands-french-toughest-8182.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run603-islands-french-toughest-7356.txt",
+            WIDENING_FRENCH_SCHOLAR,
         ),
         (
             EAST_START,

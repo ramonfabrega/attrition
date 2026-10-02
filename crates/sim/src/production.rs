@@ -126,8 +126,7 @@ pub enum QueueFail {
     Cost,
     /// This building cannot make this type at all.
     CantTrain,
-    /// No free slot — or the University's six-scholar rule, which is the
-    /// one special case `could_queue` carries and is not modelled here.
+    /// No free slot, or the University's scholar admission limit.
     Full,
 }
 
@@ -625,6 +624,30 @@ pub fn reprice(item: &mut Item, discount: i32, levels: i32, ledger: &mut Ledger)
 /// The infinite queue and the player's queue-up (`docs/PRODUCTION.md`,
 /// "The infinite queue"; `docs/GOLDEN.md` §33, run285).
 impl crate::Sim {
+    /// `BuildData::could_queue`'s capacity predicates (PRODUCTION,
+    /// "Queueing charges the price", item 1445). The existing total matters:
+    /// six admits one more, seven refuses. Include scholars walking here.
+    pub(crate) fn unit_queue_has_room(&self, at: usize, ty: usize) -> bool {
+        let b = &self.buildings[at];
+        if !b.queue.has_room() {
+            return false;
+        }
+        if self.building_ident(at) != crate::build::Ident::University
+            || self.unit_types[ty].worker != crate::orders::Worker::Scholar
+        {
+            return true;
+        }
+        let queued = b
+            .queue
+            .items
+            .iter()
+            .filter(|q| {
+                q.tech.is_none() && self.unit_types[q.ty].worker == crate::orders::Worker::Scholar
+            })
+            .count() as i32;
+        queued + self.num_gatherers(at, false, false) <= 6
+    }
+
     /// **`BuildData::can_infinite@0062d4d0`** — the gate
     /// `WallData::valid_buildmask@0063e2a0` asks for 0x40: a training
     /// building (`BuildTypeData::is_training_building`, `build_flags &
@@ -1228,6 +1251,46 @@ mod infinite_tests {
         sim.ledgers[0].bucket = [10_000; RESOURCES];
         sim.holdings[0].available = [true; RESOURCES];
         (sim, b, rec)
+    }
+
+    #[test]
+    fn university_admission_counts_seated_and_queued_scholars_before_charging() {
+        let (mut s, b, rec) = barracks(true);
+        let bt = s.buildings[b].ty.unwrap();
+        s.build_types[bt].ident = Ident::University;
+        s.unit_types[rec].worker = crate::orders::Worker::Scholar;
+        for o in 0..6 {
+            let mut u = crate::Unit::new(0, o, s.buildings[b].pos, 100);
+            u.ty = Some(rec);
+            u.inside = Some(b);
+            u.on_map = false;
+            let u = s.add_unit(u);
+            s.buildings[b].garrison.push(u);
+        }
+        assert_eq!(s.num_gatherers(b, false, false), 6);
+        assert_eq!(s.queue_up(b, rec), Ok(0), "six permits the seventh");
+        let bucket = s.ledgers[0].bucket;
+        let tracked = s.muster[0].queued_by_type[rec];
+        assert_eq!(s.queue_up(b, rec), Err(super::QueueFail::Full));
+        assert_eq!(
+            s.ledgers[0].bucket, bucket,
+            "a refused eighth costs nothing"
+        );
+        assert_eq!(s.muster[0].queued_by_type[rec], tracked);
+        assert_eq!(s.buildings[b].queue.items.len(), 1);
+        // The special limit belongs to this producer and this worker kind.
+        let citizen = s.add_unit_type(crate::UnitType {
+            worker: crate::orders::Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        assert!(s.unit_queue_has_room(b, citizen));
+        s.build_types[bt].ident = Ident::Barracks;
+        assert!(s.unit_queue_has_room(b, rec));
+        s.buildings[b].queue.capacity = s.buildings[b].queue.items.len();
+        assert!(
+            !s.unit_queue_has_room(b, rec),
+            "ordinary queue capacity still applies"
+        );
     }
 
     /// **The button needs a train job** (`BuildData::can_infinite@

@@ -12,12 +12,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-02, direct Codex run: 1444 closes French Great Lakes
-2576 → **5638**, its natural end. The goody-ruins placement guard restores
-the initial site ranking; 40 closing units agree in position and order.
-French East Indies remains **7356**, now the lower open word. Items
-1443–1444 are pending batch validation; 1442 has combined validation.
-Continue at East Indies' already-widened frame 7356 (run603).*
+*2026-10-02, direct Codex run: 1445 advances French East Indies
+7356 → **8182** by refusing an eighth university scholar. The surplus
+queue and birth disappear; Great Lakes stays closed at **5638**.
+Items 1443–1445 are pending the batch gate. East Indies is the lower
+open word; run610 widens frame 8182 before the next mechanism is booked.*
 
 - **Branch only**: `codex/direct-advancement`; the Claude commander is
   paused, no lanes or refill. The user authorized sequential direct work.
@@ -34,12 +33,12 @@ Continue at East Indies' already-widened frame 7356 (run603).*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w7356 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w8182 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1445 takes French East Indies frame 7356, widened in run603.
+**Opener: 1446 takes French East Indies frame 8182, widened in run610.
 The direct run is sequential; the commander remains paused.**
 
 ## The queue
@@ -50,11 +49,12 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1445. **French East Indies frame 7356, four versus two draws**, index 0:
-    ours `Guy::init_real+0x52`, theirs `Guy::set_anim+0x97a` under `inc_time`.
-    run603 block 7357 widens it whole: extra unit 1/45, active/control
-    47 versus 46 and scholars 13 versus 12. Great Lakes is closed at 5638.
-    Inspect the actual birth decision and its inputs; no mechanism promised.
+1446. **French East Indies frame 8182, fifteen versus forty-seven draws**,
+    index 2: `Leader::produce_building+0x1805` versus `+0xc99`.
+    run610 has 237 differing keys. Block8183 building 1/2024 appears at
+    (37440,24384)/(34944,21888), city -1/2, construction time 42000/15000;
+    unit 1/57 takes a different route. Earlier make-list differences stand.
+    No construction or placement mechanism promised; date the first parting.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
