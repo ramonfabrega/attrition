@@ -1383,7 +1383,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     if let Some(p) = &r589 {
-        let n = drive_capture(p, 17_906, 17_911, &mut paths);
+        let n = drive_capture(p, 17_943, 17_948, &mut paths);
         assert_eq!(n, 6, "run589 carries the current East Indies word");
         frames += n;
     }

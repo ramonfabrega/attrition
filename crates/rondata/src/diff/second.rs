@@ -2714,7 +2714,7 @@ mod tests {
             "run589",
             "gamelog-run589-islands-toughest-17890.txt",
             WIDENING_SECOND_EAST_INDIES_17907,
-            &[17_907, 17_908],
+            &[17_907, 17_908, 17_944, 17_945],
             true,
             true,
         ) else {
@@ -2731,7 +2731,21 @@ mod tests {
             "all record keys are read: {:?}",
             w.missing
         );
-        pin_eq!(w.firsts.len(), 634, "run589 record baseline");
+        pin_eq!(w.firsts.len(), 321, "run589 record baseline");
+        pin_eq!(
+            w.firsts
+                .get(&(1, 132, "order:kind".into()))
+                .map(|(f, r)| (*f, r.as_str())),
+            Some((17_944, "Kind { ours: 2, theirs: 10 }")),
+            "the successor's order difference is already present at its entry"
+        );
+        pin_eq!(
+            w.firsts
+                .get(&(1, 132, "pos".into()))
+                .map(|(f, r)| (*f, r.as_str())),
+            Some((17_945, "ours (7174,12276) theirs (7176,12312)")),
+            "the successor's first position difference"
+        );
         let word = w
             .standing
             .get(&17_908)
@@ -2739,13 +2753,13 @@ mod tests {
         for o in [155, 156, 157] {
             pin_eq!(
                 word.get(&(1, o, "inside".into())).map(String::as_str),
-                Some("ours -1 theirs 167"),
-                "the original has boarded 1/{o}"
+                None,
+                "both sides have boarded 1/{o}"
             );
         }
         pin!(
-            word.contains_key(&(1, 167, "unlinked".into())),
-            "the original alone holds the new transport"
+            !word.contains_key(&(1, 167, "unlinked".into())),
+            "both sides hold the new transport"
         );
         let Some(a) = widen_second_ammo(
             "gamelog-run589-islands-toughest-17890.txt",
@@ -2765,10 +2779,10 @@ mod tests {
         pin_eq!(a.frames, 64, "run589 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1084, 1113, 20060),
+            (1084, 1100, 21680),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 331, "run589 projectile baseline");
+        pin_eq!(a.firsts.len(), 298, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),
@@ -2865,7 +2879,9 @@ mod tests {
             "run585",
             "gamelog-run585-islands-toughest-17501.txt",
             WIDENING_SECOND_EAST_INDIES_17507,
-            &[17_501, 17_507, 17_508, 17_647, 17_651, 17_654, 17_699],
+            &[
+                17_501, 17_507, 17_508, 17_647, 17_651, 17_654, 17_690, 17_691, 17_699,
+            ],
             true,
             true,
         ) else {
@@ -2927,7 +2943,16 @@ mod tests {
                 "block {block}: farm 2006 took the missed arrow"
             );
         }
-        pin_eq!(w.firsts.len(), 312, "every key parted on run585");
+        for block in [17_690, 17_691] {
+            let rows = w.standing.get(&block).expect("the landing's whole block");
+            for o in [155, 156, 157] {
+                pin!(
+                    !rows.contains_key(&(1, o, "pos".into())),
+                    "block {block}: the squad's landing position 1/{o} agrees"
+                );
+            }
+        }
+        pin_eq!(w.firsts.len(), 291, "every key parted on run585");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**

@@ -3809,3 +3809,49 @@ and clear/set wait bits, with an older occupant holding the opposite bit;
 it checks both the wait and recovery outcomes. The original slot read and
 this captured consequence are corroborated; behavior for an absent slot
 is not established. No independent blind reading was performed here.
+
+## 23. A reused figure clears its retained point with the new radius (2026-10-02, item 1438)
+
+**Measured trigger.** East Indies' word 17907 is five draws against seven.
+run589 finds infantry 1/155–157 ashore while the original has boarded
+transport 167. Their first position difference is earlier: run585 block
+17691 puts captain 155 at (29448,37896), versus (29400,37944) here. A
+mid-decision payoff at tick 17690 using the original landing point moves
+the word to 17944. The sweep's first candidate is the original point;
+this crate rejects occupancy cell (614,788).
+
+**The writer, measured.** run590's packet calls the original collision
+and placement functions: the candidate is accepted under both tested
+bearings, and its world cell has no collision block. Instrumenting this
+crate's writes finds only transport 173's birth at 16209. run591 calls
+the original cast on that frame and confirms the same bit is set: birth
+is not the defect. run592's read-only frame watch dates the clear to tick
+17150. run593's packet, stepping `Objects::process_all@0065dce0` until a
+watched byte changes, identifies `CollCheck::move_unit@00682ad0` at
+`00682d43`, called through `Guy::set_new_location@005d86f0`,
+`Unit::set_new_location@005f8d20`, `Unit::init@00612100` and
+`Objects::init_unit@0065e0c0`. The new transport is **1/112**, type 321;
+the move is from unit cell **(612,789) to (710,495), radius 3**.
+
+A reused slot retains its existing figure's old coordinates. Initialization
+seats it at the new birth point using the **new type's radius**, clearing
+the old disc even though the previous occupant has closed. The Rust vector
+keeps old occupants but previously painted only the newborn's destination.
+`add_unit` now takes guy 0's retained body point from the latest occupant
+of that owner/object number; `coll_rebirth` applies the ordinary collision
+move. Fresh slots retain the existing birth paint. Region gates and disc
+overlap rules remain those of §2. The original's temporary suppression of
+birth marking and retention of existing figures are visible in `Unit::init`;
+`Guy::clear@005db590` supplies the sentinel point only for newly allocated
+figures.
+
+**Evidence and limits.** The general correction measures **17907 → 17944**,
++37 frames; the two other current words hold. The synthetic regression
+`a_reused_figure_clears_its_old_body_with_the_new_radius` varies the new
+radius and separates the old body from the old unit point. Captured value
+checks and whole-window counts are recorded in the item's journal. Birth
+snapping alone moved no score; an extra captain placement search broke an
+earlier floor and was removed (the original's search is gated on a
+noncaptain). No independent blind reading was performed. The offline
+object-phase experiment stops at the observed write and makes no full-frame
+emulation claim; only guy 0's collision footprint is modeled, as in §2.

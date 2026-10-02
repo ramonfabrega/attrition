@@ -1821,6 +1821,16 @@ impl Sim {
     /// prefer it over pushing onto `units` directly: a supply wagon that never
     /// registered supplies nobody, silently.
     pub fn add_unit(&mut self, unit: Unit) -> usize {
+        // `Unit::init` preserves an existing guy's point until seating it;
+        // the collision move uses the new type's radius (COLLISION §23).
+        // Only the latest occupant of the object number owns that figure.
+        let previous_body = self
+            .units
+            .iter()
+            .rev()
+            .find(|old| old.owner == unit.owner && old.index == unit.index)
+            .filter(|old| !old.alive() && !old.guys.is_empty())
+            .map(|old| old.movement.body.pos);
         let i = self.units.len();
         let owner = unit.owner as usize;
         let source = unit.kind.supply_unit;
@@ -1865,7 +1875,11 @@ impl Sim {
         self.update_los(i);
         // `Object::add_to_world`: both collision indices
         // (`docs/COLLISION.md` §2, §3) **and the vision disc**.
-        self.coll_add(i);
+        if let Some(from) = previous_body {
+            self.coll_rebirth(i, from);
+        } else {
+            self.coll_add(i);
+        }
         if self.units[i].alive() && self.units[i].on_map {
             self.chain_add(i);
             // The third thing `add_to_world` does, and the one that was

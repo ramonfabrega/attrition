@@ -687,6 +687,18 @@ impl Sim {
         self.units[u].coll_at = Some(at);
     }
 
+    /// A reused unit slot retains guy 0's old point. `Unit::init` seats
+    /// that figure with the new type's radius, so its old disc is cleared
+    /// even though the previous occupant is closed (`docs/COLLISION.md` §23).
+    pub(crate) fn coll_rebirth(&mut self, u: usize, from: Pos) {
+        if !(self.units[u].alive() && self.units[u].on_map) {
+            return;
+        }
+        let to = self.units[u].pos;
+        self.coll_move(u, from, to);
+        self.units[u].coll_at = Some(to);
+    }
+
     /// `Guy::set_new_location`'s `CollCheck::move_unit(from, to)`: the
     /// disc moves from where the occupancy last saw guy 0 to where guy 0
     /// now stands (`docs/COLLISION.md` §16). A unit that is not painted
@@ -2490,6 +2502,46 @@ mod tests {
         let x = make(&mut sim, 0, a);
         let y = make(&mut sim, 1, b);
         (sim, x, y)
+    }
+
+    #[test]
+    fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
+        for radius in [48, 144] {
+            let (mut sim, old, _) = pair(Pos::new(3000, 3000), Pos::new(9000, 9000));
+            sim.coll_remove(old);
+            sim.units[old].health = 0;
+            sim.units[old].on_map = false;
+            sim.units[old].guys.push(crate::anim::Guy::fresh(-1));
+            // A closed occupant keeps a body that differs from its unit point.
+            let body = ucell_centre(Pos::new(80, 80));
+            sim.units[old].movement.body.pos = body;
+            let ghost = Pos::new(82, 80);
+            sim.coll.set(ghost.x, ghost.y, true);
+            let unit_cell = ucell(sim.units[old].pos);
+            sim.coll.set(unit_cell.x, unit_cell.y, true);
+            let ty = sim.add_unit_type(UnitType {
+                combat: crate::combat::Profile {
+                    block_radius: radius,
+                    ..crate::combat::Profile::default()
+                },
+                ..UnitType::default()
+            });
+            let destination = ucell_centre(Pos::new(140, 140));
+            let mut newborn = Unit::new(0, 0, destination, 40);
+            newborn.ty = Some(ty);
+            let u = sim.add_unit(newborn);
+            assert_eq!(
+                sim.coll.get(ghost.x, ghost.y),
+                radius == 48,
+                "the new radius, not the old radius, controls the clear"
+            );
+            assert!(
+                sim.coll.get(unit_cell.x, unit_cell.y),
+                "the retained figure point is used, not the closed unit's point"
+            );
+            assert!(sim.coll.get(140, 140), "the new disc is painted");
+            assert_eq!(sim.units[u].coll_at, Some(destination));
+        }
     }
 
     /// §2's region gate is `get_tregion` of the *figure's tile*, and for

@@ -1844,7 +1844,10 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 /// Item 1437: the President's own decoy radius moves 17785 to 17907
 /// (5 draws vs 7, index 0 inc_time wrap vs do_cast). run589 widens the
 /// successor; run588 pins restored member 154 and group 66. GOLDEN §60.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_907;
+/// Item 1438: reused figures clear their retained point at birth; 17944
+/// has 100 draws vs 118, index 92 do_guard vs find_attack_pos. run589
+/// widens it; run585 pins the corrected landing. COLLISION §23.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 17_944;
 
 /// **The third map's word at Toughest** (item 1221, DECISIONS 56 §1):
 /// run470, Great Sahara in the second pair's lobby, walked from run468's
@@ -8245,7 +8248,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run589_s_word_frame_is_widened_whole"),
-        1437,
+        1438,
         Some(WIDENING_SECOND_EAST_INDIES_17907),
     ),
     (

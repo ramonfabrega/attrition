@@ -13422,3 +13422,129 @@ SHA-256 `d47c3eba6291666d6afc83fab374618548048b2a6ed40938570223dff05925b0`.
 Source/archive hashes match. Receipt, hashes and trace comparison are in
 `~/ron-data/lab-experiments/2026-10-02-item-1437-codex/`. The comparison
 and successor values are recorded with the item before re-pinning.
+
+## run590 — East Indies landing packet at 17690 (2026-10-02, item 1438)
+
+**Disk gap.** run585 first parts infantry 1/155's landing on tick 17690;
+its dump gives positions but not the rejected collision candidates. This
+packet lets the original placement functions answer on the captured state.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run590 \
+    --map 18 --end-frame 17697 --timeout 1200 --log-window 17688 17693 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=17690 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; map and seed 12345 verified, closing 17698.
+All five settings files restored. Launch 88.992 s, total 97.222 s.
+Trace comparison with run346: **17,698 shared frames, zero differences**.
+Packet: logger 17690, trace 17689, 185 ranges, 890,769,408 payload bytes;
+anchors, logger-return roots and completion receipt validate. This does not
+assert atomicity of the entire process. Packet SHA-256
+`92c93295173c8f04ceef7f42243c5f2165ca88954e7c65d382f3ffd2e37b9d2a`.
+
+Archives: `gamelog-run590-islands-toughest-17688.txt`, 14,973,810 bytes,
+SHA-256 `99ec12d194fe268f750c3dd3fa66fde2eee92bd283839ab9615b5b62b2fd76c9`;
+`rontrace-run590.log`, 172,033,728 bytes,
+SHA-256 `924a9a024285a3a09e64d2e987409a1382edf1fdc7072a288a1d25f184a9c591`.
+Packet and source remain in the capture directory; validation, receipts,
+archive hashes and function-call experiment are retained in
+`~/ron-data/lab-experiments/2026-10-02-item-1438-codex/`.
+
+## run591 — East Indies transport-birth packet at 16209 (2026-10-02, item 1438)
+
+**Disk gap.** run572 records the transport's birth, but no logged field
+records collision-bit writes. run590 confirms the disputed cell's block
+is absent by landing. Take a packet before the sim's sole writer, boat
+1/173's birth, to test that writer in the original executable.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run591 \
+    --map 18 --end-frame 16216 --timeout 1200 --log-window 16208 16213 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=16209 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; map, lifecycle and seed 12345 verified;
+closing 16217. All five settings files restored. Launch 80.267 s, total
+88.088 s. Against run346: **16,217 shared trace frames, zero differences**.
+Packet logger 16209, 868,548,608 payload bytes; anchors, logger-return
+roots and completion receipt validate. Packet SHA-256
+`1b0d5e31ac459fdee831c4468be740f9955e3eec4b329ddb37a09abfa5a1ba24`.
+
+Archives: `gamelog-run591-islands-toughest-16208.txt`, 14,831,149 bytes,
+SHA-256 `8d60ae8d32fec3753ecd077a10eaf5b374e3adc7178e4a2b3e7f713ac1816cf1`;
+`rontrace-run591.log`, 140,984,096 bytes,
+SHA-256 `2d07d652d015bf7c0ae7b63d7afbbd60d48fde944afeefd9571a2cd43720808c`.
+Receipt, validation, hashes, trace comparison and offline function-call
+logs remain in `~/ron-data/lab-experiments/2026-10-02-item-1438-codex/`.
+The function experiment confirms the birth sets the bit; it does not
+claim the stubbed emulator reproduced an entire frame.
+
+## run592 — East Indies collision-bit watch (2026-10-02, item 1438)
+
+**Disk gap.** run591's original cast sets the disputed bit just as the sim
+does; run590 finds its block absent. Existing dumps cannot date its clear.
+A temporary, read-only `RON_ITEM1438_BIT` probe in the frame hook reads
+world cell (38,49)'s block pointer, byte 12 and region at each frame entry
+16209..17690. INFO 1438 records the values; the source is retained outside
+git as `tracer-bit-watch.c` in the item's evidence directory.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run592 \
+    --map 18 --end-frame 17697 --timeout 1200 --log-window 17688 17693 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_ITEM1438_BIT --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; map, lifecycle, seed 12345 and closing
+17698 verified. All five settings files restored; temporary tracer source
+restored after the build. Launch 83.395 s, total 91.155 s. Against run346:
+**17,698 shared trace frames, zero differences**. All 1,482 watch records
+are present. The bit becomes set at entry 16210, clear at entry 17151;
+the block is freed at 17239, reallocated at 17242 and freed at 17479.
+The region remains 11. The clearing decision is therefore on tick 17150.
+
+Archives: `gamelog-run592-islands-toughest-bit-watch.txt`, 14,973,809 bytes,
+SHA-256 `25bcb7d0708e6e0ae13d90f0d25ed2ce53259aa4611efabbec9e17303b04ad90`;
+`rontrace-run592.log`, 172,082,720 bytes,
+SHA-256 `7da68a2381a6167c16db6b1cfe5c410ca2b7ff2ac3b4e4c06aa00e178d9bf270`.
+Receipt, hashes, trace comparison, probe source and transitions remain in
+`~/ron-data/lab-experiments/2026-10-02-item-1438-codex/`.
+
+## run593 — East Indies clearing-frame packet at 17150 (2026-10-02, item 1438)
+
+**Disk gap.** run592 dates the disputed bit's clear to 17150, but its
+call records contain no nearby unit move and no record names the writer.
+Take the packet at that frame for an offline memory watch.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-02-run593 \
+    --map 18 --end-frame 17157 --timeout 1200 --log-window 17148 17153 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=17150 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+First launch succeeds, exit 0; map, lifecycle and seed 12345 verified,
+closing 17158. All five settings files restored. Launch 81.534 s, total
+89.284 s. Against run346: **17,158 shared trace frames, zero differences**.
+Packet logger 17150 validates its anchors, unchanged logger-return roots
+and completion receipt; SHA-256
+`1439b2e9157bdc4b72daf5589b97f02952c6bd18c74e0ed2c33664968815902e`.
+
+Archives: `gamelog-run593-islands-toughest-17148.txt`, 14,660,104 bytes,
+SHA-256 `04965a6d4aa9f953646e962b93fafb1720ee0302e2d109b7ffd87684d8c8f0af`;
+`rontrace-run593.log`, 157,875,520 bytes,
+SHA-256 `d3b214bc03a3927f9ff49dece2bd512d6f718b1af66d6533540f00e5e0570f51`.
+Receipt, hashes, validation and memory-watch logs remain in the item's
+external evidence directory. The full-frame entry reaches an uncaptured
+network pointer; the object-phase entry reaches the clearing instruction
+and deliberately stops there. This is a writer identification, not a claim
+of complete emulated frame fidelity (`docs/COLLISION.md` §23).
