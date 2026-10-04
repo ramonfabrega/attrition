@@ -2396,10 +2396,14 @@ Conquer-the-World arm (`conquest_wonders`) is cut from v1.
 
 - **The Pyramids' other terms.** `has_wonder(0x20e)` is read by
   `LeaderData::get_city_limit` (`PYRAMIDS_CITY_LIMIT`), `found_cities`
-  and `TypeData::get_cost` (`PYRAMIDS_CITY_DISCOUNT`). This crate's
-  `Nation::pyramids`, which `place.rs`'s city limit reads, has no writer;
-  nor do `versailles`, `taj_mahal`, `red_fort` and `tikal`. They go live
-  for who=1 from 17085 in the original, and are not fed here.
+  and `TypeData::get_cost` (`PYRAMIDS_CITY_DISCOUNT`). ~~This crate's
+  `Nation::pyramids`, which `place.rs`'s city limit reads, has no
+  writer;~~ **the limit and the discount read `Sim::wonders_held` since
+  item 1454** (`docs/AI.md` §116; `docs/COSTS.md`, "The Pyramids take a
+  third off a city"), and `Nation::pyramids` stays as a unit test's
+  stand-in. `versailles`, `taj_mahal`, `red_fort` and `tikal` still have
+  no writer. They go live for who=1 from 17085 in the original, and are
+  not fed here.
 - **Every wonder but the Pyramids** is a reading: no capture holds one.
   The branch shape of §15.2 is from the decompile, not the listing.
 - **Russian oil, Virtual Reality and the CtW terms** of §15.3 are seams.

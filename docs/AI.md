@@ -9540,14 +9540,15 @@ runway's 502.
 
 ### 75.7 What this has *not* established
 
-- **`already_built`.** `init_wonder` also sets `Game::wonders[t − 0x20e]
+- ~~**`already_built`.** `init_wonder` also sets `Game::wonders[t − 0x20e]
   |= 1`, and `LeaderData::type_avail@006e33a0` answers 0 for a wonder
   type any player has built (`BuildTypeData::already_built@0063ce10`).
   This crate's `type_avail` has no such arm, so ours still lists the
   Pyramids as a candidate after 17084. The mark closes the arm before it
   draws, so no row sees it here. A hard AI, or a wonder victory, would
   value the type again. Reading-only (parked 777's family, not the
-  cause).
+  cause).~~ **Built by item 1454** (§116; `docs/TECH.md`, "A built wonder
+  is built for everyone"): the hard French AI drew on it at 9781.
 - **The rest of the wonder bookkeeping** still reads empty in
   `wonder_value`: the team, enemy and unbuilt wonder values and
   `Game::wonder_winning`. With a wonder standing, the original's team
@@ -13911,3 +13912,68 @@ reading the field as 0 returns the word to 8385 and fails four pins.
 **The new word** is 8840: 100 draws against 98 at index 96, ours
 `Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
 `Guy::set_anim+0x104b`. Its widening is run617 (item 1452).
+
+## 116. The Pyramids found the fifth city, and a built wonder leaves every list (2026-10-04, item 1454)
+
+French East Indies' word 9777 was the original's `Leader::make_stuff`: on
+9777 it buys building `1/2035`, a Small City, for 140 food and 140 timber
+(run623's buckets: 501 → 361 and 158 → 18). The crate bought nothing.
+The disk answered it without a capture. run623's `RON_LEADER_PROBE`
+window holds the original's offers.
+
+**Three terms, each measured before the next.**
+
+1. **The limit.** `Sim::city_limit`'s Pyramids arm read `Nation::pyramids`,
+   which nothing in a game sets. `LeaderData::get_city_limit@006d6130`
+   reads `has_wonder(0x20e)`. The AI finishes its Pyramids on 9658, so its
+   limit is five, and the crate stood at four of four and offered no site.
+   The arm now reads [`Sim::wonders_held`]. `Nation::pyramids` stays as a
+   unit test's stand-in. With the limit fixed the crate offered all ten
+   sites at exactly a quarter of the original's values (`f` 0x40 against
+   0x100), because it could afford none.
+2. **The price.** The crate priced the fifth city at the bare ramp, 210 and
+   210 (`docs/COSTS.md`, "A city is ramped by every city").
+   `TypeData::get_cost@00664090`'s city tail takes `BANTU_CITY_COST` and
+   then `PYRAMIDS_CITY_DISCOUNT` (`33% cheaper`) off a city:
+   `(100 − 33) × 210 / 100 = 140`. See `docs/COSTS.md`, "The Pyramids take
+   a third off a city". With this the word moved 9777 → 9781, and nothing
+   parted on run623's blocks 9778..9781.
+3. **`already_built`.** On 9781 the crate's wonder arm drew 15 pairs and
+   the original's 12: three cities × five wonders against × four. The
+   original's make list has no entry for type 526 (0x20e, the Pyramids) in
+   any city, and ours offered it at value 0. `LeaderData::type_avail` answers
+   0 for a wonder some player has built (`docs/TECH.md`, "A built wonder is
+   built for everyone"), and `create_buildings`' type gate is
+   `type_avail > 3`. With it: 12 pairs, and **9781 → 10131**.
+
+**What moved.** French East Indies **9777 → 10131**. No floor moves
+anywhere; the full sim and rondata suites pass on the new pins. run623's
+widening falls 186 → 97, and the 97 are its standing keys on 9772 alone:
+nothing parts on 9773..9784.
+
+**Made to fail.** Each term, removed alone (`mutations.log`):
+
+| removed | word | purchase test |
+| --- | --- | --- |
+| the discount | 9777 | fails |
+| `already_built` | 9781 | passes |
+| the limit's `wonders_held` | 9777 | fails |
+
+**What this has not established.** `BANTU_CITY_COST` is a reading alone,
+since no capture holds a Bantu leader. The rest of `get_cost`'s building
+tail (marble and Egyptian wonders, Korean towers, the Colosseum and Roman
+forts, Tikal temples, Nubian and Greek, Maya timber) is not carried. A
+**standing residue** sits beside the word: the capital `1/2008`'s census
+`filled` reads one high (50 against 49), and so do `1/2023`'s `land` and
+`filled` (83/34 against 82/33). It is there on every French window from
+run620's 6136, and not on run602's 981. On 9781 it puts the capital's farm
+offer at 24000 against the original's 24400 (`open` 55 against 56), which
+moves no draw there. Parked.
+
+**The new word** is 10131: 4 draws against 6 at index 0, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs `Guy::set_anim+0x97a
+< Unit::do_non_flat_gather+0x10f`. Its widening is run624 (181 keys). The
+state has parted by run624's first block, 10126: who=1's food is 118
+against 160, metal 203 against 230, `num_queued[82]` 2 against 1, and
+`caras` 3 against 4, and `1/58` stands elsewhere. Item 1455 dates that
+parting between 9784 and 10126.

@@ -221,15 +221,42 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
-/// run623: the successor after the gull's flight, frame 9777 (item 1453).
+/// run624: the successor after the Pyramids' city terms and `already_built`,
+/// frame 10131 (item 1454).
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run624",
+        &[("gamelog-run624-islands-french-10131.txt", 10126)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[10132],
+        true,
+    )
+}
+
+#[test]
+fn run624_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 181, "initial run624 baseline");
+}
+
+/// run623: the successor after the gull's flight, frame 9777 (item 1453).
+pub(crate) fn french_east_indies_9777_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run623",
         &[("gamelog-run623-islands-french-9777.txt", 9772)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_9777,
         1,
         &[9778],
         true,
@@ -239,12 +266,16 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run623_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_9777_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 186, "initial run623 baseline");
+    pin_eq!(
+        w.firsts.len(),
+        97,
+        "run623 after the fifth city and `already_built`"
+    );
 }
 
 /// run622: the successor after the idle push-back, frame 9655 (item 1452).
@@ -772,8 +803,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run623-islands-french-9777.txt",
+            "gamelog-run624-islands-french-10131.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run623-islands-french-9777.txt",
+            WIDENING_FRENCH_EAST_INDIES_9777,
         ),
         (
             EAST_START,
@@ -1103,11 +1140,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run622-islands-french-9655.txt",
             WIDENING_FRENCH_EAST_INDIES_9655,
         ),
-        // The open word's window, to the word's own block: past it the
-        // two games part by design (run623's `1/2035`, the purchase on
-        // 9777, stands in the original alone).
         (
             "gamelog-run623-islands-french-9777.txt",
+            WIDENING_FRENCH_EAST_INDIES_9777,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run624-islands-french-10131.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
@@ -1186,4 +1225,52 @@ fn french_east_indies_gulls_fly_where_the_original_s_do() {
     // run620 holds gull 1 alone over 6134..6158 and run622 both gulls
     // over 9648..9663.
     assert!(checked >= 50, "{checked} gull frames compared");
+}
+
+/// Item 1454: French East Indies' fifth city, bought on 9777. The AI
+/// holds the Pyramids from 9658, so its limit is five (`get_city_limit`'s
+/// `has_wonder(0x20e)`) and a city costs a third less (`get_cost`'s
+/// `PYRAMIDS_CITY_DISCOUNT`): 140 food and 140 timber where the ramp asks
+/// 210. run623's buckets, who=1: food 501 → 361 and timber 158 → 18
+/// from block 9777 to 9778.
+#[test]
+fn french_east_indies_buys_its_fifth_city_at_a_third_off() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(base_path)) = (dump(EAST_START), dump(EAST_LONG.0)) else {
+        return;
+    };
+    if dump("gamelog-run623-islands-french-9777.txt").is_none() {
+        return;
+    }
+    let loaded = crate::load::load(&inst).unwrap();
+    let (start_text, base_text) = (crate::capture::read(start), crate::capture::read(base_path));
+    let (start_log, base_log) = (Log::parse(&start_text), Log::parse(&base_text));
+    let sibling = start_log.initial().unwrap();
+    let mut init = base_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    if let Some(t) = trace(EAST_LONG.1) {
+        borrow_pasture(&mut init, &t);
+    }
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    // After n ticks the state is block n.
+    for _ in 0..9777 {
+        built.tick();
+    }
+    let sim = &built.sim;
+    let village = (0..sim.build_types.len())
+        .find(|&t| sim.build_types[t].ident == sim::build::Ident::Village)
+        .unwrap();
+    assert_eq!(sim.city_limit(1), 5, "four cities and the Pyramids");
+    let price = sim.building_price(1, village);
+    assert_eq!((price[0], price[1]), (140, 140), "the fifth city's price");
+    // Food stands three above the original's from before run623's window
+    // (`leader:bucket[0:food]`, 500 against 497 on 9772); timber agrees.
+    let before = sim.ledgers[1].bucket;
+    assert_eq!(before[1], 158);
+    built.tick();
+    let after = built.sim.ledgers[1].bucket;
+    assert_eq!((before[0] - after[0], before[1] - after[1]), (140, 140));
+    assert_eq!(after[1], 18);
 }

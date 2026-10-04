@@ -1031,9 +1031,10 @@ impl Sim {
     /// first Small one.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
         let wonder = self.build_types[ty].wonder;
+        let is_city = !wonder && build::is_city(&self.build_types, ty);
         let of_type = if wonder {
             self.wonder_ramp_count(who, ty)
-        } else if build::is_city(&self.build_types, ty) {
+        } else if is_city {
             let line = |k: usize| {
                 matches!(
                     self.build_types[k].ident,
@@ -1060,12 +1061,36 @@ impl Sim {
             },
             &cost::Modifiers {
                 wonder,
+                city: if is_city {
+                    self.city_discounts(who)
+                } else {
+                    [0; 2]
+                },
                 ..cost::Modifiers::default()
             },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `get_cost`'s city tail (`00665c46`..`00665c9b`): `BANTU_CITY_COST`
+    /// when the leader has the Bantu bonus (`has_tribe_bonus(3)`), then
+    /// `PYRAMIDS_CITY_DISCOUNT` when it holds the Pyramids
+    /// (`has_wonder(0x20e)`, [`Sim::wonders_held`]). `docs/COSTS.md`,
+    /// "The Pyramids take a third off a city".
+    fn city_discounts(&self, who: Player) -> [i32; 2] {
+        let bantu = if self.nation[who as usize].bantu {
+            self.tuning.bantu_city_cost
+        } else {
+            0
+        };
+        let pyramids = if self.wonders_held(who) & (1 << crate::tech::wonder::PYRAMIDS) != 0 {
+            self.tuning.pyramids_city_discount
+        } else {
+            0
+        };
+        [bantu, pyramids]
     }
 
     /// `get_cost`'s wonder count for pricing wonder `ty` ([`cost::wonder_count`]):

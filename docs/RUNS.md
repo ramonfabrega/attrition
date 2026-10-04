@@ -14159,3 +14159,22 @@ SHA-256 `1f48f756c20af0a2e33cb4efdfa1928a884a9c300bc2b9389c7d3a4c9fe93f3c`.
 
 Archive `rontrace-run623.log`, 31,626,528 bytes,
 SHA-256 `3ade032cf34e955d581b2f61a1eaa9c40da341767c5ead108cd411299fa62413`.
+
+## run624 — French East Indies, the word 10131's widening, with the leader probe (2026-10-04, item 1454)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1454-opus/run624-booking.json`,
+written before the run. Window **[10126,10139)**, end 10143, call window 10124..10139,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, through the click-free lane.
+A first launch refused before staging because I had pre-created its output
+directory; nothing ran. Relaunched: receipt success; process and wait exits **0**;
+five settings files restored; 13 blocks of 512 groups; seed and players read back.
+Launch-to-exit 215.471 s, total 224.570 s. Game-RNG draws match run600 on every
+frame but the quit frame. The word's widening: 181 keys, none missing. The state
+has parted by the first block, 10126: who=1's food 118 against 160, metal 203
+against 230, `num_queued[82]` 2 against 1, and `1/58` stands elsewhere.
+
+Archive `gamelog-run624-islands-french-10131.txt`, 44,921,380 bytes,
+SHA-256 `754960b0f94d67751083b25713f8f962296d808219feca04f1068d5b26a239ef`.
+
+Archive `rontrace-run624.log`, 33,975,488 bytes,
+SHA-256 `482036383e919f3109efc4ad7a61da5e3f72016a5ee6026ae1a5d00a3869e271`.

@@ -522,7 +522,7 @@ but not yet researched", "available":
 - Not a **building** (a tech, good or spell): 4 — except a government with
   `leader_flags2 & 0x800` → 0.
 - A **building**: a wonder already built by anyone (`already_built`, the
-  per-game table) → 0; `from ≥ 0`, `build_flags & 4`, bit clear → **2**;
+  per-game table; built by item 1454, below) → 0; `from ≥ 0`, `build_flags & 4`, bit clear → **2**;
   `SENATE`: 0 if one is queued, if there is no capital, or if the capital (or
   the city the capital defers to) already has one — the walk through
   `find_capital` and `count_buildings` is in the decompile and not
@@ -1245,6 +1245,28 @@ are its tests.
 decrement (Slingers → Javelineers is a `from` match). A mutation of
 either fails the unit test and no widening.~~ The `jump`-chain decrement
 is held by run462 now, together with the order above (item 1243).
+
+## A built wonder is built for everyone (item 1454, 2026-10-04)
+
+`LeaderData::type_avail@006e33a0`, after `has_preq` and a `type_eligible`
+of 4, answers **0** for a wonder type that
+`BuildTypeData::already_built@0063ce10` reports. That function reads
+`Game::wonders[t − 0x20e]` (`Game +0x618`, `int[17]`). The table's writers
+are `Wonders::init_wonder@0073c860`, from `Build::activate`'s wonder arm,
+and `Wonder::init@0073c5e0`; both write `|= 1` and nothing clears it. So a
+wonder anyone has activated is off every leader's list for the rest of the
+game, even after it is destroyed.
+
+The crate carries the table as `Sim::wonders_built`. It is set where the
+crate's `init_wonder` runs (`Sim::note_wonders`) and read by
+`Sim::type_avail` through `TechTree::type_avail_built`. Before this,
+French East Indies' AI kept the finished Pyramids on its make list, and
+`create_buildings`' wonder arm (`type_avail > 3`) drew one pair per city too
+many on 9781 (`docs/AI.md` §116).
+
+**How confident**: diff-backed by the draw stream, 9781 → 10131. The
+`Wonder::init` writer (a saved game's load) and the never-cleared claim
+are a reading.
 
 ## What is not established
 

@@ -1195,6 +1195,13 @@ pub struct Sim {
     /// building's clock re-baked and every building's hit points refreshed —
     /// before any object is processed. `docs/CITIES.md` §3.2.
     pub wall_stats_dirty: Vec<bool>,
+    /// `Game::wonders` (`Game +0x618`, `int[17]`), a bit per
+    /// [`tech::wonder`] offset: a wonder type some player has activated.
+    /// `Wonders::init_wonder@0073c860` and `Wonder::init@0073c5e0` set it,
+    /// nothing clears it, and `BuildTypeData::already_built@0063ce10` reads
+    /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
+    /// built for everyone").
+    pub wonders_built: u32,
     /// Every region's `Region::borders` resume index reset since the last
     /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
     /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
@@ -1628,6 +1635,7 @@ impl Sim {
             building_high: vec![Vec::new(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
+            wonders_built: 0,
             borders_fixed: false,
             border_pass: None,
             in_play: false,
@@ -4059,10 +4067,16 @@ impl Sim {
         }
     }
 
-    /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4.
+    /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4. A
+    /// wonder type any player has built answers 0 ([`Sim::wonders_built`]).
     pub fn type_avail(&self, who: Player, t: tech::TypeId) -> i32 {
+        let line = &self.tech_tree.roles.wonder_line;
+        let built = line
+            .iter()
+            .position(|&w| w == t)
+            .is_some_and(|k| self.wonders_built & (1 << k) != 0);
         self.tech_tree
-            .type_avail(&self.setup, &self.tech[who as usize], t, true)
+            .type_avail_built(&self.setup, &self.tech[who as usize], t, true, built)
     }
 
     /// After the tree changed: the researched bits follow it, and so does the

@@ -986,6 +986,33 @@ at 60 (`docs/AI.md` §99.11).
 8378 and the draw stream to 8786. The Major City's two counts are the
 listing's alone: no capture's leader holds one when it prices a city.
 
+## The Pyramids take a third off a city
+
+*Item 1454, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s building arm (`00665c46`..`00665c9b`);
+built as `cost::Modifiers::city` in `Sim::building_price`.*
+
+After the building ramp, on a type whose `is_city` holds and that is not a
+wonder, `get_cost` takes two percentages off each resource. Each is its own
+`(100 − x) × cost / 100`, in this order:
+
+1. `BANTU_CITY_COST` (`75% cheaper`, constants `+0x5b8`), for a leader with
+   `has_tribe_bonus(3)`;
+2. `PYRAMIDS_CITY_DISCOUNT` (`33% cheaper`, `+0x434`), for a leader with
+   `has_wonder(0x20e)`.
+
+French East Indies' AI holds the Pyramids from 9658 and four cities, and
+pays **140** food and 140 timber for the fifth on 9777, where the bare ramp
+asks 210 (run623's buckets).
+
+**How confident**: the Pyramids' term is diff-backed by run623 and the
+draw stream to 10131
+(`rondata::diff`, `french_east_indies_buys_its_fifth_city_at_a_third_off`).
+The Bantu term is read alone; no capture holds a Bantu leader. The rest of
+the building tail after it (marble, the Egyptian wonders, Korean towers,
+the Colosseum and Roman forts, Tikal's temples, Nubian markets, Greek
+libraries, Maya timber) is not carried.
+
 ---
 
 ## What is diff-backed

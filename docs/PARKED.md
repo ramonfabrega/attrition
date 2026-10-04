@@ -1466,7 +1466,8 @@ window). No search prices them: all 28,828 priced steps agree.
 
 ## Parked by item 785, 2026-09-25 — the gap and the wonder bookkeeping
 
-(797) **`already_built`** (`Game::wonders`, `type_avail`) is dormant here.
+(797) ~~**`already_built`** (`Game::wonders`, `type_avail`) is dormant here.~~
+**Built by item 1454** (AI §116, TECH "A built wonder is built for everyone").
 
 (798) **The rest of the wonder bookkeeping**: a team's and an enemy's
 wonders and an unbuilt wonder's value in `create_buildings`' arm.
@@ -3628,6 +3629,17 @@ one Longbowman shooting one farm on one trajectory, and each of the three
 wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
+
+(1456) **French East Indies' census reads one cell filled too many.**
+Item 1454, 2026-10-04. The capital `1/2008`'s `city:filled` reads 50
+against 49 on run623's 9772, and `1/2023`'s `land` and `filled` read 83/34
+against 82/33. The capital's offset stands on every French window from
+run620's 6136 (36/35) onward, and is absent from run602's 981. A cell the
+original's census counts as wide open (`space >= 4`, so not filled), the
+crate counts as filled. On 9781 it puts the capital's farm offer at 24000
+against 24400 (`open` 55 against 56), which moves no draw there. It names
+a score only when a word's frame reaches a make list it reorders. The
+cheapest dating is a `CITIES=5` window over 981..6136.
 
 (454) **Five residue families never compared on Great Lakes, measured by
 448's widening.** 2026-09-21, from 837 blocks and 1,975,563 record rows:
