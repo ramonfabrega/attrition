@@ -261,6 +261,60 @@ Indies 8182 → 9655 (+1,473) in 3 h 25 m. Entry 60's estimate — ten in
 under twelve hours, past 9,000 — is on pace at four, and the 9,000 is
 passed.
 
+## Landing 5 — item 1453, French East Indies 9655 → 9777
+
+Commit `4f60d52c` at 06:06Z, **27 minutes after landing 4's push**; the
+full gate on it was running when this row was written. One capture
+(run623), the new word's widening with the leader probe; the cause
+needed none — the disk answered again.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1453.md`,
+78 lines; SYNC §3.29): they agree. The word was the flyer's edge coin
+(`do_air_physics+0x639` under `do_strafe`), and run622's own call
+window already proxied every flyer's step: the ten wild birds matched
+frame for frame, the two **gulls** flew in the original and stood
+still here — a seam both `orders.rs` and `anim.rs` had stated. The
+change is two measured steps, the first its own mutation record:
+flight alone toward the dock (gull 1 lands ~1000 units off, the coin a
+frame early — the killer written beforehand fired), then the birth
+snap (`Unit::init`'s tile snap, which the wild bird already took), on
+which both gulls match the original **exactly** on every proxied frame
+on disk, ~3,900 frames after birth included. The gull's figure skip
+was lifted, moved nothing, and stays with its comment amended.
+
+To carry to the pass:
+
+- **A seam closed by the disk alone**: the third of five landings
+  whose cause needed no capture. `tools/seams.py`'s list shrinks by
+  one named seam (the gull's flight) and gains a smaller one (the
+  `StrafeOrder` itself is not carried; the goal is read off the dock
+  slot) — the arm wrote the new `SEAM` where the old one stood.
+- **Six keys leave run622's widening (102 → 96), none arrive**, and
+  one older pin (`a_dock_with_a_gull_type_draws_twice`) moves from the
+  unsnapped birth to the snapped one — a pin corrected, with the
+  reason in the test. No floor moved.
+- **The open window is checked only to the word's own block**, because
+  past 9777 the original's purchase stands alone "by design" — said in
+  the journal, which is the honest shape, and the next item is that
+  purchase.
+- **No review-debt line in this journal.** The flight is diff-backed
+  on two windows; the figure arm is measured as unobservable (nothing
+  dumps owner 9's figures). The pass should ask whether "no debt" is
+  the arm's claim or an omission; the specification section is where
+  the answer belongs.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w9777`, 1453 deleted, 1454 booked by frame — the original buys
+building `1/2035` on 9778 and we buy nothing, the offers already on
+disk in run623's probe), pins and `WIDENINGS` re-pinned, run623 in
+`docs/RUNS.md`.
+
+**Pace after five landing commits**: 57, 49, 41, 58 and 27 + gate
+minutes. French East Indies 8182 → 9777 (+1,595) in 3 h 52 m to the
+fifth landing commit. Entry 60's five-or-fewer threshold — "the
+architecture was not the variable" — is passed at the fifth landing's
+gate, whichever way it goes.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
