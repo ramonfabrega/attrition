@@ -519,10 +519,14 @@ stop rule.
 ## Landing 9 — item 1458, French East Indies 10802 → 11582
 
 Commit `abea5824` at 10:42Z, **40 minutes after landing 8's push**;
-the full gate on it started 10:42Z and was running when this row was
-written. One capture (run631), the new word's widening with the leader
-probe; the cause needed none — run630, the previous item's capture,
-still held both partings under the word.
+the gate's record `07465ac1` at 10:53Z: **exit 0, six of six steps**,
+fixed 13, rondata 719, sim 1333, fixture audit 2696 requests and none
+missing, memcap peak 15711 MiB. Pushed: `origin/worktree-seq-opus` is
+`07465ac1`, verified by fetch; the done line reached this session at
+10:54Z. **52 minutes from landing 8's push to landing 9's.** One
+capture (run631), the new word's widening with the leader probe; the
+cause needed none — run630, the previous item's capture, still held
+both partings under the word.
 
 **Diff against the journal** (`docs/journal/2026-10-04-item-1458.md`,
 75 lines; GROUPS §37): they agree. Two rows, each read from the
@@ -570,10 +574,11 @@ and `WIDENINGS` re-pinned, two golden `WANT` lines removed, run631 in
 `docs/RUNS.md`, the seam table amended. **1459 is parked 1459**
 (landing 8); the arm's numbering is still clean.
 
-**Pace after nine landing commits**: 57, 49, 41, 58, 38, 58, 82, 83
-and 40 + gate minutes. French East Indies 8182 → 11582 (+3,400) in
-8 h 28 m to the ninth landing commit; one to go on the arm's own stop
-rule, and the estimate's twelve hours holds with room.
+**Pace after nine**: 57, 49, 41, 58, 38, 58, 82, 83 and 52 minutes,
+each to a pushed landing; nine landings in **8 h 39 m**, seven on a
+full green gate and two on combined validation; French East Indies
+8182 → 11582 (+3,400). One to go on the arm's own stop rule, and the
+estimate's twelve hours holds with room.
 
 ## For the Loop, noticed by the steering session
 
