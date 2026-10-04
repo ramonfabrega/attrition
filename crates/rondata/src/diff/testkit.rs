@@ -1874,7 +1874,10 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// Item 1451: `largest_gather` is 1, not 0, in every gather building's
 /// value (AI §115): 8385 → 8840, 100 vs 98 draws, index 96 Guy::set_anim
 /// under Guy::inc_time versus Guy::set_anim+0x104b. run617 block 8841.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 8840;
+/// Item 1452: a ship pushed within four frames pushes back from where it
+/// stands (COLLISION §24): 8840 → 9655, 8 vs 9 draws, index 0 Guy::set_anim
+/// under Guy::inc_time versus Unit::do_air_physics+0x639. run622 block 9656.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 9655;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1887,9 +1890,12 @@ pub(crate) const WIDENING_FRENCH_CONTACT: (i64, i64) = (8030, 8043);
 pub(crate) const WIDENING_FRENCH_CONTACT_7946: (i64, i64) = (7940, 7952);
 pub(crate) const WIDENING_FRENCH_BUILDER_8156: (i64, i64) = (8140, 8159);
 pub(crate) const WIDENING_FRENCH_BUILDER_7963: (i64, i64) = (7958, 7999);
+pub(crate) const WIDENING_FRENCH_TRANSPORT_8430: (i64, i64) = (8420, 8439);
+pub(crate) const WIDENING_FRENCH_SHIP_6141: (i64, i64) = (6136, 6157);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8236: (i64, i64) = (8231, 8243);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8385: (i64, i64) = (8380, 8392);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (8835, 8847);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8840: (i64, i64) = (8835, 8847);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (9650, 9662);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8294,8 +8300,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run617_s_word_frame_is_widened_whole"),
-        1451,
+        Some("run622_s_word_frame_is_widened_whole"),
+        1452,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

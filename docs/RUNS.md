@@ -14067,3 +14067,78 @@ SHA-256 `2dbc802eee98673d6da59bc4ed933ce48327f8d1de6b15b37c0223d2269398ad`.
 
 Archive `rontrace-run617.log`, 25,334,528 bytes,
 SHA-256 `974052b02c4e39661c66ddafcb267bc17fecb3f1bad474985768f277cd0bdf5d`.
+
+## run618 — French East Indies, the transport's boarding (2026-10-03, item 1452)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1452-opus/run618-booking.json`
+and `hypotheses.md`, written before the run. Window **[8420,8440)**, end 8444, call window 8418..8440, no probe definition,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success; process
+and wait exits **0**; five settings files restored; seed and players read back.
+Launch-to-exit 160.214 s, total 169.227 s. Game-RNG draws match run600 on every
+frame but the quit frame. 20 blocks of 512 groups. Caravan 1/29 boards on 8429 and transport 1/60 is born on 8430 exactly as here; only 1/60's `form` parts (the standing new-unit residue).
+
+Archive `gamelog-run618-islands-french-transport-8430.txt`, 59,595,016 bytes,
+SHA-256 `6eb528759fd34e25ca7bcd22a328203bd47bad36eb94f7253da258ad2f071d7f`.
+
+Archive `rontrace-run618.log`, 23,266,880 bytes,
+SHA-256 `4e435801f1b4554c8fbf27bf5fddabac94d567c1bf9c5b03d67c5077e0efbf8f`.
+
+## run619 — French East Indies, the transport's voyage, positions only (2026-10-03, item 1452)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1452-opus/run619-booking.json`
+and `hypotheses.md`, written before the run. Window **[8440,8835)**, end 8839, no probe definition,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success; process
+and wait exits **0**; five settings files restored; seed and players read back.
+Launch-to-exit 364.475 s, total 375.656 s. Game-RNG draws match run600 on every
+frame but the quit frame. Detail `end:MISC,UNITS=3` only (no groups, no widening). 1/60 agrees on every block to 8650 and parts on 8651, when it records `collide_frame` 8650 against ship 1/16.
+
+Archive `gamelog-run619-islands-french-voyage.txt`, 118,959,305 bytes,
+SHA-256 `57f3ef5eedf561e9bc813910abcacd93209e7d165c342fefe1ae51a2db62c8ba`.
+
+Archive `rontrace-run619.log`, 90,453,312 bytes,
+SHA-256 `c2239551ef7bb26c8a2743c4aa6d65c02a76089e34033162c0ed74740a689eb2`.
+
+## run620 — French East Indies, ship 1/16's push (2026-10-04, item 1452)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1452-opus/run620-booking.json`
+and `hypotheses.md`, written before the run. Window **[6136,6158)**, end 6162, call window 6134..6158, no probe definition,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success; process
+and wait exits **0**; five settings files restored; seed and players read back.
+Launch-to-exit 159.180 s, total 167.801 s. Game-RNG draws match run600 on every
+frame but the quit frame. 22 blocks of 512 groups. Transport 1/39 pushes the idle 1/16 on 6140 exactly as here; both part on 6142.
+
+Archive `gamelog-run620-islands-french-ship-6141.txt`, 62,506,752 bytes,
+SHA-256 `eef5a45e7b602975ba4688a8263a404ecf771ccaeb5c64c96320201eb70f57f5`.
+
+Archive `rontrace-run620.log`, 19,594,560 bytes,
+SHA-256 `d05dde12e8e489c6ed288cb1e121c5e3cf720e1fd60a47d15eba59944feb628e`.
+
+## run621 — French East Indies, the push-back, under the guard probe (2026-10-04, item 1452)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1452-opus/run621-booking.json`
+and `hypotheses.md`, written before the run. Window **[6139,6145)**, end 6149, call window 6139..6143, `RON_GUARD_PROBE`,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success; process
+and wait exits **0**; five settings files restored; seed and players read back.
+Launch-to-exit 91.506 s, total 99.248 s. Game-RNG draws match run600 on every
+frame but the quit frame. On 6141 the idle 1/16 calls `detect_boat_collision` at its own position with `mates` 0, outside any move, and pushes 1/39 (COLLISION §24).
+
+Archive `gamelog-run621-islands-french-ship-probe.txt`, 26,621,757 bytes,
+SHA-256 `253f7294eca6ce002fde034700bcf27b1ec1e740e13d8634f24086cc363209d9`.
+
+Archive `rontrace-run621.log`, 19,548,640 bytes,
+SHA-256 `30512661c34bb75cbc0e1e7752e6a6e5cab8549089cd778785f5510d1552a91d`.
+
+## run622 — French East Indies, the word 9655's widening (2026-10-04, item 1452)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1452-opus/run622-booking.json`
+and `hypotheses.md`, written before the run. Window **[9650,9663)**, end 9667, call window 9648..9663, no probe definition,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success; process
+and wait exits **0**; five settings files restored; seed and players read back.
+Launch-to-exit 181.103 s, total 189.992 s. Game-RNG draws match run600 on every
+frame but the quit frame. 13 blocks of 512 groups. The word's widening: 102 keys, none missing; the wonder 1/2022 finishes on 9658 with `ever_seen_completed` 2.
+
+Archive `gamelog-run622-islands-french-9655.txt`, 44,578,237 bytes,
+SHA-256 `87a62888b7ca9ddd87791050a4d629e7cd3aaeb1463b526927ec9fac7662f004`.
+
+Archive `rontrace-run622.log`, 31,038,720 bytes,
+SHA-256 `2eb042252eac65f153b7a1a4a8e9d7de1b86420cc8b94a6b71d4ea88578a81ff`.

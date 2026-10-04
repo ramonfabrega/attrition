@@ -1792,10 +1792,18 @@ impl Sim {
     }
 
     pub fn activate(&mut self, b: usize, captured: bool, counted: bool) {
+        let who = self.buildings[b].owner;
+        // `Wall::activate@0063e4b0`, ahead of its start test:
+        // `ever_seen_completed |= LeaderData +0x6929`, the owner's own ally
+        // mask — the finished building has been seen finished by its own
+        // side at once, not at the owner's next eighth-frame scan. run622's
+        // wonder `1/2022` reads 2 on the block it finishes (item 1452).
+        if who < 8 {
+            self.buildings[b].ever_seen_completed |= self.seen_ally_mask(who);
+        }
         if !self.buildings[b].started {
             self.start_building(b);
         }
-        let who = self.buildings[b].owner;
         // `Build::activate@00623e20` lines 398/402/443: the economy's dirty
         // flag, so a finished farm pays within eight frames, not 512.
         self.economy_changed(who);

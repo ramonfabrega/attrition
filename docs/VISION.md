@@ -675,7 +675,11 @@ agreeing is not a value agreeing.
 
 **Also made**: `Wall::init@0063e9b0`'s own `check_ever_seen(0)` after
 `update_los`, which `Sim::init_build` cited and did not make; run610's new
-site `1/2024` read 2 there on its first three blocks and 0 here.
+site `1/2024` read 2 there on its first three blocks and 0 here. And
+(item 1452) `Wall::activate@0063e4b0`'s `ever_seen_completed |= LeaderData
++0x6929`, the owner's ally mask, at the moment a building finishes:
+run622's wonder `1/2022` reads 2 on its finishing block and 255 only at
+its owner's next scan.
 
 **What it moved.** French East Indies **8182 → 8236**. Widened keys:
 run610 237 → 156, run611 154 → 147, run612 389 → 210 (two arriving, a
