@@ -1918,6 +1918,44 @@ the word to 8236 and fails all five pins (measured).
 building, and the gather re-entries per building, are read and not
 reordered. No capture separates them yet.
 
+## 3.29 The gull flies to its dock, from a snapped birth — French East Indies 9655 → 9777 (2026-10-04, item 1453)
+
+A dock's gull is born in `Dock::init` on a `StrafeOrder` whose target is
+the dock (`docs/TRANSPORT.md` §5). The crate placed it at the dock's
+position less `0xc0` on each axis and gave it no flight: it stood there
+for the rest of the game. That was a stated seam (`orders.rs`,
+`anim.rs`).
+
+**The flight.** `Unit::do_strafe@005eab00` on a gull first calls the
+animal's think (vslot `+0x180`, the gull's arm draws nothing). With the
+target valid, it then hands `do_air_physics` the target dock's own
+position as the goal, every frame. run622's proxied calls show both gulls'
+goals at their docks' centres, (44160,41856) and (41472,44736). The crate
+now flies the gull with §3.9's physics toward `Sim::gull_dock`, the live
+dock whose slot holds it. The order itself is not carried.
+
+**The birth.** The physics alone left gull 1 about 1000 units off by
+run620's 6137. `Unit::init@00612100`'s tile snap,
+`div_3_table[p >> 4] · 0x30 + 0x18`, applies to the gull as it does to a
+wild bird (§3.9, `crate::gaia::init_snap`). The crate had put the gull at
+(43968,41664) on its dock's tile edge, where the snap gives (43992,41688).
+With the snap, both gulls match the original **exactly** on every proxied
+frame on disk:
+
+- run620's 6136..6151, about 3,900 frames after gull 1's birth;
+- run622's 9648..9663, including the second gull's edge coin on 9655,
+  which is what parted the word.
+
+**What moved.** French East Indies **9655 → 9777**. No floor moves.
+run622 loses six figure-animation keys past the old word, and the
+unit test `a_dock_with_a_gull_type_draws_twice` now pins the snapped
+birth.
+
+**Not established.** The gull's figure is still skipped in
+`guys_follow`. Lifting the skip moved no draw and no word, and nothing
+dumps owner 9. The other arms of `do_strafe` for a gull (invalid
+target, the dock closed) are read, not exercised.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

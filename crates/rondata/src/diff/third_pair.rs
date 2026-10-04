@@ -221,15 +221,41 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
-/// run622: the successor after the idle push-back, frame 9655 (item 1452).
+/// run623: the successor after the gull's flight, frame 9777 (item 1453).
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run623",
+        &[("gamelog-run623-islands-french-9777.txt", 9772)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[9778],
+        true,
+    )
+}
+
+#[test]
+fn run623_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 186, "initial run623 baseline");
+}
+
+/// run622: the successor after the idle push-back, frame 9655 (item 1452).
+pub(crate) fn french_east_indies_9655_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run622",
         &[("gamelog-run622-islands-french-9655.txt", 9650)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_9655,
         1,
         &[9656],
         true,
@@ -239,12 +265,12 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run622_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_9655_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 102, "initial run622 baseline");
+    pin_eq!(w.firsts.len(), 96, "run622 after the gull's flight");
 }
 
 /// run617: the successor after `largest_gather`, frame 8840 (item 1451).
@@ -746,8 +772,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run622-islands-french-9655.txt",
+            "gamelog-run623-islands-french-9777.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run622-islands-french-9655.txt",
+            WIDENING_FRENCH_EAST_INDIES_9655,
         ),
         (
             EAST_START,
@@ -1069,7 +1101,14 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
         ),
         (
             "gamelog-run622-islands-french-9655.txt",
-            WIDENING_FRENCH_EAST_INDIES,
+            WIDENING_FRENCH_EAST_INDIES_9655,
+        ),
+        // The open word's window, to the word's own block: past it the
+        // two games part by design (run623's `1/2035`, the purchase on
+        // 9777, stands in the original alone).
+        (
+            "gamelog-run623-islands-french-9777.txt",
+            (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
         let Some(rows) = east_indies_ever_seen(capture, window) else {
@@ -1085,3 +1124,66 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
 }
 
 thread_local!(static PREV: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) });
+
+/// **The gulls fly where the original's do** (item 1453, `docs/SYNC.md`
+/// §3.29): every frame of run620's and run622's call windows on which a
+/// flyer with a dock for its goal took a step, the crate's gull of that
+/// goal stands on the original's point after the same frame — both
+/// gulls, from birth (gull 1 about 3,900 frames before run620's window).
+/// Made to fail by dropping the gull's birth snap (gull 1 is about a
+/// thousand units off on 6137) or its flight (it never moves).
+#[test]
+fn french_east_indies_gulls_fly_where_the_original_s_do() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(base_path)) = (dump(EAST_START), dump(EAST_LONG.0)) else {
+        return;
+    };
+    // frame → [(goal, the point the flyer was put on)]
+    type Flight = Vec<((i32, i32), (i32, i32))>;
+    let mut want: std::collections::BTreeMap<i64, Flight> = std::collections::BTreeMap::new();
+    for t in ["rontrace-run620.log", "rontrace-run622.log"] {
+        let Some(tr) = trace(t) else { return };
+        for a in tr.air_frames() {
+            if let Some(to) = a.to {
+                want.entry(a.frame).or_default().push((a.goal, to));
+            }
+        }
+    }
+    let loaded = crate::load::load(&inst).unwrap();
+    let (start_text, base_text) = (crate::capture::read(start), crate::capture::read(base_path));
+    let (start_log, base_log) = (Log::parse(&start_text), Log::parse(&base_text));
+    let sibling = start_log.initial().unwrap();
+    let mut init = base_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    if let Some(t) = trace(EAST_LONG.1) {
+        borrow_pasture(&mut init, &t);
+    }
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let last = *want.keys().last().unwrap();
+    let mut checked = 0;
+    // Block n is the state after the original's frame n − 1.
+    for n in 1..=last + 1 {
+        built.tick();
+        let Some(rows) = want.get(&(n - 1)) else {
+            continue;
+        };
+        let sim = &built.sim;
+        for &(goal, to) in rows {
+            // A gull is the flyer whose goal is its dock; a wild bird's
+            // patrol point names no dock, and is §3.9's to check.
+            let Some(u) = (0..sim.units.len()).find(|&u| {
+                sim.units[u].alive() && sim.gull_dock(u).is_some_and(|p| (p.x, p.y) == goal)
+            }) else {
+                continue;
+            };
+            let p = sim.units[u].pos;
+            assert_eq!((p.x, p.y), to, "frame {}: the gull of {goal:?}", n - 1);
+            checked += 1;
+        }
+    }
+    // run620 holds gull 1 alone over 6134..6158 and run622 both gulls
+    // over 9648..9663.
+    assert!(checked >= 50, "{checked} gull frames compared");
+}

@@ -420,7 +420,13 @@ impl Sim {
         if let Some(gt) = gull_ty
             && let Some(index) = self.find_free(9, UNIT_BASE, BUILD_BASE)
         {
-            let at = Pos::new(pos.x - GULL_OFFSET, pos.y - GULL_OFFSET);
+            // `Unit::init@00612100`'s snap onto the centre of the 48-unit
+            // tile (`crate::gaia::init_snap`), as a wild bird's birth takes
+            // it (item 1453).
+            let at = Pos::new(
+                crate::gaia::init_snap(pos.x - GULL_OFFSET),
+                crate::gaia::init_snap(pos.y - GULL_OFFSET),
+            );
             let mut unit = Unit::new(9, index, at, self.unit_types[gt].hits);
             unit.kind = self.unit_types[gt].kind;
             unit.ty = Some(gt);
@@ -452,6 +458,18 @@ impl Sim {
             gull,
         };
         slot
+    }
+
+    /// The position of the live dock whose slot holds gull `u` — the
+    /// target of the gull's `StrafeOrder` (item 1453).
+    pub fn gull_dock(&self, u: usize) -> Option<Pos> {
+        self.docks
+            .iter()
+            .flat_map(|d| d.slots.iter())
+            .find_map(|slot| {
+                let b = slot.building?;
+                (slot.gull == Some(u) && self.buildings[b].alive).then_some(self.buildings[b].pos)
+            })
     }
 
     /// `Docks::close_dock` + `Dock::close` (§5.3), before the building is
@@ -1830,9 +1848,13 @@ mod tests {
         assert_eq!(f.sim.units[g].owner, 9);
         assert_eq!(f.sim.units[g].ty, Some(gull));
         let dock_pos = f.sim.buildings[a].pos;
+        // `Unit::init`'s tile snap on the `− 0xc0` point (item 1453).
         assert_eq!(
             f.sim.units[g].pos,
-            Pos::new(dock_pos.x - GULL_OFFSET, dock_pos.y - GULL_OFFSET)
+            Pos::new(
+                crate::gaia::init_snap(dock_pos.x - GULL_OFFSET),
+                crate::gaia::init_snap(dock_pos.y - GULL_OFFSET)
+            )
         );
         // Closing the dock closes the gull, and the slot keeps its number
         // (`Dock::close` does not clear `gull_o`).

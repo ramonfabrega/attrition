@@ -14142,3 +14142,20 @@ SHA-256 `87a62888b7ca9ddd87791050a4d629e7cd3aaeb1463b526927ec9fac7662f004`.
 
 Archive `rontrace-run622.log`, 31,038,720 bytes,
 SHA-256 `2eb042252eac65f153b7a1a4a8e9d7de1b86420cc8b94a6b71d4ea88578a81ff`.
+
+## run623 — French East Indies, the word 9777's widening, with the leader probe (2026-10-04, item 1453)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1453-opus/run623-booking.json`,
+written before the run. Window **[9772,9785)**, end 9789, call window 9770..9785,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, through the click-free lane.
+Receipt success; process and wait exits **0**; five settings files restored;
+13 blocks of 512 groups; seed and players read back. Launch-to-exit 183.102 s,
+total 192.438 s. Game-RNG draws match run600 on every frame but the quit
+frame. The word's widening: 186 keys, none missing; the original's purchase
+on 9777 (building `1/2035`) stands in it alone from 9778.
+
+Archive `gamelog-run623-islands-french-9777.txt`, 44,636,823 bytes,
+SHA-256 `1f48f756c20af0a2e33cb4efdfa1928a884a9c300bc2b9389c7d3a4c9fe93f3c`.
+
+Archive `rontrace-run623.log`, 31,626,528 bytes,
+SHA-256 `3ade032cf34e955d581b2f61a1eaa9c40da341767c5ead108cd411299fa62413`.

@@ -1877,7 +1877,10 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// Item 1452: a ship pushed within four frames pushes back from where it
 /// stands (COLLISION §24): 8840 → 9655, 8 vs 9 draws, index 0 Guy::set_anim
 /// under Guy::inc_time versus Unit::do_air_physics+0x639. run622 block 9656.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 9655;
+/// Item 1453: the gull flies toward its dock from a snapped birth
+/// (SYNC §3.29): 9655 → 9777, 7 vs 9 draws, index 0 Guy::set_anim under
+/// do_trade versus Leader::make_stuff+0x221. run623 block 9778.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 9777;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1895,7 +1898,8 @@ pub(crate) const WIDENING_FRENCH_SHIP_6141: (i64, i64) = (6136, 6157);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8236: (i64, i64) = (8231, 8243);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8385: (i64, i64) = (8380, 8392);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8840: (i64, i64) = (8835, 8847);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (9650, 9662);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_9655: (i64, i64) = (9650, 9662);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (9772, 9784);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8300,8 +8304,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run622_s_word_frame_is_widened_whole"),
-        1452,
+        Some("run623_s_word_frame_is_widened_whole"),
+        1453,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

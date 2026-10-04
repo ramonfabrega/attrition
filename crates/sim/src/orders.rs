@@ -3246,6 +3246,19 @@ impl Sim {
                     let goal = self.bird_goal(u);
                     self.do_air_physics(u, goal, frame);
                 }
+                // **The gull's flight** (item 1453): `Unit::do_strafe@
+                // 005eab00` on the gull's `StrafeOrder` takes its target,
+                // the dock that hatched it, and — the target valid — hands
+                // `do_air_physics` the dock's own position as the goal, on
+                // every frame. run622's probe shows both gulls' goals at
+                // their docks' centres and the second gull's edge coin on
+                // 9655. SEAM: the order itself is not carried; the goal
+                // is read off the dock slot that holds the gull.
+                if t == crate::anim::GULL_TYPE
+                    && let Some(goal) = self.gull_dock(u)
+                {
+                    self.do_air_physics(u, goal, frame);
+                }
                 //
                 // `do_air_patrol`'s own tail, after `do_air_physics`
                 // returns 1: the caller branches on `vtable+0x30`,

@@ -2076,10 +2076,11 @@ impl Sim {
         // stand (`docs/SYNC.md` §3.9, "The arrival stand").
         //
         // The **gull** is still skipped, and it is a seam rather than a
-        // rule: this crate gives it no flight (`orders.rs` runs
-        // `do_air_physics` for `BIRD_TYPE` alone), so its figure would sit
-        // on its unit for ever and roll an idle every other frame that the
-        // original, which flies it under `Unit::do_strafe`, does not.
+        // rule. ~~This crate gives it no flight.~~ It flies since item
+        // 1453 (`orders.rs`, `do_air_physics` toward its dock), but its
+        // figure's arm here is unmeasured: lifting the skip moved no draw
+        // and no word on French East Indies (item 1453), and nothing dumps
+        // owner 9's figures.
         if is_air_gaia(self.units[u].type_index) && self.units[u].type_index != BIRD_TYPE {
             return;
         }
