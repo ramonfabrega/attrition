@@ -191,11 +191,27 @@ French East Indies 8182 → 8840 (+658).
 
 ## Landing 4 — item 1452, French East Indies 8840 → 9655
 
-Commit `cbd08255` at 05:25Z, **44 minutes after landing 3's push**; the
-full gate on it started 05:25Z and was running when this row was
-written. Five captures (run618–622), each with its hypotheses written
-before it ran; the trail is the longest of the four so far and the
-cleanest to read.
+Commit `cbd08255` at 05:25Z, **44 minutes after landing 3's push**;
+the gate's record `d8d99d75` at 05:39Z. **The first landing of the
+arm not on a full green gate**: the full required-fixture gate on
+`cbd08255` **exited 1** — fixed 13 and sim 1326 green, rondata 709 of
+710, the one failure `coverage::every_key_the_dump_prints_is_read_or_
+pinned` on run622's bare city-name line `Lyons`, which nothing reads;
+2607 fixture requests, none missing; memcap peak 16690 MiB. The
+correction adds `Lyons` to `UNREAD` beside Paris, Brest and Nantes
+(items 1442/1443 did the same), one line and a comment, no logic; the
+arm then re-ran the five coverage tests, clippy, fmt and the guards,
+each exit 0, and wrote the result as **combined validation, "not a
+claim that the original full gate passed"** — `AGENTS.md`'s clause,
+applied as written. The steering session's read: the failure is the
+coverage pin doing its job on a new window, the correction is a pin
+and nothing else, and the clause fits; the pass should still note
+that one of four landings rests on it. Pushed: `origin/worktree-seq-
+opus` is `d8d99d75`, verified by fetch; the done line reached this
+session at 05:40Z and named the combined validation in its first
+clause. **58 minutes from landing 3's push to landing 4's.** Five
+captures (run618–622), each with its hypotheses written before it ran;
+the trail is the longest of the four so far and the cleanest to read.
 
 **Diff against the journal** (`docs/journal/2026-10-04-item-1452.md`,
 94 lines; COLLISION §24, VISION §6.4 noted): they agree. Booked by
@@ -239,11 +255,11 @@ Bookkeeping done by the arm: queue (headline, opener, scoreboard
 `WIDENINGS` re-pinned, run618–622 entered in `docs/RUNS.md` (run619
 as positions-only evidence, not a pinned window, and said so).
 
-**Pace after four landing commits**: 57, 49, 41 and 44 + gate minutes;
-**815 frames in one landing**, the largest yet. French East Indies
-8182 → 9655 (+1,473) in 3 h 12 m to the fourth landing commit. Entry
-60's estimate — ten in under twelve hours, past 9,000 — is on pace at
-four, and the 9,000 is passed.
+**Pace after four**: 57, 49, 41 and 58 minutes, each to a pushed
+landing; **815 frames in one landing**, the largest yet. French East
+Indies 8182 → 9655 (+1,473) in 3 h 25 m. Entry 60's estimate — ten in
+under twelve hours, past 9,000 — is on pace at four, and the 9,000 is
+passed.
 
 ## For the Loop, noticed by the steering session
 
