@@ -70,7 +70,8 @@ is append-only and amended in place, as it always was.
 - 56 extended by 57 — A closed map takes the newest pair's setting, the rules track stages what the AI track built, and a price is read at one table
 - 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
 - 58 extended by 59 — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
-- 59 standing — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
+- 59 extended by 60 — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
+- 60 standing — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
 
 ## 1. Fidelity before divergence
 
@@ -4244,3 +4245,80 @@ clock against 7.4 hours and its sleep against 3.6; the disk against
 209 GiB; the price a landing against 5.13 at the day's table with the
 tranche before re-priced beside it; the backlog against seventeen; and
 the count at twenty.
+
+## 60. Codex's direct tranche is accepted whole, and the model question becomes the architecture question
+
+**Decided 2026-10-03**, in the main thread on Fable with Ramon, between
+the twenty-third pass and the twenty-fourth. Extends entry 59; amends
+its clause 1's successor (parked 1422, the retro matrix); overturns
+nothing.
+
+**What was measured.** With the commander loop paused after entry 59,
+the user authorized a Codex session to work the queue directly under
+its own agreement (`AGENTS.md`, un-symlinked from `CLAUDE.md`): one
+agent, no lanes, no commander, no turn-ends. **One session,
+`gpt-6-astra` at reasoning effort `medium`**, 2026-10-01 20:21Z to
+2026-10-02 11:42Z — fifteen hours and twenty minutes, ten turns,
+eleven user messages all of them go-aheads — **landed items 1426–1445,
+twenty, in 43 commits and 6,222 lines**, with a journal each and 28
+captures (run583–610) on disk. **East Indies' second pair closed at
+18,140**; **Great Sahara at Toughest 11985 → 12538 measured**, the
+floor left at 11985 pending 1429's capture; **the third pair stood up
+per entry 56 §1** (AI nation French, everything else held) and moved
+to **8182 of 17,379 on East Indies and 5638 — closed at its natural
+end — on Great Lakes**. The tranche before it, entry 59's, moved East
+Indies 60 frames a landing. Its own gate: `--require-fixtures`, exit 0
+on `96ea24c6`; one earlier red gate (1444's batch) recorded and
+corrected. **Ours on the fast-forwarded tree `a7896d07`: 6 of 6, 698
+rondata, 1322 sim, 13 fixed, 315 fixtures and none missing.** A scan
+of the diff for weakened checks: no new float, `allow` or `#[ignore]`
+(four before, four after); one deleted assertion, a helper replaced.
+Tokens: 265.6 M input of which 261.5 M cached, 574 k output, 171 k
+reasoning, plus thirteen `codex-auto-review` sidecars; the user's
+word is that the session spent the whole of a 100 USD subscription.
+It left 1446 in flight: run611/612 captured, a fix moving French East
+Indies 8182 → 8236 in six uncommitted files, snapshotted beside its
+scratch (`~/ron-data/lab-experiments/2026-10-02-item-1446-codex/`).
+No blind reading ran on any of the twenty; every journal says so.
+
+**What it means.**
+
+1. **The tranche is fast-forwarded, gated here, and pushed to the
+   branch and to main.** Nothing is reworked. What it lacks — a second
+   reading of twenty mechanisms — is what every tranche lacks until a
+   pass ratifies it, and it is filed as review debt (parked 1447) for
+   the twenty-fourth pass, not as a reason to hold the work.
+2. **The question entry 59 asked is re-asked at the right level.**
+   Entry 59 and parked 1422 asked whether a cheaper model or a lower
+   effort does more work per token; the Codex run did twenty landings
+   where the loop's tranches did eleven and twenty with three lanes, a
+   commander, briefs, gates under `--lane` and a sleep of 214
+   minutes. The largest variable in that result is the architecture
+   — one agent, sequential, owning its own bookkeeping, never ending a
+   turn to wait for a person — and no re-run of three landed items
+   under four Claude settings can see it. **So the retro matrix is
+   superseded by a live arm**: one Opus 5.5 worker at `--effort high`,
+   spawned by `ccc` on this branch under `AGENTS.md` (generalized to
+   "direct sequential work", with a Claude paragraph), from item 1446,
+   **ten landings or its own natural stop, no spend ceiling** by the
+   user's word, the steering session receiving one line a landing and
+   not driving. Scored as the Codex tranche can be: frames moved and
+   words closed, landings and wall clock, gate verdicts, journals, the
+   review debt it leaves, tokens by `lore`. 1422's matrix returns only
+   if this arm lands close to Codex's and the model axis is what is
+   left (parked 1448 holds the arm's record).
+3. **`AGENTS.md` is a file, not a symlink, from here on.** Two
+   agreements for two shapes of work: `CLAUDE.md` the commander loop's,
+   `AGENTS.md` the direct sequential agent's, inheriting the first's
+   engineering rules and overriding its loop clauses by name.
+
+**Not decided, and the user's**: whether the loop returns at all if
+the arm lands near Codex's throughput — that is the twenty-fourth
+pass's question and his; 1141, phase 4 and the thesis sentence stand.
+
+**The estimate, written down to be wrong on record.** The arm lands
+**ten items in under twelve hours**, moves French East Indies past
+**9,000**, closes nothing, leaves journals of Codex's length and the
+same review debt, and runs **under 200 USD list**. If it lands five or
+fewer, the architecture was not the variable and the model axis is
+back.

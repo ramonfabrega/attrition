@@ -1,19 +1,21 @@
-# attrition — direct Codex work
+# attrition — direct sequential work
 
 ## Scope and precedence
 
-This is the working agreement for direct work in this Codex checkout, authorized
-by the user on 2026-10-01. Read `docs/QUEUE.md` first, then `CLAUDE.md` for the
-project architecture, evidence standards, conventions, and tools. Apply those
-engineering rules with the explicit overrides below. `CLAUDE.md` remains the
-Claude commander's operating agreement; this file is deliberately a regular
-file rather than a symlink to it.
+This is the working agreement for one agent working the queue directly,
+one item at a time, with no commander and no lanes — first authorized by
+the user on 2026-10-01 for a Codex session, and on 2026-10-03 for a Claude
+one (`docs/DECISIONS.md` entry 60). Read `docs/QUEUE.md` first, then
+`CLAUDE.md` for the project architecture, evidence standards, conventions,
+and tools. Apply those engineering rules with the explicit overrides below.
+`CLAUDE.md` remains the commander loop's operating agreement; this file is
+deliberately a regular file rather than a symlink to it.
 
 This session is one agent working directly with the user through the queue
-sequentially, authorized on 2026-10-01. No subagents, parallel agent lanes,
-commander loop, model trial, or scheduled continuation. The paused Claude loop
-stays paused. Choose the next item from measured evidence and leave a durable
-handoff at each landing; a natural stopping point need not exhaust the queue.
+sequentially. No subagents, parallel agent lanes, commander loop, model
+trial, or scheduled continuation. The paused loop stays paused. Choose the
+next item from measured evidence and leave a durable handoff at each
+landing; a natural stopping point need not exhaust the queue.
 
 ## Autonomy and completion
 
@@ -41,10 +43,9 @@ silently replace missing evidence with an assumption or weaken a check to pass.
 An asynchronous process does not end the work. Use the tool's process/session
 handle and bounded waits, inspect its actual exit status, and continue after
 completion. Use `tools/gamelog/waitrun.sh` for detached captures as documented.
-Claude's Monitor, idle subscription, automatic re-invocation, `/clear`, and
-"the turn ends" instructions do not apply here. Avoid busy polling; give useful
-progress updates during long work. Context compaction is not an item boundary:
-preserve the state needed to resume and continue the same item.
+Avoid busy polling; give useful progress updates during long work. Context
+compaction is not an item boundary: preserve the state needed to resume and
+continue the same item.
 
 An item boundary is a checkpoint, not a required end to the turn. Continue
 sequentially while the path is clear; stop at a useful review boundary, a genuine
@@ -52,6 +53,26 @@ blocker, or an explicit user pause. A final report states what changed, the meas
 diffs (including no movement), validation, commit, and unresolved questions.
 Do not claim a gate passed, a commit landed, or a push happened before verifying
 that action. Keep the next item and any change of direction visible to the user.
+
+## Harness notes
+
+**Codex.** Monitor, idle subscriptions, automatic re-invocation, `/clear`
+and "the turn ends" are Claude's and do not apply; wait on a process with
+its handle and a bounded wait.
+
+**Claude.** A `ccc`-spawned session is re-invoked when a background task
+exits, so a turn that ends on a backgrounded wait (`run_in_background`, a
+Monitor, `waitrun.sh` in a background lane) is how a wait is done and is
+not a stop; a turn never ends to ask whether to continue, and never on a
+command whose purpose is to yield. `CLAUDE.md`'s commander-loop clauses
+are the loop's and do not apply here: the `--lane` gate, the
+ninety-minute status line, the worker's ban on `docs/QUEUE.md`, the split
+of booking between worker and commander, the idle subscription, the
+clear cadence, the merge chain. This file's bookkeeping section applies
+instead. At each landing send the steering session (the job named
+`attrition`) one line — item, word before → after, gate exit, tip SHA —
+and push the branch; a worktree can be deleted with its session. The
+commit trailer names the model the session's own system prompt names.
 
 ## Evidence and review
 
@@ -64,9 +85,9 @@ measured floors. A draw-stream improvement needs the corresponding value diff.
 Keep existing floors; report an unmet target honestly rather than moving it
 backward or declaring an unmeasured result.
 
-No model assignments or model-admission matrix from the Claude harness govern
+No model assignments or model-admission matrix from the commander loop govern
 this user-authorized run. Attribute work only to the model identity actually
-available in the session, never to a Claude role or an inferred model variant.
+available in the session, never to a role or an inferred model variant.
 
 No-subagents also means no pretend independent audit. A claim established only
 by reading remains explicitly provisional until the required blind review is
@@ -112,9 +133,9 @@ work from anything merged into the commander's branch. Do not rewrite historical
 journals or claim the commander resumed. Keep findings out of instruction files.
 
 Use ordinary git on the current branch. The `ccc` merge/book/spawn/push/reap
-chain, worker brief dispatch, lane-only file ownership, clear cadence, and
-mandatory push do not apply. Commit locally; pushing, merging into main, or
-resuming another checkout is a separate user-directed action.
+chain, worker brief dispatch, lane-only file ownership and clear cadence do
+not apply. Commit locally and push the branch; merging into main or resuming
+another checkout is a separate user-directed action.
 
 For an implementation landing, commit the work before the full release gate,
 then record its actual verdict in a follow-up commit. Run

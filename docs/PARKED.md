@@ -2855,8 +2855,11 @@ one — the same mechanism, another that moves the word, or none. **The
 products**: a results table in `docs/audit/<date>-model-matrix.md`,
 the handoff, and the arms' worktrees and branches reaped. **Judged at
 the next steer with the user; model and effort move only on that
-verdict** (DECISIONS 59). Runs before the twenty-fourth tranche, at
-the weekly reset.
+verdict** (DECISIONS 59). ~~Runs before the twenty-fourth tranche, at
+the weekly reset.~~ **Superseded 2026-10-03** (DECISIONS 60 §2, parked
+1448): the Codex tranche showed the architecture, not the model, as the
+large variable, and a live sequential Opus arm runs in its place; this
+matrix returns only if that arm lands close to Codex's.
 
 
 (1425) **A SEAM's "writers" claim is a reading, not a citation**
@@ -3722,3 +3725,37 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+
+## Loop, filed 2026-10-03 — Codex settled, the sequential arm spawned
+
+(1447) **The Codex tranche's review debt** (DECISIONS 60): items
+1426–1445 landed twenty mechanisms on diffs plus one GPT-6 reading
+each, no blind second reading on any — the journals say so, as
+`AGENTS.md` requires. The twenty-fourth pass's ratification set is
+their code-changing claims: the coastal region refinement in
+`find_push_candidates` (COLLISION §21), the reused-slot rebirth (§23),
+the Democracy non-library discount (AI §109), the University admission
+rule (PRODUCTION, 1445), the ruins gate on placement (CITIES §2.5,
+1444), the French timber capacity (1443), supply upgrade speed (1440),
+crew seating (1441), army seeding and target strength (1431–1436), the
+transport terrain preference (1433), the decoy radius (1437), the
+retained figure footprint (1438), the packed siege target (1439).
+Brief the readers from each journal's "review debt" paragraph, never
+from the specification. Stands until the pass rules.
+
+(1448) **The sequential arm** (DECISIONS 60 §2, supersedes 1422's
+retro matrix): one Opus 5.5 worker, `--effort high`, `ccc spawn
+--worktree --base worktree-replan-pdb` off the booking commit, under
+`AGENTS.md`, from 1446, ten landings or its natural stop, no spend
+ceiling (the user's word, 2026-10-03). **Scored against Codex's
+tranche**: twenty landings in 15 h 20 m wall, East Indies 16760 →
+18,140 closed and the French pair to 8182 / 5638 closed, Toughest
+11985 → 12538 measured, 43 commits, journals 2–8 KB, gate exit 0 on
+the batch tree, review debt on all twenty, 574 k output tokens on a
+100 USD subscription. The arm's: by `lore trace` on its session
+(tokens, list USD, working and waiting minutes), `git log` on its
+branch, the queue's scoreboard at its stop, its done lines to the
+steering session (one a landing, or the silence is the finding), and
+the steering session's read of each diff against the journal. Results
+to `docs/audit/<date>-sequential-arm.md`; judged at the twenty-fourth
+pass with the user. 1422 returns only if this arm lands close.

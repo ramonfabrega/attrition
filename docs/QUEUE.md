@@ -12,23 +12,21 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-02, direct Codex run: 1445 advances French East Indies
-7356 → **8182** by refusing an eighth university scholar. The surplus
-queue and birth disappear; Great Lakes stays closed at **5638**.
-Items 1443–1445 pass the full required-fixture gate. East Indies is the
-lower open word; run610 widens frame 8182 before the next mechanism is booked.*
+*2026-10-03, **Codex settled** (DECISIONS 60): `codex/direct-advancement`
+— items 1426–1445, twenty, one GPT-6 session of fifteen hours —
+fast-forwarded here and to main after our own gate ran green on it
+(6 of 6, 315 fixtures, none missing). East Indies **closed at 18,140**;
+the French third pair stands; Toughest measured 12538, floor 11985.
+Its review debt is filed (1447). No commander loop runs.*
 
-- **Branch only**: `codex/direct-advancement`; the Claude commander is
-  paused, no lanes or refill. The user authorized sequential direct work.
-- **Toughest** remains measured at 12538 after 1426, floor 11985 until
-  1429. Chapter fifty is closed; 1428's re-pin CLI crash is fixed here.
-- **Steer handoff**: review this branch's commits, journal and review
-  debt; no model trial or matrix ran here. The paused commander's
-  existing weekly-reset matrix (parked 1422) remains its own plan.
-- **Third pair**: item 1442 changed only the AI nation setting; seed,
-  human nation and Toughest stay fixed. East Indies (French) is the lower open word.
+- **The sequential arm runs now** (1448): one Opus 5.5 `--effort high`
+  worker under `AGENTS.md`, no commander, from 1446, ten landings or
+  its own stop; the steering session takes its landing lines and does
+  not drive. Parked 1422's retro matrix is superseded by it.
+- **1446's floor**: run611/612 are on disk; Codex's uncommitted diff is
+  snapshotted beside its scratch and is Astra's, not the arm's to read.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425).
+- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,8 +36,8 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1446 takes French East Indies frame 8182, widened in run610.
-The direct run is sequential; the commander remains paused.**
+**Opener: the sequential worker, on Opus, takes 1446 from this tree
+under `AGENTS.md`; the steering session watches and does not drive.**
 
 ## The queue
 

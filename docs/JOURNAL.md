@@ -21036,3 +21036,15 @@ each made to fail first: `tools/mutate.py` (1391), `tools/repin.py`
 in one tranche. Seven Loop items closed, four built, 1421 filed; the
 backlog is seventeen. **DECISIONS 59.**
 `docs/audit/2026-10-01-fable-pass-23.md`.
+
+**2026-10-03 — Codex settled, the sequential arm spawned.** The user
+had let a Codex session work the queue directly while the loop was
+paused: `gpt-6-astra`, one session, fifteen hours, items 1426–1445 —
+East Indies closed at 18,140, the French third pair stood up and
+Great Lakes closed at 5638, Toughest measured 12538. Fast-forwarded,
+gated here green, pushed to the branch and main; the diff scanned for
+weakened checks and found none; its twenty readings filed as review
+debt (1447). The model question is re-asked as the architecture
+question: one Opus 5.5 `--effort high` worker, sequential under
+`AGENTS.md`, from 1446, measured against the Codex tranche (1448);
+parked 1422's retro matrix is superseded. **DECISIONS 60.**
