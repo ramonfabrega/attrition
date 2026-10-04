@@ -13857,3 +13857,18 @@ produce_building+0x1805 versus +0xc99. Block8183 building 1/2024 appears at
 42000/15000. Unit1/57 takes a different build route. These are measurements,
 not a promised placement mechanism; positions differ on the first block, and the make list first parts on
 block 8180, before the word. Item 1446 starts from that evidence.
+
+## 114. The wonder's recruit at birth (2026-10-03, item 1449)
+
+French East Indies' word 8236 was the builder `1/56`'s approach spot
+beside the wonder `1/2022`. run614 dated it to its own decision on 8156,
+with every input but one agreeing: builder `1/51` stood at (34632,38328)
+there and (34488,38328) here. run615 dated `1/51` to its birth on 7963.
+The original's site recruiter (§69.4) took the newborn on the wonder's
+phase the same frame; here the recruiter ran before the queue that trained
+it. The cause is the tick's order, specified in `docs/SYNC.md` §3.28.
+Word **8236 → 8385**. The new word is the AI's make list: on run616's block
+8385 ours offers type 417 at value 102712 for city 2 as `MAKE[0]`, where the
+original offers nothing, and on 8386 ours queues at `1/2005` and spends
+knowledge and metal. The list has differed since run610's block 8185
+(item 1451).

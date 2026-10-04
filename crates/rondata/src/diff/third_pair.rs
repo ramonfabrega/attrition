@@ -221,16 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run616: the successor after the per-building queue, frame 8385 (item
+/// 1449).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run616",
+        &[("gamelog-run616-islands-french-8385.txt", 8380)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[8386],
+        true,
+    )
+}
+
+#[test]
+fn run616_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 140, "initial run616 baseline");
+}
+
 /// run612: the successor after a wonder's start became first contact,
 /// frame 8236 (item 1446).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_8236_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run612",
         &[("gamelog-run612-islands-french-8236.txt", 8231)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_8236,
         1,
         &[8237],
         true,
@@ -240,16 +267,12 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run612_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_8236_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(
-        w.firsts.len(),
-        210,
-        "run612 after a wonder's start is contact"
-    );
+    pin_eq!(w.firsts.len(), 124, "run612 after the per-building queue");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -275,11 +298,7 @@ fn run610_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(
-        w.firsts.len(),
-        156,
-        "run610 after a wonder's start is contact"
-    );
+    pin_eq!(w.firsts.len(), 127, "run610 after the per-building queue");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -382,6 +401,76 @@ fn run613_dates_first_contact_on_block_7946() {
     }
 }
 
+/// run615: the builder `1/51`'s birth beside the wonder, blocks
+/// 7958..7999 (item 1449).
+pub(crate) fn french_east_indies_builder_7963_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run615",
+        &[("gamelog-run615-islands-french-builder-7963.txt", 7958)],
+        WIDENING_FRENCH_BUILDER_7963,
+        1,
+        &[7963],
+        true,
+    )
+}
+
+#[test]
+fn run615_s_birth_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_builder_7963_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 42, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 120, "run615 after the per-building queue");
+    // **The recruit at birth** (item 1449): city `1/2008` trains citizen
+    // `1/51` on frame 7962, the wonder `1/2022` recruits it on its phase the
+    // same frame, and it walks to the original's spot. With the queues in a
+    // pass of their own it was born idle and sent to gather from `1/2019`.
+    pin!(
+        !w.firsts
+            .keys()
+            .any(|(who, o, _)| *who == 1 && matches!(*o, 51 | 2019)),
+        "the new citizen's orders, its walk and the camp it no longer joins"
+    );
+}
+
+/// run614: the builder `1/56`'s birth and its approach to the wonder,
+/// blocks 8140..8159 (item 1449).
+pub(crate) fn french_east_indies_builder_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run614",
+        &[("gamelog-run614-islands-french-builder-8144.txt", 8140)],
+        WIDENING_FRENCH_BUILDER_8156,
+        1,
+        &[8156],
+        true,
+    )
+}
+
+#[test]
+fn run614_s_builder_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_builder_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 20, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 122, "run614 after the per-building queue");
+    pin!(
+        !w.firsts
+            .keys()
+            .any(|(who, o, _)| *who == 1 && matches!(*o, 51 | 56)),
+        "both builders agree on every block: 1/51 where it stands, 1/56 where it is sent"
+    );
+}
+
 #[test]
 fn run611_s_contact_window_is_widened_whole() {
     let _pins = Pins::hold();
@@ -390,11 +479,7 @@ fn run611_s_contact_window_is_widened_whole() {
     };
     pin_eq!(w.blocks, 14, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(
-        w.firsts.len(),
-        147,
-        "run611 after a wonder's start is contact"
-    );
+    pin_eq!(w.firsts.len(), 121, "run611 after the per-building queue");
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
@@ -550,8 +635,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run612-islands-french-8236.txt",
+            "gamelog-run616-islands-french-8385.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run612-islands-french-8236.txt",
+            WIDENING_FRENCH_EAST_INDIES_8236,
         ),
         (
             EAST_START,
@@ -826,8 +917,16 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             WIDENING_FRENCH_CONTACT_7946,
         ),
         (
+            "gamelog-run615-islands-french-builder-7963.txt",
+            WIDENING_FRENCH_BUILDER_7963,
+        ),
+        (
             "gamelog-run611-islands-french-contact.txt",
             WIDENING_FRENCH_CONTACT,
+        ),
+        (
+            "gamelog-run614-islands-french-builder-8144.txt",
+            WIDENING_FRENCH_BUILDER_8156,
         ),
         (
             "gamelog-run610-islands-french-toughest-8182.txt",
@@ -835,6 +934,10 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
         ),
         (
             "gamelog-run612-islands-french-8236.txt",
+            WIDENING_FRENCH_EAST_INDIES_8236,
+        ),
+        (
+            "gamelog-run616-islands-french-8385.txt",
             WIDENING_FRENCH_EAST_INDIES,
         ),
     ] {

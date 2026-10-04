@@ -14002,3 +14002,51 @@ SHA-256 `e0dc1e146b90b3770a61ee353c7f1cf4d822e633d05e2397647c21b2ca94865d`.
 
 Archive `rontrace-run613.log`, 21,027,584 bytes,
 SHA-256 `eb7cf6553459214986463df4ccd091db60722bb0d957950b70f86117262b2b58`.
+
+## run614 — French East Indies, the second builder's approach (2026-10-03, item 1449)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1449-opus/run614-booking.json`,
+written before the run. run613's recipe over **[8140,8160)**, end 8164,
+call window 8138..8160, `--ffwd-minute 10`, `cover=0`, no probe definition,
+through the click-free lane. Receipt success; process and wait exits **0**; five
+settings files restored; 20 blocks of 512 groups; seed and players read
+back. Launch-to-exit 154.925 s, total 164.024 s. Game-RNG draws match run600
+on every frame but the quit frame. 1/56 is born on 8144, gathers, walks, and takes BUILD on 8155 exactly as here; on 8156 its approach is ring bearing −1, (34296,38328), and ours bearing 0. H1 and H3 were killed (`hypotheses.md`). Builder 1/51 already stands elsewhere on 8140.
+
+Archive `gamelog-run614-islands-french-builder-8144.txt`, 59,087,765 bytes,
+SHA-256 `65dad240dcd2290a9df98173598a08d59e406a5aab9ace9bc2745e9af7459703`.
+
+Archive `rontrace-run614.log`, 21,109,664 bytes,
+SHA-256 `32443d645830a1497ace9ef5dcc7f1cd9ec45fe71d24c37609a04c9ef26259f4`.
+
+## run615 — French East Indies, the first builder's birth (2026-10-03, item 1449)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1449-opus/run615-booking.json`,
+written before the run. run613's recipe over **[7958,8000)**, end 8004,
+call window 7956..8000, `--ffwd-minute 10`, `cover=0`, no probe definition,
+through the click-free lane. Receipt success; process and wait exits **0**; five
+settings files restored; 42 blocks of 512 groups; seed and players read
+back. Launch-to-exit 254.715 s, total 264.408 s. Game-RNG draws match run600
+on every frame but the quit frame. 1/51 is born on 7963 holding BUILD on the wonder (the recruiter on its phase), and here born idle: the first parting (SYNC §3.28).
+
+Archive `gamelog-run615-islands-french-builder-7963.txt`, 109,157,232 bytes,
+SHA-256 `f69068c5c32189d44eb8bd4b4983b4e85a73b2af8843ba5601c64261f311d413`.
+
+Archive `rontrace-run615.log`, 21,048,896 bytes,
+SHA-256 `3a67f2b7337138144e0d0a2a7b48bfef85119f221e6233cf1eaadf166fdeb28c`.
+
+## run616 — French East Indies, the word 8385's widening (2026-10-03, item 1449)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1449-opus/run616-booking.json`,
+written before the run. run613's recipe over **[8380,8393)**, end 8397,
+call window 8378..8393, `--ffwd-minute 10`, `cover=0`, no probe definition,
+through the click-free lane. Receipt success; process and wait exits **0**; five
+settings files restored; 13 blocks of 512 groups; seed and players read
+back. Launch-to-exit 130.156 s, total 138.955 s. Game-RNG draws match run600
+on every frame but the quit frame. The word's widening: 140 keys, none missing; the make list parts on 8385.
+
+Archive `gamelog-run616-islands-french-8385.txt`, 43,370,062 bytes,
+SHA-256 `7ce7fc70a976685a5f55a43183d05ea66aa8b90d56129514230bdd9be8a6fc04`.
+
+Archive `rontrace-run616.log`, 23,216,672 bytes,
+SHA-256 `554d4baf57c197b3d26161713b68b6e613acd7402a0817f518c9415c4f89929f`.

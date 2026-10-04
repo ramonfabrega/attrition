@@ -2905,18 +2905,29 @@ impl Sim {
     /// applied the fan-out to every building.) And **a stuck head is not a
     /// stuck queue**: when slot 0 is done and refused, the first research
     /// entry behind it advances in its place — see [`Sim::advance_slot`].
+    #[cfg(test)]
     fn process_queues(&mut self) -> Vec<Produced> {
         let mut out = Vec::new();
         for at in 0..self.buildings.len() {
+            self.process_queue(at, &mut out);
+        }
+        out
+    }
+
+    /// One building's `Build::do_queue` (vslot `+0x1b4`), which
+    /// `Build::process` calls for that building after its own
+    /// `Wall::process` and before the next building's — see the tick.
+    fn process_queue(&mut self, at: usize, out: &mut Vec<Produced>) {
+        {
             let who = self.buildings[at].owner;
             let queued = self.buildings[at].queue.items.len();
             if queued == 0 {
-                continue;
+                return;
             }
             if self.buildings[at].is_library {
                 if self.first_library(who) != Some(at) {
                     // `do_queue`'s first gate: a non-first library returns.
-                    continue;
+                    return;
                 }
                 // The library branch recurses into `i + 1` before handling
                 // its own slot, so deeper slots complete first. Walking the
@@ -2942,7 +2953,7 @@ impl Sim {
                         out.push(p);
                     }
                 }
-                continue;
+                return;
             }
             match self.advance_slot(at, 0) {
                 Advanced::Trained(p) => out.push(p),
@@ -2968,7 +2979,6 @@ impl Sim {
                 Advanced::Pending | Advanced::Researched => {}
             }
         }
-        out
     }
 
     /// One queue slot, for one frame.
@@ -4947,11 +4957,21 @@ impl Sim {
         // queue, then the tower. Splitting the three into three passes over
         // the list is still ours; the original does all three inside one
         // `Build::process`, per building.
+        //
+        // **The queue is per building now** (item 1449): `Build::do_queue`
+        // runs inside the same building's `Build::process`, so a unit a
+        // lower-numbered building trains this frame is on the map when a
+        // higher-numbered one's `Wall::process` looks. run615 is the
+        // capture: city `1/2008` trains citizen `1/51` on frame 7962, the
+        // wonder `1/2022`'s site recruiter runs on its phase the same frame
+        // and sends it straight to the site — and here, with the queues
+        // in a pass of their own, the recruiter ran before it was born.
+        let mut trained = Vec::new();
         for b in 0..self.buildings.len() {
             self.buildings[b].gather_bumped = false;
             self.process_building(b, frame);
+            self.process_queue(b, &mut trained);
         }
-        self.process_queues();
         // `Build::process`'s gather re-entries, after its `do_queue`
         // (`docs/ECONOMY.md` §17.2): a re-walk that finds freed ground
         // shuffles it off the stream.
