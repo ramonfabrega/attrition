@@ -730,6 +730,9 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
     }
 }
 
+/// `(block, who, o, field, ours, theirs)`.
+type SeenRow = (i64, i64, i64, &'static str, i64, i64);
+
 /// Every building's `ever_seen` and `ever_seen_completed` on every block of
 /// an East Indies window, both directions, as `(block, who, o, field, ours,
 /// theirs)`. The shared instrument leaves these two bytes uncompared
@@ -739,7 +742,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
 fn east_indies_ever_seen(
     capture: &str,
     window: (i64, i64),
-) -> Option<std::collections::BTreeSet<(i64, i64, i64, &'static str, i64, i64)>> {
+) -> Option<std::collections::BTreeSet<SeenRow>> {
     let inst = crate::testenv::install()?;
     let (start, base_path, path) = (dump(EAST_START)?, dump(EAST_LONG.0)?, dump(capture)?);
     let loaded = crate::load::load(&inst).unwrap();
