@@ -393,8 +393,13 @@ gate and two on combined validation. French East Indies 8182 → 10131
 ## Landing 7 — item 1455, French East Indies 10131 → 10802
 
 Commit `ed43fd38` at 08:27Z, **71 minutes after landing 6's push** —
-the longest interval so far, on five captures (run625–629); the full
-gate on it started 08:28Z and was running when this row was written.
+the longest interval so far, on five captures (run625–629); the gate's
+record `bebcf5ab` at 08:38Z: **exit 0, six of six steps**, fixed 13,
+rondata 717, sim 1330, fixture audit 2675 requests and none missing,
+memcap peak 15760 MiB. Pushed: `origin/worktree-seq-opus` is
+`bebcf5ab`, verified by fetch; the done line reached this session at
+08:39Z, the short form again with every field. **82 minutes from
+landing 6's push to landing 7's.**
 
 **Diff against the journal** (`docs/journal/2026-10-04-item-1455.md`,
 95 lines; COSTS and MOVEMENT each a new section): they agree. Two
@@ -442,10 +447,11 @@ and `WIDENINGS` re-pinned, run625–629 in `docs/RUNS.md` (626 and 628 as
 evidence only, said so). **1456 was booked and 1457 follows it**: the
 arm skipped no number and reused none.
 
-**Pace after seven landing commits**: 57, 49, 41, 58, 38, 58 and 71 +
-gate minutes. French East Indies 8182 → 10802 (+2,620) in 6 h 13 m to
-the seventh landing commit; the estimate's twelve hours would hold
-at this pace with three to go.
+**Pace after seven**: 57, 49, 41, 58, 38, 58 and 82 minutes, each to
+a pushed landing; seven landings in **6 h 24 m**, five on a full green
+gate and two on combined validation. French East Indies 8182 → 10802
+(+2,620); the estimate's twelve hours holds at this pace with three to
+go.
 
 ## For the Loop, noticed by the steering session
 
