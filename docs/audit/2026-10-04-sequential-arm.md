@@ -70,6 +70,55 @@ a gated, pushed landing with the gate run per item. Journal 9 KB with
 the gate section, in Codex's range. One red gate on a lint, recorded
 and corrected, as Codex's one red gate (1444's batch) was.
 
+## Landing 2 — item 1449, French East Indies 8236 → 8385
+
+Commit `f533d1b5` at 03:49Z, **38 minutes after landing 1's push**;
+the full gate started at 03:49Z and was running when this row was
+written — its verdict, the push and the done line are read at the next
+notice. Three captures (run614–616), each booked with its killers
+before it ran, each the same game as run600 by the RNG trace.
+
+**Diff against the journal** (`docs/journal/2026-10-03-item-1449.md`,
+108 lines; SYNC §3.28, AI §114): they agree, and the item is a model
+of the frame-first rule. Booked by frame (8236, a collision of `1/41`
+with `1/56`), it walked back three captures — `1/56`'s ring spot on
+8156 with every input but one agreeing (run614), that input `1/51`'s
+birth on 7963 already holding BUILD (run615), and the wonder's recruit
+phase `(7962 + 2022) & 31 == 0` running before the birth here — to a
+tick-order cause the tick's own comment had called "still ours": the
+queue ran in a pass of its own after every building's `Wall::process`,
+where the original runs `Build::do_queue` inside each building's
+`Build::process`. The change is small and in the right place
+(`process_queue(b)` right after `process_building(b)`;
+`process_queues` kept under `#[cfg(test)]` for its one unit test), the
+vslot `+0x1b4` is named from the Build vtable, and the mutation returns
+the word to 8236 and fails all five pins.
+
+To carry to the pass:
+
+- **Five windows moved, none arrived, run613 holds** (156 → 127,
+  147 → 121, 210 → 124, 153 → 122, 156 → 120; 117 → 117 because it ends
+  before the birth), and both suites otherwise hold — a check that no
+  other floor moved, run before the gate.
+- **No sim unit test for the order itself**; the arm says so, and why
+  (the recruiter's test needs the tech tree). The run614/615 pins on
+  `1/51`, `1/56` and camp `1/2019` are the assertion. A later
+  unit-level test of the per-building order is a reasonable ask.
+- **Stated as unestablished**: the tower pass and the gather re-entry
+  pass are still passes of their own; no capture separates them. The
+  reading of `Build::process`'s order is backed by run615 for the queue
+  and by nothing for the tower. No blind reading.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w8385`, 1449 deleted, 1451 booked by frame and draw delta — the AI's
+make list on run616 block 8385, parting since run610's 8185), pins and
+`WIDENINGS` re-pinned, run614–616 entered in `docs/RUNS.md`, SYNC §3.3's
+sentence amended in place to point at §3.28. The number 1450 is parked
+1450 (landing 1); the arm's numbering is clean.
+
+**Pace after two**: 57 and ~38 + gate minutes; two landings in 1 h 35 m
+to the second landing commit. Codex's twenty took 15 h 20 m.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
