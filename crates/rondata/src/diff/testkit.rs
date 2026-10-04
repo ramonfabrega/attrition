@@ -1910,6 +1910,7 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_9655: (i64, i64) = (9650, 9662);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_9777: (i64, i64) = (9772, 9784);
 pub(crate) const WIDENING_FRENCH_FOOD_7782: (i64, i64) = (7776, 7788);
 pub(crate) const WIDENING_FRENCH_HOPLITE_9985: (i64, i64) = (9980, 9992);
+pub(crate) const WIDENING_FRENCH_MUSTER_10765: (i64, i64) = (10760, 10796);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_10131: (i64, i64) = (10126, 10138);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (10797, 10809);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);

@@ -624,12 +624,13 @@ mod tests {
             Some("5376: ours 1 theirs 0"),
             "who=1's third site's region"
         );
+        // Item 1457: [(5371, 60), (5376, 1)] → [(5371, 56), (5376, 1)]; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5371, 60), (5376, 1)],
+            [(5371, 56), (5376, 1)],
             "the blocks keys first part on, to the first word's"
         );
         // **The first word's value diff, block 5377, closed by item 1241**:
@@ -666,7 +667,8 @@ mod tests {
         // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 167 → 144, the
         // 23 Citizens' `mylos` of block 5544, ours 4 against 2 a frame
         // ahead of the original's refresh.
-        pin_eq!(w.firsts.len(), 140, "every key parted on run471");
+        // Item 1457: 140 → 136; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(w.firsts.len(), 136, "every key parted on run471");
     }
 
     /// **The third map's word at Toughest, 5782, widened whole** (item
@@ -725,12 +727,13 @@ mod tests {
             "who=1's tenth make row agrees"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(5777, 102), (5781, 6)].
+        // Item 1457: [(5777, 71)] → [(5777, 67)]; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_5783)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(5777, 71)],
+            [(5777, 67)],
             "the blocks keys first part on, to the old word's"
         );
         // **The old word's value diff, block 5783, closed by item 1251**:
@@ -748,7 +751,8 @@ mod tests {
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
-        pin_eq!(w.firsts.len(), 98, "every key parted on run476");
+        // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(w.firsts.len(), 88, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1007,18 +1011,19 @@ mod tests {
             "who=1's wealth agrees on 8378"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1457: [(8177, 77), (8201, 1), (8209, 15), (8210, 2)] → [(8177, 77), (8201, 1), (8209, 9)]; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8177, 77), (8201, 1), (8209, 15), (8210, 2)],
+            [(8177, 77), (8201, 1), (8209, 9)],
             "the blocks keys first part on, to three past the word 8377's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            95,
+            87,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
@@ -1326,7 +1331,8 @@ mod tests {
         );
         // Next measured word: 12538, beyond this capture. The constant
         // stays at its witnessed floor 11985 until item 1429 widens it.
-        pin_eq!(w.firsts.len(), 144, "every key parted on run574");
+        // Item 1457: 144 → 140; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(w.firsts.len(), 140, "every key parted on run574");
     }
 
     /// **The word 11182, widened whole** (item 1379):
@@ -1778,9 +1784,10 @@ mod tests {
         // against 34), before the march; and the Senator's crew step from
         // 9222 (ours 57 against 71, `docs/MOVEMENT.md`, "the crew guy's
         // step speed is the cached value").
+        // Item 1457: Some("9084: ours 0 theirs 34") → None; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             row(1, -3, "group:67.speed").as_deref(),
-            Some("9084: ours 0 theirs 34"),
+            None,
             "group 67's speed, before the march"
         );
         pin_eq!(
@@ -1789,11 +1796,11 @@ mod tests {
             "the Senator's crew step"
         );
         // Item 1326 re-pinned on the tree merged with 1318's.
+        // Item 1457: [(9032, 76), (9084, 2), (9201, 1), (9222, 4), (… → [(9032, 76), (9201, 1), (9222, 4), (9223, 1), (…; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (9032, 76),
-                (9084, 2),
                 (9201, 1),
                 (9222, 4),
                 (9223, 1),
@@ -1812,9 +1819,10 @@ mod tests {
         // (`TypeIndex` 71) on 9306, and its fresh crew figure is seated at
         // guy 0's angle: `1/0`'s `g.angle[1]` on 9307, ours −402259968
         // against −363239852 → agreeing (`docs/ANIM.md` §11).
+        // Item 1457: 95 → 93; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(
             w.firsts.len(),
-            95,
+            93,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

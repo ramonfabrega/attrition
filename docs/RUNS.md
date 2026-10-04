@@ -14267,3 +14267,22 @@ SHA-256 `2f0231e2553e3255d823057372fd870170821b9efd091e698d4d87bff01d7f40`.
 
 Archive `rontrace-run629.log`, 39,339,776 bytes,
 SHA-256 `0daf6456591800e9c7276112d126fe41770de64631bab746b8c0df734ebec75d`.
+
+## run630 — French East Indies, the Hoplite squad's muster before 10802, with the leader probe (2026-10-04, item 1457)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1457-opus/run630-booking.json`,
+written before the run. Window **[10760,10797)**, end 10801, call window 10758..10775,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1500`, through the
+click-free lane. Receipt success; process and wait exits **0**; five settings files
+restored; 37 blocks; seed read back. Launch-to-exit 370.317 s, total 380.451 s.
+Game-RNG draws match run600 on every frame but the quit frame. The first partings
+are on block 10766: the Hoplite squad `1/77`/`1/81`/`1/82`, born on 10765, has
+members' `orders_x/y` and slot 71's `ox/oy`, and on 10767 slot 71's speed and
+`1/81`'s move order (`docs/CITIES.md` §6.5.3, `docs/GROUPS.md` §36). The widening
+has 167 keys, none missing.
+
+Archive `gamelog-run630-islands-french-muster.txt`, 104,872,011 bytes,
+SHA-256 `b67b2398fad3c4bb159410f88f2a7618b7d82a11de8b9e1f9f702fb947081509`.
+
+Archive `rontrace-run630.log`, 39,114,976 bytes,
+SHA-256 `c0bb4e3615916f2b7dd6ad53fbb72fd1d748e53d374a10a379c545f639dfe25c`.

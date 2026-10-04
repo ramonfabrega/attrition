@@ -3633,6 +3633,15 @@ wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
 
+(1459) **The pushed slot's normalize prunes what the original still
+counts.** Item 1457, 2026-10-04 (`docs/GROUPS.md` §36.3). Four slot-speed
+rows arrive with `equals_group`'s normalize. Golden chapter forty's `702
+slot 2 speed`/`new_speed` read 24 here and 25 there. The second pair's
+run421 `group:65.speed` reads 0 here against 25 and 26 on 6588 and 16892.
+The normalize is the listing's; what parts is which members' `+0x80`
+still name the slot when it runs. It names a score only if a word's frame
+reaches one of these slots.
+
 (1456) **French East Indies' census reads one cell filled too many.**
 Item 1454, 2026-10-04. The capital `1/2008`'s `city:filled` reads 50
 against 49 on run623's 9772, and `1/2023`'s `land` and `filled` read 83/34

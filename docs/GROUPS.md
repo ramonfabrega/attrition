@@ -4883,3 +4883,59 @@ objects' type indices before calling `can_garrison`. Object indices are
 not type indices; run346's longer replay exposed that bounds error.
 Typeless objects take the nearby-move fallback. The hurrying-army test
 uses distinct object/type indices and exercises both outcomes (ARMY §25).
+
+## 36. A pushed slot's own state — French East Indies' come-out muster (item 1457, 2026-10-04)
+
+*Read from the decompile of `Group::Group@007140c0`, `Group::clear@00713e80`,
+`Group::add@00714350`, `Group::equals_group@00708000`,
+`Group::get_num@00714700` and `Groups::push_group@0070f9e0`; diff-backed by
+run630 (10760..10796).*
+
+### 36.1 A stack group's point is (0, 0)
+
+`Group::Group` runs `Group::clear(-1)`, which zeroes `ox` and `oy`
+(`+0x18`, `+0x1c`), and `Group::add` never writes them. So
+`copy_group` writes (0, 0) into the slot it seats a stack group in. This
+crate copied `GroupState::default()`'s (−1, −1). On run630's block 10766
+the come-out push of French East Indies' Hoplite squad `1/77`/`1/81`/`1/82`
+reads 0/0 in slot 71 there. The same row stood as `group:73.ox/oy` on every
+French window from 9772, `group:64.ox` on the second pair's 4550, and the
+golden chapters' `slot … ox/oy` pool rows. `GroupState::copied` now writes
+(0, 0); the record default stays (−1, −1) for a slot that was never pushed.
+
+### 36.2 Every push normalizes the last slot
+
+`push_group` asks `equals_group(g, groups[last])` before choosing a slot.
+`equals_group` opens by calling `normalize` on each side whose `id` is not
+−1, so the player's **last pushed slot** is pruned (a member dead or whose
+`+0x80` names another slot is dropped) and its speed is reset to its
+leader's (`normalize`'s tail, §18.1). This happens on every push, equal or
+not. `Group::get_num`'s own arm does the same for a slot of fewer than four.
+On run630, `Unit::go_to`'s push on 10766 (the army walk, `docs/ARMY.md`
+§4.3) normalizes slot 71, and its speed reads 28 on 10767. Here it read 0
+until item 1457. Built as the first step of `Sim::push_group`.
+
+### 36.3 What moved
+
+No floor or word moves; French East Indies stays at 10802. 85 widening
+tests across Great Lakes, the second pair, Toughest, the third map, the
+golden chapters and French East Indies lose about 440 keys: the slot
+`ox`/`oy` rows, slot speeds and the members' `orders_x/y`
+(`docs/CITIES.md` §6.5.3). Four arrive, all slot speeds. Golden chapter
+forty's `702 slot 2 speed`/`new_speed` read 24 here and 25 there, and the
+second pair's run421 `group:65.speed` reads 0 here against 25 and 26 on
+6588 and 16892. In each the normalize prunes or reprices a slot whose
+members the original still counts, so the crate's `+0x80` back-pointers
+part there first. Parked as 1459.
+
+### 36.4 What this has *not* established
+
+- On run630's 10767 `1/81`'s move order aims at the group's own point
+  (35784, 43176) there, and at its formation slot (+48, +144) here. `1/82`
+  agrees, and the group's table agrees. That is item 1458's frame.
+- `get_open_slot`'s fallbacks remain as stated in §3.
+
+### 36.5 Coverage
+
+§36.1 and §36.2 are diff-backed by run630 and the 85 widenings. The
+`get_num` arm is a reading.

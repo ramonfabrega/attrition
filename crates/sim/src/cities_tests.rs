@@ -1530,6 +1530,31 @@ fn a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot() {
     );
 }
 
+/// **A computer's member comes out with its own orders** (item 1457,
+/// `docs/CITIES.md` §6.5.3): each member's `come_out` runs the tail, and
+/// for a computer's unit that is not a plane, a Citizen or a Scholar the
+/// tail ends in `update_action`, so a member's `orders_x/y` are its new
+/// place. A human's members are left as they were trained.
+#[test]
+fn a_computer_s_squad_members_come_out_with_their_own_orders() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    squad.combat.block_radius = 48;
+    squad.type_index = 0x52;
+    let squad = sim.add_unit_type(squad);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    sim.nation[0].human = false;
+    let cap = sim.build_train(b, squad).unit;
+    for m in sim.squad_members(cap) {
+        let u = &sim.units[m];
+        assert_eq!(u.orders_pos, u.pos, "1/{}'s orders are its place", u.index);
+    }
+}
+
 /// **`come_out`'s push** (`618900`..`6189aa`, item 882, `docs/GOLDEN.md`
 /// §33): a trained squad — the captain out of a building, its type's
 /// `uber_size` over 1 — is `Group::add`ed and `push_group(who, g, 1)`ed,

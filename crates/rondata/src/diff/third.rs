@@ -622,7 +622,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_12783_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12778, 96)],
+            [(12778, 94)],
             "the blocks keys first part on, to the old word's"
         );
         // The make list's value parted on 12979 until item 1251, the
@@ -638,7 +638,8 @@ mod tests {
         // Item 1354, the `mylos` cache (`docs/VISION.md` §2): 198 → 175, the
         // 23 Citizens' `mylos` of block 12944, ours 4 against 2 a frame
         // ahead of the original's refresh.
-        pin_eq!(w.firsts.len(), 172, "every key parted on run416");
+        // Item 1457: 172 → 164; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(w.firsts.len(), 164, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):
@@ -742,7 +743,8 @@ mod tests {
             "the known rares"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 173.
-        pin_eq!(w.firsts.len(), 117, "every key parted on run417");
+        // Item 1457: 117 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(w.firsts.len(), 109, "every key parted on run417");
     }
 
     /// **The third map's long word, 14587, widened whole** (item 1163):

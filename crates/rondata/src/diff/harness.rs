@@ -10795,7 +10795,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 183.
         pin_eq!(
             under, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            116,
+            112,
             "the floor under the word"
         );
         let pair: Vec<String> = firsts
@@ -10805,18 +10805,11 @@ pub(crate) mod tests {
             })
             .map(|((_, o, what), (f, _))| format!("{f} 1/{o} {what}"))
             .collect();
-        pin_eq!(
-            pair,
-            [
-                // Item 882: `group` on 11424 agrees, 69 on both sides
-                // (ours −1 before), `come_out`'s push (parked 561,
-                // `docs/GROUPS.md` §31). `form` and `1/64`'s `orders_x/y`
-                // are `Unit::init`'s birth values (646).
-                "11424 1/64 orders_x",
-                "11424 1/64 orders_y",
-            ],
-            "1/62 and 1/64 under the word"
-        );
+        pin_eq!(pair, [""; 0], "1/62 and 1/64 under the word");
+        // Item 882: `group` on 11424 agrees, 69 on both sides (ours −1 before),
+        // `come_out`'s push (parked 561, `docs/GROUPS.md` §31). `form` and
+        // `1/64`'s `orders_x/y` are `Unit::init`'s birth values (646). Item
+        // 1457: the member's own `come_out` gives it its orders there.
         // **Who stops, both sides**: until item 566, `1/64`'s figure alone
         // changed animation on one side only on 11903..11905, ours walking
         // and stopping where the original's stood. With the memo carried,
@@ -11358,11 +11351,8 @@ pub(crate) mod tests {
         //   from 11976, the halving a founded city makes of the site values
         //   round it (`City::fix_world_vals`, `docs/AI.md` §67).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
-        pin_eq!(
-            chain,
-            ["12086 1/-2 pool:68: ours [68] theirs []",],
-            "the rows under the next word"
-        );
+        // Item 1457: ["12086 1/-2 pool:68: ours [68] theirs []"] → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        pin_eq!(chain, Vec::<String>::new(), "the rows under the next word");
         // **The floor**: 248 keys under the conversion — run136's standing
         // residue under its word, as item 644 re-pinned it — and 1,432 in
         // all, to the capture's last block. Before item 571's fix: 248 and
@@ -11399,7 +11389,7 @@ pub(crate) mod tests {
         // Item 1455: (116, 125) → (116, 123), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (116, 123),
+            (112, 118),
             "the floor"
         );
     }
@@ -11619,7 +11609,7 @@ pub(crate) mod tests {
         // Item 1455: (125, 217) → (123, 215), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (123, 215),
+            (118, 210),
             "the floor"
         );
     }
@@ -11853,7 +11843,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (215, 6, 221),
+            (210, 6, 216),
             "the floor"
         );
     }
@@ -12006,7 +11996,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -12146,7 +12136,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -12306,7 +12296,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -12470,7 +12460,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -12603,7 +12593,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -12760,7 +12750,7 @@ pub(crate) mod tests {
         // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (221, 0, 221),
+            (216, 0, 216),
             "the floor"
         );
     }
@@ -16447,8 +16437,9 @@ pub(crate) mod tests {
             // their `group` on 17363, 69 on both sides (ours −1 before) —
             // the trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31). `form` is `Unit::init`'s (646).
-            ("17363 1/68 orders_x: ours 35136 theirs 35736", 2),
-            ("17363 1/69 orders_x: ours 35136 theirs 35784", 2),
+            // Item 1457 took `1/68`'s and `1/69`'s `orders_x/y`: the
+            // member's own `come_out` gives it its orders (`docs/CITIES.md`
+            // §6.5.3).
         ]
         .iter()
         .map(|(r, n)| ((*r).to_string(), *n))
@@ -16601,7 +16592,7 @@ pub(crate) mod tests {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (110, 115, 119, 125),
+            (110, 115, 115, 121),
             "the floor"
         );
     }
@@ -16735,7 +16726,7 @@ pub(crate) mod tests {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (119, 0, 119, 125),
+            (119, 0, 119, 121),
             "the floor"
         );
     }

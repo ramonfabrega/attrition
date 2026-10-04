@@ -1545,6 +1545,24 @@ scholar a student of nobody; the push now happens first.
 
 ## Garrisons, continued (§6.6 – §6.8)
 
+#### 6.5.3 A computer's member comes out with its own orders (item 1457, 2026-10-04)
+
+`come_out` recurses into each member (`00617c10:545`, the `o_down` call
+after the captain is placed), and every call runs the same tail
+(`:552`..`:563`). For a computer's unit (`leader_flags & 4` clear) that is
+not a plane and whose type is not a Citizen or Scholar (`0x32`..`0x35`),
+the tail empties the path, then calls `close_orders(0)`,
+`clear_partial_path` and `update_action`. So the member's `orders_x/y` are
+its new place on the block it comes out. This crate ran the tail for the
+captain alone, so a member kept its spawn point until its next `work`.
+French East Indies' Hoplite members `1/81` and `1/82` read their own points
+on run630's 10766 and (42624, 38976) here before item 1457. The same rows
+stood as Great Lakes' `1/64` on 11424, and as `1/68` and `1/69` on East
+Indies' 17363. Built in `Sim::come_out`'s member loop.
+
+**How confident**: diff-backed by run630 and the first pair's widenings.
+The human arm (the tail skipped) and the plane arm are a reading.
+
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
 `Object::eject_contents(kill_if_stuck, only_type, keep_orders, clear_first)`:
