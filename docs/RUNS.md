@@ -14050,3 +14050,20 @@ SHA-256 `7ce7fc70a976685a5f55a43183d05ea66aa8b90d56129514230bdd9be8a6fc04`.
 
 Archive `rontrace-run616.log`, 23,216,672 bytes,
 SHA-256 `554d4baf57c197b3d26161713b68b6e613acd7402a0817f518c9415c4f89929f`.
+
+## run617 — French East Indies, the word 8840's widening (2026-10-03, item 1451)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-03-item-1451-opus/run617-booking.json`,
+written before the run. run613's recipe over **[8835,8848)**, end 8852, call
+window 8833..8848, `--ffwd-minute 10`, `cover=0`, no probe definition, through
+the click-free lane. Receipt success; process and wait exits **0**; five
+settings files restored; 13 blocks of 512 groups; seed and players read back.
+Launch-to-exit 136.526 s, total 145.323 s. Game-RNG draws match run600 on
+every frame but the quit frame. The word's widening: 189 keys, none missing;
+the original's unit `1/60` stands alone from block 8838.
+
+Archive `gamelog-run617-islands-french-8840.txt`, 43,868,223 bytes,
+SHA-256 `2dbc802eee98673d6da59bc4ed933ce48327f8d1de6b15b37c0223d2269398ad`.
+
+Archive `rontrace-run617.log`, 25,334,528 bytes,
+SHA-256 `974052b02c4e39661c66ddafcb267bc17fecb3f1bad474985768f277cd0bdf5d`.

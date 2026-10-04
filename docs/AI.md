@@ -3079,8 +3079,9 @@ Five of the nine make anything:
 re-derives it from the install's own `rules.xml`.
 
 The tail of `Lands::init` calls `GoodType::compute_largest_gather@0066e920`
-on all six goods. Nothing here has read it, and `ai_build.rs` still notes
-`largest_gather` as reading zero.
+on all six goods. ~~Nothing here has read it, and `ai_build.rs` still notes
+`largest_gather` as reading zero.~~ **Read and carried since item 1451
+(§115)**: 1 for every good on the shipped table, never 0.
 
 ### 24.2 The class — `WorldData::get_land@006b4730` with its third argument 1
 
@@ -3160,7 +3161,7 @@ frame-1 `CITY` check compares the same six.
 `type_avail`, `get_need`) are still seams in `ai_place.rs`, so no capture
 reaches it. It has unit tests and no oracle.
 
-**Not established**: `GoodType::compute_largest_gather`, and where
+**Not established**: ~~`GoodType::compute_largest_gather`~~ (§115), and where
 `World::set_gathered_at@006b46b0` is called from — no caller of it survives
 in the decompile export, so the writer of the bit `gather_at` reads is known
 here only through this crate's own gather-site pass.
@@ -13872,3 +13873,41 @@ Word **8236 → 8385**. The new word is the AI's make list: on run616's block
 original offers nothing, and on 8386 ours queues at `1/2005` and spends
 knowledge and metal. The list has differed since run610's block 8185
 (item 1451).
+
+## 115. `largest_gather` is 1, not 0 (2026-10-03, item 1451)
+
+French East Indies' word 8385 was a make list that had differed since block
+8185: ours listed the Farm (type 417) ahead of type 432. The disk answered
+it without a capture. run612's `RON_LEADER_PROBE` window holds the
+original's own `make_me` offers for frame 8184. The Farm for city 2 is
+offered at **45156** there and at 52593 here; on 8181 both offer it at
+1740000.
+
+**The arithmetic named the term before the reading.** A temporary print
+of `gather_value` gave base 170000 and a multiplier of 198, then the
+tail's 4/5 and ÷ 2. The original's 45156 is that base with a multiplier of
+170 exactly, and 170 is 384 after the chain's two ×2/3 steps, where ours
+had 448. That fits `(k + X) × m0 / k` with X = 2 where the crate had 3.
+The listing in `Leader::create_buildings@006c1be0` has **`max(3 −
+GoodTypeData::largest_gather, ter)`** in both arms, the worst good's and
+the rest, as `create-buildings.md` §3.2 read it. The crate had stood in 0
+for the field, which gives `max(3, ter)`. `GoodType::compute_largest_gather
+@0066e920` writes the field at load: the largest amount any land makes of
+the good (lands 1 and 2 skipped), clamped to `[1, 2]`. On the shipped
+table that is 1 for all six goods, so the term is `max(2, ter)`.
+`crate::world::largest_gather` computes it from `LANDS`. The payoff probe
+reproduced 45156 exactly.
+
+**What moved.** French East Indies **8385 → 8840**. Toughest's measured
+word holds at 12538, and no floor moves anywhere. Sixteen widenings across
+four games fall by 69 keys with none arriving. They are nearly all
+make-list values: the third map's offer 59500/51000 (7/6) on 15582 and
+15982, Toughest's from 7065 to 8785, the second pair's from 13385 to 16754,
+and the French game's. The one row that moves without closing is
+Toughest's make-list head on 10785: ours 51046 → 43828 against 44890.
+Made to fail twice: dropping the clamp's floor fails the unit test, and
+reading the field as 0 returns the word to 8385 and fails four pins.
+
+**The new word** is 8840: 100 draws against 98 at index 96, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
+`Guy::set_anim+0x104b`. Its widening is run617 (item 1452).

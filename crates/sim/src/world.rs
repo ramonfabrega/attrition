@@ -624,6 +624,26 @@ pub struct Land {
     pub amount: [i32; MAKES_PER_LAND],
 }
 
+/// `GoodType::compute_largest_gather@0066e920`, which `Lands::init` runs on
+/// every good once the table is loaded: the largest amount any land makes
+/// of good `g`, lands 1 and 2 (sand and ocean) skipped, clamped to
+/// `[1, 2]`. It is never 0 — a good no land makes still reads 1 — and on
+/// the shipped table it is 1 for all six (item 1451).
+pub fn largest_gather(g: usize) -> i32 {
+    let mut best = 0;
+    for (i, land) in LANDS.iter().enumerate() {
+        if i == 1 || i == 2 {
+            continue;
+        }
+        for (k, &good) in land.good.iter().enumerate() {
+            if usize::try_from(good).ok() == Some(g) {
+                best = best.max(land.amount[k]);
+            }
+        }
+    }
+    best.clamp(1, 2)
+}
+
 /// The shipped `LANDS` block, in file order — the index
 /// [`World::land_class`] answers.
 ///
@@ -1868,6 +1888,18 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **`largest_gather` is 1 for every good on the shipped table, never
+    /// 0** (`GoodType::compute_largest_gather@0066e920`, item 1451): plain
+    /// land makes a knowledge and a food at 1, forest a timber, mountains a
+    /// metal, oil an oil, and wealth — made by no land — is clamped up to
+    /// 1. Read as 0 until item 1451, which put `max(3, ter)` into every
+    /// gather building's value where the original has `max(2, ter)`.
+    /// Made to fail by dropping the clamp's floor (wealth reads 0).
+    #[test]
+    fn largest_gather_is_one_for_every_good() {
+        assert_eq!((0..6).map(largest_gather).collect::<Vec<_>>(), [1; 6]);
+    }
 
     #[test]
     fn cell_conversion_matches_the_originals_two_step_form() {

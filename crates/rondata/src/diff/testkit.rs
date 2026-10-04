@@ -1871,7 +1871,10 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// a citizen trained this frame is there for a wonder's recruiter: 8236 →
 /// 8385, 8 vs 4 draws, index 0 Leader::make_stuff+0x221 versus
 /// Guy::set_anim under Guy::inc_time. run616 block 8386.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 8385;
+/// Item 1451: `largest_gather` is 1, not 0, in every gather building's
+/// value (AI §115): 8385 → 8840, 100 vs 98 draws, index 96 Guy::set_anim
+/// under Guy::inc_time versus Guy::set_anim+0x104b. run617 block 8841.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 8840;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1885,7 +1888,8 @@ pub(crate) const WIDENING_FRENCH_CONTACT_7946: (i64, i64) = (7940, 7952);
 pub(crate) const WIDENING_FRENCH_BUILDER_8156: (i64, i64) = (8140, 8159);
 pub(crate) const WIDENING_FRENCH_BUILDER_7963: (i64, i64) = (7958, 7999);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8236: (i64, i64) = (8231, 8243);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (8380, 8392);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8385: (i64, i64) = (8380, 8392);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (8835, 8847);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8290,8 +8294,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run616_s_word_frame_is_widened_whole"),
-        1449,
+        Some("run617_s_word_frame_is_widened_whole"),
+        1451,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

@@ -221,16 +221,42 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run617: the successor after `largest_gather`, frame 8840 (item 1451).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run617",
+        &[("gamelog-run617-islands-french-8840.txt", 8835)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[8841],
+        true,
+    )
+}
+
+#[test]
+fn run617_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 189, "initial run617 baseline");
+}
+
 /// run616: the successor after the per-building queue, frame 8385 (item
 /// 1449).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_8385_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run616",
         &[("gamelog-run616-islands-french-8385.txt", 8380)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_8385,
         1,
         &[8386],
         true,
@@ -240,12 +266,12 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run616_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_8385_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 140, "initial run616 baseline");
+    pin_eq!(w.firsts.len(), 121, "run616 after largest_gather");
 }
 
 /// run612: the successor after a wonder's start became first contact,
@@ -272,7 +298,7 @@ fn run612_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 124, "run612 after the per-building queue");
+    pin_eq!(w.firsts.len(), 117, "run612 after largest_gather");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -298,7 +324,7 @@ fn run610_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 127, "run610 after the per-building queue");
+    pin_eq!(w.firsts.len(), 120, "run610 after largest_gather");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -635,8 +661,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run616-islands-french-8385.txt",
+            "gamelog-run617-islands-french-8840.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run616-islands-french-8385.txt",
+            WIDENING_FRENCH_EAST_INDIES_8385,
         ),
         (
             EAST_START,
@@ -938,6 +970,10 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
         ),
         (
             "gamelog-run616-islands-french-8385.txt",
+            WIDENING_FRENCH_EAST_INDIES_8385,
+        ),
+        (
+            "gamelog-run617-islands-french-8840.txt",
             WIDENING_FRENCH_EAST_INDIES,
         ),
     ] {

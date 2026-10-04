@@ -804,9 +804,10 @@ mod tests {
             None,
             "who=1's wealth leftover agrees"
         );
+        // Item 1451, `largest_gather` (AI §115): MAKE[4].val 1431372/1228956 agrees.
         pin_eq!(
             row(1, -1, "leader:MAKE[4].val").as_deref(),
-            Some("7065: ours 1431372 theirs 1228956"),
+            None,
             "who=1's fifth make row stands"
         );
         // **The word's block 7071 is quiet**: nothing parts between the
@@ -814,12 +815,13 @@ mod tests {
         // search, `1/52`'s — ours 3204 `PathFinder::calc_road_cost+0x46`
         // against the original's 2543 — and no record prints a search.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was [(7065, 119)].
+        // Item 1451, `largest_gather` (AI §115): 71 → 70.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7071 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7065, 71)],
+            [(7065, 70)],
             "the blocks keys first part on, to three past the word's"
         );
         // **The word moved to 7785 on item 1260**, past this window: with
@@ -828,15 +830,17 @@ mod tests {
         // block is five keys — who=1's `peasants` 30 against 31 and `1/56`'s
         // `form` on 7144 first — where it was 616.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1451, `largest_gather` (AI §115): 71 → 70.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(7065, 71), (7201, 1)],
+            [(7065, 70), (7201, 1)],
             "the blocks keys first part on, the window whole"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 124.
+        // Item 1451, `largest_gather` (AI §115): 72 → 71, MAKE[4].val.
         pin_eq!(
             w.firsts.len(),
-            72,
+            71,
             "every key parted on run483 (132 before item 1281, 134 before item 1275, 745 before item 1260)"
         );
     }
@@ -902,18 +906,20 @@ mod tests {
         pin_eq!(row(1, 2030, "build:x_internal"), None, "the Senate's x");
         pin_eq!(row(1, 2030, "build:y_internal"), None, "the Senate's y");
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1451, `largest_gather` (AI §115): 7782's two keys agree.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 75), (7782, 2)],
+            [(7780, 75)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 138.
+        // Item 1451, `largest_gather` (AI §115): 82 → 80, MAKE[0].val and MAKE[4].val.
         pin_eq!(
             w.firsts.len(),
-            82,
+            80,
             "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }
@@ -1096,19 +1102,21 @@ mod tests {
             "who=1's gather_stamp, the first before the word's block"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
+        // Item 1451, `largest_gather` (AI §115): 8782's three and 8785's eight make-list keys agree.
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8857 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             // Item 1377: 8781 81 → 80, who=1's `defense` standing no more.
-            [(8781, 79), (8782, 3), (8785, 8), (8801, 1)],
+            [(8781, 79), (8801, 1)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 149.
+        // Item 1451, `largest_gather` (AI §115): 91 → 80, the make list from 8782.
         pin_eq!(
             w.firsts.len(),
-            91,
+            80,
             "every key parted on run500 (737 before item 1305, 1,808 before item 1293, \
              1,816 before item 1281)"
         );
@@ -1452,9 +1460,10 @@ mod tests {
         // `orders_x` 5112 against 5304 → agreeing. The make list's values
         // part again from 10782 (`MAKE[3].val` 270400 against 276800) with
         // no draw spent on them; the head's first parting is 10785.
+        // Item 1451, `largest_gather` (AI §115): the head still parts on 10785, ours 51046 → 43828 against 44890.
         pin_eq!(
             row(1, -1, "leader:MAKE[0].val").as_deref(),
-            Some("10785: ours 51046 theirs 44890"),
+            Some("10785: ours 43828 theirs 44890"),
             "who=1's make list, its head"
         );
         pin_eq!(
@@ -1484,7 +1493,8 @@ mod tests {
         // 1377 (who=1's `defense` on 10929), → 144 by item 1379, → 130 by
         // item 1388 (the research queue's two rows, `epoch[2]`, `epochs`,
         // `queued`, `resource_cap` ×5 and `MAKE[3].t`).
-        pin_eq!(w.firsts.len(), 126, "every key parted on run562");
+        // Item 1451, `largest_gather` (AI §115): 126 → 125, MAKE[3].t.
+        pin_eq!(w.firsts.len(), 125, "every key parted on run562");
     }
 
     /// **The word 10144, widened whole** (item 1354):

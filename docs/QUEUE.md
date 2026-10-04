@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-03, **the sequential arm, landing 2 of 10** (DECISIONS 60,
+*2026-10-03, **the sequential arm, landing 3 of 10** (DECISIONS 60,
 parked 1448): branch `worktree-seq-opus`, one Opus 5.5 session under
-`AGENTS.md`. French East Indies **8182 → 8236 → 8385**: a wonder's start
-is first contact (1446, VISION §6.4); a building's queue runs inside its
-own `Build::process`, so a newborn citizen is there for the wonder's
-recruiter (1449, SYNC §3.28). Captures run613–616.
+`AGENTS.md`. French East Indies **8182 → 8236 → 8385 → 8840**: a wonder's
+start is first contact (1446, VISION §6.4); a building's queue runs inside
+its own `Build::process` (1449, SYNC §3.28); `largest_gather` is 1, not 0
+(1451, AI §115), which also closes make-list values on four games.
 Great Lakes (French) stands closed; Toughest measured 12538, floor 11985.*
 
-- **The arm takes 1451 next**, then down the queue; the steering session
+- **The arm takes 1452 next**, then down the queue; the steering session
   takes its landing lines and does not drive. No commander loop runs.
 - **1446's cause was not the booking's**: Codex's 8033 contact was killed
   by run611 (contact before 8030). Its unread diff stays unread.
@@ -30,12 +30,12 @@ Great Lakes (French) stands closed; Toughest measured 12538, floor 11985.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w8385 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w8840 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the sequential worker, on Opus, takes 1451 from this tree
+**Opener: the sequential worker, on Opus, takes 1452 from this tree
 under `AGENTS.md`; the steering session watches and does not drive.**
 
 ## The queue
@@ -46,12 +46,12 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1451. **French East Indies frame 8385, eight versus four draws**, index
-    0: ours `Leader::make_stuff+0x221` versus `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`. run616 block 8385: MAKE[0] ours t 417 val
-    102712 city 2, theirs t -1 val 99999; 8386 ours queues at 1/2005
-    (3/2) and spends knowledge 6/166, metal 4/204. The make list parts
-    since run610's block 8185 (MAKE[1] t 417/432). Date the parting.
+1452. **French East Indies frame 8840, a hundred versus ninety-eight
+    draws**, index 96: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+    versus `Guy::set_anim+0x104b`. run617 block 8838: the original holds
+    unit 1/60 alone (num_units[268] 1/2, active 65/66), and 1/29 is inside
+    it (`inside` 60) where ours walks a 24-node path to (37272,33144).
+    Date 1/60's birth and what makes it.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

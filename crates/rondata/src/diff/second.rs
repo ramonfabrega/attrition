@@ -2172,7 +2172,8 @@ mod tests {
         // Item 1341, the bump loop: 1015 → 138 (on the tree merged with
         // 1330's, whose birth `form` took 1102 → 1015).
         // Item 1407: 138 → 137.
-        pin_eq!(w.firsts.len(), 134, "every key parted on run523");
+        // Item 1451, `largest_gather` (AI §115): 134 → 132, MAKE[3].val and MAKE[4].val.
+        pin_eq!(w.firsts.len(), 132, "every key parted on run523");
     }
 
     /// **run535 — the second pair's East Indies word 14141, widened whole**
@@ -2238,7 +2239,8 @@ mod tests {
         );
         // Measured on the tree merged with 1330's (1818 before it); item
         // 1351, the decoy's close: 1730 → 163.
-        pin_eq!(w.firsts.len(), 160, "every key parted on run535");
+        // Item 1451, `largest_gather` (AI §115): 160 → 159.
+        pin_eq!(w.firsts.len(), 159, "every key parted on run535");
     }
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
@@ -3120,7 +3122,8 @@ mod tests {
                 "transport/passenger 1/{o} differs beyond standing form"
             );
         }
-        pin_eq!(w.firsts.len(), 286, "every key parted on run583");
+        // Item 1451, `largest_gather` (AI §115): 286 → 285, MAKE[4].val.
+        pin_eq!(w.firsts.len(), 285, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
