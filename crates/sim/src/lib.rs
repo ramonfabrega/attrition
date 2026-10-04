@@ -1839,6 +1839,21 @@ impl Sim {
             .find(|old| old.owner == unit.owner && old.index == unit.index)
             .filter(|old| !old.alive() && !old.guys.is_empty())
             .map(|old| old.movement.body.pos);
+        // **`path_recursion` (`UnitData +0xaf`) survives the slot**: only
+        // `UnitData::UnitData@00606670` zeroes it, and `Unit::init@00612100`
+        // never writes it, so a recycled object number keeps its last
+        // occupant's count until the next `find_path`. French East Indies'
+        // Hoplite captain `1/77`, born on 10765 into the slot a dead `1/77`
+        // left, reads 1 on run630's 10766 (item 1458, `docs/GROUPS.md` §37.2).
+        let mut unit = unit;
+        if let Some(old) = self
+            .units
+            .iter()
+            .rev()
+            .find(|old| old.owner == unit.owner && old.index == unit.index && !old.alive())
+        {
+            unit.path_recursion = old.path_recursion;
+        }
         let i = self.units.len();
         let owner = unit.owner as usize;
         let source = unit.kind.supply_unit;

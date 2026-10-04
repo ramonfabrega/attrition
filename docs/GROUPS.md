@@ -4939,3 +4939,63 @@ part there first. Parked as 1459.
 
 §36.1 and §36.2 are diff-backed by run630 and the 85 widenings. The
 `get_num` arm is a reading.
+
+## 37. A member's slot across a coast, and a recycled slot's path count — French East Indies 10802 → 11582 (item 1458, 2026-10-04)
+
+*Read from the decompile of `Group::action_move_near@00704990` (§6.6 step
+4), `WorldData::get_tregion@006b52e0`, `Unit::init@00612100` and
+`UnitData::UnitData@00606670`; diff-backed by run630 (10760..10796) and the
+word.*
+
+### 37.1 The different-region arm of §6.6 step 4
+
+For a member past the first, `action_move_near` compares the `get_tregion`
+of its slot with slot 0's. `get_tregion` is the coastal-water arm: a cell
+flagged `0x100` whose tile surface is ocean answers its `region2`. This
+crate already carries it as `World::tregion_alt`. When the two differ, the
+member is taken out of the group (`+0x80 = −1`) and re-placed by
+`UnitType::find_nearby_spot` around **slot 0's** point (`min` 0, `max`
+−1, step 0, bias `0x55555555`, `FILTER_NOT_ME` with `not_o`/`not_who`
+−1, so nothing is exempt). Failing that it takes slot 0's point itself,
+and is put back in the group. The result is written into the formation
+table (`+0x514`/`+0x714`), so §6.7's path translation uses it.
+
+On run630's 10766 the Hoplite member `1/81`'s slot (35832, 43320) lies on
+tile (186, 225), a coastal-water tile whose `region2` is 0. Slot 0's tile
+(186, 224) is region 12. The type's sweep finds slot 0's own point
+(35784, 43176), and the order and the path the original holds both read
+it. Asked as the unit rather than the type, the sweep found (35928, 43176);
+without the write-back the path kept the old offset.
+
+Built in `Sim::group_action_move_to`'s member loop. **Not built**: the
+`TRANSPORTBARGE` footprint (a land member whose slot 0 is invalid for it,
+under a leader that can transport), a loaded boat's passenger type, and the
+same-region `invalid_loc` arm, which a computer's unit (`unit_masks &
+0x40000`) skips unless a re-placed captain came first.
+
+### 37.2 `path_recursion` survives a recycled object slot
+
+`UnitData +0xaf` is zeroed by the constructor `UnitData::UnitData` and by
+nothing in `Unit::init`. So a unit born into an object number keeps the
+last occupant's count until its first `find_path`. The Hoplite captain
+`1/77`, born on 10765 into the slot of a dead `1/77` (born 10286), reads 1
+on run630's 10766. `Sim::add_unit` carries the count from the slot's dead
+occupant.
+
+### 37.3 What moved
+
+French East Indies **10802 → 11582**. run630's widening falls 167 → 101,
+its standing rows and `1/67`'s figure residue on 10761 and 10776. The full
+suites: see item 1458's journal for the value diff across the 64 widenings
+that moved.
+
+### 37.4 What this has *not* established
+
+- The arm's two unbuilt footprints and the same-region arm are a reading.
+- Whether other `UnitData` fields survive `Unit::init` the same way was not
+  surveyed. `path_recursion` is the one a dump showed.
+
+### 37.5 Coverage
+
+§37.1 is diff-backed by run630 and the word. §37.2 is diff-backed by
+run630's 10766.

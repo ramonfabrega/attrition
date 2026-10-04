@@ -12,19 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-04, **the sequential arm, landing 8 of 10** (DECISIONS 60,
+*2026-10-04, **the sequential arm, landing 9 of 10** (DECISIONS 60,
 parked 1448): branch `worktree-seq-opus`, one Opus 5.5 session under
-`AGENTS.md`. French East Indies **8182 → … → 10131 → 10802**: a wonder's
+`AGENTS.md`. French East Indies **8182 → … → 10802 → 11582**: a wonder's
 start is first contact (1446); a building's queue runs inside its own
 `Build::process` (1449); `largest_gather` is 1 (1451); a pushed ship
 pushes back (1452); the gull flies (1453); the Pyramids' city terms and
 `already_built` (1454); the Militia ramp and the French siege move
-(1455). **1457 moved no score**: a member's come-out tail and a pushed
-slot's own state (GROUPS §36) take about 440 keys off 85 widenings, and
-the word stays 10802. Great Lakes (French) stands closed; Toughest
-measured 12538, floor 11985.*
+(1455); a member's come-out tail and a pushed slot's state (1457, no
+score); a member's slot across a coast is re-placed on slot 0's, and a
+recycled slot keeps its `path_recursion` (1458, GROUPS §37). Great Lakes
+(French) stands closed; Toughest measured 12538, floor 11985.*
 
-- **The arm takes 1458 next**, then down the queue; the steering session
+- **The arm takes 1460 next**, then down the queue; the steering session
   takes its landing lines and does not drive. No commander loop runs.
 - **1446's cause was not the booking's**: Codex's 8033 contact was killed
   by run611 (contact before 8030). Its unread diff stays unread.
@@ -34,12 +34,12 @@ measured 12538, floor 11985.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w10802 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w11582 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the sequential worker, on Opus, takes 1458 from this tree
+**Opener: the sequential worker, on Opus, takes 1460 from this tree
 under `AGENTS.md`; the steering session watches and does not drive.**
 
 ## The queue
@@ -50,12 +50,11 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1458. **French East Indies frame 10802, six versus five draws**, index
-    0: ours `Guy::set_anim+0x97a < Unit::move_step` versus `Guy::set_anim
-    +0x97a < Guy::inc_time`. run630's first parting under it is now block
-    10766, `1/77`'s `path_recursion` 0/1, then 10767, `1/81`'s move order:
-    the group's point (35784, 43176) there, its slot (+48, +144) here.
-    No mechanism is named.
+1460. **French East Indies frame 11582, 188 versus 189 draws**, index 0:
+    ours `Leader::make_stuff+0x221` versus `Leader::use_market+0x1ed`.
+    run631 (216 keys): on block 11579 the original's make list is headed
+    by t=575, val 9999999, cat 10, which ours lacks; the rest shifts down.
+    Date that entry's offer; no mechanism is named.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

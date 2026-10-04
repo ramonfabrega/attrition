@@ -68,7 +68,7 @@ pub enum Flight {
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard`'s building arm, human sweep and `QUEUE_FIRST` | §9's escort half, `docs/ORDERS.md` §24.7 | no building is ever guarded; the unit arm is built (item 567) |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
-/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4 | `find_nearby_spot` still does not ask the occupancy index, so no slot is ever invalid and no member is re-slotted |
+/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4's same-region arm | no slot is ever invalid in the same region, so no member is re-slotted there; the different-region arm is built (§37.1) |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
 /// | the scenario `ignore_orders` filter | §5 | never set outside a scenario |
 /// | `is_modern_infantry`, `is_packing`, the strafe | §6.6, §10 | no modern infantry, no packers in flight, no planes |
@@ -2553,7 +2553,38 @@ impl Sim {
             }
             // §6.6 step 3: the member's **own** slot, clamped into the
             // world — not the group's destination.
-            let slot = self.restrict_pos(slots.to[i]);
+            let mut slot = self.restrict_pos(slots.to[i]);
+            // §6.6 step 4's **different-region** arm (`705a2a`..`705c9b`):
+            // a member past the first whose slot's `get_tregion` — the
+            // coastal-water `region2` arm, [`crate::world::World::tregion_alt`]
+            // — is not slot 0's is re-placed by `find_nearby_spot` around
+            // **slot 0's** point (`min 0, max −1`, step 0, bias
+            // `0x55555555`, `FILTER_NOT_ME`), and failing that takes slot
+            // 0's point itself. French East Indies' Hoplite `1/81` on
+            // run630's 10766: its slot's tile is coastal water (region2 0)
+            // and slot 0's is region 12, and its order aims at the group's
+            // own point there (item 1458, `docs/GROUPS.md` §37).
+            // SEAM: the `TRANSPORTBARGE` footprint (a land member whose
+            // slot 0 is invalid for it, under a leader that can transport)
+            // and a loaded boat's passenger type; and the same-region
+            // `invalid_loc` arm, which a computer's unit (`unit_masks &
+            // 0x40000`) skips.
+            if i > 0 {
+                let s0 = self.restrict_pos(slots.to[0]);
+                if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
+                    // The type's sweep with `not_o`/`not_who` −1: nothing
+                    // is exempt, the member itself included.
+                    slot = self.units[u]
+                        .ty
+                        .and_then(|t| {
+                            self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
+                        })
+                        .unwrap_or(s0);
+                    // Written back into the table (`param_9 + 0x514`,
+                    // `+0x714`), which §6.7's translation reads next.
+                    slots.to[i] = slot;
+                }
+            }
             // §6.6 step 6: the order's angle is the formation's, **plus**
             // this slot's packed byte — an addition of a signed byte
             // shifted into the top of the word (`705f42`–`705f4d`), where

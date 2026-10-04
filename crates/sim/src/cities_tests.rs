@@ -5809,3 +5809,20 @@ fn a_french_siege_factory_unit_moves_a_fifth_faster() {
     assert_eq!(sim.type_speed(1, wagon), 30, "25 × 120 / 100");
     assert_eq!(sim.type_speed(1, foot), 25, "not the factory line");
 }
+
+/// **`path_recursion` survives a recycled object slot** (item 1458,
+/// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
+/// so a unit born into a dead unit's object number keeps its count. A
+/// fresh number starts at 0.
+#[test]
+fn a_recycled_slot_keeps_its_path_recursion() {
+    let mut sim = world_sim();
+    let mut old = Unit::new(1, 9, tile_pos(3, 3), 40);
+    old.path_recursion = 3;
+    let o = sim.add_unit(old);
+    sim.units[o].health = 0;
+    let n = sim.add_unit(Unit::new(1, 9, tile_pos(4, 4), 40));
+    assert_eq!(sim.units[n].path_recursion, 3, "the slot's last occupant's");
+    let fresh = sim.add_unit(Unit::new(1, 10, tile_pos(5, 5), 40));
+    assert_eq!(sim.units[fresh].path_recursion, 0);
+}
