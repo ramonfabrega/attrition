@@ -124,6 +124,62 @@ sentence amended in place to point at §3.28. The number 1450 is parked
 two gated landings in 1 h 47 m. Codex's twenty took 15 h 20 m, 46 a
 landing with the gate at the batch.
 
+## Landing 3 — item 1451, French East Indies 8385 → 8840
+
+Commits `a96211c3` (the landing) and `f9ff75c2` (a doc-comment line
+clippy read as a list item), both 04:30Z, **30 minutes after landing
+2's push**; the full gate on `f9ff75c2` started 04:30Z and was running
+when this row was written. One capture (run617), the new word's
+widening; the cause needed none.
+
+**Diff against the journal** (`docs/journal/2026-10-03-item-1451.md`,
+100 lines; AI §115, §24 amended): they agree, and this is the "grep
+the disk before booking a capture" rule paying out whole. run612 had
+been captured with `RON_LEADER_PROBE` over 8175..8240, so the
+original's own offer on 8184 was on disk: the Farm for city 2 at
+45156 against ours 52593. The arm did the arithmetic *before* opening
+the listing — holding the base, 45156 needs multiplier 170, which is
+384 before two ×2/3 steps where ours had 448, which fits `(k + X) × m0
+/ k` with X = 2 for our 3 — wrote it down, and then found
+`max(3 − largest_gather, ter)` in both arms of `create_buildings`, with
+`compute_largest_gather` clamping the field to `[1, 2]` at load. The
+crate's seam list had it at 0; the third reading (`create-buildings.md`
+§3.2) had the formula right and the field's value wrong. The payoff
+probe reproduces 45156 exactly. `crate::world::largest_gather` computes
+it from `LANDS` rather than pinning 1, with a unit test made to fail by
+dropping the clamp's floor.
+
+To carry to the pass:
+
+- **The first landing of the arm that moved other games.** Sixteen
+  widening pins fell across Great Sahara, Toughest, the second pair
+  and the French pair; the arm diffed their keys before and after:
+  **69 keys leave, none arrive**. No floor moved; Toughest holds at
+  12538. The third map's 7/6 offer residue on 15582 and 15982 is gone.
+  One Toughest row moved without closing (the make head on 10785,
+  51046 → 43828 against 44890) and stays pinned with its value.
+- **Review debt: none claimed on the formula** — run612's probe and
+  sixteen widenings back it, which is the first row in this ledger
+  where a landing's arithmetic is diff-backed end to end. The clamp's
+  upper bound (2) is reached by no shipped land, which is stated.
+- **A seam that was a wrong constant.** `ai_build.rs`'s module header
+  listed `largest_gather: 0` among what is "not modelled"; the field was
+  not unmodelled, it was mis-valued, and the seam list did not say
+  which. For the pass: whether `tools/seams.py`'s rows should carry
+  "assumed value" against "not carried", since a reader of the list
+  cannot tell them apart.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w8840`, 1451 deleted, 1452 booked by frame — unit `1/60` the original
+holds and we do not, run617 block 8838), sixteen pins and `WIDENINGS`
+re-pinned, run617 entered in `docs/RUNS.md`, the module header struck
+through in place. Its slips section records four tooling mistakes
+caught by the tools' own assertions before any conclusion was drawn.
+
+**Pace after three**: 57, 49 and 30 + gate minutes; **455 frames in
+one landing**, the largest move on this word since the pair stood up.
+Three landings in 2 h 17 m to the third landing commit.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
