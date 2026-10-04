@@ -189,6 +189,62 @@ pushed landing; **455 frames in one landing**, the largest move on
 this word since the pair stood up. Three gated landings in 2 h 27 m;
 French East Indies 8182 → 8840 (+658).
 
+## Landing 4 — item 1452, French East Indies 8840 → 9655
+
+Commit `cbd08255` at 05:25Z, **44 minutes after landing 3's push**; the
+full gate on it started 05:25Z and was running when this row was
+written. Five captures (run618–622), each with its hypotheses written
+before it ran; the trail is the longest of the four so far and the
+cleanest to read.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1452.md`,
+94 lines; COLLISION §24, VISION §6.4 noted): they agree. Booked by
+frame (8838, a transport the original holds and we had already
+emptied), the arm walked it back five captures and 2,700 frames: the
+boarding identical (run618), the transport parting on 8651 against a
+ship `1/16` (run619), that ship standing 11 units off since before
+7351 and pushed on 6141 (run620, both ships parting by the same angle
+with opposite signs), and the guard probe on 6141 (run621) showing the
+**idle** ship calling `detect_boat_collision` at its own position with
+`mates` clear, outside any move — `Unit::work`'s block before
+`do_job`: pushed within four frames, the boat arm, a job that is not a
+move. The change is that block, with the seven move-like jobs exempt
+as the listing has them. The new word's widening (run622) exposed a
+second, small write — `Wall::activate`'s `ever_seen_completed |= ally
+mask`, the wonder reading 2 on the block it finishes — made in the same
+landing with its own capture evidence.
+
+To carry to the pass:
+
+- **Every French window lost the same 11 keys — `1/16`'s — and none
+  arrived**; run617 lost 77. The standing residue a reader of the
+  French widenings had seen for ten items (a ship 11 units off) was
+  this. No floor moved.
+- **One unit test, and it is honest about its edge.** `a_pushed_ship_
+  pushes_back_from_where_it_stands` fails without the block and tests
+  the four-frame window on both sides; the move-job exemption is stated
+  as read-only rather than tested through a moving ship's own step,
+  "which would conflate the two pushes" — the right call.
+- **Review debt, stated**: the push-back's siege, supply and hero arms
+  and the move-job exemption are read, not exercised. No blind reading.
+- **A slip the arm owns**: a comment-only edit to `orders.rs` while the
+  full suites ran. No logic changed, and it says so; the frozen-tree
+  rule was still crossed, and the pass should weigh whether the
+  agreement's "do not edit the validated tree" needs the same teeth
+  the gate has.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w9655`, 1452 deleted, 1453 booked by frame — an air step's draw at
+9655, `do_air_physics`, no flyer parting before 9657), pins and
+`WIDENINGS` re-pinned, run618–622 entered in `docs/RUNS.md` (run619
+as positions-only evidence, not a pinned window, and said so).
+
+**Pace after four landing commits**: 57, 49, 41 and 44 + gate minutes;
+**815 frames in one landing**, the largest yet. French East Indies
+8182 → 9655 (+1,473) in 3 h 12 m to the fourth landing commit. Entry
+60's estimate — ten in under twelve hours, past 9,000 — is on pace at
+four, and the 9,000 is passed.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
