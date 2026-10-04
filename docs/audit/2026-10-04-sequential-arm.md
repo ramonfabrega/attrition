@@ -319,6 +319,62 @@ landing; five gated landings in **4 h 03 m**, French East Indies
 architecture was not the variable" — is passed, and the pace is
 twice its estimate's.
 
+## Landing 6 — item 1454, French East Indies 9777 → 10131
+
+Commit `52503b86` at 07:05Z, **47 minutes after landing 5's push**; the
+full gate on it started 07:05Z and was running when this row was
+written. One capture (run624), the new word's widening with the leader
+probe; the cause needed none — run623's probe held the original's
+offers and the purchase.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1454.md`,
+91 lines; AI §116, COSTS and TECH each a new section): they agree.
+Three terms, each measured before the next and each its own mutation:
+the city limit (the crate's Pyramids arm read `Nation::pyramids`, which
+nothing in a game sets, where `get_city_limit` reads `has_wonder(0x20e)`
+— four of four against the original's five), the price (`get_cost`'s
+city tail, `PYRAMIDS_CITY_DISCOUNT` after the ramp, 210 → 140 on both
+buckets, with the Bantu term ahead of it and each truncating alone),
+and `already_built` (a built wonder leaves every player's list —
+parked 797, read on 2026-09-25 and never built, now built with its
+killer written first). The limit alone moved nothing; the price took
+the word to 9781; `already_built` to 10131. The crate carries
+`Game::wonders` as `wonders_built`, set where the census notes an
+activated wonder, read by `type_avail`.
+
+To carry to the pass:
+
+- **A parked reading became a build on a word's frame**, the way the
+  parked file is meant to work: 797 struck through in place and pointed
+  at its item.
+- **Two tuning slots added** (`BANTU_CITY_COST` 75,
+  `PYRAMIDS_CITY_DISCOUNT` 33) and `ron_slots` widened 345 → 347, so
+  `rondata`'s drift check re-derives them from the install; the Bantu
+  term is a reading alone and the journal says so.
+- **run623's widening falls 186 → 97, and the 97 are its first block's
+  standing keys** — nothing parts on 9773..9784. The purchase test
+  asserts the fall of each bucket by 140 rather than the food value,
+  because food stood three high from before the window; the reason is
+  in the test.
+- **A census residue parked with its cheapest dating** (1456: the
+  capital's `filled` one high on every French window from 6136, moving
+  no draw yet) — a finding that names no score, parked rather than
+  chased, with the capture that would date it named.
+- **Three slips owned**, one of them the yield rule: "one backgrounded
+  `sleep 1` was a yield, which `CLAUDE.md` bans; it carried nothing."
+  The arm reports its own infractions of the parent agreement without
+  being asked.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w10131`, 1454 deleted, 1455 booked by frame — the state parted before
+run624's first block, 10126, to be dated in 9784..10126), parked 797
+struck and 1456 filed, pins and `WIDENINGS` re-pinned, run624 in
+`docs/RUNS.md`.
+
+**Pace after six landing commits**: 57, 49, 41, 58, 38 and 47 + gate
+minutes. French East Indies 8182 → 10131 (+1,949) in 4 h 51 m to the
+sixth landing commit.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
