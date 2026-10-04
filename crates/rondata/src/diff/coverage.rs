@@ -203,9 +203,10 @@ const UNREAD: &[(&str, &str)] = &[
     // added `Edinburgh`**: run571's window, past 11177, holds a city no
     // earlier window did.
     // Items 1442/1443: Paris, Brest and Nantes are bare display-name lines, not sim fields.
+    // Item 1452: Lyons, the French city founded before run622's window, likewise.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Brest Edinburgh London Nantes Napata Newcastle Norwich Paris York flags increment length size",
+        "Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Paris York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
