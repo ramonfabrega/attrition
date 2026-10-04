@@ -218,11 +218,7 @@ impl Sim {
         // own `(x + 100) × speed / 100` (`docs/MOVEMENT.md`, "The French
         // siege move"). French East Indies' Supply Wagon `1/72` is born at
         // 30 there, 25 here before item 1455.
-        let trainer = self.unit_types[ty]
-            .tree
-            .and_then(|t| self.tech_tree.types.get(t))
-            .and_then(|d| d.where_);
-        if matches!(trainer, Some(0x1ae | 0x1af)) {
+        if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
             if self.nation[who as usize].french {
                 speed = (self.tuning.french_siege_move + 100) * speed / 100;
             }

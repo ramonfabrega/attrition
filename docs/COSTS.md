@@ -492,6 +492,8 @@ shape carries no information and the predicates do:
   elephants, the Dutch on ships, the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth.
+  (The French siege arm is built as of item 1460; see "A French siege unit
+  costs less".)
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
   Marble, Bison and Incense each cheapen one category (Horses and Rubber
   are built as of item 613, `docs/AI.md` §62: **both** take their 15% off
@@ -1046,6 +1048,39 @@ Indies), whose food and queued-cost rows close. The Scholar's term and
 `scholar_militia` are a reading: no capture holds a scholar called to arms.
 The `is(0x13b)` arm (`+ LeaderData +0x7bc` for the nuclear line) is not
 carried.
+
+## A French siege unit costs less
+
+*Item 1460, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s pre-ramp nation tail (lines 224–235 of
+the export); built as `Sim::nation_unit_discount`, carried in
+`cost::Modifiers::discount`.*
+
+Right after `UNIT_COST_FACTOR` scales the base, `get_cost` runs a tail of
+nation arms, each its own `(100 − x) × cost / 100`. It runs before the
+stable rares, before the research fork and before the ramp, so it applies
+to a research's price as well as a train job's. The French arm
+(`has_tribe_bonus(10)`) takes:
+
+- **`FRENCH_SIEGE_COST`** (15, rules.xml) off a unit whose trainer
+  (`UnitTypeData +0x40`) is `0x1ae` or `0x1af`, the Siege Factory line;
+- else `FRENCH_SPECIAL_COST` off a type of class `0x36`. It ships as 0,
+  and the crate does not carry it.
+
+The French AI of French East Indies queues the Trebuchet's research
+(`TypeIndex` 266, its bit still clear) at the Siege Factory `1/2034` on
+frame 11182. Base 7 × `UNIT_COST_FACTOR` 10 = 70; the arm makes it
+70 × 85 / 100 = 59; the research premium (384/256) 88; and
+`MILITARY_UPGRADE_DISCOUNT`'s 10, **79** timber and metal there. Without
+the arm the crate asked 70 → 105 → **94**. The 15 of each stood in the
+buckets until 11578, where the crate could not afford Conscription and
+the original offered it.
+
+**How confident**: diff-backed by run631's standing `queue[0].cost` and
+bucket rows, and by the word (11582 → 12794). The tail's other nations'
+arms (Mongol stable, Japanese barracks and ships, German submarines,
+American aircraft, British anti-air, Nubian merchants, Russian spies,
+Roman legions, Terra Cotta, Angkor ships) are read but not carried.
 
 ---
 

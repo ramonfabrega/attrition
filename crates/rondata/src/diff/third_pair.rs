@@ -221,16 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run634: the successor after the French siege cost, frame 12794
+/// (item 1460).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run634",
+        &[("gamelog-run634-islands-french-12794.txt", 12789)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[12795],
+        true,
+    )
+}
+
+#[test]
+fn run634_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 206, "initial run634 baseline");
+}
+
 /// run631: the successor after the member's re-placed slot and the
 /// recycled slot's `path_recursion`, frame 11582 (item 1458).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_11582_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run631",
         &[("gamelog-run631-islands-french-11582.txt", 11577)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_11582,
         1,
         &[11583],
         true,
@@ -240,12 +267,13 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run631_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_11582_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 216, "initial run631 baseline");
+    // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
+    pin_eq!(w.firsts.len(), 120, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -995,8 +1023,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run631-islands-french-11582.txt",
+            "gamelog-run634-islands-french-12794.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run631-islands-french-11582.txt",
+            WIDENING_FRENCH_EAST_INDIES_11582,
         ),
         (
             EAST_START,
@@ -1356,9 +1390,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run629-islands-french-10802.txt",
             WIDENING_FRENCH_EAST_INDIES_10802,
         ),
-        // The open word's window, to the word's own block.
         (
             "gamelog-run631-islands-french-11582.txt",
+            WIDENING_FRENCH_EAST_INDIES_11582,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run634-islands-french-12794.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {

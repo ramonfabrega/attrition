@@ -1892,7 +1892,11 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// a recycled slot keeps its `path_recursion` (GROUPS §37): 10802 → 11582,
 /// 188 vs 189 draws, index 0 Leader::make_stuff+0x221 versus
 /// Leader::use_market+0x1ed. run631 block 11583.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 11_582;
+/// Item 1460: a French unit of the Siege Factory line costs
+/// `FRENCH_SIEGE_COST` less (COSTS): 11582 → 12794, 17 vs 18 draws,
+/// index 8 Guy::set_anim under Guy::inc_time versus under Unit::do_guard.
+/// run634 block 12795.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 12_794;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1917,7 +1921,8 @@ pub(crate) const WIDENING_FRENCH_HOPLITE_9985: (i64, i64) = (9980, 9992);
 pub(crate) const WIDENING_FRENCH_MUSTER_10765: (i64, i64) = (10760, 10796);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_10131: (i64, i64) = (10126, 10138);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_10802: (i64, i64) = (10797, 10809);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (11577, 11589);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_11582: (i64, i64) = (11577, 11589);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (12789, 12801);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8322,8 +8327,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run631_s_word_frame_is_widened_whole"),
-        1458,
+        Some("run634_s_word_frame_is_widened_whole"),
+        1460,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

@@ -2053,14 +2053,17 @@ impl Sim {
     /// exactly what a stock game with no bonuses charges.
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let stable_rares = self.stable_rare_discounts(who, ty);
+        let discount = self.nation_unit_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                discount,
                 stable_rares,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                discount,
                 stable_rares,
                 ..cost::Modifiers::default()
             },
@@ -2109,6 +2112,35 @@ impl Sim {
                 0
             },
         ]
+    }
+
+    /// `TypeData::get_cost@00664090`'s **French arm** of the pre-ramp
+    /// nation tail (`get_cost:224`–`235`), right after `UNIT_COST_FACTOR`
+    /// and before the stable rares: a French leader's unit whose trainer
+    /// (`UnitTypeData +0x40`) is `0x1ae` or `0x1af`, the Siege Factory
+    /// line, takes `FRENCH_SIEGE_COST` off, on the train arm and the
+    /// research arm alike (`docs/COSTS.md`, "A French siege unit costs
+    /// less"). French East Indies' Trebuchet research at `1/2034` is 79/79
+    /// there, 94/94 here before item 1460.
+    ///
+    /// The arm's other branch, `FRENCH_SPECIAL_COST` on a type of class
+    /// `0x36`, ships as 0 and is not modelled; nor are the other nations'
+    /// arms of the same tail.
+    pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
+        let french = self.nation[who as usize].french;
+        if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
+            self.tuning.french_siege_cost
+        } else {
+            0
+        }
+    }
+
+    /// A unit type's trainer as the raw `UnitTypeData +0x40`.
+    fn trainer_where(&self, ty: usize) -> Option<tech::TypeId> {
+        self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_)
     }
 
     /// `TypeData::get_cost@00664090`'s fork on the `leader + 0x6c18` bit —

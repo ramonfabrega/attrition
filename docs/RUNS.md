@@ -14301,3 +14301,56 @@ SHA-256 `889201a4a76d296b7b96590c4c90009541ad01b51cd50a9c73727fb7ce758c54`.
 
 Archive `rontrace-run631.log`, 46,367,680 bytes,
 SHA-256 `78576b7ad2e7557ce457501181315016424dd4dba440d850f6a867e92cab951a`.
+
+## run632 — French East Indies, the make list's offers 10810..11390, with the leader probe (2026-10-04, item 1460)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1460-opus/run632-booking.json`,
+written before the run (H6). Window **[11376,11390)**, end 11394, call window 10810..11390,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, the detail as run631, through the
+click-free lane. Receipt success; process and wait exits **0**; five settings files
+restored; 14 blocks. Launch-to-exit 301.853 s, total 310.767 s. Game-RNG draws match
+run600 on every frame but the quit frame. H6's killer fired: no `make_this` takes a
+Standing Army slot in the window, and the crate's tree id 574 is the original's 575.
+
+Archive `gamelog-run632-islands-french-army.txt`, 48,470,473 bytes,
+SHA-256 `6993d9d3301aa0da59cc85a05cd18cbadc5612268de2f5ece7bd3ae37433375f`.
+
+Archive `rontrace-run632.log`, 45,718,944 bytes,
+SHA-256 `f58ee5a1c7c6d3c7ba5b4e333acdee1c687af8978d88ef26741bde15c598ac8f`.
+
+## run633 — French East Indies, a packet at logger frame 11578 (2026-10-04, item 1460)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1460-opus/run633-booking.json`,
+written before the run (H7). Window **[11576,11580)**, end 11584, detail `end:MISC,LEADERS=9`,
+`RON_STATE_FRAME=11578` with item 597's plan, `--ffwd-minute 10`, `cover=0`, through the
+click-free lane. Receipt success; process and wait exits **0**; five settings files
+restored. Launch-to-exit 215.732 s, total 223.300 s. Game-RNG draws match run600 on
+every frame but the quit frame. `tools/recomp/step4.py` runs `Leader::research_techs`
+on who=1 (`this` `0xe4127c`): Conscription reaches the crate's own weights, category and
+shortages values (1551600, 2327400, 13964400) and never 3491100, so H7's framing was
+wrong, and the difference lies in the income arm (`step4.log`, `step4b.log`).
+
+Packet `~/ron-data/lab-captures/2026-10-04-run633/map-18/frame-snapshot.bin`,
+873,815,640 bytes, SHA-256
+`055d9d38f26461db682f438e9686ae579a540959e85793d3ab2451cf23b718a9`.
+
+Archive `gamelog-run633-islands-french-packet-11578.txt`, 5,802,479 bytes,
+SHA-256 `4ca6aeec4ac1fffe12e2b9910a03ecb99dd8faf405bb51a026ec40a9e38168ad`.
+
+Archive `rontrace-run633.log`, 128,380,864 bytes,
+SHA-256 `c1d6d4527450407834542e65880aa1587a7e441f56b164b63915fbefb3b934fb`.
+
+## run634 — French East Indies, the word 12794's widening, with the leader probe (2026-10-04, item 1460)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1460-opus/run634-booking.json`,
+written before the run. Window **[12789,12802)**, end 12806, call window 12787..12802,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1500`, the detail as run631,
+through the click-free lane. Receipt success; process and wait exits **0**; five settings
+files restored; 13 blocks; seed read back. Launch-to-exit 391.114 s, total 400.559 s.
+Game-RNG draws match run600 on every frame but the quit frame.
+
+Archive `gamelog-run634-islands-french-12794.txt`, 47,402,759 bytes,
+SHA-256 `816c107508d75fb84af7e3156b8dedfb67c02df4c0b0416cad39c0c78d490d81`.
+
+Archive `rontrace-run634.log`, 59,112,224 bytes,
+SHA-256 `49a8e4af14f2e9c7d02e8df6abe9cfa772f59fc7ec32fa275cfd53c79eba753e`.

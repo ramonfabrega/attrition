@@ -5810,6 +5810,46 @@ fn a_french_siege_factory_unit_moves_a_fifth_faster() {
     assert_eq!(sim.type_speed(1, foot), 25, "not the factory line");
 }
 
+/// **A French siege unit costs `FRENCH_SIEGE_COST` less** (item 1460,
+/// `docs/COSTS.md`, "A French siege unit costs less"): `get_cost`'s nation
+/// tail takes 15% off a French leader's unit trained at `0x1ae`/`0x1af`,
+/// right after `UNIT_COST_FACTOR`. French East Indies' Trebuchet research
+/// is 79 there, 94 here before the arm.
+#[test]
+fn a_french_siege_factory_unit_costs_fifteen_percent_less() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ae {
+        tree.add(TypeDef::good("filler"));
+    }
+    let factory = tree.add(TypeDef::building("Siege Factory"));
+    tree.add(TypeDef::building("Factory"));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let siege_t = tree.add(TypeDef::unit("Trebuchet", Traits::default()).at(factory));
+    let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()).at(barracks));
+    sim.set_tech_tree(tree);
+    // The train arm: the types' availability bits are set.
+    sim.tech[1].tech[siege_t] = true;
+    sim.tech[1].tech[foot_t] = true;
+    let ty = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            price: cost::Price::free().with_base(economy::Resource::Metal, 7),
+            tree: Some(t),
+            ..UnitType::default()
+        })
+    };
+    let siege = ty(&mut sim, siege_t);
+    let foot = ty(&mut sim, foot_t);
+    let metal = economy::Resource::Metal.index();
+    sim.holdings[1].available[metal] = true;
+    let scaled = 7 * sim.tuning.unit_cost_factor;
+    assert_eq!(sim.price_of(1, siege)[metal], scaled);
+    sim.nation[1].french = true;
+    assert_eq!(sim.price_of(1, siege)[metal], scaled * 85 / 100);
+    assert_eq!(sim.price_of(1, foot)[metal], scaled, "not the factory line");
+}
+
 /// **`path_recursion` survives a recycled object slot** (item 1458,
 /// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
 /// so a unit born into a dead unit's object number keeps its count. A
