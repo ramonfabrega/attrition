@@ -1236,6 +1236,12 @@ impl Sim {
         self.buildings[b].constr_time =
             build::construct_base(&self.tuning, &self.build_types, ty, &mods);
         self.update_hits(b);
+        // `Wall::init@0063e9b0`'s `check_ever_seen(0)`, after `update_los`:
+        // an unstarted site takes the owner's (and allies') bits of the
+        // current plane over its footprint at once, rather than at the
+        // owner's next eighth frame. run610's site `1/2024` read 2 on its
+        // first three blocks in the original and 0 here (item 1446).
+        self.check_ever_seen(b, false);
         // **The flattening, at placement** — `Wall::init@0063e9b0:70`,
         // after `check_ever_seen` and under `param_6 == 0`, which is
         // `restore`. It moved here from `Wall::start` on run72
@@ -1506,6 +1512,16 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
+        // **`Build::start@006273a0`'s tail**, after `Wall::start` returns:
+        // a wonder lights its grown footprint at once (vslot `+0x164`),
+        // `0xff` into `seen` and `seen2`, so every player has it in sight
+        // until the next clear — and the owner's next `check_ever_seen`
+        // takes those bits, which is first contact for a player who never
+        // looked (`docs/VISION.md` §6.4, item 1446). What follows in the
+        // original is the begun-a-wonder notice, interface only.
+        if self.build_types[ty].wonder {
+            self.update_local_seen_build(b);
+        }
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or

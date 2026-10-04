@@ -406,7 +406,7 @@ first contact — and then, once, `update_local_seen` at vtable `+0x164`.
 
 | when | mask | `set_seen2`'s `param_4` |
 |---|---|---|
-| `is_wonder()` **and** not `flags & 0x20` **and** `type+0xfc()==0` **and** `is_started()` | `0xff` — every player at once | 0, so `seen` and `World +0x168` too |
+| `is_wonder()` **and** not `flags & 0x20` **and** `type+0xfc()==0` ~~**and** `is_started()`~~ | `0xff` — every player at once — when started; the ordinary mask when not (§6.4) | 0, so `seen` and `World +0x168` too — **started or not** (§6.4) |
 | otherwise | `ever_seen \| visible \| (1 << who)` | 1, so **`seen2` and `WData +0x14` only** |
 
 The rectangle is the footprint **grown by one tile on every side** —
@@ -613,7 +613,9 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   been booked.
 - **Contact on any other map.** 7945 is Great Lakes' and one game's. East
   Indies has no `LEADERS≥3` window near its own contact, and no capture on
-  this disk dates it.
+  this disk dates it. ~~The French East Indies game has none either.~~
+  **Dated since item 1446**: block 7946, on both sides, and by a wonder's
+  start rather than a sighting (§6.4, run613).
 - **The attrition path to `meet`**, unchanged from §6.2: three sites in
   `Unit::process_attrition@005e11a0`, read and not wired, because no unit
   of either leader reaches a non-exempt attrition outcome in run53's 24,000
@@ -621,6 +623,90 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
 - **`treaties`' other bits.** Only bit 0 is modelled and only bit 0 is
   compared; the record's values are 0 or 1 on every block of this window,
   so nothing here says what the higher bits would carry.
+
+## 6.4 A wonder's start is first contact (item 1446, 2026-10-03)
+
+French East Indies' word stood on 8182: the AI placed a building elsewhere
+on 8183 and bought differently on 8180 (`docs/QUEUE.md`, item 1446). On
+run610's first block both met bits read 0 here and 1 in the original, and
+both leaders' `wars` likewise, so the AI priced every purchase without its
+war multiplier. run603 brackets the original's contact after block 7363 and
+run611 before 8030; the draw stream cannot date it, because its draws agree
+to 8182 either way.
+
+**The bytes name the cause.** On run611's block 8030 every building of both
+players carries only its owner's bit in `ever_seen` except two of the
+AI's: the unfinished Senate `1/2021` (type 438) and the wonder `1/2022`
+beside it (type in `0x20e..0x21e`, `BuildData::is_wonder`), both **255**.
+No player-0 unit is within reach. Every bit at once can only come from a
+scan of `seen` holding `0xff`, and only a wonder writes that.
+
+**Three arms of one rule**, read off the listing:
+
+- **`Build::start@006273a0`** calls `Wall::start`, and then, if the
+  building is a wonder, vslot `+0x164` — `Wall::update_local_seen`. The
+  rest of the function is the begun-a-wonder notice, interface only.
+  `Wall::start`'s own `check_ever_seen` has already run, so the bits are
+  taken at the owner's next one.
+- **`Wall::update_local_seen@0063ed50`**: its first test is `is_wonder()
+  && !(flags & 0x20) && !type->is_fort()` (`+0xfc`, `docs/CITIES.md` §1.5),
+  and on it `set_seen2`'s `param_4` is **0** — both planes — whether or
+  not the wonder is started; the mask is `0xff` only once it is. §6.1's
+  table had `is_started()` in the test; it gates the mask, not the planes.
+  A wonder is never a city and never a fort, so `is_wonder` decides.
+- **`GameDaemon::update_all_seen@00732840`**: after the clear, a live
+  finished building lights its disc (`+0x174`); any other —
+  `!(flags & 1) || !is_active()` — that is live, a wonder and started
+  calls `+0x164`; the rest light nothing. So a wonder under construction
+  is lit for everyone again after each clear, and an unfinished ordinary
+  site contributes no disc (`Wall::update_los` is 0 for it, §2.1).
+
+**The prediction, and the capture that could have killed it.** The wonder
+starts on sim-frame 7941; the owner's next `check_ever_seen` is 7945
+(`frame & 7 == 1`); so contact is block **7946**. Booked as run613 with
+its killers before the run (`~/ron-data/lab-experiments/2026-10-03-item-
+1446-opus/`): blocks 7940..7952 show `frame_started 7941` from block
+7942, both buildings at `ever_seen` 2 through 7945 and 255 from 7946, and
+both met bits flipping on 7946 and on no other block. This crate meets on
+block 7946 too. The resync arm alone would have made contact on 8033 —
+measured: with the `Build::start` call removed the word still reaches
+8236, and only run611 and run613 part (on the met bits). A draw stream
+agreeing is not a value agreeing.
+
+**Also made**: `Wall::init@0063e9b0`'s own `check_ever_seen(0)` after
+`update_los`, which `Sim::init_build` cited and did not make; run610's new
+site `1/2024` read 2 there on its first three blocks and 0 here.
+
+**What it moved.** French East Indies **8182 → 8236**. Widened keys:
+run610 237 → 156, run611 154 → 147, run612 389 → 210 (two arriving, a
+unit's animation on 8242, past the word), run613 119 → 117 (the met
+bits); none arrives before the word. Every building's `ever_seen` and
+`ever_seen_completed` agree on every block of runs 610–613, both
+directions. Great Lakes at Toughest's run240 block 17087: the fog plane's
+44 half-cells round its Pyramids, `0xff` there against who=1's bit here,
+and the human's danger map's nine half-cells, both go to **0**.
+
+### What carries it
+
+`Sim::start_building`'s tail, `Sim::update_local_seen_build`'s two-plane
+branch, `Sim::update_all_seen`'s two arms and `Sim::init_build`'s check.
+Unit tests `a_wonder_s_start_is_first_contact` and
+`the_resync_relights_a_started_wonder_and_no_unfinished_site`, each made
+to fail by the mutation it names. Diffs: `run613_dates_first_contact_on_
+block_7946`, `east_indies_wonder_start_is_first_contact_on_every_building`
+(the shared instrument leaves `ever_seen` uncompared), the run610–613
+widenings, and run240's world pin.
+
+### What is not established
+
+- The two building gates besides `is_wonder` — `flags & 0x20` and
+  `is_fort` — are read, not exercised; neither can hold for a wonder.
+- A wonder's unstarted `update_local_seen` (ordinary mask, both planes)
+  has no capture; it needs an enemy to look at a wonder site.
+- `build_los`'s unfinished arm still answers `1 + x_size / 2` for an
+  ordinary site; nothing now reaches it with one, since the resync skips
+  unfinished sites. Reading-only, like the rest of this section's
+  predicates that no capture branches on — review debt, no blind reading.
 
 ## 7. What is not established
 

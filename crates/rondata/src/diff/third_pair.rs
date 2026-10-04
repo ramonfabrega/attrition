@@ -221,15 +221,46 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
-/// run610: the successor after the university admission limit, frame 8182.
+/// run612: the successor after a wonder's start became first contact,
+/// frame 8236 (item 1446).
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run612",
+        &[("gamelog-run612-islands-french-8236.txt", 8231)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[8237],
+        true,
+    )
+}
+
+#[test]
+fn run612_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(
+        w.firsts.len(),
+        210,
+        "run612 after a wonder's start is contact"
+    );
+}
+
+/// run610: the successor after the university admission limit, frame 8182.
+pub(crate) fn french_east_indies_8182_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run610",
         &[("gamelog-run610-islands-french-toughest-8182.txt", 8177)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_8182,
         1,
         &[8183],
         true,
@@ -239,12 +270,131 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run610_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_8182_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 237, "initial run610 baseline");
+    pin_eq!(
+        w.firsts.len(),
+        156,
+        "run610 after a wonder's start is contact"
+    );
+}
+
+/// run611: the first capture of this game past first contact, blocks
+/// 8030..8043 (item 1446).
+pub(crate) fn french_east_indies_contact_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run611",
+        &[("gamelog-run611-islands-french-contact.txt", 8030)],
+        WIDENING_FRENCH_CONTACT,
+        1,
+        &[8034],
+        true,
+    )
+}
+
+/// run613: the contact frame's own window, blocks 7940..7952 (item 1446).
+pub(crate) fn french_east_indies_contact_7946_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run613",
+        &[("gamelog-run613-islands-french-contact-7946.txt", 7940)],
+        WIDENING_FRENCH_CONTACT_7946,
+        1,
+        &[7946],
+        true,
+    )
+}
+
+#[test]
+fn run613_s_contact_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_contact_7946_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(
+        w.firsts.len(),
+        117,
+        "run613 after a wonder's start is contact"
+    );
+    pin!(
+        !w.firsts
+            .keys()
+            .any(|(_, _, field)| field.starts_with("leader:treaties") || field == "leader:wars"),
+        "both met bits and the AI's war census agree on every block"
+    );
+}
+
+/// **The original's own record of the contact, read off run613** (item
+/// 1446): the wonder `1/2022` is started on sim-frame 7941 (block 7942),
+/// and on block 7946 — the owner's `check_ever_seen` frame 7945 — both it
+/// and the Senate `1/2021` beside it go from `ever_seen` 2 to 255 while
+/// both leaders' met bits are set, and on no earlier block. This is what
+/// [`east_indies_wonder_start_is_first_contact_on_every_building`] holds
+/// this crate to on the same window.
+#[test]
+fn run613_dates_first_contact_on_block_7946() {
+    let Some(path) = dump("gamelog-run613-islands-french-contact-7946.txt") else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let mut seen = Vec::new();
+    for at in 0..ix.frames().len() {
+        let f = ix.frame_state(at).unwrap();
+        if !(7940..=7952).contains(&f.n) {
+            continue;
+        }
+        let es = |o: i64| {
+            f.builds
+                .iter()
+                .find(|b| (b.who, b.o) == (1, o))
+                .and_then(|b| b.ever_seen)
+        };
+        let raw = ix.read_frame(at).unwrap();
+        let log = Log::parse(&raw);
+        let met = |who: i64, other: &str| {
+            let block = log.leader_block(f.n, who)?;
+            crate::diff::leader::theirs(&block).get(other).copied()
+        };
+        seen.push((
+            f.n,
+            es(2021),
+            es(2022),
+            met(1, "treaties[0]"),
+            met(0, "treaties[1]"),
+        ));
+    }
+    assert_eq!(seen.len(), 13);
+    for (n, a, b, m1, m0) in seen {
+        let after = n >= 7946;
+        let byte = Some(if after { 255 } else { 2 });
+        let bit = Some(i64::from(after));
+        assert_eq!((a, b, m1, m0), (byte, byte, bit, bit), "block {n}");
+    }
+}
+
+#[test]
+fn run611_s_contact_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_contact_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 14, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(
+        w.firsts.len(),
+        147,
+        "run611 after a wonder's start is contact"
+    );
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
@@ -400,8 +550,26 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run610-islands-french-toughest-8182.txt",
+            "gamelog-run612-islands-french-8236.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run611-islands-french-contact.txt",
+            WIDENING_FRENCH_CONTACT,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run613-islands-french-contact-7946.txt",
+            WIDENING_FRENCH_CONTACT_7946,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run610-islands-french-toughest-8182.txt",
+            WIDENING_FRENCH_EAST_INDIES_8182,
         ),
         (
             EAST_START,
@@ -559,5 +727,122 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 "both pools empty on earlier windows"
             );
         }
+    }
+}
+
+/// Every building's `ever_seen` and `ever_seen_completed` on every block of
+/// an East Indies window, both directions, as `(block, who, o, field, ours,
+/// theirs)`. The shared instrument leaves these two bytes uncompared
+/// (`coverage::UNCOMPARED_BY_THE_INSTRUMENT`), and they are what first
+/// contact hangs off (`docs/VISION.md` §6.4, item 1446); a building on one
+/// side only is a `presence` row.
+fn east_indies_ever_seen(
+    capture: &str,
+    window: (i64, i64),
+) -> Option<std::collections::BTreeSet<(i64, i64, i64, &'static str, i64, i64)>> {
+    let inst = crate::testenv::install()?;
+    let (start, base_path, path) = (dump(EAST_START)?, dump(EAST_LONG.0)?, dump(capture)?);
+    let loaded = crate::load::load(&inst).unwrap();
+    let (start_text, base_text) = (crate::capture::read(start), crate::capture::read(base_path));
+    let (start_log, base_log) = (Log::parse(&start_text), Log::parse(&base_text));
+    let sibling = start_log.initial().unwrap();
+    let mut init = base_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    if let Some(t) = trace(EAST_LONG.1) {
+        borrow_pasture(&mut init, &t);
+    }
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let mut ix = crate::capture::indexed::IndexedCapture::open(path).unwrap();
+    let mut rows = std::collections::BTreeSet::new();
+    let mut blocks = 0;
+    for n in 1..=window.1 {
+        built.tick();
+        if n < window.0 {
+            continue;
+        }
+        let at = ix
+            .frames()
+            .iter()
+            .position(|f| f.number == n)
+            .expect("every window block");
+        let frame = ix.frame_state(at).unwrap();
+        let sim = &built.sim;
+        let mut linked = std::collections::BTreeSet::new();
+        for r in &frame.builds {
+            let Some(b) =
+                harness::link_building(sim, r.who, r.o).filter(|&b| sim.buildings[b].alive)
+            else {
+                rows.insert((n, r.who, r.o, "presence", 0, 1));
+                continue;
+            };
+            linked.insert(b);
+            let x = &sim.buildings[b];
+            for (field, ours, theirs) in [
+                ("ever_seen", x.ever_seen, r.ever_seen),
+                (
+                    "ever_seen_completed",
+                    x.ever_seen_completed,
+                    r.ever_seen_completed,
+                ),
+            ] {
+                let theirs = theirs.expect("BUILDS prints both bytes");
+                if i64::from(ours) != theirs {
+                    rows.insert((n, r.who, r.o, field, i64::from(ours), theirs));
+                }
+            }
+        }
+        for (b, x) in sim.buildings.iter().enumerate() {
+            if x.alive && x.owner < 8 && !linked.contains(&b) {
+                rows.insert((n, i64::from(x.owner), i64::from(x.index), "presence", 1, 0));
+            }
+        }
+        blocks += 1;
+    }
+    assert_eq!(
+        blocks,
+        window.1 - window.0 + 1,
+        "{capture}: every window block"
+    );
+    Some(rows)
+}
+
+/// **First contact, dated by the bytes it hangs off** (item 1446,
+/// `docs/VISION.md` §6.4). run611 is the first capture of this game past
+/// it: on its block 8030 the original's French Senate `1/2021` and the
+/// wonder `1/2022` beside it already read `ever_seen` 255 — every bit, which
+/// only a wonder's `0xff` write into the *current* plane can give — and both
+/// leaders' met bits are set. Until item 1446 this crate had neither: a
+/// wonder's start lit nothing, so the two read 2 and the two leaders never
+/// met, and the AI priced its purchases without its war on 8180. Every
+/// building of all three East Indies windows now agrees in both bytes.
+#[test]
+fn east_indies_wonder_start_is_first_contact_on_every_building() {
+    for (capture, window) in [
+        (
+            "gamelog-run613-islands-french-contact-7946.txt",
+            WIDENING_FRENCH_CONTACT_7946,
+        ),
+        (
+            "gamelog-run611-islands-french-contact.txt",
+            WIDENING_FRENCH_CONTACT,
+        ),
+        (
+            "gamelog-run610-islands-french-toughest-8182.txt",
+            WIDENING_FRENCH_EAST_INDIES_8182,
+        ),
+        (
+            "gamelog-run612-islands-french-8236.txt",
+            WIDENING_FRENCH_EAST_INDIES,
+        ),
+    ] {
+        let Some(rows) = east_indies_ever_seen(capture, window) else {
+            continue;
+        };
+        eprintln!("{capture}: ever_seen rows {rows:?}");
+        assert_eq!(
+            rows,
+            std::collections::BTreeSet::new(),
+            "{capture}: every building's ever_seen bytes agree, both directions"
+        );
     }
 }

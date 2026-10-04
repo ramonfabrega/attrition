@@ -12,31 +12,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-03, **Codex settled** (DECISIONS 60): `codex/direct-advancement`
-— items 1426–1445, twenty, one GPT-6 session of fifteen hours —
-fast-forwarded here and to main after our own gate ran green on it
-(6 of 6, 315 fixtures, none missing). East Indies **closed at 18,140**;
-the French third pair stands; Toughest measured 12538, floor 11985.
-Its review debt is filed (1447). No commander loop runs.*
+*2026-10-03, **the sequential arm, landing 1 of 10** (DECISIONS 60,
+parked 1448): branch `worktree-seq-opus`, one Opus 5.5 session under
+`AGENTS.md`. French East Indies **8182 → 8236**: a wonder's start lights
+it for every player, which is first contact (VISION §6.4). run613 dated
+the original's contact to block 7946 and this crate meets there too.
+Great Lakes (French) stands closed; Toughest measured 12538, floor 11985.*
 
-- **The sequential arm runs now** (1448): one Opus 5.5 `--effort high`
-  worker under `AGENTS.md`, no commander, from 1446, ten landings or
-  its own stop; the steering session takes its landing lines and does
-  not drive. Parked 1422's retro matrix is superseded by it.
-- **1446's floor**: run611/612 are on disk; Codex's uncommitted diff is
-  snapshotted beside its scratch and is Astra's, not the arm's to read.
+- **The arm takes 1449 next**, then down the queue; the steering session
+  takes its landing lines and does not drive. No commander loop runs.
+- **1446's cause was not the booking's**: Codex's 8033 contact was killed
+  by run611 (contact before 8030). Its unread diff stays unread.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448).
+- **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448, 1450).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w8182 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w8236 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the sequential worker, on Opus, takes 1446 from this tree
+**Opener: the sequential worker, on Opus, takes 1449 from this tree
 under `AGENTS.md`; the steering session watches and does not drive.**
 
 ## The queue
@@ -47,12 +45,12 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1446. **French East Indies frame 8182, fifteen versus forty-seven draws**,
-    index 2: `Leader::produce_building+0x1805` versus `+0xc99`.
-    run610 has 237 differing keys. Block8183 building 1/2024 appears at
-    (37440,24384)/(34944,21888), city -1/2, construction time 42000/15000;
-    unit 1/57 takes a different route. Earlier make-list differences stand.
-    No construction or placement mechanism promised; date the first parting.
+1449. **French East Indies frame 8236, four versus five draws**, index
+    1: `Guy::set_anim+0x97a` under `Guy::inc_time+0x271` versus under
+    `Unit::move_step+0x823`. run612 block 8237: unit 1/41 collides with
+    1/56 at (34317,38218) there, not here; path length 1/5. 1/56 stands
+    at (34814,37656)/(34644,37614) on run610's first block 8177, so it
+    parted earlier; MAKE[1] t 417/432 from block 8185. Date the parting.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,

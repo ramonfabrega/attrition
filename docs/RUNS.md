@@ -13934,3 +13934,71 @@ Archive `rontrace-run610.log`, 21,414,720 bytes,
 SHA-256 `345687580cdb6e1cd4eeebf07cccb3350e3b112996e7a4a7887bbd43dad86422`.
 
 Full recipe and receipt: `~/ron-data/lab-experiments/2026-10-02-item-1445-codex/run610-validation.json`.
+
+## run611 — French East Indies, first contact's later window (2026-10-02, item 1446)
+
+Captured by the Codex session that left item 1446, entered here by the
+sequential Opus arm; its booking and hypotheses stay in
+`~/ron-data/lab-experiments/2026-10-02-item-1446-codex/`. Same lobby and
+category recipe as run610; window **[8030,8044)**, call window 8028..8044,
+end 8048, `37 !ffwd 9`, no probe definition.
+Process exit **0**; five settings files restored; 14 blocks of 512 groups.
+Launch-to-exit 129.482 s, total 138.143 s. Game-RNG draws match run600 on
+every frame but the quit frame (`tracecmp.py`, item 1446's directory).
+Block 8030 already carries both met bits and `ever_seen` 255 on `1/2021`
+and `1/2022`, which killed the booking's 8033 contact (VISION §6.4).
+
+Archive `gamelog-run611-islands-french-contact.txt`, 45,117,400 bytes,
+SHA-256 `8d5023015b7273c7ed68ecd17d508e9f50138966baad733201bbcb35ce2a5645`.
+
+Archive `rontrace-run611.log`, 21,280,480 bytes,
+SHA-256 `5fd2cda7e91e5516b10ce835a515f90f9d11632508dc892576076d99ee22cfc3`.
+
+## run612 — French East Indies at 8236, with the leader probe (2026-10-02, item 1446)
+
+Captured by the same Codex session, ahead of the word its own unlanded
+change predicted. Window **[8231,8244)**, call window 8175..8240,
+`RON_LEADER_PROBE`, end 8248, `37 !ffwd 10`. Process exit **0**; five
+settings files restored; 13 blocks of 512 groups. Launch-to-exit
+125.590 s, total 133.837 s. Game-RNG draws match run600 on every frame but
+the quit frame. It is the word 8236's widening (`run612_s_word_frame_is_
+widened_whole`).
+
+Archive `gamelog-run612-islands-french-8236.txt`, 43,155,178 bytes,
+SHA-256 `d263873feb47b177d01d54bf0ecb275d016418a3c1a00ae3c6201e130531b88d`.
+
+Archive `rontrace-run612.log`, 21,730,112 bytes,
+SHA-256 `55856282cceb34b290ef5002a1b714d6cafbf9d3f51131e37a863670e72641ad`.
+
+## run613 — French East Indies, the contact frame (2026-10-03, item 1446)
+
+**Disk gap.** run603's detail ends on block 7363 with the met bits clear;
+run611 starts on 8030 with them set; run600 is a draw stream only. Booked
+with its prediction (block 7946) and killers before the run:
+`~/ron-data/lab-experiments/2026-10-03-item-1446-opus/run613-booking.json`.
+
+```sh
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-03-run613 \
+  --map 18 --end-frame 7956 --timeout 1200 --log-window 7940 7953 \
+  --detail 'end:MISC,UNITS=9,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5' \
+  --detail 'start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1' \
+  --detail 'misc:CHECKSUM=2' \
+  --detail 'endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1' \
+  --cover cover=0 --callwin 7938 7953 --ai-tribe 10 --profile DIFFICULTY=5 --ffwd-minute 10
+```
+
+Receipt success, process exit **0**, `waitrun.sh` exit **0**. The first
+launch wrote no gamelog in 300 s and the runner relaunched once
+(`relaunched_after_seconds` 300.28). Launch-to-exit 119.891 s, total
+429.730 s. Five settings files restored; 13 blocks of 512 groups; seed
+12345 and players `(0,4,7),(1,10,1)` read back. Game-RNG draws match
+run600 on every frame but the quit frame. Every killer held: the met
+bits flip on block 7946 and no other, `1/2021` and `1/2022` read
+`ever_seen` 2 through 7945 and 255 from 7946, `1/2022`'s `frame_started`
+is 7941.
+
+Archive `gamelog-run613-islands-french-contact-7946.txt`, 42,819,447 bytes,
+SHA-256 `e0dc1e146b90b3770a61ee353c7f1cf4d822e633d05e2397647c21b2ca94865d`.
+
+Archive `rontrace-run613.log`, 21,027,584 bytes,
+SHA-256 `eb7cf6553459214986463df4ccd091db60722bb0d957950b70f86117262b2b58`.

@@ -3759,3 +3759,14 @@ steering session (one a landing, or the silence is the finding), and
 the steering session's read of each diff against the journal. Results
 to `docs/audit/<date>-sequential-arm.md`; judged at the twenty-fourth
 pass with the user. 1422 returns only if this arm lands close.
+
+## Loop, filed 2026-10-03 by item 1446 — a byte the instrument never compares
+
+(1450) **`ever_seen` and `ever_seen_completed` are pinned uncompared
+in `coverage::UNCOMPARED_BY_THE_INSTRUMENT`**, and they are what first
+contact hangs off. French East Indies parted on them for 236 blocks before
+the word did, and the met bits they drive part only through the leader
+record. Item 1446 compares them on runs 610–613 with its own helper
+(`third_pair::east_indies_ever_seen`); every other window still leaves
+them quiet. Whether the shared widening should take them (every window's
+pinned count moves at once) is the pass's to decide.
