@@ -263,10 +263,14 @@ passed.
 
 ## Landing 5 — item 1453, French East Indies 9655 → 9777
 
-Commit `4f60d52c` at 06:06Z, **27 minutes after landing 4's push**; the
-full gate on it was running when this row was written. One capture
-(run623), the new word's widening with the leader probe; the cause
-needed none — the disk answered again.
+Commit `4f60d52c` at 06:06Z, **27 minutes after landing 4's push**;
+the gate's record `5fc69d45` at 06:17Z: **exit 0, six of six steps**,
+fixed 13, rondata 712, sim 1326, fixture audit 2629 requests and none
+missing, memcap peak 16433 MiB. Pushed: `origin/worktree-seq-opus` is
+`5fc69d45`, verified by fetch; the done line reached this session at
+06:18Z in the agreed shape. **38 minutes from landing 4's push to
+landing 5's.** One capture (run623), the new word's widening with the
+leader probe; the cause needed none — the disk answered again.
 
 **Diff against the journal** (`docs/journal/2026-10-04-item-1453.md`,
 78 lines; SYNC §3.29): they agree. The word was the flyer's edge coin
@@ -309,11 +313,11 @@ building `1/2035` on 9778 and we buy nothing, the offers already on
 disk in run623's probe), pins and `WIDENINGS` re-pinned, run623 in
 `docs/RUNS.md`.
 
-**Pace after five landing commits**: 57, 49, 41, 58 and 27 + gate
-minutes. French East Indies 8182 → 9777 (+1,595) in 3 h 52 m to the
-fifth landing commit. Entry 60's five-or-fewer threshold — "the
-architecture was not the variable" — is passed at the fifth landing's
-gate, whichever way it goes.
+**Pace after five**: 57, 49, 41, 58 and 38 minutes, each to a pushed
+landing; five gated landings in **4 h 03 m**, French East Indies
+8182 → 9777 (+1,595). Entry 60's five-or-fewer threshold — "the
+architecture was not the variable" — is passed, and the pace is
+twice its estimate's.
 
 ## For the Loop, noticed by the steering session
 
