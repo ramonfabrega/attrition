@@ -1884,7 +1884,11 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// (AI §116, TECH): 9777 → 10131, 4 vs 6 draws, index 0 Guy::set_anim
 /// under Guy::inc_time versus under Unit::do_non_flat_gather. run624 block
 /// 10132.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 10_131;
+/// Item 1455: a Citizen is ramped by the Militia line too (COSTS), and a
+/// French unit of the Siege Factory line moves 20% faster (MOVEMENT):
+/// 10131 → 10802, 6 vs 5 draws, index 0 Guy::set_anim under
+/// Unit::move_step versus under Guy::inc_time. run629 block 10803.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 10_802;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1904,7 +1908,10 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_8385: (i64, i64) = (8380, 8392);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_8840: (i64, i64) = (8835, 8847);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_9655: (i64, i64) = (9650, 9662);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_9777: (i64, i64) = (9772, 9784);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (10126, 10138);
+pub(crate) const WIDENING_FRENCH_FOOD_7782: (i64, i64) = (7776, 7788);
+pub(crate) const WIDENING_FRENCH_HOPLITE_9985: (i64, i64) = (9980, 9992);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_10131: (i64, i64) = (10126, 10138);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (10797, 10809);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8309,8 +8316,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run624_s_word_frame_is_widened_whole"),
-        1454,
+        Some("run629_s_word_frame_is_widened_whole"),
+        1455,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

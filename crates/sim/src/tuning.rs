@@ -342,6 +342,11 @@ pub struct Tuning {
     pub egyptian_food_commerce: i32,
     /// The same, for the French on timber.
     pub french_timber_commerce: i32,
+    /// Percentage faster for a French leader's units trained at the Siege
+    /// Factory or Factory line (`Unit::update_speed`).
+    pub french_siege_move: i32,
+    /// Percentage faster for the same units under Versailles.
+    pub versailles_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
@@ -1009,6 +1014,8 @@ impl Tuning {
         silver_age_cost: 15,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
+        french_siege_move: 20,
+        versailles_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
@@ -1257,7 +1264,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 347] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 349] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1421,6 +1428,11 @@ impl Tuning {
             (
                 "FRENCH_TIMBER_COMMERCE",
                 Slot::Value(T.french_timber_commerce),
+            ),
+            ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
+            (
+                "VERSAILLES_UNITS_MOVE",
+                Slot::Value(T.versailles_units_move),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
             (

@@ -862,6 +862,8 @@ unreached on disk. **Again** (1228): the boat's `caras` +1/−1 lags
 3 against 4 on run462's 10184, read by `create_units`' `civilians` and
 not decisive there. **Again** (1365): `peasants` on run547's
 10145.
+**Again** (1455): French East Indies' `caras` reads 3 here on every
+window from 6136 and swings 2/4 there; no decision reads it on 10131.
 
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
@@ -903,7 +905,8 @@ hits part from 784); its pivot `NODES` row, the aim 2,359,296 off from
 when 1113 was promoted on 794): 1109's disk scan saw types 83 (28 → 29),
 341 (42 → 44), 324 (56 → 60), and one with no guy type (28 → 29) change
 a speed after birth, unread. `ai_speed` reads 1 in all eleven packets
-on disk.
+on disk. The French siege move and Versailles' arms are built by item
+1455 (MOVEMENT, "The French siege move").
 
 ## Parked by item 1102, 2026-09-28 — the air line's other edges
 

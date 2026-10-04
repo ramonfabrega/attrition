@@ -2295,7 +2295,7 @@ impl Sim {
         // ramp reads only the first of the two arrays; see
         // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
-            of_type: muster.by_type[ty] + muster.queued_by_type[ty],
+            of_type: muster.by_type[ty] + muster.queued_by_type[ty] + self.worker_support(who, ty),
             of_group: unit
                 .group
                 .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
@@ -2321,6 +2321,48 @@ impl Sim {
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// The worker lines' extra term in `LeaderData::get_support_count`'s
+    /// caller, `TypeData::get_cost@00664090`'s unit ramp: a **Citizen**
+    /// (`0x32`, or the Korean `0x33`) is ramped by the Militia line too,
+    /// `support(0x42) + support(0x43) − scholar_militia + support(0x44)`,
+    /// and a **Scholar** (`0x34`, `0x35`) by `scholar_militia`
+    /// (`docs/COSTS.md`, "A Citizen is ramped by the Militia too").
+    /// `support(t)` is `num_units[t] + num_queued[t]`.
+    ///
+    /// `scholar_militia` (`LeaderData +0x9f0`) is
+    /// `Leader::track_unit_type@006e0dd0`'s count of militia whose former
+    /// type (`UnitData +0x54`, [`Unit::rare`]) is a scholar; it is derived
+    /// here from the live militia rather than kept.
+    pub fn worker_support(&self, who: Player, ty: usize) -> i32 {
+        let ti = self.unit_types[ty].type_index;
+        if !(0x32..=0x35).contains(&ti) {
+            return 0;
+        }
+        let scholar_militia = self
+            .units
+            .iter()
+            .filter(|u| {
+                u.alive()
+                    && u.owner == who
+                    && u.captain
+                    && !u.decoy
+                    && (0x42..=0x44).contains(&u.type_index)
+                    && matches!(u.rare, 0x34 | 0x35)
+            })
+            .count() as i32;
+        if ti >= 0x34 {
+            return scholar_militia;
+        }
+        let m = &self.muster[who as usize];
+        let support = |t: usize| {
+            self.unit_types
+                .iter()
+                .position(|u| u.type_index == t as i32)
+                .map_or(0, |r| m.by_type[r] + m.queued_by_type[r])
+        };
+        support(0x42) + support(0x43) - scholar_militia + support(0x44)
     }
 
     /// Adds a production building and returns its index.

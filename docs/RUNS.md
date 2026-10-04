@@ -14178,3 +14178,92 @@ SHA-256 `754960b0f94d67751083b25713f8f962296d808219feca04f1068d5b26a239ef`.
 
 Archive `rontrace-run624.log`, 33,975,488 bytes,
 SHA-256 `482036383e919f3109efc4ad7a61da5e3f72016a5ee6026ae1a5d00a3869e271`.
+
+## run625 — French East Indies, the Hoplite purchase on 9985, with the leader probe (2026-10-04, item 1455)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-04-item-1455-opus/run625-booking.json`,
+written before the run. Window **[9980,9993)**, end 9997, call window 9978..9993,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, through the click-free lane.
+Receipt success; process and wait exits **0**; five settings files restored;
+13 blocks; seed and players read back. Launch-to-exit 199.375 s, total
+208.125 s. Game-RNG draws match run600 on every frame but the quit frame.
+Both sides buy the Hoplite (t=132) on 9985: the original one, from 86 food,
+and the crate two, from 90. The widening is 97 standing keys on 9980.
+
+Archive `gamelog-run625-islands-french-9985.txt`, 44,775,164 bytes,
+SHA-256 `2287064f91e2370ec6c2a3131a6e9d7720ade338106e5998bad53c9a683d9641`.
+
+Archive `rontrace-run625.log`, 33,048,800 bytes,
+SHA-256 `6aa901944e9fd0b42e13c5622c0814a28405186c90458ee67dce4175e0041b43`.
+
+## run626 — French East Indies, the buckets over 7346..7945 (2026-10-04, item 1455)
+
+**Disk gap** and killers: `run626-booking.json` in the same directory, written
+before the run. Window **[7346,7946)**, end 7950, detail `end:MISC,LEADERS=2`
+(`LeaderDataEncrypt`'s buckets at detail 2, `LeaderData::log_data@006e5110`),
+no probe, `--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt
+success; process and wait exits **0**; five settings files restored; seed read
+back. Launch-to-exit 79.857 s, total 87.657 s. Game-RNG draws match run600 on
+every frame but the quit frame. Every bucket agrees to block 7782; on 7783 food
+parts by exactly 3 and nothing else does. There is no widening, since the
+detail is buckets alone.
+
+Archive `gamelog-run626-islands-french-food.txt`, 19,412,894 bytes,
+SHA-256 `78dfc28bb91a65a80a1e9ba05db798766af984396e78e6d2180c203516f7e49b`.
+
+Archive `rontrace-run626.log`, 64,977,984 bytes,
+SHA-256 `aad299819c0b32194ec7acb37b51accba1b794d0513a0f956ac60e149b4e2f84`.
+
+## run627 — French East Indies, the food parting on 7782, with the leader probe (2026-10-04, item 1455)
+
+**Disk gap** and killers: `run627-booking.json`, written before the run. Window
+**[7776,7789)**, end 7793, call window 7774..7789, `RON_LEADER_PROBE`,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success;
+process and wait exits **0**; five settings files restored; 13 blocks; seed read
+back. Launch-to-exit 120.085 s, total 128.338 s. Game-RNG draws match run600
+on every frame but the quit frame. The make list and counts agree on 7782; on
+7783 the three Citizens queued at `1/2008` cost 52/53/54 there and 51/52/53
+here (`docs/COSTS.md`, "A Citizen is ramped by the Militia too"). The widening
+is 102 standing keys on 7776.
+
+Archive `gamelog-run627-islands-french-7782.txt`, 42,770,167 bytes,
+SHA-256 `fc32223c3554c5015aefdf462cf5f23bc045e198d3790a76d0b8ef049a6a73d7`.
+
+Archive `rontrace-run627.log`, 20,774,592 bytes,
+SHA-256 `50d912586fe2cc14f8f26cd0ee33bbfe8496d98ef130b65dd15682bbcd39f695`.
+
+## run628 — French East Indies, `1/58`'s parting, positions only (2026-10-04, item 1455)
+
+**Disk gap** and killers: `run628-booking.json`, written before the run. Window
+**[9992,10127)**, end 10131, detail `end:MISC,UNITS=3` only, no probe,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success;
+process and wait exits **0**; five settings files restored; seed read back.
+Launch-to-exit 244.289 s, total 253.183 s. Game-RNG draws match run600 on
+every frame but the quit frame. `1/58` agrees to block 10081 and parts on
+10082 while colliding with the Supply Wagon `1/72`. That wagon is born on
+10078 at `myspeed` 30 there and 25 here (`docs/MOVEMENT.md`, "The French
+siege move"). There is no widening (positions only).
+
+Archive `gamelog-run628-islands-french-citizen.txt`, 52,598,529 bytes,
+SHA-256 `a9a3bc634a79527973cda745cae71c599c0619171dd0f688ee5e0bed0e0ab316`.
+
+Archive `rontrace-run628.log`, 103,811,488 bytes,
+SHA-256 `aef87905d7ad6da3b31b0ff9c0f3cb6a05d663d6078745bccc5efcc01a3f13b9`.
+
+## run629 — French East Indies, the word 10802's widening, with the leader probe (2026-10-04, item 1455)
+
+**Disk gap** and killers: `run629-booking.json`, written before the run. Window
+**[10797,10810)**, end 10814, call window 10795..10810, `RON_LEADER_PROBE`,
+`--ffwd-minute 10`, `cover=0`, through the click-free lane. Receipt success;
+process and wait exits **0**; five settings files restored; 13 blocks; seed and
+players read back. Launch-to-exit 256.336 s, total 265.810 s. Game-RNG draws
+match run600 on every frame but the quit frame. The word's widening: 197 keys,
+none missing. The state has parted by the first block, 10797: the crate holds
+group 71 of `1/77`, `1/81` and `1/82`, which the original's pool does not,
+and `1/77` and `1/81` stand elsewhere.
+
+Archive `gamelog-run629-islands-french-10802.txt`, 45,602,224 bytes,
+SHA-256 `2f0231e2553e3255d823057372fd870170821b9efd091e698d4d87bff01d7f40`.
+
+Archive `rontrace-run629.log`, 39,339,776 bytes,
+SHA-256 `0daf6456591800e9c7276112d126fe41770de64631bab746b8c0df734ebec75d`.

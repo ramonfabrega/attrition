@@ -221,16 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run629: the successor after the Militia ramp and the French siege move,
+/// frame 10802 (item 1455).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run629",
+        &[("gamelog-run629-islands-french-10802.txt", 10797)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[10803],
+        true,
+    )
+}
+
+#[test]
+fn run629_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 197, "initial run629 baseline");
+}
+
 /// run624: the successor after the Pyramids' city terms and `already_built`,
 /// frame 10131 (item 1454).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_10131_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run624",
         &[("gamelog-run624-islands-french-10131.txt", 10126)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_10131,
         1,
         &[10132],
         true,
@@ -240,12 +267,76 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run624_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_10131_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 181, "initial run624 baseline");
+    pin_eq!(
+        w.firsts.len(),
+        97,
+        "run624 after the Militia ramp and the French siege move"
+    );
+}
+
+/// run625: the Hoplite purchase on 9985 (item 1455).
+pub(crate) fn french_east_indies_hoplite_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run625",
+        &[("gamelog-run625-islands-french-9985.txt", 9980)],
+        WIDENING_FRENCH_HOPLITE_9985,
+        1,
+        &[9986],
+        true,
+    )
+}
+
+#[test]
+fn run625_s_hoplite_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_hoplite_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(
+        w.firsts.len(),
+        97,
+        "initial run625 baseline: its standing keys on 9980"
+    );
+}
+
+/// run627: the frame food first parts on, 7782 (item 1455).
+pub(crate) fn french_east_indies_food_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run627",
+        &[("gamelog-run627-islands-french-7782.txt", 7776)],
+        WIDENING_FRENCH_FOOD_7782,
+        1,
+        &[7783],
+        true,
+    )
+}
+
+#[test]
+fn run627_s_food_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_food_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(
+        w.firsts.len(),
+        102,
+        "initial run627 baseline: its standing keys on 7776"
+    );
 }
 
 /// run623: the successor after the gull's flight, frame 9777 (item 1453).
@@ -271,9 +362,10 @@ fn run623_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1455: 97 → 96, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     pin_eq!(
         w.firsts.len(),
-        97,
+        96,
         "run623 after the fifth city and `already_built`"
     );
 }
@@ -301,7 +393,8 @@ fn run622_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 96, "run622 after the gull's flight");
+    // Item 1455: 96 → 95, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 95, "run622 after the gull's flight");
 }
 
 /// run617: the successor after `largest_gather`, frame 8840 (item 1451).
@@ -327,7 +420,8 @@ fn run617_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 111, "run617 after the idle push-back");
+    // Item 1455: 111 → 110, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 110, "run617 after the idle push-back");
 }
 
 /// run616: the successor after the per-building queue, frame 8385 (item
@@ -354,7 +448,8 @@ fn run616_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 109, "run616 after the idle push-back");
+    // Item 1455: 109 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 108, "run616 after the idle push-back");
 }
 
 /// run612: the successor after a wonder's start became first contact,
@@ -381,7 +476,8 @@ fn run612_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 106, "run612 after the idle push-back");
+    // Item 1455: 106 → 104, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 104, "run612 after the idle push-back");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -407,7 +503,8 @@ fn run610_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 109, "run610 after the idle push-back");
+    // Item 1455: 109 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 107, "run610 after the idle push-back");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -449,7 +546,8 @@ fn run613_s_contact_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 106, "run613 after the idle push-back");
+    // Item 1455: 106 → 102, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 102, "run613 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -566,7 +664,8 @@ fn run618_s_boarding_window_is_widened_whole() {
     };
     pin_eq!(w.blocks, 20, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 112, "run618 after the idle push-back");
+    // Item 1455: 112 → 111, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 111, "run618 after the idle push-back");
 }
 
 /// run615: the builder `1/51`'s birth beside the wonder, blocks
@@ -593,7 +692,8 @@ fn run615_s_birth_window_is_widened_whole() {
     };
     pin_eq!(w.blocks, 42, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 109, "run615 after the idle push-back");
+    // Item 1455: 109 → 105, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 105, "run615 after the idle push-back");
     // **The recruit at birth** (item 1449): city `1/2008` trains citizen
     // `1/51` on frame 7962, the wonder `1/2022` recruits it on its phase the
     // same frame, and it walks to the original's spot. With the queues in a
@@ -630,7 +730,8 @@ fn run614_s_builder_window_is_widened_whole() {
     };
     pin_eq!(w.blocks, 20, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 111, "run614 after the idle push-back");
+    // Item 1455: 111 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 108, "run614 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -647,7 +748,8 @@ fn run611_s_contact_window_is_widened_whole() {
     };
     pin_eq!(w.blocks, 14, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 110, "run611 after the idle push-back");
+    // Item 1455: 110 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
+    pin_eq!(w.firsts.len(), 107, "run611 after the idle push-back");
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
@@ -803,8 +905,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run624-islands-french-10131.txt",
+            "gamelog-run629-islands-french-10802.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run624-islands-french-10131.txt",
+            WIDENING_FRENCH_EAST_INDIES_10131,
         ),
         (
             EAST_START,
@@ -1144,9 +1252,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run623-islands-french-9777.txt",
             WIDENING_FRENCH_EAST_INDIES_9777,
         ),
-        // The open word's window, to the word's own block.
         (
             "gamelog-run624-islands-french-10131.txt",
+            WIDENING_FRENCH_EAST_INDIES_10131,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run629-islands-french-10802.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {

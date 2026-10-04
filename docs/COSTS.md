@@ -1013,6 +1013,40 @@ the building tail after it (marble, the Egyptian wonders, Korean towers,
 the Colosseum and Roman forts, Tikal's temples, Nubian markets, Greek
 libraries, Maya timber) is not carried.
 
+## A Citizen is ramped by the Militia too
+
+*Item 1455, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s unit ramp (lines 543–557 of the export);
+built as `Sim::worker_support`, added to the count in `Sim::price_with`.*
+
+The ramp's count is `LeaderData::get_support_count@006da110(t)`, which is
+`num_units[t] + num_queued[t]` for a type outside the trainer classes. For
+two lines `get_cost` adds more before the ramp:
+
+- a **Citizen** (`BASE_UNITTYPES` `0x32`, or `PEASANTSKOREAN` `0x33`):
+  `+ support(0x42) + support(0x43) − scholar_militia + support(0x44)`,
+  the Militia line;
+- a **Scholar** (`0x34`, `0x35`): `+ scholar_militia`.
+
+`scholar_militia` (`LeaderData +0x9f0`) is moved by
+`Leader::track_unit_type@006e0dd0` for a Militia-line unit whose former type
+(`UnitData +0x54`, `former_type`) is a scholar. That is a scholar called to
+arms, whose count stays with the Scholars. The crate derives it from the
+live militia rather than keeping it.
+
+French East Indies' AI has a Militia queued (`num_queued[66]` 1) on 7782.
+It pays **52, 53 and 54** food for three Citizens at a count of 31, and
+the crate asked 51, 52 and 53 (run627's block 7783, the queue's
+`cost[0]`). That 3 food stood in the buckets from 7783 and bought a
+second Hoplite on 9985.
+
+**How confident**: the Citizen's Militia term is diff-backed by run627 and
+the widenings of runs 163–243 (Great Lakes) and 610–627 (French East
+Indies), whose food and queued-cost rows close. The Scholar's term and
+`scholar_militia` are a reading: no capture holds a scholar called to arms.
+The `is(0x13b)` arm (`+ LeaderData +0x7bc` for the nuclear line) is not
+carried.
+
 ---
 
 ## What is diff-backed

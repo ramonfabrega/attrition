@@ -211,6 +211,25 @@ impl Sim {
             _ => (1, 1),
         };
         speed = speed * num / den;
+        // `Unit::update_speed@006055c0`'s trainer arm: a unit whose
+        // `WHERE` (`UnitTypeData +0x40`) is `0x1ae` or `0x1af` — the Siege
+        // Factory line — moves `FRENCH_SIEGE_MOVE` faster for a French
+        // leader, then `VERSAILLES_UNITS_MOVE` under Versailles, each its
+        // own `(x + 100) × speed / 100` (`docs/MOVEMENT.md`, "The French
+        // siege move"). French East Indies' Supply Wagon `1/72` is born at
+        // 30 there, 25 here before item 1455.
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_);
+        if matches!(trainer, Some(0x1ae | 0x1af)) {
+            if self.nation[who as usize].french {
+                speed = (self.tuning.french_siege_move + 100) * speed / 100;
+            }
+            if self.wonders_held(who) & (1 << crate::tech::wonder::VERSAILLES) != 0 {
+                speed = (self.tuning.versailles_units_move + 100) * speed / 100;
+            }
+        }
         if self.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)

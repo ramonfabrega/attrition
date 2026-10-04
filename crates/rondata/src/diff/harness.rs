@@ -11396,9 +11396,10 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (199/212 → 183/196): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (183, 196).
         // Item 1330 took 44 (177/188 → 133/142): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (116, 125) → (116, 123), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (116, 125),
+            (116, 123),
             "the floor"
         );
     }
@@ -11615,9 +11616,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (196, 320).
         // Item 1330 took 46 (188/312 → 142/264): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (142/264 → 142/235): the Citizens' `mylos` on 12563, the cache (`docs/VISION.md` §2).
+        // Item 1455: (125, 217) → (123, 215), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (125, 217),
+            (123, 215),
             "the floor"
         );
     }
@@ -11815,9 +11817,10 @@ pub(crate) mod tests {
         // Item 1072 took four (311 → 307): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (307 → 306): who=0's `gather_stamp`, the border pass's economy flag (`docs/AI.md` §84).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 166.
+        // Item 1455: 98 → 97, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            98,
+            97,
             "every row standing on 14651"
         );
         // **The floor**: run174's 374 to its last block, exactly as
@@ -11831,6 +11834,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (320, 13, 333).
         // Item 1330 took 48 (312/13/325 → 264/8/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (217, 6, 223) → (215, 6, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid.len(), firsts.len()),
             // Item 718: six trained units' `orders_x`/`orders_y`; item 723
@@ -11849,7 +11853,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (217, 6, 223),
+            (215, 6, 221),
             "the floor"
         );
     }
@@ -11971,9 +11975,10 @@ pub(crate) mod tests {
         // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 169.
         // Item 1330 took 51 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
+        // Item 1455: 97 → 96, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            97,
+            96,
             "every row standing on 14983"
         );
         // **The floor**: run178's 416 to its last block, exactly as
@@ -11998,9 +12003,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (333, 4, 337).
         // Item 1330 took 53 (325/4/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12096,6 +12102,7 @@ pub(crate) mod tests {
         // run192's tail (376 before item 711: the archers' 61 are gone;
         // item 729 took one more, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71)).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 169.
+        // Item 1455: 98 → 97, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 723 took one (315 → 314): the scout's formation mirror.
@@ -12104,7 +12111,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            98,
+            97,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -12136,9 +12143,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12254,6 +12262,7 @@ pub(crate) mod tests {
         // move `facing` (parked 716).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (169, 170).
         // Item 1330 took 50 (164/164 → 114/114): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (98, 98) → (97, 97), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
@@ -12261,7 +12270,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (98, 98),
+            (97, 97),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -12294,9 +12303,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12420,6 +12430,7 @@ pub(crate) mod tests {
         // posts: only the floor's own rows stand on either block.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (165, 165).
         // Item 1330 took 50 (162/162 → 112/112): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (96, 96) → (95, 95), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
@@ -12427,7 +12438,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (96, 96),
+            (95, 95),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -12456,9 +12467,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12558,6 +12570,7 @@ pub(crate) mod tests {
         // The floor's rows standing on the old word's block: 355 before
         // item 742, whose give-up took `1/23`'s 43 keys off it.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 168.
+        // Item 1455: 99 → 98, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 1072 took four (312 → 308): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
@@ -12565,7 +12578,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (165 → 114): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            99,
+            98,
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -12587,9 +12600,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12702,6 +12716,7 @@ pub(crate) mod tests {
             .count();
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (167, 167, 163).
         // Item 1330 took 50 (164/164/163 → 114/114/113): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (98, 98, 97) → (97, 97, 96), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
@@ -12720,7 +12735,7 @@ pub(crate) mod tests {
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (98, 98, 97),
+            (97, 97, 96),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12742,9 +12757,10 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (337, 0, 337).
         // Item 1330 took 57 (329/0/329 → 272/0/272): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1354 took 29 (the Citizens' `mylos` on 12563, the cache; `docs/VISION.md` §2).
+        // Item 1455: (223, 0, 223) → (221, 0, 221), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (223, 0, 223),
+            (221, 0, 221),
             "the floor"
         );
     }
@@ -12836,12 +12852,13 @@ pub(crate) mod tests {
                 .count()
         });
         // Item 1330 took 50 (163/5 → 113/4): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (97, 4) → (96, 4), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (tail, carried),
             // 28 before item 899: `1/60`'s 23 went.
             // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (97, 4),
+            (96, 4),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12894,6 +12911,7 @@ pub(crate) mod tests {
         // 74 on the runway closed, and none opened.
         // Item 1115 took the caravan's four rows here ((303, 5, 1, 309) → (299, 5, 1, 305); `docs/CARAVAN.md` §11.3).
         // Item 1330 took 50 (163/5/1/169 → 113/4/1/118): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
+        // Item 1455: (97, 4, 1, 102) → (96, 4, 1, 101), who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             (
                 within(WIDENING_GREAT_LAKES_STAND.0, RUN226_TAIL),
@@ -12903,7 +12921,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (97, 4, 1, 102),
+            (96, 4, 1, 101),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).

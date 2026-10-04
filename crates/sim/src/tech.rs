@@ -482,6 +482,7 @@ pub mod wonder {
     /// The one wonder `has_wonder` holds without a city (`param_1 ==
     /// 0x216`).
     pub const RED_FORT: usize = 0x216 - BASE;
+    pub const VERSAILLES: usize = 0x218 - BASE;
     pub const ANGKOR_WAT: usize = 0x217 - BASE;
     pub const KREMLIN: usize = 0x21a - BASE;
     pub const TAJ_MAHAL: usize = 0x21b - BASE;

@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-04, **the sequential arm, landing 6 of 10** (DECISIONS 60,
+*2026-10-04, **the sequential arm, landing 7 of 10** (DECISIONS 60,
 parked 1448): branch `worktree-seq-opus`, one Opus 5.5 session under
-`AGENTS.md`. French East Indies **8182 → … → 9777 → 10131**: a wonder's
+`AGENTS.md`. French East Indies **8182 → … → 10131 → 10802**: a wonder's
 start is first contact (1446); a building's queue runs inside its own
 `Build::process` (1449); `largest_gather` is 1 (1451); a pushed ship
-pushes back (1452); the gull flies (1453); the Pyramids raise the city
-limit and take a third off a city, and a built wonder leaves every list
-(1454, AI §116). Great Lakes (French) stands closed; Toughest measured
-12538, floor 11985.*
+pushes back (1452); the gull flies (1453); the Pyramids' city terms and
+`already_built` (1454); a Citizen is ramped by the Militia line and a
+French Siege Factory unit moves a fifth faster (1455). Great Lakes
+(French) stands closed; Toughest measured 12538, floor 11985.*
 
-- **The arm takes 1455 next**, then down the queue; the steering session
+- **The arm takes 1457 next**, then down the queue; the steering session
   takes its landing lines and does not drive. No commander loop runs.
 - **1446's cause was not the booking's**: Codex's 8033 contact was killed
   by run611 (contact before 8030). Its unread diff stays unread.
@@ -32,12 +32,12 @@ limit and take a third off a city, and a built wonder leaves every list
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w10131 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w10802 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the sequential worker, on Opus, takes 1455 from this tree
+**Opener: the sequential worker, on Opus, takes 1457 from this tree
 under `AGENTS.md`; the steering session watches and does not drive.**
 
 ## The queue
@@ -48,12 +48,12 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1455. **French East Indies frame 10131, four versus six draws**, index
-    0: ours `Guy::set_anim+0x97a < Guy::inc_time` versus `Guy::set_anim
-    +0x97a < Unit::do_non_flat_gather`. run624 (181 keys) has parted by its
-    first block, 10126: who=1's food 118/160, metal 203/230,
-    `num_queued[82]` 2/1, `1/58` elsewhere. Date that parting in
-    9784..10126; no mechanism is named.
+1457. **French East Indies frame 10802, six versus five draws**, index
+    0: ours `Guy::set_anim+0x97a < Unit::move_step` versus `Guy::set_anim
+    +0x97a < Guy::inc_time`. run629 (197 keys) has parted by its first
+    block, 10797: ours holds group 71 of `1/77`, `1/81`, `1/82`, the
+    original's pool none; `1/77` and `1/81` elsewhere. Date it inside
+    10139..10796, after run624's last block; no mechanism is named.
 
 1429. **Great Sahara at Toughest's word: frame 12538, seven draws
     on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
