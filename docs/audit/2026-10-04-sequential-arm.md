@@ -73,10 +73,14 @@ and corrected, as Codex's one red gate (1444's batch) was.
 ## Landing 2 — item 1449, French East Indies 8236 → 8385
 
 Commit `f533d1b5` at 03:49Z, **38 minutes after landing 1's push**;
-the full gate started at 03:49Z and was running when this row was
-written — its verdict, the push and the done line are read at the next
-notice. Three captures (run614–616), each booked with its killers
-before it ran, each the same game as run600 by the RNG trace.
+the full gate on it started at 03:49Z and recorded in `99cb157d` at
+04:00Z: **exit 0, six of six steps**, fixed 13, rondata 706, sim 1324,
+fixture audit 2565 requests and none missing, memcap peak 15226 MiB.
+Pushed: `origin/worktree-seq-opus` is `99cb157d`, verified by fetch;
+the done line reached this session at 04:01Z in the agreed shape.
+**49 minutes from landing 1's push to landing 2's**, gate included.
+Three captures (run614–616), each booked with its killers before it
+ran, each the same game as run600 by the RNG trace.
 
 **Diff against the journal** (`docs/journal/2026-10-03-item-1449.md`,
 108 lines; SYNC §3.28, AI §114): they agree, and the item is a model
@@ -116,8 +120,9 @@ make list on run616 block 8385, parting since run610's 8185), pins and
 sentence amended in place to point at §3.28. The number 1450 is parked
 1450 (landing 1); the arm's numbering is clean.
 
-**Pace after two**: 57 and ~38 + gate minutes; two landings in 1 h 35 m
-to the second landing commit. Codex's twenty took 15 h 20 m.
+**Pace after two**: 57 and 49 minutes, spawn to pushed landing each;
+two gated landings in 1 h 47 m. Codex's twenty took 15 h 20 m, 46 a
+landing with the gate at the batch.
 
 ## For the Loop, noticed by the steering session
 
