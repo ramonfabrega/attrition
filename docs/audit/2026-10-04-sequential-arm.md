@@ -128,8 +128,16 @@ landing with the gate at the batch.
 
 Commits `a96211c3` (the landing) and `f9ff75c2` (a doc-comment line
 clippy read as a list item), both 04:30Z, **30 minutes after landing
-2's push**; the full gate on `f9ff75c2` started 04:30Z and was running
-when this row was written. One capture (run617), the new word's
+2's push**; the gate's record `32aa86a0` at 04:41Z: **exit 0, six of
+six steps**, fixed 13, rondata 707, sim 1325, fixture audit 2582
+requests and none missing, memcap peak 14846 MiB. Pushed:
+`origin/worktree-seq-opus` is `32aa86a0`, verified by fetch; the done
+line reached this session at 04:42Z in the agreed shape. **41 minutes
+from landing 2's push to landing 3's.** The journal's gate section
+owns a slip worth the pass's eye: `a96211c3` was committed after a
+clippy run piped through `tail`, which hid its failure — the queue's
+own "never piped, a pipe launders the exit" rule, met once more and
+recorded by the arm itself. One capture (run617), the new word's
 widening; the cause needed none.
 
 **Diff against the journal** (`docs/journal/2026-10-03-item-1451.md`,
@@ -176,9 +184,10 @@ re-pinned, run617 entered in `docs/RUNS.md`, the module header struck
 through in place. Its slips section records four tooling mistakes
 caught by the tools' own assertions before any conclusion was drawn.
 
-**Pace after three**: 57, 49 and 30 + gate minutes; **455 frames in
-one landing**, the largest move on this word since the pair stood up.
-Three landings in 2 h 17 m to the third landing commit.
+**Pace after three**: 57, 49 and 41 minutes, each spawn-or-push to
+pushed landing; **455 frames in one landing**, the largest move on
+this word since the pair stood up. Three gated landings in 2 h 27 m;
+French East Indies 8182 → 8840 (+658).
 
 ## For the Loop, noticed by the steering session
 
