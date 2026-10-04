@@ -390,6 +390,63 @@ pushed landing; six landings in **5 h 02 m**, four on a full green
 gate and two on combined validation. French East Indies 8182 → 10131
 (+1,949).
 
+## Landing 7 — item 1455, French East Indies 10131 → 10802
+
+Commit `ed43fd38` at 08:27Z, **71 minutes after landing 6's push** —
+the longest interval so far, on five captures (run625–629); the full
+gate on it started 08:28Z and was running when this row was written.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1455.md`,
+95 lines; COSTS and MOVEMENT each a new section): they agree. Two
+causes, found in series, each dated by its own capture. The booked
+parting (food 3 high, a second Hoplite) went back to one event on
+block 7783 — found by a 600-frame buckets-only capture, `LEADERS=2`,
+19 MB (run626), which is the cheap shape the queue's rules ask for —
+and run627's widening named it: the three Citizens queued at the
+capital cost 52/53/54 there and 51/52/53 here, because `get_cost`'s
+unit ramp counts the Militia line into a Citizen's count and the
+original had a Militia queued. With that built, `1/58` still parted;
+run628 (positions only) dated it to a collision with a Supply Wagon
+born at speed 30 there and 25 here — `Unit::update_speed`'s trainer
+arm, a French unit of the Siege Factory line a fifth faster. Each is
+its own mutation: no Militia ramp → 10182, no French move → 10131.
+
+To carry to the pass:
+
+- **The second landing to move other games**: 24 widening pins fell,
+  including Great Lakes (first pair) runs 163, 174, 243 and one
+  standing row on each of ten Great Lakes pins 178–226, diffed before
+  and after — keys leave, **none arrive**. The harness's own floor
+  comments carry the item's line in the established form. No floor
+  moved; sim 1328 of 1328.
+- **A new sim field is derived, not kept**: `scholar_militia`
+  (`LeaderData +0x9f0`, `track_unit_type`'s count) is computed from the
+  live militia whose former type is a scholar rather than carried as
+  state. Stated in the code; reading-only, and the journal says so.
+- **Two tuning slots** (`FRENCH_SIEGE_MOVE` 20, `VERSAILLES_UNITS_MOVE`
+  25), `ron_slots` 347 → 349; `wonder::VERSAILLES` added. The
+  Versailles term is read, not exercised.
+- **Review debt, stated**: the Scholar's term, `scholar_militia` and
+  Versailles' speed are a reading alone. No blind reading.
+- **A slip owned, and the right one**: "I started the suites once with
+  a shell `&` instead of a background task, so no notice would have
+  come. I killed that run and restarted it." The arm knows which wait
+  the harness can see.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w10802`, 1455 deleted, 1457 booked by frame — a group the crate holds
+on run629's first block that the original's pool does not, to be dated
+in 10139..10796), parked amended in place (a `caras` note under an
+existing row; the French move struck from a "not built" line), 24 pins
+and `WIDENINGS` re-pinned, run625–629 in `docs/RUNS.md` (626 and 628 as
+evidence only, said so). **1456 was booked and 1457 follows it**: the
+arm skipped no number and reused none.
+
+**Pace after seven landing commits**: 57, 49, 41, 58, 38, 58 and 71 +
+gate minutes. French East Indies 8182 → 10802 (+2,620) in 6 h 13 m to
+the seventh landing commit; the estimate's twelve hours would hold
+at this pace with three to go.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
