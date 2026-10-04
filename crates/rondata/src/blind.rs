@@ -264,7 +264,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `cover=0` its trace enters no function; **141** with item 1365's cite
 /// of `LeaderData::get_vehicle_speed_upgrade@006da8a0`
 /// (`docs/PRODUCTION.md`, "The tail's first caller"): no traced game
-/// trains a tank, siege or vehicle unit.
+/// trains a tank, siege or vehicle unit; **142** with item 1454's cite of
+/// `Wonder::init@0073c5e0` (`docs/TECH.md`, "A built wonder is built for
+/// everyone"): the second writer of `Game::wonders`, which no traced game
+/// reaches.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -292,7 +295,7 @@ pub const NEVER: &[u32] = &[
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
-    0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
+    0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c5e0, 0x0073_c7e0, 0x0073_e000,
     0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
     0x0094_1960, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
