@@ -1530,6 +1530,31 @@ fn a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot() {
     );
 }
 
+/// **A computer's member comes out with its own orders** (item 1457,
+/// `docs/CITIES.md` §6.5.3): each member's `come_out` runs the tail, and
+/// for a computer's unit that is not a plane, a Citizen or a Scholar the
+/// tail ends in `update_action`, so a member's `orders_x/y` are its new
+/// place. A human's members are left as they were trained.
+#[test]
+fn a_computer_s_squad_members_come_out_with_their_own_orders() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    squad.combat.block_radius = 48;
+    squad.type_index = 0x52;
+    let squad = sim.add_unit_type(squad);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    sim.nation[0].human = false;
+    let cap = sim.build_train(b, squad).unit;
+    for m in sim.squad_members(cap) {
+        let u = &sim.units[m];
+        assert_eq!(u.orders_pos, u.pos, "1/{}'s orders are its place", u.index);
+    }
+}
+
 /// **`come_out`'s push** (`618900`..`6189aa`, item 882, `docs/GOLDEN.md`
 /// §33): a trained squad — the captain out of a building, its type's
 /// `uber_size` over 1 — is `Group::add`ed and `push_group(who, g, 1)`ed,
@@ -5708,4 +5733,136 @@ fn a_birth_moves_the_census_s_civilian_counts_before_the_sweep() {
         (sim.ai[0].census.scholars, sim.ai[0].census.peasants),
         (1, 0)
     );
+}
+
+/// **A Citizen is ramped by the Militia line too** (item 1455,
+/// `docs/COSTS.md`): `get_cost`'s unit ramp counts, for a Citizen,
+/// `support(0x42) + support(0x43) − scholar_militia + support(0x44)` beside
+/// its own, and for a Scholar `scholar_militia`. French East Indies' AI had
+/// one Militia queued on 7782 and paid 52/53/54 for three Citizens where
+/// the crate asked 51/52/53.
+#[test]
+fn a_citizen_is_ramped_by_the_militia_too() {
+    let mut sim = world_sim();
+    let ty = |sim: &mut Sim, ti: i32| {
+        sim.add_unit_type(UnitType {
+            hits: 40,
+            type_index: ti,
+            ..UnitType::default()
+        })
+    };
+    let citizen = ty(&mut sim, 0x32);
+    let scholar = ty(&mut sim, 0x34);
+    let militia = ty(&mut sim, 0x42);
+    let hoplite = ty(&mut sim, 0x52);
+    sim.muster[1].by_type[citizen] = 25;
+    sim.muster[1].queued_by_type[citizen] = 6;
+    sim.muster[1].queued_by_type[militia] = 1;
+    assert_eq!(sim.worker_support(1, citizen), 1, "the queued Militia");
+    assert_eq!(sim.worker_support(1, scholar), 0);
+    assert_eq!(sim.worker_support(1, hoplite), 0, "no other line");
+    assert_eq!(sim.worker_support(0, citizen), 0, "the leader's own");
+    // A militia that was a scholar (`former_type`, `UnitData +0x54`) is
+    // the Scholar's, and comes off the Citizen's.
+    let mut u = Unit::new(1, 9, tile_pos(3, 3), 40);
+    u.ty = Some(militia);
+    u.type_index = 0x42;
+    u.rare = 0x34;
+    sim.add_unit(u);
+    sim.muster[1].by_type[militia] = 1;
+    assert_eq!(sim.worker_support(1, citizen), 1, "1 + 1 − 1");
+    assert_eq!(sim.worker_support(1, scholar), 1);
+}
+
+/// **A French Siege Factory unit moves a fifth faster** (item 1455,
+/// `Unit::update_speed@006055c0`, `docs/MOVEMENT.md`): a type whose
+/// `WHERE` is `0x1ae` or `0x1af` takes `FRENCH_SIEGE_MOVE` for a French
+/// leader. French East Indies' Supply Wagon `1/72` was born at 30 there,
+/// 25 here.
+#[test]
+fn a_french_siege_factory_unit_moves_a_fifth_faster() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ae {
+        tree.add(TypeDef::good("filler"));
+    }
+    let factory = tree.add(TypeDef::building("Siege Factory"));
+    assert_eq!(factory, 0x1ae);
+    tree.add(TypeDef::building("Factory"));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let wagon_t = tree.add(TypeDef::unit("Supply Wagon", Traits::default()).at(factory));
+    let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()).at(barracks));
+    sim.set_tech_tree(tree);
+    let ty = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            hits: 40,
+            moves: 25,
+            tree: Some(t),
+            ..UnitType::default()
+        })
+    };
+    let wagon = ty(&mut sim, wagon_t);
+    let foot = ty(&mut sim, foot_t);
+    assert_eq!(sim.type_speed(1, wagon), 25);
+    sim.nation[1].french = true;
+    assert_eq!(sim.type_speed(1, wagon), 30, "25 × 120 / 100");
+    assert_eq!(sim.type_speed(1, foot), 25, "not the factory line");
+}
+
+/// **A French siege unit costs `FRENCH_SIEGE_COST` less** (item 1460,
+/// `docs/COSTS.md`, "A French siege unit costs less"): `get_cost`'s nation
+/// tail takes 15% off a French leader's unit trained at `0x1ae`/`0x1af`,
+/// right after `UNIT_COST_FACTOR`. French East Indies' Trebuchet research
+/// is 79 there, 94 here before the arm.
+#[test]
+fn a_french_siege_factory_unit_costs_fifteen_percent_less() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ae {
+        tree.add(TypeDef::good("filler"));
+    }
+    let factory = tree.add(TypeDef::building("Siege Factory"));
+    tree.add(TypeDef::building("Factory"));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let siege_t = tree.add(TypeDef::unit("Trebuchet", Traits::default()).at(factory));
+    let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()).at(barracks));
+    sim.set_tech_tree(tree);
+    // The train arm: the types' availability bits are set.
+    sim.tech[1].tech[siege_t] = true;
+    sim.tech[1].tech[foot_t] = true;
+    let ty = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            price: cost::Price::free().with_base(economy::Resource::Metal, 7),
+            tree: Some(t),
+            ..UnitType::default()
+        })
+    };
+    let siege = ty(&mut sim, siege_t);
+    let foot = ty(&mut sim, foot_t);
+    let metal = economy::Resource::Metal.index();
+    sim.holdings[1].available[metal] = true;
+    let scaled = 7 * sim.tuning.unit_cost_factor;
+    assert_eq!(sim.price_of(1, siege)[metal], scaled);
+    sim.nation[1].french = true;
+    assert_eq!(sim.price_of(1, siege)[metal], scaled * 85 / 100);
+    assert_eq!(sim.price_of(1, foot)[metal], scaled, "not the factory line");
+}
+
+/// **`path_recursion` survives a recycled object slot** (item 1458,
+/// `docs/GROUPS.md` §37.2): `Unit::init` never writes `UnitData +0xaf`,
+/// so a unit born into a dead unit's object number keeps its count. A
+/// fresh number starts at 0.
+#[test]
+fn a_recycled_slot_keeps_its_path_recursion() {
+    let mut sim = world_sim();
+    let mut old = Unit::new(1, 9, tile_pos(3, 3), 40);
+    old.path_recursion = 3;
+    let o = sim.add_unit(old);
+    sim.units[o].health = 0;
+    let n = sim.add_unit(Unit::new(1, 9, tile_pos(4, 4), 40));
+    assert_eq!(sim.units[n].path_recursion, 3, "the slot's last occupant's");
+    let fresh = sim.add_unit(Unit::new(1, 10, tile_pos(5, 5), 40));
+    assert_eq!(sim.units[fresh].path_recursion, 0);
 }

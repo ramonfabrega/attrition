@@ -492,6 +492,8 @@ shape carries no information and the predicates do:
   elephants, the Dutch on ships, the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth.
+  (The French siege arm is built as of item 1460; see "A French siege unit
+  costs less".)
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
   Marble, Bison and Incense each cheapen one category (Horses and Rubber
   are built as of item 613, `docs/AI.md` §62: **both** take their 15% off
@@ -985,6 +987,100 @@ at 60 (`docs/AI.md` §99.11).
 **How confident**: read from the listing, and diff-backed by run491's block
 8378 and the draw stream to 8786. The Major City's two counts are the
 listing's alone: no capture's leader holds one when it prices a city.
+
+## The Pyramids take a third off a city
+
+*Item 1454, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s building arm (`00665c46`..`00665c9b`);
+built as `cost::Modifiers::city` in `Sim::building_price`.*
+
+After the building ramp, on a type whose `is_city` holds and that is not a
+wonder, `get_cost` takes two percentages off each resource. Each is its own
+`(100 − x) × cost / 100`, in this order:
+
+1. `BANTU_CITY_COST` (`75% cheaper`, constants `+0x5b8`), for a leader with
+   `has_tribe_bonus(3)`;
+2. `PYRAMIDS_CITY_DISCOUNT` (`33% cheaper`, `+0x434`), for a leader with
+   `has_wonder(0x20e)`.
+
+French East Indies' AI holds the Pyramids from 9658 and four cities, and
+pays **140** food and 140 timber for the fifth on 9777, where the bare ramp
+asks 210 (run623's buckets).
+
+**How confident**: the Pyramids' term is diff-backed by run623 and the
+draw stream to 10131
+(`rondata::diff`, `french_east_indies_buys_its_fifth_city_at_a_third_off`).
+The Bantu term is read alone; no capture holds a Bantu leader. The rest of
+the building tail after it (marble, the Egyptian wonders, Korean towers,
+the Colosseum and Roman forts, Tikal's temples, Nubian markets, Greek
+libraries, Maya timber) is not carried.
+
+## A Citizen is ramped by the Militia too
+
+*Item 1455, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s unit ramp (lines 543–557 of the export);
+built as `Sim::worker_support`, added to the count in `Sim::price_with`.*
+
+The ramp's count is `LeaderData::get_support_count@006da110(t)`, which is
+`num_units[t] + num_queued[t]` for a type outside the trainer classes. For
+two lines `get_cost` adds more before the ramp:
+
+- a **Citizen** (`BASE_UNITTYPES` `0x32`, or `PEASANTSKOREAN` `0x33`):
+  `+ support(0x42) + support(0x43) − scholar_militia + support(0x44)`,
+  the Militia line;
+- a **Scholar** (`0x34`, `0x35`): `+ scholar_militia`.
+
+`scholar_militia` (`LeaderData +0x9f0`) is moved by
+`Leader::track_unit_type@006e0dd0` for a Militia-line unit whose former type
+(`UnitData +0x54`, `former_type`) is a scholar. That is a scholar called to
+arms, whose count stays with the Scholars. The crate derives it from the
+live militia rather than keeping it.
+
+French East Indies' AI has a Militia queued (`num_queued[66]` 1) on 7782.
+It pays **52, 53 and 54** food for three Citizens at a count of 31, and
+the crate asked 51, 52 and 53 (run627's block 7783, the queue's
+`cost[0]`). That 3 food stood in the buckets from 7783 and bought a
+second Hoplite on 9985.
+
+**How confident**: the Citizen's Militia term is diff-backed by run627 and
+the widenings of runs 163–243 (Great Lakes) and 610–627 (French East
+Indies), whose food and queued-cost rows close. The Scholar's term and
+`scholar_militia` are a reading: no capture holds a scholar called to arms.
+The `is(0x13b)` arm (`+ LeaderData +0x7bc` for the nuclear line) is not
+carried.
+
+## A French siege unit costs less
+
+*Item 1460, 2026-10-04. Read from the decompile of
+`TypeData::get_cost@00664090`'s pre-ramp nation tail (lines 224–235 of
+the export); built as `Sim::nation_unit_discount`, carried in
+`cost::Modifiers::discount`.*
+
+Right after `UNIT_COST_FACTOR` scales the base, `get_cost` runs a tail of
+nation arms, each its own `(100 − x) × cost / 100`. It runs before the
+stable rares, before the research fork and before the ramp, so it applies
+to a research's price as well as a train job's. The French arm
+(`has_tribe_bonus(10)`) takes:
+
+- **`FRENCH_SIEGE_COST`** (15, rules.xml) off a unit whose trainer
+  (`UnitTypeData +0x40`) is `0x1ae` or `0x1af`, the Siege Factory line;
+- else `FRENCH_SPECIAL_COST` off a type of class `0x36`. It ships as 0,
+  and the crate does not carry it.
+
+The French AI of French East Indies queues the Trebuchet's research
+(`TypeIndex` 266, its bit still clear) at the Siege Factory `1/2034` on
+frame 11182. Base 7 × `UNIT_COST_FACTOR` 10 = 70; the arm makes it
+70 × 85 / 100 = 59; the research premium (384/256) 88; and
+`MILITARY_UPGRADE_DISCOUNT`'s 10, **79** timber and metal there. Without
+the arm the crate asked 70 → 105 → **94**. The 15 of each stood in the
+buckets until 11578, where the crate could not afford Conscription and
+the original offered it.
+
+**How confident**: diff-backed by run631's standing `queue[0].cost` and
+bucket rows, and by the word (11582 → 12794). The tail's other nations'
+arms (Mongol stable, Japanese barracks and ships, German submarines,
+American aircraft, British anti-air, Nubian merchants, Russian spies,
+Roman legions, Terra Cotta, Angkor ships) are read but not carried.
 
 ---
 

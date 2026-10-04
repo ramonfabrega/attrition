@@ -3855,3 +3855,39 @@ earlier floor and was removed (the original's search is gated on a
 noncaptain). No independent blind reading was performed. The offline
 object-phase experiment stops at the observed write and makes no full-frame
 emulation claim; only guy 0's collision footprint is modeled, as in §2.
+
+## 24. A pushed ship pushes back from where it stands (2026-10-04, item 1452)
+
+French East Indies' word 8840 was transport `1/60`, which landed four
+frames early. The trail ran back through four captures. run619 (positions
+only) shows the voyage parting on block 8651, where the original's
+transport records `collide_frame` 8650 against ship `1/16` and this
+crate's sails through. `1/16` had stood 11 and 16 units apart since at
+least 7351. run620 dates it to 6142: on 6140 transport `1/39` pushes the
+idle `1/16` exactly as here (§13.3), and on 6142 both ships part by the
+same angle. run621, under `RON_GUARD_PROBE`, shows why. On 6141 the idle
+`1/16` calls `detect_boat_collision` at its own position, with `mates`
+clear and outside any move, and that call pushes `1/39` by (+4,+3) before
+`1/39`'s own step.
+
+**The caller is `Unit::work@0060d180`, the last block before `do_job`.**
+It applies when the unit was collided or pushed within the last four
+frames (`frame − 4 < collide_frame`) and takes the boat arm (sea, siege,
+supply or hero, the same four as `Sim::takes_boat_arm`). Unless its job
+is a move (`MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`,
+`CHANGE_FORM`, `GROUP_MOVE`, `GROUP_ATTACK_TO`), the unit pushes from
+where it stands: `detect_boat_collision(x, y, 0)`. With `mates` clear the
+pushed unit is stamped (`collide_frame`) but neither named nor turned.
+The crate had no such call. With it, the crate makes the probe's calls on
+6141 and 6142 exactly: positions, pusher and order.
+
+**What moved.** French East Indies **8840 → 9655**. No floor moves.
+Every French window loses the same 11 standing keys, which are `1/16`'s.
+run617 loses 77, and none arrives anywhere. Made to fail on purpose:
+without the block the word returns to 8840, and run603's and run620's
+pins and the unit test `a_pushed_ship_pushes_back_from_where_it_stands`
+fail.
+
+**Not established.** The move-job exemption is read and not exercised.
+The siege, supply and hero arms of the push-back have no capture. The
+unit test reaches the push-back through `work`, not through a full tick.

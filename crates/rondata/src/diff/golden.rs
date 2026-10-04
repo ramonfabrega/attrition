@@ -7711,8 +7711,6 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     // allocation (`docs/GROUPS.md`'s table of what the pool leaves out),
     // and no step of an explore or a flee reads a group's speed.
     let mut want_pool: Vec<String> = [
-        "685 slot 0 new_speed",
-        "685 slot 0 speed",
         "685 slot 2 new_speed",
         "685 slot 2 speed",
         "804 slot 1 new_speed",
@@ -7722,6 +7720,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want_pool.sort();
+    // Item 1457: 6 rows → 4 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
 }
 
@@ -7787,6 +7786,7 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch19: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH19_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 2 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch19: what parts in the pool moved");
 }
 
@@ -7853,6 +7853,7 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch20: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH20_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 4 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch20: what parts in the pool moved");
 }
 
@@ -7919,6 +7920,7 @@ fn chapter_twenty_one_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch21: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH21_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["782 slot 1 ox", "782 slot 1 oy", "802 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch21: what parts in the pool moved");
 }
 
@@ -7948,14 +7950,7 @@ const WANT_CH21: &[&str] = &[
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
 // (chapter twenty's, the 642 move's), both before the repair. ~~The idle
 // gathers' groups past the word~~ (1086, 1090, 1153, 1217): item 824.
-const WANT_CH21_POOL: &[&str] = &[
-    "782 slot 1 ox",
-    "782 slot 1 oy",
-    "802 slot 0 ox",
-    "802 slot 0 oy",
-    "802 slot 1 new_speed",
-    "802 slot 1 speed",
-];
+const WANT_CH21_POOL: &[&str] = &[];
 
 // **What parts under the word** on run249, the draw word closed at 1300.
 // - The births' `form`, the standing family: the Chariots and the barges.
@@ -7989,12 +7984,7 @@ const WANT_CH20: &[&str] = &[
 // `ox`/`oy`, (0, 0) there and (−1, −1) here, chapter nineteen's standing
 // family; and the 642 move's group, slot 0, whose `speed`/`new_speed` are
 // 30 there and 0 here on 644 (`crate::group`'s, fenced to this item).
-const WANT_CH20_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "644 slot 0 new_speed",
-    "644 slot 0 speed",
-];
+const WANT_CH20_POOL: &[&str] = &[];
 
 /// The first occurrence of every integer key in each `UNITDATA` and
 /// `BUILDDATA` record of one block, keyed on `(kind, who, o)` — the raw
@@ -8515,7 +8505,7 @@ const WANT_CH19: &[&str] = &[];
 // **What parts in the pool**: the pushed selection's `ox`/`oy`, (0, 0)
 // there and (−1, −1) here, chapter seventeen's and eighteen's standing
 // family: a point no craft reads.
-const WANT_CH19_POOL: &[&str] = &["622 slot 1 ox", "622 slot 1 oy"];
+const WANT_CH19_POOL: &[&str] = &[];
 
 /// **Chapter eighteen's word, widened whole, both directions** (item
 /// 779). Every record run241 carries on every block of
@@ -8601,16 +8591,9 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
     // (0, 0) in the original, `Group::clear`'s (−1, −1) here, as on
     // chapter seventeen's flight groups (§25). `action_build` writes no
     // group point and no step of a build reads one.
-    let mut want_pool: Vec<String> = [
-        "622 slot 1 ox",
-        "622 slot 1 oy",
-        "642 slot 0 ox",
-        "642 slot 0 oy",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want_pool: Vec<String> = Vec::new();
     want_pool.sort();
+    // Item 1457: 4 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch18: what parts in the pool moved");
 }
 
@@ -8680,6 +8663,7 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch22: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH22_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "642 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch22: what parts in the pool moved");
 }
 
@@ -8718,18 +8702,7 @@ const WANT_CH22: &[&str] = &[];
 // **What parts in the pool** on run265: chapter seventeen's ten, the
 // pushed flight groups' point (parked 760) and item 738's `get_num` speeds;
 // the Fighter's selection on 767 agrees.
-const WANT_CH22_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH22_POOL: &[&str] = &[];
 
 /// **run281 whole, both directions** (item 867, `docs/GOLDEN.md` §32):
 /// every dumped record of either player on every block of
@@ -8790,6 +8763,7 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch23: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH23_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "642 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch23: what parts in the pool moved");
 }
 
@@ -8812,18 +8786,7 @@ const WANT_CH23: &[&str] = &[];
 // does not seat.~~ Seated since item 882
 // ([`crate::input::group_buildmask`] → `Sim::push_command_buildings`),
 // and slot 0 agrees on 1442 whole: its `ox`/`oy` first part on 642.
-const WANT_CH23_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH23_POOL: &[&str] = &[];
 
 /// **run285 whole, both directions** (item 877, `docs/GOLDEN.md` §33):
 /// every dumped record on every block of the capture, and the pool.
@@ -8883,6 +8846,7 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch24: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH24_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 8 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch24: what parts in the pool moved");
 }
 
@@ -8939,16 +8903,7 @@ const WANT_CH24: &[&str] = &[
 // is each slot's `ox`/`oy` on its first seat, ours −1 and theirs 0:
 // `push_group`'s record `o`, which this crate seats as −1 (the pool
 // record's, att-880's fence). Its reader is a layout's `o` — none here.
-const WANT_CH24_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "856 slot 0 ox",
-    "856 slot 0 oy",
-    "1060 slot 2 ox",
-    "1060 slot 2 oy",
-    "1302 slot 3 ox",
-    "1302 slot 3 oy",
-];
+const WANT_CH24_POOL: &[&str] = &[];
 
 /// **run292 whole, both directions** (item 884, `docs/GOLDEN.md` §34):
 /// every dumped record on every block of the capture, and the pool.
@@ -9008,6 +8963,7 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch25: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH25_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 8 rows → 2 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch25: what parts in the pool moved");
 }
 
@@ -9052,16 +9008,7 @@ const WANT_CH25: &[&str] = &[
 // This crate's `open_slot` has no such side effect (the pool lane's code,
 // not built here). Its reader is `UnitData::get_speed@00608720`'s group
 // cap on a moving member, and the squad does not move in run292.
-const WANT_CH25_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "965 slot 0 ox",
-    "965 slot 0 oy",
-    "982 slot 0 new_speed",
-    "982 slot 0 speed",
-    "1216 slot 2 ox",
-    "1216 slot 2 oy",
-];
+const WANT_CH25_POOL: &[&str] = &["982 slot 0 new_speed", "982 slot 0 speed"];
 
 /// **run296 whole, both directions** (item 883, `docs/GOLDEN.md` §35):
 /// every dumped record on every block of the capture, and the pool.
@@ -9121,6 +9068,7 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch26: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH26_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "872 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch26: what parts in the pool moved");
 }
 
@@ -9154,12 +9102,7 @@ const WANT_CH26: &[&str] = &[
 // stands is each first seat's `ox`/`oy`, ours −1 and theirs 0 —
 // `push_group`'s record `o` (parked 887; its reader is a layout's `o`, and
 // nothing is laid out).
-const WANT_CH26_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "872 slot 0 ox",
-    "872 slot 0 oy",
-];
+const WANT_CH26_POOL: &[&str] = &[];
 
 /// **run300 whole, both directions** (item 901, `docs/GOLDEN.md` §36):
 /// every dumped record on every block of the capture, and the pool.
@@ -9219,6 +9162,7 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch27: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH27_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 4 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch27: what parts in the pool moved");
 }
 
@@ -9249,12 +9193,7 @@ const WANT_CH27: &[&str] = &[
 // each first seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s
 // record `o` (parked 887) — the Barracks' building group on 622 and the
 // first Javelineers squad on 1111.
-const WANT_CH27_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "1111 slot 0 ox",
-    "1111 slot 0 oy",
-];
+const WANT_CH27_POOL: &[&str] = &[];
 
 /// **Chapter twenty-eight, pinned** — two buildings under one command
 /// (`docs/GOLDEN.md` §37, item 888, run304). Eleven staged lines: `!ai
@@ -9340,6 +9279,7 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch28: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH28_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 10 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch28: what parts in the pool moved");
 }
 
@@ -9379,18 +9319,7 @@ const WANT_CH28: &[&str] = &[
 // `speed` and `new_speed` agree on every block. What stands is each first
 // seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s record `o`
 // (parked 887).
-const WANT_CH28_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "1067 slot 2 ox",
-    "1067 slot 2 oy",
-    "1126 slot 3 ox",
-    "1126 slot 3 oy",
-    "1324 slot 4 ox",
-    "1324 slot 4 oy",
-];
+const WANT_CH28_POOL: &[&str] = &[];
 
 /// **Chapter twenty-nine, pinned** — the repeat launch (`docs/GOLDEN.md`
 /// §38, item 915, run308). Thirteen staged lines: chapter twenty-two's
@@ -9474,6 +9403,7 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch29: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH29_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "642 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch29: what parts in the pool moved");
 }
 
@@ -9500,18 +9430,7 @@ const WANT_CH29: &[&str] = &[
 
 // **What parts in the pool** on run308: chapter twenty-two's ten. The
 // press's building group `[2007]` is seated by both sides on 1542.
-const WANT_CH29_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH29_POOL: &[&str] = &[];
 
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
@@ -9647,22 +9566,9 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // - **`speed`/`new_speed`** on 662 and 666: `Groups::get_open_slot`
     //   re-seating a live slot's speed as it walks past (item 738's
     //   `get_num`), which this crate does not model, and no flight reads.
-    let mut want_pool: Vec<String> = [
-        "622 slot 1 ox",
-        "622 slot 1 oy",
-        "642 slot 0 ox",
-        "642 slot 0 oy",
-        "662 slot 0 new_speed",
-        "662 slot 0 speed",
-        "662 slot 2 ox",
-        "662 slot 2 oy",
-        "666 slot 2 new_speed",
-        "666 slot 2 speed",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want_pool: Vec<String> = Vec::new();
     want_pool.sort();
+    // Item 1457: 10 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
 }
 
@@ -12195,6 +12101,7 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch30: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH30_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 6 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch30: what parts in the pool moved");
 }
 
@@ -12253,14 +12160,7 @@ const WANT_CH30: &[&str] = &[
 // 856 there.~~ **The command built** (item 928): every slot's list, stamp,
 // layout and speeds agree; what stands is the first seats' `ox`/`oy`,
 // ours −1 against 0 (parked 887).
-const WANT_CH30_POOL: &[&str] = &[
-    "618 slot 1 ox",
-    "618 slot 1 oy",
-    "652 slot 0 ox",
-    "652 slot 0 oy",
-    "1060 slot 2 ox",
-    "1060 slot 2 oy",
-];
+const WANT_CH30_POOL: &[&str] = &[];
 
 /// **Chapter thirty-one, pinned** — the gather point's other arms
 /// (`docs/GOLDEN.md` §40, item 955, run338). Sixteen staged lines: chapter
@@ -12346,6 +12246,7 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch31: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH31_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["618 slot 1 ox", "618 slot 1 oy", "622 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch31: what parts in the pool moved");
 }
 
@@ -12379,12 +12280,7 @@ const WANT_CH31: &[&str] = &[
 // **What parts in the pool** on run338: the first seats' `ox`/`oy`
 // (parked 887). ~~And the two Hoplite groups laid out from their own
 // captains' points and orders~~: 13 → 4 rows with the arms built.
-const WANT_CH31_POOL: &[&str] = &[
-    "618 slot 1 ox",
-    "618 slot 1 oy",
-    "622 slot 0 ox",
-    "622 slot 0 oy",
-];
+const WANT_CH31_POOL: &[&str] = &[];
 
 /// **Chapter thirty-two, pinned** — an Airbase's gather point
 /// (`docs/GOLDEN.md` §41, item 947, run344). Sixteen staged lines:
@@ -12469,6 +12365,7 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch32: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH32_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "642 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch32: what parts in the pool moved");
 }
 
@@ -12502,18 +12399,7 @@ const WANT_CH32: &[&str] = &[
 
 // **What parts in the pool** on run344: chapter twenty-two's ten, as
 // chapter twenty-nine's.
-const WANT_CH32_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH32_POOL: &[&str] = &[];
 
 /// **Chapter thirty-three, pinned** — an Airbase's launch issuers
 /// (`docs/GOLDEN.md` §42, item 976, run358). Twenty-two staged lines:
@@ -12599,6 +12485,7 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch33: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH33_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["2314 slot 1 facing", "622 slot 1 ox", "622 sl… → ["2314 slot 1 facing"]; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch33: what parts in the pool moved");
 }
 
@@ -12635,19 +12522,7 @@ const WANT_CH33: &[&str] = &[
 
 // **What parts in the pool** on run358: chapter twenty-two's ten, and
 // slot 1's `facing` on 2314.
-const WANT_CH33_POOL: &[&str] = &[
-    "2314 slot 1 facing",
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH33_POOL: &[&str] = &["2314 slot 1 facing"];
 
 /// **Chapter thirty-four, pinned** — the launch commands' other arms
 /// (`docs/GOLDEN.md` §43, item 1009, run362). Twenty-seven staged lines:
@@ -12760,6 +12635,7 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch35: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH35_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 12 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch35: what parts in the pool moved");
 }
 
@@ -12847,6 +12723,7 @@ fn chapter_thirty_six_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch36: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH36_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 12 rows → 0 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch36: what parts in the pool moved");
 }
 
@@ -12931,6 +12808,7 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch37: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH37_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["617 slot 1 ox", "617 slot 1 oy"] → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch37: what parts in the pool moved");
 }
 
@@ -12955,7 +12833,7 @@ const WANT_CH37: &[&str] = &[
 
 /// Chapter thirty-seven's pool rows (item 1091): the research's building
 /// group on 617, `ox`/`oy` 0 against −1.
-const WANT_CH37_POOL: &[&str] = &["617 slot 1 ox", "617 slot 1 oy"];
+const WANT_CH37_POOL: &[&str] = &[];
 
 /// **Chapter thirty-eight, pinned** — the air line under fire
 /// (`docs/GOLDEN.md` §47, item 1102, run404). Eleven staged lines on the
@@ -13300,6 +13178,7 @@ fn chapter_forty_nine_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch49: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH49_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "702 slot 0 … → ["702 slot 0 new_speed", "702 slot 0 speed"]; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch49: what parts in the pool moved");
 }
 
@@ -13336,12 +13215,7 @@ const WANT_CH49: &[&str] = &[
     "943 0/7 death:extra",
 ];
 
-const WANT_CH49_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "702 slot 0 new_speed",
-    "702 slot 0 speed",
-];
+const WANT_CH49_POOL: &[&str] = &["702 slot 0 new_speed", "702 slot 0 speed"];
 
 /// **Chapter fifty** — three arms the unit tests hold and no walk
 /// (`docs/GOLDEN.md` §59, item 1404, run577): a Stockade's arrow at the
@@ -13847,7 +13721,6 @@ const WANT_CH46: &[&str] = &[
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
-    "1357 0/10 path_recursion",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -13903,6 +13776,7 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch47: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH47_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 0 ox", "622 slot 0 oy"] → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch47: what parts in the pool moved");
 }
 
@@ -13948,6 +13822,7 @@ fn chapter_forty_eight_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch48: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH48_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["642 slot 1 ox", "642 slot 1 oy", "904 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch48: what parts in the pool moved");
 }
 
@@ -14033,16 +13908,7 @@ const WANT_CH48: &[&str] = &[
 /// Chapter forty-eight's pool rows (item 1358): who=0's slots, the
 /// standing `ox`/`oy` family (`-1` against `0`) on 642, 904 and 952, and
 /// slot 0's `speed`/`new_speed` on 952.
-const WANT_CH48_POOL: &[&str] = &[
-    "642 slot 1 ox",
-    "642 slot 1 oy",
-    "904 slot 0 ox",
-    "904 slot 0 oy",
-    "952 slot 0 new_speed",
-    "952 slot 0 speed",
-    "952 slot 2 ox",
-    "952 slot 2 oy",
-];
+const WANT_CH48_POOL: &[&str] = &[];
 
 /// Chapter forty-seven's widening rows (item 1310): run514 whole, 605 to
 /// 1400 (`docs/GOLDEN.md` §56). **The chapter opens with a parting at
@@ -14128,7 +13994,7 @@ const WANT_CH47: &[&str] = &[
 /// Chapter forty-seven's pool rows (item 1310): run514 whole — slot 0,
 /// the builders' `@build` group on 622..624 (`ox`/`oy`, `facing`) and
 /// their `@move` group on 680 (`form`, the offsets).
-const WANT_CH47_POOL: &[&str] = &["622 slot 0 ox", "622 slot 0 oy"];
+const WANT_CH47_POOL: &[&str] = &[];
 
 /// **run466 whole, both directions** (items 1223, 1235, 1248,
 /// `docs/GOLDEN.md` §52): every dumped record on every block, the leaders
@@ -14218,7 +14084,6 @@ const WANT_CH43: &[&str] = &[
     "1302 0/7 order:group.id",
     "1302 0/8 order:group.id",
     "1302 0/9 order:group.id",
-    "1357 0/10 path_recursion",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -14375,6 +14240,7 @@ fn chapter_forty_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch40: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH40_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: 23 rows → 7 rows; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch40: what parts in the pool moved");
 }
 
@@ -14429,32 +14295,16 @@ const WANT_CH40: &[&str] = &[
 /// Citizen in form 9, and parting on 802, where the `@spell`'s group reads
 /// −1 in the original and 9 here.
 const WANT_CH40_POOL: &[&str] = &[
-    "608 slot 1 ox",
-    "608 slot 1 oy",
-    "614 slot 0 ox",
-    "614 slot 0 oy",
-    "614 slot 1 new_speed",
-    "614 slot 1 speed",
-    "632 slot 0 new_speed",
-    "632 slot 0 speed",
-    "632 slot 2 ox",
-    "632 slot 2 oy",
-    "642 slot 2 new_speed",
-    "642 slot 2 speed",
-    "642 slot 3 ox",
-    "642 slot 3 oy",
     "662 slot 3 new_speed",
     "662 slot 3 speed",
-    "662 slot 5 ox",
-    "662 slot 5 oy",
     // Item 1330: from 802, not 702: the Militia `0/7`'s group reads 9
     // through 801 on both sides now, and the original's `@spell` on 800
     // resets the record's `form` to −1 where ours keeps 9.
     "802 slot 4 form",
-    "702 slot 5 new_speed",
-    "702 slot 5 speed",
     "882 slot 4 new_speed",
     "882 slot 4 speed",
+    "702 slot 2 new_speed",
+    "702 slot 2 speed",
 ];
 
 /// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
@@ -14515,6 +14365,7 @@ fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch39: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH39_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["622 slot 1 ox", "622 slot 1 oy", "642 slot 0 … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch39: what parts in the pool moved");
 }
 
@@ -14531,20 +14382,7 @@ const WANT_CH39: &[&str] = &[];
 /// original makes off its cursor's frame — slot 0 (B, a Militia since
 /// 646) at 24 on 662, slot 2 (C, a Citizen since 666) at 25 on 702 —
 /// where this crate's cursor reaches them on 704 and 706.
-const WANT_CH39_POOL: &[&str] = &[
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "702 slot 2 new_speed",
-    "702 slot 2 speed",
-    "702 slot 3 ox",
-    "702 slot 3 oy",
-];
+const WANT_CH39_POOL: &[&str] = &[];
 
 /// **run422's casts, field for field, both directions** (item 1111,
 /// `docs/GOLDEN.md` §48). The fields the three untargeted crafts write that
@@ -15186,20 +15024,7 @@ const WANT_CH36: &[&str] = &[
 ];
 
 /// Chapter thirty-six's pool rows (item 1078).
-const WANT_CH36_POOL: &[&str] = &[
-    "2227 slot 3 ox",
-    "2227 slot 3 oy",
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH36_POOL: &[&str] = &[];
 
 /// **The nuke's launch and round, field for field, both directions**
 /// (item 1091, `docs/PRODUCTION.md` "The nuke (item 1091)"). On every
@@ -15808,20 +15633,7 @@ const WANT_CH35: &[&str] = &[
 // slot 3's `ox`/`oy` on 2227 — the silo's building group, seated by
 // `@queueup`, whose action writes no point: (0, 0) there, (−1, −1) here,
 // parked 760 and 792's family, as chapter thirty-four's slot 3 on 2602.
-const WANT_CH35_POOL: &[&str] = &[
-    "2227 slot 3 ox",
-    "2227 slot 3 oy",
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH35_POOL: &[&str] = &[];
 
 /// **run362 whole, both directions** (item 1009, `docs/GOLDEN.md` §43):
 /// every dumped record on every block of the capture, and the pool.
@@ -15882,6 +15694,7 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch34: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH34_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
+    // Item 1457: ["2602 slot 3 ox", "2602 slot 3 oy", "622 slot … → []; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     pin_eq!(got_pool, want_pool, "ch34: what parts in the pool moved");
 }
 
@@ -15916,20 +15729,7 @@ const WANT_CH34: &[&str] = &[
 // slot 3's `ox`/`oy` on 2602 — the building group of `0/2008` seated by
 // alt's press, whose action writes no point: (0, 0) there, (−1, −1)
 // here, parked 760 and 792's family on a third chapter.
-const WANT_CH34_POOL: &[&str] = &[
-    "2602 slot 3 ox",
-    "2602 slot 3 oy",
-    "622 slot 1 ox",
-    "622 slot 1 oy",
-    "642 slot 0 ox",
-    "642 slot 0 oy",
-    "662 slot 0 new_speed",
-    "662 slot 0 speed",
-    "662 slot 2 ox",
-    "662 slot 2 oy",
-    "666 slot 2 new_speed",
-    "666 slot 2 speed",
-];
+const WANT_CH34_POOL: &[&str] = &[];
 
 /// **A staging walk** (item 1019, `docs/GOLDEN.md` §44): a chapter's
 /// candidate script staged on a golden capture's start and ticked past

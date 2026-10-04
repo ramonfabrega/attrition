@@ -1258,6 +1258,12 @@ impl Sim {
                 }
                 cs.wonder_slots[i] = Some(b);
                 cs.wonder_mark = cs.wonder_mark.max(i as i32 + 1);
+                // `Game::wonders[t − 0x20e] |= 1`, in the same call.
+                let tree = self.buildings[b].ty.and_then(|t| self.build_types[t].tree);
+                let line = &self.tech_tree.roles.wonder_line;
+                if let Some(k) = tree.and_then(|tr| line.iter().position(|&w| w == tr)) {
+                    self.wonders_built |= 1 << k;
+                }
             }
         }
     }

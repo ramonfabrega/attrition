@@ -392,6 +392,24 @@ impl Sim {
             // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
                 self.come_out_place(f, s, Some(host_angle), true);
+                // **The member's own `come_out` runs the same tail**
+                // (`Unit::come_out@00617c10:545`, the `o_down` recursion,
+                // then `:552`..`:563`): a computer's unit that is not a
+                // plane and not a Citizen or Scholar (`0x32`..`0x35`) has
+                // its path emptied, `close_orders(0)`, `clear_partial_path`
+                // and `update_action`, so its `orders_x/y` are its new
+                // place on the block it comes out. French East Indies'
+                // Hoplite members `1/81` and `1/82` on run630's 10766 read
+                // their own points there, and the spawn point here before
+                // item 1457 (`docs/CITIES.md` §6.5.3).
+                let human = self.nation[self.units[f].owner as usize].human;
+                if !human && !self.is_plane(f) && !(0x32..=0x35).contains(&self.units[f].type_index)
+                {
+                    self.units[f].path.clear();
+                    self.close_orders(f);
+                    self.clear_partial_path(f);
+                    self.update_action(f);
+                }
             }
         }
         // **The squad's push** (`618900`..`6189aa`, `docs/GOLDEN.md` §33):

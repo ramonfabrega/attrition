@@ -1044,8 +1044,17 @@ impl Sim {
     // How many cities
     // ------------------------------------------------------------------
 
-    /// `LeaderData::get_city_limit`: the Civic level plus one, plus the Bantu
-    /// and Pyramids allowances.
+    /// `LeaderData::get_city_limit@006d6130`: the Civic level plus one, plus
+    /// the Bantu and Pyramids allowances.
+    ///
+    /// **The Pyramids' arm is `has_wonder(0x20e)`** — an activated
+    /// Pyramids of the leader's own standing in a city, which
+    /// [`Sim::wonders_held`] reads off the buildings. Until item 1454 it
+    /// read `Nation::pyramids`, which nothing in a game ever sets, so a
+    /// finished Pyramids raised no limit: French East Indies' AI finishes
+    /// its Pyramids on 9658 and founds a fifth city on 9777, where this
+    /// crate stood at four of four. `Nation::pyramids` stays as a unit
+    /// test's stand-in.
     pub fn city_limit(&self, who: Player) -> i32 {
         let n = &self.nation[who as usize];
         let mut civic = self.tech[who as usize].epoch[crate::tech::Line::Civic as usize];
@@ -1053,7 +1062,8 @@ impl Sim {
             civic += self.tuning.bantu_city_limit;
         }
         let mut limit = civic + 1;
-        if n.pyramids {
+        let held = self.wonders_held(who) & (1 << crate::tech::wonder::PYRAMIDS) != 0;
+        if held || n.pyramids {
             limit += self.tuning.pyramids_city_limit;
         }
         limit

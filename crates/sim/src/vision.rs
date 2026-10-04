@@ -539,10 +539,17 @@ impl Sim {
     ///
     /// Each unit's whole disc relights its `visible` cells first
     /// ([`Sim::update_seen`]). The original's unit arm relights only what
-    /// passes vslots `+0x8` and `+0xbc`; the buildings' arm, which also
-    /// reaches `Wall::update_local_seen` for a started building that fails
-    /// its first two tests, is carried as before (§6.1). `seen3` and the
-    /// cell twin `+0x168` are not kept.
+    /// passes vslots `+0x8` and `+0xbc`. `seen3` and the cell twin `+0x168`
+    /// are not kept.
+    ///
+    /// **The buildings' arm has two branches** (item 1446, `docs/VISION.md`
+    /// §6.4): a live, finished building lights its disc (vslot `+0x174`);
+    /// any other — `!(flags & 1) || !is_active()` — that is live, a wonder
+    /// and started relights its grown footprint through `+0x164`
+    /// ([`Sim::update_local_seen_build`], `0xff` into both planes), and the
+    /// rest light nothing. So a wonder under construction is lit for every
+    /// player after each clear, and an unfinished ordinary site — whose
+    /// `Wall::update_los` is 0 in any case — contributes no disc.
     pub(crate) fn update_all_seen(&mut self) {
         if !self.world.has_fog() {
             return;
@@ -552,7 +559,12 @@ impl Sim {
             self.update_seen(u, false);
         }
         for b in 0..self.buildings.len() {
-            self.update_seen_build(b);
+            let bd = &self.buildings[b];
+            if bd.alive && bd.active {
+                self.update_seen_build(b);
+            } else if bd.alive && bd.started && bd.ty.is_some_and(|t| self.build_types[t].wonder) {
+                self.update_local_seen_build(b);
+            }
         }
     }
 
@@ -738,13 +750,23 @@ impl Sim {
     /// The rectangle is the footprint **grown by one tile on every side**,
     /// each tile mapped to its half-cell, and the mask is
     /// `ever_seen | visible | (1 << owner)`. `docs/VISION.md` §6.1 has the
-    /// two branches; the other one — mask `0xff`, every player at once —
-    /// belongs to a started **wonder**, and is taken here on the same test
-    /// (`BuildData::is_wonder`) the original uses.
+    /// two branches.
     ///
-    /// The write is `seen2` only ([`World::set_seen2_only`]): the current
-    /// line of sight is deliberately untouched, which is what stops one
-    /// building's reveal from convincing its neighbour it has been spotted.
+    /// For an ordinary building the write is `seen2` only
+    /// ([`World::set_seen2_only`]): the current line of sight is
+    /// deliberately untouched, which is what stops one building's reveal
+    /// from convincing its neighbour it has been spotted.
+    ///
+    /// **A wonder writes both planes** (item 1446): the function's first
+    /// test is `is_wonder() && !(flags & 0x20) && !type->is_fort()`, and
+    /// on it `set_seen2`'s `param_4` is 0 — `seen` as well as `seen2` —
+    /// whether or not the wonder is started; a started one's mask is
+    /// `0xff`, every player at once. The city flag and the fort test cannot
+    /// hold for a wonder, so `BuildData::is_wonder` alone decides. Because
+    /// it reaches `seen`, a wonder lit this way is taken into its own and
+    /// its neighbours' `ever_seen` at their owner's next
+    /// [`Sim::check_ever_seen`] — which is how a wonder the enemy has never
+    /// looked at becomes first contact (`docs/VISION.md` §6.4).
     /// Returns how many half-cells changed, which nothing but the tests
     /// reads.
     pub(crate) fn update_local_seen_build(&mut self, b: usize) -> usize {
@@ -760,7 +782,8 @@ impl Sim {
         }
         // `ObjectData::visible` (`+0x40`) is the third term of the mask;
         // `Build::do_attack` writes it after a round (`docs/GOLDEN.md` §59).
-        let mask = if self.build_types[ty].wonder && self.buildings[b].started {
+        let wonder = self.build_types[ty].wonder;
+        let mask = if wonder && self.buildings[b].started {
             0xff
         } else {
             self.buildings[b].ever_seen | self.buildings[b].visible | (1u8 << who)
@@ -770,10 +793,13 @@ impl Sim {
         let mut lit = 0;
         for u in -1..=xs {
             for v in -1..=ys {
-                if self
-                    .world
-                    .set_seen2_only((corner.x + u) >> 1, (corner.y + v) >> 1, mask)
-                {
+                let (fx, fy) = ((corner.x + u) >> 1, (corner.y + v) >> 1);
+                let changed = if wonder {
+                    self.world.set_seen(fx, fy, mask)
+                } else {
+                    self.world.set_seen2_only(fx, fy, mask)
+                };
+                if changed {
                     lit += 1;
                 }
             }
@@ -932,6 +958,89 @@ mod tests {
         // game. A second check changes nothing.
         s.check_ever_seen(b, false);
         assert_eq!((s.treaties[0][1], s.treaties[1][0]), (1, 1));
+    }
+
+    /// A 4 × 4 site of player 1's, placed and not started, in a two-player
+    /// fogged world; `wonder` picks `BuildData::is_wonder`.
+    fn site(wonder: bool) -> (crate::Sim, usize) {
+        let (mut s, b) = fog_build(6, 0, 4);
+        let t = s.buildings[b].ty.unwrap();
+        s.build_types[t].wonder = wonder;
+        let bd = &mut s.buildings[b];
+        bd.owner = 1;
+        (bd.started, bd.active) = (false, false);
+        (s, b)
+    }
+
+    /// How many fog cells carry every bit in the **current** plane.
+    fn lit_for_all(s: &crate::Sim) -> usize {
+        let (fw, fh) = (s.world.fog_xs(), s.world.fog_ys());
+        (0..fh)
+            .flat_map(|y| (0..fw).map(move |x| (x, y)))
+            .filter(|&(x, y)| s.world.seen(x, y) == Some(0xff))
+            .count()
+    }
+
+    /// **§6.4: a wonder's start is first contact** (item 1446).
+    /// `Build::start@006273a0` ends with vslot `+0x164` for a wonder, whose
+    /// write is `0xff` into `seen` as well as `seen2`; `Wall::start`'s own
+    /// `check_ever_seen` has already run, so the bits are taken at the
+    /// owner's next check — and with them player 0, never having looked,
+    /// has met player 1. run613 dates it in the original: the wonder starts
+    /// on 7941 and both met bits are set on block 7946.
+    ///
+    /// Made to fail on purpose (item 1446): with the `+0x164` call removed
+    /// from `start_building`, or with the wonder's write sent to `seen2`
+    /// only, the current plane is dark over the footprint (0 of 16).
+    #[test]
+    fn a_wonder_s_start_is_first_contact() {
+        let (mut s, b) = site(true);
+        s.start_building(b);
+        // The grown rectangle, 6 × 6 tiles from an even corner, is 4 × 4
+        // half-cells: tiles c − 1 ..= c + 4 map to c/2 − 1 ..= c/2 + 2.
+        assert_eq!(lit_for_all(&s), 16, "the grown footprint, every player");
+        assert_eq!(
+            s.buildings[b].ever_seen, 0,
+            "Wall::start's own check ran before the reveal"
+        );
+        assert!(!s.has_met(0, 1));
+        s.check_ever_seen(b, false);
+        assert_eq!(s.buildings[b].ever_seen, 0xff, "every bit, as run613 reads");
+        assert!(s.has_met(0, 1) && s.has_met(1, 0), "first contact");
+
+        // An ordinary site starts dark for everyone else.
+        let (mut s, b) = site(false);
+        s.start_building(b);
+        assert_eq!(lit_for_all(&s), 0);
+        s.check_ever_seen(b, false);
+        assert!(!s.has_met(0, 1), "no contact from an ordinary start");
+    }
+
+    /// **§6.4: the resync relights a wonder under construction** and lights
+    /// no disc for an unfinished ordinary site (`GameDaemon::update_all_seen
+    /// @00732840`'s not-active arm; `Wall::update_los` is 0 for such a site
+    /// in any case). Made to fail on purpose (item 1446): the old
+    /// every-building disc fails the wonder's relight (0 of 16), and a disc
+    /// for an unfinished ordinary site fails the second half.
+    #[test]
+    fn the_resync_relights_a_started_wonder_and_no_unfinished_site() {
+        let (mut s, b) = site(true);
+        s.buildings[b].started = true;
+        s.update_all_seen();
+        assert_eq!(
+            lit_for_all(&s),
+            16,
+            "the wonder is lit again after the clear"
+        );
+
+        let (mut s, b) = site(false);
+        s.buildings[b].started = true;
+        s.update_all_seen();
+        let (fw, fh) = (s.world.fog_xs(), s.world.fog_ys());
+        let any = (0..fh)
+            .flat_map(|y| (0..fw).map(move |x| (x, y)))
+            .any(|(x, y)| s.world.seen(x, y).unwrap_or(0) != 0);
+        assert!(!any, "an unfinished ordinary site lights nothing");
     }
 
     /// §6.2's other half: `meet` fires on the **new** bit only, so a

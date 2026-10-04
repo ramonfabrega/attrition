@@ -2433,24 +2433,19 @@ mod tests {
                 .collect::<Vec<_>>()
         );
         assert_eq!(tile_bad.len(), 262, "the `0x4` residue at 17087");
-        // who=1's danger map is the original's whole; the human's parts on
-        // nine half-cells of one corner, (27..29, 9..11), by 3 to 5.
-        assert!(
-            danger_bad.iter().all(|r| r.starts_with("leader 0 ")),
-            "who=1's danger map parts: {danger_bad:?}"
+        // **Both danger maps are the original's whole** since item 1446.
+        // The human's parted on nine half-cells of one corner, (27..29,
+        // 9..11), by 3 to 5, and the fog on 44 half-cells round the
+        // Pyramids (`1/2026`, half-cell (116, 38)): every player's bit
+        // there, `0xff`, against who=1's alone here. That ring is a
+        // wonder's own reveal (`docs/VISION.md` §6.4), and with it both
+        // residues are gone.
+        assert_eq!(danger_bad, Vec::<String>::new(), "both danger maps");
+        assert_eq!(
+            fog_bad,
+            vec![],
+            "the whole fog plane, Pyramids' ring included"
         );
-        assert_eq!(danger_bad.len(), 9, "leader 0's nine half-cells");
-        // The fog parts on 44 half-cells round the Pyramids (`1/2026`,
-        // half-cell (116, 38)): every player's bit there, `0xff`, against
-        // who=1's alone here. who=1's own bit — the one `calc_cost`'s fog
-        // read asks — agrees on all 44.
-        assert!(
-            fog_bad.iter().all(|&(x, y, o, t)| (o ^ t) & 0x2 == 0
-                && (112..=118).contains(&x)
-                && (35..=42).contains(&y)),
-            "the fog parts outside the Pyramids' ring, or on who=1's bit: {fog_bad:?}"
-        );
-        assert_eq!(fog_bad.len(), 44, "the Pyramids' ring");
 
         // Tick 17087's searches, step for step, against the original's own
         // `calc_cost` calls (run240's trace proxied every one).

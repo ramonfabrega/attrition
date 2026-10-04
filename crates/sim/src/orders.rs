@@ -2455,6 +2455,33 @@ impl Sim {
         {
             self.units[u].spell_time = 0;
         }
+        // `Unit::work@0060d180`, the last block before `do_job` (`docs/
+        // COLLISION.md` §24, item 1452): a unit that takes the boat arm
+        // — sea, siege, supply or hero, [`Self::takes_boat_arm`] — and
+        // was pushed or collided within the last four frames (`frame − 4
+        // < collide_frame`) pushes back from where it stands, unless its
+        // job is a move (`MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`,
+        // `CHANGE_FORM`, `GROUP_MOVE`, `GROUP_ATTACK_TO`): its own push
+        // at its own position, with `mates` clear. run620's idle ship
+        // `1/16`, pushed by the transport `1/39` on 6140, pushes it back
+        // on 6141 (run621's probe), and the transport's next step starts
+        // from there.
+        if frame - 4 < self.units[u].collide_frame && self.takes_boat_arm(u) {
+            let job = self.order_type(u);
+            if !matches!(
+                job,
+                index::MOVE_TO
+                    | index::ATTACK_TO
+                    | index::EXPLORE_TO
+                    | index::FLEE_TO
+                    | index::CHANGE_FORM
+                    | index::GROUP_MOVE
+                    | index::GROUP_ATTACK_TO
+            ) {
+                let at = self.units[u].pos;
+                self.detect_boat_collision(u, at, false);
+            }
+        }
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
@@ -3217,6 +3244,19 @@ impl Sim {
                 // `Gaia::spawn_bird` now takes `Unit::init`'s tile snap.
                 if t == crate::anim::BIRD_TYPE {
                     let goal = self.bird_goal(u);
+                    self.do_air_physics(u, goal, frame);
+                }
+                // **The gull's flight** (item 1453): `Unit::do_strafe@
+                // 005eab00` on the gull's `StrafeOrder` takes its target,
+                // the dock that hatched it, and — the target valid — hands
+                // `do_air_physics` the dock's own position as the goal, on
+                // every frame. run622's probe shows both gulls' goals at
+                // their docks' centres and the second gull's edge coin on
+                // 9655. SEAM: the order itself is not carried; the goal
+                // is read off the dock slot that holds the gull.
+                if t == crate::anim::GULL_TYPE
+                    && let Some(goal) = self.gull_dock(u)
+                {
                     self.do_air_physics(u, goal, frame);
                 }
                 //

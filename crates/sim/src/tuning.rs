@@ -342,6 +342,14 @@ pub struct Tuning {
     pub egyptian_food_commerce: i32,
     /// The same, for the French on timber.
     pub french_timber_commerce: i32,
+    /// Percentage faster for a French leader's units trained at the Siege
+    /// Factory or Factory line (`Unit::update_speed`).
+    pub french_siege_move: i32,
+    /// Percentage off a French leader's unit trained at the Siege Factory
+    /// or Factory line (`TypeData::get_cost`'s nation tail).
+    pub french_siege_cost: i32,
+    /// Percentage faster for the same units under Versailles.
+    pub versailles_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
@@ -703,6 +711,11 @@ pub struct Tuning {
     pub bantu_city_limit: i32,
     /// Added to the city limit by the Pyramids.
     pub pyramids_city_limit: i32,
+    /// Percentage off a city's price for a Bantu leader (`get_cost`).
+    pub bantu_city_cost: i32,
+    /// Percentage off a city's price for a leader holding the Pyramids
+    /// (`get_cost`).
+    pub pyramids_city_discount: i32,
     /// Whether a Dutch fort may stand on unowned ground anywhere. Ships off.
     pub dutch_fort_placement: i32,
     /// Radius in tiles within which units and buildings are counted for a city capture.
@@ -1004,6 +1017,9 @@ impl Tuning {
         silver_age_cost: 15,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
+        french_siege_move: 20,
+        french_siege_cost: 15,
+        versailles_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
@@ -1165,6 +1181,8 @@ impl Tuning {
         egyptian_farms_per_city_base: 7,
         bantu_city_limit: 1,
         pyramids_city_limit: 1,
+        bantu_city_cost: 75,
+        pyramids_city_discount: 33,
         dutch_fort_placement: 0,
         city_capture_radius: 10,
         city_plunder_per_level: 100,
@@ -1250,7 +1268,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 345] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 350] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1414,6 +1432,12 @@ impl Tuning {
             (
                 "FRENCH_TIMBER_COMMERCE",
                 Slot::Value(T.french_timber_commerce),
+            ),
+            ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
+            ("FRENCH_SIEGE_COST", Slot::Value(T.french_siege_cost)),
+            (
+                "VERSAILLES_UNITS_MOVE",
+                Slot::Value(T.versailles_units_move),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
             (
@@ -1806,6 +1830,11 @@ impl Tuning {
             ),
             ("BANTU_CITY_LIMIT", Slot::Value(T.bantu_city_limit)),
             ("PYRAMIDS_CITY_LIMIT", Slot::Value(T.pyramids_city_limit)),
+            ("BANTU_CITY_COST", Slot::Value(T.bantu_city_cost)),
+            (
+                "PYRAMIDS_CITY_DISCOUNT",
+                Slot::Value(T.pyramids_city_discount),
+            ),
             ("DUTCH_FORT_PLACEMENT", Slot::Value(T.dutch_fort_placement)),
             ("CITY_CAPTURE_RADIUS", Slot::Value(T.city_capture_radius)),
             (

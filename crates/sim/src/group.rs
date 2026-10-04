@@ -64,11 +64,11 @@ pub enum Flight {
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
 /// | `Form::compute`'s slot table | §6.4, where in the formation each member stands | every member takes the group's own destination; the group arrives as a heap. Diffable: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles`/`form_num` per member |
-/// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | numbered since item 518 (§19) and reset by [`Sim::groups_process`]; `get_open_slot`'s fallbacks and `equals_group`'s normalize are not modelled |
+/// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | numbered since item 518 (§19) and reset by [`Sim::groups_process`]; `get_open_slot`'s fallbacks are not modelled (`equals_group`'s normalize is, §36.2) |
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard`'s building arm, human sweep and `QUEUE_FIRST` | §9's escort half, `docs/ORDERS.md` §24.7 | no building is ever guarded; the unit arm is built (item 567) |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
-/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4 | `find_nearby_spot` still does not ask the occupancy index, so no slot is ever invalid and no member is re-slotted |
+/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4's same-region arm | no slot is ever invalid in the same region, so no member is re-slotted there; the different-region arm is built (§37.1) |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
 /// | the scenario `ignore_orders` filter | §5 | never set outside a scenario |
 /// | `is_modern_infantry`, `is_packing`, the strafe | §6.6, §10 | no modern infantry, no packers in flight, no planes |
@@ -203,8 +203,14 @@ impl GroupState {
         GroupState {
             pool: Some(pool),
             stamp: frame,
-            // The stack group's own: `Group::clear(-1)` and nothing since.
-            o: GroupState::default().o,
+            // The stack group's own: `Group::Group@007140c0`'s
+            // `Group::clear(-1)@00713e80` zeroes `ox`/`oy` (`+0x18`,
+            // `+0x1c`) and `Group::add` never writes them, so the copy is
+            // (0, 0) — not the record default's (−1, −1). French East
+            // Indies' come-out push on 10765 reads 0/0 on run630's 10766,
+            // and the standing `group:73.ox/oy` on every French window
+            // from 9772 (item 1457, `docs/GROUPS.md` §36.1).
+            o: Pos::new(0, 0),
             o_dist: 0,
             o_angle: Angle(0),
             speed: 0,
@@ -517,6 +523,15 @@ impl Sim {
             return false;
         }
         let last = self.last_group[g.who as usize];
+        // `Group::equals_group@00708000` opens by normalizing each side
+        // whose `id` is not −1 — so the last pushed slot is pruned and its
+        // speed reset to its leader's (`normalize`'s tail) on every push,
+        // equal or not. French East Indies' go-to push on 10766 reads
+        // slot 71's speed 28 on run630's 10767, 0 here before item 1457
+        // (`docs/GROUPS.md` §36.2).
+        if let Some(seat) = self.pool_seat(g.who, last) {
+            self.seat_normalize(seat);
+        }
         let pool = self.pool_slot_for(g.who, &g.list);
         // `70fa3b`: `equals_group` against the player's **last pushed**
         // slot — the same owner and the same members in the same order —
@@ -2538,7 +2553,38 @@ impl Sim {
             }
             // §6.6 step 3: the member's **own** slot, clamped into the
             // world — not the group's destination.
-            let slot = self.restrict_pos(slots.to[i]);
+            let mut slot = self.restrict_pos(slots.to[i]);
+            // §6.6 step 4's **different-region** arm (`705a2a`..`705c9b`):
+            // a member past the first whose slot's `get_tregion` — the
+            // coastal-water `region2` arm, [`crate::world::World::tregion_alt`]
+            // — is not slot 0's is re-placed by `find_nearby_spot` around
+            // **slot 0's** point (`min 0, max −1`, step 0, bias
+            // `0x55555555`, `FILTER_NOT_ME`), and failing that takes slot
+            // 0's point itself. French East Indies' Hoplite `1/81` on
+            // run630's 10766: its slot's tile is coastal water (region2 0)
+            // and slot 0's is region 12, and its order aims at the group's
+            // own point there (item 1458, `docs/GROUPS.md` §37).
+            // SEAM: the `TRANSPORTBARGE` footprint (a land member whose
+            // slot 0 is invalid for it, under a leader that can transport)
+            // and a loaded boat's passenger type; and the same-region
+            // `invalid_loc` arm, which a computer's unit (`unit_masks &
+            // 0x40000`) skips.
+            if i > 0 {
+                let s0 = self.restrict_pos(slots.to[0]);
+                if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
+                    // The type's sweep with `not_o`/`not_who` −1: nothing
+                    // is exempt, the member itself included.
+                    slot = self.units[u]
+                        .ty
+                        .and_then(|t| {
+                            self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
+                        })
+                        .unwrap_or(s0);
+                    // Written back into the table (`param_9 + 0x514`,
+                    // `+0x714`), which §6.7's translation reads next.
+                    slots.to[i] = slot;
+                }
+            }
             // §6.6 step 6: the order's angle is the formation's, **plus**
             // this slot's packed byte — an addition of a signed byte
             // shifted into the top of the word (`705f42`–`705f4d`), where
@@ -4903,6 +4949,35 @@ mod tests {
         assert_eq!(one.pushed, Some(0), "and the forced push names its slot");
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         assert!(s.push_group(&mut group_of(1, &[a, b]), false));
+    }
+
+    /// **A pushed slot's own state** (item 1457, `docs/GROUPS.md` §36): a
+    /// stack group's point is `Group::clear`'s (0, 0), which `copy_group`
+    /// carries into the slot; and every push opens with `equals_group`'s
+    /// normalize of the last pushed slot, whose tail sets its speed to its
+    /// leader's. Made to fail by copying the default's (−1, −1), or by
+    /// skipping the normalize (the speed stays 0).
+    #[test]
+    fn a_pushed_slot_starts_at_the_origin_and_the_next_push_prices_it() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x4000, 0x4000));
+        let d = spawn(&mut s, 1, t, Pos::new(0x4100, 0x4000));
+        let mut first = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut first, true));
+        let slot = first.pushed.expect("seated");
+        assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
+        assert_eq!(s.pushed[slot].state.speed, 0, "a copy carries no speed");
+        let mut second = group_of(1, &[c, d]);
+        assert!(s.push_group(&mut second, true));
+        let leader = s.units[a].movement.speed;
+        assert!(leader > 0);
+        assert_eq!(
+            s.pushed[slot].state.speed, leader,
+            "the second push normalized the first slot"
+        );
     }
 
     /// **A pushed group is still a group the next frame** — the pool

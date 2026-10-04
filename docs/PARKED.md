@@ -862,6 +862,8 @@ unreached on disk. **Again** (1228): the boat's `caras` +1/−1 lags
 3 against 4 on run462's 10184, read by `create_units`' `civilians` and
 not decisive there. **Again** (1365): `peasants` on run547's
 10145.
+**Again** (1455): French East Indies' `caras` reads 3 here on every
+window from 6136 and swings 2/4 there; no decision reads it on 10131.
 
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
@@ -903,7 +905,8 @@ hits part from 784); its pivot `NODES` row, the aim 2,359,296 off from
 when 1113 was promoted on 794): 1109's disk scan saw types 83 (28 → 29),
 341 (42 → 44), 324 (56 → 60), and one with no guy type (28 → 29) change
 a speed after birth, unread. `ai_speed` reads 1 in all eleven packets
-on disk.
+on disk. The French siege move and Versailles' arms are built by item
+1455 (MOVEMENT, "The French siege move").
 
 ## Parked by item 1102, 2026-09-28 — the air line's other edges
 
@@ -1466,7 +1469,8 @@ window). No search prices them: all 28,828 priced steps agree.
 
 ## Parked by item 785, 2026-09-25 — the gap and the wonder bookkeeping
 
-(797) **`already_built`** (`Game::wonders`, `type_avail`) is dormant here.
+(797) ~~**`already_built`** (`Game::wonders`, `type_avail`) is dormant here.~~
+**Built by item 1454** (AI §116, TECH "A built wonder is built for everyone").
 
 (798) **The rest of the wonder bookkeeping**: a team's and an enemy's
 wonders and an unbuilt wonder's value in `create_buildings`' arm.
@@ -3629,6 +3633,26 @@ wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
 
+(1459) **The pushed slot's normalize prunes what the original still
+counts.** Item 1457, 2026-10-04 (`docs/GROUPS.md` §36.3). Four slot-speed
+rows arrive with `equals_group`'s normalize. Golden chapter forty's `702
+slot 2 speed`/`new_speed` read 24 here and 25 there. The second pair's
+run421 `group:65.speed` reads 0 here against 25 and 26 on 6588 and 16892.
+The normalize is the listing's; what parts is which members' `+0x80`
+still name the slot when it runs. It names a score only if a word's frame
+reaches one of these slots.
+
+(1456) **French East Indies' census reads one cell filled too many.**
+Item 1454, 2026-10-04. The capital `1/2008`'s `city:filled` reads 50
+against 49 on run623's 9772, and `1/2023`'s `land` and `filled` read 83/34
+against 82/33. The capital's offset stands on every French window from
+run620's 6136 (36/35) onward, and is absent from run602's 981. A cell the
+original's census counts as wide open (`space >= 4`, so not filled), the
+crate counts as filled. On 9781 it puts the capital's farm offer at 24000
+against 24400 (`open` 55 against 56), which moves no draw there. It names
+a score only when a word's frame reaches a make list it reorders. The
+cheapest dating is a `CITIES=5` window over 981..6136.
+
 (454) **Five residue families never compared on Great Lakes, measured by
 448's widening.** 2026-09-21, from 837 blocks and 1,975,563 record rows:
 `form` **48 rows** (ours −1, theirs 9 on every unit outside a group — the
@@ -3759,3 +3783,14 @@ steering session (one a landing, or the silence is the finding), and
 the steering session's read of each diff against the journal. Results
 to `docs/audit/<date>-sequential-arm.md`; judged at the twenty-fourth
 pass with the user. 1422 returns only if this arm lands close.
+
+## Loop, filed 2026-10-03 by item 1446 — a byte the instrument never compares
+
+(1450) **`ever_seen` and `ever_seen_completed` are pinned uncompared
+in `coverage::UNCOMPARED_BY_THE_INSTRUMENT`**, and they are what first
+contact hangs off. French East Indies parted on them for 236 blocks before
+the word did, and the met bits they drive part only through the leader
+record. Item 1446 compares them on runs 610–613 with its own helper
+(`third_pair::east_indies_ever_seen`); every other window still leaves
+them quiet. Whether the shared widening should take them (every window's
+pinned count moves at once) is the pass's to decide.

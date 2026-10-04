@@ -134,7 +134,8 @@ owner whose units go first is `frame % 10`, so at frame 0 player 0's units
 run first and at frame 1 player 1's, with gaia's animals (who 8) and birds
 (who 9) in their slots. Run12 shows it: at frame 1 the AI's woodcutter draws
 its `wait` (draw 44) *before* the human's two (45, 46). Buildings follow in a
-second, unrotated loop (`Build::process`, then walls). ~~The sim's tick keeps
+second, unrotated loop (`Build::process`, then walls) — **each building
+whole, its queue included, before the next** (§3.28). ~~The sim's tick keeps
 its buildings-first order (`lib.rs`), which is a known divergence this
 document does not close.~~ **Landed 2026-08-30, §3.16** — and the divergence
 was worth East Indies' word 219 → 274 and Great Lakes' sequence 99 → 576.
@@ -1877,6 +1878,83 @@ in `crates/sim/src/air.rs`.
 ever would roll an idle every other frame the original does not, and
 `guys_follow` still returns early for `GULLBIRD` alone. It comes off with
 `do_strafe`.
+
+## 3.28 A building's queue runs inside its own `Build::process` — French East Indies 8236 → 8385 (2026-10-03, item 1449)
+
+`Build::process@0061edf0` is, in order: `Wall::process`, then — for an
+active building — ejection, launch, the tower's `do_attack`, and then
+`Build::do_queue` (vslot `+0x1b4`, by the Build vtable), then the gather
+re-entries. `Objects::process_all` calls it building by building in object
+order. The tick ran three passes instead: every building's `Wall::process`
+part, then every queue, then every tower — "still ours", as its comment
+said. A unit that a lower-numbered building trains this frame therefore
+exists in the original when a higher-numbered building's `Wall::process`
+runs, and did not exist here.
+
+**Where it showed.** run615 (blocks 7958..7999): city `1/2008` trains
+citizen `1/51` on frame 7962, which is the wonder `1/2022`'s recruit phase,
+`(7962 + 2022) & 31 == 0` (`docs/AI.md` §69.4). In the original the
+recruiter finds it, and it is born holding `BUILD` on the wonder; on 7964
+it takes the ring's approach (34632,38328). Here the recruiter ran with
+203 units, before the birth, so `1/51` was born idle and took a gather
+order to camp `1/2019`. 180 frames later the next builder, `1/56`, took a
+different ring spot (run614: bearing −1 there, bearing 0 here), because
+`1/51` stood elsewhere and refused the original's bearing 0. That spot is
+what parted the word on 8236 (run612, `1/41`'s collision with `1/56`).
+
+**The change.** The queue now runs per building, right after that
+building's own `process_building`. The tower pass and the gather region
+pass stay where they were; that split is still ours, and no capture shows
+it.
+
+**What moved.** French East Indies **8236 → 8385**. Widened keys: run610
+156 → 127, run611 147 → 121, run612 210 → 124, run614 153 → 122, run615
+156 → 120. No key arrives on any of them, and run613 holds at 117, since
+it ends before the birth. Every other floor and pin in both suites holds
+(rondata, sim 1324). Putting the queues back into their own pass returns
+the word to 8236 and fails all five pins (measured).
+
+**Not established.** The tower's order against the queue within one
+building, and the gather re-entries per building, are read and not
+reordered. No capture separates them yet.
+
+## 3.29 The gull flies to its dock, from a snapped birth — French East Indies 9655 → 9777 (2026-10-04, item 1453)
+
+A dock's gull is born in `Dock::init` on a `StrafeOrder` whose target is
+the dock (`docs/TRANSPORT.md` §5). The crate placed it at the dock's
+position less `0xc0` on each axis and gave it no flight: it stood there
+for the rest of the game. That was a stated seam (`orders.rs`,
+`anim.rs`).
+
+**The flight.** `Unit::do_strafe@005eab00` on a gull first calls the
+animal's think (vslot `+0x180`, the gull's arm draws nothing). With the
+target valid, it then hands `do_air_physics` the target dock's own
+position as the goal, every frame. run622's proxied calls show both gulls'
+goals at their docks' centres, (44160,41856) and (41472,44736). The crate
+now flies the gull with §3.9's physics toward `Sim::gull_dock`, the live
+dock whose slot holds it. The order itself is not carried.
+
+**The birth.** The physics alone left gull 1 about 1000 units off by
+run620's 6137. `Unit::init@00612100`'s tile snap,
+`div_3_table[p >> 4] · 0x30 + 0x18`, applies to the gull as it does to a
+wild bird (§3.9, `crate::gaia::init_snap`). The crate had put the gull at
+(43968,41664) on its dock's tile edge, where the snap gives (43992,41688).
+With the snap, both gulls match the original **exactly** on every proxied
+frame on disk:
+
+- run620's 6136..6151, about 3,900 frames after gull 1's birth;
+- run622's 9648..9663, including the second gull's edge coin on 9655,
+  which is what parted the word.
+
+**What moved.** French East Indies **9655 → 9777**. No floor moves.
+run622 loses six figure-animation keys past the old word, and the
+unit test `a_dock_with_a_gull_type_draws_twice` now pins the snapped
+birth.
+
+**Not established.** The gull's figure is still skipped in
+`guys_follow`. Lifting the skip moved no draw and no word, and nothing
+dumps owner 9. The other arms of `do_strafe` for a gull (invalid
+target, the dock closed) are read, not exercised.
 
 ## 4. Run12 attributed
 

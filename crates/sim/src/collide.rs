@@ -4052,6 +4052,34 @@ mod tests {
         assert_eq!(sim.units[y].pos, b);
     }
 
+    /// **A ship pushed within four frames pushes back from where it
+    /// stands** (`Unit::work@0060d180`, `docs/COLLISION.md` §24, item
+    /// 1452): run621's idle ship `1/16`, pushed by the transport `1/39` on
+    /// 6140, calls `detect_boat_collision` at its own position with
+    /// `mates` clear on 6141 and moves the transport. Here: `x` pushes
+    /// the idle `y` on frame 7; on frame 8, `y`'s own `work` pushes `x`.
+    /// Four frames on (`frame − 4 < collide_frame` false) it does not.
+    /// The move-job exemption is read and not tested here: a moving ship's
+    /// own step pushes through the same function. Made to fail on purpose
+    /// by removing the block from `work`.
+    #[test]
+    fn a_pushed_ship_pushes_back_from_where_it_stands() {
+        let a = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let b = Pos::new(a.x + 150, a.y);
+        let push = |frame_back: i64| {
+            let (mut sim, x, y) = fleet(a, b);
+            sim.frame = 7;
+            assert!(sim.detect_boat_collision(x, a, true));
+            assert_eq!(sim.units[y].collide_frame, 7);
+            sim.frame = 7 + frame_back;
+            sim.work(y, 7 + frame_back);
+            sim.units[x].pos
+        };
+        assert_ne!(push(1), a, "pushed back on the next frame");
+        assert_ne!(push(3), a, "and within four");
+        assert_eq!(push(4), a, "not on the fourth frame after");
+    }
+
     /// A land convoy: a supply wagon of player 0 (`uflags2::SUPPLY_OR_HERO`,
     /// two push circles of 144) at `a`, and a one-circle land unit of the
     /// same player at `b`, standing; `other_flags` is its `unit_flags`.

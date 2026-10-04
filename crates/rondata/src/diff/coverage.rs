@@ -203,9 +203,11 @@ const UNREAD: &[(&str, &str)] = &[
     // added `Edinburgh`**: run571's window, past 11177, holds a city no
     // earlier window did.
     // Items 1442/1443: Paris, Brest and Nantes are bare display-name lines, not sim fields.
+    // Item 1452: Lyons, the French city founded before run622's window, likewise.
+    // Item 1455: Rheims, the fifth, founded on 9777 and named in run629.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Brest Edinburgh London Nantes Napata Newcastle Norwich Paris York flags increment length size",
+        "Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Paris Rheims York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -691,6 +693,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r583 = crate::testenv::dump("gamelog-run583-islands-toughest-16754.txt");
     let r594 = crate::testenv::dump("gamelog-run594-islands-toughest-18060.txt");
     let r610 = crate::testenv::dump("gamelog-run610-islands-french-toughest-8182.txt");
+    let r612 = crate::testenv::dump("gamelog-run612-islands-french-8236.txt");
+    let r616 = crate::testenv::dump("gamelog-run616-islands-french-8385.txt");
+    let r617 = crate::testenv::dump("gamelog-run617-islands-french-8840.txt");
+    let r622 = crate::testenv::dump("gamelog-run622-islands-french-9655.txt");
+    let r623 = crate::testenv::dump("gamelog-run623-islands-french-9777.txt");
+    let r624 = crate::testenv::dump("gamelog-run624-islands-french-10131.txt");
+    let r629 = crate::testenv::dump("gamelog-run629-islands-french-10802.txt");
+    let r631 = crate::testenv::dump("gamelog-run631-islands-french-11582.txt");
+    let r634 = crate::testenv::dump("gamelog-run634-islands-french-12794.txt");
     let r603 = crate::testenv::dump("gamelog-run603-islands-french-toughest-7356.txt");
     let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
     let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
@@ -2342,7 +2353,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     for (path, word) in [
         (&r602, 986),
         (&r603, 7356),
-        (&r610, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        (&r610, 8182),
+        (&r612, 8236),
+        (&r616, 8385),
+        (&r617, 8840),
+        (&r622, 9655),
+        (&r623, 9777),
+        (&r624, 10131),
+        (&r629, 10802),
+        (&r631, 11582),
+        (&r634, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2703,9 +2723,56 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1445: retain run603's cast orders after moving the open window.
     // Their comparisons still run; a quiet successor must not erase coverage.
     let french_scholars = super::third_pair::french_east_indies_scholar_window();
+    // Item 1446: and run610's, where the word stood before this one.
+    let french_8182 = super::third_pair::french_east_indies_8182_window();
+    // Item 1449: and run612's, where it stood before run616.
+    let french_8236 = super::third_pair::french_east_indies_8236_window();
+    // Item 1451: and run616's, where it stood before run617.
+    let french_8385 = super::third_pair::french_east_indies_8385_window();
+    // Item 1452: and run617's, where it stood before run622.
+    let french_8840 = super::third_pair::french_east_indies_8840_window();
+    // Item 1453: and run622's, where it stood before run623.
+    let french_9655 = super::third_pair::french_east_indies_9655_window();
+    // Item 1454: and run623's, where it stood before run624.
+    let french_9777 = super::third_pair::french_east_indies_9777_window();
+    // Item 1455: and run624's, where it stood before run629.
+    let french_10131 = super::third_pair::french_east_indies_10131_window();
+    // Item 1458: and run629's, where it stood before run631.
+    let french_10802 = super::third_pair::french_east_indies_10802_window();
+    // Item 1460: and run631's, where it stood before run634.
+    let french_11582 = super::third_pair::french_east_indies_11582_window();
     let seen = compared::stop();
-    let (Some(w), Some(_), Some(_), Some(_), Some(_)) =
-        (walked, toughest, french_east, french_lakes, french_scholars)
+    let (
+        Some(w),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+    ) = (
+        walked,
+        toughest,
+        french_east,
+        french_lakes,
+        french_scholars,
+        french_8182,
+        french_8236,
+        french_8385,
+        french_8840,
+        french_9655,
+        french_9777,
+        french_10131,
+        french_10802,
+        french_11582,
+    )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;

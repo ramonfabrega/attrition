@@ -270,6 +270,13 @@ pub struct Modifiers {
     /// `cltd; sub; sar`), so it truncates where a count of half cannot
     /// (`docs/COSTS.md`, "A wonder is ramped by every wonder").
     pub wonder: bool,
+    /// `get_cost`'s **city tail** (`00665c46`..`00665c9b`): on a type whose
+    /// `is_city` holds, `BANTU_CITY_COST` for a Bantu leader and then
+    /// `PYRAMIDS_CITY_DISCOUNT` for one holding the Pyramids, each its own
+    /// `(100 − x) × cost / 100` right after the building ramp
+    /// (`docs/COSTS.md`, "The Pyramids take a third off a city"). Zero is
+    /// the identity.
+    pub city: [i32; 2],
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -445,6 +452,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         }
     }
 
+    for pct in m.city {
+        cost = (100 - pct) * cost / 100;
+    }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
     }
@@ -1013,6 +1023,29 @@ mod tests {
             22,
             "what this crate priced it at before item 81"
         );
+    }
+
+    /// **The Pyramids take a third off a city**, after the ramp
+    /// (`get_cost`'s city tail, `00665c46`..`00665c9b`). French East Indies'
+    /// AI holds the Pyramids and four cities on frame 9777 and pays 140 food
+    /// and 140 timber for the fifth (run623's buckets, 501 → 361 and
+    /// 158 → 18), where the bare ramp asks 210. Bantu's term comes first and
+    /// truncates on its own.
+    #[test]
+    fn the_pyramids_take_a_third_off_a_city() {
+        let city = small_city();
+        let with = |city_pct: [i32; 2]| Modifiers {
+            city: city_pct,
+            ..Modifiers::default()
+        };
+        let cost = |m: &Modifiers, r| cost_of(&T, &city, r, owned(4), m);
+        assert_eq!(cost(&with([0, 0]), Resource::Food), 210);
+        let pyramids = with([0, T.pyramids_city_discount]);
+        assert_eq!(cost(&pyramids, Resource::Food), 140);
+        assert_eq!(cost(&pyramids, Resource::Timber), 140);
+        // Bantu (75 off) then the Pyramids: 210 → 52 → 34, each truncated.
+        let both = with([T.bantu_city_cost, T.pyramids_city_discount]);
+        assert_eq!(cost(&both, Resource::Food), 34);
     }
 
     /// **`get_cost`'s wonder arm, from the listing** (`00665848`..`0066594c`

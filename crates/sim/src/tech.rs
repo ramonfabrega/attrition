@@ -482,6 +482,7 @@ pub mod wonder {
     /// The one wonder `has_wonder` holds without a city (`param_1 ==
     /// 0x216`).
     pub const RED_FORT: usize = 0x216 - BASE;
+    pub const VERSAILLES: usize = 0x218 - BASE;
     pub const ANGKOR_WAT: usize = 0x217 - BASE;
     pub const KREMLIN: usize = 0x21a - BASE;
     pub const TAJ_MAHAL: usize = 0x21b - BASE;
@@ -1432,6 +1433,21 @@ impl TechTree {
     /// `LeaderData::type_avail(t, strict)`: [`NOT_AVAILABLE`],
     /// [`RESEARCHABLE`] or [`AVAILABLE`].
     pub fn type_avail(&self, setup: &Setup, p: &PlayerTech, t: TypeId, strict: bool) -> i32 {
+        self.type_avail_built(setup, p, t, strict, false)
+    }
+
+    /// [`TechTree::type_avail`] with `already_built`'s answer for `t`: a
+    /// wonder type some player has built is 0 once its prerequisites and
+    /// eligibility have passed, before the building arm's own tests
+    /// (`LeaderData::type_avail@006e33a0`, `BuildTypeData::already_built`).
+    pub fn type_avail_built(
+        &self,
+        setup: &Setup,
+        p: &PlayerTech,
+        t: TypeId,
+        strict: bool,
+        already_built: bool,
+    ) -> i32 {
         if !self.has_preq(setup, p, t) {
             return NOT_AVAILABLE;
         }
@@ -1463,6 +1479,9 @@ impl TechTree {
                 AVAILABLE
             }
             Kind::Building { auto, .. } => {
+                if already_built {
+                    return NOT_AVAILABLE;
+                }
                 let def = &self.types[t];
                 if def.from.is_some() && auto && !p.tech[t] {
                     return RESEARCHABLE;
@@ -2414,6 +2433,30 @@ mod tests {
     /// laid the position down before it had read the dump's `tribe` until
     /// 2026-09-04 (`docs/TECH.md`, "The starting position is a function of
     /// the nation"), which is what this pins.
+    /// **A built wonder is built for everyone**: `LeaderData::type_avail`
+    /// answers 0 for a type `BuildTypeData::already_built` reports, after
+    /// the prerequisites and eligibility and before the building arm's own
+    /// tests. French East Indies' AI kept the Pyramids on its make list
+    /// after finishing them, and its wonder arm drew three pairs too many on
+    /// 9781 (`docs/TECH.md`, "A built wonder is built for everyone").
+    #[test]
+    fn a_built_wonder_is_not_available() {
+        let f = fixture();
+        let s = Setup::STANDARD;
+        let mut p = PlayerTech::new(&f.tree);
+        f.tree.start(&s, &Tuning::RON, &mut p);
+        let open = f.tree.type_avail(&s, &p, f.barracks, true);
+        assert_ne!(open, NOT_AVAILABLE);
+        assert_eq!(
+            f.tree.type_avail_built(&s, &p, f.barracks, true, false),
+            open
+        );
+        assert_eq!(
+            f.tree.type_avail_built(&s, &p, f.barracks, true, true),
+            NOT_AVAILABLE
+        );
+    }
+
     #[test]
     fn the_starting_units_follow_the_leader_s_nation() {
         let f = fixture();

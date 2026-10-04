@@ -1864,7 +1864,39 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// 7356, 4 vs 2 draws, init_real versus inc_time. run603 block7357 widens it.
 /// Item 1445: university admission refuses an eighth scholar; 8182 has
 /// 15 vs 47 draws, index 2 produce_building+1805 versus +c99. run610 block8183.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 8182;
+/// Item 1446: a wonder's start lights it for every player, which is first
+/// contact (VISION §6.4): 8182 → 8236, 4 vs 5 draws, index 1 Guy::set_anim
+/// under Guy::inc_time versus under Unit::move_step. run612 block 8237.
+/// Item 1449: each building's queue runs inside its own Build::process, so
+/// a citizen trained this frame is there for a wonder's recruiter: 8236 →
+/// 8385, 8 vs 4 draws, index 0 Leader::make_stuff+0x221 versus
+/// Guy::set_anim under Guy::inc_time. run616 block 8386.
+/// Item 1451: `largest_gather` is 1, not 0, in every gather building's
+/// value (AI §115): 8385 → 8840, 100 vs 98 draws, index 96 Guy::set_anim
+/// under Guy::inc_time versus Guy::set_anim+0x104b. run617 block 8841.
+/// Item 1452: a ship pushed within four frames pushes back from where it
+/// stands (COLLISION §24): 8840 → 9655, 8 vs 9 draws, index 0 Guy::set_anim
+/// under Guy::inc_time versus Unit::do_air_physics+0x639. run622 block 9656.
+/// Item 1453: the gull flies toward its dock from a snapped birth
+/// (SYNC §3.29): 9655 → 9777, 7 vs 9 draws, index 0 Guy::set_anim under
+/// do_trade versus Leader::make_stuff+0x221. run623 block 9778.
+/// Item 1454: the Pyramids' city limit and discount, and `already_built`
+/// (AI §116, TECH): 9777 → 10131, 4 vs 6 draws, index 0 Guy::set_anim
+/// under Guy::inc_time versus under Unit::do_non_flat_gather. run624 block
+/// 10132.
+/// Item 1455: a Citizen is ramped by the Militia line too (COSTS), and a
+/// French unit of the Siege Factory line moves 20% faster (MOVEMENT):
+/// 10131 → 10802, 6 vs 5 draws, index 0 Guy::set_anim under
+/// Unit::move_step versus under Guy::inc_time. run629 block 10803.
+/// Item 1458: a member's slot across a coast is re-placed on slot 0's, and
+/// a recycled slot keeps its `path_recursion` (GROUPS §37): 10802 → 11582,
+/// 188 vs 189 draws, index 0 Leader::make_stuff+0x221 versus
+/// Leader::use_market+0x1ed. run631 block 11583.
+/// Item 1460: a French unit of the Siege Factory line costs
+/// `FRENCH_SIEGE_COST` less (COSTS): 11582 → 12794, 17 vs 18 draws,
+/// index 8 Guy::set_anim under Guy::inc_time versus under Unit::do_guard.
+/// run634 block 12795.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 12_794;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1872,7 +1904,25 @@ pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 8182;
 pub(crate) const THIRD_PAIR_WORD_GREAT_LAKES: i64 = 5638;
 pub(crate) const WIDENING_FRENCH_CAPACITY: (i64, i64) = (981, 993);
 pub(crate) const WIDENING_FRENCH_SCHOLAR: (i64, i64) = (7351, 7363);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (8177, 8189);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8182: (i64, i64) = (8177, 8189);
+pub(crate) const WIDENING_FRENCH_CONTACT: (i64, i64) = (8030, 8043);
+pub(crate) const WIDENING_FRENCH_CONTACT_7946: (i64, i64) = (7940, 7952);
+pub(crate) const WIDENING_FRENCH_BUILDER_8156: (i64, i64) = (8140, 8159);
+pub(crate) const WIDENING_FRENCH_BUILDER_7963: (i64, i64) = (7958, 7999);
+pub(crate) const WIDENING_FRENCH_TRANSPORT_8430: (i64, i64) = (8420, 8439);
+pub(crate) const WIDENING_FRENCH_SHIP_6141: (i64, i64) = (6136, 6157);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8236: (i64, i64) = (8231, 8243);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8385: (i64, i64) = (8380, 8392);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_8840: (i64, i64) = (8835, 8847);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_9655: (i64, i64) = (9650, 9662);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_9777: (i64, i64) = (9772, 9784);
+pub(crate) const WIDENING_FRENCH_FOOD_7782: (i64, i64) = (7776, 7788);
+pub(crate) const WIDENING_FRENCH_HOPLITE_9985: (i64, i64) = (9980, 9992);
+pub(crate) const WIDENING_FRENCH_MUSTER_10765: (i64, i64) = (10760, 10796);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_10131: (i64, i64) = (10126, 10138);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_10802: (i64, i64) = (10797, 10809);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_11582: (i64, i64) = (11577, 11589);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (12789, 12801);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8277,8 +8327,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run610_s_word_frame_is_widened_whole"),
-        1445,
+        Some("run634_s_word_frame_is_widened_whole"),
+        1460,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

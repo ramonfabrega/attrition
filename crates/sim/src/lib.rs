@@ -1195,6 +1195,13 @@ pub struct Sim {
     /// building's clock re-baked and every building's hit points refreshed —
     /// before any object is processed. `docs/CITIES.md` §3.2.
     pub wall_stats_dirty: Vec<bool>,
+    /// `Game::wonders` (`Game +0x618`, `int[17]`), a bit per
+    /// [`tech::wonder`] offset: a wonder type some player has activated.
+    /// `Wonders::init_wonder@0073c860` and `Wonder::init@0073c5e0` set it,
+    /// nothing clears it, and `BuildTypeData::already_built@0063ce10` reads
+    /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
+    /// built for everyone").
+    pub wonders_built: u32,
     /// Every region's `Region::borders` resume index reset since the last
     /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
     /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
@@ -1628,6 +1635,7 @@ impl Sim {
             building_high: vec![Vec::new(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
+            wonders_built: 0,
             borders_fixed: false,
             border_pass: None,
             in_play: false,
@@ -1831,6 +1839,21 @@ impl Sim {
             .find(|old| old.owner == unit.owner && old.index == unit.index)
             .filter(|old| !old.alive() && !old.guys.is_empty())
             .map(|old| old.movement.body.pos);
+        // **`path_recursion` (`UnitData +0xaf`) survives the slot**: only
+        // `UnitData::UnitData@00606670` zeroes it, and `Unit::init@00612100`
+        // never writes it, so a recycled object number keeps its last
+        // occupant's count until the next `find_path`. French East Indies'
+        // Hoplite captain `1/77`, born on 10765 into the slot a dead `1/77`
+        // left, reads 1 on run630's 10766 (item 1458, `docs/GROUPS.md` §37.2).
+        let mut unit = unit;
+        if let Some(old) = self
+            .units
+            .iter()
+            .rev()
+            .find(|old| old.owner == unit.owner && old.index == unit.index && !old.alive())
+        {
+            unit.path_recursion = old.path_recursion;
+        }
         let i = self.units.len();
         let owner = unit.owner as usize;
         let source = unit.kind.supply_unit;
@@ -2030,14 +2053,17 @@ impl Sim {
     /// exactly what a stock game with no bonuses charges.
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let stable_rares = self.stable_rare_discounts(who, ty);
+        let discount = self.nation_unit_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                discount,
                 stable_rares,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                discount,
                 stable_rares,
                 ..cost::Modifiers::default()
             },
@@ -2086,6 +2112,35 @@ impl Sim {
                 0
             },
         ]
+    }
+
+    /// `TypeData::get_cost@00664090`'s **French arm** of the pre-ramp
+    /// nation tail (`get_cost:224`–`235`), right after `UNIT_COST_FACTOR`
+    /// and before the stable rares: a French leader's unit whose trainer
+    /// (`UnitTypeData +0x40`) is `0x1ae` or `0x1af`, the Siege Factory
+    /// line, takes `FRENCH_SIEGE_COST` off, on the train arm and the
+    /// research arm alike (`docs/COSTS.md`, "A French siege unit costs
+    /// less"). French East Indies' Trebuchet research at `1/2034` is 79/79
+    /// there, 94/94 here before item 1460.
+    ///
+    /// The arm's other branch, `FRENCH_SPECIAL_COST` on a type of class
+    /// `0x36`, ships as 0 and is not modelled; nor are the other nations'
+    /// arms of the same tail.
+    pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
+        let french = self.nation[who as usize].french;
+        if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
+            self.tuning.french_siege_cost
+        } else {
+            0
+        }
+    }
+
+    /// A unit type's trainer as the raw `UnitTypeData +0x40`.
+    fn trainer_where(&self, ty: usize) -> Option<tech::TypeId> {
+        self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_)
     }
 
     /// `TypeData::get_cost@00664090`'s fork on the `leader + 0x6c18` bit —
@@ -2287,7 +2342,7 @@ impl Sim {
         // ramp reads only the first of the two arrays; see
         // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
-            of_type: muster.by_type[ty] + muster.queued_by_type[ty],
+            of_type: muster.by_type[ty] + muster.queued_by_type[ty] + self.worker_support(who, ty),
             of_group: unit
                 .group
                 .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
@@ -2313,6 +2368,48 @@ impl Sim {
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// The worker lines' extra term in `LeaderData::get_support_count`'s
+    /// caller, `TypeData::get_cost@00664090`'s unit ramp: a **Citizen**
+    /// (`0x32`, or the Korean `0x33`) is ramped by the Militia line too,
+    /// `support(0x42) + support(0x43) − scholar_militia + support(0x44)`,
+    /// and a **Scholar** (`0x34`, `0x35`) by `scholar_militia`
+    /// (`docs/COSTS.md`, "A Citizen is ramped by the Militia too").
+    /// `support(t)` is `num_units[t] + num_queued[t]`.
+    ///
+    /// `scholar_militia` (`LeaderData +0x9f0`) is
+    /// `Leader::track_unit_type@006e0dd0`'s count of militia whose former
+    /// type (`UnitData +0x54`, [`Unit::rare`]) is a scholar; it is derived
+    /// here from the live militia rather than kept.
+    pub fn worker_support(&self, who: Player, ty: usize) -> i32 {
+        let ti = self.unit_types[ty].type_index;
+        if !(0x32..=0x35).contains(&ti) {
+            return 0;
+        }
+        let scholar_militia = self
+            .units
+            .iter()
+            .filter(|u| {
+                u.alive()
+                    && u.owner == who
+                    && u.captain
+                    && !u.decoy
+                    && (0x42..=0x44).contains(&u.type_index)
+                    && matches!(u.rare, 0x34 | 0x35)
+            })
+            .count() as i32;
+        if ti >= 0x34 {
+            return scholar_militia;
+        }
+        let m = &self.muster[who as usize];
+        let support = |t: usize| {
+            self.unit_types
+                .iter()
+                .position(|u| u.type_index == t as i32)
+                .map_or(0, |r| m.by_type[r] + m.queued_by_type[r])
+        };
+        support(0x42) + support(0x43) - scholar_militia + support(0x44)
     }
 
     /// Adds a production building and returns its index.
@@ -2905,18 +3002,29 @@ impl Sim {
     /// applied the fan-out to every building.) And **a stuck head is not a
     /// stuck queue**: when slot 0 is done and refused, the first research
     /// entry behind it advances in its place — see [`Sim::advance_slot`].
+    #[cfg(test)]
     fn process_queues(&mut self) -> Vec<Produced> {
         let mut out = Vec::new();
         for at in 0..self.buildings.len() {
+            self.process_queue(at, &mut out);
+        }
+        out
+    }
+
+    /// One building's `Build::do_queue` (vslot `+0x1b4`), which
+    /// `Build::process` calls for that building after its own
+    /// `Wall::process` and before the next building's — see the tick.
+    fn process_queue(&mut self, at: usize, out: &mut Vec<Produced>) {
+        {
             let who = self.buildings[at].owner;
             let queued = self.buildings[at].queue.items.len();
             if queued == 0 {
-                continue;
+                return;
             }
             if self.buildings[at].is_library {
                 if self.first_library(who) != Some(at) {
                     // `do_queue`'s first gate: a non-first library returns.
-                    continue;
+                    return;
                 }
                 // The library branch recurses into `i + 1` before handling
                 // its own slot, so deeper slots complete first. Walking the
@@ -2942,7 +3050,7 @@ impl Sim {
                         out.push(p);
                     }
                 }
-                continue;
+                return;
             }
             match self.advance_slot(at, 0) {
                 Advanced::Trained(p) => out.push(p),
@@ -2968,7 +3076,6 @@ impl Sim {
                 Advanced::Pending | Advanced::Researched => {}
             }
         }
-        out
     }
 
     /// One queue slot, for one frame.
@@ -4049,10 +4156,16 @@ impl Sim {
         }
     }
 
-    /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4.
+    /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4. A
+    /// wonder type any player has built answers 0 ([`Sim::wonders_built`]).
     pub fn type_avail(&self, who: Player, t: tech::TypeId) -> i32 {
+        let line = &self.tech_tree.roles.wonder_line;
+        let built = line
+            .iter()
+            .position(|&w| w == t)
+            .is_some_and(|k| self.wonders_built & (1 << k) != 0);
         self.tech_tree
-            .type_avail(&self.setup, &self.tech[who as usize], t, true)
+            .type_avail_built(&self.setup, &self.tech[who as usize], t, true, built)
     }
 
     /// After the tree changed: the researched bits follow it, and so does the
@@ -4947,11 +5060,21 @@ impl Sim {
         // queue, then the tower. Splitting the three into three passes over
         // the list is still ours; the original does all three inside one
         // `Build::process`, per building.
+        //
+        // **The queue is per building now** (item 1449): `Build::do_queue`
+        // runs inside the same building's `Build::process`, so a unit a
+        // lower-numbered building trains this frame is on the map when a
+        // higher-numbered one's `Wall::process` looks. run615 is the
+        // capture: city `1/2008` trains citizen `1/51` on frame 7962, the
+        // wonder `1/2022`'s site recruiter runs on its phase the same frame
+        // and sends it straight to the site — and here, with the queues
+        // in a pass of their own, the recruiter ran before it was born.
+        let mut trained = Vec::new();
         for b in 0..self.buildings.len() {
             self.buildings[b].gather_bumped = false;
             self.process_building(b, frame);
+            self.process_queue(b, &mut trained);
         }
-        self.process_queues();
         // `Build::process`'s gather re-entries, after its `do_queue`
         // (`docs/ECONOMY.md` §17.2): a re-walk that finds freed ground
         // shuffles it off the stream.

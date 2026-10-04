@@ -1031,9 +1031,10 @@ impl Sim {
     /// first Small one.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
         let wonder = self.build_types[ty].wonder;
+        let is_city = !wonder && build::is_city(&self.build_types, ty);
         let of_type = if wonder {
             self.wonder_ramp_count(who, ty)
-        } else if build::is_city(&self.build_types, ty) {
+        } else if is_city {
             let line = |k: usize| {
                 matches!(
                     self.build_types[k].ident,
@@ -1060,12 +1061,36 @@ impl Sim {
             },
             &cost::Modifiers {
                 wonder,
+                city: if is_city {
+                    self.city_discounts(who)
+                } else {
+                    [0; 2]
+                },
                 ..cost::Modifiers::default()
             },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `get_cost`'s city tail (`00665c46`..`00665c9b`): `BANTU_CITY_COST`
+    /// when the leader has the Bantu bonus (`has_tribe_bonus(3)`), then
+    /// `PYRAMIDS_CITY_DISCOUNT` when it holds the Pyramids
+    /// (`has_wonder(0x20e)`, [`Sim::wonders_held`]). `docs/COSTS.md`,
+    /// "The Pyramids take a third off a city".
+    fn city_discounts(&self, who: Player) -> [i32; 2] {
+        let bantu = if self.nation[who as usize].bantu {
+            self.tuning.bantu_city_cost
+        } else {
+            0
+        };
+        let pyramids = if self.wonders_held(who) & (1 << crate::tech::wonder::PYRAMIDS) != 0 {
+            self.tuning.pyramids_city_discount
+        } else {
+            0
+        };
+        [bantu, pyramids]
     }
 
     /// `get_cost`'s wonder count for pricing wonder `ty` ([`cost::wonder_count`]):
@@ -1236,6 +1261,12 @@ impl Sim {
         self.buildings[b].constr_time =
             build::construct_base(&self.tuning, &self.build_types, ty, &mods);
         self.update_hits(b);
+        // `Wall::init@0063e9b0`'s `check_ever_seen(0)`, after `update_los`:
+        // an unstarted site takes the owner's (and allies') bits of the
+        // current plane over its footprint at once, rather than at the
+        // owner's next eighth frame. run610's site `1/2024` read 2 on its
+        // first three blocks in the original and 0 here (item 1446).
+        self.check_ever_seen(b, false);
         // **The flattening, at placement** — `Wall::init@0063e9b0:70`,
         // after `check_ever_seen` and under `param_6 == 0`, which is
         // `restore`. It moved here from `Wall::start` on run72
@@ -1506,6 +1537,16 @@ impl Sim {
         }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
+        // **`Build::start@006273a0`'s tail**, after `Wall::start` returns:
+        // a wonder lights its grown footprint at once (vslot `+0x164`),
+        // `0xff` into `seen` and `seen2`, so every player has it in sight
+        // until the next clear — and the owner's next `check_ever_seen`
+        // takes those bits, which is first contact for a player who never
+        // looked (`docs/VISION.md` §6.4, item 1446). What follows in the
+        // original is the begun-a-wonder notice, interface only.
+        if self.build_types[ty].wonder {
+            self.update_local_seen_build(b);
+        }
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
@@ -1776,10 +1817,18 @@ impl Sim {
     }
 
     pub fn activate(&mut self, b: usize, captured: bool, counted: bool) {
+        let who = self.buildings[b].owner;
+        // `Wall::activate@0063e4b0`, ahead of its start test:
+        // `ever_seen_completed |= LeaderData +0x6929`, the owner's own ally
+        // mask — the finished building has been seen finished by its own
+        // side at once, not at the owner's next eighth-frame scan. run622's
+        // wonder `1/2022` reads 2 on the block it finishes (item 1452).
+        if who < 8 {
+            self.buildings[b].ever_seen_completed |= self.seen_ally_mask(who);
+        }
         if !self.buildings[b].started {
             self.start_building(b);
         }
-        let who = self.buildings[b].owner;
         // `Build::activate@00623e20` lines 398/402/443: the economy's dirty
         // flag, so a finished farm pays within eight frames, not 512.
         self.economy_changed(who);

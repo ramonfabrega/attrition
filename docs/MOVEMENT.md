@@ -1067,6 +1067,26 @@ advances, which reads like the stored `MOVES` values for these four were chosen
 for something other than speed — animation cadence is the obvious candidate —
 and then corrected back here.
 
+### The French siege move (2026-10-04, item 1455)
+
+Of the arms after the foot-line correction, `Sim::type_speed` carried only
+the supply upgrade until item 1455. Now it also carries the trainer arm.
+A type whose `WHERE` (`UnitTypeData +0x40`) is `0x1ae` or `0x1af`, the
+Siege Factory line, takes `FRENCH_SIEGE_MOVE` (`20% faster`) for a French
+leader (`has_tribe_bonus(10)`). It then takes `VERSAILLES_UNITS_MOVE`
+(`25% faster`) under Versailles (`has_wonder(0x218)`). Each is its own
+`(x + 100) × speed / 100`, in that order and before the supply term.
+
+French East Indies' Supply Wagon `1/72` (`0x3f`, trained at the Siege
+Factory) is born on block 10078 at `myspeed` **30** in the original
+(25 × 120 / 100), and was 25 here (run628). It collides with the Citizen
+`1/58`, and the step after the collision parted on 10081.
+
+**How confident**: the French term is diff-backed by run628 and the word,
+10131 → 10802. Versailles' term is a reading, since no capture holds it.
+Bantu's, aluminium's, the spy's and the general's arms and the Aztec arm
+remain unread here (parked 1124).
+
 ### 2. `UnitData::speed` — auras and nation bonuses
 
 On top of the cached value: the Iroquois spear bonus in allied territory, then

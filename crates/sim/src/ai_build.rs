@@ -34,7 +34,8 @@
 //!   the leader's live city count, and 0.
 //! - `world+0x34`, the landmass count the docks read: 1.
 //! - the leader's known oil patches: none, so `oil_ok` is never true.
-//! - `GoodTypeData::largest_gather` (+0x2ec): 0.
+//! - ~~`GoodTypeData::largest_gather` (+0x2ec): 0.~~ Computed since item
+//!   1451 ([`crate::world::largest_gather`]): 1 on the shipped table.
 //! - the wonder bookkeeping — team, enemy and unbuilt wonder value,
 //!   `Game::wonder_winning`, the wonder-win row's target and a wonder
 //!   type's value factor (vslot `+0x118`): 0, −1, absent, 1.
@@ -1062,17 +1063,20 @@ impl Sim {
                 base = base.wrapping_mul(10);
             }
             let ter = f.ter[g];
+            // `max(3 − GoodTypeData::largest_gather, ter)`, in both arms of
+            // `Leader::create_buildings@006c1be0`'s gather multiplier, the
+            // worst good's and the rest: `largest_gather` is never 0
+            // ([`crate::world::largest_gather`]), so on the shipped land
+            // table this is `max(2, ter)`. It was read as 0 — `max(3, ter)`
+            // — until item 1451, and run612's farm offer on 8184 (45156,
+            // ours 52593) is what the third reading missed.
+            let floor = (3 - crate::world::largest_gather(g)).max(ter);
             let mut m;
             if g == worst {
                 if !(ter != 0 || oil_ok) {
                     continue;
                 }
-                m = if g == 5 {
-                    0x800
-                } else {
-                    // `largest_gather` reads 0.
-                    (3.max(ter) + 2) * 0x100
-                };
+                m = if g == 5 { 0x800 } else { (floor + 2) * 0x100 };
             } else {
                 if !(ter != 0 || oil_ok) {
                     continue;
@@ -1105,7 +1109,7 @@ impl Sim {
                 } else {
                     3
                 };
-                m = (k + 3.max(ter)).wrapping_mul(m0) / k;
+                m = (k + floor).wrapping_mul(m0) / k;
             }
             found = true;
             if self.ai[w].rate[g] < self.cities[f.c].pop * 20 {
