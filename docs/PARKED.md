@@ -3759,3 +3759,20 @@ steering session (one a landing, or the silence is the finding), and
 the steering session's read of each diff against the journal. Results
 to `docs/audit/<date>-sequential-arm.md`; judged at the twenty-fourth
 pass with the user. 1422 returns only if this arm lands close.
+
+## Loop, filed 2026-10-04 — the idle subscription on a lane that waits
+
+(1449) **`notify_when_idle` fires at once on a lane between turns.** The
+sequential arm backgrounded run613's wait and ended its turn at 02:31Z,
+as the rules say; the idle notice came, and each re-arm the 1412 rule
+calls for fired immediately with the same 02:31 stamp — three notices
+for one idle in two minutes, while `ccc list` read the lane `working`
+on the background task. A lane whose waits are backgrounded is idle to
+the harness for most of its life, so the subscription is a signal of a
+turn's end, never of a landing, and re-arming on a no-landing notice
+loops. This session's substitute: one `run_in_background` wait that
+exits when the lane's branch tip moves or the lane leaves `working`
+(`$CLAUDE_JOB_DIR/tmp/wait_seq_opus.py`), re-armed on its own exit.
+For the pass: amend the fan-out rule's subscription clause to say which
+of the two the subscription is for, and whether the branch-tip wait
+graduates into `tools/`.

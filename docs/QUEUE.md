@@ -26,7 +26,7 @@ Its review debt is filed (1447). No commander loop runs.*
 - **1446's floor**: run611/612 are on disk; Codex's uncommitted diff is
   snapshotted beside its scratch and is Astra's, not the arm's to read.
 - **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
-- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448).
+- **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448, 1449).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
