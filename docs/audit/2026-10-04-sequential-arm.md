@@ -635,6 +635,85 @@ a dozen units' orders 24 short, three second guys elsewhere), pins and
 52 and 51 + gate minutes. French East Indies **8182 → 12794 (+4,612)
 in 9 h 31 m** to the tenth landing commit.
 
+## The close — ten landings, 9 h 43 m, 144 USD list
+
+The arm's last gate recorded in `a2807334` at 11:56Z (exit 0, six of
+six, rondata 720, sim 1334, 2713 fixtures, none missing) and its tenth
+done line reached this session at 11:57Z. Its branch is merged into
+`worktree-replan-pdb` with a merge commit (`24534272`, 22 commits, 51
+files, +4,455 −577, no conflicts) and **the full gate on the merged
+tree exits 0**: six of six steps, fixed 13, rondata 720, sim 1334,
+2713 fixture requests and none missing, memcap peak 15983 MiB
+(`gate-merge-24534272.log`). The arm's lane is reaped (`ccc rm` takes
+the ref, not the name) and its branch deleted on `origin` (parked
+727); the merge commit holds its 22 commits.
+
+**Measured** (`lore trace 3be1ab53`, `claude-opus-5-5` on all 1,252
+requests; one prompt, 45 harness re-invocations, 1,234 tool calls,
+7 tool errors):
+
+| | Codex, entry 60 | the arm |
+|---|---|---|
+| landings | 20 | 10, by its own stop rule |
+| wall | 15 h 20 m | 9 h 43 m (02:14 → 11:57Z) |
+| per landing, pushed to pushed | 46 min, gate at the batch | 58 min, full gate per item |
+| French East Indies | stood up to 8182 | **8182 → 12794 (+4,612)** |
+| closed | East Indies second pair at 18,140 | nothing |
+| other words | Toughest measured 12538 | Toughest holds 12538; every floor holds |
+| gates | 1 red of 1 batch, corrected | 8 green of 10; 2 combined on paperwork pins |
+| output tokens | 574 k | 772 k, plus 247 k thinking |
+| cache read / write | 261.5 M / — | 570.7 M / 1.85 M |
+| list price | a 100 USD subscription, spent | 144.36 USD |
+| waiting | — | 0 poll runs, 0 idle turns, 1 re-read |
+| done lines | — | 10 sent, 0 lost, each in the agreed shape or shorter with every field |
+| journals | 2–8 KB, review debt on all 20 | 75–141 lines, review debt stated on all 10 |
+| captures | 28 (run583–610) | 25 (run613–634, 611/612 entered) and one packet |
+
+**Against entry 60's estimate** — ten in under twelve hours, past
+9,000, nothing closed, under 200 USD list: met on all four, with the
+wall at 81 % of the bound and the price at 72 %. The "five or fewer"
+threshold that would have returned the model axis is cleared twice
+over.
+
+**What the ten say about the method**, read from the diffs:
+
+- The frame-first rule held every time: every item was booked by frame
+  and draw delta, and in six of ten the named parting was not the
+  cause (1446, 1449, 1452, 1455, 1457, 1458). "Grep the disk before
+  booking a capture" paid in four of ten with no capture for the cause
+  at all (1451, 1453, 1454, 1458), and the packet answered a value
+  question on 1460 where a detail capture would have been the old
+  reflex.
+- Every landing has a mutation record and a before/after key diff
+  (keys leave, which arrive, named); three re-pinned other games and
+  diffed those too (1451: 69 leave; 1455: 24 pins; 1457: ~440 leave,
+  4 arrive, parked). No assertion was deleted; one pin tightened to
+  zero (run240); `ron_slots` 345 → 350.
+- Review debt is the same shape as Codex's: every mechanism read off
+  the listing is marked, nothing is self-ratified, and the two
+  combined validations are written as not-a-full-gate. The
+  twenty-fourth pass's ratification set grows by ten journals'
+  "review debt" paragraphs (1447 should name them).
+- The arm's own slips are in its journals, unasked: one piped clippy,
+  one `sleep 1` yield, one shell `&`, one comment edit under a running
+  suite, a run of re-pin-script failures. None cost a landing; the
+  re-pin script cost four landings' time and is the tool to book.
+
+**Recommendation to the user** (entry 60's reserved question): the
+architecture was the variable. One sequential agent that owns its own
+bookkeeping and never ends a turn to wait for a person did in under
+ten hours what the three-lane loop did in a tranche of two or three
+days, at a per-landing price the loop's briefs, gates under `--lane`
+and commander turns never reached. The loop's remaining advantage —
+parallel lanes on independent words — is real, but there is one open
+word on the newest pair and the other two tracks are closed or
+captured-out; parallelism has nothing to parallelize. So: **a second
+arm of ten from 1461, same model, same effort, same agreement**, with
+two amendments to `AGENTS.md` for the pass to make first — the
+re-pin tool, and a release-profile `coverage::`/`blind::` run before
+the landing commit — and the loop stays paused. The model-axis matrix
+(1422) returns only if a second arm lands far from this one.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**

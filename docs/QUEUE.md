@@ -12,24 +12,21 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-04, **the sequential arm, landing 10 of 10** (DECISIONS 60,
-parked 1448): branch `worktree-seq-opus`, one Opus 5.5 session under
-`AGENTS.md`. French East Indies **8182 → … → 11582 → 12794**: a wonder's
-start is first contact (1446); a building's queue runs inside its own
-`Build::process` (1449); `largest_gather` is 1 (1451); a pushed ship
-pushes back (1452); the gull flies (1453); the Pyramids' city terms and
-`already_built` (1454); the Militia ramp and the French siege move
-(1455); a member's come-out tail and a pushed slot's state (1457, no
-score); a member's slot across a coast is re-placed on slot 0's, and a
-recycled slot keeps its `path_recursion` (1458, GROUPS §37); a French
-siege unit costs `FRENCH_SIEGE_COST` less (1460, COSTS). Great Lakes
-(French) stands closed; Toughest measured 12538, floor 11985.*
+*2026-10-04, **the sequential arm's ten** (DECISIONS 60, parked 1448):
+one Opus 5.5 session under `AGENTS.md`, items 1446–1460. French East
+Indies **8182 → 12794**: first contact (1446), the per-building queue
+(1449), `largest_gather` (1451), the ship's push-back (1452), the gull
+(1453), the Pyramids' city terms (1454), the Militia ramp and French
+siege move (1455), the squad's slots (1457, 1458), the French siege
+cost (1460). Great Lakes (French) closed; Toughest 12538, floor 11985.*
 
-- **The arm has stopped at its tenth landing**; the steering session
-  takes its landing lines and does not drive. No commander loop runs.
-- **1446's cause was not the booking's**: Codex's 8033 contact was killed
-  by run611 (contact before 8030). Its unread diff stays unread.
-- **The user's**: 1141, phase 4 on the rules track, the thesis sentence.
+- **The arm stopped at ten, merged here with a merge commit
+  (`24534272`) and gated on the merged tree, exit 0.** Its record is
+  `docs/audit/2026-10-04-sequential-arm.md`: 9 h 43 m, 144 USD list,
+  entry 60's estimate met on all four counts; the steering session
+  recommends a second arm of ten from 1461. No commander loop runs.
+- **The user's**: whether the loop returns (DECISIONS 60); 1141, phase
+  4 on the rules track, the thesis sentence.
 - **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1141, 1225, 1259, 1301, 1315, 1316, 1364, 1387, 1390, 1392, 1402, 1409, 1414, 1421, 1422, 1425, 1447, 1448, 1450).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -40,8 +37,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the arm stopped at ten landings; the next session takes 1461
-from this tree under `AGENTS.md`, as the steering session decides.**
+**Opener: the arm's ten are merged and gated here; the next arm takes
+1461 from this tree under `AGENTS.md` on the user's word, and the
+twenty-fourth pass ratifies 1447's set first.**
 
 ## The queue
 
