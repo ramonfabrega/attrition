@@ -516,6 +516,65 @@ whose trail is longer and whose re-pins are wider. Eight landings in
 French East Indies 8182 → 10802 (+2,620); two to go on the arm's own
 stop rule.
 
+## Landing 9 — item 1458, French East Indies 10802 → 11582
+
+Commit `abea5824` at 10:42Z, **40 minutes after landing 8's push**;
+the full gate on it started 10:42Z and was running when this row was
+written. One capture (run631), the new word's widening with the leader
+probe; the cause needed none — run630, the previous item's capture,
+still held both partings under the word.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1458.md`,
+75 lines; GROUPS §37): they agree. Two rows, each read from the
+decompile and each its own mutation. `path_recursion` on a newborn
+captain: nothing searched for it, but its object number had belonged
+to a dead unit, and `UnitData::UnitData` zeroes the field where
+`Unit::init` never writes it — so a recycled slot keeps its last
+occupant's count, and `add_unit` now carries it. And the member `1/81`:
+§6.6 step 4's **different-region** arm, which the arm had set aside on
+the previous item as a candidate (a computer's unit skips the
+same-region arm) and came back to — the slot's `get_tregion` is the
+coastal-water `region2` read, the member is re-placed around slot 0's
+point by the *type's* sweep (`not_o`/`not_who` −1), and the table is
+written back so §6.7's path reads the same offset. Asked as the unit,
+the sweep found a spot 144 east; asked as the type, as the listing
+does, slot 0's point. run630's widening fell 167 → 161 → 155 → 101,
+one step per row.
+
+To carry to the pass:
+
+- **64 widening pins moved; 454 keys leave and 5 arrive** (run99's
+  first-block standing rows, two families that stand elsewhere already;
+  named, not parked — the pass should ask whether they should be).
+  Golden chapters 43 and 46 each lose one `WANT` line
+  (`path_recursion` on `0/10`), the two deletions in `golden.rs`. No
+  floor moved.
+- **A field that survives its slot.** The journal's last line is the
+  right open question: "No other `UnitData` field was surveyed for the
+  same survival." That survey is a reading on `UnitData::UnitData`
+  against `Unit::init`, cheap and bounded, and a candidate item.
+- **One mechanism has no unit test** — the region arm's check is
+  run630's pin and the word; the arm says so.
+- **Review debt, stated**: step 4's barge and passenger footprints and
+  its same-region arm are a reading alone (and `SEAM`ed in the code).
+  No blind reading.
+- **The re-pin script is now a recurring cost**: refused eight pins on
+  this item, mis-anchored comments on the last, lost to the formatter
+  on the two before. Four landings running; this is the "third time"
+  rule and then some, and the pass should book the tool.
+
+Bookkeeping done by the arm: queue (headline, opener, scoreboard
+`w11582`, 1458 deleted, 1460 booked by frame — the original's make
+list headed on 11579 by an entry we lack, t=575 at 9999999), 64 pins
+and `WIDENINGS` re-pinned, two golden `WANT` lines removed, run631 in
+`docs/RUNS.md`, the seam table amended. **1459 is parked 1459**
+(landing 8); the arm's numbering is still clean.
+
+**Pace after nine landing commits**: 57, 49, 41, 58, 38, 58, 82, 83
+and 40 + gate minutes. French East Indies 8182 → 11582 (+3,400) in
+8 h 28 m to the ninth landing commit; one to go on the arm's own stop
+rule, and the estimate's twelve hours holds with room.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
