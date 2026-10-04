@@ -455,10 +455,15 @@ go.
 
 ## Landing 8 — item 1457, French East Indies 10802 → 10802 (no score moved)
 
-Commit `bea585ca` at 09:50Z, **72 minutes after landing 7's push**; the
-full gate on it started 09:50Z and was running when this row was
-written. One capture (run630), the parting's own window with the leader
-probe, booked with its killer first.
+Commit `bea585ca` at 09:50Z, **72 minutes after landing 7's push**;
+the gate's record `2234a796` at 10:01Z: **exit 0, six of six steps**,
+fixed 13, rondata 718, sim 1332, fixture audit 2679 requests and none
+missing, memcap peak 15961 MiB. Pushed: `origin/worktree-seq-opus` is
+`2234a796`, verified by fetch; the done line reached this session at
+10:02Z and said "no score moved" in its first clause. **83 minutes
+from landing 7's push to landing 8's.** One capture (run630), the
+parting's own window with the leader probe, booked with its killer
+first.
 
 **Diff against the journal** (`docs/journal/2026-10-04-item-1457.md`,
 82 lines; CITIES §6.5.3, GROUPS §36): they agree, and the landing's
@@ -504,11 +509,12 @@ opener, scoreboard unchanged at `w10802`, 1457 deleted, 1458 booked by
 frame with the new first parting), parked 1459 filed, 110 pins
 re-pinned, run630 in `docs/RUNS.md`, the seam table amended in place.
 
-**Pace after eight landing commits**: 57, 49, 41, 58, 38, 58, 82 and
-72 + gate minutes — the last three slower than the first five, on
-items whose trail is longer and whose re-pins are wider. French East
-Indies 8182 → 10802 in 7 h 36 m to the eighth landing commit; two to
-go on the arm's own stop rule.
+**Pace after eight**: 57, 49, 41, 58, 38, 58, 82 and 83 minutes, each
+to a pushed landing — the last two slower than the first six, on items
+whose trail is longer and whose re-pins are wider. Eight landings in
+**7 h 47 m**, six on a full green gate and two on combined validation;
+French East Indies 8182 → 10802 (+2,620); two to go on the arm's own
+stop rule.
 
 ## For the Loop, noticed by the steering session
 
