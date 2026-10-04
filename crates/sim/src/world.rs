@@ -1893,7 +1893,7 @@ mod tests {
     /// 0** (`GoodType::compute_largest_gather@0066e920`, item 1451): plain
     /// land makes a knowledge and a food at 1, forest a timber, mountains a
     /// metal, oil an oil, and wealth — made by no land — is clamped up to
-    /// 1. Read as 0 until item 1451, which put `max(3, ter)` into every
+    /// one. Read as 0 until item 1451, which put `max(3, ter)` into every
     /// gather building's value where the original has `max(2, ter)`.
     /// Made to fail by dropping the clamp's floor (wealth reads 0).
     #[test]
