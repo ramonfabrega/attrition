@@ -13,12 +13,16 @@ past 9,000, nothing closed, under 200 USD list.
 
 ## Landing 1 — item 1446, French East Indies 8182 → 8236
 
-Commits `1634ab69` (the landing) and `c58bebd4` (the gate's clippy
-verdict, `type_complexity` on a tuple alias — no logic change). Branch
-tip moved at 03:00Z, 46 minutes after spawn; the full gate on
-`c58bebd4` was running at 03:03Z (`gate-2.log` in the arm's evidence
-directory), the branch unpushed until it exits, the done line not yet
-sent. The gate verdict and the push are read at the next notice.
+Commits `1634ab69` (the landing, 02:59Z), `c58bebd4` (the gate's
+clippy verdict, `type_complexity` on a tuple alias — no logic change,
+03:00Z) and `c3020401` (the gate's record, 03:11Z). The first full gate
+stopped at clippy before any test step — the journal calls it a
+failure, not a partial pass; the second, on `c58bebd4`, **exit 0, six
+of six steps**, fixed 13, rondata 703, sim 1324, fixture audit 2532
+requests and none missing, memcap peak 15023 MiB of 20 GiB. Pushed:
+`origin/worktree-seq-opus` is `c3020401`, verified by fetch. The done
+line reached this session at 03:12Z, one line, in the agreed shape.
+Spawn to gated-and-pushed landing: **57 minutes**.
 
 **Diff against the journal** (`docs/journal/2026-10-03-item-1446.md`,
 141 lines; VISION §6.4, 90 lines): they agree. The journal's four
@@ -58,12 +62,13 @@ opener, scoreboard `w8236`, item 1446 deleted, 1449 booked by frame and
 draw delta with no mechanism), `FLOORS`/`WIDENINGS` re-pinned, run611
 and run612 (Codex's, never entered) and run613 entered in `docs/RUNS.md`
 with hashes, parked 1450 filed, backlog 21 → 22. The queue ledger and
-the scoreboard parser pass on its tree (its guard ran; the gate's own
-verdict is pending).
+the scoreboard parser pass on its tree, and the gate confirms it.
 
-**Scored against Codex's first landing**: Codex's tranche averaged 46
-minutes a landing over twenty; this one took 46 to the landing commit
-plus the gate (not yet counted). Journal 8.5 KB, in Codex's range.
+**Scored against Codex's tranche**: Codex averaged 46 minutes a landing
+over twenty, gate included at the batch; this one took 57 from spawn to
+a gated, pushed landing with the gate run per item. Journal 9 KB with
+the gate section, in Codex's range. One red gate on a lint, recorded
+and corrected, as Codex's one red gate (1444's batch) was.
 
 ## For the Loop, noticed by the steering session
 
