@@ -580,6 +580,61 @@ full green gate and two on combined validation; French East Indies
 8182 → 11582 (+3,400). One to go on the arm's own stop rule, and the
 estimate's twelve hours holds with room.
 
+## Landing 10 — item 1460, French East Indies 11582 → 12794
+
+Commit `a7551ad8` at 11:45Z, **51 minutes after landing 9's push**; the
+full gate on it started 11:45Z and was running when this row was
+written. Three captures (run632–634) and **a packet** (run633, the
+lab's first use by the arm): `step4.py` ran `Leader::research_techs`
+on the original's own state at 11578.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1460.md`,
+97 lines; COSTS, "A French siege unit costs less"): they agree. Three
+hypotheses with killers, two killed by their captures: H6 (a purchase
+in 10810..11382) by run632, both sides offering Conscription at the
+same value to 11382; H7 (an unprinted `tech_value` factor) by the
+packet, which showed Conscription reaching the crate's own weights,
+category and shortage values and never the original's 3491100 — so
+the difference lay downstream, in affordability, 15 timber and 15
+metal short on run631's standing rows. H8 dated the shortfall to the
+Trebuchet's research queued at 94/94 here and 79/79 there, and the
+listing has it: `get_cost`'s pre-ramp nation tail, `FRENCH_SIEGE_COST`
+15 % off a French unit of the Siege Factory line, on the train arm and
+the research arm alike. The arithmetic is shown both ways (70 → 59 →
+88 → 79 with the arm; 70 → 105 → 94 without), and the arm's own slip —
+it first worked the price through the train arm and the number did not
+reproduce — was caught by a modifiers print before anything landed.
+`trainer_where` is now shared with landing 7's speed arm.
+
+To carry to the pass:
+
+- **The packet earned its place**: a value question — does the
+  original's `research_techs` reach 3491100 from these inputs — was
+  answered on the original's state rather than by a reading or a
+  detail capture, exactly as `CLAUDE.md`'s lab paragraph asks. First
+  use of `step4.py` in the arm's ten; the rule held.
+- **96 keys leave run631 and none arrive**; only that pin moved; no
+  floor moved; sim 1334 of 1334. The widest single move of the arm,
+  **1,212 frames**.
+- **One tuning slot** (`FRENCH_SIEGE_COST` 15), `ron_slots` 349 → 350.
+  `FRENCH_SPECIAL_COST` ships as 0 and is not modelled; the other
+  nations' arms of the same tail are read and not carried — the review
+  debt line says so. No blind reading.
+- **The arm stopped itself.** The queue's handoff reads "the arm has
+  stopped at its tenth landing" and the opener hands 1461 to "the next
+  session … as the steering session decides" — the stop rule met as
+  written, the direction question left where it belongs.
+
+Bookkeeping done by the arm: queue (headline, opener rewritten for the
+stop, scoreboard `w12794`, 1460 deleted, 1461 booked by frame —
+run634 parted by its first block, 12789, on `num_units[270]/[271]`,
+a dozen units' orders 24 short, three second guys elsewhere), pins and
+`WIDENINGS` re-pinned, run632–634 in `docs/RUNS.md` with the packet.
+
+**Pace after ten landing commits**: 57, 49, 41, 58, 38, 58, 82, 83,
+52 and 51 + gate minutes. French East Indies **8182 → 12794 (+4,612)
+in 9 h 31 m** to the tenth landing commit.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
