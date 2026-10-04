@@ -321,9 +321,23 @@ twice its estimate's.
 
 ## Landing 6 — item 1454, French East Indies 9777 → 10131
 
-Commit `52503b86` at 07:05Z, **47 minutes after landing 5's push**; the
-full gate on it started 07:05Z and was running when this row was
-written. One capture (run624), the new word's widening with the leader
+Commit `52503b86` at 07:05Z, **47 minutes after landing 5's push**;
+the gate's record `3fb1953b` at 07:16Z. **The second landing on
+combined validation**: the full gate on `52503b86` **exited 1** — five
+of six steps run, fixed 13 and sim 1328 green, rondata 713 of 714, the
+one failure `blind::the_blind_list_is_the_pinned_residue`, because the
+new TECH section cites `Wonder::init@0073c5e0`, the second writer of
+`Game::wonders`, which no kept trace enters; 2650 fixture requests,
+none missing; memcap peak 16666 MiB. The correction pins the address
+in `blind::NEVER` (141 → 142) with its line of comment, no logic; the
+arm re-ran the eight `blind::` tests, clippy, fmt and the guards, each
+exit 0, and wrote it as combined validation, not a full-gate pass. The
+steering session's read: as landing 4's — the guard did its job on a
+new citation, the correction is a pin, the clause fits. Pushed:
+`origin/worktree-seq-opus` is `3fb1953b`, verified by fetch; the done
+line reached this session at 07:17Z, shorter than the agreed shape but
+carrying every field. **58 minutes from landing 5's push to landing
+6's.** One capture (run624), the new word's widening with the leader
 probe; the cause needed none — run623's probe held the original's
 offers and the purchase.
 
@@ -371,9 +385,10 @@ run624's first block, 10126, to be dated in 9784..10126), parked 797
 struck and 1456 filed, pins and `WIDENINGS` re-pinned, run624 in
 `docs/RUNS.md`.
 
-**Pace after six landing commits**: 57, 49, 41, 58, 38 and 47 + gate
-minutes. French East Indies 8182 → 10131 (+1,949) in 4 h 51 m to the
-sixth landing commit.
+**Pace after six**: 57, 49, 41, 58, 38 and 58 minutes, each to a
+pushed landing; six landings in **5 h 02 m**, four on a full green
+gate and two on combined validation. French East Indies 8182 → 10131
+(+1,949).
 
 ## For the Loop, noticed by the steering session
 
@@ -392,6 +407,15 @@ sixth landing commit.
   **the steering session books no number while the arm runs**. For the
   pass: amend the fan-out rule's subscription clause, and decide whether
   the branch-tip wait graduates into `tools/`.
+- **Two of six full gates were red on a paperwork pin alone** — the
+  coverage pin on a new window's unread key (landing 4) and the blind
+  list on a newly cited never-executed function (landing 6) — each
+  ~11 minutes of gate to learn what `coverage::` and `blind::` would
+  have said in seconds. `tools/guard.sh` runs the paperwork guards but
+  not those two release-profile tests. For the pass: whether the
+  reflex before a landing commit should run `coverage::` and `blind::`
+  in release on the item's windows, so the full gate is red only on
+  what it alone can see.
 - **The arm's evidence directory is denied to this session's reads**
   (`~/ron-data/lab-experiments/2026-10-03-item-1446-opus/`, the
   classifier's "Modify Shared Resources" on an `ls` and a `tail`). The
