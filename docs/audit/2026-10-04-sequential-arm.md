@@ -453,6 +453,63 @@ gate and two on combined validation. French East Indies 8182 → 10802
 (+2,620); the estimate's twelve hours holds at this pace with three to
 go.
 
+## Landing 8 — item 1457, French East Indies 10802 → 10802 (no score moved)
+
+Commit `bea585ca` at 09:50Z, **72 minutes after landing 7's push**; the
+full gate on it started 09:50Z and was running when this row was
+written. One capture (run630), the parting's own window with the leader
+probe, booked with its killer first.
+
+**Diff against the journal** (`docs/journal/2026-10-04-item-1457.md`,
+82 lines; CITIES §6.5.3, GROUPS §36): they agree, and the landing's
+first line says what it is — **"this landing moved no score"** — which
+is the honest shape the agreement asks for. The booked parting (a
+squad slot the crate held and the original's pool did not) came apart
+into three rows on block 10766, each read from the decompile and each
+taking its own rows off run630: a member's `come_out` runs the same
+tail as the captain's (a computer's unit gets `close_orders`,
+`clear_partial_path`, `update_action`, so its `orders_x/y` are its new
+place); a stack group's point is `Group::clear`'s (0, 0), not the
+record default's (−1, −1); and `equals_group` normalizes the last
+pushed slot on every push — a thing the seam table had said was not
+modelled, now struck in place. The word did not move; the parting under
+it moved from 10797 to 10766 and is booked again as 1458 on the same
+frame with the new first row named.
+
+To carry to the pass:
+
+- **The largest re-pin of the arm**: 85 widening tests across every
+  game, 110 pins in six files, **~440 keys leave and four arrive** (slot
+  speeds on golden chapter forty and run421, parked 1459 with the
+  reading of why). The deletions in `second.rs` are lists of expected
+  parting rows shrinking, not assertions removed — 36 `assert`/`pin`
+  lines out, 39 in, across `rondata`. No floor moved; sim 1330 of 1330.
+- **A re-pin tool failure, caught and owned**: the first script put a
+  comment beside the wrong pin because its own replacements had shifted
+  the line numbers; the arm restored the files and re-ran in two passes
+  (values by position, comments by description). The same class of
+  slip as landing 7's; the pass should ask whether the re-pin belongs
+  in `tools/` now — a probe shape reached for a third time.
+- **Review debt, stated**: the human and plane arms of the come-out
+  tail and `get_num`'s normalize arm are a reading alone. No blind
+  reading.
+- **A no-score landing that was worth landing**: three mechanisms the
+  decompile names, each with a unit test and a mutation, and the
+  widening residue across the corpus down by a tenth. The queue rule
+  "a session that moved no score says so in the handoff" is met in the
+  queue's own headline block.
+
+Bookkeeping done by the arm: queue (headline says 1457 moved no score,
+opener, scoreboard unchanged at `w10802`, 1457 deleted, 1458 booked by
+frame with the new first parting), parked 1459 filed, 110 pins
+re-pinned, run630 in `docs/RUNS.md`, the seam table amended in place.
+
+**Pace after eight landing commits**: 57, 49, 41, 58, 38, 58, 82 and
+72 + gate minutes — the last three slower than the first five, on
+items whose trail is longer and whose re-pins are wider. French East
+Indies 8182 → 10802 in 7 h 36 m to the eighth landing commit; two to
+go on the arm's own stop rule.
+
 ## For the Loop, noticed by the steering session
 
 - **`notify_when_idle` is a turn-end signal, not a landing signal.**
