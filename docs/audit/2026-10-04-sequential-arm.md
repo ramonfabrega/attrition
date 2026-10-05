@@ -699,12 +699,23 @@ over.
   suite, a run of re-pin-script failures. None cost a landing; the
   re-pin script cost four landings' time and is the tool to book.
 
+**Corrected 2026-10-05, the twenty-fourth pass, with Ramon** (DECISIONS
+61): two clauses of the recommendation below do not stand, and its
+conclusion with them. The loop's last Opus tranche landed twenty-two in
+10 h 39 m (entry 58), not in "two or three days" — 2.1 landings an hour
+against this arm's 1.0; and its workers cost 13.65 USD a landing
+against this arm's 14.44, so the arm reached no price the loop had not.
+What the arm alone did is run ten landings on one prompt with nobody
+there; and its stop at ten was the context window's (866 k at its peak,
+0.84 of the price above 300 k, by `tools/tranche.py`). The loop returns;
+no second arm runs.
+
 **Recommendation to the user** (entry 60's reserved question): the
 architecture was the variable. One sequential agent that owns its own
-bookkeeping and never ends a turn to wait for a person did in under
+bookkeeping and never ends a turn to wait for a person ~~did in under
 ten hours what the three-lane loop did in a tranche of two or three
 days, at a per-landing price the loop's briefs, gates under `--lane`
-and commander turns never reached. The loop's remaining advantage —
+and commander turns never reached~~. The loop's remaining advantage —
 parallel lanes on independent words — is real, but there is one open
 word on the newest pair and the other two tracks are closed or
 captured-out; parallelism has nothing to parallelize. So: **a second

@@ -71,7 +71,8 @@ is append-only and amended in place, as it always was.
 - 57 standing — The frame has a ceiling, the lane is held through its restore, and a landing's price is its waiting
 - 58 extended by 59 — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
 - 59 extended by 60 — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
-- 60 standing — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
+- 60 extended by 61 — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
+- 61 standing — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
 
 ## 1. Fidelity before divergence
 
@@ -4322,3 +4323,159 @@ pass's question and his; 1141, phase 4 and the thesis sentence stand.
 same review debt, and runs **under 200 USD list**. If it lands five or
 fewer, the architecture was not the variable and the model axis is
 back.
+
+## 61. The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
+
+**Decided 2026-10-05**, in the main thread on Fable with Ramon — a
+steer in conversation, then the twenty-fourth pass
+(`docs/audit/2026-10-05-fable-pass-24.md`). Answers entry 60's reserved
+question; amends entry 53's successor rule, entry 59's clause 1 and its
+"the pass never spawns"; closes parked 1141, 1422 and 1448; overturns
+nothing else.
+
+**What was measured.** The four shapes the work has been run in, each
+from its own entry or record, prices at list by `lore`:
+
+| | three lanes, Opus high (entry 58) | three lanes, Sonnet medium (59) | Codex, one agent (60) | one Opus high, sequential (the arm) |
+|---|---|---|---|---|
+| landings | 22 | 11 | 20 | 10 |
+| wall clock | 10 h 39 m | 7 h 23 m, 3 h 34 m of it asleep | 15 h 20 m | 9 h 43 m |
+| landings an hour | 2.1 | 1.5 | 1.3 | 1.0 |
+| workers, USD a landing | 13.65 | 5.13 | one subscription, not comparable | 14.44 |
+| a person's touches | clears, the pass, stalls | a person woke it | eleven go-aheads | none |
+
+**A landing costs the same in every Opus shape** — 13.65 against 14.44
+— and by the frame it is a wash too: 0.031 USD on French East Indies
+for the arm (144.36 over 4,612) against the loop's 0.023 on East
+Indies, in different regions. The loop is twice as fast by the clock.
+So two sentences of the arm's record do not stand, and are corrected
+there: the loop's twenty-two took under eleven hours, not "two or three
+days", and the arm's price was not one "the loop never reached". What
+the arm did that no other shape did is run ten landings on one prompt
+with nobody there. **Its stop at ten was the window's, not a choice**
+(`tools/tranche.py --session 3be1ab53 --deep 300`): the context peaked
+at 866 k and 0.84 of the price was spent above 300 k; and a landing was
+25 minutes working and 33 waiting — capture 111 minutes of the run,
+gate 106, suite 81. A fresh context a landing is a worker an item,
+which is the loop: the arm was the loop with one lane and no commander.
+The project to date, `lore usage --well attrition`: 16,728 USD list
+since 2026-08-19 — Opus 5 9,863, Opus 5.5 4,135, Fable 2,656, Sonnet 74
+— at 533 and 616 a day on the loop's last two full days and 125 on the
+arm's. The user's word on the constraint: the weekly limit ran out
+"just barely" with a commander and three Opus lanes, and that margin is
+all the experiments were for. The census, as the twentieth pass
+regenerated it: 48,233 functions, 7,901 entered by any trace, 1,195
+cited, the order classes 65 cited of 410 and unmoved for four tranches,
+the "diff-backed" column still owed. `ccc` 0.1.38 on a throwaway
+session this pass: **a clear armed from another session fired in under
+five seconds and ran its `--then` prompt; `ccc spawn --name … --replace`
+stopped the old session and started the new one; a session's arm of its
+own clear was refused by the auto-mode classifier** ("needs permission
+rule"), on Sonnet, and blocked on Haiku.
+
+**What it means.**
+
+1. **The loop returns, and the architecture question is closed.** The
+   sequential arm bought no price and half the pace; what it showed is
+   that the waiting, not the commander, is where a landing's hour goes.
+   `AGENTS.md` stays the agreement for a direct agent run on the user's
+   word — Codex's quota is a second pool — and is not the loop's. 1448
+   closes on its record; 1422's matrix closes unrun.
+2. **The roster is the user's, and it is mixed**: the newest pair's
+   lane on Opus 5.5, every other lane on Sonnet 5.5, `--effort high` on
+   every spawn line — which is entry 59's trial with its confound
+   removed, run where Sonnet's one clear win was (the rules lane: two
+   chapters closed for the price of two Opus landings that closed
+   none). Entry 58's two kill rules ride with each Sonnet lane. A pass
+   scores the roster lane by lane and recommends; it does not change
+   it, and neither does a commander.
+3. **The handoff is two spawns, and no clear.** The pass ends by
+   spawning a `commander` session on Opus with the queue's opener as its
+   prompt; the commander, at twenty landings with its lanes drained and
+   its gate green, ends by spawning a `steer` session on Fable. Each
+   uses `--replace` on the other's name. A spawn is the one primitive
+   that has never been refused or dropped here; the clear has been both
+   (parked 1314, 1392, and today's refusal), so nothing in the cycle
+   depends on one — the mid-tranche clear stays where it works and is
+   not retried where it is refused. `attrition` stays the user's row.
+   This amends "the pass never spawns" to "the commander, and nothing
+   else", on the user's word; it closes 1141.
+4. **An unattended pass has a fence.** It measures, ratifies the marked
+   rows, rules the Loop items, builds the loop's tools and guards and
+   rewrites the queue and the loop's own clauses, in one commit a person
+   can revert. It does not move the roster, the lane count past rule 5,
+   the phase, the finish line, the thesis or a hard constraint: those
+   go at the top of its record under "For Ramon", twelve lines, with one
+   push notification. A kill rule tripped, a permission-shaped block and
+   a booking gate red after its second commit reach him at once.
+5. **Lanes follow the waiting.** One to an open word, three today. A
+   pass adds one a tranche while `tools/tranche.py`'s waiting minutes a
+   landing stay within a fifth of the tranche before, and removes one
+   when they do not — the box, the single capture lane and a suite that
+   grows with every closed word are what bound a lane, before tokens
+   do. The first lane added is a **sweep lane**: a function run under
+   the emulator against this crate's, as a `#[test]` — no capture, no
+   word, the blind list's natural closer. **It is one lane and a swarm
+   inside it** (amended the same evening, on banteg's `harvest`: ten
+   subagents took a matching decompilation from 10 to 20 per cent in
+   three hours, because a function with a yes-or-no oracle shares no
+   state with the next): the lane's session fans its functions out to
+   subagents and merges once, so the lane rule counts it once and
+   tokens are what bound it.
+6. **A pair is chosen for what it covers.** Entry 53's "varies a single
+   setting" was debugging hygiene; by the census it walks the same
+   ground slowly. The successor to a closed pair is the lobby that
+   reaches the most rows no trace has entered, named with those rows
+   before its capture is booked — a late starting age first, if the
+   lobby offers it as remembered (unverified; the booking's first
+   step). And **a held-out battery is measured at every pass and never
+   debugged against**: several games nobody tuned for, each scored by
+   the frame it first parts on. Each new pair opening deeper than the
+   last is the evidence of fidelity the scoreboard does not print, and
+   the battery running whole on its first try is when minting pairs
+   stops.
+7. **Phase 4 stays closed.** The endgame is full fidelity and the
+   renderer competes for the one scarce thing; the user's word.
+8. **The recompilation scene's lesson is the oracle and the
+   denominator, not the product.** A matching decompilation is what the
+   hard constraints rule out, and the shipped image rules it out again:
+   its PE header says June 2024, linker 14.0, and 561 objects under the
+   Rich header's link-time-code-generation product id (read this pass;
+   the id's meaning is from memory, unverified) — a build whose code is
+   laid out across the whole program, where one function cannot be
+   matched alone. What carries over is the shape: a lifted function run
+   on the original's own state is rungs we already own
+   (`docs/EMULATOR.md`), and it is what the sweep lane is. **And the
+   number**: `harvest` says "x per cent" over every byte of its
+   executable, by layer. Ours is the census with its owed column built
+   — every function filed under the layer its PDB source path names
+   (simulation, AI, engine, interface), and the share of the simulation
+   layer that a logged run's diff or a sweep backs (parked 1467).
+
+**Not decided, and the user's**: whether one thin renderer slice runs
+on a quota that is not the loop's; a second capture prefix or host
+(parked 1139); the Sonnet lanes' verdict, at the next steer; the thesis
+sentence from entry 41.
+
+**The estimate, written down to be wrong on record.** Entry 60's was
+met on all four counts. This one, for the twenty-fifth tranche: twenty
+landings in under fourteen hours with no person's touch between this
+pass and the next; **French East Indies passes 15,500** on Opus; **Great
+Sahara at Toughest passes 13,500** and **chapter fifty-one closes and
+fifty-two opens** on Sonnet at high; a Sonnet landing **under 9 USD**
+and neither kill rule tripped; every Sonnet landing either sends its
+done line or is woken for by `lanewait` within two minutes of its push;
+a landing waits under 40 minutes.
+
+**The measure for the next pass**: each lane's frames and USD a landing
+against its last Opus tranche (entry 58: East Indies 625 frames at
+14.4, Toughest 258 at 12.3, the rules lane 14.8) and against the arm's
+461 at 14.44 on the French word; the kill rules; done lines sent and
+`lanewait`'s exits by kind; whether the commander spawned the pass and
+the pass the commander with nobody typing; landings a day and waiting
+minutes a landing by `tools/tranche.py`, and whether a fourth lane is
+earned; the held-out battery's first numbers; the coverage pair's
+booking and the census rows it names; hypotheses built after a kill
+against none; the blind list against 141 and the census's `never`
+against 137; the frame against 12,993; the backlog; the count at
+twenty.

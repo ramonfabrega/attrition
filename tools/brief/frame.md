@@ -8,7 +8,7 @@ number is its row in `docs/audit/README.md`'s brief checklist.
 ## opening
 
 You are a worker lane on the attrition repo, running on **{model}**. Your
-item is **{item}**, on {track}. I am the `attrition` session on
+item is **{item}**, on {track}. I am the `commander` session on
 `worktree-replan-pdb`, your commander; your base is `{base}`.
 
 `CLAUDE.md` is yours already. Read `docs/QUEUE.md`'s opener, then what
@@ -229,7 +229,7 @@ Before any reading of the original, in this order:
   yours alone. Name every module you touched. Put anything for the
   steering pass on one line headed "for the Loop".
 - **When you are done, send me one line** — `ToolSearch("select:
-  SendMessage")`, then `SendMessage` to `attrition` (1412): your tip
+  SendMessage")`, then `SendMessage` to `commander` (1412): your tip
   SHA, that `git log <base>..<branch>` is non-empty, and the `Lane
   verdict:` and `Gate steps:` lines (1406). Ninety minutes after your
   spawn without a landing, send the step you are on and whether a gate,

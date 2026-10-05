@@ -107,11 +107,16 @@ artifact is the next phase's tool.
    Closing the current captures is the milestone, not the phase:
    `docs/DECISIONS.md` entry 29 names the three counters that define the
    sim complete, and the renderer waits on them. **A pair that closes is
-   succeeded by one that varies a single setting the last held fixed**,
-   and the AI's word is the newest pair's; a closed pair's pins stay as
-   floors (`docs/DECISIONS.md` entry 53). **A third map is scored in
-   the first pair's lobby beside them, and the held-out map is measured
-   and never debugged against** (entry 54). **A game that ends closes
+   succeeded by the one whose lobby reaches the most census rows no
+   trace has entered** — it names those rows before its capture is
+   booked, and it may vary more than one setting — and the AI's word
+   is the newest pair's; a closed pair's pins stay as floors
+   (`docs/DECISIONS.md` entry 53, amended by 61). **A third map is
+   scored in the first pair's lobby beside them, and the held-out map
+   is measured and never debugged against** (entry 54) — **and so is
+   a held-out battery, at every pass**: games nobody tuned for, each
+   scored by how far it runs on its first try, which is the number
+   that says when minting pairs can stop (entry 61). **A game that ends closes
    with its closing state scored, and the lower map is the lower open
    word** (entry 55). **A closed map is succeeded by the same map in
    the newest pair's lobby, and the rules track stages the arms the AI
@@ -415,18 +420,23 @@ loop's own items** — tooling, guards, the queue's rules — which live in
 `docs/PARKED.md`'s Loop section and are never spawned to a worker; **a
 Loop item that two tranches running did not reach closes at the pass**,
 its text kept in the pass's record, and its next reach files it again
-(`docs/DECISIONS.md` entry 54). It writes the next opener for the
-commander, and **the pass never spawns** — one did, on an opener that
-said "refill", and ratified a trial only the user decides (DECISIONS
-59). Never Sonnet on a reading or an adjudication; **the workers run
-Opus 5.5 at effort high** (`ccc spawn --model 'claude-opus-5-5[1m]'
---effort high`, the model and effort verified from each worker's
-transcript — the harness's defaults differ by model, and a trial once
-moved two settings for one). **A model or an effort is admitted by a
-matrix on landed items, never by a live tranche** — the arms re-run a
-landed item from its own base, never merge, and are scored against the
-landed word (parked 1422) — **and judged at a steer with the user**
-(DECISIONS 59). The model is said in user-visible text each time. **A commit's trailer names the model the worker's own system prompt
+(`docs/DECISIONS.md` entry 54). It writes the next opener and **spawns the
+commander, and nothing else** — never a worker: one pass did, on an
+opener that said "refill", and ratified a trial only the user decides
+(DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
+**the workers' roster is the user's, set at a steer** (DECISIONS 61):
+**the newest pair's lane runs Opus 5.5 and every other lane Sonnet
+5.5, each with `--effort high` on its spawn line** (`ccc spawn --model
+'claude-opus-5-5[1m]' --effort high`, or `'claude-sonnet-5-5[1m]'`;
+the model and effort verified from each worker's transcript — the
+harness's defaults differ by model, and a trial once moved two
+settings for one). **Two kill rules ride with a Sonnet lane**: a
+booking gate red on its merge for what its own lane gate passed
+returns that lane to Opus, and a lane that lands nothing in three
+attempts on one word gets an Opus successor on that word. **No pass
+and no commander changes the roster**: a pass scores it lane by lane
+and recommends, and the user decides at a steer. The model is said in
+user-visible text each time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row
@@ -521,14 +531,18 @@ commit. **The spawn follows the booking commit, and the gate runs
 beside the new worker**: a landing frees a lane, and the turn that books
 it refills it with the queue's first unstarted item on that track,
 before its own gate — a lane stood empty through every booking gate of a
-tranche. **And a spawn is followed by an idle subscription** —
-`SendMessage` to the lane with `notify_when_idle: true` and no
-message — re-armed at every notice that brings no landing on the
-lane's branch: three lanes of one tranche wrote their landing in their
-own transcript with the message tool never loaded, and the commander
-slept three hours and thirty-four minutes until a person asked (parked
-1412); a done line is the lane's, and the notice is what wakes a
-commander when the line does not come. A red booking gate is a second commit and one line to every
+tranche. **And a spawn is followed by a wait on the lanes** —
+`python3 tools/lanewait.py <every live lane>`, backgrounded, re-armed
+at its every exit: it exits on a push to a lane's branch, on a row
+that left `working` and stayed out, and on a hundred quiet minutes.
+Three lanes of one tranche wrote their landing in their own transcript
+with the message tool never loaded, and the commander slept three
+hours and thirty-four minutes until a person asked (parked 1412); the
+idle notice built against that fires at every backgrounded wait —
+three notices for one idle, none a landing
+(`docs/audit/2026-10-04-sequential-arm.md`). A done line is the
+lane's, and the wait is what wakes a commander when the line does not
+come. A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to
@@ -536,7 +550,13 @@ continue — the queue's opener is the answer.
 **Lanes are independent.** Lanes are throughput, not a pair — **one to
 an open word, and the queue's handoff says how many**: each lands, is
 chained and is refilled without reference to another's state, and the
-only coupling between them is the merge and what the brief reserves. **The commander counts landings since the last steering pass — by
+only coupling between them is the merge and what the brief reserves.
+**A pass adds one lane a tranche while a landing's waiting holds** —
+`tools/tranche.py`'s waiting minutes a landing no more than a fifth
+above the tranche before — **and takes one away when it does not**; a
+lane with no word of its own is a sweep lane, which runs the
+original's functions under the emulator and contends for no capture
+(DECISIONS 61). **The commander counts landings since the last steering pass — by
 `git log` from that pass's commit, never from its own last clear — and
 stops at twenty**, writing the handoff and saying the steering pass is
 due; **and a finding it would raise at that pass is filed in
@@ -572,11 +592,39 @@ verdicts accumulate, and a pass takes the accrued set. How large a batch and
 how often is deliberately not fixed yet; what is fixed is that a mechanic is
 not blocked waiting for one, and that nothing marked is quietly dropped.
 
-**A ratification pass is not a subagent: it is the session.** Bank, `/clear`,
-switch the main thread to Fable. And its brief is a **charter, not a
-checklist** — the verdicts and markers are the floor, the mandate is what the
-earlier passes missed, and a pass fenced to the floor can only ever agree
-with the framing that fenced it.
+**A ratification pass is not a subagent: it is the session.** Its brief
+is a **charter, not a checklist** — the verdicts and markers are the floor,
+the mandate is what the earlier passes missed, and a pass fenced to the
+floor can only ever agree with the framing that fenced it.
+
+**The commander and the pass spawn each other, and neither waits on a
+person** (`docs/DECISIONS.md` entry 61). Each is a session of its own in
+the integration worktree, started fresh: the pass ends by spawning the
+commander — `ccc spawn --name commander --replace --model
+'claude-opus-5-5[1m]' --effort high --cwd <the worktree>`, its prompt the
+queue's opener — and the commander, at twenty landings, with its handoff
+written, its gate green and its lanes drained, ends by spawning the pass:
+`ccc spawn --name steer --replace --model claude-fable-5-1 --cwd <the
+worktree>`. `--replace` names the *other* session, never the caller's
+own; a session's arm of its own clear has been refused by the classifier
+and dropped by the pane, and a spawn has been neither. One of the two is
+live at a time and only the live one edits the worktree; the `attrition`
+row is the user's, where a steer with the user happens, and it edits
+nothing there while a commander's lanes are out.
+
+**An unattended pass has a fence.** It measures the tranche, ratifies the
+marked rows, rules the Loop items, builds the loop's tools and guards,
+and rewrites the queue and the loop's own clauses in this file — one
+commit a person can revert. **It never moves what is the user's**: the
+roster, the lane count past the one-a-tranche rule, the phase, the finish
+line, the thesis, a hard constraint, or anything a decision entry
+reserves. Those it writes as recommendations at the top of its record,
+under "For Ramon", in twelve lines or fewer, with the tranche's landings
+a day, its list price and what the pass changed, and it sends one push
+notification saying the record is there. **Three things reach the user at
+once, from the commander or the pass**: a kill rule tripped, a
+permission-shaped block, and a booking gate still red after its second
+commit. The user's silence is consent to nothing on the fenced list.
 
 Launch a fan-out in waves, not whole; readers write to durable storage from
 their first finding; verify which model actually ran from the transcript,

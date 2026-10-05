@@ -38,6 +38,7 @@ SUITES = (
     'test_seams',
     'test_standing',
     'test_tranche',
+    'test_lanewait',
 )
 
 if __name__ == '__main__':

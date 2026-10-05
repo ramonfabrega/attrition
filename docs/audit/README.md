@@ -651,6 +651,18 @@ stood and no commander's clause was landed in `CLAUDE.md` in the
 tranche; `docs/ARMY.md` §8's step 5 still read "`FABLE:` ratify", the
 marker batch 18 had ratified, and says so now.
 
+**Batch 24, 2026-10-05, the twenty-fourth pass
+(`docs/audit/2026-10-05-fable-pass-24.md`): parked 1447's set.** Nine
+blind readings and nine adjudications on Opus over the thirty landings
+of 1426–1460; forty-two code-changing rows in twenty-two groups, the
+lead row of each group re-read by the pass at the decompile or the
+listing and the rest standing on the adjudicator's citation; two
+marked rows settled (the avoid-land flag's writers, by the listing;
+the coastal cell's second region, by seven dumps) and four left open
+with their probes (A1 row 11, A5 #49, A7 row 19, A9 row 6). The builds
+are queue item 1468. The adjudication files are kept outside the
+repository, at `~/ghidra-projects/reading/pass24-2026-10-05/`.
+
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so
 `docs/QUEUE.md` item 13's differential fuzzing retires more of it per hour
