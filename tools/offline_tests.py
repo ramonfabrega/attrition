@@ -39,6 +39,8 @@ SUITES = (
     'test_standing',
     'test_tranche',
     'test_lanewait',
+    'test_mutate',
+    'test_repin',
 )
 
 if __name__ == '__main__':

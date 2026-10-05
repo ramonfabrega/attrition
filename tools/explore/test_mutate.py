@@ -69,6 +69,23 @@ class Mutate(unittest.TestCase):
             mutate.run(self.d, self.edit('let x = 1;', 'let x = 1;'), WALK, out=self.out)
         self.assertIn('took nothing', str(cm.exception))
 
+    def test_a_mutated_python_source_leaves_no_bytecode_behind(self):
+        # The twenty-fourth pass's own: a mutation of the same length,
+        # restored inside the second it was written in, left a `.pyc`
+        # whose recorded mtime and size still matched the restored
+        # source — and the next, unmutated run failed on the mutant.
+        d = Path(self.d)
+        (d / 'mod.py').write_text('X = 1\n')
+        (d / '.gitignore').write_text('__pycache__/\n')
+        subprocess.run(['git', '-C', self.d, 'add', '.'], check=True)
+        subprocess.run(['git', '-C', self.d, 'commit', '-q', '-m', 'a module'], check=True)
+        walk = [sys.executable, '-c', 'import mod, sys; sys.exit(0 if mod.X == 1 else 1)']
+        env = {k: v for k, v in os.environ.items() if k != 'PYTHONDONTWRITEBYTECODE'}
+        code = mutate.run(self.d, lambda r: mutate.apply_edit(r, 'mod.py', 'X = 1', 'X = 2'), walk, out=self.out)
+        self.assertEqual(code, 1)
+        again = subprocess.run(walk, cwd=self.d, env=env).returncode
+        self.assertEqual(again, 0, 'the restored source ran as the mutant: stale bytecode')
+
     def test_a_tree_that_changed_under_the_run_has_no_verdict(self):
         with self.assertRaises(mutate.Refused) as cm:
             mutate.run(self.d, self.edit(), EDITOR, out=self.out)

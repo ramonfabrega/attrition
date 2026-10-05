@@ -89,7 +89,13 @@ def run(root, mutate, command, out=sys.stdout):
     print(f'mutation applied to {", ".join(paths)}; running: {" ".join(command)}', file=out, flush=True)
     applied = git(root, 'diff')
     try:
-        code = subprocess.run(command, cwd=root).returncode
+        # No bytecode is written under the run: a `.pyc` records its
+        # source's mtime to the second and its size, and a mutation of
+        # the same length restored inside that second leaves one that
+        # still matches — the next run of the restored source is the
+        # mutant's (the twenty-fourth pass, on `tools/lanewait.py`).
+        env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
+        code = subprocess.run(command, cwd=root, env=env).returncode
     finally:
         # The whole diff, not the paths: an edit to the mutated file itself
         # under the run would vanish in the restore.
