@@ -337,6 +337,54 @@ mod tests {
         }
     }
 
+    /// **A captain re-searches what it holds before it shoots**
+    /// (`fight@005fd4d0:367-461` on the `param_5` path): holding an unarmed
+    /// unit in range, it rolls (`% 5`, here a seed that does not suppress)
+    /// and finds the dearer combat unit beside it; the new pair is written
+    /// and nothing is shot. A non-captain shoots what it holds.
+    ///
+    /// Made to fail with the arm removed (item 1508's M6), which no walk
+    /// holds: run657's and run661's counts stand.
+    #[test]
+    fn a_captain_firing_on_the_move_retargets_before_it_shoots() {
+        for captain in [true, false] {
+            let (mut sim, ty) = field(true);
+            let mut cheap = sim.unit_types[ty].clone();
+            cheap.combat.combat_role = false;
+            cheap.combat.cost = 1;
+            let cheap = sim.add_unit_type(cheap);
+            sim.unit_types[ty].combat.cost = 1000;
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let held = put(&mut sim, 0, cheap, Pos::new(3000, 3900));
+            let dear = put(&mut sim, 0, ty, Pos::new(3200, 3900));
+            sim.units[me].combat.captain = if captain {
+                i32::from(sim.units[me].index)
+            } else {
+                -1
+            };
+            while {
+                let mut r = sim.rng;
+                r.roll() % 5 == 0
+            } {
+                sim.rng.seed = sim.rng.seed.wrapping_add(1);
+            }
+            sim.units[me].cast_target = Some(Obj::Unit(held));
+            sim.units[me].cavarch_who = 0;
+            sim.cavarch_fight_body(me, 100);
+            if captain {
+                assert_eq!(
+                    sim.units[me].cast_target,
+                    Some(Obj::Unit(dear)),
+                    "retargeted"
+                );
+                assert_eq!(sim.units[me].combat.recharging, 0, "and nothing shot");
+            } else {
+                assert_eq!(sim.units[me].cast_target, Some(Obj::Unit(held)));
+                assert_eq!(sim.units[me].combat.recharging, 30, "shot");
+            }
+        }
+    }
+
     /// **An empty search after an empty one waits for the phase**
     /// (`cavarch_fight@005ff4b0`'s tail, `do_move@005f7b30:66`): −1, then
     /// −2, and from −2 a search runs only on `(o + frame) % 32 == 0`.
