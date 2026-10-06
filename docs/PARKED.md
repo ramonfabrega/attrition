@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1477, 2026-10-06 — the census's circle walk
+
+(1494) **The census at a city's founding, and the human's city**: the
+original censuses a city when it is founded (run529 block 9759: land 9,
+filled 1, against ours 0), and the human player's city is never
+censused here — both standing rows under every word that reads them.
+
 ## Parked by item 1465, 2026-10-06 — the held-out battery
 
 (1489) **The battery's three first partings — held out, never booked**
@@ -3732,6 +3739,13 @@ with `origin/worktree-replan-pdb` at 44801e04 after a fetch; a plain
 chain's push step is read by its answer, so a false "nothing" leaves a
 gated booking off origin in silence; a check that `git rev-parse` of
 both refs agrees after the push would catch it.
+
+(1495) **Three tools 1477 built by hand** (its journal's Loop lines,
+2026-10-06): a packet-call tool — `oracle_cbw.py` and `oracle_ps.py`
+under `~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/` entered
+the original's `plan_strategy` on a `RON_STATE_FRAME` packet; a packet
+tile-mask and cell diff; and `repin.py`, which left 50 of 131 sites to
+re-pin by hand.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a

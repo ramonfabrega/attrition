@@ -973,7 +973,14 @@ impl Sim {
             let outer = circle.radius.get(k + 1).copied().unwrap_or(0);
             let inner = circle.radius.get(k).copied().unwrap_or(0);
             if outer > 1 {
-                for i in 0..outer {
+                // **The walk starts at entry 1** (`docs/AI.md` §122): the
+                // loop at `plan_strategy@006b9620:0x6bb6f7` reads the offset
+                // tables at `circle_x + 1` and `circle_y + 1` from `i = 0`
+                // and stops on `i + 1 < circle_radius[k + 1]`, so the
+                // centre's own `(0, 0)` is never visited and the last entry
+                // before `outer` is — every other reader of the tables
+                // starts at `+0`.
+                for i in 1..outer {
                     let cell = Cell::new(centre.x + circle.x[i], centre.y + circle.y[i]);
                     if !self.world.contains(cell) {
                         continue;
@@ -1024,8 +1031,10 @@ impl Sim {
             }
             return;
         }
-        // Land, inside the inner ring, in the city's own region.
-        if i + 1 >= inner || self.world.region_of(cell) != city_reg {
+        // Land, inside the inner ring, in the city's own region. `i` is the
+        // table entry (`i + 1` in the original's own counter, tested `<
+        // circle_radius[k]`).
+        if i >= inner || self.world.region_of(cell) != city_reg {
             return;
         }
         if d.flags & 0x70 != 0 {
@@ -1951,6 +1960,52 @@ mod tests {
             "the region takes the open remainder"
         );
         assert_eq!(f.sim.ai[1].census.full_cities, 0);
+    }
+
+    /// **The circle walk starts at entry 1** (`docs/AI.md` §122, item 1477).
+    /// `plan_strategy@006b9620`'s loop reads `circle_x + 1` and `circle_y + 1`
+    /// from `i = 0` and stops on `i + 1 < circle_radius[k + 1]`: the centre's
+    /// own `(0, 0)` is never visited, and the last entry inside the inner
+    /// ring — `circle_radius[5] − 1` — is. Run640's packet at frame 12575
+    /// holds the original's answer for Great Sahara's `1/2031`
+    /// (`filled` 38, `space` 47/47/34; entry 0 gave 39/46/46/33).
+    ///
+    /// Here a neighbour owns, in turn, the centre cell and the last inner
+    /// entry's: the first changes nothing (the centre is not walked), the
+    /// second takes one cell off `land`.
+    #[test]
+    fn the_circle_walk_starts_at_entry_one() {
+        let circle = crate::ai_place::circle();
+        let inner = circle.radius[5];
+        let land_with = |owned: Option<(i32, i32)>| {
+            let mut f = fix();
+            let b = build(&mut f.sim, 1, f.village, 20, 20);
+            let c = f.sim.buildings[b].city.unwrap();
+            let centre = f.sim.cities[c].pos.cell();
+            if let Some((dx, dy)) = owned {
+                let cell = Cell::new(centre.x + dx, centre.y + dy);
+                f.sim.world.set_owner(cell, Owner::Player(0), Owner::None);
+            }
+            f.sim.census(1);
+            f.sim.ai[1].city_ai[c].land
+        };
+        let base = land_with(None);
+        assert_eq!(
+            base as usize,
+            inner - 1,
+            "entries 1..circle_radius[5], all of them land in the city's own region"
+        );
+        assert_eq!(
+            land_with(Some((0, 0))),
+            base,
+            "the centre's own cell is never walked"
+        );
+        let last = (circle.x[inner - 1], circle.y[inner - 1]);
+        assert_eq!(
+            land_with(Some(last)),
+            base - 1,
+            "the last entry before the inner ring is walked"
+        );
     }
 
     /// `check_explore` answers the whole **region** grid — two world cells
