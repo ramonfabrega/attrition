@@ -52,6 +52,14 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1514, 2026-10-06 — the guard leg's identity
+
+(1520) **What 1514 left standing**: the Dragoons' release offset on
+run662 (`1/80` launched 17309, `1/90` 17311, pinned explicitly; 1515's
+row on a third run); and its M3 — `do_explore_to`'s tail ungated by the
+order's identity fails no walk and no unit test, an arm for the rules
+track (DECISIONS 56 §3), a candidate for chapter fifty-two's list.
+
 ## Parked by item 1508, 2026-10-06 — the cavalry archer's fire
 
 (1515) **What 1508 left standing**: the gap 17183..17237's Merchant
@@ -3661,6 +3669,13 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1521) **A stand-in that names no `SEAM` is invisible to `seams.py`**
+(1514's Loop line, 2026-10-06): a booking's "the head is still this
+order", written as a kind-and-point test, was an object identity in the
+original (`Unit::head_serial`); §24.9 had said "this order" in prose
+since item 569, and no tool flags a comparison by value where the
+original compares by identity. One reach.
 
 (1518) **A draw-order word whose clocks the harness re-seats is
 invisible to every widening** (1510's Loop line, 2026-10-06): both

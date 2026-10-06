@@ -6625,6 +6625,59 @@ mod tests {
         assert_eq!(case(&[0x700]), 0, "out of reach: 0x700 > 0x600");
     }
 
+    /// **`pUVar1 == param_1`** (`Unit::do_attack_to@005f2320`, `docs/AI.md`
+    /// §135): the look runs only while the order it was dispatched for
+    /// still heads the list. A guard's leg whose `timer` runs out on the
+    /// look's phase is killed (`do_move@005f7b30:184`), and `work` has the
+    /// guard lay a **new** leg to the same post. That leg is not the order
+    /// `do_attack_to` was called for, so the unarmed wagon does not pause
+    /// on it — French East Indies' President `1/67` on 17243, whose post
+    /// had not moved. The control, a leg with time left, pauses fifteen.
+    #[test]
+    fn a_guard_s_leg_that_timed_out_is_a_new_order_and_takes_no_pause() {
+        let pause = |timed_out: bool| -> i32 {
+            let mut s = sim();
+            let foot = fighter(&mut s);
+            let wagon = wagon_type(&mut s);
+            let w = spawn(&mut s, 1, wagon, Pos::new(8211, 32341));
+            s.units[w].movement.heading = Angle(535_429_120);
+            s.add_move_order(
+                w,
+                Pos::new(20000, 20000),
+                MoveKind::AttackTo,
+                QueuePos::New,
+                true,
+            );
+            let at = Pos::new(13438, 26412);
+            let g = spawn(&mut s, 1, wagon, at);
+            let a = spawn(&mut s, 1, foot, Pos::new(at.x + 0x300, at.y));
+            s.add_move_order(
+                a,
+                Pos::new(0x6000, 0x2000),
+                MoveKind::AttackTo,
+                QueuePos::New,
+                true,
+            );
+            let mut grp = group_of(1, &[g, a]);
+            assert!(s.push_group(&mut grp, true));
+            s.add_guard_order(g, w, 0, 264, QueuePos::New);
+            let o = i64::from(s.units[g].index);
+            s.work(g, 1 - o);
+            let leg = s.current_move(g).expect("the guard's leg");
+            assert_eq!((leg.kind, leg.pause), (MoveKind::AttackTo, 0));
+            if timed_out {
+                s.units[g].orders[0].move_mut().unwrap().timer = 1;
+            }
+            // The look's phase.
+            s.work(g, 15 - o);
+            let m = s.current_move(g).expect("a leg again");
+            assert_eq!((m.kind, m.dest), (MoveKind::AttackTo, leg.dest));
+            m.pause
+        };
+        assert_eq!(pause(false), 15, "the same leg: the wagon waits");
+        assert_eq!(pause(true), 0, "a new leg to the same post: no look");
+    }
+
     /// `do_guard`'s reposition: a guard off its post beside a moving
     /// target is given an `ATTACK_TO` leg to the post, at the head,
     /// without the action bit, stepped the same frame — so its `timer`,

@@ -15046,6 +15046,41 @@ standing on block 17238, `1/67`'s move `pause` on 17244 and 38 rows on the word'
 Three rounds in flight, `1/80`'s launched on 17242 with the Dragoon's release offset
 (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). `docs/AI.md` §134. Run 661 only.
 
+## run662 — French East Indies, the word 17318's widening to the game's end (2026-10-06, item 1514)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1514-opus/run662-booking.json`,
+written before the run. run661 ends 17255, and run600 dumps only its closing state at 17380, so no record
+on disk showed any block of 17256..17379. Window **[17312,17378)**, end 17378, call window 17310..17378,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 2400`, run661's four `--detail` sections,
+through the click-free lane (`free` at launch; no other lane's capture waited on). One take:
+
+```sh
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run662 \
+    --map 18 --seed 12345 --ai-tribe 10 --profile DIFFICULTY=5 \
+    --end-frame 17378 --timeout 2400 --log-window 17312 17378 --callwin 17310 17378 \
+    --tracer-def RON_LEADER_PROBE --cover cover=0 --ffwd-minute 10 \
+    --detail end:MISC,UNITS=9,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:CHECKSUM=2 \
+    --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1
+```
+
+Receipt success; process and wait exits **0**; five settings files restored; 66 group blocks
+17312..17377; seed 12345 read back; closing frame 17379. Launch-to-exit 1026.094 s, total 1040.690 s.
+Game-RNG draws match run600 on all 17,379 shared frames (`rngcmp.py rontrace-run600.log`).
+
+Archive `gamelog-run662-islands-french-17318.txt`, 201,033,889 bytes,
+SHA-256 `4ec1dfbf91882f323ddc722d35dcef605f54d1d56dda9d3a0f10a5c6da9d36ab`.
+
+Archive `rontrace-run662.log`, 101,224,160 bytes,
+SHA-256 `cec3637db6f8dba5aaef43f981ae75b32a66a15b8698f29beddd20a0fb1d7a4c`.
+
+**What it holds**: `run662_s_word_frame_is_widened_whole` (`diff::third_pair`): 562 keys, 138 standing on
+block 17312, none on 17313..17318, 25 on the word's block 17319 (`1/115` walking where it stands). Every
+block to the game's last before its closing state, so a later word in this game is on disk. Rounds in
+flight from the first block: the Dragoons `1/80` and `1/90` with their release offset before the word,
+344 rows after it (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). `docs/AI.md` §135.
+Run 662 only.
 ## run663 — run470's game over the new word 15101's window: the third map's bombards again (2026-10-06, item 1510)
 
 **What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 17` from
