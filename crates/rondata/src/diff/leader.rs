@@ -1158,7 +1158,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 170_080,
+            compared, 170_400,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1261,7 +1261,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 182_836,
+            compared, 183_180,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1455,7 +1455,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 38_268,
+            compared, 38_340,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1593,7 +1593,7 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 276_380,
+            compared, 276_900,
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1742,7 +1742,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 63_780,
+            compared, 63_900,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2907,7 +2907,7 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 520_870,
+            compared, 521_850,
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

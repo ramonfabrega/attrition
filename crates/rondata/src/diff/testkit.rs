@@ -1955,6 +1955,9 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_12794: (i64, i64) = (12789, 12801);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12952: (i64, i64) = (12947, 12959);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_14090: (i64, i64) = (14085, 14097);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_14786: (i64, i64) = (14777, 14789);
+/// run649's blocks around `find_target`'s tick 15088 (item 1487): the
+/// decision French East Indies' word 15344 turned on, widened whole.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_15088: (i64, i64) = (15086, 15090);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (15339, 15351);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
