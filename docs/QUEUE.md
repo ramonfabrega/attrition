@@ -19,8 +19,8 @@ counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **667** (1511, 1530, 1532).*
 
 - **Two lanes**: `att-1539` (Opus 5.5, the coverage pair, run 674, AI
   §146) and `att-1538` (Sonnet 5.5, Great Sahara in the coverage pair's
-  lobby, run 675, AI §147), `--effort high` both. Wait on them with
-  `tools/lanewait.py att-1538 att-1539`. Next run 676, next section §148.
+  lobby, runs 675–676, AI §147), `--effort high` both. Wait on them with
+  `tools/lanewait.py att-1538 att-1539`. Next run 677, next section §148.
   1497 waits for a lane.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
   in `AI_WORDS`, its `Coverage pair:` line read by
