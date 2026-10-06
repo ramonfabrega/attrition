@@ -29,7 +29,7 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
   a merge-moved pin is no kill, the push is read back, a section stub lands.
-- **Fable backlog: 20 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526).
+- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
