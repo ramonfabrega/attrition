@@ -425,9 +425,11 @@ impl Sim {
         if self.lobby.starting_resources != 7 || self.lobby.starting_technology != 8 {
             return None;
         }
-        let shield = self.tech_tree.types.iter().position(|d| {
-            d.kind.is_tech() && d.name.eq_ignore_ascii_case("Missile Shield")
-        })?;
+        let shield = self
+            .tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_tech() && d.name.eq_ignore_ascii_case("Missile Shield"))?;
         (!self.tech[who as usize].tech[shield]).then_some(shield)
     }
 

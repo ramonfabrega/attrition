@@ -210,13 +210,22 @@ fn coverage_pair_start_pays_its_lobby() {
     assert_eq!(built.sim.lobby.starting_resources_row, (100, 100));
     // Nubians' food is the table's own; the Persians' is half as much again
     // (`PERSIANS_BONUS_FOOD`, `Leader::init`).
-    assert_eq!(built.sim.ledgers[0].bucket, [20000, 20000, 20000, 10000, 20000, 20000]);
-    assert_eq!(built.sim.ledgers[1].bucket, [30000, 20000, 20000, 10000, 20000, 20000]);
+    assert_eq!(
+        built.sim.ledgers[0].bucket,
+        [20000, 20000, 20000, 10000, 20000, 20000]
+    );
+    assert_eq!(
+        built.sim.ledgers[1].bucket,
+        [30000, 20000, 20000, 10000, 20000, 20000]
+    );
     for who in 0..2u8 {
         for o in 1..=13i16 {
             let u = built.sim.unit_by_o(who, o).expect("a starting citizen");
             let un = &built.sim.units[u];
-            assert_eq!(un.max_health, 85, "who {who} citizen {o}: the Militia line's hits");
+            assert_eq!(
+                un.max_health, 85,
+                "who {who} citizen {o}: the Militia line's hits"
+            );
             // Citizens 1..=9 are ordered (two, three, four at the woodcutter
             // and farms); the last four are `place_unit`'s idle ones.
             assert_eq!(
@@ -275,7 +284,6 @@ fn run651_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 87, "initial run651 baseline");
 }
 
-
 /// run656, item 1496: the lobby's first 33 blocks at the long's detail
 /// (`LEADERS=9`, `BUILDS=7`, `UNITS=3`), so frame 8's word has records.
 pub(crate) const RUN656: &str = "gamelog-run656-eastindies-persian-alltech-window-1-33.txt";
@@ -314,4 +322,3 @@ fn run656_s_word_frame_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 364, "initial run656 baseline");
 }
-

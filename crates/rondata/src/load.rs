@@ -1857,11 +1857,10 @@ pub fn load_tables(
                 t.records
                     .iter()
                     .map(|r| {
-                        let mut data = r
-                            .fields
-                            .iter()
-                            .filter(|f| f.tag == "DATA")
-                            .map(|f| Scalar::parse(f.text.trim()).map_or(0, Scalar::written_int));
+                        let mut data =
+                            r.fields.iter().filter(|f| f.tag == "DATA").map(|f| {
+                                Scalar::parse(f.text.trim()).map_or(0, Scalar::written_int)
+                            });
                         (data.next().unwrap_or(0), data.next().unwrap_or(0))
                     })
                     .collect()

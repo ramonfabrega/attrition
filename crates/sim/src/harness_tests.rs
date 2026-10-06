@@ -744,7 +744,11 @@ fn the_lobbys_resource_row_prices_the_opening_stockpile() {
         sim.lay_starting_goods(0);
         sim.ledgers[0].bucket
     };
-    assert_eq!(paid(&mut sim), Tuning::RON.starting_goods, "row 1: as written");
+    assert_eq!(
+        paid(&mut sim),
+        Tuning::RON.starting_goods,
+        "row 1: as written"
+    );
 
     sim.lobby.starting_resources = 7;
     sim.lobby.starting_resources_row = (100, 100);

@@ -160,7 +160,10 @@ pub fn lobby_of(
         l.starting_resources = v;
         // The row's `lo`/`hi` (`Game::init_starting_resources`); a setting
         // past the table keeps the Standard row.
-        if let Some(&row) = usize::try_from(v).ok().and_then(|i| starting_resources.get(i)) {
+        if let Some(&row) = usize::try_from(v)
+            .ok()
+            .and_then(|i| starting_resources.get(i))
+        {
             l.starting_resources_row = row;
         }
     }
