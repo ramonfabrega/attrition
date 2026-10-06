@@ -2866,6 +2866,17 @@ impl Sim {
         );
         let slot = self.buildings[at].queue.push_tech(t, &charges);
         self.tech[who as usize].queued[t] += 1;
+        // `Build::queue_up@00620f40` stamps the leader's `tech_frame` (`+0x7c4`)
+        // and its category's `tech_cat_frame[cat]` (`+0x7c8 + 4 cat`) with the
+        // frame, for every technology queued (item 1496: run656's block 5
+        // holds both at 4, the frame the AI bought Missile Shield).
+        let cat = self.tech_cat(t);
+        if let Some(ai) = self.ai.get_mut(who as usize) {
+            ai.tech_frame = self.frame;
+            if let Some(f) = ai.tech_cat_frame.get_mut(cat) {
+                *f = self.frame;
+            }
+        }
         Ok(slot)
     }
 
@@ -3912,17 +3923,18 @@ impl Sim {
     /// `bucket_add`, under the same three-armed scale.
     ///
     /// `Game::init_starting_resources@0058a500` fills the array before the
-    /// first frame: the lobby's `STARTING_RESOURCES` row gives a `lo`/`hi`
-    /// pair, `lo == 0` halves `STARTING_GOODS`, and a row with a spread
-    /// draws `rand % (span x base)` per good from the sync stream
-    /// (`docs/ORDERS.md` §9.4). **Only row 1 is modelled**, and it is the
-    /// row every capture on disk plays — `STARTING_RESOURCES 1` in every
-    /// one of the 350 `GAMEINFO` blocks across the kept dumps — where the
-    /// constant is
-    /// paid unscaled; run40's forty frames of food, timber and wealth are
-    /// what confirm the row pays `base`. The `lo`/`hi` table itself is
-    /// unread. Row 8, the unlimited lobby, is the one other arm that is
-    /// read, and both callers *assign* 99,999 after the add.
+    /// first frame (`docs/ORDERS.md` §9.4): the base is `STARTING_GOODS[g]`,
+    /// or `STARTING_GOODS[0]` for every good but knowledge when the lobby is
+    /// row 7; the lobby's `startingresources` row gives a `lo`/`hi` pair;
+    /// `lo == 0` halves the base, else the grant is `lo x base` plus, for a
+    /// row with a spread, `rand % ((hi - lo) x base)` from the sync stream.
+    /// **Row 1 and Deathmatch (row 7, `100`/`100`) are measured**, run40's
+    /// forty frames and run651's block 1 (`docs/AI.md` §129): neither has a
+    /// spread, so neither draws. **A spread row (9..11) is not modelled**:
+    /// its draws are spent before the first dumped frame and the amount
+    /// they chose is in no record, so it pays `lo x base`. Row 8, the
+    /// unlimited lobby, is the one other arm that is read, and both
+    /// callers *assign* 99,999 after the add.
     ///
     /// Conquer the World's `ctw_nomad_starting_res_x` is the third arm and
     /// is cut from v1.
@@ -3930,13 +3942,18 @@ impl Sim {
         if self.lobby.resources_unlimited() {
             return economy::UNLIMITED_GOODS;
         }
-        let base = self.tuning.starting_goods[g];
+        let mut base = self.tuning.starting_goods[g];
+        if self.lobby.starting_resources == 7 && g != 3 {
+            base = self.tuning.starting_goods[0];
+        }
+        let (lo, _hi) = self.lobby.starting_resources_row;
+        let amount = if lo == 0 { base / 2 } else { lo * base };
         // Barbarians at the Gates pays the defending team the *other* row's
         // index as a multiplier, which is what both callers write.
         if self.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
-            return (self.lobby.starting_resources2 + 1) * base;
+            return (self.lobby.starting_resources2 + 1) * amount;
         }
-        base
+        amount
     }
 
     /// The tree entry of basic good `g`, if the tree has one: the goods come

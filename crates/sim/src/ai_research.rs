@@ -25,10 +25,10 @@
 //! **Seams**, each named at its definition: the eleven weights;
 //! `leader_flags & 8` (a human the AI is driving); the `age_stamp` and
 //! human-alive predicates; `village_num`; `get_mod_resource_cap`;
-//! `types[0x2ae]`'s many-landmasses predicate; `get_gov`'s bonus test; the
-//! `starting_resources == 7 && starting_technology == 8` lobby's hard-coded
-//! branch; a building's "is upgrading" vslot; and
-//! `Build::queue_up`'s escrow argument.
+//! `types[0x2ae]`'s many-landmasses predicate; `get_gov`'s bonus test; a
+//! building's "is upgrading" vslot; and `Build::queue_up`'s escrow argument.
+//! (The `starting_resources == 7 && starting_technology == 8` lobby's
+//! hard-coded branch is built — [`Sim::tech_race_shield`], item 1496.)
 
 use crate::build::Ident;
 use crate::economy::{OverCap, RESOURCES};
@@ -351,7 +351,7 @@ impl Sim {
     /// `TechType+0x14`, set by `TechType::set_research`: an epoch tech's
     /// line, and 3 for everything else — every age, plain, final and
     /// government tech.
-    fn tech_cat(&self, t: TypeId) -> usize {
+    pub(crate) fn tech_cat(&self, t: TypeId) -> usize {
         match self.tech_tree.kind(t) {
             Kind::Epoch { line, .. } => line.index(),
             _ => Line::Science.index(),
@@ -416,6 +416,21 @@ impl Sim {
             .any(|c| c.alive && c.owner == who && c.capital)
     }
 
+    /// The tech `0x243`, **Missile Shield**, when the tech-race branch of
+    /// `research_techs` is live for `who`: the lobby is `STARTING_RESOURCES
+    /// 7` with `STARTING_TECHNOLOGY 8` and the leader's raw bit for the tech
+    /// is clear (the branch's own test is the bit, not `has_tech`'s
+    /// prerequisite half).
+    fn tech_race_shield(&self, who: Player) -> Option<TypeId> {
+        if self.lobby.starting_resources != 7 || self.lobby.starting_technology != 8 {
+            return None;
+        }
+        let shield = self.tech_tree.types.iter().position(|d| {
+            d.kind.is_tech() && d.name.eq_ignore_ascii_case("Missile Shield")
+        })?;
+        (!self.tech[who as usize].tech[shield]).then_some(shield)
+    }
+
     // ---- research_techs ----
 
     /// `research_techs`: every eligible tech valued and offered to the make
@@ -444,6 +459,24 @@ impl Sim {
             };
             if self.buildings_of_line(who, rec) == 0 {
                 continue;
+            }
+            // **The tech-race lobby's hard-coded branch** (`research_techs`
+            // `6c6ccb`..`6c6de7`, item 1496, `docs/AI.md` §129): under
+            // `STARTING_RESOURCES 7` with `STARTING_TECHNOLOGY 8`, while the
+            // leader's own bit for tech `0x243` (Missile Shield, the first
+            // of the four final techs — `field_0x6c60 & 8` is bit 579 of the
+            // tech mask) is clear, every candidate but that one is skipped
+            // outright, and that one is **bought on the spot** when
+            // `can_pay_cost(who, −1, −1, 1)` holds — `produce_tech(0x243,
+            // 1)` — and valued as any other when it does not.
+            if let Some(shield) = self.tech_race_shield(who) {
+                if t != shield {
+                    continue;
+                }
+                if self.type_affordable(who, shield, true) > 0 {
+                    self.produce_tech(who, shield, 1);
+                    continue;
+                }
             }
             if let Some((val, slot)) = self.tech_value(who, t, rec, low, over) {
                 self.ai[w]
@@ -475,10 +508,9 @@ impl Sim {
         let mut base = self.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
         base = shr8(mul(base, self.ai[w].infra_mod));
 
-        // *(The `starting_resources == 7 && starting_technology == 8` lobby
-        // buys tech `0x243` outright here; the option block carries no
-        // `starting_technology`, so that branch is a **seam** — never
-        // taken.)*
+        // *(The `starting_resources == 7 && starting_technology == 8` lobby's
+        // branch stands in [`Sim::research_techs`], before this call — item
+        // 1496.)*
 
         match kind {
             Kind::Age(n) => {

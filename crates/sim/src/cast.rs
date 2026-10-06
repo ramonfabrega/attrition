@@ -198,7 +198,7 @@ impl Sim {
     /// SEAM: the other terms — the American marines, Copper and Bananas,
     /// the Iroquois, the Dutch, the Spy, General and supply upgrades —
     /// which no staged nation or holding takes.
-    pub(crate) fn unit_hits(&self, who: Player, rec: usize) -> i32 {
+    pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
         let mut hits = self.type_hits(who, rec);
         let t = &self.unit_types[rec];
         let trader = matches!(t.type_index, 0x3d | 0x3e | 400)

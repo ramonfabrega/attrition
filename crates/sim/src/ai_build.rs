@@ -58,7 +58,7 @@
 //! - spells: the simulation has none, so `produce_spell` never casts.
 
 use crate::ai::{Census, MakeObject};
-use crate::ai_place::{enhancing_good, gather_good, is_enhancer, is_military_trainer};
+use crate::ai_place::{enhancing_good, gather_good, is_enhancer};
 use crate::ai_types::Class;
 use crate::build::{self, BuildDomain, Ident, flags};
 use crate::economy::RESOURCES;
@@ -238,6 +238,16 @@ impl Sim {
 
     /// `BuildTypeData::is_defensive` — a tower, a fort, an Airbase, or
     /// anything that shoots.
+    /// `BuildTypeData::is_military_trainer@0063bcf0`, the derived flag on the
+    /// root of the `FROM` chain (`build::init_derived_flags`): every building
+    /// that trains a military unit — the Barracks, Stable and Siege Factory
+    /// lines, the Dock, the **Airbase** and the Missile Silo. The five idents
+    /// this crate listed here before item 1496 were all an Ancient-to-Industrial
+    /// lobby ever offered (`docs/AI.md` §129).
+    fn is_trainer_type(&self, rec: usize) -> bool {
+        build::is_military_trainer(&self.build_types, rec)
+    }
+
     fn is_defensive_type(&self, rec: usize) -> bool {
         build::is_tower(&self.build_types, rec)
             || build::is_fort(&self.build_types, rec)
@@ -413,7 +423,7 @@ impl Sim {
         }
         // The capital countdown: with my capital in someone else's hands,
         // only military trainers are listed.
-        if self.lobby.elimination == 1 && self.capital_lost(who) && !is_military_trainer(ident) {
+        if self.lobby.elimination == 1 && self.capital_lost(who) && !self.is_trainer_type(rec) {
             return None;
         }
         let n = (bt.x_size.max(bt.y_size) - 2).clamp(0, 2) as usize;
@@ -619,7 +629,7 @@ impl Sim {
 
         // ---- §3.5 military trainers, then the dock family ----
         let deep = bt.has(flags::RESEARCH_HERE);
-        if !deep && !dock && is_military_trainer(ident) {
+        if !deep && !dock && self.is_trainer_type(rec) {
             if self.lobby.rush_rules == 8 || !(have == 0 || up != 0) {
                 return None;
             }
@@ -893,7 +903,7 @@ impl Sim {
         }
         if self.cities[f.c].no_heal
             && !self.is_defensive_type(rec)
-            && (!is_military_trainer(ident) || self.city_count_line(f.c, rec, true) != 0)
+            && (!self.is_trainer_type(rec) || self.city_count_line(f.c, rec, true) != 0)
         {
             v /= 100;
         }
@@ -904,7 +914,7 @@ impl Sim {
             let reg = self.reg_buildings_of_line(who, f.reg, rec);
             let d = if dock {
                 (queued + 2 * have) * 4 + 1 + reg
-            } else if is_military_trainer(ident) {
+            } else if self.is_trainer_type(rec) {
                 (have + queued) * 4 + 1 + reg
             } else if self.is_training_building(rec) {
                 (reg + (queued + 2 * have) * 2) * 2 + 1

@@ -116,6 +116,10 @@ pub struct Loaded {
     /// `Category.data[0]` (`+0x3c`), which `GameInfo.wonderwin` indexes:
     /// the wonder victory's points, 9999 for "No Wonder Victory".
     pub wonder_wins: Vec<i32>,
+    /// rules.xml's `startingresources` category rows' two `DATA` values in
+    /// file order — `Category.data[0]`/`[1]` (`+0x3c`/`+0x40`), the `lo` and
+    /// `hi` `Game::init_starting_resources` indexes by `STARTING_RESOURCES`.
+    pub starting_resources: Vec<(i32, i32)>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1845,6 +1849,24 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        starting_resources: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "startingresources")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| {
+                        let mut data = r
+                            .fields
+                            .iter()
+                            .filter(|f| f.tag == "DATA")
+                            .map(|f| Scalar::parse(f.text.trim()).map_or(0, Scalar::written_int));
+                        (data.next().unwrap_or(0), data.next().unwrap_or(0))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
@@ -2560,6 +2582,7 @@ mod tests {
             warnings: vec![],
             map_styles: vec![],
             wonder_wins: vec![],
+            starting_resources: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
