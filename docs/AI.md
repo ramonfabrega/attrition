@@ -13977,3 +13977,63 @@ state has parted by run624's first block, 10126: who=1's food is 118
 against 160, metal 203 against 230, `num_queued[82]` 2 against 1, and
 `caras` 3 against 4, and `1/58` stands elsewhere. Item 1455 dates that
 parting between 9784 and 10126.
+
+## 119. A French General recovers craft twice as fast (2026-10-05, item 1470)
+
+French East Indies' word 12952 was one draw: ours spent a third
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` at index 34, where the
+original spent `Guy::set_anim+0x104b`. The figure that drew was guy 1 of
+`1/79`, a **GENERAL** (`TypeIndex` 54, land) in group 73. It wrapped its
+walk clock here. In the original it stood still.
+
+**The event is a cast, and the field that parted is one no widening
+read.** On run635's block 12953 the original's `1/79` holds `mana_burn`
+0 → 1000, `unit_masks` gains `0x8000`, and figure 0 holds
+`hold_attack` 12. Both sides threw the same two hero coins on 12952
+(`Unit::think_spellcaster+0x589`, §99.13). Ours could not afford Forced
+March: its `mana_burn` stood at **127** where the original's stood at
+**0**. `mana_burn`, `spell_time` and `unit_masks & 0x8000` are on the
+coverage pin's unread list, so the first rows of the word (sixteen walkers
+in group 73 stepping short, `group:73.speed` 32 against 42) were the
+march's speed, not its cause.
+
+**Dated by walking `mana_burn` back.** Both sides cast Forced March on
+10777 (run630: 0 on 10776, 1000 on 10777). The march holds the craft
+(`unit_masks & 0x2a000`) for 150 frames. From block 10928 the original takes
+back **two** a frame and ours one. run632 holds the original at 102 on
+11376 and 64 on 11395; ours stood at 551 and 532 there. Both cast again on
+11929. The original is back at 0 by 12579 (run634: 0 on 12789). Ours
+reached 127 on 12952. The first parted value is block 10928, 999 against
+998. The earliest on disk is run632's 11376.
+
+**The rate, read off the listing.** `Unit::process@00610bc0`, `610f2d`..
+`61104f`:
+
+```text
+r = 2
+has_tribe_bonus(10) and is(GENERAL, 1)            -> r = 4
+has_preq(SPIES_GENERALS_RECOVER_CRAFT) and
+    (is(GENERAL, 1) or is(SPY, 1))                -> r *= 2
+is(MEMNON, 0)                                     -> r = MEMNON_REGEN_RATE × r >> 8
+mana_burn -= min(mana_burn, ((frame & 1) + r) / 2)
+```
+
+Power 10 is France. `is(x, 1)` is vslot `+0xb8` with `push 1; push x`,
+the strict test (the type or its graft). `SPIES_GENERALS_RECOVER_CRAFT`
+(`0x301`) is a Conquer the World bonus. The crate's tree carries no row
+for it, so the arm is not taken. The original's French General shows
+`r = 4` exactly, so it is not taken there either.
+`MEMNON_REGEN_RATE` is `2/1`, loaded 8.8 (`get_fraction(…, 0x100)`, 512).
+`UnitData::mana@00609a50` has the same French arm. A French General's pool
+is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
+`0% bonus` (`get_item`, plain). Both are built in
+[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/cast.rs`).
+
+**What moved.** French East Indies **12952 → 14090**. Ours holds 102 on
+11376 and 1000 on 12953, the original's own values.
+
+**What is not established.** The supply wagon's gate before the arm
+(`is_supply` and `is_gov_hero`) and `unit_masks`' `0x2000` are still
+seams. The Memnon arm and `FRENCH_SPECIAL_CRAFT` rest on the listing
+alone: no capture holds Memnon, and the bonus ships at 0. No blind
+reading has been done.

@@ -221,16 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run636: the successor after a French General's craft rate, frame
+/// 14090 (item 1470).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run636",
+        &[("gamelog-run636-islands-french-14090.txt", 14085)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[14091],
+        true,
+    )
+}
+
+#[test]
+fn run636_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 0, "initial run636 baseline");
+}
+
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
 /// 12952 (item 1461).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_12952_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run635",
         &[("gamelog-run635-islands-french-12952.txt", 12947)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_12952,
         1,
         &[12953],
         true,
@@ -240,7 +267,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run635_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_12952_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -1056,8 +1083,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run635-islands-french-12952.txt",
+            "gamelog-run636-islands-french-14090.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run635-islands-french-12952.txt",
+            WIDENING_FRENCH_EAST_INDIES_12952,
         ),
         (
             EAST_START,
@@ -1437,9 +1470,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run634-islands-french-12794.txt",
             WIDENING_FRENCH_EAST_INDIES_12794,
         ),
-        // The open word's window, to the word's own block.
         (
             "gamelog-run635-islands-french-12952.txt",
+            WIDENING_FRENCH_EAST_INDIES_12952,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run636-islands-french-14090.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
