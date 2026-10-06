@@ -8156,7 +8156,13 @@ fn run245_s_cast_is_the_original_s_field_for_field() {
                 i64::from(un.spell_time),
                 get("spell_time"),
             );
-            note(them.who, them.o, "cavarch_o", to, get("cavarch_o"));
+            note(
+                them.who,
+                them.o,
+                "cavarch_o",
+                if un.cavarch_idle { -2 } else { to },
+                get("cavarch_o"),
+            );
             let _ = tw;
             note(
                 them.who,
@@ -14503,7 +14509,7 @@ fn casts_field_for_field(
                 them.who,
                 them.o,
                 "cavarch_o",
-                target_o(un.cast_target),
+                sim.cavarch_o(u),
                 get("cavarch_o"),
             );
             note(

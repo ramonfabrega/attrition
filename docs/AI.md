@@ -15469,3 +15469,213 @@ the sampler keeps; whether the three-against-two Village slots are the SITE list
 enemy walk is every object, not the cell chains of the `circle_radius[2]` ring (differs only at a ring corner). The order the original reaches a list's patches in at setup
 (the harness seeds the fog's, then the owner grid's, in the goods list's order): it only decides ties. `leader_flags & 0x700` as `transport_level != 0` rests on
 `docs/TRANSPORT.md`'s `leader_flags |= 0x700`. The cell flag `2` (read in arm 4.2) has no writer in this crate, so its two branches are unit-untested.
+
+## 134. A guard's attack-move leg goes under its attack, and a Dragoon fires on the move (2026-10-06, item 1508)
+
+Item 1502 left the word at **17171**, 11 draws against 10, parting at index
+1. Ours spent `Unit::fight+0x824` and its swing for the Dragoon `1/80`
+(TypeIndex 189, `DRAGOON`, land, `FLAGS majv`); theirs spent the first of
+seven clock wraps. That item dated three events in the gap, in order:
+
+- leader 0's dirty bit on 17025;
+- the first strike on player 0 on 17053;
+- an attack pushed onto a guard's AttackTo leg, which ours kept beneath it.
+
+**The first two are not on the word's chain.** Nothing this crate models
+reads the dirty bit or `treaties` bit 2 there (§131.3), and run658's window
+shows no order or unit row parting for either. The word's draw comes from
+the third event, and from a fourth that no dump had been read for.
+
+### 134.1 Both sides' stacks, block by block
+
+run657's records for the guards `1/69`, `1/78`, `1/80`, `1/83` and `1/90`
+(`unitraw.py`, scratch), read bottom-first as the dump lays them:
+
+| unit | block | theirs | ours |
+| --- | --- | --- | --- |
+| `1/69` (HUSSARS) | 17167 | `[Guard, Attack(0/2000)]`, path 0 | `[Guard, AttackTo, Attack]`, path 1 |
+| `1/80` (DRAGOON) | 17169 | `[Guard, AttackTo]`, `cavarch_o 2000`, guy 0 `ATTACKWALK` aimed at `0/2000` | `[Guard, AttackTo]`, walking, `cavarch` −2 |
+| `1/80` | 17170 | the same, `recharging 30`, `visible 1` | `recharging 0` |
+| `1/80` | 17171 | `[Guard, Attack(0/2000)]` | `[Guard, AttackTo, Attack]` |
+
+Both sides push the attack on the same frame: 17166 for `1/69` and 17170
+for `1/80`. These are `do_attack_to`'s fifteen-frame phases,
+`(frame + o) % 15 == 0`. The two sides keep different stacks after it. And
+theirs' `1/80` has already fired, two frames before the push, without
+leaving its walk.
+
+### 134.2 The guard's leg: `find_nearby_target`'s `local_2c`
+
+`Object::find_nearby_target@00648da0:176-184` sets `local_2c` when the
+searcher's activity (`UnitData::get_activity`) is a `GUARD` (type `0xc`).
+Its add arm (`:551-606`) splits on it:
+
+- with `local_2c`, an `ATTACK_TO` in front is killed
+  (`Unit::kill_current_order(0)`), and the attack goes in `QUEUE_FIRST`.
+  The group arm is never asked;
+- without it, an attack-move keeps its place under a `QUEUE_FIRST` attack.
+
+`orders.rs` had this arm written as a `SEAM` in `find_new_target`.
+`Sim::nearby_add` is now the add arm whole, and four callers take it:
+
+- `find_new_target`;
+- the attack-move's own look (`attack_move_add`);
+- `find_melee_target_added`'s search arm;
+- `fight`'s guard drop.
+
+The add arm is guard-only, which shows in run658. The pushes there onto a
+bare AttackTo (`1/90` on 17040, `1/69` on 17052) came before the guards were
+given on 17136, and no order row parts on them.
+
+Unit test: `cavarch::tests::a_guards_attack_move_leg_goes_under_the_attack_it_finds`,
+with the converse of a bare attack-move kept beneath.
+
+### 134.3 The fire on the move: `Unit::cavarch_fight`
+
+`sim::cavarch` is the module. A type whose `FLAGS` carry `v`
+(`unit_flags & 0x200000`) and which has an attack keeps a second target
+beside its order: `cavarch_o`, `cavarch_who` and the uid (`+0xa2`, `+0xa8`,
+`+0xa6`). The mechanism has three parts.
+
+- **`Unit::do_move@005f7b30:60-86`**, the step's first act:
+  - `HOLD_FIRE`, or an `ATTACK` action under the move, writes −1;
+  - otherwise `cavarch_fight` runs, on every frame while `cavarch_o ≥ −1`;
+  - once it reads −2, it runs only on `(o + frame) % 32 == 0`.
+- **`Unit::cavarch_fight@005ff4b0`** calls `fight(o, who, unit_masks2 & 0x100,
+  0, 1)`. When an empty answer follows an empty answer, it writes −2.
+- **`fight@005fd4d0`'s `param_5` path** never touches the order list:
+  - a recharging unit returns (`:102-104`);
+  - an invalid target is written −1. The search
+    (`find_melee_target(−1, &who, 1, 0, 0)`) then writes the pair and counts
+    one search on the leader's budget (`LAB_005fdb9e`);
+  - a captain re-searches a non-unit target, and a unit target unless the
+    `% 5` roll says otherwise. A different answer is written and the call
+    returns;
+  - out of range, it searches again;
+  - in range, it writes the pair, calls `set_attack`, and jumps to
+    `LAB_005feec6` (`005fe7c5`) past the facing, the snap and the swing. It
+    then does `set_attacking`, the damage arm and the reload.
+
+  `Sim::fight_as(…, cavarch)` is that strike.
+- **The search's cavarch argument.** `find_nearby_target`'s first arm
+  (`param_4 != 0`) gives must-reach 1, on-duty 0 and guarding 0, and
+  `check_target`'s seventh argument skips its reach head (`:35`) and its
+  `poor_target` tail (`:130`). `find_nearby_target_as` and
+  `find_melee_target_as` carry it.
+- **`Unit::move_step@005faf30:66-100`**, at the head of every step:
+  - every figure is aimed at `cavarch_o` and its pivots asked;
+  - when guy 0's `des_node_flags` (`+0x98`) reads 0, the target is dropped
+    (−1) and the turrets go back to the bow. The fold is from the listing,
+    `5fb039`–`5fb05b`;
+  - otherwise the step's `set_anim` asks `CHAR_ATTACKWALK` (10) in place of
+    the walk.
+
+  `Guy::move` already leaves an `ATTACKWALK` alone.
+
+**No round leaves on the frame `fight` runs.** The Dragoon's shot is the
+`CHAR_ATTACKWALK` release event (`starttime="866"`, frame 12). Its target is
+read from the current order, as every release's is (`docs/COMBAT.md` §9.0).
+run657 holds no `1/80` round on 17170..17177.
+
+**The −2 state is diff-backed across the suite.** `cavarch_o` and
+`cavarch_who` are now compared on every unit of every widening (`UnitDump`
+parses them; `diff::coverage` no longer pins them unread). The full suite
+added no row anywhere but run657, where it took rows away. That covers
+every v-type figure those windows print at −2 between its searches.
+
+Unit tests:
+
+- `cavarch::tests::a_unit_that_fires_on_the_move_finds_shoots_and_walks_on`;
+- `cavarch::tests::a_captain_firing_on_the_move_retargets_before_it_shoots`;
+- `cavarch::tests::an_empty_search_twice_waits_for_the_thirty_two_frame_phase`;
+- `cavarch::tests::the_step_attack_walks_while_the_turret_bears`.
+
+### 134.4 The value diff, and the word
+
+**run657 (17165..17177): 225 → 154.**
+
+- The guard's leg takes the three front orders that stood on 17165 (`1/78`,
+  `1/83` and `1/90`) and `1/69`'s and `1/80`'s order rows on 17167 and 17171.
+- The fire on the move takes `1/80`'s row on 17169 and its reload row on
+  17170. Ours had read `cur_anim` 8, `cur_time` 10 and `ox/whom` −1 there,
+  against theirs' 10, 1 and 2000/0. It also takes `1/80`'s position on 17172
+  (ours (6648, 9000) against (6643, 9014)), `1/78`'s swing on 17174 and
+  Napata's damage.
+- Block 17170 now reads `1/80` `recharging` 30, `cavarch_o` 2000 and
+  `cavarch_who` 0 on both sides.
+- Left past the first block: `group:66.role` on 17174.
+
+**The word moves 17171 → 17244**, 9 draws against 6, parting at index 0:
+
+- ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`;
+- theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+
+**run661** (`docs/RUNS.md`) widens it at **254** keys.
+
+- **139 stand on 17238.** These are run657's families, plus three that
+  parted in the gap 17183..17237:
+  - the Merchants `1/20`, `1/35` and `1/36` (TypeIndex 61) carry pieces 2123
+    and 14795 here against 50689 on both figures there;
+  - who=1's `num_units` reads −2 and 2 on the Artillery and Howitzer lines
+    (270, 271), against 0 and 0.
+- **One parts on 17244.** `1/67`'s move `pause` is 15 here against 0.
+- **38 part on the word's block, 17245.** `1/67` stands here (`cur_anim` 0,
+  `stopped` 1) where it walks there (`cur_anim` 7).
+- 76 more part on 17246..17250.
+
+`1/80`'s round launched on 17242 has the same lifetime on both sides. It
+leaves from the unit's square here and from the piece's release node
+there. This is the Dragoon offset (piece 60162) that run657's `1/90`
+already pinned.
+
+**Mutations** (`tools/mutate.py`, scored on `run657_s_word_frame_is_widened_whole`
+and `run661_s_word_frame_is_widened_whole` by exit code):
+
+| mutation | run657 | run661 | verdict |
+| --- | --- | --- | --- |
+| M1, no `cavarch_head` in `do_move` | 209 | 574 | held |
+| M2, no kill in `nearby_add` | 174 | 274 | held, and its unit test fails |
+| M3, no −2 throttle | 405 | 808 | held |
+| M4, the step never `ATTACKWALK` | 186 | 520 | held |
+| M5, no drop when the pivots do not bear | 154 | 254 | **failed nothing** |
+| M6, no captain re-search | 154 | 254 | **failed nothing** |
+
+M5 and M6 are arms no walk holds. M5 is `move_step`'s drop, which needs
+a target leaving the turret's arc mid-walk. M6 is `cavarch_fight`'s
+captain re-search, which needs a better target appearing while a target
+is held. Each has a unit test that fails under it:
+`the_step_attack_walks_while_the_turret_bears` for M5 and
+`a_captain_firing_on_the_move_retargets_before_it_shoots` for M6.
+
+### 134.5 What this has *not* established
+
+- **`unit_masks2 & 0x100`** and `do_attack@005f1b80:226-240`'s write of the
+  pair under a mandatory attack of a `v` type. Neither is carried, so
+  `fight`'s third argument is 0 here.
+- **The search budget's throttle** (`waiting < 5 && retargets > 10`). It is
+  unmodelled here as it is for `do_attack`.
+- **The group follower's own `cavarch_fight` call** (`5e838a`'s block,
+  `group_move_follow`). It is still a `SEAM`. `1/80` walks a plain
+  AttackTo.
+- **`find_melee_target`'s `reset_pivots(0)`** on a v-type's empty search.
+  The Dragoon rests at 0, which its figures already hold.
+- **The `k` type's `max_range` swap** in `cavarch_fight`, and its `ATTACK`
+  exemption in `do_move`. No shipped `v` type carries `k`.
+- **The captain's unit-target roll in `cavarch_fight`.** It is built from
+  `do_attack`'s, and no capture has a `v` captain cavarch-targeting a unit.
+- **Which mechanism moved who=1's Merchants and its siege lines in the gap
+  17183..17237.**
+
+### 134.6 Coverage
+
+Diff-backed:
+
+- the guard's kill: run657's four units' stacks, and run658's bare pushes
+  that do not kill;
+- the fire on the move's search, strike and walk slot: run657's `1/80` on
+  17168..17172;
+- the −2 throttle: every widening in the suite, compared on every unit;
+- the word 17244 itself.
+
+Reading only, listing-checked where arithmetic: the drop arm's turret fold
+(`5fb039`–`5fb05b`). No blind reading.

@@ -879,8 +879,8 @@ target order decides its transit legs are stale.
 
 **Before planning.**
 
-1. Cavalry-archer fire on the move (`cavarch_fight` every 32 frames;
-   combat's).
+1. Fire on the move (`cavarch_fight`, ~~every 32 frames~~ `docs/AI.md`
+   §134).
 2. **A suspended search** (`openlist != 0`): an `ATTACK` action retargets
    every 4 frames; a `GATHER` action within `vector_dist < 0x120` parks the
    unit (`avoid_x/y` = the move's `x/y`, gather reset, move dies;

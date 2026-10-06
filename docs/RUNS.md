@@ -15022,3 +15022,26 @@ SHA-256 `475158a99c800c7fd0d0adb2a9bc2013509b7e2237c2875970369146c1f79278`.
 It is 7 again on 17033, where `gather_stamp` reads 17032. `treaties` reads 1 against 3 from block
 17054, on both leaders, beside leader 0's `attack_stamp[1]` and `raid_stamp[1]` 17053.
 `docs/AI.md` §131. Run 658 only.
+
+## run661 — French East Indies, the word 17244's widening, with the leader probe (2026-10-06, item 1508)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1508-opus/run661-booking.json`,
+written before the run. run657 ends 17182, and run600 dumps only its closing state at 17380 (a draw
+stream and checksums otherwise), so no record on disk showed any block of 17183..17379. Window
+**[17238,17251)**, end 17255, call window 17236..17251, `RON_LEADER_PROBE`, `--ffwd-minute 10`,
+`cover=0`, `--timeout 1800`, run658's four `--detail` sections, through the click-free lane (`free`
+at launch; no other lane's capture waited on). One take. Receipt success; process and wait exits
+**0**; five settings files restored; 13 group blocks 17238..17250; seed 12345 read back.
+Launch-to-exit 705.314 s, total 716.152 s. Game-RNG draws match run600 on all 17,256 shared frames
+(`rngcmp.py`).
+
+Archive `gamelog-run661-islands-french-17244.txt`, 50,624,730 bytes,
+SHA-256 `5994f39fe126a780dc21a0ceac41a6aaa004021d49bda9067a1760e22233bfaa`.
+
+Archive `rontrace-run661.log`, 99,489,760 bytes,
+SHA-256 `acd473794aa4578ca50c965b399a6f07c5345c4c9bd5db1f9b7fb09eaf1667c7`.
+
+**What it holds**: `run661_s_word_frame_is_widened_whole` (`diff::third_pair`): 254 keys, 139
+standing on block 17238, `1/67`'s move `pause` on 17244 and 38 rows on the word's block 17245.
+Three rounds in flight, `1/80`'s launched on 17242 with the Dragoon's release offset
+(`third_pair_windows_check_groups_and_projectiles_on_both_sides`). `docs/AI.md` §134. Run 661 only.
