@@ -15321,3 +15321,7 @@ Ours' side of the gap is `RON_DEBUG_GAP`'s print, recorded in the journal.
 
 Listing-free: `Object::do_damage`'s writes are read off the export, not the
 listing.
+
+## 134. French East Indies' word 17171, an attack pushed onto a guard's walk (2026-10-06, item 1508)
+
+In progress.
