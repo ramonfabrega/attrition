@@ -13,29 +13,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and two
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and three
 landings since. French East Indies **12952** of 17,379 (was 12794);
-Toughest **12575** measured, floor 12569 (was 11985); fifty chapters closed.*
+Toughest **12575** measured, floor 12569 (was 11985); fifty-one chapters closed.*
 
-- **Landed**: 1461 (Opus, `get_speed`, now 1470) and 1429 (Sonnet,
-  the turn in `guys_follow`, now 1472). Three lanes: the newest pair's
+- **Landed**: 1461 (Opus, `get_speed`, now 1470), 1429 (Sonnet, the
+  turn in `guys_follow`, now 1472), 1423 (Sonnet, ch51 closed at 1100). Three lanes: the newest pair's
   on Opus 5.5, the others on Sonnet 5.5, `--effort high` each; entry
   58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1423, 1468, 1465, 1466.
+- **The rules lane is the coverage lane**: 1468, 1465, 1466.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 12 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471).
+- **Fable backlog: 13 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w12952 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w12569 of 15,432
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: spawn 1461 on `claude-opus-5-5[1m]` and 1429 and 1423 on
@@ -65,13 +65,6 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     from 12532; the first field to part in its window is 1/109's
     `half_step` on 12542. Scholar `1/124` is parked 1430. No
     mechanism is named.
-
-1423. **Chapter fifty-one: the arms the unit tests hold and no walk**
-    (DECISIONS 56 §3): `Group::target_opportunity`'s 15-frame cooldown
-    and member `find_melee_target` arm (1413, back now that fifty is
-    closed); a building's `visible` clear gate and its
-    `update_local_seen_build` fog arm (1419). Whether one staging
-    reaches each is the item's to establish first. run582.
 
 1468. **The twenty-fourth pass's code-changing verdicts, built**
     (`docs/audit/2026-10-05-fable-pass-24.md`, "The verdicts"): each
