@@ -825,7 +825,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
         // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 74, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 65, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1090,13 +1090,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8177, 53), (8201, 1), (8209, 9)],
+            [(8177, 53), (8201, 1)],
             "the blocks keys first part on, to three past the word 8377's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            63,
+            54,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );

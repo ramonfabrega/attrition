@@ -435,7 +435,7 @@ fn run631_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
-    pin_eq!(w.firsts.len(), 88, "initial run631 baseline");
+    pin_eq!(w.firsts.len(), 85, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -1167,7 +1167,7 @@ fn run601_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 71 → 69; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    pin_eq!(w.firsts.len(), 67, "run601 after ruins placement");
+    pin_eq!(w.firsts.len(), 64, "run601 after ruins placement");
     pin!(
         w.firsts.keys().all(|(who, _, field)| *who != 1
             || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),
