@@ -3709,7 +3709,9 @@ user's word** is that the pass decides at this steer whether Sonnet is
 good enough to run a lane (CLAUDE.md's two kill rules did not trip on
 this). 1429's own Loop line (its journal) names the build: `waitrun.sh` exits
 as a stall when the viadriver log has not grown and `wine-stalled.log`
-exists.
+exists. And 1503's: `waitrun.sh` exits 0 on a runner traceback
+(run659's first take died before frame 0, the same Wine fault as
+run657's).
 **And the first kill rule's reading** (the commander, same evening):
 1429's booking gate went red on two run584 pins its lane gate passed,
 because its `ccc update` predated 1461's merge — the red was the two
@@ -3736,7 +3738,9 @@ does not read. And 1476's: `myhits` and
 `construct_hits` sit on the same list, so Construction's hp arm is held
 by a unit test alone. And 1502's: `leader_flags` is
 printed beside every `LEADERDATA` and no row compares it; its dirty bit
-dated a 140-frame gap in one grep.
+dated a 140-frame gap in one grep. And 1503's: `construct_hits` and
+`myhits` still uncompared — the second landing they would have dated
+sooner (The President's clock on 14363).
 
 (1482) **`tools/seams.py` misses a gap written as "are not loaded"**
 (1479's Loop line, 2026-10-05): the free-tech block (Chemistry's
