@@ -26,7 +26,7 @@ use crate::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
 const UCELLS_PER_UTILE: i32 = 4;
 use crate::combat::Obj;
 use crate::movement::{Angle, cos_component, sin_component};
-use crate::orders::{Order, index, snapped};
+use crate::orders::{Order, snapped};
 use crate::world::{Pos, tile, vector_dist};
 
 /// The initial budget, `[ebp-0x20]` at `601e20` — a hundred iterations
@@ -68,8 +68,11 @@ impl crate::Sim {
     /// apart in a trace comparison.
     ///
     /// `Some(p)` is the original's `return 1` with the out-parameters
-    /// written; `None` its `return 0`, on which every caller falls back
-    /// to the target's own position.
+    /// written; `None` its fallbacks, on which a caller walks at the
+    /// target's own position — the ring walk's own failure is a `return 1`
+    /// with exactly that point. The one `return 0` of the building half,
+    /// the guard's refusal, is also `None`, and `fight` tells it apart with
+    /// [`Sim::attack_pos_refused`] (item 1519).
     pub(crate) fn find_attack_pos(
         &mut self,
         u: usize,
@@ -88,9 +91,6 @@ impl crate::Sim {
         // and the middle term — a per-unit mask bit — is not modelled, so
         // it is taken as clear.
         let bombard = false;
-        // `local_34`: the asker's own activity order, read at `6013a2`
-        // through `get_activity(units[who][o])` — itself, not a captain.
-        let activity = self.current_order(u).map(|o| o.index());
         // `local_38`: the head order's `mandatory` byte when the current
         // order is an ATTACK (`60142c`). It gates the `find_nearby_spot`
         // fallback at the very end, which is not modelled here.
@@ -158,13 +158,36 @@ impl crate::Sim {
             return self.chase_spot(u, target, from, stand, far);
         };
 
-        // `local_34 == 0xc` (`601616`): an asker whose activity is a
-        // GUARD order is not moved at all.
-        if activity == Some(index::GUARD) {
+        // `local_34 == 0xc` (`6015ea`): an asker whose activity is a
+        // GUARD order is not moved at all — [`Sim::attack_pos_refused`].
+        if self.attack_pos_refused(u, target) {
             return None;
         }
 
         self.ring_walk(u, target, from, stand, site)
+    }
+
+    /// **`find_attack_pos`'s guard refusal** (`Unit::find_attack_pos@
+    /// 00601280`, `6015df`–`601625`, `docs/AI.md` §138): against a
+    /// building (vslot `+0x1c`), an asker whose **activity** is a `GUARD`
+    /// — `local_34`, read at `6013a2` through `UnitData::get_activity`,
+    /// which passes over the moves and attacks in front of it
+    /// ([`Sim::guard_activity`]) — takes no spot: the out-parameters get
+    /// the caller's own point and the function returns **0**
+    /// (`LAB_00601604`), with no draw.
+    ///
+    /// It is the one `return 0` of the building half a land asker
+    /// reaches; the ring walk's own failure returns 1 with the target's
+    /// position, which is what `None` means to every other caller. So
+    /// `Unit::fight`'s chase asks this predicate to tell the two apart
+    /// ([`Sim::chase_refused`]).
+    ///
+    /// This crate read the **head** order here until item 1519, and a
+    /// guard's head mid-attack is the `ATTACK`: French East Indies' Elite
+    /// Pikeman `1/115` on 17318 chased the Village `0/2000` from 1,948
+    /// units off, where the original's dropped it and stood on its post.
+    pub(crate) fn attack_pos_refused(&self, u: usize, target: Obj) -> bool {
+        matches!(target, Obj::Building(_)) && self.guard_activity(u).is_some()
     }
 
     /// **The unit half of `Unit::find_attack_pos@00601280`** — where a

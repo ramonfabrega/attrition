@@ -2255,9 +2255,14 @@ returns its own position, and a unit inside a carrier (`+0x28 ≥ 0` with the
 carrier's `+0x218 == 1`) tail-calls the carrier's own `find_attack_pos` —
 that is the recursion at `+0x2d` of the **nine**-argument form, not the
 thunk. And a third, missed by the first reading: **an asker whose
-activity order is index 12, `GUARD`, is not moved at all** (`601616`:
+activity order is index 12, `GUARD`, is not moved at all** (~~`601616`~~
+`6015ea`, on the building half after `6015df`'s `+0x1c`:
 `local_34 == 0xc` → the out-parameters take the approach point and the
 function returns 0; `local_34` is `get_activity` of the asker *itself*).
+This crate read the head order for it until item 1519, which a guard
+mid-attack answers with the `ATTACK`; and `fight`'s caller takes the 0 to
+its failure arm (`5fe3f8`), not to the target's position (`docs/AI.md`
+§138).
 When the ring finds nothing the function falls back to
 `UnitType::find_nearby_spot@0061de70`.
 

@@ -2387,7 +2387,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (&r657, 17171),
         // Item 1514: the word left run661 for 17318; its block stays.
         (&r661, 17244),
-        (&r662, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        // Item 1519 closed the map at its end, 17379; run662's word block
+        // stays.
+        (&r662, 17318),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2395,6 +2397,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             assert_eq!(n, 5, "the French pair carries its word window");
             frames += n;
         }
+    }
+    // Item 1519: French East Indies' last running blocks and closing state.
+    if let Some(path) = crate::testenv::dump("gamelog-run667-islands-french-closing-window.txt") {
+        let n = drive_capture(&path, 17374, 17380, &mut paths);
+        assert_eq!(
+            n, 7,
+            "six French East Indies running blocks and closing state"
+        );
+        frames += n;
     }
     if let Some(path) =
         crate::testenv::dump("gamelog-run609-lakes-french-toughest-closing-window.txt")
@@ -2742,7 +2753,11 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
     // walked here beside East Indies'.
     let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
-    let french_east = super::third_pair::french_east_indies_word_window();
+    // Item 1519 closed French East Indies at its trace's end, 17379: run662,
+    // the word 17318's window, stays walked, and run667's last running
+    // blocks and closing state are walked beside it.
+    let french_east = super::third_pair::french_east_indies_17318_window();
+    let french_closing = super::third_pair::french_east_indies_closing_window();
     let french_lakes = super::third_pair::french_great_lakes_closing_window();
     // Item 1445: retain run603's cast orders after moving the open window.
     // Their comparisons still run; a quiet successor must not erase coverage.
@@ -2805,10 +2820,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         Some(_),
         Some(_),
         Some(_),
+        Some(_),
     ) = (
         walked,
         toughest,
         french_east,
+        french_closing,
         french_lakes,
         french_scholars,
         french_8182,

@@ -8000,6 +8000,46 @@ mod tests {
         );
     }
 
+    /// **A guard's attack on a building takes no chase** (`Unit::
+    /// find_attack_pos@00601280`'s `local_34 == 0xc`, `6015ea`, and
+    /// `fight`'s failure arm `5fe3f8`, `docs/AI.md` §138). A melee guard on
+    /// its post, its attack on an enemy building inside the leash but out
+    /// of reach: `find_attack_pos` reads the unit's **activity**, the
+    /// `GUARD` under the attack, refuses with no draw, and `fight` drops
+    /// the attack — the guard stands on its post. run662's Elite Pikeman
+    /// `1/115` on 17318, a lone `GUARD` on block 17319.
+    ///
+    /// Made to fail first with the head order read in place of the
+    /// activity: the ring walk spent its draws and the chase went in front
+    /// (`[MoveTo, Attack, Guard]`).
+    #[test]
+    fn a_guard_s_attack_on_a_building_takes_no_chase() {
+        let (mut sim, guard, _) = guard_on_post(Pos::new(3384, 13896));
+        let ty = sim.units[guard].ty.unwrap();
+        let mut melee = sim.unit_types[ty].clone();
+        melee.combat.max_range = 0;
+        let melee = sim.add_unit_type(melee);
+        sim.units[guard].ty = Some(melee);
+        let b = sim.add_building(1, Pos::new(3480, 13200), 0);
+        sim.buildings[b].hits = 1200;
+        sim.buildings[b].health = 1200;
+        assert!(!sim.is_in_range(Obj::Unit(guard), Obj::Building(b)));
+        sim.add_attack_order(
+            guard,
+            Obj::Building(b),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        assert!(sim.attack_pos_refused(guard, Obj::Building(b)));
+        let seed = sim.rng.seed;
+        let f = off_phase(&sim, guard);
+        sim.work(guard, f);
+        let kinds: Vec<u8> = sim.units[guard].orders.iter().map(|o| o.index()).collect();
+        assert_eq!(kinds, [crate::orders::index::GUARD], "no chase in front");
+        assert_eq!(sim.rng.seed, seed, "the refusal spends no draw");
+    }
+
     /// **A human's action order holds its retaliation**
     /// (`Unit::target_opportunity@005fffc0`, `LAB_00600877`, §63.4): a
     /// player's guard under its `GUARD` (flags `ACTION`) does not answer a

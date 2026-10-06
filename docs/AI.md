@@ -15912,10 +15912,156 @@ is named here** — the 15210 parting is two frames before the word and carries 
 **Coverage.** Diff-backed: the unpack arm, by `run663_s_word_frame_is_widened_whole` (27 → 0) and the unit test; the listing's three
 instructions at `005ecbe0` are read, not run. The pack arm rests on the listing and its unit test alone unless said above.
 
-## 138. Reserved for item 1519 (French East Indies frame 17318)
+## 138. A guard's attack on a building takes no chase, and French East Indies reaches its end (2026-10-06, item 1519)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+Item 1514 left the word at **17318**, 21 draws against 15, parting at index
+5. Ours spent `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` twice for
+`1/115`, right after the `Unit::fight+0x824` both sides spend for it, and
+six gaia bird coins (`Guy::set_anim+0x104b`) against theirs' two. `1/115`
+is TypeIndex 135, `ELITEPIKE`, land, a captain of who=1 on `[Attack(0/2000),
+Guard]`. Its target `0/2000` is a **Village** (414) and not a city centre,
+and `0/2005`, which its `near_o` names from block 17318, is a Library
+(435). The birds are not dumped (no `UNITDATA` of types 402–404 on any
+block), so their family is read off the draw stream alone.
+
+### 138.1 The event, both sides
+
+On frame 17318 both sides roll `fight+0x824` for `1/115`, the AI guard's
+charge roll (§63.2): 45930, even, so neither drops the attack on the roll.
+The original then ends the frame with a lone `GUARD` at (6120, 8952) and
+no further draw (run662's block 17319). Ours passes the same gates,
+re-finds the Village in `fight`'s captain search, and chases it: two draws
+under `find_attack_pos`, a `[MoveTo, Attack, Guard]` stack, and a walk to
+(6122, 8925).
+
+The Hussar `1/69`, also a guard captain of who=1, rolls on the same frame
+against the same Village (index 2, 11024, even) and keeps its attack on
+both sides, in range (`r1`). So the Village's own state, its cell's
+territory owner among it, was not what refused `1/115`.
+
+### 138.2 What the disk could not answer, and run665
+
+Every record on run662 that `1/115`'s gates read is the same on blocks
+17317 and 17318, bar the stand. The leash passes at about 1,203 and 744
+against `8 × 2 × 0x60` = 1,536, and `poor_target` answers 0 for anything
+that is not a unit. On block 17318 the dump also shows the search found
+the Village on 17317 (`[Attack(0/2000) n1, Guard]`). No logger prints
+`check_target`'s answer or the search's candidates, so **run665** took a
+packet at logger frame 17318 (`docs/RUNS.md`). On it, a scratch variant of
+`tools/recomp/step4.py` that passes stack arguments gives:
+
+- `Object::check_target(1/115, 2000, 0, 1, NULL, 1, 1, 0)` **1**: the
+  guard arm passes;
+- `Unit::find_new_target(&who, 0)` **2000**: the search finds the Village;
+- `Unit::process` on `1/115`: one draw, `fight+0x824`, and the path runs
+  `find_new_target`, then the call at `fight+0xcb4`, then `+0xf28`, a
+  second `find_new_target`;
+- `Unit::find_attack_pos@00602e60` **0**, through `00601280`'s blocks
+  `+0x33f`…`+0x38a`, with no draw.
+
+### 138.3 The cause
+
+`find_attack_pos@00601280` reads **`local_34`**, `UnitData::get_activity`'s
+order type, at `6013a2`. For a building target (vslot `+0x1c`, `6015df`),
+`6015ea` is `cmpl $0xc, -0x30(%ebp)`. An asker whose activity is a `GUARD`
+gets the caller's own point in the out-parameters and **returns 0**
+(`LAB_00601604`, `601611`), so a guard never chases a building. `fight`'s
+`je` at `5fe186` then takes the failure arm `5fe3f8`–`5fe502` (`fight:1056`–
+`1100`):
+
+1. `find_new_target(this, NULL, 0)`: the attack is killed, and the search
+   adds what it finds;
+2. if the head is an `ATTACK` on the same target again, it is killed. If
+   it had a defensive post (`+0x1d`, `+0x14/+0x18`) and nothing else is
+   left, the unit walks there under a move flagged `POST`;
+3. an `ATTACK` still at the head with `recharging` zero takes the frozen
+   mark.
+
+`get_activity` passes over the moves and attacks in front of an order
+(§63.1), so a guard's activity mid-attack is the `GUARD` under it. This
+crate read the **head** order for `local_34`, which is the `ATTACK`, so the
+arm never fired on an attacking guard. It also treated every `None` as
+"walk to the target", which is right for the ring walk's own failure
+(`return 1` with the target's point) and wrong for this `return 0`.
+
+### 138.4 What was built
+
+- `Sim::attack_pos_refused` (`attack_pos.rs`): a building target and
+  `guard_activity`. `find_attack_pos`'s guard arm asks it.
+- `Sim::chase_refused` (`orders.rs`): the failure arm. `fight`'s chase calls
+  it when `find_attack_pos` answers `None` and the predicate holds.
+- `a_guard_s_attack_on_a_building_takes_no_chase` (`sim::fight`): a melee
+  guard on its post, with its attack on an enemy building inside the leash
+  and out of reach, ends on `[Guard]` with no draw. It fails with the
+  head-order read (`[MoveTo, Attack, Guard]`).
+
+### 138.5 The value diff, and the close
+
+On run662's block 17319, `1/115`'s `order:kind` reads 12 on both sides
+(ours had read 1). Its `order:length` reads 1 on both (ours 3). `pos` is
+(6120, 8952) on both (ours had (6122, 8925)), and `g.cur_anim[0]` is 0 on
+both (ours 7). The four bird coins went with the two draws: the shift had
+moved every later roll on the frame.
+
+**The word: 17318 → 17379, the trace's end.** French East Indies runs in
+lockstep, count and sequence, for its whole length. The human is defeated
+on the closing block (`defeat_stamp 17380`).
+`run600_french_east_indies_closing_state` scores the closing dump:
+
+- 154 units, none off, unlinked or extra, and every building linked and
+  agreeing;
+- one torn unit, `0/5`, printed and not pinned;
+- **14 city fields, all on the defeated human's Village `0/2000`**, where
+  ours reads 0: `land` 84, `filled` 44, `ocean` 25, `space[0..2]` 51/51/40,
+  `ter[0]`, `ter[1]`, `ter[3]`, `busy` and `gatherers` 5, `peasant_dist`
+  1, `dock_tile` 1, `raid_stamp` 17326. Not established: whether ours
+  wiped the record at the defeat, or never carried it.
+
+**run667** captures the last blocks and the closing state (`docs/RUNS.md`);
+`run667_s_closing_frame_is_widened_whole` widens the closed word on them:
+
+- **227 keys**: 140 standing on 17374 (run662's families);
+- two on 17379, the Village's `build:damage` 174 against 178 and its
+  `damage_frac`;
+- 85 on the closing block, the human's defeat at the capture's quit
+  (`defeat_stamp 17379`). The original clears player 0's units to idle
+  with no order, and the harness replays no quit.
+
+The compared pin walks run662 (`french_east_indies_17318_window`) and run667
+(`french_east_indies_closing_window`), so no field moves. The coverage
+driver's run662 block is the constant 17318, and it drives run667's seven
+blocks.
+
+### 138.6 Mutations
+
+Each mutation is scored by exit code on `run600_french_east_indies_word` and
+`run662_s_word_frame_is_widened_whole` (`tools/mutate.py`):
+
+| mutation | verdict |
+| --- | --- |
+| M1, `attack_pos_refused` reading the head order | held: both failed |
+| M2, `fight` taking a refused `None` to the target's position | held: both failed |
+
+The unit test fails under M1 as well (`[MoveTo, Attack, Guard]`).
+
+### 138.7 Not established
+
+- **The defensive-post walk of step 2.** It takes this crate's `action`
+  for the call's `1`. No capture has a refused guard whose attack carried
+  a post.
+- **The other callers.** Reading the activity also changes
+  `Group::action_attack`'s and `check_target_path`'s calls for a guard at a
+  building. Their own handling of the 0 is not read here; the suite holds.
+- **The two `return 0`s of the sea/land pairs** at the tail of
+  `00601280`. Our `None` sends the unit to the target's position there.
+- **The fourteen city fields**, above.
+
+### 138.8 Coverage
+
+Diff-backed: `1/115`'s rows on run662, the word to 17379, and the
+closing state. The guard arm and the failure arm are confirmed on run665's
+packet. The arm's predicate and the failure arm were read off the listing
+(`6015df`–`601625`, `5fe3f8`–`5fe50e`). No blind reading.
 
 ## 139. A decoy's blow is no blow, and the word at 15275 (2026-10-06, item 1522)
 
