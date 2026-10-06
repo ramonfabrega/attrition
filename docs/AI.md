@@ -14105,3 +14105,93 @@ kind 6 against 7.
 seams. The Memnon arm and `FRENCH_SPECIAL_CRAFT` rest on the listing
 alone: no capture holds Memnon, and the bonus ships at 0. No blind
 reading has been done.
+
+## 120. An upgrade kills its crew, and the kill clears the old block (2026-10-05, item 1472)
+
+Great Sahara at Toughest's word was booked at 12569 (item 1429) and
+**measured at 12575** on the base the item started from: item 1461's
+`get_speed` had moved it, 13 draws ours against 11, parting at index 4 —
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs a third
+`… < Unit::do_guard+0x7f4` (`1/109` stops a frame earlier there). run584
+(blocks 12532..12789) widens it: 1,528 keys, 134 standing from the first
+block.
+
+**The first parted field.** Past the standing keys, the first part of the
+window is `1/109`'s `half_step` on block 12542 — ours 0, theirs 1
+(`unit_masks` 262155 → 1310731, `collide_o` −1, nothing else of the unit
+moves that frame); its position parts on 12543 and the rest of the
+window is the army (group 65) walking on those positions: twenty more
+`half_step` rows on units from 12545 to 12599, and `g.cur_anim`/`end_time`
+rows from the walkers. Every writer of the one-shot (`unit_masks &
+0x100000`) is `detect_unit_collision@00617060`'s tail, set only when the
+nine-cell walk ends with a soft group-mate and no hard collider
+(`docs/COLLISION.md` §4.3); `move_step@005faf30:175` clears it.
+
+**What the original did, from inside.** run637 is run470's game under
+`RON_COLLIDE_PROBE` with `--callwin 12540 12543` (`docs/RUNS.md`, 76 s).
+On frame 12541 `1/109` probes the cell (610, 413): `collide_here` hits
+**(609, 414)**, `will_be_corner` 7, and `is_here(1/101)` answers 1 — a
+group-mate, soft, so the one-shot is set. This crate's sweep
+(`RON_SWEEP=12541:1/109` on the long walk) hits **(611, 414)**, `will` 5,
+and none of its 33 candidates is here. The probe also prints the live
+block (38, 25) at that call: **nine bits ours holds and the original does
+not** — (611..617, 414), (611, 415) and (617, 415), the top rim of a
+size-3 block centred (614, 417). Only `1/84` is there: a Trebuchet
+(`TypeIndex` 266, size 3, trackless crew) that became a Bombard (267, size
+2) on frame 11833. This crate's block history for that cell (a temporary
+trace of every set and clear of it) shows `1/84`'s size-3 disc painted
+and repainted every 64 frames to 11820 and never cleared after it.
+
+**The mechanism.** `Unit::set_type@00612fa0` (`SET_TYPE_NORMAL`) runs two
+kill loops before it swaps the type's `+0x18`. The second walks every
+figure from the **old** type's `0x304` (`squad_size`, 1) to the unit's
+whole count and calls `Objects::kill_guy@00659410` on it, and
+`kill_guy`'s last arm — a figure whose type is not the crash kind
+(`+0x14 == 8`) and not air — clears `radius[coll_size]` around the
+**figure's own cell**, `CollBlock::set(…, 0)`, by the unit's current
+(old) type. A figure with no track stands on guy 0 (item 1338), so for a
+Trebuchet each of its three crew clears a size-3 disc on the unit's own
+cell. The cells are not refcounted and nothing sets them back but the
+sixty-fourth-frame repaint, which marks the **new** disc (size 2) — so
+the old rim is gone and the inner cells are holes until then. This crate
+re-seated the figures (`reinit_guys`, `seat_guys`) and cleared nothing.
+`Sim::coll_kill_crew` (`crates/sim/src/collide.rs`) is that clear, called
+first in `Sim::unit_set_type`; `collide_here` then reads the original's
+block and the sweep of 12541 takes (609, 414) and the soft group-mate.
+
+**Made to fail.** `tools/mutate.py` with the call removed: the unit test
+`an_upgrade_clears_its_old_disc_around_the_crew_it_kills` fails, and so do
+`run584_s_word_frame_is_widened_whole` and
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (the floor 12744),
+each exit 101, "mutation: held".
+
+**What moved.** Toughest **12575 → 12744**. The value diff, run584: `1/109`'s
+`half_step` on block 12542 ours 0, theirs 1 → agreeing; its position on
+12543 (29302, 19854) against (29295, 19840) → agreeing; the window's keys
+1,528 → 367 (134 standing). The run574 widening, the other closed pins and
+the 721 other `rondata` tests passed unchanged.
+
+**Coverage.** Diff-backed: the sweep's cell and `is_here` verdict (run637's
+probe against this crate's, line for line), the block's nine bits (the
+probe's live block against `coll`), the one-shot on the 22 units it parted
+on, and everything the keys count. Reading alone: that `kill_guy`'s three
+other gates before the clear (the figure's kind, its domain, and the
+object type's vslot `+0x120`, which the export does not name) all pass for
+a Trebuchet crew; that a **tracked** crew figure clears around its own
+cell (`Guy +0xc/+0x10`) rather than guy 0's — `coll_kill_crew` reads each
+figure's body — and that the loop's region gate (the cell's plain
+`region`) is the same as `coll_paint`'s `tregion` away from coast. No
+capture has a tracked-crew upgrade in a block this crate probes.
+
+**The new word** is 12744: ours 49 draws against 51, parting at index 35,
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs
+`Guy::init_real+0x52` — a unit born in the original: `1/142` is the dump's
+alone on block 12745, and who=1's `peasants` and `num_units[0]` are 50
+against 51. The first parts before it are who=1's make list on block 12582
+(`MAKE[3]`: `cat` 8 against 4, `city` −1 against 3, `val` 237600 against
+242560, `t` 604 against −1) and, on 12583, `1/2000`'s queue holding one
+entry in the original and `1/2023`'s in this crate, with the original's
+food and wealth escrow at 67 each and buckets 119 and 300 against 31 and
+142. The standing keys (the Scholars' `g.angle[0]`, `orders_x/y`,
+`group:65.role`, the caravans) still stand: run637 covers 12538..12544
+only, and the gap 11985..12532 is still dark (parked 1430).
