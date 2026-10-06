@@ -9411,5 +9411,5 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # **Owed, and a person's**: the census reads `cover=1` traces and this lane runs `cover=0` only (parked 1490), so the
 # rows §127 predicts are entered only by a queue-lane stanza of run652's lobby with `cover: cover=1`, `cfg: -`,
 # `mapstyle: 18` and `profile: STARTING_TECHNOLOGY=8` / `STARTING_RESOURCES=7` / `DIFFICULTY=5`, the AI's nation set at the
-# menu (the queue lane has no `--ai-tribe`); its run number is the commander's to mint.
+# menu (`profile.py` asserts a key in both game blocks, and `XPACK_LAST_TRIBE1` sits in one); its run number is the commander's to mint.
 # ==== TAKEN 2026-10-06, one take each, 01:54–02:04 ====
