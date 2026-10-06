@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1502, 2026-10-06 — the gap before 17171
+
+(1509) **Leader 0's dirty bit on 17025, and treaties bit 2**: the dump
+does not name the writer of `leader_flags` 0x2000000 on 17025; treaties
+bit 2 is written by `Object::do_damage` and not carried here.
+
 ## Parked by item 1496, 2026-10-06 — the coverage pair's start
 
 (1506) **who=1's `SITE` list on run651's block 1**: ours holds a tenth
@@ -1809,10 +1815,9 @@ in place (COMBAT §62). It names no frame yet.
 
 ## Parked by item 651, 2026-09-24 — past chapter six-b's 632
 
-(681) **`Built::build_ids` names no building placed after `BEGIN GAME`**,
-so a staged Airbase reads `None` as an attack's `order:target`: item
-462's shape one level over. A fallback to `(owner, index)` removes both
-rows and moves nothing else; it reaches the long captures' widenings.
+(681) closed 2026-10-06 by item 1502: **`Built::build_ids` names no
+building placed after `BEGIN GAME`** — `target_ids` names an attack's
+unlinked building target by (owner, index); every count it moved fell.
 
 (683) **Whether an aircraft on the ground may strike a building at all**:
 the Fighter is `ANTI_AIR`, and neither aircraft does in 640 frames.
@@ -3729,7 +3734,9 @@ bits are read by no widening — a General's craft parted unseen for about
 is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
 does not read. And 1476's: `myhits` and
 `construct_hits` sit on the same list, so Construction's hp arm is held
-by a unit test alone.
+by a unit test alone. And 1502's: `leader_flags` is
+printed beside every `LEADERDATA` and no row compares it; its dirty bit
+dated a 140-frame gap in one grep.
 
 (1482) **`tools/seams.py` misses a gap written as "are not loaded"**
 (1479's Loop line, 2026-10-05): the free-tech block (Chemistry's

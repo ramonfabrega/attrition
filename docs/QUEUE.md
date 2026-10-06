@@ -13,11 +13,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and sixteen
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and seventeen
 landings since. French East Indies **17171** of 17,379 (was 12794);
 Toughest **14363**, floor 14363 (was 11985); fifty-one chapters closed.*
 
-- **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500 (Opus, newest pair, now 1502); 1429, 1472,
+- **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500, 1502 (Opus, newest pair, now 1508); 1429, 1472,
   1477, 1493 (Sonnet, third map, now 1503); 1423, 1468, 1465, 1466, 1496 (Sonnet, rules;
   battery 576 / 6566 / 2974, a measure; coverage pair frame 8, now 1505). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
@@ -51,14 +51,13 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1502. **French East Indies frame 17171, 11 versus 10 draws**, index
-    1: ours `Unit::fight+0x824`, then `Guy::set_anim+0xf2f <
-    Unit::set_anim+0x56` for 1/80; theirs `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`. run657 widens it (240 keys, 178 standing on
-    17165), parted in the gap 16869..17164: 1/78, 1/83 and 1/90's front
-    order kind 2 against 12 (an attack on Napata 0/2000); leader 0's
-    `gather_stamp` 17152 against 17032; treaties 1 against 3; Napata's
-    `raid_stamp` 0 against 17154. Date the first parting; no mechanism.
+1508. **French East Indies frame 17171, 11 versus 10 draws**, index
+    1, dated by 1502 (run658): leader 0's dirty bit (`leader_flags`
+    0x2000000) rises there on 17026..17032 and never here; the first
+    strike on player 0 (1/69 on Napata, 17053) sets treaties bit 2 and
+    Napata's `raid_stamp` there. The word's chain is a third event: an
+    attack pushed onto a guard's AttackTo leg, where ours keeps the walk
+    and the original drops it (run657, 1/69 on 17167). No mechanism.
 
 1503. **Great Sahara at Toughest's word: frame 14363, 11 versus 177
     draws**, index 5: theirs `PathFinder::calc_road_cost+0x46`. run653
