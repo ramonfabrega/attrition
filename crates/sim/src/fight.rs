@@ -4769,6 +4769,124 @@ mod tests {
         assert_eq!(sim.units[me].orders.len(), 1, "ungrouped, it flees");
     }
 
+    /// A group of a non-combat Scout (`0/0`, the one that is hit) and an
+    /// idle combat-role Hoplite (`0/1`), with a near and a far foe of the
+    /// other side — `Group::target_opportunity`'s three arms
+    /// (`docs/GOLDEN.md` §61).
+    fn group_arms_fixture() -> (Sim, usize, usize, usize, usize) {
+        let (mut sim, _) = at_war();
+        let scout = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            combat: Profile {
+                attack: 0,
+                max_range: 0,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let hoplite = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 0,
+                uber_size: 1,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let s = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
+        let h = put(&mut sim, 0, hoplite, Pos::new(0x4100, 0x4000));
+        let near = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 5, 0x4000));
+        let far = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 9, 0x4000));
+        sim.pushed.push(crate::group::Pushed {
+            who: 0,
+            list: vec![s, h],
+            state: crate::group::GroupState {
+                pool: Some(2),
+                ..crate::group::GroupState::default()
+            },
+            builds: Vec::new(),
+        });
+        sim.units[s].group_ptr = Some(2);
+        sim.units[h].group_ptr = Some(2);
+        (sim, s, h, near, far)
+    }
+
+    /// **The cooldown refuses a second hit inside fifteen frames**
+    /// (`Group::target_opportunity@007107d0`, `0xe < frame − +0x38`;
+    /// run577's group 1 prints `think_frame` 699, 724 and 750 while the
+    /// Scout is wounded on 700, 705, 725, 732 and 751). Made to fail with
+    /// the gate dropped: the second hit moved the stamp to 920 and the
+    /// Hoplite answered it.
+    #[test]
+    fn a_group_answers_a_hit_once_in_fifteen_frames() {
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(sim.pushed[0].state.opportunity, 912);
+        assert!(!sim.units[h].orders.is_empty(), "the first hit is answered");
+        sim.units[h].orders.clear();
+        sim.units[h].combat.target = None;
+        sim.frame = 926;
+        sim.target_opportunity(s, Obj::Unit(far), 926);
+        assert_eq!(sim.pushed[0].state.opportunity, 912, "inside the window");
+        assert!(sim.units[h].orders.is_empty(), "the gate refused the hit");
+        sim.frame = 927;
+        sim.target_opportunity(s, Obj::Unit(far), 927);
+        assert_eq!(sim.pushed[0].state.opportunity, 927, "past the window");
+        assert!(!sim.units[h].orders.is_empty());
+    }
+
+    /// **A combat-role captain with no action order runs its own
+    /// `find_melee_target`** (`710950`..`710989`, `docs/GOLDEN.md` §61):
+    /// the hit comes from the far foe and the Hoplite takes the **near**
+    /// one, by the search's ranking, where `Unit::target_opportunity` would
+    /// have retaliated on the attacker. With an `ATTACK_TO` action in its
+    /// stack the same Hoplite takes the attacker. No walk reaches the first
+    /// arm: run577's `0/7` always holds the `ATTACK_TO` of its `@amove`.
+    #[test]
+    fn an_idle_group_captain_searches_for_itself_and_a_busy_one_retaliates() {
+        let (mut sim, s, h, near, far) = group_arms_fixture();
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(
+            sim.units[h].combat.target,
+            Some(Obj::Unit(near)),
+            "idle: its own search"
+        );
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.add_move_order(
+            h,
+            Pos::new(0x4000 + 0xc0 * 20, 0x4000),
+            crate::orders::MoveKind::AttackTo,
+            crate::orders::QueuePos::New,
+            true,
+        );
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(
+            sim.units[h].combat.target,
+            Some(Obj::Unit(far)),
+            "busy: Unit::target_opportunity"
+        );
+    }
+
+    /// **The asker's own squad captain takes `Unit::target_opportunity`
+    /// whatever its orders** (`71092e`..`710946`, `param_4 == 0`): a Scout
+    /// that follows the idle Hoplite is hit by the far foe, and the Hoplite
+    /// — idle, so otherwise the search's arm — retaliates on the attacker.
+    #[test]
+    fn the_asker_s_own_captain_retaliates_on_the_attacker() {
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.units[s].captain = false;
+        sim.units[s].o_up = Some(h);
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(sim.units[h].combat.target, Some(Obj::Unit(far)));
+    }
+
     /// **`Unit::think`'s step 3 needs the military bit as well as the
     /// attack column** — `think@005f6e40:150`'s second arm is
     /// `type->attack != 0 && (type->role & 0x10000) != 0`, and until item
