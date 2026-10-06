@@ -16138,8 +16138,8 @@ ours `Leader::make_stuff+0x221` three times (`make_me` filled Village slots 0, 1
 2. **`WorldData::was_seen@006b53f0` has a leader arm ahead of the territory shortcut and the fog** — "seen" outright when
    `leader_flags & 0x1000`, `& 0x800`, or `num_units[0x141]` — which `ai_sites.rs` had named and not modelled ("no flags, no `0x141` in
    any run"). The bits are `Leader::gain_tech@006dcb60`'s: **`0x1000` when the tech gained is `EXPLORE_MAP_BONUS`'s `preq0`** (the
-   seventh `TECHBONUSES` row, `0x2b2`: **Electronics** in the shipped `rules.xml`); **`0x800` when it is `REVEAL_ENEMY_BONUS`'s**
-   (`0x2b4`: `disable`) **or while the Space Program stands** (`has_wonder(0x21e)`); `Leader::fix_tech_flags@006d2480` re-derives both
+   seventh `TECHBONUSES` row, `TypeIndex` 690: **Electronics** in the shipped `rules.xml`); **`0x800` when it is `REVEAL_ENEMY_BONUS`'s**
+   (the ninth, 692: `disable`) **or while the Space Program stands** (`has_wonder(0x21e)`); `Leader::fix_tech_flags@006d2480` re-derives both
    from `has_tech` after a loss. An All Technologies start owns Electronics on frame 0, so **its leaders see every cell**. With the arm,
    run651's block-1 `SITE` list agrees whole (the blank slots' `reg`, 65 against 0, is the control's and every lobby's).
    `Sim::sees_every_cell`; `Roles::explore_map_preq`, `reveal_enemy_preq`; `wonder::SPACE_PROGRAM`.
