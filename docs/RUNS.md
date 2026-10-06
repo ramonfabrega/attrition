@@ -15147,3 +15147,39 @@ SHA-256 `abe0affe6b08f280953667ae51874ae8cc0d3f18233df6ad124b235b9512a984`.
 15207..15230, 92 standing on the first, 2 on 15210 (`0/2000`'s `damage` 270 against 135, `city_flags[0x4]`), one
 on the word's block 15214 (`0/2005`'s `damage` 1 against 0). The compared pin's window is block 15214.
 `docs/AI.md` §137.
+
+## run666 — run470's game over the word 15213's window with `AMMO=5`: the original's own rounds (2026-10-06, item 1522)
+
+**What it is.** run664's game and detail with one category added — `AMMO=5` — over blocks 15196..15230 (run664's
+window started at 15207; the first round on `0/2000` was in flight from block 15196), quit at 15242. No capture on
+disk printed an `AMMO` block on the third map: the question was whether the original's rounds fly as ours do, and
+on which frame each lands.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run666 \
+    --map 7 --end-frame 15242 --timeout 5000 --log-window 15196 15231 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1,AMMO=5 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** Whether `0/2000`'s unchanged `damage` on 15209, 15213 and 15217 meant the
+original's rounds did not land, landed elsewhere or landed for nothing: run664 prints no round. (It meant the third.)
+
+**Taken.** First take: receipt `success: true`, exit 0, 254.7 s launch to exit (266.7 s in all), 15,243 frames, map 7
+and seed 12345 verified, five settings files restored, 35 `FRAME` blocks 15196..15230 and the closing block 15243.
+`rngcmp.py rontrace-run470.log rontrace-run666.log` **0 differing**, 15,243 identical. The lane was free (no wait).
+
+Archive `gamelog-run666-greatsahara-toughest-ammo.txt`, 92,354,535 bytes,
+SHA-256 `d7350443d454ef464939ec8e8a3f47bfc26cb8a85c0a8c5dd3b70fc46ce9c3bd`.
+
+Archive `rontrace-run666.log`, 114,159,776 bytes,
+SHA-256 `1c771f87a10ab5eb0b5b6ea8367d70492c2dd81de11c782387f1088d96d8459a`.
+
+**What it holds**: five rounds on `0/2000`, all Bombard (`type` 268), all `splash_area 1`, `total_time 11`, `accuracy 5`,
+`flags 2`: `1/139`'s landing on frame 15198, `1/96`'s on 15209, `1/95`'s on 15213, `1/106`'s on 15217, `1/84`'s on 15224
+(the frame is the block number of the last flight block — `cur_time` 10 — the landing's own). Ours flies the first
+four on the same frames and from the same launches to the same landing points; `1/84`'s launch differs by a few units
+(10152,28056 against 10023,28125) and is after the new word. `0/2000`'s `damage` takes 135 on 15198 and 15224 and nothing
+between; `1/96`, `1/95` and `1/106` have `unit_masks & 1` set (0x5100d, 0x5100d, 0x5100f, `mana_burn` counting from 1377),
+`1/139` and `1/84` have it clear (0x5100e). `run666_s_decoy_rounds_strike_nothing` (`diff::sahara_toughest`) pins it
+from the dump alone. `docs/AI.md` §139.

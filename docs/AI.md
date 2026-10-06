@@ -15917,7 +15917,55 @@ instructions at `005ecbe0` are read, not run. The pack arm rests on the listing 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 139. Reserved for item 1522 (Toughest frame 15213)
+## 139. A decoy's blow is no blow, and the word at 15275 (2026-10-06, item 1522)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1517 left Great Sahara at Toughest's word at **frame 15213, ours 8 draws against 7,
+index 4**: ours `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae` — the first label of the frame's three trailing farm draws, so
+the original spent **no first-wound draw** where ours did (§137). run664's widening put 302 keys on the window, the first two on block
+15210: `0/2000`'s `damage` 270 against 135 and `city_flags[0x4]`.
+
+1. **The draw is a first wound.** `SITE_FIRST_WOUND` is `take_damage`'s `damage == 0` roll (COMBAT §7.2 step 3). Ours' `RON_DEBUG_AMMO`
+   (extended this item to print every building's `damage` as it changes) puts it on `0/2005`, struck for 1 as a splash fringe by `1/95`'s
+   round landing on frame 15213, beside 135 more on `0/2000`. Ours' `0/2000` took 135 on **15198, 15209, 15213** (and the next landings); the
+   original's took it on **15198 and 15224** and its `build_masks`, `city_flags` and `0/2005`'s `damage` moved on 15198 and 15224 only —
+   so on 15209, 15213 and 15217 the original ran no `Object::do_damage` past its head, not even the bookkeeping.
+2. **run666 (`AMMO=5`, `docs/RUNS.md`) prints the original's rounds**: five on `0/2000` (`1/139`, `1/96`, `1/95`, `1/106`, `1/84`), all `type`
+   268 Bombards, all `splash_area 1`, `total_time 11`, `accuracy 5`, `flags 2`, launched on frames this crate launches on and landing on
+   **15198, 15209, 15213, 15217, 15224** at the points ours computes (the same draws). The rounds do not part; what they do at the
+   landing does. `0/2000`'s `damage` takes 135 for `1/139` and `1/84` and nothing for the other three.
+3. **What the three share.** Their shooters' `unit_masks`: `1/96` 0x5100d, `1/95` 0x5100d, `1/106` 0x5100f, each with `mana_burn` counting
+   up from 1377 — against `1/139` and `1/84` at 0x5100e with `mana_burn` 0. **Bit 0 is set on exactly the three that do nothing.** Bit 0 is
+   the decoy bit (COMBAT §42.1; `Unit::decoy`): a General's decoy cast copies units and counts `mana_burn` down its life (item 1302).
+4. **The function.** `Object::do_damage@0064a480`'s head, after `if (count < 1) return`:
+   `if (this->vslot_0x18() != 0 /* a unit */ && (units[this.who][this.o].unit_masks & 1) != 0) return;` — before `get_damage`, the
+   first-wound draw, the `attacked` bits, `build_masks` and `take_damage`. This crate's `Sim::do_damage` had `count < 1` and nothing else.
+   Read from the decompile (`do_damage@0064a480.c`, lines 76–94); the dump's three-for-three and two-for-two is the oracle, the listing was
+   not opened.
+
+**Built.** `Sim::do_damage` (`fight.rs`) returns `None` for an attacker that is a unit with `decoy`, straight after the `count < 1` test.
+Test `a_decoy_s_round_strikes_nothing` (a decoy and a real shooter, one round each on an enemy building: no hit, no damage, and the
+rng untouched for the decoy). Mutation (`tools/mutate.py`, the gate made `&& false`): fails the unit test, `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(word 15275 → 15213) and `run664_s_word_frame_is_widened_whole` (92 keys → 302).
+
+**Value diff** (the word's own frame, and the frame the state first parted): `0/2000`, block 15210 (frame 15209) — before, **2 keys**:
+`damage` 270 against 135, `city_flags[0x4]` 1 against 0; block 15214 (the word's) — `0/2005`'s `damage` 1 against 0. After: **0 keys**.
+run664's 302 keys are **92**, all the standing ones on its first block (15207); nothing parts on 15208..15230. Frame 15213 is 7 draws each.
+
+**The new word: frame 15275, ours 12 draws against 11, parting at index 4.** Ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (ours steps a unit and rolls an animation the original rolls from `do_guard`: a unit that
+walks here and stands there). No capture on disk holds a block there (run664 and run666 end at 15230), so its widening is **owed a
+capture**; the booking is the frame and the delta, and no mechanism is named.
+
+**Not established.**
+- That a decoy's blows are ignored by every caller: this crate's single `Sim::do_damage` is the one door (unit melee, rounds, splash),
+  and the original's is `Object::do_damage` for all of them; a *building's* shot is not a unit and is not gated.
+- That the decoy bit is bit 0 of `unit_masks` for a unit whose mask this crate does not mirror from the dump: ours has `Unit::decoy`
+  set on the three, which the mutation proves, and the three dump masks carry it.
+- `Ammo::do_damage`'s other stages (`balance.hits`, `close`) for a decoy's round: ours drops the round as before; nothing dumped shows a
+  difference.
+- Who cast the decoys and when: not looked at (`1/96`, `1/95` and `1/106` are copies; `mana_burn` counts from 1377 on 15196, so the cast is
+  before the window). The decoys' own order stacks agree with the original's (no key parts), which is all this item needs.
+
+**Coverage.** Diff-backed: the gate, by `run666_s_decoy_rounds_strike_nothing` (dump alone: five rounds, the three decoy bits, the 0/135
+deltas), `run664_s_word_frame_is_widened_whole` (302 → 92) and `run470_is_great_sahara_at_toughest_and_its_word_holds` (15213 → 15275). The
+head of `Object::do_damage` rests on the decompile and these runs; the listing was not read.
