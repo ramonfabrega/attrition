@@ -13284,6 +13284,127 @@ fn chapter_fifty_s_word_frame_is_widened_whole() {
     pin_eq!(got_pool, want_pool, "ch50: what parts in the pool moved");
 }
 
+/// **Chapter fifty-one** — chapter fifty's script a frame earlier (item
+/// 1423, `docs/GOLDEN.md` §61, run582): the group's cooldown, and a
+/// building's `visible` clear gate on 778.
+#[test]
+fn chapter_fifty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch51", "chapter51", 51, 6, 1099) else {
+        return;
+    };
+    eprintln!(
+        "chapter fifty-one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIFTY_ONE,
+        "chapter fifty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIFTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIFTY_ONE,
+        "chapter fifty-one's golden word moved; re-pin it here and say so in docs/GOLDEN.md §61"
+    );
+}
+
+/// **run582 whole, both directions** (item 1423, `docs/GOLDEN.md` §61).
+#[test]
+fn chapter_fifty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch51",
+        "chapter51",
+        WIDENING_CHAPTER_FIFTY_ONE,
+        1099,
+        0,
+        (777, 780),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch51 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch51: {} rows", got.len());
+    let pool = widen_pool("ch51", "chapter51", WIDENING_CHAPTER_FIFTY_ONE, 0)
+        .expect("run582 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch51 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH51.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch51: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH51_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch51: what parts in the pool moved");
+}
+
+const WANT_CH51: &[&str] = &[
+    "1054 0/7 death:extra",
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "698 0/-1 leader:treaties[1]",
+    "698 0/7 order:target",
+    "698 1/-1 leader:treaties[0]",
+    "750 0/6 death:extra",
+    "847 0/9 order:target",
+    "848 0/8 order:target",
+    "900 0/9 death:extra",
+    "982 0/8 death:extra",
+];
+
+const WANT_CH51_POOL: &[&str] = &[
+    "1003 slot 1 angle[1]",
+    "770 slot 1 angle[3]",
+    "770 slot 1 curr[0]",
+    "770 slot 1 curr[1]",
+    "770 slot 1 curr[2]",
+    "770 slot 1 curr[3]",
+    "770 slot 1 off[0]",
+    "770 slot 1 off[1]",
+    "770 slot 1 off[2]",
+    "770 slot 1 off[3]",
+    "907 slot 1 angle[2]",
+    "907 slot 1 list",
+    "907 slot 1 num",
+];
+
 const WANT_CH50: &[&str] = &[
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
