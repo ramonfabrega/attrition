@@ -14276,6 +14276,117 @@ each axis.
   by §123**: the one is Carpentry, handed to the French with Chemistry.
 - No blind reading has been done.
 
+## 122. The census circle starts at entry 1 (2026-10-06, item 1477)
+
+Great Sahara at Toughest's word was **12744** on the base (item 1472): 49
+draws ours against 51, parting at index 35 — ours `Guy::inc_time+0x271`,
+theirs `Guy::init_real+0x52`, a unit born (`1/142` is the dump's alone, who=1's
+`peasants` 50 against 51 on block 12745). run584 holds 12532..12788.
+
+**Dating the first parting.** Who=1's make list on block 12582 is the first
+state part past the standing keys. The dump's slots 0..4 on 12581 are research
+and upgrades; on 12582 `create_buildings` (frame 12581) has turned all five
+into buildings — `t` 419, 417, 418, **−1**, 419, `cat` 4, `city` 4, 4, 4, **3**,
+4, slot 3 at `val` **242560**. This crate turns four of them the same way and
+holds **Medicine** (`cat` 8, `city` −1, 237600) in slot 3. A trace of every
+`make_me` offer on frame 12581 (a throwaway `eprintln` in `create_buildings`)
+puts this crate's best offer of dump city 3 (ours `ci3`) at **236160** — a
+Farm and a Mine, `base 295200 × 4/5`. The original's 242560 needs
+`base` 303200: `open` 34, not 33 (`12600 + 3000 + open·4000`, doubled, ×4/5).
+`1/2031`'s `open` is `land − filled`; **`city:filled` 39 against 38 and
+`space[0..2]` 46/46/33 against 47/47/34 stand on block 12532** — they were
+in the 134 standing keys (parked 1430) all along, and they stand from the
+city's first census on 9775 (31 against 30), constant since.
+
+**What the original did, from inside.** run640 (take 1, `docs/RUNS.md`) is a
+`RON_STATE_FRAME=12575` packet of run470's game. On it: the tile masks (240 ×
+240) and the cell records agree with this crate's on every bit any census gate
+reads (483 tiles differ in bit `0x4`, which no gate reads; the regions are
+numbered the other way round); `check_building_wcoord` entered on the packet
+for all 3,600 cells answers this crate's `space_at_corner` cell for cell; the
+circle tables (`circle_x`, `circle_y`, `circle_radius`) are this crate's; the
+grid tables are this crate's. Yet **`Leader::plan_strategy@006b9620` entered
+on the packet, with city 3's `land`/`filled`/`space` zeroed first, writes 72,
+38, [47, 47, 34]** — and a replay of the census as this crate walks it, on the
+same bytes, writes 39 and [46, 46, 33]. Hooking `check_building_wcoord`'s
+entry and return inside that run gives the original's own cells: the city's
+72 land cells are **the replay's but for two** — the original never calls
+for the city's own cell `(30, 24)` and does call for `(35, 27)`, a rim cell
+the replay lacked and which answers 4.
+
+**The mechanism.** The listing of the loop (`plan_strategy@006b9620`,
+`0x6bb6f4..0x6bb8f8`): the index at `-0x1c(%ebp)` starts at 0, and the cell
+offsets are `movsbl 0xcb7e91(%ecx)` and `movsbl 0xcbb0e1(%ecx)` — the tables
+**plus one**. Every other reader of `circle_x`/`circle_y` in the executable
+(the spiral, the site search, the ring walks) reads from `0xcb7e90`, so
+this is the one loop that skips entry 0, the `(0, 0)` centre, and walks
+entries 1 ..< `circle_radius[k + 1]` (the water and dock branch) with the
+land branch on the entry `< circle_radius[k]` (`(int)local_20 + 1 <
+local_34`). This crate walked entries 0 ..< `circle_radius[k + 1]` and cut
+the land branch at `i + 1 < inner`: it counted the centre (a `space` 0 cell
+— `filled`) in place of the last entry before the inner ring, which for
+every other city of every capture is a rim cell of `space` 0 too, so the
+totals agreed by luck wherever that rim cell was out of the city's radius.
+`1/2031`'s rim cell `(35, 27)` is inside it and open.
+
+**Built.** `Sim::census_city_sites` (`crates/sim/src/ai_census.rs`) walks
+`1..outer`, and `census_site_cell`'s inner cutoff is `i >= inner`. Test
+`the_circle_walk_starts_at_entry_one` (`ai_census.rs`): a neighbour owning
+the centre cell changes nothing, one owning the last inner entry takes a
+cell off `land`.
+
+**Made to fail.** `tools/mutate.py` on a clean tree, the walk put back to
+entry 0 (`for i in 0..outer`, and with it the old cutoff `i + 1 >= inner`):
+`the_circle_walk_starts_at_entry_one` and `the_site_picture_counts_the_open_cells_of_the_circle`
+fail (sim, exit 101), and `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(the floor 12816), `run640_s_word_frame_is_widened_whole`,
+`run584_s_word_frame_is_widened_whole` and the earlier Toughest widenings
+(run529, run547, run562, run571, run574) fail (rondata, exit 101); both
+"mutation: held".
+
+**What moved.** Toughest **12744 → 12816** (ours 41 draws, theirs 40,
+index 33: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`).
+The value diff, run584: `1/2031`'s `city:filled`, `space[0..2]` (block
+12532, 39 → 38 and 46/46/33 → 47/47/34), who=1's `MAKE[3]` (`cat`, `city`,
+`val`, `t`) on 12582, `MAKE[5]`, the buckets, escrows and `num_queued[0]` and
+the queues of `1/2000` and `1/2023` on 12583, `1/142`'s birth and the
+`peasants` of block 12745 — **all agree**; the window's keys 367 → 142
+(134 → 130 standing). **No key parted that did not before, on any capture**:
+about 130 pins in `rondata` moved down, all of them standing `city:filled`,
+`land` and `space` rows of who=1's cities, `1/2007`'s `filled` on run58 (3,383 frames
+→ 157), run598's closing `city_diverged` 8 → 4, chapter four's border rows
+14 → 12, the second pair's East Indies and Great Lakes windows by 2 to 13
+each, the third pair's by 4 to 6 each, and the third map's earlier windows
+(run529 95 → 88, run547 83 → 77, run562 125 → 118, run571 122 → 117, run574
+140 → 136). Each floor is a count that fell; none rose.
+
+**Coverage.** Diff-backed: the cell set (`check_building_wcoord`'s 72 calls
+on city 3, the original's own function on its own packet), the census of all
+five cities of who=1 (a replay with entry 0 matches the dump on five of its
+six cities and misses `1/2031`; the new walk matches all of who=1's), and
+everything the dumps' `CITY` records count on every map. Reading alone: the water and dock branches of
+the same loop on the shifted entries (no packet holds a coastal city); the
+`gather_at` call on a new rim entry whenever it answers 4 — no `ter` row
+parted that did not before.
+
+**What is not established.** The census the original runs **at a city's
+founding** (run529's block 9759: `land` 9, `filled` 1 against this crate's
+0/0, which is the standing `1/2031 city:land` row) is not modelled — its
+trigger and circle are not read. The human's city is never censused here
+(`0/2000 city:*` ours 0 against 38.. on every capture) because no
+`plan_strategy` runs for a human leader here; that is the same standing
+group and it is not this word's. **The new word 12816 has no mechanism.**
+Run640 (take 2) holds its blocks, 12811..12834: past the 159 keys standing on
+12811, the first parts are on the word's own block **12817** — army 65's
+formation (`curr` and `off`, all 27 slots: slot 0's `off` (−9, −3) here against
+(−32, −3) there, `curr` (117, 440) against (−127, 1540)) and `1/141`'s
+`g.end_time[2]`, 31 against 23 — then `1/20`'s gather `wait` on 12823 and
+`0/5`'s move on 12825. The draw delta (ours `… < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`, theirs `… < Guy::inc_time+0x271`, index 33) is a
+`set_anim` roll reached through a turn here and through `inc_time`'s wrap
+there. Nothing here says which side acted, and no mechanism is booked.
+
 ## 123. The French are handed the Carpentry line (2026-10-05, item 1479)
 
 French East Indies' word 14782 was 15 draws against 16 at index 7.

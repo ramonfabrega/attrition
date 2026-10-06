@@ -1973,6 +1973,31 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **12816 since item 1477** (`docs/AI.md` §122): the census circle walk
+/// starts at entry 1. `plan_strategy@006b9620`'s loop (`0x6bb6f7`) reads
+/// `circle_x + 1` and `circle_y + 1` from `i = 0`, so the original never
+/// visits the city's own `(0, 0)` and does visit the last entry before
+/// `circle_radius[k]`; this crate began at entry 0. The measured word on
+/// the base was 12744 (49 draws ours against 51, index 35: ours
+/// `Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`, a birth), and its
+/// first parted field was who=1's `1/2031` (`city:filled` 39 against 38,
+/// `space[0..2]` 46/46/33 against 47/47/34), standing since the city's
+/// first census on 9775 (31 against 30): its `open` was 33 against 34, the
+/// make list's gather value 236160 against 242560, so slot 3 held Medicine
+/// (cat 8, 237600) here where the original held a cat-4 building of that
+/// city (city 3, 242560, its `t` cleared by `make_me`'s duplicate clear),
+/// and `MAKE[3]` parted on block 12582 and the queue of `1/2000` on 12583.
+/// The original's own `plan_strategy` entered on run640's packet (frame
+/// 12575) leaves the city at 38/47/47/34, and its seventy-two
+/// `check_building_wcoord` calls on the city are the entries 1..
+/// `circle_radius[5]` — this crate's walk had 0..`circle_radius[5] − 1`.
+/// **The new word's delta: ours 41 draws and the original 40 on frame
+/// 12816, parting at index 33**: ours `Guy::set_anim+0x97a <
+/// Guy::do_turn+0x4a < Guy::turn_towards+0x69` where the original spends
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Beyond run584's window
+/// (ends 12788): no dump prints a block at 12816 yet. The widening of the
+/// move 12744 → 12816 is run584's.
+///
 /// **12744 since item 1472** (`docs/AI.md` §120): `Unit::set_type`'s crew
 /// loop clears the old block. The measured word on the base was 12575
 /// (item 1461's `get_speed` had moved 12569 → 12575; 13 draws ours against
@@ -2326,7 +2351,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 12_744;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 12_816;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8514,10 +8539,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // 1416 widened it on run574 over 11876..12133, whose test keeps the
         // move's value diff on 11876..11988; item 1429 widened 12538 → 12569
         // on run584 over 12532..12789 (the word's block 12570); item 1472
-        // moved the word 12575 → 12744 inside the same window (block 12745).
-        Some("run584_s_word_frame_is_widened_whole"),
-        1472,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_12538),
+        // moved the word 12575 → 12744 inside the same window (block 12745);
+        // item 1477 moved it 12744 → 12816, past it, and widened it on run640
+        // over 12811..12834; run584's test keeps the move's value diff on
+        // 12532.
+        Some("run640_s_word_frame_is_widened_whole"),
+        1477,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_12816),
     ),
 ];
 

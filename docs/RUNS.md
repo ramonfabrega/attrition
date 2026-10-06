@@ -14506,6 +14506,79 @@ SHA-256 `9b335ae06a1159ff5076f5eb0506a42a39b061d5da094341a8ebc2731afaacb6`.
 139 standing on block 14085, none on 14086, and who=1's `regen_roads` on thirteen buildings
 from block 14087. The word's block is 14091. Run 636 only.
 
+## run640 — run470's game, a packet at logger frame 12575 and the new word 12816's window: the third map's census at Toughest (2026-10-06, item 1477)
+
+**What it is.** Two takes of run470's game (`--map 7`, `DIFFICULTY=5`, the
+click-free lane, `cover=0`, `!ffwd 14` from frame 37). **Take 1** is a
+`RON_STATE_FRAME=12575` packet — the state before tick 12575, the sweep that
+censuses who=1's cities — with the dump window 12574..12577 and `!quit` at
+12590. **Take 2** is the widening of the word 12816: run584's detail over
+blocks 12811..12834 and `!quit` at 12840. The brief reserved one number; the
+packet was taken first, the widening followed it once the word had moved past
+run584's window, and both are run640.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-05-run640 \
+    --map 7 --end-frame 12590 --timeout 5000 --log-window 12574 12578 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 \
+    --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=12575 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run640-take2 \
+    --map 7 --end-frame 12840 --timeout 5000 --log-window 12811 12835 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+The plan is item 597's (`~/ron-data/lab-experiments/2026-09-23-item-597/plan`),
+PDB-bound and reused. A first launch of take 1 died on an output directory
+this worker had made itself (`mkdir` before the runner's own); the second
+took. Take 2's first launch was refused by the lane lock, held by another
+lane's capture (`unattended_capture`, pid 38819, 00:20:48); `ron_lane_state`
+read `free` at 00:30 and it launched at once — about seven minutes waited.
+
+**What the disk could not answer.** Take 1: the original's tile masks and
+cell records at the census, and the cells `plan_strategy` visits. The dump
+prints the city's `land`/`filled`/`space` and nothing under them, and the
+standing key `1/2031 city:filled` (parked 1430) named a cell it did not print.
+Take 2: no dump held a block past run584's 12788, and the word moved to 12816.
+
+**Taken.** Take 1 (23:04–23:06, 2026-10-05): `success: true`, exit 0, 80.97 s launch to
+exit (91.1 s in all), 12,591 frames, map 7 and seed 12345 verified, five
+settings files restored; `frame-snapshot.bin` 844,840,060 bytes, sha256
+`9e63b84b984e8945…`. `rngcmp.py rontrace-run470.log` against its trace:
+**0 differing**, 12,591 identical. Take 2 (00:30–00:33): `success: true`, exit
+0, 160.65 s launch to exit (169.9 s in all), 12,841 frames, map 7 and seed
+12345 verified, five files restored, 25 `FRAME` blocks 12811..12835; the dump
+(59,053,814 bytes, sha256 `819c0f351248eadb…`) and the trace (71,631,872,
+`0a059e1522a4c1e7…`) were copied into `Logs` as
+`gamelog-run640-greatsahara-toughest-12816.txt` and `rontrace-run640.log`;
+`rngcmp.py rontrace-run470.log rontrace-run640.log` **0 differing**, 12,841
+identical; 163 GB free after.
+
+| check | result |
+|---|---|
+| packet `frame-snapshot.bin`, logger frame 12575, trace frame 12574 | receipt checked by `golden_capture.sh` |
+| tile masks, 240 × 240, against this crate's at tick 12575 | 483 differ, all in bit `0x4`, none read by a census gate |
+| cell records, 3,600, against this crate's | flags, land, who, who2, blocked, bad, solid, val agree; `land_sub` differs on 208, the regions are numbered the other way |
+| `check_building_wcoord@006b26e0` entered on the packet, all cells | 0 differ from `space_at_corner` as this crate reads it |
+| `circle_x`, `circle_y`, `circle_radius`, `grid_index_*`, `grid_threes` | identical to this crate's |
+| `Leader::plan_strategy@006b9620` entered on the packet (this `0xE4127C`), city 3 zeroed | 72 / 38 / [47, 47, 34], the dump's; this crate's old walk 72 / 39 / [46, 46, 33] |
+
+**What it settled** (`docs/AI.md` §122). The loop reads the circle tables at
+`+1`: entries 1 ..< `circle_radius[k + 1]`, the centre never visited and the
+last inner entry visited. The experiment folder is
+`~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/`: `oracle_cbw.py`,
+`oracle_ps.py` (a function entered on the packet, with entry/return hooks),
+`replay.py`, `make.py`, `city.py`, `patch_pins.py`. The packet stays outside
+git at `~/ron-data/lab-captures/2026-10-05-run640/map-7`.
+
+**What it holds**: `run640_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`): 309 keys over blocks 12811..12834, 159 standing on
+the first, and on the word's block 12817 the formation of army 65 (`curr`,
+`off`, 27 slots) and `1/141`'s `g.end_time[2]` (31 against 23); the compared
+pin's window on block 12817. Take 2 only; take 1 has no test of its own.
+
 ## run639 — French East Indies, the word 14782's widening, with the leader probe (2026-10-05, item 1476)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1476-opus/run639-booking.json`,
