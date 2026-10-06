@@ -3766,6 +3766,40 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     assert_eq!(sim.units[unit].guys[0].anim, anim::UNPACK, "and unpacks");
 }
 
+/// **The pack arm makes the same call** (`005ecb7e`, item 1517): a unit
+/// that packs sets its angle to guy 0's before `CHAR_PACK`, as the unpack
+/// arm does, and again for every unit — this arm has no collector's block.
+#[test]
+fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
+    use crate::orders::{Body, QueuePos};
+    let mut sim = skirmish(0);
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        ..crate::UnitType::default()
+    });
+    sim.unit_types[ty].combat.packs = true;
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.ty = Some(ty);
+    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    let unit = sim.add_unit(u);
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    sim.units[unit].combat.packed = false;
+    sim.units[unit].movement.heading = movement::Angle::NORTH;
+    sim.add_cast_order_at(unit, crate::orders::spell::PACK, QueuePos::New);
+    let Some(Body::Cast(c)) = sim.current_order(unit).map(|o| o.body) else {
+        panic!("a cast order")
+    };
+    sim.do_cast(unit, c);
+    assert_eq!(
+        sim.units[unit].movement.heading,
+        sim.units[unit].movement.facing,
+        "the unit's angle is guy 0's"
+    );
+    assert_eq!(sim.units[unit].guys[0].anim, anim::PACK, "and packs");
+}
+
 /// **Three of the six resources are not available from the start, and until
 /// they are, a price written in one of them is charged somewhere else**
 /// (`docs/COSTS.md`, "Three of the six resources are not available from the
