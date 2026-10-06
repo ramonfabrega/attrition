@@ -370,24 +370,59 @@ fn run658_dates_the_gap_before_17171() {
 
 /// run662: the successor after `do_attack_to`'s look was gated on the order
 /// it was dispatched for, frame 17318 (item 1514), to the game's end.
-pub(crate) fn french_east_indies_closing_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_17318_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run662",
         &[("gamelog-run662-islands-french-17318.txt", 17312)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_17318,
         1,
         &[17319],
         true,
     )
 }
 
+/// run667: French East Indies' last running blocks and its closing state
+/// (item 1519), the window the closed word 17379 is widened on.
+pub(crate) fn french_east_indies_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run667",
+        &[("gamelog-run667-islands-french-closing-window.txt", 17374)],
+        WIDENING_FRENCH_EAST_INDIES_CLOSING,
+        1,
+        &[17380],
+        true,
+    )
+}
+
+#[test]
+fn run667_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 7, "six running blocks and the closing state");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1519: 227. 140 stand on 17374 (run662's families: leader 0's
+    // `SITE.reg`, the `form`s, the Merchants' pieces, who=1's line counts);
+    // two on 17379, the Village `0/2000`'s `build:damage` 174 against 178 and
+    // `damage_frac`, the family run662 parts on 17330; and 85 on the closing
+    // block 17380, which are the human's defeat: this capture quits on 17379
+    // (`defeat_stamp 17379`), the original clears player 0's units to idle
+    // with no order (`0/1`..`0/5`) and moves leader 0's `leftover`, and the
+    // harness replays no quit. The draws agree on every frame.
+    pin_eq!(w.firsts.len(), 227, "initial run667 baseline");
+}
+
 #[test]
 fn run662_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_closing_window() else {
+    let Some(w) = french_east_indies_17318_window() else {
         return;
     };
     pin_eq!(w.blocks, 66, "every captured block");
@@ -1524,7 +1559,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             EAST_START,
             EAST_LONG,
             "gamelog-run662-islands-french-17318.txt",
-            WIDENING_FRENCH_EAST_INDIES,
+            WIDENING_FRENCH_EAST_INDIES_17318,
         ),
         (
             EAST_START,
@@ -1789,7 +1824,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 ]),
                 "engine-only fields are evidence, not sim parity"
             );
-        } else if window == WIDENING_FRENCH_EAST_INDIES {
+        } else if window == WIDENING_FRENCH_EAST_INDIES_17318 {
             // Item 1514: run662, the word 17318's window, to the game's end.
             // Before the word's block 17319 the only rows are the Dragoons'
             // release offset (piece 60162, as run657's `1/90` and run661's
@@ -2093,7 +2128,7 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
         // closed at its end.
         (
             "gamelog-run662-islands-french-17318.txt",
-            (WIDENING_FRENCH_EAST_INDIES.0, 17_318),
+            (WIDENING_FRENCH_EAST_INDIES_17318.0, 17_318),
         ),
     ] {
         let Some(rows) = east_indies_ever_seen(capture, window) else {

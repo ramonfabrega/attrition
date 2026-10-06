@@ -2007,7 +2007,10 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_17171: (i64, i64) = (17165, 17177);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_17244: (i64, i64) = (17238, 17250);
 /// run662's blocks around the word 17318, to the game's end (item 1514);
 /// the map's closing window since item 1519 closed it at 17379.
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17312, 17377);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_17318: (i64, i64) = (17312, 17377);
+/// run667's: French East Indies' last running blocks and its closing state,
+/// 17374..17380 (item 1519, which closed the map at its end, 17379).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_CLOSING: (i64, i64) = (17374, 17380);
 /// run658: the gap before 17171, blocks 17018..17057 (item 1502).
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_GAP: (i64, i64) = (17018, 17057);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
@@ -8558,9 +8561,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run662_s_word_frame_is_widened_whole"),
+        Some("run667_s_closing_frame_is_widened_whole"),
         1519,
-        Some(WIDENING_FRENCH_EAST_INDIES),
+        Some(WIDENING_FRENCH_EAST_INDIES_CLOSING),
     ),
     (
         "THIRD_PAIR_WORD_GREAT_LAKES",

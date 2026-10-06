@@ -15113,3 +15113,64 @@ SHA-256 `0b394444b247c1c95ef141f521eacbb5f408db9d1ea17beff379cf3fb09a0f94`.
 15095..15118, 94 standing on the first, 4 on 15098, **27 on the word's block 15102, all `1/96`'s** (a Bombard:
 `cur_anim` 24 on all four figures against 0, 0, 7, 0, one `angle` against three). The compared pin's window is
 block 15102. `docs/AI.md` §136.
+
+## run665 — French East Indies, a packet at logger frame 17318 (2026-10-06, item 1519)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1519-opus/run665-booking.json`,
+written before the run. No logger prints `check_target`'s answer, `find_nearby_target`'s candidates or
+`find_attack_pos`'s; run662 prints only the lone `GUARD` `1/115` is left with on block 17319. Window
+**[17316,17321)**, end 17324, call window 17316..17321, `RON_STATE_FRAME=17318` with item 597's plan,
+`--ffwd-minute 10`, `cover=0`, `--timeout 2400`, run662's four `--detail` sections, through the
+click-free lane (`free` at launch). One take: receipt success, process and wait exits **0**, five
+settings files restored, 5 group blocks 17316..17320, seed 12345 read back, closing frame 17325.
+Launch-to-exit 656.5 s, total 666.8 s. Game-RNG draws match run600 on all 17,325 shared frames
+(`rngcmp.py`). Killers: block 17319 prints `1/115` on a lone `GUARD` at (6120, 8952), as run662.
+
+`callargs.py` (scratch, the evidence directory: `tools/recomp/step4.py` with stack arguments and a
+`Random::get` hook) on the packet, `this` `1/115` (`0x15674394`):
+
+| call | answer |
+| --- | --- |
+| `Object::check_target(2000, 0, 1, NULL, 1, 1, 0)` | 1 |
+| `Unit::find_new_target(&who, 0)` | 2000 |
+| `Unit::find_attack_pos@00602e60(2000, 0, 0, &x, &y, 0)` | **0**, `00601280+0x33f`…`+0x38a`, no draw |
+| `Unit::process` | one draw, `fight+0x824`; `fight+0xcb4`, then `+0xf28`'s `find_new_target` |
+
+The same `check_target` for the Hussar `1/69` answers 1 (`step4-check69.log`). `docs/AI.md` §138.
+
+Packet `~/ron-data/lab-captures/2026-10-06-run665/map-18/frame-snapshot.bin`, 938,303,684 bytes,
+SHA-256 `26fe1a0619bf9d8398f30f8931ef7f175eba6956dec9789b9764b5e4f60f6fe0`.
+
+Archive `gamelog-run665-islands-french-packet-17318.txt`, 27,931,776 bytes,
+SHA-256 `fb99b60ed5e7bb8d8e81685daaee6b736c79de93cdda0f45919e5ad8c02b5ac7`.
+
+Archive `rontrace-run665.log`, 100,186,432 bytes,
+SHA-256 `db17b5460c293907c484de3d77677d8edc1cc370869531ea2e09fb50d37f7170`.
+
+**What it holds**: the packet's answers above; no widening test (the window is run662's). Run 665 only.
+
+## run667 — French East Indies' closing window (2026-10-06, item 1519)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1519-opus/run667-booking.json`,
+written before the run. run662 quit at 17378 and holds blocks 17312..17377; run600 prints the closing
+state at 17380 with no per-frame groups or projectiles, so nothing on disk printed 17378..17379 or a
+closing state with them, which the closed word 17379's widening owes (run609's shape for this map).
+Window **[17374,17380]**, end 17379 (`17379 !quit`), call window 17374..17380, `RON_LEADER_PROBE`,
+`--ffwd-minute 10`, `cover=0`, `--timeout 2400`, run662's four `--detail` sections, through the
+click-free lane (`free` at launch; run 666 is another lane's). One take: receipt success, process and
+wait exits **0**, five settings files restored, 6 group blocks 17374..17379, seed 12345 read back,
+closing frame 17380 (`GameInfo closing`). Launch-to-exit 667.4 s, total 677.2 s. Game-RNG draws match
+run600 on all 17,380 frames (`rngcmp.py`). The quit records `defeat_stamp 17379` for the human, where
+run600's closing block reads 17380.
+
+Archive `gamelog-run667-islands-french-closing-window.txt`, 30,764,478 bytes,
+SHA-256 `06414352065a8be79d97339561848b3f2e22b85700971394d2985d5c73c6b7a5`.
+
+Archive `rontrace-run667.log`, 99,947,552 bytes,
+SHA-256 `6c3c8308c9f79cf7f11ba7195c5f0f2f9275facfa24075d71df0dc0e0dde1ce9`.
+
+**What it holds**: `run667_s_closing_frame_is_widened_whole` (`diff::third_pair`): 227 keys over seven
+blocks. 140 stand on 17374 (run662's families), two on 17379 (the Village `0/2000`'s damage), and 85
+on the closing block 17380, the human's defeat at the quit (player 0's units idle with no order, leader
+0's `leftover`), which the harness does not replay. The compared pin and the coverage driver walk it
+beside run662. `docs/AI.md` §138. Run 667 only.
