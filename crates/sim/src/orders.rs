@@ -2728,6 +2728,12 @@ impl Sim {
             }
             SquadHead::Search => {
                 let t = self.find_melee_target(u, range)?;
+                // A guard's attack-move leg goes under the find
+                // ([`Self::nearby_add`]'s `local_2c`); every other head
+                // keeps the `QUEUE_FIRST` this arm always had.
+                if self.guard_activity(u).is_some() && self.order_type(u) == index::ATTACK_TO {
+                    self.kill_current_order(u);
+                }
                 self.add_attack_order(u, t, QueuePos::First, false, false);
                 Some(t)
             }
@@ -2811,7 +2817,10 @@ impl Sim {
     /// target, and a plain `ATTACK_TO` is killed first), and the naval
     /// refusal (`+0x218 == 2`). No capture reaches either.
     fn attack_move_add(&mut self, u: usize, t: Obj) {
-        let group_move = self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
+        // `local_2c` first: a guard's leg is killed under the attack, and
+        // its group never takes the find (`:551`, [`Self::nearby_add`]).
+        let group_move = self.guard_activity(u).is_none()
+            && self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
         let siege = self.units[u]
             .ty
             .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
@@ -2824,7 +2833,7 @@ impl Sim {
             self.group_action_attack(&g, t, false, QueuePos::First, 4);
             return;
         }
-        self.add_attack_order(u, t, QueuePos::First, false, false);
+        self.nearby_add(u, t);
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
@@ -8596,7 +8605,7 @@ impl Sim {
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
                 self.kill_current_order(u);
                 if let Some(t) = self.find_melee_target(u, -1) {
-                    self.add_attack_order(u, t, QueuePos::First, false, false);
+                    self.nearby_add(u, t);
                 }
                 if self.order_type(u) == index::ATTACK {
                     self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
@@ -9035,26 +9044,48 @@ impl Sim {
         }
         let found = self.find_melee_target(u, -1);
         if let Some(t) = found {
-            // `find_nearby_target`'s add (`00649b3a`–`00649bc0`): an
-            // attack-move in front keeps its place under a `QUEUE_FIRST`
-            // attack; otherwise `QUEUE_FIRST` only for a `DEFENSIVE`
-            // stance, and `QUEUE_NEW` for every other. SEAM: a unit whose
-            // activity is a `GUARD` (`local_2c`) kills an attack-move in
-            // front and adds `QUEUE_FIRST`, and a group's attack-move
-            // may hand the target to `Group::action_attack` instead.
-            let pos = if matches!(
-                self.order_type(u),
-                index::ATTACK_TO | index::GROUP_ATTACK_TO
-            ) || self.units[u].combat.stance == combat::Stance::Defensive
-            {
-                QueuePos::First
-            } else {
-                QueuePos::New
-            };
-            self.add_attack_order(u, t, pos, false, false);
+            // SEAM: a group's attack-move may hand the target to
+            // `Group::action_attack` instead ([`Self::attack_move_add`]
+            // carries that arm for the attack-move's own look).
+            self.nearby_add(u, t);
         }
         self.units[u].combat.stance = stance;
         found
+    }
+
+    /// **`Object::find_nearby_target`'s add** (`00649b3a`–`00649bc0`, the
+    /// decompile's lines 545–606; `docs/AI.md` §134), for a searcher whose
+    /// third argument asks for the order:
+    ///
+    /// - **`local_2c`, a unit whose activity is a `GUARD`**
+    ///   ([`Sim::guard_activity`], `:176`–`184`): an `ATTACK_TO` in front is
+    ///   **killed** (`Unit::kill_current_order(0)`) and the attack is added
+    ///   `QUEUE_FIRST`. A guard walks to its post on an attack-move leg
+    ///   laid over the `GUARD`, and the attack takes the leg's place
+    ///   rather than stacking on it: French East Indies' `1/69` on 17166
+    ///   holds `[Attack(0/2000), Guard]` in the original, path length 0
+    ///   (run657's block 17167), where this crate kept the leg beneath.
+    /// - otherwise an attack-move in front (`ATTACK_TO`, `GROUP_ATTACK_TO`)
+    ///   keeps its place under a `QUEUE_FIRST` attack;
+    /// - otherwise `QUEUE_FIRST` only for a `DEFENSIVE` stance (vslot
+    ///   `+0xf4 == 1`), and `QUEUE_NEW` for every other.
+    ///
+    /// SEAM: the naval refusal (`+0x218 == 2`) under an attack-move.
+    pub(crate) fn nearby_add(&mut self, u: usize, t: Obj) {
+        let head = self.order_type(u);
+        let pos = if self.guard_activity(u).is_some() {
+            if head == index::ATTACK_TO {
+                self.kill_current_order(u);
+            }
+            QueuePos::First
+        } else if matches!(head, index::ATTACK_TO | index::GROUP_ATTACK_TO)
+            || self.units[u].combat.stance == combat::Stance::Defensive
+        {
+            QueuePos::First
+        } else {
+            QueuePos::New
+        };
+        self.add_attack_order(u, t, pos, false, false);
     }
 
     /// **`do_move`'s flank clause on a chase** (item 1061, `docs/COMBAT.md`
