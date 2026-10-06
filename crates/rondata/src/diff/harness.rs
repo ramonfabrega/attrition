@@ -1281,6 +1281,102 @@ fn debug_watch_one(built: &Built, frame: i64, spec: &str) {
     }
 }
 
+/// `RON_DEBUG_GAP=<lo>-<hi>[:<who>/<o>,…]` — on every tick in the range,
+/// not only on a captured block, a line each time one of the watched values
+/// changes: each ledger's `gather_stamp` and `dirty`, the met matrix, the
+/// war matrix, and each named unit's order stack, by kind and end (item
+/// 1502). It is how a gap no capture holds is dated on this side: the
+/// original's half of the gap is only its first block's stamps.
+#[cfg(test)]
+pub(crate) fn debug_gap(
+    built: &Built,
+    frame: i64,
+    seen: &mut std::collections::BTreeMap<String, String>,
+) {
+    let Ok(v) = std::env::var("RON_DEBUG_GAP") else {
+        return;
+    };
+    let (range, units) = v.split_once(':').unwrap_or((v.as_str(), ""));
+    let Some((lo, hi)) = range
+        .split_once('-')
+        .and_then(|(a, b)| Some((a.trim().parse::<i64>().ok()?, b.trim().parse::<i64>().ok()?)))
+    else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    let s = &built.sim;
+    let mut rows: Vec<(String, String)> = Vec::new();
+    for (w, l) in s.ledgers.iter().enumerate() {
+        rows.push((
+            format!("{w}/ledger"),
+            format!("gather_stamp {} dirty {}", l.gather_stamp, l.dirty),
+        ));
+    }
+    rows.push(("treaties".into(), format!("{:?}", s.treaties)));
+    rows.push(("at_war".into(), format!("{:?}", s.at_war)));
+    for u in units.split(',').filter(|u| !u.is_empty()) {
+        let Some((w, o)) = u
+            .split_once('/')
+            .and_then(|(w, o)| Some((w.parse::<i64>().ok()?, o.parse::<i64>().ok()?)))
+        else {
+            continue;
+        };
+        let found = s
+            .units
+            .iter()
+            .find(|x| x.alive() && i64::from(x.owner) == w && i64::from(x.index) == o);
+        let val = found.map_or_else(
+            || "absent".to_string(),
+            |x| {
+                // The stack's kinds and ends, not its waypoints, which move
+                // on every step.
+                let stack: Vec<String> = x
+                    .orders
+                    .iter()
+                    .map(|o| match o.body {
+                        sim::orders::Body::Move(m) => {
+                            format!("{}:{:?}({},{})", o.index(), m.kind, m.dest.x, m.dest.y)
+                        }
+                        b => {
+                            let d = format!("{b:?}");
+                            format!("{}:{}", o.index(), &d[..d.len().min(90)])
+                        }
+                    })
+                    .collect();
+                format!("orders {stack:?}")
+            },
+        );
+        rows.push((format!("{w}/{o}"), val));
+    }
+    // Every delivery of damage this tick, by whom on whom: on a gap whose
+    // draws agree, the strikes are the two sides' common events.
+    let name = |o: sim::combat::Obj| match o {
+        sim::combat::Obj::Unit(u) => format!("{}/{}", s.units[u].owner, s.units[u].index),
+        sim::combat::Obj::Building(b) => {
+            format!("{}/{}", s.buildings[b].owner, s.buildings[b].index)
+        }
+    };
+    for h in s.hits.iter().rev().take_while(|h| h.frame + 1 >= frame) {
+        if h.frame + 1 == frame {
+            eprintln!(
+                "  gap f{frame} hit {} -> {} dmg {} killed {}",
+                name(h.attacker),
+                name(h.target),
+                h.damage,
+                h.killed
+            );
+        }
+    }
+    for (k, val) in rows {
+        if seen.get(&k) != Some(&val) {
+            eprintln!("  gap f{frame} {k}: {val}");
+            seen.insert(k, val);
+        }
+    }
+}
+
 /// `RON_DEBUG_AMMO=<lo>-<hi>` — every projectile in flight after the
 /// block's frame: its shooter, target, launch, landing, clock, accuracy and
 /// flags, beside the target's own position (item 1081). No capture here
@@ -10979,6 +11075,7 @@ pub(crate) mod tests {
             let (w, o) = u.split_once('/')?;
             Some((f.parse().ok()?, w.parse().ok()?, o.parse().ok()?))
         });
+        let mut gap_seen: BTreeMap<String, String> = BTreeMap::new();
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
@@ -10998,6 +11095,7 @@ pub(crate) mod tests {
                 }
             }
             let n = f + 1;
+            debug_gap(&built, n, &mut gap_seen);
             if n < first_block {
                 continue;
             }
