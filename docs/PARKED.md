@@ -3619,3 +3619,16 @@ it (a document's coverage section says so) or a sweep `#[test]` names
 its address. The number on the scoreboard is the simulation layer's
 backed share. The next pass's first build; the sweep lane is what
 moves it.
+
+(1469) **A Sonnet lane stalled on a permission prompt and said
+"running"** (the commander, 2026-10-05, on Ramon's report): 1429 launched
+run584 at 19:06 through RonDriver, armed `waitrun.sh`, and ended its turn;
+the viadriver log stayed at its header and `wine-stalled.log` stopped at
+19:07 until Ramon cleared a prompt and the game relaunched at 19:55, while
+the capture lane held 1461 and 1423 behind it. The lane then asked a
+person whether to continue. Two rows: the capture lane's own stall
+detector (a viadriver log still at its header past N minutes ends the
+wait as a stall rather than waiting out the hour), and the roster: **the
+user's word** is that the pass decides at this steer whether Sonnet is
+good enough to run a lane (CLAUDE.md's two kill rules did not trip on
+this).
