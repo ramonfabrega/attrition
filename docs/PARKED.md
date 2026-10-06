@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1517, 2026-10-06 — the cast's angle
+
+(1523) **`do_cast`'s pack arm sets the angle with no walk to hold it**:
+1517 built both arms' `set_angle` (guy 0's angle, for every unit;
+listing `005ecbe0`, `005ecb7e`); the unpack arm moved the word, and the
+pack arm's mutation passed the whole `rondata` suite — a unit test holds
+it alone. An arm for the rules track (DECISIONS 56 §3), a candidate for
+chapter fifty-two's list beside 1520's.
+
 ## Parked by item 1514, 2026-10-06 — the guard leg's identity
 
 (1520) **What 1514 left standing**: the Dragoons' release offset on

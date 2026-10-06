@@ -15916,3 +15916,8 @@ instructions at `005ecbe0` are read, not run. The pack arm rests on the listing 
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 139. Reserved for item 1522 (Toughest frame 15213)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
