@@ -13,12 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and three
-landings since. French East Indies **12952** of 17,379 (was 12794);
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and four
+landings since. French East Indies **14090** of 17,379 (was 12794);
 Toughest **12575** measured, floor 12569 (was 11985); fifty-one chapters closed.*
 
-- **Landed**: 1461 (Opus, `get_speed`, now 1470), 1429 (Sonnet, the
-  turn in `guys_follow`, now 1472), 1423 (Sonnet, ch51 closed at 1100). Three lanes: the newest pair's
+- **Landed**: 1461 and 1470 (Opus: `get_speed`; a French General's
+  craft rate, now 1476), 1429 (Sonnet, the turn in `guys_follow`, now
+  1472), 1423 (Sonnet, ch51 closed at 1100). Three lanes: the newest pair's
   on Opus 5.5, the others on Sonnet 5.5, `--effort high` each; entry
   58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
@@ -33,7 +34,7 @@ Toughest **12575** measured, floor 12569 (was 11985); fifty-one chapters closed.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w12952 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w14090 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w12569 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -50,13 +51,14 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1470. **French East Indies frame 12952, 39 versus 38 draws**, index
-    34: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` versus
-    `Guy::set_anim+0x104b`. run635 (640 keys): 118 standing rows on
-    12947, nothing new on 12948..12952; on block 12953 seventeen who=1
-    units part — 1/79's `hold_attack` 12 there, sixteen walkers step
-    short here (1/80 37 against 52). Date the first parting; no
-    mechanism is named.
+1476. **French East Indies frame 14090, 490 versus 1298 draws**,
+    index 483: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `PathFinder::calc_road_cost+0x46`. run636 (14085..14097, 210 keys):
+    139 standing on 14085 — `constr_time` 100000 against 90000 on
+    1/2047, 1/2049..2052 — nothing on 14086; on 14087 thirteen who=1
+    buildings' `regen_roads` 0 against 1 and 1/49's order kind 6
+    against 7; who=1's `leader:discovered` 33 against 34 stands from
+    12959. Date the first parting; no mechanism is named.
 
 1472. **Great Sahara at Toughest's word: frame 12575, 13 versus 11
     draws**, index 4: ours `Guy::inc_time+0x271`, theirs a third
