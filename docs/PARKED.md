@@ -52,6 +52,11 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1487, 2026-10-06 — about to win
+
+(1499) **run642's sixteen `order:group.id` rows on 15345**: 15344609
+against 15350409, a re-formed group's id stamp; no draw parts on them.
+
 ## Parked by item 1477, 2026-10-06 — the census's circle walk
 
 (1494) **The census at a city's founding, and the human's city**: the
@@ -3695,7 +3700,9 @@ it as a trip. The pass rules whether that reading stands.
 (1471) **`tools/standing.py` does not read the third pair's widening
 print** (1461's Loop line, 2026-10-05): the standing keys of the French
 East Indies widening are not put beside who in `sim` reads them, so the
-checklist row that names the tool has nothing to run on the newest word.
+checklist row that names the tool has nothing to run on the newest word. And 1466's: `tools/standing.py` reads `first <frame> …` lines while
+the widening printers write `f1 …` and `standing 1 …`
+(`widen_on_siblings`); one of the two should move.
 
 (1475) **A pinned "unread" key is a tell for an arm held by nothing**
 (1423's Loop line, 2026-10-05): `think_frame` and a building's `visible`
@@ -3746,6 +3753,21 @@ under `~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/` entered
 the original's `plan_strategy` on a `RON_STATE_FRAME` packet; a packet
 tile-mask and cell diff; and `repin.py`, which left 50 of 131 sites to
 re-pin by hand.
+
+(1498) **The coverage pair has no scoreboard line** (the commander,
+2026-10-06, at 1466's merge): its count and sequence are pinned in
+`diff::coverage_pair`, outside `FLOORS`, `AI_WORDS` and the handoff's
+parse; whether it becomes a scored pair, a lane of its own, or the
+newest pair's lane under the roster's Opus clause is the pass's to rule.
+
+(1501) **A booking's "the original's alone" was false on its own
+widening** (1487's Loop line, 2026-10-06): the commander booked 1487
+with "army group 64 is the original's alone"; the `group:64.*` rows on
+the word's block were a re-formed group, not a new one. Rows parting on
+a word's block do not say which side created a record. And a parting
+whose only witness is a stamp (`attacked_by`) dates a decision 256
+frames before the draw stream sees it; `when <fn>` over the trace lists
+the candidate ticks.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a

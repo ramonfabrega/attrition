@@ -14769,3 +14769,120 @@ SHA-256 `d03bf06685519118e422c79401eccb1fb62e32cf52c606ca3013aa3050965bbd`.
 blocks 14357..14380, 93 standing on the first, and on the word's block 14364 six buildings' `regen_roads`
 (`1/2031` 0 against 1, and the like; `1/2053` 1 against 0) and `1/66`'s and `1/115`'s order kind (6
 against 7); army 65's `off`/`curr` tail agrees. The compared pin's window is block 14364.
+## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
+
+**Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the
+queue lane's, by hand); none from the click-free lane. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 36 --timeout 1200 --ai-tribe 23 --profile STARTING_TECHNOLOGY=5 --profile DIFFICULTY=5`,
+`cover=0`, no `--dump-all-start`. Receipt `success`, 37 frames, closing block 37, lifecycle verified, five settings
+files restored, `Player.dat` back to `STARTING_TECHNOLOGY 0`. Read back from the dump's own `GAME INFO`:
+`MAP_STYLE 18`, `GAME_RULES 1`, `DIFFICULTY 5`, **`STARTING_TECHNOLOGY 5`**, `STARTING_TECHNOLOGY2 1`,
+`ENDING_TECHNOLOGY 7`; players (0, 4) and (1, 23); seed 12345. Launch-to-exit 23.447 s, total 33.245 s. The lane
+was free (no wait).
+
+Archive `gamelog-run650-eastindies-persian-age5-short.txt`, 3,174,835 bytes,
+SHA-256 `aeab48b80fea8f4caabe25c09ecca3c48fd9af9ced46e8e13d13d402e9160179`.
+
+Archive `rontrace-run650.log`, 9,924,672 bytes,
+SHA-256 `22c21b2e90bc35f43363d51654320a8617d572edb8b0e4e763d87ae55de4c5de`.
+
+**What it holds**: the answer to the item's first question (§127 claim 1) and nothing a test reads; the age's effect
+at frame 0 is in run651's whole records.
+
+## run651 — the coverage pair: East Indies, Persians, All Technologies, the `DUMP_ALL` start (2026-10-06, item 1466)
+
+**Map 18, human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+seed 12345** — the lobby `tools/census.py --never`'s blind list and the closing states of the five same-recipe
+games pick (`docs/AI.md` §127). Run595's recipe: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 23
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. Receipt `success`, 37
+frames, closing block 37, lifecycle verified, five settings files restored. `GAME INFO`: `GAME_RULES 1`,
+`DIFFICULTY 5`, `STARTING_TOWN 2`, **`STARTING_RESOURCES 7`**, `STARTING_RESOURCES2 1`, **`STARTING_TECHNOLOGY 8`**,
+`STARTING_TECHNOLOGY2 1`, `ENDING_TECHNOLOGY 7`. Launch-to-exit 350.549 s, total 363.518 s; the lane was free.
+**The lobby's own start**, not a sibling's (run595, run597, run646–648's lesson: a start from another lobby is another
+instrument). It carries the whole records of blocks 0 and 1 and the closing blocks 36 and 37.
+
+Archive `gamelog-run651-eastindies-persian-alltech-start.txt`, 153,846,205 bytes,
+SHA-256 `71a0d32cbdefcd96a1015628064ebe07f13a0eb1209d5181009bb1bb15b79483`.
+
+Archive `rontrace-run651.log`, 10,354,560 bytes,
+SHA-256 `78bec51ddae6be74456d06cbfad2594b28c36d67c59a60a780f6a1b969dcf1d3`.
+
+**What it holds**: `run651_s_word_frame_is_widened_whole` (`diff::coverage_pair`): 226 keys part on block 1, 48 on
+the scored French start's block 1 (the control). Both leaders' stockpiles (ours 200/200/100/100/100/100, theirs
+20000/20000/20000/10000/20000/20000) and 26 units' hit points (40 against 85) are the lobby's.
+
+## run652 — the coverage pair: East Indies, Persians, All Technologies, the draw stream to the game's end (2026-10-06, item 1466)
+
+The long trace of run651's lobby: run600's recipe, `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+**The game ended itself at frame 4730** (trace last frame 4730, 4731 frames, closing block 4731; the human `defeated_by 1`),
+so the runner's requested-endpoint receipt failed (`missing, repeated, or unexpected simulation frames`) and `waitrun.sh`
+exited 2, as run598, run600 and run643–645 did; both files retained. Five settings files restored (`Restored backed-up
+settings` in the log; `Player.dat` back to `STARTING_TECHNOLOGY 0`, `STARTING_RESOURCES 1`, `DIFFICULTY 0`). The failed
+receipt wrote no timing: launched 02:02:23, the dump last written 02:03:41 (78 s for 4,731 frames at the 27-minute
+fast-forward). Seed 12345 read back; tribes 4 and 23. The lane was free (no wait).
+
+Archive `gamelog-run652-eastindies-persian-alltech-24k-trace.txt`, 14,375,836 bytes,
+SHA-256 `256f1542057aaf8f66be1c68ff0a285294d22189a5ecf54ccfe1c10083247eb0`.
+
+Archive `rontrace-run652.log`, 260,218,816 bytes,
+SHA-256 `782ff5dc441e9f5d29f78af24d7c79d48551aecf0fa58a661b2d512535fab13f`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and closing records;
+`diff::coverage_pair::coverage_pair_first_parting` walks it from run651's start (frame 0, 195 against 198 draws), and
+the closing state is what §127's measured rows read (21 `AIRORDER`, 15 `AIRPATROLORDER`, 6 `STRAFEORDER`, 18 unit types
+and 14 building types no same-recipe closing holds).
+
+## run649 — French East Indies, a packet at logger frame 15088 (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run649-booking.json`,
+written before the run. No dump of this game between 14795 (run639) and 15339 (run642), and no
+logger prints `find_target`'s per-candidate score. Window **[15086,15091)**, end 15094, call
+window 15086..15091, `RON_STATE_FRAME=15088` with item 597's plan, `--ffwd-minute 10`, `cover=0`,
+`--timeout 1800`, run642's four `--detail` sections, through the click-free lane (free at launch).
+Receipt success; process and wait exits **0**; five settings files restored; 5 group blocks; seed
+12345 read back. Launch-to-exit 510.904 s, total 521.039 s. Game-RNG draws match run600 on all
+15,095 shared frames (`rngcmp.py`). Killers: block 15089 prints leader 0's `frame_attacked` 15088
+(the stamp is tick 15088's); `step4.py` on army 6 writes its target `0/2000`, an enemy's.
+
+`tools/recomp/step4.py` (a scratch variant hooking `6f7eb9` and `6f719b`) enters
+`Army::process@006f93d0` with `this` `0x15d403d4`: every draw and six of the seven scores are
+this crate's, and Napata scores 20040 against ours' 200 (`docs/AI.md` §126;
+`step4-process.log`, `step4-trace.log`).
+
+Packet `~/ron-data/lab-captures/2026-10-06-run649/map-18/frame-snapshot.bin`, 907,231,240 bytes,
+SHA-256 `42c05bb04eb18ddca005e6f43160bf31ef8ad09c40d58097d5c04d7e236a4563`.
+
+Archive `gamelog-run649-islands-french-packet-15088.txt`, 27,085,073 bytes,
+SHA-256 `b048e36e7091bb44307aae697807872a1f9f54d517a63f8781ff0361b215e01a`.
+
+Archive `rontrace-run649.log`, 81,088,960 bytes,
+SHA-256 `e7b72d3b57944a07e37a80bc94c1afd20cad4d7fed164f6fa0297ea79abe2c1a`.
+
+**What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 88 keys (92 before
+the merge with 1477 and 1466), every one standing on block 15086; nothing on 15087..15090. Run 649 only.
+
+## run655 — French East Indies, the word 16857's widening, with the leader probe (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run655-booking.json`,
+written before the run. run642 ends 15357 and run649 15095; nothing dumps this game between them and
+run600's closing state. Window **[16851,16864)**, end 16868, call window 16849..16864,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1800`, run642's four `--detail`
+sections, through the click-free lane (`free` at launch). The run number is the commander's (run650–654
+were another lane's). Receipt success; process and wait exits **0**; five settings files restored;
+13 group blocks 16851..16863; seed 12345 read back. Launch-to-exit 731.469 s, total 742.001 s.
+Game-RNG draws match run600 on all 16,869 shared frames (`rngcmp.py`).
+
+Archive `gamelog-run655-islands-french-16857.txt`, 53,190,797 bytes,
+SHA-256 `63ba2ab74252974b6148785226fa569151cb207061b8793f31875e06cf81e1ed`.
+
+Archive `rontrace-run655.log`, 95,347,264 bytes,
+SHA-256 `32fccc08ce84cd3c7a833de4773fbcbc5f49fb55bb58600bb0f4ea0318b73707`.
+
+**What it holds**: `run655_s_word_frame_is_widened_whole` (`diff::third_pair`): 186 keys, 173
+standing on block 16851, none on 16852..16857, five on the word's block 16858 (the General `1/79`'s
+animation) and eight on 16860..16862. Run 655 only.

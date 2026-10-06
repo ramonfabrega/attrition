@@ -113,6 +113,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "its UNREAD pin names the keys nothing reads",
     ),
     (
+        "diff/coverage_pair.rs",
+        "the coverage pair's walks and fixture checks: per-record comparisons live in harness.rs (item 1466)",
+    ),
+    (
         "diff/second.rs",
         "the second pair's walks: it compares no field itself, and its widenings are harness.rs's",
     ),

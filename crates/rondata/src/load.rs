@@ -116,6 +116,10 @@ pub struct Loaded {
     /// `Category.data[0]` (`+0x3c`), which `GameInfo.wonderwin` indexes:
     /// the wonder victory's points, 9999 for "No Wonder Victory".
     pub wonder_wins: Vec<i32>,
+    /// rules.xml's `popwins` category rows' `DATA` in file order, which
+    /// `GameInfo.popwin` indexes: the territory victory's share of the
+    /// world's land, in percent (`GameDaemon::process_victory`).
+    pub pop_wins: Vec<i32>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1845,6 +1849,17 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        pop_wins: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "popwins")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| int(r, "DATA").unwrap_or(0))
+                    .collect()
+            })
+            .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
@@ -2560,6 +2575,7 @@ mod tests {
             warnings: vec![],
             map_styles: vec![],
             wonder_wins: vec![],
+            pop_wins: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),

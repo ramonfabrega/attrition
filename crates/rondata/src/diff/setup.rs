@@ -132,6 +132,7 @@ pub fn lobby_of(
     game_info: &[(&str, &str)],
     map_styles: &[String],
     wonder_wins: &[i32],
+    pop_wins: &[i32],
 ) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
     let int = |key: &str| -> Option<i32> {
@@ -161,6 +162,15 @@ pub fn lobby_of(
     if let Some(v) = int("STARTING_RESOURCES2") {
         l.starting_resources2 = v;
     }
+    if let Some(v) = int("STARTING_TECHNOLOGY") {
+        l.starting_technology = v;
+    }
+    if let Some(v) = int("STARTING_TECHNOLOGY2") {
+        l.starting_technology2 = v;
+    }
+    if let Some(v) = int("ENDING_TECHNOLOGY") {
+        l.ending_technology = v;
+    }
     if let Some(v) = int("GAME_RULES") {
         l.game_rules = v;
     }
@@ -181,6 +191,12 @@ pub fn lobby_of(
         .and_then(|i| wonder_wins.get(i))
     {
         l.wonder_win_points = v;
+    }
+    if let Some(&v) = int("POPWIN")
+        .and_then(|v| usize::try_from(v).ok())
+        .and_then(|i| pop_wins.get(i))
+    {
+        l.pop_win_percent = v;
     }
     if let Some(v) = int("REVEAL_MAP") {
         l.reveal_map = v;
@@ -527,7 +543,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
     sim.trace_phases = true;
-    sim.lobby = lobby_of(&init.game_info, &loaded.map_styles, &loaded.wonder_wins);
+    sim.lobby = lobby_of(
+        &init.game_info,
+        &loaded.map_styles,
+        &loaded.wonder_wins,
+        &loaded.pop_wins,
+    );
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
     // tech tree's `Setup` — and it is one bit, so they are kept the same.

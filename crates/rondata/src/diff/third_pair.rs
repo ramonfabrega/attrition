@@ -224,36 +224,116 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
 }
 
 /// run642: the successor after the wonder arm's points, frame 15344
-/// (item 1481).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+/// (item 1481). The word left it for 16857 (item 1487).
+pub(crate) fn french_east_indies_15344_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run642",
         &[("gamelog-run642-islands-french-15344.txt", 15339)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_15344,
         1,
         &[15345],
         true,
     )
 }
 
+/// run655: the successor after the territory timer's ×100, frame 16857
+/// (item 1487).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run655",
+        &[("gamelog-run655-islands-french-16857.txt", 16851)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[16858],
+        true,
+    )
+}
+
 #[test]
-fn run642_s_word_frame_is_widened_whole() {
+fn run655_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
     let Some(w) = french_east_indies_word_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1487: 186 — 173 standing on the first block, 16851; nothing on
+    // 16852..16857; on the word's block 16858 five, the General `1/79`'s
+    // animation (`g.cur_anim` 7 against 0, `cur_time` 16 against 1), the
+    // draw ours spends through `Guy::move+0x19f` and the original through
+    // `Unit::set_anim+0x56 < Unit::move_step+0x549`; then eight more on
+    // 16860..16862. The word's block is 16858.
+    pin_eq!(w.firsts.len(), 186, "initial run655 baseline");
+}
+
+/// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
+/// taking its target on tick 15088 (item 1487).
+pub(crate) fn french_east_indies_decision_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run649",
+        &[("gamelog-run649-islands-french-packet-15088.txt", 15086)],
+        WIDENING_FRENCH_EAST_INDIES_15088,
+        1,
+        &[15089],
+        true,
+    )
+}
+
+/// **The decision, both sides** (item 1487): on tick 15088 who=1's army 6
+/// runs `find_target` from `do_transporting`, and with `popwin_timer` 1
+/// since 14293 Napata scores 20040 against Paris's 345 (run649's packet).
+/// Block 15089 prints leader 0's `frame_attacked` 15088 and `attacked_by`
+/// 1; this crate's are the same, so no row of either parts.
+#[test]
+fn run649_s_decision_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_decision_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 5, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin!(
+        !w.firsts.keys().any(|(who, _, what)| *who == 0
+            && (what.ends_with("frame_attacked") || what.ends_with("attacked_by"))),
+        "the stamp of 15088 agrees"
+    );
+    pin!(
+        !w.firsts.keys().any(|(_, _, what)| what.contains("popwin")),
+        "the territory timer agrees"
+    );
+    // 88 on the tree merged after 1477 and 1466 (92 before), every one
+    // standing on the first block 15086 (the human's census, the rows
+    // run642 also stands on); nothing on 15087..15090, the decision's block
+    // 15089 among them.
+    pin_eq!(w.firsts.len(), 88, "run649 whole");
+}
+
+#[test]
+fn run642_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_15344_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1481: 1818 on the tree merged after 1468 (1852 before it) — 100
-    // standing on the first block, 15339; nothing on
-    // 15340..15344; on the word's block 15345 1447, who=1's army group 64
-    // the original's alone (150 rows) and the orders and positions of
-    // `1/67`, `1/79` and some thirty more of who=1's units among them. The
-    // word's block is 15345.
-    pin_eq!(w.firsts.len(), 1767, "initial run642 baseline");
+    // standing on the first block, 15339; nothing on 15340..15344; 1447 on
+    // the word's block 15345, who=1's group 64 re-formed and sent at Napata
+    // there alone. Item 1487: 110 on the tree merged after 1477 and 1466
+    // (114 before) — `find_target` takes Napata on 15088 as the original
+    // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
+    // 94 standing on 15339, and on 15345 sixteen of the group's members'
+    // `order:group.id`, 15344609 here against 15350409 there, alone.
+    pin_eq!(w.firsts.len(), 110, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -1187,8 +1267,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run642-islands-french-15344.txt",
+            "gamelog-run655-islands-french-16857.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run642-islands-french-15344.txt",
+            WIDENING_FRENCH_EAST_INDIES_15344,
         ),
         (
             EAST_START,
@@ -1598,9 +1684,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run639-islands-french-14782.txt",
             WIDENING_FRENCH_EAST_INDIES_14786,
         ),
-        // The open word's window, to the word's own block (item 1481).
         (
             "gamelog-run642-islands-french-15344.txt",
+            WIDENING_FRENCH_EAST_INDIES_15344,
+        ),
+        // The open word's window, to the word's own block (item 1481).
+        (
+            "gamelog-run655-islands-french-16857.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
