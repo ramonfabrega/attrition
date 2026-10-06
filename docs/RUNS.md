@@ -14770,6 +14770,42 @@ blocks 14357..14380, 93 standing on the first, and on the word's block 14364 six
 (`1/2031` 0 against 1, and the like; `1/2053` 1 against 0) and `1/66`'s and `1/115`'s order kind (6
 against 7); army 65's `off`/`curr` tail agrees. The compared pin's window is block 14364.
 
+## run659 — run470's game over the new word 14512's window: the third map's bombard and its four figures (2026-10-06, item 1503)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 17`
+from frame 37), run584's detail with `GROUPS=1`, dumped over blocks 14506..14529 and quit at 14540. The
+word 14363 (item 1493's) moved to 14512 on this item's tree (`docs/AI.md` §132); no capture on disk
+printed a block there (run653's window ends at 14380).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run659 \
+    --map 7 --end-frame 14540 --timeout 5000 --log-window 14506 14530 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** The word's own frame and the blocks after it: no gamelog on the
+disk holds a block past 14380.
+
+**Taken.** **The first take died before frame 0**: a Wine page fault at `7BF2123D` in the first
+seconds (`wine.log`), the receipt refused with "extra lifecycle or fault records" — the shape of
+run657's first take. Kept as `2026-10-06-run659-take1-fault` and taken again once (1150). The second
+take: receipt `success: true`, exit 0, 184.2 s launch to exit (194.4 s in all), 14,541 frames, map 7
+and seed 12345 verified, five settings files restored, 24 `FRAME` blocks 14506..14529 and the closing
+block 14541. `rngcmp.py rontrace-run470.log rontrace-run659.log` **0 differing**, 14,541 identical.
+The lane was free (no wait). 154 GB free after.
+
+Archive `gamelog-run659-greatsahara-toughest-14512.txt`, 62,756,393 bytes,
+SHA-256 `83ed385a2ceab1e216c37c74743189a9df7cf255e3de5c6ea3331f2d7784dba8`.
+
+Archive `rontrace-run659.log`, 94,873,536 bytes,
+SHA-256 `1aa332a3c59e856b9c8ca79c0cb86a404b77c08c4fbee5ab92f176961945f81d`.
+
+**What it holds**: `run659_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 83 keys over blocks
+14506..14529, **all standing on the first block** and none on the word's block 14513 or after: the word
+is a draw order inside one bombard's four figures and no dumped record parts. The compared pin's window
+is block 14513.
+
 ## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
 
 **Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the
@@ -14939,6 +14975,27 @@ SHA-256 `24d9deb01c629a6a9b65972e505488bcf05a2ee692fe483471c3a9ec54871509`.
 standing on block 17165, and the first rows after it on 17167 (`1/69`'s front order). It is the
 first French East Indies window with rounds in flight: four, and `1/90`'s launch geometry parts
 (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). Run 657 only.
+
+## run660 — the coverage pair: East Indies, Persians, All Technologies, blocks 171..184 at the long's detail (2026-10-06, item 1505)
+
+**Disk gap**: run656 holds blocks 1..33 and run651 blocks 0, 1, 36 and 37 only, and run652 the draw stream; nothing dumped this lobby's make list, buildings or
+leader record at the word's frame, 177 (9 draws ours against 8, `Leader::make_stuff+0x221` against `Guy::set_anim+0x97a`). Through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 190 --timeout 1800 --log-window 171 185
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch and after. **One lost take**: the first launch refused (`FileExistsError`, the output
+directory — the worker had made it, the runner makes its own); the second ran, receipt `success: true`, `settings_restored: true`, process and wait
+exits 0. `rngcmp.py rontrace-run652.log rontrace-run660.log`: **191 frames in common, 0 differing**. `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+`MAP_STYLE 18` read back from the lobby. Blocks `171`..`184` whole and a `191` stub.
+
+Archive `gamelog-run660-eastindies-persian-alltech-window-171-184.txt`, 24,916,502 bytes,
+SHA-256 `5c2b000d2436515fc3a83a27802bc8f6ff5fbd1b016c88345f5a9ae10e226b78`.
+
+Archive `rontrace-run660.log`, 10,838,144 bytes,
+SHA-256 `722fe7e0d782a6a2e65327f242a3b819e0f18a39afd5d04400e0bfea22451d6b`.
+
+**What it holds**: `diff::coverage_pair::run660_s_word_frame_is_widened_whole` — 132 keys: block 171's 90 standing rows (the control's and the SITE
+list's, parted since block 1), the SITE ranks and values from 176, and the make list from 183. Blocks 177 and 178 hold an empty make list on both sides, so the
+word's `make_me` fill is read from the harness, not the dump (`docs/AI.md` §133).
 
 ## run658 — French East Indies, the gap before 17171: blocks 17018..17057, with the leader probe (2026-10-06, item 1502)
 

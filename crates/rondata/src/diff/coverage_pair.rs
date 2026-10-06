@@ -38,7 +38,12 @@ pub(crate) struct Pair {
     /// 0 (195 draws ours against 198, index 26) to frame 8 (21 against 24,
     /// index 2: ours `Leader::make_stuff+0x63d`, theirs `Leader::
     /// produce_building+0x1805`)** — the original's Oil Well on the AI's
-    /// make list, which this crate never places (`docs/AI.md` §129).
+    /// make list, which this crate never placed (`docs/AI.md` §129).
+    /// **Item 1505 moved it from frame 8 to frame 177 (9 draws ours
+    /// against 8, index 2: ours `Leader::make_stuff+0x221`, theirs `Guy::
+    /// set_anim+0x97a < Guy::inc_time+0x271`)**: the leader's oil patches
+    /// are carried now (`docs/AI.md` §133), and 177's `make_me` fills
+    /// three Village slots in ours against two in theirs.
     pub count: i64,
     pub sequence: i64,
 }
@@ -56,8 +61,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 8,
-    sequence: 8,
+    count: 177,
+    sequence: 177,
 };
 
 /// **The pair's first parting**, walked from its own start: the frame the
@@ -320,5 +325,40 @@ fn run656_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 364, "initial run656 baseline");
+    // 364 before item 1505 (the oil patches): block 9's 275 keys are gone and the
+    // 89 left are block 1's (the control's 48 and the SITE list's).
+    pin_eq!(w.firsts.len(), 89, "initial run656 baseline");
+}
+
+/// run660, item 1505: the lobby's blocks 171..184 at the long's detail, so
+/// frame 177's word has records (the make list, the buildings, the leader).
+pub(crate) const RUN660: &str = "gamelog-run660-eastindies-persian-alltech-window-171-184.txt";
+
+/// The window: block 171 through 184; the word's own block is 178.
+pub(crate) const WIDENING_COVERAGE_FRAME_177: (i64, i64) = (171, 184);
+
+pub(crate) fn coverage_frame_177_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run660",
+        &[(RUN660, 171)],
+        WIDENING_COVERAGE_FRAME_177,
+        1,
+        &[178],
+        true,
+    )
+}
+
+#[test]
+fn run660_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_frame_177_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 14, "every captured block");
+    // Block 171's standing rows (90: the control's and the SITE list's, parted since
+    // block 1), the SITE ranks from 176 and the make list from 183.
+    pin_eq!(w.firsts.len(), 132, "initial run660 baseline");
 }

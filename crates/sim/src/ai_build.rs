@@ -1066,11 +1066,12 @@ impl Sim {
             {
                 continue;
             }
-            // `oil_patches.count` reads 0, so `oil_ok` is never true.
+            // `oil_patches.count` (`+0x6e8c`): item 1505, [`Leader::oil_patches`].
             let mut oil_ok = false;
             let mut m0 = 0x100;
             if g == 5 {
-                oil_ok = f.ci == 0 && self.ai[w].census.gather_slots[5] < Self::OIL_PATCHES;
+                oil_ok = f.ci == 0
+                    && self.ai[w].census.gather_slots[5] < self.ai[w].oil_patches.len() as i32;
                 base = base.wrapping_mul(10);
             }
             let ter = f.ter[g];
@@ -1191,10 +1192,6 @@ impl Sim {
         *escrow_in = escrow;
         Some((v, cat, 2))
     }
-
-    /// `oil_patches.count` — the leader's known oil patches; none are
-    /// modelled, so an oil well is never the reason a good is wanted.
-    const OIL_PATCHES: i32 = 0;
 
     /// §3.9, the wonder branch. Draws twice from the sync stream on the
     /// no-shortcut arm, and only there.

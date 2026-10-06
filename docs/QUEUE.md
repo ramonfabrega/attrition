@@ -13,29 +13,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and seventeen
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and nineteen
 landings since. French East Indies **17171** of 17,379 (was 12794);
-Toughest **14363**, floor 14363 (was 11985); fifty-one chapters closed.*
+Toughest **14512**, floor 14512 (was 11985); fifty-one chapters closed.*
 
 - **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500, 1502 (Opus, newest pair, now 1508); 1429, 1472,
-  1477, 1493 (Sonnet, third map, now 1503); 1423, 1468, 1465, 1466, 1496 (Sonnet, rules;
-  battery 576 / 6566 / 2974, a measure; coverage pair frame 8, now 1505). Lanes:
+  1477, 1493, 1503 (Sonnet, third map, now 1510); 1423, 1468, 1465, 1466, 1496, 1505 (Sonnet, rules;
+  battery 576 / 6566 / 2974, a measure; coverage pair frame 177, now 1511). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
   high` each; entry 58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1505, then 1497.
+- **The rules lane is the coverage lane**: 1511, then 1497.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 24 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498, 1501, 1507).
+- **Fable backlog: 25 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498, 1501, 1507, 1513).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17171 of 17,379 · GreatLakesFrench w5638 of 5,638
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w14363 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w14512 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -59,21 +59,21 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     attack pushed onto a guard's AttackTo leg, where ours keeps the walk
     and the original drops it (run657, 1/69 on 17167). No mechanism.
 
-1503. **Great Sahara at Toughest's word: frame 14363, 11 versus 177
-    draws**, index 5: theirs `PathFinder::calc_road_cost+0x46`. run653
-    (14357..14380) widens it: on block 14364 six of who=1's buildings
-    part on `regen_roads` (1/2031, 2034, 2038, 2040, 2042, 2054 set
-    there; 1/2053 set here only), and 1/66 and 1/115's order kind 6
-    against 7. Date the first parting; no mechanism is named.
+1510. **Great Sahara at Toughest's word: frame 14512, 53 versus 53
+    draws in another order**, index 40: ours `Guy::move+0x19f`, theirs
+    `Guy::do_turn+0x4a < Guy::turn_towards+0x69`, in 1/141's (a
+    Bombard's) four figures; the count first parts at 15101. run659
+    (14506..14529) widens it: 83 keys, all standing on its first block,
+    none on 14513 or after — no dumped record parts. A packet at 14512
+    or a per-figure read is the next question; no mechanism is named.
 
-1505. **The coverage pair's word: frame 8, 21 versus 24 draws**,
-    index 2: ours `Leader::make_stuff+0x63d`, theirs
-    `Leader::produce_building+0x1805`. run656 (blocks 1..33) widens
-    it: on block 9 the original buys 2006 a city, 2007 a Shipyard,
-    2008 an Oil Well (190, 202), 2009 a University, 2010 and 2011
-    Airbases; ours buys four and no well (`ai_place` 4.2 never places
-    an Oil Well; `oil_patches` unmodelled). Not on the scoreboard
-    (parked 1498). No mechanism is named.
+1511. **The coverage pair's word: frame 177, 9 versus 8 draws**,
+    index 2: ours `Leader::make_stuff+0x221` three times, theirs twice
+    then `Guy::set_anim+0x97a` — `make_me` fills three Village slots
+    here (t 414: slots 0, 1, 9) against two. run660 (blocks 171..184).
+    Leader 1's `SITE` list stands since block 1 (parked 1506: `SITE[2]`
+    blank there, (50, 57) here; `SITE[9].val` 797 against 375130 on
+    176) — a hypothesis, not yet shown the only cause. No mechanism.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

@@ -235,6 +235,16 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_14363: (i64, i64) = (14_357, 14_
 /// **The word's block, 14364**: frame 14363 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_14364: i64 = 14_364;
 
+/// run659: run470's game at run584's detail over the blocks 14506..14529, the
+/// new word 14512's own window (item 1503).
+pub(crate) const TOUGHEST_WORD_14512: &str = "gamelog-run659-greatsahara-toughest-14512.txt";
+
+/// **run659's window** (item 1503): blocks 14506..14529.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_14512: (i64, i64) = (14_506, 14_530);
+
+/// **The word's block, 14513**: frame 14512 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_14513: i64 = 14_513;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -472,10 +482,22 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
     )
 }
 
+/// run659's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_14512`], walked as
+/// run584's are (item 1503).
+pub(crate) fn great_sahara_toughest_14512_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run659",
+        (TOUGHEST_WORD_14512, WIDENING_GREAT_SAHARA_TOUGHEST_14512.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_14512,
+        TOUGHEST_WORD_BLOCK_14513,
+    )
+}
+
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run653 at its block 14364 since item 1493 (run640 at its block 12817
+/// on run659 at its block 14513 since item 1503 (run653 at its block 14364
+/// from item 1493, run640 at its block 12817
 /// from item 1477, run584 at its block 12745
 /// from item 1472, at its block 12570 from
 /// item 1429; run574 at its block 11986
@@ -492,12 +514,12 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
-    let word = TOUGHEST_WORD_BLOCK_14364 - 1;
+    let word = TOUGHEST_WORD_BLOCK_14513 - 1;
     toughest_window_over(
-        "run653",
-        (TOUGHEST_WORD_14363, WIDENING_GREAT_SAHARA_TOUGHEST_14363.0),
+        "run659",
+        (TOUGHEST_WORD_14512, WIDENING_GREAT_SAHARA_TOUGHEST_14512.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_14364,
+        TOUGHEST_WORD_BLOCK_14513,
     )
 }
 
@@ -1612,25 +1634,26 @@ mod tests {
         };
         // **The word 14363's block, 14364** (item 1493, `docs/AI.md` §128):
         // ours 11 draws and the original 177 on the frame, parting at index
-        // 5 (theirs `PathFinder::calc_road_cost+0x46`). The first parts past
-        // the 93 standing on the window's first block are the original's
-        // `regen_roads` flag on six of who=1's buildings — `1/2031`, `2034`,
-        // `2038`, `2040`, `2042`, `2054` set there and clear here; `1/2053`
-        // set here and clear there — and `1/66`'s and `1/115`'s order kind,
-        // 6 against 7. No mechanism is booked.
+        // 5 (theirs `PathFinder::calc_road_cost+0x46`), and on the block the
+        // original's `regen_roads` flag on six of who=1's buildings, `1/66`'s
+        // and `1/115`'s order kind 6 against 7. **Item 1503 moved the word
+        // 14363 → 14512 and these rows with it** (`docs/AI.md` §132): the
+        // Smelter `1/2053` finished on 14363 at the President's clock,
+        // `100000 × 100 / 133`, and flagged its city. This test keeps the move's
+        // value diff: the window now parts on its first block alone.
         pin_eq!(
             row(1, 2031, "build:regen_roads"),
-            Some("14364: ours 0 theirs 1".into()),
+            None,
             "a city building's road flag, on the word's block"
         );
         pin_eq!(
             row(1, 2053, "build:regen_roads"),
-            Some("14364: ours 1 theirs 0".into()),
-            "and the one building this crate flags alone"
+            None,
+            "and the one building this crate flagged alone"
         );
         pin_eq!(
             row(1, 66, "order:kind"),
-            Some("14364: Kind { ours: 6, theirs: 7 }".into()),
+            None,
             "1/66's order kind, on the word's block"
         );
         // **The group record's tail agrees**: the compared slots run to the
@@ -1643,10 +1666,55 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(14357, 88), (14364, 11), (14365, 12)],
+            [(14357, 88)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 373, "every key parted on run653");
+        pin_eq!(w.firsts.len(), 88, "every key parted on run653");
+    }
+
+    /// **The word 14512, widened whole** (item 1503):
+    /// [`great_sahara_toughest_14512_window`] over run659's blocks
+    /// 14506..14529, both directions, every record run584's detail prints.
+    /// Frame 14512 writes block 14513.
+    #[test]
+    fn run659_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_14512_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 24, "run659 whole: blocks 14506..14529");
+        pin!(
+            w.missing.is_empty(),
+            "run659 carries every key: {:?}",
+            w.missing
+        );
+        // **The word 14512's block, 14513** (item 1503, `docs/AI.md` §132):
+        // 53 draws on each side, parting at index 40 — ours `Guy::move+0x19f`,
+        // theirs `Guy::turn_towards+0x69` — in `1/141`'s four figures (a
+        // BOMBARD, move/move/turn/move there, move/move/move/turn here). **No
+        // dumped record parts on the frame or after it**: every one of the 83
+        // keys stands from the window's first block, so the delta is a draw
+        // order whose values the dump does not print. No mechanism is booked.
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
+            [(14506, 83)],
+            "the blocks keys first part on, the first three"
+        );
+        pin_eq!(w.firsts.len(), 83, "every key parted on run659");
     }
 
     /// **The word 11182, widened whole** (item 1379):

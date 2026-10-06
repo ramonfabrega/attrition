@@ -709,6 +709,15 @@ pub struct Leader {
     /// `ScenarioFuncSet::num_rare_resources_seen@009ea010` returns its
     /// length: `docs/ECONOMY.md`, "The rares a leader has seen".
     pub new_rares: Vec<usize>,
+    /// `oil_patches` (`LeaderData +0x6e88`, a `SimpleArray<int>`: count
+    /// `+0x6e8c`, list `+0x6e98`) — the **goods-list indices** of every oil
+    /// patch this leader has had a fog cell lifted over, or has owned a
+    /// cell of. Three writers add (`World::reveal_fog@006b3d30`'s oil arm,
+    /// `World::compute_reg_territory@006b0bb0`'s per-cell goods scan, each
+    /// only when the index is not already held) and one removes
+    /// (`Leader::produce_building@006e1400`'s arm 4.2, by value, shifting
+    /// the tail down); `Leader::init` empties it. `docs/AI.md` §133.
+    pub oil_patches: Vec<usize>,
     /// `known_rares` (`LeaderData +0x6d4`): `reg_known_rares` summed.
     /// `Leader::calc_gather@006ceee0` is its one writer and writes it
     /// under its own cadence, so it lags the census by up to a recompute;
@@ -869,6 +878,7 @@ impl Leader {
             popwin_timer: 0,
             tech_cat_frame: [0; 4],
             new_rares: Vec::new(),
+            oil_patches: Vec::new(),
             known_rares: 0,
         }
     }

@@ -15322,6 +15322,154 @@ Ours' side of the gap is `RON_DEBUG_GAP`'s print, recorded in the journal.
 Listing-free: `Object::do_damage`'s writes are read off the export, not the
 listing.
 
+## 132. The President shortens a site's clock (2026-10-06, item 1503)
+
+Great Sahara at Toughest's word was **14363** on the base (item 1493): 11 draws
+ours against 177, parting at index 5 — theirs `PathFinder::calc_road_cost+0x46`.
+run653 (14357..14380) widened it: on block 14364 six of who=1's buildings part
+on `regen_roads` (`1/2031`, `2034`, `2038`, `2040`, `2042`, `2054` set in the
+original; `1/2053` set here only), `1/2038`'s and `1/2054`'s `gather_down`, and
+`1/66`'s and `1/115`'s order kind (6 against 7).
+
+**Dating it.** The six are one city's buildings (city 3, centre `1/2031`), and
+`1/2053` is its newest, a Smelter (`orig_type` 425). `1/2053`'s slot in the
+sixteen-frame rotation is `(14363 + 2053) % 16 == 0`, so a city-wide flag set on
+14363 is *cleared* on `1/2053` the same frame and left on the other six — the
+original's block 14364 reads exactly that (`build_masks` bit `0x100`: `1/2053`
+1280 → 5120, `1/2031` 4096 → 4352), and the 177 draws are `1/2053`'s road. The
+flag is `Build::activate`'s `City::regen_roads` (`docs/ROADS.md` §1): **the
+Smelter finished on 14363 in the original**, `ever_seen_completed` 0 → 2,
+`job_counter` 75038 → 0, `construct_hits` 997 → 1000. Here it did not: this
+crate's `job_counter` read 75221 (75038 + 183, the same step the dump's
+`job_counter` shows every frame from 14357) against a clock of 100000, and its
+`1/2053` kept its own flag, set at placement, over a site that had not yet been
+activated.
+
+**The clock.** The dump's `constr_time` still prints 100000 on both blocks, but
+`construct_hits` says otherwise: 983, 990 and 997 on blocks 14357, 14360 and
+14363 are `site_hits` (`a * full / b`, `a = job_counter >> 5`, `b = clock >> 5`)
+over a clock `b` of 2348..2350, i.e. **75168..75231**, and the completion on
+14363 bounds it from the other side (75038 did not finish on 14362, 75221 does
+on 14363): `100000 × 100 / 133 = 75187`. That is clause (c) of
+`BuildData::construct_time@0062d5c0` (`docs/CITIES.md` §3.2) —
+`has_general(this, 0, 0x163)`, `THEPRESIDENT`, `THEPRESIDENT_BUILDING_SPEED` 33 —
+a **per-call** clock, applied where `constr_time` (the baked base) is not. Who=1
+has the President: `1/80`, `guy` 355 (`THEPRESIDENT`), at tile (130.9, 96.5) on
+block 14364, 3.4 tiles and 6 tiles from the Smelter's centre (127.5, 90.5).
+
+**The predicate.** `ObjectData::has_general@00646b00` asked of a **building**:
+`this` is not a unit, so the first arm is skipped; the reach is the building's
+footprint `(type +0x234 + type +0x238) × 0x60` (`x_size + y_size`; the vslot
+`+0x20` is nonzero for a building); a zero in the leader's per-type table at
+`+0x56fe` returns −1 (an early out, not read here); else
+`HeroesData::find_hero@0073a1b0` over the owner's hero records: the record
+active, its unit active and on the map, the unit's type `is(0x163)` (the
+mask test is skipped, `param_4` 0), and `vector_dist(dx, dy) − reach ≤
+get_radius × 0xc0` — the shape `near_marching_hero` already carries
+(`cast.rs`), with the type test instead of the Forced March mask.
+
+**Built.** `Sim::president_near_building` (`crates/sim/src/city.rs`), read by
+`construct_time_of` into `ClockMods::president` — which nothing had written
+since the field was added (`ClockMods` is still `bd.clock`'s other three
+clauses: the free first wonder, the Hanging Gardens and the Iroquois Senate stay
+`false`; no capture reaches them). Test
+`the_president_near_a_site_shortens_its_clock_by_a_quarter`.
+
+**Value diff** (`RON_DEBUG_BUILDS`, `1/2053`, this crate against the dump):
+
+| block (frame + 1) | ours before | ours now | the dump |
+|---|---|---|---|
+| 14363 | `jc` 75038, `construct_hits` 750 | 75038, **997** | 75038, 997 |
+| 14364 | `jc` 75221, not active, `regen_roads` 1, 752 | **0, active, `regen_roads` 0, 1000** | 0, active, 0, 1000 |
+
+run653's whole window (24 blocks, 378 keys before) now parts on **93 keys, all on
+its first block** (the standing rows; 88 on the tree merged after item 1496) and on nothing from 14364 to 14380.
+
+**New word: 14512.** The long walk (`run470_is_great_sahara_at_toughest…`) parts
+at 14512 by **sequence**, 53 draws each side, index 40: ours `Guy::set_anim+0x97a
+< Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`; the count first parts at 15101. The frame is `1/141`'s
+(a `BOMBARD`, `guy` 267, on an `ATTACK_TO` move whose path ends on this frame): its
+four figures draw move, move, **turn**, move in the original (indices 38–41) and
+move, move, move, **turn** here. run659 (14506..14529, a click-free capture,
+`rngcmp` against run470 0 differing in 14,541 frames) widens it whole, both
+directions: **83 keys, all standing on its first block 14506, none on 14513 or
+after**. No dumped record parts on the word's frame or the sixteen after it. So
+the delta is a draw *order* inside one unit's four figures, whose values the dump
+does not show: no mechanism is named.
+
+**Not established.**
+- The leader's per-type count at `+0x56fe` (`has_general`'s early `−1`) is not
+  read; a live President is found by the type test alone.
+- Clauses (a), (b) and (d) of `construct_time` stay unmodelled
+  (`ClockMods` defaults); this capture reaches only (c).
+- Nothing pins the President's radius at the reach's edge: the Smelter sat well
+  inside it on both sides (`hero_radius` is the existing `supply::general_radius`
+  for 0x163, `6 × 3 / 2 + 1` = 10 tiles of `0xc0`).
+- `construct_hits` and `myhits` are on the coverage pin's unread list for
+  `OBJECT` (item 1476's finding): the dump printed this parting (997 against
+  this crate's 750 on block 14363) for as long as the site stood, and no compared key
+  held it. Comparing `construct_hits` on `BuildDump` would have dated this item before the flag moved.
+
+No blind reading. The clause is diff-backed by run653's `1/2053` (the clock from
+`construct_hits` on three blocks and the completion frame) and the predicate's
+shape by the listing.
+
+## 133. The coverage pair's frame 8: the leader's oil patches, and the word at 177 (2026-10-06, item 1505)
+
+**What was established, how, how confident.** Item 1496 left the coverage pair's word at **frame 8, 21 draws ours against 24, index 2** (ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`): on run656's block 9 the original buys an Oil Well on `2008` at tile
+(190, 202), and `produce_building`'s arm 4.2 (`ai_place.rs`) returned false for every `OILWELL`. The booking's "`oil_patches` is unmodelled" was
+a hypothesis; the writers were counted before anything was built. `LeaderData +0x6e88` (`SimpleArray<int>`: count `+0x6e8c`, list `+0x6e98`,
+`types.txt`) has **four writers and one emptier** in the export, by offset: `World::reveal_fog@006b3d30` (an add), `World::compute_reg_territory@006b0bb0`
+(an add), `Leader::produce_building@006e1400` (a remove, by value) and `Leader::init@006e3930` (the empty); `Leader::create_buildings@006c1be0`
+reads the count (`+0x6e8c`, the `oil_ok` of §3.2). `BuildOut::make_options`' `+0x6e98` is another struct's field (`leaders.list - 1 + 0x6e98`), not this list.
+Each claim is *diff-backed* unless marked.
+
+1. **The list is the leader's goods-list indices of oil patches.** *Add (a)*: `reveal_fog`, after its rare arm and independent of that arm's
+   `0x200` gate, tests the **world cell's own flag `0x800`** (`cell::OIL`) at `(fx >> 1, fy >> 1)` and walks the goods list from the front for the
+   first **live** good standing on that cell — **whatever its type** — and adds its index unless it is already in the list. No human gate (`new_rare`
+   has one; this does not). *Add (b)*: `compute_reg_territory`, per cell it gives to a leader (`who >= 0`, 256 cells a frame, `border_pass.rs`),
+   runs the same first-live-good scan and adds an **oil** good (the good type's `TypeIndex == 5`) to that owner's list, or hands a rare to
+   `new_rare`. `Leader::init` empties the list. Oil goods are in the goods list and in no cell's chain (`world.rs`), which is why both scans walk the
+   list. `Leader::oil_patches`, `Sim::reveal_fog`, `Sim::claim_cell_goods`, `Sim::claim_oil_from_owners` (setup's wholesale pass, `settle_borders`, and the
+   harness's stand-in for an installed owner grid).
+2. **Arm 4.2** (`006e1730`–`006e195f`, read from the listing): the list **last to first**; skip a dead patch; a **land** patch (`!is_ocean`) whose cell owner is not
+   this leader is **removed from the list** (`SimpleArray<int>::remove@00462e70`: by value, the tail shifts down) and skipped; an **ocean** patch is skipped, not
+   removed, unless the leader has a transport level (`leader_flags & 0x700`, taken as `transport_level != 0`; `docs/TRANSPORT.md` sets the two together). The centre tile
+   `(4x + 2, 4y + 2)` must have `mask & 3 != 3` and bit 7 clear. With the cell's flag `2` clear and **no enemy object within `0x600` of the cell's centre**
+   (`ObjectsData::find`, `SEARCH_ENEMY`, `FILTER_ALL`), the score is **`2 · width − vector_dist(patch − anchor)`** in cells (both operands the near building's
+   cell, from the listing's `[ebp-0x4c]`/`[ebp-0x60]`) and a score `>= best` takes it — so a tie goes to the **earlier** patch; the candidate is `cell · 0x300 +
+   x_size · 0x60` per axis. With the flag set, no enemy within `0xf00` clears the bit. After the walk, `best > 0` and the candidate's cell `is_ocean` turns the type into
+   the **Oil Platform**, and the common tail reads the platform's record. `best == 0` fails (`006e25dc`). This arm, `pick_oil_patch`, replaces the spiral for `OILWELL`.
+3. **`oil_ok`** (`create_buildings`, `gather_slots[OIL] < oil_patches.count`) now reads the count: the make list's oil value is wanted when a patch is known.
+4. **The value diff on the word's frame.** run656 parts on **275 more keys** before than after, all on block 9 and after: `2008`'s `build:x_internal`/`y_internal`/`city_down`,
+   `2009`'s `city`/`constr_time`/`repeat_air`/`x_internal`/`y_internal` and `1/2010`, `1/2011` ("the dump holds it alone"), the make list's slots
+   (`MAKE[1].val` 4,750,000 against 47,500, `MAKE[2..7].t`), `bucket[1:timber]` 19810 against 19710, `[4:metal]` 16700 against 16650, `[5:oil]` 19930
+   against 19835, and 1/7, 1/8, 1/10 and 1/12's orders and paths. **run656: 364 keys parted → 89** (block 1's alone: the control's 48 and the SITE list's 41). The Oil Well
+   stands where theirs does, `2008` at (36480, 38784), tile (190, 202). `coverage_pair_first_parting`: **frame 8 → frame 177**.
+
+**What the walks do and do not hold** (`tools/mutate.py`, on the committed tree). Held by a walk: arm 4.2 back to `return false` (`coverage_pair_first_parting`,
+`run656_s_word_frame_is_widened_whole`, `run660_s_word_…`), and `oil_ok`'s count read as 0 (`run660_s_word_frame_is_widened_whole`). **Held by no walk, so a finding**:
+the reveal arm alone off, the owner claim alone off (the coverage pair's patch is both seen and owned, so either suffices), the prune of an unowned land patch, and the
+tie rule (`>=` against `>`). Each is held by a unit test in `ai_place.rs` (`a_reveal_and_a_claim_each_add_the_patch_once`, `an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned`,
+`an_equal_score_goes_to_the_earlier_patch`, and `an_enemy_within_three_halves_of_a_cell_refuses_a_patch`, `a_sea_patch_waits_for_a_transport_level_and_is_not_pruned`). Every other
+capture in the suite is unmoved: `cargo test --release -p rondata` (739 passed) failed only the three coverage-pair pins, all re-pinned.
+
+**The new word, 177: 9 draws ours against 8, index 2.** Ours takes `Leader::make_stuff+0x221` three times where theirs takes it twice, then the two animals' `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. **run660** (blocks 171..184 at the long's detail; `rngcmp.py` against run652: 191 frames, 0 differing) holds the word: the make list is empty on both
+sides at blocks 177 and 178, so the word is *inside* the tick — `make_me` fills the list and `make_stuff` buys its head, whose `t` is **414, the Village**, and walks
+every slot holding it: ours `[(414, 111058), (414, 1867), -, …, (414, 111058)]` — **three Village slots** (0, 1 and 9) — against two in theirs. The state that
+first parts is leader 1's **`SITE` list, standing since block 1** (run656 and run660 both: theirs has one more blank record in front — `SITE[2]` zero with `rank` 4 where ours holds
+`(50, 57)` there with rank 3 — and `SITE[4].val` 2499 against 2000, `SITE[9]` on 176 `val` 797 against 375130, `wy` 52 against 47, `SITE[6].wx` 54 against 44). 1496 parked it
+(`block 8 agrees without it`); the word now stands on it. It is **not** built here (parked 1506). *Not established*: which of `compute_sites`' steps leaves theirs a blank
+the sampler keeps; whether the three-against-two Village slots are the SITE list's alone.
+
+**What is not established.** The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing. The
+enemy walk is every object, not the cell chains of the `circle_radius[2]` ring (differs only at a ring corner). The order the original reaches a list's patches in at setup
+(the harness seeds the fog's, then the owner grid's, in the goods list's order): it only decides ties. `leader_flags & 0x700` as `transport_level != 0` rests on
+`docs/TRANSPORT.md`'s `leader_flags |= 0x700`. The cell flag `2` (read in arm 4.2) has no writer in this crate, so its two branches are unit-untested.
+
 ## 134. A guard's attack-move leg goes under its attack, and a Dragoon fires on the move (2026-10-06, item 1508)
 
 Item 1502 left the word at **17171**, 11 draws against 10, parting at index

@@ -387,6 +387,91 @@ impl Sim {
         )
     }
 
+    /// **4.2** (`006e1730`–`006e195f`): the leader's oil patches, last to
+    /// first. Answers `(best, best_sp, candidate)`; `best` is the score of
+    /// the pick and 0 when no patch qualified.
+    ///
+    /// Per patch: skip a dead one; a **land** patch the leader does not own
+    /// is *removed from the list* and skipped (`SimpleArray<int>::remove`,
+    /// by value, shifting the tail down), an **ocean** patch is skipped, and
+    /// not removed, unless the leader has a transport level
+    /// (`leader_flags & 0x700`). The centre tile `(4x + 2, 4y + 2)` must
+    /// hold no building footprint (`mask & 3 != 3`) and bit 7 clear. With
+    /// the cell's own flag `2` clear and no enemy object within `0x600` of
+    /// the cell's centre, the score is `2 · width − vector_dist(patch −
+    /// anchor)` in cells, kept when it is `>= best`; the candidate is the
+    /// cell's corner plus the well's half footprint, `x · 0x300 +
+    /// x_size · 0x60`. With the flag set, no enemy within `0xf00` clears it.
+    fn pick_oil_patch(
+        &mut self,
+        who: Player,
+        anchor: Cell,
+        bt: &crate::build::BuildType,
+    ) -> (i32, i32, Option<Pos>) {
+        let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
+        let transport = self.transport_level(who) as i32 != 0;
+        let mut i = self.ai[who as usize].oil_patches.len();
+        while i > 0 {
+            i -= 1;
+            let gi = self.ai[who as usize].oil_patches[i];
+            let g = self.world.goods()[gi];
+            if !g.alive {
+                continue;
+            }
+            let c = g.pos.cell();
+            if self.world.is_ocean(c) {
+                if !transport {
+                    continue;
+                }
+            } else if self.world.owner(c).player() != Some(who) {
+                self.ai[who as usize].oil_patches.remove(i);
+                continue;
+            }
+            let mask = self
+                .world
+                .tile_mask(Pos::new(c.x * TILES_PER_CELL + 2, c.y * TILES_PER_CELL + 2));
+            if mask & 3 == 3 || mask >> 7 & 1 != 0 {
+                continue;
+            }
+            let mut d = self.world.cell_data(c);
+            let centre = Pos::new(c.x * UNITS_PER_CELL + 0x180, c.y * UNITS_PER_CELL + 0x180);
+            if d.flags & 2 == 0 {
+                if self.enemy_object_within(who, centre, 0x600) {
+                    continue;
+                }
+                let score = self.world.width() * 2 - vector_dist(c.x - anchor.x, c.y - anchor.y);
+                if score >= best {
+                    best = score;
+                    best_sp = bt.x_size;
+                    best_cand = Some(Pos::new(
+                        c.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2),
+                        c.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2),
+                    ));
+                }
+            } else if !self.enemy_object_within(who, centre, 0xf00) {
+                d.flags &= !2;
+                self.world.set_cell_data(c, d);
+            }
+        }
+        (best, best_sp, best_cand)
+    }
+
+    /// `ObjectsData::find(point, SEARCH_ENEMY, who, range, FILTER_ALL)`
+    /// answering "any" — a live unit or building of a leader `who` is at
+    /// war with, within `range` of `at` by `vector_dist`. The original walks
+    /// the cell chains of the `circle_radius[(range + 0x2ff) / 0x300]`
+    /// ring; this walks every object, which differs only for one past that
+    /// ring and still inside `range` (a ring corner), and no capture has one.
+    pub(crate) fn enemy_object_within(&self, who: Player, at: Pos, range: i32) -> bool {
+        let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= range;
+        self.units.iter().any(|u| {
+            u.alive() && u.on_map && !u.is_gaia() && self.is_enemy(who, u.owner) && near(u.pos)
+        }) || self
+            .buildings
+            .iter()
+            .any(|b| b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos))
+    }
+
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
     /// placed (the original's 0). `near` is the reference building — a city
     /// centre for `place_building_with_cost`, any building for the orphan
@@ -431,11 +516,15 @@ impl Sim {
         }
         let scored_by_gather =
             gather && !matches!(ident, Ident::Farm | Ident::University | Ident::Mine);
-        // 4.2 Oil wells walk the leader's oil patches, which the simulation
-        // does not carry.
-        if ident == Ident::OilWell {
-            return false;
-        }
+        // 4.2 Oil wells walk the leader's oil patches, last to first, and
+        // skip 4.3's spiral altogether. The arm's pick joins the spiral's
+        // at its common tail (`006e25d9`): a `best` of 0 fails there too.
+        let oil = ident == Ident::OilWell;
+        let (oil_best, oil_sp, oil_cand) = if oil {
+            self.pick_oil_patch(who, anchor, &bt)
+        } else {
+            (0, 0, None)
+        };
 
         // 4.3 The spiral.
         let (w, h, max) = if !is_dock {
@@ -451,16 +540,16 @@ impl Sim {
             (4, 4, 8)
         };
         let end = circle.radius[rings.min(0x40)];
-        if start >= end {
+        if !oil && start >= end {
             return false;
         }
         let (xs, ys) = (self.world.width(), self.world.height());
         let big = bt.x_size.max(bt.y_size);
         let unlimited = self.lobby.resources_unlimited();
         let mut step = 1;
-        let mut best = 0i32;
-        let mut best_sp = 0;
-        let mut best_cand: Option<Pos> = None;
+        let mut best = oil_best;
+        let mut best_sp = oil_sp;
+        let mut best_cand: Option<Pos> = oil_cand;
         // **The index steps at the *bottom* of the iteration**, by the
         // stride as it stands *then* — `local_2c = local_2c + iVar13` at
         // `006e25bb`, after the body that may have set `iVar13` to 3. An
@@ -470,7 +559,7 @@ impl Sim {
         // (`docs/AI.md` §20). The body is a labelled block so that every
         // arm that used to `continue` still reaches the step.
         let mut idx = start;
-        while idx < end {
+        while !oil && idx < end {
             'cand: {
                 let cell = Cell::new(anchor.x + circle.x[idx], anchor.y + circle.y[idx]);
                 if !(0..xs).contains(&cell.x)
@@ -705,6 +794,24 @@ impl Sim {
         }
         let Some(mut cand) = best_cand else {
             return false;
+        };
+        // **A well whose best patch is on the sea becomes a platform**
+        // (`006e18f8`–`006e195f`): `best > 0` and the candidate's cell is
+        // `WorldData::is_ocean`. The tail below then reads the platform's
+        // own record (`ecx = [ebp+8]` at `006e25d9`).
+        let (rec, bt, ident) = if oil && best > 0 && self.world.is_ocean(cand.cell()) {
+            let platform = self
+                .build_types
+                .iter()
+                .position(|b| b.ident == Ident::OilPlatform)
+                .unwrap_or(rec);
+            (
+                platform,
+                self.build_types[platform].clone(),
+                Ident::OilPlatform,
+            )
+        } else {
+            (rec, bt, ident)
         };
 
         // 4.5 The corner tile, the builder, the jitter.
@@ -1225,5 +1332,139 @@ mod tests {
             4,
             "the Keep is of the Tower's line"
         );
+    }
+    /// A world of 20×20 cells with an oil patch (a good of type `OIL`, in
+    /// the goods list and in no cell's chain) at each of `cells`, every one
+    /// owned by player 1; the patches are in leader 1's list in order.
+    fn oil_world(cells: &[(i32, i32)]) -> (Sim, Vec<usize>) {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(20, 20), 2);
+        let mut gis = Vec::new();
+        for &(x, y) in cells {
+            let c = Cell::new(x, y);
+            sim.world
+                .set_owner(c, crate::Owner::Player(1), crate::Owner::None);
+            let gi = sim.world.add_good(crate::world::Good {
+                pos: Pos::new(x * UNITS_PER_CELL + 384, y * UNITS_PER_CELL + 384),
+                ty: crate::world::OIL,
+                alive: true,
+            });
+            gis.push(gi);
+            sim.ai[1].oil_patches.push(gi);
+        }
+        (sim, gis)
+    }
+
+    fn well() -> crate::build::BuildType {
+        crate::build::BuildType {
+            ident: Ident::OilWell,
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        }
+    }
+
+    /// **Arm 4.2 walks the patches last to first, takes the best score, and
+    /// removes a land patch the leader does not own** (`006e1730`–`006e18da`):
+    /// the score is `2 · width − vector_dist(patch − anchor)` in cells, the
+    /// candidate the cell's corner plus the well's half footprint
+    /// (`x · 0x300 + x_size · 0x60`), and the list loses the unowned one —
+    /// by value, the tail shifting down.
+    #[test]
+    fn an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned() {
+        let (mut sim, gis) = oil_world(&[(5, 5), (10, 10), (12, 3)]);
+        sim.world.set_owner(
+            Cell::new(12, 3),
+            crate::Owner::Player(0),
+            crate::Owner::None,
+        );
+        let (best, sp, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(best, 40 - vector_dist(1, 1), "20·2 − the octagonal 1");
+        assert_eq!(sp, 3, "the well's x_size");
+        assert_eq!(
+            cand,
+            Some(Pos::new(
+                5 * UNITS_PER_CELL + 3 * 96,
+                5 * UNITS_PER_CELL + 3 * 96
+            ))
+        );
+        assert_eq!(
+            sim.ai[1].oil_patches,
+            [gis[0], gis[1]],
+            "the third is another leader's land, and goes"
+        );
+    }
+
+    /// **A tie goes to the earlier patch**: the walk is last to first and
+    /// the comparison `>=` (`006e19c8`, `jl` skips only a lower score).
+    #[test]
+    fn an_equal_score_goes_to_the_earlier_patch() {
+        let (mut sim, _) = oil_world(&[(5, 7), (7, 5)]);
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(5, 7)));
+    }
+
+    /// An enemy object within `0x600` of the patch's cell centre refuses it
+    /// (and only an enemy: `SEARCH_ENEMY`, so a leader not at war does not).
+    #[test]
+    fn an_enemy_within_three_halves_of_a_cell_refuses_a_patch() {
+        let (mut sim, _) = oil_world(&[(5, 5), (10, 10)]);
+        let centre = Pos::new(5 * UNITS_PER_CELL + 0x180, 5 * UNITS_PER_CELL + 0x180);
+        let b = sim.add_building(0, Pos::new(centre.x + 0x500, centre.y), 8);
+        let _ = b;
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(
+            cand.map(|p| p.cell()),
+            Some(Cell::new(5, 5)),
+            "no war, so no enemy"
+        );
+        sim.declare_war(0, 1);
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(10, 10)));
+    }
+
+    /// A patch on the sea is kept, not pruned, and not taken, by a leader
+    /// with no transport level (`leader_flags & 0x700`).
+    #[test]
+    fn a_sea_patch_waits_for_a_transport_level_and_is_not_pruned() {
+        let (mut sim, gis) = oil_world(&[(5, 5)]);
+        let c = Cell::new(5, 5);
+        let mut d = sim.world.cell_data(c);
+        d.land = 2;
+        sim.world.set_cell_data(c, d);
+        sim.world
+            .set_owner(c, crate::Owner::None, crate::Owner::None);
+        assert!(sim.world.is_ocean(c));
+        let (best, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!((best, cand), (0, None));
+        assert_eq!(sim.ai[1].oil_patches, [gis[0]], "kept");
+    }
+
+    /// **`reveal_fog`'s oil arm** adds the first live good on a cell whose
+    /// own flag is `0x800`, once; and **`compute_reg_territory`'s per-cell
+    /// scan** adds an oil patch on a cell it gives a leader.
+    #[test]
+    fn a_reveal_and_a_claim_each_add_the_patch_once() {
+        let (mut sim, gis) = oil_world(&[(5, 5), (8, 8)]);
+        sim.ai[1].oil_patches.clear();
+        // No `0x800` on the cell: the reveal adds nothing.
+        sim.reveal_fog(10, 10, 1);
+        assert!(sim.ai[1].oil_patches.is_empty());
+        let mut d = sim.world.cell_data(Cell::new(5, 5));
+        d.flags |= crate::world::cell::OIL;
+        sim.world.set_cell_data(Cell::new(5, 5), d);
+        sim.reveal_fog(10, 10, 1);
+        sim.reveal_fog(11, 10, 1);
+        assert_eq!(sim.ai[1].oil_patches, [gis[0]], "once, for two fog cells");
+        // The claim needs no flag, only the patch standing on the cell.
+        sim.claim_cell_goods(Cell::new(8, 8), 1);
+        sim.claim_cell_goods(Cell::new(8, 8), 1);
+        assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
+        sim.claim_cell_goods(Cell::new(9, 9), 1);
+        assert_eq!(sim.ai[1].oil_patches.len(), 2, "no good on (9, 9)");
+        // The wholesale form walks the goods list, for whoever owns the cell.
+        sim.ai[1].oil_patches.clear();
+        sim.claim_oil_from_owners();
+        assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
+        assert!(sim.ai[0].oil_patches.is_empty());
     }
 }

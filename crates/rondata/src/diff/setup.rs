@@ -999,6 +999,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // because `Leader::new_rare` reads both (item 207,
     // `sim::Sim::seed_new_rares_from_fog`).
     sim.seed_new_rares_from_fog();
+    // The oil patches the same two passes left in each leader's list: the
+    // fog reveals above (the oil arm of `reveal_fog`) and the owner grid's
+    // per-cell goods scan (`compute_reg_territory`), the one the installed
+    // owners stand in for (`docs/AI.md` §133).
+    sim.claim_oil_from_owners();
     let seeded: usize = (0..players).map(|w| sim.ai[w].new_rares.len()).sum();
     if seeded > 0 {
         notes.push(format!(

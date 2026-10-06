@@ -48,6 +48,7 @@ impl Sim {
             // an earlier setup fix left is superseded by this target.
             self.border_pass = None;
             self.update_territory_holdings();
+            self.claim_oil_from_owners();
             return;
         }
         let target = self.world.owners();
@@ -63,6 +64,7 @@ impl Sim {
         if let Some(pass) = self.border_pass.take() {
             self.world.set_owners(&pass.target);
             self.update_territory_holdings();
+            self.claim_oil_from_owners();
         }
     }
 
@@ -100,6 +102,12 @@ impl Sim {
                     let i = (c.y * self.world.width() + c.x) as usize;
                     let (who, who2) = pass.target[i];
                     self.world.set_owner(c, who, who2);
+                    if let Some(p) = who.player() {
+                        // `compute_reg_territory`'s per-cell goods scan: an
+                        // oil patch on a cell it has just given away joins
+                        // the owner's `oil_patches` (`docs/AI.md` §133).
+                        self.claim_cell_goods(c, p);
+                    }
                     *at += 1;
                     budget += 1;
                 }
