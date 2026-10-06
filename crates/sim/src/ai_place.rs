@@ -1328,4 +1328,132 @@ mod tests {
             "the Keep is of the Tower's line"
         );
     }
+    /// A world of 20×20 cells with an oil patch (a good of type `OIL`, in
+    /// the goods list and in no cell's chain) at each of `cells`, every one
+    /// owned by player 1; the patches are in leader 1's list in order.
+    fn oil_world(cells: &[(i32, i32)]) -> (Sim, Vec<usize>) {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(20, 20), 2);
+        let mut gis = Vec::new();
+        for &(x, y) in cells {
+            let c = Cell::new(x, y);
+            sim.world
+                .set_owner(c, crate::Owner::Player(1), crate::Owner::None);
+            let gi = sim.world.add_good(crate::world::Good {
+                pos: Pos::new(x * UNITS_PER_CELL + 384, y * UNITS_PER_CELL + 384),
+                ty: crate::world::OIL,
+                alive: true,
+            });
+            gis.push(gi);
+            sim.ai[1].oil_patches.push(gi);
+        }
+        (sim, gis)
+    }
+
+    fn well() -> crate::build::BuildType {
+        crate::build::BuildType {
+            ident: Ident::OilWell,
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        }
+    }
+
+    /// **Arm 4.2 walks the patches last to first, takes the best score, and
+    /// removes a land patch the leader does not own** (`006e1730`–`006e18da`):
+    /// the score is `2 · width − vector_dist(patch − anchor)` in cells, the
+    /// candidate the cell's corner plus the well's half footprint
+    /// (`x · 0x300 + x_size · 0x60`), and the list loses the unowned one —
+    /// by value, the tail shifting down.
+    #[test]
+    fn an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned() {
+        let (mut sim, gis) = oil_world(&[(5, 5), (10, 10), (12, 3)]);
+        sim.world
+            .set_owner(Cell::new(12, 3), crate::Owner::Player(0), crate::Owner::None);
+        let (best, sp, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(best, 40 - vector_dist(1, 1), "20·2 − the octagonal 1");
+        assert_eq!(sp, 3, "the well's x_size");
+        assert_eq!(
+            cand,
+            Some(Pos::new(5 * UNITS_PER_CELL + 3 * 96, 5 * UNITS_PER_CELL + 3 * 96))
+        );
+        assert_eq!(
+            sim.ai[1].oil_patches,
+            [gis[0], gis[1]],
+            "the third is another leader's land, and goes"
+        );
+    }
+
+    /// **A tie goes to the earlier patch**: the walk is last to first and
+    /// the comparison `>=` (`006e19c8`, `jl` skips only a lower score).
+    #[test]
+    fn an_equal_score_goes_to_the_earlier_patch() {
+        let (mut sim, _) = oil_world(&[(5, 7), (7, 5)]);
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(5, 7)));
+    }
+
+    /// An enemy object within `0x600` of the patch's cell centre refuses it
+    /// (and only an enemy: `SEARCH_ENEMY`, so a leader not at war does not).
+    #[test]
+    fn an_enemy_within_three_halves_of_a_cell_refuses_a_patch() {
+        let (mut sim, _) = oil_world(&[(5, 5), (10, 10)]);
+        let centre = Pos::new(5 * UNITS_PER_CELL + 0x180, 5 * UNITS_PER_CELL + 0x180);
+        let b = sim.add_building(0, Pos::new(centre.x + 0x500, centre.y), 8);
+        let _ = b;
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(
+            cand.map(|p| p.cell()),
+            Some(Cell::new(5, 5)),
+            "no war, so no enemy"
+        );
+        sim.declare_war(0, 1);
+        let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(10, 10)));
+    }
+
+    /// A patch on the sea is kept, not pruned, and not taken, by a leader
+    /// with no transport level (`leader_flags & 0x700`).
+    #[test]
+    fn a_sea_patch_waits_for_a_transport_level_and_is_not_pruned() {
+        let (mut sim, gis) = oil_world(&[(5, 5)]);
+        let c = Cell::new(5, 5);
+        let mut d = sim.world.cell_data(c);
+        d.land = 2;
+        sim.world.set_cell_data(c, d);
+        sim.world
+            .set_owner(c, crate::Owner::None, crate::Owner::None);
+        assert!(sim.world.is_ocean(c));
+        let (best, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+        assert_eq!((best, cand), (0, None));
+        assert_eq!(sim.ai[1].oil_patches, [gis[0]], "kept");
+    }
+
+    /// **`reveal_fog`'s oil arm** adds the first live good on a cell whose
+    /// own flag is `0x800`, once; and **`compute_reg_territory`'s per-cell
+    /// scan** adds an oil patch on a cell it gives a leader.
+    #[test]
+    fn a_reveal_and_a_claim_each_add_the_patch_once() {
+        let (mut sim, gis) = oil_world(&[(5, 5), (8, 8)]);
+        sim.ai[1].oil_patches.clear();
+        // No `0x800` on the cell: the reveal adds nothing.
+        sim.reveal_fog(10, 10, 1);
+        assert!(sim.ai[1].oil_patches.is_empty());
+        let mut d = sim.world.cell_data(Cell::new(5, 5));
+        d.flags |= crate::world::cell::OIL;
+        sim.world.set_cell_data(Cell::new(5, 5), d);
+        sim.reveal_fog(10, 10, 1);
+        sim.reveal_fog(11, 10, 1);
+        assert_eq!(sim.ai[1].oil_patches, [gis[0]], "once, for two fog cells");
+        // The claim needs no flag, only the patch standing on the cell.
+        sim.claim_cell_goods(Cell::new(8, 8), 1);
+        sim.claim_cell_goods(Cell::new(8, 8), 1);
+        assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
+        sim.claim_cell_goods(Cell::new(9, 9), 1);
+        assert_eq!(sim.ai[1].oil_patches.len(), 2, "no good on (9, 9)");
+        // The wholesale form walks the goods list, for whoever owns the cell.
+        sim.ai[1].oil_patches.clear();
+        sim.claim_oil_from_owners();
+        assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
+        assert!(sim.ai[0].oil_patches.is_empty());
+    }
 }
