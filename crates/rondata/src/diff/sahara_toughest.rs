@@ -265,6 +265,17 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_15213: (i64, i64) = (15_207, 15_
 /// **The word's block, 15214**: frame 15213 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_15214: i64 = 15_214;
 
+/// run668: run470's game at run584's detail over the blocks 15230..15433 —
+/// run664's last block to the game's end, the new word 15275 inside it
+/// (item 1524).
+pub(crate) const TOUGHEST_WORD_15275: &str = "gamelog-run668-greatsahara-toughest-15275.txt";
+
+/// **run668's window** (item 1524): blocks 15230..15433, the game's last.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_15275: (i64, i64) = (15_230, 15_434);
+
+/// **The word's block, 15276**: frame 15275 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_15276: i64 = 15_276;
+
 /// run666: run664's game with `AMMO=5` added to the detail, over the blocks
 /// 15196..15230 (item 1522) — the only capture on disk that prints the
 /// original's own rounds on the third map.
@@ -537,6 +548,17 @@ pub(crate) fn great_sahara_toughest_15213_window() -> Option<crate::diff::harnes
         (TOUGHEST_WORD_15213, WIDENING_GREAT_SAHARA_TOUGHEST_15213.0),
         WIDENING_GREAT_SAHARA_TOUGHEST_15213,
         TOUGHEST_WORD_BLOCK_15214,
+    )
+}
+
+/// run668's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_15275`], walked as
+/// run584's are (item 1524).
+pub(crate) fn great_sahara_toughest_15275_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run668",
+        (TOUGHEST_WORD_15275, WIDENING_GREAT_SAHARA_TOUGHEST_15275.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_15275,
+        TOUGHEST_WORD_BLOCK_15276,
     )
 }
 
@@ -1920,6 +1942,73 @@ mod tests {
                 .count(),
             0,
             "0/2005's key on the word's block"
+        );
+    }
+
+    /// **The word 15275, widened whole** (item 1524):
+    /// [`great_sahara_toughest_15275_window`] over run668's blocks
+    /// 15230..15433, both directions, every record run584's detail prints.
+    /// Frame 15275 writes block 15276.
+    #[test]
+    fn run668_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_15275_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 203, "run668 whole: blocks 15230..15432");
+        pin!(
+            w.missing.is_empty(),
+            "run668 carries every key: {:?}",
+            w.missing
+        );
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).take(5).collect::<Vec<_>>(),
+            [(15230, 92), (15266, 1), (15268, 1), (15326, 1), (15366, 1)],
+            "the blocks keys first part on, the first five"
+        );
+        pin_eq!(w.firsts.len(), 2596, "every key parted on run668");
+        // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
+        // §140): ours 12 draws against 11, parting at index 4 — ours
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+        // `… < Unit::do_guard+0x7f4`. The first parted field is `1/153`'s
+        // move order on block 15247 (frame 15246): the original takes a
+        // new waypoint, (9480, 27240), refuses it to the General's Bombard
+        // decoy `1/106` and writes `coll_x/coll_y`; ours' scan let the two
+        // slip past on the corner rule, because `UnitData::is_corner` walks
+        // `0 .. guy_mark` (1) and ours walked the decoy's three crew
+        // figures too. With the walk bounded the unit has **no key at
+        // all** on the window and the word moved to 15378.
+        pin_eq!(
+            w.firsts
+                .keys()
+                .filter(|(who, o, _)| (*who, *o) == (1, 153))
+                .count(),
+            0,
+            "1/153 parts on nothing"
+        );
+        pin_eq!(
+            by.get(&15_276).copied().unwrap_or(0),
+            0,
+            "nothing parts on the old word's block"
+        );
+        pin_eq!(
+            by.get(&15_378).copied().unwrap_or(0),
+            887,
+            "the new word's block (frame 15377)"
         );
     }
 
