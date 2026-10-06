@@ -3678,6 +3678,12 @@ does not read. And 1476's: `myhits` and
 `construct_hits` sit on the same list, so Construction's hp arm is held
 by a unit test alone.
 
+(1482) **`tools/seams.py` misses a gap written as "are not loaded"**
+(1479's Loop line, 2026-10-05): the free-tech block (Chemistry's
+French Carpentry line, `FRENCH_LUMBERMILL_UPGRADES`) was a documented
+gap the seam scan did not print, and it parted who=1's timber rate
+for 1,800 frames.
+
 (1478) **Ours' `coll` against the collide probe's block, as a tool**
 (1472's Loop line, 2026-10-05): `tools/trace/report.py … calls` prints
 the probe's live block as raw coordinates; 1472 diffed it against ours
