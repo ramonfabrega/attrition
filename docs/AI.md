@@ -15855,10 +15855,62 @@ and the delta; no mechanism is named here (animation 24 is not read in this item
 **Coverage.** Diff-backed: the order, by `run470_is_great_sahara_at_toughest_and_its_word_holds` and the unit test; the rolls, by the trace's seeds. No
 blind reading; the listing was not consulted (the order is the dump's and the trace's).
 
-## 137. Reserved for item 1517 (Toughest frame 15101)
+## 137. Every pack and unpack sets the unit's angle to guy 0's, and the word at 15213 (2026-10-06, item 1517)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1510 left Great Sahara at Toughest's word at **frame 15101, ours 19 draws against 17,
+index 7**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::do_turn+0xe5`, theirs `… < Unit::move_step+0x389`. run663's widening
+(blocks 15095..15118, §136) put 27 keys on the word's block 15102, all `1/96`'s; the booking named no mechanism. This item read the
+value diff that was already on disk, then the listing.
+
+1. **The draw delta, by unit.** `RON_DEBUG_SITES=15101-15101` prints this side's sites with their unit, and the harness prints the original's
+   without one. Ours: `1/95` three draws (`turn_towards+0x69`, `do_turn+0xe5` ×2), `1/96` three, `1/106` three (`move_step+0x389`,
+   `do_turn+0xe5` ×2). Theirs, 3..9: `turn_towards, do_turn, do_turn | turn_towards | move_step, do_turn, do_turn`. `1/106`'s three are
+   the same on both sides, so the original's `1/96` spends **one** draw where ours spends three.
+2. **What `1/96` is, and what happens to it.** A Bombard (four figures of `type` 268, guy 2 tracked) that stood unpacked (`cur_anim` 24,
+   `end_time` 80) to block 15098, moved for two frames (anim 7) and **stopped on 15101** (blocks 15099..15101: unit `angle` −637665280 →
+   −632029184, `dest_angle` −632029184, guys 0, 1, 3 at −881307648 and guy 0's `des_angle` −632029184 — a turn owed). Its order stack is
+   `[Cast, Attack, Move]` on both sides on blocks 15101..15118 (`RON_STACKS`): the cast is the **unpack** (`spell 652`). The dump's frame
+   15101 → 15102 (block values, `1/96`): unit `angle` −632029184 → **−881307648**, cast `paid` 0 → 1, `spell_time` 0 → 1, every figure
+   `cur_anim` 24, `angle` and `des_angle` −881307648 (guy 2's `angle` 73129984 → −881307648, its `des_x/des_y` 9981/27796 where ours' were
+   10010/27802), `end_time` 80, 80, 31, 80 — **nobody turned**: the unit's angle was brought *back* to the figure's.
+3. **The listing.** `Unit::do_cast@005ebfe0`'s unpack arm: after the packed test, `is_rare_collector` (`46fae0`) **skips** the collector's
+   `good_merchant_spot` and `set_new_location` block with a `je 5ecbe0`, and the collector's own path falls through to the same address.
+   `5ecbe0`: `mov eax,[esi+0xf4]; push 0; push ecx; mov ecx,esi; mov eax,[eax]; push [eax+0x18]; call 605400` — `Unit::set_angle(guy 0's
+   angle +0x18, junk, 0)`, **for every unit that unpacks**, then `push 1; push 0; push 0x18; … set_anim(CHAR_UNPACK)`. The pack arm
+   (`5ecb7e`) is the same four instructions in front of `push 0x17` (`CHAR_PACK`). `Unit::set_angle@00605400` writes the unit's angle
+   (`+0x50`, flipping the mirror bit when the turn is a reversal) and calls `Guy::set_angle(guy 0, angle, 0)`, which writes guy 0's
+   `+0x64` (`des_angle`) and each crew figure's `des_angle`/`des` from it; the zero third argument is why no figure is snapped, and why guy 2
+   stands where it was.
+4. **The cause.** `Sim::do_cast` made the call only inside `is_rare_collector`'s block (item 210's merchant re-seat) and not at all for a pack.
+
+**Built.** `Sim::do_cast` (`transport.rs`): the unpack arm's `unit_set_angle(u, movement.facing)` moves out of the collector's block to where the
+original has it, and the pack arm gains it. Tests `an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it` and
+`a_pack_brings_the_units_angle_to_guy_zero_s_too` (`harness_tests.rs`): a unit whose angle is ahead of its figure's, a tracked crew figure,
+`do_cast` of the craft. Mutations (`tools/mutate.py`): the unpack call removed fails the unit test and
+`run663_s_word_frame_is_widened_whole` (1/96's keys on block 15102 27, want 0); the pack arm's call removed fails the unit test and **no walk**: the whole `rondata` suite (746 tests) passed it, its one red the queue's own third-map line (`the_handoff_s_third_map_is_the_pinned_word`) — no capture on disk packs a unit whose guy 0 is behind its angle, so the arm is held by its unit test alone.
+
+**Value diff** (the word's own frame): `1/96`, block 15102 — before, 27 keys: `cur_anim` 24 against 0, 0, 7, 0, `angle` and `des_angle`
+−881307648 against ours' −762003456 ×3 and 1146871808, `heading` −881307648 against −632029184, `end_time` 80, 80, 31, 80 against
+31, 15, 15, 15, `stopped[0]` 1 against 0, guy 2's `des_x/des_y` 9981/27796 against 10010/27802. After, **0 keys**, and the 263 keys of
+run663's window are **98**, all standing on its first two blocks (94 on 15095, 4 on 15098): everything from 15099 to 15118 agrees. Frame
+15101's draws are 17 each and agree through to 15212.
+
+**The new word: frame 15213, ours 8 draws against 7, parting at index 4.** Ours `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`
+(ours spends a damage draw the original does not). run664 (blocks 15207..15230, `docs/RUNS.md`; `rngcmp.py` against run470 0 differing,
+15,243 identical) widens it whole, both directions: **302 keys**, 92 standing on 15207, **2 on 15210** (frame 15209: `0/2000`'s `damage`
+270 against 135 and `city_flags[0x4]` 1 against 0 — a city building of Player 0, the bombards' target, struck twice in ours and once in
+the original), **1 on the word's block 15214** (`0/2005`'s `damage` 1 against 0), then the rest. Ours' projectiles over 15207..15214
+(`RON_DEBUG_AMMO`): `1/96`'s lands on 15210, `1/95`'s and `1/106`'s at 15214–15215. The booking is the frame and the delta; **no mechanism
+is named here** — the 15210 parting is two frames before the word and carries no draw.
+
+**Not established.**
+- That `movement.facing` is guy 0's `+0x18` for every unit this crate builds: it is what the collector's arm already used (item 210) and
+  the Bombard's agrees; a unit whose guy 0 is not on the unit's facing at a pack or unpack has not been looked for.
+- The pack arm's effect on a capture: none. The mutation above is a finding: **the pack arm has no walk**, and the next capture that packs a Bombard or Catapult turning at the stop would be the first to hold it.
+- Who strikes `0/2000` on frame 15209 and which side's count is right; the 15210 keys are the next word's value diff, not a cause.
+
+**Coverage.** Diff-backed: the unpack arm, by `run663_s_word_frame_is_widened_whole` (27 → 0) and the unit test; the listing's three
+instructions at `005ecbe0` are read, not run. The pack arm rests on the listing and its unit test alone unless said above.
 
 ## 138. A guard's attack on a building takes no chase, and French East Indies reaches its end (2026-10-06, item 1519)
 
@@ -16010,3 +16062,8 @@ Diff-backed: `1/115`'s rows on run662, the word to 17379, and the
 closing state. The guard arm and the failure arm are confirmed on run665's
 packet. The arm's predicate and the failure arm were read off the listing
 (`6015df`–`601625`, `5fe3f8`–`5fe50e`). No blind reading.
+
+## 139. Reserved for item 1522 (Toughest frame 15213)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

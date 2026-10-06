@@ -783,6 +783,11 @@ impl Sim {
                     self.kill_current_order(u);
                     return;
                 }
+                // `005ecb7e`: `Unit::set_angle(guy 0's angle)` before the
+                // animation, for **every** packing unit — see the unpack
+                // arm's note (item 1517, `docs/AI.md` §137).
+                let facing = self.units[u].movement.facing;
+                self.unit_set_angle(u, facing);
                 crate::anim::PACK
             } else if spell::is_unpack(s) {
                 if !packed {
@@ -814,9 +819,17 @@ impl Sim {
                     let seat =
                         crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
                     self.set_new_location(u, seat, true);
-                    let facing = self.units[u].movement.facing;
-                    self.unit_set_angle(u, facing);
                 }
+                // `005ecbe0`, **outside** the collector's block: both the
+                // collector's arm and everything else's jump here. The
+                // unit's own angle is set to guy 0's — the figure's
+                // *current* angle — and every crew figure's `des_angle` and
+                // `des` are re-derived from it (`crew_des`, no snap). A
+                // Bombard that has just arrived and is still turning to
+                // its march heading unpacks facing where its body points,
+                // not where the unit was going (item 1517: Toughest 15101).
+                let facing = self.units[u].movement.facing;
+                self.unit_set_angle(u, facing);
                 crate::anim::UNPACK
             } else if self.is_hero_unit(u)
                 && matches!(s, spell::AMBUSH | spell::FORCED_MARCH | spell::RALLY)

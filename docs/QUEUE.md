@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-06, the twenty-fifth pass (`docs/audit/2026-10-06-fable-pass-25.md`):
 twenty landings in 13 h 09 m, three lanes, 16.5 USD a landing. French East
-Indies **17318** (1514) of 17,379; Toughest **15101** (1510), floor 15101; fifty-one chapters
+Indies **17318** (1514) of 17,379; Toughest **15213** (1510, 1517), floor 15213; fifty-one chapters
 closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
 
 - **Two lanes this tranche** (DECISIONS 61 §5: a landing waited 77.5
@@ -35,17 +35,17 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17318 of 17,379 · GreatLakesFrench w5638 of 5,638
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15101 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15213 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1519 on Opus 5.5 and 1517 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1519 on Opus 5.5 and 1522 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1519, then 1511) and the third map's (1517); 1497 waits for a
+pair's (1519, then 1511) and the third map's (1522); 1497 waits for a
 free lane, lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -58,12 +58,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     Elite Pikeman 1/115's stack and walk on block 17319, nothing on
     17313..17318. 61 frames from the end. No mechanism.
 
-1517. **Great Sahara at Toughest's word: frame 15101, 19 versus 17
-    draws**, index 7: ours `Guy::do_turn+0xe5`, theirs
-    `Unit::move_step+0x389`. run663 (15095..15118) widens it: 263 keys,
-    94 standing on 15095, 27 on the word's block 15102, all `1/96`'s;
-    its four figures read `cur_anim` 24 against ours 0, 0, 7, 0 — the
-    original starts animation 24 where ours turns. No mechanism.
+1522. **Great Sahara at Toughest's word: frame 15213, 8 versus 7
+    draws**, index 4: ours `Object::take_damage+0xe1`, theirs
+    `Farms::inc_time+0x1ae`. run664 (15207..15230) widens it: 302 keys,
+    92 standing; on 15210 0/2000's `damage` 270 against 135 and
+    `city_flags[0x4]`, on the word's block 15214 0/2005's `damage` 1
+    against 0. Who strikes 0/2000 — ours twice, theirs once — first.
+    No mechanism.
 
 1511. **The coverage pair's word: frame 177, 9 versus 8 draws**,
     index 2: ours `Leader::make_stuff+0x221` three times, theirs twice
