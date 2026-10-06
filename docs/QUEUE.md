@@ -12,19 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth tranche at its eleventh landing (counted by
+*2026-10-06, the twenty-sixth tranche at its twelfth landing (counted by
 `git log` from `b3b0ae03`): French East Indies **closed at 17,379** (1514,
 1519); Toughest **closed at 15,432** (1510–1528, its closing state 1535:
-counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **667** (1511, 1530, 1532).*
+counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **727** (1511, 1530, 1532, 1539).*
 
-- **Two lanes**: `att-1539` (Opus 5.5, the coverage pair, run 674, AI
-  §146) and `att-1538` (Sonnet 5.5, Great Sahara in the coverage pair's
+- **Two lanes**: `att-1544` (Opus 5.5, the coverage pair, run 678, AI
+  §148) and `att-1538` (Sonnet 5.5, Great Sahara in the coverage pair's
   lobby, runs 675–677, AI §147), `--effort high` both. Wait on them with
-  `tools/lanewait.py att-1538 att-1539`. Next run 678, next section §148.
+  `tools/lanewait.py att-1538 att-1544`. Next run 679, next section §149.
   1497 waits for a lane.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
   in `AI_WORDS`, its `Coverage pair:` line read by
-  `the_handoff_s_coverage_pair_is_the_pinned_word`; 667 since 1532.
+  `the_handoff_s_coverage_pair_is_the_pinned_word`; 727 since 1539.
 - **Merges back out on a section stub** when a lane's base predates the
   next booking's stub: the lane takes `ccc update --keep-conflicts` and
   keeps both (1511, once). Kill rules: neither tripped.
@@ -34,29 +34,30 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w667 of 4,730
+Coverage pair: EastIndiesPersianAllTech w727 of 4,730
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche, after the clear at ten — `commander`:
-wait on 1539 (Opus 5.5) and 1538 (Sonnet 5.5); at twenty it spawns `steer`.**
+wait on 1544 (Opus 5.5) and 1538 (Sonnet 5.5); at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1539) and the third map's (1538); 1497 waits for a free lane,
+pair's (1544) and the third map's (1538); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1539. **The coverage pair's word: frame 667, 152 versus 155 draws**,
-    index 143: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `Guy::init_real+0x52 < Objects::init_unit` thrice — a
-    caravan 1/15 born, leader 1's `num_units[9]` 1 against 0 on 668.
-    run672 (577..833) widens it; past its standing block the state first
-    parts on 581: leader 1's `MAKE[2]`/`[3].num`, 5 against 10, then
-    583's buckets and 612's city fields. No mechanism.
+1544. **The coverage pair's word: frame 727, 8 versus 7 draws**,
+    index 0: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+    theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Widened whole
+    by `run672_s_word_frame_is_widened_whole` (block 728): citizen
+    1/8 collides with 1/6, its `[ExploreTo, Build 2020]` approach
+    (42072, 41928) against (41160, 40584) from block 691 — §144's
+    `swarm_around_last` `EXPLORE_TO`, a hypothesis. Past the standing
+    block the state still first parts on 581.
 
 1538. **Great Sahara in the coverage pair's lobby** (DECISIONS 56 §1):
     the closed map's successor once 1535's closing state agrees — seed
