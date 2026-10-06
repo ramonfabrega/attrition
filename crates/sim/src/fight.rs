@@ -771,11 +771,43 @@ impl Sim {
         self.attack_dist(me, cand) > 0xc0
     }
 
+    /// **`Object::valid_target@00648ba0`** (`docs/COMBAT.md` §12.1,
+    /// `docs/CITIES.md` §7.1's fourth caller): the const's answer, and then,
+    /// for a **capture-eligible city building**, a capture attempt with the
+    /// asking unit as the captor — unless the asker is a missile — before
+    /// the answer is given. A city at its ceiling is a valid target only to a
+    /// `VEHICLE` **and** `WAR_MACHINE` unit on an `ATTACK` order that is
+    /// `mandatory` and names exactly it; to everything else it is refused,
+    /// so the call is the capture path's, not the attack's. The attempt may
+    /// change the city's owner, so the call is a mutation (item 1535).
+    pub fn valid_target(&mut self, attacker: Obj, target: Obj) -> bool {
+        if !self.valid_target_const(attacker, target) {
+            return false;
+        }
+        let Obj::Building(b) = target else {
+            return true;
+        };
+        if !self.capture_eligible(b) || self.profile(attacker).has(mask::MISSILE) {
+            return true;
+        }
+        let Obj::Unit(u) = attacker else {
+            return false;
+        };
+        self.check_capture(b, u);
+        let ap = self.profile(attacker);
+        self.units[u].on_map
+            && ap.has(mask::VEHICLE)
+            && ap.has(mask::WAR_MACHINE)
+            && self.order_type(u) == crate::orders::index::ATTACK
+            && self.units[u].combat.target == Some(target)
+            && self.units[u].combat.mandatory
+    }
+
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
     /// far as the simulation's state reaches: not mine, at war, active, on the
     /// map, **and seen**; and the air ladder for a plane target, less its
     /// helicopter and `is(0x132)` arms (`docs/COMBAT.md` §61.2).
-    pub fn valid_target(&self, attacker: Obj, target: Obj) -> bool {
+    pub fn valid_target_const(&self, attacker: Obj, target: Obj) -> bool {
         if attacker == target {
             return false;
         }
@@ -795,7 +827,12 @@ impl Sim {
         if !self.at_war_with(me, them) && !self.at_war_with(them, me) {
             return false;
         }
-        if !self.active(target) {
+        // A city building at its ceiling is `active` here (its flags still
+        // say so): this crate's [`Sim::active`] also asks a building for
+        // health left, the target *search's* question, which a city at zero
+        // fails and which would refuse it before the capture arm of
+        // [`Sim::valid_target`] is reached.
+        if !self.active(target) && !matches!(target, Obj::Building(b) if self.capture_eligible(b)) {
             return false;
         }
         // **`ObjectData::valid_target_const@006472c0`'s fifth test, and the
@@ -3394,7 +3431,13 @@ impl Sim {
         // a unit that tie can still be scanned in the wrong order.
         let buildings: Vec<Obj> = (0..self.buildings.len())
             .map(Obj::Building)
-            .filter(|&o| o != attacker && self.active(o))
+            .filter(|&o| {
+                // A city at its ceiling is still on the chain, and the
+                // ring search's `valid_target` call is a capture attempt
+                // (`docs/CITIES.md` §7.1's fourth caller, item 1535).
+                o != attacker
+                    && (self.active(o) || matches!(o, Obj::Building(b) if self.capture_eligible(b)))
+            })
             .collect();
         let mut best: Option<(i32, Obj)> = None;
         // **`ObjectData::near_o`/`near_who`, and it is not `best`**

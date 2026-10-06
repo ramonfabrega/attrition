@@ -5,6 +5,7 @@
 use super::*;
 use crate::build::{BuildType, Ident, flags};
 use crate::city::{PlaceFail, capture_value, health_level};
+use crate::combat::Obj;
 use crate::garrison::{GarrisonRefused, UnitTraits};
 use crate::orders::Coll;
 use crate::place::Blocked;
@@ -2253,6 +2254,57 @@ fn unarmed_buildings_and_citizens_do_not_defend_a_city() {
     assert!(
         !sim.check_capture(b, h),
         "the tower counts 1 + 6, and 2 + 7 holds against 3"
+    );
+}
+
+/// **`Object::valid_target`'s capture attempt** (`docs/CITIES.md` §7.1's
+/// fourth caller, `docs/AI.md` §145, item 1535): asking whether a unit may
+/// target a capture-eligible city is itself a `Build::check_capture` with the
+/// asker as the captor — and the answer to the question is *no* for a
+/// hoplite either way, the city being the capture path's and not the
+/// attack's. Three hoplites against the base of 2 take it on the third's
+/// question; a decoy's question takes nothing.
+#[test]
+fn valid_target_on_a_city_at_its_ceiling_is_a_capture_attempt() {
+    let setup = |n: i32| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+        sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+        let _ = city_at(&mut sim, &t, 1, 8, 8);
+        let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+        let bd = &mut sim.buildings[b];
+        bd.damage = bd.hits;
+        bd.sync_health();
+        sim.frame = 1000;
+        let hs: Vec<usize> = (0..n)
+            .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+            .collect();
+        (sim, b, hs)
+    };
+    let (mut sim, b, hs) = setup(3);
+    assert!(sim.capture_eligible(b));
+    let city = Obj::Building(b);
+    assert!(
+        !sim.valid_target(Obj::Unit(hs[2]), city),
+        "a hoplite never targets a city at its ceiling"
+    );
+    assert!(
+        sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        "…and its question took the city: three against the base of 2"
+    );
+    let (mut sim, b, hs) = setup(2);
+    assert!(!sim.valid_target(Obj::Unit(hs[1]), Obj::Building(b)));
+    assert!(
+        !sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        "two against 2 holds"
+    );
+    let (mut sim, b, hs) = setup(3);
+    sim.units[hs[2]].decoy = true;
+    assert!(!sim.valid_target(Obj::Unit(hs[2]), Obj::Building(b)));
+    assert!(
+        !sim.cities.iter().any(|c| c.alive && c.owner == 0),
+        "a decoy captures nothing"
     );
 }
 
