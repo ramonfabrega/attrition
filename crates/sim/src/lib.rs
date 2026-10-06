@@ -107,6 +107,7 @@ pub mod terrain;
 pub mod territory;
 pub mod transport;
 pub mod tuning;
+pub mod victory;
 pub mod vision;
 pub mod world;
 
@@ -4949,6 +4950,9 @@ impl Sim {
                 self.unit_stats_dirty[who] = false;
                 self.calc_unit_stats(player);
             }
+            // `Leader::process`'s victory clocks, after the stats: a
+            // stopped timer's debt paid back (`crate::victory`).
+            self.refresh_victory_timers(who);
         }
 
         self.mark("strategy_all");
@@ -4970,6 +4974,10 @@ impl Sim {
                 *r = 0;
             }
         }
+
+        // `GameDaemon::process_all` → `process_victory`, its second act:
+        // the territory timers (`crate::victory`). It draws nothing.
+        self.process_victory_territory();
 
         // `GameDaemon::process_all` → `calc_danger`, the third thing that
         // function does: the danger map, rebuilt from scratch every two

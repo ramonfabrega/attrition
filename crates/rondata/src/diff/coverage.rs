@@ -206,9 +206,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1452: Lyons, the French city founded before run622's window, likewise.
     // Item 1455: Rheims, the fifth, founded on 9777 and named in run629.
     // Item 1481: Orleans, the sixth, named in run642's window.
+    // Item 1487: Amiens, the seventh, named in run655's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Rheims York flags increment length size",
+        "Amiens Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Rheims York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -246,7 +247,7 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1293 read `flock_stamp`, the frame `Objects::add_flock` stamps.
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic epochs_queued explored factory_queued factory_units flags fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
+        "(int) ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic epochs_queued explored factory_queued factory_units flags fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_issues raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -709,6 +710,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r636 = crate::testenv::dump("gamelog-run636-islands-french-14090.txt");
     let r639 = crate::testenv::dump("gamelog-run639-islands-french-14782.txt");
     let r642 = crate::testenv::dump("gamelog-run642-islands-french-15344.txt");
+    let r655 = crate::testenv::dump("gamelog-run655-islands-french-16857.txt");
     let r603 = crate::testenv::dump("gamelog-run603-islands-french-toughest-7356.txt");
     let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
     let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
@@ -2374,7 +2376,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (&r636, 14090),
         // Item 1481: the word left run639 for 15344; its block stays.
         (&r639, 14786),
-        (&r642, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        // Item 1487: the word left run642 for 16857; its block stays.
+        (&r642, 15344),
+        (&r655, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2760,9 +2764,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let french_14090 = super::third_pair::french_east_indies_14090_window();
     // Item 1481: and run639's, where it stood before run642.
     let french_14786 = super::third_pair::french_east_indies_14786_window();
+    // Item 1487: and run642's, where it stood before run655.
+    let french_15344 = super::third_pair::french_east_indies_15344_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2799,6 +2806,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         french_12952,
         french_14090,
         french_14786,
+        french_15344,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

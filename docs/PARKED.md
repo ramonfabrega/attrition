@@ -52,6 +52,11 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1487, 2026-10-06 — about to win
+
+(1499) **run642's sixteen `order:group.id` rows on 15345**: 15344609
+against 15350409, a re-formed group's id stamp; no draw parts on them.
+
 ## Parked by item 1477, 2026-10-06 — the census's circle walk
 
 (1494) **The census at a city's founding, and the human's city**: the
@@ -3754,6 +3759,15 @@ re-pin by hand.
 `diff::coverage_pair`, outside `FLOORS`, `AI_WORDS` and the handoff's
 parse; whether it becomes a scored pair, a lane of its own, or the
 newest pair's lane under the roster's Opus clause is the pass's to rule.
+
+(1501) **A booking's "the original's alone" was false on its own
+widening** (1487's Loop line, 2026-10-06): the commander booked 1487
+with "army group 64 is the original's alone"; the `group:64.*` rows on
+the word's block were a re-formed group, not a new one. Rows parting on
+a word's block do not say which side created a record. And a parting
+whose only witness is a stamp (`attacked_by`) dates a decision 256
+frames before the draw stream sees it; `when <fn>` over the trace lists
+the candidate ticks.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a

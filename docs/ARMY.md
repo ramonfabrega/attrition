@@ -1001,6 +1001,9 @@ Otherwise **my** `defense_mod` (`+0x7a8`, `0x100` = ×1) is the switch
   defend, the `attacked` multipliers below making them worth anything;
 - **at war**: only if `defense_mod <= 0x100`; and if my `wonderwin_timer
   != 0 || popwin_timer != 0` set **`about_to_win = 1`** (a ×100 below).
+  The `popwin_timer` half is built (`sim::victory`, `docs/AI.md` §126):
+  run649's packet scores Napata 20040 on 15088 by it. `wonderwin_timer`
+  is not kept.
 
 (The decompiler's `leaders.list[me].+0x8`, which the first reading called
 "my ally-slot" wherever it appears beside the allied test, is
@@ -2155,9 +2158,11 @@ stood before this item, unchanged. No mechanism is named.
   `march_to_target@006f4d80` and `find_target@006f69b0`. No frame on the
   measured words turns on them yet. They are listing-backed, not
   diff-backed.
-- **`find_target`'s head test**, `2 < epoch[0] &&
+- ~~**`find_target`'s head test**, `2 < epoch[0] &&
   type_avail(SUPPLYWAGON) && …`, joins its weak-army clause. This crate's
-  `weak_army` does not carry it. It is a seam, reached by no capture.
+  `weak_army` does not carry it. It is a seam, reached by no capture.~~
+  Built (item 1487, `docs/AI.md` §126): French East Indies' army 0 is weak
+  by it on 14332, 14588 and 14844, and scores no enemy city.
 - **Residue under the new word, no draw.** `1/67` and `1/68` are born
   with `form` −1. The original's is 0, because `Unit::init@00612100`
   writes `+0xaa` as 9 for the four citizen and scholar ids and 0 for

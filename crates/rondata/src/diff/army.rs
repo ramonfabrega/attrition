@@ -477,6 +477,7 @@ mod tests {
             &loaded.map_styles,
             &loaded.wonder_wins,
             &loaded.starting_resources,
+            &loaded.pop_wins,
         );
         sim.sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
@@ -545,6 +546,12 @@ mod tests {
             }
             if let Some(v) = l.int("attacked_by") {
                 a.attacked_by = v as i32;
+            }
+            if let Some(v) = l.int("popwin_stamp") {
+                a.popwin_stamp = v;
+            }
+            if let Some(v) = l.int("popwin_timer") {
+                a.popwin_timer = v as i32;
             }
             if let Some(p) = l.kid("PERSONALITY") {
                 if let Some(v) = p.int("raid") {

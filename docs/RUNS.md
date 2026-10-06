@@ -14829,3 +14829,52 @@ SHA-256 `178ec8a0734389fc314d013960b5eceef0d2661f8efc9b233d9d7fa2667a792a`.
 **What it holds**: `diff::coverage_pair::run656_s_word_frame_is_widened_whole` — block 5 (the Missile Shield research, `tech_frame`
 4), block 8 (the make list) and block 9 (frame 8's six purchases, among them the Oil Well on `2008`). The next time this lobby
 needs a window, `--detail` without `GROUPS=1` avoids the traceback (parked).
+## run649 — French East Indies, a packet at logger frame 15088 (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run649-booking.json`,
+written before the run. No dump of this game between 14795 (run639) and 15339 (run642), and no
+logger prints `find_target`'s per-candidate score. Window **[15086,15091)**, end 15094, call
+window 15086..15091, `RON_STATE_FRAME=15088` with item 597's plan, `--ffwd-minute 10`, `cover=0`,
+`--timeout 1800`, run642's four `--detail` sections, through the click-free lane (free at launch).
+Receipt success; process and wait exits **0**; five settings files restored; 5 group blocks; seed
+12345 read back. Launch-to-exit 510.904 s, total 521.039 s. Game-RNG draws match run600 on all
+15,095 shared frames (`rngcmp.py`). Killers: block 15089 prints leader 0's `frame_attacked` 15088
+(the stamp is tick 15088's); `step4.py` on army 6 writes its target `0/2000`, an enemy's.
+
+`tools/recomp/step4.py` (a scratch variant hooking `6f7eb9` and `6f719b`) enters
+`Army::process@006f93d0` with `this` `0x15d403d4`: every draw and six of the seven scores are
+this crate's, and Napata scores 20040 against ours' 200 (`docs/AI.md` §126;
+`step4-process.log`, `step4-trace.log`).
+
+Packet `~/ron-data/lab-captures/2026-10-06-run649/map-18/frame-snapshot.bin`, 907,231,240 bytes,
+SHA-256 `42c05bb04eb18ddca005e6f43160bf31ef8ad09c40d58097d5c04d7e236a4563`.
+
+Archive `gamelog-run649-islands-french-packet-15088.txt`, 27,085,073 bytes,
+SHA-256 `b048e36e7091bb44307aae697807872a1f9f54d517a63f8781ff0361b215e01a`.
+
+Archive `rontrace-run649.log`, 81,088,960 bytes,
+SHA-256 `e7b72d3b57944a07e37a80bc94c1afd20cad4d7fed164f6fa0297ea79abe2c1a`.
+
+**What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 88 keys (92 before
+the merge with 1477 and 1466), every one standing on block 15086; nothing on 15087..15090. Run 649 only.
+
+## run655 — French East Indies, the word 16857's widening, with the leader probe (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run655-booking.json`,
+written before the run. run642 ends 15357 and run649 15095; nothing dumps this game between them and
+run600's closing state. Window **[16851,16864)**, end 16868, call window 16849..16864,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1800`, run642's four `--detail`
+sections, through the click-free lane (`free` at launch). The run number is the commander's (run650–654
+were another lane's). Receipt success; process and wait exits **0**; five settings files restored;
+13 group blocks 16851..16863; seed 12345 read back. Launch-to-exit 731.469 s, total 742.001 s.
+Game-RNG draws match run600 on all 16,869 shared frames (`rngcmp.py`).
+
+Archive `gamelog-run655-islands-french-16857.txt`, 53,190,797 bytes,
+SHA-256 `63ba2ab74252974b6148785226fa569151cb207061b8793f31875e06cf81e1ed`.
+
+Archive `rontrace-run655.log`, 95,347,264 bytes,
+SHA-256 `32fccc08ce84cd3c7a833de4773fbcbc5f49fb55bb58600bb0f4ea0318b73707`.
+
+**What it holds**: `run655_s_word_frame_is_widened_whole` (`diff::third_pair`): 186 keys, 173
+standing on block 16851, none on 16852..16857, five on the word's block 16858 (the General `1/79`'s
+animation) and eight on 16860..16862. Run 655 only.

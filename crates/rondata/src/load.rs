@@ -120,6 +120,10 @@ pub struct Loaded {
     /// file order — `Category.data[0]`/`[1]` (`+0x3c`/`+0x40`), the `lo` and
     /// `hi` `Game::init_starting_resources` indexes by `STARTING_RESOURCES`.
     pub starting_resources: Vec<(i32, i32)>,
+    /// rules.xml's `popwins` category rows' `DATA` in file order, which
+    /// `GameInfo.popwin` indexes: the territory victory's share of the
+    /// world's land, in percent (`GameDaemon::process_victory`).
+    pub pop_wins: Vec<i32>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1866,6 +1870,17 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        pop_wins: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "popwins")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| int(r, "DATA").unwrap_or(0))
+                    .collect()
+            })
+            .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
@@ -2582,6 +2597,7 @@ mod tests {
             map_styles: vec![],
             wonder_wins: vec![],
             starting_resources: vec![],
+            pop_wins: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),

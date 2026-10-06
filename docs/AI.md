@@ -14687,6 +14687,127 @@ rows above are entered. Who won each game: the games ended themselves at 13519, 
 and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
 every number in the table and the control; nothing else in this section.
 
+## 126. A running territory timer makes an enemy's city the target (2026-10-06, item 1487)
+
+French East Indies' word 15344 was 44 draws against 38 at index 0. Ours
+spent seven `Army::find_target+0x7df`, who=1's army 6 retargeting from
+`do_marching`; the original spent none and went to the birds. On run642's
+block 15345 the original's group 64 (army 6's) is re-formed (`num` 45 →
+47, `form` −1 → 0, `order_num` 9 → 10) and its members hold an
+`ATTACKTOORDER` to (6552, 9864), beside Napata, who=0's only city.
+
+**The first parting is 15088, and no dump shows it.** Leader 0's
+`frame_attacked` and `attacked_by` are 0 and −1 on run639's 14777..14795
+and 15088 and 1 on run642's 15339. Two functions write `+0xa44`:
+`Leader::init` (−1) and `Army::find_target@006f69b0`, at its two stamps
+(`6f7e..`, the decompile's lines 1066 and 1206). `report.py … when
+Army::find_target` lists 14076, 14332, 14588, 14844, **15088** and, on
+ours, 15344: seven candidates a call, the same rolls both sides. On 15088
+ours chose Paris (`1/2000`, its own) and the original an enemy city, and
+the draw stream cannot tell a choice apart.
+
+**run649** (`docs/RUNS.md`): a `RON_STATE_FRAME=15088` packet, with blocks
+15086..15090 dumped. Block 15089 prints the stamp (`frame_attacked` 15088,
+`attacked_by` 1). `tools/recomp/step4.py` entering `Army::process@006f93d0`
+on who=1's army 6 (`this` `0x15d403d4`, `*(0xc09710 + 0x1c)[6]`) runs
+`do_transporting` → `find_target`, and a hook at `6f7eb9` (the compare
+with the best) prints each candidate:
+
+| city | draw | ours | original |
+| --- | --- | --- | --- |
+| Napata `0/2000` | 1048 | 200 | **20040** |
+| Paris `1/2000` | 1035 | 345 | 345 |
+| `1/2008` | 906 | 302 | 302 |
+| `1/2018` | 1045 | 17 | 17 |
+| `1/2023` | 1036 | 17 | 17 |
+| `1/2035` | 983 | 8 | 8 |
+| `1/2053` | 902 | 150 | 150 |
+
+The army's `+0x30`/`+0x34` are written 2000 and 0. Tracing `ebx` through
+Napata's score: 1048 → 1002 (the capital's distance) → 1503 (an enemy
+capital, raid < 0, ×3/2) → **150300 at `6f79de`, `imul ebx, ebx, 0x64`**
+→ 15030 (one wagon short of two past Military 2, ÷10) → 20040 (a human at
+difficulty 5, ×4/3). Ours lacked the ×100.
+
+**`about_to_win`** (`local_34`): reached for a leader at war with me (not
+me, not allied both ways) while my `defense_mod <= 0x100`, it is set when
+**my** `wonderwin_timer` (`+0x44c`) or `popwin_timer` (`+0x444`) is
+non-zero. who=1's `popwin_timer` is 1 and `popwin_stamp` 14293 on every
+block of run639, run642 and run649; run636's 14085..14097 print 0 and 0.
+
+**The territory timer** is `GameDaemon::process_victory@00730ef0`'s POPWIN
+arm, the daemon's second act every frame (`GameDaemon::process_all`,
+before `calc_danger`). Under `VICTORY` 0, 1 or 7, in a game of two or more
+nations, the leaders are walked in slot order:
+
+```
+share = popwins[POPWIN].DATA                     # 70 at POPWIN 8
+land  = world.land_size                          # regions 1..63, analyze_map
+for L seated and not defeated:
+    rivals = #{ M ≠ L, seated, not allied both ways,
+                share ≤ team_terr(M) · 100 / land }
+    if team_terr(L) · 100 / land < share or rivals:
+        if L.popwin_timer: L.popwin_timer = 0; L.popwin_stamp −= frame
+        continue
+    if VICTORY == 0 and no ally of L has GLOBAL_GOVERNMENT_BONUS:
+        if not L.popwin_timer: L.popwin_timer = 1; L.popwin_stamp += frame
+        elif Game::popwin_timer() − (frame − L.popwin_stamp) < 1: victory
+    else: victory (Leader::victory(2))
+    break                                        # the walk ends here
+```
+
+`team_terr` is `LeaderData::get_team_terr` over `LeaderData::territory`
+— the count `Leader::calc_gather` rewrites on its reassembly frames, this
+crate's `holdings[·].territory`. A live scan of the map starts the timer
+on 14288, five frames early; the holdings' count starts it on 14293, as
+the dump has it — and the second pair's East Indies game starts its own on 17831, where the live scan said 17825 (run589, run594).
+`Leader::process` pays a stopped timer's debt back: every
+`TIMER_REFRESH_RATIO` (5) frames a negative stamp with the flag down
+gains one.
+
+**Why 14332..14844 did not stamp.** Under a timer running since 14293,
+`find_target` ran three more times before 15088, from `do_marching`, on
+army 0, and the dump shows no stamp on 14777. Army 0 carries no wagon.
+`find_target`'s head (`6f6a1b..6f6a6b`) calls a land army weak when its
+hoplites, twice its siege and its cataphracts are fewer than four, **or**
+when Military is past 2, `type_avail(SUPPLYWAGON, 1)` is non-zero and the
+army has no wagon. A weak army skips every enemy city that is not its own
+unassimilated one. Army 6 carries `1/72`, a `SUPPLYWAGON` (TypeIndex 63),
+on 15088.
+
+**Change**: `sim::victory` (the arm, the pay-back and `land_size`);
+`popwin_stamp`/`popwin_timer` on the leader; `Lobby::pop_win_percent`
+from `POPWIN` through `rondata::load::Loaded::pop_wins`;
+`TIMER_REFRESH_RATIO` and `POPWIN_TIMER` in the tuning; in
+`find_target`, the ×100 and the wagon clause of the weak test.
+
+**Value diff.** On run649's block 15089, both sides: leader 0's
+`frame_attacked` 15088 and `attacked_by` 1; who=1's `popwin_stamp` 14293
+and `popwin_timer` 1. run649's widening is 88 keys, every one standing on
+15086. run642 drops 1814 → 110: 94 standing on 15339, and on 15345 the
+re-formed group's sixteen members' `order:group.id`, 15344609 against
+15350409 — the order is ours, its id is not.
+
+**The new word, 16857**: 8 draws against 8, parting at index 2. Ours draws
+for the General `1/79` (TypeIndex 54) through `Guy::set_anim+0x97a <
+Guy::move+0x19f`; the original's third draw is `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x549` (the harness prints it as
+`5dac7a`). run655 widens it: 173 rows standing on 16851, none on
+16852..16857, and on the word's block 16858 `1/79`'s `g.cur_anim` 7
+against 0 and `g.cur_time` 16 against 1. No mechanism is named.
+
+**What is not established.**
+- The expiry and the immediate victory are seams (`sim::victory::seams`):
+  no capture on file reaches either. `Game::popwin_timer`'s scaling by the
+  map size is not built.
+- `wonderwin_timer`, the other half of `about_to_win`, is not kept.
+- `find_target`'s supply count is this crate's lineage test
+  (`is(SUPPLYWAGON)`, `army.rs`'s seam), not `count(NON_DECOY_TYPE, 0x3f)`.
+- The stop arm and the pay-back are built from the listing and held by
+  unit tests alone: no capture stops a timer.
+- No blind reading. The ×100, the wagon clause and the timer's start are
+  diff-backed (run649's packet, block 15089; run639, run642; run589 and run594 for a second game's start).
+
 ## 127. The coverage pair: a lobby chosen for the rows no trace has entered (2026-10-06, item 1466)
 
 **What was established, how, how confident.** DECISIONS 61 §6 chooses the next pair by what it

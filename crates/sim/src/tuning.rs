@@ -902,6 +902,14 @@ pub struct Tuning {
     pub decoy_time: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
+    /// `TIMER_REFRESH_RATIO`: every this many frames a stopped victory
+    /// timer's negative stamp gains one (`Leader::process@006b88b0`). The
+    /// file writes `5 seconds with timer off removes 1 second from clock`
+    /// and `Constants::get_item` reads the leading number.
+    pub timer_refresh_ratio: i32,
+    /// `POPWIN_TIMER`: the territory victory's clock, in frames before the
+    /// map-size scaling of `Game::popwin_timer@005944b0`. `3600 frames`.
+    pub popwin_timer: i32,
 }
 
 impl Tuning {
@@ -1270,6 +1278,8 @@ impl Tuning {
         air_unit_mana_recharge: 2,
         decoy_time: 2500,
         lakota_raze_price: 0,
+        timer_refresh_ratio: 5,
+        popwin_timer: 3600,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -1278,7 +1288,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 352] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 354] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -2005,6 +2015,8 @@ impl Tuning {
             ),
             ("DECOY_TIME", Slot::Value(T.decoy_time)),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
+            ("TIMER_REFRESH_RATIO", Slot::Value(T.timer_refresh_ratio)),
+            ("POPWIN_TIMER", Slot::Value(T.popwin_timer)),
         ]
     }
 }

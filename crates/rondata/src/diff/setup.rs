@@ -133,6 +133,7 @@ pub fn lobby_of(
     map_styles: &[String],
     wonder_wins: &[i32],
     starting_resources: &[(i32, i32)],
+    pop_wins: &[i32],
 ) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
     let int = |key: &str| -> Option<i32> {
@@ -199,6 +200,12 @@ pub fn lobby_of(
         .and_then(|i| wonder_wins.get(i))
     {
         l.wonder_win_points = v;
+    }
+    if let Some(&v) = int("POPWIN")
+        .and_then(|v| usize::try_from(v).ok())
+        .and_then(|i| pop_wins.get(i))
+    {
+        l.pop_win_percent = v;
     }
     if let Some(v) = int("REVEAL_MAP") {
         l.reveal_map = v;
@@ -550,6 +557,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         &loaded.map_styles,
         &loaded.wonder_wins,
         &loaded.starting_resources,
+        &loaded.pop_wins,
     );
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
