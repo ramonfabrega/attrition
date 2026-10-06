@@ -991,7 +991,8 @@ impl Sim {
         let mut best: Option<(i32, crate::combat::Obj)> = None;
         let take = |s: &Self, o: usize, from: Pos, best: &mut Option<(i32, crate::combat::Obj)>| {
             let t = crate::combat::Obj::Unit(o);
-            if !s.valid_target(plane, t) {
+            // Unit targets only: the capture arm is a building's.
+            if !s.valid_target_const(plane, t) {
                 return;
             }
             let p = s.units[o].pos;
@@ -1068,7 +1069,11 @@ impl Sim {
     /// arm that searches round the plane itself. The candidates are taken
     /// in building order where `Objects::find_builds` walks its rings, so
     /// a tie between two may part.
-    pub(crate) fn find_new_bomber_target(&self, u: usize, at: Pos) -> Option<crate::combat::Obj> {
+    pub(crate) fn find_new_bomber_target(
+        &mut self,
+        u: usize,
+        at: Pos,
+    ) -> Option<crate::combat::Obj> {
         let range = self.tuning.bomber_respond_range;
         let me = self.units[u].pos;
         if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
@@ -1078,15 +1083,18 @@ impl Sim {
         let plane = crate::combat::Obj::Unit(u);
         let mut best: Option<(i32, crate::combat::Obj)> = None;
         for b in 0..self.buildings.len() {
-            let bd = &self.buildings[b];
-            if !bd.alive || bd.owner == who || !self.is_enemy(who, bd.owner) {
+            let (alive, owner, pos) = {
+                let bd = &self.buildings[b];
+                (bd.alive, bd.owner, bd.pos)
+            };
+            if !alive || owner == who || !self.is_enemy(who, owner) {
                 continue;
             }
             let t = crate::combat::Obj::Building(b);
             if !self.valid_target(plane, t) {
                 continue;
             }
-            let d = vector_dist(bd.pos.x - at.x, bd.pos.y - at.y);
+            let d = vector_dist(pos.x - at.x, pos.y - at.y);
             if d > range * 0xc0 {
                 continue;
             }

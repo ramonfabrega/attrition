@@ -16316,10 +16316,9 @@ the draws agreeing to the game's last frame: leader 0's `production_step` 0 agai
 **The closing state, scored** (`run470_great_sahara_at_toughest_closing_state`, run470's closing dump, block 15433): **189 units, none off, unlinked,
 torn or extra**. The counts are `[0, 0, 0, 7, 0, 6, 0]`: six cities unlinked because a closing dump prints `o -1` for every city (the 24,001 row carries
 three of its own), and **seven buildings unlinked: the human's city, which the original's army captures on frame 15432**, the game's last, renumbering
-`0/2000`..`0/2006` to `1/2056`..`1/2062` (block 15432 still has them under player 0). Ours holds them under player 0 at 15433 and takes the city on
-**15473** — `Build::process`'s 64-frame re-test, phased by `o` (15472 + 2000 = 64 × 273) — because `Object::valid_target`'s capture attempt
-(`CITIES.md` §7.1's fourth caller, "not modelled" there) is the path that fires on 15432. The draws agree to the end: a capture spends none. The
-test pins the counts and the 15473.
+`0/2000`..`0/2006` to `1/2056`..`1/2062` (block 15432 still has them under player 0). ~~Ours holds them under player 0 at 15433 and takes the city on
+**15473**~~ (`Build::process`'s 64-frame re-test) ~~because `Object::valid_target`'s capture attempt is not modelled~~: built in §145, ours takes
+the city on 15432. The draws agree to the end: a capture spends none.
 
 ### 142.6 Mutations
 
@@ -16347,7 +16346,7 @@ Each by `tools/mutate.py`, scored by exit code and the failed tests' names (`mut
   call reads a unit's fields at a building's index. This crate takes `check_capture` as false for a building and goes on to stamp.
 - **The group number.** The 72 keys' 6,400 stands; fixing `group_id` (army slot → `who × 64 + pool`) moves every `GROUPORDER` id in every capture.
   Parked.
-- **`Object::valid_target`'s capture attempt** (§142.5): the closing's seven buildings, and the 40 frames to 15473.
+- ~~**`Object::valid_target`'s capture attempt**~~ — built in §145.
 - **The two keys on 15401 and 15421** are no consequence in position or draw to the end.
 
 ### 142.8 Coverage
@@ -16452,10 +16451,48 @@ the site is `init_build`'s, a frame old, and the mark is the site-recruit's "no 
 `clear_orders` then `swarm_around`'s first-position shape; the original's member arm at `QUEUE_NEW` differs where the ring finds no
 spot (nothing is queued) and for a Militia (the Civilian cast), neither reached by a builder this lobby picks.
 
-## 145. Reserved for item 1535 (Toughest's closing state, frame 15432)
+## 145. A question about a city at its ceiling is a capture attempt, and Toughest's closing state agrees (2026-10-06, item 1535)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Frame.** `run470_great_sahara_at_toughest_closing_state`: counts `[0, 0, 0, 7, 0, 6, 0]` — the human's city taken by the original on frame
+15432, by ours on 15473 (§142.5). The draw stream had agreed to 15432 of 15432; this item is the closing state, so the value diff is the closing
+dump's own record against ours. **Counts now `[0, 0, 0, 0, 0, 6, 0]`**, ours takes the city on **15432**.
+
+**The value diff, before any reading.** The closing dump prints six `CITY` records (`x`/`y`/`pop`/`who`, `o -1`), all under player 1 — the five
+computer cities and the human's at (6240, 30048); the human's was `who 0` in every earlier block. Ours' six alive cities, sorted by `(who, x, y)`,
+are the same six since this build (the test pins the list: nothing else of the dump's cities links by number, which is why `city_unlinked` stays 6).
+The seven unlinked buildings were `1/2056`..`1/2062` in the dump against `0/2000`..`0/2006` held by ours.
+
+**How it was read.** `Object::valid_target@00648ba0` (read from the decompile, which prints no `unaff_` operand here; no listing was needed): after the const test
+(`ObjectData::valid_target_const`, vslot `0x138`) answers yes, **a target that is alive, a building and `check_capture_eligible`** sets the caller's
+out-flag, and — unless the **asker's type** carries `unit_flags`-word bit `0x8000000` (a missile) — calls `Build::check_capture(target, this->o, this->who)`
+with the asker as captor, **on every call**. Then it returns 1 only to a map unit with masks `0x200000` (`VEHICLE`) and `0x80000` (`WAR_MACHINE`) whose
+current order is an `ATTACK` naming exactly the target with `+0x1c` (`mandatory`) set; every other asker gets 0. A missile skips the arm and gets 1.
+So the call is the capture path's: each unit that scans the ring round the city (`Object::find_nearby_target`'s per-candidate `valid_target`, every
+search it makes, and every other caller — fourteen functions of the export call it) is a capture attempt with itself as the captor.
+`CITIES.md` §7.1 listed this as the fourth caller and §142.5 as the cause; the value diff is what said it was.
+
+**Why ours never made it.** Two filters sat above the call: `Sim::active` (a building with **health left**) in the ring search's candidate list and
+in `valid_target`, so a city at zero was refused before any capture test, and `valid_target` was `&self`. Built: `valid_target_const` (the old body,
+with the city let through its `active` test); **`valid_target`, `&mut self`**: the const's answer, then the arm above for a capture-eligible city —
+`check_capture(b, u)` for a unit asker, none for a building (`check_capture` refuses a non-unit), none for a missile — and the VEHICLE ∧ WAR_MACHINE ∧
+mandatory ∧ `ATTACK`-on-it return; the ring search's building list takes a capture-eligible city. Callers: the unit-only `find_new_air_target` asks the
+const (a building arm cannot apply to a unit target); `find_new_bomber_target` and `melee_squad_head` became `&mut self`. `Build::check_capture` also
+gained the two §7.2 tests it lacked: a **decoy** and a **missile** are not captors.
+
+**Measured on the built tree.** On the original's own timeline: ours attempts on 15377 (the two Cannons, capture value 0), then each searching unit
+on its 15-frame period from 15379 (attackers 1 against the base of 2), 15431 (2) and **15432 — unit 97, attackers 3 against 2 — taken**. The
+closing test's pins: counts `[0, 0, 0, 0, 0, 6, 0]`; ours' cities equal the dump's six by `(who, x, y)`; the human holds no building; the city tally's
+`captured` is 1; **the new city's `capture_stamp` is 15432**. `cargo test --release -p sim -p rondata`: 1406 and 755 passed, and the only pins that moved
+were this test's two — no other capture reaches a zero-health city with an enemy unit beside it, so nothing else was re-pinned.
+
+**Mutations** (`tools/mutate.py` on `baacba59`, exit code and failed names): the `check_capture` call out of `valid_target` — fails the closing test and
+`valid_target_on_a_city_at_its_ceiling_is_a_capture_attempt`; the ring search's capture-eligible city out — fails the closing test (the unit test builds no
+ring); the decoy test out of `check_capture` — fails the unit test (no walk holds it: a decoy never reaches a city here).
+
+**What is not established.** The VEHICLE ∧ WAR_MACHINE ∧ mandatory return is built from the listing and no capture holds it true — no siege unit under a
+mandatory order on a city at its ceiling has been traced; the `0x8000000` missile skip is read, not run; a building asker's call is modelled as no attempt
+and no capture reaches it. **A word that moves nothing.** The closing state is whole; the trace's next frame does not exist (§142's endpoint), so Toughest has
+no open word. The next third-map score is the coverage-pair lobby's (item 1538).
 
 ## 146. The Persians' Market trains a caravan, and the word at 727 (2026-10-06, item 1539)
 
@@ -16513,3 +16550,8 @@ building in ours. A Persian *human*: the arm is the leader's, not the AI's, and 
 **Coverage.** Diff-backed: claims 1, 2 and 4, and 3's arm as a whole (the walk moves past 667 and `1/15` agrees through 833);
 reading-only: the arm's limit at more than one pairing and the population refusal, neither reached (`caras` is 0 at the one slot
 that fires).
+
+## 147. Reserved for item 1538 (Great Sahara in the coverage pair's lobby)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

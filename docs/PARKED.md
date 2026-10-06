@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1535, 2026-10-06 — the capture attempt
+
+(1542) **What 1535's capture arm left unestablished** (AI §145):
+`Object::valid_target`'s return of 1 to VEHICLE ∧ WAR_MACHINE on an
+`ATTACK` naming the city `mandatory`, the missile skip, and a building
+asker's call — no capture holds any of them true.
+
 ## Parked by item 1532, 2026-10-06 — the busy builder's swarm
 
 (1540) **`swarm_around_last`'s `0x2000` clear**: 1532's `QUEUE_LAST`
@@ -3718,6 +3725,27 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1543) **Two tool gaps from 1535** (its journal's Loop lines,
+2026-10-06): `tools/mutate.py` given one argument holding a whole
+command (`-- $T` under zsh, which does not split) prints a traceback,
+not a verdict — it could refuse a one-string command; and
+`tools/memcap.sh 10` is breached by the full `-p sim -p rondata` run
+(10.2 GiB) where the gate caps at 20, so a brief naming a cap could
+name 20. One reach.
+
+(1541) **The commander↔pass handoff leaves stale sessions on the
+integration worktree** (Ramon, 2026-10-06, at the clear at ten): each
+`ccc spawn --name … --replace` hand-off starts a fresh session in the
+same worktree and branch, and the one it replaced stays listed — three
+sessions now sit on `worktree-replan-pdb` (`commander-old` stopped,
+`steer` done/idle, `commander` live; Ramon renamed two by hand). `ccc rm`
+on a stale one would likely take the worktree with it, so none can be
+reaped, and they pile up in the agents view. The pass's to rule: how a
+replaced session is retired without the worktree (a ccc verb that
+removes the session only, or the handoff reusing one row), and a guard
+or a clause so the count stays one. The self-clear itself worked: the
+arm fired and this session resumed from the opener. One reach.
 
 (1537) **Two tool gaps from 1528** (its journal's Loop lines,
 2026-10-06): a decompile's `unaff_` operands hid a distance test's

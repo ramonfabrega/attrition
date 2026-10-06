@@ -2168,13 +2168,12 @@ heal, ejection), then the sites' `construct_hits` refresh.
   `init_unit`'s pre-garrison placement of a squad born on open ground.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
-- **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)
-  is not modelled; the attempts on every hit and every 64 frames are. **Measured,
-  item 1528** (`docs/AI.md` §142.5): the original's army takes Great Sahara at
-  Toughest's human city on frame 15432, the game's last; ours on 15473, the
-  64-frame re-test's. A unit
-  that would have captured through target validation captures on its next
-  hit instead.
+- ~~**The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)
+  is not modelled~~ — **built** (item 1535, `docs/AI.md` §145): every call is
+  an attempt with the asker as the captor, and Great Sahara at Toughest's
+  human city falls on the original's frame 15432. Not built: a building asker
+  (an attempt with no unit behind it) and the war-machine return, which no
+  capture holds.
 - **The AI branches** (the builder-wanting logic, the auto-repair, the
   calm-city auto-exit, the site values) are not modelled; `leader_flags & 4`
   is true for every player.

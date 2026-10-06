@@ -12,23 +12,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth tranche at its tenth landing (the clear at
-ten; counted by `git log` from `b3b0ae03`): French East Indies **closed at
-17,379** (1514, 1519); Toughest **reached its end at 15,432** (1510–1528),
-its closing state open; the coverage pair **667** (1511, 1530, 1532).*
+*2026-10-06, the twenty-sixth tranche at its eleventh landing (counted by
+`git log` from `b3b0ae03`): French East Indies **closed at 17,379** (1514,
+1519); Toughest **closed at 15,432** (1510–1528, its closing state 1535:
+counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **667** (1511, 1530, 1532).*
 
-- **Two lanes, live at the clear**: `att-1539` (Opus 5.5, the coverage
-  pair, run 674, AI §146) and `att-1535` (Sonnet 5.5, Toughest's closing
-  state, run 673, AI §145), `--effort high` both. Wait on them with
-  `tools/lanewait.py att-1535 att-1539`. Next run 675, next section §147.
-  1497 waits for a lane; 1538 follows 1535 on the Sonnet lane.
+- **Two lanes**: `att-1539` (Opus 5.5, the coverage pair, run 674, AI
+  §146) and `att-1538` (Sonnet 5.5, Great Sahara in the coverage pair's
+  lobby, runs 675–676, AI §147), `--effort high` both. Wait on them with
+  `tools/lanewait.py att-1538 att-1539`. Next run 677, next section §148.
+  1497 waits for a lane.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
   in `AI_WORDS`, its `Coverage pair:` line read by
   `the_handoff_s_coverage_pair_is_the_pinned_word`; 667 since 1532.
 - **Merges back out on a section stub** when a lane's base predates the
   next booking's stub: the lane takes `ccc update --keep-conflicts` and
   keeps both (1511, once). Kill rules: neither tripped.
-- **Fable backlog: 24 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537).
+- **Fable backlog: 26 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537, 1541, 1543).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,22 +40,15 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche, after the clear at ten — `commander`:
-wait on 1539 (Opus 5.5) and 1535 (Sonnet 5.5); at twenty it spawns `steer`.**
+wait on 1539 (Opus 5.5) and 1538 (Sonnet 5.5); at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1539) and the third map's (1535, then 1538); 1497 waits for a free lane,
+pair's (1539) and the third map's (1538); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
-
-1535. **Great Sahara at Toughest's closing state: frame 15432**,
-    counts `[0, 0, 0, 7, 0, 6, 0]` — the human's city, captured by the
-    original on 15432, by ours on 15473 (the 64-frame re-test).
-    `run470_great_sahara_at_toughest_closing_state` pins it; run668 holds
-    the last blocks. 1528's reading: `Object::valid_target`'s capture
-    attempt (CITIES §7.1's fourth caller) is not modelled — a hypothesis.
 
 1539. **The coverage pair's word: frame 667, 152 versus 155 draws**,
     index 143: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
