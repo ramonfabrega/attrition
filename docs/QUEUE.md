@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth tranche at its thirteenth landing (counted by
+*2026-10-06, the twenty-sixth tranche at its fourteenth landing (counted by
 `git log` from `b3b0ae03`): French East Indies **closed at 17,379** (1514,
 1519); Toughest **closed at 15,432** (1510–1528, its closing state 1535:
-counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **982** (1511, 1530, 1532, 1539, 1544).*
+counts `[0, 0, 0, 0, 0, 6, 0]`), and in the coverage lobby (1538) parts on
+**720**, its widening owed; the coverage pair **982** (1511, 1530, 1532, 1539, 1544).*
 
 - **Two lanes**: `att-1546` (Opus 5.5, the coverage pair, run 679, AI
-  §149) and `att-1538` (Sonnet 5.5, Great Sahara in the coverage pair's
-  lobby, runs 675–677, AI §147), `--effort high` both. Wait on them with
-  `tools/lanewait.py att-1538 att-1546`. Next run 680, next section §150.
+  §149) and `att-1549` (Sonnet 5.5, Great Sahara's coverage word 720, run
+  680, AI §150), `--effort high` both. Wait on them with
+  `tools/lanewait.py att-1546 att-1549`. Next run 681, next section §151.
   1497 waits for a lane.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
   in `AI_WORDS`, its `Coverage pair:` line read by
@@ -28,7 +29,7 @@ counts `[0, 0, 0, 0, 0, 6, 0]`); the coverage pair **982** (1511, 1530, 1532, 15
 - **Merges back out on a section stub** when a lane's base predates the
   next booking's stub: the lane takes `ccc update --keep-conflicts` and
   keeps both (1511, once). Kill rules: neither tripped.
-- **Fable backlog: 27 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537, 1541, 1543, 1548).
+- **Fable backlog: 28 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537, 1541, 1543, 1548, 1551).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,12 +41,12 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche, after the clear at ten — `commander`:
-wait on 1546 (Opus 5.5) and 1538 (Sonnet 5.5); at twenty it spawns `steer`.**
+wait on 1546 (Opus 5.5) and 1549 (Sonnet 5.5); at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1546) and the third map's (1538); 1497 waits for a free lane,
+pair's (1546) and the third map's (1549); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -58,11 +59,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     6,300,000) on 982; on 983 the site `1/2025` at (35712, 35904)
     against (34368, 35136). No mechanism.
 
-1538. **Great Sahara in the coverage pair's lobby** (DECISIONS 56 §1):
-    the closed map's successor once 1535's closing state agrees — seed
-    12345, East Indies' coverage settings on map style 7, a `DUMP_ALL`
-    start sibling and a `cover=0` trace to the game's end, the lobby
-    read back; its first parting is the third map's word.
+1549. **Great Sahara in the coverage lobby: frame 720, 25 versus 24
+    draws**, index 0: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    theirs `Animal::think_bird+0x82` (1538's 718, moved by 1544's
+    merge). `sahara_coverage_first_parting` pins it on run675/676.
+    Owed: its widening (run677's recipe over 713..969), the `AI_WORDS`
+    row with its window, and the `Third map:` part — `GreatSahara…
+    w720 of 4,340` — which the row gates.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

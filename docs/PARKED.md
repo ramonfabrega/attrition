@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1538, 2026-10-06 — the tied oil patches
+
+(1550) **Leader 1's `known_rares` 1 against 0 on Great Sahara's
+coverage block 8** (1538's journal): quiet until a Merchant reads it;
+names no score.
+
 ## Parked by item 1544, 2026-10-06 — the builder's tally
 
 (1547) **What 1544 left beside `find_build_spot`'s tally** (AI §148):
@@ -3743,6 +3749,14 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1551) **Two capture and test-runner gaps from 1538** (its journal's
+Loop lines, 2026-10-06): every coverage long ends itself before
+24000, so `waitrun.sh` exits 2 on an expected receipt and each brief
+copies the same caveat — `unattended_capture.py` could take
+`--allow-early-end` and say `success`; and `cargo test` takes one
+filter, so `cargo test … run677 sahara_coverage` errors and prints
+nothing — the brief's examples could say so. One reach.
 
 (1548) **The cell chains no widening reads** (1544's Loop line,
 2026-10-06): `up`/`down`/`down_who`/`up_who` sit in `coverage.rs`'s

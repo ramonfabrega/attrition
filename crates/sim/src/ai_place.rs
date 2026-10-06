@@ -1542,4 +1542,34 @@ mod tests {
         assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
         assert!(sim.ai[0].oil_patches.is_empty());
     }
+
+    /// **A land patch joins the list in the per-cell scan's order, not the
+    /// goods list's** (item 1538, `docs/AI.md` §147): the wholesale claim
+    /// walks a land region row-major, so of two patches tied on score
+    /// `pick_oil_patch` — last to first, `>=` — reaches the later row's
+    /// first and ends on the earlier row's, however the goods list orders
+    /// them. A patch outside any land region keeps the goods list's order,
+    /// after the land ones.
+    #[test]
+    fn a_wholesale_claim_adds_land_patches_in_cell_scan_order() {
+        // Goods in the order (10, 3), (4, 9), (6, 3), (2, 15); the last is
+        // water. Row-major over the land: (6, 3), (10, 3), (4, 9).
+        let (mut sim, gis) = oil_world(&[(10, 3), (4, 9), (6, 3), (2, 15)]);
+        sim.world.fill_region(
+            crate::world::Terrain::Land,
+            Cell::new(0, 0),
+            Cell::new(19, 9),
+        );
+        sim.ai[1].oil_patches.clear();
+        sim.claim_oil_from_owners();
+        assert_eq!(sim.ai[1].oil_patches, [gis[2], gis[0], gis[1], gis[3]]);
+        // From (8, 8) the patches at (6, 3) and (10, 3) tie at 2 · 20 − 6;
+        // the walk ends on the list's first, the earlier row's.
+        sim.ai[1]
+            .oil_patches
+            .retain(|g| *g == gis[0] || *g == gis[2]);
+        let (best, _, cand) = sim.pick_oil_patch(1, Cell::new(8, 8), &well());
+        assert!(best > 0);
+        assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(6, 3)));
+    }
 }
