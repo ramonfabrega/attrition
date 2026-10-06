@@ -331,9 +331,9 @@ partial push turn.
 
 ## Parked by item 1318, 2026-09-30 — Forced March's speed
 
-(1333) **The crew step's `GuyData::get_speed`**: ours 57 against 71 on
-run517's 9222 and run511's 9328 — named by `docs/MOVEMENT.md`, reached
-now.
+(1333) closed 2026-10-05 by item 1461: **the crew step's
+`GuyData::get_speed`** — a tracked crew figure steps at the unit's
+`get_speed(x, y, 1)` at its own point; the 9328/9222 rows leave.
 
 (1334) **Group 67's `speed` 0 against 34** from run517's 9084.
 
@@ -3632,3 +3632,8 @@ wait as a stall rather than waiting out the hour), and the roster: **the
 user's word** is that the pass decides at this steer whether Sonnet is
 good enough to run a lane (CLAUDE.md's two kill rules did not trip on
 this).
+
+(1471) **`tools/standing.py` does not read the third pair's widening
+print** (1461's Loop line, 2026-10-05): the standing keys of the French
+East Indies widening are not put beside who in `sim` reads them, so the
+checklist row that names the tool has nothing to run on the newest word.
