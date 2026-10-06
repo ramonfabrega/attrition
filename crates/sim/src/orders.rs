@@ -5312,7 +5312,9 @@ impl Sim {
         //    cell is `FOREST` sends up a flock from a unit in a group —
         //    [`Sim::group_flock`].
         //
-        //    SEAM: the `cavarch_fight` call below it.
+        //    SEAM: the follower's own fire on the move below it: the
+        //    original calls it here too, and this crate wires the fire on
+        //    the move ([`crate::cavarch`]) into the plain move's step only.
         if self.invalid_loc(u, mo.waypoint.tile(), false, false, false, false, false) != 0 {
             self.group_flock(u, mo.waypoint);
             self.ungroup_move_order(u, gm.id);
@@ -9054,8 +9056,8 @@ impl Sim {
         let found = self.find_melee_target(u, -1);
         if let Some(t) = found {
             // SEAM: a group's attack-move may hand the target to
-            // `Group::action_attack` instead ([`Self::attack_move_add`]
-            // carries that arm for the attack-move's own look).
+            // `Group::action_attack` instead; this crate carries that arm
+            // for the attack-move's own look alone.
             self.nearby_add(u, t);
         }
         self.units[u].combat.stance = stance;

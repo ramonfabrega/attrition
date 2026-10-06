@@ -149,7 +149,8 @@ impl crate::Sim {
     ///
     /// SEAM: `LAB_005fdb9e`'s first arm, `waiting < 5 && retargets > 10`
     /// (the search budget), which adds 2 to `waiting` and returns without
-    /// searching or counting — as for `do_attack`'s, not modelled.
+    /// searching or counting — unmodelled here as on the attack order's
+    /// own arm.
     /// SEAM: `unit_masks |= 0x11000` before the strike, as for every
     /// strike here.
     pub(crate) fn cavarch_fight_body(&mut self, u: usize, frame: i64) {
