@@ -10,7 +10,7 @@
 use crate::attrition::Domain;
 use crate::build::{self, Ident, flags};
 use crate::combat::Obj;
-use crate::orders::Coll;
+use crate::orders::{Body, Coll};
 use crate::world::UNITS_PER_TILE;
 use crate::{Player, Sim};
 
@@ -387,6 +387,21 @@ impl Sim {
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
         // a member's are rewritten by its own next `work`.
+        //
+        // **A computer's captain runs the same wipe a member does** — `this`
+        // at `6187be` is the unit `come_out` was called on, the captain
+        // included (twenty-fourth pass, group 15; A9 row 24): path emptied,
+        // orders closed, partial path cleared, then `update_action`. The
+        // unconditional `update_action` below stays for a human's captain,
+        // which run208 diffs and whose writer is another one.
+        if !self.nation[self.units[captain].owner as usize].human
+            && !self.is_plane(captain)
+            && !(0x32..=0x35).contains(&self.units[captain].type_index)
+        {
+            self.units[captain].path.clear();
+            self.close_orders(captain);
+            self.clear_partial_path(captain);
+        }
         self.update_action(captain);
         let host_angle = self.units[captain].movement.heading;
         for f in self.squad_of(captain) {
@@ -445,12 +460,30 @@ impl Sim {
         if let Some((gspot, _)) = gather {
             self.gather_route(captain, b, gspot, spot, pushed.as_ref());
         }
-        // The city alarm clears when the city empties.
+        // The city's alarm clears when the city empties — **for a human's
+        // city only, and not while a unit of its owner is still on its way to
+        // garrison it** (`6189ae..618b1d`: the `+4 & 0x40` clear sits behind
+        // `leader_flags & 4` and a walk over the owner's units for a
+        // `GARRISON` action naming this container; twenty-fourth pass, group
+        // 15; A9 row 29). The map of `alarm` to `+4 & 0x40` is assumed.
         if self.building_is_city(b)
             && self.buildings[b].garrison.is_empty()
             && let Some(c) = self.buildings[b].city
         {
-            self.cities[c].alarm = false;
+            let who = self.buildings[b].owner;
+            let inbound = (0..self.units.len()).any(|u| {
+                self.units[u].owner == who
+                    && self.units[u].alive()
+                    && self
+                        .action_of(u)
+                        .and_then(|i| self.units[u].orders.get(i))
+                        .is_some_and(
+                            |o| matches!(o.body, Body::Garrison { building, .. } if building == b),
+                        )
+            });
+            if self.nation[who as usize].human && !inbound {
+                self.cities[c].alarm = false;
+            }
         }
         // **The tail's `SpecialAnimOrder`** (`619fe2`, `docs/GOLDEN.md`
         // §30): an EXIT on a frame past 0, which away from an Airbase

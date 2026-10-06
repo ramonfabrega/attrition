@@ -557,6 +557,27 @@ impl Sim {
             g.pushed = Some(i);
             return true;
         }
+        // **An equal group whose `last_group` slot holds an army's group is
+        // that one record, untouched** (`push_group@0070f9e0`'s equal arm
+        // skips `get_open_slot` and `copy_group` whoever holds the slot;
+        // twenty-fourth pass, group 15; A9 row 9): `Army::add_unit`'s own
+        // push of its army of one squad, then a `go_to` or
+        // `target_opportunity` push of the same chain.
+        if pool == last
+            && let Some(a) = self.armies[g.who as usize]
+                .list
+                .iter()
+                .position(|a| a.valid && a.group.pool == Some(pool) && a.units == g.list)
+        {
+            for &u in &g.list {
+                if self.units[u].alive() {
+                    self.units[u].group_ptr = Some(pool);
+                }
+            }
+            g.army = Some(a);
+            g.pushed = None;
+            return true;
+        }
         self.unseat_group(g, pool);
         // `Groups::copy_group@006fa690` writes the stack group **into the
         // slot's own record** (§28): `who`, `num`, `ox`/`oy`, `o_dist`,
@@ -788,44 +809,6 @@ impl Sim {
             .map(Seat::Pushed)
     }
 
-    /// The members slot `s`'s record lists, alive or not: the army's
-    /// group on it, else its [`Pushed`] entry.
-    fn pool_record_list(&self, who: Player, s: u8) -> &[usize] {
-        let w = who as usize;
-        if let Some(a) = self
-            .armies
-            .get(w)
-            .and_then(|x| x.list.iter().find(|a| a.valid && a.group.pool == Some(s)))
-        {
-            return &a.units;
-        }
-        self.pushed
-            .iter()
-            .find(|x| x.who == who && x.state.pool == Some(s))
-            .map_or(&[], |x| &x.list)
-    }
-
-    /// `Group::get_num@00714700` on slot `s`, the count `get_open_slot`
-    /// tests for zero (§3.1, §28). A record of fewer than four is
-    /// `normalize`d first — the dead and every member whose `+0x80` names
-    /// another slot drop — and one of four or more drops **only the
-    /// dead**: a closed army's group whose fifteen members all point at
-    /// the new army still counts fifteen until `Groups::process`'s cursor
-    /// prunes it. The count is taken, the prune is not written back.
-    ///
-    /// SEAM: `get_num`'s own prune writes the list; this reads it.
-    fn pool_get_num(&self, who: Player, s: u8) -> usize {
-        let list = self.pool_record_list(who, s);
-        let alive = |u: usize| self.units[u].alive();
-        if list.len() < 4 {
-            list.iter()
-                .filter(|&&u| alive(u) && self.units[u].group_ptr == Some(s))
-                .count()
-        } else {
-            list.iter().filter(|&&u| alive(u)).count()
-        }
-    }
-
     /// The live members of whichever seat of `who` holds pool slot `s` —
     /// an army's group or a pushed one — in join order.
     ///
@@ -1004,7 +987,17 @@ impl Sim {
     /// and an `id`, it is `normalize` whole; otherwise only the inactive
     /// are dropped. It is the first thing `Group::add` does, which is why
     /// a squad joining a small group can lose its own head (§23).
+    ///
+    /// **An empty group is tested first** (`Group::get_num@00714700`:
+    /// `num < 1` → `num = 0; oy = 0; ox = 0; return`, twenty-fourth pass,
+    /// group 14; A9 row 12): no `normalize`, so its speed pair stands, and
+    /// its origin is zeroed.
     fn seat_get_num(&mut self, seat: Seat) -> usize {
+        if self.seat_list(seat).is_empty() {
+            let (_, st) = self.seat_parts(seat);
+            st.o = Pos::new(0, 0);
+            return 0;
+        }
         if self.seat_list(seat).len() < 4 {
             self.seat_normalize(seat);
         } else {
@@ -1017,6 +1010,20 @@ impl Sim {
             }
         }
         self.seat_list(seat).len()
+    }
+
+    /// `Group::get_num_cap@007145c0` on a seat: an empty group answers zero
+    /// untouched; one of fewer than four members is `normalize`d whole, a
+    /// larger one only loses its dead; the answer is the captains standing.
+    fn seat_get_num_cap(&mut self, seat: Seat) -> usize {
+        if self.seat_list(seat).is_empty() {
+            return 0;
+        }
+        self.seat_get_num(seat);
+        self.seat_list(seat)
+            .iter()
+            .filter(|&&u| self.units[u].alive() && self.is_captain(u))
+            .count()
     }
 
     /// `Group::add(o, who, keep_captain, const)@00714350` on a seated group,
@@ -1242,49 +1249,47 @@ impl Sim {
     /// eviction. `last_group` is the caller's to write.
     fn open_slot(&mut self, who: Player) -> u8 {
         let last = self.last_group[who as usize];
-        {
-            // The first slot whose `get_num` is zero (§3.1, §28) — not
-            // "nothing live points at it", which takes a closed army's
-            // group of fifteen stale members before the cursor has pruned
-            // it. Failing that, the oldest single-captain group, the last
-            // of equal stamps winning; failing that, the last slot not
-            // `last_group`.
-            // A **building group** is taken at once, whatever it holds.
-            let s = (0..46u8)
-                .find(|&s| {
-                    s != last
-                        && (self.pool_is_building_group(who, s) || self.pool_get_num(who, s) == 0)
-                })
-                .unwrap_or_else(|| {
-                    let mut best = None;
-                    let mut stamp = self.frame;
-                    for s in (0..46u8).filter(|&s| s != last) {
-                        let st = self.pool_record(who, s).1.stamp;
-                        let caps = self
-                            .pool_record_list(who, s)
-                            .iter()
-                            .filter(|&&u| self.units[u].alive() && self.is_captain(u))
-                            .count();
-                        if st <= stamp && caps == 1 {
-                            stamp = st;
-                            best = Some(s);
-                        }
-                    }
-                    best.unwrap_or(if last == 45 { 44 } else { 45 })
-                });
-            // `get_open_slot`'s tail (§3.1): unless the slot holds a
-            // building group, every unit of `who` whose `+0x80` names it
-            // is cleared before the new group moves in. What this reaches
-            // is a pointer its list dropped — the stale half §23 is about.
-            if !self.pool_is_building_group(who, s) {
-                for x in &mut self.units {
-                    if x.owner == who && x.group_ptr == Some(s) {
-                        x.group_ptr = None;
-                    }
+        // **One pass, as `Groups::get_open_slot@006fa460` walks it**
+        // (twenty-fourth pass, group 13; A9 row 15): `get_num` on every slot
+        // it reaches — each normalises a slot of one to three members — and
+        // an open slot (`get_num == 0`, or a building group) that is not
+        // `last_group` ends the walk; past a non-open slot the stamp arm
+        // calls `get_num_cap`, which normalises it again, while its stamp
+        // is no later than the best so far, and takes it when it holds
+        // exactly one captain. The last of equal stamps wins; failing all of
+        // them the last slot not `last_group`.
+        let mut best: Option<u8> = None;
+        let mut stamp = self.frame;
+        let mut open = None;
+        for s in 0..46u8 {
+            let seat = self.pool_seat(who, s);
+            let n = seat.map_or(0, |seat| self.seat_get_num(seat));
+            if (n == 0 || self.pool_is_building_group(who, s)) && s != last {
+                open = Some(s);
+                break;
+            }
+            if let Some(seat) = seat
+                && self.pool_record(who, s).1.stamp <= stamp
+                && self.seat_get_num_cap(seat) == 1
+                && s != last
+            {
+                stamp = self.pool_record(who, s).1.stamp;
+                best = Some(s);
+            }
+        }
+        let s = open.or(best).unwrap_or(if last == 45 { 44 } else { 45 });
+        // `get_open_slot`'s tail (§3.1): unless the slot holds a
+        // building group, every unit of `who` whose `+0x80` names it
+        // is cleared before the new group moves in. What this reaches
+        // is a pointer its list dropped — the stale half §23 is about.
+        if !self.pool_is_building_group(who, s) {
+            for x in &mut self.units {
+                if x.owner == who && x.group_ptr == Some(s) {
+                    x.group_ptr = None;
                 }
             }
-            s
         }
+        s
     }
 
     /// Does slot `s` of `who` hold a building group now?
@@ -2583,6 +2588,13 @@ impl Sim {
                     // Written back into the table (`param_9 + 0x514`,
                     // `+0x714`), which §6.7's translation reads next.
                     slots.to[i] = slot;
+                    // **The member names this group afterwards**: the arm
+                    // writes `+0x80 = −1` before the search and
+                    // `+0x80 = this->id` after it (`705a2a..705c9b`,
+                    // decompile 653-655 and 716-718; twenty-fourth pass,
+                    // group 15; A9 row 34), so a stale back-pointer is
+                    // re-pointed. A group with no seat has no id to write.
+                    self.repoint_member(g, u);
                 }
             }
             // §6.6 step 6: the order's angle is the formation's, **plus**
@@ -3563,6 +3575,14 @@ impl Sim {
         if queue != QueuePos::First {
             st.o = to;
             st.o_angle = angle;
+        }
+    }
+
+    /// The different-region arm's `+0x80 = this->id`: the member names the
+    /// group. A group with no seat has no id to write.
+    fn repoint_member(&mut self, g: &Group, u: usize) {
+        if let Some(pool) = self.gstate(g).and_then(|st| st.pool) {
+            self.units[u].group_ptr = Some(pool);
         }
     }
 
@@ -4949,6 +4969,95 @@ mod tests {
         assert_eq!(one.pushed, Some(0), "and the forced push names its slot");
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         assert!(s.push_group(&mut group_of(1, &[a, b]), false));
+    }
+
+    /// **`get_num` of an empty group zeroes its origin and normalizes
+    /// nothing; the slot scan calls it on every slot it reaches** (twenty-
+    /// fourth pass, groups 13 and 14; A9 rows 12 and 15). A slot of one to
+    /// three members that the scan passes has its speed pair reset to its
+    /// leader's, and an emptied slot keeps its speed while its `(ox, oy)`
+    /// goes to zero.
+    #[test]
+    fn the_slot_scan_calls_get_num_on_every_slot_it_reaches() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let mut first = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut first, true));
+        let slot = first.pushed.expect("seated");
+        let pool = s.pushed[slot].state.pool;
+        // The slot's record goes stale: the scan must price it again.
+        s.pushed[slot].state.speed = 99;
+        s.pushed[slot].state.new_speed = 99;
+        // Slot 0 is `last_group`, so the walk goes past it to this slot and
+        // on to the first open one.
+        s.last_group[1] = 0;
+        let open = s.open_slot(1);
+        assert_ne!(Some(open), pool, "a seated slot of two is not open");
+        let leader = s.units[a].movement.speed;
+        assert_eq!(s.pushed[slot].state.speed, leader, "normalized by get_num");
+        // An emptied seat: speed stands, origin zeroed, no normalize.
+        s.pushed[slot].list.clear();
+        s.pushed[slot].state.speed = 7;
+        s.pushed[slot].state.o = Pos::new(5, 5);
+        let seat = Seat::Pushed(slot);
+        assert_eq!(s.seat_get_num(seat), 0);
+        assert_eq!(s.pushed[slot].state.o, Pos::new(0, 0));
+        assert_eq!(
+            s.pushed[slot].state.speed, 7,
+            "no normalize on an empty arm"
+        );
+    }
+
+    /// **An equal push onto an army's slot stays one record** (group 15;
+    /// A9 row 9): the army's group is `last_group`'s slot, and the same chain
+    /// pushed again is that record, the squads still the army's.
+    #[test]
+    fn an_equal_push_onto_an_army_s_slot_is_the_army_s_record() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let list = s.armies[1].list[slot].units.clone();
+        assert_eq!(list.len(), 2);
+        let pool = s.armies[1].list[slot].group.pool;
+        assert!(pool.is_some());
+        assert_eq!(
+            s.last_group[1],
+            pool.unwrap(),
+            "the army's push was the last"
+        );
+        let mut again = group_of(1, &list);
+        assert!(s.push_group(&mut again, false));
+        assert_eq!(again.army, Some(slot), "the army's own record");
+        assert_eq!(again.pushed, None);
+        assert_eq!(s.armies[1].list[slot].units, list, "nobody left the army");
+        assert!(s.pushed.iter().all(|x| x.state.pool != pool));
+    }
+
+    /// **The cross-region arm re-points its member** (group 15; A9 row 34):
+    /// a listed member whose `+0x80` named another slot names this group
+    /// after the arm; an unseated group writes nothing.
+    #[test]
+    fn the_cross_region_arm_re_points_a_stale_member() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let mut g = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut g, true));
+        let pool = s.gstate(&g).and_then(|st| st.pool).expect("seated");
+        s.units[b].group_ptr = Some(pool + 1);
+        s.repoint_member(&g, b);
+        assert_eq!(s.units[b].group_ptr, Some(pool));
+        let loose = group_of(1, &[a]);
+        s.units[a].group_ptr = Some(40);
+        s.repoint_member(&loose, a);
+        assert_eq!(s.units[a].group_ptr, Some(40), "no seat, no id");
     }
 
     /// **A pushed slot's own state** (item 1457, `docs/GROUPS.md` §36): a

@@ -5652,6 +5652,53 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert!(sim.buildings[b].garrison.is_empty());
 }
 
+/// **`come_out`'s tail, as `0x617c10` has it** (twenty-fourth pass, group
+/// 15; A9 rows 24 and 29): a computer's captain runs the same wipe a member
+/// does — its queued orders go — where a human's keeps them; and the city
+/// flag after an exit is cleared for a human's city only, and not while a
+/// unit of its owner holds a `GARRISON` on the container.
+#[test]
+fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
+    use crate::orders::{Body, MoveKind, QueuePos};
+    for human in [false, true] {
+        let (mut sim, t, _, militia) = alarm_sim();
+        sim.nation[0].human = human;
+        let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+        let m = sim.init_unit(0, militia, tile_pos(36, 36));
+        sim.go_inside(m, b);
+        sim.add_move_order(m, tile_pos(50, 50), MoveKind::MoveTo, QueuePos::New, true);
+        sim.cities[c].alarm = true;
+        assert!(sim.come_out(m));
+        assert_eq!(
+            sim.units[m].orders.is_empty(),
+            !human,
+            "human {human}: a computer's captain wipes its orders"
+        );
+        assert_eq!(
+            sim.cities[c].alarm, !human,
+            "human {human}: only a human's city flag clears"
+        );
+    }
+    // A human's city whose last garrison leaves while a citizen is on its
+    // way in keeps the flag.
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    sim.nation[0].human = true;
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let walker = sim.init_unit(0, citizen, tile_pos(40, 32));
+    sim.add_garrison_order(walker, b, false, QueuePos::New, true);
+    assert!(
+        sim.units[walker]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Garrison { building, .. } if building == b))
+    );
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    sim.cities[c].alarm = true;
+    assert!(sim.come_out(m));
+    assert!(sim.cities[c].alarm, "an inbound GARRISON holds the flag");
+}
+
 /// **A unit comes out with the body's speeds it froze at the door**
 /// (item 1167, `docs/GOLDEN.md` §49; run430's `0/5` on 902, out of the
 /// City at `avg_speed` 11 from the 15 it went in with). `set_new_location
