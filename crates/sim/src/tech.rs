@@ -552,6 +552,10 @@ pub struct Setup {
     pub no_nation_powers: bool,
     /// `info.flags & 8`, "No Unique Units".
     pub no_unique_units: bool,
+    /// `game->info.starting_town != 0`: the lobby's starting town is not
+    /// "nomad". `has_tribe_bonus` is open to a player with no city only
+    /// while this holds (`LeaderData::has_tribe_bonus@006e1370`).
+    pub starting_town: bool,
     /// `victory == 9`, the Tech Race: reaching the ending age wins.
     pub tech_race: bool,
 }
@@ -566,6 +570,7 @@ impl Setup {
         no_finals: false,
         no_nation_powers: false,
         no_unique_units: false,
+        starting_town: true,
         tech_race: false,
     };
 }
@@ -604,8 +609,11 @@ pub struct PlayerTech {
     pub power: Option<usize>,
     /// `get_team()`; in Barbarians at the Gates, team 0 defends.
     pub team: i32,
-    /// Whether the player has a city, and started with one — the gate
-    /// `has_tribe_bonus` puts on every nation power.
+    /// Whether the player holds a city now (`city_num != 0`). With the
+    /// lobby's starting town it is no gate at all: `has_tribe_bonus` asks
+    /// `starting_town || city_num`, [`Setup::starting_town`] being the first
+    /// half (twenty-fourth pass, group 22). `Sim` writes it where a city is
+    /// founded, closed or captured.
     pub has_city: bool,
     /// Wonders the player holds, for the wonder-gated rules.
     pub wonders: Vec<TypeId>,
@@ -886,7 +894,7 @@ impl TechTree {
 
     /// `LeaderData::has_tribe_bonus(n)`.
     pub fn has_tribe_bonus(&self, setup: &Setup, p: &PlayerTech, n: usize) -> bool {
-        if setup.no_nation_powers || !p.has_city {
+        if setup.no_nation_powers || !(setup.starting_town || p.has_city) {
             return false;
         }
         p.power == Some(n)

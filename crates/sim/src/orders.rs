@@ -7558,7 +7558,10 @@ impl Sim {
 
     /// `BuildData::num_gatherers(arrived, skip_decoys)`: the garrisoned
     /// gatherers of a university or platform, plus the chain members that
-    /// are gathering here. `calc_gather` calls it `(1, 1)`.
+    /// are gathering here. `calc_gather` calls it `(1, 1)`. `skip_decoys`
+    /// turns the garrison term's `count_inside` mode from `COUNT_TYPE` (17)
+    /// to `COUNT_NON_DECOY_TYPE` (19) as well as filtering the chain (A7
+    /// row 28, twenty-fourth pass).
     pub fn num_gatherers(&self, b: usize, arrived: bool, skip_decoys: bool) -> i32 {
         let ident = self.building_ident(b);
         let mut n = 0;
@@ -7572,6 +7575,7 @@ impl Sim {
                 .garrison
                 .iter()
                 .filter(|&&u| self.worker_of(u) == want)
+                .filter(|&&u| !(skip_decoys && self.units[u].decoy))
                 .count() as i32;
         }
         n += self.buildings[b]

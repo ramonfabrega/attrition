@@ -804,6 +804,37 @@ mod tests {
         assert_eq!(sim.holdings[0].cities[0].sites.len(), 1);
     }
 
+    /// **`num_gatherers(_, 1)` drops a decoy from the garrison term too**
+    /// (twenty-fourth pass, A7 row 28): the garrison is
+    /// `count_inside(COUNT_TYPE + 2 * skip, …)`, and `COUNT_NON_DECOY_TYPE`
+    /// skips a unit whose `unit_masks & 1` is set. The admission count
+    /// (`skip = 0`) keeps it.
+    #[test]
+    fn a_decoy_scholar_is_not_the_economy_s_gatherer() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        let uni = build(&mut sim, 0, t.university, 40, 32);
+        let real = spawn(&mut sim, 0, t.scholar, tile_pos(44, 32));
+        let decoy = spawn(&mut sim, 0, t.scholar, tile_pos(44, 33));
+        sim.units[decoy].decoy = true;
+        for s in [real, decoy] {
+            sim.buildings[uni].garrison.push(s);
+            sim.units[s].on_map = false;
+            sim.units[s].inside = Some(uni);
+        }
+        assert_eq!(
+            sim.num_gatherers(uni, true, false),
+            2,
+            "admission counts both"
+        );
+        assert_eq!(
+            sim.num_gatherers(uni, true, true),
+            1,
+            "the economy skips the decoy"
+        );
+    }
+
     #[test]
     fn a_scholar_in_a_university_gathers_knowledge_at_the_leader_s_level() {
         // `num_gatherers` counts a *garrisoned* scholar, and the rate is

@@ -188,10 +188,15 @@ impl Sim {
     /// line's** hardcoded correction after it (`docs/MOVEMENT.md`, "The speed
     /// pipeline" §1).
     ///
-    /// The foot line is four identity tests, `is(t, 0)` through the type's
-    /// vslot `0x60` — `TypeData::is@004771c0`, `type == t` and nothing else,
-    /// so a type is never its predecessor here — and one scale each, every
-    /// division truncating toward zero (the listing, `605700`..`6057d6`):
+    /// The foot line is four **lineage** tests, `is(t, 0)` through the type's
+    /// vslot `0x60` — `ObjectTypeData::is@0065f7d0`, read off the PE at
+    /// `0xb41d24` and `0xb41fd4` (twenty-fourth pass, group 22): the type
+    /// itself, then its `is_list`, then the graft and `from` chain — and one
+    /// scale each, in the order Mechanized Infantry, Infantry, Rifleman,
+    /// Arquebusiers, every division truncating toward zero (the listing,
+    /// `605700`..`6057d6`). So every national replacement of a line takes its
+    /// scale (thirty-one shipped types, the adjudicator's count; an earlier
+    /// reading here called it identity and moved four exact indices only):
     /// Mechanized Infantry `×36/32`, Infantry `×34/32`, Rifleman `×32/27`,
     /// Arquebusiers `×30/24`. run404 prints Infantry at **34** on a `MOVES`
     /// of 32 from its birth on 621 (item 1109).
@@ -203,12 +208,20 @@ impl Sim {
         if naval && self.has_rare(who, economy::WHALES) {
             speed = (self.tuning.whales_ships_move + 100) * speed / 100;
         }
-        let (num, den) = match self.unit_types[ty].type_index {
-            MECH_INFANTRY => (36, 32),
-            INFANTRY => (34, 32),
-            RIFLEMAN => (32, 27),
-            ARQUEBUSIERS => (30, 24),
-            _ => (1, 1),
+        let lineage = |x: i32| {
+            usize::try_from(self.unit_types[ty].type_index)
+                .is_ok_and(|t| self.tech_tree.is(t, x as usize, false))
+        };
+        let (num, den) = if lineage(MECH_INFANTRY) {
+            (36, 32)
+        } else if lineage(INFANTRY) {
+            (34, 32)
+        } else if lineage(RIFLEMAN) {
+            (32, 27)
+        } else if lineage(ARQUEBUSIERS) {
+            (30, 24)
+        } else {
+            (1, 1)
         };
         speed = speed * num / den;
         // `Unit::update_speed@006055c0`'s trainer arm: a unit whose
@@ -834,6 +847,76 @@ mod tests {
         assert_eq!(s.type_speed(1, other), 32, "identity, not a lineage");
         s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
         assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
+    }
+
+    /// **The gunpowder foot line is a lineage, not an identity** (twenty-fourth
+    /// pass, group 22): `Unit::update_speed`'s four tests ask the type's vslot
+    /// `0x60`, which is `ObjectTypeData::is`, so a national replacement that
+    /// the tree puts under a line — by `FROM`, by `GRAFT`, or by the
+    /// `is_list` — takes the line's scale, the first of the four that
+    /// answers wins, and a type outside every line takes none.
+    #[test]
+    fn a_national_replacement_takes_its_line_s_gunpowder_scale() {
+        let (mut s, _) = sea_sim();
+        let at = |s: &mut Sim, idx: usize, def: tech::TypeDef| {
+            while s.tech_tree.types.len() <= idx {
+                s.tech_tree.add(tech::TypeDef::plain("filler", -1));
+            }
+            s.tech_tree.types[idx] = def;
+        };
+        let traits = tech::UnitTraits::default;
+        // The four lines themselves, then one replacement under each by a
+        // different arm of `is`, then one under two lines at once.
+        for (idx, name) in [
+            (ARQUEBUSIERS, "Arquebusier"),
+            (RIFLEMAN, "Rifleman"),
+            (INFANTRY, "Infantry"),
+            (MECH_INFANTRY, "Mechanized Infantry"),
+        ] {
+            at(&mut s, idx as usize, tech::TypeDef::unit(name, traits()));
+        }
+        let by_from = 0x70;
+        let by_graft = 0x71;
+        let by_list = 0x72;
+        let both = 0x73;
+        let stranger = 0x74;
+        at(
+            &mut s,
+            by_from,
+            tech::TypeDef::unit("Redcoat", traits()).from(INFANTRY as usize),
+        );
+        let mut graft = tech::TypeDef::unit("Sepoy", traits());
+        graft.graft = Some(ARQUEBUSIERS as usize);
+        at(&mut s, by_graft, graft);
+        let mut list = tech::TypeDef::unit("Jaeger", traits());
+        list.is_list.push(RIFLEMAN as usize);
+        at(&mut s, by_list, list);
+        let mut two = tech::TypeDef::unit("Grenzer", traits());
+        two.is_list = vec![ARQUEBUSIERS as usize, RIFLEMAN as usize];
+        at(&mut s, both, two);
+        at(&mut s, stranger, tech::TypeDef::unit("Cow", traits()));
+        let line = |s: &mut Sim, idx: usize, moves: i32| {
+            s.add_unit_type(crate::UnitType {
+                hits: 20,
+                moves,
+                type_index: idx as i32,
+                ..crate::UnitType::default()
+            })
+        };
+        let a = line(&mut s, by_from, 32);
+        let b = line(&mut s, by_graft, 30);
+        let c = line(&mut s, by_list, 32);
+        let d = line(&mut s, both, 32);
+        let e = line(&mut s, stranger, 32);
+        assert_eq!(s.type_speed(1, a), 34, "FROM Infantry: 32 x 34 / 32");
+        assert_eq!(s.type_speed(1, b), 37, "GRAFT Arquebusiers: 30 x 30 / 24");
+        assert_eq!(s.type_speed(1, c), 37, "is_list Rifleman: 32 x 32 / 27");
+        assert_eq!(
+            s.type_speed(1, d),
+            37,
+            "Rifleman is asked before Arquebusiers"
+        );
+        assert_eq!(s.type_speed(1, e), 32, "no line, no scale");
     }
 
     /// **Peacocks, the one rare the population cap reads** (item 1147):

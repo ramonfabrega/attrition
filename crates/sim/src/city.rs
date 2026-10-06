@@ -431,6 +431,7 @@ impl Sim {
             }
         };
         self.cities[c].pop = 1;
+        self.sync_has_city(self.cities[c].owner);
         self.buildings[b].city = Some(c);
         // `LeaderData::home_reg`: the capital's region, which the AI's
         // sweep reads (`docs/AI.md` §2.3 step 15) and nothing else wrote.
@@ -498,6 +499,7 @@ impl Sim {
         let reg = self.world.region_of(self.buildings[building].pos.cell());
         self.bump_reg_cities(owner, reg, -1);
         self.cities[c].alive = false;
+        self.sync_has_city(owner);
         self.lost_city_stamp[owner as usize] = Some(self.frame);
         self.remove_source_of_city(c);
         let members = std::mem::take(&mut self.cities[c].members);

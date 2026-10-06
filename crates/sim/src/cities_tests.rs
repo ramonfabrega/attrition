@@ -3641,6 +3641,32 @@ fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
     );
 }
 
+/// **A nation power needs "a starting town or a city"** (twenty-fourth
+/// pass, group 22): `has_tribe_bonus@006e1370` returns 0 when the lobby's
+/// starting town is nomad *and* `city_num == 0`. The lobby's starting town
+/// alone opens the gate; in a nomad lobby the first city founded opens it and
+/// the last one closed shuts it, each recomputing the cached flags.
+#[test]
+fn a_nomad_has_no_power_between_its_cities() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.lobby.starting_town = 0;
+    sim.sync_setup_from_lobby();
+    assert!(!sim.setup.starting_town);
+    assert!(!sim.tech[0].has_city, "no city yet");
+    sim.set_tribe(0, 11);
+    assert!(!sim.nation[0].british, "a nomad with no city: no power");
+    let (_, village) = city_at(&mut sim, &t, 0, 32, 32);
+    assert!(sim.nation[0].british, "the first city opens the gate");
+    sim.close_building(village, false);
+    assert!(!sim.nation[0].british, "the last city closed shuts it");
+    // And a starting town is the other half: no city, still a power.
+    sim.lobby.starting_town = 2;
+    sim.sync_setup_from_lobby();
+    sim.refresh_nation_powers(0);
+    assert!(sim.nation[0].british);
+}
+
 /// **The British arm of `train_time`'s tail** — `docs/PRODUCTION.md`,
 /// "The tail's first caller".
 ///

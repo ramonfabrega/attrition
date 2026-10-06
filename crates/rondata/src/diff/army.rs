@@ -473,7 +473,7 @@ mod tests {
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
         sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
-        sim.setup.no_nation_powers = sim.lobby.no_nation_powers;
+        sim.sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
         // §1): the frame the stamps are compared against, and the sync
         // stream's word its `say_checksum` record carries — what the
