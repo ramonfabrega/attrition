@@ -261,6 +261,15 @@ impl Sim {
         self.nation.get(who as usize).is_some_and(|n| !n.human)
     }
 
+    /// `unit_masks & 0x40000` as a **unit** carries it: [`Sim::ai_driven`]
+    /// until the leader is defeated, when `Leader::defeat@006ecb00:104-124`
+    /// clears the bit on every live unit it has (twenty-fourth pass, group
+    /// 6; A4 row 19). The leader-level reads (`leader_flags & 4`) stay on
+    /// `ai_driven`.
+    pub(crate) fn unit_ai_bit(&self, who: Player) -> bool {
+        self.ai_driven(who) && !self.defeated.get(who as usize).copied().unwrap_or(false)
+    }
+
     /// `Object::find_nearby_target@00648e6e`'s `local_40` — the flag
     /// [`Sim::compare_target`] takes as its fourth argument and which
     /// inverts the damage weight (`docs/COMBAT.md` §33.2):
@@ -1573,5 +1582,20 @@ mod tests {
             spent += 1;
         }
         assert_eq!(spent, 10, "ten cells, ten draws, and no offset");
+    }
+}
+
+#[cfg(test)]
+mod unit_bit_tests {
+    /// **A defeated leader's units lose the computer-control bit** (group 6;
+    /// A4 row 19): the leader-level answer stays.
+    #[test]
+    fn a_defeat_clears_the_units_computer_bit() {
+        let mut s = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
+        s.nation[1].human = false;
+        assert!(s.unit_ai_bit(1));
+        s.defeated[1] = true;
+        assert!(!s.unit_ai_bit(1), "the units' bit is cleared");
+        assert!(s.ai_driven(1), "the leader is still the computer's");
     }
 }

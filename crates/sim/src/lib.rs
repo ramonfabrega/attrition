@@ -1306,6 +1306,12 @@ pub struct Sim {
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
     /// has asked for, the throttle collision recovery reads (§6 step 6).
     pub repaths: Vec<i32>,
+    /// `PathFinder +0x58/+0x5c`, **the start argument's tile** the wrappers
+    /// write (`find_wpath@00688fc0:47-48`, `find_tpath@006897d0:40`,
+    /// `find_upath@00682f30:66-67`): the depth-1 shore test in `calc_cost`
+    /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
+    /// row 28).
+    pub(crate) pf_start: Pos,
     /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
     /// whose target went invalid. `Leader::process@006b88b0` zeroes it
     /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
@@ -1655,6 +1661,7 @@ impl Sim {
             coll_copies: std::cell::RefCell::default(),
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
+            pf_start: Pos::default(),
             retargets: vec![0; players.max(10)],
             tuning,
             world,

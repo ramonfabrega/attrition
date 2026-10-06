@@ -558,7 +558,7 @@ impl Sim {
     fn army_count_siege(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
             s.units[u].ty.is_some_and(|t| s.unit_types[t].combat.siege)
-                && !(s.units[u].decoy && s.ai_driven(s.units[u].owner))
+                && !(s.units[u].decoy && s.unit_ai_bit(s.units[u].owner))
         })
     }
 

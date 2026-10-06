@@ -674,7 +674,10 @@ impl Sim {
         let mut greet = Vec::new();
         for w in 0..self.players.len().min(8) {
             let o = w as crate::Player;
-            if o == who || self.defeated.get(w).copied().unwrap_or(false) {
+            // `leaders[o].leader_flags & 1` is a slot in use, and a defeat
+            // clears only bit 1 (`Leader::defeat@006ecb00:63`): a defeated
+            // leader is still met (twenty-fourth pass, group 6; A8 row 15).
+            if o == who {
                 continue;
             }
             let m = self.seen_ally_mask(o);
@@ -1049,6 +1052,18 @@ mod tests {
             s.check_ever_seen(b, false);
             assert!(!s.has_met(0, 1), "no first contact, fort={as_fort}");
         }
+    }
+
+    /// **The meet loop gates on a slot in use, not on "not defeated"**
+    /// (group 6; A8 row 15): a leader that has been defeated is met by a
+    /// building it sees.
+    #[test]
+    fn a_defeated_leader_is_still_met() {
+        let (mut s, b) = site(true);
+        s.defeated[0] = true;
+        s.start_building(b);
+        s.check_ever_seen(b, false);
+        assert!(s.has_met(0, 1), "the defeated bit is not leader_flags & 1");
     }
 
     /// **§6.4: the resync relights a wonder under construction** and lights
