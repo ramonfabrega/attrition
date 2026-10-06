@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-06, the twenty-fifth pass (`docs/audit/2026-10-06-fable-pass-25.md`):
 twenty landings in 13 h 09 m, three lanes, 16.5 USD a landing. French East
-Indies **closed at 17,379** (1514, 1519); Toughest **15378** (1510, 1517, 1522, 1524), floor 15378; fifty-one chapters
+Indies **closed at 17,379** (1514, 1519); Toughest **closed at 15,432** (1510–1528); fifty-one chapters
 closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
 
 - **Two lanes this tranche** (DECISIONS 61 §5: a landing waited 77.5
@@ -29,34 +29,34 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
   a merge-moved pin is no kill, the push is read back, a section stub lands.
-- **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534).
+- **Fable backlog: 24 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w583 of 4,730
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15378 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1532 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1532 on Opus 5.5 and 1535 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1532) and the third map's (1528); 1497 waits for a free lane,
+pair's (1532) and the third map's (1535, then 1538); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1528. **Great Sahara at Toughest's word: frame 15378, 14 versus 51
-    draws**, index 2: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`,
-    theirs `Unit::do_group_move+0xb03`. run668 (15230..15433) widens it
-    on block 15379: on 15377, 77 units' orders and group 65's record
-    change beside 0/2000's `reduce_stamp`, which nothing here writes.
-    54 frames from the game's end (DECISIONS 55). No mechanism.
+1535. **Great Sahara at Toughest's closing state: frame 15432**,
+    counts `[0, 0, 0, 7, 0, 6, 0]` — the human's city, captured by the
+    original on 15432, by ours on 15473 (the 64-frame re-test).
+    `run470_great_sahara_at_toughest_closing_state` pins it; run668 holds
+    the last blocks. 1528's reading: `Object::valid_target`'s capture
+    attempt (CITIES §7.1's fourth caller) is not modelled — a hypothesis.
 
 1532. **The coverage pair's word: frame 583, 198 versus 5 draws**,
     index 0: ours `PathFinder::calc_road_cost+0x46`, theirs
@@ -66,6 +66,12 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     over 577..833 widens it first. The state first parts on block 183:
     1/10's order stack, 4 against 6 — ours three Builds behind one
     `ExploreTo`, theirs each behind its own. No mechanism.
+
+1538. **Great Sahara in the coverage pair's lobby** (DECISIONS 56 §1):
+    the closed map's successor once 1535's closing state agrees — seed
+    12345, East Indies' coverage settings on map style 7, a `DUMP_ALL`
+    start sibling and a `cover=0` trace to the game's end, the lobby
+    read back; its first parting is the third map's word.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

@@ -16408,3 +16408,8 @@ the derived flag moves the Silo to the original's cell.
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 145. Reserved for item 1535 (Toughest's closing state, frame 15432)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
