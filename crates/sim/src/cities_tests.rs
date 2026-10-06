@@ -5291,7 +5291,10 @@ fn a_patriot_s_decoy_cast_uses_its_own_radius() {
         sim.unit_types[general].type_index = caster_type;
         let g = sim.init_unit(0, general, tile_pos(30, 30));
         let p = sim.units[g].pos;
-        sim.init_unit(0, foot, Pos::new(p.x + offset, p.y));
+        // `init_unit` snaps its birth point, so the distance under test is
+        // set after it.
+        let f = sim.init_unit(0, foot, Pos::new(p.x + offset, p.y));
+        sim.units[f].pos = Pos::new(p.x + offset, p.y);
         let before = sim.units.len();
         sim.cast_create_decoy(g);
         assert_eq!(

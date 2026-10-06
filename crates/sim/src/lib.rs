@@ -3397,6 +3397,11 @@ impl Sim {
     /// position until [`Sim::come_out`] or a formation moves them. The
     /// search takes no draw, so the stream does not know the difference.
     pub fn init_unit(&mut self, who: Player, ty: usize, pos: Pos) -> usize {
+        // **`Unit::init@00612100:68-73` snaps the birth point for every
+        // unit**, whatever its owner or domain (twenty-fourth pass, group
+        // 17; A3 row 3): a trained unit at its trainer's whole-tile centre
+        // is born 24 south and east of it, which a unit kept inside shows.
+        let pos = Pos::new(gaia::init_snap(pos.x), gaia::init_snap(pos.y));
         let n = self.unit_types[ty].combat.uber_size.max(1);
         let mut head = None;
         let mut prev = None;
@@ -4435,6 +4440,7 @@ impl Sim {
         let index = self
             .find_free(who, UNIT_BASE, BUILD_BASE)
             .unwrap_or(i16::MAX);
+        let pos = Pos::new(gaia::init_snap(pos.x), gaia::init_snap(pos.y));
         let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
