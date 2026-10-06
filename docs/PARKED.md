@@ -52,6 +52,14 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1546, 2026-10-06 — the second capital
+
+(1553) **What 1546 left beside the second capital** (AI §149): the
+second `find_capital`'s other-leader arm (no walk holds it);
+`leader_flags2 & 1`, read as clear; the `semaphore[1] & 8` arm of the
+first-city test; the queue prices a unit under on 983 (leader 1's
+buckets standing from 977).
+
 ## Parked by item 1538, 2026-10-06 — the tied oil patches
 
 (1550) **Leader 1's `known_rares` 1 against 0 on Great Sahara's
@@ -3749,6 +3757,13 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1554) **A standing row the word's readers read is ranked nowhere**
+(1546's Loop line, 2026-10-06): the cause was a standing row on a new
+window's first block — `1/2006`'s capital bit, standing 370 blocks
+before the word — which `tools/standing.py` printed among 198 keys.
+Crossing the standing keys with the readers of the word's own parted
+record would have named it first. One reach.
 
 (1551) **Two capture and test-runner gaps from 1538** (its journal's
 Loop lines, 2026-10-06): every coverage long ends itself before

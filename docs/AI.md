@@ -16720,3 +16720,8 @@ the second `find_capital`'s other-leader arm (no other leader holds a city that 
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 151. Reserved for item 1552 (the coverage pair's frame 1183)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
