@@ -15739,3 +15739,8 @@ and the delta; no mechanism is named here (animation 24 is not read in this item
 
 **Coverage.** Diff-backed: the order, by `run470_is_great_sahara_at_toughest_and_its_word_holds` and the unit test; the rolls, by the trace's seeds. No
 blind reading; the listing was not consulted (the order is the dump's and the trace's).
+
+## 137. Reserved for item 1517 (Toughest frame 15101)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
