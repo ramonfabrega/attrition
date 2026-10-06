@@ -276,6 +276,15 @@ pub struct Unit {
     /// `Unit::do_move@005f7b30:66`). `cast_target` is `None` with it.
     /// [`crate::cavarch`] writes it; −1 is `cast_target` `None` without.
     pub cavarch_idle: bool,
+    /// **The head order's identity** — bumped by every write that puts a
+    /// different order object at the head of the list (a kill, a remove at
+    /// the head, a push in front, the ungroup's new plain move). It stands
+    /// in for the original's pointer compare `pUVar1 == param_1` after
+    /// `do_move` (`Unit::do_attack_to@005f2320`, `Unit::do_explore_to@005f24a0`):
+    /// a move whose timer ran out is killed and the guard re-issues an
+    /// `ATTACK_TO` to the same point, which a kind-and-point test calls the
+    /// same order and the original does not (`docs/AI.md` §135).
+    pub head_serial: u32,
     /// **`unit_masks & 0x20000`** — "the cast has started": set on a
     /// targeted cast's first in-range frame, cleared by
     /// `kill_current_order`, and one of the three bits that stop mana
@@ -910,6 +919,7 @@ impl Unit {
             cast_target: None,
             cavarch_who: 0,
             cavarch_idle: false,
+            head_serial: 0,
             casting: false,
             marching: None,
             infiltrated: 0,
