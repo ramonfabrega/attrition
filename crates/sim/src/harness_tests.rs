@@ -3340,6 +3340,40 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
     );
 }
 
+/// **A tracked crew figure steps on its unit's order speed** (item 1461,
+/// `docs/MOVEMENT.md`, "The crew's speed"). `Guy::move`'s tracked branch
+/// asks `GuyData::get_speed@005de410`, which is the unit's own
+/// `get_speed(x, y, 1)` asked at the figure's point: a computer's guard
+/// scales the speed by ten eighths and a human's by nine, before the step's
+/// eleven eighths. French East Indies' Senator, `1/67`, stepped its second
+/// figure 71 on frame 12791 where the type's base 42 gave 57.
+#[test]
+fn a_guarding_computer_s_crew_steps_on_the_guard_s_speed() {
+    for (human, step) in [(false, 71), (true, 64)] {
+        let mut sim = skirmish(0);
+        sim.nation[1].human = human;
+        let charge = sim.add_unit(Unit::new(1, 1, Pos::new(4000, 400), 100));
+        let mut u = Unit::new(1, 2, Pos::new(4000, 400), 100);
+        u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+        let unit = sim.add_unit(u);
+        sim.art.tracks.insert(2, (96, 96));
+        make_mobile(&mut sim, unit, movement::Angle::EAST);
+        sim.units[unit].movement.speed = 42;
+        sim.seat_guys(unit);
+        sim.add_guard_order(unit, charge, 0, 0, orders::QueuePos::New);
+        // Three hundred short of its point, already facing it, so the
+        // frame is not given up to the turn and the step is not a snap.
+        let mut f = sim.units[unit].guys[1].follow.expect("the crew has a body");
+        f.body.pos = Pos::new(f.des.x - 300, f.des.y);
+        f.facing = movement::find_angle(300, 0);
+        sim.units[unit].guys[1].follow = Some(f);
+        sim.process_follower(unit, 1);
+        let after = sim.units[unit].guys[1].follow.unwrap();
+        assert_eq!(after.body.last_speed, step, "human {human}");
+        assert_ne!(after.body.pos, f.body.pos, "the figure stepped");
+    }
+}
+
 /// **And a tracked crew figure pays the turning stand of its own**
 /// (`docs/ANIM.md` §4.8, item 212) — the frame Great Lakes' word parted at
 /// 6463, on a scenario built here rather than borrowed from a capture.
@@ -3420,6 +3454,65 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
         arrival_draws(false),
         0,
         "a type that neither packs nor names a turn asks for nothing"
+    );
+}
+
+/// **Guy 0's standing turn re-slots the crew before the crew's own
+/// `Guy::move`** (`docs/AI.md` §118, item 1429) — Great Sahara at Toughest,
+/// frame 12538, the Bombard `1/139`.
+///
+/// `Guy::process` runs `Guy::move` per figure in slot order. Guy 0's
+/// standing arm ends in `turn_towards`, whose `do_turn` recurses into the
+/// trackless crew and asks each for the turn slot, which a figure with no
+/// turn animation answers with the idle — so each crew figure's own
+/// `Guy::move`, a step later, finds `cur_anim` no longer the walk and its
+/// arrival stand (`0x9c == 8 && 0x9d`) does not fire. A crew figure that
+/// had already stopped on the walk is the frame's case: the original draws
+/// three times, guy 0's turn and the two crew's `do_turn+0xe5`; this crate
+/// drew the crew's two arrival stands first and guy 0's turn last.
+#[test]
+fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
+    let mut sim = skirmish(0);
+    sim.trace_phases = true;
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        ..crate::UnitType::default()
+    });
+    sim.unit_types[ty].combat.packs = true;
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.ty = Some(ty);
+    u.guys = vec![
+        anim::Guy::fresh(1),
+        anim::Guy::fresh(2),
+        anim::Guy::fresh(3),
+    ];
+    let unit = sim.add_unit(u);
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    // The crew had stopped on the walk, as `1/139`'s two untracked figures
+    // had on 12537 (the dump's `stopped` 1, `cur_anim` 8).
+    for g in 1..3 {
+        sim.units[unit].guys[g].anim = anim::WALK;
+        sim.units[unit].guys[g].stopped = true;
+    }
+    // Standing on its destination with the turn owed: the unit's frame
+    // hands `guys_follow` the turn's angles, and guy 0 takes it in its place.
+    let mut turn = Some((
+        movement::Angle::EAST,
+        movement::Angle::NORTH,
+        movement::Angle::WEST,
+    ));
+    sim.guys_follow(unit, true, &mut turn);
+    assert!(turn.is_none(), "guy 0 took the turn in its place");
+    let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
+    assert!(
+        !labels.contains(&anim::SITE_ARRIVE),
+        "no arrival stand after the turn re-slotted the crew: {labels:?}"
+    );
+    assert!(
+        labels.contains(&anim::SITE_TURN_CREW),
+        "the crew's turn is the recursion's: {labels:?}"
     );
 }
 

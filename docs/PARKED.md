@@ -331,9 +331,9 @@ partial push turn.
 
 ## Parked by item 1318, 2026-09-30 — Forced March's speed
 
-(1333) **The crew step's `GuyData::get_speed`**: ours 57 against 71 on
-run517's 9222 and run511's 9328 — named by `docs/MOVEMENT.md`, reached
-now.
+(1333) closed 2026-10-05 by item 1461: **the crew step's
+`GuyData::get_speed`** — a tracked crew figure steps at the unit's
+`get_speed(x, y, 1)` at its own point; the 9328/9222 rows leave.
 
 (1334) **Group 67's `speed` 0 against 34** from run517's 9084.
 
@@ -3619,3 +3619,28 @@ it (a document's coverage section says so) or a sweep `#[test]` names
 its address. The number on the scoreboard is the simulation layer's
 backed share. The next pass's first build; the sweep lane is what
 moves it.
+
+(1469) **A Sonnet lane stalled on a permission prompt and said
+"running"** (the commander, 2026-10-05, on Ramon's report): 1429 launched
+run584 at 19:06 through RonDriver, armed `waitrun.sh`, and ended its turn;
+the viadriver log stayed at its header and `wine-stalled.log` stopped at
+19:07 until Ramon cleared a prompt and the game relaunched at 19:55, while
+the capture lane held 1461 and 1423 behind it. The lane then asked a
+person whether to continue. Two rows: the capture lane's own stall
+detector (a viadriver log still at its header past N minutes ends the
+wait as a stall rather than waiting out the hour), and the roster: **the
+user's word** is that the pass decides at this steer whether Sonnet is
+good enough to run a lane (CLAUDE.md's two kill rules did not trip on
+this). 1429's own Loop line (its journal) names the build: `waitrun.sh` exits
+as a stall when the viadriver log has not grown and `wine-stalled.log`
+exists.
+**And the first kill rule's reading** (the commander, same evening):
+1429's booking gate went red on two run584 pins its lane gate passed,
+because its `ccc update` predated 1461's merge — the red was the two
+landings together, not the lane's own, and the commander did not count
+it as a trip. The pass rules whether that reading stands.
+
+(1471) **`tools/standing.py` does not read the third pair's widening
+print** (1461's Loop line, 2026-10-05): the standing keys of the French
+East Indies widening are not put beside who in `sim` reads them, so the
+checklist row that names the tool has nothing to run on the newest word.

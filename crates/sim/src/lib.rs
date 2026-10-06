@@ -5427,7 +5427,17 @@ impl Sim {
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }
-        self.guys_follow(i, was_at_des);
+        // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
+        // `Guy::do_turn` the same override `move_step`'s two turn-in-place
+        // arms do — so a standing guy owed a turn asks for its turn
+        // animation here as well, and pays the idle roll if it has none
+        // (`docs/ANIM.md` §4.8). The gate is the original's own: `guy_flags
+        // & 2` clear, which is `turned`, and the body on its unit. It runs
+        // inside guy 0's turn in `guys_follow`, before the crew's own
+        // `Guy::move` (item 1429).
+        let mut turn =
+            (was_at_des && !turned && !facing_settled).then_some((facing, follow.facing, heading));
+        self.guys_follow(i, was_at_des, &mut turn);
         // A helicopter's figure height (item 1048): `Guy::move:47`'s
         // `last_z = z` at its head, and the moving arm's
         // `Guy::set_new_location(·, 0)` (`:190`) climbs it at the body's
@@ -5439,15 +5449,10 @@ impl Sim {
                 self.helicopter_climb(i, follow.body.pos);
             }
         }
-        // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
-        // `Guy::do_turn` the same override `move_step`'s two turn-in-place
-        // arms do — so a standing guy owed a turn asks for its turn
-        // animation here as well, and pays the idle roll if it has none
-        // (`docs/ANIM.md` §4.8). The gate is the original's own: `guy_flags
-        // & 2` clear, which is `turned`, and the body on its unit.
-        if was_at_des && !turned && !facing_settled {
+        // A unit with no figure to walk keeps the turn's mark where it was.
+        if let Some((was, to, heading)) = turn {
             self.mark(anim::SITE_TURN_STAND);
-            self.do_turn_anim(i, facing, follow.facing, heading);
+            self.do_turn_anim(i, was, to, heading);
         }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
@@ -5574,7 +5579,12 @@ impl Sim {
         let Some(f) = self.units[i].guys[g].follow else {
             return;
         };
-        let speed = self.units[i].movement.speed;
+        // `Guy::move:203` — `GuyData::get_speed`, which is the unit's
+        // `get_speed(x, y, 1)` asked at **this figure's** point: the
+        // order scale and the slow ground, never the group cap
+        // (`docs/MOVEMENT.md`, "The crew's speed"). The type's base
+        // speed stepped a guarding computer's crew a quarter slow.
+        let speed = self.get_speed_at(i, f.body.pos, 1);
         let at_des = f.body.pos == f.des;
         self.guy_follow_anim(i, g, at_des, f.facing == f.des_angle);
         // A tracked crew guy's rate is [`movement::CREW_TURN_SPEED`] and

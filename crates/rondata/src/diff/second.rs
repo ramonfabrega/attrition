@@ -2840,7 +2840,8 @@ mod tests {
         );
         // Item 1457: 257 → 255; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 255 → 244; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 244, "run589 record baseline");
+        // Item 1461: 244 → 240; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        pin_eq!(w.firsts.len(), 240, "run589 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -3813,9 +3814,10 @@ mod tests {
         // `0/2002`'s `gather_down`, and who=0's `income`, `resources`,
         // `bucket`, `leftover` and `gather_stamp` from 5001).
         // Item 1457: 93 → 91; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        // Item 1461: 91 → 86; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            91,
+            86,
             "every key parted on run373"
         );
     }
@@ -3923,13 +3925,10 @@ mod tests {
         // attack-move's `order:target` as each unit takes the city (the
         // standing family run373 carries from 4841), and the AI scout
         // `1/0`'s second figure, (3081, 20587) against (3065, 20580) on 5240.
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (first(1, 36, "form"), first(1, 0, "g.x[1]"),),
-            (
-                // `1/36`'s birth `form` agrees since item 1330.
-                None,
-                Some((5_240, "ours 3081 theirs 3065".to_string())),
-            ),
+            (None::<(i64, String)>, None::<(i64, String)>),
             "the value rows beneath the draws"
         );
         pin_eq!(
@@ -3945,9 +3944,10 @@ mod tests {
         // as it dies (`0/2001`..`0/2004`'s `gather_down`, and who=0's
         // `income`, `resources`, `bucket`, `leftover`, `gather_stamp`).
         // Item 1457: 92 → 90; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        // Item 1461: 90 → 84; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            90,
+            84,
             "every key parted on run396"
         );
     }
