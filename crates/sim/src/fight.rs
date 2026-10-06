@@ -4447,7 +4447,7 @@ mod tests {
                 ..Profile::default()
             });
             sim.buildings[b].health = 500;
-            let before = sim.rng.clone();
+            let before = sim.rng;
             let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
             sim.land(p, 1522);
             assert_eq!(
