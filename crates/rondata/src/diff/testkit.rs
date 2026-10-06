@@ -1995,6 +1995,22 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **14363 since item 1493** (`docs/AI.md` §128): `Group::action_siege_attack_to`
+/// copies the siege sub-group's slot back into the army's table. The sub-group
+/// (`1/84`, `1/90`, `1/139`, `1/141`: bombards) lays out on its own record, and
+/// the loop after its move writes `off`, `curr` and `angles` at each siege
+/// member's **parent** index and re-points the member's group order at it
+/// (`Unit::replace_form_id@005fd420`); this crate left the parent's tail zero
+/// and the order at the sub-group's index. Army 65's `off[62]` is (23, 0), past
+/// its `form_num` 27, and `refresh_group_order` — fired on 12816 when `1/84`
+/// finishes and `1/141` takes the block — subtracts it from the first 27
+/// (`off[0]` −9 against −32 on block 12817); `update_positions` walks
+/// `form_num`, so the tail's `curr` stays as the copy made it. The measured
+/// word on the base was 12816 (ours 41 draws, theirs 40, index 33). **The new
+/// word's delta: ours 11 draws and the original 177 on frame 14363, parting
+/// at index 5**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+/// `PathFinder::calc_road_cost+0x46`. Its widening is run653's.
+///
 /// **12816 since item 1477** (`docs/AI.md` §122): the census circle walk
 /// starts at entry 1. `plan_strategy@006b9620`'s loop (`0x6bb6f7`) reads
 /// `circle_x + 1` and `circle_y + 1` from `i = 0`, so the original never
@@ -2373,7 +2389,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 12_816;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 14_363;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8566,11 +8582,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // on run584 over 12532..12789 (the word's block 12570); item 1472
         // moved the word 12575 → 12744 inside the same window (block 12745);
         // item 1477 moved it 12744 → 12816, past it, and widened it on run640
-        // over 12811..12834; run584's test keeps the move's value diff on
-        // 12532.
-        Some("run640_s_word_frame_is_widened_whole"),
-        1477,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_12816),
+        // over 12811..12834; item 1493 moved it 12816 → 14363 and widened it
+        // on run653 over 14357..14380; run640's test keeps the move's value
+        // diff on 12811..12817, run584's on 12532.
+        Some("run653_s_word_frame_is_widened_whole"),
+        1493,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_14363),
     ),
 ];
 

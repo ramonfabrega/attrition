@@ -366,6 +366,31 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
     }
 
+    /// Shrink an army's list to `keep` (a subsequence of it) **and shift the
+    /// group record's per-member arrays with it**: `Group::normalize` and
+    /// `Group::kill` drop a member's `off`, `curr` and `angles` entries
+    /// together with it, so the slot a siege unit was copied into does not
+    /// stay behind at an index another member now holds (item 1493: army
+    /// 65's `off[31]`, `[61]`, `[62]` on run653 block 14357).
+    pub(crate) fn army_keep_units(&mut self, w: usize, slot: usize, keep: Vec<usize>) {
+        let a = &mut self.armies[w].list[slot];
+        for i in (0..a.units.len()).rev() {
+            if keep.contains(&a.units[i]) {
+                continue;
+            }
+            if i < a.group.off.len() {
+                a.group.off.remove(i);
+            }
+            if i < a.group.curr.len() {
+                a.group.curr.remove(i);
+            }
+            if i < a.group.angles.len() {
+                a.group.angles.remove(i);
+            }
+        }
+        a.units = keep;
+    }
+
     /// `Army::normalize` (§3.3): drop the dead, recount, and the standard
     /// line — captains less casters, supply wagons, decoys and AA guns.
     pub fn army_normalize(&mut self, who: Player, slot: usize) {
@@ -416,8 +441,8 @@ impl Sim {
                 aa += 1;
             }
         }
+        self.army_keep_units(w, slot, units);
         let a = &mut self.armies[w].list[slot];
-        a.units = units;
         a.role = 0;
         a.num_units = a.units.len() as i32;
         a.num_captains = captains;

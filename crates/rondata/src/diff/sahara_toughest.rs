@@ -225,6 +225,16 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_12816: (i64, i64) = (12_811, 12_
 /// **The word's block, 12817**: frame 12816 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_12817: i64 = 12_817;
 
+/// run653: run470's game at run584's detail over the blocks 14357..14380, the
+/// new word 14363's own window (item 1493).
+pub(crate) const TOUGHEST_WORD_14363: &str = "gamelog-run653-greatsahara-toughest-14363.txt";
+
+/// **run653's window** (item 1493): blocks 14357..14380.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_14363: (i64, i64) = (14_357, 14_381);
+
+/// **The word's block, 14364**: frame 14363 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_14364: i64 = 14_364;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -440,6 +450,17 @@ pub(crate) fn great_sahara_toughest_12816_window() -> Option<crate::diff::harnes
     )
 }
 
+/// run653's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_14363`], walked as
+/// run584's are (item 1493).
+pub(crate) fn great_sahara_toughest_14363_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run653",
+        (TOUGHEST_WORD_14363, WIDENING_GREAT_SAHARA_TOUGHEST_14363.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_14363,
+        TOUGHEST_WORD_BLOCK_14364,
+    )
+}
+
 /// run517's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_GAP`], walked as
 /// run511's are (item 1318).
 pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -454,7 +475,8 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run640 at its block 12817 since item 1477 (run584 at its block 12745
+/// on run653 at its block 14364 since item 1493 (run640 at its block 12817
+/// from item 1477, run584 at its block 12745
 /// from item 1472, at its block 12570 from
 /// item 1429; run574 at its block 11986
 /// from item 1416, run571 at its block 11183
@@ -470,12 +492,12 @@ pub(crate) fn great_sahara_toughest_gap_window() -> Option<crate::diff::harness:
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
-    let word = TOUGHEST_WORD_BLOCK_12817 - 1;
+    let word = TOUGHEST_WORD_BLOCK_14364 - 1;
     toughest_window_over(
-        "run640",
-        (TOUGHEST_WORD_12816, WIDENING_GREAT_SAHARA_TOUGHEST_12816.0),
+        "run653",
+        (TOUGHEST_WORD_14363, WIDENING_GREAT_SAHARA_TOUGHEST_14363.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_12817,
+        TOUGHEST_WORD_BLOCK_14364,
     )
 }
 
@@ -803,7 +825,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
         // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 69, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 65, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1068,13 +1090,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8177, 48), (8201, 1), (8209, 9)],
+            [(8177, 53), (8201, 1)],
             "the blocks keys first part on, to three past the word 8377's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            58,
+            54,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
@@ -1431,7 +1453,7 @@ mod tests {
         // keys is who=1's `1/84` group — its formation and id — on 12539.
         pin_eq!(
             row(1, 84, "order:group.form_id"),
-            Some("12539: Group { field: \"form_id\", ours: 0, theirs: 29 }".into()),
+            None,
             "1/84's group formation, the first part past the standing keys"
         );
         // **The move 12575 → 12744** (item 1472, `docs/AI.md` §120). The
@@ -1489,7 +1511,7 @@ mod tests {
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear; 142 since item 1477's census walk.
-        pin_eq!(w.firsts.len(), 97, "every key parted on run584");
+        pin_eq!(w.firsts.len(), 101, "every key parted on run584");
     }
 
     /// **The word 12816, widened whole** (item 1477):
@@ -1536,25 +1558,95 @@ mod tests {
         // mechanism is booked.
         pin_eq!(
             row(1, 141, "g.end_time[2]"),
-            Some("12817: ours 31 theirs 23".into()),
+            None,
             "1/141's third figure's `end_time`, on the word's block"
         );
         pin_eq!(
             row(1, -3, "group:65.curr[0]"),
-            Some("12817: ours Some((117, 440)) theirs Some((-127, 1540))".into()),
+            None,
             "army 65's formation, slot 0, on the word's block"
         );
+        pin_eq!(row(1, -3, "group:65.off[0]"), None, "and its offset");
         pin_eq!(
-            row(1, -3, "group:65.off[0]"),
-            Some("12817: ours Some((-9, -3)) theirs Some((-32, -3))".into()),
-            "and its offset"
+            by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
+            [(12811, 92), (12825, 1)],
+            "the blocks keys first part on, the first three"
+        );
+        pin_eq!(w.firsts.len(), 93, "every key parted on run640");
+    }
+
+    /// **The word 14363, widened whole** (item 1493):
+    /// [`great_sahara_toughest_14363_window`] over run653's blocks
+    /// 14357..14380, both directions, every record run584's detail prints.
+    /// Frame 14363 writes block 14364.
+    #[test]
+    fn run653_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_14363_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 24, "run653 whole: blocks 14357..14380");
+        pin!(
+            w.missing.is_empty(),
+            "run653 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 14363's block, 14364** (item 1493, `docs/AI.md` §128):
+        // ours 11 draws and the original 177 on the frame, parting at index
+        // 5 (theirs `PathFinder::calc_road_cost+0x46`). The first parts past
+        // the 93 standing on the window's first block are the original's
+        // `regen_roads` flag on six of who=1's buildings — `1/2031`, `2034`,
+        // `2038`, `2040`, `2042`, `2054` set there and clear here; `1/2053`
+        // set here and clear there — and `1/66`'s and `1/115`'s order kind,
+        // 6 against 7. No mechanism is booked.
+        pin_eq!(
+            row(1, 2031, "build:regen_roads"),
+            Some("14364: ours 0 theirs 1".into()),
+            "a city building's road flag, on the word's block"
+        );
+        pin_eq!(
+            row(1, 2053, "build:regen_roads"),
+            Some("14364: ours 1 theirs 0".into()),
+            "and the one building this crate flags alone"
+        );
+        pin_eq!(
+            row(1, 66, "order:kind"),
+            Some("14364: Kind { ours: 6, theirs: 7 }".into()),
+            "1/66's order kind, on the word's block"
+        );
+        // **The group record's tail agrees**: the compared slots run to the
+        // member count since item 1493, and army 65's `off`/`curr` past its
+        // `form_num` carry the siege units' copy-back on both sides.
+        pin_eq!(
+            row(1, -3, "group:65.off[62]"),
+            None,
+            "army 65's tail agrees"
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(12811, 114), (12817, 55), (12818, 3)],
+            [(14357, 93), (14364, 11), (14365, 12)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 264, "every key parted on run640");
+        pin_eq!(w.firsts.len(), 378, "every key parted on run653");
     }
 
     /// **The word 11182, widened whole** (item 1379):

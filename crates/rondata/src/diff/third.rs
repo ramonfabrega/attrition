@@ -769,7 +769,7 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 173.
         // Item 1457: 117 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 76, "every key parted on run417");
+        pin_eq!(w.firsts.len(), 72, "every key parted on run417");
     }
 
     /// **The third map's long word, 14587, widened whole** (item 1163):

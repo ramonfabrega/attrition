@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1493, 2026-10-06 — the siege sub-group's copy
+
+(1504) **Army 65's `speed` and `role`**: the original's `group:65.speed`
+flips 23/41 from 12825 and ours does not; `group:65.role` ours 0 against
+1379597, standing.
+
 ## Parked by item 1487, 2026-10-06 — about to win
 
 (1499) **run642's sixteen `order:group.id` rows on 15345**: 15344609
@@ -3739,7 +3745,10 @@ predictions; a coverage battery would need the queue lane and a person.
 (the commander, 2026-10-06): 1472 against 1470, and 1465 against 1481,
 each a new section at the file's end; each cost a backed-out merge, an
 update and a second lane gate. A section reserved by number could be
-written at its place by a stub the commander lands at the spawn.
+written at its place by a stub the commander lands at the spawn. A pin file
+conflicts the same way: 1493 and 1496 both conflicted in
+`diff::third_pair` against 1500's re-pin of run655 and run657, and each
+re-measured on the merged tree; four lane gates for two landings.
 
 (1492) **`ccc push <ref>` said "nothing to push" with origin behind**
 (the commander, 2026-10-06, ccc 0.1.38): after 4b29c0d7's gate, twice,
