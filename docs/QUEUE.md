@@ -13,11 +13,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and thirteen
-landings since. French East Indies **16857** of 17,379 (was 12794);
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and fourteen
+landings since. French East Indies **17171** of 17,379 (was 12794);
 Toughest **12816**, floor 12816 (was 11985); fifty-one chapters closed.*
 
-- **Landed**: 1461, 1470, 1476, 1479, 1481, 1487 (Opus, newest pair, now 1500); 1429, 1472,
+- **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500 (Opus, newest pair, now 1502); 1429, 1472,
   1477 (Sonnet, third map, now 1493); 1423, 1468, 1465, 1466 (Sonnet, rules;
   battery 576 / 6566 / 2974, a measure; coverage pair frame 0, now 1496). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
@@ -34,7 +34,7 @@ Toughest **12816**, floor 12816 (was 11985); fifty-one chapters closed.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w16857 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w17171 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w12816 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -51,12 +51,14 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1500. **French East Indies frame 16857, 8 versus 8 draws** (count
-    parts on 16858), index 2: ours `Guy::set_anim+0x97a < Guy::move+0x19f`
-    (the General 1/79), theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56
-    < Unit::move_step+0x549`. run655 widens it (186 keys): 173 standing
-    on 16851; 1/79's `g.cur_anim` 7 against 0 on 16858. Date the first
-    parting; no mechanism is named.
+1502. **French East Indies frame 17171, 11 versus 10 draws**, index
+    1: ours `Unit::fight+0x824`, then `Guy::set_anim+0xf2f <
+    Unit::set_anim+0x56` for 1/80; theirs `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`. run657 widens it (240 keys, 178 standing on
+    17165), parted in the gap 16869..17164: 1/78, 1/83 and 1/90's front
+    order kind 2 against 12 (an attack on Napata 0/2000); leader 0's
+    `gather_stamp` 17152 against 17032; treaties 1 against 3; Napata's
+    `raid_stamp` 0 against 17154. Date the first parting; no mechanism.
 
 1493. **Great Sahara at Toughest's word: frame 12816, 41 versus 40
     draws**, index 33: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
@@ -77,9 +79,10 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
-    `update_local_seen_build`'s fog arm, and 1476's Construction hp arm
-    (`myhits`, `construct_hits` unread). Whether one staging reaches
-    each is the item's to establish first. run654.
+    `update_local_seen_build`'s fog arm, 1476's Construction hp arm
+    (`myhits`, `construct_hits` unread), and 1500's `move_step` snap's
+    `< 2` order-count bound (the two-order converse). Whether one
+    staging reaches each is the item's to establish first. run654.
 
 ## How to maintain this file
 

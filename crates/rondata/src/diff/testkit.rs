@@ -1933,7 +1933,14 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// 15344 → 16857, 8 vs 8 draws, index 2 Guy::set_anim under Guy::move
 /// versus Guy::set_anim under Unit::set_anim+0x56 < Unit::move_step+0x549.
 /// run655 block 16858.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 16_857;
+/// Item 1500: `Unit::move_step`'s snap asks `CHAR_DEFAULT` when the waypoint
+/// offsets are zero and the order list holds one order (`005fb44c`, AI
+/// §130): the General `1/79`, turning six frames on its own waypoint
+/// (6840, 13704), stands on 16857 here as there (block 16858: guy 0
+/// `cur_anim` 0, `cur_time` 1, `last_time` 0 on both sides, against ours' 7,
+/// 16, 15): 16857 → 17171, 11 vs 10 draws, index 1 Unit::fight+0x824 versus
+/// Guy::set_anim under Guy::inc_time+0x271.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_171;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1968,7 +1975,9 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_14786: (i64, i64) = (14777, 14789);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_15088: (i64, i64) = (15086, 15090);
 /// run642's blocks, the word 15344's until item 1487 moved it to 16857.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_15344: (i64, i64) = (15339, 15351);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (16851, 16863);
+/// run655's blocks, the word 16857's until item 1500 moved it to 17171.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_16857: (i64, i64) = (16851, 16863);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17165, 17177);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8481,12 +8490,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside it; item 1418 to 16482, past it, widened on run579.
     // Item 1481 moved the word to 15344, past run639's window, and widened
     // it on run642 (15339..15351); item 1487 to 16857, past it, widened on
-    // run655 (16851..16863).
+    // run655 (16851..16863); item 1500 to 17171, past it, widened on run657
+    // (17165..17177).
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run655_s_word_frame_is_widened_whole"),
-        1487,
+        Some("run657_s_word_frame_is_widened_whole"),
+        1500,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

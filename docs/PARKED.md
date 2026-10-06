@@ -3722,7 +3722,9 @@ by a unit test alone.
 French Carpentry line, `FRENCH_LUMBERMILL_UPGRADES`) was a documented
 gap the seam scan did not print, and it parted who=1's timber rate
 for 1,800 frames. And 1481's: stubs written "reads 1" or
-"reads empty" are missed the same way.
+"reads empty" are missed the same way. And 1500's: a `SEAM` that argues
+"unreachable" (`Unit::move_step`'s CHAR_DEFAULT snap) was reachable and
+parted the word; such a seam could carry a `scan:`.
 
 (1488) **`ron_lane_state` exits 0 when the lane is held** (1481's Loop
 line, 2026-10-06): `ron_lane_state && launch` launches anyway; the
