@@ -200,6 +200,15 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_b412), // `Unit::move_step+0x4e2`, the snap's stand
         sim::anim::SITE_SNAP_BLOCKED,
     ),
+    // …and the snap's **unblocked** stand, `set_anim(UVar17)` with
+    // `UVar17 = CHAR_DEFAULT`: zero offsets and at most one order. The
+    // trace printed it bare as `5dac7a` on French East Indies 16857 until
+    // item 1500 (`docs/AI.md` §130).
+    (
+        0x005d_ac7a,
+        Some(0x005f_b479), // `Unit::move_step+0x549`
+        sim::anim::SITE_SNAP_STAND,
+    ),
     // …and `Unit::fight`'s reloading stand, the recharging arm's
     // `set_anim(CHAR_DEFAULT, 1, 1)`. The trace printed it bare as
     // `5dac7a` on golden chapter one's 774 until item 530.

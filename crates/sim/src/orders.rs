@@ -6223,13 +6223,25 @@ impl Sim {
             // and the store on such a frame — it steps on a *copy* of the
             // order, so the store is owed — but the animation is not.
             //
-            // SEAM: the snap arm asks `CHAR_DEFAULT` instead when the
-            // waypoint offsets were both zero at the top of `move_step`
-            // and `UnitData+0xd8 < 2`. `do_move`'s own "already there"
-            // test takes that case a step earlier here, so the arm is
-            // unreachable; it would be a draw if it were not.
+            // **And the snap arm asks the stand instead** when the
+            // waypoint offsets were both zero at the top of `move_step` and
+            // the order list holds at most one order (`UnitData+0xd8 < 2`,
+            // `005fb44c`–`005fb474`): `UVar17` is `CHAR_DEFAULT`, and that
+            // request is a draw, `Unit::set_anim+0x56 < move_step+0x549`.
+            // `do_move`'s "already there" test does not take every such
+            // case a step earlier: a unit standing on its final waypoint
+            // while it turns in place spends the turn frames in the arms
+            // above, and on the frame the turn completes it reaches the
+            // snap with nothing left to walk. French East Indies 16857 is
+            // the case — the General `1/79` turned six frames on
+            // (6840, 13704) (`docs/AI.md` §130).
             if step.turned_in_place.is_none() {
-                self.set_anim(u, crate::anim::WALK, false, true);
+                if step.snapped && mo.waypoint == from && self.units[u].orders.len() < 2 {
+                    self.mark(crate::anim::SITE_SNAP_STAND);
+                    self.set_default_anim(u);
+                } else {
+                    self.set_anim(u, crate::anim::WALK, false, true);
+                }
             }
             let flags = self.current_order(u).map_or(0, |o| o.flags);
             if !self.set_new_location(u, target, false) {

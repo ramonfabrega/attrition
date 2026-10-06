@@ -269,7 +269,11 @@ fn run655_s_word_frame_is_widened_whole() {
     // draw ours spends through `Guy::move+0x19f` and the original through
     // `Unit::set_anim+0x56 < Unit::move_step+0x549`; then eight more on
     // 16860..16862. The word's block is 16858.
-    pin_eq!(w.firsts.len(), 186, "initial run655 baseline");
+    // Item 1500: 186 → 173. The snap's stand (AI §130) takes all thirteen
+    // rows past the first block: 1/79's guy 0 is `cur_anim` 0, `cur_time` 1,
+    // `last_time` 0 on 16858 on both sides, and nothing parts on
+    // 16852..16863. The 173 stand from the window's first block, 16851.
+    pin_eq!(w.firsts.len(), 173, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
