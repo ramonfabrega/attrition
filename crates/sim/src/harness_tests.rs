@@ -3462,8 +3462,15 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
         sim.units[unit].guys[g].anim = anim::WALK;
         sim.units[unit].guys[g].stopped = true;
     }
-    sim.units[unit].movement.set_heading(movement::Angle::WEST);
-    sim.tick();
+    // Standing on its destination with the turn owed: the unit's frame
+    // hands `guys_follow` the turn's angles, and guy 0 takes it in its place.
+    let mut turn = Some((
+        movement::Angle::EAST,
+        movement::Angle::NORTH,
+        movement::Angle::WEST,
+    ));
+    sim.guys_follow(unit, true, &mut turn);
+    assert!(turn.is_none(), "guy 0 took the turn in its place");
     let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
     assert!(
         !labels.contains(&anim::SITE_ARRIVE),
