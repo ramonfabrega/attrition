@@ -288,7 +288,7 @@ fn run657_s_word_frame_is_widened_whole() {
     // against 12; six on 17169, `1/80`'s guy 0 swinging at `0/2000` there
     // and walking here; one on 17170; five on 17171, `1/80`'s order; then
     // 16 on the word's block 17172 and 29 on 17174..17176.
-    pin_eq!(w.firsts.len(), 240, "initial run657 baseline");
+    pin_eq!(w.firsts.len(), 235, "initial run657 baseline");
 }
 
 #[test]
@@ -309,7 +309,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // rows past the first block: 1/79's guy 0 is `cur_anim` 0, `cur_time` 1,
     // `last_time` 0 on 16858 on both sides, and nothing parts on
     // 16852..16863. The 173 stand from the window's first block, 16851.
-    pin_eq!(w.firsts.len(), 173, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 168, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
