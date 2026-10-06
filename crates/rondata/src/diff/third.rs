@@ -112,6 +112,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             }
         }
         crate::diff::harness::debug_leader(&built, at);
+        crate::diff::harness::debug_armies(&built, at);
         crate::diff::harness::debug_ammo(&built, at);
         crate::diff::harness::debug_builds(&built, at);
         crate::diff::harness::debug_tech(&built, at);
@@ -503,7 +504,7 @@ mod tests {
         // **What run10's detail does not print** is a key unprinted, never
         // a parting: the leader's long record (`LEADERS=1` prints the short
         // one) and gaia's clocks (`GUYS=2` prints no `cur_anim`).
-        pin_eq!(w.missing.len(), 1_064, "the keys run382 does not print");
+        pin_eq!(w.missing.len(), 1_066, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"
