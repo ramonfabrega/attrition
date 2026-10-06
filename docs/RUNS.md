@@ -14769,6 +14769,7 @@ SHA-256 `d03bf06685519118e422c79401eccb1fb62e32cf52c606ca3013aa3050965bbd`.
 blocks 14357..14380, 93 standing on the first, and on the word's block 14364 six buildings' `regen_roads`
 (`1/2031` 0 against 1, and the like; `1/2053` 1 against 0) and `1/66`'s and `1/115`'s order kind (6
 against 7); army 65's `off`/`curr` tail agrees. The compared pin's window is block 14364.
+
 ## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
 
 **Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the
