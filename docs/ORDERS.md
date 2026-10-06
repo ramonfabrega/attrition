@@ -4765,7 +4765,9 @@ else                       GroupData::get_loc   (this, &x, &y, 0);
 
 and `GroupData::get_loc_to@0070c5d0` answers with
 `UnitData::get_final_loc@00608040` — where the leader will be when the
-orders already on its list are done — rather than where it stands.
+orders already on its list are done — rather than where it stands. **The `(ox, oy)` override is measured from the leader's own position,
+not from that final point** (`0070c6cc`–`0070c702`, item 1528, `docs/AI.md` §142.4): a leader still far from `(ox, oy)` gets its final
+location back, and the delta it lays a formation out by is from there.
 `docs/ARMY.md` §12's
 probe queues `action_attack(farm, QUEUE_NEW)` and then the walk home at
 **`QUEUE_LAST`**, so at the moment the move is laid out the leader `1/40` is

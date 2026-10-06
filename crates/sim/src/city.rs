@@ -170,6 +170,11 @@ pub struct City {
     pub capture_stamp: i64,
     pub assimilation_timer: i64,
     pub attack_stamp: i64,
+    /// `CityData::reduce_stamp` (`+0x1c`): the frame a city building last
+    /// took a hit at its hit-point ceiling from another player's object —
+    /// `Object::do_damage@0064a480`'s tail, the one writer (`docs/AI.md`
+    /// §142). Zero until then.
+    pub reduce_stamp: i64,
     pub capture_strength: i32,
     /// `CityData::pop` (+0x5d): 1 at init, copied on capture, not the pop
     /// value (`get_pop_value` is computed from the level) and not touched by
@@ -412,6 +417,7 @@ impl Sim {
             capture_stamp: stamp,
             assimilation_timer: stamp,
             attack_stamp: stamp,
+            reduce_stamp: 0,
             capture_strength: 0,
             pop: 0,
             has_citizen: false,

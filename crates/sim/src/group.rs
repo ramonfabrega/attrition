@@ -1842,8 +1842,9 @@ impl Sim {
     /// names.
     ///
     /// The `(ox, oy)` override is the same `0x180` window
-    /// [`Self::group_loc`] uses, and it is measured here from the **final**
-    /// point rather than from the unit (`0070c634`).
+    /// [`Self::group_loc`] uses, measured from the **unit** like it — not
+    /// from the final point (`0070c6cc`; the decompile's operands are
+    /// `unaff_` and the listing settles it, item 1528).
     ///
     /// SEAM: the `buildings` seat (`list[0]` rather than `find_leader`) and
     /// the `get_inside` hop for a garrisoned leader, neither of which any
@@ -1852,7 +1853,17 @@ impl Sim {
         let u = self.group_find_leader(g)?;
         let p = self.unit_final_loc(u);
         let o = self.group_o(g);
-        if o.x >= 0 && o.y >= 0 && vector_dist(p.x - o.x, p.y - o.y) <= GROUP_LOC_NEAR {
+        // **The window is measured from the leader's own position**
+        // (`70c6cc`–`70c702`: `objects[who][leader] +0x10/+0x14` less
+        // `(ox, oy)`, `get_final_loc`'s answer already written to the
+        // caller's pair), the decompile's `vector_dist(unaff_EBX,
+        // unaff_EDI)` hiding the operands. Item 1528: a leader still
+        // 3,400 units from the point it was ordered to leaves the window
+        // shut, the answer the *final* location, and a formation re-issued
+        // at `QUEUE_LAST` to a point behind that location is laid out
+        // reversed (`docs/AI.md` §142).
+        let pos = self.units[u].pos;
+        if o.x >= 0 && o.y >= 0 && vector_dist(pos.x - o.x, pos.y - o.y) <= GROUP_LOC_NEAR {
             return Some(o);
         }
         Some(p)
@@ -2191,10 +2202,15 @@ impl Sim {
                 // patrol's leg reaches the whole group (§27 of
                 // `docs/ORDERS.md`, run184).
                 Body::Patrol(p) => self.group_redo_patrol_order(g, p),
-                // SEAM: `finish_insert`'s other seventeen cases —
-                // gather, garrison, board, follow, guard, trade,
-                // spell. No capture reaches a group `QUEUE_FIRST`
-                // carrying one.
+                // Case `0xc`: `action_guard(group, o, who, QUEUE_LAST, 0)`
+                // — the leader's guard, every member's post laid out round
+                // the guarded unit afresh (`docs/AI.md` §142: the army
+                // charge of item 1528 leaves each of 77 members a guard
+                // order on `1/95` at the foot of the stack).
+                Body::Guard(gd) => self.group_action_guard(g, gd.target, QueuePos::Last, false),
+                // SEAM: `finish_insert`'s other sixteen cases —
+                // gather, garrison, board, follow, trade, spell. No
+                // capture reaches a group `QUEUE_FIRST` carrying one.
                 _ => {}
             }
         }
@@ -5524,6 +5540,111 @@ mod tests {
         assert_ne!(want, Angle(0), "the scenario has to have a bearing at all");
     }
 
+    /// **`get_loc_to`'s `(ox, oy)` window is measured from the leader's own
+    /// position** (`GroupData::get_loc_to@0070c5d0`, `0070c6cc`–`0070c702`,
+    /// item 1528): the answer is the leader's *final* location, replaced by
+    /// the group's `(ox, oy)` only when the **unit** stands within `0x180`
+    /// of it. This crate measured from the final point, so a leader still
+    /// far from the point it was sent to — within the window of its own
+    /// destination — read `(ox, oy)` back, and a formation re-issued at
+    /// `QUEUE_LAST` was laid out from a zero delta where the original's
+    /// pointed from the leader's destination: run668's frame 15377,
+    /// whose second charge's layout the original reversed.
+    ///
+    /// **Made to fail on purpose** by measuring from `unit_final_loc`'s
+    /// answer, as this crate did: the first assertion reads `(ox, oy)`.
+    #[test]
+    fn get_loc_to_measures_its_window_from_the_leader_not_from_its_destination() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let far = Pos::new(0x8000, 0x4000);
+        let a = spawn(&mut s, 1, t, far);
+        let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        let to = Pos::new(0x4000, 0x4000);
+        s.group_action_move_to(
+            &g,
+            to,
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            false,
+        );
+        let end = s.unit_final_loc(leader);
+        assert_ne!(end, s.units[leader].pos, "the leader has somewhere to go");
+        // A point within the window of where the leader is going, and far
+        // from where it stands.
+        let o = Pos::new(end.x + 100, end.y + 100);
+        s.gstate_mut(&g).expect("the army's record").o = o;
+        assert_eq!(
+            s.group_loc_to(&g),
+            Some(end),
+            "the leader stands far from (ox, oy): the final location answers"
+        );
+        // Standing within the window, the leader reads (ox, oy) back.
+        s.units[leader].pos = Pos::new(o.x + 10, o.y);
+        assert_eq!(s.group_loc_to(&g), Some(o));
+    }
+
+    /// **`finish_insert`'s guard arm** (`Group::finish_insert@0070e620`,
+    /// case `0xc`, item 1528): a leader's guard order, saved ahead of a
+    /// `QUEUE_FIRST` halt, is re-issued as a **group** guard on the same
+    /// unit at `QUEUE_LAST` — every member holds it again at the foot of the
+    /// stack, behind the new order. This crate stood in for it with a no-op,
+    /// so an army charged onto a city lost its guard (run668's `1/28`:
+    /// `[GUARD, GROUP_ATTACK_TO, GROUP_ATTACK_TO]` against ours' two).
+    ///
+    /// **Made to fail on purpose** by dropping the arm: the stack is the
+    /// new move alone.
+    #[test]
+    fn a_group_queue_first_keeps_the_leader_s_guard_at_the_foot() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let buddy = spawn(&mut s, 1, t, Pos::new(0x1300, 0x1000));
+        let slot = s.init_army(1, None);
+        for u in [a, b, c] {
+            s.army_add_unit(1, slot, u);
+        }
+        let g = s.army_group(1, slot);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        // The leader guards a unit outside the group, as run668's 1/62
+        // guards 1/95, with the action bit a guard order carries.
+        s.add_guard_order(leader, buddy, 0, 0, QueuePos::New);
+        assert_eq!(s.order_type(leader), index::GUARD);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::First,
+            false,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        let stack: Vec<u8> = s.units[leader].orders.iter().map(|o| o.index()).collect();
+        assert_eq!(
+            stack,
+            [index::GROUP_ATTACK_TO, index::GUARD],
+            "the new move at the front, the guard behind it"
+        );
+        // The members that were not guarding anything are given the
+        // leader's guard too, at the foot.
+        for u in [a, b, c].into_iter().filter(|&u| u != leader) {
+            assert_eq!(
+                s.units[u].orders.back().map(|o| o.index()),
+                Some(index::GUARD),
+                "a guard behind the move"
+            );
+        }
+    }
+
     /// **A move to where the group already stands takes the leader's own
     /// heading**, not the record's `o_angle` (`docs/ORDERS.md` §17.4).
     ///
@@ -6049,6 +6170,7 @@ mod tests {
             capture_stamp: 0,
             assimilation_timer: 0,
             attack_stamp: 0,
+            reduce_stamp: 0,
             capture_strength: 0,
             pop: 1,
             has_citizen: false,

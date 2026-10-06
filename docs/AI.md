@@ -16233,10 +16233,129 @@ while the wonder stands and keeps it after the wonder falls, until `fix_tech_fla
 arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not built here; `was_seen` is. Whether any other reader of
 `was_seen` on this lobby (the goody search, the roads) parts: none does on any block run669 holds.
 
-## 142. Reserved for item 1528 (Toughest frame 15378)
+## 142. A city at its ceiling charges the shooter's army, and Toughest reaches its end (2026-10-06, item 1528)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1524 left Great Sahara at Toughest at **frame 15378, ours 14 draws against 51, parting at
+index 2**: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Unit::do_group_move+0xb03`. run668 (blocks 15230..15432, the game's own end)
+already held the widening, and its block 15378 (frame 15377) carried 887 keys: 77 units' orders, group 65's record, and `0/2000`'s `city:reduce_stamp`
+15377 against 0. **The word moved 15378 → 15432, the trace's last frame** (`run470_is_great_sahara_at_toughest_and_its_word_holds`: count and
+sequence 15432 of 15432); the closing state is scored (§142.5). Confidence: the events and the arithmetic are diff-backed; the one reading-only
+claim is named in §142.7.
+
+### 142.1 The event, both sides
+
+The dump's frame 15377 (block 15378), read against 15377:
+
+- **The human's city `0/2000`** (Village, TypeIndex 414, who 0) takes its `damage` from 1080 to 1200, its `myhits`/`construct_hits` 1200: the ceiling.
+  Its `SubObjectData` flags go 0x27 → 0x37 and `reduce_stamp` 0 → 15377 (`CityData +0x1c`). No object appears or goes: 189 on both blocks.
+- **Group 65** — army 1 of who 1, 78 members, `order_num` 17, its leader `1/62` (ELITEHUSSARS, 212; slot 0 is `1/28`, KINGSYEOMANRY, 179) — gives
+  every member two `GROUPATTACKTOORDER`s to **(6240, 30048), the city's own point** (`orig_x/orig_y`), ids **15383518** and **15383519**
+  (`(65 + 15377 × 10) × 100 + 18` and `+ 19`), and the group's `order_num` goes 17 → **20**. Beneath them every member holds a **`GUARD` on `1/95`** whose
+  post is `1/95`'s own cell, (9624, 27432), with the guard's `dx/dy` laid out afresh (`1/29` −144/630, `1/30` 144/630, `1/38` 432/630); a member's
+  stack went `[GUARD]` to `[GUARD, GROUP_ATTACK_TO, GROUP_ATTACK_TO]` (bottom first).
+- The shooters are two **CANNON** (TypeIndex 268, land siege; `1/84` and `1/139` carry `unit_masks` 0x5100e, the AI-driven bit 0x40000 among them) of
+  group 65, whose rounds land on the city on 15377: the army's own siege, hitting its enemy's capital. Ours' rounds in the air at 15377 are two Cannons'
+  as well (slots 186 and 188 of this crate's unit list).
+
+Ours spent none of it: no stamp, no charge, the members guarding where they stood.
+
+### 142.2 The cause: `Object::do_damage`'s tail
+
+`Object::do_damage@0064a480`'s last third (`0064c1d8`–`0064c796`, `this` the shooter, `param_1/param_2` the struck object) runs after the damage is taken
+and **after `Build::check_capture` has answered no**:
+
+1. the struck building is a city (`BuildTypeData::is_city`, 0x19e), of another player, **active** (`flags & 4`), with `damage >= hits(0)` — the
+   ceiling (`WallData::hits@00642bb0`'s `construct_hits`);
+2. **`Army::charge`**, when the shooter's leader is a computer's (`leader_flags & 4 == 0`), the shooter is `is_siege`, carries `unit_masks & 0x40000`
+   and `get_army` ≥ 0: `Group::action_move_to(army group, the city's x/y, QUEUE_FIRST, 0, 0, ATTACK_TO, …)` and the army's target is the city
+   (`Army::charge@006f9a90`). **It is not behind the cooldown**: each siege hit on the ceiling charges again;
+3. **the stamp**: `local_70` is 1 when the building was still *below* its ceiling when the blow began (`0064a8ac`) — the hit that brought it there
+   always writes `reduce_stamp`; a hit on a city already there writes it once in 300 frames (`300 < frame − reduce_stamp`);
+4. the notice, the sound and the text bubble that follow are the interface's. Not carried.
+
+The `QUEUE_FIRST` of step 2 is the group's insert dance (`GROUPS.md` §24): `set_up_insert` copies the **leader's** action-flagged orders, `action_halt`
+clears every member, the new move is laid at `QUEUE_NEW`, and `finish_insert` re-issues each copy as a group action at `QUEUE_LAST`. Two charges
+therefore go: the first's `NEW` takes id 17 and is halted away by the second; the second's `NEW` takes **18** (the top order, `…518`), and `finish_insert`
+re-lays the first's copy behind it with **19** (`…519`) and the leader's guard behind both — the dump's two ids, its stack, and `order_num` 17 → 20.
+
+### 142.3 What was built
+
+- **`Sim::city_reduced`** (`fight.rs`), called from `do_damage` after the capture attempt on a hit that did not kill: the tail above, with `fresh`
+  (`local_70`) read before the damage is taken. `City::reduce_stamp` is its field; the harness's `reduce_stamp` row moved from "nothing here writes it"
+  to a compared field.
+- **`Sim::struck`** (`fight.rs`): `Ammo::hit_target@00678f90` and `do_damage` ask the slot's `flags & 1` and nothing about hit points, where
+  `Sim::active` also asks a building for health left (the target *search's* question). A round already in the air lands on a city at its ceiling —
+  `land`'s target filter, `hit_target`, `do_damage`'s head, and the splash walk for the round's **own target** only. Without it the second Cannon's
+  round (ours' `Unit(188)`, `LAND f15377 hit true`) found nothing struck and the army was charged once, not twice.
+- **`finish_insert`'s guard arm** (`group.rs`, case `0xc`): `action_guard(group, o, who, QUEUE_LAST, 0)` on the saved order's target. It was one of
+  the seventeen cases stood in for by a no-op; the leader `1/28`'s guard is the first capture to need it.
+- **`GroupData::get_loc_to`'s window** (`group.rs`, `group_loc_to`): see §142.4.
+
+### 142.4 The listing read: the window is the leader's, not the destination's
+
+After the two charges and the guard every unit-level key agreed and **154 of the 226 keys left on block 15378 were group 65's `off` and `curr`, each
+the exact negative of ours'** — the formation laid out reversed. `compute_form`'s tail negates both tables when `reverse` holds, and `reverse` for a
+set-angle call is `|find_angle(dest − loc) − angle| ≥ 90°`. The `QUEUE_LAST` re-issue of the first charge asks `get_loc_to` for `loc`; this crate
+answered `(ox, oy)` = the destination (delta zero, `find_angle(0, 0)` = 180°, 52° from the −128° formation: no reverse). The decompile prints
+`vector_dist(unaff_EBX, unaff_EDI)` and so hides the operands; **`llvm-objdump 0x70c6cc..0x70c702`** shows them: `objects[who][leader] +0x10/+0x14` —
+the leader's **own position** — less `(ox, oy)`, `get_final_loc`'s answer already written to the caller. The leader `1/62` stood at (8952, 27960), 3,400
+from (6240, 30048): the window is shut, `loc` is the leader's *final* location, (6120, 29928), the delta is (120, 120), `find_angle` ≈ +135°, 263° from
+the formation's angle: **reverse**. `group_loc_to` measured from the final point, as its comment said it did on the decompile's word; it measures from
+the unit now (`get_loc`, the other arm, always did). `ORDERS.md` §17.2 and `GOLDEN.md` §22 read the answer as the final point only; both now say where the window is measured (AI §142.4).
+
+### 142.5 The value diff, the word, and the close
+
+**Block 15378 (frame 15377)**, before → after: 887 → **72**. The 72 are every member's `GROUPORDER` `id`, which carries the group number: ours the army's
+slot (1), the dump's pool id 65 — ours 15377118 against 15383518, a constant 6,400 (the same standing difference `harness.rs` pins on `12537 1/61 order:group.id`). `0/2000`'s
+`reduce_stamp` 0 against 15377, `1/28`'s `orders.len` 1 against 3, `order:kind` 12 against 21, `path:length`, group 65's `curr[0..77]`, `off[0..77]`,
+`form_num` 27 against 78, `order_num` 18 against 20, `o_angle`, `o_dist` and `ox/oy` all go. run668's keys: **2596 → 171**. Three stand past the word,
+the draws agreeing to the game's last frame: leader 0's `production_step` 0 against 1 on 15401, and group 68's `speed` and `new_speed` 0 against 35 on 15421.
+
+**The floor** moved 15378 → **15432** (`THIRD_WORD_GREAT_SAHARA_TOUGHEST`): count and sequence 15432 of 15432, the `AI_WORDS` row closed.
+
+**The closing state, scored** (`run470_great_sahara_at_toughest_closing_state`, run470's closing dump, block 15433): **189 units, none off, unlinked,
+torn or extra**. The counts are `[0, 0, 0, 7, 0, 6, 0]`: six cities unlinked because a closing dump prints `o -1` for every city (the 24,001 row carries
+three of its own), and **seven buildings unlinked: the human's city, which the original's army captures on frame 15432**, the game's last, renumbering
+`0/2000`..`0/2006` to `1/2056`..`1/2062` (block 15432 still has them under player 0). Ours holds them under player 0 at 15433 and takes the city on
+**15473** — `Build::process`'s 64-frame re-test, phased by `o` (15472 + 2000 = 64 × 273) — because `Object::valid_target`'s capture attempt
+(`CITIES.md` §7.1's fourth caller, "not modelled" there) is the path that fires on 15432. The draws agree to the end: a capture spends none. The
+test pins the counts and the 15473.
+
+### 142.6 Mutations
+
+Each by `tools/mutate.py`, scored by exit code and the failed tests' names (`mut-*.log`):
+
+| mutation | command | verdict |
+|---|---|---|
+| `finish_insert`'s guard arm → `{}` | `cargo test --release -p rondata sahara_toughest` | held: `run668_s_word_frame_is_widened_whole`, `run470_is_great_sahara_at_toughest_and_its_word_holds`, `run470_great_sahara_at_toughest_closing_state` |
+| the same | `cargo test --release -p sim` | held: `group::tests::a_group_queue_first_keeps_the_leader_s_guard_at_the_foot` |
+| `group_loc_to` measured from the final point | `… sahara_toughest` | held: the same three |
+| the same | `… -p sim` | held: `group::tests::get_loc_to_measures_its_window_from_the_leader_not_from_its_destination` |
+| `army_charge` out of `city_reduced` | `… sahara_toughest` | held: the same three |
+| the same | `… -p sim` | held: `cities_tests::a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped` |
+| the splash walk without `struck` | `… sahara_toughest` | held: the same three |
+| `reduce_stamp` written as 0 | `… sahara_toughest` | held: `run668_s_word_frame_is_widened_whole` |
+| the stamp ignoring `fresh` | `… -p sim` | held, on the second run (the first, `fresh` untested, **failed nothing**: the test only stamped from a stale 0; it now heals the city and strikes it again inside the 300 frames): the same test |
+
+### 142.7 What this has *not* established
+
+- **That no hit before 15377 reached the tail's later arms.** The earlier 135-point Cannon hits left `0/2000` at 1080 on both sides (`damage` agrees
+  on every block), so 15377 is the tail's first run in both.
+- **`local_70`'s `fresh`** is read from `hits_now() > damage` before the blow; the original reads the object's hits slot at argument 0 (`WallData::hits`/`BuildData::hits` —
+  the latter adds the queue's training-time adjustment for two types, not modelled) against `+0x24`.
+- **A building shooter.** The tail reads `this->o`/`who` as the captor for `check_capture`; for a building attacker (a tower, a fort) the original's
+  call reads a unit's fields at a building's index. This crate takes `check_capture` as false for a building and goes on to stamp.
+- **The group number.** The 72 keys' 6,400 stands; fixing `group_id` (army slot → `who × 64 + pool`) moves every `GROUPORDER` id in every capture.
+  Parked.
+- **`Object::valid_target`'s capture attempt** (§142.5): the closing's seven buildings, and the 40 frames to 15473.
+- **The two keys on 15401 and 15421** are no consequence in position or draw to the end.
+
+### 142.8 Coverage
+
+Diff-backed: the tail's stamp, the charge and both ids (`run668_s_word_frame_is_widened_whole`, 887 → 72 on block 15378, 2596 → 171 whole); the
+guard re-issue (the same test: no `order` key on 15378 beyond the id); the reversed formation (the same, `group:65.off/curr` gone); the floor
+(`run470_is_great_sahara_at_toughest_and_its_word_holds`, 15432); the closing counts (`run470_great_sahara_at_toughest_closing_state`). Reading-only:
+`get_loc_to`'s operands (the listing, `0070c6cc`–`0070c702`; the diff backs the *result*), and the cooldown's 300 (decompile).
 
 ## 143. A trainer's friends are the derived flag's trainers, and the word at 583 (2026-10-06, item 1530)
 
@@ -16332,3 +16451,8 @@ human. `swarm_around_last`'s seam — `BUILD_AT`'s clear of the site's `build_ma
 the site is `init_build`'s, a frame old, and the mark is the site-recruit's "no builder" bit (§2.8). The `QUEUE_NEW` arm stays
 `clear_orders` then `swarm_around`'s first-position shape; the original's member arm at `QUEUE_NEW` differs where the ring finds no
 spot (nothing is queued) and for a Militia (the Civilian cast), neither reached by a builder this lobby picks.
+
+## 145. Reserved for item 1535 (Toughest's closing state, frame 15432)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

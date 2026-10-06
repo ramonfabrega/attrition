@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1528, 2026-10-06 — Toughest's close
+
+(1536) **What 1528 left standing at Toughest's close**: `group_id` for
+an army (slot → `who × 64 + pool`) — run668's 72 standing
+`order:group.id` keys and every `GROUPORDER` id in every capture; the
+single keys on 15401 (leader 0's `production_step`) and 15421 (group
+68's `speed`/`new_speed`); `city_reduced`'s building-shooter arm; and
+`BuildData::hits`' training-time adjustment in `fresh`.
+
 ## Parked by item 1530, 2026-10-06 — the Missile Silo's site
 
 (1533) **`find_friends`' enhancer test**: ours reads `is_enhancer` (four
@@ -3703,6 +3712,14 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1537) **Two tool gaps from 1528** (its journal's Loop lines,
+2026-10-06): a decompile's `unaff_` operands hid a distance test's
+argument and a comment on `group_loc_to` asserted the wrong reading as
+"the listing's" (`0070c634`) — a tool printing each cited address
+range's listing beside the comment would re-read them mechanically; and
+`timeout` is absent on macOS, so a brief habit of `timeout 3000 cargo …`
+exits 127 with nothing useful. One reach.
 
 (1534) **A name the original spells once, defined twice in `sim`**
 (1530's Loop line, 2026-10-06): §129 replaced a five-ident
