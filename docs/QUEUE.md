@@ -24,7 +24,7 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   lane. The roster is the user's word of 2026-10-06: the mix runs once
   more, judged at the twenty-sixth pass, with 1464's trial and 1139.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): the French
-  pair closed on 1519; its `Coverage pair:` line is read by its own test.
+  pair closed on 1519; 1511 put its row in `AI_WORDS`, at 185.
 - **Built**: `lanewait` wakes on a push only when the row has stopped;
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
@@ -35,19 +35,19 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w177 of 4,730
+Coverage pair: EastIndiesPersianAllTech w185 of 4,730
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15378 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1511 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1530 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1511) and the third map's (1528); 1497 waits for a free lane,
-lower map first — closed, the French pair's; 1511's row moves it.
+pair's (1530) and the third map's (1528); 1497 waits for a free lane,
+lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
@@ -58,14 +58,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     change beside 0/2000's `reduce_stamp`, which nothing here writes.
     54 frames from the game's end (DECISIONS 55). No mechanism.
 
-1511. **The coverage pair's word: frame 177, 9 versus 8 draws**,
-    index 2: ours `Leader::make_stuff+0x221` three times, theirs twice
-    then `Guy::set_anim+0x97a` — `make_me` fills three Village slots
-    here (t 414: slots 0, 1, 9) against two. run660 (blocks 171..184).
-    Leader 1's `SITE` list since block 1 is a hypothesis (parked 1506).
-    No mechanism. The newest pair's word: it owes its `AI_WORDS` row
-    and `NEWEST_PAIR`, the row's window walked by the compared pin and
-    the coverage driver — run656's and run660's (621; parked 1513).
+1530. **The coverage pair's word: frame 185, 22 versus 22 draws in
+    another order**, index 8: ours `Leader::produce_building+0x1805`,
+    theirs `Leader::make_stuff+0x63d`; the count parts on 377. run669
+    widens it; the state first parts on block 183: Missile Silo 1/2021
+    at (36480, 41088) ours, (41088, 37248) theirs; 1/2002's
+    `gather_down` 14 against −1; on 186, `MAKE[2]`/`MAKE[3]`'s `t`
+    swapped. §129 left the Silo's own offer unread. No mechanism.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

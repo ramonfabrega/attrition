@@ -268,7 +268,9 @@ not that nothing did.
   viewer has explored and left counts double here.
 - `BuildData::is_seen`'s first two arms — the `visible` bitmask and
   infiltration — and `WallData::is_seen`'s own five: `reveal_map == 3`,
-  `leader_flags & 0x800`, owning a `TRANSPORTGALLEON`, and the
+  `leader_flags & 0x800`, ~~owning a `TRANSPORTGALLEON`~~ owning a
+  Fouché (`num_units[0x141]` is `TypeIndex` 371: the array starts at
+  `BASE_UNITTYPES`; `docs/AI.md` §141), and the
   city-between-two-humans arm. This crate reads the fog instead, which is
   the same stand-in `docs/GOODY.md` §7.2 makes for `ItemData::is_seen`.
 - The `LEADER_VALID` / `LEADER_ACTIVE` split. Every capture has two leaders
