@@ -279,16 +279,17 @@ fn run658_dates_the_gap_before_17171() {
     };
     pin_eq!(w.blocks, 40, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    // Item 1502: 172 — 171 standing on the first block, 17018 (run655's set
-    // with group 64's slots and `form`s moved, item 1493's zero-filled
-    // slots `group:64` 10 and `group:66` 0 agreeing, the group-move ids of the
-    // move both sides issued on 16882, `caras` and `tech_frame` taking new
-    // values in the original, and `1/69`, `1/71` and `1/83`'s attacks on
-    // Napata agreeing now that a building target the link table lacks is named);
+    // Item 1502: 167 — 166 standing on the first block, 17018, on the tree
+    // merged after 1496: run655's set with group 64's slots and `form`s
+    // moved, item 1493's zero-filled slots (`group:64` 10, `group:66` 0)
+    // and item 1496's five `tech_frame` keys agreeing, the group-move ids
+    // of the move both sides issued on 16882, `caras` taking a new value in
+    // the original, and `1/69`, `1/71` and `1/83`'s attacks on Napata
+    // agreeing now that a building target the link table lacks is named;
     // then `gather_stamp` on 17033, ours 16744 against 17032, the frame the
     // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
-    pin_eq!(w.firsts.len(), 172, "initial run658 baseline");
+    pin_eq!(w.firsts.len(), 167, "initial run658 baseline");
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -343,11 +344,11 @@ fn run657_s_word_frame_is_widened_whole() {
     // against 12; six on 17169, `1/80`'s guy 0 swinging at `0/2000` there
     // and walking here; one on 17170; five on 17171, `1/80`'s order; then
     // 16 on the word's block 17172 and 29 on 17174..17176.
-    // Item 1502: 235 → 230 on the tree merged after 1493 (whose own
-    // re-pin took 240 → 235). Five `order:target` rows were ours reading
+    // Item 1502: 230 → 225 on the tree merged after 1496 (1493 and 1496
+    // took 240 → 230). Five `order:target` rows were ours reading
     // `None` for an attack on Napata, a building the link table lacks;
     // `target_ids` names it by `(owner, index)` now, and the five agree.
-    pin_eq!(w.firsts.len(), 230, "initial run657 baseline");
+    pin_eq!(w.firsts.len(), 225, "initial run657 baseline");
 }
 
 #[test]
@@ -370,7 +371,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // 16852..16863. The 173 stand from the window's first block, 16851.
     // Item 1493: 173 → 170 on the tree merged after 1500 (army 65's siege
     // copy-back and the wider group-slot compare).
-    pin_eq!(w.firsts.len(), 170, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 165, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -415,7 +416,7 @@ fn run649_s_decision_frame_is_widened_whole() {
     // standing on the first block 15086 (the human's census, the rows
     // run642 also stands on); nothing on 15087..15090, the decision's block
     // 15089 among them.
-    pin_eq!(w.firsts.len(), 85, "run649 whole");
+    pin_eq!(w.firsts.len(), 80, "run649 whole");
 }
 
 #[test]
@@ -434,7 +435,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 107, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 102, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -481,7 +482,7 @@ fn run639_s_word_frame_is_widened_whole() {
     // held Pyramids, AI §124): `MAKE[8]` is Tikal at 1563477 on 14785 here
     // as there, and every row from 14785 leaves — what is left is the 93
     // standing on 14777.
-    pin_eq!(w.firsts.len(), 86, "initial run639 baseline");
+    pin_eq!(w.firsts.len(), 81, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -523,7 +524,7 @@ fn run636_s_word_frame_is_widened_whole() {
     // (`bucket`, `leftover`, `resources`, `income`, `rate`) leave: the
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
     // Item 1468: 128 → 94, as run635's.
-    pin_eq!(w.firsts.len(), 87, "initial run636 baseline");
+    pin_eq!(w.firsts.len(), 82, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -560,7 +561,7 @@ fn run635_s_word_frame_is_widened_whole() {
     // Item 1479: 119 → 118 — the `discovered` row was the French
     // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
     // Item 1468: 118 → 88; the same two groups on the French pair's trained squads.
-    pin_eq!(w.firsts.len(), 84, "initial run635 baseline");
+    pin_eq!(w.firsts.len(), 79, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -588,7 +589,7 @@ fn run634_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 85, "initial run634 baseline");
+    pin_eq!(w.firsts.len(), 80, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -616,7 +617,7 @@ fn run631_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
-    pin_eq!(w.firsts.len(), 85, "initial run631 baseline");
+    pin_eq!(w.firsts.len(), 80, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -646,7 +647,7 @@ fn run629_s_word_frame_is_widened_whole() {
     // Item 1457: 197 → 193; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 193 → 97; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 1461: 97 → 90; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 58, "initial run629 baseline");
+    pin_eq!(w.firsts.len(), 53, "initial run629 baseline");
 }
 
 /// run630: the muster before the word 10802 (item 1457).
@@ -676,7 +677,7 @@ fn run630_s_muster_window_is_widened_whole() {
     // Item 1461: 101 → 92; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
     pin_eq!(
         w.firsts.len(),
-        60,
+        55,
         "run630 after the members' come-out and the pushed slot's normalize"
     );
 }
@@ -709,7 +710,7 @@ fn run624_s_word_frame_is_widened_whole() {
     // Item 1458: 95 → 90; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        58,
+        53,
         "run624 after the Militia ramp and the French siege move"
     );
 }
@@ -741,7 +742,7 @@ fn run625_s_hoplite_frame_is_widened_whole() {
     // Item 1458: 95 → 90; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        58,
+        53,
         "initial run625 baseline: its standing keys on 9980"
     );
 }
@@ -773,7 +774,7 @@ fn run627_s_food_frame_is_widened_whole() {
     // Item 1458: 100 → 95; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        65,
+        60,
         "initial run627 baseline: its standing keys on 7776"
     );
 }
@@ -806,7 +807,7 @@ fn run623_s_word_frame_is_widened_whole() {
     // Item 1458: 92 → 87; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        53,
+        48,
         "run623 after the fifth city and `already_built`"
     );
 }
@@ -837,7 +838,7 @@ fn run622_s_word_frame_is_widened_whole() {
     // Item 1455: 96 → 95, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 95 → 93; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 93 → 88; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 54, "run622 after the gull's flight");
+    pin_eq!(w.firsts.len(), 49, "run622 after the gull's flight");
 }
 
 /// run617: the successor after `largest_gather`, frame 8840 (item 1451).
@@ -865,7 +866,7 @@ fn run617_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 111 → 110, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 110 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 73, "run617 after the idle push-back");
+    pin_eq!(w.firsts.len(), 68, "run617 after the idle push-back");
 }
 
 /// run616: the successor after the per-building queue, frame 8385 (item
@@ -894,7 +895,7 @@ fn run616_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 109 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 108 → 103; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 71, "run616 after the idle push-back");
+    pin_eq!(w.firsts.len(), 66, "run616 after the idle push-back");
 }
 
 /// run612: the successor after a wonder's start became first contact,
@@ -923,7 +924,7 @@ fn run612_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 106 → 104, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 104 → 99; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 67, "run612 after the idle push-back");
+    pin_eq!(w.firsts.len(), 62, "run612 after the idle push-back");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -952,7 +953,7 @@ fn run610_s_word_frame_is_widened_whole() {
     // Item 1455: 109 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 107 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 68, "run610 after the idle push-back");
+    pin_eq!(w.firsts.len(), 63, "run610 after the idle push-back");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -997,7 +998,7 @@ fn run613_s_contact_frame_is_widened_whole() {
     // Item 1455: 106 → 102, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 102 → 100; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 100 → 95; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 65, "run613 after the idle push-back");
+    pin_eq!(w.firsts.len(), 60, "run613 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -1080,7 +1081,7 @@ fn run620_s_ship_window_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1457: 86 → 84; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 84 → 83; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 65, "run620 after the idle push-back");
+    pin_eq!(w.firsts.len(), 60, "run620 after the idle push-back");
     // `form` is the standing new-unit residue (−1 here, 0 there) every
     // window carries for a unit born after the start; nothing else of
     // either ship parts.
@@ -1119,7 +1120,7 @@ fn run618_s_boarding_window_is_widened_whole() {
     // Item 1455: 112 → 111, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 111 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 109 → 104; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 72, "run618 after the idle push-back");
+    pin_eq!(w.firsts.len(), 67, "run618 after the idle push-back");
 }
 
 /// run615: the builder `1/51`'s birth beside the wonder, blocks
@@ -1149,7 +1150,7 @@ fn run615_s_birth_window_is_widened_whole() {
     // Item 1455: 109 → 105, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 105 → 103; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 103 → 98; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 66, "run615 after the idle push-back");
+    pin_eq!(w.firsts.len(), 61, "run615 after the idle push-back");
     // **The recruit at birth** (item 1449): city `1/2008` trains citizen
     // `1/51` on frame 7962, the wonder `1/2022` recruits it on its phase the
     // same frame, and it walks to the original's spot. With the queues in a
@@ -1189,7 +1190,7 @@ fn run614_s_builder_window_is_widened_whole() {
     // Item 1455: 111 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 108 → 106; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 106 → 101; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 69, "run614 after the idle push-back");
+    pin_eq!(w.firsts.len(), 64, "run614 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -1209,7 +1210,7 @@ fn run611_s_contact_window_is_widened_whole() {
     // Item 1455: 110 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 107 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 68, "run611 after the idle push-back");
+    pin_eq!(w.firsts.len(), 63, "run611 after the idle push-back");
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
@@ -1240,7 +1241,7 @@ fn run603_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1458: 97 → 93; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 65, "run603 after the idle push-back");
+    pin_eq!(w.firsts.len(), 60, "run603 after the idle push-back");
     assert!(
         !w.firsts.keys().any(|(who, o, field)| *who == 1
             && ((*o == 45 && field == "extra")
@@ -1303,12 +1304,13 @@ fn run609_s_closing_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 110 → 108; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    // Item 1502: 100 → 85. Fifteen `order:target` rows on 5633 (`1/9`..
+    // Item 1502: 95 → 80 on the tree merged after 1496 (whose own re-pin
+    // took 100 → 95). Fifteen `order:target` rows on 5633 (`1/9`..
     // `1/23`) were ours reading `None` for an attack on `0/2000`, a
     // building the link table lacks; named by `(owner, index)`, they agree.
     pin_eq!(
         w.firsts.len(),
-        85,
+        80,
         "run609 closing residue, not whole-record parity"
     );
 }
@@ -1325,7 +1327,7 @@ fn run602_s_word_frame_is_widened_whole() {
         "all record keys are read: {:?}",
         w.missing
     );
-    pin_eq!(w.firsts.len(), 55, "run602 after French worker capacity");
+    pin_eq!(w.firsts.len(), 52, "run602 after French worker capacity");
     assert!(
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2010)),
         "the preserved camp agrees in every compared field"
@@ -1351,7 +1353,7 @@ fn run601_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 71 → 69; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    pin_eq!(w.firsts.len(), 64, "run601 after ruins placement");
+    pin_eq!(w.firsts.len(), 60, "run601 after ruins placement");
     pin!(
         w.firsts.keys().all(|(who, _, field)| *who != 1
             || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),

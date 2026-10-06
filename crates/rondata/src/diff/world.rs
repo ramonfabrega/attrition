@@ -393,9 +393,12 @@ mod tests {
     /// iteration, by the stride as it stood before the body ran, where
     /// the original steps it at the bottom by the stride the body has
     /// just set (`docs/AI.md` §20). One cell, one candidate, one draw.
-    /// A `Unit::do_non_flat_gather+0x54b` is still short, so the frame
-    /// reads 44 against 45; that residue is asserted as it stands so that
-    /// closing it shows up as a failure.
+    /// A `Unit::do_non_flat_gather+0x54b` was short, so the frame read 44
+    /// against 45; **item 1496 closed it**: `Setup::build_units` step 4
+    /// (`docs/ORDERS.md` §9.3) gives a citizen the stopping object cannot
+    /// take the woodcutter while it has room, an order the harness did not
+    /// give; removing the step restores 5 against 4 (`tools/mutate.py`,
+    /// this test fails).
     #[test]
     fn the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well() {
         let Some(inst) = install() else { return };
@@ -440,10 +443,10 @@ mod tests {
                 count(&theirs, sim::orders::SITE_TILE_WAIT),
                 count(&ours, sim::orders::SITE_TILE_WAIT),
             ),
-            (5, 4),
-            "and one citizen picks no tile — still open"
+            (5, 5),
+            "and the citizen that picked no tile does: item 1496's §9.3 step 4"
         );
-        assert_eq!(ours.len(), 44, "so the frame is 44 against 45");
+        assert_eq!(ours.len(), 45, "so the frame is 45 against 45");
     }
 
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on

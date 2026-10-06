@@ -34,7 +34,11 @@ pub(crate) struct Pair {
     /// The trace's last frame: the frame the game ended on.
     pub length: i64,
     /// The first parting, first try: the frame the draw count parts on and
-    /// the frame the draw sequence parts on.
+    /// the frame the draw sequence parts on. **Item 1496 moved it from frame
+    /// 0 (195 draws ours against 198, index 26) to frame 8 (21 against 24,
+    /// index 2: ours `Leader::make_stuff+0x63d`, theirs `Leader::
+    /// produce_building+0x1805`)** — the original's Oil Well on the AI's
+    /// make list, which this crate never places (`docs/AI.md` §129).
     pub count: i64,
     pub sequence: i64,
 }
@@ -52,8 +56,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 0,
-    sequence: 0,
+    count: 8,
+    sequence: 8,
 };
 
 /// **The pair's first parting**, walked from its own start: the frame the
@@ -178,6 +182,61 @@ fn coverage_pair_start_owns_every_age() {
     }
 }
 
+/// **The lobby's three settings reach the start** (item 1496, `docs/AI.md`
+/// §129), each read off run651's own block 1 and none of them a Standard
+/// start's: the `startingresources` row (`Deathmatch`, `100`/`100`) that
+/// prices both leaders' stockpiles, the hit points a citizen is born with
+/// under an all-technology start (85, the Militia line's, against the
+/// type's 40), and `Setup::build_units`' steps 3 and 4 for the citizens
+/// past the farm list — `starting_resources == 7` adds eight, and of the
+/// thirteen two stand at the woodcutter, three at the farms, **four more at
+/// the woodcutter until it holds its six**, and four are placed idle.
+#[test]
+fn coverage_pair_start_pays_its_lobby() {
+    let (Some(inst), Some(path)) = (crate::testenv::install(), dump(COVERAGE.start)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    assert_eq!(loaded.starting_resources.get(1), Some(&(1, 1)), "Standard");
+    assert_eq!(
+        loaded.starting_resources.get(7),
+        Some(&(100, 100)),
+        "Deathmatch"
+    );
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = log.initial().expect("a start dump");
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    assert_eq!(built.sim.lobby.starting_resources_row, (100, 100));
+    // Nubians' food is the table's own; the Persians' is half as much again
+    // (`PERSIANS_BONUS_FOOD`, `Leader::init`).
+    assert_eq!(
+        built.sim.ledgers[0].bucket,
+        [20000, 20000, 20000, 10000, 20000, 20000]
+    );
+    assert_eq!(
+        built.sim.ledgers[1].bucket,
+        [30000, 20000, 20000, 10000, 20000, 20000]
+    );
+    for who in 0..2u8 {
+        for o in 1..=13i16 {
+            let u = built.sim.unit_by_o(who, o).expect("a starting citizen");
+            let un = &built.sim.units[u];
+            assert_eq!(
+                un.max_health, 85,
+                "who {who} citizen {o}: the Militia line's hits"
+            );
+            // Citizens 1..=9 are ordered (two, three, four at the woodcutter
+            // and farms); the last four are `place_unit`'s idle ones.
+            assert_eq!(
+                !un.orders.is_empty(),
+                o <= 9,
+                "who {who} citizen {o}: a gather order only while the woodcutter has room"
+            );
+        }
+    }
+}
+
 /// run651's own blocks, 0 and 1: the start dump's whole records, which is
 /// where frame 0's word lives (`docs/AI.md` §127).
 pub(crate) const WIDENING_COVERAGE_START: (i64, i64) = (0, 1);
@@ -210,7 +269,9 @@ fn run651_s_word_frame_is_widened_whole() {
         "every captured block: the start dump's block 1"
     );
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    // Item 1466, on the tree at base 4b29c0d7 plus the lobby's age: **226**
+    // Item 1496 (the lobby's stockpile row, the all-technology start's
+    // hit points and §9.3's woodcutter fill): **87**, of which 48 are the
+    // control's. Item 1466, on the tree at base 4b29c0d7 plus the lobby's age: **226**
     // keys part on block 1, against **48** for the scored French start's
     // own block 1 (run595, the control: its `form`, the leaders' `SITE`
     // `reg`s and city terrain, which every lobby parts on). The 178 the
@@ -220,5 +281,44 @@ fn run651_s_word_frame_is_widened_whole() {
     // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
     // order's `been_there`/`wait` and `idle`, and a move order and its
     // path. The word's own draw delta is §127's.
-    pin_eq!(w.firsts.len(), 226, "initial run651 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run651 baseline");
+}
+
+/// run656, item 1496: the lobby's first 33 blocks at the long's detail
+/// (`LEADERS=9`, `BUILDS=7`, `UNITS=3`), so frame 8's word has records.
+pub(crate) const RUN656: &str = "gamelog-run656-eastindies-persian-alltech-window-1-33.txt";
+
+/// The window: block 1 through 33; the word's own block is 9.
+pub(crate) const WIDENING_COVERAGE_FRAME_8: (i64, i64) = (1, 33);
+
+pub(crate) fn coverage_frame_8_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run656",
+        &[(RUN656, 1)],
+        WIDENING_COVERAGE_FRAME_8,
+        1,
+        &[9],
+        true,
+    )
+}
+
+#[test]
+fn run656_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_frame_8_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 33, "every captured block");
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496): both are the animals' clocks, which agree on every draw
+    // the walk compares.
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 364, "initial run656 baseline");
 }

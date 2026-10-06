@@ -14838,6 +14838,32 @@ SHA-256 `782ff5dc441e9f5d29f78af24d7c79d48551aecf0fa58a661b2d512535fab13f`.
 the closing state is what §127's measured rows read (21 `AIRORDER`, 15 `AIRPATROLORDER`, 6 `STRAFEORDER`, 18 unit types
 and 14 building types no same-recipe closing holds).
 
+## run656 — the coverage pair: East Indies, Persians, All Technologies, the first 33 blocks at the long's detail (2026-10-06, item 1496)
+
+**Disk gap**: run651 holds whole records of blocks 0, 1, 36 and 37 only and run652 the draw stream and the closing state, so no
+dump of this lobby held the make list, the buildings or the research queue between frames 2 and 35 — what frame 4's research
+(`tech_frame` 4) and frame 8's purchases needed. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 40 --timeout 1800 --log-window 1 34 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,GROUPS=1
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`.
+
+**The runner exited with a traceback, and the capture is whole.** `unattended_capture.py` verified the dump after the game and
+raised `ValueError: GROUPS was asked for and no GROUPDATA block was printed (parked 735)` — no group exists in the first
+33 frames — *after* the game had quit and `Restored backed-up settings; capture outputs retained` had printed. No receipt
+line was printed, `waitrun.sh` exited 0, and the files were checked by hand instead. `gamelog.txt` 58,237,144 bytes, whole
+blocks `1`..`33` (about 65,000 lines each) and a two-line `BEGIN FRAME 41` stub, `MAP_STYLE 18`, `DIFFICULTY 5`,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 8` read back; `rngcmp.py rontrace-run652.log rontrace-run656.log`: **41 frames in
+common, 0 differing**. Lane free before and after; one take.
+
+Archive `gamelog-run656-eastindies-persian-alltech-window-1-33.txt`, 58,237,144 bytes,
+SHA-256 `945f89b59a7be8f940a535077cdcad96296f7ecbf3ff3ff9d3bf42bad080853d`.
+
+Archive `rontrace-run656.log`, 9,922,432 bytes,
+SHA-256 `178ec8a0734389fc314d013960b5eceef0d2661f8efc9b233d9d7fa2667a792a`.
+
+**What it holds**: `diff::coverage_pair::run656_s_word_frame_is_widened_whole` — block 5 (the Missile Shield research, `tech_frame`
+4), block 8 (the make list) and block 9 (frame 8's six purchases, among them the Oil Well on `2008`). The next time this lobby
+needs a window, `--detail` without `GROUPS=1` avoids the traceback (parked).
+
 ## run649 — French East Indies, a packet at logger frame 15088 (2026-10-06, item 1487)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run649-booking.json`,

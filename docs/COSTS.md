@@ -1202,11 +1202,15 @@ a capture has one.
   before the gain, **not** a zero bucket. run40's 240 `bucket` rows on goods
   3, 4 and 5 are 0.
 
-  What is still unread is the `lo`/`hi` table
+  ~~What is still unread is the `lo`/`hi` table
   `Game::init_starting_resources@0058a500` indexes with the lobby's
   `starting_resources`. Only row 1 is modelled, and only because every
   capture on disk plays it and run40 measures it as the unscaled constant; a
-  capture on any other row would be the first to test the rest.
+  capture on any other row would be the first to test the rest.~~ **Read**
+  (item 1496, `docs/AI.md` §129): the table is rules.xml's `startingresources`
+  (`lo` and `hi` per row), and run651 is the first capture on another row —
+  Deathmatch, `100`/`100`, 20000/20000/20000/10000/20000/20000. The spread
+  rows (9..11) are still unmodelled.
 - ~~**What writes `escrow_rate`.**~~ `Leader::plan_strategy`'s census,
   40 once the leader holds more than two cities (`docs/AI.md` §2.3 step 1);
   the escrow's feed and the producers' flag are §98.

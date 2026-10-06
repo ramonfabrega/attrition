@@ -116,6 +116,10 @@ pub struct Loaded {
     /// `Category.data[0]` (`+0x3c`), which `GameInfo.wonderwin` indexes:
     /// the wonder victory's points, 9999 for "No Wonder Victory".
     pub wonder_wins: Vec<i32>,
+    /// rules.xml's `startingresources` category rows' two `DATA` values in
+    /// file order — `Category.data[0]`/`[1]` (`+0x3c`/`+0x40`), the `lo` and
+    /// `hi` `Game::init_starting_resources` indexes by `STARTING_RESOURCES`.
+    pub starting_resources: Vec<(i32, i32)>,
     /// rules.xml's `popwins` category rows' `DATA` in file order, which
     /// `GameInfo.popwin` indexes: the territory victory's share of the
     /// world's land, in percent (`GameDaemon::process_victory`).
@@ -1849,6 +1853,23 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        starting_resources: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "startingresources")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| {
+                        let mut data =
+                            r.fields.iter().filter(|f| f.tag == "DATA").map(|f| {
+                                Scalar::parse(f.text.trim()).map_or(0, Scalar::written_int)
+                            });
+                        (data.next().unwrap_or(0), data.next().unwrap_or(0))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
         pop_wins: rules
             .categories
             .iter()
@@ -2575,6 +2596,7 @@ mod tests {
             warnings: vec![],
             map_styles: vec![],
             wonder_wins: vec![],
+            starting_resources: vec![],
             pop_wins: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),

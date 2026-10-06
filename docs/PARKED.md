@@ -52,6 +52,14 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1496, 2026-10-06 — the coverage pair's start
+
+(1506) **who=1's `SITE` list on run651's block 1**: ours holds a tenth
+site (40, 47) the original does not list, and values (44, 51) at 2499
+against 2000 — 39 keys beyond the control's 48. It names no score;
+block 8 agrees without it. (And run159's window first parts `tech_frame`
+on 11583 only if the unit-research stamp is removed: no action.)
+
 ## Parked by item 1493, 2026-10-06 — the siege sub-group's copy
 
 (1504) **Army 65's `speed` and `role`**: the original's `group:65.speed`
@@ -3730,7 +3738,9 @@ gap the seam scan did not print, and it parted who=1's timber rate
 for 1,800 frames. And 1481's: stubs written "reads 1" or
 "reads empty" are missed the same way. And 1500's: a `SEAM` that argues
 "unreachable" (`Unit::move_step`'s CHAR_DEFAULT snap) was reachable and
-parted the word; such a seam could carry a `scan:`.
+parted the word; such a seam could carry a `scan:`. And 1496's: a comment
+that says a field is "written only by `Leader::init`" (`tech_frame`)
+was false; an "only" about a field is a claim for `--unwritten`.
 
 (1488) **`ron_lane_state` exits 0 when the lane is held** (1481's Loop
 line, 2026-10-06): `ron_lane_state && launch` launches anyway; the
@@ -3763,13 +3773,19 @@ both refs agrees after the push would catch it.
 under `~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/` entered
 the original's `plan_strategy` on a `RON_STATE_FRAME` packet; a packet
 tile-mask and cell diff; and `repin.py`, which left 50 of 131 sites to
-re-pin by hand.
+re-pin by hand. And 1496's: `repin.py` misses a `want` after a
+comment line "not a literal" — thirty sites took a script.
 
 (1498) **The coverage pair has no scoreboard line** (the commander,
 2026-10-06, at 1466's merge): its count and sequence are pinned in
 `diff::coverage_pair`, outside `FLOORS`, `AI_WORDS` and the handoff's
 parse; whether it becomes a scored pair, a lane of its own, or the
 newest pair's lane under the roster's Opus clause is the pass's to rule.
+
+(1507) **`unattended_capture.py` exits like a failure after a good
+short window** (1496's Loop line, 2026-10-06): it raises `GROUPS was
+asked for and no GROUPDATA block was printed` (parked 735) when the
+window ends before any group exists; the check could skip there.
 
 (1501) **A booking's "the original's alone" was false on its own
 widening** (1487's Loop line, 2026-10-06): the commander booked 1487
