@@ -435,7 +435,27 @@ impl Sim {
         let Some(sw) = self.build_sweep(b) else {
             return 0;
         };
+        // **The whole-disc call makes its own `+0x164` first**
+        // (`Object::update_seen@00651b80`: `param_1 == 0` and `visible != 0`,
+        // or a started visible wonder; twenty-fourth pass, group 19; A8 row
+        // 10), so a finished wonder is relit `0xff` after every clear, as the
+        // unit twin does.
+        if self.buildings[b].visible != 0
+            || (self.buildings[b].started && self.is_visible_wonder(b))
+        {
+            self.update_local_seen_build(b);
+        }
         self.write_sweep(&sw, who)
+    }
+
+    /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
+    /// flag and not a fort type (group 5).
+    fn is_visible_wonder(&self, b: usize) -> bool {
+        self.buildings[b].ty.is_some_and(|ty| {
+            self.build_types[ty].wonder
+                && !crate::build::is_city(&self.build_types, ty)
+                && !crate::build::is_fort(&self.build_types, ty)
+        })
     }
 
     // ------------------------------------------------------------------
@@ -555,9 +575,10 @@ impl Sim {
             return;
         }
         self.world.clear_seen();
-        for u in 0..self.units.len() {
-            self.update_seen(u, false);
-        }
+        // **The buildings come before the units** (`GameDaemon::update_all_seen
+        // @00732840`: the building loop closes before the unit loop;
+        // twenty-fourth pass, group 18; A8 row 12). Every write is an OR, so
+        // only `reveal_fog`'s order of discovery can show it.
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
             if bd.alive && bd.active {
@@ -565,6 +586,9 @@ impl Sim {
             } else if bd.alive && bd.started && bd.ty.is_some_and(|t| self.build_types[t].wonder) {
                 self.update_local_seen_build(b);
             }
+        }
+        for u in 0..self.units.len() {
+            self.update_seen(u, false);
         }
     }
 
@@ -674,7 +698,10 @@ impl Sim {
         let mut greet = Vec::new();
         for w in 0..self.players.len().min(8) {
             let o = w as crate::Player;
-            if o == who || self.defeated.get(w).copied().unwrap_or(false) {
+            // `leaders[o].leader_flags & 1` is a slot in use, and a defeat
+            // clears only bit 1 (`Leader::defeat@006ecb00:63`): a defeated
+            // leader is still met (twenty-fourth pass, group 6; A8 row 15).
+            if o == who {
                 continue;
             }
             let m = self.seen_ally_mask(o);
@@ -761,8 +788,10 @@ impl Sim {
     /// test is `is_wonder() && !(flags & 0x20) && !type->is_fort()`, and
     /// on it `set_seen2`'s `param_4` is 0 — `seen` as well as `seen2` —
     /// whether or not the wonder is started; a started one's mask is
-    /// `0xff`, every player at once. The city flag and the fort test cannot
-    /// hold for a wonder, so `BuildData::is_wonder` alone decides. Because
+    /// `0xff`, every player at once. **The city flag and the fort test can
+    /// hold for a wonder in the range** — the Forbidden City is `FROM Small
+    /// City` — and then it is written as an ordinary building is
+    /// (twenty-fourth pass, group 5). Because
     /// it reaches `seen`, a wonder lit this way is taken into its own and
     /// its neighbours' `ever_seen` at their owner's next
     /// [`Sim::check_ever_seen`] — which is how a wonder the enemy has never
@@ -782,7 +811,14 @@ impl Sim {
         }
         // `ObjectData::visible` (`+0x40`) is the third term of the mask;
         // `Build::do_attack` writes it after a round (`docs/GOLDEN.md` §59).
-        let wonder = self.build_types[ty].wonder;
+        // `is_visible_wonder` (`ObjectData::is_visible_wonder@00471130`): a
+        // wonder **without** the city flag and not a fort type. The Forbidden
+        // City is in the wonder range and is `FROM Small City`, so `is(VILLAGE)`
+        // holds for it and it takes the ordinary branch (twenty-fourth pass,
+        // group 5; A8 row 4).
+        let wonder = self.build_types[ty].wonder
+            && !crate::build::is_city(&self.build_types, ty)
+            && !crate::build::is_fort(&self.build_types, ty);
         let mask = if wonder && self.buildings[b].started {
             0xff
         } else {
@@ -1014,6 +1050,61 @@ mod tests {
         assert_eq!(lit_for_all(&s), 0);
         s.check_ever_seen(b, false);
         assert!(!s.has_met(0, 1), "no contact from an ordinary start");
+    }
+
+    /// **A wonder with the city flag is not a visible wonder** (twenty-fourth
+    /// pass, group 5; A8 row 4): the Forbidden City is in the wonder range and
+    /// `FROM Small City`, so `is(VILLAGE)` holds and `update_local_seen`
+    /// writes it as an ordinary building — `seen2` only, never `0xff`. A fort
+    /// type takes the same branch.
+    #[test]
+    fn a_city_flagged_wonder_is_not_first_contact() {
+        for as_fort in [false, true] {
+            let (mut s, b) = site(true);
+            let root = s.add_build_type(crate::build::BuildType {
+                ident: if as_fort {
+                    crate::build::Ident::Fort
+                } else {
+                    crate::build::Ident::Village
+                },
+                ..crate::build::BuildType::default()
+            });
+            let t = s.buildings[b].ty.unwrap();
+            s.build_types[t].from = Some(root);
+            s.start_building(b);
+            assert_eq!(lit_for_all(&s), 0, "no seen-plane write, fort={as_fort}");
+            s.check_ever_seen(b, false);
+            assert!(!s.has_met(0, 1), "no first contact, fort={as_fort}");
+        }
+    }
+
+    /// **The meet loop gates on a slot in use, not on "not defeated"**
+    /// (group 6; A8 row 15): a leader that has been defeated is met by a
+    /// building it sees.
+    #[test]
+    fn a_defeated_leader_is_still_met() {
+        let (mut s, b) = site(true);
+        s.defeated[0] = true;
+        s.start_building(b);
+        s.check_ever_seen(b, false);
+        assert!(s.has_met(0, 1), "the defeated bit is not leader_flags & 1");
+    }
+
+    /// **A finished wonder is relit after every clear** (group 19; A8 row
+    /// 10): the whole-disc call makes its own `+0x164` first for a started
+    /// visible wonder, so its grown footprint carries every player's bit.
+    #[test]
+    fn a_finished_wonder_is_relit_after_the_clear() {
+        let (mut s, b) = site(true);
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        s.update_all_seen();
+        assert_eq!(lit_for_all(&s), 16, "the finished wonder's footprint");
+        let (mut s, b) = site(false);
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        s.update_all_seen();
+        assert_eq!(lit_for_all(&s), 0, "an ordinary building is not");
     }
 
     /// **§6.4: the resync relights a wonder under construction** and lights

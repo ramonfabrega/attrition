@@ -998,6 +998,12 @@ pub struct Lobby {
     pub difficulty: i32,
     /// `STARTING_TOWN`: 0 nomad, 1 Small, 2 Small Town, 3 Large Town …
     pub starting_town: i32,
+    /// `Game::start_list` (`+0x65c`), which the Game record prints as eight
+    /// `start_list` lines: a permutation of the eight seats the game
+    /// shuffles at start (`1 0 3 2 5 4 7 6`, `4 7 6 1 0 3 2 5`, … — 29 kept
+    /// dumps). `start_index` is its inverse. Only `team_style == 2` reads
+    /// it ([`crate::Sim::start_list_target`]); the identity is the default.
+    pub start_list: [usize; 8],
     /// `STARTING_RESOURCES`: the row; 8 is the unlimited-style lobby that
     /// skips the script and buys after every step.
     pub starting_resources: i32,
@@ -1036,6 +1042,7 @@ impl Default for Lobby {
             map_style_name: "Great Lakes".to_string(),
             difficulty: 0,
             starting_town: 2,
+            start_list: [0, 1, 2, 3, 4, 5, 6, 7],
             starting_resources: 1,
             starting_resources2: 1,
             game_rules: 1,

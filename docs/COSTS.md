@@ -210,8 +210,8 @@ to it — which is what this crate did until 2026-08-30 — prices the second at
 (`rondata::diff`, `run40_s_census_prices_the_ai_s_second_city_at_sixty`;
 the AI's own buckets fall by exactly sixty of each when it buys).
 
-The count is the building arm's own, too: `num_units[t] + num_queued[t]`
-read as two `u16` arrays off the leader, with no `PROGRESSION` shaping —
+The count is the building arm's own, too: `num_buildings[t] + num_queued[t]`
+(`+0x5222` and `+0x5a22`; not `num_units`, A1 row 40) read as two `u16` arrays off the leader, with no `PROGRESSION` shaping —
 see "What is not established" for the per-family steps above it, which no
 capture has yet exercised.
 
@@ -489,9 +489,10 @@ shape carries no information and the predicates do:
   Americans on aircraft and upgrades, the British on anti-air, the Nubians on
   merchants, the Russians on spies, the Romans on legions and forts, the Turks
   on citizens, the Koreans on towers, the Iroquois on senates, the Indians on
-  elephants, the Dutch on ships, the Bantu on cities, the Egyptians on wonders
+  elephants, the Dutch on ship **upgrades** (military-role upgrade prices only; the file's "10% cheaper ships" is not a production discount, A1 row 51), the Bantu on cities, the Egyptians on wonders
   and on scholars — where the Egyptian bonus does not discount at all but
-  *swaps the resource index*, charging food where the file wrote wealth.
+  *swaps the resource index*, charging food where the file wrote wealth
+  (**inert as shipped**: `EGYPTIAN_SCHOLARS_FOOD` is 0, A1 row 72).
   (The French siege arm is built as of item 1460; see "A French siege unit
   costs less".)
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
@@ -522,7 +523,7 @@ shape carries no information and the predicates do:
   `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
   nine tenths, so Salt is worth 10% and the constant is decoration.
 - **Governments.** Despotism has three tiers on barracks units, Monarchy two on
-  stable units, Socialism one on siege, aircraft and ships, Democracy two on
+  stable units (**one** `MONARCHY_UNIT_PROD` on either tier; `..._PROD2` is never read, A1 row 56), Socialism one on siege, aircraft and ships, Democracy two on
   research. Each uses the highest held tier, not compounded tiers.
   Democracy's non-library term is built; see `docs/AI.md` §109 for the
   rule, run574's paid-price diff, and the remaining review debt.
@@ -552,8 +553,8 @@ Three that are not the standard shape, and are the interesting ones:
   percent, and two or more ages behind is `100 - 2 * TECH_AGE_BEHIND_DISCOUNT`.
   The knowledge component uses its own constant, twice the size. Shipped, that
   is 10% and 20% behind by one age, 20% and 40% behind by two.
-  `TECH_COLOR_BEHIND_DISCOUNT` is the same idea against the library's tech
-  colours.
+  `TECH_COLOR_BEHIND_DISCOUNT` is **never read**: `Constants::init` is its only
+  reference in the export (A1 row 62).
 - **Science cheapens every technology, and can make one dearer.**
   `LeaderData::calc_science_discount` subtracts
   `(science_level - age) × TECH_SCIENCE_DISCOUNT × cost / 100`, where
@@ -690,7 +691,7 @@ on one purchase: Great Sahara's Militia research at `1/2014` on run416's
 your existing army's size: refitting thirty knights into cuirassiers is charged
 for. The halving is the interesting clause — if the old unit was free in this
 resource, the difference is the new unit's whole price and the engine charges
-half of it. The citizen types 0x42–0x44 skip the loop entirely.
+half of it. Types 0x42–0x44 — Militia, Minuteman, Partisan, not citizens — skip the loop entirely.
 
 **Which loop runs when is now settled**, and it is the fork itself: the
 bump-while-queued loop is the *available* arm and the refit loop is the *not
@@ -1226,7 +1227,7 @@ a capture has one.
   past eight, `+4n−48` past twelve; forts `n → 2n−1` past one, then `+n−3`,
   `+n−5`, `+n−7`; the city count is all three city types, queued and built; the
   wonder count is twice your own with team adjustments and its ramp is halved;
-  and the Indians zero the ramp on everything but forts. It is recorded here
+  and the Indians halve the ramp (`(v+1)/2`) on non-city wonders and thirteen defence types — forts, towers, lookouts, air defences — and zero it on every other non-city building (A1 row 43). It is recorded here
   rather than in the body because neither reader has derived it line by line,
   and nothing in `crates/sim` builds buildings yet.
 - **`MIN_POP_LIMIT` and `MAX_POP_LIMIT`.** Loaded into `Constants` and not

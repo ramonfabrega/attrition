@@ -4880,8 +4880,11 @@ mutations are item 1113's journal.
 ## 35. Stabling queries type indices (item 1435, 2026-10-01)
 
 *Implementation correction, item 1435*: the stabling query resolves both
-objects' type indices before calling `can_garrison`. Object indices are
-not type indices; run346's longer replay exposed that bounds error.
+objects' type indices before calling `can_garrison` — **`UnitTypeData::
+can_garrison@0061d7d0`**, the type-index one; the original's call
+(`action_move_near:844`) passes object indices to `UnitData::can_garrison`, which resolves the types itself (twenty-fourth pass, A5 #51).
+Object indices are not type indices; run346's longer replay exposed that
+bounds error.
 Typeless objects take the nearby-move fallback. The hurrying-army test
 uses distinct object/type indices and exercises both outcomes (ARMY §25).
 

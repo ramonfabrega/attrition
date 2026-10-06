@@ -970,7 +970,7 @@ mod tests {
         let due = (ROTATION - o).rem_euclid(ROTATION);
         sim.buildings[b].regen_roads = true;
         let before = sim.rng.seed;
-        sim.process_building(b, due);
+        sim.process_building_whole(b, due);
         assert_eq!(sim.rng.seed, before, "a site spends no road-cost draw");
         assert!(
             sim.buildings[b].regen_roads,
@@ -980,7 +980,7 @@ mod tests {
         // not the schedule.
         finish(&mut sim, b);
         sim.buildings[b].regen_roads = true;
-        sim.process_building(b, due);
+        sim.process_building_whole(b, due);
         assert!(
             sim.rng.seed != before,
             "an active building replans on that same frame"

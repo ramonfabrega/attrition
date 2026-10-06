@@ -2750,6 +2750,16 @@ impl Sim {
         {
             return None;
         }
+        // The shortcut sits behind `find_melee_target@005ff9c0`'s own exit:
+        // a captain that is not on duty and holds fire (`get_combat_stance()
+        // > 4`, `LAB_005ffbb2`) returns −1 before `find_nearby_target` runs
+        // (twenty-fourth pass, group 10; A6 row 18).
+        if self.units[u].captain
+            && self.units[u].combat.stance == combat::Stance::HoldFire
+            && !self.on_duty(u)
+        {
+            return None;
+        }
         let slot = self.army_of(u)?;
         let target = self.armies[who as usize].list.get(slot)?.target?;
         if !self.valid_target(Obj::Unit(u), target)
@@ -7558,7 +7568,10 @@ impl Sim {
 
     /// `BuildData::num_gatherers(arrived, skip_decoys)`: the garrisoned
     /// gatherers of a university or platform, plus the chain members that
-    /// are gathering here. `calc_gather` calls it `(1, 1)`.
+    /// are gathering here. `calc_gather` calls it `(1, 1)`. `skip_decoys`
+    /// turns the garrison term's `count_inside` mode from `COUNT_TYPE` (17)
+    /// to `COUNT_NON_DECOY_TYPE` (19) as well as filtering the chain (A7
+    /// row 28, twenty-fourth pass).
     pub fn num_gatherers(&self, b: usize, arrived: bool, skip_decoys: bool) -> i32 {
         let ident = self.building_ident(b);
         let mut n = 0;
@@ -7572,6 +7585,7 @@ impl Sim {
                 .garrison
                 .iter()
                 .filter(|&&u| self.worker_of(u) == want)
+                .filter(|&&u| !(skip_decoys && self.units[u].decoy))
                 .count() as i32;
         }
         n += self.buildings[b]

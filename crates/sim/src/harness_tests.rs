@@ -782,9 +782,32 @@ fn income_buys_a_citizen_and_the_next_one_costs_more() {
     assert_eq!(sim.price_of(0, citizen)[food], 22);
     assert_eq!(sim.ledgers[0].bucket[food], purse - 41);
 
-    // And they are real units, standing where they were put.
+    // And they are real units, standing where they were put — snapped to
+    // the 48-grid's cell centre, as `Unit::init` births every unit
+    // (twenty-fourth pass, group 17).
     assert_eq!(sim.units.len(), 2);
-    assert!(sim.units.iter().all(|u| u.alive() && u.pos == at));
+    let snapped = Pos::new(gaia::init_snap(at.x), gaia::init_snap(at.y));
+    assert!(sim.units.iter().all(|u| u.alive() && u.pos == snapped));
+}
+
+/// **Every unit is born on the 48-grid's cell centre, and a negative
+/// coordinate floors** (twenty-fourth pass, group 17; A3 rows 2 and 3):
+/// `Unit::init@00612100:68-73` snaps with no predicate, and `div_3_table[−1]`
+/// is −1, so −10 is −24.
+#[test]
+fn every_unit_is_born_snapped_and_a_negative_point_floors() {
+    assert_eq!(gaia::init_snap(0), 24);
+    assert_eq!(gaia::init_snap(47), 24);
+    assert_eq!(gaia::init_snap(48), 72);
+    assert_eq!(gaia::init_snap(-10), -24, "the floor, not the truncation");
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let u = sim.init_unit(0, citizen, Pos::new(96, 144));
+    assert_eq!(
+        sim.units[u].pos,
+        Pos::new(120, 168),
+        "a trainer's own point"
+    );
 }
 
 #[test]

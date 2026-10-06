@@ -52,6 +52,21 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1468, 2026-10-06 — the twenty-fourth pass's verdicts
+
+(1483) **Group 15 row 9, an equal push onto an army's `last_group`
+slot**: built, it moved golden chapter 41 from 1100 to 732 (ours 6
+draws against 5, index 0: `Guy::set_anim+0x97a < Unit::move_step+0x823`
+against `Farms::inc_time+0x1ae`). Removed; the refusal is a comment in
+`Sim::push_group`. Booked by that frame and draw delta.
+
+(1484) **ch35 and ch36's `2675 0/12 dest_angle`**: the V2's heading in
+flight, ours −559153152 against −584187904, from group 17's snap —
+pinned by 1468, a new row; no draw parts on it.
+
+(1486) **The no-code document debts 1468 left**: COLLISION §22, §23
+and §2, GROUPS §37.4, and CITIES §2.5's preamble.
+
 ## Parked by item 1476, 2026-10-05 — Construction's bonuses
 
 (1480) **who=1's `leader:discovered` 33 against 34**, first parted on
@@ -3683,6 +3698,13 @@ by a unit test alone.
 French Carpentry line, `FRENCH_LUMBERMILL_UPGRADES`) was a documented
 gap the seam scan did not print, and it parted who=1's timber rate
 for 1,800 frames.
+
+(1485) **Three tool gaps from 1468** (its journal's Loop lines,
+2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a
+hand-written driver; `writers.rs` reads any `#[cfg(test)]` in `lib.rs`
+as the end of non-test code and reported `sheltered` and `territory`
+unwritten; and a section within 100 bytes of its ceiling cut two doc
+edits. (Its `start_list` line is 1475's.)
 
 (1478) **Ours' `coll` against the collide probe's block, as a tool**
 (1472's Loop line, 2026-10-05): `tools/trace/report.py … calls` prints

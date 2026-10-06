@@ -108,9 +108,13 @@ pub const BIRD_TYPE_INDEX: i32 = 0x192;
 /// difference between a coin at 5404 and one at 5437 (`docs/SYNC.md` §3.9).
 /// The tile is a quarter of [`crate::world::UNITS_PER_TILE`]; it is the
 /// grid `PathFinder` steps a foot unit on, not the terrain's.
+///
+/// **The floor, not the truncation**: the original reads `div_3_table[p >>
+/// 4]` and an arithmetic shift of a negative coordinate floors, so −10 snaps
+/// to −24 where `/` would give 24 (twenty-fourth pass, group 17; A3 row 2).
 pub const fn init_snap(p: i32) -> i32 {
     let t = crate::world::UNITS_PER_TILE / 4;
-    p / t * t + t / 2
+    p.div_euclid(t) * t + t / 2
 }
 
 impl Sim {

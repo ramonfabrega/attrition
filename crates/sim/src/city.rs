@@ -415,7 +415,12 @@ impl Sim {
             trade_val: 0,
             traded_with: [0; 8],
         };
-        let c = match self.cities.iter().position(|c| !c.alive) {
+        // `Cities::init_city@007352c0` reuses the **owner's** first dead slot
+        // — each leader has a list of its own in the original — and a dead
+        // record keeps its owner, so the first dead record of `who`'s is the
+        // same position in `who`'s sequence (twenty-fourth pass, group 20;
+        // A5 #11). Another leader's dead slot is not taken.
+        let c = match self.cities.iter().position(|c| !c.alive && c.owner == who) {
             Some(i) => {
                 self.cities[i] = city;
                 i
@@ -426,6 +431,7 @@ impl Sim {
             }
         };
         self.cities[c].pop = 1;
+        self.sync_has_city(self.cities[c].owner);
         self.buildings[b].city = Some(c);
         // `LeaderData::home_reg`: the capital's region, which the AI's
         // sweep reads (`docs/AI.md` §2.3 step 15) and nothing else wrote.
@@ -493,6 +499,7 @@ impl Sim {
         let reg = self.world.region_of(self.buildings[building].pos.cell());
         self.bump_reg_cities(owner, reg, -1);
         self.cities[c].alive = false;
+        self.sync_has_city(owner);
         self.lost_city_stamp[owner as usize] = Some(self.frame);
         self.remove_source_of_city(c);
         let members = std::mem::take(&mut self.cities[c].members);
@@ -1315,7 +1322,7 @@ impl Sim {
         // empty list, as the original's does. ~~and keeps it~~ — the old
         // half's `Build::close` then gives those tiles back and flags the
         // region, and the copy re-walks them on the next region pass
-        // (`crate::gather::Sim::gather_region_pass`, `docs/ECONOMY.md` §17).
+        // (`crate::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
         let t = &self.build_types[ty];
         if t.has(build::flags::GATHER) && !t.has(build::flags::FLAT) && t.ident != Ident::University
         {
@@ -2215,12 +2222,17 @@ impl Sim {
     // Every frame
     // ------------------------------------------------------------------
 
-    /// `Wall::process` and the Build-specific tail this mechanic owns:
+    /// `Wall::process` and the head of `Build::process` this mechanic owns:
     /// the under-attack decay, the helpers reset, the building's own
-    /// attrition, deferred ejection, the capture re-test, the assimilation
-    /// tick and the city heal. Queues and combat run from `Sim::tick`.
-    pub(crate) fn process_building(&mut self, b: usize, frame: i64) {
-        const CITY_ATTACK_DECAY: i64 = 200;
+    /// attrition, deferred ejection and a hangar's launch. Returns whether
+    /// the building goes on to [`Sim::process_building_tail`].
+    ///
+    /// **`Build::process@0061edf0`'s order** (twenty-fourth pass, group 18;
+    /// A8 rows 20–22): this head, then the tower's attack
+    /// ([`Sim::process_building_combat`]), then `do_queue`, then the gather
+    /// re-entries, then the tail — the city block and the road replan. `Sim::tick`
+    /// runs the five per building.
+    pub(crate) fn process_building(&mut self, b: usize, frame: i64) -> bool {
         if !self.buildings[b].alive {
             if self.buildings[b].hold_frames > 0 {
                 if self.buildings[b].garrison.is_empty() {
@@ -2229,7 +2241,7 @@ impl Sim {
                     self.process_ejection(b);
                 }
             }
-            return;
+            return false;
         }
         // **`Wall::process@00640450`'s first statement**, on the game's own
         // frame and not the building's phase: every eighth frame, on the one
@@ -2270,15 +2282,15 @@ impl Sim {
         {
             if !self.buildings[b].started {
                 self.disband_building(b, false);
-                return;
+                return false;
             }
             self.building_attrition(b, frame);
             if !self.buildings[b].alive {
-                return;
+                return false;
             }
         }
         if !self.buildings[b].active {
-            return;
+            return false;
         }
         if self.buildings[b].eject_pending {
             self.process_ejection(b);
@@ -2287,6 +2299,29 @@ impl Sim {
         // (`crate::air`, `docs/ORDERS.md` §38.3, item 836).
         if self.buildings[b].ty.is_some_and(|t| self.is_hangar(t)) {
             self.do_launch(b);
+        }
+        true
+    }
+
+    /// The head and the tail with no queue or tower between — what a test
+    /// that watches only the building's own block wants.
+    #[cfg(test)]
+    pub(crate) fn process_building_whole(&mut self, b: usize, frame: i64) {
+        if self.process_building(b, frame) {
+            self.process_building_tail(b, frame);
+        }
+    }
+
+    /// The tail of `Build::process@0061edf0`, **after** the building's own
+    /// `do_queue` (group 18; A8 row 22): the city block — the 200-frame
+    /// attack decay, the capture re-test, the assimilation tick and the
+    /// heal — and the road replan, the function's last statement.
+    pub(crate) fn process_building_tail(&mut self, b: usize, frame: i64) {
+        const CITY_ATTACK_DECAY: i64 = 200;
+        let who = self.buildings[b].owner;
+        let phase = self.buildings[b].phase(frame);
+        if !self.buildings[b].alive {
+            return;
         }
         // **The city's under-attack decay** (`Build::process@0061edf0`,
         // `docs/COMBAT.md` §69): on a city building with a city, every 200

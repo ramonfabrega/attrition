@@ -424,7 +424,7 @@ impl Sim {
         let commerce = self.tech[w].epoch[Line::Commerce.index()].max(0) as usize;
         // The republic term's tier: `has_preq(REPUBLIC_3)`, then 2, then 1
         // (`calc_resource_caps@006ce900`, `docs/AI.md` §72).
-        let republic = self.bonus_level(who, &self.tech_tree.roles.republic_preq);
+        let republic = self.government_bonus_level(who, &self.tech_tree.roles.republic_preq);
 
         // `LeaderData::get_gather_handicap@006d66a0`: a human takes zero
         // unless the multiplayer handicap option is on, and an AI takes the
@@ -802,6 +802,37 @@ mod tests {
         finish(&mut sim, farm);
         sim.assemble_holdings(0);
         assert_eq!(sim.holdings[0].cities[0].sites.len(), 1);
+    }
+
+    /// **`num_gatherers(_, 1)` drops a decoy from the garrison term too**
+    /// (twenty-fourth pass, A7 row 28): the garrison is
+    /// `count_inside(COUNT_TYPE + 2 * skip, …)`, and `COUNT_NON_DECOY_TYPE`
+    /// skips a unit whose `unit_masks & 1` is set. The admission count
+    /// (`skip = 0`) keeps it.
+    #[test]
+    fn a_decoy_scholar_is_not_the_economy_s_gatherer() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        let uni = build(&mut sim, 0, t.university, 40, 32);
+        let real = spawn(&mut sim, 0, t.scholar, tile_pos(44, 32));
+        let decoy = spawn(&mut sim, 0, t.scholar, tile_pos(44, 33));
+        sim.units[decoy].decoy = true;
+        for s in [real, decoy] {
+            sim.buildings[uni].garrison.push(s);
+            sim.units[s].on_map = false;
+            sim.units[s].inside = Some(uni);
+        }
+        assert_eq!(
+            sim.num_gatherers(uni, true, false),
+            2,
+            "admission counts both"
+        );
+        assert_eq!(
+            sim.num_gatherers(uni, true, true),
+            1,
+            "the economy skips the decoy"
+        );
     }
 
     #[test]

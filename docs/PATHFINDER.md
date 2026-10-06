@@ -284,7 +284,11 @@ entry's tolerance** (0 when the stack emptied). Derived once:
   (vfunc `+0x10` == 10) — a fighting land unit refuses water. A type with
   `unit_flags & 0x10` whose `unit_masks & 0x40000` is set → both 0.
   Different regions → both 0 (the crossing is the point), except
-  `avoid_land = 1` when the order has `flags & 0x20`.
+  `avoid_land = 1` when the order has `flags & 0x20` — **a byte of a
+  player's move command and nothing else sets it** (`add_move_facing_order`'s
+  last parameter, `0` at every call site but `Group::action_move_near`'s own
+  forward; twenty-fourth pass, A4 row 24), so the crate's dormant arm is right
+  for every order a computer issues.
 - The root's `metric` = its grid-cell index; `estimate = value = h(start)`;
   inserted into open + refs. Start-to-goal Manhattan is kept (the PDB's
   `UnitData::start_dist`), and the **direction preference**: if `|dx| >
@@ -331,8 +335,10 @@ While the open list is non-empty:
    grid, add 30 to `UnitData::safe` (`+0xb2`; the PDB's name — audit
    V1/V13). A search called with `anti ≠ 0` never takes this failure path
    at all — it always reconstructs whatever it reached (audit V27). A
-   budget-ended `0x300` search instead **drains the open list
-   keeping the node nearest the goal** (`vector_dist`), reconstructs the
+   budget-ended search **on every other grid** — the `0x300` world's and
+   the `0xc0` tile grid's without `anti_unit` — instead **drains the open
+   list keeping the node nearest the goal** (`vector_dist`; `astar_path@00683770
+   :568-592`, twenty-fourth pass, group 8), reconstructs the
    partial path from it, and — if the nearest node still needs a transport
    to reach the goal and the unit can take one (`unit_masks & 0x800000 &&
    !(unit_masks2 & 0x2000)`, or `unit_flags & 0x10`) — re-pushes the final
@@ -475,7 +481,9 @@ refuse (`0x7fffffff`); embarking (2): `extra += 500` if both avoids are 0
 else `+= 2000`; **the unit-grid `extra ×= 4` sits outside that guard** — a
 disembark skips the 500/2000 and still takes the shift (audit V21); set
 the node's `transport` flag. At `depth == 1` the same test runs **from the
-unit's own tile** (`sx/sy`) with `+250`/`+1000` and no shift. A unit that
+wrapper's start tile** (`pathfinder +0x58/+0x5c`, written from `find_wpath`'s,
+`find_tpath`'s and `find_upath`'s start argument — a group's plan starts
+elsewhere than the unit stands; group 7) with `+250`/`+1000` and no shift. A unit that
 cannot transport pays nothing here — the water itself was already priced.
 
 ### 5.1 Corner-cutting (**`0x300` only** — the tile branch jumps clean over
@@ -3025,11 +3033,13 @@ AI-controlled; it is not a terrain or collision-size flag.
 
 The implementation now checks the transport type flag and `ai_driven`
 inside the same-region branch, for every grid. Human transports, ordinary
-AI units, and the separate cross-region fleeing rule retain their own
+AI units, and the separate cross-region `0x20` rule (not "fleeing") retain their own
 modes. The synthetic matrix covers both predicates independently, land
 and water, and all three grids. The simulator's existing `ai_driven`
-helper does not model AI takeover of a human slot; that remains review
-and implementation debt, rather than a claim of complete flag fidelity.
+helper is not a human slot's takeover: leader bit 8 is set at lobby time on
+a human seat and cleared per unit by a human command, never at run time
+(twenty-fourth pass, A4 rows 17–18); a defeat clears the unit bit
+(`Leader::defeat@006ecb00`, group 6: `unit_ai_bit`).
 
 The measured word advances **16940 → 17507** (+567); the other open-map
 words are unchanged. run583 differing field keys drop **699 → 286**.

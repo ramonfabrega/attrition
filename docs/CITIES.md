@@ -353,7 +353,7 @@ not a dock:
     domain == 1: owner cannot transport and not editor → CANT_TRANSPORT 0x2e;  (T & 0x30) != 0x20 → LAND 0xf
     domain == 0 and (T & 0x30) == 0x20 → WATER 0xe
 T & 0x4000: (T & 0x30) == 0x30 → FOREST 6;  (T & 3) == 2 or W.flags & 0x10 → MOUNTAIN 2;  else RARE 7
-T & 0x200 → BUILDING 1
+T & 0x200 → RARE 7
 not an oil type: W.flags & 8 → ROCK 3;   oil type: not W.flags & 0x800 → NO_OIL 5
 T & 0x80 and find_building_placed_at(u, v, who, exclude_o) ≥ 0 → BUILDING 1     # a placed, unstarted building already blocks
 not (build_flags & 0x10) and not (T & 0x100) → OUTSIDE_RADIUS 0x1f              # must be inside a city mask
@@ -1268,7 +1268,7 @@ unit_flags & 0x1800 (l "town/tower" or m "fort" — the code does not tell them 
     building is_fort or is(TOWER, 0) or is_city → 1
 domain == SEA → building is_dock
 building == where (the type's trainer) and not UNIVERSITY → 1
-where == BARRACKS:            building ∈ {BARRACKS, STABLE, AUTOPLANT}                                   (patch ≥ 4; else BARRACKS only)
+where == BARRACKS:            building ∈ {BARRACKS, STABLE, AUTOPLANT, SIEGEFACTORY, FACTORY} (patch ≥ 4; else BARRACKS only)
 where ∈ {STABLE, AUTOPLANT}:  building ∈ {BARRACKS, STABLE, AUTOPLANT, SIEGEFACTORY, FACTORY}            (patch ≥ 4)
 where ∈ {SIEGEFACTORY, FACTORY}: those five, or is_fort, or is_city                                      (patch ≥ 4)
 0

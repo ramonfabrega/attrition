@@ -470,6 +470,99 @@ fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
     );
 }
 
+/// **`blocked_tcoord`'s tile arms, as `0x636db0` has them** (twenty-fourth
+/// pass, group 12; A8 rows 40, 42, 43, 44, 52): a `0x200` tile answers RARE,
+/// not BUILDING; a mountain is the tile's object bits **or** the cell's
+/// `0x10`; a sea type that is no dock is refused a leader with no transport
+/// level; a cell with no region is not ruins; and `blocked_site` returns a
+/// first refusal of `Seen` before `blocked_location` can replace it.
+#[test]
+fn blocked_tcoord_s_tile_arms_follow_the_listing() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let at = Pos::new(44, 32);
+    let c = World::cell_of_tile(at);
+    let ask = |sim: &Sim| sim.blocked_tcoord(None, t.farm, at, None);
+    // 44: `TData & 0x200`.
+    let plain = sim.world.tile_mask(at);
+    sim.world.set_tile_mask(at, plain | tile::AS_BUILDING);
+    assert_eq!(ask(&sim), Blocked::Rare, "0x200 is RARE");
+    sim.world.set_tile_mask(at, plain);
+    // 43: a blocked tile on a mountain-flagged cell.
+    sim.world.set_tile_mask(at, plain | tile::BLOCKED);
+    assert_eq!(ask(&sim), Blocked::Rare, "blocked, no mountain bit");
+    let mut d = sim.world.cell_data(c);
+    d.flags |= cell::MOUNTAIN;
+    sim.world.set_cell_data(c, d);
+    assert_eq!(
+        ask(&sim),
+        Blocked::Mountain,
+        "the cell's 0x10 is a mountain"
+    );
+    d.flags &= !cell::MOUNTAIN;
+    sim.world.set_cell_data(c, d);
+    sim.world.set_tile_mask(at, plain);
+    // 42: a sea-domain type, no dock, no transport.
+    let platform = bt(Ident::Other, None, "gb", 4, 4, 150, 400, 0);
+    let platform = sim.add_build_type(platform);
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), platform, at, None),
+        Blocked::CantTransport,
+        "no transport level"
+    );
+    sim.transport[0].civilian = true;
+    assert_ne!(
+        sim.blocked_tcoord(Some(0), platform, at, None),
+        Blocked::CantTransport
+    );
+    // 52: the first refusal's `Seen` is the site's answer.
+    let ruins = Pos::new(60, 60);
+    let rc = World::cell_of_tile(ruins);
+    let mut d = sim.world.cell_data(rc);
+    d.flags |= cell::GOODY;
+    sim.world.set_cell_data(rc, d);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    sim.lobby.reveal_map = 1;
+    let centre = tile_pos(ruins.x, ruins.y);
+    let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "gaef", 2, 2, 150, 400, 0));
+    let (verdict, _) = sim.blocked_site_slots(Some(0), camp, centre, None);
+    assert_eq!(verdict, Blocked::Seen, "not replaced by the location test");
+}
+
+/// **`was_seen`'s allied-owner arm tests forts as well as cities** (group 12;
+/// A8 row 38, `WorldData::was_seen@006b53f0`: `reg_cities[region]` **or**
+/// `reg_forts[region]`), and a cell with no region is not ruins (row 40).
+#[test]
+fn an_owner_s_fort_makes_its_region_seen_and_a_regionless_cell_is_no_ruin() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let fort = sim
+        .place_building(0, t.fort, tile_pos(32, 32))
+        .expect("a first fort in the region");
+    finish(&mut sim, fort);
+    assert!(sim.buildings[fort].active);
+    let at = Pos::new(20, 20);
+    let c = World::cell_of_tile(at);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    sim.lobby.reveal_map = 1;
+    sim.world.set_owner(c, Owner::Player(0), Owner::None);
+    assert!(
+        sim.was_seen_fog(at.x >> 1, at.y >> 1, 0),
+        "an ally's (here its own) fort in the region shows its ground"
+    );
+    sim.close_building(fort, false);
+    assert!(
+        !sim.was_seen_fog(at.x >> 1, at.y >> 1, 0),
+        "and not without"
+    );
+
+    // Row 40: no region, no ruins.
+    let mut bare = Sim::new(Tuning::RON, World::new(16, 16), 2);
+    let farm = bare.add_build_type(bt(Ident::Farm, None, "gda", 4, 4, 150, 400, 0));
+    assert_eq!(bare.world.region_of(c), None);
+    assert_ne!(bare.blocked_tcoord(None, farm, at, None), Blocked::Ruins);
+}
+
 /// **`blocked_tcoord`'s two cell arms** (`docs/CITIES.md` §2.5, item 904,
 /// `docs/AI.md` §78). A rock cell refuses every type but the oil pair
 /// (`006370b2`), which needs the cell's oil instead (`00637105`); and a
@@ -3696,6 +3789,49 @@ fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
     );
 }
 
+/// **A nation power needs "a starting town or a city"** (twenty-fourth
+/// pass, group 22): `has_tribe_bonus@006e1370` returns 0 when the lobby's
+/// starting town is nomad *and* `city_num == 0`. The lobby's starting town
+/// alone opens the gate; in a nomad lobby the first city founded opens it and
+/// the last one closed shuts it, each recomputing the cached flags.
+#[test]
+fn a_nomad_has_no_power_between_its_cities() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.lobby.starting_town = 0;
+    sim.sync_setup_from_lobby();
+    assert!(!sim.setup.starting_town);
+    assert!(!sim.tech[0].has_city, "no city yet");
+    sim.set_tribe(0, 11);
+    assert!(!sim.nation[0].british, "a nomad with no city: no power");
+    let (_, village) = city_at(&mut sim, &t, 0, 32, 32);
+    assert!(sim.nation[0].british, "the first city opens the gate");
+    sim.close_building(village, false);
+    assert!(!sim.nation[0].british, "the last city closed shuts it");
+    // And a starting town is the other half: no city, still a power.
+    sim.lobby.starting_town = 2;
+    sim.sync_setup_from_lobby();
+    sim.refresh_nation_powers(0);
+    assert!(sim.nation[0].british);
+}
+
+/// **A Barracks-trained unit garrisons in a Siege Factory or a Factory**
+/// (twenty-fourth pass, group 3): above patch version 3 the `WHERE ==
+/// BARRACKS` arm of `can_garrison` admits Barracks, Stable, Auto Plant, Siege
+/// Factory and Factory (`61d8d7..61d978`), not the first three only.
+#[test]
+fn a_barracks_unit_garrisons_in_a_siege_factory_and_a_factory() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let sf = sim.add_build_type(bt(Ident::SiegeFactory, None, "ean", 4, 4, 420, 1200, 10));
+    let fac = sim.add_build_type(bt(Ident::Factory, None, "ean", 4, 4, 420, 1200, 10));
+    let ut = sim.add_unit_type(hoplite_type(t.barracks));
+    assert!(sim.can_garrison(ut, t.barracks));
+    assert!(sim.can_garrison(ut, sf), "a Siege Factory takes it");
+    assert!(sim.can_garrison(ut, fac), "and so does a Factory");
+    assert!(!sim.can_garrison(ut, t.market), "a market still does not");
+}
+
 /// **The British arm of `train_time`'s tail** — `docs/PRODUCTION.md`,
 /// "The tail's first caller".
 ///
@@ -4142,7 +4278,11 @@ fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
         let citizen = sim.add_unit_type(citizen_type(t.village));
         sim.unit_types[citizen].worker = Worker::Citizen;
         sim.unit_types[citizen].tree = Some(root);
-        let wonder = sim.add_build_type(bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0));
+        let mut wonder_type = bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0);
+        // The loader sets the range flag with the ident; the recruiter reads
+        // the flag (`BuildData::is_wonder`).
+        wonder_type.wonder = true;
+        let wonder = sim.add_build_type(wonder_type);
         Ground {
             sim,
             t,
@@ -4939,16 +5079,16 @@ fn a_city_hit_by_another_player_stops_healing_for_two_decay_ticks() {
     bd.damage = 10;
     bd.sync_health();
     for f in 102..first {
-        sim.process_building(b, f);
+        sim.process_building_whole(b, f);
     }
     assert_eq!(sim.buildings[b].damage, 10, "no heal while under attack");
-    sim.process_building(b, first);
+    sim.process_building_whole(b, first);
     assert_eq!(flags(&sim), (true, false, true), "the first tick: 0x4");
     for f in first + 1..first + 200 {
-        sim.process_building(b, f);
+        sim.process_building_whole(b, f);
     }
     assert_eq!(sim.buildings[b].damage, 10, "still no heal");
-    sim.process_building(b, first + 200);
+    sim.process_building_whole(b, first + 200);
     assert_eq!(flags(&sim), (false, false, true), "the second: 0x2");
     assert_eq!(sim.buildings[b].damage, 9, "and the heal, the same frame");
 }
@@ -5206,7 +5346,10 @@ fn a_patriot_s_decoy_cast_uses_its_own_radius() {
         sim.unit_types[general].type_index = caster_type;
         let g = sim.init_unit(0, general, tile_pos(30, 30));
         let p = sim.units[g].pos;
-        sim.init_unit(0, foot, Pos::new(p.x + offset, p.y));
+        // `init_unit` snaps its birth point, so the distance under test is
+        // set after it.
+        let f = sim.init_unit(0, foot, Pos::new(p.x + offset, p.y));
+        sim.units[f].pos = Pos::new(p.x + offset, p.y);
         let before = sim.units.len();
         sim.cast_create_decoy(g);
         assert_eq!(
@@ -5565,6 +5708,121 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert_eq!((u.rare, u.form), (0x32, 9));
     assert_eq!(u.inside, None, "and out at once");
     assert!(sim.buildings[b].garrison.is_empty());
+}
+
+/// **`come_out`'s tail, as `0x617c10` has it** (twenty-fourth pass, group
+/// 15; A9 rows 24 and 29): a computer's captain runs the same wipe a member
+/// does — its queued orders go — where a human's keeps them; and the city
+/// flag after an exit is cleared for a human's city only, and not while a
+/// unit of its owner holds a `GARRISON` on the container.
+#[test]
+fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
+    use crate::orders::{Body, MoveKind, QueuePos};
+    for human in [false, true] {
+        let (mut sim, t, _, militia) = alarm_sim();
+        sim.nation[0].human = human;
+        let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+        let m = sim.init_unit(0, militia, tile_pos(36, 36));
+        sim.go_inside(m, b);
+        sim.add_move_order(m, tile_pos(50, 50), MoveKind::MoveTo, QueuePos::New, true);
+        sim.cities[c].alarm = true;
+        assert!(sim.come_out(m));
+        assert_eq!(
+            sim.units[m].orders.is_empty(),
+            !human,
+            "human {human}: a computer's captain wipes its orders"
+        );
+        assert_eq!(
+            sim.cities[c].alarm, !human,
+            "human {human}: only a human's city flag clears"
+        );
+    }
+    // A human's city whose last garrison leaves while a citizen is on its
+    // way in keeps the flag.
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    sim.nation[0].human = true;
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let walker = sim.init_unit(0, citizen, tile_pos(40, 32));
+    sim.add_garrison_order(walker, b, false, QueuePos::New, true);
+    assert!(
+        sim.units[walker]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Garrison { building, .. } if building == b))
+    );
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    sim.cities[c].alarm = true;
+    assert!(sim.come_out(m));
+    assert!(sim.cities[c].alarm, "an inbound GARRISON holds the flag");
+}
+
+/// **A city takes its owner's first dead slot, not anyone's** (twenty-fourth
+/// pass, group 20; A5 #11): `Cities::init_city` has one list per leader, so a
+/// leader's cities sort the same after any capture. Another leader's dead
+/// record is left where it is.
+#[test]
+fn a_new_city_reuses_only_its_owner_s_dead_slot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 20, 20);
+    let (b1, c1) = city_at(&mut sim, &t, 1, 50, 50);
+    assert_ne!(c0, c1);
+    sim.close_building(b0, false);
+    sim.close_building(b1, false);
+    assert!(!sim.cities[c0].alive && !sim.cities[c1].alive);
+    let (_, again) = city_at(&mut sim, &t, 1, 50, 20);
+    assert_eq!(again, c1, "player 1 takes its own dead slot, not the first");
+    let (_, back) = city_at(&mut sim, &t, 0, 20, 50);
+    assert_eq!(back, c0, "and player 0 its own");
+}
+
+/// **`Build::process`'s order, per building, in object-number order**
+/// (twenty-fourth pass, group 18; A8 rows 20, 21, 22 and 27): head, the
+/// tower, `do_queue`, the gather re-entries, then the city block and the road
+/// replan — one building at a time, each leader's by object number and then
+/// the walls, not the `Vec`'s creation order.
+#[test]
+fn the_building_walk_is_per_building_in_object_order() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // Created high-numbered first, then a lower number of the same leader,
+    // then another leader's.
+    let (hi, _) = city_at(&mut sim, &t, 1, 50, 50);
+    let (own, _) = city_at(&mut sim, &t, 0, 20, 20);
+    let lo = sim.place_building(0, t.farm, tile_pos(28, 20)).unwrap();
+    sim.buildings[own].index = 2000;
+    sim.buildings[hi].index = 2007;
+    sim.buildings[lo].index = 2001;
+    sim.building_log.clear();
+    sim.tick();
+    let steps: Vec<(usize, &str)> = sim
+        .building_log
+        .iter()
+        .copied()
+        .filter(|(b, _)| *b == hi || *b == lo)
+        .collect();
+    // Leader 0's building first, whole, and only then leader 1's.
+    let names: Vec<&str> = steps.iter().map(|s| s.1).collect();
+    assert_eq!(steps.first().map(|s| s.0), Some(lo), "{steps:?}");
+    let first_hi = steps.iter().position(|s| s.0 == hi).expect("walked");
+    assert!(steps[..first_hi].iter().all(|s| s.0 == lo), "{steps:?}");
+    let of = |b: usize| -> Vec<&str> { steps.iter().filter(|s| s.0 == b).map(|s| s.1).collect() };
+    for b in [hi, lo] {
+        let seq = of(b);
+        let order = ["head", "tower", "queue", "gather", "tail"];
+        let mut at = 0;
+        for step in &seq {
+            let k = order.iter().position(|o| o == step).unwrap();
+            assert!(k >= at, "{step} out of order in {seq:?}");
+            at = k;
+        }
+        assert!(seq.contains(&"queue"), "{seq:?}");
+        // A site (the farm) goes no further than its queue and gather step;
+        // a finished city reaches the tail.
+        assert_eq!(seq.contains(&"tail"), b == hi, "{seq:?}");
+    }
+    let _ = names;
 }
 
 /// **A unit comes out with the body's speeds it froze at the door**

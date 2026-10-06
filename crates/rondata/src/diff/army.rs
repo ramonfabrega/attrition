@@ -473,7 +473,7 @@ mod tests {
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
         sim.lobby = lobby_of(&init.game_info, &loaded.map_styles, &loaded.wonder_wins);
-        sim.setup.no_nation_powers = sim.lobby.no_nation_powers;
+        sim.sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
         // §1): the frame the stamps are compared against, and the sync
         // stream's word its `say_checksum` record carries — what the
@@ -587,6 +587,17 @@ mod tests {
             city.race = c.int("race").map(|r| r as sim::Player);
             city.was_capital = c.int("was_capital_flags").unwrap_or(0) as u64;
             city.attack_stamp = c.int("attack_stamp").unwrap_or(0);
+            // The city's own `ocean` (`+0x62`), which a navy's
+            // `find_target` asks of every candidate city beside the coastal
+            // region (`6f70b5..6f70e0`; twenty-fourth pass, group 4): the
+            // owner's census wrote it, and a scene has no census.
+            if let Some(o) = c.int("ocean") {
+                let ai = &mut sim.ai[who as usize];
+                if ai.city_ai.len() <= ci {
+                    ai.city_ai.resize(ci + 1, sim::ai::CityAi::default());
+                }
+                ai.city_ai[ci].ocean = o as i32;
+            }
             // The building's `damage`, from its own record: §12 doubles a
             // damaged city of one's own.
             let damage = body
