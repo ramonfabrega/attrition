@@ -3429,6 +3429,16 @@ impl Sim {
                 && let Some(t) = self.find_melee_target(u, -1)
             {
                 self.add_attack_order(u, t, QueuePos::New, false, false);
+                // `think_attack`'s tail (`005f5da6`..): a **unit** find by
+                // a unit its group lists is handed to
+                // `Group::target_opportunity(…, param_4 = 1)`
+                // (`docs/GOLDEN.md` §61).
+                if matches!(t, Obj::Unit(_))
+                    && let Some(seat) = self.seat_of(u)
+                    && self.seat_list(seat).contains(&u)
+                {
+                    self.group_target_opportunity(seat, t, u, true);
+                }
                 return;
             }
         }

@@ -2753,7 +2753,7 @@ impl Sim {
                     && let Some(seat) = self.seat_of(at)
                     && self.seat_list(seat).contains(&at)
                 {
-                    self.group_target_opportunity(seat, attacker, at);
+                    self.group_target_opportunity(seat, attacker, at, false);
                     return;
                 }
                 if self.units[at].captain {
@@ -2850,9 +2850,15 @@ impl Sim {
     ///    adds ([`Sim::find_melee_target_added_in`]);
     /// 3. any other — `Unit::target_opportunity(member, o, who, 1)` again.
     ///
-    /// SEAM: the call from `Unit::think_attack`'s tail (`param_4 == 1`,
-    /// where arm 1 never applies) is not wired to this function.
-    fn group_target_opportunity(&mut self, seat: crate::group::Seat, attacker: Obj, asker: usize) {
+    /// `from_think` is `param_4 == 1`, `Unit::think_attack`'s tail
+    /// (`005f5da6`..): arm 1 never applies there.
+    pub(crate) fn group_target_opportunity(
+        &mut self,
+        seat: crate::group::Seat,
+        attacker: Obj,
+        asker: usize,
+        from_think: bool,
+    ) {
         let frame = self.frame;
         {
             let (_, st) = self.seat_parts(seat);
@@ -2869,7 +2875,7 @@ impl Sim {
                 && self.units[m].captain
                 && self.profile(Obj::Unit(m)).combat_role
             {
-                if m == asker_captain {
+                if !from_think && m == asker_captain {
                     self.target_opportunity_in(m, attacker, true);
                     continue;
                 }
