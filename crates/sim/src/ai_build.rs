@@ -38,7 +38,8 @@
 //!   1451 ([`crate::world::largest_gather`]): 1 on the shipped table.
 //! - the wonder bookkeeping — team, enemy and unbuilt wonder value,
 //!   `Game::wonder_winning`, the wonder-win row's target and a wonder
-//!   type's value factor (vslot `+0x118`): 0, −1, absent, 1.
+//!   type's value factor (vslot `+0x118`) — ~~0, −1, absent, 1~~ carried
+//!   since §124 ([`Sim::wonder_winning`], `BuildType::wonder_points`).
 //!   `wonder_mark` has its writer ([`Sim::note_wonders`], §75).
 //! - `TERRACOTTA` / `STATUEOFLIBERTY` / `SPACEPROGRAM` have no [`Ident`], so
 //!   the tech-race lobby's ÷1000 never fires.
@@ -1235,18 +1236,13 @@ impl Sim {
         }
         let val = if self.ai[w].wonder_mod == 0 {
             let diff = self.ai_difficulty();
-            // The wonder bookkeeping reads empty: no team value, no enemy
-            // value, nobody winning, and no wonder-win row to halve.
-            let team_value: i32 = 0;
-            let ev: i32 = 0;
-            let winning: i32 = -1;
             // `LeaderData::wonder_mark` (+0x424): one past the leader's
             // highest wonder entry, so an easy AI outside a wonder victory
             // wants no wonder once one of its own has activated (§75).
             let wonder_mark = self.ai[w].census.wonder_mark;
             if diff < 2 {
                 let ok = if self.lobby.victory == 6 {
-                    team_value < ev + 1
+                    self.team_wonder_points(who) < self.enemy_wonder_points(who) + 1
                 } else {
                     wonder_mark == 0
                 };
@@ -1254,10 +1250,19 @@ impl Sim {
                     return None;
                 }
             }
+            // `LAB_006c2b6d`: who is winning, and the enemies' wonders,
+            // standing and unbuilt (`local_20`), §124.
+            let winning = self.wonder_winning();
+            let ev = self
+                .enemy_wonder_points(who)
+                .wrapping_add(self.enemy_unbuilt_wonder_points(who));
             let mut val = if self.lobby.victory == 6 {
                 *escrow = 1;
                 (ev + 1).wrapping_mul(100_000)
-            } else if (winning >= 0 && winning != who as i32) || ev > 4 {
+            } else if (winning >= 0 && winning != who as i32)
+                || self.lobby.wonder_win_points / 2 <= ev
+                || ev > 4
+            {
                 *escrow = 1;
                 2_000_000
             } else {
@@ -1265,7 +1270,7 @@ impl Sim {
                 let r1 = self.rng.roll();
                 self.mark(SITE_WONDER_SCALE);
                 let r2 = self.rng.roll();
-                (team_value + 1)
+                (self.team_wonder_points(who) + 1)
                     .wrapping_mul(ev + 1)
                     .wrapping_mul(r2 % 300)
                     .wrapping_mul(r1 % 1000)
@@ -1281,8 +1286,129 @@ impl Sim {
             *escrow = 1;
             100_000_000
         };
-        // `type.vslot(+0x118)`, a wonder type's value factor, reads 1.
-        Some(self.city_level_of(f.c).wrapping_mul(val))
+        // `type.vslot(+0x118)` (`6c2c76`) is `get_wonder_value`, the
+        // type's own `WONDER_VAL` (§124): Tikal's 2 doubles it.
+        let points = self.build_types[rec].wonder_points();
+        Some(
+            self.city_level_of(f.c)
+                .wrapping_mul(points)
+                .wrapping_mul(val),
+        )
+    }
+
+    /// `LeaderData::get_wonder_value@006ebb90`: the points of every wonder
+    /// in `who`'s list under its `wonder_mark` — each one's type's
+    /// [`BuildType::wonder_points`], through `ObjectData::get_wonder_value`
+    /// (`Build`'s slot `+0x14c` is that function, read off the PE).
+    ///
+    /// [`BuildType::wonder_points`]: crate::build::BuildType::wonder_points
+    pub fn wonder_points(&self, who: Player) -> i32 {
+        let Some(a) = self.ai.get(who as usize) else {
+            return 0;
+        };
+        let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
+        a.census
+            .wonder_slots
+            .iter()
+            .take(mark)
+            .flatten()
+            .filter_map(|&b| self.buildings.get(b)?.ty)
+            .map(|t| self.build_types[t].wonder_points())
+            .sum()
+    }
+
+    /// `LeaderData::get_unbuilt_wonder_value@006d5ee0`: the points of
+    /// `who`'s unbuilt wonder sites — the list `add_unbuilt_wonder` keeps,
+    /// read here as the leader's alive, inactive wonder buildings, the
+    /// same reading `get_unbuilt_wonders` takes for the price.
+    pub fn unbuilt_wonder_points(&self, who: Player) -> i32 {
+        self.buildings
+            .iter()
+            .filter(|b| b.alive && !b.active && b.owner == who)
+            .filter_map(|b| b.ty)
+            .map(|t| self.build_types[t].wonder_points())
+            .sum()
+    }
+
+    /// The leaders the three sums walk: the slots whose `flags & 1` is set,
+    /// read as every player not defeated.
+    fn wonder_leaders(&self) -> impl Iterator<Item = Player> + '_ {
+        (0..self.players.len())
+            .filter(|&p| !self.defeated.get(p).copied().unwrap_or(true))
+            .map(|p| p as Player)
+    }
+
+    /// `LeaderData::get_team_wonder_value@006da990`: `who`'s points and
+    /// every mutual ally's.
+    pub fn team_wonder_points(&self, who: Player) -> i32 {
+        self.wonder_leaders()
+            .filter(|&p| self.is_ally(who, p))
+            .map(|p| self.wonder_points(p))
+            .sum()
+    }
+
+    /// `LeaderData::get_enemy_wonder_value@006da8f0`: every other leader
+    /// that is not a mutual ally.
+    pub fn enemy_wonder_points(&self, who: Player) -> i32 {
+        self.wonder_leaders()
+            .filter(|&p| !self.is_ally(who, p))
+            .map(|p| self.wonder_points(p))
+            .sum()
+    }
+
+    /// `LeaderData::get_enemy_unbuilt_wonder_value@006d5e40`: the same
+    /// leaders' unbuilt sites.
+    pub fn enemy_unbuilt_wonder_points(&self, who: Player) -> i32 {
+        self.wonder_leaders()
+            .filter(|&p| !self.is_ally(who, p))
+            .map(|p| self.unbuilt_wonder_points(p))
+            .sum()
+    }
+
+    /// `LeaderData::get_wonder_net@006ebb10`: the team's points less the
+    /// best enemy team's, floored at 0.
+    pub fn wonder_net(&self, who: Player) -> i32 {
+        let mine = self.team_wonder_points(who);
+        let best = self
+            .wonder_leaders()
+            .filter(|&p| !self.is_ally(who, p))
+            .map(|p| self.team_wonder_points(p))
+            .fold(0, i32::max);
+        (mine - best).max(0)
+    }
+
+    /// `Game::wonder_winning@005948a0`: the leader whose net reaches the
+    /// wonder victory's points, or −1. A tie with the holder goes to an
+    /// ally with more points of its own; a tie with a non-ally clears the
+    /// holder and hands the lead to the later leader if it reaches the
+    /// points (`0059490e`).
+    pub fn wonder_winning(&self) -> i32 {
+        let target = self.lobby.wonder_win_points;
+        let (mut best, mut win) = (0, -1i32);
+        let leaders: Vec<Player> = self.wonder_leaders().collect();
+        for p in leaders {
+            let net = self.wonder_net(p);
+            if net < best {
+                continue;
+            }
+            if net == best {
+                if win < 0 {
+                    continue;
+                }
+                if self.is_ally(p, win as Player) {
+                    if self.wonder_points(win as Player) < self.wonder_points(p) {
+                        win = p as i32;
+                    }
+                    continue;
+                }
+                win = -1;
+            }
+            if target <= net {
+                best = net;
+                win = p as i32;
+            }
+        }
+        win
     }
 
     // ------------------------------------------------------------------
@@ -1452,6 +1578,7 @@ mod tests {
         let silo = sim.add_build_type(bt(Ident::MissileSilo, "ean", 4, 4));
         let mut wonder = bt(Ident::Wonder, "ean", 5, 5);
         wonder.wonder = true;
+        wonder.wonder_val = 1;
         let wonder = sim.add_build_type(wonder);
 
         // The tree: six goods in `goodrules.xml` order, then one entry per
@@ -2184,6 +2311,121 @@ mod tests {
         sim.note_wonders();
         assert_eq!(sim.ai[0].census.wonder_mark, 1, "the top clears and walks");
         assert_eq!(sim.ai[1].census.wonder_mark, 0, "a leader's own list");
+    }
+
+    /// The wonder `t`'s listing after one pass from a copy of `sim`.
+    fn wonder_listed(sim: &Sim, t: usize) -> MakeObject {
+        let mut s = sim.clone();
+        s.create_buildings(0);
+        listed(&s, 0, t).expect("the wonder is listed")
+    }
+
+    /// `docs/AI.md` §124: the arm's product takes the type's own
+    /// `WONDER_VAL` (vslot `+0x118`, `get_wonder_value`). French East
+    /// Indies 14784: Tikal's 2 is half of the original's factor of four.
+    #[test]
+    fn a_wonder_is_worth_its_own_points() {
+        let (mut sim, t) = sim();
+        let _c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 3;
+        let one = wonder_listed(&sim, t.wonder);
+        sim.build_types[t.wonder].wonder_val = 2;
+        let two = wonder_listed(&sim, t.wonder);
+        assert!(one.val > 0);
+        assert!(
+            (two.val - 2 * one.val).abs() <= 2,
+            "{} {}",
+            one.val,
+            two.val
+        );
+        assert_eq!(sim.build_types[t.barracks].wonder_points(), 0);
+    }
+
+    /// §124, the other half of Tikal's four: `(team + 1)`, the points of
+    /// the wonders in the team's lists. who=1's Pyramids (1) stood.
+    #[test]
+    fn a_held_wonder_doubles_the_next() {
+        let (mut sim, t) = sim();
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        sim.lobby.difficulty = 3;
+        // A second wonder type's site in both: it shuts city b and prices
+        // the wonder alike, so the team's points are the only difference.
+        sim.build_types[t.silo].wonder = true;
+        sim.build_types[t.silo].wonder_val = 1;
+        let b = sim
+            .place_building(0, t.silo, tile_pos(88, 40))
+            .expect("the other wonder's site places");
+        // Held is the wonder list's entry (`Wonders::init_wonder`): written
+        // here directly, so the city's facts are the same on both sides.
+        let mut held = sim.clone();
+        held.ai[0].census.wonder_slots = vec![Some(b)];
+        held.ai[0].census.wonder_mark = 1;
+        assert_eq!(sim.team_wonder_points(0), 0, "a site is not held");
+        assert_eq!(held.team_wonder_points(0), 1);
+        assert_eq!(held.enemy_wonder_points(1), 1);
+        assert_eq!(held.team_wonder_points(1), 0);
+        let (none, one) = (
+            wonder_listed(&sim, t.wonder),
+            wonder_listed(&held, t.wonder),
+        );
+        assert!(
+            (one.val - 2 * none.val).abs() <= 2,
+            "{} {}",
+            none.val,
+            one.val
+        );
+        assert_eq!(one.escrow, 0);
+    }
+
+    /// §124: an enemy's wonders, standing or unbuilt, at half the wonder
+    /// victory's points or past four, value the wonder at 2,000,000 with
+    /// escrow and spend no draw.
+    #[test]
+    fn an_enemy_s_wonder_site_past_half_the_target_shuts_the_draws() {
+        let (mut sim, t) = sim();
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 1, 80, 40);
+        sim.lobby.difficulty = 3;
+        sim.build_types[t.wonder].wonder_val = 3;
+        sim.place_building(1, t.wonder, tile_pos(88, 40))
+            .expect("the enemy's site places");
+        assert_eq!(sim.enemy_unbuilt_wonder_points(0), 3);
+        assert!(
+            pass_draws(&mut sim.clone(), 0) > 0,
+            "3 < 8 / 2: the arm draws"
+        );
+        sim.lobby.wonder_win_points = 6;
+        assert_eq!(pass_draws(&mut sim.clone(), 0), 0, "6 / 2 ≤ 3");
+        let l = wonder_listed(&sim, t.wonder);
+        assert_eq!(l.escrow, 1);
+    }
+
+    /// §124, `Game::wonder_winning`: an ally whose team reaches the points
+    /// is winning, and a leader that is not the winner values every wonder
+    /// at 2,000,000 — the enemies' sum is 0 here, so only the winner shuts
+    /// the draws.
+    #[test]
+    fn an_ally_winning_by_wonders_shuts_the_draws() {
+        let (mut sim, t) = sim();
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 1, 80, 40);
+        sim.lobby.difficulty = 3;
+        sim.set_diplo(0, 1, 2);
+        sim.build_types[t.wonder].wonder_val = 8;
+        let b = sim
+            .place_building(1, t.wonder, tile_pos(88, 40))
+            .expect("the ally's wonder places");
+        finish(&mut sim, b);
+        assert_eq!(sim.wonder_winning(), -1, "not yet in the list");
+        sim.note_wonders();
+        assert_eq!(sim.enemy_wonder_points(0), 0);
+        assert_eq!(sim.wonder_net(0), 8);
+        assert_eq!(sim.wonder_winning(), 1, "the tie goes to the points");
+        assert_eq!(pass_draws(&mut sim.clone(), 0), 0);
+        sim.lobby.wonder_win_points = 9;
+        assert_eq!(sim.wonder_winning(), -1);
+        assert!(pass_draws(&mut sim, 0) > 0);
     }
 
     #[test]

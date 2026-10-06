@@ -14526,3 +14526,28 @@ SHA-256 `c46a977c93b66b14d3e64945d9c380b71eea355cbb055c699bdf551e97b90445`.
 **What it holds**: `run639_s_word_frame_is_widened_whole` (`diff::third_pair`): 239 keys,
 136 standing on block 14777, none on 14778..14782, and on the word's block 14783 who=1's
 `MAKE[8].val` and `1/93`'s move order. Run 639 only.
+
+## run642 — French East Indies, the word 15344's widening, with the leader probe (2026-10-06, item 1481)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1481-opus/run642-booking.json`,
+written before the run. run639 ends 14794; nothing dumps this game past 14795. Window
+**[15339,15352)**, end 15356, call window 15337..15352, `RON_LEADER_PROBE`, `--ffwd-minute 10`,
+`cover=0`, `--timeout 1800`, through the click-free lane. **The first take ran without
+`--detail`** (the runner's default `end:UNITS=3`, no group blocks) and was set aside as
+`run642-take1-nodetail`. The retake passed run639's four `--detail` sections. It waited
+one minute for the lane, behind 1465's run643. Receipt success; process and wait exit
+**0**; five settings files restored; 13 group blocks 15339..15351; seed 12345 read
+back. Launch-to-exit 581.939 s, total 591.651 s. Game-RNG draws match run600 on all
+15,357 shared frames (`rngcmp.py`).
+
+Archive `gamelog-run642-islands-french-15344.txt`, 50,194,012 bytes,
+SHA-256 `0032f4e3bb4c873ee9abe13c4caf4b9ba07bf9eb69043781c2b1e5ddd313bfbd`.
+
+Archive `rontrace-run642.log`, 85,941,312 bytes,
+SHA-256 `165ec7c162e1a23ea766996937501f236f4fc33722bce45ac5c4d10bb828b0f4`.
+
+**What it holds**: `run642_s_word_frame_is_widened_whole` (`diff::third_pair`): 1818
+keys on the tree merged after 1468 (1852 before), 100 standing on block 15339, none on 15340..15344, and 1447 on the word's block
+15345: who=1's army group 64 is the original's alone, and some thirty of who=1's units'
+orders and positions part. It also names a sixth French city, Orleans (the coverage
+pin's `UNREAD`). Run 642 only.
