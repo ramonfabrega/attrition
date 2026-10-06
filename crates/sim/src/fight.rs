@@ -2753,7 +2753,7 @@ impl Sim {
                     && let Some(seat) = self.seat_of(at)
                     && self.seat_list(seat).contains(&at)
                 {
-                    self.group_target_opportunity(seat, attacker);
+                    self.group_target_opportunity(seat, attacker, at);
                     return;
                 }
                 if self.units[at].captain {
@@ -2835,16 +2835,24 @@ impl Sim {
     }
 
     /// `Group::target_opportunity@007107d0` for a hit its member `asker`
-    /// took: a 15-frame cooldown on the group (`+0x38`, `frame − last >
-    /// 0xe`), then every member that is alive, on the map, a captain and
-    /// combat-role takes `Unit::target_opportunity(member, o, who, 1)`.
+    /// took (`param_4 == 0`): a 15-frame cooldown on the group (`+0x38`,
+    /// `think_frame`, `frame − last > 0xe`), then every member that is
+    /// alive, on the map, a captain and combat-role takes **one of three
+    /// arms** (`7108c8`..`710a69`, `docs/GOLDEN.md` §61):
     ///
-    /// SEAM: the arm that runs a member's own melee search (an
-    /// action order absent or idle, the head order of kind `NONE`, `ATTACK_TO` or
-    /// `GROUP_ATTACK_TO`, and the member not the asker's captain) is not
-    /// modelled; no capture on disk has a combat-role captain beside a
-    /// non-combat-role member that takes a hit.
-    fn group_target_opportunity(&mut self, seat: crate::group::Seat, attacker: Obj) {
+    /// 1. the asker's own squad captain — `Unit::target_opportunity(member,
+    ///    o, who, 1)`, no test on its orders (`71092e`..`710946`);
+    /// 2. a member whose `get_action` is absent or whose action's vslot
+    ///    `+0x10` (`get_type`) reads 0 (`NONE`), and whose `order_type` is
+    ///    `NONE`, `ATTACK_TO` or `GROUP_ATTACK_TO` (`710950`..`710989`) —
+    ///    its **own** `find_melee_target(member, min(dist(member, attacker)
+    ///    + 0xc0, unit_respond_range × 0x240), NULL, 0, 1, 0)`, the order it
+    ///    adds ([`Sim::find_melee_target_added_in`]);
+    /// 3. any other — `Unit::target_opportunity(member, o, who, 1)` again.
+    ///
+    /// SEAM: the call from `Unit::think_attack`'s tail (`param_4 == 1`,
+    /// where arm 1 never applies) is not wired to this function.
+    fn group_target_opportunity(&mut self, seat: crate::group::Seat, attacker: Obj, asker: usize) {
         let frame = self.frame;
         {
             let (_, st) = self.seat_parts(seat);
@@ -2853,6 +2861,7 @@ impl Sim {
             }
             st.opportunity = frame;
         }
+        let asker_captain = self.squad_captain(asker);
         let members = self.seat_list(seat).clone();
         for m in members {
             if self.units[m].alive()
@@ -2860,7 +2869,32 @@ impl Sim {
                 && self.units[m].captain
                 && self.profile(Obj::Unit(m)).combat_role
             {
-                self.target_opportunity_in(m, attacker, true);
+                if m == asker_captain {
+                    self.target_opportunity_in(m, attacker, true);
+                    continue;
+                }
+                let no_action = self
+                    .action_of(m)
+                    .is_none_or(|k| self.units[m].orders[k].index() == crate::orders::index::NONE);
+                if no_action
+                    && matches!(
+                        self.order_type(m),
+                        crate::orders::index::NONE
+                            | crate::orders::index::ATTACK_TO
+                            | crate::orders::index::GROUP_ATTACK_TO
+                    )
+                {
+                    let here = self.units[m].pos;
+                    let there = self.pos_of(attacker);
+                    let d = crate::world::vector_dist(
+                        (here.x - there.x).abs(),
+                        (here.y - there.y).abs(),
+                    );
+                    let range = (d + 0xc0).min(self.tuning.unit_respond_range * 0x240);
+                    self.find_melee_target_added_in(m, range);
+                } else {
+                    self.target_opportunity_in(m, attacker, true);
+                }
             }
         }
     }

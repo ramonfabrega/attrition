@@ -2677,10 +2677,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
     // The group record is compared whole since item 1061
-    // (`second::widen_records`) but for `think_frame`, which this crate
-    // does not carry. `role` is compared on an army's group alone, and
-    // registers on 5772..5776 (slot 72, ours 0 against 599056).
-    ("GroupDump", "think_frame"),
+    // (`second::widen_records`), `think_frame` since item 1423.
+    // `role` is compared on an army's group alone, and registers on
+    // 5772..5776 (slot 72, ours 0 against 599056).
 ];
 
 /// **Every field the parser carries is compared by the shared instrument

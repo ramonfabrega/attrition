@@ -7489,6 +7489,7 @@ fn widen_pool(
                 ("speed", i64::from(o.speed), t.speed),
                 ("new_speed", i64::from(o.new_speed), t.new_speed),
                 ("stamp", o.stamp, t.stamp),
+                ("think_frame", o.opportunity, t.think_frame),
             ] {
                 row(k.into(), ov.to_string(), tv.to_string());
             }

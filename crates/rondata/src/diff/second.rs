@@ -225,7 +225,8 @@ pub(crate) fn east_indies_closing_window() -> Option<crate::diff::harness::tests
 /// neither, and a player-1 pool slot the original sets either on is the
 /// finding. `role` is compared on an army's group only, where this crate
 /// keeps the word (`Army::role`, `docs/ARMY.md` §3.1); a pushed group
-/// carries none here. `think_frame` this crate does not carry.
+/// carries none here. `think_frame` is `Group::target_opportunity`'s cooldown
+/// (`+0x38`, item 1423, `docs/GOLDEN.md` §61): [`sim::group::GroupState::opportunity`].
 pub(crate) fn widen_records(
     built: &Built,
     frame: &Frame,
@@ -303,6 +304,7 @@ pub(crate) fn widen_records(
                     "buildings",
                     "disband",
                     "priority",
+                    "think_frame",
                 ],
             );
             // The slot's identity and its list, member for member: what
@@ -325,6 +327,7 @@ pub(crate) fn widen_records(
                 ("speed", i64::from(o.speed), t.speed),
                 ("new_speed", i64::from(o.new_speed), t.new_speed),
                 ("stamp", o.stamp, t.stamp),
+                ("think_frame", o.opportunity, t.think_frame),
                 ("buildings", i64::from(buildings), t.buildings),
                 ("disband", 0, t.disband),
                 ("priority", 0, t.priority),
