@@ -279,15 +279,16 @@ fn run658_dates_the_gap_before_17171() {
     };
     pin_eq!(w.blocks, 40, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    // Item 1502: 177 — 176 standing on the first block, 17018 (run655's 173
-    // with group 64's slots and `form`s moved, the group-move ids of the
+    // Item 1502: 172 — 171 standing on the first block, 17018 (run655's set
+    // with group 64's slots and `form`s moved, item 1493's zero-filled
+    // slots `group:64` 10 and `group:66` 0 agreeing, the group-move ids of the
     // move both sides issued on 16882, `caras` and `tech_frame` taking new
-    // values in the original, and `1/69` and `1/71`'s attacks on Napata
-    // agreeing now that a building target the link table lacks is named);
+    // values in the original, and `1/69`, `1/71` and `1/83`'s attacks on
+    // Napata agreeing now that a building target the link table lacks is named);
     // then `gather_stamp` on 17033, ours 16744 against 17032, the frame the
     // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
-    pin_eq!(w.firsts.len(), 177, "initial run658 baseline");
+    pin_eq!(w.firsts.len(), 172, "initial run658 baseline");
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -342,10 +343,11 @@ fn run657_s_word_frame_is_widened_whole() {
     // against 12; six on 17169, `1/80`'s guy 0 swinging at `0/2000` there
     // and walking here; one on 17170; five on 17171, `1/80`'s order; then
     // 16 on the word's block 17172 and 29 on 17174..17176.
-    // Item 1502: 240 → 235. Five `order:target` rows were ours reading
+    // Item 1502: 235 → 230 on the tree merged after 1493 (whose own
+    // re-pin took 240 → 235). Five `order:target` rows were ours reading
     // `None` for an attack on Napata, a building the link table lacks;
     // `target_ids` names it by `(owner, index)` now, and the five agree.
-    pin_eq!(w.firsts.len(), 235, "initial run657 baseline");
+    pin_eq!(w.firsts.len(), 230, "initial run657 baseline");
 }
 
 #[test]
@@ -366,7 +368,9 @@ fn run655_s_word_frame_is_widened_whole() {
     // rows past the first block: 1/79's guy 0 is `cur_anim` 0, `cur_time` 1,
     // `last_time` 0 on 16858 on both sides, and nothing parts on
     // 16852..16863. The 173 stand from the window's first block, 16851.
-    pin_eq!(w.firsts.len(), 173, "initial run655 baseline");
+    // Item 1493: 173 → 170 on the tree merged after 1500 (army 65's siege
+    // copy-back and the wider group-slot compare).
+    pin_eq!(w.firsts.len(), 170, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -411,7 +415,7 @@ fn run649_s_decision_frame_is_widened_whole() {
     // standing on the first block 15086 (the human's census, the rows
     // run642 also stands on); nothing on 15087..15090, the decision's block
     // 15089 among them.
-    pin_eq!(w.firsts.len(), 88, "run649 whole");
+    pin_eq!(w.firsts.len(), 85, "run649 whole");
 }
 
 #[test]
@@ -430,7 +434,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 110, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 107, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -477,7 +481,7 @@ fn run639_s_word_frame_is_widened_whole() {
     // held Pyramids, AI §124): `MAKE[8]` is Tikal at 1563477 on 14785 here
     // as there, and every row from 14785 leaves — what is left is the 93
     // standing on 14777.
-    pin_eq!(w.firsts.len(), 89, "initial run639 baseline");
+    pin_eq!(w.firsts.len(), 86, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -519,7 +523,7 @@ fn run636_s_word_frame_is_widened_whole() {
     // (`bucket`, `leftover`, `resources`, `income`, `rate`) leave: the
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
     // Item 1468: 128 → 94, as run635's.
-    pin_eq!(w.firsts.len(), 90, "initial run636 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -612,7 +616,7 @@ fn run631_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
-    pin_eq!(w.firsts.len(), 88, "initial run631 baseline");
+    pin_eq!(w.firsts.len(), 85, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -1347,7 +1351,7 @@ fn run601_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 71 → 69; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    pin_eq!(w.firsts.len(), 67, "run601 after ruins placement");
+    pin_eq!(w.firsts.len(), 64, "run601 after ruins placement");
     pin!(
         w.firsts.keys().all(|(who, _, field)| *who != 1
             || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),
