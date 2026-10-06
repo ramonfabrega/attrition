@@ -14973,7 +14973,7 @@ run655's widening falls from 186 keys to **173**, all standing on the first
 block, 16851. Nothing parts on 16852..16863.
 
 **Every instance on the disk** (`report.py … draws`, every `rontrace-run*.log`):
-the draw comes only in this game, in 9 of 314 traces: run600 and its sibling
+nine draws in three of 314 traces, all in this game: run600 and its sibling
 run596 (four each), and run655 (one, 16857). It falls on 16857 and on 17239, where guy 0 draws under `+0x56` and two crew figures under
 `+0xb6`. 17239 is past the new word.
 
