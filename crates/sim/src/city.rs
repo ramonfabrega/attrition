@@ -18,6 +18,10 @@ use crate::territory;
 use crate::world::{Pos, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Building, Player, Sim};
 
+/// `TypeIndex` 0x163, `THEPRESIDENT` — what The Senator becomes
+/// (`docs/TECH.md`, the government patriot).
+const PRESIDENT: i32 = 0x163;
+
 /// The nation, wonder and tech inputs this mechanic reads per player — the
 /// `has_tribe_bonus`, `has_wonder` and `has_preq` answers, as inputs until
 /// the layers that produce them exist.
@@ -1354,6 +1358,41 @@ impl Sim {
         }
     }
 
+    /// **`BuildData::construct_time`'s clause (c)**, `ObjectData::has_general(
+    /// 0, 0x163) >= 0` (`00646b00`) asked of a building: one of the owner's
+    /// heroes of type THEPRESIDENT, active and on the map, within
+    /// `get_radius × 0xc0` of the building's centre less the footprint's own
+    /// reach — `(x_size + y_size) × 0x60`, the building arm of
+    /// `HeroesData::find_hero@0073a1b0`'s `param_6` (vslot `+0x20` is nonzero
+    /// for a building). Great Sahara at Toughest's Smelter `1/2053` is
+    /// finished on 14363 at a clock of 75187, `100000 × 100 / 133`, where its
+    /// `job_counter` is 75221 and the dump's `constr_time` still prints
+    /// 100000 (item 1503; `construct_hits` 997 on 14363 is
+    /// `site_hits` over that clock). The clause is a per-call one, so the
+    /// reach is read at each call.
+    ///
+    /// SEAM: the leader's per-type count at `+0x56fe` (`has_general`'s early
+    /// `return -1` on a zero) is not read; `find_hero` finds none either
+    /// without a live President.
+    pub(crate) fn president_near_building(&self, b: usize) -> bool {
+        let bd = &self.buildings[b];
+        let Some(ty) = bd.ty else {
+            return false;
+        };
+        let reach = (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x60;
+        (0..self.units.len()).any(|h| {
+            let x = &self.units[h];
+            x.owner == bd.owner
+                && x.type_index == PRESIDENT
+                && x.alive()
+                && x.on_map
+                && self.is_hero_unit(h)
+                && crate::world::vector_dist((x.pos.x - bd.pos.x).abs(), (x.pos.y - bd.pos.y).abs())
+                    - reach
+                    <= self.hero_radius(h) * 0xc0
+        })
+    }
+
     /// `BuildData::construct_time(0)` for a building.
     pub fn construct_time_of(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
@@ -1362,7 +1401,10 @@ impl Sim {
                 &self.tuning,
                 &self.build_types[t],
                 bd.constr_time,
-                &bd.clock,
+                &build::ClockMods {
+                    president: self.president_near_building(b),
+                    ..bd.clock
+                },
             ),
             None => 1,
         }

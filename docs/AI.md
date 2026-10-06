@@ -15164,6 +15164,257 @@ parting of 17171 is in the gap, and no dump shows it.
   run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
   only; the two-order converse rests on the listing.
 
+## 131. The gap before 17171 parts on frame 17025, in leader 0's dirty bit (2026-10-06, item 1502)
+
+Item 1500 left the word at **17171**, 11 draws against 10 at index 1. Ours
+spends `Unit::fight+0x824` and then `Guy::set_anim+0xf2f <
+Unit::set_anim+0x56` for `1/80`; theirs spends `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, seed `e9a5d9be`. run657's widening (17165..17177)
+stood 178 keys on its first block, and some of them had parted in the gap
+16869..17164, which no dump held. This item dates that gap. It names no
+mechanism and builds none; the word does not move.
+
+### 131.1 Ours, every tick of the gap
+
+`RON_DEBUG_GAP=<lo>-<hi>[:<who>/<o>,…]` (`diff::harness::debug_gap`) prints
+our side's watched values on every tick of a range, not only on a captured
+block. It prints each ledger's `gather_stamp` and `dirty`, the met and war
+matrices, each named unit's order stack, and every delivery of damage. Over
+16850..17166 it shows four things:
+
+- **Leader 0's ledger is never dirty.** `gather_stamp` stays 16744 until the
+  256 grid's 17152 (`economy::should_recompute`).
+- **The first strike of player 1 on player 0 is sim frame 17053:** `1/69` on
+  Napata (`0/2000`), damage 2. Napata is struck thirteen times through
+  17154, the last time by `1/83`.
+- **On 17136 the five units `1/69`, `1/78`, `1/80`, `1/83` and `1/90` take
+  `[AttackTo, Guard]`.** The guard's target is unit handle 244, the General
+  `1/79`.
+- **An attack is then pushed on top, and the walk is kept beneath it:**
+  `1/78` on 17142, `1/90` on 17145, `1/83` on 17152. That gives `[Attack,
+  AttackTo, Guard]`.
+
+Before 17136 the same push onto a bare `AttackTo` happens again and again
+from 16956. run658's window holds two of them, `1/90`'s on 17040 and
+`1/69`'s on 17052, and no order row parts on either.
+
+### 131.2 run658: the original's side, 17018..17057
+
+On the original's side, run657's first block already dated three things:
+`gather_stamp` 17032; leader 0's `attack_stamp[1]` and `raid_stamp[1]`, both
+17053; and Napata's `raid_stamp` 17154. The dirty bit's own frame and the
+treaty's had no record, so run658 (`docs/RUNS.md`) dumped blocks
+17018..17057. Its draws match run600 on all 17,063 frames.
+`run658_dates_the_gap_before_17171` widens it at **167 keys**, on the tree
+merged after items 1493 and 1496:
+
+- **166 stand on 17018.** These are run655's set, less item 1493's
+  zero-filled slots and item 1496's five `tech_frame` keys, plus two
+  changes in the gap:
+  - the group-move id of the move both sides issued on 16882. It decodes to
+    the same frame on both sides; the high part is the army slot here and
+    the pool slot there, the standing family `docs/ARMY.md` records (689);
+  - `1/-1 caras`, now 6 against our 5.
+- **`0/-1 leader:gather_stamp` on block 17033: ours 16744, theirs 17032.**
+- **`leader:treaties` on block 17054, ours 1 and theirs 3, on both leaders**,
+  and Napata's `city:raid_stamp`, ours 0 and theirs 17053.
+
+Nothing else parts on 17019..17057.
+
+**The first parting is frame 17025.** Leader 0's `leader_flags`, which no row
+compares, is 7 through block 17025. It reads 33554439 (`7 | 0x2000000`, the
+economy's dirty bit, `docs/ECONOMY.md`) on blocks 17026..17032, and 7 again on
+17033 beside the stamp 17032. That is the dirty grid's first point,
+`(0 + 17032) % 8 == 0`. The test pins the bit's blocks off the dump,
+`(17026, 17032, 7)`.
+
+**Who raised it is not on the dump.** Between blocks 17025 and 17026, the
+records of leader 0's own objects change only in four places:
+
+- the figure clocks;
+- building `0/2001`'s `recharging`, which advances every block;
+- unit `0/5`'s `avg_speed`, 6 → 4, decaying since it stopped walking on
+  block 17022;
+- the bit itself.
+
+The original raises the bit at 24 sites. `Unit::check_idle`'s
+fisherman-and-merchant latch, `Unit::work`, `do_gather`, `Group::action_alarm*`,
+`City::compute_trade` and `Build::activate` are among them; this crate has
+seven writers.
+
+**The treaty's second bit is the first strike's.**
+`Object::do_damage@0064a480:325-331` ors `2` into the victim's `aggression`
+and into the attacker's `treaties` slot for the victim's team, on every
+damage across owners. Its `:508-512` writes the victim's `raid_stamp` and
+`attack_stamp` for the attacker, once more than 300 frames have passed since the city was last
+struck.
+Both treaties read 1 on run655's last block, 16863, so 17053 is the first
+damage between the two players in the game. `Sim::treaties` carries bit 0
+only, the met bit (`lib.rs`), so the row stands from here on.
+
+### 131.3 The word's own chain is the third event, not the first
+
+`1/80`'s draw on 17171 is an attack pushed onto the guard's walk.
+run657 shows the same push for `1/69` inside its window. On block 17167 ours
+holds `[Attack(0/2000), AttackTo(6744,6888), Guard(1/79)]` with path length
+1, and the original holds `[Attack(0/2000), Guard(1/79)]` with path length 0.
+For `1/78`, `1/83` and `1/90` the original's side is only their stacks on
+17165. Their pushes on 17142, 17145 and 17152 are ours, and are not dated on
+the original's side.
+
+Neither the dirty bit nor the treaty bit is read by anything this crate models
+on the word's chain. The dirty bit moves leader 0's recompute from 17152 to
+17032, and no leader 0 row parts for it through 17057 or on 17165..17177.
+
+### 131.4 A reader gap the widening showed
+
+`1/69`, `1/71` and `1/83` stood on 17018 with `order:target`, ours `None`
+against `(0, 2000)`. Ours *does* attack Napata (`combat.target` is building
+handle 0), but `Built::build_ids` names only the buildings in the link
+table, and Napata, handle 0, is not in it. On an attack order `None` scores
+as "attacking nothing" (item 496). `target_ids` now names such a building by
+its own `(owner, index)`, as `unit_ids_dead_or_alive` names a unit. Only the
+attack arm changed. A `Build`, `Gather` or `Garrison` target still skips an
+unlinked building, because there `None` is silence and not a row.
+
+This is parked 681's fallback, which item 651 probed on chapter 6b's staged
+Airbases. Item 651 found then what this item finds now: the rows go, and
+nothing else moves. The fallback can only turn a `None` into a value, so a
+row it touches either agrees or stays a row. Every pin it moved fell.
+
+- **Third pair**, counted on the tree merged after 1493 and 1496 (whose
+  own re-pins are given first): run657 230 → **225**; run609's closing
+  residue 95 → **80**. All fifteen of run609's leaving rows are `1/9`..`1/23` on
+  `0/2000`, and none is added.
+- **Second pair:**
+  - each counted on the tree merged after 1496;
+  - run594 193 → 165, run589 186 → 158, run588 158 → 134, run585 221 → 197;
+  - run403 71 → 53, run396 77 → 62 (all fifteen of its leaving rows are the
+    attack-move's targets on the city, `1/24` and `1/26`'s 5195 among them),
+    run373 79 → 66;
+  - run356's first three blocks.
+- **Golden:** the `order:target` rows under chapters 6b, 21, 41, 42, 44,
+  47, 48, 50 and 51.
+
+### 131.5 What this has *not* established
+
+- **What raised leader 0's dirty bit on 17025.** No dumped field of a
+  player-0 object names it. A probe of the 24 writers on 17025 would.
+- **When the original dropped `1/78`, `1/83` and `1/90`'s guard walk.**
+  The analogy with `1/69` on 17167 says at their pushes. Only their 17165
+  stacks are on disk.
+- **Why the original drops the walk under the attack** when the walk is a
+  guard's, and keeps it when the walk is the bottom order. That is the
+  word's mechanism, and this item does not read it.
+
+### 131.6 Coverage
+
+Diff-backed:
+
+- the dirty bit's blocks and the stamp on 17033 (run658, both pinned);
+- the treaty and Napata's stamp on 17054 (run658);
+- `1/69`'s stacks on 17167 (run657);
+- the target fallback: run609's and run396's fifteen leaving rows each, the
+  second pair's and the golden chapters' moved pins.
+
+Ours' side of the gap is `RON_DEBUG_GAP`'s print, recorded in the journal.
+
+Listing-free: `Object::do_damage`'s writes are read off the export, not the
+listing.
+
+## 132. The President shortens a site's clock (2026-10-06, item 1503)
+
+Great Sahara at Toughest's word was **14363** on the base (item 1493): 11 draws
+ours against 177, parting at index 5 — theirs `PathFinder::calc_road_cost+0x46`.
+run653 (14357..14380) widened it: on block 14364 six of who=1's buildings part
+on `regen_roads` (`1/2031`, `2034`, `2038`, `2040`, `2042`, `2054` set in the
+original; `1/2053` set here only), `1/2038`'s and `1/2054`'s `gather_down`, and
+`1/66`'s and `1/115`'s order kind (6 against 7).
+
+**Dating it.** The six are one city's buildings (city 3, centre `1/2031`), and
+`1/2053` is its newest, a Smelter (`orig_type` 425). `1/2053`'s slot in the
+sixteen-frame rotation is `(14363 + 2053) % 16 == 0`, so a city-wide flag set on
+14363 is *cleared* on `1/2053` the same frame and left on the other six — the
+original's block 14364 reads exactly that (`build_masks` bit `0x100`: `1/2053`
+1280 → 5120, `1/2031` 4096 → 4352), and the 177 draws are `1/2053`'s road. The
+flag is `Build::activate`'s `City::regen_roads` (`docs/ROADS.md` §1): **the
+Smelter finished on 14363 in the original**, `ever_seen_completed` 0 → 2,
+`job_counter` 75038 → 0, `construct_hits` 997 → 1000. Here it did not: this
+crate's `job_counter` read 75221 (75038 + 183, the same step the dump's
+`job_counter` shows every frame from 14357) against a clock of 100000, and its
+`1/2053` kept its own flag, set at placement, over a site that had not yet been
+activated.
+
+**The clock.** The dump's `constr_time` still prints 100000 on both blocks, but
+`construct_hits` says otherwise: 983, 990 and 997 on blocks 14357, 14360 and
+14363 are `site_hits` (`a * full / b`, `a = job_counter >> 5`, `b = clock >> 5`)
+over a clock `b` of 2348..2350, i.e. **75168..75231**, and the completion on
+14363 bounds it from the other side (75038 did not finish on 14362, 75221 does
+on 14363): `100000 × 100 / 133 = 75187`. That is clause (c) of
+`BuildData::construct_time@0062d5c0` (`docs/CITIES.md` §3.2) —
+`has_general(this, 0, 0x163)`, `THEPRESIDENT`, `THEPRESIDENT_BUILDING_SPEED` 33 —
+a **per-call** clock, applied where `constr_time` (the baked base) is not. Who=1
+has the President: `1/80`, `guy` 355 (`THEPRESIDENT`), at tile (130.9, 96.5) on
+block 14364, 3.4 tiles and 6 tiles from the Smelter's centre (127.5, 90.5).
+
+**The predicate.** `ObjectData::has_general@00646b00` asked of a **building**:
+`this` is not a unit, so the first arm is skipped; the reach is the building's
+footprint `(type +0x234 + type +0x238) × 0x60` (`x_size + y_size`; the vslot
+`+0x20` is nonzero for a building); a zero in the leader's per-type table at
+`+0x56fe` returns −1 (an early out, not read here); else
+`HeroesData::find_hero@0073a1b0` over the owner's hero records: the record
+active, its unit active and on the map, the unit's type `is(0x163)` (the
+mask test is skipped, `param_4` 0), and `vector_dist(dx, dy) − reach ≤
+get_radius × 0xc0` — the shape `near_marching_hero` already carries
+(`cast.rs`), with the type test instead of the Forced March mask.
+
+**Built.** `Sim::president_near_building` (`crates/sim/src/city.rs`), read by
+`construct_time_of` into `ClockMods::president` — which nothing had written
+since the field was added (`ClockMods` is still `bd.clock`'s other three
+clauses: the free first wonder, the Hanging Gardens and the Iroquois Senate stay
+`false`; no capture reaches them). Test
+`the_president_near_a_site_shortens_its_clock_by_a_quarter`.
+
+**Value diff** (`RON_DEBUG_BUILDS`, `1/2053`, this crate against the dump):
+
+| block (frame + 1) | ours before | ours now | the dump |
+|---|---|---|---|
+| 14363 | `jc` 75038, `construct_hits` 750 | 75038, **997** | 75038, 997 |
+| 14364 | `jc` 75221, not active, `regen_roads` 1, 752 | **0, active, `regen_roads` 0, 1000** | 0, active, 0, 1000 |
+
+run653's whole window (24 blocks, 378 keys before) now parts on **93 keys, all on
+its first block** (the standing rows; 88 on the tree merged after item 1496) and on nothing from 14364 to 14380.
+
+**New word: 14512.** The long walk (`run470_is_great_sahara_at_toughest…`) parts
+at 14512 by **sequence**, 53 draws each side, index 40: ours `Guy::set_anim+0x97a
+< Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`; the count first parts at 15101. The frame is `1/141`'s
+(a `BOMBARD`, `guy` 267, on an `ATTACK_TO` move whose path ends on this frame): its
+four figures draw move, move, **turn**, move in the original (indices 38–41) and
+move, move, move, **turn** here. run659 (14506..14529, a click-free capture,
+`rngcmp` against run470 0 differing in 14,541 frames) widens it whole, both
+directions: **83 keys, all standing on its first block 14506, none on 14513 or
+after**. No dumped record parts on the word's frame or the sixteen after it. So
+the delta is a draw *order* inside one unit's four figures, whose values the dump
+does not show: no mechanism is named.
+
+**Not established.**
+- The leader's per-type count at `+0x56fe` (`has_general`'s early `−1`) is not
+  read; a live President is found by the type test alone.
+- Clauses (a), (b) and (d) of `construct_time` stay unmodelled
+  (`ClockMods` defaults); this capture reaches only (c).
+- Nothing pins the President's radius at the reach's edge: the Smelter sat well
+  inside it on both sides (`hero_radius` is the existing `supply::general_radius`
+  for 0x163, `6 × 3 / 2 + 1` = 10 tiles of `0xc0`).
+- `construct_hits` and `myhits` are on the coverage pin's unread list for
+  `OBJECT` (item 1476's finding): the dump printed this parting (997 against
+  this crate's 750 on block 14363) for as long as the site stood, and no compared key
+  held it. Comparing `construct_hits` on `BuildDump` would have dated this item before the flag moved.
+
+No blind reading. The clause is diff-backed by run653's `1/2053` (the clock from
+`construct_hits` on three blocks and the completion frame) and the predicate's
+shape by the listing.
+
 ## 133. The coverage pair's frame 8: the leader's oil patches, and the word at 177 (2026-10-06, item 1505)
 
 **What was established, how, how confident.** Item 1496 left the coverage pair's word at **frame 8, 21 draws ours against 24, index 2** (ours
