@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-06, the twenty-fifth pass (`docs/audit/2026-10-06-fable-pass-25.md`):
 twenty landings in 13 h 09 m, three lanes, 16.5 USD a landing. French East
-Indies **closed at 17,379** (1514, 1519); Toughest **15275** (1510, 1517, 1522), floor 15275; fifty-one chapters
+Indies **closed at 17,379** (1514, 1519); Toughest **15378** (1510, 1517, 1522, 1524), floor 15378; fifty-one chapters
 closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
 
 - **Two lanes this tranche** (DECISIONS 61 §5: a landing waited 77.5
@@ -29,34 +29,34 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
   a merge-moved pin is no kill, the push is read back, a section stub lands.
-- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527).
+- **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w177 of 4,730
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15275 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15378 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1511 on Opus 5.5 and 1524 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1511 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1511) and the third map's (1524); 1497 waits for a free lane,
+pair's (1511) and the third map's (1528); 1497 waits for a free lane,
 lower map first — closed, the French pair's; 1511's row moves it.
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1524. **Great Sahara at Toughest's word: frame 15275, 12 versus 11
-    draws**, index 4: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
-    theirs `… < Unit::do_guard+0x7f4`. No capture holds a block there
-    (run664 and run666 end at 15230; run470's game runs over
-    15269..15525), so the widening is owed a capture first: the six
-    blocks before, every record compared both ways. No mechanism.
+1528. **Great Sahara at Toughest's word: frame 15378, 14 versus 51
+    draws**, index 2: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`,
+    theirs `Unit::do_group_move+0xb03`. run668 (15230..15433) widens it
+    on block 15379: on 15377, 77 units' orders and group 65's record
+    change beside 0/2000's `reduce_stamp`, which nothing here writes.
+    54 frames from the game's end (DECISIONS 55). No mechanism.
 
 1511. **The coverage pair's word: frame 177, 9 versus 8 draws**,
     index 2: ours `Leader::make_stuff+0x221` three times, theirs twice

@@ -3689,6 +3689,12 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1529) **The runner refuses an `--end-frame` past the game's own end**
+(1524's Loop line, 2026-10-06): its receipt counts frames to `end + 1`,
+so a window that reaches the game's last frame takes `--end-frame`
+equal to it; run668's first take was lost to it. A runbook line in
+`docs/ORACLE.md`, or a refusal that names the game's end. One reach.
+
 (1527) **A `pkill -f` on a test binary's name reaches every lane**
 (1511's message, 2026-10-06 13:01): every worktree builds `rondata`'s
 test binary under the same hashed name (`rondata-6503fbbb16c1e8c2`), so

@@ -1395,9 +1395,13 @@ impl Sim {
     /// `x_internal`/`y_internal`. The type's `coll_size` is the unit's for
     /// every figure, so only the centre moves.
     ///
-    /// The two answers come apart twice: for a **crew** figure, which
-    /// stands on a track offset a whole cell or more from its leader; and
-    /// for guy 0 itself on any frame its body has not caught up with the
+    /// ~~The two answers come apart twice: for a **crew** figure, which
+    /// stands on a track offset a whole cell or more from its leader; and~~
+    /// **`guy_mark` is 1** ([`crate::anim::SQUAD_SIZE`]), so the walk is
+    /// figure 0 and no crew figure is ever asked (item 1524, `docs/AI.md`
+    /// §140: a Bombard decoy's second figure turned a hard collision into
+    /// a slip-past on Great Sahara at Toughest's 15246). The two answers
+    /// come apart for guy 0 itself on any frame its body has not caught up with the
     /// unit's point (`docs/ANIM.md` §4 step 1) — `is_here`, the test
     /// immediately before, reads the **unit's** position, so the original
     /// genuinely mixes the two.
@@ -1414,9 +1418,15 @@ impl Sim {
             return Self::corner_of(size, ucell(self.units[o].pos), cell);
         }
         let body = self.units[o].movement.body.pos;
+        // **`0 .. guy_mark`, and `guy_mark` is 1** (item 1524,
+        // [`crate::anim::SQUAD_SIZE`]): the loop is the squad's figures and
+        // never the crew's. A Bombard decoy's four figures stand a cell off
+        // their leader and the second one's NW/SE corner cancelled the
+        // asker's own, so ours slipped past a blocker the original refused.
         self.units[o]
             .guys
             .iter()
+            .take(crate::anim::SQUAD_SIZE)
             .map(|g| g.follow.map_or(body, |f| f.body.pos))
             .map(|p| Self::corner_of(size, ucell(p), cell))
             .find(|&c| c != 0)
@@ -4533,9 +4543,10 @@ mod tests {
         assert!(sim.units[x].half_step, "the soft walk raises it");
     }
 
-    /// §4.3: **the corner rule is decided on the blocker's *figures*, not
-    /// on the blocker.** `UnitData::is_corner@0060a040` walks
-    /// `0 .. guy_mark` and returns the first non-zero
+    /// §4.3: **the corner rule is decided on the blocker's *figure 0*, not
+    /// on the blocker** — and not on its crew (item 1524).
+    /// `UnitData::is_corner@0060a040` walks
+    /// `0 .. guy_mark` (1) and returns the first non-zero
     /// `GuyData::is_corner@005de270`, which measures against that figure's
     /// own `GuyData::x/y`. The test immediately before it —
     /// `UnitData::is_here` — reads the **unit's** `x_internal`, so the
@@ -4579,8 +4590,9 @@ mod tests {
         sim.units[y].guys.push(crew);
         assert_eq!(
             sim.detect_unit_collision(x, into),
-            None,
-            "with the crew figure, `is_corner` answers SE and the two slip past"
+            Some(y),
+            "the crew figure is past `guy_mark` (1): `is_corner` never asks it, and the \
+             collision stays hard (item 1524)"
         );
     }
 

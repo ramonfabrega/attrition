@@ -15264,3 +15264,39 @@ SHA-256 `7ab6d44e22e926ddaf1e66f54f90d5d94d9983988a7248126d4ed4cde8a00d90`.
 **What it holds**: `diff::coverage_pair::run669_s_word_frame_is_widened_whole` — 192 keys, 71 standing on block 180 (the control's).
 The state parts first on block 183: the Missile Silo `1/2021` at (36480, 41088) in ours against (41088, 37248). It is the coverage
 pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin. `docs/AI.md` §141.
+## run668 — run470's game over the word 15275's window, to the game's end (2026-10-06, item 1524)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 18` from frame 37),
+run664's detail, dumped over blocks 15230..15432 (and the closing block 15433) and ended at 15432, the game's own last frame. The word 15213
+(item 1517's) moved to 15275 on item 1522's tree (`docs/AI.md` §139); no capture on disk printed a block there
+(run664 and run666 end at 15230).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run668 \
+    --map 7 --end-frame 15432 --timeout 5000 --log-window 15230 15433 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** The word's own frame and the blocks before it: no gamelog on the disk holds a
+block between 15231 and 24000's trace. (The window began at 15269, the word's six blocks before, on a first take;
+the first parted field of the unit the word turned on was on block 15247, so it was taken again from 15230, run664's
+last block.)
+
+**Taken.** First take: window 15269..15433, `--end-frame 15440` — past the game's own end at 15432, so the runner's
+receipt refused it (`missing, repeated, or unexpected simulation frames`; the game had ended itself at 15,433 frames);
+its directory is kept as `2026-10-06-run668-take1-endframe-over`, its draws equal to run470's over 15,433 frames, and
+nothing is read from it. Second take: receipt `success: true`, exit 0, 1,219.7 s launch to exit (1,243.4 s in all),
+15,433 frames, map 7 and seed 12345 verified, five settings files restored, 203 `FRAME` blocks 15230..15432 and the
+closing block 15433. `rngcmp.py rontrace-run470.log rontrace-run668.log` **0 differing**, 15,433 identical. The lane was
+free (no wait).
+
+Archive `gamelog-run668-greatsahara-toughest-15275.txt`, 539,837,653 bytes,
+SHA-256 `0ac82f2add8f0e1512342e1ba16176867d3fd6e732f4fce1f7603d8ab686a17e`.
+
+Archive `rontrace-run668.log`, 122,400,000 bytes,
+SHA-256 `ce69abba45c4df286d6ded156b612c4e99dc3b654d20bdb60851c352b5ea520c`.
+
+**What it holds**: `run668_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): blocks 15230..15432, 2,596 keys on the
+built tree, 92 standing on the first; `1/153` parts on none and nothing parts on the old word's block 15276. The new
+word 15378's block (15379) is inside it. `docs/AI.md` §140.

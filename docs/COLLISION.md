@@ -529,17 +529,24 @@ It returns 0 outright when the unit fails vfunc `+8` or `+0xbc`
 
 So the original mixes two frames of reference within four lines:
 `UnitData::is_here`, immediately before, reads the **unit's** position, and
-`is_corner` reads its **figures'**. The two answers come apart for a crew
+`is_corner` reads its **figures'**. ~~The two answers come apart for a crew
 figure standing on a track offset (`docs/ANIM.md` §4.8's packing types —
 merchants, caravans), and for guy 0 itself on any frame its body has not
 caught up with the unit's point (`docs/ANIM.md` §4 step 1). Since
 `is_corner` returns the *first* non-zero and guy 0 is usually on the unit,
 the effect is one-directional: a figure can only turn a hard collision
-**soft**, never the other way.
+**soft**, never the other way.~~ **`guy_mark` is 1** (`anim::SQUAD_SIZE`), so
+the walk is figure 0 alone and no crew figure is asked — item 1524, `docs/AI.md`
+§140: Great Sahara at Toughest's Bombard decoy `1/106` had its second figure's
+SE corner cancel the asker's NW, and the original refused the waypoint ours
+slipped past (`coll_x/coll_y` on block 15247). The two answers still come apart
+for guy 0 itself on a frame its body has not caught up with the unit's point
+(`docs/ANIM.md` §4 step 1), and there too a figure can only turn a hard
+collision **soft**.
 
 `Sim::guy_corner`, and
 `collide::tests::the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker`.
-**Reading only, and no capture reaches it**: neither long word moved when
+**Reading only, and no capture reaches it** (~~; item 1524's run668 reaches it, and corrects the crew reading above~~): neither long word moved when
 it landed (Great Lakes 6848, East Indies 7448, both unchanged), so what it
 rests on is the two decompiled functions and nothing else. SEAM: a unit
 this crate has stood up without figures — `Sim::add_unit` does not call

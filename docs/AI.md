@@ -16116,10 +16116,64 @@ capture**; the booking is the frame and the delta, and no mechanism is named.
 deltas), `run664_s_word_frame_is_widened_whole` (302 → 92) and `run470_is_great_sahara_at_toughest_and_its_word_holds` (15213 → 15275). The
 head of `Object::do_damage` rests on the decompile and these runs; the listing was not read.
 
-## 140. Reserved for item 1524 (Toughest frame 15275)
+## 140. The corner rule asks a blocker's first figure only, and the word at 15378 (2026-10-06, item 1524)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1522 left Great Sahara at Toughest at **frame 15275, ours 12 draws against 11, index 4**:
+ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. No capture held a block there, so the
+widening came first: **run668** (`docs/RUNS.md`), run470's game over blocks 15230..15432 to the game's end (draws equal to run470's over 15,433 frames),
+and `run668_s_word_frame_is_widened_whole` walks it both directions, every record run584's detail prints.
+
+1. **Who spent the draw.** `RON_DEBUG_SITES=15275-15275`: ours' five animation rolls are `1/30` and `1/155` (`do_guard`), **`1/153` (`move_step`)**,
+   `1/81` and `1/86` (`Guy::inc_time`); the original's four are the same minus `1/153`'s. `1/153` is a GUY of type 179 (`KINGSYEOMANRY`), group 65,
+   guarding `1/141` over an attack-to move. It walks in ours and has stopped in the original's: `1/86`/`1/153` on block 15276 carry `collide 1` ours
+   against 0, `stopped 1` against 0.
+2. **The first parted field is 1/153's, 29 blocks earlier.** On the widening's own blocks `1/153` first parts on **block 15247** (frame 15246), the
+   gap run664's window did not reach: the move order's `coll_x/coll_y` is (9480, 27240) in the dump and none in ours, with `pos` (10403, 27094)
+   against (10415, 27084), `last_speed` 33 against 17. The dump's order on 15246 has `dest_x` 10248 and `coll` 0; on 15247 `dest_x` 9480 (the next
+   path node) **and** `coll_x/coll_y` 9480, 27240: the original took a new waypoint and `detect_unit_collision` refused it (`do_move@005f7b30`, the
+   waypoint probe at 507; only `detect_unit_collision` writes `coll`, at its `+0x3c`/`+0x40` stores).
+3. **Who refused it.** The dump at 15247 has two units on the waypoint's cell (197, 567)'s neighbourhood: `1/138` (a group-65 mate, soft) and
+   `1/106`, a General's Bombard **decoy** (`unit_masks` 331791, §139), standing on (9480, 27192) with four figures — guy 0 there, guy 1 on
+   (9353, 27085). `RON_SWEEP=15246:1/153` (ours' scan, the same walk the step makes) names the hit cell (196, 566), `will_be_corner` 1 (the asker's NW
+   corner), `1/138` soft, **`1/106` `is_corner` 5** — and `|1 − 5| = 4` lets the two slip past, so ours answers no collision.
+4. **The function.** `UnitData::is_corner@0060a040`: after its two leading vslot tests, `for i in 0 .. this->guy_mark { if guys[i] && GuyData::is_corner(...) != 0
+   return it }`. `guy_mark` is **1** on every unit in every capture (`anim::SQUAD_SIZE`, `UnitType::init`'s one writer), and `1/106`'s own block prints
+   `guy_mark 1` beside its four `GUY` records. Figure 0 on (197, 566) is a face of the hit cell (dx −1, dy 0): corner 0, so the collision is hard. Ours
+   walked every figure it kept — `Sim::guy_corner` took `guys.iter()` — and so asked the three crew figures the original never asks. Read from the
+   decompile (`is_corner@0060a040.c`); the listing was not opened. The dump (the one unit on one frame, the `coll` it writes) is the oracle.
+
+**Built.** `Sim::guy_corner` (`collide.rs`) maps over `guys.iter().take(SQUAD_SIZE)`. Test
+`the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker` is rewritten: it held the opposite (a crew figure's SE corner turned a hard
+collision into a slip-past — COLLISION §4.3's *"reading only, and no capture reaches it"*); now the same board, with the crew figure past `guy_mark`,
+stays hard. COLLISION §4.3's paragraph is struck and pointed here. Mutation (`tools/mutate.py`, `.take(SQUAD_SIZE)` removed): see the journal.
+
+**Value diff** (the frame the state first parted, walked back from the word): `1/153`, block 15247 (frame 15246) — before, **8 keys**: `order:coll`
+ours `None` theirs `(9480, 27240)`, `pos` (10415, 27084) against (10403, 27094), `g.x/y/des_x/des_y`, `avg_speed` 28 against 32, `last_speed` 17 against
+33; block 15248 five more (`g.angle`, `g.cur_anim` 8 against 9, `end_time` 13 against 10); 15272 three (`dest_angle`, `orders_x/y`); the word's block 15276
+thirteen (`1/86` and `1/153`'s animation, `collide`, `start_dist`, `order:move.dest`). After: **none**. Nothing parts on `1/153` before block 15378, and nothing
+on 15276. run668's keys: 3,346 before, **2,596** after (92 standing on the first block).
+
+**The new word: frame 15378, ours 14 draws against 51, parting at index 2.** Ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+`Unit::do_group_move+0xb03` — the original gives group 65 a **group move** on frame 15377 (block 15378: 887 keys, 77 units' `orders.len`, `order:kind`,
+`orders_x/y`, `dest_angle`, `path`, and the group record's `curr`/`off`/`ox`/`oy`/`order_num`/`form_num`) beside **`0/2000`'s `city:reduce_stamp` 15377**
+against 0. Its widening is already on disk: run668's block 15379 (1,081 keys), inside the window — `testkit::WIDENINGS`'s Toughest row names
+`run668_s_word_frame_is_widened_whole`. No mechanism is named: `reduce_stamp` has no writer in this crate; the group move's initiator is not looked at.
+Four single-key `dest_angle` partings stand outside it (`1/149` on 15266, `1/129` on 15268, `1/77` on 15326, `1/105` on 15366: ours −1428553728 against
+1946222592 on the first) with no consequence in position or draw before 15378.
+
+**Not established.**
+- That `guy_mark` is 1 for every unit the original ever builds: every dumped block prints 1, and `UnitType::init`'s literal is its one writer
+  (`docs/ANIM.md`), but `Unit::init`'s copy is the field the loop reads and nothing here proves no later write moves it.
+- The two leading vslot tests of `UnitData::is_corner` (`+8` and `+0xbc`, both answering "on the map" per COLLISION §4.3) are read as already filtered
+  by the chain walk, as before.
+- Who cast the decoy `1/106` and why a decoy is a blocker at all: the dump shows it standing on a cell and the original refusing it; `Object::do_damage`
+  (§139) is the only place the decoy bit is read for combat. No `Object::add_to_world` decoy exemption is claimed or tested.
+- That no other golden or long window depended on the crew figure's corner: the rondata suite (749 tests, every golden chapter, both pairs' words) held
+  on the built tree; the claim's only capture is this one.
+
+**Coverage.** Diff-backed: the first parting and its removal (`run668_s_word_frame_is_widened_whole`: `1/153` parts on nothing before 15378, the old word's block
+is empty, 15378 carries 887 keys), the floor (`run470_is_great_sahara_at_toughest_and_its_word_holds`, 15275 → 15378). The loop bound rests on the decompile and the
+dump's `guy_mark 1`; the listing was not read.
 
 ## 141. All Technologies sees every cell: `was_seen`'s leader arm, and the word at 185 (2026-10-06, item 1511)
 
@@ -16178,3 +16232,8 @@ capture holds a Fouché; `electronics_or_a_fouche_sees_every_cell` holds it and 
 while the wonder stands and keeps it after the wonder falls, until `fix_tech_flags`; ours reads the wonder now. `is_seen`'s own leader
 arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not built here; `was_seen` is. Whether any other reader of
 `was_seen` on this lobby (the goody search, the roads) parts: none does on any block run669 holds.
+
+## 142. Reserved for item 1528 (Toughest frame 15378)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
