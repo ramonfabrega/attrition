@@ -14918,3 +14918,7 @@ Whether `STARTING_TECHNOLOGY 9` ("Random") is carried (not tried). Whether the s
 it does not on the walks run before the gate (the gate's own verdict is in the journal). *Diff-backed*: the lobby
 read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
 choice of nation.
+
+## 130. French East Indies 16857: the General 1/79's animation (2026-10-06, item 1500)
+
+*In progress.*
