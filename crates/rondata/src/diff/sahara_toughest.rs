@@ -276,6 +276,9 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_15275: (i64, i64) = (15_230, 15_
 /// **The word's block, 15276**: frame 15275 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_15276: i64 = 15_276;
 
+/// **The new word's block, 15379**: frame 15378 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_15379: i64 = 15_379;
+
 /// run666: run664's game with `AMMO=5` added to the detail, over the blocks
 /// 15196..15230 (item 1522) — the only capture on disk that prints the
 /// original's own rounds on the third map.
@@ -565,7 +568,8 @@ pub(crate) fn great_sahara_toughest_15275_window() -> Option<crate::diff::harnes
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run664 at its block 15214 since item 1517 (run663 at its block 15102
+/// on run668 at its block 15379 since item 1524 (run664 at its block 15214
+/// from item 1517, run663 at its block 15102
 /// from item 1510, run659 at its block 14513
 /// from item 1503, run653 at its block 14364
 /// from item 1493, run640 at its block 12817
@@ -585,12 +589,12 @@ pub(crate) fn great_sahara_toughest_15275_window() -> Option<crate::diff::harnes
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
-    let word = TOUGHEST_WORD_BLOCK_15214 - 1;
+    let word = TOUGHEST_WORD_BLOCK_15379 - 1;
     toughest_window_over(
-        "run664",
-        (TOUGHEST_WORD_15213, WIDENING_GREAT_SAHARA_TOUGHEST_15213.0),
+        "run668",
+        (TOUGHEST_WORD_15275, WIDENING_GREAT_SAHARA_TOUGHEST_15275.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_15214,
+        TOUGHEST_WORD_BLOCK_15379,
     )
 }
 
@@ -1990,15 +1994,15 @@ mod tests {
         // decoy `1/106` and writes `coll_x/coll_y`; ours' scan let the two
         // slip past on the corner rule, because `UnitData::is_corner` walks
         // `0 .. guy_mark` (1) and ours walked the decoy's three crew
-        // figures too. With the walk bounded the unit has **no key at
-        // all** on the window and the word moved to 15378.
+        // figures too. With the walk bounded the unit has **no key
+        // before** block 15378 (the new word's) and the word moved there.
         pin_eq!(
             w.firsts
-                .keys()
-                .filter(|(who, o, _)| (*who, *o) == (1, 153))
+                .iter()
+                .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 153) && *f < 15_378)
                 .count(),
             0,
-            "1/153 parts on nothing"
+            "1/153 parts on nothing before the new word's block"
         );
         pin_eq!(
             by.get(&15_276).copied().unwrap_or(0),
