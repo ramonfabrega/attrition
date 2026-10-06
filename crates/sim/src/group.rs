@@ -4997,6 +4997,27 @@ mod tests {
         );
     }
 
+    /// **The cross-region arm re-points its member** (group 15; A9 row 34):
+    /// a listed member whose `+0x80` named another slot names this group
+    /// after the arm; an unseated group writes nothing.
+    #[test]
+    fn the_cross_region_arm_re_points_a_stale_member() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let mut g = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut g, true));
+        let pool = s.gstate(&g).and_then(|st| st.pool).expect("seated");
+        s.units[b].group_ptr = Some(pool + 1);
+        s.repoint_member(&g, b);
+        assert_eq!(s.units[b].group_ptr, Some(pool));
+        let loose = group_of(1, &[a]);
+        s.units[a].group_ptr = Some(40);
+        s.repoint_member(&loose, a);
+        assert_eq!(s.units[a].group_ptr, Some(40), "no seat, no id");
+    }
+
     /// **A pushed slot's own state** (item 1457, `docs/GROUPS.md` §36): a
     /// stack group's point is `Group::clear`'s (0, 0), which `copy_group`
     /// carries into the slot; and every push opens with `equals_group`'s

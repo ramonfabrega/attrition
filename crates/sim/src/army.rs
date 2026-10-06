@@ -3281,9 +3281,18 @@ mod tests {
     #[test]
     fn a_navy_skips_a_coastal_city_with_no_ocean() {
         let mut draws = Vec::new();
-        for ocean in [0, 3] {
+        for (ocean, team_style, start_list) in [
+            (0, 1, [0, 1, 2, 3, 4, 5, 6, 7]),
+            (3, 1, [0, 1, 2, 3, 4, 5, 6, 7]),
+            // `team_style == 2`: an enemy that is neither me, an ally nor the
+            // start list's target is skipped whole (group 4; A5 #30).
+            (3, 2, [1; 8]),
+            (3, 2, [0, 1, 2, 3, 4, 5, 6, 7]),
+        ] {
             let (mut sim, c) = sim_with_city();
             sim.lobby.difficulty = 5;
+            sim.lobby.team_style = team_style;
+            sim.lobby.start_list = start_list;
             sim.ai[1].pers.early_army = 1;
             sim.world
                 .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
@@ -3312,8 +3321,9 @@ mod tests {
         }
         assert_eq!(
             draws,
-            [false, true],
-            "the city is drawn for only when its census found water"
+            [false, true, false, true],
+            "the city is drawn for only when its census found water, and under \
+             team style 2 only when its owner is the start list's target"
         );
     }
 
