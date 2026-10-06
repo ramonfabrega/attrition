@@ -14267,8 +14267,112 @@ each axis.
 - Levels 2 and 3 (Architecture, Engineering) are not reached by any
   capture on file. They rest on the counter's loop and on the cheat run of
   `docs/CITIES.md` §3.2, which saw 70000.
-- Who=1's `leader:discovered` 33 against 34 still stands. It first parts on
+- ~~Who=1's `leader:discovered` 33 against 34 still stands. It first parts on
   run635's block 12959, the frame after ours gains Chemistry (`f12958`).
   The Smelter is the one building whose `PREQ0` is Chemistry, and our
-  who=1 never holds its bit. That is a row, not a mechanism.
+  who=1 never holds its bit. That is a row, not a mechanism.~~ **Answered
+  by §123**: the one is Carpentry, handed to the French with Chemistry.
 - No blind reading has been done.
+
+## 123. The French are handed the Carpentry line (2026-10-05, item 1479)
+
+French East Indies' word 14782 was 15 draws against 16 at index 7.
+Draws 0..6 agree: two `Leader::make_stuff+0x221` and five
+`Leader::make_stuff+0x63d`. The original spends a sixth `+0x63d` (seed
+`76675f2d`, `report.py … draws 14782`); ours goes on to
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (`1/79`).
+
+**The event, both sides.** Before the frame both who=1 make lists are the
+same: Printing Press (616) in slot 0 and again in slot 8, Barracks in 2
+and 7, Constitution in 9, Conscription in 10. Both buy the head, and both
+spend the two head draws and the five slot draws for the Barracks and
+Conscription. The sixth is slot 8. The original asks `make_this(8)`, and
+`produce_tech` answers 1 for a tech already in research, so slot 8's
+`val` becomes 99999 and its expiry walk spends a draw. Ours never reaches
+`make_this(8)`. Step 6's stockpile test wants `bucket ≥ cost(head) +
+cost(slot) + need` in timber: 640. The original's timber is **1040**
+before the head is paid. Ours is **790**, and 470 after.
+
+**The first parting, dated.** The timber is a standing row. On run636's
+14085 who=1's raw timber rate (`resources[1]`) is 3904 here and 4480 there.
+On run639's 14777 it is 3904 here and 5440 there, over a cap of 5376.
+Nothing in run635 (12947..12959) parts on timber. Its one who=1 row is
+`discovered` 33 against 34 on 12959, the block after Chemistry (`f12958`
+on both sides). Both increments are whole `LUMBERMILL_BONUS` steps on
+twelve woodcutters. Per gatherer, `peasant_rate` is 160 sixteenths:
+
+- 20 % → 50 % is 192 → 240, and 12 × 48 = **576** (3904 → 4480).
+- 50 % → 100 % is 240 → 320, and 12 × 80 = **960** (4480 → 5440).
+
+The levels are `LUMBERMILL2` and `3`, `TECHBONUSES` rows 22 and 23. Their
+`PREQ0`s are Carpentry and Logging Industry. Carpentry's `PREQ0` is
+Chemistry. Logging Industry's are Laws of Nature and Carpentry. So the
+state first parts on **12958**: the original hands who=1 Carpentry with
+Chemistry, and this crate does not.
+
+**Why.** `Leader::gain_tech@006dcb60`, at `6df93b`–`6df9d8` in the listing:
+
+```
+esi = 0x261                                    # CARPENTRY
+if has_tribe_bonus(0xa) and constants[+0x6c4]: # french_lumbermill_upgrades
+    while esi <= 0x263:                        # PAPERMILL
+        if has_preq(esi):
+            for i in 0 .. num_preq(esi):
+                if get_preq(esi, i, who) == gained:
+                    if type_eligible(esi, 1): gain_tech(esi, 0, 0, 0, 1)
+                    break
+        esi += 1
+```
+
+That is `docs/TECH.md` §13's French row, in [`tech::Shape::PreqMatch`]'s
+shape. The loader built the five predicate blocks and none of the range
+blocks ("each endpoint is its own reading and no capture reaches any of
+them"). `FRENCH_LUMBERMILL_UPGRADES` was loaded into `Tuning` and read by
+nothing. `seams.py --field free_rules` does not name the gap: its comment
+says "not loaded", not "SEAM".
+
+**The change.** `rondata::load` pushes the French block: `Gate::Power(10)`,
+`enabled` from `french_lumbermill_upgrades`, and the candidates are the
+listing's `0x261..=0x263` through `BASE_TECHTYPES`. By name those are
+Carpentry, Logging Industry and Papermill. Nothing else moves:
+`gain`'s step 13 already walks `free_rules`. Ours now gains Carpentry
+with Chemistry on 12958 and Logging Industry with Laws of Nature on 14607
+(`RON_DEBUG_TECH`).
+
+**The value diff.** On 14085 who=1's timber `resources` 4480, `income`
+4480, `rate` 280, `bucket` 532 and `leftover` 6000 are the original's
+values. On 14777 they are 5440, 5376 (capped), 336, 1034 and 6768, with
+`escrow` 251, `over_cap` 1 and `best_good` 1. Before the make on 14782
+the timber is 1040 and the escrow 253 (`RON_DEBUG_LEADER`), and on 14783
+slot 8's `val` is 99999 on both sides. `discovered` agrees on 12959,
+14085 and 14777. `1/93`'s move order agrees on 14783, as do the walk rows
+of 14784 that followed it.
+
+**What moved.** French East Indies **14782 → 14786**. The widenings fall:
+
+- run639: 239 → 226.
+- run636: 134 → 128.
+- run635: 119 → 118.
+
+**The new word** is 14786: 12 draws against 11 at index 0, ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` and theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. It lies inside run639,
+whose block 14787 holds it. The first rows after 14777's 127 standing are
+on block 14785: who=1's `MAKE[8]` holds a Temple (437, city 2, `val`
+800000, escrow 1) here and **Tikal** (532, city 3, `val` 1563477, escrow
+0) there. On 14786 the site `1/2054` is placed as each (`constr_time`
+37800 against 540000, a different city and spot). Food and timber are
+spent, and `1/25` and `1/57` take different orders. No mechanism is
+named here.
+
+**What is not established.**
+
+- Papermill is not reached by any capture: its `PREQ0` is Electronics.
+- The other range rows of §13's table (Russian, Egyptian, Mongol,
+  Persian, Korean, Chinese, Roman, the wonders) are still not loaded.
+  No capture's player holds those powers or wonders.
+- `tech_frame` and `tech_cat_frame` are unmodelled. The original's
+  `tech_frame` 14382 on 14777 is not this crate's 14607 for Laws of
+  Nature, and this item does not read why.
+- No blind reading has been done. The block's predicate is read off the
+  listing; the cascade it joins is §13's.
