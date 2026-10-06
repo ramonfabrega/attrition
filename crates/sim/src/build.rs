@@ -176,6 +176,10 @@ pub struct BuildType {
     pub plunder_good: Option<usize>,
     /// Whether the type is a wonder (`PYRAMIDS..SPACEPROGRAM`).
     pub wonder: bool,
+    /// `WONDER_VAL` (`BuildTypeData::wonder_val`, `+0x2d0`, read by
+    /// `BuildType::init@00632340`): a wonder's points — Pyramids 1, Tikal
+    /// 2, Kremlin 6. Only [`BuildType::wonder_points`] reads it.
+    pub wonder_val: i32,
     /// The price, for refunds and repairs.
     pub price: cost::Price,
     /// Its entry in the tech tree, which gates `type_avail` for the city
@@ -219,6 +223,16 @@ impl BuildType {
         } else {
             BuildDomain::Land
         }
+    }
+
+    /// `ObjectTypeData::get_wonder_value@00661ba0`, the slot `+0x118` of
+    /// `BuildTypeData`'s vtable (`0xb428d4`, read off the PE's RTTI): the
+    /// type's `WONDER_VAL` when `TypeData::is_wonder_type` answers — the
+    /// `TypeIndex` range `0x20e..=0x21e` that is [`BuildType::wonder`] —
+    /// and 0 for any other type. The Courtyard Fountain and the Red Fort
+    /// carry a `WONDER_VAL` and are worth nothing here (`docs/AI.md` §124).
+    pub const fn wonder_points(&self) -> i32 {
+        if self.wonder { self.wonder_val } else { 0 }
     }
 
     /// `x_size × y_size`.

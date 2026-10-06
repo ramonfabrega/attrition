@@ -9549,11 +9549,13 @@ runway's 502.
   value the type again. Reading-only (parked 777's family, not the
   cause).~~ **Built by item 1454** (§116; `docs/TECH.md`, "A built wonder
   is built for everyone"): the hard French AI drew on it at 9781.
-- **The rest of the wonder bookkeeping** still reads empty in
+- ~~**The rest of the wonder bookkeeping** still reads empty in
   `wonder_value`: the team, enemy and unbuilt wonder values and
   `Game::wonder_winning`. With a wonder standing, the original's team
   value is no longer zero, so a hard AI's `% 1000 × % 300` product is
-  scaled by it. No capture on file has a hard AI.
+  scaled by it. No capture on file has a hard AI.~~ **Built by item 1481**
+  (§124): the hard French AI's Pyramids doubled its Tikal on 14784, and
+  the type's own `WONDER_VAL` doubled it again.
 - **A close.** No capture on file loses a wonder, so the entry that
   `close_wonder` clears and the walk-down are the reading and the unit
   test alone. A captured wonder's entry is not read: `Build::swap_team`
@@ -14376,6 +14378,129 @@ named here.
   Nature, and this item does not read why.
 - No blind reading has been done. The block's predicate is read off the
   listing; the cascade it joins is §13's.
+
+## 124. A wonder is worth its points, and the team's (2026-10-06, item 1481)
+
+French East Indies' word 14786 was 12 draws against 11 at index 0. The
+other eleven agree. Ours spends one more, `1/57`'s
+`Guy::set_anim+0x97a < Unit::move_step+0x823`: on 14786 `1/57` walks to a
+site here and stands there, and `1/25` the reverse (`order:kind` 3
+against 7 on each, the run639 widening).
+
+**The first parting** is block 14785, who=1's `MAKE[8]`, the slot
+`create_buildings` fills on 14784. The original lists **Tikal** (`t` 532,
+`val` 1563477, escrow 0, city 3). Ours listed a Temple (437, 800000,
+escrow 1, city 2). Both make it on 14785 with the same four
+`produce_building+0x1805` draws, so the site `1/2054` lands in another
+city on 14786 and a different citizen is sent.
+
+**The arm, both sides.** Both spend the same 24 pairs of
+`create_buildings+0xffb`/`+0x1017` on 14784 (`report.py … draws 14784`),
+so the wonder arm runs on the same draws. Ours valued Tikal in that city
+at `l.val` 425798 and listed it at 390869 (`inc` 235). The original's
+1563477 is `425798 × 4 × 235 / 256` to the unit. The factor is four.
+
+**Why four.** The arm's tail at `6c2bf7`–`6c2cac`:
+
+```
+team  = get_team_wonder_value(me)                         # 006da990
+ev    = get_enemy_wonder_value(me)                        # 006da8f0
+      + get_enemy_unbuilt_wonder_value(me)                # 006d5e40
+win   = Game::wonder_winning()                            # 005948a0
+if victory == 6:                           val = (ev + 1) · 100000, escrow
+elif (win ≥ 0 and win ≠ me) or target/2 ≤ ev or ev > 4:
+                                           val = 2000000, escrow
+else:                                      val = (team + 1)(ev + 1)
+                                                 · (r2 % 300)(r1 % 1000)
+val = get_level(city) · buildtypes[t]->vslot(+0x118)() · val
+```
+
+- **`vslot(+0x118)`** is `ObjectTypeData::get_wonder_value@00661ba0`. The
+  export names `BuildData`'s slot `+0x118` `health_level`, but the call
+  is on the type. Off the PE: the RTTI of the vtable at `0xb428d4` is
+  `.?AVBuildTypeData@@`, and its `+0x118` holds `0x661ba0`. For a type
+  in `0x20e..=0x21e` (`TypeData::is_wonder_type`, `+0x1c` = `0x470780`)
+  it returns `wonder_val` (`+0x2d0`), and 0 otherwise. `BuildType::init`
+  reads that field from `WONDER_VAL`. Pyramids, Colossus and Hanging
+  Gardens are 1, Tikal 2, Angkor Wat 3, Kremlin 6, Space Program 8.
+- **`get_wonder_value@006ebb90`** sums, over the leader's wonder list
+  under `wonder_mark`, each object's `+0x14c`. That is
+  `ObjectData::get_wonder_value` (`0x46cf20`, read off `Build`'s vtable),
+  the type's `+0x118`. `get_unbuilt_wonder_value@006d5ee0` does the same
+  over the unbuilt list. The team sum is the leader and every mutual
+  ally; the enemy sums are every other leader.
+- **`wonder_winning`**: the leader whose `get_wonder_net@006ebb10` (the
+  team's points less the best enemy team's, floored at 0) reaches the
+  `wonderwins` row's `DATA` (`Category.data[0]`, `+0x3c`). A tie with an
+  ally goes to the more points of its own. A tie with anyone else clears
+  the holder and hands it on if the points are reached.
+
+On 14784 the only wonder standing in the game is who=1's **Pyramids**
+(`orig_type 526`, `wonder 0`, a completed `BUILDDATA`). So `team` is 1 and
+`ev` 0, and Tikal's `WONDER_VAL` is 2: `(1 + 1) × 2 = 4`. This crate read
+every one of those terms as empty (parked 798, §75's open line), and the
+factor as 1.
+
+**The change.**
+
+- `rondata::load` reads `WONDER_VAL` into `BuildType::wonder_val`.
+  `BuildType::wonder_points` is `get_wonder_value`.
+- `Loaded::wonder_wins` is `rules.xml`'s `wonderwins` rows. `lobby_of`
+  takes `WONDERWIN` through it into `Lobby::wonder_win_points`, the
+  default 8. Every capture on file sets `WONDERWIN 5`, the "8 Wonder
+  Points" row, and `VICTORY 0`.
+- `Sim::wonder_points`, `unbuilt_wonder_points`, `team_wonder_points`,
+  `enemy_wonder_points`, `enemy_unbuilt_wonder_points`, `wonder_net` and
+  `wonder_winning` are the six functions above. The held list is the
+  census's `wonder_slots` under `wonder_mark` (§75). The unbuilt list is
+  the leader's alive, inactive wonder buildings, the reading
+  `get_unbuilt_wonders` already takes for the price
+  (`docs/COSTS.md`).
+- `wonder_value` reads them in the listing's order and multiplies by the
+  type's points.
+
+**The value diff.** After the change ours lists Tikal on 14784 in slot 8:
+`t` 532, `val` 1563477, escrow 0, city 3, cost 520 food and 520 timber.
+On 14785 it is made, and the slot reads `t` −1, `val` 15634. The original
+shows the same on blocks 14785 and 14786. run639's 14785..14789 hold no
+parted key.
+
+**What else moved** (every move a row leaving, none arriving):
+
+- **run594** (second pair, East Indies, 18060): who=1's `MAKE[1]` and
+  `MAKE[8]`, Tikal (532), `val` 342150 against 684301, now agree. That is
+  Tikal's own 2: no wonder stands in that game on 18060, so this row
+  backs the factor alone. `MAKE[2]` (Pyramids 526 here, empty there) and
+  `MAKE[3]` (Colossus 527, empty) leave with it, as do the food and
+  wealth `bucket` rows they cost. 254 → 244 (222 → 212 on the tree
+  merged after item 1468).
+- **run589** (17890) and **run588** (17782): who=1's `MAKE[3]`, Hanging
+  Gardens (528, worth 1) at 248009 here against the Terra Cotta Army
+  (529, worth 2) at 250750 there, now agrees. 240 → 237 and 212 → 209
+  (208 → 205 and 180 → 177 merged).
+
+**The new word** is 15344: 44 draws against 38 at index 0. Ours spends
+`Army::find_target+0x7df` seven times, and theirs starts on
+`Animal::think_bird+0x82`. run642 (15339..15351) widens it: 100 standing
+on 15339, nothing on 15340..15344, and on the word's block 15345 an army
+group 64 that only the original holds, with some thirty of who=1's units'
+orders and positions. No mechanism is named here.
+
+**What is not established.**
+
+- **A wonder victory** (`VICTORY 6`) and the 2,000,000 arm are the
+  reading and the unit tests alone. No capture has a wonder victory, an
+  enemy wonder, or a leader past half the target.
+- **The leaders walked**: the listing's `flags & 1` (and `& 3 == 3` in
+  `wonder_winning`) is read as "not defeated".
+- **The unbuilt list is counted off the buildings**, as for the price. It
+  can differ from `unbuilt_wonders` only on the frame a site dies.
+- **The Courtyard Fountain and the Red Fort** carry a `WONDER_VAL` and lie
+  outside `0x20e..=0x21e`, so they are worth 0 here. No capture builds
+  either.
+- No blind reading. The factor is diff-backed by run639's `MAKE[8]` and
+  run594's `MAKE[1]`/`[8]`. The team term is backed by run639's
+  `MAKE[8]` alone: run594 holds no wonder.
 
 ## 125. The held-out battery: three lobbies no scored word shares, first try (2026-10-06, item 1465)
 

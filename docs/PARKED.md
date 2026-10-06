@@ -1507,8 +1507,9 @@ window). No search prices them: all 28,828 priced steps agree.
 (797) ~~**`already_built`** (`Game::wonders`, `type_avail`) is dormant here.~~
 **Built by item 1454** (AI §116, TECH "A built wonder is built for everyone").
 
-(798) **The rest of the wonder bookkeeping**: a team's and an enemy's
-wonders and an unbuilt wonder's value in `create_buildings`' arm.
+(798) closed 2026-10-06 by item 1481: **the rest of the wonder
+bookkeeping** — the wonder arm multiplies by the type's `WONDER_VAL`
+and by the team's held wonder points (AI §124).
 
 ## Parked by item 779, 2026-09-25 — the build line's edges
 
@@ -3697,7 +3698,12 @@ by a unit test alone.
 (1479's Loop line, 2026-10-05): the free-tech block (Chemistry's
 French Carpentry line, `FRENCH_LUMBERMILL_UPGRADES`) was a documented
 gap the seam scan did not print, and it parted who=1's timber rate
-for 1,800 frames.
+for 1,800 frames. And 1481's: stubs written "reads 1" or
+"reads empty" are missed the same way.
+
+(1488) **`ron_lane_state` exits 0 when the lane is held** (1481's Loop
+line, 2026-10-06): `ron_lane_state && launch` launches anyway; the
+flock refused the second launch, so nothing collided.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a

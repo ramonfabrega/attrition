@@ -1018,6 +1018,12 @@ pub struct Lobby {
     /// `VICTORY`: 0 standard, 3 score, 5 musical chairs, 6 wonder, 7
     /// territory, 8 economic, 9 tech race (`host-functions.md` §5).
     pub victory: i32,
+    /// The wonder victory's points: rules.xml's `wonderwins` row that
+    /// `WONDERWIN` indexes, its `DATA` (`Category.data[0]`, `+0x3c`).
+    /// `Game::wonder_winning` and `create_buildings`' wonder arm compare
+    /// against it whatever `VICTORY` is. Every capture on file sets
+    /// `WONDERWIN 5`, the "8 Wonder Points" row (`docs/AI.md` §124).
+    pub wonder_win_points: i32,
     /// `GameInfo.flags & 4`, "No Nation Powers".
     pub no_nation_powers: bool,
     /// `semaphore[2] & 2`: a Conquer-the-World or scenario game.
@@ -1044,6 +1050,7 @@ impl Default for Lobby {
             rush_rules: 0,
             elimination: 1,
             victory: 0,
+            wonder_win_points: 8,
             no_nation_powers: false,
             conquest: false,
             reveal_map: 1,
