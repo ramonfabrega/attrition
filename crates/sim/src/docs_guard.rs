@@ -1612,8 +1612,12 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// item 1147's two were; `economy::WINE` is the bit they carry. **Item
 /// 1189 banked them** (38 → 36): `economy::SPICE` quotes the same two
 /// bytes for `Caravan::trade_value`'s Spice test, and is built.
+///
+/// **Item 1479 banked two** (AI 32 → 30): `0x261` and `0x263`, `CARPENTRY`
+/// and `PAPERMILL`, are the French Carpentry block's range in
+/// `rondata::load` (`docs/AI.md` §123).
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 32),
+    ("AI.md", 30),
     ("ANIM.md", 4),
     ("ARMY.md", 7),
     ("ATTRITION.md", 1),

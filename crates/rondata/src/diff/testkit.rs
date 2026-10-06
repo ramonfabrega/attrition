@@ -1911,7 +1911,15 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// on 14087 on both sides: 14090 → 14782, 15 vs 16 draws, index 7
 /// Guy::set_anim under Unit::do_guard versus Leader::make_stuff+0x63d.
 /// run639 block 14783.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_782;
+/// Item 1479: the French are handed the Carpentry line free
+/// (`FRENCH_LUMBERMILL_UPGRADES`, `Leader::gain_tech@006dcb60` at
+/// `6df93b`, AI §123): Carpentry with Chemistry on 12958 and Logging
+/// Industry with Laws of Nature, so who=1's timber rate is 4480 on 14085 and
+/// 5440 on 14777 here as there, its stockpile 1040, and the duplicate
+/// Printing Press in slot 8 is bought on 14782: 14782 → 14786, 12 vs 11
+/// draws, index 0 Guy::set_anim under Unit::move_step versus Guy::set_anim
+/// under Unit::do_guard. run639 block 14787.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_786;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -8413,7 +8421,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
         Some("run639_s_word_frame_is_widened_whole"),
-        1476,
+        1479,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

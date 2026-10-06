@@ -222,7 +222,8 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
 }
 
 /// run639: the successor after Construction's clock and hit points,
-/// frame 14782 (item 1476).
+/// frame 14782 (item 1476), and after the French Carpentry line, 14786
+/// (item 1479), inside it.
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
@@ -232,7 +233,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
         &[("gamelog-run639-islands-french-14782.txt", 14777)],
         WIDENING_FRENCH_EAST_INDIES,
         1,
-        &[14783],
+        &[14787],
         true,
     )
 }
@@ -251,7 +252,14 @@ fn run639_s_word_frame_is_widened_whole() {
     // the arrivals); nothing on 14778..14782; on the word's block 14783
     // who=1's `MAKE[8].val` 9999999 against 99999 and `1/93`'s move order
     // 192 off on each axis.
-    pin_eq!(w.firsts.len(), 239, "initial run639 baseline");
+    // Item 1479: 239 → 226, the word's frame now 14786 (the French
+    // Carpentry line, AI §123): who=1's nine standing timber rows and
+    // `discovered` leave, so 127 stand on 14777; nothing parts on
+    // 14778..14784; on 14785 who=1's `MAKE[8]` holds a Temple (437, city 2)
+    // here and Tikal (532, city 3) there, four fields; on 14786 65, the site
+    // `1/2054` and the food and timber it costs among them; ten on each of
+    // 14787..14789. The word's block is 14787.
+    pin_eq!(w.firsts.len(), 226, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -289,7 +297,10 @@ fn run636_s_word_frame_is_widened_whole() {
     // hits, AI §121): the five `constr_time`s leave, `1/2047` completes on
     // 14087 on both sides, and every row from 14087 goes with it — what
     // is left is the 134 standing on 14085.
-    pin_eq!(w.firsts.len(), 134, "initial run636 baseline");
+    // Item 1479: 134 → 128 — who=1's `discovered` and five timber rows
+    // (`bucket`, `leftover`, `resources`, `income`, `rate`) leave: the
+    // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
+    pin_eq!(w.firsts.len(), 128, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -323,7 +334,9 @@ fn run635_s_word_frame_is_widened_whole() {
     // recovers craft at `r = 4`, AI §119): the 118 standing rows on 12947,
     // and who=1's `leader:discovered` 33 against 34 on the last block,
     // 12959, which stood in the 640 too. Nothing parts on 12948..12958.
-    pin_eq!(w.firsts.len(), 119, "initial run635 baseline");
+    // Item 1479: 119 → 118 — the `discovered` row was the French
+    // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
+    pin_eq!(w.firsts.len(), 118, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
