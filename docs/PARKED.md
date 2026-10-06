@@ -3669,3 +3669,9 @@ bits are read by no widening — a General's craft parted unseen for about
 2,000 frames before it parted a draw. And 1468's: group 4's `start_list`
 is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
 does not read.
+
+(1478) **Ours' `coll` against the collide probe's block, as a tool**
+(1472's Loop line, 2026-10-05): `tools/trace/report.py … calls` prints
+the probe's live block as raw coordinates; 1472 diffed it against ours
+with a throwaway script and a `TMP` print in `collide.rs`. The third
+reach after run116 and run578 — it graduates into `tools/`.
