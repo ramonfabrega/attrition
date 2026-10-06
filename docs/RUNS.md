@@ -14383,6 +14383,7 @@ The disk had 171 GB free after.
 
 **What it holds**: `chapter_fifty_one_holds_to_the_golden_word` (1100) and
 `chapter_fifty_one_s_word_frame_is_widened_whole` (605..1099).
+
 ## run635 — French East Indies, the word 12952's widening, with the leader probe (2026-10-05, item 1461)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1461-opus/run635-booking.json`,

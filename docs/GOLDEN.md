@@ -10567,9 +10567,21 @@ the same families as chapter fifty's 36 and 13, shifted by the frame
 `death:extra` on 750, `0/7`'s on 1054). The two walks' rows are the one
 residue and none of them is a draw.
 
+**The compare found a second caller, and it is wired.** Comparing
+`think_frame` made chapters forty-three and forty-six part (`1403 slot 1
+think_frame`, ours 0 theirs 1402): the original ran `Group::target_opportunity`
+on 1402 and this crate never did, because the function's other caller —
+`Unit::think_attack@005f5a80`'s tail (`005f5da6`..), which after a **unit** find
+by a grouped unit its group lists calls it with `param_4 == 1`, where arm 1
+never applies — was unwired. Wired (`orders.rs`, the idle-think arm); both rows
+close and the word of every chapter stands. Comparing a building's `visible`
+byte over every widening parted chapter thirty-seven once: the silo `0/2007`'s
+`0xff` after a nuke (`-1`), which `Nukes::shown` already held — the compare
+reads it.
+
 **What is not established.** The member arm's effect in the original (no
 capture reaches it); the fog arm (`update_local_seen_build`'s mask on a
 building's first round); a Fortress, Bunker, Redoubt or observation post
-shooting; the march's `+0x4b` arm. `Unit::think_attack`'s call of
-`Group::target_opportunity` (`param_4 == 1`, where arm 1 never applies) is
-still unwired.
+shooting; the march's `+0x4b` arm. The think tail's order is this crate's
+`add_attack_order(…, QUEUE_NEW)`, not `find_melee_target`'s own add
+(`docs/GROUPS.md` §12's second divergence).
