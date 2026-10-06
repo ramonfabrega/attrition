@@ -15969,3 +15969,8 @@ capture**; the booking is the frame and the delta, and no mechanism is named.
 **Coverage.** Diff-backed: the gate, by `run666_s_decoy_rounds_strike_nothing` (dump alone: five rounds, the three decoy bits, the 0/135
 deltas), `run664_s_word_frame_is_widened_whole` (302 → 92) and `run470_is_great_sahara_at_toughest_and_its_word_holds` (15213 → 15275). The
 head of `Object::do_damage` rests on the decompile and these runs; the listing was not read.
+
+## 140. Reserved for item 1524 (Toughest frame 15275)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

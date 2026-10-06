@@ -8673,9 +8673,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // this row names the item and no test. run664's test keeps the move's
         // value diff over 15207..15230 (empty past the 92 that stand);
         // run663's keeps 15095..15103, run659's 14506..14514, run653's
-        // 14357..14364, run640's 12811..12817, run584's 12532.
+        // 14357..14364, run640's 12811..12817, run584's 12532. The
+        // widening is item 1524's, booked with 1522's landing.
         None,
-        1522,
+        1524,
         None,
     ),
 ];
