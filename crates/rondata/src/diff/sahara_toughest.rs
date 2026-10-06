@@ -1399,7 +1399,7 @@ mod tests {
         };
         // **The move 12538 → 12569** (item 1429, `docs/AI.md` §118): the
         // Bombard `1/139`'s three draws on 12538 changed order and not
-        // value. Its figures' `cur_time`, `cur_anim` and `stopped` on block
+        // value. Its figures' `cur_anim` and `stopped` on block
         // 12539 agree on both sides, before and after the build; so does
         // every other key of the unit.
         for (o, key) in [

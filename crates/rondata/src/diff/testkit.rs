@@ -1945,13 +1945,13 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// 12538 (item 1426, seven draws each, index 1: ours `Guy::move+0x19f`,
 /// theirs `Guy::do_turn+0x4a < Guy::turn_towards+0x69`) was **the Bombard
 /// `1/139`'s three draws in another order, with no dumped field parted**:
-/// guys 1 and 3, the untracked crew, had `stopped` 1 on `cur_anim` 8 after
-/// 12537 and this crate paid each its arrival stand in `guys_follow` ahead
+/// guys 1 and 3, the untracked crew, stood `stopped` 1 on `cur_anim` 8 at the
+/// head of 12538 and this crate paid each its arrival stand in `guys_follow` ahead
 /// of guy 0's `turn_towards`, whose `do_turn` recursion re-slots them — the
 /// original draws guy 0's turn and the crew's two `do_turn+0xe5`. The
-/// dump's own coordinates on block 12539 are the three figures' `cur_time`
-/// 10 → 1 and `cur_anim` 8 → 0, `stopped` 0 → 1 on `1/139` guys 1 and 3,
-/// all agreeing on both sides before and after. **The new word's delta:
+/// dump's own coordinates are `1/139` guys 0, 1 and 3's `cur_anim` 8 → 0 on
+/// block 12539 after `stopped` 1 on guys 1 and 3 on block 12538, all
+/// agreeing on both sides before and after. **The new word's delta:
 /// ours 13 draws and the original 18 on frame 12569, parting at index 6**:
 /// ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`
 /// where the original spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,

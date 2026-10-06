@@ -13994,8 +13994,9 @@ guy 0's `turn_towards` and the two crew figures' `do_turn+0xe5`; this crate
 drew the two crew figures' **arrival stands** (`Guy::move+0x19f`) and then
 guy 0's turn. Draw counts agree, and so does every dumped field: `1/139`
 parts no key anywhere in run584's window. The block-12539 values are the
-three figures' `cur_time` 10 → 1, `cur_anim` 8 → 0 and the crew's `stopped`
-0 → 1 (run584's `GUY` blocks, both sides).
+three figures' `cur_anim` 8 → 0 on block 12539 (guys 0, 1 and 3), after
+`stopped` 1 on guys 1 and 3 and `cur_anim` 8 on block 12538 (run584's `GUY`
+blocks, both sides, agreeing before and after the build).
 
 **The mechanism.** `Guy::process@005e0230` runs `Guy::move@005d9240` per
 figure in slot order. Guy 0's standing arm, with the angle unsettled, ends in
@@ -14003,8 +14004,8 @@ figure in slot order. Guy 0's standing arm, with the angle unsettled, ends in
 the trackless crew and asks each for the turn slot, which a figure with no
 turn animation answers with the idle. A crew figure's own `Guy::move` then
 runs, finds `cur_anim` no longer 8, and its arrival stand
-(`field_0x9c == 8 && field_0x9d`) does not fire. The crew had `stopped` 1 on
-the walk from 12537, so it was exactly the arrival that was owed.
+(`field_0x9c == 8 && field_0x9d`) does not fire. The crew stood `stopped` 1 on
+the walk at the head of 12538, so it was exactly the arrival that was owed.
 `Sim::guys_follow` walked every untracked guy first and the turn
 (`do_turn_anim`) came after it in `lib.rs`. The turn now runs from inside
 `guys_follow`, after guy 0's follow and before guy 1's; a unit whose
