@@ -8706,13 +8706,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`1/10`, `1/2`, `1/4`, `1/9`'s order stacks and `1/2022`) and
     // run672's on `1/2009`. Item 1539 moved it to **727**, inside run672
     // (block 728); run672's test keeps the move's value diff on `1/15` and
-    // leader 1's counts on 668.
+    // leader 1's counts on 668. Item 1544 moved it to **982**, past
+    // run672's last block (833), and took run678 over 977..1233 (block
+    // 983); run672's test keeps the move's value diff on `1/8` from 691.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run672_s_word_frame_is_widened_whole"),
-        1539,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_583),
+        Some("run678_s_word_frame_is_widened_whole"),
+        1544,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_982),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

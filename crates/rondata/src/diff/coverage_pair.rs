@@ -507,11 +507,11 @@ pub(crate) const RUN672: &str = "gamelog-run672-eastindies-persian-alltech-windo
 /// The window: block 577 through 833; the word 583's own block is 584.
 pub(crate) const WIDENING_COVERAGE_FRAME_583: (i64, i64) = (577, 833);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run672 walked from run651's start with the recorder on. It holds the
-/// word 667 (item 1532), block 668, and the word 727 (item 1539), block
-/// 728.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run672 walked from run651's start with the recorder on: the word 583
+/// (item 1532), block 584, the word 667 (item 1532), block 668, and the
+/// word 727 (item 1539), block 728. It was the `AI_WORDS` window until
+/// item 1544 moved the word past it, to run678's.
+pub(crate) fn coverage_frame_583_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -528,7 +528,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run672_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_583_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -623,5 +623,77 @@ fn run672_s_word_frame_is_widened_whole() {
             .count(),
         0,
         "1/8 agrees in every compared field past its standing `form`"
+    );
+}
+
+/// run678, item 1544: the lobby's blocks 977..1233 at the long's detail —
+/// the word 982's block 983 with six before it and 250 after.
+pub(crate) const RUN678: &str = "gamelog-run678-eastindies-persian-alltech-window-977-1233.txt";
+
+/// The window: block 977 through 1233; the word 982's own block is 983.
+pub(crate) const WIDENING_COVERAGE_FRAME_982: (i64, i64) = (977, 1233);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run678 walked from run651's start with the recorder on. It holds the
+/// word 982 (item 1544), block 983.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run678",
+        &[(RUN678, 977)],
+        WIDENING_COVERAGE_FRAME_982,
+        1,
+        &[983],
+        true,
+    )
+}
+
+#[test]
+fn run678_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // **1378** on the tree item 1544 landed; 99 stand from the window's
+    // first block.
+    pin_eq!(w.firsts.len(), 1378, "initial run678 baseline");
+    // **What parts first past the standing block**: the new citizen
+    // `1/24`'s `form` on 979, then leader 1's make list on 982 —
+    // `MAKE[3].t` and `MAKE[4].t` 417 in ours against 419 — and on **the
+    // word's block, 983**, the site `1/2025` stands at (35712, 35904) in
+    // ours against (34368, 35136): the word 982's spiral draws ours 562
+    // against 696, the original's jitter from index 13.
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 977)
+        .min();
+    pin_eq!(
+        first,
+        Some(979),
+        "the first parting past the standing block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[3].t".to_string()))
+            .map(|(f, _)| *f),
+        Some(982),
+        "leader 1's make list parts on block 982"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2025, "build:x_internal".to_string()))
+            .map(|(f, _)| *f),
+        Some(983),
+        "and on the word's block the site 1/2025 stands elsewhere"
     );
 }
