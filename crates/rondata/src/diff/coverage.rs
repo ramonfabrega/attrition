@@ -190,7 +190,7 @@ const UNREAD: &[(&str, &str)] = &[
     // run371 (item 1019, `docs/GOLDEN.md` §44).
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who visible",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     // **Item 989 added `Newcastle`**: a city's name is the record's one
@@ -482,6 +482,8 @@ fn drive(text: &str, out: &mut Paths) {
             let _ = crate::gamelog::farms_of(frame);
             // The golden widening's anti-air cycle rows (item 1112).
             let _ = super::golden::cycle_rows(frame);
+            // A building's `visible` byte (item 1423).
+            let _ = super::golden::visible_rows(frame);
             // The leader widening's reader (item 520): run117's and
             // run123's tests compare the whole record through it.
             // Item 592 added the census's per-region arrays beside it:

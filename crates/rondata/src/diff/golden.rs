@@ -6378,6 +6378,22 @@ pub(super) fn cycle_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), [
         .collect()
 }
 
+/// **A building's `visible` byte** (item 1423, `docs/GOLDEN.md` §61):
+/// `ObjectData::visible`, the mask `Build::do_attack@006228f0` sets after a
+/// round and clears on its 32-frame phase with the latch down. Keyed on the
+/// `SUBOBJECT`'s `(who, o)`; read off the `WALLDATA`'s `OBJECT`, where no
+/// parser carried it until this item (the coverage pin listed it unread).
+pub(super) fn visible_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), i64)> {
+    frame
+        .kids("BUILDDATA")
+        .filter_map(|b| {
+            let obj = b.find("OBJECT")?;
+            let sub = obj.find("SUBOBJECT")?;
+            Some(((sub.int("who")?, sub.int("o")?), obj.int("visible")?))
+        })
+        .collect()
+}
+
 /// **A pivot figure's turret, every figure, both directions** (item
 /// 1117, `docs/COMBAT.md` §55.3): `GUY`'s `turret_angles[4]`,
 /// `des_turret_angles[4]`, `node_flags` and `des_node_flags` against
@@ -6595,6 +6611,27 @@ fn widen_civilians(
                             .entry((w, o, format!("build:{what}")))
                             .or_insert((n, format!("ours {ours} theirs {theirs}")));
                     }
+                }
+            }
+        }
+        // **A building's `visible` byte, every building** (item 1423,
+        // `docs/GOLDEN.md` §61): the mask its own round sets and its phase
+        // clears, held until now by a unit test alone.
+        for (_, fb) in flog.frames() {
+            for ((w, o), theirs) in visible_rows(fb) {
+                let Some(b) =
+                    s.built.sim.buildings.iter().position(|b| {
+                        b.alive && i64::from(b.owner) == w && i64::from(b.index) == o
+                    })
+                else {
+                    continue;
+                };
+                rows += 1;
+                let ours = i64::from(s.built.sim.buildings[b].visible);
+                if ours != theirs {
+                    firsts
+                        .entry((w, o, "build:visible".into()))
+                        .or_insert((n, format!("ours {ours} theirs {theirs}")));
                 }
             }
         }
