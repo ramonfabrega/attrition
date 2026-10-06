@@ -3689,6 +3689,13 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1527) **A `pkill -f` on a test binary's name reaches every lane**
+(1511's message, 2026-10-06 13:01): every worktree builds `rondata`'s
+test binary under the same hashed name (`rondata-6503fbbb16c1e8c2`), so
+1511's kill of its own detached suite matched 1524's too. A frame row
+— kill a detached suite by its own pid, never by name — or a
+`tools/memcap.sh` that records the pid it launched. One reach.
+
 (1526) **On a packet, run the unit's whole `process` first and read the
 call trace** (1519's Loop line, 2026-10-06): 1519 read three predicates
 both sides passed before the one that parted; the trace named it in one
