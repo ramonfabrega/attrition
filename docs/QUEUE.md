@@ -15,7 +15,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
 `docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and two
 landings since. French East Indies **12952** of 17,379 (was 12794);
-Toughest **12569**, floor 12569 (was 11985); fifty chapters closed.*
+Toughest **12575** measured, floor 12569 (was 11985); fifty chapters closed.*
 
 - **Landed**: 1461 (Opus, `get_speed`, now 1470) and 1429 (Sonnet,
   the turn in `guys_follow`, now 1472). Three lanes: the newest pair's
@@ -58,12 +58,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     short here (1/80 37 against 52). Date the first parting; no
     mechanism is named.
 
-1472. **Great Sahara at Toughest's word: frame 12569, 13 versus 18
-    draws**, index 6: ours `Guy::turn_towards+0x69`, theirs
-    `Unit::do_idle+0x7d`, and four more `Guy::set_anim+0x104b` on
-    theirs. run584 widens it (block 12570): 134 keys stand from 12532,
-    parted in the dark gap 11985..12532 that no capture holds; the
-    Scholar `1/124` rows are parked 1430. No mechanism is named.
+1472. **Great Sahara at Toughest's word: frame 12575, 13 versus 11
+    draws**, index 4: ours `Guy::inc_time+0x271`, theirs a third
+    `Unit::do_guard+0x7f4` — measured with 1461 and 1429 together (on
+    1429's tree alone it was 12569). run584's widening holds 1528 keys
+    from 12532; the first field to part in its window is 1/109's
+    `half_step` on 12542. Scholar `1/124` is parked 1430. No
+    mechanism is named.
 
 1423. **Chapter fifty-one: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): `Group::target_opportunity`'s 15-frame cooldown

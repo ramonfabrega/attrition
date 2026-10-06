@@ -1422,10 +1422,13 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>()
                 .len(),
-            33,
+            // 33 on 1429's own tree; 32 with 1461's crew `get_speed` beside
+            // it (the booking gate on 8f83972e).
+            32,
             "the blocks keys first part on, to one past the word's"
         );
-        pin_eq!(w.firsts.len(), 1694, "every key parted on run584");
+        // 1694 on 1429's own tree; 1528 with 1461's crew step beside it.
+        pin_eq!(w.firsts.len(), 1528, "every key parted on run584");
     }
 
     /// **The word 11182, widened whole** (item 1379):
