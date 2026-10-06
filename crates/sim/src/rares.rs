@@ -89,6 +89,30 @@ impl Sim {
         0
     }
 
+    /// The tier of a **government's bonus ladder** held — `DESPOTISM_1..3` or
+    /// `REPUBLIC_1..3`, tested most advanced first like [`Sim::bonus_level`]
+    /// but with `has_preq`'s own gate on a tier above the first: its `preq0`,
+    /// two governments taken (three for the third tier), and every tier under
+    /// it held the same way (twenty-fourth pass, group 21; A1 rows 5 and 6).
+    /// Every shipped tier carries one constant, so no price moves today.
+    pub(crate) fn government_bonus_level(&self, who: Player, rows: &[Option<TypeId>]) -> usize {
+        let p = &self.tech[who as usize];
+        let held = |tier: usize| -> bool {
+            (0..=tier).all(|k| {
+                let Some(t) = rows.get(k).copied().flatten() else {
+                    return false;
+                };
+                let below = k.checked_sub(1).and_then(|b| rows[b]);
+                self.tech_tree.has_tech(&self.setup, p, t)
+                    && self.tech_tree.bonus_tier_extra(&self.setup, p, k, below)
+            })
+        };
+        (0..rows.len())
+            .rev()
+            .find(|&i| held(i))
+            .map_or(0, |i| i + 1)
+    }
+
     /// Step 6 whole: the rates it adds and the `rare_owned` it rebuilds.
     ///
     /// Called from [`Sim::assemble_holdings`], which runs inside the same

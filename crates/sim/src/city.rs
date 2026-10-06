@@ -420,7 +420,12 @@ impl Sim {
             trade_val: 0,
             traded_with: [0; 8],
         };
-        let c = match self.cities.iter().position(|c| !c.alive) {
+        // `Cities::init_city@007352c0` reuses the **owner's** first dead slot
+        // — each leader has a list of its own in the original — and a dead
+        // record keeps its owner, so the first dead record of `who`'s is the
+        // same position in `who`'s sequence (twenty-fourth pass, group 20;
+        // A5 #11). Another leader's dead slot is not taken.
+        let c = match self.cities.iter().position(|c| !c.alive && c.owner == who) {
             Some(i) => {
                 self.cities[i] = city;
                 i

@@ -435,7 +435,27 @@ impl Sim {
         let Some(sw) = self.build_sweep(b) else {
             return 0;
         };
+        // **The whole-disc call makes its own `+0x164` first**
+        // (`Object::update_seen@00651b80`: `param_1 == 0` and `visible != 0`,
+        // or a started visible wonder; twenty-fourth pass, group 19; A8 row
+        // 10), so a finished wonder is relit `0xff` after every clear, as the
+        // unit twin does.
+        if self.buildings[b].visible != 0
+            || (self.buildings[b].started && self.is_visible_wonder(b))
+        {
+            self.update_local_seen_build(b);
+        }
         self.write_sweep(&sw, who)
+    }
+
+    /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
+    /// flag and not a fort type (group 5).
+    fn is_visible_wonder(&self, b: usize) -> bool {
+        self.buildings[b].ty.is_some_and(|ty| {
+            self.build_types[ty].wonder
+                && !crate::build::is_city(&self.build_types, ty)
+                && !crate::build::is_fort(&self.build_types, ty)
+        })
     }
 
     // ------------------------------------------------------------------
@@ -1064,6 +1084,23 @@ mod tests {
         s.start_building(b);
         s.check_ever_seen(b, false);
         assert!(s.has_met(0, 1), "the defeated bit is not leader_flags & 1");
+    }
+
+    /// **A finished wonder is relit after every clear** (group 19; A8 row
+    /// 10): the whole-disc call makes its own `+0x164` first for a started
+    /// visible wonder, so its grown footprint carries every player's bit.
+    #[test]
+    fn a_finished_wonder_is_relit_after_the_clear() {
+        let (mut s, b) = site(true);
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        s.update_all_seen();
+        assert_eq!(lit_for_all(&s), 16, "the finished wonder's footprint");
+        let (mut s, b) = site(false);
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        s.update_all_seen();
+        assert_eq!(lit_for_all(&s), 0, "an ordinary building is not");
     }
 
     /// **§6.4: the resync relights a wonder under construction** and lights

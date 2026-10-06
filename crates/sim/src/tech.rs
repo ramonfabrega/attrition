@@ -991,6 +991,41 @@ impl TechTree {
         }
     }
 
+    /// **`LeaderData::has_preq@006db810`'s gate on a bonus tier** (twenty-
+    /// fourth pass, group 21; A1 rows 5 and 6). `BonusType::init@00670280`
+    /// hard-codes a second tier's prerequisite as the tier below and reads
+    /// only `preq0` from the file, and `has_preq` then asks of a held tier
+    /// above the first: two governments taken (three when the tier below has
+    /// a bonus prerequisite of its own — the third tier), and, when the tier
+    /// below's `preq0` is Monarchy or Democracy, Socialism or Capitalism
+    /// held. `tier` is the zero-based tier, `below` the `preq0` of the
+    /// tier under it. The first tier asks nothing more.
+    pub fn bonus_tier_extra(
+        &self,
+        setup: &Setup,
+        p: &PlayerTech,
+        tier: usize,
+        below: Option<TypeId>,
+    ) -> bool {
+        if tier == 0 {
+            return true;
+        }
+        if self.govs_taken(setup, p) < if tier >= 2 { 3 } else { 2 } {
+            return false;
+        }
+        // `gov_bonuses` is `get_gov`'s own order: Socialism, Capitalism,
+        // Monarchy, Democracy.
+        let gov = |i: usize| self.roles.gov_bonuses.get(i).map(|g| g.1);
+        let to_clause = below.is_some() && (below == gov(2) || below == gov(3));
+        if to_clause {
+            let held = |i: usize| gov(i).is_some_and(|g| self.has_tech(setup, p, g));
+            if !(held(0) || held(1)) {
+                return false;
+            }
+        }
+        true
+    }
+
     /// `get_govs_taken`.
     pub fn govs_taken(&self, setup: &Setup, p: &PlayerTech) -> i32 {
         self.govs
@@ -2606,6 +2641,46 @@ mod tests {
         // `discovered` counts every non-age, non-epoch gain: Republic, and
         // the free Catapult that Classical cascaded.
         assert_eq!(p.discovered, 2);
+    }
+
+    /// **A bonus tier above the first asks `has_preq`'s own gate** (twenty-
+    /// fourth pass, group 21; A1 rows 5 and 6): two governments taken, three
+    /// for the third tier, and Socialism or Capitalism when the tier below
+    /// is Monarchy's or Democracy's.
+    #[test]
+    fn a_bonus_tier_above_the_first_needs_governments_taken() {
+        let mut f = fixture();
+        let s = Setup::STANDARD;
+        let mut p = fresh(&f);
+        age_up(&f, &mut p, 1);
+        let [despotism, republic] = f.govs[0];
+        let [monarchy, democracy] = f.govs[1];
+        let (socialism, capitalism) = (f.herbal_lore, f.medicine);
+        f.tree.roles.gov_bonuses = vec![
+            ([Preq::None; 3], socialism),
+            ([Preq::None; 3], capitalism),
+            ([Preq::None; 3], monarchy),
+            ([Preq::None; 3], democracy),
+        ];
+        let _ = despotism;
+        // The first tier asks nothing.
+        assert!(f.tree.bonus_tier_extra(&s, &p, 0, Some(monarchy)));
+        // One government taken: tier two is shut.
+        f.tree.gain_tech(&s, &mut p, republic, 5);
+        assert_eq!(f.tree.govs_taken(&s, &p), 1);
+        assert!(!f.tree.bonus_tier_extra(&s, &p, 1, Some(despotism)));
+        // Two taken: a Despotism tier below needs nothing else, a
+        // Monarchy's needs Socialism or Capitalism.
+        f.tree.gain_tech(&s, &mut p, monarchy, 5);
+        assert_eq!(f.tree.govs_taken(&s, &p), 2);
+        assert!(f.tree.bonus_tier_extra(&s, &p, 1, Some(despotism)));
+        assert!(!f.tree.bonus_tier_extra(&s, &p, 1, Some(monarchy)));
+        p.tech[capitalism] = true;
+        assert!(f.tree.bonus_tier_extra(&s, &p, 1, Some(monarchy)));
+        // The third tier needs three.
+        assert!(!f.tree.bonus_tier_extra(&s, &p, 2, Some(despotism)));
+        f.tree.gain_tech(&s, &mut p, democracy, 5);
+        assert!(f.tree.bonus_tier_extra(&s, &p, 2, Some(despotism)));
     }
 
     #[test]

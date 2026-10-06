@@ -5702,6 +5702,26 @@ fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
     assert!(sim.cities[c].alarm, "an inbound GARRISON holds the flag");
 }
 
+/// **A city takes its owner's first dead slot, not anyone's** (twenty-fourth
+/// pass, group 20; A5 #11): `Cities::init_city` has one list per leader, so a
+/// leader's cities sort the same after any capture. Another leader's dead
+/// record is left where it is.
+#[test]
+fn a_new_city_reuses_only_its_owner_s_dead_slot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 20, 20);
+    let (b1, c1) = city_at(&mut sim, &t, 1, 50, 50);
+    assert_ne!(c0, c1);
+    sim.close_building(b0, false);
+    sim.close_building(b1, false);
+    assert!(!sim.cities[c0].alive && !sim.cities[c1].alive);
+    let (_, again) = city_at(&mut sim, &t, 1, 50, 20);
+    assert_eq!(again, c1, "player 1 takes its own dead slot, not the first");
+    let (_, back) = city_at(&mut sim, &t, 0, 20, 50);
+    assert_eq!(back, c0, "and player 0 its own");
+}
+
 /// **A unit comes out with the body's speeds it froze at the door**
 /// (item 1167, `docs/GOLDEN.md` §49; run430's `0/5` on 902, out of the
 /// City at `avg_speed` 11 from the 15 it went in with). `set_new_location

@@ -2644,12 +2644,26 @@ impl Sim {
             .iter()
             .enumerate()
             .rev()
-            .find(|(_, preqs)| {
-                preqs.is_some_and(|qs| {
-                    qs.iter().all(|&q| {
-                        self.tech_tree
-                            .has_tech_p(&self.setup, &self.tech[who as usize], q)
-                    })
+            .find(|(tier, _)| {
+                // A tier above the first also holds the one under it, two
+                // governments taken, and — Democracy being the tier
+                // below's `preq0` — Socialism or Capitalism (group 21;
+                // A1 row 5).
+                let p = &self.tech[who as usize];
+                let rows = &self.tech_tree.roles.democracy_preqs;
+                (0..=*tier).all(|k| {
+                    rows[k].is_some_and(|qs| {
+                        qs.iter()
+                            .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+                    }) && self.tech_tree.bonus_tier_extra(
+                        &self.setup,
+                        p,
+                        k,
+                        k.checked_sub(1).and_then(|b| match rows[b] {
+                            Some([tech::Preq::Of(t), ..]) => Some(t),
+                            _ => None,
+                        }),
+                    )
                 })
             })
             .map_or(0, |(tier, _)| self.tuning.democracy_tech_bonus[tier])
@@ -2703,10 +2717,11 @@ impl Sim {
         };
         match line {
             tech::Line::Military => {
-                let despot = match self.bonus_level(who, &self.tech_tree.roles.despotism_preq) {
-                    0 => 0,
-                    n => tu.despotism_military_cheaper[n - 1],
-                };
+                let despot =
+                    match self.government_bonus_level(who, &self.tech_tree.roles.despotism_preq) {
+                        0 => 0,
+                        n => tu.despotism_military_cheaper[n - 1],
+                    };
                 [
                     rare(0x15, tu.furs_military),
                     despot,

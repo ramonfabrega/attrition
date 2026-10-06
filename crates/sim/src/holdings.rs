@@ -424,7 +424,7 @@ impl Sim {
         let commerce = self.tech[w].epoch[Line::Commerce.index()].max(0) as usize;
         // The republic term's tier: `has_preq(REPUBLIC_3)`, then 2, then 1
         // (`calc_resource_caps@006ce900`, `docs/AI.md` §72).
-        let republic = self.bonus_level(who, &self.tech_tree.roles.republic_preq);
+        let republic = self.government_bonus_level(who, &self.tech_tree.roles.republic_preq);
 
         // `LeaderData::get_gather_handicap@006d66a0`: a human takes zero
         // unless the multiplayer handicap option is on, and an AI takes the
