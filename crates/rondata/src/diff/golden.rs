@@ -5930,9 +5930,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         "1021 1/6 order:group.id",
         "1021 1/7 order:group.id",
         "1021 1/8 order:group.id",
-        "1172 1/9 g.x[1]",
-        "1172 1/9 g.y[1]",
-        "1173 1/9 g.angle[1]",
+        // Item 1461: `1/9`'s second figure's 1172/1173 rows leave; it steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
     ]
     .iter()
     .map(|s| s.to_string())

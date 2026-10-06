@@ -702,6 +702,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r629 = crate::testenv::dump("gamelog-run629-islands-french-10802.txt");
     let r631 = crate::testenv::dump("gamelog-run631-islands-french-11582.txt");
     let r634 = crate::testenv::dump("gamelog-run634-islands-french-12794.txt");
+    let r635 = crate::testenv::dump("gamelog-run635-islands-french-12952.txt");
     let r603 = crate::testenv::dump("gamelog-run603-islands-french-toughest-7356.txt");
     let r602 = crate::testenv::dump("gamelog-run602-islands-french-toughest-986.txt");
     let r601 = crate::testenv::dump("gamelog-run601-lakes-french-toughest-2576.txt");
@@ -2362,7 +2363,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (&r624, 10131),
         (&r629, 10802),
         (&r631, 11582),
-        (&r634, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        (&r634, 12794),
+        (&r635, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2741,9 +2743,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let french_10802 = super::third_pair::french_east_indies_10802_window();
     // Item 1460: and run631's, where it stood before run634.
     let french_11582 = super::third_pair::french_east_indies_11582_window();
+    // Item 1461: and run634's, where it stood before run635.
+    let french_12794 = super::third_pair::french_east_indies_12794_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2772,6 +2777,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         french_10131,
         french_10802,
         french_11582,
+        french_12794,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

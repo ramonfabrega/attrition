@@ -1171,6 +1171,21 @@ impl Sim {
     /// pass 0 and are capped; `GuyData::get_speed`, the animal's air
     /// step and `do_group_move`'s in-formation arm pass 1 and are not.
     pub fn get_speed(&self, u: usize, flag: i32) -> i32 {
+        self.get_speed_at(u, self.units[u].pos, flag)
+    }
+
+    /// [`Sim::get_speed`] asked **at a point**: the virtual's own
+    /// `(x, y)` arguments, which only the slow-ground tile reads.
+    /// `UnitData::get_speed@006086f0` hands it the unit's own point;
+    /// `GuyData::get_speed@005de410` hands it **the figure's** — `+0xc` /
+    /// `+0x10` pushed at `5de425`/`5de428`, then `calll *0x17c` — and
+    /// passes 1, so a tracked crew figure takes the order scale and the
+    /// slow-ground halving where it stands, and never the group cap.
+    /// Its `+9` is behind `guy_num < squad_size` (`5de473`, `jge`), and
+    /// [`crate::anim::SQUAD_SIZE`] is the literal 1, so no figure that
+    /// steps on its own body reaches it (`docs/MOVEMENT.md`, "The
+    /// crew's speed").
+    pub fn get_speed_at(&self, u: usize, at: Pos, flag: i32) -> i32 {
         let unit = &self.units[u];
         // Both classes open on `UnitData::speed`, layer two.
         let speed = self.unit_speed(u);
@@ -1206,7 +1221,7 @@ impl Sim {
             // end of it, so no dump can ever print it. This crate's
             // [`Sim::target_opportunity`](crate::Sim::target_opportunity)
             // is the retaliation alone and sets no such bit.
-            if self.on_river(unit.pos) {
+            if self.on_river(unit.pos, at) {
                 speed /= 2;
             }
             // SEAM: `has_general(0, 0x162)` doubles a siege type's speed;
@@ -1242,9 +1257,12 @@ impl Sim {
     /// coordinates are stored XORed with `0x63637`** and every reader
     /// decodes them, the gamelog's own printer included. So
     /// `(z ^ 0x63637) > 0` skipping the halving is `z > 0` skipping it.
-    pub(crate) fn on_river(&self, pos: Pos) -> bool {
-        let t = pos.tile();
-        self.world.tile_z(t) <= 0 && self.world.tile_mask(t) & tile::RIVER != 0
+    ///
+    /// `z_internal` is the **unit's** (`this +0xc`) and the tile is the
+    /// virtual's `(x, y)` (`param_1`/`param_2`), so a crew figure asked
+    /// at its own point reads the unit's height and its own tile.
+    pub(crate) fn on_river(&self, unit: Pos, at: Pos) -> bool {
+        self.world.tile_z(unit.tile()) <= 0 && self.world.tile_mask(at.tile()) & tile::RIVER != 0
     }
 
     /// `UnitData::order_type`: the current order's `OrderIndex`, `NONE` for

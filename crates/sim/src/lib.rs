@@ -5574,7 +5574,12 @@ impl Sim {
         let Some(f) = self.units[i].guys[g].follow else {
             return;
         };
-        let speed = self.units[i].movement.speed;
+        // `Guy::move:203` — `GuyData::get_speed`, which is the unit's
+        // `get_speed(x, y, 1)` asked at **this figure's** point: the
+        // order scale and the slow ground, never the group cap
+        // (`docs/MOVEMENT.md`, "The crew's speed"). The type's base
+        // speed stepped a guarding computer's crew a quarter slow.
+        let speed = self.get_speed_at(i, f.body.pos, 1);
         let at_des = f.body.pos == f.des;
         self.guy_follow_anim(i, g, at_des, f.facing == f.des_angle);
         // A tracked crew guy's rate is [`movement::CREW_TURN_SPEED`] and

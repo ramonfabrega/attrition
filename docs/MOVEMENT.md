@@ -901,8 +901,10 @@ order's angle.
 
 `GuyData::get_speed` is `UnitData::get_speed(body x, body y, 1)` — the body's
 tile, and **flag 1, so the group cap never applies to the body** — plus nine
-when the current order's vslot `0x2c` is set. `crates/sim` feeds the body the
-same speed input as the unit; the `+9` and the cap difference are not modelled.
+when the current order's vslot `0x2c` is set. ~~`crates/sim` feeds the body the
+same speed input as the unit; the `+9` and the cap difference are not modelled.~~
+The tracked crew figure takes it since item 1461, and the `+9` reaches no such
+figure — see "The crew's speed" below.
 
 **And the crew jogs.** `Guy::move`'s tracked branch pays a figure
 `(get_speed * 11) / 8` a frame — the sign-corrected `>> 3` at `005d9600` —
@@ -1189,6 +1191,47 @@ siege doubling has no general in any capture. The group cap has its
 arithmetic (`movement::group_capped`, made to fail once) and no group speed
 to feed it.
 
+### The crew's speed (2026-10-05, item 1461)
+
+**A tracked crew figure steps on its unit's whole layer 3**, asked at the
+figure's own point. `Guy::move`'s tracked branch takes its step from
+`GuyData::get_speed@005de410`, and the listing is short:
+
+```
+5de415  push 1                    ; flag 1: never the group cap
+5de425  push [edi+0x10]           ; the FIGURE's y
+5de428  push [edi+0xc]            ; the figure's x
+5de440  call [eax+0x17c]          ; the unit's UnitData::get_speed(x, y, 1)
+5de469  movsbl 0xa2(%edi), %ecx   ; guy_num
+5de473  cmp 0x304(type), %ecx     ; squad_size
+5de479  jge  <return the answer>  ; past the squad: no +9
+```
+
+`squad_size` is the literal 1 (`crate::anim::SQUAD_SIZE`), and guy 0 never
+takes the tracked branch, so **no figure that steps on its own body reaches
+the `+9`**. What it does reach is the order scale: ×10/8 under a computer's
+`GUARD`, ×9/8 under a human's guard or any attack. The slow-ground tile is
+read at the figure's point, and `z_internal` is still the unit's (`this +0xc`).
+`crates/sim` had stepped every crew figure on the type's base speed:
+`Sim::process_follower` now asks `Sim::get_speed_at(u, body, 1)`.
+
+**The diff that says so.** French East Indies' word 12794 was one idle roll
+under `Unit::do_guard`, the third of three that the original took for
+`1/67`, a computer's Senator (TypeIndex 353, three figures), and that this
+crate took for two. Its second figure was still walking here. That figure
+first parted on frame 12791. Both sides held it at (41693, 40816), with its
+destination at (41696, 40739). It stepped **71** there and **57** here: 42 ×
+10/8 = 52 and 52 × 11/8 = 71, where 42 × 11/8 = 57. Its `unit_masks` is
+`0x848008`, which carries `0x40000`. With the change, all 87 of run634's
+keys past its first block leave and none arrive, guy 2's `avg_speed` 16
+against 15 on block 12789 among them, and the word moves **12794 → 12952**.
+The unit test is
+`tests::a_guarding_computer_s_crew_steps_on_the_guard_s_speed`.
+
+**Not established.** `GameAccess::ai_speed`'s scaling of the step (it
+leaves `last_speed` unscaled) is still unmodelled, as is the game speed.
+`unit_masks & 0x10` is still a seam for the crew as it is for the unit.
+
 ## The animal's own `get_speed` (2026-08-30, item 95)
 
 **Everything above is `UnitData::get_speed`, and an animal never runs a line
@@ -1335,11 +1378,14 @@ the checks below.
 - **The order layer.** `MoveOrder`, `PatrolOrder`, `AttackToOrder` and the rest
   sit above all of this and decide what the destination is — and the angle the
   unit and its body snap to on the last waypoint.
-- **The body's `+9`.** `GuyData::get_speed` adds nine when the current order's
+- ~~**The body's `+9`.** `GuyData::get_speed` adds nine when the current order's
   vslot `0x2c` is non-zero. Which orders, and why nine, is unread. It is a
   *crew* guy's speed now that one takes steps of its own, so this is no
   longer inert — run56 does not reach it, and the day a capture does the
-  crew's step will be nine short.
+  crew's step will be nine short.~~ **Answered 2026-10-05 (item 1461)**: the
+  `+9` sits behind `guy_num < squad_size`, `squad_size` is the literal 1, and
+  only a figure past it steps on its own body — "The crew's speed". Which
+  orders answer vslot `0x2c`, and why nine, stay unread; nothing reaches them.
 - ~~**`track_dx` / `track_dy`.**~~ **Closed 2026-09-01.** They are `+0x54` and
   `+0x58`, they are art (`Guy::update_gpiece`), and the follow they drive is
   "The follower's destination" above.
