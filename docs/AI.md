@@ -14797,3 +14797,7 @@ Whether `STARTING_TECHNOLOGY 9` ("Random") is carried (not tried). Whether the s
 it does not on the walks run before the gate (the gate's own verdict is in the journal). *Diff-backed*: the lobby
 read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
 choice of nation.
+
+## 129. The coverage pair at frame 0: the lobby's starting stockpile and what it moves (2026-10-06, item 1496)
+
+In progress: the widening of frame 0's word (195 versus 198 draws, index 26) is read first; sections follow.
