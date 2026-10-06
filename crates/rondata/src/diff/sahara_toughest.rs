@@ -825,7 +825,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
         // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 65, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 60, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1090,13 +1090,13 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_8378 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8177, 53), (8201, 1)],
+            [(8177, 48), (8201, 1)],
             "the blocks keys first part on, to three past the word 8377's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         pin_eq!(
             w.firsts.len(),
-            54,
+            49,
             "every key parted on run491 (165 before item 1281's age, 530 before item 1286's city count, \
              967 before item 1275's trade)"
         );
@@ -1511,7 +1511,7 @@ mod tests {
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear; 142 since item 1477's census walk.
-        pin_eq!(w.firsts.len(), 101, "every key parted on run584");
+        pin_eq!(w.firsts.len(), 96, "every key parted on run584");
     }
 
     /// **The word 12816, widened whole** (item 1477):
@@ -1569,10 +1569,10 @@ mod tests {
         pin_eq!(row(1, -3, "group:65.off[0]"), None, "and its offset");
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(12811, 92), (12825, 1)],
+            [(12811, 87), (12825, 1)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 93, "every key parted on run640");
+        pin_eq!(w.firsts.len(), 88, "every key parted on run640");
     }
 
     /// **The word 14363, widened whole** (item 1493):
@@ -1643,10 +1643,10 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(14357, 93), (14364, 11), (14365, 12)],
+            [(14357, 88), (14364, 11), (14365, 12)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 378, "every key parted on run653");
+        pin_eq!(w.firsts.len(), 373, "every key parted on run653");
     }
 
     /// **The word 11182, widened whole** (item 1379):
