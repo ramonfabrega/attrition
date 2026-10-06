@@ -14783,8 +14783,10 @@ from `POPWIN` through `rondata::load::Loaded::pop_wins`;
 
 **Value diff.** On run649's block 15089, both sides: leader 0's
 `frame_attacked` 15088 and `attacked_by` 1; who=1's `popwin_stamp` 14293
-and `popwin_timer` 1. run649's widening is 92 keys, every one standing on
-15086. run642 drops 1818 → 114 and keeps only its standing rows.
+and `popwin_timer` 1. run649's widening is 88 keys, every one standing on
+15086. run642 drops 1814 → 110: 94 standing on 15339, and on 15345 the
+re-formed group's sixteen members' `order:group.id`, 15344609 against
+15350409 — the order is ours, its id is not.
 
 **The new word, 16857**: 8 draws against 8, parting at index 2. Ours draws
 for the General `1/79` (TypeIndex 54) through `Guy::set_anim+0x97a <

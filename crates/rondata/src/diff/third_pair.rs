@@ -310,10 +310,11 @@ fn run649_s_decision_frame_is_widened_whole() {
         !w.firsts.keys().any(|(_, _, what)| what.contains("popwin")),
         "the territory timer agrees"
     );
-    // 92, every one standing on the first block 15086 (the human's census, the
-    // rows run642 also stands on); nothing on 15087..15090, the decision's
-    // block 15089 among them.
-    pin_eq!(w.firsts.len(), 92, "run649 whole");
+    // 88 on the tree merged after 1477 and 1466 (92 before), every one
+    // standing on the first block 15086 (the human's census, the rows
+    // run642 also stands on); nothing on 15087..15090, the decision's block
+    // 15089 among them.
+    pin_eq!(w.firsts.len(), 88, "run649 whole");
 }
 
 #[test]
@@ -327,10 +328,12 @@ fn run642_s_word_frame_is_widened_whole() {
     // Item 1481: 1818 on the tree merged after 1468 (1852 before it) — 100
     // standing on the first block, 15339; nothing on 15340..15344; 1447 on
     // the word's block 15345, who=1's group 64 re-formed and sent at Napata
-    // there alone. Item 1487: 114, standing alone — `find_target` takes
-    // Napata on 15088 as the original does (`popwin_timer`'s ×100, run649),
-    // and 15344's order is ours too. The window is a closed word's.
-    pin_eq!(w.firsts.len(), 114, "initial run642 baseline");
+    // there alone. Item 1487: 110 on the tree merged after 1477 and 1466
+    // (114 before) — `find_target` takes Napata on 15088 as the original
+    // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
+    // 94 standing on 15339, and on 15345 sixteen of the group's members'
+    // `order:group.id`, 15344609 here against 15350409 there, alone.
+    pin_eq!(w.firsts.len(), 110, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,

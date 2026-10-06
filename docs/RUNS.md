@@ -14830,8 +14830,8 @@ SHA-256 `b048e36e7091bb44307aae697807872a1f9f54d517a63f8781ff0361b215e01a`.
 Archive `rontrace-run649.log`, 81,088,960 bytes,
 SHA-256 `e7b72d3b57944a07e37a80bc94c1afd20cad4d7fed164f6fa0297ea79abe2c1a`.
 
-**What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 92 keys, every
-one standing on block 15086; nothing on 15087..15090. Run 649 only.
+**What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 88 keys (92 before
+the merge with 1477 and 1466), every one standing on block 15086; nothing on 15087..15090. Run 649 only.
 
 ## run655 — French East Indies, the word 16857's widening, with the leader probe (2026-10-06, item 1487)
 
