@@ -112,6 +112,10 @@ pub struct Loaded {
     /// rules.xml's `mapstyles` category keys in file order — `map_styles`,
     /// which `GameInfo.map_style` indexes and `get_mapstyle()` names.
     pub map_styles: Vec<String>,
+    /// rules.xml's `wonderwins` category rows' `DATA` in file order —
+    /// `Category.data[0]` (`+0x3c`), which `GameInfo.wonderwin` indexes:
+    /// the wonder victory's points, 9999 for "No Wonder Victory".
+    pub wonder_wins: Vec<i32>,
     /// The opening scripts under `ai/scripts/`, `(file name, text)`:
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
@@ -1493,6 +1497,7 @@ pub fn load_tables(
             plunder_value: c.plunder,
             plunder_good: c.plunder_good.map(|r| r.index()),
             wonder: WONDERS.contains(&i),
+            wonder_val: c.wonder_val,
             price,
             tree: Some(build_tree[i]),
             combat: Some(combat),
@@ -1826,6 +1831,17 @@ pub fn load_tables(
                             .map(|(_, v)| v.clone())
                             .unwrap_or_default()
                     })
+                    .collect()
+            })
+            .unwrap_or_default(),
+        wonder_wins: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "wonderwins")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| int(r, "DATA").unwrap_or(0))
                     .collect()
             })
             .unwrap_or_default(),
@@ -2370,6 +2386,8 @@ struct BuildCols {
     proj_speed: i32,
     base_arrows: i32,
     most_shots: i32,
+    /// `WONDER_VAL`, `BuildType::init@00632340:310` (`+0x2d0`).
+    wonder_val: i32,
     /// `FLY_HIGH` and `FLY_LOW`, `BuildType::init@00632340:319`-`326`.
     fly_high: i32,
     fly_low: i32,
@@ -2427,6 +2445,7 @@ impl BuildCols {
             proj_speed: int(r, "PROJ_SPEED").unwrap_or(200),
             base_arrows: int(r, "BASE_ARROWS").unwrap_or(0),
             most_shots: int(r, "MOST_SHOTS").unwrap_or(0),
+            wonder_val: int(r, "WONDER_VAL").unwrap_or(-1),
             fly_high: int(r, "FLY_HIGH").unwrap_or(-1),
             fly_low: int(r, "FLY_LOW").unwrap_or(-1),
             from: key(r.text("FROM"), build_names, "build_key FROM", warnings),
@@ -2540,6 +2559,7 @@ mod tests {
             good_tree: (0..6).collect(),
             warnings: vec![],
             map_styles: vec![],
+            wonder_wins: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),

@@ -128,7 +128,11 @@ pub(crate) fn pos_of(p: LogPos) -> Pos {
 /// The lobby, from the dump's `GAMEINFO` block — every `GameInfo` option
 /// field is logged under its own upper-case name (`docs/AI.md` §12.1). A
 /// field the block lacks keeps the run7 default.
-pub fn lobby_of(game_info: &[(&str, &str)], map_styles: &[String]) -> sim::ai::Lobby {
+pub fn lobby_of(
+    game_info: &[(&str, &str)],
+    map_styles: &[String],
+    wonder_wins: &[i32],
+) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
     let int = |key: &str| -> Option<i32> {
         game_info
@@ -171,6 +175,12 @@ pub fn lobby_of(game_info: &[(&str, &str)], map_styles: &[String]) -> sim::ai::L
     }
     if let Some(v) = int("VICTORY") {
         l.victory = v;
+    }
+    if let Some(&v) = int("WONDERWIN")
+        .and_then(|v| usize::try_from(v).ok())
+        .and_then(|i| wonder_wins.get(i))
+    {
+        l.wonder_win_points = v;
     }
     if let Some(v) = int("REVEAL_MAP") {
         l.reveal_map = v;
@@ -517,7 +527,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
     sim.trace_phases = true;
-    sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+    sim.lobby = lobby_of(&init.game_info, &loaded.map_styles, &loaded.wonder_wins);
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
     // tech tree's `Setup` — and it is one bit, so they are kept the same.

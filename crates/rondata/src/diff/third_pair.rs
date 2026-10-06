@@ -259,7 +259,7 @@ fn run639_s_word_frame_is_widened_whole() {
     // here and Tikal (532, city 3) there, four fields; on 14786 65, the site
     // `1/2054` and the food and timber it costs among them; ten on each of
     // 14787..14789. The word's block is 14787.
-    pin_eq!(w.firsts.len(), 226, "initial run639 baseline");
+    pin_eq!(w.firsts.len(), 127, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame

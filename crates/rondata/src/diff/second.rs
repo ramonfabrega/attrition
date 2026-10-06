@@ -2753,7 +2753,7 @@ mod tests {
         );
         // Item 1457: 260 → 258; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 258 → 254; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 254, "run594 record baseline");
+        pin_eq!(w.firsts.len(), 244, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2841,7 +2841,7 @@ mod tests {
         // Item 1457: 257 → 255; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 255 → 244; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1461: 244 → 240; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-        pin_eq!(w.firsts.len(), 240, "run589 record baseline");
+        pin_eq!(w.firsts.len(), 237, "run589 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -2930,7 +2930,7 @@ mod tests {
         );
         // Item 1457: 225 → 223; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 223 → 212; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 212, "run588 record baseline");
+        pin_eq!(w.firsts.len(), 209, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
