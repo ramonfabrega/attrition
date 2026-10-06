@@ -15243,3 +15243,24 @@ four on the same frames and from the same launches to the same landing points; `
 between; `1/96`, `1/95` and `1/106` have `unit_masks & 1` set (0x5100d, 0x5100d, 0x5100f, `mana_burn` counting from 1377),
 `1/139` and `1/84` have it clear (0x5100e). `run666_s_decoy_rounds_strike_nothing` (`diff::sahara_toughest`) pins it
 from the dump alone. `docs/AI.md` §139.
+
+## run669 — the coverage pair: East Indies, Persians, All Technologies, blocks 180..436 at the long's detail (2026-10-06, item 1511)
+
+**Disk gap**: run660 holds blocks 171..184 and run652 the draw stream; nothing dumped this lobby's buildings, units or leader record at
+the word's frame, 185 (22 draws a side, index 8: ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`), whose block
+is 186. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 445 --timeout 3600 --log-window 180 437
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`, `cover=0`, the click-free lane — held by another lane's capture until 12:52, free at launch. One take: receipt
+`success: true`, `settings_restored: true`, process and wait exits 0, launch-to-exit 912 s. `rngcmp.py rontrace-run652.log
+rontrace-run669.log`: **446 frames in common, 0 differing**. `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, `MAP_STYLE 18` read back.
+Blocks `180`..`436` whole and a `446` closing stub.
+
+Archive `gamelog-run669-eastindies-persian-alltech-window-180-436.txt`, 465,849,481 bytes,
+SHA-256 `0905aa3ad7f2e505559984f85b446a61b5f6ac1c022fb63c6abb87b6d4e67852`.
+
+Archive `rontrace-run669.log`, 11,534,656 bytes,
+SHA-256 `7ab6d44e22e926ddaf1e66f54f90d5d94d9983988a7248126d4ed4cde8a00d90`.
+
+**What it holds**: `diff::coverage_pair::run669_s_word_frame_is_widened_whole` — 192 keys, 71 standing on block 180 (the control's).
+The state parts first on block 183: the Missile Silo `1/2021` at (36480, 41088) in ours against (41088, 37248). It is the coverage
+pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin. `docs/AI.md` §141.
