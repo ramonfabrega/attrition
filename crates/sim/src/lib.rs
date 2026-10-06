@@ -1197,7 +1197,7 @@ pub struct Sim {
     pub wall_stats_dirty: Vec<bool>,
     /// `Game::wonders` (`Game +0x618`, `int[17]`), a bit per
     /// [`tech::wonder`] offset: a wonder type some player has activated.
-    /// `Wonders::init_wonder@0073c860` and `Wonder::init@0073c5e0` set it,
+    /// `Wonders::init_wonder@0073c860` sets it (`Wonder::init@0073c5e0` has no caller),
     /// nothing clears it, and `BuildTypeData::already_built@0063ce10` reads
     /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
     /// built for everyone").
@@ -5125,7 +5125,11 @@ impl Sim {
             self.buildings[b].gather_bumped = false;
             #[cfg(test)]
             self.building_log.push((b, "head"));
-            if self.process_building(b, frame) {
+            // The head's answer is `Wall::process`'s `is_active` gate: a
+            // site never reaches the tower or the tail (the roads' replan
+            // is below it, `crate::roads` §1), though its queue is asked.
+            let live = self.process_building(b, frame);
+            if live {
                 #[cfg(test)]
                 self.building_log.push((b, "tower"));
                 self.process_building_combat(b, frame);
@@ -5136,9 +5140,11 @@ impl Sim {
             #[cfg(test)]
             self.building_log.push((b, "gather"));
             self.gather_region_building(b);
-            #[cfg(test)]
-            self.building_log.push((b, "tail"));
-            self.process_building_tail(b, frame);
+            if live {
+                #[cfg(test)]
+                self.building_log.push((b, "tail"));
+                self.process_building_tail(b, frame);
+            }
             if self.buildings.len() > known {
                 order.extend(known..self.buildings.len());
                 known = self.buildings.len();

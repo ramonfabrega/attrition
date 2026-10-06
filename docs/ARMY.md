@@ -254,7 +254,7 @@ the original mustering and sent this crate marching, and the
 | `COUNT_CASTERS` | active, `SubObjectData::is_spellcaster`, and **not** a decoy |
 | `COUNT_NON_DECOY_TYPE t` | not (active and a decoy), and `is(t, 0)` — the lineage test |
 | `COUNT_TYPE t` | `is(t, 0)`, decoy or not |
-| `COUNT_SIEGE` | a unit, its type `is_siege` (type vslot `+0x10c`), and `unit_masks & 0x40001 != 0x40001` — not an AI-controlled packed one |
+| `COUNT_SIEGE` | a unit, its type `is_siege` (type vslot `+0x10c`), and `unit_masks & 0x40001 != 0x40001` — not **a decoy** (`1`) **under computer control** (`0x40000`); `army_count_siege` skips one, the hoplite term skips every decoy (twenty-fourth pass, group 1) |
 | `COUNT_ATTACK` | a captain whose type has an attack (`type +0x1e8 != 0`); or a `TRANSPORTBARGE` (0x140) on the map carrying one (`o_inside +0x28`, its owner `+0x3e`) |
 | `COUNT_CATEGORY c` | `type +0x14 == c` |
 
@@ -1032,11 +1032,15 @@ the `diff >= 2` arm, where it is dead: the decompiler's `else` hides the
 `goto`.)
 
 *Team play* (`team_style == 2`): `L` must be the next leader after me in
-the start list that is alive and in use, or me, or allied — otherwise
-skipped.
+the start list (`LeaderData::get_target@006da000`, `Game::start_list`, a
+shuffled permutation the Game record prints — a `Lobby` field here) that
+is alive and in use, or me, or allied — otherwise skipped. **Built**
+(twenty-fourth pass, group 4); no capture on disk has `TEAM_STYLE 2`, and
+its list is not yet read from the dump.
 
 *Every city of `L`* below `L.city_mark`, `city_flags & 1`, and for a navy
-in a region `is_coast` of mine with `ocean != 0`; then at `diff <= 1`,
+in a region `is_coast` of mine **and** with the city's own `ocean != 0` (the
+count its owner's census wrote, `6f70b5..6f70e0`; group 4); then at `diff <= 1`,
 **for me or an ally** (allied both ways — `me` included by the diagonal),
 skip unless the city's `founder` is me (B.25: on the two easiest
 difficulties the AI defends only cities it founded); **an enemy's city
@@ -1078,7 +1082,7 @@ if c.reg != my reg and not a navy:
     if ours < theirs or ours < 5:
         v /= 2
         if ours < theirs − 2 or ours == 0: v /= 5
-if pass 1, or diff > 2:
+if pass 0, or diff > 2:                                                # listing 6f7449..6f77a0 (A5 #39; was written "pass 1")
     if (L is me or ally) and !(city_flags & 2): v /= 3
 if (L is me or ally) and city_flags & 2:
     if L == me: v ×= 10

@@ -2952,7 +2952,9 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
   `5faec8`/`5faedb`) is not modelled. Its `set_angle` is.~~ **Built** (item 1332, `Sim::push_turn`, §13.3's
   turn): Great Sahara at Toughest's peacock on run511's 9348 and 9353.
 - **`find_units`' list path** indexes its cell grid with tile coordinates
-  (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`.
+  (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`; its
+  distance test and walk order are (group 9: `vector_dist − R`, by leader and
+  number; it runs only with fewer than nine units alive).
 - ~~**No capture has shown a push.**~~ run190 shows a land one (above),
   ~~and its second, on tick 733, is the next word~~ and its second, on
   tick 733, is §16: the pushed guard is refused its own step on its old

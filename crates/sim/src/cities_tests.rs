@@ -5762,7 +5762,10 @@ fn the_building_walk_is_per_building_in_object_order() {
             assert!(k >= at, "{step} out of order in {seq:?}");
             at = k;
         }
-        assert!(seq.contains(&"queue") && seq.contains(&"tail"), "{seq:?}");
+        assert!(seq.contains(&"queue"), "{seq:?}");
+        // A site (the farm) goes no further than its queue and gather step;
+        // a finished city reaches the tail.
+        assert_eq!(seq.contains(&"tail"), b == hi, "{seq:?}");
     }
     let _ = names;
 }
