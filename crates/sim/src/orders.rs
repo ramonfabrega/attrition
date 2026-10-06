@@ -8808,10 +8808,66 @@ impl Sim {
         let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
         {
             Some(p) => p,
+            None if self.attack_pos_refused(u, target) => {
+                self.chase_refused(u, target);
+                return;
+            }
             None => self.pos_of(target),
         };
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
         self.chase_reentry(u, here, dest, frame);
+    }
+
+    /// **The chase that `find_attack_pos` refused** — `Unit::fight@
+    /// 005fd4d0`, `5fe186`'s `je` to `5fe3f8`–`5fe502` (`fight:1056`–
+    /// `1100`, `docs/AI.md` §138). A guard's attack on a building gets no
+    /// spot ([`Sim::attack_pos_refused`]), and the original then:
+    ///
+    /// 1. runs `find_new_target(this, NULL, 0)` — the attack killed and
+    ///    the guard's own search, which adds what it finds;
+    /// 2. if the head is an `ATTACK` on the **same** target again, kills
+    ///    it, and walks to the attack's defensive post (`+0x1d`, the
+    ///    point at `+0x14/+0x18`) when it had one and nothing else is
+    ///    left, the move flagged `POST` (`flags |= 8`, `5fe4b8`–);
+    /// 3. if the head is an `ATTACK` still and the unit is not
+    ///    recharging (`+0xae`), sets the frozen mark (`5fe502`).
+    ///
+    /// So a guard's search that only finds the building it was chasing
+    /// leaves it on its `GUARD`: run662's `1/115` on 17318, a lone
+    /// `GUARD` on block 17319 with no draw (run665's packet runs this
+    /// arm: `find_attack_pos` 0, then `find_new_target` twice).
+    ///
+    /// SEAM: the post walk of step 2 — `add_move_order(x, y, 1, 0,
+    /// QUEUE_NEW, …)` — takes this crate's `action` for the call's `1`; no
+    /// capture on disk has a guard's attack with a defensive post refused
+    /// here.
+    fn chase_refused(&mut self, u: usize, target: Obj) {
+        self.find_new_target(u, false);
+        if let Some(Order {
+            body: Body::Attack(a),
+            ..
+        }) = self.current_order(u).copied()
+            && self.units[u].combat.target == Some(target)
+        {
+            let post = if a.defensive { a.def } else { None };
+            self.kill_current_order(u);
+            if let Some(p) = post
+                && self.units[u].orders.is_empty()
+            {
+                self.add_move_order(u, p, MoveKind::MoveTo, QueuePos::New, true);
+                if let Some(o) = self.units[u].orders.front_mut() {
+                    o.flags |= flag::POST;
+                }
+            }
+        }
+        if self.units[u].combat.recharging == 0
+            && matches!(
+                self.current_order(u).map(|o| &o.body),
+                Some(Body::Attack(_))
+            )
+        {
+            self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+        }
     }
 
     /// **The chase runs in the frame it is ordered** — `Unit::fight@
