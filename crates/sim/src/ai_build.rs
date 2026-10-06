@@ -1577,7 +1577,12 @@ mod tests {
         let mut farm = bt(Ident::Farm, "gda", 4, 4);
         farm.flags |= flags::FLAT;
         let farm = sim.add_build_type(farm);
-        let barracks = sim.add_build_type(bt(Ident::Barracks, "ean", 4, 4));
+        // The derived flag `UnitType::init` sets on every building that
+        // trains a military unit (`build::init_derived_flags`): the valuation
+        // reads it, not the ident (item 1496).
+        let mut barracks = bt(Ident::Barracks, "ean", 4, 4);
+        barracks.flags |= flags::MILITARY_TRAINER;
+        let barracks = sim.add_build_type(barracks);
         let library = sim.add_build_type(bt(Ident::Library, "jam", 5, 5));
         let market = sim.add_build_type(bt(Ident::Market, "jam", 4, 4));
         let temple = sim.add_build_type(bt(Ident::Temple, "jam", 4, 4));
