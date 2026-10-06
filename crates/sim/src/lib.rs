@@ -2980,7 +2980,11 @@ impl Sim {
     /// siblings: how many of a ladder's three bonuses the player holds,
     /// every one counted. The listing's `BUY_SELL` arm compares `0x2ad`
     /// against types the loops never reach, so it is dead in all three.
-    fn speed_upgrade_level(&self, who: Player, ladder: &[Option<tech::TypeId>; 3]) -> i32 {
+    pub(crate) fn speed_upgrade_level(
+        &self,
+        who: Player,
+        ladder: &[Option<tech::TypeId>; 3],
+    ) -> i32 {
         let p = &self.tech[who as usize];
         ladder
             .iter()

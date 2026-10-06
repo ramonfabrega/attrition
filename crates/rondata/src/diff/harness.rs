@@ -7592,6 +7592,11 @@ pub(crate) mod tests {
             // `make_stuff` (item 576), and the list it spends is printed
             // here or nowhere on this crate's side.
             debug_leader(&built, f);
+            // `RON_DEBUG_TECH` and `RON_DEBUG_BUILDS` on the traced walk
+            // too (item 1476): a tech the original gains and this crate
+            // does not is dated by the word's own walk.
+            debug_tech(&built, f);
+            debug_builds(&built, f);
             // `RON_DEBUG_FOLD=<lo>-<hi>` prints [`Built::phase_fold`] over
             // a window: the frame's draws attributed to the mark that was
             // standing when each was spent. It answers a question the site

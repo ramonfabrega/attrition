@@ -1905,7 +1905,13 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// the original casts on 12952: 12952 → 14090, 490 vs 1298 draws, index
 /// 483 Guy::set_anim under Guy::inc_time versus
 /// PathFinder::calc_road_cost+0x46. run636 block 14091.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_090;
+/// Item 1476: Construction's `BUILDINGS_FASTER_1` and `BUILDINGS_HP_1`
+/// reach the clock and the hit points (`get_building_speed_upgrade`,
+/// `get_building_hp_upgrade`, AI §121), so the Smelter `1/2047` completes
+/// on 14087 on both sides: 14090 → 14782, 15 vs 16 draws, index 7
+/// Guy::set_anim under Unit::do_guard versus Leader::make_stuff+0x63d.
+/// run639 block 14783.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_782;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1933,7 +1939,8 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_10802: (i64, i64) = (10797, 10809);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_11582: (i64, i64) = (11577, 11589);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12794: (i64, i64) = (12789, 12801);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12952: (i64, i64) = (12947, 12959);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (14085, 14097);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_14090: (i64, i64) = (14085, 14097);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (14777, 14789);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8405,8 +8412,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run636_s_word_frame_is_widened_whole"),
-        1470,
+        Some("run639_s_word_frame_is_widened_whole"),
+        1476,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (
