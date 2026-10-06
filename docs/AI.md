@@ -15679,3 +15679,13 @@ Diff-backed:
 
 Reading only, listing-checked where arithmetic: the drop arm's turret fold
 (`5fb039`–`5fb05b`). No blind reading.
+
+## 135. Reserved for item 1514 (French East Indies frame 17244)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
+
+## 136. Reserved for item 1510 (Toughest frame 14512)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
