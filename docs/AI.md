@@ -15438,6 +15438,7 @@ every v-type figure those windows print at −2 between its searches.
 Unit tests:
 
 - `cavarch::tests::a_unit_that_fires_on_the_move_finds_shoots_and_walks_on`;
+- `cavarch::tests::a_captain_firing_on_the_move_retargets_before_it_shoots`;
 - `cavarch::tests::an_empty_search_twice_waits_for_the_thirty_two_frame_phase`;
 - `cavarch::tests::the_step_attack_walks_while_the_turret_bears`.
 
@@ -15494,7 +15495,9 @@ and `run661_s_word_frame_is_widened_whole` by exit code):
 M5 and M6 are arms no walk holds. M5 is `move_step`'s drop, which needs
 a target leaving the turret's arc mid-walk. M6 is `cavarch_fight`'s
 captain re-search, which needs a better target appearing while a target
-is held. Their unit tests hold M5 only.
+is held. Each has a unit test that fails under it:
+`the_step_attack_walks_while_the_turret_bears` for M5 and
+`a_captain_firing_on_the_move_retargets_before_it_shoots` for M6.
 
 ### 134.5 What this has *not* established
 
