@@ -61,6 +61,7 @@ pub mod build;
 pub mod calc_gather;
 pub mod caravan;
 pub mod cast;
+pub mod cavarch;
 pub mod city;
 pub mod collide;
 pub mod combat;
@@ -269,6 +270,12 @@ pub struct Unit {
     /// `(ox, whom)` = `(−1, −1)` whenever it differs from what is held
     /// (`docs/GOLDEN.md` §48).
     pub cavarch_who: i8,
+    /// **`cavarch_o` −2** (`0xfffe`): a fire-on-the-move type's search
+    /// found nothing twice running, and the next one waits for the
+    /// thirty-two-frame phase (`Unit::cavarch_fight@005ff4b0`'s tail,
+    /// `Unit::do_move@005f7b30:66`). `cast_target` is `None` with it.
+    /// [`crate::cavarch`] writes it; −1 is `cast_target` `None` without.
+    pub cavarch_idle: bool,
     /// **`unit_masks & 0x20000`** — "the cast has started": set on a
     /// targeted cast's first in-range frame, cleared by
     /// `kill_current_order`, and one of the three bits that stop mana
@@ -902,6 +909,7 @@ impl Unit {
             mana_burn: 0,
             cast_target: None,
             cavarch_who: 0,
+            cavarch_idle: false,
             casting: false,
             marching: None,
             infiltrated: 0,

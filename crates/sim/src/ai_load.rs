@@ -102,6 +102,12 @@ pub mod uflags {
     pub const NO_RESEARCH_PRICE: u32 = 0x80;
     /// `r` — `is_siege`.
     pub const SIEGE: u32 = 0x20000;
+    /// `v` — **fires on the move** (the Dragoon's `majv`, the Horse
+    /// Archer's `mhv`). `Unit::do_move@005f7b30:60` calls
+    /// `Unit::cavarch_fight` for such a type, and `Unit::move_step` walks
+    /// it under `CHAR_ATTACKWALK` while it is aimed (`docs/AI.md` §134,
+    /// [`crate::cavarch`]).
+    pub const FIRES_ON_MOVE: u32 = 0x20_0000;
     /// `t` — `unitrules.xml`'s own legend: "Unit is a tank".
     /// `UnitTypeData::is_tank@00470450` reads it, the type's vslot `+0x110`
     /// (the PDB's `ObjectTypeData` method list), and a land pusher will not

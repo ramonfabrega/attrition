@@ -2133,6 +2133,13 @@ pub struct UnitDump {
     /// 463, which is how a squad that keeps a dead target's order for the
     /// length of its reload read as a pathing divergence.
     pub recharging: Option<i64>,
+    /// **`cavarch_o`/`cavarch_who`** (`UnitData +0xa2`/`+0xa8`) — a
+    /// fire-on-the-move type's target beside its walk, −1 for none and
+    /// −2 while its search waits for the thirty-two-frame phase
+    /// (`sim::cavarch`, `docs/AI.md` §134); a caster's target too
+    /// (`docs/GOLDEN.md` §27). Printed on every `UNITDATA`.
+    pub cavarch_o: Option<i64>,
+    pub cavarch_who: Option<i64>,
     /// **The overkill window** (`docs/COMBAT.md` §7.1 step 2, §41) —
     /// `UnitData::damage_frame`, the sim frame of the first hit inside the
     /// current window, and `damage_o`/`damage_who`, the captain and owner
@@ -3335,6 +3342,8 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         collide_who: b.int("collide_who"),
         collide_guy: b.int("collide_guy"),
         recharging: b.int("recharging"),
+        cavarch_o: b.int("cavarch_o"),
+        cavarch_who: b.int("cavarch_who"),
         // `UNITDATA`'s own indent, like `recharging` and unlike `damage` —
         // the `OBJECT` block one in carries no `damage_frame` at all, and
         // the animals' nested `UNITDATA` is what puts one an indent

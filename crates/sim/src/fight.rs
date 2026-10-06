@@ -1069,6 +1069,15 @@ impl Sim {
 
     /// The strike itself — `Unit::fight` from step 2 on (§8.2).
     fn fight(&mut self, i: usize, target: Obj, frame: i64) {
+        self.fight_as(i, target, frame, false);
+    }
+
+    /// [`Sim::fight`] with `fight`'s fifth argument, `cavarch`: the fire
+    /// on the move ([`crate::cavarch`]) takes the angle and the strike,
+    /// and jumps from `005fe7c5` (`if (param_5 != 0) goto LAB_005feec6`)
+    /// over the `set_angle`, the figures' desired angles, the cell-centre
+    /// snap and the swing — the walk goes on, under `CHAR_ATTACKWALK`.
+    pub(crate) fn fight_as(&mut self, i: usize, target: Obj, frame: i64, cavarch: bool) {
         let me = Obj::Unit(i);
         let p = self.profile(me);
         // Facing: toward the target — or, for a ship that attacks
@@ -1095,16 +1104,18 @@ impl Sim {
         // the heading bare until item 530, so who=1's army group kept
         // `facing 0` where run110 flips it on 616, and every layout the
         // army asked for afterwards was mirrored (`docs/ORDERS.md` §22).
-        if angle != self.units[i].movement.heading {
-            self.unit_set_angle(i, angle);
+        if !cavarch {
+            if angle != self.units[i].movement.heading {
+                self.unit_set_angle(i, angle);
+            }
+            // The strike re-seats the figures after changing heading and
+            // before asking for the attack. Guy 0 still turns; its tracked
+            // crew is snapped to its current facing and may attack now.
+            // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
+            let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
+            self.set_new_location(i, snap, true);
+            self.swing_anim(i, direct);
         }
-        // The strike re-seats the figures after changing heading and
-        // before asking for the attack. Guy 0 still turns; its tracked
-        // crew is snapped to its current facing and may attack now.
-        // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
-        let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
-        self.set_new_location(i, snap, true);
-        self.swing_anim(i, direct);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
         // visible to whoever it just hit (`docs/VISION.md` §7).
@@ -3041,6 +3052,27 @@ impl Sim {
     /// so a member sent at a city takes a building, never a passing unit.
     /// [`Sim::melee_search_flags_with`] keeps the word or rewrites it.
     pub fn find_melee_target_with(&mut self, i: usize, range: i32, word: u32) -> Option<Obj> {
+        self.find_melee_target_as(i, range, word, false)
+    }
+
+    /// [`Sim::find_melee_target_with`] with the original's third argument,
+    /// `cavarch` (`Unit::find_melee_target@005ff9c0`'s `param_3`), which
+    /// it hands on to [`Sim::find_nearby_target_as`]. Its head is the
+    /// one a captain takes (a non-captain's `cavarch` jumps to
+    /// `LAB_005ffbb2`, past the squad mirror), so the radius and the
+    /// `flags` word are the same here.
+    ///
+    /// SEAM: a fire-on-the-move type's search that finds nothing resets
+    /// every figure's pivots (`Guy::reset_pivots(0)`, `:245`–`262`, for
+    /// every caller), the turrets' rest angles. The Dragoon's rest is 0,
+    /// which its figures already hold (run657, `1/80` on 17165).
+    pub(crate) fn find_melee_target_as(
+        &mut self,
+        i: usize,
+        range: i32,
+        word: u32,
+        cavarch: bool,
+    ) -> Option<Obj> {
         let me = Obj::Unit(i);
         let st = self.units[i].combat;
         if st.stance == Stance::HoldFire {
@@ -3089,7 +3121,7 @@ impl Sim {
             range
         };
         let flags = self.melee_search_flags_with(i, word);
-        self.find_nearby_target_with(me, radius, flags)
+        self.find_nearby_target_as(me, radius, flags, cavarch)
     }
 
     /// **The search's `flags` word, which `find_melee_target` derives from
@@ -3162,6 +3194,26 @@ impl Sim {
         max_dist: i32,
         flags: u32,
     ) -> Option<Obj> {
+        self.find_nearby_target_as(attacker, max_dist, flags, false)
+    }
+
+    /// [`Sim::find_nearby_target_with`] with the original's fourth
+    /// argument, `cavarch` — the fire on the move's search
+    /// ([`crate::cavarch`]). `00648f42`'s first arm takes it with a unit
+    /// that is not a unit (`param_4 != 0`): `local_54` (on duty) 0,
+    /// `local_24` (must reach) 1 and `local_2c` (guarding) 0, so neither
+    /// the guard's post nor the computer's packed-siege shortcut is
+    /// asked; and `check_target`'s seventh argument skips both its
+    /// region-and-stance head (`:35`) and its `poor_target` tail
+    /// (`:130`). The near pair and the `targeted` bump are written as for
+    /// any search.
+    pub(crate) fn find_nearby_target_as(
+        &mut self,
+        attacker: Obj,
+        max_dist: i32,
+        flags: u32,
+        cavarch: bool,
+    ) -> Option<Obj> {
         if self.attack_of(attacker) == 0 {
             return None;
         }
@@ -3201,18 +3253,20 @@ impl Sim {
         // whose army shortcut failed is still range-tested — an
         // out-of-range unit is skipped, an out-of-range non-unit kept only
         // if it attacks or is a wonder — and scored as out of range.
-        let packed_ai_siege = match attacker {
-            Obj::Unit(i) => {
-                let who = self.units[i].owner;
-                ap.packs
-                    && self.units[i].combat.packed
-                    && ap.siege
-                    && self.ai_driven(who)
-                    && !self.search_ai(who)
-            }
-            Obj::Building(_) => false,
-        };
+        let packed_ai_siege = !cavarch
+            && match attacker {
+                Obj::Unit(i) => {
+                    let who = self.units[i].owner;
+                    ap.packs
+                        && self.units[i].combat.packed
+                        && ap.siege
+                        && self.ai_driven(who)
+                        && !self.search_ai(who)
+                }
+                Obj::Building(_) => false,
+            };
         let must_reach = packed_ai_siege
+            || cavarch
             || match attacker {
                 Obj::Unit(i) => {
                     let c = self.units[i].combat;
@@ -3230,17 +3284,17 @@ impl Sim {
         // ([`Sim::guard_leash`]) before `near` is written, and it must
         // reach a candidate that is unarmed (`:346`–`352`).
         //
-        // SEAM: the cavalry archer's call (`param_4`) is never guarding;
-        // this crate's search has no such caller.
+        // The cavalry archer's call (`param_4`) is never guarding
+        // ([`Sim::find_nearby_target_as`]).
         let guard = match attacker {
-            Obj::Unit(i) => self.guard_activity(i).map(|g| (i, g)),
-            Obj::Building(_) => None,
+            Obj::Unit(i) if !cavarch => self.guard_activity(i).map(|g| (i, g)),
+            _ => None,
         };
         let centre = guard.map_or(at, |(_, g)| g.guard).cell();
         // `local_54`, `Unit::on_duty` of a unit searcher (`006490b6`):
         // `check_target`'s third argument.
         let duty = match attacker {
-            Obj::Unit(i) => self.on_duty(i),
+            Obj::Unit(i) => !cavarch && self.on_duty(i),
             Obj::Building(_) => false,
         };
         // **`local_40`, computed once before the rings** (`00648e6e`), off
@@ -3318,6 +3372,7 @@ impl Sim {
                         // in another region, or any for a defensive unit
                         // off duty with an order, must be in range.
                         if let Obj::Unit(i) = attacker
+                            && !cavarch
                             && !self.check_target_reaches(i, o, duty)
                         {
                             continue;
@@ -3334,7 +3389,10 @@ impl Sim {
                         // (`00649e00`, `docs/COMBAT.md` §61): a futile
                         // chase is refused before `near_o` is written, and
                         // an unarmed plane's search of a plane is futile.
-                        if leash != Some(Leash::Captain) && self.poor_target(attacker, o) {
+                        if leash != Some(Leash::Captain)
+                            && !cavarch
+                            && self.poor_target(attacker, o)
+                        {
                             continue;
                         }
                         let mut dist = self.attack_dist(attacker, o);

@@ -1931,6 +1931,11 @@ pub(crate) fn widen_block(
                     i64::from(un.combat.recharging),
                     them.recharging,
                 ),
+                // **The fire on the move's target** (item 1508,
+                // `docs/AI.md` §134): −1, −2 while the search waits for
+                // its phase, or what a `v` type shoots at beside its walk.
+                ("cavarch_o", built.sim.cavarch_o(u), them.cavarch_o),
+                ("cavarch_who", i64::from(un.cavarch_who), them.cavarch_who),
                 ("start_dist", i64::from(un.start_dist), them.start_dist),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
@@ -2096,6 +2101,8 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "collide_guy" => ("UnitDump", "collide_guy"),
         "safe" => ("UnitDump", "safe"),
         "recharging" => ("UnitDump", "recharging"),
+        "cavarch_o" => ("UnitDump", "cavarch_o"),
+        "cavarch_who" => ("UnitDump", "cavarch_who"),
         "start_dist" => ("UnitDump", "start_dist"),
         "mylos" => ("UnitDump", "mylos"),
         "g.x" | "g.y" => ("Guy", "pos"),

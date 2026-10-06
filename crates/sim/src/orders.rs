@@ -4170,6 +4170,11 @@ impl Sim {
         };
         let mut flags = flags;
 
+        // **The fire on the move** (§4.4 step 1, `005f7b30:60-86`): a
+        // `v` type looks for, and shoots at, a target beside its walk
+        // before the step does anything else ([`crate::cavarch`]).
+        self.cavarch_head(u, frame);
+
         // **A suspended search** (§4.4 step 2, item 301). `do_move`'s
         // first block after the cavalry-archer fire, and **no step happens
         // while one is pending**: every arm below returns.
@@ -5942,6 +5947,10 @@ impl Sim {
     fn unit_step(&mut self, u: usize, mut mo: MoveOrder, speed: i32) -> Did {
         // STEP (§4.4): `avoid_x/y = −1,−1` before every step.
         self.units[u].avoid = None;
+        // `move_step@005faf30:66-100`, at its head: a fire-on-the-move
+        // type aims its figures at what it holds, and walks under
+        // `CHAR_ATTACKWALK` while its pivots bear ([`crate::cavarch`]).
+        let walk = self.cavarch_step_anim(u);
         let unit = &self.units[u];
         let m = unit.movement;
         let from = unit.pos;
@@ -6249,7 +6258,7 @@ impl Sim {
                     self.mark(crate::anim::SITE_SNAP_STAND);
                     self.set_default_anim(u);
                 } else {
-                    self.set_anim(u, crate::anim::WALK, false, true);
+                    self.set_anim(u, walk, false, true);
                 }
             }
             let flags = self.current_order(u).map_or(0, |o| o.flags);
