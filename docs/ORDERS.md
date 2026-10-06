@@ -3532,6 +3532,11 @@ scholars, a Nomad Spaniard no extra scouts, a Nomad Korean no extra citizens.
   building on those lists is a `LIBRARY`/`SENATE`/`TEMPLE`, none a gather
   type, so the fallback is what fires — and both misdescribed the rule.
 
+**Measured past the farm list** (item 1496, run651, `starting_resources == 7`: thirteen citizens, `docs/AI.md` §129): the
+first two at `2001`, the next three at farms `2002..2004`, and **the following four at `2001` again** — step 4's guard, the
+woodcutter's `num_gatherers < gather_max` (six) — and the last four idle (`flags 9` in the dump, no order): block 1's
+`filled_gather_slots[timber]` is 6 and `[food]` 3 on both leaders.
+
 So for the default Small Town: citizens `1, 2` are created at the woodcutter
 `2001` with `GATHER 2001`; `3, 4, 5` at farms `2002, 2003, 2004` with a `GATHER`
 on each; the library `2005` and the city `2000` get nobody; Large Town: `1..5`

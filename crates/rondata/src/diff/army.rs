@@ -476,6 +476,7 @@ mod tests {
             &init.game_info,
             &loaded.map_styles,
             &loaded.wonder_wins,
+            &loaded.starting_resources,
             &loaded.pop_wins,
         );
         sim.sync_setup_from_lobby();

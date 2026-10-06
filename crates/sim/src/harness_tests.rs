@@ -729,6 +729,48 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
     );
 }
 
+/// **The lobby's `startingresources` row prices the opening stockpile**
+/// (`Game::init_starting_resources@0058a500`, `docs/ORDERS.md` §9.4; item
+/// 1496, run651's block 1). Row 1 pays `STARTING_GOODS` as it stands;
+/// Deathmatch (row 7, `lo` 100) pays a hundred times `STARTING_GOODS[0]` in
+/// every good but knowledge, which keeps its own constant — the original's
+/// 20000/20000/20000/10000/20000/20000 — and the Low row (`lo` 0) halves it.
+#[test]
+fn the_lobbys_resource_row_prices_the_opening_stockpile() {
+    let mut world = World::new(8, 8);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+    let mut sim = Sim::new(Tuning::RON, world, 2);
+    let paid = |sim: &mut Sim| {
+        sim.lay_starting_goods(0);
+        sim.ledgers[0].bucket
+    };
+    assert_eq!(
+        paid(&mut sim),
+        Tuning::RON.starting_goods,
+        "row 1: as written"
+    );
+
+    sim.lobby.starting_resources = 7;
+    sim.lobby.starting_resources_row = (100, 100);
+    assert_eq!(
+        paid(&mut sim),
+        [20000, 20000, 20000, 10000, 20000, 20000],
+        "Deathmatch"
+    );
+
+    sim.lobby.starting_resources = 0;
+    sim.lobby.starting_resources_row = (0, 0);
+    assert_eq!(paid(&mut sim), [100, 100, 50, 50, 50, 50], "Low halves");
+
+    sim.lobby.starting_resources = 5;
+    sim.lobby.starting_resources_row = (10, 10);
+    assert_eq!(
+        paid(&mut sim),
+        [2000, 2000, 1000, 1000, 1000, 1000],
+        "x10 multiplies each good's own constant"
+    );
+}
+
 /// The Citizen, as `unitrules.xml` writes it: `2f`, `1f support`,
 /// `PROGRESSION 0`, `POP 1`, forty hit points, `JOB_TIME 50`,
 /// `JOB_EXTRA_TIME 1/10tsx`, `RESEARCH_PREMIUM_TIME 2`.
