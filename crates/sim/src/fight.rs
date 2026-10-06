@@ -2753,7 +2753,7 @@ impl Sim {
                     && let Some(seat) = self.seat_of(at)
                     && self.seat_list(seat).contains(&at)
                 {
-                    self.group_target_opportunity(seat, attacker);
+                    self.group_target_opportunity(seat, attacker, at, false);
                     return;
                 }
                 if self.units[at].captain {
@@ -2835,16 +2835,30 @@ impl Sim {
     }
 
     /// `Group::target_opportunity@007107d0` for a hit its member `asker`
-    /// took: a 15-frame cooldown on the group (`+0x38`, `frame − last >
-    /// 0xe`), then every member that is alive, on the map, a captain and
-    /// combat-role takes `Unit::target_opportunity(member, o, who, 1)`.
+    /// took (`param_4 == 0`): a 15-frame cooldown on the group (`+0x38`,
+    /// `think_frame`, `frame − last > 0xe`), then every member that is
+    /// alive, on the map, a captain and combat-role takes **one of three
+    /// arms** (`7108c8`..`710a69`, `docs/GOLDEN.md` §61):
     ///
-    /// SEAM: the arm that runs a member's own melee search (an
-    /// action order absent or idle, the head order of kind `NONE`, `ATTACK_TO` or
-    /// `GROUP_ATTACK_TO`, and the member not the asker's captain) is not
-    /// modelled; no capture on disk has a combat-role captain beside a
-    /// non-combat-role member that takes a hit.
-    fn group_target_opportunity(&mut self, seat: crate::group::Seat, attacker: Obj) {
+    /// 1. the asker's own squad captain — `Unit::target_opportunity(member,
+    ///    o, who, 1)`, no test on its orders (`71092e`..`710946`);
+    /// 2. a member whose `get_action` is absent or whose action's vslot
+    ///    `+0x10` (`get_type`) reads 0 (`NONE`), and whose `order_type` is
+    ///    `NONE`, `ATTACK_TO` or `GROUP_ATTACK_TO` (`710950`..`710989`) —
+    ///    its **own** `find_melee_target(member, min(dist(member, attacker)
+    ///    + 0xc0, unit_respond_range × 0x240), NULL, 0, 1, 0)`, the order it
+    ///    adds ([`Sim::find_melee_target_added_in`]);
+    /// 3. any other — `Unit::target_opportunity(member, o, who, 1)` again.
+    ///
+    /// `from_think` is `param_4 == 1`, `Unit::think_attack`'s tail
+    /// (`005f5da6`..): arm 1 never applies there.
+    pub(crate) fn group_target_opportunity(
+        &mut self,
+        seat: crate::group::Seat,
+        attacker: Obj,
+        asker: usize,
+        from_think: bool,
+    ) {
         let frame = self.frame;
         {
             let (_, st) = self.seat_parts(seat);
@@ -2853,6 +2867,7 @@ impl Sim {
             }
             st.opportunity = frame;
         }
+        let asker_captain = self.squad_captain(asker);
         let members = self.seat_list(seat).clone();
         for m in members {
             if self.units[m].alive()
@@ -2860,7 +2875,32 @@ impl Sim {
                 && self.units[m].captain
                 && self.profile(Obj::Unit(m)).combat_role
             {
-                self.target_opportunity_in(m, attacker, true);
+                if !from_think && m == asker_captain {
+                    self.target_opportunity_in(m, attacker, true);
+                    continue;
+                }
+                let no_action = self
+                    .action_of(m)
+                    .is_none_or(|k| self.units[m].orders[k].index() == crate::orders::index::NONE);
+                if no_action
+                    && matches!(
+                        self.order_type(m),
+                        crate::orders::index::NONE
+                            | crate::orders::index::ATTACK_TO
+                            | crate::orders::index::GROUP_ATTACK_TO
+                    )
+                {
+                    let here = self.units[m].pos;
+                    let there = self.pos_of(attacker);
+                    let d = crate::world::vector_dist(
+                        (here.x - there.x).abs(),
+                        (here.y - there.y).abs(),
+                    );
+                    let range = (d + 0xc0).min(self.tuning.unit_respond_range * 0x240);
+                    self.find_melee_target_added_in(m, range);
+                } else {
+                    self.target_opportunity_in(m, attacker, true);
+                }
             }
         }
     }
@@ -4733,6 +4773,124 @@ mod tests {
         sim.units[me].group_ptr = None;
         sim.target_opportunity(me, Obj::Unit(foe), 913);
         assert_eq!(sim.units[me].orders.len(), 1, "ungrouped, it flees");
+    }
+
+    /// A group of a non-combat Scout (`0/0`, the one that is hit) and an
+    /// idle combat-role Hoplite (`0/1`), with a near and a far foe of the
+    /// other side — `Group::target_opportunity`'s three arms
+    /// (`docs/GOLDEN.md` §61).
+    fn group_arms_fixture() -> (Sim, usize, usize, usize, usize) {
+        let (mut sim, _) = at_war();
+        let scout = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            combat: Profile {
+                attack: 0,
+                max_range: 0,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let hoplite = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 0,
+                uber_size: 1,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let s = put(&mut sim, 0, scout, Pos::new(0x4000, 0x4000));
+        let h = put(&mut sim, 0, hoplite, Pos::new(0x4100, 0x4000));
+        let near = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 5, 0x4000));
+        let far = put(&mut sim, 1, hoplite, Pos::new(0x4000 + 0xc0 * 9, 0x4000));
+        sim.pushed.push(crate::group::Pushed {
+            who: 0,
+            list: vec![s, h],
+            state: crate::group::GroupState {
+                pool: Some(2),
+                ..crate::group::GroupState::default()
+            },
+            builds: Vec::new(),
+        });
+        sim.units[s].group_ptr = Some(2);
+        sim.units[h].group_ptr = Some(2);
+        (sim, s, h, near, far)
+    }
+
+    /// **The cooldown refuses a second hit inside fifteen frames**
+    /// (`Group::target_opportunity@007107d0`, `0xe < frame − +0x38`;
+    /// run577's group 1 prints `think_frame` 699, 724 and 750 while the
+    /// Scout is wounded on 700, 705, 725, 732 and 751). Made to fail with
+    /// the gate dropped: the second hit moved the stamp to 920 and the
+    /// Hoplite answered it.
+    #[test]
+    fn a_group_answers_a_hit_once_in_fifteen_frames() {
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(sim.pushed[0].state.opportunity, 912);
+        assert!(!sim.units[h].orders.is_empty(), "the first hit is answered");
+        sim.units[h].orders.clear();
+        sim.units[h].combat.target = None;
+        sim.frame = 926;
+        sim.target_opportunity(s, Obj::Unit(far), 926);
+        assert_eq!(sim.pushed[0].state.opportunity, 912, "inside the window");
+        assert!(sim.units[h].orders.is_empty(), "the gate refused the hit");
+        sim.frame = 927;
+        sim.target_opportunity(s, Obj::Unit(far), 927);
+        assert_eq!(sim.pushed[0].state.opportunity, 927, "past the window");
+        assert!(!sim.units[h].orders.is_empty());
+    }
+
+    /// **A combat-role captain with no action order runs its own
+    /// `find_melee_target`** (`710950`..`710989`, `docs/GOLDEN.md` §61):
+    /// the hit comes from the far foe and the Hoplite takes the **near**
+    /// one, by the search's ranking, where `Unit::target_opportunity` would
+    /// have retaliated on the attacker. With an `ATTACK_TO` action in its
+    /// stack the same Hoplite takes the attacker. No walk reaches the first
+    /// arm: run577's `0/7` always holds the `ATTACK_TO` of its `@amove`.
+    #[test]
+    fn an_idle_group_captain_searches_for_itself_and_a_busy_one_retaliates() {
+        let (mut sim, s, h, near, far) = group_arms_fixture();
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(
+            sim.units[h].combat.target,
+            Some(Obj::Unit(near)),
+            "idle: its own search"
+        );
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.add_move_order(
+            h,
+            Pos::new(0x4000 + 0xc0 * 20, 0x4000),
+            crate::orders::MoveKind::AttackTo,
+            crate::orders::QueuePos::New,
+            true,
+        );
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(
+            sim.units[h].combat.target,
+            Some(Obj::Unit(far)),
+            "busy: Unit::target_opportunity"
+        );
+    }
+
+    /// **The asker's own squad captain takes `Unit::target_opportunity`
+    /// whatever its orders** (`71092e`..`710946`, `param_4 == 0`): a Scout
+    /// that follows the idle Hoplite is hit by the far foe, and the Hoplite
+    /// — idle, so otherwise the search's arm — retaliates on the attacker.
+    #[test]
+    fn the_asker_s_own_captain_retaliates_on_the_attacker() {
+        let (mut sim, s, h, _near, far) = group_arms_fixture();
+        sim.units[s].captain = false;
+        sim.units[s].o_up = Some(h);
+        sim.frame = 912;
+        sim.target_opportunity(s, Obj::Unit(far), 912);
+        assert_eq!(sim.units[h].combat.target, Some(Obj::Unit(far)));
     }
 
     /// **`Unit::think`'s step 3 needs the military bit as well as the

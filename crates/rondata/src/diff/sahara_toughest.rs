@@ -1440,9 +1440,13 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>()
                 .len(),
+            // 33 on 1429's own tree, 32 with 1461's crew `get_speed` beside it
+            // (the booking gate on 8f83972e); 13 since item 1472.
             13,
             "the blocks keys first part on, to one past the word's"
         );
+        // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
+        // 367 since item 1472's crew clear.
         pin_eq!(w.firsts.len(), 367, "every key parted on run584");
     }
 

@@ -14355,6 +14355,35 @@ SHA-256 `816c107508d75fb84af7e3156b8dedfb67c02df4c0b0416cad39c0c78d490d81`.
 Archive `rontrace-run634.log`, 59,112,224 bytes,
 SHA-256 `49a8e4af14f2e9c7d02e8df6abe9cfa772f59fc7ec32fa275cfd53c79eba753e`.
 
+## run582 — chapter fifty-one, chapter fifty's script with the attack-move on 639 (2026-10-05, item 1423)
+
+`docs/GOLDEN.md` §61, `tools/gamelog/golden/chapter51.cmd`: run577's cast, the
+`@amove` one frame earlier.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch51 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter51.cmd
+```
+
+**What the disk could not answer.** No capture holds a Stockade's call on its
+phase 0 with the latch up and no shot (run577's calls fall on phases 3, 2, 1
+and stop), so no dump showed whether the original's `visible` clear is gated.
+
+**Taken** on the click-free lane, `cover=0`, `ron_lane_state` `free` after
+a 3,062 s wait on another lane's capture; `success: true`,
+`settings_restored: true`, 1,101 frames, seed 12345, map 14 verified, exit 0,
+693 s launch to exit. `issuesmatch.py --none-refused`: the one `@` line
+issued, refusal 0. The dump (216,909,982 bytes, sha256 `21e793d9…c398dc`) and
+the trace (10,421,920, `dde11c20…5a5f3d`) stay in `~/ron-golden/ch51/map-14`.
+The disk had 171 GB free after.
+
+**What it holds**: `chapter_fifty_one_holds_to_the_golden_word` (1100) and
+`chapter_fifty_one_s_word_frame_is_widened_whole` (605..1099).
+
 ## run635 — French East Indies, the word 12952's widening, with the leader probe (2026-10-05, item 1461)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1461-opus/run635-booking.json`,

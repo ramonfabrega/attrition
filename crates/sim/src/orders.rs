@@ -2704,6 +2704,14 @@ impl Sim {
     ///
     /// The search's own add is the one this arm always had, `QUEUE_FIRST`.
     pub(crate) fn find_melee_target_added(&mut self, u: usize) -> Option<Obj> {
+        self.find_melee_target_added_in(u, -1)
+    }
+
+    /// [`Self::find_melee_target_added`] at the caller's own `range` — its
+    /// second argument, `-1` for the idle radius.
+    /// `Group::target_opportunity@007107d0`'s member arm passes
+    /// `min(dist + 0xc0, unit_respond_range × 0x240)` (`docs/GOLDEN.md` §61).
+    pub(crate) fn find_melee_target_added_in(&mut self, u: usize, range: i32) -> Option<Obj> {
         match self.melee_squad_head(u) {
             SquadHead::Nothing => None,
             SquadHead::Captain(t, mandatory) => {
@@ -2719,7 +2727,7 @@ impl Sim {
                 Some(t)
             }
             SquadHead::Search => {
-                let t = self.find_melee_target(u, -1)?;
+                let t = self.find_melee_target(u, range)?;
                 self.add_attack_order(u, t, QueuePos::First, false, false);
                 Some(t)
             }
@@ -3439,6 +3447,16 @@ impl Sim {
                 && let Some(t) = self.find_melee_target(u, -1)
             {
                 self.add_attack_order(u, t, QueuePos::New, false, false);
+                // `think_attack`'s tail (`005f5da6`..): a **unit** find by
+                // a unit its group lists is handed to
+                // `Group::target_opportunity(…, param_4 = 1)`
+                // (`docs/GOLDEN.md` §61).
+                if matches!(t, Obj::Unit(_))
+                    && let Some(seat) = self.seat_of(u)
+                    && self.seat_list(seat).contains(&u)
+                {
+                    self.group_target_opportunity(seat, t, u, true);
+                }
                 return;
             }
         }

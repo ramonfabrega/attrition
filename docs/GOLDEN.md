@@ -10436,8 +10436,9 @@ pinned as they stand; the first is a cascade from 686 (the shots, then
 the Scout's death and the Hoplites' path), `0/7` damage on 1001. The ground
 guard stands at 7 reads (`GROUND_INEXACT`).
 
-**What is not established.** The cooldown gate's and the member search's
-effect in the original (no walk reaches them before 686); a Fortress, Bunker,
+**What is not established.** ~~The cooldown gate's and the member search's
+effect in the original (no walk reaches them before 686)~~ — the gate is
+walked (`think_frame`), the member arm built and not reached: §61; a Fortress, Bunker,
 Redoubt or observation post shooting; the march's `+0x4b` arm.
 
 ## 60. A patriot casts decoys with its own radius (item 1437)
@@ -10484,3 +10485,103 @@ passengers 155–157 are inside original-only transport 167 on block 17908.
 Item 1438 walks the prior move flags back. Removing the patriot radius
 makes the synthetic boundary test and run588 fail, both exit 101; the
 mutation is restored. Full batch validation remains pending.
+
+## 61. Chapter fifty-one — the cooldown and the clear gate walked; the member arm built and not reached (item 1423)
+
+**Premise.** DECISIONS 56 §3's fifty-first chapter: of the four arms
+§59 and §59's item 1419 left to a unit test — `Group::target_opportunity@007107d0`'s
+15-frame cooldown and its member `find_melee_target` arm, a building's
+`visible` clear gate and its `update_local_seen_build` fog arm — the first
+three. The fog arm is left for the next chapter (a chapter is three arms).
+Whether one staging reaches each was the first question.
+
+**The cooldown is reached by chapter fifty's own staging, and the dump
+prints it.** The field is `GroupData::think_frame` (`+0x38`); its only
+writers are `Group::clear` (zero) and `Group::target_opportunity` (the
+frame). run577's group 1 prints `think_frame` 0, then 699, 724 and 750,
+while the Scout `0/6` is wounded on 700, 705, 725, 732 and 751: the hits on
+705 and 732 fell inside the window and the gate refused them. This crate
+carried the field (`GroupState::opportunity`) and compared it **nowhere**
+(`coverage.rs` pinned `("GroupDump", "think_frame")` as unread), which is
+why §59's mutation of the gate left every walk green. Now compared, in
+`second::widen_records` and `golden::widen_pool`: the walk agrees on every
+frame of run577 and run582. **Mutation** (the gate dropped, `tools/mutate.py`):
+`chapter_fifty_s_word_frame_is_widened_whole` fails, exit 101 — `705 slot 1
+think_frame ours 704 theirs 699`, and `0/7` takes an order on 705 that the
+original's does not. Unit test `a_group_answers_a_hit_once_in_fifteen_frames`
+fails the same mutation.
+
+**The member arm, from the listing** (`7108c8`..`710a69`). For each member
+that is alive, on the map, a captain and combat-role, three arms, in this
+order: (1) `param_4 == 0` and the member is the asker's own squad captain —
+`Unit::target_opportunity(member, o, who, 1)`; (2) `UnitData::get_action@00608450`
+is null or its vslot `+0x10` (`get_type`) reads 0, **and** `order_type` is
+`NONE`, `ATTACK_TO` or `GROUP_ATTACK_TO` — `Unit::find_melee_target@005ff9c0`
+at `min(vector_dist(member, attacker) + 0xc0, unit_respond_range × 0x240)`,
+the order it adds; (3) anything else — `Unit::target_opportunity` again.
+§59's text had the first and third as one arm and this crate ran every
+member through the third. Built: `Sim::group_target_opportunity` takes the
+asker, `find_melee_target_added_in` takes the range. Three unit tests
+(`fight::tests::an_idle_group_captain_searches_for_itself_and_a_busy_one_retaliates`,
+`the_asker_s_own_captain_retaliates_on_the_attacker`, and the cooldown's),
+each failing its own mutation (arm 2 forced off, arm 1 forced off, the gate).
+**No walk reaches arms 1 or 2**: run577's `0/7` holds the `ATTACK_TO` of its
+`@amove` at every call (699, 724, 750), so every call is arm 3, and the
+mutations of arms 1 and 2 leave `chapter_fifty_s_word_frame_is_widened_whole`
+green (exit 0). **Why no Stockade staging does.** Arm 2 needs the hit on a
+non-combat member while every combat-role captain of its group is idle and
+no combat unit is in reach: the Stockade ranks a combat unit first whenever
+one is in reach, and a group's formation is about 150 units across. Forty
+placements of an idle `@move` group (the Stockade on either side of the
+formation, 12 to 16 tiles, 60-unit steps) put the first hit on a Hoplite
+every time; a bowmen squad at 6 tiles shot a Hoplite too (the Hoplites'
+idle search of 12 tiles precedes the hit). A hit on the Scout alone needs a
+formation wider than the Stockade's reach band — an `@form` line staging, not
+walked. **Parked, with that reason.**
+
+**The clear gate is reached by moving chapter fifty's attack-move one frame
+earlier.** `Build::do_attack@006228f0`'s head clears `visible` on the
+building's phase `(frame + o) & 0x1f == 0` only with the latch (`attacking`)
+down; the latch drops on every call that gets past the recharge countdown.
+The gate matters on a call that is on phase 0, past the countdown, with the
+latch **up** (the previous call fired) and that fires nothing — the byte
+then stays 1 where an ungated clear leaves 0. A Stockade fires every 31
+calls and its phase drops by one a shot; run577's 1/2006 fires on phases 3,
+2, 1 and its kill shot is the second, so the call after it is phase 1.
+`chapter51.cmd` issues the `@amove` on 639: the kill shot lands on phase 1,
+and the call on 778 is phase 0 with the latch up and no target. A scan of the
+issue frame (632..646, this crate's walk) found 632, 638 and 639 with such a
+call. **run582** (`tools/gamelog/golden/chapter51.cmd`, `docs/RUNS.md`):
+the walk's word is **1100**, the trace's end, and the original agrees: the
+byte reads 1 on 778 and 779 — the gate holds. A building's `visible` was
+parsed by nothing (`coverage.rs` listed it unread under
+`BUILDDATA/WALLDATA/OBJECT`); `golden::visible_rows` reads it and the
+widening compares every building, every frame, in both chapters.
+**Mutation** (`if phase == 0 && !attacking` → `if phase == 0`): ch51's
+widening fails, exit 101 — `779 1/2006 build:visible: ours 0 theirs 1`.
+Chapter fifty's 640 does not hold it (the same mutation, exit 0).
+
+**The widening** is run582 whole (`[605, 1101)`): 36 rows and 13 pool rows,
+the same families as chapter fifty's 36 and 13, shifted by the frame
+(698, 847, 848, 900, 982 for 700, 832, 833, 908, 986; the Scout's
+`death:extra` on 750, `0/7`'s on 1054). The two walks' rows are the one
+residue and none of them is a draw.
+
+**The compare found a second caller, and it is wired.** Comparing
+`think_frame` made chapters forty-three and forty-six part (`1403 slot 1
+think_frame`, ours 0 theirs 1402): the original ran `Group::target_opportunity`
+on 1402 and this crate never did, because the function's other caller —
+`Unit::think_attack@005f5a80`'s tail (`005f5da6`..), which after a **unit** find
+by a grouped unit its group lists calls it with `param_4 == 1`, where arm 1
+never applies — was unwired. Wired (`orders.rs`, the idle-think arm); both rows
+close and the word of every chapter stands. Comparing a building's `visible`
+byte over every widening parted chapter thirty-seven once: the silo `0/2007`'s
+`0xff` after a nuke (`-1`), which `Nukes::shown` already held — the compare
+reads it.
+
+**What is not established.** The member arm's effect in the original (no
+capture reaches it); the fog arm (`update_local_seen_build`'s mask on a
+building's first round); a Fortress, Bunker, Redoubt or observation post
+shooting; the march's `+0x4b` arm. The think tail's order is this crate's
+`add_attack_order(…, QUEUE_NEW)`, not `find_melee_target`'s own add
+(`docs/GROUPS.md` §12's second divergence).

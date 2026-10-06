@@ -6081,6 +6081,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY: i64 = 1100;
 /// `chapter_fifty_s_word_frame_is_widened_whole`'s window: run577 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY: (i64, i64) = (605, 1101);
 
+/// **Chapter fifty-one** (item 1423, `docs/GOLDEN.md` §61, run582): chapter
+/// fifty's script with the attack-move on 639, so that the Stockade's
+/// kill-shot call lands on its phase 1 and the next, on 778, is phase 0 with
+/// the latch up and no shot: `Build::do_attack`'s `visible` clear gate.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_ONE: i64 = 1100;
+
+/// `chapter_fifty_one_s_word_frame_is_widened_whole`'s window: run582 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_ONE: (i64, i64) = (605, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8223,6 +8232,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_s_word_frame_is_widened_whole"),
         1404,
         Some(WIDENING_CHAPTER_FIFTY),
+    ),
+    // Item 1423: run582, chapter fifty-one, chapter fifty's script a frame
+    // earlier. The widening is run582 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_ONE",
+        GOLDEN_WORD_CHAPTER_FIFTY_ONE,
+        Some("chapter_fifty_one_s_word_frame_is_widened_whole"),
+        1423,
+        Some(WIDENING_CHAPTER_FIFTY_ONE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

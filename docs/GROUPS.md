@@ -4630,8 +4630,9 @@ it (run356's and run373's), both directions:
 - **Each figure's aim**, `GuyData`'s `ox`/`whom`. A building is named by
   its `(owner, index)`, as `widen_block` links it.
 
-`think_frame` is the one scalar left, because this crate does not carry
-it.
+~~`think_frame` is the one scalar left, because this crate does not carry
+it.~~ It is `GroupState::opportunity`, compared since item 1423
+(`docs/GOLDEN.md` §61).
 
 ### 33.2 What it read
 
