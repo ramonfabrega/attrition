@@ -134,12 +134,14 @@ fn coverage_pair_captures_say_their_lobby() {
     );
 }
 
-/// The lobby is none of the scored words' and none of the battery's: the
-/// pair exists for what no other lobby enters.
+/// The pair is a scored lobby (the battery's identity test refuses it) and
+/// none of the battery's: the pair exists for what no other lobby enters.
 #[test]
 fn coverage_pair_is_no_other_lobby() {
     let triple = (COVERAGE.map_style, COVERAGE.ai_tribe, COVERAGE.difficulty);
-    assert!(!battery::SCORED_LOBBIES.contains(&triple));
+    // `SCORED_LOBBIES` carries the pair's own triple, so a battery lobby can
+    // never be moved onto it, and the battery holds none of it.
+    assert!(battery::SCORED_LOBBIES.contains(&triple));
     assert!(
         !battery::BATTERY
             .iter()
@@ -174,4 +176,49 @@ fn coverage_pair_start_owns_every_age() {
             "who {who}: all_techs grants the plain techs"
         );
     }
+}
+
+/// run651's own blocks, 0 and 1: the start dump's whole records, which is
+/// where frame 0's word lives (`docs/AI.md` §127).
+pub(crate) const WIDENING_COVERAGE_START: (i64, i64) = (0, 1);
+
+/// The pair's first word's widening: every dumped record on block 1 (the
+/// state frame 0 writes), the start dump itself as the capture.
+pub(crate) fn coverage_start_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run651",
+        &[(COVERAGE.start, 0)],
+        WIDENING_COVERAGE_START,
+        1,
+        &[1],
+        true,
+    )
+}
+
+#[test]
+fn run651_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_start_window() else {
+        return;
+    };
+    pin_eq!(
+        w.blocks,
+        1,
+        "every captured block: the start dump's block 1"
+    );
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1466, on the tree at base 4b29c0d7 plus the lobby's age: **226**
+    // keys part on block 1, against **48** for the scored French start's
+    // own block 1 (run595, the control: its `form`, the leaders' `SITE`
+    // `reg`s and city terrain, which every lobby parts on). The 178 the
+    // lobby adds: both leaders' six stockpile buckets (ours 200 / 200 /
+    // 100 / 100 / 100 / 100, theirs 20000 / 20000 / 20000 / 10000 / 20000
+    // / 20000 — `STARTING_RESOURCES 7`), 26 who=1 units' `myhits`,
+    // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
+    // order's `been_there`/`wait` and `idle`, and a move order and its
+    // path. The word's own draw delta is §127's.
+    pin_eq!(w.firsts.len(), 226, "initial run651 baseline");
 }

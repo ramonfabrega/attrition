@@ -9396,3 +9396,20 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # difficulty between 0 and 5 (the survey is `docs/AI.md` §125). A capture
 # booked on one of these lobbies cites the run above that spans its frame.
 # ==== TAKEN 2026-10-06, one take each, 00:18–00:55 ====
+
+# ==== item 1466: the coverage pair (DECISIONS 61 §6) ====
+#
+# Three runs on the click-free lane, none a stanza (`docs/AI.md` §127; `docs/RUNS.md` run650..652). The question
+# was whether the lane sets a late starting age; it does, through the generic `--profile KEY=N`, and the stanza's
+# read-back line is the `GAME INFO` line `STARTING_TECHNOLOGY <N>` (0 Ancient … 7 Information, 8 All Technologies):
+#   run650  mapstyle 18  --end-frame 36                  Persians (23), STARTING_TECHNOLOGY=5, DIFFICULTY=5
+#   run651  mapstyle 18  --end-frame 36 --dump-all-start Persians (23), STARTING_TECHNOLOGY=8, STARTING_RESOURCES=7, DIFFICULTY=5
+#   run652  mapstyle 18  window 0..4731 (the game ended itself at 4730), run651's lobby, run600's recipe
+# Checks, as a stanza would carry them (each on the dump, `\r`-stripped):
+#   grep -a -m1 "STARTING_TECHNOLOGY " <dump> | tr -d '\r' | awk '{exit !($2==8)}'
+#   grep -a -m1 "STARTING_RESOURCES "  <dump> | tr -d '\r' | awk '{exit !($2==7)}'
+# **Owed, and a person's**: the census reads `cover=1` traces and this lane runs `cover=0` only (parked 1490), so the
+# rows §127 predicts are entered only by a queue-lane stanza of run652's lobby with `cover: cover=1`, `cfg: -`,
+# `mapstyle: 18` and `profile: STARTING_TECHNOLOGY=8` / `STARTING_RESOURCES=7` / `DIFFICULTY=5`, the AI's nation set at the
+# menu (the queue lane has no `--ai-tribe`); its run number is the commander's to mint.
+# ==== TAKEN 2026-10-06, one take each, 01:54–02:04 ====

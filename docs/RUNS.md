@@ -14662,3 +14662,71 @@ keys on the tree merged after 1468 (1852 before), 100 standing on block 15339, n
 15345: who=1's army group 64 is the original's alone, and some thirty of who=1's units'
 orders and positions part. It also names a sixth French city, Orleans (the coverage
 pin's `UNREAD`). Run 642 only.
+
+## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
+
+**Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the
+queue lane's, by hand); none from the click-free lane. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 36 --timeout 1200 --ai-tribe 23 --profile STARTING_TECHNOLOGY=5 --profile DIFFICULTY=5`,
+`cover=0`, no `--dump-all-start`. Receipt `success`, 37 frames, closing block 37, lifecycle verified, five settings
+files restored, `Player.dat` back to `STARTING_TECHNOLOGY 0`. Read back from the dump's own `GAME INFO`:
+`MAP_STYLE 18`, `GAME_RULES 1`, `DIFFICULTY 5`, **`STARTING_TECHNOLOGY 5`**, `STARTING_TECHNOLOGY2 1`,
+`ENDING_TECHNOLOGY 7`; players (0, 4) and (1, 23); seed 12345. Launch-to-exit 23.447 s, total 33.245 s. The lane
+was free (no wait).
+
+Archive `gamelog-run650-eastindies-persian-age5-short.txt`, 3,174,835 bytes,
+SHA-256 `aeab48b80fea8f4caabe25c09ecca3c48fd9af9ced46e8e13d13d402e9160179`.
+
+Archive `rontrace-run650.log`, 9,924,672 bytes,
+SHA-256 `22c21b2e90bc35f43363d51654320a8617d572edb8b0e4e763d87ae55de4c5de`.
+
+**What it holds**: the answer to the item's first question (§127 claim 1) and nothing a test reads; the age's effect
+at frame 0 is in run651's whole records.
+
+## run651 — the coverage pair: East Indies, Persians, All Technologies, the `DUMP_ALL` start (2026-10-06, item 1466)
+
+**Map 18, human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+seed 12345** — the lobby `tools/census.py --never`'s blind list and the closing states of the five same-recipe
+games pick (`docs/AI.md` §127). Run595's recipe: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 23
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. Receipt `success`, 37
+frames, closing block 37, lifecycle verified, five settings files restored. `GAME INFO`: `GAME_RULES 1`,
+`DIFFICULTY 5`, `STARTING_TOWN 2`, **`STARTING_RESOURCES 7`**, `STARTING_RESOURCES2 1`, **`STARTING_TECHNOLOGY 8`**,
+`STARTING_TECHNOLOGY2 1`, `ENDING_TECHNOLOGY 7`. Launch-to-exit 350.549 s, total 363.518 s; the lane was free.
+**The lobby's own start**, not a sibling's (run595, run597, run646–648's lesson: a start from another lobby is another
+instrument). It carries the whole records of blocks 0 and 1 and the closing blocks 36 and 37.
+
+Archive `gamelog-run651-eastindies-persian-alltech-start.txt`, 153,846,205 bytes,
+SHA-256 `71a0d32cbdefcd96a1015628064ebe07f13a0eb1209d5181009bb1bb15b79483`.
+
+Archive `rontrace-run651.log`, 10,354,560 bytes,
+SHA-256 `78bec51ddae6be74456d06cbfad2594b28c36d67c59a60a780f6a1b969dcf1d3`.
+
+**What it holds**: `run651_s_word_frame_is_widened_whole` (`diff::coverage_pair`): 226 keys part on block 1, 48 on
+the scored French start's block 1 (the control). Both leaders' stockpiles (ours 200/200/100/100/100/100, theirs
+20000/20000/20000/10000/20000/20000) and 26 units' hit points (40 against 85) are the lobby's.
+
+## run652 — the coverage pair: East Indies, Persians, All Technologies, the draw stream to the game's end (2026-10-06, item 1466)
+
+The long trace of run651's lobby: run600's recipe, `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+**The game ended itself at frame 4730** (trace last frame 4730, 4731 frames, closing block 4731; the human `defeated_by 1`),
+so the runner's requested-endpoint receipt failed (`missing, repeated, or unexpected simulation frames`) and `waitrun.sh`
+exited 2, as run598, run600 and run643–645 did; both files retained. Five settings files restored (`Restored backed-up
+settings` in the log; `Player.dat` back to `STARTING_TECHNOLOGY 0`, `STARTING_RESOURCES 1`, `DIFFICULTY 0`). The failed
+receipt wrote no timing: launched 02:02:23, the dump last written 02:03:41 (78 s for 4,731 frames at the 27-minute
+fast-forward). Seed 12345 read back; tribes 4 and 23. The lane was free (no wait).
+
+Archive `gamelog-run652-eastindies-persian-alltech-24k-trace.txt`, 14,375,836 bytes,
+SHA-256 `256f1542057aaf8f66be1c68ff0a285294d22189a5ecf54ccfe1c10083247eb0`.
+
+Archive `rontrace-run652.log`, 260,218,816 bytes,
+SHA-256 `782ff5dc441e9f5d29f78af24d7c79d48551aecf0fa58a661b2d512535fab13f`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and closing records;
+`diff::coverage_pair::coverage_pair_first_parting` walks it from run651's start (frame 0, 195 against 198 draws), and
+the closing state is what §127's measured rows read (21 `AIRORDER`, 15 `AIRPATROLORDER`, 6 `STRAFEORDER`, 18 unit types
+and 14 building types no same-recipe closing holds).
