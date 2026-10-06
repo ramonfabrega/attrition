@@ -253,7 +253,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // the original's alone (150 rows) and the orders and positions of
     // `1/67`, `1/79` and some thirty more of who=1's units among them. The
     // word's block is 15345.
-    pin_eq!(w.firsts.len(), 1814, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 1767, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -300,7 +300,7 @@ fn run639_s_word_frame_is_widened_whole() {
     // held Pyramids, AI §124): `MAKE[8]` is Tikal at 1563477 on 14785 here
     // as there, and every row from 14785 leaves — what is left is the 93
     // standing on 14777.
-    pin_eq!(w.firsts.len(), 89, "initial run639 baseline");
+    pin_eq!(w.firsts.len(), 86, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -342,7 +342,7 @@ fn run636_s_word_frame_is_widened_whole() {
     // (`bucket`, `leftover`, `resources`, `income`, `rate`) leave: the
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
     // Item 1468: 128 → 94, as run635's.
-    pin_eq!(w.firsts.len(), 90, "initial run636 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame

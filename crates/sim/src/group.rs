@@ -1450,7 +1450,7 @@ impl Sim {
                     .copied()
                     .filter(|&u| self.units[u].alive() && self.units[u].group_ptr == Some(s))
                     .collect();
-                self.armies[w].list[a].units = keep;
+                self.army_keep_units(w, a, keep);
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
                 let st = &mut self.armies[w].list[a].group;
