@@ -335,7 +335,18 @@ fn run661_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 0, "initial run661 baseline");
+    // Item 1508: 254 — 139 standing on the first block, 17238: run657's
+    // families (group 64's `off`/`curr` and the `form`s, leader 0's sites
+    // and treaties, Napata's city counts, `1/72` and `1/171`'s hit points),
+    // plus three that parted in the gap 17183..17237: the Merchants `1/20`,
+    // `1/35` and `1/36` (TypeIndex 61) carry pieces 2123 and 14795 here
+    // against 50689 on both figures there, and who=1's `num_units` reads −2
+    // and 2 on the Artillery and Howitzer lines (270, 271) against 0 and 0.
+    // Then one on 17244, `1/67`'s move `pause` 15 against 0, and on the word's
+    // block 17245 38, `1/67` standing (`cur_anim` 0, `stopped` 1) where it
+    // walks (`cur_anim` 7) — the draw ours spends under `Unit::do_move+0x11cf`
+    // and the original does not; 76 more on 17246..17250.
+    pin_eq!(w.firsts.len(), 254, "initial run661 baseline");
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -1664,6 +1675,37 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                     (1, 161070679, 0, 0, 0, 60348, 91, 0),
                     (1, 161980988, 0, 0, 0, 60348, 92, 0),
                 ]),
+                "engine-only fields are evidence, not sim parity"
+            );
+        } else if window == WIDENING_FRENCH_EAST_INDIES {
+            // Item 1508: run661, the word 17244's window. The Dragoon
+            // `1/80`'s round, launched on 17242 on both sides, lives the same
+            // three blocks and leaves from another point: ours the unit's
+            // square, 100 up, theirs the piece's release node — the same
+            // unmeasured Dragoon offset (piece 60162) as run657's `1/90`.
+            assert_eq!(
+                ammo_counts,
+                (3, 3, 60),
+                "three lifetimes, twenty fields each"
+            );
+            let mut want = std::collections::BTreeSet::new();
+            for n in 17243..=17245 {
+                for (field, mine, dumped) in [
+                    ("angle", -133758976, -131334144),
+                    ("ex", 6362, 6361),
+                    ("ey", 7290, 7291),
+                    ("sx", 6648, 6611),
+                    ("sy", 9000, 8852),
+                    ("sz", 228, 451),
+                    ("v1z", 12225000, -43525002),
+                ] {
+                    want.insert((n, (1, 80, 17242), field, mine, dumped));
+                }
+            }
+            assert_eq!(ammo_differences, want, "1/80's launch, explicit");
+            assert_eq!(
+                ammo_unmodelled,
+                std::collections::BTreeSet::from([(1, 395223114, 0, 0, 0, 60162, 5, 0)]),
                 "engine-only fields are evidence, not sim parity"
             );
         } else if window == WIDENING_FRENCH_EAST_INDIES_17171 {
