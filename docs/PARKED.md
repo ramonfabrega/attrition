@@ -52,6 +52,20 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1502, 2026-10-06 — the gap before 17171
+
+(1509) **Leader 0's dirty bit on 17025, and treaties bit 2**: the dump
+does not name the writer of `leader_flags` 0x2000000 on 17025; treaties
+bit 2 is written by `Object::do_damage` and not carried here.
+
+## Parked by item 1496, 2026-10-06 — the coverage pair's start
+
+(1506) **who=1's `SITE` list on run651's block 1**: ours holds a tenth
+site (40, 47) the original does not list, and values (44, 51) at 2499
+against 2000 — 39 keys beyond the control's 48. It names no score;
+block 8 agrees without it. (And run159's window first parts `tech_frame`
+on 11583 only if the unit-research stamp is removed: no action.)
+
 ## Parked by item 1493, 2026-10-06 — the siege sub-group's copy
 
 (1504) **Army 65's `speed` and `role`**: the original's `group:65.speed`
@@ -1801,10 +1815,9 @@ in place (COMBAT §62). It names no frame yet.
 
 ## Parked by item 651, 2026-09-24 — past chapter six-b's 632
 
-(681) **`Built::build_ids` names no building placed after `BEGIN GAME`**,
-so a staged Airbase reads `None` as an attack's `order:target`: item
-462's shape one level over. A fallback to `(owner, index)` removes both
-rows and moves nothing else; it reaches the long captures' widenings.
+(681) closed 2026-10-06 by item 1502: **`Built::build_ids` names no
+building placed after `BEGIN GAME`** — `target_ids` names an attack's
+unlinked building target by (owner, index); every count it moved fell.
 
 (683) **Whether an aircraft on the ground may strike a building at all**:
 the Fighter is `ANTI_AIR`, and neither aircraft does in 640 frames.
@@ -3721,7 +3734,9 @@ bits are read by no widening — a General's craft parted unseen for about
 is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
 does not read. And 1476's: `myhits` and
 `construct_hits` sit on the same list, so Construction's hp arm is held
-by a unit test alone.
+by a unit test alone. And 1502's: `leader_flags` is
+printed beside every `LEADERDATA` and no row compares it; its dirty bit
+dated a 140-frame gap in one grep.
 
 (1482) **`tools/seams.py` misses a gap written as "are not loaded"**
 (1479's Loop line, 2026-10-05): the free-tech block (Chemistry's
@@ -3730,7 +3745,9 @@ gap the seam scan did not print, and it parted who=1's timber rate
 for 1,800 frames. And 1481's: stubs written "reads 1" or
 "reads empty" are missed the same way. And 1500's: a `SEAM` that argues
 "unreachable" (`Unit::move_step`'s CHAR_DEFAULT snap) was reachable and
-parted the word; such a seam could carry a `scan:`.
+parted the word; such a seam could carry a `scan:`. And 1496's: a comment
+that says a field is "written only by `Leader::init`" (`tech_frame`)
+was false; an "only" about a field is a claim for `--unwritten`.
 
 (1488) **`ron_lane_state` exits 0 when the lane is held** (1481's Loop
 line, 2026-10-06): `ron_lane_state && launch` launches anyway; the
@@ -3763,13 +3780,19 @@ both refs agrees after the push would catch it.
 under `~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/` entered
 the original's `plan_strategy` on a `RON_STATE_FRAME` packet; a packet
 tile-mask and cell diff; and `repin.py`, which left 50 of 131 sites to
-re-pin by hand.
+re-pin by hand. And 1496's: `repin.py` misses a `want` after a
+comment line "not a literal" — thirty sites took a script.
 
 (1498) **The coverage pair has no scoreboard line** (the commander,
 2026-10-06, at 1466's merge): its count and sequence are pinned in
 `diff::coverage_pair`, outside `FLOORS`, `AI_WORDS` and the handoff's
 parse; whether it becomes a scored pair, a lane of its own, or the
 newest pair's lane under the roster's Opus clause is the pass's to rule.
+
+(1507) **`unattended_capture.py` exits like a failure after a good
+short window** (1496's Loop line, 2026-10-06): it raises `GROUPS was
+asked for and no GROUPDATA block was printed` (parked 735) when the
+window ends before any group exists; the check could skip there.
 
 (1501) **A booking's "the original's alone" was false on its own
 widening** (1487's Loop line, 2026-10-06): the commander booked 1487

@@ -255,6 +255,62 @@ pub(crate) fn french_east_indies_16857_window() -> Option<harness::tests::Widene
     )
 }
 
+/// run658: the gap 16869..17164 before the word 17171, blocks
+/// 17018..17057 (item 1502): no word of its own, the first parting's date.
+pub(crate) fn french_east_indies_gap_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run658",
+        &[("gamelog-run658-islands-french-17025.txt", 17018)],
+        WIDENING_FRENCH_EAST_INDIES_GAP,
+        1,
+        &[17026],
+        true,
+    )
+}
+
+#[test]
+fn run658_dates_the_gap_before_17171() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_gap_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 40, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1502: 167 — 166 standing on the first block, 17018, on the tree
+    // merged after 1496: run655's set with group 64's slots and `form`s
+    // moved, item 1493's zero-filled slots (`group:64` 10, `group:66` 0)
+    // and item 1496's five `tech_frame` keys agreeing, the group-move ids
+    // of the move both sides issued on 16882, `caras` taking a new value in
+    // the original, and `1/69`, `1/71` and `1/83`'s attacks on Napata
+    // agreeing now that a building target the link table lacks is named;
+    // then `gather_stamp` on 17033, ours 16744 against 17032, the frame the
+    // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
+    // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
+    pin_eq!(w.firsts.len(), 167, "initial run658 baseline");
+    // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
+    // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
+    // the blocks of the window it stands on, read off the dump (the closing
+    // block, 17063, carries it again).
+    let path = dump("gamelog-run658-islands-french-17025.txt").unwrap();
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let dirty: Vec<i64> = (0..ix.frames().len())
+        .filter_map(|at| {
+            let f = ix.frame_state(at).unwrap();
+            let (lo, hi) = WIDENING_FRENCH_EAST_INDIES_GAP;
+            let l = f.leaders.iter().find(|l| l.who == 0)?;
+            ((lo..=hi).contains(&f.n) && l.leader_flags & 0x200_0000 != 0).then_some(f.n)
+        })
+        .collect();
+    pin_eq!(
+        (dirty.first().copied(), dirty.last().copied(), dirty.len()),
+        (Some(17026), Some(17032), 7),
+        "leader 0's dirty bit"
+    );
+}
+
 /// run657: the successor after `move_step`'s snap stand, frame 17171
 /// (item 1500).
 pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
@@ -288,7 +344,11 @@ fn run657_s_word_frame_is_widened_whole() {
     // against 12; six on 17169, `1/80`'s guy 0 swinging at `0/2000` there
     // and walking here; one on 17170; five on 17171, `1/80`'s order; then
     // 16 on the word's block 17172 and 29 on 17174..17176.
-    pin_eq!(w.firsts.len(), 230, "initial run657 baseline");
+    // Item 1502: 230 → 225 on the tree merged after 1496 (1493 and 1496
+    // took 240 → 230). Five `order:target` rows were ours reading
+    // `None` for an attack on Napata, a building the link table lacks;
+    // `target_ids` names it by `(owner, index)` now, and the five agree.
+    pin_eq!(w.firsts.len(), 225, "initial run657 baseline");
 }
 
 #[test]
@@ -1244,9 +1304,13 @@ fn run609_s_closing_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 110 → 108; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+    // Item 1502: 95 → 80 on the tree merged after 1496 (whose own re-pin
+    // took 100 → 95). Fifteen `order:target` rows on 5633 (`1/9`..
+    // `1/23`) were ours reading `None` for an attack on `0/2000`, a
+    // building the link table lacks; named by `(owner, index)`, they agree.
     pin_eq!(
         w.firsts.len(),
-        95,
+        80,
         "run609 closing residue, not whole-record parity"
     );
 }
