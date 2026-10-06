@@ -15163,3 +15163,10 @@ parting of 17171 is in the gap, and no dump shows it.
 - No blind reading. The arm is diff-backed by run600's draw on 16857 and
   run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
   only; the two-order converse rests on the listing.
+
+## 133. The coverage pair's frame 8: the leader's oil patches (2026-10-06, item 1505)
+
+**Opened** (in progress). Item 1496 moved the coverage pair's word to frame 8, 21 draws ours against 24, index 2: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. The original buys an Oil Well on `2008` that
+`produce_building`'s arm 4.2 (`ai_place.rs`) never places. The hypothesis the booking carries — that `LeaderData::oil_patches`
+(`+0x6e88`) is not modelled — is tested by this section's widening before anything is built from it.
