@@ -9450,3 +9450,16 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run669.log` -> 0 differing in 446 frames;
 # `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. The output directory must not exist.
 # ==== TAKEN 2026-10-06, one take, 12:52–13:08 (the lane was held by another lane's capture until 12:52) ====
+
+# ==== item 1532: the coverage pair's frame 583 word, run672 ====
+#
+# One run on the click-free lane, not a stanza (`docs/AI.md` §144; `docs/RUNS.md` run672): run651's lobby at the long's detail over blocks 577..833,
+# the word's block 584 with six before it and 250 after:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run672 \
+#     --map 18 --end-frame 842 --timeout 3600 --log-window 577 834 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run672.log` -> 0 differing in 843 frames;
+# `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. **Leave `GROUPS=1` out**: the take carried it, no group
+# stands in this window, and the runner raised after the game (the dump was whole and copied by hand from the output directory).
+# ==== TAKEN 2026-10-06, one take, 14:52–15:08 ====
