@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1539, 2026-10-06 — the Market's caravan
+
+(1545) **What 1539 left beside the coverage pair's word** (AI §146):
+block 581's make-list `num`, 5 against 10 on the Strategic Bomber and
+Jet Fighter slots (ours' tail clamps to `type_affordable`, or
+`control_cost` differs — unread); `get_caravan_limit(1)`'s ally and
+bonus arms; `Build::process`'s vslot-`+0x60` early return, not
+modelled.
+
 ## Parked by item 1535, 2026-10-06 — the capture attempt
 
 (1542) **What 1535's capture arm left unestablished** (AI §145):

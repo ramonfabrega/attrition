@@ -16494,10 +16494,62 @@ mandatory order on a city at its ceiling has been traced; the `0x8000000` missil
 and no capture reaches it. **A word that moves nothing.** The closing state is whole; the trace's next frame does not exist (§142's endpoint), so Toughest has
 no open word. The next third-map score is the coverage-pair lobby's (item 1538).
 
-## 146. Reserved for item 1539 (the coverage pair's frame 667)
+## 146. The Persians' Market trains a caravan, and the word at 727 (2026-10-06, item 1539)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1532 left the coverage pair's word at **frame 667, ours 152 game draws against
+155, index 143**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit` three times. run672 (577..833) widens it. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides.** On 667 theirs draws 143 `calc_road_cost` (one `astar_caravan_road`), then the three `Guy::init_real`
+   of one three-figure unit, then four `Guy::set_anim` and the five `Farms::inc_time` — 155. Ours draws the same 152 without the
+   three births: every draw but the unit's own agrees, so the frame's only event is the birth.
+2. **What was born.** run672's block 668 holds **`1/15`** alone: `TypeIndex` 59, `CARA`, a land caravan, three `GUY` figures at
+   (37560, 40008), no order, beside the **Market `1/2018`** (`TypeIndex` 436) at (38016, 39552), whose `up_who` goes −1 → 1 on the
+   same block. Leader 1's `caras` 0 → 1, `num_units[9]` 0 → 1, `active` and `control` 15 → 16. It is not a queue's: no building of
+   leader 1 holds a `CARA` in its queue on any block 660..668, and the make list holds none anywhere in 577..833 (it is rebuilt on
+   581 and 781 with Temples, TOWs, Jet Fighters, Strategic Bombers, Mech Infantry). The `leader_flags` bit `0x800000` it gains is
+   `Unit::init@00612100:578`'s, set for every unit any leader inits — not a cause.
+3. **`Build::process@0061edf0:362–381`** (the decompile; a *reading*, ratified by the diff below): after `do_queue` (vslot `+0x1b4`)
+   and the gather tiles, behind the Kremlin's spy and the government hero and ahead of the Terra Cotta's soldier, a building of type
+   `0x1b4` (`MARKET`) whose owner `has_tribe_bonus(0x17)` — the Persians, roster index 23, `tribe 23` in the lobby — on `(o + frame)
+   % 15 == 0` reads `caras` (`LeaderData +0x980`, `types.txt`) against `get_caravan_limit(1)` and, when under it and
+   `check_population(CARA)` is 0, calls `Build::train(this, CARA)`: no queue, no price, no graft, no upgrade. The whole stretch
+   sits under `Build::process`'s `is_active` gate (`field_0x8 & 4`, its first return).
+4. **Why 667 and not before.** The Market `1/2018` completes on 661 (its `flags` 3 → 7 and `job_counter` 29250 → 0 on block 662),
+   and `(2018 + 667) % 15 == 0` is its first slot as an active building. `get_caravan_limit(1)` is `min(Commerce + 1 + bonuses,
+   city_num·(city_num − 1)/2)`, and leader 1's `city_num` went 1 → 2 on block 612; so the limit is 1 and `caras` 0 is under it.
+   The next slots (682, 697, …) find `caras` 1 at the limit, and the trace has no birth on them.
+
+**Built.** `Sim::persian_market_caravan` (`crates/sim/src/nations.rs`), called by the tick's building walk after the gather step and
+before the tail, for an active building only: the Market by its record's own `Ident` (the type itself, not its lineage), the
+building's phase `% 15`, `has_tribe_bonus(23)`, the census's live `caras` against `Sim::caravan_limit` (now `pub(crate)`), and
+`cost::exceeds_population` for `CARA`'s own `POP`; then `build_train`. Unit test `cities_tests::
+a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit` (a British Market trains nothing; the Persian one trains one on its
+slot; the next slots, at the limit, none).
+
+**The value diff, and the word now.** run672's block 668: `1/15` agrees in every compared field through the window's last block
+(833), and leader 1's `caras`, `num_units[9]`, `active` and `control` agree through the word's new block; **355 keys parted → 247**.
+`coverage_pair_first_parting`: **frame 667 → 727, count and sequence** — ours 8 game draws against 7, index 0: ours `Guy::set_anim
++0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. It sits in run672 (block 728), so its widening
+is on file. On 728 ours' citizen **`1/8`** (`TypeIndex` 50, `PEASANTS`) collides with `1/6` (`collide_o` 6 against −1); it holds
+`[ExploreTo, Build 2020]` (the Bunker, `TypeIndex` 442) in both, and its approach parts from **block 691**: `orders_x/y` (42072,
+41928) in ours against (41160, 40584) — the `EXPLORE_TO` `swarm_around_last` queues in front of a busy builder's next build (§144).
+That row stood before this item's change. The first parting past the standing block is still **block 581**, leader 1's `MAKE[2]`
+and `MAKE[3].num`, 5 in ours against 10: the Strategic Bomber (305) and Jet Fighter (295) slots, whose `num` is `10 / control_cost`
+in both (`create_units@006c40a0:460`) and is clamped by ours' tail to `type_affordable` when that is under it — a hypothesis, not
+read further here.
+
+**Mutations** (`tools/mutate.py` on `472c74ec`): the tick's call dropped, the `caras` limit dropped, and the slot's phase without
+the Market's `o` — each held by `coverage_pair_first_parting` and run672's widening; the first by the unit test too.
+
+**What is not established.** `get_caravan_limit(1)`'s `has_preq(BASE_BONUSTYPES)` arm (allied cities count toward the pairings),
+the Colossus, Taj Mahal, Silk and Nubian bonuses — `Sim::caravan_limit` carries none of them, and none is reached here. `Build::
+process`'s second early return (vslot `+0x60` true: the building's `0x200` flag path) is not modelled; the arm runs for every active
+building in ours. A Persian *human*: the arm is the leader's, not the AI's, and no capture has a Persian human.
+
+**Coverage.** Diff-backed: claims 1, 2 and 4, and 3's arm as a whole (the walk moves past 667 and `1/15` agrees through 833);
+reading-only: the arm's limit at more than one pairing and the population refusal, neither reached (`caras` is 0 at the one slot
+that fires).
 
 ## 147. Great Sahara in the coverage pair's lobby: two patches tied, and the list's order decides (2026-10-06, item 1538)
 
@@ -16538,3 +16590,8 @@ one red was the ledger's, `diff/sahara_coverage.rs`, which is now on it. Mutatio
 **What is not established.** The original's list order is the *region/cell order of the per-cell scan*; the fog's arm (`reveal_fog`, a unit's sight at setup) also
 adds patches, in an order this crate does not model (a unit's sight sweeps); the order is only read at a tie and this is the one tie the walk reaches before 718. Which of the two writers reached each patch first in the original is not shown by any dump (the list is not printed). Leader 1's
 `known_rares` on block 8 (1 against 0) is untouched: nothing here reads it before a Merchant (`civilian_value`), and it parts quietly until then.
+
+## 148. Reserved for item 1544 (the coverage pair's frame 727)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

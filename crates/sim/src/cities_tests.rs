@@ -4287,6 +4287,79 @@ fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
     );
 }
 
+/// **The Persians' Market trains a caravan on its fifteen-frame slot**
+/// (`Build::process@0061edf0:362–381`, `docs/AI.md` §146): a finished
+/// Market of a leader with `has_tribe_bonus(0x17)` trains a `CARA` through
+/// `Build::train` — no queue, no price — on `(o + frame) % 15 == 0`, while
+/// `caras` is under `get_caravan_limit(1)` (here one: two cities make one
+/// pairing). The second slot trains nothing, because the first caravan is
+/// already counted; a British Market trains nothing at all. The coverage
+/// pair's Persians: the Market `1/2018`, finished on 661, trains `1/15` on
+/// 667.
+///
+/// Made to fail by dropping the tick's call: no caravan is ever born.
+#[test]
+fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let caravan = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Wealth, 100)
+        },
+        hits: 40,
+        ..UnitType::default()
+    });
+    // `init_unit` reads the type's kind off the tree, so the tree reaches
+    // `CARA`'s own number.
+    while sim.tech_tree.types.len() <= crate::nations::ty::CARA {
+        sim.tech_tree
+            .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
+    }
+    sim.unit_types[caravan].tree = Some(crate::nations::ty::CARA);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let _ = city_at(&mut sim, &t, 0, 57, 32);
+    let m = sim.init_build(0, t.market, tile_pos(38, 32), false);
+    finish(&mut sim, m);
+    let caravans = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(caravan))
+            .count()
+    };
+    // The British first: the slot comes and goes, and nothing is born.
+    sim.set_tribe(0, 11);
+    for _ in 0..15 {
+        sim.tick();
+    }
+    assert_eq!(caravans(&sim), 0, "only the Persians' Market trains one");
+    sim.set_tribe(0, 23);
+    assert_eq!(sim.caravan_limit(0), 1, "two cities, one pairing");
+    let o = i64::from(sim.buildings[m].index);
+    let mut born = None;
+    for _ in 0..15 {
+        let f = sim.frame;
+        sim.tick();
+        if born.is_none() && caravans(&sim) == 1 {
+            born = Some(f);
+        }
+    }
+    let f = born.expect("a Persian Market trains a caravan within fifteen frames");
+    assert_eq!((o + f) % 15, 0, "on the Market's own slot");
+    assert_eq!(
+        sim.ai[0].census.caras, 1,
+        "and the caravan is counted at birth"
+    );
+    for _ in 0..30 {
+        sim.tick();
+    }
+    assert_eq!(
+        caravans(&sim),
+        1,
+        "at the limit, the next slots train nothing"
+    );
+}
+
 /// **A Senate that finishes a government trains its patriot, once**
 /// (`Build::finished@00628490`'s tail, `docs/TECH.md` §"The government
 /// patriot"). `get_gov` reads the government bonus's prerequisite,
