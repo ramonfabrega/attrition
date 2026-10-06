@@ -3719,6 +3719,19 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1541) **The commander↔pass handoff leaves stale sessions on the
+integration worktree** (Ramon, 2026-10-06, at the clear at ten): each
+`ccc spawn --name … --replace` hand-off starts a fresh session in the
+same worktree and branch, and the one it replaced stays listed — three
+sessions now sit on `worktree-replan-pdb` (`commander-old` stopped,
+`steer` done/idle, `commander` live; Ramon renamed two by hand). `ccc rm`
+on a stale one would likely take the worktree with it, so none can be
+reaped, and they pile up in the agents view. The pass's to rule: how a
+replaced session is retired without the worktree (a ccc verb that
+removes the session only, or the handoff reusing one row), and a guard
+or a clause so the count stays one. The self-clear itself worked: the
+arm fired and this session resumed from the opener. One reach.
+
 (1537) **Two tool gaps from 1528** (its journal's Loop lines,
 2026-10-06): a decompile's `unaff_` operands hid a distance test's
 argument and a comment on `group_loc_to` asserted the wrong reading as
