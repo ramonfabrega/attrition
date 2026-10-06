@@ -11766,12 +11766,10 @@ pub(crate) mod tests {
             // Item 1106 closed who=0's `gather_stamp` on 14537, 14536
             // against 14080: the border pass's economy flag (`docs/AI.md` §84).
             [
+                // Item 1468 (group 17): every unit is born snapped to the 48-grid's centre, so the
+                // trained squads' `orders_x`/`orders_y` stand where the original's do: six rows → two.
                 "13556 1/74 g.angle[0]: ours 1431655765 theirs 0",
-                "13556 1/74 orders_x: ours 40416 theirs 40440",
-                "13556 1/74 orders_y: ours 25248 theirs 25272",
-                "13737 1/75 g.angle[0]: ours 1431655765 theirs 0",
-                "13737 1/75 orders_x: ours 40416 theirs 40440",
-                "13737 1/75 orders_y: ours 25248 theirs 25272"
+                "13737 1/75 g.angle[0]: ours 1431655765 theirs 0"
             ],
             "the rows under the word, on run178's own blocks"
         );
@@ -11845,7 +11843,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (204, 6, 210),
+            (182, 2, 184),
             "the floor"
         );
     }
@@ -12732,7 +12730,7 @@ pub(crate) mod tests {
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (97, 97, 96),
+            (71, 71, 70),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12919,7 +12917,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (96, 4, 1, 101),
+            (70, 2, 1, 73),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -15907,12 +15905,12 @@ pub(crate) mod tests {
             // Item 718: `1/60`'s order point, two rows fewer; item 723 one
             // more, the scout's formation mirror (parked 275); item 752 two
             // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73). Item
-            // 870 sixteen fewer: the `group` rows, `1/11` 64 against −1 and
+            // 870 sixteen fewer: the `group` rows, `1/11` 38 against −1 and
             // army 0's `1/48`..`1/58` 69 against 68 among them (`docs/GROUPS.md` §29).
             // Item 919 208 fewer: run78's `GUY` records are the short form,
             // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
             // None` and are named unprinted now, not parting.
-            64,
+            38,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -16088,7 +16086,7 @@ pub(crate) mod tests {
             // `1/11` 64 against −1, army 1's `1/48`..`1/60` 71 against 70
             // (`docs/GROUPS.md` §29).
             // Item 1330 took 40 (151 → 110): the births' `form` (`docs/GROUPS.md` §24.3).
-            108,
+            82,
             "every row standing on the word's block"
         );
         // **Past the word to the window's end** (the word left for 16683,
@@ -16268,7 +16266,7 @@ pub(crate) mod tests {
             // against 68, `1/11` 64 against −1, army 1's `1/48`..`1/60` 71
             // against 70 among them — who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 274/274, who=1's `territory` 305 against 302, summed at the border pass's end (`docs/AI.md` §84).
-            [109, 109],
+            [83, 83],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -16430,7 +16428,7 @@ pub(crate) mod tests {
             // `1/63`'s first row is its guy angle now, and `1/64`..`1/67`
             // part on nothing; `1/68`'s and `1/69`'s is `orders_x`.
             // Item 1458: 4 → 3, the recycled slot's `path_recursion` (`docs/GROUPS.md` §37.2).
-            ("16971 1/63 g.angle[0]: ours 1431655765 theirs 0", 3),
+            ("16971 1/63 g.angle[0]: ours 1431655765 theirs 0", 1),
             // Item 870 took one each from `1/64`..`1/66` (2 → 1): their
             // `group` on 17113, 69 here against 68, agrees — who=1's pool
             // numbering is the original's (`docs/GROUPS.md` §29).
@@ -16563,7 +16561,7 @@ pub(crate) mod tests {
             // (`docs/ECONOMY.md` §16). Item 870: → 284/284/283/283, the
             // `group` rows of `1/0`, `1/11`, `1/31`..`1/38`, army 0's
             // column and the squad (`docs/GROUPS.md` §29).
-            [111, 111, 111, 111],
+            [83, 83, 83, 83],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -16729,7 +16727,7 @@ pub(crate) mod tests {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (116, 0, 116, 118),
+            (88, 0, 88, 90),
             "the floor"
         );
     }
@@ -16880,7 +16878,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/11` 64 against −1, `1/48`..`1/71` 72
             // against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 275/4/279/285, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 2380 against 2372 on 18177.
-            (111, 0, 111, 112),
+            (83, 0, 83, 84),
             "the floor"
         );
     }
@@ -17133,7 +17131,7 @@ pub(crate) mod tests {
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
             // Item 1106: → 287/1/288/289, who=1's `leftover[2:wealth]` 3588 against 3580 on the first block, the border pass's economy flag (`docs/AI.md` §84).
-            (111, 1, 112, 113),
+            (83, 1, 84, 85),
             "the floor"
         );
     }
@@ -17283,7 +17281,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
-            (112, 0, 113, 114),
+            (84, 0, 85, 86),
             "the floor"
         );
     }
@@ -18232,7 +18230,7 @@ pub(crate) mod tests {
             // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
             // (`docs/GROUPS.md` §29).
             // Item 1106: → 284/1/283/285, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` on 18428 and `bucket[2:wealth]` on 18511.
-            (111, 1, 111, 112),
+            (83, 1, 83, 84),
             "the floor"
         );
     }

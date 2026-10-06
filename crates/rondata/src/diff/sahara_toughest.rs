@@ -1588,7 +1588,7 @@ mod tests {
             // dump of this game prints (10396..10773) — 119 before item
             // 1388, whose parallel research took `1/2005`'s two queue rows;
             // nothing parts on the word's block or the next.
-            [(10774, 113)],
+            [(10774, 85)],
             "the blocks keys first part on, to one past the word's"
         );
         // Measured on the tree merged with 1377's: 1,803 → 1,802 by item

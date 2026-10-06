@@ -1156,7 +1156,7 @@ mod tests {
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1330: the first block 149 → 106, `6334`'s one row gone
             // and `6417`'s 3 → 2, the births' `form` (`docs/GROUPS.md` §24.3).
-            [(6316, 103), (6393, 1), (6401, 1)],
+            [(6316, 91), (6393, 1), (6401, 1)],
             "the blocks keys first part on, the first six"
         );
         // Item 1164: 317 → 304, the landing's rows and what followed them.
@@ -1948,7 +1948,7 @@ mod tests {
         pin_eq!(
             w.firsts.len(),
             // Item 1407: 153 → 152 (11445's 2 → 1).
-            136,
+            112,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
