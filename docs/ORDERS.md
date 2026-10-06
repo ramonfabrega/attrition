@@ -6208,7 +6208,7 @@ already named it as `do_attack_to`'s unarmed arm, and this crate carried
 it as a seam.
 
 **The gate**, `do_attack_to@005f2320`: once `do_move` has run, if the
-head is still this order and `(o + frame) % 15 == 0`, an armed unit whose
+head is still this order (the same object: AI §135) and `(o + frame) % 15 == 0`, an armed unit whose
 raw `is_supply` (`unit_flags2 & 0x40`) is clear looks for a fight (§22).
 Every other unit takes `do_attack_to_pause`. The wagon, `o` 10, is on
 that phase on frame 1415, and block 1416 carries the pause.

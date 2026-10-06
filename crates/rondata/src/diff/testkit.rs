@@ -1948,7 +1948,15 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// against ours' 0, −2, −1), so it reaches 17171 reloading and does not swing:
 /// 17171 → 17244, 9 vs 6 draws, index 0 Guy::set_anim+0x97a under
 /// Unit::do_move+0x11cf versus under Unit::do_idle+0x7d. run661 block 17245.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_244;
+/// Item 1514: `do_attack_to`'s look runs only on the order it was dispatched
+/// for (`pUVar1 == param_1`, AI §135): the President `1/67`'s leg timed out
+/// on 17243 and the guard laid a new one to the same post, which ours took
+/// for the same order and paused (block 17244: `pause` 0 on both sides,
+/// against ours' 15; block 17245: `cur_anim` 7 on both, against ours' 0):
+/// 17244 → 17318, 21 vs 15 draws, index 5 Unit::find_attack_pos+0xea9 under
+/// Unit::fight+0xcb4 versus Guy::set_anim+0x97a under Unit::do_idle+0x7d.
+/// run662 block 17319.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_318;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1987,8 +1995,10 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_15344: (i64, i64) = (15339, 15351);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_16857: (i64, i64) = (16851, 16863);
 /// run657's blocks, the word 17171's until item 1508 moved it to 17244.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_17171: (i64, i64) = (17165, 17177);
-/// run661's blocks around the word 17244 (item 1508).
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17238, 17250);
+/// run661's blocks, the word 17244's until item 1514 moved it to 17318.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_17244: (i64, i64) = (17238, 17250);
+/// run662's blocks around the word 17318, to the game's end (item 1514).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17312, 17377);
 /// run658: the gap before 17171, blocks 17018..17057 (item 1502).
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_GAP: (i64, i64) = (17018, 17057);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
@@ -8518,12 +8528,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // it on run642 (15339..15351); item 1487 to 16857, past it, widened on
     // run655 (16851..16863); item 1500 to 17171, past it, widened on run657
     // (17165..17177); item 1508 to 17244, past it, widened on run661
-    // (17238..17250).
+    // (17238..17250); item 1514 to 17318, past it, widened on run662
+    // (17312..17377), to the game's end.
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run661_s_word_frame_is_widened_whole"),
-        1508,
+        Some("run662_s_word_frame_is_widened_whole"),
+        1514,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

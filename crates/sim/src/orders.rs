@@ -1372,7 +1372,8 @@ impl Sim {
 
     /// A different order object now heads `u`'s list ([`Unit::head_serial`]).
     pub(crate) fn new_head(&mut self, u: usize) {
-        self.units[u].head_serial = self.units[u].head_serial.wrapping_add(1);
+        let h = &mut self.units[u].head_serial;
+        h.0 = h.0.wrapping_add(1);
     }
 
     /// `Unit::kill_current_order(closing)`: `closing` is the argument
@@ -2526,7 +2527,7 @@ impl Sim {
                 // `pUVar1 == param_1` after the step: the tails below run
                 // only while the order they were dispatched for still heads
                 // the list — not one put there in its place (AI §135).
-                let head = self.units[u].head_serial;
+                let head = self.units[u].head_serial.0;
                 // §8.3: a `GroupMoveOrder` is stepped by `do_group_move`,
                 // which runs `do_move` for the **leader** alone and steers
                 // every follower off the leader's own position.
@@ -2540,7 +2541,7 @@ impl Sim {
                 } else {
                     self.do_move(u, frame);
                 }
-                let same = self.units[u].head_serial == head;
+                let same = self.units[u].head_serial.0 == head;
                 if m.kind == MoveKind::ExploreTo && same {
                     self.do_explore_to_tail(u, frame, m.dest);
                 }
