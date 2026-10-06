@@ -15859,3 +15859,8 @@ blind reading; the listing was not consulted (the order is the dump's and the tr
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 138. Reserved for item 1519 (French East Indies frame 17318)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
