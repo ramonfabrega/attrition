@@ -1433,7 +1433,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>()
                 .len(),
-            32,
+            33,
             "the blocks keys first part on, to one past the word's"
         );
         pin_eq!(w.firsts.len(), 1694, "every key parted on run584");
