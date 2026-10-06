@@ -14409,3 +14409,45 @@ the disk had 174 GB free after.
 **What it holds**: `run584_s_word_frame_is_widened_whole`
 (`diff::sahara_toughest`): 1,694 keys, 134 standing on block 12532, and the
 compared pin's window on block 12570 since item 1429. Run 584 only.
+
+## run637 — run470's game under `RON_COLLIDE_PROBE` over ticks 12540..12543: the third map's word 12575 at Toughest, read from inside (2026-10-05, item 1472)
+
+**What it is.** run584's lobby and seed (`--map 7`, `DIFFICULTY=5`, the
+click-free lane, `cover=0`), the tracer built `--tracer-def
+RON_COLLIDE_PROBE` with `--callwin 12540 12543` and the detail window
+12538..12544, `!ffwd 14` from frame 37 and `!quit` at 12560.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-05-run637 \
+    --map 7 --end-frame 12560 --timeout 5000 --log-window 12538 12544 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5 --tracer-def RON_COLLIDE_PROBE --callwin 12540 12543
+```
+
+**What the disk could not answer.** The first part of run584's window past
+the standing keys is `1/109`'s `half_step` on block 12542 (ours 0, theirs
+1), and no dump prints the cell `collide_here` returned or who `is_here`
+named (`collide_o` is cleared two instructions after the probe;
+`docs/COLLISION.md` §9, run578).
+
+**Taken** 21:10 in one launch; `ron_lane_state` read `free` before, the
+viadriver log had grown past its header at the nine-minute check.
+`success: true`, `settings_restored: true`, 75.9 s from launch to exit, 12,561
+frames, map 7 and seed 12345 verified. The dump (14,585,206 bytes, sha256
+`0d78df020fdf286a…`) and the trace (19,386,944, `4a82e87517d7c3c1…`) were
+copied into `Logs` as `gamelog-run637-greatsahara-toughest-12541-probe.txt`
+and `rontrace-run637.log`; the disk had 170 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py rontrace-run470.log rontrace-run637.log` | **0 differing**, 12,561 identical |
+| window blocks | 12538..12543 (`groupdata_frames`) |
+| receipt | `map_style 7`, lobby `DIFFICULTY=5`, five files restored, `closing_frame` 12561 |
+
+**What it holds**: no test of its own — the probe is read with
+`python3 tools/trace/report.py rontrace-run637.log calls`. Tick 12541
+`this=1/109`: `collide_here` ucx 610 ucy 413 → 1, hit (609, 414),
+`will_be_corner` 7, `is_here(1/101) = 1`; the live block (38, 25) beside
+this crate's has nine bits fewer (`docs/AI.md` §120). Tick 12540
+`this=1/101`: hit (610, 413), `will_be_corner` 3, `is_here(1/109) = 1` —
+the same line this crate prints for that sweep.

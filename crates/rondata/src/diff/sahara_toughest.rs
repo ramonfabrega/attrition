@@ -214,12 +214,6 @@ pub(crate) const TOUGHEST_WORD_BLOCK_12539: i64 = 12_539;
 /// left, inside run584's window.
 pub(crate) const TOUGHEST_WORD_BLOCK_12745: i64 = 12_745;
 
-/// **run637's window** (item 1472): blocks 12538..12544, the original's
-/// `RON_COLLIDE_PROBE` over frames 12540..12543 — `collide_here`'s hit cell
-/// and every `is_here` call of `1/109`'s sweep on 12541. Read with
-/// `tools/trace/report.py rontrace-run637.log calls`; no test walks it.
-pub(crate) const TOUGHEST_PROBE_12541: &str = "gamelog-run637-greatsahara-toughest-12541-probe.txt";
-
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
