@@ -16238,7 +16238,49 @@ arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 143. Reserved for item 1530 (the coverage pair's frame 185)
+## 143. A trainer's friends are the derived flag's trainers, and the word at 583 (2026-10-06, item 1530)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1511 left the coverage pair's word at **frame 185, 22 draws a side, index 8**
+(ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`; the count parted on 377), with the state first parting
+on run669's block 183: the second Missile Silo `1/2021` (`orig_type` 520, `MISSILESILO`, a building) at (36480, 41088) in ours
+against (41088, 37248) in theirs. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides.** Frame 182, where `1/2021` is placed, draws the same 18 game-generator rolls in the same order on both
+   sides (run669's trace against the walk's `RON_DEBUG_SITES=182-185`): the placements' `produce_building+0x1805` rolls agree, so
+   the site is chosen by a score, not by a roll. On 185 theirs draws `+0x1805` twice under `make_stuff+0x45a` and then the slot's
+   expiry `+0x63d` (index 8); ours draws `+0x1805` three times: one more placement, the slot theirs lets expire. On block 186
+   `MAKE[2].t` is −1 in ours against 429 (`AUTOPLANT`) and `MAKE[3].t` 421 (`OILWELL`) against −1, and `1/2022`..`1/2024` stand
+   elsewhere: the downstream of the Silo.
+2. **The cell, both sides.** On block 183 leader 1 places four buildings on frame 182 — `2018` Market, `2019` Senate, `2020`
+   Bunker, `2021` the Silo — and the first three agree. Ours put the Silo in cell (47, 53), beside the Senate `2019` in (48, 53);
+   theirs in (53, 48), with no building in any of the eight cells around it.
+3. **`BuildTypeData::find_friends@00639270`'s trainer arm reads `is_military_trainer` on both the candidate and the neighbour**
+   (`this` at the arm's test, the neighbour's type at `+0x18` beside it): `BuildTypeData::is_military_trainer@0063bcf0`, the derived
+   flag on the root of the `FROM` chain, which holds the Dock, the Airbase and the Missile Silo beside the land trainers (§129
+   item 5). `ai_place.rs` read a five-ident list (Barracks, Stable, Siege Factory, Factory, Auto Plant) in both places, the same
+   list §129 replaced in the make-list valuation and left here. So ours sent the Silo to the "anything else" arm, where a
+   non-wonder, non-gather neighbour counts — the Senate beside (47, 53) scored `+2` there — and the original sent it to the
+   trainer arm, where only a non-city trainer counts and the Senate is nothing. Built: `find_friends` reads
+   `build::is_military_trainer` on both sides; the ident list is gone. Unit test
+   `ai_place::tests::a_missile_silo_counts_the_trainers_the_derived_flag_names`.
+
+**The value diff, and the word now.** run669 block 183: `1/2021`'s `x_internal`/`y_internal` agree (41088, 37248); on 186
+`MAKE[2].t`/`MAKE[3].t` and `1/2022`..`1/2024`'s positions agree; **192 keys parted → 100**. `coverage_pair_first_parting`:
+**frame 185 → 583, count and sequence both** — ours 198 game draws against theirs 5, index 0: ours `PathFinder::calc_road_cost+0x46`
+(a second caravan-road search; theirs ran one on 582 and ours ran the same one there), theirs `Farms::inc_time+0x1ae`. 583 is past
+run669's last block (436), so the word has no widening on file; the `WIDENINGS` row names this item until the next one is booked.
+**The state's first parting is still block 183**, on a field the Silo did not write: `1/10`'s order stack, 4 orders in ours
+against 6 — ours `[ExploreTo (36696, 39240), Build 2008, Build 2018, Build 2019]` front first, theirs the same three builds each
+behind its own `ExploreTo` (to (36696, 39240), (37560, 39480), (36792, 40584)); on 186 `1/2`, `1/4` and `1/9` part the same way
+(3 against 4, 3 against 4, 2 against 3). That is a hypothesis for the next item, not a finding: no mechanism is named.
+
+**The walks.** `cargo test --release -p rondata` on the built tree: 751 passed, and the three that failed were this pair's pins
+(`coverage_pair_first_parting`, run660's 97 → 74 keys, run669's 192 → 100), all re-pinned; no other capture moves, so no Dock,
+Airbase or Silo another capture places reaches the arm with a trainer beside it. Mutations (`tools/mutate.py` on `e5466b1e`): the
+candidate's trainer test off — held by `coverage_pair_first_parting`, run660's and run669's widenings, and the unit test; the
+neighbour's flag read off the old list (an Airbase, Silo or Dock no trainer) — held by `coverage_pair_first_parting` and run669's.
+
+**What is not established.** `find_friends`' enhancer test still reads `is_enhancer`, four idents, where the original's
+`is_gather_enhancer@00472b50` asks `is(…, 0)` of four lines — the same shape as the list replaced here; no walk parts on it.
+That the Senate's `+2` was the margin that chose (47, 53) is a reading of the arm, not a printed score: what is diff-backed is that
+the derived flag moves the Silo to the original's cell.
