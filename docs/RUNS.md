@@ -14829,6 +14829,7 @@ SHA-256 `178ec8a0734389fc314d013960b5eceef0d2661f8efc9b233d9d7fa2667a792a`.
 **What it holds**: `diff::coverage_pair::run656_s_word_frame_is_widened_whole` — block 5 (the Missile Shield research, `tech_frame`
 4), block 8 (the make list) and block 9 (frame 8's six purchases, among them the Oil Well on `2008`). The next time this lobby
 needs a window, `--detail` without `GROUPS=1` avoids the traceback (parked).
+
 ## run649 — French East Indies, a packet at logger frame 15088 (2026-10-06, item 1487)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run649-booking.json`,

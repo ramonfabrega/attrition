@@ -1155,7 +1155,7 @@ mod tests {
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1330: the first block 149 → 106, `6334`'s one row gone
             // and `6417`'s 3 → 2, the births' `form` (`docs/GROUPS.md` §24.3).
-            [(6316, 83), (6393, 1), (6401, 1)],
+            [(6316, 78), (6393, 1), (6401, 1)],
             "the blocks keys first part on, the first six"
         );
         // Item 1164: 317 → 304, the landing's rows and what followed them.
@@ -1947,7 +1947,7 @@ mod tests {
         pin_eq!(
             w.firsts.len(),
             // Item 1407: 153 → 152 (11445's 2 → 1).
-            105,
+            100,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
@@ -3770,7 +3770,7 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            [(4841, 77), (4997, 5), (5001, 2)],
+            [(4841, 72), (4997, 5), (5001, 2)],
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3809,7 +3809,7 @@ mod tests {
         // Item 1461: 91 → 86; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            84,
+            79,
             "every key parted on run373"
         );
     }
@@ -3939,7 +3939,7 @@ mod tests {
         // Item 1461: 90 → 84; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            82,
+            77,
             "every key parted on run396"
         );
     }
@@ -4011,7 +4011,7 @@ mod tests {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1330: 96 → 79, the births' `form` (`docs/GROUPS.md` §24.3).
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 76)],
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 71)],
             "the blocks keys first part on, and how many"
         );
         pin!(

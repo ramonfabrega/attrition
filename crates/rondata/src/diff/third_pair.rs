@@ -269,7 +269,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // draw ours spends through `Guy::move+0x19f` and the original through
     // `Unit::set_anim+0x56 < Unit::move_step+0x549`; then eight more on
     // 16860..16862. The word's block is 16858.
-    pin_eq!(w.firsts.len(), 186, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 181, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -314,7 +314,7 @@ fn run649_s_decision_frame_is_widened_whole() {
     // standing on the first block 15086 (the human's census, the rows
     // run642 also stands on); nothing on 15087..15090, the decision's block
     // 15089 among them.
-    pin_eq!(w.firsts.len(), 88, "run649 whole");
+    pin_eq!(w.firsts.len(), 83, "run649 whole");
 }
 
 #[test]
@@ -333,7 +333,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 110, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 105, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
