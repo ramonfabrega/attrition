@@ -8700,14 +8700,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (item 1505), and **185** on run669 (180..436), past run660's last
     // block; run660's test keeps the move's value diff on 171..184, run651's
     // on block 1. Item 1530 moved it to **583**, past run669's last block
-    // (436); run669's test keeps the move's value diff on block 183, and
-    // the word's widening is owed — item 1532's, booked with 1530's landing.
+    // (436); run669's test keeps the move's value diff on block 183. Item
+    // 1532 took run672 over 577..833 and moved it to **667**, inside it
+    // (block 668); run669's test keeps the move's value diff on 183..275
+    // (`1/10`, `1/2`, `1/4`, `1/9`'s order stacks and `1/2022`) and
+    // run672's on `1/2009`.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        None,
-        1532,
-        None,
+        Some("run672_s_word_frame_is_widened_whole"),
+        1539,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_583),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

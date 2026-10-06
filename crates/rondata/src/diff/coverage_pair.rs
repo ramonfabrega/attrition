@@ -56,6 +56,16 @@ pub(crate) struct Pair {
     /// 182 (`docs/AI.md` §143). At 583, ours 198 game draws against 5,
     /// index 0: ours `PathFinder::calc_road_cost+0x46`, theirs `Farms::
     /// inc_time+0x1ae`.
+    /// **Item 1532 moved it from 583 to 667 (count and sequence)**: a
+    /// builder already holding a `BUILD_AT` is sent the new site through
+    /// `action_swarm_around`'s `QUEUE_LAST` arm, an `EXPLORE_TO` and then
+    /// the build, so `1/9` starts the Barracks `1/2022` on 274 as the
+    /// original does, the Barracks finishes on 567, and its re-flag of the
+    /// city's roads no longer replans the University `1/2009` on 583
+    /// (`docs/AI.md` §144). At 667, ours 152 game draws against 155,
+    /// index 143: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    /// `Guy::init_real+0x52 < Unit::init` — a three-figure unit, `1/15`,
+    /// born in theirs.
     pub count: i64,
     pub sequence: i64,
 }
@@ -73,8 +83,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 583,
-    sequence: 583,
+    count: 667,
+    sequence: 667,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -387,7 +397,8 @@ fn run660_s_word_frame_is_widened_whole() {
     // 177's three Village slots are two; what stands is the control's.
     // **74** since item 1530: the Silo `1/2021` placed on frame 182 stands
     // where the original puts it, and block 183's make list with it.
-    pin_eq!(w.firsts.len(), 74, "initial run660 baseline");
+    // **71** since item 1532: `1/10`'s order stack agrees on 183.
+    pin_eq!(w.firsts.len(), 71, "initial run660 baseline");
 }
 
 /// run669, item 1511: the lobby's blocks 180..436 at the long's detail —
@@ -397,9 +408,10 @@ pub(crate) const RUN669: &str = "gamelog-run669-eastindies-persian-alltech-windo
 /// The window: block 180 through 436; the word's own block is 186.
 pub(crate) const WIDENING_COVERAGE_FRAME_185: (i64, i64) = (180, 436);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run669 walked from run651's start with the recorder on.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run669 walked from run651's start with the recorder on: the newest
+/// pair's word's window from item 1511 to item 1532, which moved the word
+/// to run672's ([`coverage_pair_word_window`]).
+pub(crate) fn coverage_frame_185_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -416,7 +428,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run669_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_185_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -425,9 +437,13 @@ fn run669_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // 192 before item 1530; **100** since: `find_friends`' trainer arm
+    // 192 before item 1530; 100 since: `find_friends`' trainer arm
     // reads the derived flag, and the second Missile Silo agrees.
-    pin_eq!(w.firsts.len(), 100, "initial run669 baseline");
+    // **73** since item 1532 — the control's standing set on block 180,
+    // leader 0's `production_step` on 201 and a blank `SITE` slot's `reg`
+    // on 376, nothing else: a busy builder's next build takes its own
+    // approach.
+    pin_eq!(w.firsts.len(), 73, "initial run669 baseline");
     // **The move's value diff, block 183** (item 1530, `docs/AI.md` §143):
     // the Silo `1/2021` stood at (36480, 41088) in ours against (41088,
     // 37248) and agrees in every field now; the three buildings placed on
@@ -451,12 +467,109 @@ fn run669_s_word_frame_is_widened_whole() {
             .all(|(who, _, field)| *who != 1 || !field.starts_with("leader:MAKE")),
         "leader 1's make list agrees on every block"
     );
-    // What parts first now, on the same block: `1/10`'s order stack, four
-    // orders in ours against six (the next item's frame, not its cause).
-    let first = w.firsts.get(&(1, 10, "orders.len".to_string()));
+    // **The move's value diff, item 1532** (`docs/AI.md` §144): `1/10`'s
+    // order stack, four orders in ours against six on block 183, and
+    // `1/2`, `1/4`, `1/9`'s on 186 (3/4, 3/4, 2/3), agree on every block;
+    // `1/9` walks to the Barracks `1/2022`'s ring and starts it on block
+    // 275 (`job_counter` 0 against 100 before).
+    for o in [2, 4, 9, 10] {
+        assert!(
+            w.firsts
+                .keys()
+                .all(|(who, u, f)| (*who, *u) != (1, o) || !f.starts_with("order")),
+            "1/{o}'s order stack agrees on every block"
+        );
+    }
+    assert!(
+        w.firsts.keys().all(|(who, b, _)| (*who, *b) != (1, 2022)),
+        "1/2022 agrees in every compared field"
+    );
+}
+
+/// run672, item 1532: the lobby's blocks 577..833 at the long's detail —
+/// the word 583's block 584 with six before it and 250 after.
+pub(crate) const RUN672: &str = "gamelog-run672-eastindies-persian-alltech-window-577-833.txt";
+
+/// The window: block 577 through 833; the word 583's own block is 584.
+pub(crate) const WIDENING_COVERAGE_FRAME_583: (i64, i64) = (577, 833);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run672 walked from run651's start with the recorder on. It holds the
+/// word 667 (item 1532), block 668.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run672",
+        &[(RUN672, 577)],
+        WIDENING_COVERAGE_FRAME_583,
+        1,
+        &[584, 668],
+        true,
+    )
+}
+
+#[test]
+fn run672_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
     pin_eq!(
-        first.map(|(f, _)| *f),
-        Some(183),
-        "1/10's order stack parts on block 183"
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // **355** on the tree item 1532 landed. Block 577's 73 stand from the
+    // window's first block (the control's set, as on run669's 180: the
+    // blank `SITE` slots' `reg`, `form`, the pools, `scouts`).
+    pin_eq!(w.firsts.len(), 355, "initial run672 baseline");
+    // **The move's value diff** (`docs/AI.md` §144): the University
+    // `1/2009` replanned its road on 583 in ours, flagged by the Barracks
+    // `1/2022`'s activation on 568 where the original's came on 567, a
+    // frame before the University's slot; it agrees now in every field
+    // through the word's block (its flag parts again on 779, downstream).
+    let university = w
+        .firsts
+        .iter()
+        .filter(|((who, b, _), _)| (*who, *b) == (1, 2009))
+        .map(|(_, (f, _))| *f)
+        .min();
+    pin_eq!(
+        university,
+        Some(779),
+        "1/2009 agrees in every compared field through the word's block"
+    );
+    // **What parts first past the standing block**: leader 1's make list
+    // on block 581 (`MAKE[2].num`, `MAKE[3].num` 5 against 10), then the
+    // queue prices and buckets on 583; and on **the word's block, 668**,
+    // the original holds `1/15`, the three-figure unit `Guy::init_real`
+    // made on 667, and ours does not.
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 577)
+        .min();
+    pin_eq!(
+        first,
+        Some(581),
+        "the first parting past the standing block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[2].num".to_string()))
+            .map(|(f, _)| *f),
+        Some(581),
+        "leader 1's make list parts on block 581"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 15, "unlinked".to_string()))
+            .map(|(f, _)| *f),
+        Some(668),
+        "1/15 stands in the original's dump alone from the word's block"
     );
 }

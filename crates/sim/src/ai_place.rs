@@ -474,6 +474,33 @@ impl Sim {
             .any(|b| b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos))
     }
 
+    /// `produce_building@006e1400:1060-1086`: the chosen builder is sent
+    /// through `Group::action_swarm_around(site, QVar30, BUILD_AT, 1)` on a
+    /// one-member group, at **`QUEUE_LAST`** when its action is a
+    /// `BUILD_AT` (6) and `QUEUE_NEW` otherwise. Both arms queue the swarm
+    /// ring's approach before the build, so every build a citizen holds
+    /// has its own approach: at `QUEUE_LAST` the member arm appends an
+    /// `EXPLORE_TO` for a computer (`MOVE_TO` for a human) and then the
+    /// order ([`Sim::swarm_around_last`]). This crate appended the bare
+    /// build at `QUEUE_LAST` until item 1532: run669's `1/9` holds
+    /// `[Build 2014, ExploreTo, Build 2022]` on block 186 where ours held
+    /// two orders, walked to the Barracks a frame late, and its
+    /// activation re-flagged the city's roads on 568 (`docs/AI.md` §144).
+    pub(crate) fn order_builder(&mut self, who: Player, u: usize, kind: u8, o: usize) {
+        if kind == index::BUILD_AT {
+            let approach = if self.nation[who as usize].human {
+                crate::orders::MoveKind::MoveTo
+            } else {
+                crate::orders::MoveKind::ExploreTo
+            };
+            self.swarm_around_last(u, o, Body::Build(o), true, approach, QueuePos::Last);
+        } else {
+            // `QUEUE_NEW`: the swarm ring's approach, then the order.
+            self.clear_orders(u);
+            self.swarm_around(u, o, Body::Build(o), true);
+        }
+    }
+
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
     /// placed (the original's 0). `near` is the reference building — a city
     /// centre for `place_building_with_cost`, any building for the orphan
@@ -980,14 +1007,7 @@ impl Sim {
         let o = self.init_build(who, rec, cand, false);
         if frame != 0 {
             if let Some((u, kind)) = builder {
-                if kind == index::BUILD_AT {
-                    // `QUEUE_LAST`: behind the build in hand.
-                    self.add_build_order(u, o, QueuePos::Last, true);
-                } else {
-                    // `QUEUE_NEW`: the swarm ring's approach, then the order.
-                    self.clear_orders(u);
-                    self.swarm_around(u, o, Body::Build(o), true);
-                }
+                self.order_builder(who, u, kind, o);
             }
         } else {
             self.activate(o, false, true);

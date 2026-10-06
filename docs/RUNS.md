@@ -15300,3 +15300,29 @@ SHA-256 `ce69abba45c4df286d6ded156b612c4e99dc3b654d20bdb60851c352b5ea520c`.
 **What it holds**: `run668_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): blocks 15230..15432, 2,596 keys on the
 built tree, 92 standing on the first; `1/153` parts on none and nothing parts on the old word's block 15276. The new
 word 15378's block (15379) is inside it. `docs/AI.md` §140.
+
+## run672 — the coverage pair: East Indies, Persians, All Technologies, blocks 577..833 at the long's detail (2026-10-06, item 1532)
+
+**Disk gap**: run669 holds blocks 180..436 and run652 the draw stream; nothing dumped this lobby's buildings, units or leader record at
+the word's frame, 583 (ours 198 game draws against 5, index 0: ours `PathFinder::calc_road_cost+0x46`, theirs `Farms::inc_time+0x1ae`),
+whose block is 584. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 842 --timeout 3600 --log-window 577 834
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,GROUPS=1 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch. One take, launch-to-exit 965 s,
+`settings_restored: true`; the receipt says `success: false` because **the runner's check raised `GROUPS was asked for and no GROUPDATA
+block was printed`** after the game (no group stands on 577..833 in this lobby — the worker's `GROUPS=1`, which run669 left out). The
+dump is whole: blocks `577`..`833` and an `843` closing stub, every block carrying `BUILDDATA`, `UNITDATA`, `LEADERDATA` and `CITIES`.
+Copied by hand from the retained output directory. `rngcmp.py rontrace-run652.log rontrace-run672.log`: **843 frames in common, 0
+differing**. `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, `MAP_STYLE 18` read back.
+
+Archive `gamelog-run672-eastindies-persian-alltech-window-577-833.txt`, 467,747,575 bytes,
+SHA-256 `4335ae5b3ef1a165ed87509f64eb5005e63a36705210cbc88bb479bf83844e22`.
+
+Archive `rontrace-run672.log`, 17,691,456 bytes,
+SHA-256 `3ccadd56337b7ccbe0b4a0e7f922d46cd2aebb3b584d4ecd5d0f3d1fb56515af`.
+
+**What it holds**: `diff::coverage_pair::run672_s_word_frame_is_widened_whole` — 493 keys on the base, **355** on item 1532's tree,
+73 standing on block 577 (the control's, as on run669's 180). On the base, the University `1/2009`'s `build_masks & 0x100` stands at
+1 in ours against 0 from the first block — the flag the Barracks `1/2022`'s activation set on 568 in ours, a frame after its slot 567.
+On the built tree leader 1's make list parts first, on block 581, and the new word 667's block, 668, holds `1/15` in the original's
+dump alone. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run669's, and
+the coverage driver reads its blocks 584 and 668. `docs/AI.md` §144.

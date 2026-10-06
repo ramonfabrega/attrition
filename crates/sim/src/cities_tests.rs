@@ -856,6 +856,55 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     assert_eq!(sim.units[u].form, -1, "and the citizen's form is not");
 }
 
+/// **A computer's builder gets an approach before each build it is
+/// given** (item 1532, `docs/AI.md` §144). `Leader::produce_building`
+/// sends a citizen whose action is already a `BUILD_AT` through
+/// `action_swarm_around(…, QUEUE_LAST, BUILD_AT, 1)`, whose member arm
+/// appends an `EXPLORE_TO` to the new site's ring and then the build:
+/// run669's `1/9` holds `[Build 2014, ExploreTo, Build 2022]` on block
+/// 186.
+///
+/// Made to fail once with the `QUEUE_LAST` arm as a bare
+/// `add_build_order`: the list comes out three orders long.
+#[test]
+fn a_busy_builder_gets_an_approach_before_its_next_build() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.nation[0].human = false;
+    let mut ct = citizen_type(t.village);
+    ct.worker = Worker::Citizen;
+    ct.cols.role = crate::ai_load::role::CITIZEN;
+    let citizen = sim.add_unit_type(ct);
+    let first = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let next = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
+    sim.order_builder(0, u, crate::orders::index::NONE, first);
+    let action = sim.action_of(u).map(|i| sim.units[u].orders[i].index());
+    assert_eq!(
+        action,
+        Some(crate::orders::index::BUILD_AT),
+        "the builder's action"
+    );
+    sim.order_builder(0, u, crate::orders::index::BUILD_AT, next);
+    let orders = &sim.units[u].orders;
+    assert_eq!(
+        orders.len(),
+        4,
+        "approach, build, approach, build: {orders:?}"
+    );
+    assert!(matches!(orders[1].body, Body::Build(x) if x == first));
+    match orders[2].body {
+        Body::Move(m) => assert_eq!(m.kind, MoveKind::ExploreTo, "a computer's approach"),
+        other => panic!("an approach move, not {other:?}"),
+    }
+    assert!(matches!(orders[3].body, Body::Build(x) if x == next));
+    assert!(
+        orders[3].has(crate::orders::flag::ACTION),
+        "the action bit rides"
+    );
+}
+
 /// **A human's drop places and pays for one site and gives each citizen a
 /// move, then the build** (item 779, `docs/GOLDEN.md` §26, run241).
 /// `Group::action_build@00707510` pays once and `action_swarm_around(site,
