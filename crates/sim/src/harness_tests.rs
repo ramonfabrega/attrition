@@ -3643,6 +3643,69 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
     );
 }
 
+/// **A tracked crew figure takes its turn in its own slot, not after the
+/// untracked ones** (`docs/AI.md` §136, item 1510) — Great Sahara at
+/// Toughest, frame 14512, the Bombard `1/141`.
+///
+/// Its four figures are guy 0 and guys 1 and 3 untracked and guy 2 tracked
+/// (`track_dx 163`). `Guy::process` runs `Guy::move` in slot order, so the
+/// original's draws are arrival, arrival, **turn**, arrival — the dump's
+/// `end_time` 31 / 15 / 31 / 15 follows the rolls `v1, v0, v2, v0` of
+/// indices 38–41 in that order. This crate ran every untracked figure first
+/// and the tracked one last: arrival, arrival, arrival, turn, which hands
+/// guy 2 the roll that was guy 3's.
+#[test]
+fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
+    let mut sim = skirmish(0);
+    sim.trace_phases = true;
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        ..crate::UnitType::default()
+    });
+    sim.unit_types[ty].combat.packs = true;
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.ty = Some(ty);
+    u.guys = vec![
+        anim::Guy::fresh(1),
+        anim::Guy::fresh(2),
+        anim::Guy::fresh(3),
+        anim::Guy::fresh(4),
+    ];
+    let unit = sim.add_unit(u);
+    sim.art.tracks.insert(3, (163, -24));
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    assert!(sim.units[unit].guys[2].follow.is_some(), "guy 2 is tracked");
+    for g in [0, 1, 3] {
+        assert!(sim.units[unit].guys[g].follow.is_none(), "guy {g} is not");
+        sim.units[unit].guys[g].anim = anim::WALK;
+        sim.units[unit].guys[g].stopped = true;
+    }
+    // Guy 2 stands on its offset owed a turn.
+    let mut f = sim.units[unit].guys[2].follow.unwrap();
+    f.facing = movement::Angle::EAST;
+    f.des_angle = movement::Angle::NORTH;
+    sim.units[unit].guys[2].follow = Some(f);
+    sim.units[unit].guys[2].anim = anim::WALK;
+    sim.units[unit].guys[2].stopped = true;
+    sim.guys_follow(unit, true, &mut None);
+    let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
+    let at = |site: &str| labels.iter().position(|l| *l == site);
+    let turn = at(anim::SITE_TURN_STAND).expect("guy 2 asks for its turn");
+    let arrivals: Vec<usize> = labels
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| **l == anim::SITE_ARRIVE)
+        .map(|(i, _)| i)
+        .collect();
+    assert_eq!(arrivals.len(), 3, "guys 0, 1 and 3 arrive: {labels:?}");
+    assert!(
+        arrivals[1] < turn && turn < arrivals[2],
+        "the turn is the third figure's draw, between guy 1's arrival and guy 3's: {labels:?}"
+    );
+}
+
 /// **Three of the six resources are not available from the start, and until
 /// they are, a price written in one of them is charged somewhere else**
 /// (`docs/COSTS.md`, "Three of the six resources are not available from the

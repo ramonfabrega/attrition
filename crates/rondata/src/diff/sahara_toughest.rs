@@ -245,6 +245,16 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_14512: (i64, i64) = (14_506, 14_
 /// **The word's block, 14513**: frame 14512 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_14513: i64 = 14_513;
 
+/// run663: run470's game at run584's detail over the blocks 15095..15118, the
+/// new word 15101's own window (item 1510).
+pub(crate) const TOUGHEST_WORD_15101: &str = "gamelog-run663-greatsahara-toughest-15101.txt";
+
+/// **run663's window** (item 1510): blocks 15095..15118.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_15101: (i64, i64) = (15_095, 15_119);
+
+/// **The word's block, 15102**: frame 15101 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_15102: i64 = 15_102;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -493,10 +503,22 @@ pub(crate) fn great_sahara_toughest_14512_window() -> Option<crate::diff::harnes
     )
 }
 
+/// run663's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_15101`], walked as
+/// run584's are (item 1510).
+pub(crate) fn great_sahara_toughest_15101_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run663",
+        (TOUGHEST_WORD_15101, WIDENING_GREAT_SAHARA_TOUGHEST_15101.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_15101,
+        TOUGHEST_WORD_BLOCK_15102,
+    )
+}
+
 /// **The compared pin's window on the third map at Toughest** (item 1221):
 /// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run659 at its block 14513 since item 1503 (run653 at its block 14364
+/// on run663 at its block 15102 since item 1510 (run659 at its block 14513
+/// from item 1503, run653 at its block 14364
 /// from item 1493, run640 at its block 12817
 /// from item 1477, run584 at its block 12745
 /// from item 1472, at its block 12570 from
@@ -514,12 +536,12 @@ pub(crate) fn great_sahara_toughest_14512_window() -> Option<crate::diff::harnes
 /// blocks with the recorder on.
 pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
-    let word = TOUGHEST_WORD_BLOCK_14513 - 1;
+    let word = TOUGHEST_WORD_BLOCK_15102 - 1;
     toughest_window_over(
-        "run659",
-        (TOUGHEST_WORD_14512, WIDENING_GREAT_SAHARA_TOUGHEST_14512.0),
+        "run663",
+        (TOUGHEST_WORD_15101, WIDENING_GREAT_SAHARA_TOUGHEST_15101.0),
         (word - 1, word + 2),
-        TOUGHEST_WORD_BLOCK_14513,
+        TOUGHEST_WORD_BLOCK_15102,
     )
 }
 
@@ -1672,6 +1694,61 @@ mod tests {
         pin_eq!(w.firsts.len(), 88, "every key parted on run653");
     }
 
+    /// **The word 15101, widened whole** (item 1510):
+    /// [`great_sahara_toughest_15101_window`] over run663's blocks
+    /// 15095..15118, both directions, every record run584's detail prints.
+    /// Frame 15101 writes block 15102.
+    #[test]
+    fn run663_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_15101_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 24, "run663 whole: blocks 15095..15118");
+        pin!(
+            w.missing.is_empty(),
+            "run663 carries every key: {:?}",
+            w.missing
+        );
+        pin_eq!(
+            by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
+            [(15095, 94), (15098, 4), (15102, 27)],
+            "the blocks keys first part on, the first three"
+        );
+        pin_eq!(w.firsts.len(), 263, "every key parted on run663");
+        // **The word 15101's block, 15102** (item 1510, `docs/AI.md` §136):
+        // ours 19 draws against 17, parting at index 7 — ours a crew turn
+        // (`do_turn+0xe5`), theirs `Unit::move_step+0x389`'s. Block 15102
+        // parts on 27 keys of `1/96`, a Bombard: on all four figures
+        // `cur_anim` 24 (theirs) against 0, 0, 7, 0, `g.angle` -881307648
+        // on every figure against ours' three distinct, `heading` -881307648
+        // against -632029184, `end_time` 80, 80, 31, 80 against 31, 15, 15,
+        // 15. The unit's own start of an animation-24 stands from this
+        // block; no mechanism is booked.
+        pin_eq!(
+            w.firsts
+                .iter()
+                .filter(|((who, o, _), (f, _))| (*who, *o, *f) == (1, 96, 15_102))
+                .count(),
+            27,
+            "1/96's keys on the word's block"
+        );
+    }
+
     /// **The word 14512, widened whole** (item 1503):
     /// [`great_sahara_toughest_14512_window`] over run659's blocks
     /// 14506..14529, both directions, every record run584's detail prints.
@@ -1709,6 +1786,10 @@ mod tests {
         // dumped record parts on the frame or after it**: every one of the 83
         // keys stands from the window's first block, so the delta is a draw
         // order whose values the dump does not print. No mechanism is booked.
+        // **Moved by item 1510** (`docs/AI.md` §136): a tracked crew figure
+        // runs `Guy::move` in its slot, so guy 2's turn is the third draw;
+        // the 83 keys and this block's agreement are unchanged, the clocks
+        // being re-seated from the dump on every traced frame.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             [(14506, 83)],

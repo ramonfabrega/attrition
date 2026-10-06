@@ -2125,12 +2125,25 @@ impl Sim {
         // and no word on French East Indies (item 1453), and nothing dumps
         // owner 9's figures.
         if is_air_gaia(self.units[u].type_index) && self.units[u].type_index != BIRD_TYPE {
+            for g in 0..self.units[u].guys.len() {
+                if self.units[u].guys[g].follow.is_some() {
+                    self.process_follower(u, g);
+                }
+            }
             return;
         }
         let unit = &self.units[u];
         let settled = unit.movement.facing == unit.movement.heading;
         for g in 0..self.units[u].guys.len() {
+            // **A tracked crew figure runs in its own slot** (item 1510):
+            // `Guy::process` runs `Guy::move` per figure in array order,
+            // and a tracked figure is not always the last — the Bombard
+            // `1/141` has guy 2 tracked between untracked 1 and 3, and its
+            // frame 14512 draws arrival, arrival, **turn**, arrival, the
+            // turn being guy 2's. Run after the untracked ones, as it was,
+            // it drew the turn last.
             if self.units[u].guys[g].follow.is_some() {
+                self.process_follower(u, g);
                 continue;
             }
             // **A carried crew figure is never owed a turn.**

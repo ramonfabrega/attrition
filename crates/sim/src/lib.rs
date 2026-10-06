@@ -5595,6 +5595,17 @@ impl Sim {
         // `Guy::move` (item 1429).
         let mut turn =
             (was_at_des && !turned && !facing_settled).then_some((facing, follow.facing, heading));
+        // **Where a crew guy is told to be**, written before the figures
+        // run because `Guy::move` writes it in guy 0's own step and
+        // `Guy::process` runs the figures in slot order: a tracked figure
+        // later in the array than guy 0 finds its destination already
+        // rewritten (item 1510). The write is the one below, moved up; it
+        // reads the unit's position and the frame's new facing, neither of
+        // which a figure's animation touches.
+        if !was_at_des || !facing_settled {
+            let pos = self.units[i].pos;
+            self.crew_des(i, pos, follow.facing, false);
+        }
         self.guys_follow(i, was_at_des, &mut turn);
         // A helicopter's figure height (item 1048): `Guy::move:47`'s
         // `last_z = z` at its head, and the moving arm's
@@ -5642,16 +5653,8 @@ impl Sim {
         // the man has stopped.
         //
         // Guy 0's position after either arm is the unit's own, so the two
-        // are one expression here.
-        if !was_at_des || !facing_settled {
-            let (pos, facing) = (self.units[i].pos, follow.facing);
-            self.crew_des(i, pos, facing, false);
-        }
-        for g in 0..self.units[i].guys.len() {
-            if self.units[i].guys[g].follow.is_some() {
-                self.process_follower(i, g);
-            }
-        }
+        // are one expression here — written above, ahead of the figures
+        // ([`Sim::guys_follow`] runs the tracked ones in their slots).
         // `Guy::process@005e0230:30–56`, right after `Guy::move`: a pivot
         // figure (`guy_flags & 0x100`, its type has `<RESTRICTION>` rows)
         // turns each turret toward where `set_all_pivots` last told it,

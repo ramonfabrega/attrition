@@ -2018,6 +2018,20 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **15101 since item 1510** (`docs/AI.md` §136): `Guy::process` runs
+/// `Guy::move` per figure in slot order, and a tracked crew figure is not
+/// always the last. The Bombard `1/141` has guys 0, 1 and 3 untracked and
+/// guy 2 tracked (`track_dx` 163); this crate ran the untracked three first
+/// and the tracked one after, so frame 14512's four draws went arrival,
+/// arrival, arrival, **turn** where the original's go arrival, arrival,
+/// **turn**, arrival, and guy 2 took the roll that was guy 3's (indices
+/// 38–41 are `v1, v0, v2, v0`: the dump's `end_time` 31, 15, 31, 15). The
+/// measured word on the base was 14512 (53 draws each, index 40). **The new
+/// word's delta: ours 19 draws and the original 17 on frame 15101, parting
+/// at index 7**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+/// Guy::do_turn+0xe5`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+/// Unit::move_step+0x389`. Its widening is run663's.
+///
 /// **14512 since item 1503** (`docs/AI.md` §132): `BuildData::construct_time`'s
 /// clause (c), `has_general(0, THEPRESIDENT) >= 0`, is a per-call clock: one of
 /// the owner's Presidents on the map within `get_radius × 0xc0` of the building
@@ -2425,7 +2439,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 14_512;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 15_101;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8622,12 +8636,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // item 1477 moved it 12744 → 12816, past it, and widened it on run640
         // over 12811..12834; item 1493 moved it 12816 → 14363 and widened it
         // on run653 over 14357..14380; item 1503 moved it 14363 → 14512 and
-        // widened it on run659 over 14506..14529; run653's test keeps the
-        // move's value diff on 14357..14364, run640's on 12811..12817,
-        // run584's on 12532.
-        Some("run659_s_word_frame_is_widened_whole"),
-        1503,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_14512),
+        // widened it on run659 over 14506..14529; item 1510 moved it 14512 →
+        // 15101, past it, and widened it on run663 over 15095..15118; run659's
+        // test keeps the move's value diff on 14506..14514, run653's on
+        // 14357..14364, run640's on 12811..12817, run584's on 12532.
+        Some("run663_s_word_frame_is_widened_whole"),
+        1510,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_15101),
     ),
 ];
 

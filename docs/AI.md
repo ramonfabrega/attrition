@@ -15800,7 +15800,62 @@ unit-tested by nothing; no capture on disk is known to reach it.
 Reading only, listing-checked: `is_attacking_near`'s arguments and the
 ECX that `is_move` leaves. No blind reading.
 
-## 136. Reserved for item 1510 (Toughest frame 14512)
+## 136. A tracked crew figure runs `Guy::move` in its own slot, and the word at 15101 (2026-10-06, item 1510)
+
+**What was established, how, how confident.** Item 1503 left Great Sahara at Toughest's word at **frame 14512, 53 draws each side, index 40**: ours
+`Guy::move+0x19f`, theirs `Guy::do_turn+0x4a < Guy::turn_towards+0x69`, in `1/141`'s four figures (move, move, turn, move there; move, move, move,
+turn here), and run659 showed no dumped record parting. The booking's next question was a value no dump prints; the per-figure read answered it
+without a packet, from the dump's own `GUY` records, and the trace's seeds.
+
+1. **Which figure turns.** `1/141` has four figures, each `GUY` record's `type` 268 — `CANNON` in `enums/TypeIndex.txt`, a land piece (the booking calls the unit a Bombard, 267; the `UNITDATA` block prints no `TypeIndex` of its own, so the unit's is the booking's word and the figures' 268 is the dump's — the order below does not read either). On blocks 14511..14514: guys 0, 1
+   and 3 have `track_dx/track_dy` 0 (untracked, sharing guy 0's body); **guy 2 alone is tracked** (`track_dx` 163, `track_dy` −24). Across frame 14512
+   (block 14512 → 14513) guys 0, 1 and 3 go `cur_anim` 8 → 0 with `cur_time` 5 → 1 (an arrival stand each); guy 2, standing on its offset with
+   `angle` −696647680 against `des_angle` −718929920, turns to it in one frame and goes 8 → 0 as well. So the original's four draws, in slot order, are
+   arrival (guy 0), arrival (guy 1), **turn (guy 2)**, arrival (guy 3): exactly its indices 38–41.
+2. **The rolls.** The trace's frame seed for the word's frame (`0x89880f96`; `tools/gamelog/draws.py` ends the 53 draws on the next frame's seed
+   `0x8bdf7431`) gives indices 38–41 as `v1, v0, v2, v0` (70, 29, 88, 63 under `% 100`). The dump's `end_time` after the frame is 31, 15, 31, 15
+   for guys 0..3 — `v1` and `v2` take the long animation, `v0` the short — so guy 2 drew the third roll. Here guy 2's turn was the **last**, handing
+   guy 2 `v0` and guy 3 `v2`.
+3. **The cause.** `Sim::process_movement` ran `guys_follow` (every untracked figure, in slot order) and only then `process_follower` for each tracked one.
+   `Guy::process` runs `Guy::move` per figure in array order (item 1429's note, `docs/AI.md` §118), and a tracked figure is not always the last: a
+   Bombard's slot 2 sits between untracked 1 and 3. Every earlier capture had its tracked figures after the untracked ones (a caravan's driver and
+   crew, a Senator's), where the two orders coincide.
+
+**Built.** `Sim::guys_follow` (`anim.rs`) runs `process_follower` at a tracked figure's own slot; the gull's early return runs it for the tracked figures
+it skips. `Sim::process_movement` (`lib.rs`) writes the crew's `des` (`crew_des`) **before** the figures run, as guy 0's `Guy::move` does, instead of
+after them: a tracked figure later than guy 0 reads a destination already rewritten, and `crew_des` reads only the unit's position and the frame's new
+facing, neither of which a figure's animation touches. Test `a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot`
+(`harness_tests.rs`), a four-figure unit with guy 2 tracked: three `SITE_ARRIVE` and the turn between the second and the third. Mutation: the tracked
+loop moved back after the untracked one (`tools/mutate.py --patch`) fails that test and `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(sequence 14512, count 15101 of 15432).
+
+**Why the dump never showed it.** The harness re-seats every guy's clock from the dump on each traced frame, so the swapped rolls left `end_time`
+agreeing on the next block: run659 parted on none of this. The only witness is the draw stream, which is why this item is the second reading of a
+`sequence`-only word after item 1503's.
+
+**Value diff** (the word's own frame, `1/141`, block 14513): rolls at indices 38–41 `v1, v0, v2, v0`; dump `end_time` 31, 15, 31, 15; ours' draw sites
+before, arrival, arrival, arrival, turn; after, arrival, arrival, turn, arrival. The word moves **14512 → 15101** (count and sequence both): 53 draws
+each side on 14512 now agree.
+
+**The new word: frame 15101, ours 19 draws against 17, parting at index 7.** Ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::do_turn+0xe5` (a crew
+turn), theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` (guy 0's own, far arm). run663 (blocks 15095..15118, `gamelog-run663-…`,
+`docs/RUNS.md`) widens it whole, both directions: **263 keys**, 94 standing on 15095, 4 on 15098, **27 on the word's block 15102, all `1/96`'s** (a
+same four-figure kind as `1/141`): its four figures read `cur_anim` 24 against ours' 0, 0, 7, 0, `g.angle` −881307648 on every figure (ours −762003456 ×3 and 1146871808),
+`heading` −881307648 against −632029184, `end_time` 80, 80, 31, 80 against 31, 15, 15, 15, `g.stopped[0]` 1 against 0. `1/95` repeats it a block later
+(15103), then `1/129`, `1/141` and others. **The original starts animation 24 on 1/96 on frame 15101 and ours turns it** — the booking is the frame
+and the delta; no mechanism is named here (animation 24 is not read in this item).
+
+**Not established.**
+- That the original's slot order is `Guy::process`'s array order for **every** unit is shown on one frame (and by 1429's reading); no capture holds a
+  tracked figure before an untracked one in a unit whose untracked figures draw after it other than `1/141`.
+- That moving `crew_des` ahead of the figures changes nothing else: `process_follower` reads the unit's order speed and its own figure only, and the
+  full diff suite agrees (gate), but a unit whose figure's anim reads a tracked figure's `des` has not been looked for.
+- What `1/96` starts on 15101 (animation 24) and which function asks for it.
+
+**Coverage.** Diff-backed: the order, by `run470_is_great_sahara_at_toughest_and_its_word_holds` and the unit test; the rolls, by the trace's seeds. No
+blind reading; the listing was not consulted (the order is the dump's and the trace's).
+
+## 137. Reserved for item 1517 (Toughest frame 15101)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
