@@ -13,23 +13,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and eleven
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and twelve
 landings since. French East Indies **15344** of 17,379 (was 12794);
 Toughest **12816**, floor 12816 (was 11985); fifty-one chapters closed.*
 
 - **Landed**: 1461, 1470, 1476, 1479, 1481 (Opus, newest pair, now 1487); 1429, 1472,
-  1477 (Sonnet, third map, now 1493); 1423, 1468, 1465 (Sonnet, rules;
-  the battery reads 576 / 6566 / 2974, a measure). Lanes:
+  1477 (Sonnet, third map, now 1493); 1423, 1468, 1465, 1466 (Sonnet, rules;
+  battery 576 / 6566 / 2974, a measure; coverage pair frame 0, now 1496). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
   high` each; entry 58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1466.
+- **The rules lane is the coverage lane**: 1496, then 1497.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495).
+- **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -67,13 +67,20 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     slots) and 1/141's `g.end_time[2]` 31 against 23 part. No mechanism
     is named.
 
-1466. **The coverage pair** (DECISIONS 61 §6): the next pair is chosen
-    by `tools/census.py --never`, not by adjacency. First whether the
-    click-free lane can set a late starting age (the `GAME INFO` line
-    that carries it, named in the stanza); then the lobby that enters
-    the most never-entered rows — air, oil, the later ages' orders —
-    stood up as 1442 stood the French pair up. Opens after 1465, or
-    when French East Indies or Toughest closes.
+1496. **The coverage pair's word: frame 0, 195 versus 198 draws**,
+    index 26: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    `Unit::think_spellcaster+0x413` (East Indies, Persians at Toughest,
+    `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`; run651 its start,
+    run652 its long trace to 4730). `run651_s_word_frame_is_widened_whole`:
+    226 keys on block 1 against 48 for the French start — stockpiles
+    200/200/100 here against 20000/20000/10000 there, and 26 units'
+    hits 40 against 85. No mechanism is named.
+
+1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
+    (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
+    `update_local_seen_build`'s fog arm, and 1476's Construction hp arm
+    (`myhits`, `construct_hits` unread). Whether one staging reaches
+    each is the item's to establish first. run654.
 
 ## How to maintain this file
 

@@ -3695,7 +3695,9 @@ it as a trip. The pass rules whether that reading stands.
 (1471) **`tools/standing.py` does not read the third pair's widening
 print** (1461's Loop line, 2026-10-05): the standing keys of the French
 East Indies widening are not put beside who in `sim` reads them, so the
-checklist row that names the tool has nothing to run on the newest word.
+checklist row that names the tool has nothing to run on the newest word. And 1466's: `tools/standing.py` reads `first <frame> …` lines while
+the widening printers write `f1 …` and `standing 1 …`
+(`widen_on_siblings`); one of the two should move.
 
 (1475) **A pinned "unread" key is a tell for an arm held by nothing**
 (1423's Loop line, 2026-10-05): `think_frame` and a building's `visible`
@@ -3746,6 +3748,12 @@ under `~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/` entered
 the original's `plan_strategy` on a `RON_STATE_FRAME` packet; a packet
 tile-mask and cell diff; and `repin.py`, which left 50 of 131 sites to
 re-pin by hand.
+
+(1498) **The coverage pair has no scoreboard line** (the commander,
+2026-10-06, at 1466's merge): its count and sequence are pinned in
+`diff::coverage_pair`, outside `FLOORS`, `AI_WORDS` and the handoff's
+parse; whether it becomes a scored pair, a lane of its own, or the
+newest pair's lane under the roster's Opus clause is the pass's to rule.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a
