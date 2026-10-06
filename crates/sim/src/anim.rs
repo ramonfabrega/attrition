@@ -2121,11 +2121,11 @@ impl Sim {
             if !was_at_des {
                 self.units[u].guys[g].stopped = false;
             }
-            if g == 0 {
-                if let Some((was, to, heading)) = turn.take() {
-                    self.mark(SITE_TURN_STAND);
-                    self.do_turn_anim(u, was, to, heading);
-                }
+            if g == 0
+                && let Some((was, to, heading)) = turn.take()
+            {
+                self.mark(SITE_TURN_STAND);
+                self.do_turn_anim(u, was, to, heading);
             }
         }
     }
