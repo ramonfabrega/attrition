@@ -1925,7 +1925,15 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// 14784 here as there (×4: its own 2, and the Pyramids held): 14786 →
 /// 15344, 44 vs 38 draws, index 0 Army::find_target+0x7df versus
 /// Animal::think_bird+0x82. run642 block 15345.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 15_344;
+/// Item 1487: who=1's running territory timer (`popwin_timer`, since 14293;
+/// `GameDaemon::process_victory`, AI §126) scores an enemy's city ×100 in
+/// `find_target`, and an army past Military 2 with no wagon scores none:
+/// army 6 takes Napata on 15088 here as there (20040 against Paris's 345,
+/// run649's packet), and the seven `+0x7df` draws of 15344 are gone:
+/// 15344 → 16857, 8 vs 8 draws, index 2 Guy::set_anim under Guy::move
+/// versus Guy::set_anim under Unit::set_anim+0x56 < Unit::move_step+0x549.
+/// run655 block 16858.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 16_857;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1958,7 +1966,9 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_14786: (i64, i64) = (14777, 14789);
 /// run649's blocks around `find_target`'s tick 15088 (item 1487): the
 /// decision French East Indies' word 15344 turned on, widened whole.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_15088: (i64, i64) = (15086, 15090);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (15339, 15351);
+/// run642's blocks, the word 15344's until item 1487 moved it to 16857.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_15344: (i64, i64) = (15339, 15351);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (16851, 16863);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8454,12 +8464,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1383 to 16160, past it, widened on run572; item 1401 to 16179,
     // inside it; item 1418 to 16482, past it, widened on run579.
     // Item 1481 moved the word to 15344, past run639's window, and widened
-    // it on run642 (15339..15351).
+    // it on run642 (15339..15351); item 1487 to 16857, past it, widened on
+    // run655 (16851..16863).
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run642_s_word_frame_is_widened_whole"),
-        1481,
+        Some("run655_s_word_frame_is_widened_whole"),
+        1487,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

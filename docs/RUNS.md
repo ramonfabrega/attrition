@@ -14803,3 +14803,32 @@ SHA-256 `782ff5dc441e9f5d29f78af24d7c79d48551aecf0fa58a661b2d512535fab13f`.
 `diff::coverage_pair::coverage_pair_first_parting` walks it from run651's start (frame 0, 195 against 198 draws), and
 the closing state is what §127's measured rows read (21 `AIRORDER`, 15 `AIRPATROLORDER`, 6 `STRAFEORDER`, 18 unit types
 and 14 building types no same-recipe closing holds).
+
+## run649 — French East Indies, a packet at logger frame 15088 (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run649-booking.json`,
+written before the run. No dump of this game between 14795 (run639) and 15339 (run642), and no
+logger prints `find_target`'s per-candidate score. Window **[15086,15091)**, end 15094, call
+window 15086..15091, `RON_STATE_FRAME=15088` with item 597's plan, `--ffwd-minute 10`, `cover=0`,
+`--timeout 1800`, run642's four `--detail` sections, through the click-free lane (free at launch).
+Receipt success; process and wait exits **0**; five settings files restored; 5 group blocks; seed
+12345 read back. Launch-to-exit 510.904 s, total 521.039 s. Game-RNG draws match run600 on all
+15,095 shared frames (`rngcmp.py`). Killers: block 15089 prints leader 0's `frame_attacked` 15088
+(the stamp is tick 15088's); `step4.py` on army 6 writes its target `0/2000`, an enemy's.
+
+`tools/recomp/step4.py` (a scratch variant hooking `6f7eb9` and `6f719b`) enters
+`Army::process@006f93d0` with `this` `0x15d403d4`: every draw and six of the seven scores are
+this crate's, and Napata scores 20040 against ours' 200 (`docs/AI.md` §126;
+`step4-process.log`, `step4-trace.log`).
+
+Packet `~/ron-data/lab-captures/2026-10-06-run649/map-18/frame-snapshot.bin`, 907,231,240 bytes,
+SHA-256 `42c05bb04eb18ddca005e6f43160bf31ef8ad09c40d58097d5c04d7e236a4563`.
+
+Archive `gamelog-run649-islands-french-packet-15088.txt`, 27,085,073 bytes,
+SHA-256 `b048e36e7091bb44307aae697807872a1f9f54d517a63f8781ff0361b215e01a`.
+
+Archive `rontrace-run649.log`, 81,088,960 bytes,
+SHA-256 `e7b72d3b57944a07e37a80bc94c1afd20cad4d7fed164f6fa0297ea79abe2c1a`.
+
+**What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 92 keys, every
+one standing on block 15086; nothing on 15087..15090. Run 649 only.
