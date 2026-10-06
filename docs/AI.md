@@ -16179,3 +16179,8 @@ dump's `guy_mark 1`; the listing was not read.
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 142. Reserved for item 1528 (Toughest frame 15378)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
