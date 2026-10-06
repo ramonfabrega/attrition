@@ -296,8 +296,9 @@ mod tests {
     /// strike: the reload is set and the move is still the only order.
     /// Without `v` the gate does nothing at all.
     ///
-    /// Made to fail first with [`Sim::cavarch_head`]'s call removed from
-    /// `do_move`: run657 kept 71 rows, `1/80` unrecharged on 17170.
+    /// The walk holds the call: without [`Sim::cavarch_head`] in `do_move`
+    /// run657 reads 209 keys against 154 and run661 574 against 254 (item
+    /// 1508's M1).
     #[test]
     fn a_unit_that_fires_on_the_move_finds_shoots_and_walks_on() {
         for fires in [true, false] {
@@ -397,8 +398,8 @@ mod tests {
     /// place beneath (`QUEUE_FIRST` over it), which is run658's `1/90` on
     /// 17040.
     ///
-    /// Made to fail first with the kill removed from
-    /// [`Sim::nearby_add`]: run657's `1/69` rows on 17167.
+    /// Made to fail with the kill removed from [`Sim::nearby_add`] (item
+    /// 1508's M2), with run657 174 against 154 and run661 274 against 254.
     #[test]
     fn a_guards_attack_move_leg_goes_under_the_attack_it_finds() {
         for guarding in [true, false] {
