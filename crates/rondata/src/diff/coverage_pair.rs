@@ -66,6 +66,13 @@ pub(crate) struct Pair {
     /// index 143: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     /// `Guy::init_real+0x52 < Unit::init` — a three-figure unit, `1/15`,
     /// born in theirs.
+    /// **Item 1539 moved it from 667 to 727 (count and sequence)**: the
+    /// Persians' Market trains a caravan on its own fifteen-frame slot
+    /// (`Build::process@0061edf0:362–381`), so the Market `1/2018`,
+    /// finished on 661, trains `1/15` on 667 as the original does
+    /// (`docs/AI.md` §146). At 727, ours 8 game draws against 7, index 0:
+    /// ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::
+    /// set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -83,8 +90,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 667,
-    sequence: 667,
+    count: 727,
+    sequence: 727,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -495,7 +502,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_583: (i64, i64) = (577, 833);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run672 walked from run651's start with the recorder on. It holds the
-/// word 667 (item 1532), block 668.
+/// word 667 (item 1532), block 668, and the word 727 (item 1539), block
+/// 728.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -505,7 +513,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN672, 577)],
         WIDENING_COVERAGE_FRAME_583,
         1,
-        &[584, 668],
+        &[584, 668, 728],
         true,
     )
 }
@@ -522,10 +530,11 @@ fn run672_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **355** on the tree item 1532 landed. Block 577's 73 stand from the
-    // window's first block (the control's set, as on run669's 180: the
-    // blank `SITE` slots' `reg`, `form`, the pools, `scouts`).
-    pin_eq!(w.firsts.len(), 355, "initial run672 baseline");
+    // **247** on the tree item 1539 landed (355 on item 1532's). Block
+    // 577's stand from the window's first block (the control's set, as on
+    // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
+    // `scouts`).
+    pin_eq!(w.firsts.len(), 247, "initial run672 baseline");
     // **The move's value diff** (`docs/AI.md` §144): the University
     // `1/2009` replanned its road on 583 in ours, flagged by the Barracks
     // `1/2022`'s activation on 568 where the original's came on 567, a
@@ -565,11 +574,48 @@ fn run672_s_word_frame_is_widened_whole() {
         Some(581),
         "leader 1's make list parts on block 581"
     );
+    // **The move's value diff** (item 1539, `docs/AI.md` §146): on 668
+    // the original held the caravan `1/15` alone and leader 1's
+    // `num_units[9]`, `caras`, `active` and `control` one above ours. The
+    // Persians' Market `1/2018` trains it on 667 in ours too, and it agrees
+    // in every compared field through the window's last block.
     pin_eq!(
         w.firsts
-            .get(&(1, 15, "unlinked".to_string()))
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 15))
+            .count(),
+        0,
+        "1/15 agrees in every compared field"
+    );
+    for key in [
+        "leader:caras",
+        "leader:num_units[9]",
+        "leader:active",
+        "leader:control",
+    ] {
+        let at = w.firsts.get(&(1, -1, key.to_string())).map(|(f, _)| *f);
+        pin!(
+            at.is_none_or(|f| f > 728),
+            "leader 1's {key} agrees through the word 727's block"
+        );
+    }
+    // **The word 727's block, 728**: ours 8 game draws against 7, ours a
+    // `Unit::move_step` turn. The citizen `1/8` (`PEASANTS`) holds
+    // `[ExploreTo, Build 2020]` in both, its approach (41160, 40584) in
+    // the original against (42072, 41928) in ours from block 691, and on
+    // 728 ours has it colliding with `1/6`.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 8, "orders_x".to_string()))
             .map(|(f, _)| *f),
-        Some(668),
-        "1/15 stands in the original's dump alone from the word's block"
+        Some(691),
+        "1/8's approach parts on block 691"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 8, "collide_o".to_string()))
+            .map(|(f, _)| *f),
+        Some(728),
+        "and on the word's block it collides in ours"
     );
 }

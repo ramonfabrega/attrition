@@ -101,6 +101,9 @@ pub(crate) mod power {
     pub const IROQUOIS: usize = 18;
     pub const AMERICANS: usize = 20;
     pub const DUTCH: usize = 22;
+    /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
+    /// (`Sim::persian_market_caravan`).
+    pub const PERSIANS: usize = 23;
 }
 
 /// The nation roster, in the order `rules.xml`'s `TRIBES` block lists it.
@@ -411,6 +414,52 @@ impl Sim {
         let tier = if age == 0 { 1 } else { 2 + i32::from(age > 2) };
         let light = free_scaled(g.aztec_barracks_light, g.aztec_max_light, tier);
         self.free_train(b, power::AZTECS, ty::SLINGERS, light, true);
+    }
+
+    /// **`Build::process@0061edf0:362–381` — the Persians' Market trains a
+    /// caravan** (`docs/AI.md` §146). Every fifteen frames of the Market's
+    /// own phase, `(o + frame) % 15 == 0`, a Market (`0x1b4`) whose owner
+    /// `has_tribe_bonus(0x17)` trains a `CARA` — straight through
+    /// `Build::train`, no queue and no price — while the leader's `caras`
+    /// (`+0x980`) is under `get_caravan_limit(1)` and
+    /// `check_population(CARA)` says it fits. It is the stretch after
+    /// `do_queue` and the gather tiles, behind the Kremlin's spy and the
+    /// government hero and before the Terra Cotta's soldier, so the tick
+    /// calls it after the gather step and only for an active building.
+    ///
+    /// Not the graft and not the upgrade: the call names `CARA` itself.
+    /// The coverage pair's Persians: the Market `1/2018` completes on 661
+    /// and trains `1/15` on 667, its first slot as an active building.
+    pub(crate) fn persian_market_caravan(&mut self, b: usize, frame: i64) {
+        // The type itself, `== 0x1b4`, not its lineage: the record's own
+        // `Ident`.
+        let market = self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].ident == crate::build::Ident::Market);
+        if !market || self.buildings[b].phase(frame) % 15 != 0 {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let w = who as usize;
+        if w >= self.tech.len()
+            || !self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[w], power::PERSIANS)
+        {
+            return;
+        }
+        let caras = self.ai.get(w).map_or(0, |l| l.census.caras);
+        if caras >= self.caravan_limit(who) {
+            return;
+        }
+        let Some(rec) = self.unit_record(ty::CARA) else {
+            return;
+        };
+        let m = &self.muster[w];
+        if crate::cost::exceeds_population(m.cap, m.control, self.unit_types[rec].price.pop) {
+            return;
+        }
+        self.build_train(b, rec);
     }
 
     /// One arm: `n` copies of `base`'s line, each under `check_population`.
