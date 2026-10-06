@@ -50,6 +50,12 @@ pub(crate) struct Pair {
     /// so leader 1's site list agrees from block 1 (`docs/AI.md` §141). At
     /// 185, 22 draws a side, index 8: ours `Leader::produce_building+0x1805`,
     /// theirs `Leader::make_stuff+0x63d`.
+    /// **Item 1530 moved it from 185 to 583 (count and sequence)**:
+    /// `find_friends`' trainer arm reads the derived flag, so the second
+    /// Missile Silo `1/2021` stands where the original puts it on frame
+    /// 182 (`docs/AI.md` §143). At 583, ours 198 game draws against 5,
+    /// index 0: ours `PathFinder::calc_road_cost+0x46`, theirs `Farms::
+    /// inc_time+0x1ae`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -67,8 +73,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 377,
-    sequence: 185,
+    count: 583,
+    sequence: 583,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -379,7 +385,9 @@ fn run660_s_word_frame_is_widened_whole() {
     // block 1), the SITE ranks from 176 and the make list from 183: 132 before
     // item 1511. **97** since: the SITE list agrees on every block and frame
     // 177's three Village slots are two; what stands is the control's.
-    pin_eq!(w.firsts.len(), 97, "initial run660 baseline");
+    // **74** since item 1530: the Silo `1/2021` placed on frame 182 stands
+    // where the original puts it, and block 183's make list with it.
+    pin_eq!(w.firsts.len(), 74, "initial run660 baseline");
 }
 
 /// run669, item 1511: the lobby's blocks 180..436 at the long's detail —
@@ -417,5 +425,38 @@ fn run669_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 192, "initial run669 baseline");
+    // 192 before item 1530; **100** since: `find_friends`' trainer arm
+    // reads the derived flag, and the second Missile Silo agrees.
+    pin_eq!(w.firsts.len(), 100, "initial run669 baseline");
+    // **The move's value diff, block 183** (item 1530, `docs/AI.md` §143):
+    // the Silo `1/2021` stood at (36480, 41088) in ours against (41088,
+    // 37248) and agrees in every field now; the three buildings placed on
+    // 185 stand where the original's do (`1/2022`'s `job_counter` parts on
+    // 275, downstream).
+    assert!(
+        w.firsts.keys().all(|(who, b, _)| (*who, *b) != (1, 2021)),
+        "1/2021 agrees in every compared field"
+    );
+    for o in [2022, 2023, 2024] {
+        assert!(
+            w.firsts
+                .keys()
+                .all(|(who, b, f)| (*who, *b) != (1, o) || !f.ends_with("_internal")),
+            "1/{o} stands where the original's does"
+        );
+    }
+    assert!(
+        w.firsts
+            .keys()
+            .all(|(who, _, field)| *who != 1 || !field.starts_with("leader:MAKE")),
+        "leader 1's make list agrees on every block"
+    );
+    // What parts first now, on the same block: `1/10`'s order stack, four
+    // orders in ours against six (the next item's frame, not its cause).
+    let first = w.firsts.get(&(1, 10, "orders.len".to_string()));
+    pin_eq!(
+        first.map(|(f, _)| *f),
+        Some(183),
+        "1/10's order stack parts on block 183"
+    );
 }

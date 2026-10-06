@@ -128,13 +128,6 @@ pub(crate) fn is_enhancer(ident: Ident) -> bool {
     )
 }
 
-pub(crate) fn is_military_trainer(ident: Ident) -> bool {
-    matches!(
-        ident,
-        Ident::Barracks | Ident::Stable | Ident::SiegeFactory | Ident::Factory | Ident::AutoPlant
-    )
-}
-
 /// `grid_index_x`/`grid_index_y` (`.rdata`, VA `0xADECF0`/`0xADED30`): the
 /// order `space_at_corner` walks the sixteen tiles under a corner, as
 /// `(dx, dy)`. The centre 2×2 comes first, then the top row, the bottom
@@ -329,6 +322,15 @@ impl Sim {
             }
             let ni = self.building_ident(nb);
             let nt = self.buildings[nb].ty.map(|t| &self.build_types[t]);
+            // `BuildTypeData::is_military_trainer@0063bcf0` on both sides of
+            // the pair — the derived flag on the root, which holds the Dock,
+            // the Airbase and the Missile Silo beside the five land
+            // trainers. The five-ident list read here before item 1530 sent
+            // a second Silo to the "anything else" arm, where an Airbase
+            // beside it counts nothing (`docs/AI.md` §143).
+            let nb_trainer = self.buildings[nb]
+                .ty
+                .is_some_and(|t| crate::build::is_military_trainer(types, t));
             let nb_gather = nt.is_some_and(|t| t.has(flags::GATHER));
             let nb_wonder = ni == Ident::Wonder;
             let add = if d % 2 == 1 { 1 } else { 2 };
@@ -343,8 +345,8 @@ impl Sim {
                 if enhancing_good(ident).is_some() && enhancing_good(ident) == gather_good(ni) {
                     n += add;
                 }
-            } else if is_military_trainer(ident) {
-                if is_military_trainer(ni) && !self.building_is_city(nb) {
+            } else if crate::build::is_military_trainer(types, rec) {
+                if nb_trainer && !self.building_is_city(nb) {
                     n += add;
                 }
             } else if tower_like {
@@ -363,7 +365,7 @@ impl Sim {
                 // other non-wonder neighbour counts.
                 let nothing = (nb_gather && ni != Ident::University)
                     || is_enhancer(ni)
-                    || (is_military_trainer(ni) && !self.building_is_city(nb));
+                    || (nb_trainer && !self.building_is_city(nb));
                 if !nothing && !nb_wonder {
                     n += add;
                 }
@@ -1278,6 +1280,59 @@ mod tests {
             0,
             "another player's farms are nobody's friends"
         );
+    }
+
+    /// **A trainer's friends are the trainers the derived flag names**
+    /// (`find_friends`' second arm, `is_military_trainer` on both sides):
+    /// the flag on the root of the `FROM` chain, which holds the Dock, the
+    /// Airbase and the Missile Silo beside the land trainers. A Silo counts
+    /// an Airbase beside it, `+2` on a cardinal and `+1` on a diagonal, and
+    /// not a Library. The coverage pair's second Silo, `1/2021` on frame
+    /// 182, is this arm: read off a five-ident list it fell to the
+    /// "anything else" arm and went to (190, 214) where the original puts it
+    /// at (214, 194) (`docs/AI.md` §143).
+    #[test]
+    fn a_missile_silo_counts_the_trainers_the_derived_flag_names() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let mut ty = |ident: Ident, trainer: bool| {
+            let rec = sim.build_types.len();
+            sim.build_types.push(crate::build::BuildType {
+                ident,
+                x_size: 4,
+                y_size: 4,
+                hits: 100,
+                flags: if trainer { flags::MILITARY_TRAINER } else { 0 },
+                ..crate::build::BuildType::default()
+            });
+            rec
+        };
+        let silo = ty(Ident::MissileSilo, true);
+        let (airbase, library) = (ty(Ident::Airbase, true), ty(Ident::Other, false));
+        let mut put = |rec: usize, x: i32, y: i32| {
+            let pos = Pos::new(x * 768 + 384, y * 768 + 384);
+            let b = sim.add_building(1, pos, 8);
+            sim.buildings[b].ty = Some(rec);
+            let corner = sim.tile_corner(rec, pos);
+            for t in sim.footprint(rec, corner) {
+                sim.world
+                    .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+            }
+        };
+        // Around the candidate (20, 21): an Airbase on the cardinal above,
+        // one on the diagonal above-right, a Library on the cardinal left.
+        put(airbase, 20, 20);
+        put(airbase, 21, 20);
+        put(library, 19, 21);
+        let at = Cell::new(20, 21);
+        assert_eq!(
+            sim.find_friends(silo, at, None, 1),
+            3,
+            "the two Airbases, cardinal and diagonal; the Library is no trainer"
+        );
+        // Off the flag, the same Silo falls to the "anything else" arm: the
+        // Library counts and a non-city trainer is nothing.
+        sim.build_types[silo].flags = 0;
+        assert_eq!(sim.find_friends(silo, at, None, 1), 2, "the Library alone");
     }
 
     /// **A Keep's friends are a Tower's** (item 1377): `find_friends`'

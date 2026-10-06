@@ -8687,13 +8687,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // start (item 1466), frame 8 on run656 (item 1496), frame 177 on run660
     // (item 1505), and **185** on run669 (180..436), past run660's last
     // block; run660's test keeps the move's value diff on 171..184, run651's
-    // on block 1.
+    // on block 1. Item 1530 moved it to **583**, past run669's last block
+    // (436); run669's test keeps the move's value diff on block 183, and
+    // the word's widening is owed.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run669_s_word_frame_is_widened_whole"),
-        1511,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_185),
+        None,
+        1530,
+        None,
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
