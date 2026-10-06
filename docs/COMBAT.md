@@ -1511,7 +1511,9 @@ per-leader loop steps `0x6eec` (one `Leader`) while the cursor is `<
 before `Search::valid_search`. See `docs/ANIM.md` §6.1.
 
 `Object::valid_target` adds: a city that is capture-eligible is not attacked
-(the capture path takes it) unless the attacker is a `VEHICLE` **and** `WAR_MACHINE` (both masks; `docs/CITIES.md` §7.1)
+(the capture path takes it — **and the call itself is a `Build::check_capture`
+with the asker as the captor, unless the asker is a missile**, `Sim::valid_target`,
+`docs/AI.md` §145) unless the attacker is a `VEHICLE` **and** `WAR_MACHINE` (both masks; `docs/CITIES.md` §7.1)
 unit under a mandatory attack order on it, or a missile. `GroupData::
 valid_target` is "any captain in the group passes". `LeaderData::get_target`
 is the diplomatic target (the next in-play leader in start order), not a

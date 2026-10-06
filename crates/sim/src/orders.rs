@@ -2803,7 +2803,7 @@ impl Sim {
         Some(target)
     }
 
-    fn melee_squad_head(&self, u: usize) -> SquadHead {
+    fn melee_squad_head(&mut self, u: usize) -> SquadHead {
         if self.units[u].captain {
             return SquadHead::Search;
         }

@@ -2569,10 +2569,14 @@ impl Sim {
         if self.defeated[a as usize] {
             return false;
         }
-        if !matches!(u.kind.domain, crate::attrition::Domain::Land) || !u.alive() {
+        if !matches!(u.kind.domain, crate::attrition::Domain::Land) || !u.alive() || u.decoy {
             return false;
         }
-        if self.attack_of(Obj::Unit(unit)) == 0 {
+        if self.attack_of(Obj::Unit(unit)) == 0
+            || self
+                .profile(Obj::Unit(unit))
+                .has(crate::combat::mask::MISSILE)
+        {
             return false;
         }
         let Some(c) = self.buildings[b].city else {

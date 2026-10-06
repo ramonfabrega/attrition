@@ -2000,32 +2000,54 @@ mod tests {
         pin_eq!(e.frame, 15_433, "the closing block");
         // Item 1528: 189 units, none off, unlinked, torn or extra.
         pin_eq!(e.compared, 189, "units compared");
-        // **The seven buildings and six cities unlinked are the closing's
-        // own.** The six cities print `o -1` in a closing dump (the five
-        // computer cities and the human's), so none links by number — the
-        // count the third map's 24,001 row carries three of. The seven
-        // buildings are the human's city `0/2000`..`0/2006`, which the
+        // **The six cities unlinked are the closing's own, and the seven
+        // buildings of the human's city are linked** (item 1535). A closing
+        // dump prints each city as `x`/`y`/`pop`/`who` with `o -1`, so no
+        // city links by number — the count the third map's 24,001 row
+        // carries three of. The human's city `0/2000`..`0/2006` is what the
         // original's army **captures on frame 15432**, the game's last, and
-        // numbers `1/2056`..`1/2062`: block 15432 still has them under
-        // player 0. Ours holds them under player 0 at the closing and takes
-        // the city on frame **15473** — the `Build::process` re-test every 64
-        // frames phased by `o` — because `Object::valid_target`'s capture
-        // attempt (`docs/CITIES.md` §7.1's fourth caller) is not modelled.
-        // The draws agree to the end: a capture spends none.
-        pin_eq!(e.counts(), [0, 0, 0, 7, 0, 6, 0], "the closing counts");
+        // numbers `1/2056`..`1/2062` (block 15432 still has them under
+        // player 0); item 1528 left ours taking it on 15473, the
+        // `Build::process` re-test, because `Object::valid_target`'s capture
+        // attempt (`docs/CITIES.md` §7.1's fourth caller, `docs/AI.md`
+        // §145) was not modelled. It is, and ours takes the city on the
+        // original's frame: the seven buildings link and the counts hold
+        // only the six. The draws agree to the end: a capture spends none.
+        pin_eq!(e.counts(), [0, 0, 0, 0, 0, 6, 0], "the closing counts");
         pin!(e.torn.is_empty(), "no torn unit: {:?}", e.torn);
-        let mut held = None;
-        for _ in 0..200 {
-            built.tick();
-            if !built.sim.buildings.iter().any(|b| b.alive && b.owner == 0) {
-                held = Some(built.sim.frame);
-                break;
-            }
-        }
+        // The six cities by value, where they cannot link by number: the
+        // dump's five computer cities and the human's, all under player 1.
+        let mut theirs: Vec<(i64, i64, i64)> =
+            fin.cities.iter().map(|c| (c.who, c.x, c.y)).collect();
+        let mut ours: Vec<(i64, i64, i64)> = built
+            .sim
+            .cities
+            .iter()
+            .filter(|c| c.alive)
+            .map(|c| (i64::from(c.owner), i64::from(c.pos.x), i64::from(c.pos.y)))
+            .collect();
+        theirs.sort();
+        ours.sort();
+        pin_eq!(ours, theirs, "the closing's six cities, who and point");
+        pin!(
+            !built.sim.buildings.iter().any(|b| b.alive && b.owner == 0),
+            "the human holds no building at the closing"
+        );
         pin_eq!(
-            held,
-            Some(15_473),
-            "ours takes the human's city on this frame, 40 past the trace's end"
+            built.sim.city_tally[1].captured,
+            1,
+            "the army took one city, the human's"
+        );
+        pin_eq!(
+            built
+                .sim
+                .cities
+                .iter()
+                .filter(|c| c.alive && (c.pos.x, c.pos.y) == (6240, 30048))
+                .map(|c| c.capture_stamp)
+                .collect::<Vec<_>>(),
+            [15_432],
+            "ours takes the human's city on the original's frame"
         );
     }
 
