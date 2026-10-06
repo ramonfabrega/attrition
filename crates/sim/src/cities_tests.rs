@@ -6577,6 +6577,8 @@ fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
         sim.set_tribe(0, tribe);
+        // Three cities: past the limit a bare tree allows.
+        sim.tech[0].epoch[tech::Line::Civic as usize] = 3;
         let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
         let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
         let (_, c2) = city_at(&mut sim, &t, 0, 33, 33);

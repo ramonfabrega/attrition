@@ -8709,11 +8709,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // leader 1's counts on 668. Item 1544 moved it to **982**, past
     // run672's last block (833), and took run678 over 977..1233 (block
     // 983); run672's test keeps the move's value diff on `1/8` from 691.
+    // Item 1546 moved it to **1183**, inside run678 (block 1184); run678's
+    // test keeps the move's value diff on leader 1's make list on 982 and
+    // `1/2006`'s capital bit.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run678_s_word_frame_is_widened_whole"),
-        1544,
+        1546,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_982),
     ),
     (

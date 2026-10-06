@@ -80,6 +80,14 @@ pub(crate) struct Pair {
     /// `1/2020` on 690 as the original sends it (`docs/AI.md` §148). At
     /// 982, ours 562 game draws against 696, index 13: ours `Leader::
     /// produce_building+0xc99`, theirs `Leader::produce_building+0x1805`.
+    /// **Item 1546 moved it from 982 to 1183 (count and sequence)**: a
+    /// Persian's second city is a second capital (`Build::activate
+    /// @00623e20`'s tribe-bonus-`0x17` arm, `city_flags |= 0x10`), so
+    /// `1/2006`'s gather base is halved and its Mine offer no longer wraps
+    /// negative: leader 1 lists the Mine (419, 6,300,000) on 981 as the
+    /// original does (`docs/AI.md` §149). At 1183, ours 29 game draws
+    /// against 28, index 21: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    /// theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -97,8 +105,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 982,
-    sequence: 982,
+    count: 1183,
+    sequence: 1183,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -537,12 +545,23 @@ fn run672_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **109** on the tree item 1544 landed (247 on item 1539's, 355 on
-    // item 1532's). Block
+    // **107** on the tree item 1546 landed (109 on item 1544's, 247 on
+    // item 1539's, 355 on item 1532's): `1/2006`'s capital bit, standing
+    // from its founding on 612, agrees since item 1546. Block
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`).
-    pin_eq!(w.firsts.len(), 109, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 107, "initial run672 baseline");
+    // **The move's value diff, item 1546** (`docs/AI.md` §149): the
+    // Persians' second city `1/2006` carries `city_flags & 0x10` from its
+    // founding on block 612 in both.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2006, "city:city_flags[0x10]".to_string()))
+            .map(|(f, _)| *f),
+        None,
+        "1/2006 is a capital in both"
+    );
     // **The move's value diff** (`docs/AI.md` §144): the University
     // `1/2009` replanned its road on 583 in ours, flagged by the Barracks
     // `1/2022`'s activation on 568 where the original's came on 567, a
@@ -634,8 +653,9 @@ pub(crate) const RUN678: &str = "gamelog-run678-eastindies-persian-alltech-windo
 pub(crate) const WIDENING_COVERAGE_FRAME_982: (i64, i64) = (977, 1233);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run678 walked from run651's start with the recorder on. It holds the
-/// word 982 (item 1544), block 983.
+/// run678 walked from run651's start with the recorder on. It held the
+/// word 982 (item 1544), block 983, and holds the word 1183 (item 1546),
+/// block 1184.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -645,7 +665,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN678, 977)],
         WIDENING_COVERAGE_FRAME_982,
         1,
-        &[983],
+        &[983, 1184],
         true,
     )
 }
@@ -662,15 +682,29 @@ fn run678_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **1378** on the tree item 1544 landed; 99 stand from the window's
-    // first block.
-    pin_eq!(w.firsts.len(), 1378, "initial run678 baseline");
-    // **What parts first past the standing block**: the new citizen
-    // `1/24`'s `form` on 979, then leader 1's make list on 982 —
-    // `MAKE[3].t` and `MAKE[4].t` 417 in ours against 419 — and on **the
-    // word's block, 983**, the site `1/2025` stands at (35712, 35904) in
-    // ours against (34368, 35136): the word 982's spiral draws ours 562
-    // against 696, the original's jitter from index 13.
+    // **307** on the tree item 1546 landed (1,378 on item 1544's); 98
+    // stand from the window's first block — `1/2006`'s capital bit no
+    // longer among them.
+    pin_eq!(w.firsts.len(), 307, "initial run678 baseline");
+    // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
+    // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
+    // in both — ours held the Farm (417, 2,520,000) — and the site
+    // `1/2025` stands where the original's does; the list parts again on
+    // 1186. `1/2006`'s capital bit (standing from 977) agrees.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2006, "city:city_flags[0x10]".to_string()))
+            .map(|(f, _)| *f),
+        None,
+        "1/2006 is a capital in both"
+    );
+    // **What parts first past the standing block**: the citizen `1/24`'s
+    // `form` on 979, then the queue prices on 983 a unit under (`1/2022`,
+    // `1/2024`: the bucket residue standing from 977). On **the word's
+    // frame, 1183**, the citizen `1/26` (`TypeIndex` 50, `PEASANTS`) holds
+    // one order (kind 6) at (36478, 34118) against the original's two
+    // (kind 3, (42936, 34104), a path of 8), and on the word's block 1184
+    // it stands at x 36478 against 36502: the word's extra `Guy::move`.
     let first = w
         .firsts
         .values()
@@ -686,14 +720,26 @@ fn run678_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(1, -1, "leader:MAKE[3].t".to_string()))
             .map(|(f, _)| *f),
-        Some(982),
-        "leader 1's make list parts on block 982"
+        Some(1186),
+        "leader 1's make list agrees on 982 and parts on block 1186"
     );
     pin_eq!(
         w.firsts
             .get(&(1, 2025, "build:x_internal".to_string()))
             .map(|(f, _)| *f),
-        Some(983),
-        "and on the word's block the site 1/2025 stands elsewhere"
+        None,
+        "the site 1/2025 stands where the original's does"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 26, "order:kind".to_string()))
+            .map(|(f, _)| *f),
+        Some(1183),
+        "the word's citizen 1/26 holds another order on block 1183"
+    );
+    pin_eq!(
+        w.firsts.get(&(1, 26, "pos".to_string())).map(|(f, _)| *f),
+        Some(1184),
+        "and stands elsewhere on the word's block 1184"
     );
 }
