@@ -265,6 +265,11 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_15213: (i64, i64) = (15_207, 15_
 /// **The word's block, 15214**: frame 15213 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_15214: i64 = 15_214;
 
+/// run666: run664's game with `AMMO=5` added to the detail, over the blocks
+/// 15196..15230 (item 1522) — the only capture on disk that prints the
+/// original's own rounds on the third map.
+pub(crate) const TOUGHEST_WORD_15213_AMMO: &str = "gamelog-run666-greatsahara-toughest-ammo.txt";
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -1772,6 +1777,95 @@ mod tests {
         );
     }
 
+    /// **Three of Great Sahara's five Bombard rounds strike nothing: their
+    /// shooters are decoys** (item 1522, `docs/AI.md` §139). run666 prints
+    /// the original's rounds (`AMMO=5`): `1/139`'s lands on 15198, `1/96`'s
+    /// on 15209, `1/95`'s on 15213, `1/106`'s on 15217 and `1/84`'s on
+    /// 15224, every one on `0/2000` with the same flight. The building's
+    /// `damage` moves by 135 on 15198 and 15224 and by nothing on the other
+    /// three, and the three that do nothing are the three whose shooter
+    /// has `unit_masks & 1` — `Object::do_damage`'s decoy return. The test
+    /// reads the dump alone; the code's walk is `run664`'s and `run470`'s.
+    #[test]
+    fn run666_s_decoy_rounds_strike_nothing() {
+        let Some(path) = dump(TOUGHEST_WORD_15213_AMMO) else {
+            eprintln!("skipping: no run666 (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let _pins = Pins::hold();
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        // Each shooter's last flight block: `cur_time` one short of the
+        // `total_time` — the frame that block is numbered by is the landing's.
+        let mut landing: std::collections::BTreeMap<i64, i64> = Default::default();
+        for f in 15_196..=15_230 {
+            let Some(at) = ix.frames().iter().position(|x| x.number == f) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            for (a, _) in crate::diff::ammo::blocks(&body) {
+                pin_eq!((a.who, a.whom, a.ox), (1, 0, 2000), "a round on 0/2000");
+                pin_eq!(a.total_time, 11, "every flight is eleven frames");
+                if a.cur_time == a.total_time - 1 {
+                    landing.insert(a.o, f);
+                }
+            }
+        }
+        pin_eq!(
+            landing.iter().map(|(o, f)| (*o, *f)).collect::<Vec<_>>(),
+            [
+                (84, 15_224),
+                (95, 15_213),
+                (96, 15_209),
+                (106, 15_217),
+                (139, 15_198)
+            ],
+            "the five rounds and the frame each lands on"
+        );
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let at = |n: i64| {
+            log.dumps()
+                .into_iter()
+                .find(|(f, _)| *f == n)
+                .or_else(|| log.frames().into_iter().find(|(f, _)| *f == n))
+                .map(|(_, b)| crate::gamelog::records(b, false))
+                .unwrap_or_default()
+        };
+        let village = |n: i64| {
+            at(n)
+                .1
+                .iter()
+                .find(|b| (b.who, b.o) == (0, 2000))
+                .and_then(|b| b.damage)
+        };
+        // The block numbered by the landing frame is the state before it,
+        // the next is the state after.
+        let rows: Vec<(i64, bool, i64)> = landing
+            .iter()
+            .map(|(o, f)| {
+                let decoy = at(*f)
+                    .0
+                    .iter()
+                    .find(|u| (u.who, u.o) == (1, *o))
+                    .and_then(|u| u.unit_masks)
+                    .map(|m| m & 1 != 0)
+                    .expect("the shooter is on its landing block");
+                (*o, decoy, village(f + 1).unwrap() - village(*f).unwrap())
+            })
+            .collect();
+        pin_eq!(
+            rows,
+            [
+                (84, false, 135),
+                (95, true, 0),
+                (96, true, 0),
+                (106, true, 0),
+                (139, false, 135)
+            ],
+            "shooter, decoy bit, and what the round took off 0/2000"
+        );
+    }
+
     /// **The word 15213, widened whole** (item 1517):
     /// [`great_sahara_toughest_15213_window`] over run664's blocks
     /// 15207..15230, both directions, every record run584's detail prints.
@@ -1804,24 +1898,27 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(15207, 92), (15210, 2), (15214, 1)],
+            [(15207, 92)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 302, "every key parted on run664");
+        pin_eq!(w.firsts.len(), 92, "every key parted on run664");
         // **The word 15213's block, 15214** (item 1517, `docs/AI.md` §137):
         // ours 8 draws against 7, parting at index 4 — ours
-        // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. The
-        // window's first parting past the 92 that stand is **two keys on
-        // block 15210**, frame 15209: Player 0's building `0/2000`'s
-        // `damage` 270 against 135 and `city_flags[0x4]` 1 against 0; the
-        // word's own block 15214 parts on one, `0/2005`'s `damage` 1
-        // against 0. No mechanism is booked.
+        // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. Item
+        // 1522 (`docs/AI.md` §139) found the cause: `1/96`, `1/95` and
+        // `1/106` are a General's Bombard decoys (`unit_masks & 1`), and
+        // `Object::do_damage` returns at once for a decoy attacker, so their
+        // rounds strike nothing; this crate struck `0/2000` for 135 on 15209
+        // and 15213 (and the first-wound draw on `0/2005`). With the gate the
+        // window parts on **nothing** past the 92 that stand: the 302 keys
+        // are 92, the two on 15210 and the one on 15214 are gone, and the
+        // word moved to 15275, past every block on disk.
         pin_eq!(
             w.firsts
                 .iter()
                 .filter(|((who, o, _), (f, _))| (*who, *o, *f) == (0, 2005, 15_214))
                 .count(),
-            1,
+            0,
             "0/2005's key on the word's block"
         );
     }

@@ -1395,6 +1395,42 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
         }
         sim::combat::Obj::Building(b) => format!("b{b}"),
     };
+    // Every building whose whole-hit `damage` or sixteenths changed since
+    // the last frame printed, with its index, owner and slot (item 1522:
+    // which round struck `0/2000`, and when).
+    {
+        use std::sync::Mutex;
+        static LAST: Mutex<Vec<(i32, i32)>> = Mutex::new(Vec::new());
+        let mut last = LAST.lock().unwrap();
+        let n = built.sim.buildings.len().max(last.len());
+        last.resize(n, (0, 0));
+        for (i, b) in built.sim.buildings.iter().enumerate() {
+            if last[i] != (b.damage, b.damage_frac) {
+                eprintln!(
+                    "  f{frame} bld b{i} {}/{} damage {} frac {} (was {} {})",
+                    b.owner, b.index, b.damage, b.damage_frac, last[i].0, last[i].1
+                );
+                last[i] = (b.damage, b.damage_frac);
+            }
+        }
+        for p in &built.sim.projectiles {
+            if let Some(sim::combat::Obj::Building(b)) = p.target {
+                let tp = built.sim.profile(sim::combat::Obj::Building(b));
+                eprintln!(
+                    "  f{frame} tgt b{b} pos {:?} x_size {} y_size {} hit_target {}",
+                    built.sim.buildings[b].pos,
+                    tp.x_size,
+                    tp.y_size,
+                    sim::combat::hits_building(
+                        p.landing,
+                        built.sim.buildings[b].pos,
+                        tp.x_size,
+                        tp.y_size
+                    )
+                );
+            }
+        }
+    }
     for p in &built.sim.projectiles {
         let tpos = p.target.and_then(|t| match t {
             sim::combat::Obj::Unit(u) => Some(built.sim.units[u].pos),
