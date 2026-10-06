@@ -3706,6 +3706,66 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
     );
 }
 
+/// **A siege engine's unpack sets the unit's angle to guy 0's, and every crew
+/// figure's `des_angle` from it** (item 1517, `docs/AI.md` §137).
+///
+/// `Unit::do_cast@005ebfe0`'s unpack arm calls `Unit::set_angle(guy 0's
+/// angle)` at `005ecbe0` for **every** unit that unpacks — the rare
+/// collector's `good_merchant_spot` and snap sit in front of it, and its
+/// `jmp` target is the same instruction. A Bombard that has just arrived
+/// and still owes a turn to its march heading (unit angle NORTH, guy 0's
+/// body still EAST) unpacks facing EAST: the unit's own angle is brought
+/// back to the figure's, the tracked crew figure's `des_angle` follows, and
+/// nobody turns. Great Sahara at Toughest's frame 15101 (`1/96`).
+#[test]
+fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
+    use crate::orders::{Body, QueuePos};
+    let mut sim = skirmish(0);
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        ..crate::UnitType::default()
+    });
+    sim.unit_types[ty].combat.packs = true;
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.ty = Some(ty);
+    u.guys = vec![
+        anim::Guy::fresh(1),
+        anim::Guy::fresh(2),
+        anim::Guy::fresh(3),
+        anim::Guy::fresh(4),
+    ];
+    let unit = sim.add_unit(u);
+    sim.art.tracks.insert(3, (163, -24));
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    sim.units[unit].combat.packed = true;
+    // The unit's own angle is ahead of the figure's: a turn still owed.
+    sim.units[unit].movement.heading = movement::Angle::NORTH;
+    assert_ne!(
+        sim.units[unit].movement.heading,
+        sim.units[unit].movement.facing,
+        "the figure is behind the unit"
+    );
+    sim.add_cast_order_at(unit, crate::orders::spell::UNPACK, QueuePos::New);
+    let Some(Body::Cast(c)) = sim.current_order(unit).map(|o| o.body) else {
+        panic!("a cast order")
+    };
+    sim.do_cast(unit, c);
+    let facing = sim.units[unit].movement.facing;
+    assert_eq!(facing, movement::Angle::EAST, "guy 0 did not turn");
+    assert_eq!(
+        sim.units[unit].movement.heading, facing,
+        "the unit's angle is guy 0's, not the march's"
+    );
+    assert_eq!(
+        sim.units[unit].guys[2].follow.unwrap().des_angle,
+        facing,
+        "and the tracked figure's des_angle follows it"
+    );
+    assert_eq!(sim.units[unit].guys[0].anim, anim::UNPACK, "and unpacks");
+}
+
 /// **Three of the six resources are not available from the start, and until
 /// they are, a price written in one of them is charged somewhere else**
 /// (`docs/COSTS.md`, "Three of the six resources are not available from the
