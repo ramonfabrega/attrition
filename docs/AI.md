@@ -16284,3 +16284,8 @@ neighbour's flag read off the old list (an Airbase, Silo or Dock no trainer) —
 `is_gather_enhancer@00472b50` asks `is(…, 0)` of four lines — the same shape as the list replaced here; no walk parts on it.
 That the Senate's `+2` was the margin that chose (47, 53) is a reading of the arm, not a printed score: what is diff-backed is that
 the derived flag moves the Silo to the original's cell.
+
+## 144. Reserved for item 1532 (the coverage pair's frame 583)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

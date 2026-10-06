@@ -24,29 +24,29 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   lane. The roster is the user's word of 2026-10-06: the mix runs once
   more, judged at the twenty-sixth pass, with 1464's trial and 1139.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): the French
-  pair closed on 1519; 1511 put its row in `AI_WORDS`, at 185.
+  pair closed on 1519; 1511 put its row in `AI_WORDS`; 583 since 1530.
 - **Built**: `lanewait` wakes on a push only when the row has stopped;
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
   a merge-moved pin is no kill, the push is read back, a section stub lands.
-- **Fable backlog: 22 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529).
+- **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w185 of 4,730
+Coverage pair: EastIndiesPersianAllTech w583 of 4,730
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15378 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1530 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1532 on Opus 5.5 and 1528 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1530) and the third map's (1528); 1497 waits for a free lane,
+pair's (1532) and the third map's (1528); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -58,13 +58,14 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     change beside 0/2000's `reduce_stamp`, which nothing here writes.
     54 frames from the game's end (DECISIONS 55). No mechanism.
 
-1530. **The coverage pair's word: frame 185, 22 versus 22 draws in
-    another order**, index 8: ours `Leader::produce_building+0x1805`,
-    theirs `Leader::make_stuff+0x63d`; the count parts on 377. run669
-    widens it; the state first parts on block 183: Missile Silo 1/2021
-    at (36480, 41088) ours, (41088, 37248) theirs; 1/2002's
-    `gather_down` 14 against −1; on 186, `MAKE[2]`/`MAKE[3]`'s `t`
-    swapped. §129 left the Silo's own offer unread. No mechanism.
+1532. **The coverage pair's word: frame 583, 198 versus 5 draws**,
+    index 0: ours `PathFinder::calc_road_cost+0x46`, theirs
+    `Farms::inc_time+0x1ae`; both search a caravan road on 582, ours
+    again on 583. No East Indies coverage capture holds 583 (run669 ends
+    at 436): a capture
+    over 577..833 widens it first. The state first parts on block 183:
+    1/10's order stack, 4 against 6 — ours three Builds behind one
+    `ExploreTo`, theirs each behind its own. No mechanism.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

@@ -8689,12 +8689,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // block; run660's test keeps the move's value diff on 171..184, run651's
     // on block 1. Item 1530 moved it to **583**, past run669's last block
     // (436); run669's test keeps the move's value diff on block 183, and
-    // the word's widening is owed.
+    // the word's widening is owed — item 1532's, booked with 1530's landing.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         None,
-        1530,
+        1532,
         None,
     ),
     (

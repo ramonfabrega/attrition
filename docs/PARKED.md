@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1530, 2026-10-06 — the Missile Silo's site
+
+(1533) **`find_friends`' enhancer test**: ours reads `is_enhancer` (four
+idents) where the original's `is_gather_enhancer` (`00472b50`) asks four
+lines; 1530 replaced the shape it touched and no walk parts on the rest.
+
 ## Parked by item 1511, 2026-10-06 — Electronics sees everywhere
 
 (1531) **What 1511 left standing**: the Space Program arm it built is
@@ -3697,6 +3703,13 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1534) **A name the original spells once, defined twice in `sim`**
+(1530's Loop line, 2026-10-06): §129 replaced a five-ident
+`is_military_trainer` list in one module and left its twin in
+`ai_place.rs` for twenty items. A guard that greps `crates/sim` for a
+second `fn <name>` of a name the export defines once would have named
+it. One reach.
 
 (1529) **The runner refuses an `--end-frame` past the game's own end**
 (1524's Loop line, 2026-10-06): its receipt counts frames to `end + 1`,
