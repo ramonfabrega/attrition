@@ -66,6 +66,13 @@ use crate::{Player, Sim, cost};
 pub const SITE_STRIDE: &str = "Leader::compute_sites+0x4ac";
 pub const SITE_MARK: &str = "Leader::compute_sites+0x50a";
 
+/// `FOUCHE`, `TypeIndex` 371: the unit type whose count `WorldData::was_seen`
+/// reads as `num_units[0x141]`. `num_units` starts at `BASE_UNITTYPES` (50):
+/// `Leader::unit_prod_value@006cc580` walks it beside the unit-type list from
+/// offset `200 = 0x32 × 4`, so slot `0x141` is `TypeIndex` 50 + 321 — not
+/// `TRANSPORTGALLEON` (321), the reading the floors killed (`docs/AI.md` §141).
+const FOUCHE: i32 = 0x32 + 0x141;
+
 /// `move_x[0..25]` / `move_y[0..25]` — read from `.rdata` at `0x00adcaf0`
 /// and `0x00adc400` (`?move_x@@3QBHB` / `?move_y@@3QBHB` in `rise_z.map`,
 /// `compass.obj`). Entry 0 is the centre, 1..8 the compass ring, 9..24 the
@@ -142,9 +149,9 @@ impl Sim {
     /// scores them because `reg_cities[home] == 1`. The fog grid is the
     /// dump's start-of-game snapshot (`World::seen2`); with none loaded
     /// the last arm answers true, which is the reading the flat world
-    /// always had. Not modelled: the three leader exits (no flags, no
-    /// `0x141` in any run) and `reg_forts` (the census does not keep it;
-    /// no fort stands in any capture at the sweep).
+    /// always had. The three leader exits are [`Sim::sees_every_cell`]'s
+    /// (`docs/AI.md` §141). Not modelled: `reg_forts` (the census does not
+    /// keep it; no fort stands in any capture at the sweep).
     /// `LeaderData +0x125e[region]` — a **leader's** count of cities in a
     /// region, which is what `was_seen`'s territory shortcut reads.
     ///
@@ -176,7 +183,7 @@ impl Sim {
     /// (`(fy >> 1) * xs + (fx >> 1)` at `006b5460`), not the half-cell, so
     /// it is the same answer for all four samples of a cell.
     pub(crate) fn was_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
-        if self.lobby.reveal_map > 1 || who > 7 {
+        if self.lobby.reveal_map > 1 || who > 7 || self.sees_every_cell(who) {
             return true;
         }
         let cell = Cell::new(fx >> 1, fy >> 1);
@@ -192,6 +199,46 @@ impl Sim {
         };
         let mask = self.ai[who as usize].census.ally_mask | (1 << who);
         u32::from(bits) & mask != 0
+    }
+
+    /// `WorldData::was_seen@006b53f0`'s leader arm, ahead of the territory
+    /// shortcut and the fog: `leader_flags & 0x1000`, `& 0x800`, or
+    /// `num_units[0x141]` — any of them, and every cell is seen.
+    ///
+    /// - **`0x1000`** is `EXPLORE_MAP_BONUS` held: `Leader::gain_tech@006dcb60`
+    ///   raises it when the tech gained is the bonus's `preq0`
+    ///   ([`crate::tech::Roles::explore_map_preq`], Electronics), and
+    ///   `fix_tech_flags@006d2480` sets or clears it from `has_tech` of the
+    ///   same tech. A tech is never lost here, so holding it is the bit.
+    /// - **`0x800`** is `REVEAL_ENEMY_BONUS`'s `preq0` (`disable` in the
+    ///   shipped file) or the **Space Program** (`has_wonder(0x21e)`, which
+    ///   `gain_tech` tests on every gain and `fix_tech_flags` on a loss).
+    ///   Read live: a Space Program lost before the next tech gain keeps the
+    ///   original's bit and not this one — no capture holds one.
+    /// - **`num_units[0x141]`**, a **Fouché** standing ([`FOUCHE`]; the
+    ///   count is read live, as the original keeps it). No capture holds one.
+    ///
+    /// The coverage pair's All Technologies start owns Electronics on frame
+    /// 0, so its AI scores every cell of a site's 5×5 as seen — the water
+    /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
+    /// §141).
+    pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
+        let w = who as usize;
+        let Some(tech) = self.tech.get(w) else {
+            return false;
+        };
+        let roles = &self.tech_tree.roles;
+        let holds =
+            |t: Option<TypeId>| t.is_some_and(|t| self.tech_tree.has_tech(&self.setup, tech, t));
+        if holds(roles.explore_map_preq) || holds(roles.reveal_enemy_preq) {
+            return true;
+        }
+        if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
+            return true;
+        }
+        self.units
+            .iter()
+            .any(|u| u.owner == who && u.alive() && u.type_index == FOUCHE)
     }
 
     /// `WorldData::is_ocean@006b4830`: **the cell's own kind**, not its
