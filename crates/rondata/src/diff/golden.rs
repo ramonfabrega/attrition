@@ -8918,20 +8918,7 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
 // next `Group::action_move_near`/`action_form` layout (none in run285),
 // `orders_x` by `Unit::check_target_path@005e22d0` (nothing targets
 // these squads).
-const WANT_CH24: &[&str] = &[
-    "856 0/11 orders_x",
-    "856 0/11 orders_y",
-    "856 0/12 orders_x",
-    "856 0/12 orders_y",
-    "1060 0/14 orders_x",
-    "1060 0/14 orders_y",
-    "1060 0/15 orders_x",
-    "1060 0/15 orders_y",
-    "1272 0/17 orders_x",
-    "1272 0/17 orders_y",
-    "1272 0/18 orders_x",
-    "1272 0/18 orders_y",
-];
+const WANT_CH24: &[&str] = &[];
 
 // **What parts in the pool** on run285. ~~All pushes this crate does not
 // seat: the building group `[2007]` in slot 1 on 622 and slot 3 on 1302,
@@ -9023,16 +9010,7 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
 // **Readers**: `form` by the next `Group::action_move_near`/`action_form`
 // layout (none in run292), `orders_x` by `Unit::check_target_path@
 // 005e22d0` (nothing targets these squads).
-const WANT_CH25: &[&str] = &[
-    "965 0/11 orders_x",
-    "965 0/11 orders_y",
-    "965 0/12 orders_x",
-    "965 0/12 orders_y",
-    "1216 0/14 orders_x",
-    "1216 0/14 orders_y",
-    "1216 0/15 orders_x",
-    "1216 0/15 orders_y",
-];
+const WANT_CH25: &[&str] = &[];
 
 // **What parts in the pool** on run292. ~~The first walk: 622's record
 // `o` and the squad this crate trained alone on 856.~~ **The cancel
@@ -9050,7 +9028,7 @@ const WANT_CH25: &[&str] = &[
 // This crate's `open_slot` has no such side effect (the pool lane's code,
 // not built here). Its reader is `UnitData::get_speed@00608720`'s group
 // cap on a moving member, and the squad does not move in run292.
-const WANT_CH25_POOL: &[&str] = &["982 slot 0 new_speed", "982 slot 0 speed"];
+const WANT_CH25_POOL: &[&str] = &[];
 
 /// **run296 whole, both directions** (item 883, `docs/GOLDEN.md` §35):
 /// every dumped record on every block of the capture, and the pool.
@@ -9129,12 +9107,7 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
 // `SCIENCE_LOS`, which this crate computed on read and the original caches
 // in `Unit::update_los@0060e4d0`, refreshed a block after the gain. It
 // agrees since item 1354 made `mylos` the cache (`docs/VISION.md` §2).
-const WANT_CH26: &[&str] = &[
-    "1106 0/11 orders_x",
-    "1106 0/11 orders_y",
-    "1106 0/12 orders_x",
-    "1106 0/12 orders_y",
-];
+const WANT_CH26: &[&str] = &[];
 
 // **What parts in the pool** on run296. ~~The first walk: the Library's
 // building group `[2005]` in slot 1 from 622 there and not here, so the
@@ -9219,16 +9192,7 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
 // **`Unit::init@00612100`'s** (parked 646), chapter twenty-six's shape:
 // `form` on every non-citizen it makes (611, 615, 617, and the squads on
 // 1111 and 1307) and the followers' tile-centred `orders_x/y`.
-const WANT_CH27: &[&str] = &[
-    "1111 0/14 orders_x",
-    "1111 0/14 orders_y",
-    "1111 0/15 orders_x",
-    "1111 0/15 orders_y",
-    "1307 0/17 orders_x",
-    "1307 0/17 orders_y",
-    "1307 0/18 orders_x",
-    "1307 0/18 orders_y",
-];
+const WANT_CH27: &[&str] = &[];
 
 // **What parts in the pool** on run300. ~~The first walk: the extra
 // Slinger squad's seat on 1103.~~ **The queue loop built**: what stands is
@@ -9332,28 +9296,7 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
 // every `group` agrees, as every queue, bucket and `build_masks` did on
 // the first walk. What stands is `Unit::init@00612100`'s (parked 646):
 // `form` on every birth and the followers' tile-centred `orders_x/y`.
-const WANT_CH28: &[&str] = &[
-    "825 0/11 orders_x",
-    "825 0/11 orders_y",
-    "825 0/12 orders_x",
-    "825 0/12 orders_y",
-    "876 0/14 orders_x",
-    "876 0/14 orders_y",
-    "876 0/15 orders_x",
-    "876 0/15 orders_y",
-    "1067 0/17 orders_x",
-    "1067 0/17 orders_y",
-    "1067 0/18 orders_x",
-    "1067 0/18 orders_y",
-    "1126 0/20 orders_x",
-    "1126 0/20 orders_y",
-    "1126 0/21 orders_x",
-    "1126 0/21 orders_y",
-    "1324 0/23 orders_x",
-    "1324 0/23 orders_y",
-    "1324 0/24 orders_x",
-    "1324 0/24 orders_y",
-];
+const WANT_CH28: &[&str] = &[];
 
 // **What parts in the pool** on run304. ~~The first walk: 642, slot 0
 // `held`, theirs `[2007, 2008]` and ours empty, and every seat after it
@@ -9460,15 +9403,7 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
 // (11616, 13920), theirs the quarter-tile centre (11640, 13944) —
 // `Unit::init@00612100`'s seat (parked 646), the point's one writer; the
 // plane never leaves the base, so nothing reads it on the run.
-const WANT_CH29: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-];
+const WANT_CH29: &[&str] = &[];
 
 // **What parts in the pool** on run308: chapter twenty-two's ten. The
 // press's building group `[2007]` is seated by both sides on 1542.
@@ -12172,27 +12107,6 @@ const WANT_CH30: &[&str] = &[
     "856 0/11 order:group.id",
     "856 0/12 order:group.id",
     "856 0/13 order:group.id",
-    "953 0/14 g.des_x[0]",
-    "953 0/14 g.des_y[0]",
-    "953 0/14 g.x[0]",
-    "953 0/14 g.y[0]",
-    "953 0/14 orders_x",
-    "953 0/14 orders_y",
-    "953 0/14 pos",
-    "953 0/15 g.des_x[0]",
-    "953 0/15 g.des_y[0]",
-    "953 0/15 g.x[0]",
-    "953 0/15 g.y[0]",
-    "953 0/15 orders_x",
-    "953 0/15 orders_y",
-    "953 0/15 pos",
-    "953 0/16 g.des_x[0]",
-    "953 0/16 g.des_y[0]",
-    "953 0/16 g.x[0]",
-    "953 0/16 g.y[0]",
-    "953 0/16 orders_x",
-    "953 0/16 orders_y",
-    "953 0/16 pos",
 ];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's
@@ -12429,15 +12343,7 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
 // birth on 1746, `form` and its seat — ours the base's own (11616,
 // 13920), theirs (11640, 13944) — `Unit::init@00612100`'s (parked 646).
 // It leaves on 1747 on the EXIT, where both sides agree.
-const WANT_CH32: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-];
+const WANT_CH32: &[&str] = &[];
 
 // **What parts in the pool** on run344: chapter twenty-two's ten, as
 // chapter twenty-nine's.
@@ -12551,16 +12457,7 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
 // `Unit::kill_current_order@005e2cb0`'s move branch, and the order the
 // EXIT kills, are not read (the EXIT's own `set_angle(0)` turns 6° and
 // cannot flip it).
-const WANT_CH33: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-    "2314 0/6 mirror",
-];
+const WANT_CH33: &[&str] = &["2314 0/6 mirror"];
 
 // **What parts in the pool** on run358: chapter twenty-two's ten, and
 // slot 1's `facing` on 2314.
@@ -12861,17 +12758,7 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
 /// detail does not print (no `DEATHS`), on the blocks after the ring
 /// kills them on both sides; and two citizens' animation clocks on
 /// 617..655, a residue outside the nuke that moves no draw.
-const WANT_CH37: &[&str] = &[
-    "3022 0/10 g.des_x[0]",
-    "3022 0/10 g.des_y[0]",
-    "3022 0/10 g.x[0]",
-    "3022 0/10 g.y[0]",
-    "3022 0/10 orders_x",
-    "3022 0/10 orders_y",
-    "3022 0/10 pos",
-    "3218 0/6 death:extra",
-    "3227 0/7 death:extra",
-];
+const WANT_CH37: &[&str] = &["3218 0/6 death:extra", "3227 0/7 death:extra"];
 
 /// Chapter thirty-seven's pool rows (item 1091): the research's building
 /// group on 617, `ox`/`oy` 0 against −1.
@@ -13257,7 +13144,7 @@ const WANT_CH49: &[&str] = &[
     "943 0/7 death:extra",
 ];
 
-const WANT_CH49_POOL: &[&str] = &["702 slot 0 new_speed", "702 slot 0 speed"];
+const WANT_CH49_POOL: &[&str] = &[];
 
 /// **Chapter fifty** — three arms the unit tests hold and no walk
 /// (`docs/GOLDEN.md` §59, item 1404, run577): a Stockade's arrow at the
@@ -14458,16 +14345,9 @@ const WANT_CH40: &[&str] = &[
 /// Citizen in form 9, and parting on 802, where the `@spell`'s group reads
 /// −1 in the original and 9 here.
 const WANT_CH40_POOL: &[&str] = &[
-    "662 slot 3 new_speed",
-    "662 slot 3 speed",
-    // Item 1330: from 802, not 702: the Militia `0/7`'s group reads 9
-    // through 801 on both sides now, and the original's `@spell` on 800
-    // resets the record's `form` to −1 where ours keeps 9.
     "802 slot 4 form",
     "882 slot 4 new_speed",
     "882 slot 4 speed",
-    "702 slot 2 new_speed",
-    "702 slot 2 speed",
 ];
 
 /// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
@@ -15111,61 +14991,6 @@ const WANT_CH38: &[&str] = &[
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
 /// (+24, +24: parked 646's family, run371's `0/10` again).
 const WANT_CH36: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-    "2431 0/10 g.des_x[0]",
-    "2431 0/10 g.des_y[0]",
-    "2431 0/10 g.x[0]",
-    "2431 0/10 g.y[0]",
-    "2431 0/10 orders_x",
-    "2431 0/10 orders_y",
-    "2431 0/10 pos",
-    "2446 0/11 mirror",
-    "2659 0/12 dest_angle",
-    "2659 0/12 g.des_x[0]",
-    "2659 0/12 g.des_y[0]",
-    "2659 0/12 g.last_z[0]",
-    "2659 0/12 g.x[0]",
-    "2659 0/12 g.y[0]",
-    "2659 0/12 g.z[0]",
-    "2659 0/12 order:move.angle",
-    "2659 0/12 pos",
-    "2719 0/12 angle:Heading",
-    "2719 0/12 g.des_angle[0]",
-    "2719 0/12 heading",
-    "2720 0/12 angle:Facing",
-    "2720 0/12 g.angle[0]",
-    "2926 0/14 g.des_x[0]",
-    "2926 0/14 g.des_y[0]",
-    "2926 0/14 g.x[0]",
-    "2926 0/14 g.y[0]",
-    "2926 0/14 orders_x",
-    "2926 0/14 orders_y",
-    "2926 0/14 pos",
-    "2931 0/15 g.des_x[0]",
-    "2931 0/15 g.des_y[0]",
-    "2931 0/15 g.x[0]",
-    "2931 0/15 g.y[0]",
-    "2931 0/15 orders_x",
-    "2931 0/15 orders_y",
-    "2931 0/15 pos",
-    // **The rounds' fields, compared from item 1257**: chapter
-    // thirty-five's two families on the same start — the Bombers'
-    // `accuracy` (0 here) and the targets cleared on 1080.
-    "935 0/8 ammo[2].accuracy",
-    "936 0/8 ammo[3].accuracy",
-    "939 0/8 ammo[0].accuracy",
-    "942 0/8 ammo[1].accuracy",
-    "980 0/7 ammo[0].accuracy",
-    "981 0/7 ammo[1].accuracy",
-    "984 0/7 ammo[2].accuracy",
-    "987 0/7 ammo[3].accuracy",
-    "995 0/7 ammo[5].accuracy",
     "1000 0/7 ammo[7].accuracy",
     "1003 0/7 ammo[6].accuracy",
     "1061 0/8 ammo[5].accuracy",
@@ -15184,6 +15009,19 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
+    "2446 0/11 mirror",
+    "2659 0/12 g.last_z[0]",
+    "2659 0/12 g.z[0]",
+    "2675 0/12 dest_angle",
+    "935 0/8 ammo[2].accuracy",
+    "936 0/8 ammo[3].accuracy",
+    "939 0/8 ammo[0].accuracy",
+    "942 0/8 ammo[1].accuracy",
+    "980 0/7 ammo[0].accuracy",
+    "981 0/7 ammo[1].accuracy",
+    "984 0/7 ammo[2].accuracy",
+    "987 0/7 ammo[3].accuracy",
+    "995 0/7 ammo[5].accuracy",
 ];
 
 /// Chapter thirty-six's pool rows (item 1078).
@@ -15728,50 +15566,6 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // parting. What stands is the birth seats and the second Helicopter's
 // bearing, parked.
 const WANT_CH35: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-    "2431 0/10 g.des_x[0]",
-    "2431 0/10 g.des_y[0]",
-    "2431 0/10 g.x[0]",
-    "2431 0/10 g.y[0]",
-    "2431 0/10 orders_x",
-    "2431 0/10 orders_y",
-    "2431 0/10 pos",
-    "2446 0/11 mirror",
-    "2659 0/12 dest_angle",
-    "2659 0/12 g.des_x[0]",
-    "2659 0/12 g.des_y[0]",
-    "2659 0/12 g.last_z[0]",
-    "2659 0/12 g.x[0]",
-    "2659 0/12 g.y[0]",
-    "2659 0/12 g.z[0]",
-    "2659 0/12 order:move.angle",
-    "2659 0/12 pos",
-    "2719 0/12 angle:Heading",
-    "2719 0/12 g.des_angle[0]",
-    "2719 0/12 heading",
-    "2720 0/12 angle:Facing",
-    "2720 0/12 g.angle[0]",
-    // **The rounds' fields, compared from item 1257** (the widening
-    // compared only which rounds were held until then). Two families, no
-    // draw from either: the Bombers' `accuracy`, 0 here against 276..296
-    // (`launch.rs`'s SEAM, the bomb arm writes none and the recycled slot
-    // keeps its last round's), and on 1080 the rounds' `whom`/`ox` cleared
-    // on the Barracks' death (chapter three's standing family).
-    "935 0/8 ammo[2].accuracy",
-    "936 0/8 ammo[3].accuracy",
-    "939 0/8 ammo[0].accuracy",
-    "942 0/8 ammo[1].accuracy",
-    "980 0/7 ammo[0].accuracy",
-    "981 0/7 ammo[1].accuracy",
-    "984 0/7 ammo[2].accuracy",
-    "987 0/7 ammo[3].accuracy",
-    "995 0/7 ammo[5].accuracy",
     "1000 0/7 ammo[7].accuracy",
     "1003 0/7 ammo[6].accuracy",
     "1061 0/8 ammo[5].accuracy",
@@ -15790,6 +15584,19 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
+    "2446 0/11 mirror",
+    "2659 0/12 g.last_z[0]",
+    "2659 0/12 g.z[0]",
+    "2675 0/12 dest_angle",
+    "935 0/8 ammo[2].accuracy",
+    "936 0/8 ammo[3].accuracy",
+    "939 0/8 ammo[0].accuracy",
+    "942 0/8 ammo[1].accuracy",
+    "980 0/7 ammo[0].accuracy",
+    "981 0/7 ammo[1].accuracy",
+    "984 0/7 ammo[2].accuracy",
+    "987 0/7 ammo[3].accuracy",
+    "995 0/7 ammo[5].accuracy",
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and
@@ -15878,15 +15685,7 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
 // base's height clamped at 0 in the approach home (`0/7`'s descent to
 // `0/2008`, whose tile is −42: 21 → 17 on 2399). 421 → 17: chapter
 // thirty-two's seventeen alone.
-const WANT_CH34: &[&str] = &[
-    "1746 0/9 g.des_x[0]",
-    "1746 0/9 g.des_y[0]",
-    "1746 0/9 g.x[0]",
-    "1746 0/9 g.y[0]",
-    "1746 0/9 orders_x",
-    "1746 0/9 orders_y",
-    "1746 0/9 pos",
-];
+const WANT_CH34: &[&str] = &[];
 
 // **What parts in the pool** on run362: chapter twenty-two's ten, and
 // slot 3's `ox`/`oy` on 2602 — the building group of `0/2008` seated by

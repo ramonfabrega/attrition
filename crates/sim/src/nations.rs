@@ -170,6 +170,30 @@ impl Sim {
         self.refresh_nation_powers(who);
     }
 
+    /// `city_num != 0` — the half of `has_tribe_bonus`'s city gate that
+    /// moves (`LeaderData::has_tribe_bonus@006e1370`, group 22) — written
+    /// where a city is founded or closed, and the cached flags redone when
+    /// it flips.
+    pub(crate) fn sync_has_city(&mut self, who: Player) {
+        let has = self.city_num(who) != 0;
+        let w = who as usize;
+        if self.tech[w].has_city != has {
+            self.tech[w].has_city = has;
+            self.refresh_nation_powers(who);
+        }
+    }
+
+    /// The lobby's two bits `has_tribe_bonus` reads, as the tech tree's
+    /// [`crate::tech::Setup`] holds them — "No Nation Powers" and the
+    /// starting town — and every player's city half brought in line.
+    pub fn sync_setup_from_lobby(&mut self) {
+        self.setup.no_nation_powers = self.lobby.no_nation_powers;
+        self.setup.starting_town = self.lobby.starting_town != 0;
+        for who in 0..self.tech.len() {
+            self.sync_has_city(who as Player);
+        }
+    }
+
     /// Recomputes one player's per-nation flags from their power.
     ///
     /// Call it after anything `has_tribe_bonus` reads changes — the power
@@ -592,11 +616,21 @@ mod tests {
         assert_eq!(s.tech[0].power, Some(11), "the nation is still the nation");
         assert!(!s.nation[0].british, "but the power is off");
 
-        // And a leader with no city takes none of it either.
+        // And a leader with no city takes none of it either — in a nomad
+        // lobby. With a starting town the gate is `starting_town || city_num`
+        // and the first half is true (group 22).
         let mut t = sim();
         t.tech[0].has_city = false;
         t.set_tribe(0, 11);
-        assert!(!t.nation[0].british);
+        assert!(t.nation[0].british, "a starting town opens the gate");
+        let mut n = sim();
+        n.setup.starting_town = false;
+        n.tech[0].has_city = false;
+        n.set_tribe(0, 11);
+        assert!(!n.nation[0].british, "nomads have no power without a city");
+        n.tech[0].has_city = true;
+        n.refresh_nation_powers(0);
+        assert!(n.nation[0].british, "and the first city turns it on");
     }
 
     /// The measurement the wire was worth: run40's AI is the British and

@@ -1665,7 +1665,9 @@ the searcher's own cell, takes each cell's object chain (`+8`/`+10` the head's
 `(o, who)`, then `+0x2c`/`+0x2e` — the same `down`/`down_who` the dump
 prints), and applies `Search::valid_search` and `Search::valid_filter`. **It
 has no distance test at all**; the list path, which walks the per-leader
-object arrays instead, has `vector_dist <= range`. The `0x200` flag is the
+object arrays instead, keeps a candidate when `vector_dist − R <= range`, R
+its `push_size` at sea and its `big_radius` otherwise, walking by leader and
+object number (`65aa72..65aaa6`; twenty-fourth pass, group 9). The `0x200` flag is the
 region gate — the cell's `+4` against the query point's — and on the list path
 `find_units` computes the query cell as `div_3_table[pos >> 6]`, a **tile**
 coordinate indexed into the cell grid, where every other site uses `>> 8`.
@@ -4106,8 +4108,9 @@ moves fall out of dispatching once on the front at the top of `work`.
 
 - **§5.10's list paths, and the chain's order inside a cell.** The build
   search always takes the circle at a citizen's ranges and the unit search
-  need not, so `find_units`' list path — all units, `vector_dist <= range`,
-  and the `div_3_table[pos >> 6]` region compare that indexes the cell grid
+  need not, so `find_units`' list path — all units by leader and number,
+  `vector_dist − R <= range` (`collide.rs`, group 9), and the
+  `div_3_table[pos >> 6]` region compare that indexes the cell grid
   with tile coordinates — is modelled as a plain distance-and-region scan
   rather than reproduced. It feeds a **count that breaks ties** between
   build sites, nothing else. And the circle path's within-cell order is the

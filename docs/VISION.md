@@ -653,7 +653,15 @@ scan of `seen` holding `0xff`, and only a wonder writes that.
   and on it `set_seen2`'s `param_4` is **0** — both planes — whether or
   not the wonder is started; the mask is `0xff` only once it is. §6.1's
   table had `is_started()` in the test; it gates the mask, not the planes.
-  A wonder is never a city and never a fort, so `is_wonder` decides.
+  ~~A wonder is never a city and never a fort, so `is_wonder` decides.~~ The
+  **Forbidden City** is in the wonder range and `FROM Small City`, so
+  `is(VILLAGE)` holds, `SubObject::init` sets `flags |= 0x20`, and it is no
+  visible wonder: it is written as an ordinary building, `seen2` only, never
+  `0xff` (twenty-fourth pass, group 5; `vision.rs`). The meet loop gates on
+  `leader_flags & 1`, a slot in use, which a defeat does not clear (group 6).
+  `update_seen(0)` makes its own `+0x164` first for a started visible wonder,
+  so a finished one is relit after every clear (group 19), and the resync
+  lights the buildings before the units (group 18).
 - **`GameDaemon::update_all_seen@00732840`**: after the clear, a live
   finished building lights its disc (`+0x174`); any other —
   `!(flags & 1) || !is_active()` — that is live, a wonder and started

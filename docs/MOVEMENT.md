@@ -1051,11 +1051,15 @@ general and supply upgrade counts, and last `+AZTEC_MOVE_SPEED%` for two
 Aztec types. The result is propagated down a linked chain of units.
 
 **The gunpowder foot line carries a hardcoded speed correction**, tested most
-advanced first ~~because each type also *is* its predecessor~~ — **each test
-is identity**: `ObjectData::is` forwards to the type's vslot `0x60`, which is
-`TypeData::is@004771c0` (`type == t`) on every type vtable, so each row
-scales its own type and no other (item 1109). Every division truncates
-toward zero (the listing's `sar`/`imul` magic):
+advanced first, **and each test is a lineage, not identity**:
+`ObjectData::is` forwards to the type's vslot `0x60`, which the PE holds as
+`ObjectTypeData::is@0065f7d0` on both unit-type vtables (`0xb41d24`,
+`0xb41fd4`; twenty-fourth pass, group 22) — the type itself, then its
+`is_list`, the graft and the `from` chain. Every national replacement of a
+line scales as the line does (thirty-one shipped types), and the first of the
+four that answers wins. ~~Each test is identity, `TypeData::is@004771c0`
+(`type == t`)~~ — that was item 1109's reading and moved four exact indices.
+Every division truncates toward zero (the listing's `sar`/`imul` magic):
 
 | Type | Scale |
 | --- | --- |

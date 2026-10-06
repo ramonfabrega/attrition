@@ -25,7 +25,6 @@
 //! nearest citizen that is not busy and is sent straight back.
 
 use crate::Sim;
-use crate::build::Ident;
 use crate::orders::{QueuePos, index};
 use crate::world::{Cell, Pos, vector_dist};
 
@@ -52,7 +51,10 @@ impl Sim {
     /// modelled; no capture on file has an oil platform site.
     pub(crate) fn site_recruit(&mut self, b: usize) {
         let bd = &self.buildings[b];
-        let wonder = self.building_ident(b) == Ident::Wonder;
+        // `BuildData::is_wonder@00472320`, the range `0x20d < type < 0x21f`
+        // — the Forbidden City's `Ident` is not `Wonder`, its flag is (group
+        // 5; A8 row 29).
+        let wonder = self.is_wonder_site(b);
         let fort = bd
             .ty
             .is_some_and(|t| crate::build::is_fort(&self.build_types, t))
@@ -73,6 +75,14 @@ impl Sim {
             return;
         };
         self.add_build_order(u, b, QueuePos::New, false);
+    }
+
+    /// `BuildData::is_wonder@00472320`: the type's range flag, which the
+    /// Forbidden City carries and its `Ident` does not.
+    fn is_wonder_site(&self, b: usize) -> bool {
+        self.buildings[b]
+            .ty
+            .is_some_and(|t| self.build_types[t].wonder)
     }
 
     /// The wonder's extra builders: one for every unbuilt wonder of the
@@ -204,5 +214,28 @@ impl Sim {
             }
         }
         best.map(|(_, u)| u)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::build::{BuildType, Ident};
+
+    /// **The recruiter's wonder test is the range flag** (twenty-fourth
+    /// pass, group 5; A8 row 29): a Forbidden City site recruits like any
+    /// other wonder, though its `Ident` is `ForbiddenCity`.
+    #[test]
+    fn a_forbidden_city_site_is_a_wonder_to_the_recruiter() {
+        let mut s = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
+        let t = s.add_build_type(BuildType {
+            ident: Ident::ForbiddenCity,
+            wonder: true,
+            ..BuildType::default()
+        });
+        let b = s.add_building(1, crate::Pos::new(0x600, 0x600), 1);
+        s.buildings[b].ty = Some(t);
+        assert!(s.is_wonder_site(b));
+        s.build_types[t].wonder = false;
+        assert!(!s.is_wonder_site(b));
     }
 }
