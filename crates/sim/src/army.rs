@@ -1826,22 +1826,21 @@ impl Sim {
     // ---- the target (§12) ----
 
     /// `LeaderData::get_target@006da000`: the first leader after `who` in
-    /// the lobby's start list whose `leader_flags & 3 == 3`, else `who`.
+    /// [`Lobby::start_list`] whose `leader_flags & 3 == 3`, else `who`.
     ///
-    /// **SEAM**: `Game::start_list`/`start_index` (`+0x65c`, `+0x67c`) have no
-    /// writer in the export by name and no capture prints them, so the list
-    /// is the identity over the seated players — slot `k` is leader `k`,
-    /// and an unseated slot reads the `memset` zero (`Game::clear@005950b0`)
-    /// — and `flags & 3 == 3` is "not defeated", this crate's one proxy for
-    /// both bits. Read only under `team_style == 2`.
+    /// **SEAM**: `flags & 3 == 3` is "seated and not defeated", this
+    /// crate's one proxy for both bits, and the list is an input the lobby
+    /// carries — nothing here shuffles it, and the harness does not yet read
+    /// the dump's `start_list` lines into it. Read only under `team_style ==
+    /// 2`, a lobby no capture on disk has (scan: `grep -h '^  TEAM_STYLE'
+    /// gamelog*.txt | sort | uniq -c`, 313 of style 1 and none of 2 over the
+    /// 316 dumps).
     pub(crate) fn start_list_target(&self, who: Player) -> usize {
-        let at = |k: usize| {
-            let k = k & 7;
-            if k < self.players.len() { k } else { 0 }
-        };
+        let list = &self.lobby.start_list;
+        let at = list.iter().position(|&l| l == who as usize).unwrap_or(0);
         for j in 0..8 {
-            let l = at(who as usize + 1 + j);
-            if !self.defeated.get(l).copied().unwrap_or(true) {
+            let l = list[(at + 1 + j) & 7];
+            if l < self.players.len() && !self.defeated[l] {
                 return l;
             }
         }
@@ -3319,13 +3318,20 @@ mod tests {
     }
 
     /// **`team_style == 2` narrows the leaders** (group 4; A5 #30): me, the
-    /// start list's next live leader, or a mutual ally. The start list is
-    /// the identity here (a seam), so on three seats leader 2 reads 0.
+    /// start list's next live leader, or a mutual ally. Seat `k`'s next in a
+    /// shuffled list (`1 0 3 2 …`, a kept dump's) is not seat `k + 1`.
     #[test]
     fn the_start_list_s_target_is_the_next_live_leader() {
         let (mut sim, _) = sim_with_city();
         assert_eq!(sim.start_list_target(0), 1);
-        assert_eq!(sim.start_list_target(1), 0, "an unseated slot reads zero");
+        assert_eq!(sim.start_list_target(1), 0, "unseated seats are skipped");
+        sim.lobby.start_list = [4, 7, 6, 1, 0, 3, 2, 5];
+        assert_eq!(sim.start_list_target(1), 0, "the list's order: 6 1 0");
+        assert_eq!(
+            sim.start_list_target(0),
+            1,
+            "the list's order: 0 3 2 5 4 7 6 1"
+        );
         sim.defeated[1] = true;
         assert_eq!(sim.start_list_target(0), 0, "nobody left but me: me");
     }
