@@ -1278,6 +1278,54 @@ fn construction_takes_a_tenth_off_the_clock_and_adds_a_tenth_to_the_hits() {
     );
 }
 
+/// **The President's clause of `BuildData::construct_time`** (item 1503, Great
+/// Sahara at Toughest's Smelter `1/2053`, finished on 14363 at a clock of
+/// 75187 — `100000 × 100 / 133`). `has_general(0, 0x163)` finds one of the
+/// owner's THEPRESIDENT heroes, on the map and within `get_radius × 0xc0`
+/// of the building less its footprint's `(x_size + y_size) × 0x60`.
+///
+/// Made to fail with the clause back at `president: false` (the clock stays
+/// the base), with the owner test dropped (a rival's President shortens it),
+/// and with the type test dropped (a Senator does).
+#[test]
+fn the_president_near_a_site_shortens_its_clock_by_a_quarter() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 32)).unwrap();
+    let base = sim.buildings[b].constr_time;
+    assert_eq!(sim.construct_time_of(b), base, "no President");
+    let hero = |sim: &mut Sim, type_index: i32| {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            type_index,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: crate::ai_load::uflags2::GENERAL,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        })
+    };
+    let senator = hero(&mut sim, 0x161);
+    let president = hero(&mut sim, 0x163);
+    let _ = sim.init_unit(0, senator, tile_pos(41, 33));
+    assert_eq!(
+        sim.construct_time_of(b),
+        base,
+        "a Senator is not The President"
+    );
+    let _ = sim.init_unit(1, president, tile_pos(41, 34));
+    assert_eq!(sim.construct_time_of(b), base, "a rival's President");
+    let far = sim.init_unit(0, president, tile_pos(110, 110));
+    assert_eq!(sim.construct_time_of(b), base, "out of reach");
+    sim.units[far].pos = tile_pos(41, 34);
+    assert_eq!(
+        sim.construct_time_of(b),
+        base * 100 / (sim.tuning.thepresident_building_speed + 100),
+        "THEPRESIDENT_BUILDING_SPEED 33 %"
+    );
+}
+
 #[test]
 fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     let mut sim = world_sim();
