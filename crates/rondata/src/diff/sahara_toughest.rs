@@ -1804,24 +1804,27 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(15207, 92), (15210, 2), (15214, 1)],
+            [(15207, 92)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 302, "every key parted on run664");
+        pin_eq!(w.firsts.len(), 92, "every key parted on run664");
         // **The word 15213's block, 15214** (item 1517, `docs/AI.md` §137):
         // ours 8 draws against 7, parting at index 4 — ours
-        // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. The
-        // window's first parting past the 92 that stand is **two keys on
-        // block 15210**, frame 15209: Player 0's building `0/2000`'s
-        // `damage` 270 against 135 and `city_flags[0x4]` 1 against 0; the
-        // word's own block 15214 parts on one, `0/2005`'s `damage` 1
-        // against 0. No mechanism is booked.
+        // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. Item
+        // 1522 (`docs/AI.md` §139) found the cause: `1/96`, `1/95` and
+        // `1/106` are a General's Bombard decoys (`unit_masks & 1`), and
+        // `Object::do_damage` returns at once for a decoy attacker, so their
+        // rounds strike nothing; this crate struck `0/2000` for 135 on 15209
+        // and 15213 (and the first-wound draw on `0/2005`). With the gate the
+        // window parts on **nothing** past the 92 that stand: the 302 keys
+        // are 92, the two on 15210 and the one on 15214 are gone, and the
+        // word moved to 15275, past every block on disk.
         pin_eq!(
             w.firsts
                 .iter()
                 .filter(|((who, o, _), (f, _))| (*who, *o, *f) == (0, 2005, 15_214))
                 .count(),
-            1,
+            0,
             "0/2005's key on the word's block"
         );
     }

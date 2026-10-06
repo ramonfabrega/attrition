@@ -1995,6 +1995,21 @@ impl Sim {
         if count < 1 || !self.active(target) {
             return None;
         }
+        // **A decoy's blow is no blow** (`Object::do_damage@0064a480`'s head,
+        // item 1522): after the `count < 1` return, an attacker whose
+        // vtable `+0x18` answers 1 (a unit) and whose `unit_masks & 1` is
+        // set returns at once — before `get_damage`, before the first-wound
+        // draw, before any bookkeeping. A General's decoys fire (the launch
+        // draws are spent and the round flies its whole arc) and every round
+        // lands on nothing: run666's `1/96`, `1/95` and `1/106`, three
+        // Bombard decoys (`mana_burn` counting, `unit_masks` 0x5100d, 0x5100d,
+        // 0x5100f) struck `0/2000` for nothing where `1/139` and `1/84`
+        // (0x5100e) struck it for 135.
+        if let Obj::Unit(a) = attacker
+            && self.units[a].decoy
+        {
+            return None;
+        }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let at = self.attacker_side(attacker);
@@ -4407,6 +4422,46 @@ mod tests {
         assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
         assert!(!sim.hits[0].splash, "at the full count");
         let _ = other;
+    }
+
+    /// **A decoy's round strikes nothing** (`Object::do_damage@0064a480`,
+    /// item 1522): the attacker is a unit with `unit_masks & 1`, and the
+    /// function returns after its `count < 1` test and before `get_damage`
+    /// — no damage, no `build_masks` bookkeeping, and no first-wound draw.
+    /// run666's Bombard decoys `1/96`, `1/95` and `1/106` landed on
+    /// `0/2000` three times without a mark where `1/139` and `1/84`, the
+    /// same type with the bit clear, took 135 off it. Made to fail with the
+    /// gate dropped.
+    #[test]
+    fn a_decoy_s_round_strikes_nothing() {
+        for decoy in [false, true] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+            sim.units[me].decoy = decoy;
+            let b = sim.add_building(0, Pos::new(2016, 2016), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 1,
+                y_size: 1,
+                ..Profile::default()
+            });
+            sim.buildings[b].health = 500;
+            let before = sim.rng.clone();
+            let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
+            sim.land(p, 1522);
+            assert_eq!(sim.hits.len(), usize::from(!decoy), "decoy {decoy}: a strike");
+            assert_eq!(
+                sim.buildings[b].damage > 0,
+                !decoy,
+                "decoy {decoy}: the building's damage"
+            );
+            assert_eq!(
+                sim.rng == before,
+                decoy,
+                "decoy {decoy}: the first-wound draw is spent by a real blow alone"
+            );
+        }
     }
 
     /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,

@@ -2018,6 +2018,21 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **15275 since item 1522** (`docs/AI.md` §139): `Object::do_damage`
+/// returns at once for an attacker that is a unit with `unit_masks & 1`, a
+/// decoy, and this crate had no such return. Great Sahara at Toughest's
+/// Bombards `1/96`, `1/95` and `1/106` are a General's decoys (`mana_burn`
+/// counting from 1377, `unit_masks` 0x5100d, 0x5100d, 0x5100f; `1/139` and
+/// `1/84` carry 0x5100e) — they fire, and every round lands on nothing. Ours
+/// struck `0/2000` with them on 15209 and 15213 and spent the first-wound draw
+/// on `0/2005` (the measured word, ours 8 draws and the original 7 on 15213,
+/// index 4). run666 (`AMMO=5`) printed the original's rounds: the same
+/// flights, landing frames and points as ours. **The new word's delta: ours
+/// 12 draws and the original 11 on frame 15275, parting at index 4**: ours
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a
+/// < Unit::do_guard+0x7f4`. No capture on disk holds a block there (run664
+/// and run666 end at 15230): its widening is owed a capture.
+///
 /// **15213 since item 1517** (`docs/AI.md` §137): `Unit::do_cast`'s pack and
 /// unpack arms call `Unit::set_angle(guy 0's angle)` for **every** unit
 /// (`005ecb7e`, `005ecbe0`), where this crate made the call for a rare
@@ -2453,7 +2468,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 15_213;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 15_275;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8653,12 +8668,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // widened it on run659 over 14506..14529; item 1510 moved it 14512 →
         // 15101, past it, and widened it on run663 over 15095..15118; item
         // 1517 moved it 15101 → 15213, past it, and widened it on run664 over
-        // 15207..15230; run663's test keeps the move's value diff on
-        // 15095..15103, run659's on 14506..14514, run653's on
-        // 14357..14364, run640's on 12811..12817, run584's on 12532.
-        Some("run664_s_word_frame_is_widened_whole"),
-        1517,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_15213),
+        // 15207..15230; **item 1522 moved it 15213 → 15275, past run664's and
+        // run666's last block (15230)**, so the widening is owed a capture and
+        // this row names the item and no test. run664's test keeps the move's
+        // value diff over 15207..15230 (empty past the 92 that stand);
+        // run663's keeps 15095..15103, run659's 14506..14514, run653's
+        // 14357..14364, run640's 12811..12817, run584's 12532.
+        None,
+        1522,
+        None,
     ),
 ];
 
