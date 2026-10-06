@@ -14996,6 +14996,7 @@ SHA-256 `722fe7e0d782a6a2e65327f242a3b819e0f18a39afd5d04400e0bfea22451d6b`.
 **What it holds**: `diff::coverage_pair::run660_s_word_frame_is_widened_whole` — 132 keys: block 171's 90 standing rows (the control's and the SITE
 list's, parted since block 1), the SITE ranks and values from 176, and the make list from 183. Blocks 177 and 178 hold an empty make list on both sides, so the
 word's `make_me` fill is read from the harness, not the dump (`docs/AI.md` §133).
+
 ## run658 — French East Indies, the gap before 17171: blocks 17018..17057, with the leader probe (2026-10-06, item 1502)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1502-opus/run658-booking.json`,
