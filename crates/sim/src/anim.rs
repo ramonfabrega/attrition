@@ -2058,7 +2058,21 @@ impl Sim {
     /// A crew guy with a track offset has a body of its own and is left
     /// out here: [`Sim::process_follower`] runs the same arm on its own
     /// `des` and its own angles.
-    pub(crate) fn guys_follow(&mut self, u: usize, was_at_des: bool) {
+    ///
+    /// **`turn` is guy 0's standing turn, run in its place** (item 1429,
+    /// `docs/AI.md` §118): `Guy::process` runs `Guy::move` per figure in
+    /// slot order, and guy 0's standing arm ends in `turn_towards`, whose
+    /// `do_turn` recurses into the trackless crew and re-slots each — so a
+    /// crew figure's own `Guy::move` after it finds its animation no longer
+    /// the walk and pays no arrival stand. The caller hands the turn's
+    /// angles in; it is taken after guy 0's follow, and left in place when
+    /// the unit has no figures to walk.
+    pub(crate) fn guys_follow(
+        &mut self,
+        u: usize,
+        was_at_des: bool,
+        turn: &mut Option<(Angle, Angle, Angle)>,
+    ) {
         if self.units[u].guys.is_empty() {
             return;
         }
@@ -2106,6 +2120,12 @@ impl Sim {
             self.guy_follow_anim(u, g, was_at_des, settled);
             if !was_at_des {
                 self.units[u].guys[g].stopped = false;
+            }
+            if g == 0 {
+                if let Some((was, to, heading)) = turn.take() {
+                    self.mark(SITE_TURN_STAND);
+                    self.do_turn_anim(u, was, to, heading);
+                }
             }
         }
     }
@@ -2846,7 +2866,7 @@ mod tests {
         s.units[u].movement.body.pos = s.units[u].pos;
         s.units[u].movement.facing = crate::movement::Angle::NORTH;
         s.units[u].movement.heading = crate::movement::Angle::EAST;
-        s.guys_follow(u, true);
+        s.guys_follow(u, true, &mut None);
         assert_eq!(s.units[u].guys[0].anim, WALK, "back on the walk");
         assert!(!s.units[u].guys[0].stopped, "and unstopped");
 
@@ -2858,7 +2878,7 @@ mod tests {
         let u = animal(&mut s, 8, 0, 60063, WALK, 11, 20);
         s.units[u].movement.body.pos = s.units[u].pos;
         let before = s.rng.seed;
-        s.guys_follow(u, true);
+        s.guys_follow(u, true, &mut None);
         assert_eq!(s.rng.seed, stepped(before, 1), "the arrival's own draw");
         assert_eq!(s.units[u].guys[0].anim, DEFAULT);
         assert!(s.units[u].guys[0].stopped);
@@ -2872,7 +2892,7 @@ mod tests {
         s.units[u].movement.facing = crate::movement::Angle::NORTH;
         s.units[u].movement.heading = crate::movement::Angle::EAST;
         s.units[u].guys[0].stopped = false;
-        s.guys_follow(u, true);
+        s.guys_follow(u, true, &mut None);
         assert_eq!(s.units[u].guys[0].anim, DEFAULT, "a ship keeps its slot");
         assert!(s.units[u].guys[0].stopped);
     }

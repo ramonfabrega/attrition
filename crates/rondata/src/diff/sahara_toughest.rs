@@ -199,6 +199,17 @@ pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_11882: (i64, i64) = (11_876, 12_
 /// **The word's block, 11883**: frame 11882 writes it.
 pub(crate) const TOUGHEST_WORD_BLOCK_11883: i64 = 11_883;
 
+/// run584: run470's game at run574's detail over blocks 12532..12789, the
+/// word 12538's widening (item 1429) — six blocks before the word's block
+/// 12539 and 250 after, on the click-free lane.
+pub(crate) const TOUGHEST_WORD_12538: &str = "gamelog-run584-greatsahara-toughest-12538.txt";
+
+/// **run584's window** (item 1429): blocks 12532..12789.
+pub(crate) const WIDENING_GREAT_SAHARA_TOUGHEST_12538: (i64, i64) = (12_532, 12_789);
+
+/// **The word's block, 12539**: frame 12538 writes it.
+pub(crate) const TOUGHEST_WORD_BLOCK_12539: i64 = 12_539;
+
 /// run517: run470's game at run500's detail over blocks 9032..9323 — the
 /// dark gap 9038..9317 between run500's last block and run511's first,
 /// with six blocks of each either side (item 1318). The 571 keys that stood
@@ -389,6 +400,17 @@ pub(crate) fn great_sahara_toughest_11882_window() -> Option<crate::diff::harnes
         (TOUGHEST_WORD_11882, WIDENING_GREAT_SAHARA_TOUGHEST_11882.0),
         WIDENING_GREAT_SAHARA_TOUGHEST_11882,
         TOUGHEST_WORD_BLOCK_11883,
+    )
+}
+
+/// run584's blocks over [`WIDENING_GREAT_SAHARA_TOUGHEST_12538`], walked as
+/// run574's are (item 1429).
+pub(crate) fn great_sahara_toughest_12538_window() -> Option<crate::diff::harness::tests::Widened> {
+    toughest_window_over(
+        "run584",
+        (TOUGHEST_WORD_12538, WIDENING_GREAT_SAHARA_TOUGHEST_12538.0),
+        WIDENING_GREAT_SAHARA_TOUGHEST_12538,
+        TOUGHEST_WORD_BLOCK_12539,
     )
 }
 
@@ -1333,6 +1355,38 @@ mod tests {
         // stays at its witnessed floor 11985 until item 1429 widens it.
         // Item 1457: 144 → 140; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         pin_eq!(w.firsts.len(), 140, "every key parted on run574");
+    }
+
+    /// **The word 12538, widened whole** (item 1429):
+    /// [`great_sahara_toughest_12538_window`] over run584's blocks
+    /// 12532..12789, both directions, every record run574's detail prints.
+    /// Frame 12538 writes block 12539.
+    #[test]
+    fn run584_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = great_sahara_toughest_12538_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var_os("RON_FIRSTS").is_some() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+            eprintln!("  by {by:?}");
+        }
+        pin_eq!(w.blocks, 257, "run584 whole: blocks 12532..12789");
+        pin!(
+            w.missing.is_empty(),
+            "run584 carries every key: {:?}",
+            w.missing
+        );
     }
 
     /// **The word 11182, widened whole** (item 1379):

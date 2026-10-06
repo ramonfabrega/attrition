@@ -5427,7 +5427,17 @@ impl Sim {
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }
-        self.guys_follow(i, was_at_des);
+        // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
+        // `Guy::do_turn` the same override `move_step`'s two turn-in-place
+        // arms do — so a standing guy owed a turn asks for its turn
+        // animation here as well, and pays the idle roll if it has none
+        // (`docs/ANIM.md` §4.8). The gate is the original's own: `guy_flags
+        // & 2` clear, which is `turned`, and the body on its unit. It runs
+        // inside guy 0's turn in `guys_follow`, before the crew's own
+        // `Guy::move` (item 1429).
+        let mut turn =
+            (was_at_des && !turned && !facing_settled).then_some((facing, follow.facing, heading));
+        self.guys_follow(i, was_at_des, &mut turn);
         // A helicopter's figure height (item 1048): `Guy::move:47`'s
         // `last_z = z` at its head, and the moving arm's
         // `Guy::set_new_location(·, 0)` (`:190`) climbs it at the body's
@@ -5439,15 +5449,10 @@ impl Sim {
                 self.helicopter_climb(i, follow.body.pos);
             }
         }
-        // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
-        // `Guy::do_turn` the same override `move_step`'s two turn-in-place
-        // arms do — so a standing guy owed a turn asks for its turn
-        // animation here as well, and pays the idle roll if it has none
-        // (`docs/ANIM.md` §4.8). The gate is the original's own: `guy_flags
-        // & 2` clear, which is `turned`, and the body on its unit.
-        if was_at_des && !turned && !facing_settled {
+        // A unit with no figure to walk keeps the turn's mark where it was.
+        if let Some((was, to, heading)) = turn {
             self.mark(anim::SITE_TURN_STAND);
-            self.do_turn_anim(i, facing, follow.facing, heading);
+            self.do_turn_anim(i, was, to, heading);
         }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;

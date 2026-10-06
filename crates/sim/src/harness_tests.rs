@@ -3423,6 +3423,58 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
     );
 }
 
+/// **Guy 0's standing turn re-slots the crew before the crew's own
+/// `Guy::move`** (`docs/AI.md` §118, item 1429) — Great Sahara at Toughest,
+/// frame 12538, the Bombard `1/139`.
+///
+/// `Guy::process` runs `Guy::move` per figure in slot order. Guy 0's
+/// standing arm ends in `turn_towards`, whose `do_turn` recurses into the
+/// trackless crew and asks each for the turn slot, which a figure with no
+/// turn animation answers with the idle — so each crew figure's own
+/// `Guy::move`, a step later, finds `cur_anim` no longer the walk and its
+/// arrival stand (`0x9c == 8 && 0x9d`) does not fire. A crew figure that
+/// had already stopped on the walk is the frame's case: the original draws
+/// three times, guy 0's turn and the two crew's `do_turn+0xe5`; this crate
+/// drew the crew's two arrival stands first and guy 0's turn last.
+#[test]
+fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
+    let mut sim = skirmish(0);
+    sim.trace_phases = true;
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        ..crate::UnitType::default()
+    });
+    sim.unit_types[ty].combat.packs = true;
+    let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+    u.ty = Some(ty);
+    u.guys = vec![
+        anim::Guy::fresh(1),
+        anim::Guy::fresh(2),
+        anim::Guy::fresh(3),
+    ];
+    let unit = sim.add_unit(u);
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    // The crew had stopped on the walk, as `1/139`'s two untracked figures
+    // had on 12537 (the dump's `stopped` 1, `cur_anim` 8).
+    for g in 1..3 {
+        sim.units[unit].guys[g].anim = anim::WALK;
+        sim.units[unit].guys[g].stopped = true;
+    }
+    sim.units[unit].movement.set_heading(movement::Angle::WEST);
+    sim.tick();
+    let labels: Vec<&str> = sim.phase_marks.iter().map(|(l, _)| l.as_str()).collect();
+    assert!(
+        !labels.contains(&anim::SITE_ARRIVE),
+        "no arrival stand after the turn re-slotted the crew: {labels:?}"
+    );
+    assert!(
+        labels.contains(&anim::SITE_TURN_CREW),
+        "the crew's turn is the recursion's: {labels:?}"
+    );
+}
+
 /// **Three of the six resources are not available from the start, and until
 /// they are, a price written in one of them is charged somewhere else**
 /// (`docs/COSTS.md`, "Three of the six resources are not available from the
