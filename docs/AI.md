@@ -14919,6 +14919,76 @@ it does not on the walks run before the gate (the gate's own verdict is in the j
 read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
 choice of nation.
 
-## 130. French East Indies 16857: the General 1/79's animation (2026-10-06, item 1500)
+## 130. A unit that turns on its own waypoint stands when the turn completes (2026-10-06, item 1500)
 
-*In progress.*
+French East Indies' word 16857 was 8 draws against 8, parting at index 2.
+Ours drew for the General `1/79` (TypeIndex 54, `GENERAL`, land) through
+`Guy::set_anim+0x97a < Guy::move+0x19f`, the arrival stand. The original's
+third draw, seed `60df12a8`, is `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x549`, which the harness printed bare as `5dac7a`. The
+original acted, and the draw is not an arrival stand.
+
+**The first parting is the word's own frame.** run655's widening has no `1/79`
+row on 16851..16857, standing or otherwise. On block 16857 the original's
+`1/79` stands on (6840, 13704) with its move's `dest 1`, `dest_x 6840`,
+`dest_y 13704`: its current waypoint is where it stands. It has one order, an
+`ATTACKTO` to (6072, 9864), and a five-entry path whose top entry is that
+point. Ours holds the same order, path and waypoint (`RON_DEBUG_UNIT=1/79`).
+From 16851 to 16856 guy 0's facing climbs by 190887424 a frame towards the
+heading `0x80000000`, which is `find_angle` of a zero offset: ours spends
+each of those frames in `move_step`'s near turn-in-place arm, which returns
+before anything else. On 16857 the facing lands, and the turn is not enough
+to return.
+
+**What 16857 runs** (the listing, `005fb44c`–`005fb488`). With
+`param_2 >= local_28` (a Manhattan distance of 0), `move_step` takes the
+snap. With no collision and no tile change, it calls `Unit::set_anim(UVar17,
+0, 1)` at `005fb474`, returning to `+0x549`, and then `set_new_location`.
+`UVar17` is `local_2c` (the walk) unless `local_30 == 0`, `local_34 == 0`
+(the waypoint offsets taken at the top of the function) and `+0xd8 <= 1`
+(`cmpl $0x1, 0xd8(%ebx); jg`). In that case it is `CHAR_DEFAULT`. `+0xd8` is
+`OrderList`'s length (`docs/ORDERS.md` §4, the `UnitData` layout). The stand
+is a request with a third argument, so it rolls.
+
+Ours had this arm as a `SEAM` in `Sim::unit_step`. The seam said it was
+unreachable because `do_move`'s "already there" test takes the case a step
+earlier (`docs/ANIM.md` §4.9). That holds for an order to the spot a unit
+stands on, which is dropped before it steps. It does not hold for a leg whose
+top waypoint the unit already stands on while it still owes a turn. Ours then
+asked the walk, and `Guy::move`'s arrival stand drew in the original's place.
+
+**Built**: in the snap, `mo.waypoint == from && orders.len() < 2` asks
+`set_default_anim` under `anim::SITE_SNAP_STAND`, and the trace's naming
+table has the row (`0x5dac7a` via `0x5fb479`). The row matches on
+`move_step+0x549` anywhere in the chain, so a crew figure's draw
+(`Unit::set_anim+0xb6`) takes the same name, as `SITE_BLOCKED`'s does.
+The unit test is
+`collide::tests::a_unit_on_its_own_waypoint_stands_when_its_turn_completes`,
+with its converse: a second order beneath keeps the walk.
+
+**Value diff, block 16858** (run655): `1/79`'s guy 0 is `cur_anim` 0,
+`cur_time` 1, `last_time` 0 on both sides, where ours had 7, 16 and 15.
+Guy 1 is `cur_anim` 0, `cur_time` 1 on both sides, where ours had 7 and 16.
+run655's widening falls from 186 keys to **173**, all standing on the first
+block, 16851. Nothing parts on 16852..16863.
+
+**Every instance on the disk** (`report.py … draws`, every `rontrace-run*.log`):
+the draw comes only in this game, in 9 of 314 traces: run600 and its sibling
+run596 (four each), and run655 (one, 16857). It falls on 16857 and on 17239, where guy 0 draws under `+0x56` and two crew figures under
+`+0xb6`. 17239 is past the new word.
+
+**The new word, 17171**: 11 draws against 10, parting at index 1. Ours spends
+`Unit::fight+0x824` and `Guy::set_anim+0xf2f < Unit::set_anim+0x56` for
+`1/80`. The original's index 1 is `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+the first of seven wraps. Index 0, `1/79`'s idle under `Unit::do_idle+0x7d`,
+agrees. RUN657_PLACEHOLDER
+
+**What is not established.**
+- `CHAR_ATTACKWALK` (`local_2c` with a target) in the snap: no capture has a
+  unit stepping with one.
+- Whether a sea unit, or one whose order list's length is past one only
+  because of an action beneath the move, reaches this arm: the unit test holds
+  the converse with a second move order, and no capture has the other shapes.
+- No blind reading. The arm is diff-backed by run600's draw on 16857 and
+  run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
+  only; the two-order converse rests on the listing.
