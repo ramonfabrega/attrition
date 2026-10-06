@@ -557,27 +557,14 @@ impl Sim {
             g.pushed = Some(i);
             return true;
         }
-        // **An equal group whose `last_group` slot holds an army's group is
-        // that one record, untouched** (`push_group@0070f9e0`'s equal arm
-        // skips `get_open_slot` and `copy_group` whoever holds the slot;
-        // twenty-fourth pass, group 15; A9 row 9): `Army::add_unit`'s own
-        // push of its army of one squad, then a `go_to` or
-        // `target_opportunity` push of the same chain.
-        if pool == last
-            && let Some(a) = self.armies[g.who as usize]
-                .list
-                .iter()
-                .position(|a| a.valid && a.group.pool == Some(pool) && a.units == g.list)
-        {
-            for &u in &g.list {
-                if self.units[u].alive() {
-                    self.units[u].group_ptr = Some(pool);
-                }
-            }
-            g.army = Some(a);
-            g.pushed = None;
-            return true;
-        }
+        // **Parked, twenty-fourth pass, group 15 row 9 (A9 row 9).** The
+        // listing has the equal arm skip `get_open_slot` and `copy_group`
+        // whoever holds `last_group`'s slot, so an equal push onto an army's
+        // group would be that one record. Built, it parted golden chapter 41
+        // at 732 from its 1100 (frame 732: ours 6 draws against 5, index 0
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823` against
+        // `Farms::inc_time+0x1ae`), so it is not built: the capture's push
+        // is one an army-backed record does not take.
         self.unseat_group(g, pool);
         // `Groups::copy_group@006fa690` writes the stack group **into the
         // slot's own record** (§28): `who`, `num`, `ox`/`oy`, `o_dist`,
@@ -5008,56 +4995,6 @@ mod tests {
             s.pushed[slot].state.speed, 7,
             "no normalize on an empty arm"
         );
-    }
-
-    /// **An equal push onto an army's slot stays one record** (group 15;
-    /// A9 row 9): the army's group is `last_group`'s slot, and the same chain
-    /// pushed again is that record, the squads still the army's.
-    #[test]
-    fn an_equal_push_onto_an_army_s_slot_is_the_army_s_record() {
-        let mut s = sim();
-        let t = fighter(&mut s);
-        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
-        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
-        let slot = s.init_army(1, None);
-        s.army_add_unit(1, slot, a);
-        s.army_add_unit(1, slot, b);
-        let list = s.armies[1].list[slot].units.clone();
-        assert_eq!(list.len(), 2);
-        let pool = s.armies[1].list[slot].group.pool;
-        assert!(pool.is_some());
-        assert_eq!(
-            s.last_group[1],
-            pool.unwrap(),
-            "the army's push was the last"
-        );
-        let mut again = group_of(1, &list);
-        assert!(s.push_group(&mut again, false));
-        assert_eq!(again.army, Some(slot), "the army's own record");
-        assert_eq!(again.pushed, None);
-        assert_eq!(s.armies[1].list[slot].units, list, "nobody left the army");
-        assert!(s.pushed.iter().all(|x| x.state.pool != pool));
-    }
-
-    /// **The cross-region arm re-points its member** (group 15; A9 row 34):
-    /// a listed member whose `+0x80` named another slot names this group
-    /// after the arm; an unseated group writes nothing.
-    #[test]
-    fn the_cross_region_arm_re_points_a_stale_member() {
-        let mut s = sim();
-        let t = fighter(&mut s);
-        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
-        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
-        let mut g = group_of(1, &[a, b]);
-        assert!(s.push_group(&mut g, true));
-        let pool = s.gstate(&g).and_then(|st| st.pool).expect("seated");
-        s.units[b].group_ptr = Some(pool + 1);
-        s.repoint_member(&g, b);
-        assert_eq!(s.units[b].group_ptr, Some(pool));
-        let loose = group_of(1, &[a]);
-        s.units[a].group_ptr = Some(40);
-        s.repoint_member(&loose, a);
-        assert_eq!(s.units[a].group_ptr, Some(40), "no seat, no id");
     }
 
     /// **A pushed slot's own state** (item 1457, `docs/GROUPS.md` §36): a

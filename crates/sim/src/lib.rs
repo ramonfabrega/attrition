@@ -1312,9 +1312,8 @@ pub struct Sim {
     /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
     /// row 28).
     pub(crate) pf_start: Pos,
-    /// The order a frame's building walk ran its five steps in, for the
-    /// test that holds `Build::process`'s sequence (group 18).
-    #[cfg(test)]
+    /// The order a frame's building walk ran its five steps in — written
+    /// only under test — for the test that holds `Build::process`'s sequence (group 18).
     pub(crate) building_log: Vec<(usize, &'static str)>,
     /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
     /// whose target went invalid. `Leader::process@006b88b0` zeroes it
@@ -1666,7 +1665,6 @@ impl Sim {
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             pf_start: Pos::default(),
-            #[cfg(test)]
             building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
             tuning,
@@ -5123,26 +5121,21 @@ impl Sim {
             let b = order[at];
             at += 1;
             self.buildings[b].gather_bumped = false;
-            #[cfg(test)]
-            self.building_log.push((b, "head"));
+            self.log_building_step(b, "head");
             // The head's answer is `Wall::process`'s `is_active` gate: a
             // site never reaches the tower or the tail (the roads' replan
             // is below it, `crate::roads` §1), though its queue is asked.
             let live = self.process_building(b, frame);
             if live {
-                #[cfg(test)]
-                self.building_log.push((b, "tower"));
+                self.log_building_step(b, "tower");
                 self.process_building_combat(b, frame);
             }
-            #[cfg(test)]
-            self.building_log.push((b, "queue"));
+            self.log_building_step(b, "queue");
             self.process_queue(b, &mut trained);
-            #[cfg(test)]
-            self.building_log.push((b, "gather"));
+            self.log_building_step(b, "gather");
             self.gather_region_building(b);
             if live {
-                #[cfg(test)]
-                self.building_log.push((b, "tail"));
+                self.log_building_step(b, "tail");
                 self.process_building_tail(b, frame);
             }
             if self.buildings.len() > known {
@@ -5187,6 +5180,16 @@ impl Sim {
         self.scan_and_kill_stray_roads();
         events
     }
+
+    /// The building walk's step log, for the test that holds `Build::process`'s
+    /// sequence (group 18); nothing outside a test.
+    #[cfg(test)]
+    fn log_building_step(&mut self, b: usize, step: &'static str) {
+        self.building_log.push((b, step));
+    }
+
+    #[cfg(not(test))]
+    fn log_building_step(&mut self, _b: usize, _step: &'static str) {}
 
     /// Gives a unit a build order on a placed building — a player's
     /// `Group::action_swarm_around(BUILD_AT)` for one unit, replacing

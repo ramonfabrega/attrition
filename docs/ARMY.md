@@ -1032,7 +1032,7 @@ the `diff >= 2` arm, where it is dead: the decompiler's `else` hides the
 `goto`.)
 
 *Team play* (`team_style == 2`): `L` must be the next leader after me in
-the start list (`LeaderData::get_target@006da000`, `Game::start_list`, a
+the start list (`LeaderData::get_target`, `Game::start_list`, a
 shuffled permutation the Game record prints — a `Lobby` field here) that
 is alive and in use, or me, or allied — otherwise skipped. **Built**
 (twenty-fourth pass, group 4); no capture on disk has `TEAM_STYLE 2`, and
