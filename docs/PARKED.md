@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1505, 2026-10-06 — oil patches
+
+(1512) **The oil patches' arms no walk holds**: `reveal_fog`'s oil arm
+and the owner claim alone, and `produce_building` 4.2's prune and tie,
+are held by unit tests only; the Oil Platform's ocean branch has no
+capture.
+
 ## Parked by item 1502, 2026-10-06 — the gap before 17171
 
 (1509) **Leader 0's dirty bit on 17025, and treaties bit 2**: the dump
@@ -3797,6 +3804,12 @@ newest pair's lane under the roster's Opus clause is the pass's to rule.
 short window** (1496's Loop line, 2026-10-06): it raises `GROUPS was
 asked for and no GROUPDATA block was printed` (parked 735) when the
 window ends before any group exists; the check could skip there.
+
+(1513) **Two capture-lane gaps from 1505** (its journal's Loop lines,
+2026-10-06): `captures.txt`'s runner refuses an existing output
+directory (`FileExistsError`), so a habitual `mkdir -p` loses a launch;
+and the coverage pair has no window in `diff::coverage`'s driver
+(neither run656's nor run660's), against 621's rule.
 
 (1501) **A booking's "the original's alone" was false on its own
 widening** (1487's Loop line, 2026-10-06): the commander booked 1487

@@ -13,23 +13,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and eighteen
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and nineteen
 landings since. French East Indies **17171** of 17,379 (was 12794);
 Toughest **14512**, floor 14512 (was 11985); fifty-one chapters closed.*
 
 - **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500, 1502 (Opus, newest pair, now 1508); 1429, 1472,
-  1477, 1493, 1503 (Sonnet, third map, now 1510); 1423, 1468, 1465, 1466, 1496 (Sonnet, rules;
-  battery 576 / 6566 / 2974, a measure; coverage pair frame 8, now 1505). Lanes:
+  1477, 1493, 1503 (Sonnet, third map, now 1510); 1423, 1468, 1465, 1466, 1496, 1505 (Sonnet, rules;
+  battery 576 / 6566 / 2974, a measure; coverage pair frame 177, now 1511). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
   high` each; entry 58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1505, then 1497.
+- **The rules lane is the coverage lane**: 1511, then 1497.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 24 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498, 1501, 1507).
+- **Fable backlog: 25 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498, 1501, 1507, 1513).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -67,14 +67,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     none on 14513 or after — no dumped record parts. A packet at 14512
     or a per-figure read is the next question; no mechanism is named.
 
-1505. **The coverage pair's word: frame 8, 21 versus 24 draws**,
-    index 2: ours `Leader::make_stuff+0x63d`, theirs
-    `Leader::produce_building+0x1805`. run656 (blocks 1..33) widens
-    it: on block 9 the original buys 2006 a city, 2007 a Shipyard,
-    2008 an Oil Well (190, 202), 2009 a University, 2010 and 2011
-    Airbases; ours buys four and no well (`ai_place` 4.2 never places
-    an Oil Well; `oil_patches` unmodelled). Not on the scoreboard
-    (parked 1498). No mechanism is named.
+1511. **The coverage pair's word: frame 177, 9 versus 8 draws**,
+    index 2: ours `Leader::make_stuff+0x221` three times, theirs twice
+    then `Guy::set_anim+0x97a` — `make_me` fills three Village slots
+    here (t 414: slots 0, 1, 9) against two. run660 (blocks 171..184).
+    Leader 1's `SITE` list stands since block 1 (parked 1506: `SITE[2]`
+    blank there, (50, 57) here; `SITE[9].val` 797 against 375130 on
+    176) — a hypothesis, not yet shown the only cause. No mechanism.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
