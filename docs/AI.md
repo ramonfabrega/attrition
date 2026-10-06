@@ -16237,3 +16237,8 @@ arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 143. Reserved for item 1530 (the coverage pair's frame 185)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

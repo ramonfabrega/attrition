@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1511, 2026-10-06 — Electronics sees everywhere
+
+(1531) **What 1511 left standing**: the Space Program arm it built is
+held by no walk (an arm for the rules track, DECISIONS 56 §3);
+`is_seen`'s own leader arms (`docs/VISION.md` §9.4) are not built; and
+`0x800`'s wonder half is read live, not as a sticky bit.
+
 ## Parked by item 1519, 2026-10-06 — the French pair's close
 
 (1525) **What 1519 left standing at the French pair's close**: the 14
@@ -106,7 +113,9 @@ bit 2 is written by `Object::do_damage` and not carried here.
 site (40, 47) the original does not list, and values (44, 51) at 2499
 against 2000 — 39 keys beyond the control's 48. It names no score;
 block 8 agrees without it. (And run159's window first parts `tech_frame`
-on 11583 only if the unit-research stamp is removed: no action.)
+on 11583 only if the unit-research stamp is removed: no action.) **Answered by item 1511**
+(`docs/AI.md` §141): the tenth site was All Technologies' Electronics,
+which makes `WorldData::was_seen` answer seen everywhere.
 
 ## Parked by item 1493, 2026-10-06 — the siege sub-group's copy
 
