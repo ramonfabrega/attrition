@@ -466,9 +466,10 @@ impl Sim {
         let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= range;
         self.units.iter().any(|u| {
             u.alive() && u.on_map && !u.is_gaia() && self.is_enemy(who, u.owner) && near(u.pos)
-        }) || self.buildings.iter().any(|b| {
-            b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos)
-        })
+        }) || self
+            .buildings
+            .iter()
+            .any(|b| b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos))
     }
 
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
@@ -804,7 +805,11 @@ impl Sim {
                 .iter()
                 .position(|b| b.ident == Ident::OilPlatform)
                 .unwrap_or(rec);
-            (platform, self.build_types[platform].clone(), Ident::OilPlatform)
+            (
+                platform,
+                self.build_types[platform].clone(),
+                Ident::OilPlatform,
+            )
         } else {
             (rec, bt, ident)
         };
@@ -1367,14 +1372,20 @@ mod tests {
     #[test]
     fn an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned() {
         let (mut sim, gis) = oil_world(&[(5, 5), (10, 10), (12, 3)]);
-        sim.world
-            .set_owner(Cell::new(12, 3), crate::Owner::Player(0), crate::Owner::None);
+        sim.world.set_owner(
+            Cell::new(12, 3),
+            crate::Owner::Player(0),
+            crate::Owner::None,
+        );
         let (best, sp, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
         assert_eq!(best, 40 - vector_dist(1, 1), "20·2 − the octagonal 1");
         assert_eq!(sp, 3, "the well's x_size");
         assert_eq!(
             cand,
-            Some(Pos::new(5 * UNITS_PER_CELL + 3 * 96, 5 * UNITS_PER_CELL + 3 * 96))
+            Some(Pos::new(
+                5 * UNITS_PER_CELL + 3 * 96,
+                5 * UNITS_PER_CELL + 3 * 96
+            ))
         );
         assert_eq!(
             sim.ai[1].oil_patches,
