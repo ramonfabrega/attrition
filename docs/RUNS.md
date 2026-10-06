@@ -14354,3 +14354,43 @@ SHA-256 `816c107508d75fb84af7e3156b8dedfb67c02df4c0b0416cad39c0c78d490d81`.
 
 Archive `rontrace-run634.log`, 59,112,224 bytes,
 SHA-256 `49a8e4af14f2e9c7d02e8df6abe9cfa772f59fc7ec32fa275cfd53c79eba753e`.
+
+## run584 — Great Sahara at Toughest, blocks 12532..12789: the word 12538 widened (2026-10-05, item 1429)
+
+**What the disk could not answer.** Item 1426 moved the word 11985 → 12538;
+run574, the last dump of this game, ends at block 12132.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-05-run584 \
+    --map 7 --end-frame 12803 --timeout 5000 --log-window 12532 12789 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The take stalled.** `ron_lane_state` read `free` before launch (19:06).
+The first game stalled at start-up: `wine-stalled.log` is dated 19:07 and
+stops in MoltenVK's start-up output, the viadriver log stayed at its three
+header lines for 49 minutes, and the lane read held by `unattended_capture`
+from 19:12. The worker did not look until 19:55 and so did not report it.
+The commander named it a permission prompt, since cleared by the user; the
+game process that ran the capture started at 19:55. The receipt says
+`relaunched_after_seconds` 300.3 and `launch_to_exit_seconds` 3,893.8
+(total 4,217.7), which this journal cannot reconcile with the 19:55 start;
+the receipt's clock is the runner's.
+
+**Taken** to exit 0 at 20:17: `success: true`, `settings_restored: true`,
+12,804 frames, closing frame 12804, map 7, seed 12345. `waitrun.sh` exited
+0. The dump (621,695,911 bytes, sha256 `675403263e1661b8…`) and the trace
+(71,347,200, `198e5cdff950714b…`) were copied into `Logs` as
+`gamelog-run584-greatsahara-toughest-12538.txt` and `rontrace-run584.log`;
+the disk had 174 GB free after.
+
+| check | result |
+|---|---|
+| `rngcmp.py rontrace-run470.log rontrace-run584.log` | **0 differing**, 12,804 identical, in common 12,804 |
+| `MAP_STYLE 7`, `DIFFICULTY 5` | on the dump |
+| window blocks | 257, 12532..12788 |
+
+**What it holds**: `run584_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`): 1,694 keys, 134 standing on block 12532, and the
+compared pin's window on block 12570 since item 1429. Run 584 only.

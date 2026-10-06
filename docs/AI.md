@@ -13977,3 +13977,59 @@ state has parted by run624's first block, 10126: who=1's food is 118
 against 160, metal 203 against 230, `num_queued[82]` 2 against 1, and
 `caras` 3 against 4, and `1/58` stands elsewhere. Item 1455 dates that
 parting between 9784 and 10126.
+
+## 118. A standing turn runs inside guy 0's own `Guy::move` (2026-10-05, item 1429)
+
+Great Sahara at Toughest's measured word 12538 (item 1426) was seven draws
+each, parting at index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+theirs `… < Guy::do_turn+0x4a < Guy::turn_towards+0x69`. run584 (the capture
+the disk lacked: run574 ends at 12132) widens it over blocks 12532..12789.
+
+**What the frame is.** The unit is `1/139`, `GUY` type 267 (BOMBARD,
+`enums/TypeIndex.txt`), a packing siege unit of four figures: guy 0, a
+tracked crew figure (guy 2) and two untracked ones (guys 1 and 3). On 12538
+it stands on its destination with its heading changed (`des_angle`
+522911744 → 110559232), so guy 0 owes a turn. The original's three draws are
+guy 0's `turn_towards` and the two crew figures' `do_turn+0xe5`; this crate
+drew the two crew figures' **arrival stands** (`Guy::move+0x19f`) and then
+guy 0's turn. Draw counts agree, and so does every dumped field: `1/139`
+parts no key anywhere in run584's window. The block-12539 values are the
+three figures' `cur_time` 10 → 1, `cur_anim` 8 → 0 and the crew's `stopped`
+0 → 1 (run584's `GUY` blocks, both sides).
+
+**The mechanism.** `Guy::process@005e0230` runs `Guy::move@005d9240` per
+figure in slot order. Guy 0's standing arm, with the angle unsettled, ends in
+`Guy::turn_towards@005d9720`, whose `Guy::do_turn@005d97a0` recurses into
+the trackless crew and asks each for the turn slot, which a figure with no
+turn animation answers with the idle. A crew figure's own `Guy::move` then
+runs, finds `cur_anim` no longer 8, and its arrival stand
+(`field_0x9c == 8 && field_0x9d`) does not fire. The crew had `stopped` 1 on
+the walk from 12537, so it was exactly the arrival that was owed.
+`Sim::guys_follow` walked every untracked guy first and the turn
+(`do_turn_anim`) came after it in `lib.rs`. The turn now runs from inside
+`guys_follow`, after guy 0's follow and before guy 1's; a unit whose
+`guys_follow` returns early keeps the old call site.
+
+**Made to fail.** `tools/mutate.py` moving the turn back after the loop
+(`g == usize::MAX`): `run470_is_great_sahara_at_toughest_and_its_word_holds`
+fails (the floor is 12569) and `a_standing_turn_re_slots_the_crew_before_its_arrival_stand`
+fails.
+
+**What moved.** Toughest **12538 → 12569**; the count and the sequence part
+on the same frame now. The run574 widening is unchanged (140 keys); the
+twenty-one `sahara_toughest` tests pass.
+
+**Not established.** The crew's arrival being skipped is read from the
+listing and from the draw order on this one frame; no other capture is
+cited for it. Which figure takes which of the three draws is inferred from
+the cur_time resets, since the draws carry no figure number.
+
+**The new word** is 12569: ours 13 draws against 18, parting at index 6,
+ours `… < Guy::turn_towards+0x69` against theirs `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, and four more `Guy::set_anim+0x104b` on theirs at the
+end. On block 12570 `1/63` and `1/76`'s `half_step` (1 and 0 against 0 and
+1), `1/130`'s `g.cur_anim[0]` (9 against 8), `g.end_time[0]` (10 against 13)
+and `1/90`'s tracked crew figure part. Standing from run584's first block:
+134 keys, among them the Scholars' `g.angle[0]` (1431655765 against 0) and
+`orders_x/y` and `group:65.role` (0 against 1379597), parted in the
+dark gap 11985..12532.
