@@ -16404,10 +16404,53 @@ neighbour's flag read off the old list (an Airbase, Silo or Dock no trainer) —
 That the Senate's `+2` was the margin that chose (47, 53) is a reading of the arm, not a printed score: what is diff-backed is that
 the derived flag moves the Silo to the original's cell.
 
-## 144. Reserved for item 1532 (the coverage pair's frame 583)
+## 144. A busy builder's next build takes its own approach, and the word at 667 (2026-10-06, item 1532)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1530 left the coverage pair's word at **frame 583, ours 198 game draws against
+5, index 0** (ours `PathFinder::calc_road_cost+0x46`, theirs `Farms::inc_time+0x1ae`), with no dump of the lobby past run669's 436.
+run672 (blocks 577..833, `docs/RUNS.md`) widens it. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides.** On 582 both sides run one building-road search for leader 1, 397 draws from tile (225, 217) (theirs'
+   `astar_caravan_road` arguments in run652's trace; ours the Airbase `1/2010`, `TypeIndex` 447, on its replan slot `(582 + 2010) %
+   16 == 0`). On 583 theirs draws the five `Farms::inc_time` and ours first spends 193 more road-cost draws: the **University
+   `1/2009`** (`TypeIndex` 420, `UNIVERSITY`) replanning on its slot, `(583 + 2009) % 16 == 0` (`docs/ROADS.md` §1).
+2. **The flag, both sides.** run672's block 577: in theirs `build_masks & 0x100` is clear on `1/2000`..`1/2009` and set from `1/2010`
+   on; in ours `1/2009`'s `regen_roads` is 1 (`build:regen_roads`, ours 1 against 0, standing from the window's first block). A print of
+   ours' `City::regen_roads` callers named the writer: city 1 is flagged on 547 (the Airbase `1/2010`'s activation), 552 (`1/2013`'s)
+   and **568, the Barracks `1/2022`'s** (`TypeIndex` 427); `1/2009` replans on 551 and 567, so the 568 flag is the one its 583 slot
+   reads. In theirs the University is clear at 577, so the Barracks' flag came by 567, before the University's slot that frame.
+3. **The Barracks, both sides.** run669: `1/2022`'s `job_counter` parts on block 275, **0 in ours against 100**; the original's
+   climbs 100 a frame to `constr_time` 29400 and the Barracks completes a frame before ours. Its builder is the citizen **`1/9`**
+   (`TypeIndex` 50, `PEASANTS`, land), whose order stack parts on block 186: theirs (front first) `[Build 2014, ExploreTo (41976,
+   37704), Build 2022]`, ours `[Build 2014, Build 2022]`; on 194 theirs walks to the approach beside the Barracks' site and ours
+   straight for it. `1/10` on 183 (4 orders against 6), `1/2` and `1/4` on 186 are the same shape: each build the original gives a
+   citizen has its own `EXPLORETOORDER` in front of it.
+4. **`Leader::produce_building@006e1400:1060-1086` sends the chosen builder through `Group::action_swarm_around(site, QVar30, BUILD_AT,
+   1)` on a one-member group, `QVar30 = QUEUE_LAST` when the builder's action is a `BUILD_AT` (6) and `QUEUE_NEW` otherwise.** The
+   `QUEUE_LAST` member arm (`docs/ORDERS.md` §5.4, `docs/GROUPS.md` §24; ours `Sim::swarm_around_last`) appends the ring spot's
+   approach — `EXPLORE_TO` for a computer, `MOVE_TO` for a human — and then the build. Ours appended the bare build at `QUEUE_LAST`.
+   Built: `Sim::order_builder` (`ai_place.rs`), both arms; unit test `cities_tests::a_busy_builder_gets_an_approach_before_its_next_build`.
+
+**The value diff, and the word now.** run669: `1/10`, `1/2`, `1/4`, `1/9`'s order stacks and `1/2022` agree on every block; **100 keys
+parted → 73** (the control's standing set on 180, leader 0's `production_step` on 201, a blank `SITE` slot's `reg` on 376); run660 74
+→ 71. run672: **493 → 355**, and `1/2009` agrees through the word's block (its flag parts again on 779). `coverage_pair_first_parting`:
+**frame 583 → 667, count and sequence both** — ours 152 game draws against 155, index 143: ours `Guy::set_anim+0x97a < Guy::inc_time
++0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit` three times — a three-figure unit born in theirs, and
+on the word's block 668 the original holds **`1/15`** alone, with leader 1's `num_units[9]` 1 against 0 (`TypeIndex` 59, `CARA`: a
+caravan). The first parting past run672's standing block is **block 581**: leader 1's `MAKE[2].num` and `MAKE[3].num`, 5 in ours
+against 10; then the buckets (food 29458 against 29462) and the queue prices on `1/2010` and `1/2022` on 583, and on 612 `1/2006`'s
+city fields (`filled` 0 against 1). That is where the next item stands; no mechanism is named.
+
+**The walks.** `cargo test --release -p rondata` on the built tree: 751 passed, and the three that failed were this pair's pins, all
+re-pinned; no other capture moves. Mutations (`tools/mutate.py` on `59220791`): the `QUEUE_LAST` arm as a bare `add_build_order` —
+held by `coverage_pair_first_parting`, run660's, run669's and run672's widenings and the unit test; a busy builder sent at
+`QUEUE_NEW` (cleared and re-swarmed) — held by the same four walks (the word falls to 187).
+
+**What is not established.** The human arm (`MOVE_TO`): `produce_building` is the computer's, and no capture reaches the arm for a
+human. `swarm_around_last`'s seam — `BUILD_AT`'s clear of the site's `build_masks & 0x2000` — is reached now and is a no-op here:
+the site is `init_build`'s, a frame old, and the mark is the site-recruit's "no builder" bit (§2.8). The `QUEUE_NEW` arm stays
+`clear_orders` then `swarm_around`'s first-position shape; the original's member arm at `QUEUE_NEW` differs where the ring finds no
+spot (nothing is queued) and for a Militia (the Civilian cast), neither reached by a builder this lobby picks.
 
 ## 145. Reserved for item 1535 (Toughest's closing state, frame 15432)
 
