@@ -245,7 +245,10 @@ fn run635_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 0, "initial run635 baseline");
+    // Item 1461: 640 — run634's 118 standing rows on the first block, 12947
+    // (`1/112`'s `form` for `1/109`'s), and nothing new before the word's
+    // block 12953, where who=1's walkers step short (`1/80` 37 against 52).
+    pin_eq!(w.firsts.len(), 640, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
