@@ -52,6 +52,14 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1508, 2026-10-06 — the cavalry archer's fire
+
+(1515) **What 1508 left standing**: the gap 17183..17237's Merchant
+pieces and who=1's `num_units` on types 270 and 271; the Dragoon's
+release offset (run657's 1/90, run661's 1/80); `do_attack`'s mandatory
+cavarch write and `unit_masks2 & 0x100`; the group follower's
+`cavarch_fight`.
+
 ## Parked by item 1505, 2026-10-06 — oil patches
 
 (1512) **The oil patches' arms no walk holds**: `reveal_fog`'s oil arm
@@ -3747,7 +3755,9 @@ by a unit test alone. And 1502's: `leader_flags` is
 printed beside every `LEADERDATA` and no row compares it; its dirty bit
 dated a 140-frame gap in one grep. And 1503's: `construct_hits` and
 `myhits` still uncompared — the second landing they would have dated
-sooner (The President's clock on 14363).
+sooner (The President's clock on 14363). And 1508's: a dumped field
+the crate carries under another name (`cast_target` for `cavarch_o`)
+read as "no writers, no readers" in `seams.py` and unread on the pin.
 
 (1482) **`tools/seams.py` misses a gap written as "are not loaded"**
 (1479's Loop line, 2026-10-05): the free-tech block (Chemistry's

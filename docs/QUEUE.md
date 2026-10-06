@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and nineteen
-landings since. French East Indies **17171** of 17,379 (was 12794);
-Toughest **14512**, floor 14512 (was 11985); fifty-one chapters closed.*
+*2026-10-06, **the twenty-fifth pass is due**: twenty landings since the
+twenty-fourth (80285dfe), 19:05 to 08:14, 13 h 09 m, three lanes. French
+East Indies **17244** of 17,379 (was 12794); Toughest **14512**, floor
+14512 (was 11985); fifty-one chapters closed; battery 576 / 6566 /
+2974 (a measure); the coverage pair at frame 177 (from 0).*
 
-- **Landed**: 1461, 1470, 1476, 1479, 1481, 1487, 1500, 1502 (Opus, newest pair, now 1508); 1429, 1472,
-  1477, 1493, 1503 (Sonnet, third map, now 1510); 1423, 1468, 1465, 1466, 1496, 1505 (Sonnet, rules;
-  battery 576 / 6566 / 2974, a measure; coverage pair frame 177, now 1511). Lanes:
-  the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
-  high` each; entry 58's two kill rules ride with each Sonnet lane.
-- **You are `commander`**, spawned by the pass: wait on
-  `tools/lanewait.py`, and at twenty landings, lanes drained and gate
-  green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1511, then 1497.
-- **Ratified** (parked 1447, closed): nine blind readings on Opus;
-  every captured predicate agrees; 42 code-changing rows are 1468.
-- **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
+- **The roster, lane by lane**: Opus 5.5 on the newest pair, nine
+  landings, +4450; Sonnet 5.5 on the third map, five, +2527, and on the
+  rules lane six (ch51, 1468's verdicts, the battery, the coverage pair
+  stood up and moved 0 → 177). No kill rule counted as tripped: 1429's
+  booking gate was red for two landings together (the pass rules, 1469);
+  1429 stalled 49 min on a permission prompt and asked a person.
+- **Merges**: seven of twenty backed out on `docs/AI.md` sections or
+  `diff::*` pins and cost a second lane gate (1491); `ccc push` answered
+  "nothing to push" with origin behind (1492) — pushed with git since.
+- **The clear at ten** was not armed (DECISIONS 61 §3: refused, not retried).
+- **The user's**: the Sonnet lanes at this steer; 1464's model; 1139;
+  whether the coverage pair is scored, and on which model (1498).
 - **Fable backlog: 25 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491, 1492, 1495, 1498, 1501, 1507, 1513).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w17171 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w17244 of 17,379 · GreatLakesFrench w5638 of 5,638
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w14512 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: spawn 1461 on `claude-opus-5-5[1m]` and 1429 and 1423 on
-`claude-sonnet-5-5[1m]`, `--effort high` each, off this commit; wait on
-`tools/lanewait.py`; at twenty landings spawn the pass.**
+**Opener: the twenty-fifth steering pass — `steer`, spawned by the
+commander at twenty landings; it writes the next commander's opener.**
 
 ## The queue
 
@@ -51,13 +51,12 @@ lower map first — East Indies (French).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1508. **French East Indies frame 17171, 11 versus 10 draws**, index
-    1, dated by 1502 (run658): leader 0's dirty bit (`leader_flags`
-    0x2000000) rises there on 17026..17032 and never here; the first
-    strike on player 0 (1/69 on Napata, 17053) sets treaties bit 2 and
-    Napata's `raid_stamp` there. The word's chain is a third event: an
-    attack pushed onto a guard's AttackTo leg, where ours keeps the walk
-    and the original drops it (run657, 1/69 on 17167). No mechanism.
+1514. **French East Indies frame 17244, 9 versus 6 draws**, index 0:
+    ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    `< Unit::do_idle+0x7d`. run661 widens it (254 keys); the first
+    parting near it is 1/67's move `pause` on block 17244. 135 frames
+    from the game's end: a word that reaches 17,379 closes the pair
+    with its closing state scored (DECISIONS 55). No mechanism.
 
 1510. **Great Sahara at Toughest's word: frame 14512, 53 versus 53
     draws in another order**, index 40: ours `Guy::move+0x19f`, theirs
@@ -78,8 +77,8 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
     `update_local_seen_build`'s fog arm, 1476's Construction hp arm
-    (`myhits`, `construct_hits` unread), and 1500's `move_step` snap's
-    `< 2` order-count bound (the two-order converse). Whether one
+    (`myhits`, `construct_hits` unread), and 1500's two-order snap and 1508's
+    M5 and M6 (the drop, the captain's re-search). Whether one
     staging reaches each is the item's to establish first. run654.
 
 ## How to maintain this file
