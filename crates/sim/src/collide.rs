@@ -766,6 +766,37 @@ impl Sim {
         self.coll_paint(u, at, true);
     }
 
+    /// **`Unit::set_type`'s crew loop, on the occupancy index**
+    /// (`docs/AI.md` §120). `Unit::set_type@00612fa0`'s second kill loop
+    /// walks the figures from the **old** type's `squad_size` to the
+    /// unit's whole count and calls `Objects::kill_guy@00659410` on each,
+    /// and `kill_guy`'s last arm clears `radius[coll_size]` around the
+    /// *figure's own cell* — `CollBlock::set(…, 0)` over the same disc
+    /// `add_to_world` set, by the unit's **old** type, since
+    /// `set_type` swaps `+0x18` only after the loop. Nothing puts the
+    /// cells back but the sixty-fourth-frame repaint, which marks the
+    /// *new* disc: a Trebuchet (size 3, trackless crew standing on guy 0)
+    /// that becomes a Bombard (size 2) leaves no ring of its old block
+    /// and a hole in its new one until the next repaint.
+    ///
+    /// SEAM: `kill_guy`'s own gates before the clear — the figure's type
+    /// is not the crash kind (`+0x14 == 8`), its domain is not air, and the
+    /// object type's vslot `+0x120` answers 0 — are read as true;
+    /// [`Self::coll_paint`] gates air. The region gate there is `coll_paint`'s,
+    /// not `kill_guy`'s plain cell region; the two differ on a coastal cell.
+    pub(crate) fn coll_kill_crew(&mut self, u: usize) {
+        let body = self.units[u].movement.body.pos;
+        let crew: Vec<Pos> = self.units[u]
+            .guys
+            .iter()
+            .skip(crate::anim::SQUAD_SIZE)
+            .map(|g| g.follow.map_or(body, |f| f.body.pos))
+            .collect();
+        for at in crew {
+            self.coll_paint(u, at, false);
+        }
+    }
+
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
