@@ -259,7 +259,8 @@ fn run639_s_word_frame_is_widened_whole() {
     // here and Tikal (532, city 3) there, four fields; on 14786 65, the site
     // `1/2054` and the food and timber it costs among them; ten on each of
     // 14787..14789. The word's block is 14787.
-    pin_eq!(w.firsts.len(), 226, "initial run639 baseline");
+    // Item 1468: 226 → 192, as run635's.
+    pin_eq!(w.firsts.len(), 192, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -300,7 +301,8 @@ fn run636_s_word_frame_is_widened_whole() {
     // Item 1479: 134 → 128 — who=1's `discovered` and five timber rows
     // (`bucket`, `leftover`, `resources`, `income`, `rate`) leave: the
     // French Carpentry line, handed out with Chemistry on 12958 (AI §123).
-    pin_eq!(w.firsts.len(), 128, "initial run636 baseline");
+    // Item 1468: 128 → 94, as run635's.
+    pin_eq!(w.firsts.len(), 94, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -336,7 +338,8 @@ fn run635_s_word_frame_is_widened_whole() {
     // 12959, which stood in the 640 too. Nothing parts on 12948..12958.
     // Item 1479: 119 → 118 — the `discovered` row was the French
     // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
-    pin_eq!(w.firsts.len(), 118, "initial run635 baseline");
+    // Item 1468: 118 → 88; the same two groups on the French pair's trained squads.
+    pin_eq!(w.firsts.len(), 88, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794

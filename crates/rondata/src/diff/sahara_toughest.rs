@@ -1447,7 +1447,8 @@ mod tests {
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear.
-        pin_eq!(w.firsts.len(), 367, "every key parted on run584");
+        // Item 1468: 367 → 327; trained units are born snapped, a computer captain's come-out wipe (`orders_x/y`, groups 17 and 15).
+        pin_eq!(w.firsts.len(), 327, "every key parted on run584");
     }
 
     /// **The word 11182, widened whole** (item 1379):
