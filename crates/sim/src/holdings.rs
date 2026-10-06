@@ -942,6 +942,49 @@ mod tests {
         assert_eq!(outside[0].resource, Resource::Oil);
     }
 
+    /// **The oil well's stand puts the worker on `CHAR_FARM`** — and a guy
+    /// already on it returns (`do_gather@005ef2a0:377`), so `Guy::move`'s
+    /// arrival test (`cur_anim == CHAR_WALK`) never sees a walk and the
+    /// arrival stand `Guy::move+0x19f` is never rolled (`docs/AI.md` §150,
+    /// item 1549: Great Sahara in the coverage lobby, frame 720, where this
+    /// crate spent one draw the original did not).
+    #[test]
+    fn an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        for cy in 7..=8 {
+            for cx in 9..=10 {
+                let at = crate::Cell::new(cx, cy);
+                let mut d = sim.world.cell_data(at);
+                d.flags |= crate::world::cell::OIL;
+                sim.world.set_cell_data(at, d);
+            }
+        }
+        let well = build(&mut sim, 0, t.oil_well, 40, 32);
+        let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
+        sim.units[u].guys.push(crate::anim::Guy::fresh(0));
+        sim.trace_phases = true;
+        gather_until_arrived(&mut sim, u, well);
+        sim.phase_marks.clear();
+        let mut arrivals = 0;
+        for _ in 0..8 {
+            sim.tick();
+            arrivals += sim
+                .phase_marks
+                .iter()
+                .filter(|(l, _)| l == crate::anim::SITE_ARRIVE)
+                .count();
+            sim.phase_marks.clear();
+        }
+        assert_eq!(
+            sim.units[u].guys[0].anim,
+            crate::anim::FARM,
+            "the worker works the well on the farm animation"
+        );
+        assert_eq!(arrivals, 0, "and it rolls no arrival stand");
+    }
+
     #[test]
     fn a_camp_with_no_city_is_outside_the_city_loop() {
         let mut sim = world_sim();

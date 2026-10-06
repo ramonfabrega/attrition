@@ -28,9 +28,12 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // Item 1538 moved it 12 → 718 (the tied oil patches); item 1544's
     // `total_units` tally, merged beside it, moved it 718 → 720: ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f` against the original's
-    // `Animal::think_bird+0x82`, 25 draws against 24.
-    count: 720,
-    sequence: 720,
+    // `Animal::think_bird+0x82`, 25 draws against 24. Item 1549's build (the
+    // oil well's stand is on `CHAR_FARM`, `docs/AI.md` §150) moved it
+    // 720 → **1182**: ours 146 draws against 84 at index 2, ours
+    // `Leader::produce_building+0xc99`, theirs `Leader::make_stuff+0x63d`.
+    count: 1182,
+    sequence: 1182,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -242,5 +245,51 @@ fn run680_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    eprintln!("RUN680 firsts {}", w.firsts.len());
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // **582** on the tree at base 9b962c3c, before the oil well's stand took
+    // the farm animation (`docs/AI.md` §150), **111** after: 83 stand from
+    // the window's first block (the control's set: both leaders' `SITE`
+    // `reg`, `form`, the pools, `scouts`, the `ally_mask`/territory counts),
+    // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
+    // Persians' `SITE` table on 776, the two queues' prices and leader 1's
+    // two buckets on 783, leader 0's `production_step` on 801.
+    pin_eq!(w.firsts.len(), 111, "initial run680 baseline");
+    // **The word's value diff, block 721** (item 1549): the dump prints no
+    // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
+    // value on the word's frame is the draw record — frame 720, ours 25
+    // against 24 at index 0, ours `Guy::set_anim+0x97a < Guy::move+0x19f`
+    // (the arrival stand of the Peasant `1/1`, `TypeIndex` 50, land) and
+    // theirs `Animal::think_bird+0x82`. `1/1` finished the Oil Well `1/2013`
+    // on 718 and stood at its (45216, 8832) from 719 in both; ours put it on
+    // `CHAR_WALK` (anim 8) through the turn arm and rolled the stand on 720,
+    // and the original's `do_gather` puts the guy on `CHAR_FARM` first. It
+    // agrees in every compared field through the window's last block.
+    pin_eq!(
+        w.firsts
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 1))
+            .count(),
+        0,
+        "1/1 agrees in every compared field"
+    );
+    // **What parts first past the standing block**: pool 66 and its group's
+    // `held` on 742 (ours [17], theirs none).
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 713)
+        .min();
+    pin_eq!(first, Some(742), "the first parting past the standing block");
+    pin_eq!(
+        w.firsts
+            .get(&(1, -2, "pool:66".to_string()))
+            .map(|(f, _)| *f),
+        Some(742),
+        "leader 1's pool 66 parts on block 742"
+    );
 }
