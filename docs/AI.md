@@ -14034,3 +14034,345 @@ and `1/90`'s tracked crew figure part. Standing from run584's first block:
 134 keys, among them the Scholars' `g.angle[0]` (1431655765 against 0) and
 `orders_x/y` and `group:65.role` (0 against 1379597), parted in the
 dark gap 11985..12532.
+
+## 119. A French General recovers craft twice as fast (2026-10-05, item 1470)
+
+French East Indies' word 12952 was one draw: ours spent a third
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` at index 34, where the
+original spent `Guy::set_anim+0x104b`. The figure that drew was guy 1 of
+`1/79`, a **GENERAL** (`TypeIndex` 54, land) in group 73. It wrapped its
+walk clock here. In the original it stood still.
+
+**The event is a cast, and the field that parted is one no widening
+read.** On run635's block 12953 the original's `1/79` holds `mana_burn`
+0 → 1000, `unit_masks` gains `0x8000`, and figure 0 holds
+`hold_attack` 12. Both sides threw the same two hero coins on 12952
+(`Unit::think_spellcaster+0x589`, §99.13). Ours could not afford Forced
+March: its `mana_burn` stood at **127** where the original's stood at
+**0**. `mana_burn`, `spell_time` and `unit_masks & 0x8000` are on the
+coverage pin's unread list, so the first rows of the word (sixteen walkers
+in group 73 stepping short, `group:73.speed` 32 against 42) were the
+march's speed, not its cause.
+
+**Dated by walking `mana_burn` back.** Both sides cast Forced March on
+10777 (run630: 0 on 10776, 1000 on 10777). The march holds the craft
+(`unit_masks & 0x2a000`) for 150 frames. From block 10928 the original takes
+back **two** a frame and ours one. run632 holds the original at 102 on
+11376 and 64 on 11395; ours stood at 551 and 532 there. Both cast again on
+11929. The original is back at 0 by 12579 (run634: 0 on 12789). Ours
+reached 127 on 12952. The first parted value is block 10928, 999 against
+998. The earliest on disk is run632's 11376.
+
+**The rate, read off the listing.** `Unit::process@00610bc0`, `610f2d`..
+`61104f`:
+
+```text
+r = 2
+has_tribe_bonus(10) and is(GENERAL, 1)            -> r = 4
+has_preq(SPIES_GENERALS_RECOVER_CRAFT) and
+    (is(GENERAL, 1) or is(SPY, 1))                -> r *= 2
+is(MEMNON, 0)                                     -> r = MEMNON_REGEN_RATE × r >> 8
+mana_burn -= min(mana_burn, ((frame & 1) + r) / 2)
+```
+
+Power 10 is France. `is(x, 1)` is vslot `+0xb8` with `push 1; push x`,
+the strict test (the type or its graft). `SPIES_GENERALS_RECOVER_CRAFT`
+(`0x301`) is a Conquer the World bonus. The crate's tree carries no row
+for it, so the arm is not taken. The original's French General shows
+`r = 4` exactly, so it is not taken there either.
+`MEMNON_REGEN_RATE` is `2/1`, loaded 8.8 (`get_fraction(…, 0x100)`, 512).
+`UnitData::mana@00609a50` has the same French arm. A French General's pool
+is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
+`0% bonus` (`get_item`, plain). Both are built in
+[`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/cast.rs`).
+
+**What moved.** French East Indies **12952 → 14090**. Ours holds 102 on
+11376 and 1000 on 12953, the original's own values. run635's widening
+falls 640 → 119: its 118 standing rows on 12947, and who=1's
+`leader:discovered` 33 against 34 on its last block, 12959, which stood
+in the 640 too. Nothing parts on 12948..12958. The full suites moved no
+other pin and no floor.
+
+**The new word** is 14090: 490 draws against 1298 at index 483, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
+`PathFinder::calc_road_cost+0x46`. Its widening is run636 (210 keys): 139
+standing on 14085, none on 14086, and on block 14087 thirteen of who=1's
+buildings carry `regen_roads` 0 here and 1 there, beside `1/49`'s order
+kind 6 against 7.
+
+**What is not established.** The supply wagon's gate before the arm
+(`is_supply` and `is_gov_hero`) and `unit_masks`' `0x2000` are still
+seams. The Memnon arm and `FRENCH_SPECIAL_CRAFT` rest on the listing
+alone: no capture holds Memnon, and the bonus ships at 0. No blind
+reading has been done.
+
+## 120. An upgrade kills its crew, and the kill clears the old block (2026-10-05, item 1472)
+
+Great Sahara at Toughest's word was booked at 12569 (item 1429) and
+**measured at 12575** on the base the item started from: item 1461's
+`get_speed` had moved it, 13 draws ours against 11, parting at index 4 —
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs a third
+`… < Unit::do_guard+0x7f4` (`1/109` stops a frame earlier there). run584
+(blocks 12532..12789) widens it: 1,528 keys, 134 standing from the first
+block.
+
+**The first parted field.** Past the standing keys, the first part of the
+window is `1/109`'s `half_step` on block 12542 — ours 0, theirs 1
+(`unit_masks` 262155 → 1310731, `collide_o` −1, nothing else of the unit
+moves that frame); its position parts on 12543 and the rest of the
+window is the army (group 65) walking on those positions: twenty more
+`half_step` rows on units from 12545 to 12599, and `g.cur_anim`/`end_time`
+rows from the walkers. Every writer of the one-shot (`unit_masks &
+0x100000`) is `detect_unit_collision@00617060`'s tail, set only when the
+nine-cell walk ends with a soft group-mate and no hard collider
+(`docs/COLLISION.md` §4.3); `move_step@005faf30:175` clears it.
+
+**What the original did, from inside.** run637 is run470's game under
+`RON_COLLIDE_PROBE` with `--callwin 12540 12543` (`docs/RUNS.md`, 76 s).
+On frame 12541 `1/109` probes the cell (610, 413): `collide_here` hits
+**(609, 414)**, `will_be_corner` 7, and `is_here(1/101)` answers 1 — a
+group-mate, soft, so the one-shot is set. This crate's sweep
+(`RON_SWEEP=12541:1/109` on the long walk) hits **(611, 414)**, `will` 5,
+and none of its 33 candidates is here. The probe also prints the live
+block (38, 25) at that call: **nine bits ours holds and the original does
+not** — (611..617, 414), (611, 415) and (617, 415), the top rim of a
+size-3 block centred (614, 417). Only `1/84` is there: a Trebuchet
+(`TypeIndex` 266, size 3, trackless crew) that became a Bombard (267, size
+2) on frame 11833. This crate's block history for that cell (a temporary
+trace of every set and clear of it) shows `1/84`'s size-3 disc painted
+and repainted every 64 frames to 11820 and never cleared after it.
+
+**The mechanism.** `Unit::set_type@00612fa0` (`SET_TYPE_NORMAL`) runs two
+kill loops before it swaps the type's `+0x18`. The second walks every
+figure from the **old** type's `0x304` (`squad_size`, 1) to the unit's
+whole count and calls `Objects::kill_guy@00659410` on it, and
+`kill_guy`'s last arm — a figure whose type is not the crash kind
+(`+0x14 == 8`) and not air — clears `radius[coll_size]` around the
+**figure's own cell**, `CollBlock::set(…, 0)`, by the unit's current
+(old) type. A figure with no track stands on guy 0 (item 1338), so for a
+Trebuchet each of its three crew clears a size-3 disc on the unit's own
+cell. The cells are not refcounted and nothing sets them back but the
+sixty-fourth-frame repaint, which marks the **new** disc (size 2) — so
+the old rim is gone and the inner cells are holes until then. This crate
+re-seated the figures (`reinit_guys`, `seat_guys`) and cleared nothing.
+`Sim::coll_kill_crew` (`crates/sim/src/collide.rs`) is that clear, called
+first in `Sim::unit_set_type`; `collide_here` then reads the original's
+block and the sweep of 12541 takes (609, 414) and the soft group-mate.
+
+**Made to fail.** `tools/mutate.py` with the call removed: the unit test
+`an_upgrade_clears_its_old_disc_around_the_crew_it_kills` fails, and so do
+`run584_s_word_frame_is_widened_whole` and
+`run470_is_great_sahara_at_toughest_and_its_word_holds` (the floor 12744),
+each exit 101, "mutation: held".
+
+**What moved.** Toughest **12575 → 12744**. The value diff, run584: `1/109`'s
+`half_step` on block 12542 ours 0, theirs 1 → agreeing; its position on
+12543 (29302, 19854) against (29295, 19840) → agreeing; the window's keys
+1,528 → 367 (134 standing). The run574 widening, the other closed pins and
+the 721 other `rondata` tests passed unchanged.
+
+**Coverage.** Diff-backed: the sweep's cell and `is_here` verdict (run637's
+probe against this crate's, line for line), the block's nine bits (the
+probe's live block against `coll`), the one-shot on the 22 units it parted
+on, and everything the keys count. Reading alone: that `kill_guy`'s three
+other gates before the clear (the figure's kind, its domain, and the
+object type's vslot `+0x120`, which the export does not name) all pass for
+a Trebuchet crew; that a **tracked** crew figure clears around its own
+cell (`Guy +0xc/+0x10`) rather than guy 0's — `coll_kill_crew` reads each
+figure's body — and that the loop's region gate (the cell's plain
+`region`) is the same as `coll_paint`'s `tregion` away from coast. No
+capture has a tracked-crew upgrade in a block this crate probes.
+
+**The new word** is 12744: ours 49 draws against 51, parting at index 35,
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs
+`Guy::init_real+0x52` — a unit born in the original: `1/142` is the dump's
+alone on block 12745, and who=1's `peasants` and `num_units[0]` are 50
+against 51. The first parts before it are who=1's make list on block 12582
+(`MAKE[3]`: `cat` 8 against 4, `city` −1 against 3, `val` 237600 against
+242560, `t` 604 against −1) and, on 12583, `1/2000`'s queue holding one
+entry in the original and `1/2023`'s in this crate, with the original's
+food and wealth escrow at 67 each and buckets 119 and 300 against 31 and
+142. The standing keys (the Scholars' `g.angle[0]`, `orders_x/y`,
+`group:65.role`, the caravans) still stand: run637 covers 12538..12544
+only, and the gap 11985..12532 is still dark (parked 1430).
+
+## 121. Construction speeds the clock and raises the hit points (2026-10-05, item 1476)
+
+French East Indies' word 14090 was 490 draws against 1298 at index 483.
+Ours spent `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The original
+spent `PathFinder::calc_road_cost+0x46` under
+`PathFinder::astar_caravan_road` (`report.py … draws 14090`, seed
+`3c7315a2` first), 1291 of them in all.
+
+**The first parting, dated.** run636's 139 standing rows on 14085 include
+five of who=1's sites: `1/2047`, `1/2049` and `1/2050` (`orig_type` 425,
+**SMELTER**) and `1/2051` and `1/2052` (Granaries). Each holds
+`constr_time` 100000 here and **90000** there. The original's `1/2047`
+holds `myhits` **1100** where the type's `HITS` is 1000. Both are one level
+of Construction's two `TECHBONUSES` rows:
+
+- `BUILDINGS_FASTER_1` (row 70) feeds `(10 − n) × t / 10`.
+- `BUILDINGS_HP_1` (row 73) feeds `(BUILDING_HP_UPGRADE × n + 100) × h / 100`
+  (`docs/CITIES.md` §3.2, §3.4).
+
+`RON_DEBUG_TECH` on the word's walk shows our who=1 gaining
+**Construction on 13782**. The original's `tech_frame` prints 13782 on
+14085. So both sides hold the bonus from 13783. No dump on disk lies
+between run635's 12964 and run636's 14085, so the parting is dated by the
+tech's frame, not by a block. On 14085 the Smelter `1/2047` stands at
+`job_counter` 89800 of 90000 there and of 100000 here. It completes on
+14087 there (`ever_seen_completed` 0 → 2). The completion raises who=1's
+`regen_roads` on thirteen buildings, and the caravan road is re-laid on
+14090.
+
+**The cause is no counter.** `LeaderData::get_building_speed_upgrade@006dae90`
+and `get_building_hp_upgrade@006daee0` count `has_preq` of the three
+`BUILDINGS_FASTER` and the three `BUILDINGS_HP` bonuses. As in the ships'
+counter, the `BUY_SELL` arm is one the loop never reaches.
+`Nation::speed_upgrade` and `hp_upgrade` had no writer, so both levels read
+0 for every player. The ladders now sit in `Roles::buildings_speed_preq`
+and `buildings_hp_preq`, loaded from rows 70–72 and 73–75 (Construction,
+Architecture, Engineering). [`Sim::build_mods`] and [`Sim::update_hits`]
+count them through `speed_upgrade_level`. `gain_tech` already raised the
+`0x8000000` dirty flag, so `calc_wall_stats` re-bakes every unfinished
+site on the next frame.
+
+**The value diff.** On block 14085 ours holds `1/2047` at `job_counter`
+89800 of `constr_time` **90000**, and `construct_hits` **1097**. On 14086
+it holds 89900 and 1098. On 14087 it is complete with **1485**. These are
+the original's own values on each block. `1/2049`..`1/2052` hold 90000 on
+both sides.
+
+**What moved.** French East Indies **14090 → 14782**. run636's widening
+falls 210 → 134: the five `constr_time`s leave, and every row from 14087
+goes with the completion. The `regen_roads`, `1/49`'s order, `gather_down`
+and the walk rows of 14088..14097 all go. What is left is the 134 rows
+standing on 14085. `east_indies_wonder_start_is_first_contact_on_every_building`
+no longer finds `1/2047`'s `ever_seen_completed` rows.
+
+**The new word** is 14782: 15 draws against 16 at index 7, ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` and theirs
+`Leader::make_stuff+0x63d`. Its widening is run639 (239 keys): 136
+standing on 14777, with who=1's timber among them (`bucket` 786 against
+1034, `escrow` 224 against 251, `over_cap` 0 against 1), none on
+14778..14782, and on the word's block 14783 who=1's `MAKE[8].val`
+9999999 here against 99999 there, beside `1/93`'s move order 192 off on
+each axis.
+
+**What is not established.**
+
+- `myhits` and `construct_hits` are on the coverage pin's unread list for
+  `OBJECT`. The hit-point arm is read off this block's three values
+  (`debug_builds` against `theirs2047.txt`), not by a widening.
+- Levels 2 and 3 (Architecture, Engineering) are not reached by any
+  capture on file. They rest on the counter's loop and on the cheat run of
+  `docs/CITIES.md` §3.2, which saw 70000.
+- ~~Who=1's `leader:discovered` 33 against 34 still stands. It first parts on
+  run635's block 12959, the frame after ours gains Chemistry (`f12958`).
+  The Smelter is the one building whose `PREQ0` is Chemistry, and our
+  who=1 never holds its bit. That is a row, not a mechanism.~~ **Answered
+  by §123**: the one is Carpentry, handed to the French with Chemistry.
+- No blind reading has been done.
+
+## 123. The French are handed the Carpentry line (2026-10-05, item 1479)
+
+French East Indies' word 14782 was 15 draws against 16 at index 7.
+Draws 0..6 agree: two `Leader::make_stuff+0x221` and five
+`Leader::make_stuff+0x63d`. The original spends a sixth `+0x63d` (seed
+`76675f2d`, `report.py … draws 14782`); ours goes on to
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (`1/79`).
+
+**The event, both sides.** Before the frame both who=1 make lists are the
+same: Printing Press (616) in slot 0 and again in slot 8, Barracks in 2
+and 7, Constitution in 9, Conscription in 10. Both buy the head, and both
+spend the two head draws and the five slot draws for the Barracks and
+Conscription. The sixth is slot 8. The original asks `make_this(8)`, and
+`produce_tech` answers 1 for a tech already in research, so slot 8's
+`val` becomes 99999 and its expiry walk spends a draw. Ours never reaches
+`make_this(8)`. Step 6's stockpile test wants `bucket ≥ cost(head) +
+cost(slot) + need` in timber: 640. The original's timber is **1040**
+before the head is paid. Ours is **790**, and 470 after.
+
+**The first parting, dated.** The timber is a standing row. On run636's
+14085 who=1's raw timber rate (`resources[1]`) is 3904 here and 4480 there.
+On run639's 14777 it is 3904 here and 5440 there, over a cap of 5376.
+Nothing in run635 (12947..12959) parts on timber. Its one who=1 row is
+`discovered` 33 against 34 on 12959, the block after Chemistry (`f12958`
+on both sides). Both increments are whole `LUMBERMILL_BONUS` steps on
+twelve woodcutters. Per gatherer, `peasant_rate` is 160 sixteenths:
+
+- 20 % → 50 % is 192 → 240, and 12 × 48 = **576** (3904 → 4480).
+- 50 % → 100 % is 240 → 320, and 12 × 80 = **960** (4480 → 5440).
+
+The levels are `LUMBERMILL2` and `3`, `TECHBONUSES` rows 22 and 23. Their
+`PREQ0`s are Carpentry and Logging Industry. Carpentry's `PREQ0` is
+Chemistry. Logging Industry's are Laws of Nature and Carpentry. So the
+state first parts on **12958**: the original hands who=1 Carpentry with
+Chemistry, and this crate does not.
+
+**Why.** `Leader::gain_tech@006dcb60`, at `6df93b`–`6df9d8` in the listing:
+
+```
+esi = 0x261                                    # CARPENTRY
+if has_tribe_bonus(0xa) and constants[+0x6c4]: # french_lumbermill_upgrades
+    while esi <= 0x263:                        # PAPERMILL
+        if has_preq(esi):
+            for i in 0 .. num_preq(esi):
+                if get_preq(esi, i, who) == gained:
+                    if type_eligible(esi, 1): gain_tech(esi, 0, 0, 0, 1)
+                    break
+        esi += 1
+```
+
+That is `docs/TECH.md` §13's French row, in [`tech::Shape::PreqMatch`]'s
+shape. The loader built the five predicate blocks and none of the range
+blocks ("each endpoint is its own reading and no capture reaches any of
+them"). `FRENCH_LUMBERMILL_UPGRADES` was loaded into `Tuning` and read by
+nothing. `seams.py --field free_rules` does not name the gap: its comment
+says "not loaded", not "SEAM".
+
+**The change.** `rondata::load` pushes the French block: `Gate::Power(10)`,
+`enabled` from `french_lumbermill_upgrades`, and the candidates are the
+listing's `0x261..=0x263` through `BASE_TECHTYPES`. By name those are
+Carpentry, Logging Industry and Papermill. Nothing else moves:
+`gain`'s step 13 already walks `free_rules`. Ours now gains Carpentry
+with Chemistry on 12958 and Logging Industry with Laws of Nature on 14607
+(`RON_DEBUG_TECH`).
+
+**The value diff.** On 14085 who=1's timber `resources` 4480, `income`
+4480, `rate` 280, `bucket` 532 and `leftover` 6000 are the original's
+values. On 14777 they are 5440, 5376 (capped), 336, 1034 and 6768, with
+`escrow` 251, `over_cap` 1 and `best_good` 1. Before the make on 14782
+the timber is 1040 and the escrow 253 (`RON_DEBUG_LEADER`), and on 14783
+slot 8's `val` is 99999 on both sides. `discovered` agrees on 12959,
+14085 and 14777. `1/93`'s move order agrees on 14783, as do the walk rows
+of 14784 that followed it.
+
+**What moved.** French East Indies **14782 → 14786**. The widenings fall:
+
+- run639: 239 → 226.
+- run636: 134 → 128.
+- run635: 119 → 118.
+
+**The new word** is 14786: 12 draws against 11 at index 0, ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` and theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. It lies inside run639,
+whose block 14787 holds it. The first rows after 14777's 127 standing are
+on block 14785: who=1's `MAKE[8]` holds a Temple (437, city 2, `val`
+800000, escrow 1) here and **Tikal** (532, city 3, `val` 1563477, escrow
+0) there. On 14786 the site `1/2054` is placed as each (`constr_time`
+37800 against 540000, a different city and spot). Food and timber are
+spent, and `1/25` and `1/57` take different orders. No mechanism is
+named here.
+
+**What is not established.**
+
+- Papermill is not reached by any capture: its `PREQ0` is Electronics.
+- The other range rows of §13's table (Russian, Egyptian, Mongol,
+  Persian, Korean, Chinese, Roman, the wonders) are still not loaded.
+  No capture's player holds those powers or wonders.
+- `tech_frame` and `tech_cat_frame` are unmodelled. The original's
+  `tech_frame` 14382 on 14777 is not this crate's 14607 for Laws of
+  Nature, and this item does not read why.
+- No blind reading has been done. The block's predicate is read off the
+  listing; the cascade it joins is §13's.

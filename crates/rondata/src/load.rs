@@ -1013,8 +1013,9 @@ pub fn load_tables(
     // lineage; the emptiness is the `where`, and the test says so.)
     //
     // The **range** blocks — every row of §13's table whose candidates are
-    // a run of tech indices — are not loaded: each endpoint is its own
-    // reading and no capture reaches any of them.
+    // a run of tech indices — are not loaded, but for the French one below
+    // (item 1479): each endpoint is its own reading, and French East
+    // Indies' who=1 is the one capture that reaches one.
     {
         let barracks = bname("Barracks").map(|i| build_tree[i]);
         let unit_ids: Vec<TypeId> = unit_tree.clone();
@@ -1055,6 +1056,28 @@ pub fn load_tables(
                 shape: tech::Shape::PreqMatch,
             });
         }
+        // **The French Carpentry block** (item 1479), the first **range**
+        // block loaded. `Leader::gain_tech@006dcb60`'s listing at
+        // `6df93b`–`6df9d8`: `esi` from `0x261` (`CARPENTRY`) while
+        // `<= 0x263` (`PAPERMILL`), gated on `has_tribe_bonus(0xa)` and
+        // `constants+0x6c4` (`french_lumbermill_upgrades`), then
+        // `has_preq(esi)`, a `get_preq(esi, i, who) == gained` over the
+        // type's preq count, `type_eligible(esi, 1)` and the gain: the
+        // [`tech::Shape::PreqMatch`] shape. A French player gaining
+        // Chemistry is handed Carpentry, and gaining Laws of Nature with
+        // Carpentry held, Logging Industry — the `LUMBERMILL2` and `3`
+        // levels the timber rate reads (`docs/AI.md` §123).
+        let range = |lo: i32, hi: i32| -> Vec<TypeId> {
+            (lo..=hi)
+                .filter_map(|x| tech_tree.get((x - BASE_TECHTYPES) as usize).copied())
+                .collect()
+        };
+        tree.free_rules.push(tech::FreeRule {
+            gate: tech::Gate::Power(10),
+            enabled: t.french_lumbermill_upgrades,
+            candidates: range(0x261, 0x263),
+            shape: tech::Shape::PreqMatch,
+        });
     }
     tree.finalize();
 
@@ -1665,6 +1688,11 @@ pub fn load_tables(
     tree.roles.troops_speed_preq = [bonus_at(58), bonus_at(59), bonus_at(60)];
     tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
+    // `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3`, rows 70–72 and
+    // 73–75: the construction clock's and the hit points' levels
+    // (`docs/AI.md` §121).
+    tree.roles.buildings_speed_preq = [bonus_at(70), bonus_at(71), bonus_at(72)];
+    tree.roles.buildings_hp_preq = [bonus_at(73), bonus_at(74), bonus_at(75)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,
@@ -3022,7 +3050,11 @@ mod tests {
         let Some(i) = install() else { return };
         let l = load(&i).unwrap();
         let t = &l.tree;
-        assert_eq!(t.free_rules.len(), 5, "the five predicate blocks");
+        assert_eq!(
+            t.free_rules.len(),
+            6,
+            "the five predicate blocks and the French range block"
+        );
         let by_gate = |power: usize| {
             t.free_rules
                 .iter()
@@ -3068,6 +3100,56 @@ mod tests {
                 .iter()
                 .any(|r| r.candidates.contains(&named("Hoplites")))
         );
+        // French (10), `FRENCH_LUMBERMILL_UPGRADES`: the listing's
+        // `0x261..=0x263`, which by name is the Lumber Mill's three techs
+        // (item 1479).
+        let french = by_gate(10);
+        assert_ne!(french.enabled, 0, "the constant ships on");
+        let tech = |n: &str| l.tech_tree[l.tech_named(n).unwrap()];
+        assert_eq!(
+            french.candidates,
+            [
+                tech("Carpentry"),
+                tech("Logging Industry"),
+                tech("Papermill")
+            ]
+        );
+    }
+
+    /// **The French are handed the Carpentry line** (item 1479,
+    /// `docs/AI.md` §123): gaining Chemistry with the French power hands
+    /// over Carpentry, and gaining Laws of Nature with Carpentry held,
+    /// Logging Industry — the two `LUMBERMILL` levels French East Indies'
+    /// who=1 holds on 12958 and by 14777. Another power, or none, gets
+    /// nothing.
+    #[test]
+    fn a_french_player_is_handed_the_carpentry_line() {
+        use sim::tech::{PlayerTech, Setup};
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let t = &l.tree;
+        let tech = |n: &str| l.tech_tree[l.tech_named(n).unwrap()];
+        let s = Setup::STANDARD;
+        let run = |power: Option<usize>| {
+            let mut p = PlayerTech::new(t);
+            p.power = power;
+            p.has_city = true;
+            t.start(&s, &Tuning::RON, &mut p);
+            for a in t.ages.iter().take(3).flatten() {
+                t.gain_tech(&s, &mut p, *a, 1);
+            }
+            t.gain_tech(&s, &mut p, tech("Chemistry"), 2);
+            let carpentry = p.tech[tech("Carpentry")];
+            t.gain_tech(&s, &mut p, tech("Laws of Nature"), 3);
+            (
+                carpentry,
+                p.tech[tech("Logging Industry")],
+                p.tech[tech("Papermill")],
+            )
+        };
+        assert_eq!(run(Some(10)), (true, true, false), "the French");
+        assert_eq!(run(Some(11)), (false, false, false), "the British");
+        assert_eq!(run(None), (false, false, false), "no power");
     }
 
     #[test]

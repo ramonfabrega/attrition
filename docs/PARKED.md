@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1476, 2026-10-05 — Construction's bonuses
+
+(1480) **who=1's `leader:discovered` 33 against 34**, first parted on
+block 12959, the frame after Chemistry: ours never holds the Smelter
+bit. It stands under French East Indies' words from 12959 on.
+
 ## Parked by item 1423, 2026-10-05 — chapter fifty-one's close
 
 (1473) **`Group::target_opportunity`'s member `find_melee_target` arm,
@@ -3664,3 +3670,22 @@ checklist row that names the tool has nothing to run on the newest word.
 sat on `coverage.rs`'s unread list the whole time their arms were "held
 by a unit test alone". A check at booking that greps a booked arm's
 field against that list would have named both without a staging.
+And 1470's (same day): `mana_burn`, `spell_time` and most `unit_masks`
+bits are read by no widening — a General's craft parted unseen for about
+2,000 frames before it parted a draw. And 1468's: group 4's `start_list`
+is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
+does not read. And 1476's: `myhits` and
+`construct_hits` sit on the same list, so Construction's hp arm is held
+by a unit test alone.
+
+(1482) **`tools/seams.py` misses a gap written as "are not loaded"**
+(1479's Loop line, 2026-10-05): the free-tech block (Chemistry's
+French Carpentry line, `FRENCH_LUMBERMILL_UPGRADES`) was a documented
+gap the seam scan did not print, and it parted who=1's timber rate
+for 1,800 frames.
+
+(1478) **Ours' `coll` against the collide probe's block, as a tool**
+(1472's Loop line, 2026-10-05): `tools/trace/report.py … calls` prints
+the probe's live block as raw coordinates; 1472 diffed it against ours
+with a throwaway script and a `TMP` print in `collide.rs`. The third
+reach after run116 and run578 — it graduates into `tools/`.

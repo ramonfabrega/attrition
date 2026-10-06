@@ -1314,6 +1314,7 @@ pub struct Sim {
     pub(crate) pf_start: Pos,
     /// The order a frame's building walk ran its five steps in — written
     /// only under test — for the test that holds `Build::process`'s sequence (group 18).
+    #[allow(dead_code)]
     pub(crate) building_log: Vec<(usize, &'static str)>,
     /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
     /// whose target went invalid. `Leader::process@006b88b0` zeroes it
@@ -3006,7 +3007,11 @@ impl Sim {
     /// siblings: how many of a ladder's three bonuses the player holds,
     /// every one counted. The listing's `BUY_SELL` arm compares `0x2ad`
     /// against types the loops never reach, so it is dead in all three.
-    fn speed_upgrade_level(&self, who: Player, ladder: &[Option<tech::TypeId>; 3]) -> i32 {
+    pub(crate) fn speed_upgrade_level(
+        &self,
+        who: Player,
+        ladder: &[Option<tech::TypeId>; 3],
+    ) -> i32 {
         let p = &self.tech[who as usize];
         ladder
             .iter()
@@ -3718,6 +3723,10 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner;
+        // `set_type`'s crew loop kills every figure past the old
+        // `squad_size` before the type is swapped: `kill_guy` clears the
+        // old disc around each (`docs/AI.md` §120).
+        self.coll_kill_crew(u);
         // A decoy's type is no count of the leader's: both of `set_type`'s
         // `track_unit_type` calls sit behind `(unit_masks & 1) == 0`
         // (decompile lines 62 and 273). run346's decoy Peltasts took the

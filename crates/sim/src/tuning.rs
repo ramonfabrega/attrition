@@ -172,6 +172,14 @@ pub struct Tuning {
     pub supply_heal_rate: i32,
     /// Period granted instead by the supply-heal nation bonus.
     pub french_supply_heal_rate: i32,
+    /// `FRENCH_SPECIAL_CRAFT`, a percentage read plain (`get_item`): a
+    /// French General's pool is `(this + 100) × MANA / 100`
+    /// (`UnitData::mana@00609a50`). It ships as `0% bonus`.
+    pub french_special_craft: i32,
+    /// `MEMNON_REGEN_RATE`, `2/1` loaded as 8.8 (`get_fraction(…, 0x100)`):
+    /// Memnon's craft rate is `rate × r >> 8`, rounded toward zero
+    /// (`Unit::process@00610bc0`, `611006`). No capture has him.
+    pub memnon_regen_rate: i32,
     /// Period granted instead by Versailles.
     pub versailles_supply_heal_rate: i32,
     /// Non-zero if a siege unit under attack reloads as though out of supply.
@@ -958,6 +966,8 @@ impl Tuning {
         alexander_forced_march_speed: 384,
         supply_heal_rate: 0,
         french_supply_heal_rate: 20,
+        french_special_craft: 0,
+        memnon_regen_rate: 512,
         versailles_supply_heal_rate: 20,
         artillery_under_attack_fires_slowly: 1,
 
@@ -1268,7 +1278,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 350] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 352] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1362,6 +1372,8 @@ impl Tuning {
                 "FRENCH_SUPPLY_HEAL_RATE",
                 Slot::Value(T.french_supply_heal_rate),
             ),
+            ("FRENCH_SPECIAL_CRAFT", Slot::Value(T.french_special_craft)),
+            ("MEMNON_REGEN_RATE", Slot::Ratio256(T.memnon_regen_rate)),
             (
                 "VERSAILLES_SUPPLY_HEAL_RATE",
                 Slot::Value(T.versailles_supply_heal_rate),

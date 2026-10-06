@@ -87,7 +87,7 @@ pub mod ty {
 
 /// The roster indices `Build::activate`'s free-unit block passes
 /// `has_tribe_bonus`, in the order the block tests them.
-mod power {
+pub(crate) mod power {
     pub const AZTECS: usize = 0;
     pub const NUBIANS: usize = 4;
     pub const ROMANS: usize = 6;

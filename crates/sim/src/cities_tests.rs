@@ -1199,6 +1199,13 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
         l.bucket = [10_000; economy::RESOURCES];
     }
     let t = install_types(&mut sim);
+    // `BUILDINGS_FASTER_1..3`'s prerequisites, as the shipped file's
+    // Construction, Architecture and Engineering.
+    let mut tree = tech::TechTree::new();
+    let ladder = ["Construction", "Architecture", "Engineering"]
+        .map(|n| tree.add(tech::TypeDef::plain(n, 0)));
+    tree.roles.buildings_speed_preq = ladder.map(Some);
+    sim.set_tech_tree(tree);
     // A nomad places two cities: both clocks are tripled. When the first
     // finishes, `calc_wall_stats` on the next frame re-bakes the second at
     // the plain rate — the ×3 is not frozen at placement.
@@ -1217,10 +1224,58 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
     assert_eq!(sim.buildings[b].constr_time, 60_000);
     assert!(!sim.wall_stats_dirty[0]);
     // A speed tech arriving mid-build does the same.
-    sim.nation[0].speed_upgrade = 3;
+    for x in ladder {
+        sim.tech[0].tech[x] = true;
+    }
     sim.wall_stats_dirty[0] = true;
     sim.tick();
     assert_eq!(sim.buildings[b].constr_time, 42_000);
+}
+
+/// Item 1476 (`docs/AI.md` §121): Construction is `BUILDINGS_FASTER_1`'s
+/// and `BUILDINGS_HP_1`'s prerequisite. run636's who=1 gained it on 13782
+/// and holds its five unfinished sites at `constr_time` 90000 and its
+/// Smelter `1/2047` at `myhits` 1100 — a tenth off the clock, a tenth on
+/// the hit points — where this crate held 100000 and 1000.
+#[test]
+fn construction_takes_a_tenth_off_the_clock_and_adds_a_tenth_to_the_hits() {
+    let mut w = World::new(16, 16);
+    w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+    let mut sim = Sim::new(Tuning::RON, w, 2);
+    for l in &mut sim.ledgers {
+        l.bucket = [10_000; economy::RESOURCES];
+    }
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let construction = tree.add(tech::TypeDef::plain("Construction", 0));
+    let other = tree.add(tech::TypeDef::plain("Herbal Lore", 0));
+    tree.roles.buildings_speed_preq = [Some(construction), None, None];
+    tree.roles.buildings_hp_preq = [Some(construction), None, None];
+    sim.set_tech_tree(tree);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 32)).unwrap();
+    sim.tick();
+    let (clock, hits) = (sim.buildings[b].constr_time, sim.buildings[b].hits);
+    // A tech off both ladders moves neither.
+    sim.tech[0].tech[other] = true;
+    sim.wall_stats_dirty[0] = true;
+    sim.tick();
+    assert_eq!(sim.buildings[b].constr_time, clock);
+    assert_eq!(sim.buildings[b].hits, hits);
+    sim.tech[0].tech[construction] = true;
+    sim.wall_stats_dirty[0] = true;
+    sim.tick();
+    assert_eq!(
+        sim.buildings[b].constr_time,
+        9 * clock / 10,
+        "(10 − 1) × t / 10"
+    );
+    assert_eq!(
+        sim.buildings[b].hits,
+        110 * hits / 100,
+        "BUILDING_HP_UPGRADE, 10 % a level"
+    );
 }
 
 #[test]

@@ -424,6 +424,15 @@ pub struct Roles {
     pub ships_speed_preq: [Option<TypeId>; 3],
     pub troops_speed_preq: [Option<TypeId>; 3],
     pub vehicles_speed_preq: [Option<TypeId>; 3],
+    /// `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3` (`0x2f2..0x2f7`),
+    /// `TECHBONUSES` rows 70–72 and 73–75 — Construction, Architecture and
+    /// Engineering for both in the shipped file. Their counters,
+    /// `LeaderData::get_building_speed_upgrade@006dae90` and
+    /// `get_building_hp_upgrade@006daee0`, count **every** one held, as
+    /// the three above do; `Wall::update_construct_time` and
+    /// `Wall::update_hits` read them (`docs/CITIES.md` §3.2).
+    pub buildings_speed_preq: [Option<TypeId>; 3],
+    pub buildings_hp_preq: [Option<TypeId>; 3],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

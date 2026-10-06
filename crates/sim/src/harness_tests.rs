@@ -1517,6 +1517,68 @@ fn an_upgraded_unit_s_crew_is_fresh_and_seated_on_the_new_pieces() {
     );
 }
 
+/// **An upgrade clears the old disc around each crew figure it kills**
+/// (item 1472, `docs/AI.md` §120). `Unit::set_type`'s second kill loop calls
+/// `Objects::kill_guy` on every figure past the old `squad_size`, and
+/// `kill_guy` clears `radius[coll_size]` — by the **old** type — around the
+/// figure's own cell. Great Sahara at Toughest's Trebuchet `1/84` (size 3,
+/// trackless crew) became a Bombard (size 2) on 11833, and this crate left
+/// the old block's outer ring set for 700 frames: the original's live block
+/// on 12541 held none of it, so its `1/109` found `1/101` on the cell this
+/// crate's sweep passed over.
+#[test]
+fn an_upgrade_clears_its_old_disc_around_the_crew_it_kills() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let medieval = tree.add(TypeDef::age("Medieval Age", 0));
+    let works = tree.add(TypeDef::building("Siege Factory"));
+    let old_t = tree.add(TypeDef::unit("Trebuchet", free).at(works));
+    let new_t = tree.add(
+        TypeDef::unit("Bombard", UnitTraits::default())
+            .at(works)
+            .from(old_t)
+            .needs(0, medieval),
+    );
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let mut old = UnitType {
+        tree: Some(old_t),
+        ..citizen_type()
+    };
+    old.combat.crew_size = 3;
+    old.combat.block_radius = 3 * 48;
+    let mut new = UnitType {
+        tree: Some(new_t),
+        ..citizen_type()
+    };
+    new.combat.crew_size = 3;
+    new.combat.block_radius = 2 * 48;
+    let old = sim.add_unit_type(old);
+    let new = sim.add_unit_type(new);
+    let a = sim.init_unit(0, old, centre_of(Cell::new(5, 0)));
+    let c = crate::collide::ucell(sim.units[a].pos);
+    assert!(sim.coll.get(c.x + 3, c.y), "the size-3 block stands");
+    assert!(sim.coll.get(c.x + 2, c.y), "and its inner cells");
+
+    sim.gain_tech(0, new_t);
+
+    assert_eq!(sim.units[a].ty, Some(new), "converted");
+    assert!(
+        !sim.coll.get(c.x + 3, c.y),
+        "the old block's outer ring is not left behind"
+    );
+    assert!(
+        !sim.coll.get(c.x, c.y),
+        "the clear is the whole old disc, until the repaint"
+    );
+}
+
 /// **A turn still turning is not idled** (item 1338, `docs/ANIM.md` §4):
 /// `Guy::set_anim`'s early return for an idle request on slot `0x15` or
 /// `0x16` while `des_angle != angle` — nothing, or a rewind once the turn

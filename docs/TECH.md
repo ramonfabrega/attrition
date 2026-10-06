@@ -959,11 +959,16 @@ block loads **empty**, which is what §13's row said it would — though not
 for the reason it gave: the lineage is not missing, the **`where`** is,
 because a Light Horse is trained at the Stable.
 
-`crates/rondata`'s loader builds these five and no others. **The range
-blocks are not loaded**: every other row of §13's table names a run of
-tech indices whose endpoints are each a separate reading, and no capture
-reaches any of them. `the_nation_free_upgrade_blocks_name_the_units_they
-_hand_out` is the install-backed test.
+`crates/rondata`'s loader builds these five and ~~no others~~ one more.
+**The range blocks are not loaded**: every other row of §13's table names
+a run of tech indices whose endpoints are each a separate reading, and
+~~no capture reaches any of them~~ — **the French row is loaded** (item
+1479, `docs/AI.md` §123): French East Indies' who=1 is handed Carpentry
+with Chemistry, and the listing (`6df93b`–`6df9d8`) gives the run as
+`0x261..=0x263`, Carpentry, Logging Industry and Papermill.
+`the_nation_free_upgrade_blocks_name_the_units_they_hand_out` and
+`a_french_player_is_handed_the_carpentry_line` are the install-backed
+tests.
 
 ### `Leader::gain_tech`'s conversion loop (`6dd9bd`–`6ddbd1`)
 
