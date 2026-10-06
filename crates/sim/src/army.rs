@@ -272,6 +272,21 @@ impl Sim {
 
     /// `Army::init`: the muster point one cell south of the city (§2).
     fn army_init(&mut self, who: Player, slot: usize, city: Option<usize>) {
+        // `Army::init@006f9000` writes only `ArmyData`'s own fields (`list[]`
+        // to −1, `num_groups` to 0) and touches no group: when all sixteen
+        // slots are valid and the one with fewest units is taken over, the
+        // old army's group stays in the pool with its members still naming
+        // it (twenty-fourth pass, group 4; A5 #10). The crate's pool record
+        // carries no `army` back-pointer, so the seat is the orphan's, the
+        // same one `close_army` leaves — without its halt.
+        if self.armies[who as usize].list[slot].valid {
+            let old = &mut self.armies[who as usize].list[slot];
+            let list = std::mem::take(&mut old.units);
+            let state = std::mem::take(&mut old.group);
+            if state.pool.is_some() && list.iter().any(|&u| self.units[u].alive()) {
+                self.seat_orphan(who, list, state);
+            }
+        }
         let mut a = Army::empty(slot, who);
         a.valid = true;
         a.status = status::MUSTERING;
@@ -535,10 +550,15 @@ impl Sim {
         })
     }
 
-    /// `Army::count(COUNT_SIEGE)`.
+    /// `Army::count(COUNT_SIEGE)`: a siege type, and **not** a decoy under
+    /// computer control — `GroupData::count@00711720`'s
+    /// `unit_masks & 0x40001 != 0x40001` (twenty-fourth pass, group 1; the
+    /// decoy bit is `1`, the computer-control bit `0x40000`,
+    /// [`Sim::ai_driven`]).
     fn army_count_siege(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
             s.units[u].ty.is_some_and(|t| s.unit_types[t].combat.siege)
+                && !(s.units[u].decoy && s.ai_driven(s.units[u].owner))
         })
     }
 
@@ -568,11 +588,14 @@ impl Sim {
         })
     }
 
+    /// `COUNT_NON_DECOY_TYPE, HOPLITES`: a decoy is skipped, as the cavalry
+    /// term beside it skips one (twenty-fourth pass, group 1).
     fn army_count_hoplites(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
-            s.units[u]
-                .ty
-                .is_some_and(|t| s.unit_types[t].cols.is(role::HOPLITE))
+            !s.units[u].decoy
+                && s.units[u]
+                    .ty
+                    .is_some_and(|t| s.unit_types[t].cols.is(role::HOPLITE))
         })
     }
 
@@ -1802,6 +1825,29 @@ impl Sim {
 
     // ---- the target (§12) ----
 
+    /// `LeaderData::get_target@006da000`: the first leader after `who` in
+    /// the lobby's start list whose `leader_flags & 3 == 3`, else `who`.
+    ///
+    /// **SEAM**: `Game::start_list`/`start_index` (`+0x65c`, `+0x67c`) have no
+    /// writer in the export by name and no capture prints them, so the list
+    /// is the identity over the seated players — slot `k` is leader `k`,
+    /// and an unseated slot reads the `memset` zero (`Game::clear@005950b0`)
+    /// — and `flags & 3 == 3` is "not defeated", this crate's one proxy for
+    /// both bits. Read only under `team_style == 2`.
+    pub(crate) fn start_list_target(&self, who: Player) -> usize {
+        let at = |k: usize| {
+            let k = k & 7;
+            if k < self.players.len() { k } else { 0 }
+        };
+        for j in 0..8 {
+            let l = at(who as usize + 1 + j);
+            if !self.defeated.get(l).copied().unwrap_or(true) {
+                return l;
+            }
+        }
+        who as usize
+    }
+
     /// `Army::find_target` over cities. The forts pass and the fields the
     /// sim lacks are seams; see the module doc.
     pub fn find_target(&mut self, who: Player, slot: usize) {
@@ -1920,6 +1966,13 @@ impl Sim {
                         }
                     }
                 }
+                // `team_style == 2` (`6f6fb4..6f705f`; group 4, A5 #30): the
+                // leader must be me, the leader `LeaderData::get_target`
+                // names, or a mutual ally. Reached by every leader, `i == w`
+                // included.
+                if team_style == 2 && i != w && !allied && self.start_list_target(who) != i {
+                    continue;
+                }
                 for c in self.cities_of(ip) {
                     let cd = self.cities[c].clone();
                     if navy {
@@ -1927,7 +1980,12 @@ impl Sim {
                             (Some(r), Some(cr)) => self.world.is_coast(r, cr),
                             _ => false,
                         };
-                        if !coast {
+                        // And the city's own `ocean` (`+0x62`) is non-zero
+                        // (`6f70b5..6f70e0`; twenty-fourth pass, group 4):
+                        // the count the owner's census wrote, so a leader
+                        // whose census never ran has none.
+                        let ocean = self.ai[i].city_ai.get(c).is_some_and(|r| r.ocean != 0);
+                        if !coast || !ocean {
                             continue;
                         }
                     }
@@ -3185,6 +3243,111 @@ mod tests {
         assert!(
             sim.armies[1].list[1].ticks_on(250),
             "region six gets slot one's phase, independent of city order"
+        );
+    }
+
+    /// **The strength terms skip a decoy** (twenty-fourth pass, group 1):
+    /// `GroupData::count`'s `COUNT_NON_DECOY_TYPE` skips every decoy, so the
+    /// hoplite term does too; `COUNT_SIEGE` skips a decoy only under
+    /// computer control (`unit_masks & 0x40001 == 0x40001`).
+    #[test]
+    fn the_hoplite_and_siege_terms_skip_decoys() {
+        for (human, siege_expected) in [(false, 2), (true, 3)] {
+            let (mut sim, c) = sim_with_city();
+            sim.nation[1].human = human;
+            let hop = soldier_type(&mut sim);
+            sim.unit_types[hop].cols.role |= role::HOPLITE;
+            let ram = soldier_type(&mut sim);
+            sim.unit_types[ram].combat.siege = true;
+            let slot = sim.init_army(1, Some(c));
+            for i in 0..3 {
+                for t in [hop, ram] {
+                    let u = put(&mut sim, 1, t, Pos::new(0x3000 + i * 48, 0x3000));
+                    sim.army_add_unit(1, slot, u);
+                    sim.units[u].decoy = i == 2;
+                }
+            }
+            assert_eq!(sim.army_count_hoplites(1, slot), 2, "decoys never count");
+            assert_eq!(
+                sim.army_count_siege(1, slot),
+                siege_expected,
+                "a decoy siege engine is skipped under computer control only"
+            );
+        }
+    }
+
+    /// **A navy's city filter asks the city's `ocean` too** (twenty-fourth
+    /// pass, group 4; A5 #31, `6f70b5..6f70e0`): a coastal-region city with no
+    /// water counted by its owner's census is skipped before its draw.
+    #[test]
+    fn a_navy_skips_a_coastal_city_with_no_ocean() {
+        let mut draws = Vec::new();
+        for ocean in [0, 3] {
+            let (mut sim, c) = sim_with_city();
+            sim.lobby.difficulty = 5;
+            sim.ai[1].pers.early_army = 1;
+            sim.world
+                .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+            sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
+            let slot = sim.init_army(1, Some(c));
+            sim.armies[1].list[slot].navy = true;
+            sim.cities[c].no_muster = true;
+            let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
+            let mut foe = sim.cities[c].clone();
+            foe.owner = 0;
+            foe.founder = 0;
+            foe.no_muster = false;
+            foe.building = fb;
+            foe.pos = sim.buildings[fb].pos;
+            let fc = sim.cities.len();
+            sim.cities.push(foe);
+            sim.buildings[fb].city = Some(fc);
+            sim.ai[0]
+                .city_ai
+                .resize(fc + 1, crate::ai::CityAi::default());
+            sim.ai[0].city_ai[fc].ocean = ocean;
+            sim.declare_war(1, 0);
+            let before = sim.rng.seed;
+            sim.find_target(1, slot);
+            draws.push(sim.rng.seed != before);
+        }
+        assert_eq!(
+            draws,
+            [false, true],
+            "the city is drawn for only when its census found water"
+        );
+    }
+
+    /// **`team_style == 2` narrows the leaders** (group 4; A5 #30): me, the
+    /// start list's next live leader, or a mutual ally. The start list is
+    /// the identity here (a seam), so on three seats leader 2 reads 0.
+    #[test]
+    fn the_start_list_s_target_is_the_next_live_leader() {
+        let (mut sim, _) = sim_with_city();
+        assert_eq!(sim.start_list_target(0), 1);
+        assert_eq!(sim.start_list_target(1), 0, "an unseated slot reads zero");
+        sim.defeated[1] = true;
+        assert_eq!(sim.start_list_target(0), 0, "nobody left but me: me");
+    }
+
+    /// **A full pool's takeover leaves the old group seated** (group 4; A5
+    /// #10): `Army::init` touches no group, so the evicted army's members
+    /// still name a group the pool holds.
+    #[test]
+    fn taking_over_a_valid_slot_orphans_its_group() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3000));
+        sim.army_add_unit(1, slot, u);
+        let pool = sim.armies[1].list[slot].group.pool;
+        assert!(pool.is_some(), "the unit is seated");
+        sim.army_init(1, slot, Some(c));
+        assert!(
+            sim.pushed
+                .iter()
+                .any(|x| x.who == 1 && x.state.pool == pool && x.list.contains(&u)),
+            "the old group stays in the pool"
         );
     }
 

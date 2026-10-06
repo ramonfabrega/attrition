@@ -3667,6 +3667,23 @@ fn a_nomad_has_no_power_between_its_cities() {
     assert!(sim.nation[0].british);
 }
 
+/// **A Barracks-trained unit garrisons in a Siege Factory or a Factory**
+/// (twenty-fourth pass, group 3): above patch version 3 the `WHERE ==
+/// BARRACKS` arm of `can_garrison` admits Barracks, Stable, Auto Plant, Siege
+/// Factory and Factory (`61d8d7..61d978`), not the first three only.
+#[test]
+fn a_barracks_unit_garrisons_in_a_siege_factory_and_a_factory() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let sf = sim.add_build_type(bt(Ident::SiegeFactory, None, "ean", 4, 4, 420, 1200, 10));
+    let fac = sim.add_build_type(bt(Ident::Factory, None, "ean", 4, 4, 420, 1200, 10));
+    let ut = sim.add_unit_type(hoplite_type(t.barracks));
+    assert!(sim.can_garrison(ut, t.barracks));
+    assert!(sim.can_garrison(ut, sf), "a Siege Factory takes it");
+    assert!(sim.can_garrison(ut, fac), "and so does a Factory");
+    assert!(!sim.can_garrison(ut, t.market), "a market still does not");
+}
+
 /// **The British arm of `train_time`'s tail** — `docs/PRODUCTION.md`,
 /// "The tail's first caller".
 ///

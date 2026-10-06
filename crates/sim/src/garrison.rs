@@ -107,7 +107,18 @@ impl Sim {
         }
         let bt = types[build_ty].ident;
         match where_ident {
-            Ident::Barracks => matches!(bt, Ident::Barracks | Ident::Stable | Ident::AutoPlant),
+            // Above patch version 3 — this build's — `UnitTypeData::can_garrison@0061d7d0`
+            // admits the whole five (`61d8ff`, then `61d968`'s `0x1ae` and
+            // `0x1af`): a Barracks-trained unit garrisons in a Siege Factory
+            // or a Factory too (twenty-fourth pass, group 3).
+            Ident::Barracks => matches!(
+                bt,
+                Ident::Barracks
+                    | Ident::Stable
+                    | Ident::AutoPlant
+                    | Ident::SiegeFactory
+                    | Ident::Factory
+            ),
             Ident::Stable | Ident::AutoPlant => matches!(
                 bt,
                 Ident::Barracks
