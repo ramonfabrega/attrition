@@ -14105,3 +14105,71 @@ kind 6 against 7.
 seams. The Memnon arm and `FRENCH_SPECIAL_CRAFT` rest on the listing
 alone: no capture holds Memnon, and the bonus ships at 0. No blind
 reading has been done.
+
+## 121. Construction speeds the clock and raises the hit points (2026-10-05, item 1476)
+
+French East Indies' word 14090 was 490 draws against 1298 at index 483.
+Ours spent `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The original
+spent `PathFinder::calc_road_cost+0x46` under
+`PathFinder::astar_caravan_road` (`report.py … draws 14090`, seed
+`3c7315a2` first), 1291 of them in all.
+
+**The first parting, dated.** run636's 139 standing rows on 14085 include
+five of who=1's sites: `1/2047`, `1/2049` and `1/2050` (`orig_type` 425,
+**SMELTER**) and `1/2051` and `1/2052` (Granaries). Each holds
+`constr_time` 100000 here and **90000** there. The original's `1/2047`
+holds `myhits` **1100** where the type's `HITS` is 1000. Both are one level
+of Construction's two `TECHBONUSES` rows:
+
+- `BUILDINGS_FASTER_1` (row 70) feeds `(10 − n) × t / 10`.
+- `BUILDINGS_HP_1` (row 73) feeds `(BUILDING_HP_UPGRADE × n + 100) × h / 100`
+  (`docs/CITIES.md` §3.2, §3.4).
+
+`RON_DEBUG_TECH` on the word's walk shows our who=1 gaining
+**Construction on 13782**. The original's `tech_frame` prints 13782 on
+14085. So both sides hold the bonus from 13783. No dump on disk lies
+between run635's 12964 and run636's 14085, so the parting is dated by the
+tech's frame, not by a block. On 14085 the Smelter `1/2047` stands at
+`job_counter` 89800 of 90000 there and of 100000 here. It completes on
+14087 there (`ever_seen_completed` 0 → 2). The completion raises who=1's
+`regen_roads` on thirteen buildings, and the caravan road is re-laid on
+14090.
+
+**The cause is no counter.** `LeaderData::get_building_speed_upgrade@006dae90`
+and `get_building_hp_upgrade@006daee0` count `has_preq` of the three
+`BUILDINGS_FASTER` and the three `BUILDINGS_HP` bonuses. As in the ships'
+counter, the `BUY_SELL` arm is one the loop never reaches.
+`Nation::speed_upgrade` and `hp_upgrade` had no writer, so both levels read
+0 for every player. The ladders now sit in `Roles::buildings_speed_preq`
+and `buildings_hp_preq`, loaded from rows 70–72 and 73–75 (Construction,
+Architecture, Engineering). [`Sim::build_mods`] and [`Sim::update_hits`]
+count them through `speed_upgrade_level`. `gain_tech` already raised the
+`0x8000000` dirty flag, so `calc_wall_stats` re-bakes every unfinished
+site on the next frame.
+
+**The value diff.** On block 14085 ours holds `1/2047` at `job_counter`
+89800 of `constr_time` **90000**, and `construct_hits` **1097**. On 14086
+it holds 89900 and 1098. On 14087 it is complete with **1485**. These are
+the original's own values on each block. `1/2049`..`1/2052` hold 90000 on
+both sides.
+
+**What moved.** French East Indies **14090 → 14782**. run636's widening
+falls 210 → 134: the five `constr_time`s leave, and every row from 14087
+goes with the completion. The `regen_roads`, `1/49`'s order, `gather_down`
+and the walk rows of 14088..14097 all go. What is left is the 134 rows
+standing on 14085. `east_indies_wonder_start_is_first_contact_on_every_building`
+no longer finds `1/2047`'s `ever_seen_completed` rows.
+
+**What is not established.**
+
+- `myhits` and `construct_hits` are on the coverage pin's unread list for
+  `OBJECT`. The hit-point arm is read off this block's three values
+  (`debug_builds` against `theirs2047.txt`), not by a widening.
+- Levels 2 and 3 (Architecture, Engineering) are not reached by any
+  capture on file. They rest on the counter's loop and on the cheat run of
+  `docs/CITIES.md` §3.2, which saw 70000.
+- Who=1's `leader:discovered` 33 against 34 still stands. It first parts on
+  run635's block 12959, the frame after ours gains Chemistry (`f12958`).
+  The Smelter is the one building whose `PREQ0` is Chemistry, and our
+  who=1 never holds its bit. That is a row, not a mechanism.
+- No blind reading has been done.

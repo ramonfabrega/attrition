@@ -221,16 +221,43 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run639: the successor after Construction's clock and hit points,
+/// frame 14782 (item 1476).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run639",
+        &[("gamelog-run639-islands-french-14782.txt", 14777)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[14783],
+        true,
+    )
+}
+
+#[test]
+fn run639_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 0, "initial run639 baseline");
+}
+
 /// run636: the successor after a French General's craft rate, frame
 /// 14090 (item 1470).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_14090_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run636",
         &[("gamelog-run636-islands-french-14090.txt", 14085)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_14090,
         1,
         &[14091],
         true,
@@ -240,7 +267,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run636_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_14090_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -251,7 +278,12 @@ fn run636_s_word_frame_is_widened_whole() {
     // the arrivals); nothing on 14086; on block 14087 thirteen of who=1's
     // buildings' `regen_roads` 0 against 1, beside `1/49`'s order kind 6
     // against 7. The word's block is 14091.
-    pin_eq!(w.firsts.len(), 210, "initial run636 baseline");
+    // Item 1476: 210 → 134, the word's frame now 14782 (Construction's
+    // `BUILDINGS_FASTER_1` and `BUILDINGS_HP_1` reach the clock and the
+    // hits, AI §121): the five `constr_time`s leave, `1/2047` completes on
+    // 14087 on both sides, and every row from 14087 goes with it — what
+    // is left is the 134 standing on 14085.
+    pin_eq!(w.firsts.len(), 134, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -1093,8 +1125,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run636-islands-french-14090.txt",
+            "gamelog-run639-islands-french-14782.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run636-islands-french-14090.txt",
+            WIDENING_FRENCH_EAST_INDIES_14090,
         ),
         (
             EAST_START,
@@ -1484,9 +1522,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run635-islands-french-12952.txt",
             WIDENING_FRENCH_EAST_INDIES_12952,
         ),
-        // The open word's window, to the word's own block.
         (
             "gamelog-run636-islands-french-14090.txt",
+            WIDENING_FRENCH_EAST_INDIES_14090,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run639-islands-french-14782.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
@@ -1494,19 +1536,11 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             continue;
         };
         eprintln!("{capture}: ever_seen rows {rows:?}");
-        // Item 1470: on run636, who=1's five newest buildings stand at
-        // `constr_time` 100000 here against 90000 there from 14085, so
-        // `1/2047` completes on 14087 there and not here: its
-        // `ever_seen_completed` 0 against 2 is the parted completion, the
-        // open word's row (`docs/AI.md` §119), not the byte's mechanism.
-        let want: std::collections::BTreeSet<_> =
-            if capture == "gamelog-run636-islands-french-14090.txt" {
-                (14087..=THIRD_PAIR_WORD_EAST_INDIES)
-                    .map(|f| (f, 1, 2047, "ever_seen_completed", 0, 2))
-                    .collect()
-            } else {
-                std::collections::BTreeSet::new()
-            };
+        // Item 1470 pinned run636's `1/2047` `ever_seen_completed` 0
+        // against 2 on 14087..14090, the completion its `constr_time`
+        // 100000 against 90000 parted. Item 1476 built that clock (AI
+        // §121), and the Smelter completes on 14087 on both sides.
+        let want = std::collections::BTreeSet::new();
         assert_eq!(
             rows, want,
             "{capture}: every building's ever_seen bytes agree, both directions"

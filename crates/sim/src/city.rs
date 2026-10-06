@@ -57,9 +57,6 @@ pub struct Nation {
     /// field, and the clock reads [`crate::Sim::has_rare`] now.
     pub created_faster: bool,
     pub global_government: bool,
-    /// `get_building_speed_upgrade`, `get_building_hp_upgrade`, 0..3.
-    pub speed_upgrade: i32,
-    pub hp_upgrade: i32,
     /// `get_heal_level`, 0..3.
     pub heal_level: i32,
     /// The temple border tech level 1..4 for a city with a temple; 0 none.
@@ -101,8 +98,6 @@ impl Default for Nation {
             tikal: false,
             created_faster: false,
             global_government: false,
-            speed_upgrade: 0,
-            hp_upgrade: 0,
             heal_level: 0,
             temple_level: 0,
             fort_garrison_level: 1,
@@ -1383,7 +1378,9 @@ impl Sim {
         let m = build::HitsMods {
             maya: n.maya,
             romans: n.romans,
-            hp_upgrade: n.hp_upgrade,
+            // `get_building_hp_upgrade` (item 1476): run636's Smelter
+            // `1/2047` holds `myhits` 1100 on 14085, Construction's +10 %.
+            hp_upgrade: self.speed_upgrade_level(bd.owner, &self.tech_tree.roles.buildings_hp_preq),
             taj_mahal: n.taj_mahal,
             red_fort: n.red_fort,
             nubians: n.nubians,
@@ -1455,7 +1452,11 @@ impl Sim {
             dutch: n.dutch,
             romans: n.romans,
             no_city: self.city_num(who) == 0,
-            speed_upgrade: n.speed_upgrade,
+            // `get_building_speed_upgrade` (item 1476): who=1 gains
+            // Construction on 13782, and run636's five sites under way
+            // hold `constr_time` 90000 where `job_time × 100` is 100000.
+            speed_upgrade: self
+                .speed_upgrade_level(who, &self.tech_tree.roles.buildings_speed_preq),
         }
     }
 
