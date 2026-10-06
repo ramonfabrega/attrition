@@ -8838,9 +8838,11 @@ impl Sim {
     /// arm: `find_attack_pos` 0, then `find_new_target` twice).
     ///
     /// SEAM: the post walk of step 2 — `add_move_order(x, y, 1, 0,
-    /// QUEUE_NEW, …)` — takes this crate's `action` for the call's `1`; no
-    /// capture on disk has a guard's attack with a defensive post refused
-    /// here.
+    /// QUEUE_NEW, …)` — takes this crate's `action` for the call's `1`. No
+    /// dump on disk holds a guard with an attack that carries a post (scan:
+    /// `grep -alE '^ *defensive 1' gamelog*.txt`, 5 of the 338 dumps, runs 16,
+    /// 17, 320, 324 and 405; then per `UNITDATA` block a `defensive 1` beside
+    /// a `BEGIN GUARDORDER`: none in any of the five).
     fn chase_refused(&mut self, u: usize, target: Obj) {
         self.find_new_target(u, false);
         if let Some(Order {
