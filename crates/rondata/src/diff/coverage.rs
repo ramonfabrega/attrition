@@ -2370,7 +2370,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (&r634, 12794),
         (&r635, 12952),
         (&r636, 14090),
-        (&r639, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        // Item 1481: the word left run639 for 15344; its block stays.
+        (&r639, 14786),
         (&r601, 2576),
     ] {
         if let Some(path) = path {

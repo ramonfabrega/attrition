@@ -259,6 +259,10 @@ fn run639_s_word_frame_is_widened_whole() {
     // here and Tikal (532, city 3) there, four fields; on 14786 65, the site
     // `1/2054` and the food and timber it costs among them; ten on each of
     // 14787..14789. The word's block is 14787.
+    // Item 1481: 226 → 127, the word's frame now 15344 (the wonder arm
+    // takes Tikal's `WONDER_VAL` 2 and the team's held Pyramids, AI §124):
+    // `MAKE[8]` is Tikal at 1563477 on 14785 here as there, and every row
+    // from 14785 leaves — what is left is the 127 standing on 14777.
     pin_eq!(w.firsts.len(), 127, "initial run639 baseline");
 }
 
@@ -1545,10 +1549,11 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run636-islands-french-14090.txt",
             WIDENING_FRENCH_EAST_INDIES_14090,
         ),
-        // The open word's window, to the word's own block.
+        // Item 1481: the word left run639 for 15344, whose widening is
+        // owed; run639 is walked whole.
         (
             "gamelog-run639-islands-french-14782.txt",
-            (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
+            WIDENING_FRENCH_EAST_INDIES,
         ),
     ] {
         let Some(rows) = east_indies_ever_seen(capture, window) else {
