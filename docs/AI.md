@@ -14575,3 +14575,7 @@ difficulty's: each lobby moved both, on purpose, and nothing here varies one. Th
 rows above are entered. Who won each game: the games ended themselves at 13519, 7303 and 20380
 and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
 every number in the table and the control; nothing else in this section.
+
+## 127. The coverage pair: a lobby chosen for the rows no trace has entered (2026-10-06, item 1466)
+
+*(heading pushed early so that `docs/AI.md` conflicts with the other lanes surface at once; the section is written below as the item lands.)*
