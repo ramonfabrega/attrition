@@ -34,6 +34,8 @@ mod battery;
 mod build;
 mod city;
 mod corrections;
+#[cfg(test)]
+mod coverage_pair;
 mod endpoint;
 mod floors;
 #[cfg(test)]

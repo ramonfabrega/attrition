@@ -54,6 +54,8 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (14, 10, 5),
     (18, 10, 5),
     (9, 11, 0),
+    // The coverage pair's (item 1466): Persians at Toughest, East Indies.
+    (18, 23, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

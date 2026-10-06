@@ -14686,3 +14686,114 @@ difficulty's: each lobby moved both, on purpose, and nothing here varies one. Th
 rows above are entered. Who won each game: the games ended themselves at 13519, 7303 and 20380
 and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
 every number in the table and the control; nothing else in this section.
+
+## 127. The coverage pair: a lobby chosen for the rows no trace has entered (2026-10-06, item 1466)
+
+**What was established, how, how confident.** DECISIONS 61 §6 chooses the next pair by what it
+reaches, not by adjacency. Three claims, each with its evidence:
+
+1. **The click-free lane carries a late starting age.** `unattended_capture.py --profile
+   STARTING_TECHNOLOGY=N` already wrote any `<KEY value=…/>` in the profile's `<SOLO>` and `<MULTI>`
+   blocks (it was written for `DIFFICULTY`); nothing needed building. **run650** (`--map 18 --end-frame 36
+   --ai-tribe 23 --profile STARTING_TECHNOLOGY=5 --profile DIFFICULTY=5`) reads back from its own `GAME
+   INFO` block: `GAME_RULES 1`, **`STARTING_TECHNOLOGY 5`**, `STARTING_TECHNOLOGY2 1`, `ENDING_TECHNOLOGY 7`,
+   `DIFFICULTY 5`; five settings files restored, Player.dat back to `STARTING_TECHNOLOGY 0`. The line a
+   stanza's check names is `STARTING_TECHNOLOGY <N>` in `GAME INFO`; the values are `rules.xml`'s
+   `startingtechs`: 0 Ancient … 7 Information, **8 All Technologies**, 9 Random (which draws
+   `game_random` in `Game::init_rules_and_teams`). A past capture had it once, by hand: run4 and run5, Gunpowder,
+   on the queue lane (`STARTING_TECHNOLOGY 3`; 2 of 417 files over 100 kB). *Diff-backed*: the read-back and
+   `diff::coverage_pair::coverage_pair_captures_say_their_lobby`, which fails if the lane stops carrying it.
+2. **The harness did not read it.** `lobby_of` had no `STARTING_TECHNOLOGY`, and `Sim::setup` (the tech
+   tree's `Setup`) was `Setup::STANDARD` for every game — Ancient to Information — until a lobby said
+   otherwise; no lobby on file ever had. Three lines in `Sim::sync_setup_from_lobby` and three fields on
+   `ai::Lobby` (`starting_technology`, `starting_technology2`, `ending_technology`) now carry it; a leader
+   built from run651's start owns `ages 7` and the plain techs (`coverage_pair_start_owns_every_age`; the
+   mutation `starting_age = 0` fails it, scored by `tools/mutate.py` on the committed tree, exit 101). The
+   `starting_resources == 7 && starting_technology == 8` branch of `Leader::research_techs` that
+   `ai_research.rs` calls a seam is **still a seam** — the lobby now reaches it and the arm is not built.
+3. **The lobby.** **East Indies (`MAP_STYLE 18`), human Nubians (4) against Persians (23) at Toughest,
+   `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`** ("Deathmatch"), `GAME_RULES 1`, seed 12345. East Indies
+   because it is the lower map and the only sea map of the three; Persians because no gamelog on the disk has
+   them and two never-entered spell rows are theirs (`cast_immortal_hinf`, `cast_immortal_arch`); the two
+   settings because `Leader::research_techs` tests exactly that pair (`starting_resources == 7`,
+   `starting_technology == 8` — the original's own hard-coded lobby, the AI buying tech `0x243` outright) and
+   because "All Technologies" puts every age's units, buildings and spells on the table at frame 0, so no
+   research time stands between the lobby and the content. The game is short because of it: the AI killed the
+   idle human at **4730** (`defeated_by 1`, closing block 4731), not 13–20 thousand.
+
+**The census cannot say it entered anything.** `tools/census.py --pin --never` on the 58 pinned traces (this
+day, on this tree): 48,233 functions, 7,901 entered, **142 cited and never entered**. The census reads `cover=1`
+traces and the click-free lane runs `cover=0` only (parked 1490), so the rows below are **predictions** until a
+queue-lane run — which needs a person at the menu — enters them. What is *measured* is the closing state of run652,
+read beside the five closings of the same recipe (run600, run598, run643, run644, run645; the recipe's end detail
+is the same):
+
+- **Records no other closing holds**: `AIRORDER` 21, `AIRPATROLORDER` 15, `PATROLORDER` 15, `STRAFEORDER` 6 — zero
+  in all five. (Also `CASTORDER` 7, spell 650 = `TRANSPORT`; `CARAVANLINK` 22 and `TRADEORDER` 11 are in four of
+  the five.)
+- **18 of the 29 unit types alive are in none of the five** (`TypeIndex`): `TRANSPORTFREIGHTER` (322) 90 figures,
+  `TOW` (141), `MECHINFANTRY` (104), `MLRS` (273), `JETFIGHTER` (295), `STRATEGICBOMBER` (305), `HEAVYTANK` (251),
+  `FLAMETHROWER` (131), `ADVANCEDMACHINEGUN` (127), `ADVANCEDBATTLESHIP` (350), `AAMISSILE` (284),
+  `ARMOREDCAVALRY` (220), `ICBM` (316), `MODERNMERCHANTFLEET` (319), `TRANSPORTHELICOPTER` (311),
+  `ELITESPECIALFORCES` (77), `AEGISCRUISER` (330), `ATTACKSUB` (339).
+- **14 of the 30 building types alive are in none of the five** (`orig_type`): `OILPLATFORM` 14, `REFINERY` 2,
+  `SHIPYARD`, `FACTORY`, `AUTOPLANT`, `SAM`, `MISSILESILO`, `BUNKER` 3 each, and the wonders `KREMLIN`,
+  `REDOUBT`, `TERRACOTTA`, `STATUEOFLIBERTY`, `ANGKORWAT`, `VERSAILLES`.
+
+**The rows it should enter, as predictions**, each from its caller in the export (a direct-call scan of the
+executable, entered callers only) and the record above that makes the caller's branch likely:
+
+- *Air*: `Group::action_scramble` (called from `Unit::do_patrol`; `AIRPATROLORDER`), `Group::action_air_patrol`
+  (from `Group::action_patrol`), `ObjectData::is_in_range` (from `Unit::do_air_attack_ground`),
+  `BuildQueueData::get_next_helicopter` (from `Build::do_queue`; `TRANSPORTHELICOPTER`).
+- *Nuclear*: `LeaderData::get_nukes` (from `Leader::create_units`; `ICBM`, `MISSILESILO`); `Game::say_no_war` and
+  `Leader::action_declare` (from `Nuke::do_damage`) only if one detonated — not evidenced.
+- *Transport and navy*: `Unit::do_board` and `do_await_board` (from `Unit::do_job`), `check_meet_ship` (from
+  `do_board`), `Unit::go_to_city` (from `do_trade` and `think_attack`), `Armies::send_navy` (from `Army::find_target`)
+  (`TRANSPORT` casts, `TRANSPORTFREIGHTER`, `TRANSPORTHELICOPTER`, the capital ships).
+- *Buildings and oil*: `Forts::init_fort` and `Fort::init` (from `Build::activate`, `BUNKER`/`REDOUBT`),
+  `LeaderData::get_vehicle_speed_upgrade` (from `ObjectData::train_time`, `FACTORY`/`AUTOPLANT`),
+  `Wonders::close_wonder` (from `Build::close`, six wonders standing). **Oil is not a row**: `OilWells::init_oil_well`
+  is called from `Build::activate` and is in `OILWELL`'s company in other closings; what this lobby adds is
+  `OILPLATFORM` 14 and `REFINERY` 2, whose rows nothing in the blind list names.
+- *The game's end*: `Game::defeat_all` and `Leader::defeat_by`'s `blow_up_units/buildings/towers` (the human was
+  defeated at 4730), `Leader::compute_*_score` only under a score victory — not this lobby's.
+- *Not predicted, and why*: `Build::update_max_gatherers`, `BuildData::max_gatherers`, `UnitData::has_repeat_air`,
+  `LeaderData::locked_transport`, `Wonder::init` and `Caravan::process` have no direct call site in the executable
+  (a vtable or an indirect call reaches them, or nothing does); `Unit::add_board_order`, `ObjectsData::count_nukes_in_flight`
+  and `LeaderData::can_transport` are called only from the interface and the human's commands; the `Leader::action_*` diplomacy rows, `Diplomacy::*` and the tribute rows need a third
+  leader (`LeaderData::num_allies`, `is_shared_team`); this lobby has two. The `SpellType::cast_*` rows need a cast
+  order that is not `TRANSPORT`; the only `CASTORDER`s alive are 650. `Army::use_spies` and `use_scouts` need a
+  `SPY` (0x3a) or `SCOUT` (0x45) in an army; none is among the types alive.
+- *The order family*: of 410 `*Order` rows 280 are entered, and what is left is `print_details`, `operator=`,
+  destructors and `walk_data` — the table in `tools/census.py` is a capability inventory, not a list of
+  unreached behaviour, and "the later ages' orders" are largely entered already; the unreached ones are in the
+  other classes above.
+
+**The first parting — frame 0, 195 draws ours against 198 theirs, index 26** (run652, walked from run651's start:
+`diff::coverage_pair::coverage_pair_first_parting`, count 0 sequence 0 of 4730). Ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, theirs `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c`. By site over the frame: `Guy::set_anim <
+Guy::inc_time+0x271` **4 against 12**, `Guy::set_anim < Unit::do_idle+0x7d` **18 against 10**, `Unit::think_scout+0x64c`
+**1 against 4**; every other site agrees count for count. **Its widening** is
+`diff::coverage_pair::run651_s_word_frame_is_widened_whole`: every record run651 dumps on block 1, the block frame 0 writes —
+**226 keys part, against 48 for the scored French start's own block 1** (run595, the control: its `form`, the leaders' `SITE`
+`reg`s and the city terrain, which every lobby parts on). The 178 the lobby adds, as values on the word's own block:
+both leaders' six stockpile buckets **ours 200 / 200 / 100 / 100 / 100 / 100, theirs 20000 / 20000 / 20000 / 10000 / 20000 /
+20000** (`STARTING_RESOURCES 7`: the row's grant is not built; the harness pays the Standard row); 26 who=1 units'
+`myhits`, `hits_left` and `hits:myhits` **ours 40, theirs 85** with `form` −1 against 9 (the units the all-technology start
+upgrades — `apply_gained` runs before the units are placed); a gather order's `been_there` 0/1 and `wait` 0/−1 on four of
+who=1's units; and one move order and its path. **No mechanism is named**: which of these draws the three missing
+`Guy::inc_time` rolls is the next item's reading, and the widening is the word's own (the start dump's block 1; the long
+holds no other whole block).
+
+**Standing fields this crate reads** (`tools/standing.py` over the widening's rows): `bucket` (55 readers, `ai.rs:1147`
+among them), `reg` (59), `val` (31), `gatherers` (17), `free` (13), `x`/`y`/`to` (the move order). The bucket and the hits
+are the lobby's; `reg` is the control's.
+
+**What is not established.** That any predicted row is entered: no `cover=1` trace of this lobby exists, and a capture
+that could read the census needs the queue lane (parked 1490). Which of Persians, Deathmatch resources and All
+Technologies each row owes: the three moved together on purpose and nothing varies one. Who moved the draw delta.
+Whether `STARTING_TECHNOLOGY 9` ("Random") is carried (not tried). Whether the sim's age plumbing disturbs a scored word:
+it does not on the walks run before the gate (the gate's own verdict is in the journal). *Diff-backed*: the lobby
+read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
+choice of nation.
