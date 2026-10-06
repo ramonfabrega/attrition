@@ -124,6 +124,15 @@ pub const SITE_RELOAD_IDLE: &str = "Guy::set_anim+0x97a < Unit::fight+0x169";
 /// stands (`docs/COLLISION.md` §5.4).
 pub const SITE_SNAP_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x4e2";
 
+/// And the snap arm's **unblocked** stand: `Unit::move_step`'s
+/// `set_anim(UVar17, 0, 1)` at `005fb474`, whose return is `+0x549`.
+/// `UVar17` is the walk unless the waypoint offsets were both zero at the
+/// top of the function and the order list holds fewer than two orders,
+/// when it is `CHAR_DEFAULT` — a unit that turned in place on its own
+/// waypoint and finishes the turn (`docs/AI.md` §130, `docs/ANIM.md` §4.9).
+pub const SITE_SNAP_STAND: &str =
+    "Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x549";
+
 /// `Guy::move@005d9240+0x19f` — the arrival stand. A guy whose body has
 /// caught up with its destination and whose angle is settled, still on a
 /// walk it has been told to stop (`field_0x9c == 8 && field_0x9d`), is

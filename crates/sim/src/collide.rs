@@ -3230,6 +3230,70 @@ mod tests {
         );
     }
 
+    /// **A unit that turns in place on its own waypoint stands when the
+    /// turn completes** (`docs/AI.md` §130, item 1500).
+    ///
+    /// `Unit::move_step@005faf30`'s snap arm passes `UVar17` to
+    /// `Unit::set_anim`, and `UVar17` is `CHAR_DEFAULT` — a draw — when
+    /// the waypoint offsets were both zero at the top of the function and
+    /// the order list holds fewer than two orders (`005fb44c`–`005fb474`).
+    /// French East Indies' General `1/79` turned six frames on
+    /// (6840, 13704) and drew on 16857, the frame the turn finished. The
+    /// shape here is that one: a leg whose top waypoint is where the unit
+    /// stands, and a body facing the other way. With a second order
+    /// beneath the move the arm keeps the walk and draws nothing.
+    #[test]
+    fn a_unit_on_its_own_waypoint_stands_when_its_turn_completes() {
+        for beneath in [false, true] {
+            let a = Pos::new(31 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+            let far = Pos::new(31 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+            let (mut sim, x, _y) = pair(a, Pos::new(9000, 9000));
+            sim.trace_phases = true;
+            sim.order_move(x, far);
+            sim.tick();
+            let at = sim.units[x].pos;
+            sim.units[x].path.push(crate::orders::PathData {
+                to: at,
+                tolerance: 0,
+                flags: 0,
+            });
+            if let Some(crate::orders::Order {
+                body: crate::orders::Body::Move(m),
+                ..
+            }) = sim.units[x].orders.back_mut()
+            {
+                m.waypoint = at;
+                m.has_waypoint = true;
+            }
+            if beneath {
+                let under = *sim.units[x].orders.back().expect("the move");
+                sim.units[x].orders.push_front(under);
+            }
+            sim.units[x].movement.facing = crate::movement::Angle(0);
+            let stands = |sim: &Sim| {
+                sim.phase_marks
+                    .iter()
+                    .filter(|(l, _)| l == crate::anim::SITE_SNAP_STAND)
+                    .count()
+            };
+            sim.tick();
+            assert_eq!(stands(&sim), 0, "the first frame turns in place");
+            assert!(
+                sim.phase_marks
+                    .iter()
+                    .any(|(l, _)| l == crate::anim::SITE_TURN_NEAR),
+                "the near turn-in-place arm"
+            );
+            sim.tick();
+            assert_eq!(sim.units[x].pos, at, "the snap takes no step");
+            assert_eq!(
+                stands(&sim),
+                usize::from(!beneath),
+                "`UVar17` is the stand with one order, the walk with two"
+            );
+        }
+    }
+
     /// **The snap arm has a collision block of its own, and it resolves
     /// nothing** (`docs/COLLISION.md` §5.4, item 360).
     ///
