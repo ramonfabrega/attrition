@@ -9463,3 +9463,22 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. **Leave `GROUPS=1` out**: the take carried it, no group
 # stands in this window, and the runner raised after the game (the dump was whole and copied by hand from the output directory).
 # ==== TAKEN 2026-10-06, one take, 14:52–15:08 ====
+
+# ==== item 1538: Great Sahara in the coverage pair's lobby (DECISIONS 56 §1) ====
+#
+# Three runs on the click-free lane, none a stanza (`docs/AI.md` §147; `docs/RUNS.md` run675..677): run651's and run652's recipes with the map moved to
+# Great Sahara (`--map 7`) and nothing else — human Nubians (4) against Persians (`--ai-tribe 23`), `STARTING_TECHNOLOGY=8`, `STARTING_RESOURCES=7`,
+# `DIFFICULTY=5`, seed 12345:
+#   run675  mapstyle 7  --end-frame 36 --dump-all-start     (run651's recipe)
+#   run676  mapstyle 7  window 0..4341 (the game ended itself at 4340), run652's recipe
+#   run677  mapstyle 7  window 6..262 at the long's detail, the word 12's block 13 with seven before it and 249 after:
+#     zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-item1538-widen-f12 \
+#       --map 7 --end-frame 270 --timeout 3600 --log-window 6 263 \
+#       --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#       --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run675.log rontrace-run676.log` -> 0 differing in 37 frames;
+# `... rontrace-run676.log rontrace-run677.log` -> 0 differing in 271 frames; `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` /
+# `DIFFICULTY 5` / `(int)seed 12345` in `GAME INFO`. The output directory must not exist. run676's details were four `--detail` flags (the runner's
+# option is `action=append`): `end:MISC`, `start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+# `endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+# ==== TAKEN 2026-10-06, one take each, 16:35–17:00 ====
