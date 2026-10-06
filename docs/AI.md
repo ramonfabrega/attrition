@@ -16615,3 +16615,8 @@ stack for a builder holding nothing, which is every caller here (`build_done` re
 
 **Coverage.** Diff-backed: claims 1–4 (the walk moves past 727, and `1/8` agrees through 833). Reading-only: the list walk's
 radius and region tests, which no walk holds.
+
+## 149. Reserved for item 1546 (the coverage pair's frame 982)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

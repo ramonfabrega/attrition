@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1544, 2026-10-06 — the builder's tally
+
+(1547) **What 1544 left beside `find_build_spot`'s tally** (AI §148):
+the list walk's radius and region arms (no walk holds them);
+`total_units`' init-to-close lifetime against ours' `alive()`; its
+`QUEUE_LAST` swarm modelled as `swarm_around`'s `QUEUE_FIRST` (the
+same stack for an empty builder); leader 1's buckets standing a few
+under the original's into run678.
+
 ## Parked by item 1539, 2026-10-06 — the Market's caravan
 
 (1545) **What 1539 left beside the coverage pair's word** (AI §146):
@@ -3734,6 +3743,14 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1548) **The cell chains no widening reads** (1544's Loop line,
+2026-10-06): `up`/`down`/`down_who`/`up_who` sit in `coverage.rs`'s
+unread list, and they are the original's cell chains — the order
+every circle walk visits — so a chain-order parting is invisible to
+every widening. A reader that rebuilds each chain from its links and
+compares it as a sequence (1544 did it by hand) would make it a row.
+One reach.
 
 (1543) **Two tool gaps from 1535** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` given one argument holding a whole
