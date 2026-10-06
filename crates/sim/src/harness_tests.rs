@@ -3743,8 +3743,7 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     // The unit's own angle is ahead of the figure's: a turn still owed.
     sim.units[unit].movement.heading = movement::Angle::NORTH;
     assert_ne!(
-        sim.units[unit].movement.heading,
-        sim.units[unit].movement.facing,
+        sim.units[unit].movement.heading, sim.units[unit].movement.facing,
         "the figure is behind the unit"
     );
     sim.add_cast_order_at(unit, crate::orders::spell::UNPACK, QueuePos::New);
@@ -3793,8 +3792,7 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
     };
     sim.do_cast(unit, c);
     assert_eq!(
-        sim.units[unit].movement.heading,
-        sim.units[unit].movement.facing,
+        sim.units[unit].movement.heading, sim.units[unit].movement.facing,
         "the unit's angle is guy 0's"
     );
     assert_eq!(sim.units[unit].guys[0].anim, anim::PACK, "and packs");
