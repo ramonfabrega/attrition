@@ -14735,3 +14735,37 @@ keys on the tree merged after 1468 (1852 before), 100 standing on block 15339, n
 15345: who=1's army group 64 is the original's alone, and some thirty of who=1's units'
 orders and positions part. It also names a sixth French city, Orleans (the coverage
 pin's `UNREAD`). Run 642 only.
+
+## run653 — run470's game over the new word 14363's window: the third map's army 65 and the roads (2026-10-06, item 1493)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`,
+`!ffwd 16` from frame 37), run584's detail with `GROUPS=1`, dumped over blocks 14357..14380 and
+quit at 14385. The word 12816 (item 1477's) moved to 14363 on this item's tree; nothing on disk
+printed a block there.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run653 \
+    --map 7 --end-frame 14385 --timeout 5000 --log-window 14357 14381 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** No dump held a block past run640's 12834 (the gap
+12835..14356 is dark): the word's own frame, army 65's table after the siege moves of 13050..14330, and
+who=1's buildings' `regen_roads`.
+
+**Taken.** The lane was free; one launch. Receipt `success: true`, exit 0, 206.57 s launch to
+exit (217.36 s in all), 14,386 frames, map 7 and seed 12345 verified, five settings files
+restored, 24 `FRAME` blocks 14357..14380. `rngcmp.py rontrace-run470.log rontrace-run653.log`
+**0 differing**, 14,386 identical. 158 GB free after.
+
+Archive `gamelog-run653-greatsahara-toughest-14363.txt`, 62,508,831 bytes,
+SHA-256 `b173d4e9b5e9750907c0c895a66f5cdf6fe8e7c8f2c9fcd87dd53965d24e13d7`.
+
+Archive `rontrace-run653.log`, 86,876,288 bytes,
+SHA-256 `d03bf06685519118e422c79401eccb1fb62e32cf52c606ca3013aa3050965bbd`.
+
+**What it holds**: `run653_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 378 keys over
+blocks 14357..14380, 93 standing on the first, and on the word's block 14364 six buildings' `regen_roads`
+(`1/2031` 0 against 1, and the like; `1/2053` 1 against 0) and `1/66`'s and `1/115`'s order kind (6
+against 7); army 65's `off`/`curr` tail agrees. The compared pin's window is block 14364.

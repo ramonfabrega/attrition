@@ -14687,6 +14687,106 @@ rows above are entered. Who won each game: the games ended themselves at 13519, 
 and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
 every number in the table and the control; nothing else in this section.
 
-## 128. Great Sahara at Toughest's word 12816 (2026-10-06, item 1493)
+## 128. A siege sub-group's slot is copied back into the army's table (2026-10-06, item 1493)
 
-*Open: the section is written as the item is read.*
+Great Sahara at Toughest's word was **12816** on the base (item 1477): 41 draws
+ours against 40, parting at index 33 — ours `Guy::set_anim+0x97a <
+Guy::do_turn+0x4a < Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, the third of a bombard's four figures (`1/141`'s guy 2)
+starting a turn animation here that the original does not start. run640 (take
+2, 12811..12834) widened it: army 65's formation (`group:65.curr`/`off`, 27
+slots) and `1/141`'s `g.end_time[2]` (31 against 23) part on block 12817.
+
+**Dating it.** The formation is not the cause's own frame. On 12816 the original
+rewrites the army's `off` table — every one of the first 27 slots moves by
+(−23, 0) — and `1/141`'s group order names itself (`oxx` 84 → 141): the
+re-origin of `Group::refresh_group_order@00713a50` (`docs/GROUPS.md` §6.8),
+fired by the follower arm because `1/84` (the block's origin, a bombard)
+finished its move on that frame. This crate fires the same arm on the same
+frame (`1/141`'s order names leader 188, its own, on block 12817) and slides
+the table by **zero**: the listing's subtraction is `off[form_id]`, and the
+dump has `off[62]` = (23, 0) — a slot **past `form_num`** (27; the army has 63
+members) that this crate holds as (0, 0). Dated further back: the same tail
+shows on run584 (12532..12788): `off[31]` (member 90) = (12, 0) before the
+window, `off[61]` (member 139) = (−11, 0) from block 12539, and `off[62]`
+(member 141, who joined on 12733) = (23, 0) by 12811, with the matching `curr`
+(203, −540) and (−187, 494). Each is written on a frame that carries a
+`GROUPDATA` order id of the army — 12538 and 12794 — which is the army's
+**siege move**.
+
+**The mechanism.** `Group::action_siege_attack_to@0070d830` lays the siege
+members out as a sub-group on its own stack record (`docs/GROUPS.md` §26), moves
+it, and then — the loop after the move, which this crate did not carry — walks the
+*parent's* members: for each that the sub-group holds, it copies the sub-group's
+`off_x`, `off_y`, `curr_x`, `curr_y` and `angles` at the member's index in the
+sub-group **into the parent's table at the member's index in the parent**, and
+calls `Unit::replace_form_id@005fd420` on it, which writes the parent index into
+`form_id` of every group order the member holds. So a bombard past the army's
+`form_num` carries its slot in the parent's tail, `1/84`'s order says
+`form_id` 29 (its index in the army's list of 63, not 0), and
+`refresh_group_order`'s `off[form_id]` reads a real slot.
+
+Two companions, both found by the same dump:
+
+- **`Group::update_positions@00713810` walks `form_num` slots**, not the member
+  count: a tail slot keeps the `curr` the copy made it. This crate rotated every
+  slot each frame, so the first copied `curr` was lost on the next leader step
+  (and with it a follower's slot, which changed whether `1/139`'s formation was
+  "over" on its first step: the draw chain at 12538 parted until it was fixed).
+- **A group's list shrinks with its arrays.** `Army::normalize` and
+  `groups_process`'s prune dropped the dead from the army's list and left the
+  `off`, `curr` and `angles` entries behind; with every tail slot zero that was
+  invisible, and with the copy-back it left the stale (12, 0), (−11, 0) and
+  (23, 0) at indices another member held by block 14357 (the original has
+  shifted them with the list). `Sim::army_keep_units` drops both.
+
+**Built.** `Sim::group_action_siege_attack_to` (`crates/sim/src/group.rs`) keeps
+the sub-group's record, sorts its list as the layout did and writes the parent's
+`off`/`curr`/`angles` at each member's parent index (the arrays are brought up to
+the list's length first) and re-points every group order of the member
+(`GroupMove::form_id`); `Sim::group_update_positions` rotates `form_num` slots;
+`Sim::army_keep_units` (`crates/sim/src/army.rs`), called from `army_normalize`
+and `groups_process`. Test
+`a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index`.
+The diff harness's slot loop (`second::widen_records`) ran to `form_num`; it runs
+to the member count now, so a tail slot is a compared row on every window.
+
+**What moved.** Toughest **12816 → 14363**; ours 11 draws against 177 on that
+frame, parting at index 5 (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+theirs `PathFinder::calc_road_cost+0x46`). The value diff, run640 block 12817:
+army 65's `curr`/`off` (all 27 slots) and `1/141`'s `g.end_time[2]` **agree**; the
+window's keys 269 → 93 (159 → 92 standing; one new part, the group's
+`speed` on 12825, ours 23 against 41). The tail on run584's 12539 (`1/84
+order:group.form_id` 0 against 29) agrees. **No key rose on any capture**: about thirty windows' counts fell, most of them by
+three to nine (the stale tail the list-shrink fix removes, and the second pair's
+and the third map's earlier words' siege moves), run642 (French East Indies'
+word window, item 1487's) 1814 → 1767, run544 198 → 150, run572 209 → 191, run584
+by one. The first run of the wider slot compare read a member's missing array
+slot as `None` against the original's zero and rose by three on a dozen windows; the
+compare fills it with `Group::add`'s zero, and that artefact is gone.
+
+**The new word, run653** (a capture of 14357..14380, `docs/RUNS.md`): on block
+14364 (frame 14363) six of who=1's buildings parted on `regen_roads`
+(`1/2031`, `2034`, `2038`, `2040`, `2042`, `2054` set in the original and clear
+here; `1/2053` set here and clear there), with `1/2038`'s and `1/2054`'s
+`gather_down`, and `1/66`'s and `1/115`'s order kind 6 against 7. 93 keys stand
+on 14357 (`1/-3 group:65.role` ours 0 against 1379597 among them, and the
+formation-less `form` rows of the scouts). No mechanism is booked: the
+original's frame is a road recalculation (177 draws, `calc_road_cost`) here
+that the city's `regen_roads` call has not set.
+
+**Made to fail.** `tools/mutate.py`: (1) the copy-back removed: the sim test and the Toughest floor
+`run470_is_great_sahara_at_toughest_and_its_word_holds`, run640, run653, run584, run562, run571 and run574 fail; (2) `update_positions` over every
+slot again: the floor, run640, run584 and run653 fail; (3) `army_keep_units` without the `off` shift:
+`run653_s_word_frame_is_widened_whole` fails (the tail keys). All three
+"mutation: held" (`rondata sahara_toughest`: seven, four and one test red, exit 101;
+the sim test red for the first).
+
+**Coverage.** Diff-backed: the tail table of army 65 on run584 (12532..12788),
+run640 and run653, the copy-back's values on three frames — (12, 0)/(203, −540)
+for 90, (−11, 0)/(−187, 494) for 139 here at 12538, (23, 0) for 141 at 12794 —
+and the later moves' (−11, 0), (12, 0), (6, 12), (−5, 12), (17, 12) at 41..54 on
+14357. Reading alone: the loop's `local_14 == sub.who` branch (always true here),
+and `replace_form_id`'s per-order guard (a vslot, read as "a group order").
+**What is not established:** why the original's group `speed` flips 23/41 from
+12825 on where this crate's does not; the road flag of the word 14363.
