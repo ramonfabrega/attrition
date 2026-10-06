@@ -3631,7 +3631,9 @@ detector (a viadriver log still at its header past N minutes ends the
 wait as a stall rather than waiting out the hour), and the roster: **the
 user's word** is that the pass decides at this steer whether Sonnet is
 good enough to run a lane (CLAUDE.md's two kill rules did not trip on
-this).
+this). 1429's own Loop line (its journal) names the build: `waitrun.sh` exits
+as a stall when the viadriver log has not grown and `wine-stalled.log`
+exists.
 
 (1471) **`tools/standing.py` does not read the third pair's widening
 print** (1461's Loop line, 2026-10-05): the standing keys of the French

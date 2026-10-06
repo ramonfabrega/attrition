@@ -13,15 +13,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and one
-landing since. French East Indies **12952** of 17,379 (was 12794);
-Toughest 12538 measured, floor 11985; fifty chapters closed.*
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and two
+landings since. French East Indies **12952** of 17,379 (was 12794);
+Toughest **12569**, floor 12569 (was 11985); fifty chapters closed.*
 
-- **1461 landed** (Opus): the crew step's `get_speed`, 12794 → 12952;
-  1470 is the new word.
-- **The loop returns: three lanes, a mixed roster.** 1461 on Opus 5.5,
-  1429 and 1423 on Sonnet 5.5, `--effort high` on every spawn line;
-  entry 58's two kill rules ride with each Sonnet lane.
+- **Landed**: 1461 (Opus, `get_speed`, now 1470) and 1429 (Sonnet,
+  the turn in `guys_follow`, now 1472). Three lanes: the newest pair's
+  on Opus 5.5, the others on Sonnet 5.5, `--effort high` each; entry
+  58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
@@ -35,7 +34,7 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w12952 of 17,379 · GreatLakesFrench w5638 of 5,638
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w11985 of 15,432
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w12569 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -59,12 +58,12 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     short here (1/80 37 against 52). Date the first parting; no
     mechanism is named.
 
-1429. **Great Sahara at Toughest's word: frame 12538, seven draws
-    on each side**, index 1: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
-    theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
-    Count first parts at 12569. run574's detail ends at 12132, so no
-    record of this game's word is on disk; capture first (run584), then
-    widen. The floor stays 11985. No mechanism is named (1426).
+1472. **Great Sahara at Toughest's word: frame 12569, 13 versus 18
+    draws**, index 6: ours `Guy::turn_towards+0x69`, theirs
+    `Unit::do_idle+0x7d`, and four more `Guy::set_anim+0x104b` on
+    theirs. run584 widens it (block 12570): 134 keys stand from 12532,
+    parted in the dark gap 11985..12532 that no capture holds; the
+    Scholar `1/124` rows are parked 1430. No mechanism is named.
 
 1423. **Chapter fifty-one: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): `Group::target_opportunity`'s 15-frame cooldown
