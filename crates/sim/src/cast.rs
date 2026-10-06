@@ -673,9 +673,14 @@ impl Sim {
             if d >= radius {
                 continue;
             }
-            let Some(spot) =
-                self.find_nearby_spot_type_for(ty, g, centre, 0x180, -1, crate::movement::Angle(0))
-            else {
+            let Some(spot) = self.find_nearby_spot_type_for(
+                self.decoy_search_type(g, ty),
+                g,
+                centre,
+                0x180,
+                -1,
+                crate::movement::Angle(0),
+            ) else {
                 break;
             };
             let head = self.init_unit(who, ty, spot);
@@ -704,6 +709,16 @@ impl Sim {
             let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
             self.units[g].mana_burn -= back.min(self.units[g].mana_burn);
         }
+    }
+
+    /// The type the decoy's spot search is **asked with**: the caster's
+    /// own (`find_nearby_spot@0061de70` reads `this->+0x240/+0x244` for its
+    /// block radius and its default span; listing `674666..6746b9` loads
+    /// `this` from the caster `param_1`), while the copy itself is made
+    /// with the source's type (`6746d1..6746ed`) — twenty-fourth pass,
+    /// group 11; A6 row 45. A caster with no type falls back to the source.
+    fn decoy_search_type(&self, caster: usize, source: usize) -> usize {
+        self.units[caster].ty.unwrap_or(source)
     }
 
     /// `LeaderData::current_upgrade(who, ti)` as a unit record.
@@ -958,5 +973,28 @@ impl Sim {
                 0
             };
         }
+    }
+}
+
+#[cfg(test)]
+mod decoy_type_tests {
+    /// **The spot is searched with the caster's type** (group 11; A6 row
+    /// 45): a Cannon's block radius 2 beside a General's 1 is not the
+    /// General's search.
+    #[test]
+    fn the_decoy_search_is_asked_with_the_casters_type() {
+        let mut s = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
+        let general = s.add_unit_type(crate::UnitType::default());
+        let cannon = s.add_unit_type(crate::UnitType::default());
+        let mut g = crate::Unit::new(0, 0, crate::Pos::new(500, 500), 10);
+        g.ty = Some(general);
+        let g = s.add_unit(g);
+        assert_eq!(s.decoy_search_type(g, cannon), general);
+        s.units[g].ty = None;
+        assert_eq!(
+            s.decoy_search_type(g, cannon),
+            cannon,
+            "untyped: the source"
+        );
     }
 }

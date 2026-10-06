@@ -470,6 +470,99 @@ fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
     );
 }
 
+/// **`blocked_tcoord`'s tile arms, as `0x636db0` has them** (twenty-fourth
+/// pass, group 12; A8 rows 40, 42, 43, 44, 52): a `0x200` tile answers RARE,
+/// not BUILDING; a mountain is the tile's object bits **or** the cell's
+/// `0x10`; a sea type that is no dock is refused a leader with no transport
+/// level; a cell with no region is not ruins; and `blocked_site` returns a
+/// first refusal of `Seen` before `blocked_location` can replace it.
+#[test]
+fn blocked_tcoord_s_tile_arms_follow_the_listing() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let at = Pos::new(44, 32);
+    let c = World::cell_of_tile(at);
+    let ask = |sim: &Sim| sim.blocked_tcoord(None, t.farm, at, None);
+    // 44: `TData & 0x200`.
+    let plain = sim.world.tile_mask(at);
+    sim.world.set_tile_mask(at, plain | tile::AS_BUILDING);
+    assert_eq!(ask(&sim), Blocked::Rare, "0x200 is RARE");
+    sim.world.set_tile_mask(at, plain);
+    // 43: a blocked tile on a mountain-flagged cell.
+    sim.world.set_tile_mask(at, plain | tile::BLOCKED);
+    assert_eq!(ask(&sim), Blocked::Rare, "blocked, no mountain bit");
+    let mut d = sim.world.cell_data(c);
+    d.flags |= cell::MOUNTAIN;
+    sim.world.set_cell_data(c, d);
+    assert_eq!(
+        ask(&sim),
+        Blocked::Mountain,
+        "the cell's 0x10 is a mountain"
+    );
+    d.flags &= !cell::MOUNTAIN;
+    sim.world.set_cell_data(c, d);
+    sim.world.set_tile_mask(at, plain);
+    // 42: a sea-domain type, no dock, no transport.
+    let platform = bt(Ident::Other, None, "gb", 4, 4, 150, 400, 0);
+    let platform = sim.add_build_type(platform);
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), platform, at, None),
+        Blocked::CantTransport,
+        "no transport level"
+    );
+    sim.transport[0].civilian = true;
+    assert_ne!(
+        sim.blocked_tcoord(Some(0), platform, at, None),
+        Blocked::CantTransport
+    );
+    // 52: the first refusal's `Seen` is the site's answer.
+    let ruins = Pos::new(60, 60);
+    let rc = World::cell_of_tile(ruins);
+    let mut d = sim.world.cell_data(rc);
+    d.flags |= cell::GOODY;
+    sim.world.set_cell_data(rc, d);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    sim.lobby.reveal_map = 1;
+    let centre = tile_pos(ruins.x, ruins.y);
+    let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "gaef", 2, 2, 150, 400, 0));
+    let (verdict, _) = sim.blocked_site_slots(Some(0), camp, centre, None);
+    assert_eq!(verdict, Blocked::Seen, "not replaced by the location test");
+}
+
+/// **`was_seen`'s allied-owner arm tests forts as well as cities** (group 12;
+/// A8 row 38, `WorldData::was_seen@006b53f0`: `reg_cities[region]` **or**
+/// `reg_forts[region]`), and a cell with no region is not ruins (row 40).
+#[test]
+fn an_owner_s_fort_makes_its_region_seen_and_a_regionless_cell_is_no_ruin() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let fort = sim
+        .place_building(0, t.fort, tile_pos(32, 32))
+        .expect("a first fort in the region");
+    finish(&mut sim, fort);
+    assert!(sim.buildings[fort].active);
+    let at = Pos::new(20, 20);
+    let c = World::cell_of_tile(at);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    sim.lobby.reveal_map = 1;
+    sim.world.set_owner(c, Owner::Player(0), Owner::None);
+    assert!(
+        sim.was_seen_fog(at.x >> 1, at.y >> 1, 0),
+        "an ally's (here its own) fort in the region shows its ground"
+    );
+    sim.close_building(fort, false);
+    assert!(
+        !sim.was_seen_fog(at.x >> 1, at.y >> 1, 0),
+        "and not without"
+    );
+
+    // Row 40: no region, no ruins.
+    let mut bare = Sim::new(Tuning::RON, World::new(16, 16), 2);
+    let farm = bare.add_build_type(bt(Ident::Farm, None, "gda", 4, 4, 150, 400, 0));
+    assert_eq!(bare.world.region_of(c), None);
+    assert_ne!(bare.blocked_tcoord(None, farm, at, None), Blocked::Ruins);
+}
+
 /// **`blocked_tcoord`'s two cell arms** (`docs/CITIES.md` §2.5, item 904,
 /// `docs/AI.md` §78). A rock cell refuses every type but the oil pair
 /// (`006370b2`), which needs the cell's oil instead (`00637105`); and a
@@ -4130,7 +4223,11 @@ fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
         let citizen = sim.add_unit_type(citizen_type(t.village));
         sim.unit_types[citizen].worker = Worker::Citizen;
         sim.unit_types[citizen].tree = Some(root);
-        let wonder = sim.add_build_type(bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0));
+        let mut wonder_type = bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0);
+        // The loader sets the range flag with the ident; the recruiter reads
+        // the flag (`BuildData::is_wonder`).
+        wonder_type.wonder = true;
+        let wonder = sim.add_build_type(wonder_type);
         Ground {
             sim,
             t,

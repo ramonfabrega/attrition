@@ -183,7 +183,7 @@ impl Sim {
         if let Owner::Player(o) = self.world.owner(cell)
             && self.is_ally(who, o)
             && let Some(r) = self.world.region_of(cell)
-            && self.leader_reg_cities(o, r) != 0
+            && (self.leader_reg_cities(o, r) != 0 || self.reg_forts(o, r) != 0)
         {
             return true;
         }

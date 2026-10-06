@@ -2750,6 +2750,16 @@ impl Sim {
         {
             return None;
         }
+        // The shortcut sits behind `find_melee_target@005ff9c0`'s own exit:
+        // a captain that is not on duty and holds fire (`get_combat_stance()
+        // > 4`, `LAB_005ffbb2`) returns −1 before `find_nearby_target` runs
+        // (twenty-fourth pass, group 10; A6 row 18).
+        if self.units[u].captain
+            && self.units[u].combat.stance == combat::Stance::HoldFire
+            && !self.on_duty(u)
+        {
+            return None;
+        }
         let slot = self.army_of(u)?;
         let target = self.armies[who as usize].list.get(slot)?.target?;
         if !self.valid_target(Obj::Unit(u), target)

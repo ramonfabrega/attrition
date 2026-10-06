@@ -355,7 +355,10 @@ impl Sim {
                 first = r;
             }
         }
-        if first == Blocked::Water {
+        // `blocked_site@00636a50`: a first refusal of `0x24` is returned
+        // beside water's, before the unseen tally and `blocked_location`
+        // (twenty-fourth pass, group 12; A8 row 52).
+        if first == Blocked::Water || first == Blocked::Seen {
             return (first, 0);
         }
         let (r, slots) = self.blocked_location(who, ty, pos, corner, exclude);
@@ -390,9 +393,10 @@ impl Sim {
                 _ => Blocked::Ruins,
             };
         }
-        let Some(reg) = self.world.region_of(cell) else {
-            return Blocked::Ruins;
-        };
+        // A cell with no region is **not** ruins: `0x636db0` has no such
+        // test, and takes the region only in the colonisation arm
+        // (twenty-fourth pass, group 12; A8 row 40).
+        let reg = self.world.region_of(cell);
         if mask & tile::OBJECT == tile::OBJECT_BUILDING {
             return Blocked::Building;
         }
@@ -400,6 +404,15 @@ impl Sim {
         if !dock {
             match b.domain() {
                 BuildDomain::Water => {
+                    // A sea-domain type that is no dock is refused a leader
+                    // with no transport level (`0x636db0`:
+                    // `can_transport(who) == TRANSPORT_NONE`, group 12; A8
+                    // row 42). SEAM: `semaphore[1] & 8` lifts it.
+                    if let Some(w) = who
+                        && self.transport_level(w) == crate::transport::TransportType::None
+                    {
+                        return Blocked::CantTransport;
+                    }
                     if mask & tile::SURFACE != tile::SURFACE_OCEAN {
                         return Blocked::Land;
                     }
@@ -416,13 +429,19 @@ impl Sim {
             if mask & tile::SURFACE == tile::SURFACE_FOREST {
                 return Blocked::Forest;
             }
-            if mask & tile::OBJECT == tile::OBJECT_MOUNTAIN {
+            // Mountain: the tile's own object bits, **or** the cell's
+            // `WData.flags & 0x10` (`63701f`; group 12, A8 row 43).
+            if mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
+                || self.world.cell_data(cell).flags & crate::world::cell::MOUNTAIN != 0
+            {
                 return Blocked::Mountain;
             }
             return Blocked::Rare;
         }
+        // `TData & 0x200` answers RARE, not BUILDING (`63703d..637050`;
+        // group 12, A8 row 44).
         if mask & tile::AS_BUILDING != 0 {
-            return Blocked::Building;
+            return Blocked::Rare;
         }
         // The cell's rock and oil (`006370b2`, `00637105`): an Oil Well or
         // Oil Platform (`is(0x1a5)`, `is(0x1a6)`) needs the cell's oil,
@@ -462,15 +481,18 @@ impl Sim {
             if !dutch_anywhere && self.world.owner(cell) == Owner::None {
                 // Unowned ground: only as the first city or fort in this
                 // region — the colonisation foothold.
-                let taken = self.reg_cities(w, reg) != 0
-                    || self.reg_forts(w, reg) != 0
-                    || self
-                        .unbuilt_cities(w)
-                        .chain(self.unbuilt_forts(w))
-                        .any(|i| {
-                            Some(i) != exclude
-                                && self.world.region_of(self.buildings[i].pos.cell()) == Some(reg)
-                        });
+                let taken = reg.is_some_and(|reg| {
+                    self.reg_cities(w, reg) != 0
+                        || self.reg_forts(w, reg) != 0
+                        || self
+                            .unbuilt_cities(w)
+                            .chain(self.unbuilt_forts(w))
+                            .any(|i| {
+                                Some(i) != exclude
+                                    && self.world.region_of(self.buildings[i].pos.cell())
+                                        == Some(reg)
+                            })
+                });
                 if taken {
                     return if fort {
                         Blocked::NeutralTerritory

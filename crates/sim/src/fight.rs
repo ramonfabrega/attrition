@@ -3194,13 +3194,32 @@ impl Sim {
         // unpacked catapult's idle search never takes a target inside its
         // minimum range. This crate had the flag read the other way round,
         // as "takes anything".
-        let must_reach = match attacker {
+        // **`local_5c`, and the computer's packed siege engine**
+        // (`find_nearby_target@00648da0:203-205`, twenty-fourth pass, group
+        // 10; A6 row 14): a non-EASIEST computer's packed siege type sets
+        // `local_24` **and** `local_5c` before `get_army`, so an engine
+        // whose army shortcut failed is still range-tested — an
+        // out-of-range unit is skipped, an out-of-range non-unit kept only
+        // if it attacks or is a wonder — and scored as out of range.
+        let packed_ai_siege = match attacker {
             Obj::Unit(i) => {
-                let c = self.units[i].combat;
-                c.stance == Stance::StandGround || c.entrenched || (ap.packs && !c.packed)
+                let who = self.units[i].owner;
+                ap.packs
+                    && self.units[i].combat.packed
+                    && ap.siege
+                    && self.ai_driven(who)
+                    && !self.search_ai(who)
             }
             Obj::Building(_) => false,
         };
+        let must_reach = packed_ai_siege
+            || match attacker {
+                Obj::Unit(i) => {
+                    let c = self.units[i].combat;
+                    c.stance == Stance::StandGround || c.entrenched || (ap.packs && !c.packed)
+                }
+                Obj::Building(_) => false,
+            };
         let minr = ap.min_range * 0xc0;
         let maxr = self.max_range_of(attacker) * 0xc0;
         // **`local_2c`: a searcher whose activity is a `GUARD`**
@@ -3347,7 +3366,14 @@ impl Sim {
                                     && self.profile(o).has(mask::ANTI_AIR)));
                         let in_range = if must_reach || guard_reach {
                             if !self.is_in_range(attacker, o) {
-                                continue;
+                                let wonder = matches!(o, Obj::Building(b)
+                                    if self.buildings[b].ty.is_some_and(|t| self.build_types[t].wonder));
+                                if !(packed_ai_siege
+                                    && !is_unit
+                                    && (self.attack_of(o) != 0 || wonder))
+                                {
+                                    continue;
+                                }
                             }
                             false
                         } else if matches!(attacker, Obj::Unit(_)) || self.is_in_range(attacker, o)
@@ -6228,6 +6254,46 @@ mod tests {
         );
     }
 
+    /// **A computer's packed siege engine must reach what it takes**
+    /// (twenty-fourth pass, group 10; A6 row 14): `local_24` and `local_5c`
+    /// are set before `get_army`, so with the army shortcut failed the
+    /// ranked search still skips an out-of-range unit. A human's packed
+    /// engine, and the EASIEST computer's, take it untested.
+    #[test]
+    fn a_packed_computer_siege_engine_skips_what_it_cannot_reach() {
+        for (case, human, difficulty, want) in [
+            ("computer", false, 5, false),
+            ("human", true, 5, true),
+            ("easiest", false, 0, true),
+        ] {
+            let (mut sim, foe_ty) = at_war();
+            sim.nation[0].human = human;
+            sim.lobby.difficulty = difficulty;
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 4,
+                    uber_size: 1,
+                    siege: true,
+                    packs: true,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let at = Pos::new(0x1200, 0x1200);
+            let me = put(&mut sim, 0, ty, at);
+            sim.units[me].combat.packed = true;
+            let foe = put(&mut sim, 1, foe_ty, Pos::new(at.x + 10 * 192, at.y));
+            assert!(!sim.is_in_range(Obj::Unit(me), Obj::Unit(foe)));
+            assert_eq!(
+                sim.find_nearby_target(Obj::Unit(me), 0).is_some(),
+                want,
+                "{case}"
+            );
+        }
+    }
+
     /// **An aircraft takes no aircraft it cannot reach** (item 650,
     /// `docs/COMBAT.md` §61), on run168's two types. A Bomber (`FLY_HIGH`
     /// 0, no `ANTI_AIR`) is refused a plane by `valid_target`'s air ladder,
@@ -7654,6 +7720,7 @@ mod tests {
             "not siege",
             "easiest",
             "no target",
+            "hold fire",
         ] {
             let (mut sim, foe_ty) = at_war();
             sim.nation[0].human = case == "human";
@@ -7673,6 +7740,9 @@ mod tests {
             let at = Pos::new(0x1200, 0x1200);
             let me = put(&mut sim, 0, ty, at);
             sim.units[me].combat.packed = case != "unpacked";
+            if case == "hold fire" {
+                sim.units[me].combat.stance = combat::Stance::HoldFire;
+            }
             let limit = sim.tuning.unit_respond_range * 0x180;
             let distance = if case == "boundary" {
                 limit
