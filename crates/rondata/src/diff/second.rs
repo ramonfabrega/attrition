@@ -2754,7 +2754,7 @@ mod tests {
         // Item 1457: 260 → 258; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 258 → 254; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 254 → 244; who=1's Tikal `MAKE[1]`/`[8]` 342150 → 684301 takes its `WONDER_VAL` 2, and the Pyramids and Colossus slots and their food and wealth `bucket` rows leave (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 222, "run594 record baseline");
+        pin_eq!(w.firsts.len(), 212, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2843,7 +2843,7 @@ mod tests {
         // Item 1458: 255 → 244; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1461: 244 → 240; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         // Item 1481: 240 → 237; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 208, "run589 record baseline");
+        pin_eq!(w.firsts.len(), 205, "run589 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -2933,7 +2933,7 @@ mod tests {
         // Item 1457: 225 → 223; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 223 → 212; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 212 → 209; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 180, "run588 record baseline");
+        pin_eq!(w.firsts.len(), 177, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(

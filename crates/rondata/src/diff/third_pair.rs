@@ -245,12 +245,13 @@ fn run642_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    // Item 1481: 1852 — 134 standing on the first block, 15339; nothing on
+    // Item 1481: 1818 on the tree merged after 1468 (1852 before it) — 100
+    // standing on the first block, 15339; nothing on
     // 15340..15344; on the word's block 15345 1447, who=1's army group 64
     // the original's alone (150 rows) and the orders and positions of
     // `1/67`, `1/79` and some thirty more of who=1's units among them. The
     // word's block is 15345.
-    pin_eq!(w.firsts.len(), 1852, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 1818, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -292,11 +293,12 @@ fn run639_s_word_frame_is_widened_whole() {
     // `1/2054` and the food and timber it costs among them; ten on each of
     // 14787..14789. The word's block is 14787.
     // Item 1468: 226 → 192, as run635's.
-    // Item 1481: 226 → 127, the word's frame now 15344 (the wonder arm
-    // takes Tikal's `WONDER_VAL` 2 and the team's held Pyramids, AI §124):
-    // `MAKE[8]` is Tikal at 1563477 on 14785 here as there, and every row
-    // from 14785 leaves — what is left is the 127 standing on 14777.
-    pin_eq!(w.firsts.len(), 192, "initial run639 baseline");
+    // Item 1481: 192 → 93 (226 → 127 before 1468), the word's frame now
+    // 15344 (the wonder arm takes Tikal's `WONDER_VAL` 2 and the team's
+    // held Pyramids, AI §124): `MAKE[8]` is Tikal at 1563477 on 14785 here
+    // as there, and every row from 14785 leaves — what is left is the 93
+    // standing on 14777.
+    pin_eq!(w.firsts.len(), 93, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame

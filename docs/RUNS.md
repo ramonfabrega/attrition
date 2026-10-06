@@ -14546,8 +14546,8 @@ SHA-256 `0032f4e3bb4c873ee9abe13c4caf4b9ba07bf9eb69043781c2b1e5ddd313bfbd`.
 Archive `rontrace-run642.log`, 85,941,312 bytes,
 SHA-256 `165ec7c162e1a23ea766996937501f236f4fc33722bce45ac5c4d10bb828b0f4`.
 
-**What it holds**: `run642_s_word_frame_is_widened_whole` (`diff::third_pair`): 1852
-keys, 134 standing on block 15339, none on 15340..15344, and 1447 on the word's block
+**What it holds**: `run642_s_word_frame_is_widened_whole` (`diff::third_pair`): 1818
+keys on the tree merged after 1468 (1852 before), 100 standing on block 15339, none on 15340..15344, and 1447 on the word's block
 15345: who=1's army group 64 is the original's alone, and some thirty of who=1's units'
 orders and positions part. It also names a sixth French city, Orleans (the coverage
 pin's `UNREAD`). Run 642 only.

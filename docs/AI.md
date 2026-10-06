@@ -14472,14 +14472,16 @@ parted key.
   Tikal's own 2: no wonder stands in that game on 18060, so this row
   backs the factor alone. `MAKE[2]` (Pyramids 526 here, empty there) and
   `MAKE[3]` (Colossus 527, empty) leave with it, as do the food and
-  wealth `bucket` rows they cost. 254 → 244.
+  wealth `bucket` rows they cost. 254 → 244 (222 → 212 on the tree
+  merged after item 1468).
 - **run589** (17890) and **run588** (17782): who=1's `MAKE[3]`, Hanging
   Gardens (528, worth 1) at 248009 here against the Terra Cotta Army
-  (529, worth 2) at 250750 there, now agrees. 240 → 237 and 212 → 209.
+  (529, worth 2) at 250750 there, now agrees. 240 → 237 and 212 → 209
+  (208 → 205 and 180 → 177 merged).
 
 **The new word** is 15344: 44 draws against 38 at index 0. Ours spends
 `Army::find_target+0x7df` seven times, and theirs starts on
-`Animal::think_bird+0x82`. run642 (15339..15351) widens it: 134 standing
+`Animal::think_bird+0x82`. run642 (15339..15351) widens it: 100 standing
 on 15339, nothing on 15340..15344, and on the word's block 15345 an army
 group 64 that only the original holds, with some thirty of who=1's units'
 orders and positions. No mechanism is named here.
