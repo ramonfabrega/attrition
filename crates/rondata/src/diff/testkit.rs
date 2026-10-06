@@ -1940,7 +1940,15 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// `cur_anim` 0, `cur_time` 1, `last_time` 0 on both sides, against ours' 7,
 /// 16, 15): 16857 → 17171, 11 vs 10 draws, index 1 Unit::fight+0x824 versus
 /// Guy::set_anim under Guy::inc_time+0x271.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_171;
+/// Item 1508: a guard's attack-move leg is killed under the attack its look
+/// finds (`find_nearby_target@00648da0:551`, `local_2c`), and a `v` type
+/// fires on the move (`Unit::cavarch_fight@005ff4b0`, AI §134): the Dragoon
+/// `1/80` finds Napata on 17168 and shoots it on 17169 here as there (block
+/// 17170: `recharging` 30, `cavarch_o` 2000, `cavarch_who` 0 on both sides,
+/// against ours' 0, −2, −1), so it reaches 17171 reloading and does not swing:
+/// 17171 → 17244, 9 vs 6 draws, index 0 Guy::set_anim+0x97a under
+/// Unit::do_move+0x11cf versus under Unit::do_idle+0x7d. run661 block 17245.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_244;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1977,7 +1985,10 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_15088: (i64, i64) = (15086, 15090);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_15344: (i64, i64) = (15339, 15351);
 /// run655's blocks, the word 16857's until item 1500 moved it to 17171.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_16857: (i64, i64) = (16851, 16863);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17165, 17177);
+/// run657's blocks, the word 17171's until item 1508 moved it to 17244.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_17171: (i64, i64) = (17165, 17177);
+/// run661's blocks around the word 17244 (item 1508).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17238, 17250);
 /// run658: the gap before 17171, blocks 17018..17057 (item 1502).
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_GAP: (i64, i64) = (17018, 17057);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
@@ -8493,12 +8504,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1481 moved the word to 15344, past run639's window, and widened
     // it on run642 (15339..15351); item 1487 to 16857, past it, widened on
     // run655 (16851..16863); item 1500 to 17171, past it, widened on run657
-    // (17165..17177).
+    // (17165..17177); item 1508 to 17244, past it, widened on run661
+    // (17238..17250).
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run657_s_word_frame_is_widened_whole"),
-        1500,
+        Some("run661_s_word_frame_is_widened_whole"),
+        1508,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

@@ -7799,9 +7799,10 @@ the comparison then drops for want of a value on this side. The grep is
 count is on the record.
 
 **Reading-only**: the search throttle (§43.5), unmodelled and unexercised;
-`Unit::fight`'s `param_5 != 0` sub-call path, which writes
+~~`Unit::fight`'s `param_5 != 0` sub-call path, which writes
 `cavarch_o`/`cavarch_who`/`cavarch_uid` instead of searching and which no
-run on disk enters.
+run on disk enters~~ — run657's Dragoon `1/80` enters it on 17168 and
+17169, and it is built and diff-backed (`docs/AI.md` §134).
 
 ## 45. The word is the swing's facing, and the record it is spent in was never compared (item 510, 2026-09-22)
 

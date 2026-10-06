@@ -311,16 +311,43 @@ fn run658_dates_the_gap_before_17171() {
     );
 }
 
+/// run661: the successor after the guard's leg and the fire on the move,
+/// frame 17244 (item 1508).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run661",
+        &[("gamelog-run661-islands-french-17244.txt", 17238)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[17245],
+        true,
+    )
+}
+
+#[test]
+fn run661_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    pin_eq!(w.firsts.len(), 0, "initial run661 baseline");
+}
+
 /// run657: the successor after `move_step`'s snap stand, frame 17171
 /// (item 1500).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_17171_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run657",
         &[("gamelog-run657-islands-french-17171.txt", 17165)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_17171,
         1,
         &[17172],
         true,
@@ -330,7 +357,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run657_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_17171_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -348,7 +375,13 @@ fn run657_s_word_frame_is_widened_whole() {
     // took 240 → 230). Five `order:target` rows were ours reading
     // `None` for an attack on Napata, a building the link table lacks;
     // `target_ids` names it by `(owner, index)` now, and the five agree.
-    pin_eq!(w.firsts.len(), 225, "initial run657 baseline");
+    // Item 1508: 225 → 154, all standing on 17165 but one. The guard's leg
+    // killed under its attack (AI §134) takes `1/78`, `1/83` and `1/90`'s
+    // stacks on 17165 and `1/69`'s and `1/80`'s on 17167 and 17171; the fire
+    // on the move takes `1/80`'s swing on 17169, its reload on 17170 and its
+    // walk on 17172, and `1/78`'s rows on 17174 and Napata's damage go with
+    // them. Left past the first block: `group:66.role` on 17174.
+    pin_eq!(w.firsts.len(), 154, "initial run657 baseline");
 }
 
 #[test]
@@ -1373,8 +1406,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run657-islands-french-17171.txt",
+            "gamelog-run661-islands-french-17244.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run657-islands-french-17171.txt",
+            WIDENING_FRENCH_EAST_INDIES_17171,
         ),
         (
             EAST_START,
@@ -1627,7 +1666,7 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 ]),
                 "engine-only fields are evidence, not sim parity"
             );
-        } else if window == WIDENING_FRENCH_EAST_INDIES {
+        } else if window == WIDENING_FRENCH_EAST_INDIES_17171 {
             // Item 1500: run657 is the first French East Indies window with
             // rounds in flight. `1/90`'s round, launched on 17165, leaves
             // from another point on 17166..17169: `1/90` is one of the
@@ -1835,9 +1874,14 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run655-islands-french-16857.txt",
             (WIDENING_FRENCH_EAST_INDIES_16857.0, 16_857),
         ),
-        // The open word's window, to the word's own block (item 1481).
+        // Item 1508: run657's, to the word 17171's own block.
         (
             "gamelog-run657-islands-french-17171.txt",
+            (WIDENING_FRENCH_EAST_INDIES_17171.0, 17_171),
+        ),
+        // The open word's window, to the word's own block (item 1481).
+        (
+            "gamelog-run661-islands-french-17244.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
