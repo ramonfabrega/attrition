@@ -1215,14 +1215,6 @@ reproduces all three from one computation.
 `do_group_move`'s follower arm fires it: `Sim::group_refresh_order`, then
 `group_rewrite_leader` for step 4.
 
-**Its trigger is modelled, and its `form_id` is the army's index, not the sub-group's** (item
-1493, `docs/AI.md` §128). A siege unit's slot lives past the army's `form_num`: the loop at the end
-of `Group::action_siege_attack_to@0070d830` copies the sub-group's `off`, `curr` and `angles`
-into the parent's table at the member's parent index and `Unit::replace_form_id@005fd420`
-re-points its group orders at it, so `refresh_group_order`'s `off[form_id]` is a real slot
-(Great Sahara 12816: `1/141`'s (23, 0)). `update_positions` walks `form_num` slots; the tail keeps
-the copy's `curr`.
-
 ## 7. `Group::action_halt(mask)@0070d0c0`
 
 The scenario filter, `action_begin`, and then — **only for a unit group** —
