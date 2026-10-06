@@ -14506,6 +14506,79 @@ SHA-256 `9b335ae06a1159ff5076f5eb0506a42a39b061d5da094341a8ebc2731afaacb6`.
 139 standing on block 14085, none on 14086, and who=1's `regen_roads` on thirteen buildings
 from block 14087. The word's block is 14091. Run 636 only.
 
+## run640 — run470's game, a packet at logger frame 12575 and the new word 12816's window: the third map's census at Toughest (2026-10-06, item 1477)
+
+**What it is.** Two takes of run470's game (`--map 7`, `DIFFICULTY=5`, the
+click-free lane, `cover=0`, `!ffwd 14` from frame 37). **Take 1** is a
+`RON_STATE_FRAME=12575` packet — the state before tick 12575, the sweep that
+censuses who=1's cities — with the dump window 12574..12577 and `!quit` at
+12590. **Take 2** is the widening of the word 12816: run584's detail over
+blocks 12811..12834 and `!quit` at 12840. The brief reserved one number; the
+packet was taken first, the widening followed it once the word had moved past
+run584's window, and both are run640.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-05-run640 \
+    --map 7 --end-frame 12590 --timeout 5000 --log-window 12574 12578 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 \
+    --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=12575 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run640-take2 \
+    --map 7 --end-frame 12840 --timeout 5000 --log-window 12811 12835 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+The plan is item 597's (`~/ron-data/lab-experiments/2026-09-23-item-597/plan`),
+PDB-bound and reused. A first launch of take 1 died on an output directory
+this worker had made itself (`mkdir` before the runner's own); the second
+took. Take 2's first launch was refused by the lane lock, held by another
+lane's capture (`unattended_capture`, pid 38819, 00:20:48); `ron_lane_state`
+read `free` at 00:30 and it launched at once — about seven minutes waited.
+
+**What the disk could not answer.** Take 1: the original's tile masks and
+cell records at the census, and the cells `plan_strategy` visits. The dump
+prints the city's `land`/`filled`/`space` and nothing under them, and the
+standing key `1/2031 city:filled` (parked 1430) named a cell it did not print.
+Take 2: no dump held a block past run584's 12788, and the word moved to 12816.
+
+**Taken.** Take 1 (23:04–23:06, 2026-10-05): `success: true`, exit 0, 80.97 s launch to
+exit (91.1 s in all), 12,591 frames, map 7 and seed 12345 verified, five
+settings files restored; `frame-snapshot.bin` 844,840,060 bytes, sha256
+`9e63b84b984e8945…`. `rngcmp.py rontrace-run470.log` against its trace:
+**0 differing**, 12,591 identical. Take 2 (00:30–00:33): `success: true`, exit
+0, 160.65 s launch to exit (169.9 s in all), 12,841 frames, map 7 and seed
+12345 verified, five files restored, 25 `FRAME` blocks 12811..12835; the dump
+(59,053,814 bytes, sha256 `819c0f351248eadb…`) and the trace (71,631,872,
+`0a059e1522a4c1e7…`) were copied into `Logs` as
+`gamelog-run640-greatsahara-toughest-12816.txt` and `rontrace-run640.log`;
+`rngcmp.py rontrace-run470.log rontrace-run640.log` **0 differing**, 12,841
+identical; 163 GB free after.
+
+| check | result |
+|---|---|
+| packet `frame-snapshot.bin`, logger frame 12575, trace frame 12574 | receipt checked by `golden_capture.sh` |
+| tile masks, 240 × 240, against this crate's at tick 12575 | 483 differ, all in bit `0x4`, none read by a census gate |
+| cell records, 3,600, against this crate's | flags, land, who, who2, blocked, bad, solid, val agree; `land_sub` differs on 208, the regions are numbered the other way |
+| `check_building_wcoord@006b26e0` entered on the packet, all cells | 0 differ from `space_at_corner` as this crate reads it |
+| `circle_x`, `circle_y`, `circle_radius`, `grid_index_*`, `grid_threes` | identical to this crate's |
+| `Leader::plan_strategy@006b9620` entered on the packet (this `0xE4127C`), city 3 zeroed | 72 / 38 / [47, 47, 34], the dump's; this crate's old walk 72 / 39 / [46, 46, 33] |
+
+**What it settled** (`docs/AI.md` §122). The loop reads the circle tables at
+`+1`: entries 1 ..< `circle_radius[k + 1]`, the centre never visited and the
+last inner entry visited. The experiment folder is
+`~/ron-data/lab-experiments/2026-10-06-item-1477-sonnet/`: `oracle_cbw.py`,
+`oracle_ps.py` (a function entered on the packet, with entry/return hooks),
+`replay.py`, `make.py`, `city.py`, `patch_pins.py`. The packet stays outside
+git at `~/ron-data/lab-captures/2026-10-05-run640/map-7`.
+
+**What it holds**: `run640_s_word_frame_is_widened_whole`
+(`diff::sahara_toughest`): 309 keys over blocks 12811..12834, 159 standing on
+the first, and on the word's block 12817 the formation of army 65 (`curr`,
+`off`, 27 slots) and `1/141`'s `g.end_time[2]` (31 against 23); the compared
+pin's window on block 12817. Take 2 only; take 1 has no test of its own.
+
 ## run639 — French East Indies, the word 14782's widening, with the leader probe (2026-10-05, item 1476)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1476-opus/run639-booking.json`,
@@ -14526,6 +14599,117 @@ SHA-256 `c46a977c93b66b14d3e64945d9c380b71eea355cbb055c699bdf551e97b90445`.
 **What it holds**: `run639_s_word_frame_is_widened_whole` (`diff::third_pair`): 239 keys,
 136 standing on block 14777, none on 14778..14782, and on the word's block 14783 who=1's
 `MAKE[8].val` and `1/93`'s move order. Run 639 only.
+
+## run643 — the held-out battery: East Indies, Germans at difficulty 3, the long trace (2026-10-06, item 1465)
+
+**Map 18, human Nubians (4) against Germans (tribe 12), `DIFFICULTY 3`, seed 12345**
+— a lobby no scored word shares a nation, map and difficulty with (`docs/AI.md` §125).
+Disk gap: no gamelog on the disk has this nation at this map (a survey of every `gamelog*.txt`
+under `Logs/` and `lab-captures/`, §125). Through `viadriver.sh tools/explore/golden_capture.sh`
+on the click-free lane, run600's recipe: `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 12 --profile DIFFICULTY=3`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`,
+`misc:CHECKSUM=2`, `endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+The game ended itself at frame **13519** (trace last frame 13519, closing block 13520), as the
+French pair's two did, so the runner's requested-endpoint receipt fails (`missing, repeated, or
+unexpected simulation frames`) and `waitrun.sh` exits 2; both retained, as run598 and run600. Read
+back from the dump: `MAP_STYLE 18`, `DIFFICULTY 3`, `(int)seed 12345`, PLAYER tribes 4 and 12. Five settings
+files restored. The failed receipt wrote no timing: launched 00:18:39, the dump last written 00:20 (waited 320 s for the lane, held by item 1481's run642).
+
+Archive `gamelog-run643-eastindies-german-diff3-24k-trace.txt`, 13,339,845 bytes, SHA-256 `4fb2b4b1eab37512dc646ae38d90166d3495230ea5ce2541763d0c9d9db1076a`.
+
+Archive `rontrace-run643.log`, 86,140,576 bytes, SHA-256 `3b5fac01f03d6eeefd0b7c3f01d5d91a3268f6e1ac622416d499aac381e46f9a`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and
+closing records; `diff::battery` walks it from run646's start. Its first-try number is in §125.
+
+## run644 — the held-out battery: Great Lakes, Russians at difficulty 2, the long trace (2026-10-06, item 1465)
+
+**Map 14, human Nubians (4) against Russians (tribe 13), `DIFFICULTY 2`, seed 12345**
+— a lobby no scored word shares a nation, map and difficulty with (`docs/AI.md` §125).
+Disk gap: no gamelog on the disk has this nation at this map (a survey of every `gamelog*.txt`
+under `Logs/` and `lab-captures/`, §125). Through `viadriver.sh tools/explore/golden_capture.sh`
+on the click-free lane, run600's recipe: `--map 14 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 13 --profile DIFFICULTY=2`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`,
+`misc:CHECKSUM=2`, `endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+The game ended itself at frame **7303** (trace last frame 7303, closing block 7304), as the
+French pair's two did, so the runner's requested-endpoint receipt fails (`missing, repeated, or
+unexpected simulation frames`) and `waitrun.sh` exits 2; both retained, as run598 and run600. Read
+back from the dump: `MAP_STYLE 14`, `DIFFICULTY 2`, `(int)seed 12345`, PLAYER tribes 4 and 13. Five settings
+files restored. The failed receipt wrote no timing: launched 00:33:46, the dump last written 00:35 (waited 780 s for the lane, held by item 1481's run642).
+
+Archive `gamelog-run644-greatlakes-russian-diff2-24k-trace.txt`, 12,561,638 bytes, SHA-256 `021d59ebcdecb917154c8e6bf86801a01186b93615d551bca2fa1426bb8b476d`.
+
+Archive `rontrace-run644.log`, 30,443,136 bytes, SHA-256 `072ae0ac5acd170dfd704ad6102e9dd05400b7fbeaf5792be4c9a29b50312aad`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and
+closing records; `diff::battery` walks it from run647's start. Its first-try number is in §125.
+
+## run645 — the held-out battery: Great Sahara, Egyptians at difficulty 4, the long trace (2026-10-06, item 1465)
+
+**Map 7, human Nubians (4) against Egyptians (tribe 7), `DIFFICULTY 4`, seed 12345**
+— a lobby no scored word shares a nation, map and difficulty with (`docs/AI.md` §125).
+Disk gap: no gamelog on the disk has this nation at this map (a survey of every `gamelog*.txt`
+under `Logs/` and `lab-captures/`, §125). Through `viadriver.sh tools/explore/golden_capture.sh`
+on the click-free lane, run600's recipe: `--map 7 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 7 --profile DIFFICULTY=4`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`,
+`misc:CHECKSUM=2`, `endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+The game ended itself at frame **20380** (trace last frame 20380, closing block 20381), as the
+French pair's two did, so the runner's requested-endpoint receipt fails (`missing, repeated, or
+unexpected simulation frames`) and `waitrun.sh` exits 2; both retained, as run598 and run600. Read
+back from the dump: `MAP_STYLE 7`, `DIFFICULTY 4`, `(int)seed 12345`, PLAYER tribes 4 and 7. Five settings
+files restored. The failed receipt wrote no timing: launched 00:35:24, the dump last written 00:37 (the lane was free at once).
+
+Archive `gamelog-run645-greatsahara-egyptian-diff4-24k-trace.txt`, 13,058,927 bytes, SHA-256 `7aca908dfd146d063468bdf91980535c47c22402fa69284f5b9340e796c24a4d`.
+
+Archive `rontrace-run645.log`, 117,832,416 bytes, SHA-256 `69ee37774c2a3080031099c69be748cc5bef4ee764a3d0194aba6d8bbcba26d0`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and
+closing records; `diff::battery` walks it from run648's start. Its first-try number is in §125.
+
+## run646 — the held-out battery: East Indies, Germans at difficulty 3, the `DUMP_ALL` start (2026-10-06, item 1465)
+
+The start sibling of run643: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 12
+--profile DIFFICULTY=3` on the click-free lane, run595's recipe. Receipt and waiter exit **0**: 37 frames, closing
+block 37, lifecycle verified, `map_style 18`, seed 12345, players `(0,4,7),(1,12,1)`, five settings files
+restored. Launch-to-exit 350.831 s, total 363.263 s. **Why a start of its own**: a sibling from another lobby
+is a different instrument — the control in §125 parts a scored trace at frame 0 with another lobby's
+start — so the map's French start (run595, run597) and the first pair's (run38) were not borrowed.
+
+Archive `gamelog-run646-eastindies-german-diff3-start.txt`, 153,475,892 bytes, SHA-256 `2db8660b682e45ba61c113bac57d7a5ba8a0aaf34bb7a3eec8e401e6f036d6d2`.
+
+Archive `rontrace-run646.log`, 10,190,944 bytes, SHA-256 `6b83626d6698d6df527fda72a15868b8d515cb187e82624410ed9a214cbcae79`.
+
+## run647 — the held-out battery: Great Lakes, Russians at difficulty 2, the `DUMP_ALL` start (2026-10-06, item 1465)
+
+The start sibling of run644: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 13
+--profile DIFFICULTY=2` on the click-free lane, run595's recipe. Receipt and waiter exit **0**: 37 frames, closing
+block 37, lifecycle verified, `map_style 14`, seed 12345, players `(0,4,7),(1,13,1)`, five settings files
+restored. Launch-to-exit 329.130 s, total 341.509 s. **Why a start of its own**: a sibling from another lobby
+is a different instrument — the control in §125 parts a scored trace at frame 0 with another lobby's
+start — so the map's French start (run595, run597) and the first pair's (run38) were not borrowed.
+
+Archive `gamelog-run647-greatlakes-russian-diff2-start.txt`, 150,807,633 bytes, SHA-256 `d06daf838e31de61a1e1166469f2caeca98db32927c96a09d627efe55dffc3bd`.
+
+Archive `rontrace-run647.log`, 9,417,024 bytes, SHA-256 `d6eec21a3d93023ec8fa730f9b996a681788de4024920b95717c5bb57297ca0d`.
+
+## run648 — the held-out battery: Great Sahara, Egyptians at difficulty 4, the `DUMP_ALL` start (2026-10-06, item 1465)
+
+The start sibling of run645: `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 7
+--profile DIFFICULTY=4` on the click-free lane, run595's recipe. Receipt and waiter exit **0**: 37 frames, closing
+block 37, lifecycle verified, `map_style 7`, seed 12345, players `(0,4,7),(1,7,1)`, five settings files
+restored. Launch-to-exit 331.599 s, total 344.087 s. **Why a start of its own**: a sibling from another lobby
+is a different instrument — the control in §125 parts a scored trace at frame 0 with another lobby's
+start — so the map's French start (run595, run597) and the first pair's (run38) were not borrowed.
+
+Archive `gamelog-run648-greatsahara-egyptian-diff4-start.txt`, 149,605,345 bytes, SHA-256 `a0f2f6925ebfffc76832dc2b3f771f8e470056e2de9d2492bf106d4a7c54b4df`.
+
+Archive `rontrace-run648.log`, 8,622,848 bytes, SHA-256 `f9088335d0e05d359f0893f279f6837300899eecf6af6487399151d69f5beb4b`.
 
 ## run642 — French East Indies, the word 15344's widening, with the leader probe (2026-10-06, item 1481)
 
@@ -14551,3 +14735,71 @@ keys on the tree merged after 1468 (1852 before), 100 standing on block 15339, n
 15345: who=1's army group 64 is the original's alone, and some thirty of who=1's units'
 orders and positions part. It also names a sixth French city, Orleans (the coverage
 pin's `UNREAD`). Run 642 only.
+
+## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
+
+**Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the
+queue lane's, by hand); none from the click-free lane. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 36 --timeout 1200 --ai-tribe 23 --profile STARTING_TECHNOLOGY=5 --profile DIFFICULTY=5`,
+`cover=0`, no `--dump-all-start`. Receipt `success`, 37 frames, closing block 37, lifecycle verified, five settings
+files restored, `Player.dat` back to `STARTING_TECHNOLOGY 0`. Read back from the dump's own `GAME INFO`:
+`MAP_STYLE 18`, `GAME_RULES 1`, `DIFFICULTY 5`, **`STARTING_TECHNOLOGY 5`**, `STARTING_TECHNOLOGY2 1`,
+`ENDING_TECHNOLOGY 7`; players (0, 4) and (1, 23); seed 12345. Launch-to-exit 23.447 s, total 33.245 s. The lane
+was free (no wait).
+
+Archive `gamelog-run650-eastindies-persian-age5-short.txt`, 3,174,835 bytes,
+SHA-256 `aeab48b80fea8f4caabe25c09ecca3c48fd9af9ced46e8e13d13d402e9160179`.
+
+Archive `rontrace-run650.log`, 9,924,672 bytes,
+SHA-256 `22c21b2e90bc35f43363d51654320a8617d572edb8b0e4e763d87ae55de4c5de`.
+
+**What it holds**: the answer to the item's first question (§127 claim 1) and nothing a test reads; the age's effect
+at frame 0 is in run651's whole records.
+
+## run651 — the coverage pair: East Indies, Persians, All Technologies, the `DUMP_ALL` start (2026-10-06, item 1466)
+
+**Map 18, human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+seed 12345** — the lobby `tools/census.py --never`'s blind list and the closing states of the five same-recipe
+games pick (`docs/AI.md` §127). Run595's recipe: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 23
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. Receipt `success`, 37
+frames, closing block 37, lifecycle verified, five settings files restored. `GAME INFO`: `GAME_RULES 1`,
+`DIFFICULTY 5`, `STARTING_TOWN 2`, **`STARTING_RESOURCES 7`**, `STARTING_RESOURCES2 1`, **`STARTING_TECHNOLOGY 8`**,
+`STARTING_TECHNOLOGY2 1`, `ENDING_TECHNOLOGY 7`. Launch-to-exit 350.549 s, total 363.518 s; the lane was free.
+**The lobby's own start**, not a sibling's (run595, run597, run646–648's lesson: a start from another lobby is another
+instrument). It carries the whole records of blocks 0 and 1 and the closing blocks 36 and 37.
+
+Archive `gamelog-run651-eastindies-persian-alltech-start.txt`, 153,846,205 bytes,
+SHA-256 `71a0d32cbdefcd96a1015628064ebe07f13a0eb1209d5181009bb1bb15b79483`.
+
+Archive `rontrace-run651.log`, 10,354,560 bytes,
+SHA-256 `78bec51ddae6be74456d06cbfad2594b28c36d67c59a60a780f6a1b969dcf1d3`.
+
+**What it holds**: `run651_s_word_frame_is_widened_whole` (`diff::coverage_pair`): 226 keys part on block 1, 48 on
+the scored French start's block 1 (the control). Both leaders' stockpiles (ours 200/200/100/100/100/100, theirs
+20000/20000/20000/10000/20000/20000) and 26 units' hit points (40 against 85) are the lobby's.
+
+## run652 — the coverage pair: East Indies, Persians, All Technologies, the draw stream to the game's end (2026-10-06, item 1466)
+
+The long trace of run651's lobby: run600's recipe, `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the details `end:MISC`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+**The game ended itself at frame 4730** (trace last frame 4730, 4731 frames, closing block 4731; the human `defeated_by 1`),
+so the runner's requested-endpoint receipt failed (`missing, repeated, or unexpected simulation frames`) and `waitrun.sh`
+exited 2, as run598, run600 and run643–645 did; both files retained. Five settings files restored (`Restored backed-up
+settings` in the log; `Player.dat` back to `STARTING_TECHNOLOGY 0`, `STARTING_RESOURCES 1`, `DIFFICULTY 0`). The failed
+receipt wrote no timing: launched 02:02:23, the dump last written 02:03:41 (78 s for 4,731 frames at the 27-minute
+fast-forward). Seed 12345 read back; tribes 4 and 23. The lane was free (no wait).
+
+Archive `gamelog-run652-eastindies-persian-alltech-24k-trace.txt`, 14,375,836 bytes,
+SHA-256 `256f1542057aaf8f66be1c68ff0a285294d22189a5ecf54ccfe1c10083247eb0`.
+
+Archive `rontrace-run652.log`, 260,218,816 bytes,
+SHA-256 `782ff5dc441e9f5d29f78af24d7c79d48551aecf0fa58a661b2d512535fab13f`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and closing records;
+`diff::coverage_pair::coverage_pair_first_parting` walks it from run651's start (frame 0, 195 against 198 draws), and
+the closing state is what §127's measured rows read (21 `AIRORDER`, 15 `AIRPATROLORDER`, 6 `STRAFEORDER`, 18 unit types
+and 14 building types no same-recipe closing holds).

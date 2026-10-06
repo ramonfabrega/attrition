@@ -162,6 +162,15 @@ pub fn lobby_of(
     if let Some(v) = int("STARTING_RESOURCES2") {
         l.starting_resources2 = v;
     }
+    if let Some(v) = int("STARTING_TECHNOLOGY") {
+        l.starting_technology = v;
+    }
+    if let Some(v) = int("STARTING_TECHNOLOGY2") {
+        l.starting_technology2 = v;
+    }
+    if let Some(v) = int("ENDING_TECHNOLOGY") {
+        l.ending_technology = v;
+    }
     if let Some(v) = int("GAME_RULES") {
         l.game_rules = v;
     }

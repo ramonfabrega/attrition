@@ -29,9 +29,13 @@ use crate::gamelog::{Frame, Initial, Log, Pos as LogPos, UnitDump};
 use crate::load::Loaded;
 use sim::{Pos, Sim, Tuning, Unit, World};
 
+#[cfg(test)]
+mod battery;
 mod build;
 mod city;
 mod corrections;
+#[cfg(test)]
+mod coverage_pair;
 mod endpoint;
 mod floors;
 #[cfg(test)]

@@ -14276,6 +14276,117 @@ each axis.
   by §123**: the one is Carpentry, handed to the French with Chemistry.
 - No blind reading has been done.
 
+## 122. The census circle starts at entry 1 (2026-10-06, item 1477)
+
+Great Sahara at Toughest's word was **12744** on the base (item 1472): 49
+draws ours against 51, parting at index 35 — ours `Guy::inc_time+0x271`,
+theirs `Guy::init_real+0x52`, a unit born (`1/142` is the dump's alone, who=1's
+`peasants` 50 against 51 on block 12745). run584 holds 12532..12788.
+
+**Dating the first parting.** Who=1's make list on block 12582 is the first
+state part past the standing keys. The dump's slots 0..4 on 12581 are research
+and upgrades; on 12582 `create_buildings` (frame 12581) has turned all five
+into buildings — `t` 419, 417, 418, **−1**, 419, `cat` 4, `city` 4, 4, 4, **3**,
+4, slot 3 at `val` **242560**. This crate turns four of them the same way and
+holds **Medicine** (`cat` 8, `city` −1, 237600) in slot 3. A trace of every
+`make_me` offer on frame 12581 (a throwaway `eprintln` in `create_buildings`)
+puts this crate's best offer of dump city 3 (ours `ci3`) at **236160** — a
+Farm and a Mine, `base 295200 × 4/5`. The original's 242560 needs
+`base` 303200: `open` 34, not 33 (`12600 + 3000 + open·4000`, doubled, ×4/5).
+`1/2031`'s `open` is `land − filled`; **`city:filled` 39 against 38 and
+`space[0..2]` 46/46/33 against 47/47/34 stand on block 12532** — they were
+in the 134 standing keys (parked 1430) all along, and they stand from the
+city's first census on 9775 (31 against 30), constant since.
+
+**What the original did, from inside.** run640 (take 1, `docs/RUNS.md`) is a
+`RON_STATE_FRAME=12575` packet of run470's game. On it: the tile masks (240 ×
+240) and the cell records agree with this crate's on every bit any census gate
+reads (483 tiles differ in bit `0x4`, which no gate reads; the regions are
+numbered the other way round); `check_building_wcoord` entered on the packet
+for all 3,600 cells answers this crate's `space_at_corner` cell for cell; the
+circle tables (`circle_x`, `circle_y`, `circle_radius`) are this crate's; the
+grid tables are this crate's. Yet **`Leader::plan_strategy@006b9620` entered
+on the packet, with city 3's `land`/`filled`/`space` zeroed first, writes 72,
+38, [47, 47, 34]** — and a replay of the census as this crate walks it, on the
+same bytes, writes 39 and [46, 46, 33]. Hooking `check_building_wcoord`'s
+entry and return inside that run gives the original's own cells: the city's
+72 land cells are **the replay's but for two** — the original never calls
+for the city's own cell `(30, 24)` and does call for `(35, 27)`, a rim cell
+the replay lacked and which answers 4.
+
+**The mechanism.** The listing of the loop (`plan_strategy@006b9620`,
+`0x6bb6f4..0x6bb8f8`): the index at `-0x1c(%ebp)` starts at 0, and the cell
+offsets are `movsbl 0xcb7e91(%ecx)` and `movsbl 0xcbb0e1(%ecx)` — the tables
+**plus one**. Every other reader of `circle_x`/`circle_y` in the executable
+(the spiral, the site search, the ring walks) reads from `0xcb7e90`, so
+this is the one loop that skips entry 0, the `(0, 0)` centre, and walks
+entries 1 ..< `circle_radius[k + 1]` (the water and dock branch) with the
+land branch on the entry `< circle_radius[k]` (`(int)local_20 + 1 <
+local_34`). This crate walked entries 0 ..< `circle_radius[k + 1]` and cut
+the land branch at `i + 1 < inner`: it counted the centre (a `space` 0 cell
+— `filled`) in place of the last entry before the inner ring, which for
+every other city of every capture is a rim cell of `space` 0 too, so the
+totals agreed by luck wherever that rim cell was out of the city's radius.
+`1/2031`'s rim cell `(35, 27)` is inside it and open.
+
+**Built.** `Sim::census_city_sites` (`crates/sim/src/ai_census.rs`) walks
+`1..outer`, and `census_site_cell`'s inner cutoff is `i >= inner`. Test
+`the_circle_walk_starts_at_entry_one` (`ai_census.rs`): a neighbour owning
+the centre cell changes nothing, one owning the last inner entry takes a
+cell off `land`.
+
+**Made to fail.** `tools/mutate.py` on a clean tree, the walk put back to
+entry 0 (`for i in 0..outer`, and with it the old cutoff `i + 1 >= inner`):
+`the_circle_walk_starts_at_entry_one` and `the_site_picture_counts_the_open_cells_of_the_circle`
+fail (sim, exit 101), and `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(the floor 12816), `run640_s_word_frame_is_widened_whole`,
+`run584_s_word_frame_is_widened_whole` and the earlier Toughest widenings
+(run529, run547, run562, run571, run574) fail (rondata, exit 101); both
+"mutation: held".
+
+**What moved.** Toughest **12744 → 12816** (ours 41 draws, theirs 40,
+index 33: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`).
+The value diff, run584: `1/2031`'s `city:filled`, `space[0..2]` (block
+12532, 39 → 38 and 46/46/33 → 47/47/34), who=1's `MAKE[3]` (`cat`, `city`,
+`val`, `t`) on 12582, `MAKE[5]`, the buckets, escrows and `num_queued[0]` and
+the queues of `1/2000` and `1/2023` on 12583, `1/142`'s birth and the
+`peasants` of block 12745 — **all agree**; the window's keys 367 → 142
+(134 → 130 standing). **No key parted that did not before, on any capture**:
+about 130 pins in `rondata` moved down, all of them standing `city:filled`,
+`land` and `space` rows of who=1's cities, `1/2007`'s `filled` on run58 (3,383 frames
+→ 157), run598's closing `city_diverged` 8 → 4, chapter four's border rows
+14 → 12, the second pair's East Indies and Great Lakes windows by 2 to 13
+each, the third pair's by 4 to 6 each, and the third map's earlier windows
+(run529 95 → 88, run547 83 → 77, run562 125 → 118, run571 122 → 117, run574
+140 → 136). Each floor is a count that fell; none rose.
+
+**Coverage.** Diff-backed: the cell set (`check_building_wcoord`'s 72 calls
+on city 3, the original's own function on its own packet), the census of all
+five cities of who=1 (a replay with entry 0 matches the dump on five of its
+six cities and misses `1/2031`; the new walk matches all of who=1's), and
+everything the dumps' `CITY` records count on every map. Reading alone: the water and dock branches of
+the same loop on the shifted entries (no packet holds a coastal city); the
+`gather_at` call on a new rim entry whenever it answers 4 — no `ter` row
+parted that did not before.
+
+**What is not established.** The census the original runs **at a city's
+founding** (run529's block 9759: `land` 9, `filled` 1 against this crate's
+0/0, which is the standing `1/2031 city:land` row) is not modelled — its
+trigger and circle are not read. The human's city is never censused here
+(`0/2000 city:*` ours 0 against 38.. on every capture) because no
+`plan_strategy` runs for a human leader here; that is the same standing
+group and it is not this word's. **The new word 12816 has no mechanism.**
+Run640 (take 2) holds its blocks, 12811..12834: past the 159 keys standing on
+12811, the first parts are on the word's own block **12817** — army 65's
+formation (`curr` and `off`, all 27 slots: slot 0's `off` (−9, −3) here against
+(−32, −3) there, `curr` (117, 440) against (−127, 1540)) and `1/141`'s
+`g.end_time[2]`, 31 against 23 — then `1/20`'s gather `wait` on 12823 and
+`0/5`'s move on 12825. The draw delta (ours `… < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`, theirs `… < Guy::inc_time+0x271`, index 33) is a
+`set_anim` roll reached through a turn here and through `inc_time`'s wrap
+there. Nothing here says which side acted, and no mechanism is booked.
+
 ## 123. The French are handed the Carpentry line (2026-10-05, item 1479)
 
 French East Indies' word 14782 was 15 draws against 16 at index 7.
@@ -14501,3 +14612,188 @@ orders and positions. No mechanism is named here.
 - No blind reading. The factor is diff-backed by run639's `MAKE[8]` and
   run594's `MAKE[1]`/`[8]`. The team term is backed by run639's
   `MAKE[8]` alone: run594 holds no wonder.
+
+## 125. The held-out battery: three lobbies no scored word shares, first try (2026-10-06, item 1465)
+
+**What it is.** DECISIONS 61 §6: a battery of lobbies nobody tuned for, each scored by the
+frame its draw stream first parts on, **measured at every pass and never debugged against**. The
+numbers live in `diff::battery::BATTERY`, not among `FLOORS`, `AI_WORDS` or the handoff's
+scoreboard; a parting here that tempts a fix is parked. The pass reads them with
+`cargo test --release -p rondata battery_measure -- --ignored --nocapture`.
+
+**Held out means a lobby's nation, map and difficulty.** Every gamelog on the disk was read for
+its `GAME INFO` and `PLAYER` blocks (`Logs/` and `lab-captures/`, 417 dumps over 100 kB): the
+human is Nubians (4) in all but three early runs; the AI is British (11) at difficulty 0 and 5
+on maps 7, 14 and 18, French (10) at 5 on 14 and 18, Koreans (16) on a different seed, and
+British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appear nowhere
+(`diff::battery::SCORED_LOBBIES`, held by a test).
+
+| lobby | map | AI nation | difficulty | start | long | ended | first parting (count / sequence) |
+|---|---|---|---:|---|---|---:|---:|
+| `EastIndiesGermanTier3` | 18 | Germans (12) | 3 | run646 | run643 | 13519 | **576 / 576** |
+| `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
+| `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
+
+Every nation and every difficulty is new for its map, and no two lobbies share either. The
+click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
+`golden_capture.sh` capture of run600's shape plus a `--dump-all-start` sibling of run595's.
+
+**The first parting of each, as the walk prints it** (the draw delta, both sides; no mechanism is
+named and none is read, DECISIONS 42 and 61 §6):
+
+- East Indies, frame **576**: ours 52 draws, theirs 36; at draw 4 ours
+  `Leader::compute_sites+0x4ac`, theirs `Animal::think_bird+0x82`.
+- Great Lakes, frame **6563** (sequence; the count parts at 6566): 11 draws each; at draw 4 ours
+  `Guy::set_anim+0xf2f < Guy::move+0x166`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+- Great Sahara, frame **2974**: ours 9, theirs 12; at draw 2 ours
+  `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x104b`.
+
+Read against the scored words, the battery says the rules stand a long way past what was tuned on:
+Great Lakes' Russians at difficulty 2 keep the stream to 6563 of 7303 on the first try, and
+East Indies' Germans at 3 are the weakest at 576 of 13,519. **That reading is one number each;
+the pass owns it.**
+
+**The control that makes the numbers an instrument** (run643's and run644's first walk). Both
+parted at frame 0 — 70 draws against 182 and 82 against 121, four `Unit::do_idle` draws theirs and
+not ours at draw 20 — when walked with the map's *French* start sibling (run595, run597). The
+control: **the scored French run600, walked with run38's British start, parts at frame 0 in the
+same shape** (ours 65, theirs 179, draw 20) and at its own 14786 with run595. A sibling carries
+the start figures' clocks, so it must be the lobby's own: the setup stream does not read the
+difficulty, and a different nation's figures are another game's. Each battery lobby therefore
+owns a start of its own (run646–648), which is also what entry 54 §3 did for the third map.
+`diff::battery::battery_captures_are_complete_and_say_their_lobby` reads map, difficulty, both
+nations and the seed back from the long and its start, refuses a scored lobby, and holds the long
+to `third_pair::incomplete_long`.
+
+**The census rows each should enter, as a prediction.** None of these captures can enter a
+function row: they are `cover=0`, the click-free lane's only cover, and `census.py --pin`'s entered
+set reads `cover=1` traces. The rows are predicted from their callers, and a coverage run (item
+1466's lane) is what would read them:
+
+- **East Indies, Germans, 3** — `Army::use_spies` and `Army::use_scouts` (called from `Army::process`
+  when the army holds a SPY, 0x3a, or a SCOUT, 0x45), `Armies::send_navy` (called from
+  `Army::find_target`, a sea map's target); the German arms of `TypeData::get_cost`,
+  `LeaderData::calc_city_resources`, `special_preq` and `Build::plunder` (`has_tribe_bonus` 12).
+- **Great Lakes, Russians, 2** — the Russian arms of `LeaderData::calc_resource_bonuses` and
+  `Build::plunder` (`has_tribe_bonus` 13) and of `has_preq`; `Army::use_scouts`.
+- **Great Sahara, Egyptians, 4** — `Wonders::close_wonder` (from `Build::close` when a wonder
+  type 0x20e..0x21e completes: the longest game of the three, 20,380 frames) and
+  `Caravan::process`; the Egyptian arms of `get_farm_limit`, `special_preq` and `get_cost`
+  (`has_tribe_bonus` 7).
+
+**What is not established.** Which of the three first partings is the nation's and which the
+difficulty's: each lobby moved both, on purpose, and nothing here varies one. That the
+rows above are entered. Who won each game: the games ended themselves at 13519, 7303 and 20380
+and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
+every number in the table and the control; nothing else in this section.
+
+## 127. The coverage pair: a lobby chosen for the rows no trace has entered (2026-10-06, item 1466)
+
+**What was established, how, how confident.** DECISIONS 61 §6 chooses the next pair by what it
+reaches, not by adjacency. Three claims, each with its evidence:
+
+1. **The click-free lane carries a late starting age.** `unattended_capture.py --profile
+   STARTING_TECHNOLOGY=N` already wrote any `<KEY value=…/>` in the profile's `<SOLO>` and `<MULTI>`
+   blocks (it was written for `DIFFICULTY`); nothing needed building. **run650** (`--map 18 --end-frame 36
+   --ai-tribe 23 --profile STARTING_TECHNOLOGY=5 --profile DIFFICULTY=5`) reads back from its own `GAME
+   INFO` block: `GAME_RULES 1`, **`STARTING_TECHNOLOGY 5`**, `STARTING_TECHNOLOGY2 1`, `ENDING_TECHNOLOGY 7`,
+   `DIFFICULTY 5`; five settings files restored, Player.dat back to `STARTING_TECHNOLOGY 0`. The line a
+   stanza's check names is `STARTING_TECHNOLOGY <N>` in `GAME INFO`; the values are `rules.xml`'s
+   `startingtechs`: 0 Ancient … 7 Information, **8 All Technologies**, 9 Random (which draws
+   `game_random` in `Game::init_rules_and_teams`). A past capture had it once, by hand: run4 and run5, Gunpowder,
+   on the queue lane (`STARTING_TECHNOLOGY 3`; 2 of 417 files over 100 kB). *Diff-backed*: the read-back and
+   `diff::coverage_pair::coverage_pair_captures_say_their_lobby`, which fails if the lane stops carrying it.
+2. **The harness did not read it.** `lobby_of` had no `STARTING_TECHNOLOGY`, and `Sim::setup` (the tech
+   tree's `Setup`) was `Setup::STANDARD` for every game — Ancient to Information — until a lobby said
+   otherwise; no lobby on file ever had. Three lines in `Sim::sync_setup_from_lobby` and three fields on
+   `ai::Lobby` (`starting_technology`, `starting_technology2`, `ending_technology`) now carry it; a leader
+   built from run651's start owns `ages 7` and the plain techs (`coverage_pair_start_owns_every_age`; the
+   mutation `starting_age = 0` fails it, scored by `tools/mutate.py` on the committed tree, exit 101). The
+   `starting_resources == 7 && starting_technology == 8` branch of `Leader::research_techs` that
+   `ai_research.rs` calls a seam is **still a seam** — the lobby now reaches it and the arm is not built.
+3. **The lobby.** **East Indies (`MAP_STYLE 18`), human Nubians (4) against Persians (23) at Toughest,
+   `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`** ("Deathmatch"), `GAME_RULES 1`, seed 12345. East Indies
+   because it is the lower map and the only sea map of the three; Persians because no gamelog on the disk has
+   them and two never-entered spell rows are theirs (`cast_immortal_hinf`, `cast_immortal_arch`); the two
+   settings because `Leader::research_techs` tests exactly that pair (`starting_resources == 7`,
+   `starting_technology == 8` — the original's own hard-coded lobby, the AI buying tech `0x243` outright) and
+   because "All Technologies" puts every age's units, buildings and spells on the table at frame 0, so no
+   research time stands between the lobby and the content. The game is short because of it: the AI killed the
+   idle human at **4730** (`defeated_by 1`, closing block 4731), not 13–20 thousand.
+
+**The census cannot say it entered anything.** `tools/census.py --pin --never` on the 58 pinned traces (this
+day, on this tree): 48,233 functions, 7,901 entered, **142 cited and never entered**. The census reads `cover=1`
+traces and the click-free lane runs `cover=0` only (parked 1490), so the rows below are **predictions** until a
+queue-lane run — which needs a person at the menu — enters them. What is *measured* is the closing state of run652,
+read beside the five closings of the same recipe (run600, run598, run643, run644, run645; the recipe's end detail
+is the same):
+
+- **Records no other closing holds**: `AIRORDER` 21, `AIRPATROLORDER` 15, `PATROLORDER` 15, `STRAFEORDER` 6 — zero
+  in all five. (Also `CASTORDER` 7, spell 650 = `TRANSPORT`; `CARAVANLINK` 22 and `TRADEORDER` 11 are in four of
+  the five.)
+- **18 of the 29 unit types alive are in none of the five** (`TypeIndex`): `TRANSPORTFREIGHTER` (322) 90 figures,
+  `TOW` (141), `MECHINFANTRY` (104), `MLRS` (273), `JETFIGHTER` (295), `STRATEGICBOMBER` (305), `HEAVYTANK` (251),
+  `FLAMETHROWER` (131), `ADVANCEDMACHINEGUN` (127), `ADVANCEDBATTLESHIP` (350), `AAMISSILE` (284),
+  `ARMOREDCAVALRY` (220), `ICBM` (316), `MODERNMERCHANTFLEET` (319), `TRANSPORTHELICOPTER` (311),
+  `ELITESPECIALFORCES` (77), `AEGISCRUISER` (330), `ATTACKSUB` (339).
+- **14 of the 30 building types alive are in none of the five** (`orig_type`): `OILPLATFORM` 14, `REFINERY` 2,
+  `SHIPYARD`, `FACTORY`, `AUTOPLANT`, `SAM`, `MISSILESILO`, `BUNKER` 3 each, and the wonders `KREMLIN`,
+  `REDOUBT`, `TERRACOTTA`, `STATUEOFLIBERTY`, `ANGKORWAT`, `VERSAILLES`.
+
+**The rows it should enter, as predictions**, each from its caller in the export (a direct-call scan of the
+executable, entered callers only) and the record above that makes the caller's branch likely:
+
+- *Air*: `Group::action_scramble` (called from `Unit::do_patrol`; `AIRPATROLORDER`), `Group::action_air_patrol`
+  (from `Group::action_patrol`), `ObjectData::is_in_range` (from `Unit::do_air_attack_ground`),
+  `BuildQueueData::get_next_helicopter` (from `Build::do_queue`; `TRANSPORTHELICOPTER`).
+- *Nuclear*: `LeaderData::get_nukes` (from `Leader::create_units`; `ICBM`, `MISSILESILO`); `Game::say_no_war` and
+  `Leader::action_declare` (from `Nuke::do_damage`) only if one detonated — not evidenced.
+- *Transport and navy*: `Unit::do_board` and `do_await_board` (from `Unit::do_job`), `check_meet_ship` (from
+  `do_board`), `Unit::go_to_city` (from `do_trade` and `think_attack`), `Armies::send_navy` (from `Army::find_target`)
+  (`TRANSPORT` casts, `TRANSPORTFREIGHTER`, `TRANSPORTHELICOPTER`, the capital ships).
+- *Buildings and oil*: `Forts::init_fort` and `Fort::init` (from `Build::activate`, `BUNKER`/`REDOUBT`),
+  `LeaderData::get_vehicle_speed_upgrade` (from `ObjectData::train_time`, `FACTORY`/`AUTOPLANT`),
+  `Wonders::close_wonder` (from `Build::close`, six wonders standing). **Oil is not a row**: `OilWells::init_oil_well`
+  is called from `Build::activate` and is in `OILWELL`'s company in other closings; what this lobby adds is
+  `OILPLATFORM` 14 and `REFINERY` 2, whose rows nothing in the blind list names.
+- *The game's end*: `Game::defeat_all` and `Leader::defeat_by`'s `blow_up_units/buildings/towers` (the human was
+  defeated at 4730), `Leader::compute_*_score` only under a score victory — not this lobby's.
+- *Not predicted, and why*: `Build::update_max_gatherers`, `BuildData::max_gatherers`, `UnitData::has_repeat_air`,
+  `LeaderData::locked_transport`, `Wonder::init` and `Caravan::process` have no direct call site in the executable
+  (a vtable or an indirect call reaches them, or nothing does); `Unit::add_board_order`, `ObjectsData::count_nukes_in_flight`
+  and `LeaderData::can_transport` are called only from the interface and the human's commands; the `Leader::action_*` diplomacy rows, `Diplomacy::*` and the tribute rows need a third
+  leader (`LeaderData::num_allies`, `is_shared_team`); this lobby has two. The `SpellType::cast_*` rows need a cast
+  order that is not `TRANSPORT`; the only `CASTORDER`s alive are 650. `Army::use_spies` and `use_scouts` need a
+  `SPY` (0x3a) or `SCOUT` (0x45) in an army; none is among the types alive.
+- *The order family*: of 410 `*Order` rows 280 are entered, and what is left is `print_details`, `operator=`,
+  destructors and `walk_data` — the table in `tools/census.py` is a capability inventory, not a list of
+  unreached behaviour, and "the later ages' orders" are largely entered already; the unreached ones are in the
+  other classes above.
+
+**The first parting — frame 0, 195 draws ours against 198 theirs, index 26** (run652, walked from run651's start:
+`diff::coverage_pair::coverage_pair_first_parting`, count 0 sequence 0 of 4730). Ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, theirs `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c`. By site over the frame: `Guy::set_anim <
+Guy::inc_time+0x271` **4 against 12**, `Guy::set_anim < Unit::do_idle+0x7d` **18 against 10**, `Unit::think_scout+0x64c`
+**1 against 4**; every other site agrees count for count. **Its widening** is
+`diff::coverage_pair::run651_s_word_frame_is_widened_whole`: every record run651 dumps on block 1, the block frame 0 writes —
+**226 keys part, against 48 for the scored French start's own block 1** (run595, the control: its `form`, the leaders' `SITE`
+`reg`s and the city terrain, which every lobby parts on). The 178 the lobby adds, as values on the word's own block:
+both leaders' six stockpile buckets **ours 200 / 200 / 100 / 100 / 100 / 100, theirs 20000 / 20000 / 20000 / 10000 / 20000 /
+20000** (`STARTING_RESOURCES 7`: the row's grant is not built; the harness pays the Standard row); 26 who=1 units'
+`myhits`, `hits_left` and `hits:myhits` **ours 40, theirs 85** with `form` −1 against 9 (the units the all-technology start
+upgrades — `apply_gained` runs before the units are placed); a gather order's `been_there` 0/1 and `wait` 0/−1 on four of
+who=1's units; and one move order and its path. **No mechanism is named**: which of these draws the three missing
+`Guy::inc_time` rolls is the next item's reading, and the widening is the word's own (the start dump's block 1; the long
+holds no other whole block).
+
+**Standing fields this crate reads** (`tools/standing.py` over the widening's rows): `bucket` (55 readers, `ai.rs:1147`
+among them), `reg` (59), `val` (31), `gatherers` (17), `free` (13), `x`/`y`/`to` (the move order). The bucket and the hits
+are the lobby's; `reg` is the control's.
+
+**What is not established.** That any predicted row is entered: no `cover=1` trace of this lobby exists, and a capture
+that could read the census needs the queue lane (parked 1490). Which of Persians, Deathmatch resources and All
+Technologies each row owes: the three moved together on purpose and nothing varies one. Who moved the draw delta.
+Whether `STARTING_TECHNOLOGY 9` ("Random") is carried (not tried). Whether the sim's age plumbing disturbs a scored word:
+it does not on the walks run before the gate (the gate's own verdict is in the journal). *Diff-backed*: the lobby
+read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
+choice of nation.

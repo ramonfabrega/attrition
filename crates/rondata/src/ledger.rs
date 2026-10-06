@@ -105,8 +105,16 @@ const DIFF_FILES: [&str; 19] = [
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/battery.rs",
+        "the held-out battery's walks: it compares no field itself, and its measure is the draw stream's first parting (DECISIONS 61 §6)",
+    ),
+    (
         "diff/coverage.rs",
         "its UNREAD pin names the keys nothing reads",
+    ),
+    (
+        "diff/coverage_pair.rs",
+        "the coverage pair's walks and fixture checks: per-record comparisons live in harness.rs (item 1466)",
     ),
     (
         "diff/second.rs",

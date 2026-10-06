@@ -1019,6 +1019,15 @@ pub struct Lobby {
     pub starting_resources: i32,
     /// `STARTING_RESOURCES2`: team 0's under `GAME_RULES == 8`.
     pub starting_resources2: i32,
+    /// `STARTING_TECHNOLOGY`: 0 Ancient … 7 Information, 8 All
+    /// Technologies (`rules.xml`'s `startingtechs`). The tech tree's
+    /// `starting_age` (`Sim::sync_setup_from_lobby`).
+    pub starting_technology: i32,
+    /// `STARTING_TECHNOLOGY2`: the defenders' extra ages, Barbarians at the
+    /// Gates only.
+    pub starting_technology2: i32,
+    /// `ENDING_TECHNOLOGY`, in the tree's own scale (`Setup::ending`).
+    pub ending_technology: i32,
     pub game_rules: i32,
     pub tech_cost: i32,
     /// `RUSH_RULES`: 0 off; 8 forces `pers.raid = −1`.
@@ -1060,6 +1069,9 @@ impl Default for Lobby {
             start_list: [0, 1, 2, 3, 4, 5, 6, 7],
             starting_resources: 1,
             starting_resources2: 1,
+            starting_technology: 0,
+            starting_technology2: 0,
+            ending_technology: 7,
             game_rules: 1,
             tech_cost: 3,
             rush_rules: 0,

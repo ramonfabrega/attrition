@@ -189,6 +189,14 @@ impl Sim {
     pub fn sync_setup_from_lobby(&mut self) {
         self.setup.no_nation_powers = self.lobby.no_nation_powers;
         self.setup.starting_town = self.lobby.starting_town != 0;
+        // The age the game opens in, which `Leader::init`'s starting
+        // position reads (`docs/TECH.md`, "The starting position"): every
+        // lobby on file before item 1466 was Ancient, to the Information
+        // age, so the default `Setup::STANDARD` was right until a lobby
+        // said otherwise (run650..652).
+        self.setup.starting_age = self.lobby.starting_technology;
+        self.setup.starting_age2 = self.lobby.starting_technology2;
+        self.setup.ending = self.lobby.ending_technology;
         for who in 0..self.tech.len() {
             self.sync_has_city(who as Player);
         }
