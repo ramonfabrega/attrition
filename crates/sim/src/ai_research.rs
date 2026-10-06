@@ -1850,8 +1850,13 @@ mod tests {
         let (mut sim, t) = sim();
         city(&mut sim, &t, 1, 5, 5);
         let lib = building(&mut sim, 1, t.library, 12, 5);
+        sim.frame = 4;
         assert!(sim.produce_tech(1, t.science1, 1));
         assert_eq!(sim.buildings[lib].queue.items.len(), 1);
+        // `Build::queue_up` stamps the leader's `tech_frame` and its
+        // category's `tech_cat_frame` (item 1496: run656, block 5).
+        assert_eq!(sim.ai[1].tech_frame, 4);
+        assert_eq!(sim.ai[1].tech_cat_frame[sim.tech_cat(t.science1)], 4);
         // Already being researched: the original returns "queued" and
         // touches nothing.
         assert!(sim.produce_tech(1, t.science1, 1));
