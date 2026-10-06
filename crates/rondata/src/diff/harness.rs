@@ -3118,10 +3118,9 @@ pub(crate) mod tests {
             "0/2000 ter[1] f1 x5201",
             "0/2000 ter[3] f1 x5201",
             "1/2007 land f1819 x157",
-            "1/2007 filled f1819 x3383",
-            "1/2007 space[0] f1976 x3226",
-            "1/2007 space[1] f1976 x3226",
-            "1/2007 space[2] f1976 x3226",
+            // Item 1477: `filled` x3383 → x157 and the three `space` rows (x3226) are gone:
+            // the census walks the circle from entry 1, `docs/AI.md` §122.
+            "1/2007 filled f1819 x157",
         ];
         assert_eq!(
             city_said, city_want,
@@ -8655,10 +8654,13 @@ pub(crate) mod tests {
         // (`RAID`), agrees — `Object::take_damage` sets it and the city
         // building's 200-frame decay clears it (`docs/COMBAT.md` §69);
         // `raid_stamp` stands alone.
+        // **Sixteen → fourteen on item 1477** (`docs/AI.md` §122): two of
+        // who=1's city rows (the census's `land`/`filled`/`space`) agree
+        // now that the circle walk starts at entry 1.
         assert_eq!(
             cities.len(),
-            16,
-            "the window's standing city residue is not sixteen fields: {cities:?}"
+            14,
+            "the window's standing city residue is not fourteen fields: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
@@ -10792,9 +10794,10 @@ pub(crate) mod tests {
         // Item 1206 took sixteen (199 → 183): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 183.
         // Item 1461: 112 → 106; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 1477: 106 → 104; the census circle walk starts at entry 1 (`docs/AI.md` §122).
         pin_eq!(
             under, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            106,
+            104,
             "the floor under the word"
         );
         let pair: Vec<String> = firsts
@@ -11389,7 +11392,7 @@ pub(crate) mod tests {
         // Item 1461: (112, 118) → (106, 112); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (106, 112),
+            (104, 110),
             "the floor"
         );
     }
@@ -11610,7 +11613,7 @@ pub(crate) mod tests {
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (112, 204),
+            (110, 202),
             "the floor"
         );
     }
@@ -11811,7 +11814,7 @@ pub(crate) mod tests {
         // Item 1455: 98 → 97, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            97,
+            95,
             "every row standing on 14651"
         );
         // **The floor**: run174's 374 to its last block, exactly as
@@ -11845,7 +11848,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (204, 6, 210),
+            (202, 6, 208),
             "the floor"
         );
     }
@@ -11970,7 +11973,7 @@ pub(crate) mod tests {
         // Item 1455: 97 → 96, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
         pin_eq!(
             standing_n, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            96,
+            94,
             "every row standing on 14983"
         );
         // **The floor**: run178's 416 to its last block, exactly as
@@ -11999,7 +12002,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12104,7 +12107,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (164 → 113): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            97,
+            95,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -12140,7 +12143,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12264,7 +12267,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (97, 97),
+            (95, 95),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -12301,7 +12304,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12433,7 +12436,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (95, 95),
+            (93, 93),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -12466,7 +12469,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12574,7 +12577,7 @@ pub(crate) mod tests {
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1330 took 50 (165 → 114): the births' `form` (`docs/GROUPS.md` §24.3).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            98,
+            96,
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -12600,7 +12603,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12732,7 +12735,7 @@ pub(crate) mod tests {
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (97, 97, 96),
+            (95, 95, 94),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12758,7 +12761,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (210, 0, 210),
+            (208, 0, 208),
             "the floor"
         );
     }
@@ -12856,7 +12859,7 @@ pub(crate) mod tests {
             // 28 before item 899: `1/60`'s 23 went.
             // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (96, 4),
+            (94, 4),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12919,7 +12922,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (96, 4, 1, 101),
+            (94, 4, 1, 99),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -12929,7 +12932,7 @@ pub(crate) mod tests {
             // `production_step` (0 here, 1 there) stands on this block and
             // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            101,
+            99,
             "every row standing on the old word's block"
         );
     }
@@ -12999,7 +13002,7 @@ pub(crate) mod tests {
                 // Item 1115 took four (306 → 302): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
                 // Item 1111 took the AI citizens' Militia-line rows (`docs/GOLDEN.md` §48).
                 // Item 1330 took 51 (166 → 115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-                (WIDENING_GREAT_LAKES_END.0, 99),
+                (WIDENING_GREAT_LAKES_END.0, 97),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
@@ -13022,7 +13025,7 @@ pub(crate) mod tests {
                 .map_or(0, BTreeMap::len),
             // Item 1072 took four (310 → 306): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            99,
+            97,
             "the floor stands on the second block, and nothing joins it"
         );
     }
@@ -15084,7 +15087,7 @@ pub(crate) mod tests {
         // standing on 10164, ours 4 against the original's cached 2 — the
         // Militia term the original had not yet refreshed, which this
         // crate's cache now holds back too (`docs/VISION.md` §2).
-        pin_eq!(under, 102, "the floor under the word");
+        pin_eq!(under, 98, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,

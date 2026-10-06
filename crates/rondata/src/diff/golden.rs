@@ -2710,10 +2710,8 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     let measured = [
         ("city:busy 0/2000", 605),
         ("city:filled 0/2000", 605),
-        ("city:filled 1/2000", 605),
         ("city:gatherers 0/2000", 605),
         ("city:land 0/2000", 605),
-        ("city:land 1/2000", 605),
         ("city:peasant_dist 0/2000", 605),
         ("city:space[0] 0/2000", 605),
         ("city:space[1] 0/2000", 605),
@@ -5559,7 +5557,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
     pin_eq!(first_parting, None, "run132's first parting moved");
     pin_eq!(
         firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
-        14,
+        12,
         "the standing rows on run132's first block moved"
     );
 }
@@ -6898,7 +6896,9 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         // take a pool slot before the scout's first push, as the
         // original's do (`docs/GROUPS.md` §28.4, §29).
         // Item 1330 took ch7c's three staged births' `form` (30 → 27).
-        .zip([(27usize, &[][..] as &[i64]), (27usize, &[][..])])
+        // Item 1477 took the two `1/2000` rows `city:filled` and `city:land` (27 → 25,
+        // the census walk starts at entry 1, `docs/AI.md` §122).
+        .zip([(25usize, &[][..] as &[i64]), (25usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -9983,8 +9983,9 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // who=1's building groups take a pool slot first (a05f90a6, item
         // 870; `docs/GROUPS.md` §29).
         // Item 1330 took the control's three staged births' `form` (30 →
-        // 27, `docs/GROUPS.md` §24.3).
-        let floor = 27;
+        // 27, `docs/GROUPS.md` §24.3). Item 1477 took the two `1/2000` rows
+        // `city:filled` and `city:land` (27 → 25, `docs/AI.md` §122).
+        let floor = 25;
         pin!(
             at_floor
                 .iter()
@@ -13247,8 +13248,6 @@ const WANT_CH49: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -13415,8 +13414,6 @@ const WANT_CH51: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -13469,8 +13466,6 @@ const WANT_CH50: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -13743,8 +13738,6 @@ const WANT_CH45: &[&str] = &[
     "600 1/3 form",
     "600 1/4 form",
     "600 1/5 form",
-    "600 1/2000 city:filled",
-    "600 1/2000 city:land",
 ];
 
 /// Chapter forty-four's widening rows: run484 whole, 605 to 1450 (item
@@ -13780,8 +13773,6 @@ const WANT_CH44: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -13875,8 +13866,6 @@ const WANT_CH46: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14055,8 +14044,6 @@ const WANT_CH48: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14138,8 +14125,6 @@ const WANT_CH47: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14238,8 +14223,6 @@ const WANT_CH43: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14293,8 +14276,6 @@ const WANT_CH42: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14339,8 +14320,6 @@ const WANT_CH41: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
@@ -14441,8 +14420,6 @@ const WANT_CH40: &[&str] = &[
     "605 0/5 form",
     "605 1/1 form",
     "605 1/2 form",
-    "605 1/2000 city:filled",
-    "605 1/2000 city:land",
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
