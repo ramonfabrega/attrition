@@ -898,11 +898,14 @@ the window's *first* frame and on the human's units, not only the caravan:
 every guy that walks carries the wrong clock. Great Lakes' word **5571 →
 5573**.
 
-*What is not established.* The snap arm's `CHAR_DEFAULT` case — both waypoint
+*What is not established.* ~~The snap arm's `CHAR_DEFAULT` case — both waypoint
 offsets zero and `UnitData+0xd8 < 2` — is not modelled: `do_move`'s own
 "already there" test takes that case a step earlier here, so the arm is
 unreachable, and `+0xd8` is unread. It would be a **draw** if it were
-reachable. `CHAR_ATTACKWALK` is not passed either; no capture has a unit
+reachable.~~ Built by item 1500 (`docs/AI.md` §130): a unit that turns in
+place on its own waypoint reaches the snap with nothing to walk on the frame
+the turn completes, and draws there (`anim::SITE_SNAP_STAND`).
+`CHAR_ATTACKWALK` is not passed either; no capture has a unit
 stepping with a target.
 
 ## 4.10 A teleported crew figure pays no arrival stand (2026-09-04)

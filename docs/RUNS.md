@@ -14852,4 +14852,30 @@ SHA-256 `32fccc08ce84cd3c7a833de4773fbcbc5f49fb55bb58600bb0f4ea0318b73707`.
 
 **What it holds**: `run655_s_word_frame_is_widened_whole` (`diff::third_pair`): 186 keys, 173
 standing on block 16851, none on 16852..16857, five on the word's block 16858 (the General `1/79`'s
-animation) and eight on 16860..16862. Run 655 only.
+animation) and eight on 16860..16862. Item 1500: 173, all standing on 16851 (`move_step`'s
+snap stand, `docs/AI.md` §130). Run 655 only.
+
+## run657 — French East Indies, the word 17171's widening, with the leader probe (2026-10-06, item 1500)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1500-opus/run657-booking.json`,
+written before the run. run655 ends 16868; nothing dumps this game between it and run600's closing
+state at 17380, and run600 is a draw stream and checksums only. Window **[17165,17178)**, end 17182,
+call window 17163..17178, `RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1800`,
+run655's four `--detail` sections, through the click-free lane (`free` at launch).
+**The first take died before frame 0**: a Wine page fault at `7BF21139` ten seconds after launch,
+exit 40, receipt `extra lifecycle or fault records`. It was set aside as
+`2026-10-06-run657-take1-fault` and taken again once (1150). The second take: receipt success;
+process and wait exits **0**; five settings files restored; 13 group blocks 17165..17177; seed 12345
+read back. Launch-to-exit 742.364 s, total 752.518 s. Game-RNG draws match run600 on all 17,183
+shared frames (`rngcmp.py`).
+
+Archive `gamelog-run657-islands-french-17171.txt`, 50,530,552 bytes,
+SHA-256 `47d2e32a345cfed4d9825fe3c2170646ec10a6be36b7a59d3ce9f177aa3e1f9b`.
+
+Archive `rontrace-run657.log`, 96,384,864 bytes,
+SHA-256 `24d9deb01c629a6a9b65972e505488bcf05a2ee692fe483471c3a9ec54871509`.
+
+**What it holds**: `run657_s_word_frame_is_widened_whole` (`diff::third_pair`): 240 keys, 178
+standing on block 17165, and the first rows after it on 17167 (`1/69`'s front order). It is the
+first French East Indies window with rounds in flight: four, and `1/90`'s launch geometry parts
+(`third_pair_windows_check_groups_and_projectiles_on_both_sides`). Run 657 only.

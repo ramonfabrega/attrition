@@ -240,25 +240,61 @@ pub(crate) fn french_east_indies_15344_window() -> Option<harness::tests::Widene
 }
 
 /// run655: the successor after the territory timer's ×100, frame 16857
-/// (item 1487).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+/// (item 1487). The word left it for 17171 (item 1500).
+pub(crate) fn french_east_indies_16857_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run655",
         &[("gamelog-run655-islands-french-16857.txt", 16851)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_16857,
         1,
         &[16858],
         true,
     )
 }
 
+/// run657: the successor after `move_step`'s snap stand, frame 17171
+/// (item 1500).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run657",
+        &[("gamelog-run657-islands-french-17171.txt", 17165)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[17172],
+        true,
+    )
+}
+
+#[test]
+fn run657_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1500: 240 — 178 standing on the first block, 17165 (run655's 173
+    // less fourteen of group 64's slots and `form`s, plus `1/78`, `1/83` and
+    // `1/90`'s front orders, kind 2 against 12 on Napata, leader 0's
+    // `gather_stamp` 17152 against 17032, both `treaties` 1 against 3 and
+    // Napata's `raid_stamp` 0 against 17154: the gap 16869..17164 parted);
+    // nothing on 17166; on 17167 `1/69`'s front order, the same kind 2
+    // against 12; six on 17169, `1/80`'s guy 0 swinging at `0/2000` there
+    // and walking here; one on 17170; five on 17171, `1/80`'s order; then
+    // 16 on the word's block 17172 and 29 on 17174..17176.
+    pin_eq!(w.firsts.len(), 240, "initial run657 baseline");
+}
+
 #[test]
 fn run655_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_16857_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -269,7 +305,11 @@ fn run655_s_word_frame_is_widened_whole() {
     // draw ours spends through `Guy::move+0x19f` and the original through
     // `Unit::set_anim+0x56 < Unit::move_step+0x549`; then eight more on
     // 16860..16862. The word's block is 16858.
-    pin_eq!(w.firsts.len(), 186, "initial run655 baseline");
+    // Item 1500: 186 → 173. The snap's stand (AI §130) takes all thirteen
+    // rows past the first block: 1/79's guy 0 is `cur_anim` 0, `cur_time` 1,
+    // `last_time` 0 on 16858 on both sides, and nothing parts on
+    // 16852..16863. The 173 stand from the window's first block, 16851.
+    pin_eq!(w.firsts.len(), 173, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -1267,8 +1307,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run655-islands-french-16857.txt",
+            "gamelog-run657-islands-french-17171.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run655-islands-french-16857.txt",
+            WIDENING_FRENCH_EAST_INDIES_16857,
         ),
         (
             EAST_START,
@@ -1515,6 +1561,36 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 ]),
                 "engine-only fields are evidence, not sim parity"
             );
+        } else if window == WIDENING_FRENCH_EAST_INDIES {
+            // Item 1500: run657 is the first French East Indies window with
+            // rounds in flight. `1/90`'s round, launched on 17165, leaves
+            // from another point on 17166..17169: `1/90` is one of the
+            // three units whose front order the gap 16869..17164 parted
+            // (an attack on Napata in the original, a move in ours).
+            assert_eq!(
+                ammo_counts,
+                (4, 4, 80),
+                "four lifetimes, twenty fields each"
+            );
+            let mut want = std::collections::BTreeSet::new();
+            for n in 17166..=17169 {
+                for (field, mine, dumped) in [
+                    ("angle", -61276160, -69140480),
+                    ("ex", 6212, 6216),
+                    ("sx", 6456, 6467),
+                    ("sy", 9240, 9094),
+                    ("sz", 186, 394),
+                    ("v1z", 27618750, -13981250),
+                ] {
+                    want.insert((n, (1, 90, 17165), field, mine, dumped));
+                }
+            }
+            assert_eq!(ammo_differences, want, "1/90's launch, explicit");
+            assert_eq!(
+                ammo_unmodelled,
+                std::collections::BTreeSet::from([(1, 355165588, 0, 0, 0, 60162, 0, 0)]),
+                "engine-only fields are evidence, not sim parity"
+            );
         } else {
             assert_eq!(
                 ammo_counts,
@@ -1688,9 +1764,14 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run642-islands-french-15344.txt",
             WIDENING_FRENCH_EAST_INDIES_15344,
         ),
-        // The open word's window, to the word's own block (item 1481).
+        // Item 1500: run655's, to the word 16857's own block.
         (
             "gamelog-run655-islands-french-16857.txt",
+            (WIDENING_FRENCH_EAST_INDIES_16857.0, 16_857),
+        ),
+        // The open word's window, to the word's own block (item 1481).
+        (
+            "gamelog-run657-islands-french-17171.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
