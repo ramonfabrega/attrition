@@ -14255,7 +14255,14 @@ totals agreed by luck wherever that rim cell was out of the city's radius.
 the centre cell changes nothing, one owning the last inner entry takes a
 cell off `land`.
 
-**Made to fail.** MUTATION
+**Made to fail.** `tools/mutate.py` on a clean tree, the walk put back to
+entry 0 (`for i in 0..outer`, and with it the old cutoff `i + 1 >= inner`):
+`the_circle_walk_starts_at_entry_one` and `the_site_picture_counts_the_open_cells_of_the_circle`
+fail (sim, exit 101), and `run470_is_great_sahara_at_toughest_and_its_word_holds`
+(the floor 12816), `run640_s_word_frame_is_widened_whole`,
+`run584_s_word_frame_is_widened_whole` and the earlier Toughest widenings
+(run529, run547, run562, run571, run574) fail (rondata, exit 101); both
+"mutation: held".
 
 **What moved.** Toughest **12744 → 12816** (ours 41 draws, theirs 40,
 index 33: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
