@@ -769,7 +769,9 @@ impl Sim {
     /// march on 10777 through run629's 10815, and ours resumes on 10928.
     ///
     /// SEAM: the supply wagon's gate, and the mask's `0x2000`, which no
-    /// capture holds.
+    /// capture holds (scan: `grep -aoE 'unit_masks -?[0-9]+'
+    /// gamelog-run*.txt`, every distinct value tested for `0x2000`: none,
+    /// over the 306 of 311 dumps that print the field; item 1470).
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
         if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
             self.burn_fuel(u);
