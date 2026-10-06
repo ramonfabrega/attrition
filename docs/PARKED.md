@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1476, 2026-10-05 — Construction's bonuses
+
+(1480) **who=1's `leader:discovered` 33 against 34**, first parted on
+block 12959, the frame after Chemistry: ours never holds the Smelter
+bit. It stands under French East Indies' words from 12959 on.
+
 ## Parked by item 1423, 2026-10-05 — chapter fifty-one's close
 
 (1473) **`Group::target_opportunity`'s member `find_melee_target` arm,
@@ -3668,7 +3674,9 @@ And 1470's (same day): `mana_burn`, `spell_time` and most `unit_masks`
 bits are read by no widening — a General's craft parted unseen for about
 2,000 frames before it parted a draw. And 1468's: group 4's `start_list`
 is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
-does not read.
+does not read. And 1476's: `myhits` and
+`construct_hits` sit on the same list, so Construction's hp arm is held
+by a unit test alone.
 
 (1478) **Ours' `coll` against the collide probe's block, as a tool**
 (1472's Loop line, 2026-10-05): `tools/trace/report.py … calls` prints
