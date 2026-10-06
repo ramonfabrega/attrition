@@ -2574,6 +2574,19 @@ impl Sim {
             &available,
             escrow,
         );
+        // `Build::queue_up@00620f40` stamps `tech_frame` for a type that is
+        // not a technology too, when `type_avail` answers 2 (researchable):
+        // a unit upgrade bought as research (item 1496, Great Lakes' 11582 —
+        // run159's Phalanx at `1/2016` — holds it at 11582 on block 11583).
+        if let Some(id) = self.unit_types[ty].tree
+            && self
+                .tech_tree
+                .type_avail(&self.setup, &self.tech[who as usize], id, true)
+                == tech::RESEARCHABLE
+            && let Some(ai) = self.ai.get_mut(who as usize)
+        {
+            ai.tech_frame = self.frame;
+        }
         let slot = self.buildings[at].queue.push(ty, &charges);
         self.muster[who as usize].queued_by_type[ty] += 1;
         self.track_tree_queued(who, ty, 1);
