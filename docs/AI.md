@@ -14981,7 +14981,21 @@ run596 (four each), and run655 (one, 16857). It falls on 16857 and on 17239, whe
 `Unit::fight+0x824` and `Guy::set_anim+0xf2f < Unit::set_anim+0x56` for
 `1/80`. The original's index 1 is `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
 the first of seven wraps. Index 0, `1/79`'s idle under `Unit::do_idle+0x7d`,
-agrees. RUN657_PLACEHOLDER
+agrees.
+
+**run657 widens it** (`docs/RUNS.md`): 240 keys. The first block, 17165, holds
+178 standing rows. These are run655's 173, less fourteen of group 64's slots
+and `form`s, plus rows that parted in the gap 16869..17164:
+- `1/78`, `1/83` and `1/90`'s front orders: kind 2, a move, in ours against
+  12, an attack on Napata `0/2000`, in theirs, with 3 orders against 2;
+- leader 0's `gather_stamp`, 17152 against 17032;
+- both leaders' `treaties`, 1 against 3;
+- Napata's `raid_stamp`, 0 against 17154.
+
+`1/69`'s front order parts the same way on 17167. On 17169 `1/80`'s guy 0 is
+swinging at `0/2000` in the original (`cur_anim` 10, `whom` 0, `ox` 2000)
+and walking in ours. The word's block, 17172, holds 16 rows. The first
+parting of 17171 is in the gap, and no dump shows it.
 
 **What is not established.**
 - `CHAR_ATTACKWALK` (`local_2c` with a target) in the snap: no capture has a
