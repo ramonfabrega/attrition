@@ -27,7 +27,7 @@ Toughest 12538 measured, floor 11985; fifty chapters closed.*
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 10 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467).
+- **Fable backlog: 11 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
