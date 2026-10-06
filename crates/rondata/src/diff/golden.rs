@@ -7062,7 +7062,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     // `Built::build_ids` names only a building the start dump linked, so
     // a staged Airbase reads `None` (item 651 probed it: with a fallback
     // to the building's own `(owner, index)` both rows go and nothing else
-    // moves; parked 681).
+    // moves; parked 681). Item 1502 built that fallback, and they go.
     //
     // **Item 680 took the word to the capture's end**: a captain's attack
     // on a building re-searches every frame (`docs/COMBAT.md` §62), and
@@ -7088,11 +7088,10 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         })
         .collect();
     got.sort();
-    let mut want: Vec<String> = ["611 0/6 order:target", "616 1/6 order:target"]
-        .iter()
-        .map(|r| r.to_string())
-        .collect();
-    want.sort();
+    // Item 1502: ["611 0/6 order:target", "616 1/6 order:target"] → [];
+    // `target_ids` names the staged Airbase by `(owner, index)` (parked
+    // 681's fallback, `docs/AI.md` §131.4), and both rows agree.
+    let want: Vec<String> = Vec::new();
     pin_eq!(got, want, "ch6b: what parts under the word moved");
 }
 
@@ -7981,12 +7980,13 @@ fn chapter_twenty_one_s_word_frame_is_widened_whole() {
 // `find_ordered_collision`'s own-group arm no longer refuses `0/7` the
 // spot `0/8` was sent to (item 824, `docs/GOLDEN.md` §29).
 const WANT_CH21: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 635 1/6 order:target, 635 1/7
+    // order:target, 635 1/8 order:target.
     "1021 1/6 order:group.id",
     "1021 1/7 order:group.id",
     "1021 1/8 order:group.id",
-    "635 1/6 order:target",
-    "635 1/7 order:target",
-    "635 1/8 order:target",
 ];
 // **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
@@ -13278,6 +13278,10 @@ fn chapter_fifty_one_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH51: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 698 0/7 order:target, 847 0/9
+    // order:target, 848 0/8 order:target.
     "1054 0/7 death:extra",
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
@@ -13305,11 +13309,8 @@ const WANT_CH51: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "698 0/-1 leader:treaties[1]",
-    "698 0/7 order:target",
     "698 1/-1 leader:treaties[0]",
     "750 0/6 death:extra",
-    "847 0/9 order:target",
-    "848 0/8 order:target",
     "900 0/9 death:extra",
     "982 0/8 death:extra",
 ];
@@ -13331,6 +13332,10 @@ const WANT_CH51_POOL: &[&str] = &[
 ];
 
 const WANT_CH50: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 700 0/7 order:target, 832 0/9
+    // order:target, 833 0/8 order:target.
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
@@ -13357,11 +13362,8 @@ const WANT_CH50: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "700 0/-1 leader:treaties[1]",
-    "700 0/7 order:target",
     "700 1/-1 leader:treaties[0]",
     "751 0/6 death:extra",
-    "832 0/9 order:target",
-    "833 0/8 order:target",
     "908 0/9 death:extra",
     "986 0/8 death:extra",
     "1063 0/7 death:extra",
@@ -13638,6 +13640,9 @@ const WANT_CH45: &[&str] = &[
 /// 686. The rounds are compared field by field (item 1257), and all 381
 /// agree.
 const WANT_CH44: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 611 1/6 order:target.
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
@@ -13663,7 +13668,6 @@ const WANT_CH44: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "611 1/6 order:target",
     "671 0/-1 leader:treaties[1]",
     "671 1/-1 leader:treaties[0]",
 ];
@@ -13887,6 +13891,10 @@ fn chapter_forty_eight_s_word_frame_is_widened_whole() {
 /// builders' quarter rate (an aircraft's blow costs none); block 983, the
 /// original's fourth blow, 104/15 → 113/4 and 450 of progress (the carry).
 const WANT_CH48: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 901 0/10 order:target, 901 0/8
+    // order:target, 901 0/9 order:target.
     "1468 0/6 ammo[0].accuracy",
     "1468 0/6 ammo[0].ex",
     "1468 0/6 ammo[0].sx",
@@ -13935,9 +13943,6 @@ const WANT_CH48: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "656 1/2000 city:bordering",
-    "901 0/10 order:target",
-    "901 0/8 order:target",
-    "901 0/9 order:target",
     "935 0/-1 leader:treaties[1]",
     "935 1/-1 leader:treaties[0]",
 ];
@@ -13986,6 +13991,10 @@ const WANT_CH48_POOL: &[&str] = &[];
 /// birth `form` on 708, and two rows past the site's death on 1001 and
 /// 1021.
 const WANT_CH47: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 682 1/6 order:target, 682 1/7
+    // order:target, 682 1/8 order:target.
     "1001 0/2000 city:free",
     "1021 1/6 order:group.id",
     "1021 1/7 order:group.id",
@@ -14018,9 +14027,6 @@ const WANT_CH47: &[&str] = &[
     "614 0/6 order:group.id",
     "614 0/7 order:group.id",
     "614 0/8 order:group.id",
-    "682 1/6 order:target",
-    "682 1/7 order:target",
-    "682 1/8 order:target",
     "706 0/-1 leader:treaties[1]",
     "706 1/-1 leader:treaties[0]",
     "708 0/12 form",
@@ -14141,6 +14147,9 @@ const WANT_CH43_POOL: &[&str] = &[];
 /// `agendas[·]` is compared on every block and agrees: who=0's slot for
 /// who=1 turns 2 on 812.
 const WANT_CH42: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 622 0/6 order:target.
     "605 0/-1 leader:filled_gather_slots[0:food]",
     "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
@@ -14166,7 +14175,6 @@ const WANT_CH42: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "622 0/6 order:target",
     "623 0/-1 leader:treaties[1]",
     "623 1/-1 leader:treaties[0]",
 ];
@@ -14183,6 +14191,9 @@ const WANT_CH42: &[&str] = &[
 /// does not have — the original clears `0/7`'s record 643 frames after
 /// its death and `0/8`'s 656 after, and here both stay.
 const WANT_CH41: &[&str] = &[
+    // Item 1502: an attack's `order:target` on a building the start dump did
+    // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
+    // §131.4); these rows agree and leave: 632 0/6 order:target.
     "1622 0/7 death:extra",
     "1725 0/8 death:extra",
     "605 0/-1 leader:filled_gather_slots[0:food]",
@@ -14210,7 +14221,6 @@ const WANT_CH41: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "632 0/6 order:target",
     "672 1/2000 city:raid_stamp",
     "902 1/6 group",
     "902 1/7 group",

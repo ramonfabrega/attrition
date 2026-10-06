@@ -15119,11 +15119,22 @@ its own `(owner, index)`, as `unit_ids_dead_or_alive` names a unit. Only the
 attack arm changed. A `Build`, `Gather` or `Garrison` target still skips an
 unlinked building, because there `None` is silence and not a row.
 
-The rows that leave are all the same row:
+This is parked 681's fallback, which item 651 probed on chapter 6b's staged
+Airbases. Item 651 found then what this item finds now: the rows go, and
+nothing else moves. The fallback can only turn a `None` into a value, so a
+row it touches either agrees or stays a row. Every pin it moved fell.
 
-- run657's widening: 240 → **235**;
-- run609's closing residue: 100 → **85**; all fifteen of its leaving rows are
-  `1/9`..`1/23` on `0/2000`, and none is added.
+- **Third pair:** run657 240 → **235**; run609's closing residue 100 →
+  **85**. All fifteen of run609's leaving rows are `1/9`..`1/23` on
+  `0/2000`, and none is added.
+- **Second pair:**
+  - run594 201 → 173, run589 194 → 166, run588 166 → 142, run585 229 → 205;
+  - run403 76 → 58, run396 82 → 67 (all fifteen of its leaving rows are the
+    attack-move's targets on the city, `1/24` and `1/26`'s 5195 among them),
+    run373 84 → 71;
+  - run356's first three blocks.
+- **Golden:** the `order:target` rows under chapters 6b, 21, 41, 42, 44,
+  47, 48, 50 and 51.
 
 ### 131.5 What this has *not* established
 
@@ -15143,7 +15154,8 @@ Diff-backed:
 - the dirty bit's blocks and the stamp on 17033 (run658, both pinned);
 - the treaty and Napata's stamp on 17054 (run658);
 - `1/69`'s stacks on 17167 (run657);
-- the target fallback's fifteen rows (run609) and five (run657).
+- the target fallback: run609's and run396's fifteen leaving rows each, the
+  second pair's and the golden chapters' moved pins.
 
 Ours' side of the gap is `RON_DEBUG_GAP`'s print, recorded in the journal.
 
