@@ -2387,7 +2387,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (&r657, 17171),
         // Item 1514: the word left run661 for 17318; its block stays.
         (&r661, 17244),
-        (&r662, super::testkit::THIRD_PAIR_WORD_EAST_INDIES),
+        // Item 1519 closed the map at its end, 17379; run662's word block
+        // stays.
+        (&r662, 17318),
         (&r601, 2576),
     ] {
         if let Some(path) = path {
@@ -2742,7 +2744,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
     // walked here beside East Indies'.
     let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
-    let french_east = super::third_pair::french_east_indies_word_window();
+    // Item 1519 closed French East Indies at its trace's end, 17379; run662,
+    // its last word's window to the game's end, stays walked as its closing.
+    let french_east = super::third_pair::french_east_indies_closing_window();
     let french_lakes = super::third_pair::french_great_lakes_closing_window();
     // Item 1445: retain run603's cast orders after moving the open window.
     // Their comparisons still run; a quiet successor must not erase coverage.

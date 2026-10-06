@@ -88,6 +88,63 @@ fn run598_french_great_lakes_word() {
     );
 }
 
+/// **French East Indies' closing whole-map state** (item 1519): the word
+/// reached the trace's end, 17,379, once a guard's attack on a building took
+/// no chase (`docs/AI.md` §138), and a draw stream that agrees to a game's
+/// end says nothing of the end itself (item 1099). run600's closing dump,
+/// block 17380, walked to and compared whole.
+#[test]
+fn run600_french_east_indies_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(EAST_LONG.0), dump(EAST_START), trace(EAST_LONG.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "French East Indies closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked
+    );
+    eprintln!(
+        "Closing city fields: {:?}",
+        harness::compare(&built, &fin, 8).city_diverged
+    );
+    pin_eq!(e.frame, 17380, "the closing block");
+    // Item 1519: 154 units, none off, unlinked or extra, and every building
+    // linked and agreeing. `torn` is printed, not pinned (`endpoint`'s
+    // module note): one unit, `0/5`.
+    pin_eq!(e.compared, 154, "units compared");
+    // The 14 are one record's: the human's Village `0/2000`, whose player
+    // is defeated on this block (`defeat_stamp 17380`). Ours reads 0 for
+    // `land` 84, `filled` 44, `ocean` 25, `space[0..2]` 51/51/40, `ter[0,1,3]`,
+    // `busy`/`gatherers` 5, `peasant_dist` 1, `dock_tile` 1 and `raid_stamp`
+    // 17326. A residue of the closing, not a parity claim.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 14], "the closing counts");
+}
+
 #[test]
 fn run598_french_great_lakes_closing_state() {
     let Some(inst) = crate::testenv::install() else {
@@ -313,7 +370,7 @@ fn run658_dates_the_gap_before_17171() {
 
 /// run662: the successor after `do_attack_to`'s look was gated on the order
 /// it was dispatched for, frame 17318 (item 1514), to the game's end.
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_closing_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
@@ -330,7 +387,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run662_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_closing_window() else {
         return;
     };
     pin_eq!(w.blocks, 66, "every captured block");
@@ -345,7 +402,15 @@ fn run662_s_word_frame_is_widened_whole() {
     // (6120, 8952)) — the draws ours spends under `Unit::find_attack_pos`;
     // `1/69`, `1/131` and `1/177`'s figure clocks beside it. 399 more on
     // 17320..17377, the game's last blocks.
-    pin_eq!(w.firsts.len(), 562, "initial run662 baseline");
+    // Item 1519: 562 → 142. `find_attack_pos` reads a guard's activity and
+    // refuses it a building (AI §138): `1/115` stands on its lone `GUARD` at
+    // (6120, 8952) on 17319 on both sides (`order:kind` 12, `order:length`
+    // 1, `g.cur_anim[0]` 0), and its 25 rows there and the 399 after go with
+    // it. 138 stand on 17312, as before; four part past the word, the draws
+    // agreeing to the trace's end: the Village `0/2000`'s `build:damage` 120
+    // against 121 and `damage_frac` 4 against 8 on 17330, leader 1's `caras`
+    // 5 against 6 and `1/96`'s `form` −1 against 0 on 17331.
+    pin_eq!(w.firsts.len(), 142, "initial run662 baseline");
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -1760,9 +1825,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 .cloned()
                 .collect();
             assert_eq!(before, want, "the Dragoons' launches, explicit");
+            // Item 1519: (70, 73, 840) and 344 → (70, 74, 1400) and 442 once
+            // `1/115` stood (AI §138): more rounds pair and are compared, and
+            // every row past the word is the same release-offset family
+            // (`sx`/`sy`/`sz`/`v1z`/`angle` at launch, `ex`/`ey`, a frame of
+            // `total_time`) or a round's `presence` a frame early.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 73, 840), 344),
+                ((70, 74, 1400), 442),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -2019,10 +2089,11 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run661-islands-french-17244.txt",
             (WIDENING_FRENCH_EAST_INDIES_17244.0, 17_244),
         ),
-        // The open word's window, to the word's own block (item 1481).
+        // Item 1519: run662's, to the word 17318's own block; the map
+        // closed at its end.
         (
             "gamelog-run662-islands-french-17318.txt",
-            (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
+            (WIDENING_FRENCH_EAST_INDIES.0, 17_318),
         ),
     ] {
         let Some(rows) = east_indies_ever_seen(capture, window) else {

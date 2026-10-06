@@ -9106,10 +9106,12 @@ impl Sim {
         }
     }
 
-    /// `Unit::find_new_target(this, NULL, stand)@005ff6a0`, in the one
-    /// shape this crate calls it: from `resolve_unit_collision`'s enemy
-    /// ladder, `stand` 1 (`docs/COLLISION.md` §14, the listing at
-    /// `005f9ffb`–`005fa001` pushes `1, 0`).
+    /// `Unit::find_new_target(this, NULL, stand)@005ff6a0`: from
+    /// `resolve_unit_collision`'s enemy ladder, `stand` 1 (`docs/COLLISION.md`
+    /// §14, the listing at `005f9ffb`–`005fa001` pushes `1, 0`); from
+    /// `fight`'s captain re-search, `(&who, 0)`; and from the refused
+    /// chase, `(NULL, 0)` ([`Sim::chase_refused`]). The out-parameter only
+    /// reports the owner found, so all three are this one call.
     ///
     /// 1. `repath`: the leading transit legs go.
     /// 2. The current order goes too: `kill_current_order`, or for a

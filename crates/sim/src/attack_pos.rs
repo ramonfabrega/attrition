@@ -68,8 +68,11 @@ impl crate::Sim {
     /// apart in a trace comparison.
     ///
     /// `Some(p)` is the original's `return 1` with the out-parameters
-    /// written; `None` its `return 0`, on which every caller falls back
-    /// to the target's own position.
+    /// written; `None` its fallbacks, on which a caller walks at the
+    /// target's own position — the ring walk's own failure is a `return 1`
+    /// with exactly that point. The one `return 0` of the building half,
+    /// the guard's refusal, is also `None`, and `fight` tells it apart with
+    /// [`Sim::attack_pos_refused`] (item 1519).
     pub(crate) fn find_attack_pos(
         &mut self,
         u: usize,
