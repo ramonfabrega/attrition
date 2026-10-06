@@ -2420,14 +2420,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **The coverage pair's word blocks** (621; parked 1513, item 1511):
     // run656's frame-8 word (block 9), run660's frame-177 word (block 178),
     // run669's frame-185 word (block 186), and run672's frame-583 word
-    // (block 584) and frame-667 word (block 668, item 1532), each with two
-    // either side.
+    // (block 584), frame-667 word (block 668, item 1532) and frame-727
+    // word (block 728, item 1539), each with two either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
         (super::coverage_pair::RUN669, 186),
         (super::coverage_pair::RUN672, 584),
         (super::coverage_pair::RUN672, 668),
+        (super::coverage_pair::RUN672, 728),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);

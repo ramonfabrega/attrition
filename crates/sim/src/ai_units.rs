@@ -1746,7 +1746,7 @@ impl Sim {
     /// `LeaderData::get_caravan_limit(1)`: the Commerce level plus one,
     /// bounded by the cities' pairings. The wonder, rare-resource and Nubian
     /// bonuses are inputs this does not carry.
-    fn caravan_limit(&self, who: Player) -> i32 {
+    pub(crate) fn caravan_limit(&self, who: Player) -> i32 {
         let w = who as usize;
         let commerce = self.tech[w].epoch[tech::Line::Commerce.index()] + 1;
         let n = self.cities_of(who).len() as i32;

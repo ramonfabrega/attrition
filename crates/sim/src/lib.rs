@@ -5223,6 +5223,7 @@ impl Sim {
             self.log_building_step(b, "gather");
             self.gather_region_building(b);
             if live {
+                self.persian_market_caravan(b, frame);
                 self.log_building_step(b, "tail");
                 self.process_building_tail(b, frame);
             }

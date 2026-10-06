@@ -8704,7 +8704,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1532 took run672 over 577..833 and moved it to **667**, inside it
     // (block 668); run669's test keeps the move's value diff on 183..275
     // (`1/10`, `1/2`, `1/4`, `1/9`'s order stacks and `1/2022`) and
-    // run672's on `1/2009`.
+    // run672's on `1/2009`. Item 1539 moved it to **727**, inside run672
+    // (block 728); run672's test keeps the move's value diff on `1/15` and
+    // leader 1's counts on 668.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,

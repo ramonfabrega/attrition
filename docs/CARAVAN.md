@@ -60,6 +60,11 @@ keeps the sea-domain Merchant Fleet out: it takes the `Specials` list
 instead and never owns a route. The slot goes in the unit's `+0x86`, the
 union the same field uses for a hero's slot and an animal's herd.
 
+A caravan is born from a Market's queue, or — for the Persians — from the
+Market itself, with no queue and no price, on its fifteen-frame slot while
+`caras` is under `get_caravan_limit(1)` (`Build::process@0061edf0:362–381`,
+`docs/AI.md` §146).
+
 `init_caravan` takes the first slot below the mark whose `alive` bit is
 clear, else the mark itself; `Caravans::close_caravan@0073e350` clears
 the record and walks the mark back down past every dead slot at the top.
