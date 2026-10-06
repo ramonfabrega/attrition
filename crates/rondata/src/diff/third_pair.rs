@@ -245,7 +245,13 @@ fn run639_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 0, "initial run639 baseline");
+    // Item 1476: 239 — 136 standing on the first block, 14777 (run636's
+    // 134 less `caras` and three `form`s, with who=1's `best_good`,
+    // `escrow[1:timber]` and `over_cap[1:timber]` and three `form`s among
+    // the arrivals); nothing on 14778..14782; on the word's block 14783
+    // who=1's `MAKE[8].val` 9999999 against 99999 and `1/93`'s move order
+    // 192 off on each axis.
+    pin_eq!(w.firsts.len(), 239, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame

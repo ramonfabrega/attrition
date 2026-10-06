@@ -14160,6 +14160,15 @@ and the walk rows of 14088..14097 all go. What is left is the 134 rows
 standing on 14085. `east_indies_wonder_start_is_first_contact_on_every_building`
 no longer finds `1/2047`'s `ever_seen_completed` rows.
 
+**The new word** is 14782: 15 draws against 16 at index 7, ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` and theirs
+`Leader::make_stuff+0x63d`. Its widening is run639 (239 keys): 136
+standing on 14777, with who=1's timber among them (`bucket` 786 against
+1034, `escrow` 224 against 251, `over_cap` 0 against 1), none on
+14778..14782, and on the word's block 14783 who=1's `MAKE[8].val`
+9999999 here against 99999 there, beside `1/93`'s move order 192 off on
+each axis.
+
 **What is not established.**
 
 - `myhits` and `construct_hits` are on the coverage pin's unread list for
