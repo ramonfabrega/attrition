@@ -25,8 +25,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
         "rontrace-run676.log",
     ),
     length: 4340,
-    count: 718,
-    sequence: 718,
+    count: 720,
+    sequence: 720,
+};
+
+/// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
+/// it: the lower of the two partings.
+pub(crate) const SAHARA_COVERAGE_WORD: i64 = if SAHARA_COVERAGE.count < SAHARA_COVERAGE.sequence {
+    SAHARA_COVERAGE.count
+} else {
+    SAHARA_COVERAGE.sequence
 };
 
 /// **The third map's first parting in the coverage pair's lobby**, walked
@@ -132,9 +140,10 @@ pub(crate) const RUN677: &str = "gamelog-run677-greatsahara-persian-alltech-wind
 /// The window: block 6 through 262; the word 12's own block is 13.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_12: (i64, i64) = (6, 262);
 
-/// **The third map's coverage-lobby word's window**: run677 walked from
-/// run675's start with the recorder on.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// **The coverage lobby's frame-12 window**: run677 walked from run675's
+/// start with the recorder on. It was the `AI_WORDS` window until item
+/// 1538's build moved the word past it, to run680's.
+pub(crate) fn sahara_coverage_frame_12_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -151,7 +160,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run677_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_12_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -196,4 +205,38 @@ fn run677_s_word_frame_is_widened_whole() {
         Some(8),
         "leader 1's known rares part on block 8"
     );
+}
+
+/// run680, item 1549: the lobby's blocks 713..969 at the long's detail —
+/// the word 720's block 721 with eight before it and 248 after.
+pub(crate) const RUN680: &str = "gamelog-run680-greatsahara-persian-alltech-window-713-969.txt";
+
+/// The window: block 713 through 969; the word 720's own block is 721.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_720: (i64, i64) = (713, 969);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run680 walked from run675's start with the
+/// recorder on.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run680",
+        &[(RUN680, WIDENING_SAHARA_COVERAGE_FRAME_720.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_720,
+        1,
+        &[721],
+        true,
+    )
+}
+
+#[test]
+fn run680_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    eprintln!("RUN680 firsts {}", w.firsts.len());
 }

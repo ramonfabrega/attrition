@@ -8716,6 +8716,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1544,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_982),
     ),
+    // **The third map in the coverage pair's lobby** (item 1538): its word
+    // was frame 12 on run675/676 (the build moved it to 718 on item 1538's
+    // base, and to **720** on the merged tree), widened on run677 over
+    // 6..262 and, item 1549, on run680 over 713..969 (block 721).
+    (
+        "SAHARA_COVERAGE_WORD",
+        crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
+        Some("run680_s_word_frame_is_widened_whole"),
+        1549,
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_720),
+    ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
@@ -9027,6 +9038,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 24_000,
         endpoint: Some("great_sahara_endpoint_is_pinned"),
         window: None,
+    },
+    // **The third map in the coverage pair's lobby** (DECISIONS 56 §1,
+    // item 1538): Great Sahara with the Persians at All Technologies, which
+    // ends when the idle human is defeated at 4340.
+    AiWord {
+        line: "Third map",
+        map: "GreatSaharaPersianAllTech",
+        named: "Great Sahara (All Technologies)",
+        word: crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
+        length: 4_340,
+        endpoint: None,
+        window: Some("sahara_coverage_word_window"),
     },
     // **The closed map in the newest pair's lobby** (DECISIONS 56 §1, item
     // 1221): run470 ends when the idle human is defeated, its trace's last
