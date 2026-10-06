@@ -24,6 +24,12 @@ const MINUTEMAN: i32 = 0x43;
 const PARTISAN: i32 = 0x44;
 /// `LeaderData::get_general_upgrade`, which no staged leader raises.
 const GENERAL_UPGRADE: i32 = 0;
+/// `TypeIndex` rows [`Sim::craft_rate`] asks (`enums/TypeIndex.txt`).
+const GENERAL: crate::tech::TypeId = 0x36;
+const SPY: crate::tech::TypeId = 0x3a;
+const MEMNON: crate::tech::TypeId = 0x16c;
+/// A Conquer the World bonus, which no staged leader holds.
+const SPIES_GENERALS_RECOVER_CRAFT: crate::tech::TypeId = 0x301;
 
 /// `SpellTypeData::spell_flags` letters the cast reads, as bits `a`..`m`.
 pub mod craft {
@@ -51,11 +57,30 @@ pub mod craft {
 }
 
 impl Sim {
-    /// `UnitData::mana@00609a50` — the type's `MANA`. SEAM: the supply
-    /// upgrade's multiple, the French craft bonus and the space-air arm;
-    /// none is reached by a Spy of a nation without them.
+    /// `UnitData::mana@00609a50` — the type's `MANA`, and a French
+    /// General's `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100` (`609ad7`..
+    /// `609b1c`, `has_tribe_bonus(10)` and `is(GENERAL, 1)`; the bonus
+    /// ships as 0%). SEAM: the supply upgrade's multiple and the space-air
+    /// arm; neither is reached by a Spy or a General.
     pub(crate) fn unit_mana(&self, u: usize) -> i32 {
-        self.units[u].ty.map_or(0, |t| self.unit_types[t].mana)
+        let mana = self.units[u].ty.map_or(0, |t| self.unit_types[t].mana);
+        if mana == 0 {
+            return 0;
+        }
+        let who = self.units[u].owner as usize;
+        let french_general = self.tech_tree.has_tribe_bonus(
+            &self.setup,
+            &self.tech[who],
+            crate::nations::power::FRENCH,
+        ) && self.tech_tree.types.get(GENERAL).is_some()
+            && self
+                .unit_tree(u)
+                .is_some_and(|t| self.tech_tree.is(t, GENERAL, true));
+        if french_general {
+            (self.tuning.french_special_craft + 100) * mana / 100
+        } else {
+            mana
+        }
     }
 
     /// `UnitData::mana_left@00609a30`: `max(0, mana − mana_burn)`.
@@ -735,12 +760,18 @@ impl Sim {
         }
     }
 
-    /// `Unit::process@00610bc0`'s caster arm: one point of craft back a
-    /// frame, `(frame & 1 + 2) / 2`, while `unit_masks & 0x2a000` is clear.
+    /// `Unit::process@00610bc0`'s caster arm: craft back a frame,
+    /// `((frame & 1) + r) / 2`, while `unit_masks & 0x2a000` is clear —
+    /// [`Self::craft_rate`] is `r` (`docs/AI.md` §119).
     ///
-    /// SEAM: the French craft bonus, `SPIES_GENERALS_RECOVER_CRAFT`,
-    /// Memnon's rate, the supply wagon's gate, and the two other bits of
-    /// the mask (`0x2000`, `0x8000`), none of which a capture holds.
+    /// `0x20000` is [`crate::Unit::casting`] and `0x8000`, Forced March,
+    /// is `marching`: run630 holds the original's `1/79` at 1000 from its
+    /// march on 10777 through run629's 10815, and ours resumes on 10928.
+    ///
+    /// SEAM: the supply wagon's gate, and the mask's `0x2000`, which no
+    /// capture holds (scan: `grep -aoE 'unit_masks -?[0-9]+'
+    /// gamelog-run*.txt`, every distinct value tested for `0x2000`: none,
+    /// over the 306 of 311 dumps that print the field; item 1470).
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
         if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
             self.burn_fuel(u);
@@ -763,9 +794,63 @@ impl Sim {
         if unit.mana_burn == 0 || unit.casting || unit.marching.is_some() {
             return;
         }
-        let step = i16::try_from(((frame & 1) + 2) / 2).unwrap_or(1);
+        let step = i16::try_from(((frame & 1) + i64::from(self.craft_rate(u))) / 2).unwrap_or(1);
         let unit = &mut self.units[u];
         unit.mana_burn -= step.min(unit.mana_burn);
+    }
+
+    /// **The craft rate `r`** of `Unit::process@00610bc0`, read off the
+    /// listing at `610f2d`..`61101e` (`docs/AI.md` §119, item 1470):
+    ///
+    /// ```text
+    /// r = 2
+    /// has_tribe_bonus(10) and is(GENERAL, 1)            -> r = 4
+    /// has_preq(SPIES_GENERALS_RECOVER_CRAFT) and
+    ///     (is(GENERAL, 1) or is(SPY, 1))                -> r *= 2
+    /// is(MEMNON, 0)                                     -> r = MEMNON_REGEN_RATE × r >> 8
+    /// ```
+    ///
+    /// The French General's is the arm a capture holds: run632's `1/79`
+    /// takes back two a frame (102 on 11376, 64 on 11395), where one is
+    /// `r = 2`'s `(frame & 1 + 2) / 2` on either parity. `is(x, 1)` is
+    /// the vslot `+0xb8` with `push 1; push x` — the strict test, the type
+    /// or its graft.
+    pub(crate) fn craft_rate(&self, u: usize) -> i32 {
+        use crate::nations::power::FRENCH;
+        let who = self.units[u].owner as usize;
+        let tree = self.unit_tree(u);
+        // A row the tree does not carry — a fixture's short table; the
+        // original's is always whole — is no lineage of anything.
+        let is = |x: crate::tech::TypeId, strict: bool| {
+            self.tech_tree.types.get(x).is_some()
+                && tree.is_some_and(|t| self.tech_tree.is(t, x, strict))
+        };
+        let general = is(GENERAL, true);
+        let mut r = 2;
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[who], FRENCH)
+            && general
+        {
+            r = 4;
+        }
+        if self
+            .tech_tree
+            .types
+            .get(SPIES_GENERALS_RECOVER_CRAFT)
+            .is_some()
+            && self
+                .tech_tree
+                .has_preq(&self.setup, &self.tech[who], SPIES_GENERALS_RECOVER_CRAFT)
+            && (general || is(SPY, true))
+        {
+            r *= 2;
+        }
+        if is(MEMNON, false) {
+            // `imul; cltd; and $0xff, %edx; lea; sar $8`: toward zero.
+            r = (self.tuning.memnon_regen_rate * r) / 256;
+        }
+        r
     }
 
     /// **A decoy's close** (item 1351, `docs/GOLDEN.md` §48): the listing
@@ -958,5 +1043,86 @@ impl Sim {
                 0
             };
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tech::{TypeDef, UnitTraits};
+    use crate::world::{Cell, Terrain, World};
+    use crate::{Pos, Sim, Tuning, Unit, UnitType};
+
+    /// A tree whose rows are `TypeIndex`'s, up to Memnon, and one unit of
+    /// player 1 for each of the General, the Spy, Memnon and a filler row,
+    /// each holding a full pool (`MANA` 1000).
+    fn casters(tuning: Tuning) -> (Sim, [usize; 4]) {
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut s = Sim::new(tuning, world, 2);
+        let mut t = crate::tech::TechTree::new();
+        while t.types.len() <= super::MEMNON {
+            let name = match t.types.len() {
+                super::GENERAL => "General",
+                super::SPY => "Spy",
+                super::MEMNON => "Memnon",
+                _ => "filler",
+            };
+            t.add(TypeDef::unit(name, UnitTraits::default()));
+        }
+        s.set_tech_tree(t);
+        let units = [super::GENERAL, super::SPY, super::MEMNON, 0x40].map(|row| {
+            let ty = s.add_unit_type(UnitType {
+                mana: 1000,
+                tree: Some(row),
+                type_index: i32::try_from(row).unwrap(),
+                ..UnitType::default()
+            });
+            let mut u = Unit::new(1, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = Some(ty);
+            s.add_unit(u)
+        });
+        (s, units)
+    }
+
+    /// What one frame of each parity takes back from a `mana_burn` of 100.
+    fn steps(s: &mut Sim, u: usize) -> [i16; 2] {
+        [10, 11].map(|frame| {
+            s.units[u].mana_burn = 100;
+            s.recover_mana(u, frame);
+            100 - s.units[u].mana_burn
+        })
+    }
+
+    /// **A French General takes back two a frame** (`docs/AI.md` §119,
+    /// item 1470): `Unit::process@00610bc0`'s `r` is 4 under
+    /// `has_tribe_bonus(10)` and `is(GENERAL, 1)`, and `((frame & 1) + r)
+    /// / 2` is 2 on either parity; anyone else's `r = 2` is 1 on either.
+    /// run632's `1/79`, a French General, 102 on 11376 and 64 on 11395.
+    /// Memnon's `MEMNON_REGEN_RATE` 2/1 (512) doubles his `r` to 4, and a
+    /// modded 3/2 (384) takes it to 3: one and two by parity. A French
+    /// General's pool is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`.
+    ///
+    /// Made to fail with the craft rate back at 2 for everyone, and with
+    /// the bonus on the Spy (`is(GENERAL, 1)` alone gates it).
+    #[test]
+    fn a_french_general_recovers_craft_twice_as_fast() {
+        let (mut s, [general, spy, memnon, filler]) = casters(Tuning::RON);
+        assert_eq!(steps(&mut s, general), [1, 1], "no nation power");
+        s.tech[1].power = Some(crate::nations::power::FRENCH);
+        assert_eq!(steps(&mut s, general), [2, 2], "the French General");
+        assert_eq!(steps(&mut s, spy), [1, 1], "a French Spy");
+        assert_eq!(steps(&mut s, filler), [1, 1], "a French caster of no line");
+        assert_eq!(steps(&mut s, memnon), [2, 2], "Memnon, 512 × 2 >> 8");
+        assert_eq!(s.unit_mana(general), 1000, "the bonus ships as 0%");
+
+        let mut modded = Tuning::RON;
+        modded.memnon_regen_rate = 384;
+        modded.french_special_craft = 20;
+        let (mut s, [general, _, memnon, filler]) = casters(modded);
+        assert_eq!(steps(&mut s, memnon), [1, 2], "Memnon at 3/2: r = 3");
+        assert_eq!(s.unit_mana(general), 1000, "not French");
+        s.tech[1].power = Some(crate::nations::power::FRENCH);
+        assert_eq!(s.unit_mana(general), 1200, "(20 + 100) × 1000 / 100");
+        assert_eq!(s.unit_mana(filler), 1000, "only a General's pool");
     }
 }
