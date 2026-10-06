@@ -16120,3 +16120,8 @@ head of `Object::do_damage` rests on the decompile and these runs; the listing w
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 141. Reserved for item 1511 (the coverage pair's frame 177)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
