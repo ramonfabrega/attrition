@@ -15767,9 +15767,31 @@ after its `Unit::fight+0x824`, which both sides spend. Ours also spends
 six `Guy::set_anim+0x104b` for gaia `9/6` against theirs' two. That is
 two families, 2 + 4, in one frame. The pair ends 61 frames later, at
 17,379. **run662** (blocks 17312..17377, end 17378) widens it and holds
-every block to the game's end. No mechanism is named.
+every block to the game's end: **562 keys**. 138 stand on 17312 (run661's
+families), none part on 17313..17318, and 25 part on the word's block
+17319. The first of them is the Elite Pikeman `1/115` (TypeIndex 135,
+`ELITEPIKE`, land): the original's stands on its lone `GUARD` at (6120,
+8952), and ours walks a three-order stack with a `MOVE_TO` at its head, at
+(6122, 8925). Beside it are `1/69`, `1/131` and `1/177`'s figure clocks.
+No mechanism is named.
 
-### 135.5 Coverage
+### 135.5 Mutations
+
+Each mutation is scored by exit code on run661's and run662's pins
+(`tools/mutate.py`):
+
+| mutation | verdict |
+| --- | --- |
+| M1, the `ATTACK_TO` tail ungated | held: run661 254, run662 1058 |
+| M2, no bump on `kill_order`'s pop | failed nothing |
+| M4, M2 and no bump on `enqueue`'s `First` | held: 254, 1058 |
+| M3, the `EXPLORE_TO` tail ungated | failed nothing |
+
+M2 alone fails nothing because the guard's new leg is pushed `First`, and
+that push bumps the serial too. **M3 is an arm no walk holds**, and no unit
+test holds it either.
+
+### 135.6 Coverage
 
 Diff-backed: `1/67`'s rows on run661, and run661's whole window past its
 first block. The explore tail's identity test is read off the export and
