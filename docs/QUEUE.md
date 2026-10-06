@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-06, the twenty-fifth pass (`docs/audit/2026-10-06-fable-pass-25.md`):
 twenty landings in 13 h 09 m, three lanes, 16.5 USD a landing. French East
-Indies **17318** (1514) of 17,379; Toughest **15275** (1510, 1517, 1522), floor 15275; fifty-one chapters
+Indies **closed at 17,379** (1514, 1519); Toughest **15275** (1510, 1517, 1522), floor 15275; fifty-one chapters
 closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
 
 - **Two lanes this tranche** (DECISIONS 61 §5: a landing waited 77.5
@@ -23,40 +23,33 @@ closed; the battery 576 / 6566 / 2974, unmoved by fifteen later landings.*
   and Toughest's on **Sonnet 5.5**, `--effort high` both; 1497 waits for a
   lane. The roster is the user's word of 2026-10-06: the mix runs once
   more, judged at the twenty-sixth pass, with 1464's trial and 1139.
-- **The coverage pair is the French pair's successor** (DECISIONS 61 §6,
-  parked 1498): scored; its scoreboard line and parser land at that booking.
+- **The coverage pair is the newest pair** (DECISIONS 62 §3): the French
+  pair closed on 1519; its `Coverage pair:` line is read by its own test.
 - **Built**: `lanewait` wakes on a push only when the row has stopped;
   `waitrun.sh` calls a traceback with no receipt a dead take; the runner
   gives up on a second stall; `ron_lane_state` exits 1 held; `CLAUDE.md`:
   a merge-moved pin is no kill, the push is read back, a section stub lands.
-- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521).
+- **Fable backlog: 21 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
-Third pair: EastIndiesFrench w17318 of 17,379 · GreatLakesFrench w5638 of 5,638
+Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
+Coverage pair: EastIndiesPersianAllTech w177 of 4,730
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15275 of 15,432
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche — `commander`, spawned by the pass: two
-lanes, 1519 on Opus 5.5 and 1524 on Sonnet 5.5; at twenty it spawns `steer`.**
+lanes, 1511 on Opus 5.5 and 1524 on Sonnet 5.5; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1519, then 1511) and the third map's (1524); 1497 waits for a
-free lane, lower map first — East Indies (French).
+pair's (1511) and the third map's (1524); 1497 waits for a free lane,
+lower map first — closed, the French pair's; 1511's row moves it.
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
-
-1519. **French East Indies frame 17318, 21 versus 15 draws**, index
-    5: ours `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` (1/115
-    twice, and gaia 9/6's four `set_anim+0x104b`), theirs
-    `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. run662 (17312..17377,
-    to the game's end) widens it, 562 keys: the first parting is the
-    Elite Pikeman 1/115's stack and walk on block 17319, nothing on
-    17313..17318. 61 frames from the end. No mechanism.
 
 1524. **Great Sahara at Toughest's word: frame 15275, 12 versus 11
     draws**, index 4: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
@@ -69,10 +62,10 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     index 2: ours `Leader::make_stuff+0x221` three times, theirs twice
     then `Guy::set_anim+0x97a` — `make_me` fills three Village slots
     here (t 414: slots 0, 1, 9) against two. run660 (blocks 171..184).
-    Leader 1's `SITE` list stands since block 1 (parked 1506) — a
-    hypothesis, not yet shown the only cause. No mechanism. The newest
-    pair's word once the French pair closes; it owes the coverage
-    driver its windows, run656's and run660's (621; parked 1513).
+    Leader 1's `SITE` list since block 1 is a hypothesis (parked 1506).
+    No mechanism. The newest pair's word: it owes its `AI_WORDS` row
+    and `NEWEST_PAIR`, the row's window walked by the compared pin and
+    the coverage driver — run656's and run660's (621; parked 1513).
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

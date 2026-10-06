@@ -1956,7 +1956,15 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// 17244 → 17318, 21 vs 15 draws, index 5 Unit::find_attack_pos+0xea9 under
 /// Unit::fight+0xcb4 versus Guy::set_anim+0x97a under Unit::do_idle+0x7d.
 /// run662 block 17319.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_318;
+/// Item 1519: `find_attack_pos` reads a guard's **activity**, the `GUARD`
+/// under its attack, and against a building takes no spot (`6015ea`,
+/// `LAB_00601604`); `fight` then drops the attack (AI §138). The Elite
+/// Pikeman `1/115` stands on its lone `GUARD` at (6120, 8952) on block 17319
+/// on both sides, against ours' `[MoveTo, Attack, Guard]` at (6122, 8925),
+/// and the four bird coins go with the two draws: 17318 → 17379, the trace's
+/// end. run600's closing state is scored by
+/// `run600_french_east_indies_closing_state`.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 17_379;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1997,8 +2005,12 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_16857: (i64, i64) = (16851, 16863);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_17171: (i64, i64) = (17165, 17177);
 /// run661's blocks, the word 17244's until item 1514 moved it to 17318.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_17244: (i64, i64) = (17238, 17250);
-/// run662's blocks around the word 17318, to the game's end (item 1514).
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17312, 17377);
+/// run662's blocks around the word 17318, to the game's end (item 1514);
+/// the map's closing window since item 1519 closed it at 17379.
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_17318: (i64, i64) = (17312, 17377);
+/// run667's: French East Indies' last running blocks and its closing state,
+/// 17374..17380 (item 1519, which closed the map at its end, 17379).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_CLOSING: (i64, i64) = (17374, 17380);
 /// run658: the gap before 17171, blocks 17018..17057 (item 1502).
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_GAP: (i64, i64) = (17018, 17057);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
@@ -8587,13 +8599,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run655 (16851..16863); item 1500 to 17171, past it, widened on run657
     // (17165..17177); item 1508 to 17244, past it, widened on run661
     // (17238..17250); item 1514 to 17318, past it, widened on run662
-    // (17312..17377), to the game's end.
+    // (17312..17377), to the game's end; item 1519 to 17379, the trace's
+    // end, inside it, its closing state scored by
+    // `run600_french_east_indies_closing_state`.
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run662_s_word_frame_is_widened_whole"),
-        1514,
-        Some(WIDENING_FRENCH_EAST_INDIES),
+        Some("run667_s_closing_frame_is_widened_whole"),
+        1519,
+        Some(WIDENING_FRENCH_EAST_INDIES_CLOSING),
     ),
     (
         "THIRD_PAIR_WORD_GREAT_LAKES",
@@ -8923,8 +8937,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (French)",
         word: THIRD_PAIR_WORD_EAST_INDIES,
         length: 17_379,
-        endpoint: None,
-        window: Some("french_east_indies_word_window"),
+        endpoint: Some("run600_french_east_indies_closing_state"),
+        window: None,
     },
     AiWord {
         line: "Third pair",

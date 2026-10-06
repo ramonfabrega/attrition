@@ -105,6 +105,7 @@ COMMANDERS_LINES = (
     'the_handoff_s_second_pair_is_the_pinned_words',
     'the_handoff_s_third_pair_is_the_pinned_words',
     'the_handoff_s_third_map_is_the_pinned_word',
+    'the_handoff_s_coverage_pair_is_the_pinned_word',
 )
 # What `cargo test` exits with when a test failed; a kill (memcap's 137) or
 # a build error is not a red test and is never forgiven.

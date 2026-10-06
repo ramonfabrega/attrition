@@ -52,6 +52,16 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1519, 2026-10-06 — the French pair's close
+
+(1525) **What 1519 left standing at the French pair's close**: the 14
+city fields on the defeated human's Village in the closing state
+(`run600_french_east_indies_closing_state`); run662's four rows past the
+word (the Village's `damage` 120 against 121, leader 1's `caras`, 1/96's
+`form`); our attack-position search taking a 0-scored first candidate
+where the original wants `local_70 < score`; and `capture_eligible`'s
+`> 5` for a village against CITIES §7.1's `> 4`.
+
 ## Parked by item 1517, 2026-10-06 — the cast's angle
 
 (1523) **`do_cast`'s pack arm sets the angle with no walk to hold it**:
@@ -3678,6 +3688,18 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1527) **A `pkill -f` on a test binary's name reaches every lane**
+(1511's message, 2026-10-06 13:01): every worktree builds `rondata`'s
+test binary under the same hashed name (`rondata-6503fbbb16c1e8c2`), so
+1511's kill of its own detached suite matched 1524's too. A frame row
+— kill a detached suite by its own pid, never by name — or a
+`tools/memcap.sh` that records the pid it launched. One reach.
+
+(1526) **On a packet, run the unit's whole `process` first and read the
+call trace** (1519's Loop line, 2026-10-06): 1519 read three predicates
+both sides passed before the one that parted; the trace named it in one
+run. A frame row for the packet's first step. One reach.
 
 (1521) **A stand-in that names no `SEAM` is invisible to `seams.py`**
 (1514's Loop line, 2026-10-06): a booking's "the head is still this
