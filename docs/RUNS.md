@@ -15349,3 +15349,63 @@ block 977. Past it: `1/24`'s `form` on 979, leader 1's `MAKE[3].t`/`MAKE[4].t` (
 983 the site `1/2025` at (35712, 35904) in ours against (34368, 35136). It is the coverage pair's `AI_WORDS` window
 (`coverage_pair_word_window`), walked by the compared pin with run669's and run672's, and the coverage driver reads its block 983.
 `docs/AI.md` §148.
+## run675 — Great Sahara in the coverage pair's lobby: the `DUMP_ALL` start (2026-10-06, item 1538)
+
+**Map 7 (Great Sahara), human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345** — run651's
+lobby with the map moved and nothing else (`docs/AI.md` §147). Run595's recipe through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7
+--end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+Receipt `success`, 37 frames, closing block 37, map and seed verified, lifecycle verified, five settings files restored. **Read back from the
+dump's own `GAME INFO`: every setting took** — `MAP_STYLE 7`, `GAME_RULES 1`, `DIFFICULTY 5`, `STARTING_TOWN 2`, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 8`, `ENDING_TECHNOLOGY 7`, `(int)seed 12345`; players (0, 4) and (1, 23). Launch-to-exit 359.6 s, total 372.6 s; the lane was free.
+It carries the whole records of blocks 0 and 1 and the closing block 37.
+
+Archive `gamelog-run675-greatsahara-persian-alltech-start.txt`, 149,940,745 bytes,
+SHA-256 `3995e5271b23fdb33649e76b4ccba8f90c33cb9dd523aa6b029b43ef151f000c`.
+
+Archive `rontrace-run675.log`, 8,641,280 bytes,
+SHA-256 `c541e4f4102da8b2c974c147cea806a2c1bb453717b4709a2be5ac1d900933fa`.
+
+**What it holds**: the lobby's own start, the sibling `diff::sahara_coverage` stands the sim up from. `rngcmp.py rontrace-run675.log rontrace-run676.log`:
+37 frames in common, 0 differing.
+
+## run676 — Great Sahara in the coverage pair's lobby: the draw stream to the game's end (2026-10-06, item 1538)
+
+The long trace of run675's lobby: run652's recipe with the map moved — `--map 7 --end-frame 24000 --timeout 2400 --log-window 0 24001 --ffwd-minute 27
+--cover cover=0 --callwin 0 24000 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the details
+`end:MISC`, `start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
+`endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+
+**The game ended itself at frame 4340** (trace last frame 4340, closing block 4341; the human `defeated_by 1`), so the runner's requested-endpoint
+receipt failed (`missing, repeated, or unexpected simulation frames`) and `waitrun.sh` exited 2, as run652 did; both files retained, five settings
+files restored (`Restored backed-up settings` in the log). The failed receipt wrote no timing: launched 16:42, the dump last written 16:43. Seed
+12345, `MAP_STYLE 7`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7` read back; tribes 4 and 23. The lane was free (no wait).
+
+Archive `gamelog-run676-greatsahara-persian-alltech-24k-trace.txt`, 18,637,566 bytes,
+SHA-256 `e1ea8794a752d94ee53e627bfffdb8bc79cb8035b0d81598c29f64beee6417af`.
+
+Archive `rontrace-run676.log`, 198,006,464 bytes,
+SHA-256 `dc864320bdcf9fc42968c1a8420cf278aceb1ab68cdc728596f4192e653ef63b`.
+
+**What it holds**: the lobby's whole draw stream to the game's end and its explicit setup and closing records;
+`diff::sahara_coverage::sahara_coverage_first_parting` walks it from run675's start. On the base tree it parted on **frame 12, ours 5 draws against 6,
+index 0** (ours `Farms::inc_time+0x1ae`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`); `docs/AI.md` §147 has the cause and the new word.
+
+## run677 — Great Sahara in the coverage pair's lobby: the word 12's widening, blocks 6..262 (2026-10-06, item 1538)
+
+**Disk gap**: run675 holds whole records of blocks 0, 1 and 37 and run676 the draw stream and the closing state, so no dump of this lobby held a
+unit, a building or a leader record at the word's frame 12 (block 13). Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 270
+--timeout 3600 --log-window 6 263 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch. Receipt `success`, 271 frames, closing block 271,
+launch-to-exit 725.4 s, total 742.8 s, five files restored. `rngcmp.py rontrace-run676.log rontrace-run677.log`: **271 frames in common, 0 differing**.
+`MAP_STYLE 7`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345 read back. 257 window blocks, 6..262, and a closing
+block 271.
+
+Archive `gamelog-run677-greatsahara-persian-alltech-window-6-262.txt`, 417,504,234 bytes,
+SHA-256 `05fcedfa2026baa8968b27e4a83f35282bda816edd2235d52a1bfaf040417aff`.
+
+Archive `rontrace-run677.log`, 9,074,272 bytes,
+SHA-256 `20f183d33dde960858a40b0ab5958d67b99cc6cfa251a8173c88169e84f742cc`.
+
+**What it holds**: `diff::sahara_coverage::run677_s_word_frame_is_widened_whole` — **395** keys parted on the base (67 standing on block 6), **69**
+since item 1538's build. The word 12's block is 13; the first row past the standing block is leader 1's `known_rares` on block 8, and the first
+state the original and ours place differently is the Oil Well `1/2013` on block 12. `docs/AI.md` §147.

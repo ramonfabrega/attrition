@@ -16551,10 +16551,45 @@ building in ours. A Persian *human*: the arm is the leader's, not the AI's, and 
 reading-only: the arm's limit at more than one pairing and the population refusal, neither reached (`caras` is 0 at the one slot
 that fires).
 
-## 147. Reserved for item 1538 (Great Sahara in the coverage pair's lobby)
+## 147. Great Sahara in the coverage pair's lobby: two patches tied, and the list's order decides (2026-10-06, item 1538)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** DECISIONS 56 §1: the closed map's successor once Toughest's closing state agreed (§145). Great Sahara
+(`MAP_STYLE 7`) in the coverage pair's lobby — human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+seed 12345 — is run675 (the `DUMP_ALL` start) and run676 (the draw stream; **the game ended itself at 4340**, the human `defeated_by 1`); both read
+back **every setting** from their own `GAME INFO` (`docs/RUNS.md`), and `rngcmp.py` finds run675 and run676 identical on their 37 shared frames.
+`diff::sahara_coverage::sahara_coverage_first_parting` walks run676 from run675's start. Each claim is *diff-backed* unless marked.
+
+1. **The first parting, on the base tree: frame 12, ours 5 draws against 6, index 0.** Ours opens with the five `Farms::inc_time+0x1ae`; theirs
+   draws one `Guy::set_anim+0x97a < Unit::set_anim < Unit::move_step+0x823` first — a unit's move step re-animates. The trace's frame 11 agrees draw for
+   draw (the same `produce_building+0x1805` rolls), so the state parted before the word's frame.
+2. **run677 (blocks 6..262, `docs/RUNS.md`) says where.** 395 keys part, 67 standing from block 6 (the control's set: both leaders' `form`, the blank `SITE`
+   slots' `reg`, the city fields, the pools, `scouts`; `tools/standing.py`). Past them the first rows are leader 1's `known_rares` on block 8 (ours 0, theirs
+   1) and, on **block 12**, the Oil Well **`1/2013`** (`TypeIndex` 421, `OILWELL`, `orig_type` 421): `x_internal`/`y_internal` **(34944, 10368)** in ours, **(44928,
+   8832)** in theirs — cells (45, 13) and (58, 11) — and with it `1/1`, `1/2` and `1/6`'s whole order stacks and paths (a builder walks to its well), so on 12
+   the units step differently and theirs draws the anim roll.
+3. **Both cells are leader 1's patches, tied.** A scratch print of `pick_oil_patch` (not kept) on frame 11: the list is `[(48,24), (45,13), (51,39), (58,11)]`,
+   all owned, anchor (53, 22). The Oil Well placed on 8 stands on (48, 24) (mask bit 7 from then on, so it is skipped), and the two candidates left score
+   **108 each** — `2 · width − vector_dist` — so the walk, last to first with `score >= best`, ends on the earlier entry: (45, 13) in this crate's list, where the
+   original takes (58, 11), the entry *last* in ours. §133 had said it: "the order the original reaches a list's patches in at setup … only decides ties".
+   The probe that settles it: sorting the list row-major at the pick moved the word **12 → 718** and nothing else.
+4. **The original's order is the per-cell scan's.** `World::compute_reg_territory@006b0bb0` walks the land regions in order and each region's cells in grid order
+   (`Sim::advance_border_pass`, `border_pass.rs`), and its per-cell goods scan adds a patch the moment a cell is given. The harness's stand-in for that
+   pass, `Sim::claim_oil_from_owners` (setup's wholesale recompute, `settle_borders`, the dump's installed owner grid), walked the goods list. **Built**:
+   a land patch is added in `(region, cell index)` order and a patch outside any land region keeps the goods list's order after them
+   (`crates/sim/src/rares.rs`); unit test `ai_place::tests::a_wholesale_claim_adds_land_patches_in_cell_scan_order` (it ends a tied pick on the earlier row's patch).
+
+**The value diff, and the word now.** run677: **395 keys → 69** — the 67 standing keys, leader 1's `known_rares` on block 8 and leader 0's `production_step` on
+201 (the control's too: §144's run669 has it). `1/2013` and `1/1`, `1/2`, `1/6`'s order stacks agree on every block. `sahara_coverage_first_parting`: **frame 12 →
+718, count and sequence both** — ours **6 draws against 5, index 0**: ours `Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae` — a move step ours rolls and theirs
+does not. No capture holds block 719: run677 ends at 262. **The widening of 718 is owed** (one capture, blocks 713..969, run677's recipe). No mechanism is named.
+
+**The walks.** `cargo test --release -p sim -p rondata` on the built tree: no other capture's pin moved (every closed word and the four open ones hold); the
+one red was the ledger's, `diff/sahara_coverage.rs`, which is now on it. Mutations (`tools/mutate.py` on `2efb7f1d`): the sort out — held by
+`sahara_coverage_first_parting` (718 → 12) and `run677_s_word_frame_is_widened_whole` (69 → 395) and by the unit test.
+
+**What is not established.** The original's list order is the *region/cell order of the per-cell scan*; the fog's arm (`reveal_fog`, a unit's sight at setup) also
+adds patches, in an order this crate does not model (a unit's sight sweeps); the order is only read at a tie and this is the one tie the walk reaches before 718. Which of the two writers reached each patch first in the original is not shown by any dump (the list is not printed). Leader 1's
+`known_rares` on block 8 (1 against 0) is untouched: nothing here reads it before a Merchant (`civilian_value`), and it parts quietly until then.
 
 ## 148. `total_units` counts owners below nine, and the word at 982 (2026-10-06, item 1544)
 

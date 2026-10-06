@@ -367,6 +367,14 @@ impl Sim {
     /// patches in the goods list's order, which is the order the original's
     /// per-cell scan reaches them in only where it reaches them by cell.
     pub fn claim_oil_from_owners(&mut self) {
+        // **A land patch joins in the per-cell scan's own order** (item
+        // 1538, `docs/AI.md` §147): `compute_reg_territory` walks the land
+        // regions in order and each region's cells row-major
+        // ([`Sim::advance_border_pass`]), so two patches tied on score reach
+        // `pick_oil_patch` in that order and the original's tie goes to the
+        // other one than the goods list's order picks.
+        let mut land: Vec<((u16, usize), usize)> = Vec::new();
+        let mut rest = Vec::new();
         for gi in 0..self.world.goods().len() {
             let g = self.world.goods()[gi];
             if !g.alive || g.ty != crate::world::OIL {
@@ -376,6 +384,21 @@ impl Sim {
             if self.first_live_good_at(c) != Some(gi) {
                 continue;
             }
+            match self.world.region_of(c) {
+                Some(r)
+                    if self
+                        .world
+                        .regions()
+                        .any(|(i, t)| i == r && t == crate::world::Terrain::Land) =>
+                {
+                    land.push(((r, (c.y * self.world.width() + c.x) as usize), gi));
+                }
+                _ => rest.push(gi),
+            }
+        }
+        land.sort_unstable();
+        for gi in land.into_iter().map(|(_, gi)| gi).chain(rest) {
+            let c = self.world.goods()[gi].pos.cell();
             if let Some(p) = self.world.owner(c).player() {
                 self.add_oil_patch(p, gi);
             }
