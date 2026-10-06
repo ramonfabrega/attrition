@@ -56,6 +56,8 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (9, 11, 0),
     // The coverage pair's (item 1466): Persians at Toughest, East Indies.
     (18, 23, 5),
+    // The same lobby on Great Sahara (item 1538).
+    (7, 23, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
