@@ -15006,3 +15006,7 @@ parting of 17171 is in the gap, and no dump shows it.
 - No blind reading. The arm is diff-backed by run600's draw on 16857 and
   run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
   only; the two-order converse rests on the listing.
+
+## 131. French East Indies, the gap before 17171 (2026-10-06, item 1502)
+
+In progress: item 1502 dates the first parting in the gap 16869..17164.
