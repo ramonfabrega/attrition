@@ -1812,7 +1812,13 @@ mod tests {
         }
         pin_eq!(
             landing.iter().map(|(o, f)| (*o, *f)).collect::<Vec<_>>(),
-            [(84, 15_224), (95, 15_213), (96, 15_209), (106, 15_217), (139, 15_198)],
+            [
+                (84, 15_224),
+                (95, 15_213),
+                (96, 15_209),
+                (106, 15_217),
+                (139, 15_198)
+            ],
             "the five rounds and the frame each lands on"
         );
         let text = crate::capture::read(&path);
@@ -1826,7 +1832,8 @@ mod tests {
                 .unwrap_or_default()
         };
         let village = |n: i64| {
-            at(n).1
+            at(n)
+                .1
                 .iter()
                 .find(|b| (b.who, b.o) == (0, 2000))
                 .and_then(|b| b.damage)

@@ -4450,7 +4450,11 @@ mod tests {
             let before = sim.rng.clone();
             let p = round(&sim, me, Some(Obj::Building(b)), Pos::new(2016, 2016), 1);
             sim.land(p, 1522);
-            assert_eq!(sim.hits.len(), usize::from(!decoy), "decoy {decoy}: a strike");
+            assert_eq!(
+                sim.hits.len(),
+                usize::from(!decoy),
+                "decoy {decoy}: a strike"
+            );
             assert_eq!(
                 sim.buildings[b].damage > 0,
                 !decoy,
