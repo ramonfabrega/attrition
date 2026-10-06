@@ -606,7 +606,7 @@ impl Sim {
         };
         let circle = crate::ai_place::circle();
         let ring = ((range + 0x2ff) / 0x300) as usize;
-        let live = self.units.iter().filter(|x| x.alive()).count();
+        let live = self.total_units();
         if live < circle.radius[ring] {
             let mut all: Vec<usize> = (0..self.units.len()).collect();
             all.sort_by_key(|&c| (self.units[c].owner, self.units[c].index));
@@ -1033,7 +1033,7 @@ impl Sim {
     fn find_units_round(&self, at: Pos, range: i32, who: crate::Player) -> Vec<usize> {
         let circle = crate::ai_place::circle();
         let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
-        let live = self.units.iter().filter(|x| x.alive()).count();
+        let live = self.total_units();
         let mut out = Vec::new();
         let keep = |o: usize, out: &mut Vec<usize>| {
             let x = &self.units[o];

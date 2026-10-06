@@ -73,6 +73,13 @@ pub(crate) struct Pair {
     /// (`docs/AI.md` §146). At 727, ours 8 game draws against 7, index 0:
     /// ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::
     /// set_anim+0x97a < Guy::inc_time+0x271`.
+    /// **Item 1544 moved it from 727 to 982 (count and sequence)**:
+    /// `game->total_units` counts owners below nine, so `find_build_spot`'s
+    /// builder tally walks the lists while the players' and the animals'
+    /// units are under `circle_radius[6]`, and `1/8` goes to the Bunker
+    /// `1/2020` on 690 as the original sends it (`docs/AI.md` §148). At
+    /// 982, ours 562 game draws against 696, index 13: ours `Leader::
+    /// produce_building+0xc99`, theirs `Leader::produce_building+0x1805`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -90,8 +97,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 727,
-    sequence: 727,
+    count: 982,
+    sequence: 982,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -530,16 +537,18 @@ fn run672_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **247** on the tree item 1539 landed (355 on item 1532's). Block
+    // **109** on the tree item 1544 landed (247 on item 1539's, 355 on
+    // item 1532's). Block
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`).
-    pin_eq!(w.firsts.len(), 247, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 109, "initial run672 baseline");
     // **The move's value diff** (`docs/AI.md` §144): the University
     // `1/2009` replanned its road on 583 in ours, flagged by the Barracks
     // `1/2022`'s activation on 568 where the original's came on 567, a
     // frame before the University's slot; it agrees now in every field
-    // through the word's block (its flag parts again on 779, downstream).
+    // through the window's last block (its flag parted again on 779 until
+    // item 1544 sent `1/8` to the Bunker).
     let university = w
         .firsts
         .iter()
@@ -548,8 +557,8 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         university,
-        Some(779),
-        "1/2009 agrees in every compared field through the word's block"
+        None,
+        "1/2009 agrees in every compared field through the window"
     );
     // **What parts first past the standing block**: leader 1's make list
     // on block 581 (`MAKE[2].num`, `MAKE[3].num` 5 against 10), then the
@@ -599,23 +608,20 @@ fn run672_s_word_frame_is_widened_whole() {
             "leader 1's {key} agrees through the word 727's block"
         );
     }
-    // **The word 727's block, 728**: ours 8 game draws against 7, ours a
-    // `Unit::move_step` turn. The citizen `1/8` (`PEASANTS`) holds
-    // `[ExploreTo, Build 2020]` in both, its approach (41160, 40584) in
-    // the original against (42072, 41928) in ours from block 691, and on
-    // 728 ours has it colliding with `1/6`.
+    // **The move's value diff** (item 1544, `docs/AI.md` §148): the word
+    // 727's block, 728, had ours' citizen `1/8` (`PEASANTS`) blocked by
+    // `1/6`, its approach (42072, 41928) against the original's (41160,
+    // 40584) from block 691 — `find_build_spot` on 690 sent it to the
+    // Lumber Mill `1/2012` in ours and the Bunker `1/2020` in the original.
+    // Ours' builder tally walked the cell circle on 153 live units where
+    // `total_units`, owners below nine, is 134 and walks the lists. It
+    // agrees in every compared field through the window's last block.
     pin_eq!(
         w.firsts
-            .get(&(1, 8, "orders_x".to_string()))
-            .map(|(f, _)| *f),
-        Some(691),
-        "1/8's approach parts on block 691"
-    );
-    pin_eq!(
-        w.firsts
-            .get(&(1, 8, "collide_o".to_string()))
-            .map(|(f, _)| *f),
-        Some(728),
-        "and on the word's block it collides in ours"
+            .iter()
+            .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 8) && *f > 577)
+            .count(),
+        0,
+        "1/8 agrees in every compared field past its standing `form`"
     );
 }

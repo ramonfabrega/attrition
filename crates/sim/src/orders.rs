@@ -7200,6 +7200,34 @@ impl Sim {
         ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize
     }
 
+    /// `game->total_units`, which picks the unit searches' walk: the count
+    /// `Unit::init@00612100:379` raises and `Unit::close@0060ee50:69`
+    /// lowers, **for an owner below nine only** — the players and the
+    /// animals (owner 8). An owner-9 unit (a flock bird, a farm's beast) is
+    /// inited without being counted. run672's block 690 holds 134 (14, 16
+    /// and 104) beside nineteen owner-9 units, under `circle_radius[6]`'s
+    /// 145, so the original walked the lists where a count of all 153 took
+    /// the circle (`docs/AI.md` §148).
+    pub(crate) fn total_units(&self) -> usize {
+        self.units
+            .iter()
+            .filter(|x| x.alive() && x.owner < 9)
+            .count()
+    }
+
+    /// `find_units@0065a620`'s list-walk reach (listing `65aa72..65aaa6`):
+    /// a candidate is kept when `vector_dist − R <= range`, R its
+    /// `push_size` if it is a sea unit and its `big_radius` otherwise.
+    pub(crate) fn find_units_reach(&self, o: usize) -> i32 {
+        if self.units[o].kind.domain == crate::attrition::Domain::Sea {
+            self.profile(Obj::Unit(o)).push_size
+        } else {
+            self.units[o]
+                .ty
+                .map_or(0, |t| self.unit_types[t].combat.big_radius)
+        }
+    }
+
     /// `Objects::find_builds(SEARCH_FRIENDLY, who, range, 0x200,
     /// FILTER_CONSTRUCT)` as `find_build_spot` uses it, with that caller's
     /// own two extra tests folded in: **my** sites, and not under attack
@@ -7286,7 +7314,7 @@ impl Sim {
         let mut counts = vec![0i32; sites.len()];
         let circle = crate::ai_place::circle();
         let ring = Self::ring_index(range);
-        let live = self.units.iter().filter(|x| x.alive()).count();
+        let live = self.total_units();
         let tally = |sim: &Self, o: usize, counts: &mut Vec<i32>| {
             let unit = &sim.units[o];
             if !unit.alive() || (unit.owner != who && !sim.is_ally(who, unit.owner)) {
@@ -7319,9 +7347,16 @@ impl Sim {
                 }
             }
         } else {
+            // The list walk (`find_units@0065a620`, `65aa72..65aaa6`): the
+            // candidate's own tile region against the searcher's, and the
+            // reach less its radius.
+            let region = self.world.tregion_alt(here.tile());
             for o in 0..self.units.len() {
                 let p = self.units[o].pos;
-                if vector_dist(p.x - here.x, p.y - here.y) > range {
+                if !self.units[o].on_map
+                    || self.world.tregion_alt(p.tile()) != region
+                    || vector_dist(p.x - here.x, p.y - here.y) - self.find_units_reach(o) > range
+                {
                     continue;
                 }
                 tally(self, o, &mut counts);

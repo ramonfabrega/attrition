@@ -625,7 +625,7 @@ impl Sim {
     fn find_push_candidates(&self, u: usize, at: Pos, range: i32) -> Vec<usize> {
         let circle = crate::ai_place::circle();
         let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
-        let live = self.units.iter().filter(|x| x.alive()).count();
+        let live = self.total_units();
         let region = self.world.tregion_alt(at.tile());
         let mut out = Vec::new();
         if circle.radius[ring] <= live {
@@ -665,14 +665,7 @@ impl Sim {
                 {
                     continue;
                 }
-                let r = if self.units[o].kind.domain == crate::attrition::Domain::Sea {
-                    self.profile(Obj::Unit(o)).push_size
-                } else {
-                    self.units[o]
-                        .ty
-                        .map_or(0, |t| self.unit_types[t].combat.big_radius)
-                };
-                if vector_dist(p.x - at.x, p.y - at.y) - r > range {
+                if vector_dist(p.x - at.x, p.y - at.y) - self.find_units_reach(o) > range {
                     continue;
                 }
                 out.push(o);
