@@ -3725,6 +3725,14 @@ each a new section at the file's end; each cost a backed-out merge, an
 update and a second lane gate. A section reserved by number could be
 written at its place by a stub the commander lands at the spawn.
 
+(1492) **`ccc push <ref>` said "nothing to push" with origin behind**
+(the commander, 2026-10-06, ccc 0.1.38): after 4b29c0d7's gate, twice,
+with `origin/worktree-replan-pdb` at 44801e04 after a fetch; a plain
+`git push origin worktree-replan-pdb` sent 44801e04..4b29c0d7. The
+chain's push step is read by its answer, so a false "nothing" leaves a
+gated booking off origin in silence; a check that `git rev-parse` of
+both refs agrees after the push would catch it.
+
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a
 hand-written driver; `writers.rs` reads any `#[cfg(test)]` in `lib.rs`
