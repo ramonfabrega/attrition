@@ -16276,7 +16276,9 @@ behind its own `ExploreTo` (to (36696, 39240), (37560, 39480), (36792, 40584)); 
 
 **The walks.** `cargo test --release -p rondata` on the built tree: 751 passed, and the three that failed were this pair's pins
 (`coverage_pair_first_parting`, run660's 97 → 74 keys, run669's 192 → 100), all re-pinned; no other capture moves, so no Dock,
-Airbase or Silo another capture places reaches the arm with a trainer beside it.
+Airbase or Silo another capture places reaches the arm with a trainer beside it. Mutations (`tools/mutate.py` on `e5466b1e`): the
+candidate's trainer test off — held by `coverage_pair_first_parting`, run660's and run669's widenings, and the unit test; the
+neighbour's flag read off the old list (an Airbase, Silo or Dock no trainer) — held by `coverage_pair_first_parting` and run669's.
 
 **What is not established.** `find_friends`' enhancer test still reads `is_enhancer`, four idents, where the original's
 `is_gather_enhancer@00472b50` asks `is(…, 0)` of four lines — the same shape as the list replaced here; no walk parts on it.
