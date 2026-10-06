@@ -9438,3 +9438,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run660.log` -> 0 differing in 191 frames;
 # `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. **The output directory must not exist** (the runner `mkdir`s it).
 # ==== TAKEN 2026-10-06, 06:29–06:31 (one lost launch on the directory) ====
+
+# ==== item 1511: the coverage pair's frame 185 word, run669 ====
+#
+# One run on the click-free lane, not a stanza (`docs/AI.md` §141; `docs/RUNS.md` run669): run651's lobby at the long's detail over blocks 180..436,
+# the word's block 186 with six before it and 250 after:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run669 \
+#     --map 18 --end-frame 445 --timeout 3600 --log-window 180 437 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run669.log` -> 0 differing in 446 frames;
+# `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. The output directory must not exist.
+# ==== TAKEN 2026-10-06, one take, 12:52–13:08 (the lane was held by another lane's capture until 12:52) ====

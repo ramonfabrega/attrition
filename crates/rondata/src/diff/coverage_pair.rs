@@ -44,6 +44,12 @@ pub(crate) struct Pair {
     /// set_anim+0x97a < Guy::inc_time+0x271`)**: the leader's oil patches
     /// are carried now (`docs/AI.md` §133), and 177's `make_me` fills
     /// three Village slots in ours against two in theirs.
+    /// **Item 1511 moved it from frame 177 to 185 (the sequence; the count
+    /// parts on 377)**: the All Technologies start owns Electronics, and
+    /// `WorldData::was_seen`'s leader arm answers every cell seen for it,
+    /// so leader 1's site list agrees from block 1 (`docs/AI.md` §141). At
+    /// 185, 22 draws a side, index 8: ours `Leader::produce_building+0x1805`,
+    /// theirs `Leader::make_stuff+0x63d`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -61,8 +67,16 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 177,
-    sequence: 177,
+    count: 377,
+    sequence: 185,
+};
+
+/// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
+/// carry it: the lower of the two partings.
+pub(crate) const COVERAGE_PAIR_WORD: i64 = if COVERAGE.count < COVERAGE.sequence {
+    COVERAGE.count
+} else {
+    COVERAGE.sequence
 };
 
 /// **The pair's first parting**, walked from its own start: the frame the
@@ -274,6 +288,8 @@ fn run651_s_word_frame_is_widened_whole() {
         "every captured block: the start dump's block 1"
     );
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1511 (`WorldData::was_seen`'s leader arm, `docs/AI.md` §141):
+    // **66**, the SITE list's 21 gone — the control's 48 and 18 more.
     // Item 1496 (the lobby's stockpile row, the all-technology start's
     // hit points and §9.3's woodcutter fill): **87**, of which 48 are the
     // control's. Item 1466, on the tree at base 4b29c0d7 plus the lobby's age: **226**
@@ -286,7 +302,7 @@ fn run651_s_word_frame_is_widened_whole() {
     // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
     // order's `been_there`/`wait` and `idle`, and a move order and its
     // path. The word's own draw delta is §127's.
-    pin_eq!(w.firsts.len(), 87, "initial run651 baseline");
+    pin_eq!(w.firsts.len(), 66, "initial run651 baseline");
 }
 
 /// run656, item 1496: the lobby's first 33 blocks at the long's detail
@@ -326,8 +342,9 @@ fn run656_s_word_frame_is_widened_whole() {
         "the keys the capture prints and nothing reads"
     );
     // 364 before item 1505 (the oil patches): block 9's 275 keys are gone and the
-    // 89 left are block 1's (the control's 48 and the SITE list's).
-    pin_eq!(w.firsts.len(), 89, "initial run656 baseline");
+    // 89 left are block 1's (the control's 48 and the SITE list's). 68 since
+    // item 1511: the SITE list agrees (`docs/AI.md` §141).
+    pin_eq!(w.firsts.len(), 68, "initial run656 baseline");
 }
 
 /// run660, item 1505: the lobby's blocks 171..184 at the long's detail, so
@@ -359,6 +376,46 @@ fn run660_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 14, "every captured block");
     // Block 171's standing rows (90: the control's and the SITE list's, parted since
-    // block 1), the SITE ranks from 176 and the make list from 183.
-    pin_eq!(w.firsts.len(), 132, "initial run660 baseline");
+    // block 1), the SITE ranks from 176 and the make list from 183: 132 before
+    // item 1511. **97** since: the SITE list agrees on every block and frame
+    // 177's three Village slots are two; what stands is the control's.
+    pin_eq!(w.firsts.len(), 97, "initial run660 baseline");
+}
+
+/// run669, item 1511: the lobby's blocks 180..436 at the long's detail —
+/// the word 185's block 186 with six before it and 250 after.
+pub(crate) const RUN669: &str = "gamelog-run669-eastindies-persian-alltech-window-180-436.txt";
+
+/// The window: block 180 through 436; the word's own block is 186.
+pub(crate) const WIDENING_COVERAGE_FRAME_185: (i64, i64) = (180, 436);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run669 walked from run651's start with the recorder on.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run669",
+        &[(RUN669, 180)],
+        WIDENING_COVERAGE_FRAME_185,
+        1,
+        &[186],
+        true,
+    )
+}
+
+#[test]
+fn run669_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 192, "initial run669 baseline");
 }

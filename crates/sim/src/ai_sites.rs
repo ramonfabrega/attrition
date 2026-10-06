@@ -1472,6 +1472,47 @@ mod tests {
         )
     }
 
+    /// **`was_seen`'s leader arm** (`docs/AI.md` §141): on a fog grid with
+    /// nothing lit and an unowned cell, a leader sees nothing — until it
+    /// holds `EXPLORE_MAP_BONUS`'s prerequisite (Electronics, `leader_flags
+    /// & 0x1000`), or a Fouché stands (`num_units[0x141]`, `TypeIndex` 371).
+    /// The other leader is not lent the sight.
+    #[test]
+    fn electronics_or_a_fouche_sees_every_cell() {
+        let (mut sim, kit) = kit(8, 8, 2);
+        assert!(sim.world.set_fog(vec![0; 8 * 8 * 4]));
+        let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
+        assert!(!sim.was_seen_fog(fx, fy, 1), "the fog alone: unseen");
+
+        let mut tree = sim.tech_tree.clone();
+        let electronics = tree.types.len();
+        tree.types.push(TypeDef::new("Electronics", Kind::Final));
+        tree.roles.explore_map_preq = Some(electronics);
+        sim.set_tech_tree(tree);
+        for p in &mut sim.tech {
+            p.tech.resize(electronics + 1, false);
+        }
+        let mut fouche = sim.clone();
+        sim.tech[1].tech[electronics] = true;
+        assert!(sim.was_seen_fog(fx, fy, 1), "Electronics: every cell");
+        assert!(!sim.was_seen_fog(fx, fy, 0), "and only its holder's");
+
+        let u = spawn(&mut fouche, 1, kit.citizen_unit, Pos::new(0x180, 0x180));
+        assert!(!fouche.was_seen_fog(fx, fy, 1), "a citizen is no Fouché");
+        fouche.units[u].type_index = 0x32 + 0x141;
+        assert!(
+            fouche.was_seen_fog(fx, fy, 1),
+            "a Fouché standing: every cell"
+        );
+        // `TRANSPORTGALLEON` is `TypeIndex` 0x141 itself, which the slot is
+        // not: `num_units` starts at `BASE_UNITTYPES`.
+        fouche.units[u].type_index = 0x141;
+        assert!(
+            !fouche.was_seen_fog(fx, fy, 1),
+            "a transport galleon sees nothing"
+        );
+    }
+
     // ------------------------------------------------------------------
     // The ranking and the insertion
     // ------------------------------------------------------------------

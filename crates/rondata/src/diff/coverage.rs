@@ -207,9 +207,11 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1455: Rheims, the fifth, founded on 9777 and named in run629.
     // Item 1481: Orleans, the sixth, named in run642's window.
     // Item 1487: Amiens, the seventh, named in run655's window.
+    // Item 1511: Persepolis, the Persian capital, on the coverage pair's
+    // windows (run656, run660, run669), driven since that item.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Rheims York flags increment length size",
+        "Amiens Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Persepolis Rheims York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2414,6 +2416,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 7, "six French Lakes running blocks and closing state");
         frames += n;
     }
+    // **The coverage pair's word blocks** (621; parked 1513, item 1511):
+    // run656's frame-8 word (block 9), run660's frame-177 word (block 178)
+    // and run669's frame-185 word (block 186), each with two either side.
+    for (name, block) in [
+        (super::coverage_pair::RUN656, 9),
+        (super::coverage_pair::RUN660, 178),
+        (super::coverage_pair::RUN669, 186),
+    ] {
+        if let Some(path) = crate::testenv::dump(name) {
+            let n = drive_capture(&path, block - 2, block + 2, &mut paths);
+            assert_eq!(n, 5, "the coverage pair carries its word window");
+            frames += n;
+        }
+    }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
     let actual = unread(&paths);
@@ -2796,9 +2812,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let french_17171 = super::third_pair::french_east_indies_17171_window();
     // Item 1514: and run661's, where it stood before run662.
     let french_17244 = super::third_pair::french_east_indies_17244_window();
+    // Item 1511: the coverage pair, the newest pair's open word.
+    let coverage = super::coverage_pair::coverage_pair_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2845,6 +2864,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         french_16857,
         french_17171,
         french_17244,
+        coverage,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

@@ -8668,6 +8668,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // test keeps the move's value diff on 10391..10395; the word 11182 on
     // run571 over 11177..11433 (item 1379), whose run562 test keeps the
     // move's value diff on 10780..10781.
+    // **The coverage pair** (item 1511): its word was frame 0 on run651's
+    // start (item 1466), frame 8 on run656 (item 1496), frame 177 on run660
+    // (item 1505), and **185** on run669 (180..436), past run660's last
+    // block; run660's test keeps the move's value diff on 171..184, run651's
+    // on block 1.
+    (
+        "COVERAGE_PAIR_WORD",
+        crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
+        Some("run669_s_word_frame_is_widened_whole"),
+        1511,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_185),
+    ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
         THIRD_WORD_GREAT_SAHARA_TOUGHEST,
@@ -8912,9 +8924,25 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 
 /// The pair whose lower open word is the AI track's default
 /// (`docs/DECISIONS.md` 41 §1, 53 §2).
-pub(crate) const NEWEST_PAIR: &str = "Third pair";
+///
+/// **The coverage pair since item 1511** (DECISIONS 62 §3): the French
+/// pair closed at its end on item 1519, and the coverage pair's row is
+/// the newest.
+pub(crate) const NEWEST_PAIR: &str = "Coverage pair";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
+    // East Indies with the Persians at All Technologies, which ends when
+    // the idle human is defeated at 4730.
+    AiWord {
+        line: "Coverage pair",
+        map: "EastIndiesPersianAllTech",
+        named: "East Indies (All Technologies)",
+        word: crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
+        length: 4_730,
+        endpoint: None,
+        window: Some("coverage_pair_word_window"),
+    },
     AiWord {
         line: "Third pair",
         map: "EastIndiesFrench",
