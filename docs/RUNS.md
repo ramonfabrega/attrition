@@ -14436,8 +14436,10 @@ the disk had 174 GB free after.
 | window blocks | 257, 12532..12788 |
 
 **What it holds**: `run584_s_word_frame_is_widened_whole`
-(`diff::sahara_toughest`): 1,694 keys, 134 standing on block 12532, and the
-compared pin's window on block 12570 since item 1429. Run 584 only.
+(`diff::sahara_toughest`): 1,694 keys on item 1429's tree, 1,528 with item
+1461's crew step beside it and 367 since item 1472 (`docs/AI.md` §120); 134
+standing on block 12532, and the compared pin's window on block 12745 since
+item 1472 (12570 from item 1429). Run 584 only.
 
 ## run637 — run470's game under `RON_COLLIDE_PROBE` over ticks 12540..12543: the third map's word 12575 at Toughest, read from inside (2026-10-05, item 1472)
 
