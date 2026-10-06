@@ -2495,8 +2495,20 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 15_378;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 15_432;
 
+/// **The third map at Toughest reaches its trace's end** (item 1528): it was
+/// 15378 (item 1524), ours 14 draws against 51 at index 2 — ours
+/// `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+/// `Unit::do_group_move+0xb03`. The original's two siege shots land on the
+/// human's city `0/2000` on frame 15377, taking its damage to the ceiling
+/// (1,200 of 1,200), and each is `Object::do_damage`'s tail: the shooter's
+/// army is charged onto the city (`Army::charge`, a `QUEUE_FIRST`
+/// `ATTACK_TO` with the leader's guard re-issued behind it) and the city's
+/// `reduce_stamp` written — `docs/AI.md` §142. Block 15378, widened on
+/// run668: 887 keys before, 72 after, all of them the group number's standing
+/// 64.
+///
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
 ///
@@ -8702,11 +8714,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // 15230..15433, to the game's end, and moved it 15275 → 15378,
         // inside it (block 15379). run668's test keeps the move's value diff
         // on 15247 (`1/153`'s `coll`, gone) and the new word's own block;
+        // item 1528 moved it 15378 → 15432, the trace's end, inside run668's
+        // window (15230..15433), its closing state scored by
+        // `run470_great_sahara_at_toughest_closing_state`;
         // run664's keeps 15207..15230 (empty past the 92 that stand);
         // run663's keeps 15095..15103, run659's 14506..14514, run653's
         // 14357..14364, run640's 12811..12817, run584's 12532.
         Some("run668_s_word_frame_is_widened_whole"),
-        1524,
+        1528,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_15275),
     ),
 ];
@@ -8985,7 +9000,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara at Toughest",
         word: THIRD_WORD_GREAT_SAHARA_TOUGHEST,
         length: 15_432,
-        endpoint: None,
-        window: Some("great_sahara_toughest_word_window"),
+        endpoint: Some("run470_great_sahara_at_toughest_closing_state"),
+        window: None,
     },
 ];

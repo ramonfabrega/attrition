@@ -2730,7 +2730,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174;
 /// run439 at 8519 since item 1185; run480 at 10985 since item 1243), and
 /// since item 1221 the third map at
-/// Toughest's, `sahara_toughest::great_sahara_toughest_word_window` on
+/// Toughest's, `sahara_toughest::great_sahara_toughest_15378_window` on
 /// run471 walked from run470's start, and East Indies' from run346's —
 /// walked with the
 /// recorder on; a machine without the
@@ -2752,7 +2752,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // row names its endpoint and no window; item 1221 opened the same map
     // at Toughest (DECISIONS 56 §1), whose word's blocks on run471 are
     // walked here beside East Indies'.
-    let toughest = super::sahara_toughest::great_sahara_toughest_word_window();
+    // Item 1528 closed Toughest at its trace's end, 15432: run668's blocks
+    // around the word 15378 stay walked, as French East Indies' do.
+    let toughest = super::sahara_toughest::great_sahara_toughest_15378_window();
     // Item 1519 closed French East Indies at its trace's end, 17379: run662,
     // the word 17318's window, stays walked, and run667's last running
     // blocks and closing state are walked beside it.
