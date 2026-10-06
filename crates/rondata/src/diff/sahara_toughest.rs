@@ -566,9 +566,11 @@ pub(crate) fn great_sahara_toughest_15275_window() -> Option<crate::diff::harnes
 }
 
 /// **The compared pin's window on the third map at Toughest** (item 1221):
-/// the open word [`THIRD_WORD_GREAT_SAHARA_TOUGHEST`]'s block and two on
+/// the word 15378's block (the open word's, until item 1528) and two on
 /// either side, as `second::east_indies_word_window` takes East Indies',
-/// on run668 at its block 15379 since item 1524 (run664 at its block 15214
+/// on run668 at its block 15379 since item 1524, kept since item 1528 closed
+/// the word at the trace's end, 15432, and renamed from `…_word_window` (an
+/// open word's name, which `AI_WORDS` holds the compared pin to; run664 at its block 15214
 /// from item 1517, run663 at its block 15102
 /// from item 1510, run659 at its block 14513
 /// from item 1503, run653 at its block 14364
@@ -587,7 +589,7 @@ pub(crate) fn great_sahara_toughest_15275_window() -> Option<crate::diff::harnes
 /// from item 1264, at its block 8378 from item 1275; run488 from item 1260, run483 from item 1251, run476
 /// from item 1241, run471 before it). `coverage`'s compared pin walks these
 /// blocks with the recorder on.
-pub(crate) fn great_sahara_toughest_word_window() -> Option<crate::diff::harness::tests::Widened> {
+pub(crate) fn great_sahara_toughest_15378_window() -> Option<crate::diff::harness::tests::Widened> {
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail`.
     let word = TOUGHEST_WORD_BLOCK_15379 - 1;
     toughest_window_over(
@@ -1949,6 +1951,84 @@ mod tests {
         );
     }
 
+    /// **Great Sahara at Toughest's closing whole-map state** (item 1528):
+    /// the word reached the trace's end, 15,432, once an army's charge on a
+    /// city taken to its ceiling was built (`docs/AI.md` §142), and a draw
+    /// stream that agrees to a game's end says nothing of the end itself
+    /// (item 1099). run470's closing dump — the idle human's defeat —
+    /// walked to and compared whole, as French East Indies' is
+    /// (`third_pair::run600_french_east_indies_closing_state`).
+    #[test]
+    fn run470_great_sahara_at_toughest_closing_state() {
+        let _pins = Pins::hold();
+        use crate::diff::*;
+        let Some(inst) = install() else {
+            return;
+        };
+        let (Some(path), Some(start), Some(tr)) = (
+            dump(TOUGHEST_LONG.0),
+            dump(TOUGHEST_START),
+            trace(TOUGHEST_LONG.1),
+        ) else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(path);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let fin = log
+            .final_state()
+            .or_else(|| log.frame_states().pop())
+            .expect("closing whole-map state");
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "Great Sahara at Toughest closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+            e.frame,
+            e.compared,
+            e.counts(),
+            e.torn,
+            e.off,
+            e.unlinked,
+            e.extra
+        );
+        pin_eq!(e.frame, 15_433, "the closing block");
+        // Item 1528: 189 units, none off, unlinked, torn or extra.
+        pin_eq!(e.compared, 189, "units compared");
+        // **The seven buildings and six cities unlinked are the closing's
+        // own.** The six cities print `o -1` in a closing dump (the five
+        // computer cities and the human's), so none links by number — the
+        // count the third map's 24,001 row carries three of. The seven
+        // buildings are the human's city `0/2000`..`0/2006`, which the
+        // original's army **captures on frame 15432**, the game's last, and
+        // numbers `1/2056`..`1/2062`: block 15432 still has them under
+        // player 0. Ours holds them under player 0 at the closing and takes
+        // the city on frame **15473** — the `Build::process` re-test every 64
+        // frames phased by `o` — because `Object::valid_target`'s capture
+        // attempt (`docs/CITIES.md` §7.1's fourth caller) is not modelled.
+        // The draws agree to the end: a capture spends none.
+        pin_eq!(e.counts(), [0, 0, 0, 7, 0, 6, 0], "the closing counts");
+        pin!(e.torn.is_empty(), "no torn unit: {:?}", e.torn);
+        let mut held = None;
+        for _ in 0..200 {
+            built.tick();
+            if !built.sim.buildings.iter().any(|b| b.alive && b.owner == 0) {
+                held = Some(built.sim.frame);
+                break;
+            }
+        }
+        pin_eq!(
+            held,
+            Some(15_473),
+            "ours takes the human's city on this frame, 40 past the trace's end"
+        );
+    }
+
     /// **The word 15275, widened whole** (item 1524):
     /// [`great_sahara_toughest_15275_window`] over run668's blocks
     /// 15230..15433, both directions, every record run584's detail prints.
@@ -1984,7 +2064,7 @@ mod tests {
             [(15230, 92), (15266, 1), (15268, 1), (15326, 1), (15366, 1)],
             "the blocks keys first part on, the first five"
         );
-        pin_eq!(w.firsts.len(), 2596, "every key parted on run668");
+        pin_eq!(w.firsts.len(), 171, "every key parted on run668");
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
         // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -2009,10 +2089,30 @@ mod tests {
             0,
             "nothing parts on the old word's block"
         );
+        // **The word 15378, built** (item 1528, `docs/AI.md` §142): 887 keys
+        // on block 15378 (frame 15377), 77 units' orders and group 65's
+        // record beside `0/2000`'s `reduce_stamp`, where the original's two
+        // siege shots take the human's city to its ceiling and
+        // `Object::do_damage`'s tail charges the army (`Army::charge`) and
+        // stamps the city. 72 stand: each member's `GROUPORDER` id, which
+        // carries the group number — ours 1, the pool's 65 — and so parts by
+        // exactly 6,400 on every order the group lays (the standing rows of
+        // item 1293's widening, run500 over 12537). The rest part past the
+        // word with the draws agreeing to the game's last frame: leader 0's
+        // `production_step` 0 against 1 on 15401 and group 68's `speed` and
+        // `new_speed` 0 against 35 on 15421.
         pin_eq!(
             by.get(&15_378).copied().unwrap_or(0),
-            887,
-            "the new word's block (frame 15377)"
+            72,
+            "the word 15378's block (frame 15377): the group number's 72"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b > 15_378)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(15_401, 1), (15_421, 2)],
+            "what parts past the word: three keys, the draws agreeing"
         );
     }
 

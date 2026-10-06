@@ -1126,21 +1126,18 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         for (k, &theirs) in c.ter.iter().enumerate() {
             fields.push((format!("ter[{k}]"), i64::from(ai.ter[k]), theirs));
         }
-        // **The three fields nothing here holds**, asserted against the
+        // **The two fields nothing here holds**, asserted against the
         // zero this crate answers with rather than dropped: `raid_stamp`
-        // and `reduce_stamp` are `Leader::raid`'s and the reduce order's
-        // clocks, and `scouted` is the AI's "a scout has seen this city"
-        // mark. None has a writer in this crate, so each row is a claim
+        // is `Leader::raid`'s clock, and `scouted` is the AI's "a scout has
+        // seen this city" mark. Neither has a writer in this crate, so each row is a claim
         // that the original never writes one either on the captures on
         // disk — a claim a capture can falsify, which is the point of
         // leaving it in.
-        for (name, theirs) in [
-            ("raid_stamp", c.raid_stamp),
-            ("reduce_stamp", c.reduce_stamp),
-            ("scouted", c.scouted),
-        ] {
+        for (name, theirs) in [("raid_stamp", c.raid_stamp), ("scouted", c.scouted)] {
             fields.push((name.into(), 0, theirs));
         }
+        // `reduce_stamp` is `Object::do_damage`'s tail since item 1528.
+        fields.push(("reduce_stamp".into(), ours.reduce_stamp, c.reduce_stamp));
         // **`trade_val` and `vans` are this crate's own since
         // `docs/CARAVAN.md` §7.2**, and until item 661 the rows still read
         // the zero written when neither had a writer — so a trade route

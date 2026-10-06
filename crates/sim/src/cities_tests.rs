@@ -6227,3 +6227,111 @@ fn a_recycled_slot_keeps_its_path_recursion() {
     let fresh = sim.add_unit(Unit::new(1, 10, tile_pos(5, 5), 40));
     assert_eq!(sim.units[fresh].path_recursion, 0);
 }
+
+/// **A city at its ceiling charges the shooter's army and is stamped**
+/// (item 1528, `docs/AI.md` §142): `Object::do_damage@0064a480`'s tail.
+/// After `Build::check_capture` has said no, a hit by another player's
+/// object on an active city building whose `damage` has reached `hits(0)`
+/// (1) drags a computer leader's **siege** shooter's army onto the city
+/// (`Army::charge`: an `ATTACK_TO` laid at the front, the army's target the
+/// city) and (2) writes the city's `reduce_stamp` — always on the hit that
+/// brought it to the ceiling, and once in 300 frames after. The charge is
+/// not behind the cooldown: run668's second siege shot on 15377 charged
+/// again. A shooter that is not siege, or sits in no army, or is a human's,
+/// stamps and charges nothing more.
+///
+/// Made to fail by taking the stamp's `fresh` arm out (the second
+/// assertion), the `is_siege_unit` test out (the last) and the whole
+/// `city_reduced` call out (the first).
+#[test]
+fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
+    let mut sim = world_sim();
+    sim.nation[0].human = true;
+    sim.nation[1].human = false;
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let (_, home) = city_at(&mut sim, &t, 1, 4, 4);
+    let mut siege_t = hoplite_type(t.barracks);
+    siege_t.combat.siege = true;
+    let siege_ty = sim.add_unit_type(siege_t);
+    let foot_ty = sim.add_unit_type(hoplite_type(t.barracks));
+    let shooter = spawn(&mut sim, 1, siege_ty, tile_pos(36, 32));
+    let mate = spawn(&mut sim, 1, foot_ty, tile_pos(37, 32));
+    let foot = spawn(&mut sim, 1, foot_ty, tile_pos(36, 33));
+    for u in [shooter, mate, foot] {
+        sim.units[u].on_map = true;
+    }
+    let slot = sim.init_army(1, Some(home));
+    sim.army_add_unit(1, slot, shooter);
+    sim.army_add_unit(1, slot, mate);
+    assert_eq!(sim.army_of(shooter), Some(slot), "the fixture's army");
+    let hit = |s: &mut Sim, by: usize, f: i64| {
+        s.frame = f;
+        // A capture is never the answer in this test: the stamp holds it off.
+        s.cities[c].capture_stamp = f;
+        s.do_damage(
+            combat::Obj::Unit(by),
+            combat::Obj::Building(b),
+            movement::Angle(0),
+            false,
+            256,
+            false,
+            true,
+            f,
+        );
+    };
+    let charged = |s: &Sim| {
+        matches!(
+            s.order_type(mate),
+            orders::index::ATTACK_TO | orders::index::GROUP_ATTACK_TO
+        )
+    };
+    // Not at the ceiling yet: no stamp, no charge.
+    sim.buildings[b].damage = 0;
+    sim.buildings[b].sync_health();
+    hit(&mut sim, shooter, 500);
+    assert!(sim.buildings[b].damage < sim.buildings[b].hits_now());
+    assert_eq!((sim.cities[c].reduce_stamp, charged(&sim)), (0, false));
+    // The hit that brings it to the ceiling.
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits_now() - 1;
+    bd.sync_health();
+    hit(&mut sim, shooter, 600);
+    assert_eq!(sim.buildings[b].damage, sim.buildings[b].hits_now());
+    assert_eq!(sim.cities[c].reduce_stamp, 600, "stamped on the frame");
+    assert!(charged(&sim), "the army is charged onto the city");
+    assert_eq!(
+        sim.armies[1].list[slot].target,
+        Some(combat::Obj::Building(b)),
+        "the army's target is the city"
+    );
+    // A second hit inside the 300 frames charges again and does not
+    // re-stamp: run668's second shot on 15377.
+    sim.clear_orders(mate);
+    sim.armies[1].list[slot].target = None;
+    hit(&mut sim, shooter, 610);
+    assert!(charged(&sim), "the charge is not behind the cooldown");
+    assert_eq!(
+        sim.cities[c].reduce_stamp, 600,
+        "the cooldown holds the stamp"
+    );
+    // And past it the stamp is written again.
+    hit(&mut sim, shooter, 901);
+    assert_eq!(sim.cities[c].reduce_stamp, 901, "300 frames on");
+    // A city healed back below its ceiling and struck to it again inside
+    // the 300 frames is stamped at once: `fresh` (`local_70`) skips the
+    // cooldown.
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits_now() - 1;
+    bd.sync_health();
+    hit(&mut sim, shooter, 910);
+    assert_eq!(
+        sim.cities[c].reduce_stamp, 910,
+        "a fresh blow ignores the 300"
+    );
+    // A shooter that is not siege stamps and charges nothing more.
+    sim.clear_orders(mate);
+    hit(&mut sim, foot, 1300);
+    assert_eq!(sim.cities[c].reduce_stamp, 1300, "any shooter stamps");
+    assert!(!charged(&sim), "a foot soldier charges no army");
+}

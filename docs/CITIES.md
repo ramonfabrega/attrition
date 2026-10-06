@@ -2169,7 +2169,10 @@ heal, ejection), then the sites' `construct_hits` refresh.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
 - **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)
-  is not modelled; the attempts on every hit and every 64 frames are. A unit
+  is not modelled; the attempts on every hit and every 64 frames are. **Measured,
+  item 1528** (`docs/AI.md` §142.5): the original's army takes Great Sahara at
+  Toughest's human city on frame 15432, the game's last; ours on 15473, the
+  64-frame re-test's. A unit
   that would have captured through target validation captures on its next
   hit instead.
 - **The AI branches** (the builder-wanting logic, the auto-repair, the

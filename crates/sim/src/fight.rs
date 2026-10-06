@@ -278,6 +278,24 @@ impl Sim {
         }
     }
 
+    /// **A thing a landing round or a blow can still strike**
+    /// (`Ammo::hit_target@00678f90`, `Object::do_damage@0064a480`): the
+    /// slot's `flags & 1` and, for a unit, `is_on_map` — and nothing about
+    /// hit points. [`Sim::active`] also asks a building for health left,
+    /// which is the target *search's* question; a city building at its
+    /// ceiling (`health` 0) is still struck by the round already in the air
+    /// (item 1528: run668's second siege shot on 15377, which charges the
+    /// army a second time).
+    pub(crate) fn struck(&self, o: Obj) -> bool {
+        match o {
+            Obj::Unit(_) => self.active(o),
+            Obj::Building(b) => self
+                .buildings
+                .get(b)
+                .is_some_and(|b| b.alive && b.combat.is_some()),
+        }
+    }
+
     /// `attack()` — the type's, plus the player's flat modifier (§4.1).
     pub fn attack_of(&self, o: Obj) -> i32 {
         let base = self.profile(o).attack;
@@ -1976,6 +1994,40 @@ impl Sim {
     // Delivery
     // ------------------------------------------------------------------
 
+    /// **The tail of `Object::do_damage@0064c1d8`: a city at its ceiling**
+    /// (`docs/AI.md` §142). After `Build::check_capture` has answered no, a
+    /// hit by another player's object on an active city building whose
+    /// `damage` has reached `hits(0)` (1) has a computer leader's **siege**
+    /// attacker, itself carrying `unit_masks & 0x40000` and sitting in an
+    /// army, drag that army onto the city (`Army::charge`, an `ATTACK_TO`
+    /// at the front of the queue), and (2) stamps the city's
+    /// `reduce_stamp` — always on the hit that brought it to the ceiling
+    /// (`fresh`, `local_70`), and once in 300 frames after. The
+    /// notice, the sound and the text bubble that follow are the
+    /// interface's and are not carried.
+    fn city_reduced(&mut self, attacker: Obj, b: usize, fresh: bool) {
+        let who = self.owner_of(attacker);
+        let bd = &self.buildings[b];
+        if !self.building_is_city(b) || who == bd.owner || !bd.active || bd.damage < bd.hits_now() {
+            return;
+        }
+        let Some(c) = bd.city else {
+            return;
+        };
+        if let Obj::Unit(u) = attacker
+            && self.ai_driven(who)
+            && self.is_siege_unit(u)
+            && self.unit_ai_bit(who)
+            && let Some(slot) = self.army_of(u)
+        {
+            self.army_charge(who, slot, Obj::Building(b));
+        }
+        if !fresh && self.frame - self.cities[c].reduce_stamp < 300 {
+            return;
+        }
+        self.cities[c].reduce_stamp = self.frame;
+    }
+
     /// `Object::do_damage` (§7.1): computes, scales and delivers one hit from
     /// `attacker` to `target`. `count` is 8.8; `ammo` says a projectile
     /// delivered it; `splash` marks a fringe; `quiet` suppresses the
@@ -1992,7 +2044,7 @@ impl Sim {
         quiet: bool,
         frame: i64,
     ) -> Option<Taken> {
-        if count < 1 || !self.active(target) {
+        if count < 1 || !self.struck(target) {
             return None;
         }
         // **A decoy's blow is no blow** (`Object::do_damage@0064a480`'s head,
@@ -2066,6 +2118,12 @@ impl Sim {
         } else {
             combat::death_type(ap.obj_masks, !matches!(attacker, Obj::Unit(_)))
         };
+        // `local_70` (`do_damage@0064a480`, `0064a8ac`): the struck city
+        // building was still below its ceiling when the hit began.
+        let fresh = matches!(target, Obj::Building(b)
+            if self.building_is_city(b)
+                && self.buildings[b].active
+                && self.buildings[b].hits_now() > self.buildings[b].damage);
         // Step 7: take.
         let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype);
         let killed = matches!(taken, Taken::Died { .. });
@@ -2107,11 +2165,18 @@ impl Sim {
                 {
                     self.plunder_kill(b, who);
                 }
-            } else if let Obj::Unit(u) = attacker
-                && who != bowner
-                && self.capture_eligible(b)
-            {
-                self.check_capture(b, u);
+            } else {
+                let captured = if let Obj::Unit(u) = attacker
+                    && who != bowner
+                    && self.capture_eligible(b)
+                {
+                    self.check_capture(b, u)
+                } else {
+                    false
+                };
+                if !captured {
+                    self.city_reduced(attacker, b, fresh);
+                }
             }
         }
         self.hits.push(combat::Hit {
@@ -4089,7 +4154,7 @@ impl Sim {
     /// building), at the landing point.
     fn hit_target(&self, p: &combat::Projectile) -> bool {
         p.target
-            .filter(|&t| self.active(t))
+            .filter(|&t| self.struck(t))
             .is_some_and(|t| match t {
                 Obj::Unit(u) => combat::hits_unit(
                     p.landing,
@@ -4108,7 +4173,7 @@ impl Sim {
     /// `Object::do_damage` on what was hit — the target, or whatever stood
     /// there instead — and the splash around it.
     fn land(&mut self, p: combat::Projectile, frame: i64) {
-        let mut target = p.target.filter(|&t| self.active(t));
+        let mut target = p.target.filter(|&t| self.struck(t));
         if !self.hit_target(&p) {
             target = self.check_hit(&p);
         }
@@ -4157,7 +4222,10 @@ impl Sim {
         let candidates: Vec<Obj> = (0..self.units.len())
             .map(Obj::Unit)
             .chain((0..self.buildings.len()).map(Obj::Building))
-            .filter(|&o| self.active(o))
+            // The round's own target is struck while it stands, hit points
+            // or none (`struck`): a second siege shot lands on a city the
+            // first has taken to its ceiling (item 1528).
+            .filter(|&o| self.active(o) || (target == Some(o) && self.struck(o)))
             .filter(|&o| {
                 let c = self.pos_of(o).cell();
                 (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
