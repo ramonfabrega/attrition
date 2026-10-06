@@ -2770,8 +2770,62 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
-        if let (Some(p), Some(st)) = (parent, self.gstate_mut(&sub)) {
-            *st = p;
+        // The sub-group's own list as its layout walked it: `Group::sort`
+        // runs on the stack record in place, and the record's tables are
+        // indexed by the sorted list.
+        let mut walked = sub.clone();
+        self.stack_sort(&mut walked);
+        let mine = match (parent, self.gstate_mut(&sub)) {
+            (Some(p), Some(st)) => Some(std::mem::replace(st, p)),
+            _ => None,
+        };
+        // **The copy-back** (`0070de..0070dfa0`): for each member of the
+        // parent that the sub-group holds, the sub-group's slot — `off`,
+        // `curr`, `angles` at the member's index in the sub-group — is
+        // written into the parent's table **at the member's index in the
+        // parent**, and `Unit::replace_form_id@005fd420` re-points every
+        // group order the member holds at that index. So a siege unit past
+        // the parent's `form_num` carries its slot in the parent's tail,
+        // where `refresh_group_order` reads it (item 1493, `docs/AI.md`
+        // §128: 1/141's `off` (23, 0) at index 62).
+        if let Some(mine) = mine {
+            for (k, &m) in g.list.iter().enumerate() {
+                if !(self.units[m].alive() && self.units[m].on_map) {
+                    continue;
+                }
+                let Some(j) = walked.list.iter().position(|&x| x == m) else {
+                    continue;
+                };
+                if let Some(st) = self.gstate_mut(&sub) {
+                    // The arrays are the member count long once a member
+                    // has been added through the seat; a record built
+                    // before that is brought up to the list's length.
+                    let n = g.list.len();
+                    if st.off.len() < n {
+                        st.off.resize(n, (0, 0));
+                    }
+                    if st.curr.len() < n {
+                        st.curr.resize(n, Pos::new(0, 0));
+                    }
+                    if st.angles.len() < n {
+                        st.angles.resize(n, 0);
+                    }
+                    if let Some(&o) = mine.off.get(j) {
+                        st.off[k] = o;
+                    }
+                    if let Some(&o) = mine.curr.get(j) {
+                        st.curr[k] = o;
+                    }
+                    if let Some(&o) = mine.angles.get(j) {
+                        st.angles[k] = o;
+                    }
+                }
+                for o in &mut self.units[m].orders {
+                    if let Some(gm) = o.move_mut().and_then(|mv| mv.group.as_mut()) {
+                        gm.form_id = k;
+                    }
+                }
+            }
         }
         // `action_guard(anchor, who, QUEUE_NEW, 1)` on the parent: the
         // rest escort the anchor while it walks in (`docs/ORDERS.md` §24).
@@ -3518,7 +3572,14 @@ impl Sim {
         };
         let curr = Sim::form_update_positions(&off, theta);
         if let Some(st) = self.gstate_mut(g) {
-            st.curr = curr;
+            // `update_positions@00713810` loops over `form_num` slots, not
+            // `num`: a member past it keeps the `curr` it was given — a
+            // siege unit's, copied back from the sub-group (item 1493).
+            let n = (st.form_num.max(0) as usize).min(curr.len());
+            if st.curr.len() < curr.len() {
+                st.curr.resize(curr.len(), Pos::new(0, 0));
+            }
+            st.curr[..n].copy_from_slice(&curr[..n]);
         }
     }
 
@@ -6415,6 +6476,52 @@ mod tests {
             (before.o, before.o_angle, before.order_num),
             "and the sub-group's layout is not written onto the army's record"
         );
+    }
+
+    /// **A siege unit's slot is copied back into the army's table at its
+    /// own index** (`action_siege_attack_to@0070d830`, the loop after the
+    /// sub-group's move; item 1493, `docs/AI.md` §128). The sub-group lays
+    /// out on its own record; the parent's `off`, `curr` and `angles` at
+    /// each siege member's *parent* index take that slot, and
+    /// `Unit::replace_form_id@005fd420` re-points the member's group order
+    /// at the parent index. Great Sahara at Toughest: `1/141`'s `off` (23,
+    /// 0) at index 62, past the army's `form_num` 27, which
+    /// `refresh_group_order` reads. Made to fail on purpose by removing the
+    /// copy: the tail stays zero and the second bombard's order names its
+    /// index in the sub-group, 1.
+    #[test]
+    fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let siege = siege_type(&mut s);
+        s.unit_types[siege].combat.x_spacing = 0x120;
+        s.unit_types[siege].combat.y_spacing = 0x120;
+        let slot = s.init_army(1, None);
+        let mut all = Vec::new();
+        for (i, ty) in [foot, foot, foot, siege, siege].into_iter().enumerate() {
+            let u = spawn(&mut s, 1, ty, Pos::new(0x1000 + 0x60 * i as i32, 0x1000));
+            s.army_add_unit(1, slot, u);
+            all.push(u);
+        }
+        let g = s.army_group(1, slot);
+        s.group_action_siege_attack_to(&g, Pos::new(0x1400, 0x4000), Angle::NORTH);
+        let (m1, m2) = (all[3], all[4]);
+        let form_id = |u: usize| s.current_move(u).and_then(|m| m.group).map(|gm| gm.form_id);
+        assert_eq!(form_id(m1), Some(3), "the leader's index in the army");
+        assert_eq!(form_id(m2), Some(4), "and the follower's, not 1");
+        let st = &s.armies[1].list[slot].group;
+        assert_eq!(
+            st.off[3],
+            (0, 0),
+            "the sub-group's leader sits at its origin"
+        );
+        assert_ne!(st.off[4], (0, 0), "the second slot: {:?}", st.off);
+        assert_ne!(st.curr[4], Pos::new(0, 0), "and its rotated twin");
+        // And `update_positions` walks `form_num` slots, so a frame of the
+        // leader's rotation leaves the tail's `curr` as the copy made it.
+        let before = st.curr[4];
+        s.group_update_positions(&g, m1);
+        assert_eq!(s.armies[1].list[slot].group.curr[4], before);
     }
 
     /// **The anchor's sub-group sorts its own list, not the army's**
