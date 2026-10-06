@@ -8709,7 +8709,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run672_s_word_frame_is_widened_whole"),
-        1532,
+        1539,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_583),
     ),
     (

@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1532, 2026-10-06 — the busy builder's swarm
+
+(1540) **`swarm_around_last`'s `0x2000` clear**: 1532's `QUEUE_LAST`
+swarm arm puts the clear on a reached path, a no-op for a fresh site;
+no walk parts on it.
+
 ## Parked by item 1528, 2026-10-06 — Toughest's close
 
 (1536) **What 1528 left standing at Toughest's close**: `group_id` for
@@ -3852,7 +3858,7 @@ predictions; a coverage battery would need the queue lane and a person. **The tw
 (1507) **`unattended_capture.py` exits like a failure after a good
 short window** (1496's Loop line, 2026-10-06): it raises `GROUPS was
 asked for and no GROUPDATA block was printed` (parked 735) when the
-window ends before any group exists; the check could skip there. **The twenty-fifth pass**: one reach; stays.
+window ends before any group exists; the check could skip there. **The twenty-fifth pass**: one reach; stays. **Reached again by 1532** (2026-10-06, run672): a whole dump with no group standing read `success: false`; a missing optional record could be a receipt warning.
 
 (1513) **Two capture-lane gaps from 1505** (its journal's Loop lines,
 2026-10-06): `captures.txt`'s runner refuses an existing output
