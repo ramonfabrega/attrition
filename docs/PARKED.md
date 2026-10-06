@@ -3660,6 +3660,15 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
+## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1518) **A draw-order word whose clocks the harness re-seats is
+invisible to every widening** (1510's Loop line, 2026-10-06): both
+14512 and 14363's draw halves parted on the stream alone, every dumped
+record agreeing; a compare of the dump's per-figure `end_time` against
+the roll the trace's seed gives for the figure's slot would date such a
+word without a capture. One reach.
+
 ## Loop, filed 2026-10-06 — the twenty-fifth pass's own
 
 (1516) **A dumped array compared to a counter, not to its list** (1493's
