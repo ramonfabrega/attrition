@@ -9377,3 +9377,22 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   `DIFFICULTY 5` / `MAP_STYLE 7` on gamelog-run471-greatsahara-toughest-5376.txt
 #   257 window blocks, 5371..5627
 # ==== TAKEN 2026-09-30, one take, 01:13–01:30 ====
+
+# ==== item 1465: the held-out battery (DECISIONS 61 §6) ====
+#
+# Six runs on the click-free lane, none a stanza: three lobbies no scored
+# word shares a nation, map and difficulty with, each a long trace and a
+# `DUMP_ALL` start of its own (`docs/AI.md` §125; `docs/RUNS.md` run643..648).
+# Seed 12345, human Nubians (4), run600's recipe for the longs
+# (`--end-frame 24000 --log-window 0 24001 --ffwd-minute 27`, `cover=0`) and
+# run595's for the starts (`--end-frame 36 --dump-all-start`):
+#   run643  mapstyle 18  window 0..13520  Germans (12), DIFFICULTY=3  — East Indies, ended 13519
+#   run644  mapstyle 14  window 0..7304   Russians (13), DIFFICULTY=2 — Great Lakes, ended 7303
+#   run645  mapstyle 7   window 0..20381  Egyptians (7), DIFFICULTY=4 — Great Sahara, ended 20380
+#   run646  mapstyle 18  window 0..2      run643's start
+#   run647  mapstyle 14  window 0..2      run644's start
+#   run648  mapstyle 7   window 0..2      run645's start
+# Disk before: no gamelog holds any of the three nations at its map, or any
+# difficulty between 0 and 5 (the survey is `docs/AI.md` §125). A capture
+# booked on one of these lobbies cites the run above that spans its frame.
+# ==== TAKEN 2026-10-06, one take each, 00:18–00:55 ====

@@ -14376,3 +14376,77 @@ named here.
   Nature, and this item does not read why.
 - No blind reading has been done. The block's predicate is read off the
   listing; the cascade it joins is §13's.
+
+## 125. The held-out battery: three lobbies no scored word shares, first try (2026-10-06, item 1465)
+
+**What it is.** DECISIONS 61 §6: a battery of lobbies nobody tuned for, each scored by the
+frame its draw stream first parts on, **measured at every pass and never debugged against**. The
+numbers live in `diff::battery::BATTERY`, not among `FLOORS`, `AI_WORDS` or the handoff's
+scoreboard; a parting here that tempts a fix is parked. The pass reads them with
+`cargo test --release -p rondata battery_measure -- --ignored --nocapture`.
+
+**Held out means a lobby's nation, map and difficulty.** Every gamelog on the disk was read for
+its `GAME INFO` and `PLAYER` blocks (`Logs/` and `lab-captures/`, 417 dumps over 100 kB): the
+human is Nubians (4) in all but three early runs; the AI is British (11) at difficulty 0 and 5
+on maps 7, 14 and 18, French (10) at 5 on 14 and 18, Koreans (16) on a different seed, and
+British at 0 on map 9. Difficulties 1–4 and the other twenty-one nations appear nowhere
+(`diff::battery::SCORED_LOBBIES`, held by a test).
+
+| lobby | map | AI nation | difficulty | start | long | ended | first parting (count / sequence) |
+|---|---|---|---:|---|---|---:|---:|
+| `EastIndiesGermanTier3` | 18 | Germans (12) | 3 | run646 | run643 | 13519 | **576 / 576** |
+| `GreatLakesRussianTier2` | 14 | Russians (13) | 2 | run647 | run644 | 7303 | **6566 / 6563** |
+| `GreatSaharaEgyptianTier4` | 7 | Egyptians (7) | 4 | run648 | run645 | 20380 | **2974 / 2974** |
+
+Every nation and every difficulty is new for its map, and no two lobbies share either. The
+click-free lane sets both (`--ai-tribe`, `--profile DIFFICULTY=`), so each is a
+`golden_capture.sh` capture of run600's shape plus a `--dump-all-start` sibling of run595's.
+
+**The first parting of each, as the walk prints it** (the draw delta, both sides; no mechanism is
+named and none is read, DECISIONS 42 and 61 §6):
+
+- East Indies, frame **576**: ours 52 draws, theirs 36; at draw 4 ours
+  `Leader::compute_sites+0x4ac`, theirs `Animal::think_bird+0x82`.
+- Great Lakes, frame **6563** (sequence; the count parts at 6566): 11 draws each; at draw 4 ours
+  `Guy::set_anim+0xf2f < Guy::move+0x166`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+- Great Sahara, frame **2974**: ours 9, theirs 12; at draw 2 ours
+  `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x104b`.
+
+Read against the scored words, the battery says the rules stand a long way past what was tuned on:
+Great Lakes' Russians at difficulty 2 keep the stream to 6563 of 7303 on the first try, and
+East Indies' Germans at 3 are the weakest at 576 of 13,519. **That reading is one number each;
+the pass owns it.**
+
+**The control that makes the numbers an instrument** (run643's and run644's first walk). Both
+parted at frame 0 — 70 draws against 182 and 82 against 121, four `Unit::do_idle` draws theirs and
+not ours at draw 20 — when walked with the map's *French* start sibling (run595, run597). The
+control: **the scored French run600, walked with run38's British start, parts at frame 0 in the
+same shape** (ours 65, theirs 179, draw 20) and at its own 14786 with run595. A sibling carries
+the start figures' clocks, so it must be the lobby's own: the setup stream does not read the
+difficulty, and a different nation's figures are another game's. Each battery lobby therefore
+owns a start of its own (run646–648), which is also what entry 54 §3 did for the third map.
+`diff::battery::battery_captures_are_complete_and_say_their_lobby` reads map, difficulty, both
+nations and the seed back from the long and its start, refuses a scored lobby, and holds the long
+to `third_pair::incomplete_long`.
+
+**The census rows each should enter, as a prediction.** None of these captures can enter a
+function row: they are `cover=0`, the click-free lane's only cover, and `census.py --pin`'s entered
+set reads `cover=1` traces. The rows are predicted from their callers, and a coverage run (item
+1466's lane) is what would read them:
+
+- **East Indies, Germans, 3** — `Army::use_spies` and `Army::use_scouts` (called from `Army::process`
+  when the army holds a SPY, 0x3a, or a SCOUT, 0x45), `Armies::send_navy` (called from
+  `Army::find_target`, a sea map's target); the German arms of `TypeData::get_cost`,
+  `LeaderData::calc_city_resources`, `special_preq` and `Build::plunder` (`has_tribe_bonus` 12).
+- **Great Lakes, Russians, 2** — the Russian arms of `LeaderData::calc_resource_bonuses` and
+  `Build::plunder` (`has_tribe_bonus` 13) and of `has_preq`; `Army::use_scouts`.
+- **Great Sahara, Egyptians, 4** — `Wonders::close_wonder` (from `Build::close` when a wonder
+  type 0x20e..0x21e completes: the longest game of the three, 20,380 frames) and
+  `Caravan::process`; the Egyptian arms of `get_farm_limit`, `special_preq` and `get_cost`
+  (`has_tribe_bonus` 7).
+
+**What is not established.** Which of the three first partings is the nation's and which the
+difficulty's: each lobby moved both, on purpose, and nothing here varies one. That the
+rows above are entered. Who won each game: the games ended themselves at 13519, 7303 and 20380
+and the closing blocks were not read. The measure is a first try, one capture a lobby. Diff-backed:
+every number in the table and the control; nothing else in this section.

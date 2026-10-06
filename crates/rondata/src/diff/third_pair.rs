@@ -131,7 +131,7 @@ fn run598_french_great_lakes_closing_state() {
     assert_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 8]);
 }
 
-fn incomplete_long(log: &Log<'_>) -> Vec<&'static str> {
+pub(super) fn incomplete_long(log: &Log<'_>) -> Vec<&'static str> {
     let init = log.initial().expect("initial state");
     let mut errors = Vec::new();
     if personality_brackets(&init.checksums).len() != 1 {
