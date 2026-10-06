@@ -6565,3 +6565,35 @@ fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     assert_eq!(sim.cities[c].reduce_stamp, 1300, "any shooter stamps");
     assert!(!charged(&sim), "a foot soldier charges no army");
 }
+
+/// **The Persians' second capital** (`Build::activate@00623e20`, lines
+/// 463–475 and 513–518; `docs/AI.md` §149): a Persian leader's second city
+/// is a capital too — `0x10` without the founding capital's `0x4000` —
+/// while one own capital stands, and the third is not. Any other nation's
+/// second city is none.
+#[test]
+fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
+    for (tribe, second) in [(11, false), (23, true)] {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.set_tribe(0, tribe);
+        // Three cities: past the limit a bare tree allows.
+        sim.tech[0].epoch[tech::Line::Civic as usize] = 3;
+        let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
+        let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
+        let (_, c2) = city_at(&mut sim, &t, 0, 33, 33);
+        assert!(sim.cities[c0].capital && sim.cities[c0].founding_capital);
+        assert_eq!(
+            sim.cities[c1].capital, second,
+            "tribe {tribe}: the second city is a capital for the Persians alone"
+        );
+        assert!(
+            !sim.cities[c1].founding_capital,
+            "and never the founding one"
+        );
+        assert!(
+            !sim.cities[c2].capital,
+            "tribe {tribe}: the third city is none"
+        );
+    }
+}
