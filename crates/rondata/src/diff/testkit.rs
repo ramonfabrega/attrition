@@ -9039,18 +9039,6 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         endpoint: Some("great_sahara_endpoint_is_pinned"),
         window: None,
     },
-    // **The third map in the coverage pair's lobby** (DECISIONS 56 §1,
-    // item 1538): Great Sahara with the Persians at All Technologies, which
-    // ends when the idle human is defeated at 4340.
-    AiWord {
-        line: "Third map",
-        map: "GreatSaharaPersianAllTech",
-        named: "Great Sahara (All Technologies)",
-        word: crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        length: 4_340,
-        endpoint: None,
-        window: Some("sahara_coverage_word_window"),
-    },
     // **The closed map in the newest pair's lobby** (DECISIONS 56 §1, item
     // 1221): run470 ends when the idle human is defeated, its trace's last
     // frame 15432 and its closing dump block 15433.
@@ -9062,5 +9050,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 15_432,
         endpoint: Some("run470_great_sahara_at_toughest_closing_state"),
         window: None,
+    },
+    // **The third map in the coverage pair's lobby** (DECISIONS 56 §1,
+    // item 1538): Great Sahara with the Persians at All Technologies, which
+    // ends when the idle human is defeated at 4340.
+    AiWord {
+        line: "Third map",
+        map: "GreatSaharaPersianAllTech",
+        named: "Great Sahara (All Technologies)",
+        word: crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
+        length: 4_340,
+        endpoint: None,
+        window: Some("sahara_coverage_word_window"),
     },
 ];
