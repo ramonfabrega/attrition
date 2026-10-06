@@ -683,7 +683,8 @@ pub struct Leader {
     pub sites: [Site; SITES],
     /// `mil_trainers`: the leader's military trainers, by building index.
     pub mil_trainers: Vec<usize>,
-    /// `tech_frame`, `tech_cat_frame[4]`: written only by `Leader::init`.
+    /// `tech_frame`, `tech_cat_frame[4]`: written by `Leader::init` and by
+    /// `Build::queue_up` at every technology queued (item 1496).
     pub tech_frame: i64,
     pub tech_cat_frame: [i64; 4],
     /// `frame_attacked`, `attacked_by`: the frame an enemy army last took
@@ -1019,6 +1020,11 @@ pub struct Lobby {
     pub starting_resources: i32,
     /// `STARTING_RESOURCES2`: team 0's under `GAME_RULES == 8`.
     pub starting_resources2: i32,
+    /// The `lo` and `hi` of rules.xml's `startingresources` row that
+    /// `STARTING_RESOURCES` indexes (`Category.data[0]` and `[1]`, `+0x3c`
+    /// and `+0x40`): what `Game::init_starting_resources` multiplies the
+    /// base grant by. `1`/`1` is the Standard row; Deathmatch is `100`/`100`.
+    pub starting_resources_row: (i32, i32),
     /// `STARTING_TECHNOLOGY`: 0 Ancient … 7 Information, 8 All
     /// Technologies (`rules.xml`'s `startingtechs`). The tech tree's
     /// `starting_age` (`Sim::sync_setup_from_lobby`).
@@ -1069,6 +1075,7 @@ impl Default for Lobby {
             start_list: [0, 1, 2, 3, 4, 5, 6, 7],
             starting_resources: 1,
             starting_resources2: 1,
+            starting_resources_row: (1, 1),
             starting_technology: 0,
             starting_technology2: 0,
             ending_technology: 7,

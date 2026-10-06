@@ -1676,11 +1676,6 @@ mod tests {
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     #[test]
@@ -2358,11 +2353,6 @@ mod tests {
         (1, "SITE[0].reg"),
         (1, "SITE[2].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     /// The `(player, field)` pairs that part over run107's window — the
@@ -2414,11 +2404,6 @@ mod tests {
         (0, "scouts"),
         (0, "wars"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     /// The `(player, field)` pairs that part over run19's window. Filled
@@ -2504,11 +2489,6 @@ mod tests {
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     /// The `(player, field)` pairs that part over run91's window — the
@@ -2569,11 +2549,6 @@ mod tests {
         (0, "scouts"),
         (1, "SITE[0].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     /// The `(player, field)` pairs of the leader record that part over
@@ -2650,11 +2625,6 @@ mod tests {
         (1, "SITE[1].reg"),
         (1, "SITE[3].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
     ];
 
     /// Item 303's probe: this crate's `active` against this crate's own
@@ -2828,11 +2798,6 @@ mod tests {
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
-        (1, "tech_cat_frame[0]"),
-        (1, "tech_cat_frame[1]"),
-        (1, "tech_cat_frame[2]"),
-        (1, "tech_cat_frame[3]"),
-        (1, "tech_frame"),
         (1, "treaties[0]"),
     ];
 

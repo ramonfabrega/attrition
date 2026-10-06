@@ -132,6 +132,7 @@ pub fn lobby_of(
     game_info: &[(&str, &str)],
     map_styles: &[String],
     wonder_wins: &[i32],
+    starting_resources: &[(i32, i32)],
     pop_wins: &[i32],
 ) -> sim::ai::Lobby {
     let mut l = sim::ai::Lobby::default();
@@ -158,6 +159,14 @@ pub fn lobby_of(
     }
     if let Some(v) = int("STARTING_RESOURCES") {
         l.starting_resources = v;
+        // The row's `lo`/`hi` (`Game::init_starting_resources`); a setting
+        // past the table keeps the Standard row.
+        if let Some(&row) = usize::try_from(v)
+            .ok()
+            .and_then(|i| starting_resources.get(i))
+        {
+            l.starting_resources_row = row;
+        }
     }
     if let Some(v) = int("STARTING_RESOURCES2") {
         l.starting_resources2 = v;
@@ -547,6 +556,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         &init.game_info,
         &loaded.map_styles,
         &loaded.wonder_wins,
+        &loaded.starting_resources,
         &loaded.pop_wins,
     );
     // `info.flags & 4` is asked of two layers — the AI's host function
@@ -808,7 +818,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             ));
         }
         let ty = kind.map(|k| &loaded.unit_types[k]);
-        let health = ty.map_or(1, |t| t.hits.max(1));
+        // The unit's `myhits` as `Unit::update_hits` has it for its leader:
+        // a Citizen of an all-technology start is born with the Militia
+        // line's hits, not the type's 40 (item 1496, run651: 85 against 40
+        // on 26 units). Gaia has no leader and keeps the type's.
+        let health = match kind {
+            Some(k) if (0..players as i64).contains(&u.who) => {
+                sim.unit_hits(u.who as sim::Player, k).max(1)
+            }
+            _ => ty.map_or(1, |t| t.hits.max(1)),
+        };
         let mut unit = Unit::new(u.who as sim::Player, u.o as i16, pos_of(u.pos), health);
         unit.squad_size = u.guys.len().max(1) as i32;
         unit.ty = kind;
@@ -1109,6 +1128,7 @@ pub(crate) fn start_of_game(
     let mut all_builds: Vec<(usize, i64)> = Vec::new();
     for who in 0..players as sim::Player {
         let w = who as i64;
+        let first_build = all_builds.len();
         // The citizens of this player, by object number — `Setup::build_units`
         // creates them in index order after the scout.
         let mut citizens: Vec<&UnitLink> = units
@@ -1127,8 +1147,17 @@ pub(crate) fn start_of_game(
         // `get_starting_citizens`: (n, ordered) is (5, 2) for a Small Town and
         // (10, 5) for a Large Town, and the two lists carry three and five
         // farms. `starting_resources` and the nation powers adjust n, so the
-        // match is on the plain counts and anything else falls back.
-        let (ordered, farms) = match citizens.len() {
+        // match is on the plain counts and anything else falls back. The
+        // lobby's own adjustment is taken off first (`Setup::build_units`:
+        // `starting_resources == 7` adds 8, `== 8` adds 12), which is what
+        // lets run651's thirteen citizens read as a Small Town's five
+        // (item 1496, `docs/AI.md` §129).
+        let lobby_extra = match sim.lobby.starting_resources {
+            7 => 8,
+            8 => 12,
+            _ => 0,
+        };
+        let (ordered, farms) = match citizens.len().saturating_sub(lobby_extra) {
             5 => (2usize, 3usize),
             10 => (5, 5),
             n => {
@@ -1248,19 +1277,64 @@ pub(crate) fn start_of_game(
         // §9.3's assignment. `2001` for the first `ordered`; then successive
         // farms from `2002`, the cursor advancing past each one taken.
         let site_at = |o: i64| sites.iter().find(|(n, _)| *n == o).map(|(_, h)| *h);
+        // `build_mark`: one past the player's last placed building. Every
+        // pre-placed building is alive at frame 0, so a slot below the mark
+        // is alive and a slot at or past it is the scan's end.
+        let build_mark = all_builds[first_build..]
+            .iter()
+            .map(|&(_, o)| o + 1)
+            .max()
+            .unwrap_or(2001);
+        let alive_at = |o: i64| {
+            all_builds[first_build..]
+                .iter()
+                .find(|&&(_, n)| n == o)
+                .map(|&(h, _)| h)
+        };
+        // The step-3 and step-4 guard, `is_active && is_gather_type && !is(
+        // UNIVERSITY)` (`build_units` at `005ab5f0`..`005ab5fa`).
+        let workable = |sim: &Sim, b: usize| {
+            sim.buildings[b].active
+                && sim.is_gather_type(b)
+                && sim.building_ident(b) != sim::build::Ident::University
+        };
         let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
+        let skip_orders = sim.lobby.starting_resources == 8;
         for (i, link) in citizens.iter().enumerate() {
             let target = if i < ordered {
                 // Unconditional — a dead `2001` sends the citizen idle rather
                 // than to a farm (R5 U10).
                 site_at(2001)
             } else {
-                let t = site_at(2002 + cursor);
-                if t.is_some() {
-                    cursor += 1;
+                // Step 2: scan from `2002 + cursor` while the slot is alive
+                // and not a `FARM`; the cursor ends one past the stop.
+                let mut t = 2002 + cursor;
+                let mut stop = None;
+                while t < build_mark {
+                    let Some(h) = alive_at(t) else { break };
+                    stop = Some(h);
+                    if sim.buildings[h].ty == Some(farm) {
+                        break;
+                    }
+                    t += 1;
                 }
-                t
+                cursor = t - 2002 + 1;
+                // Step 3: the stopping object, behind the guard; step 4:
+                // `2001` again behind the guard and `num_gatherers <
+                // gather_max` — what puts a citizen past the farm list at
+                // the woodcutter until it is full (item 1496, run651's
+                // thirteen: four of the eight past the farms), the rest
+                // `place_unit`, idle.
+                let stopped = stop.filter(|&h| t < build_mark && workable(sim, h));
+                stopped.or_else(|| {
+                    site_at(2001).filter(|&h| {
+                        workable(sim, h)
+                            && sim.buildings[h]
+                                .gather_max
+                                .is_some_and(|m| sim.num_gatherers(h, false, false) < m)
+                    })
+                })
             };
             let Some(b) = target else {
                 continue; // `place_unit`, idle — the fallback's last step.
@@ -1268,7 +1342,11 @@ pub(crate) fn start_of_game(
             if !sim.is_gather_type(b) {
                 continue;
             }
-            sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+            // `starting_resources == 8` places the citizen at the building
+            // and gives it no order.
+            if !skip_orders {
+                sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+            }
             births.push((link.unit, link.o, b));
         }
         // **Born at the building, then out** (`docs/COLLISION.md` §20):
