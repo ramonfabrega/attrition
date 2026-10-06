@@ -6318,6 +6318,17 @@ fn a_city_at_its_ceiling_charges_the_shooters_army_and_is_stamped() {
     // And past it the stamp is written again.
     hit(&mut sim, shooter, 901);
     assert_eq!(sim.cities[c].reduce_stamp, 901, "300 frames on");
+    // A city healed back below its ceiling and struck to it again inside
+    // the 300 frames is stamped at once: `fresh` (`local_70`) skips the
+    // cooldown.
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits_now() - 1;
+    bd.sync_health();
+    hit(&mut sim, shooter, 910);
+    assert_eq!(
+        sim.cities[c].reduce_stamp, 910,
+        "a fresh blow ignores the 300"
+    );
     // A shooter that is not siege stamps and charges nothing more.
     sim.clear_orders(mate);
     hit(&mut sim, foot, 1300);
