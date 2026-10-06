@@ -25,8 +25,12 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
         "rontrace-run676.log",
     ),
     length: 4340,
-    count: 718,
-    sequence: 718,
+    // Item 1538 moved it 12 → 718 (the tied oil patches); item 1544's
+    // `total_units` tally, merged beside it, moved it 718 → 720: ours
+    // `Guy::set_anim+0x97a < Guy::move+0x19f` against the original's
+    // `Animal::think_bird+0x82`, 25 draws against 24.
+    count: 720,
+    sequence: 720,
 };
 
 /// **The third map's first parting in the coverage pair's lobby**, walked
