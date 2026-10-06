@@ -15078,3 +15078,37 @@ SHA-256 `0b394444b247c1c95ef141f521eacbb5f408db9d1ea17beff379cf3fb09a0f94`.
 15095..15118, 94 standing on the first, 4 on 15098, **27 on the word's block 15102, all `1/96`'s** (a Bombard:
 `cur_anim` 24 on all four figures against 0, 0, 7, 0, one `angle` against three). The compared pin's window is
 block 15102. `docs/AI.md` §136.
+
+## run664 — run470's game over the new word 15213's window: the third map's bombards fire (2026-10-06, item 1517)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 17` from
+frame 37), run663's detail, dumped over blocks 15207..15230 and quit at 15242. The word 15101 (item 1510's)
+moved to 15213 on this item's tree (`docs/AI.md` §137); no capture on disk printed a block there (run663's
+window ends at 15118).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run664 \
+    --map 7 --end-frame 15242 --timeout 5000 --log-window 15207 15231 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** The word's own frame and the blocks around it: no gamelog on the disk holds
+a block between 15118 and 24000's trace.
+
+**Taken.** First take died before frame 0 (`wine: Unhandled page fault on read access to 00004ECD`, a traceback
+with no receipt; its directory kept as `2026-10-06-run664-take1-died`). Second take: receipt `success: true`,
+exit 0, 179.9 s launch to exit (190.0 s in all), 15,243 frames, map 7 and seed 12345 verified, five settings files
+restored, 24 `FRAME` blocks 15207..15230 and the closing block. `rngcmp.py rontrace-run470.log rontrace-run664.log`
+**0 differing**, 15,243 identical. The lane was free (no wait).
+
+Archive `gamelog-run664-greatsahara-toughest-15213.txt`, 63,296,005 bytes,
+SHA-256 `72688c42216417699acf64acced9670da51243fd3f2d20e6ed006e1ce50c3459`.
+
+Archive `rontrace-run664.log`, 114,159,872 bytes,
+SHA-256 `abe0affe6b08f280953667ae51874ae8cc0d3f18233df6ad124b235b9512a984`.
+
+**What it holds**: `run664_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 302 keys over blocks
+15207..15230, 92 standing on the first, 2 on 15210 (`0/2000`'s `damage` 270 against 135, `city_flags[0x4]`), one
+on the word's block 15214 (`0/2005`'s `damage` 1 against 0). The compared pin's window is block 15214.
+`docs/AI.md` §137.
