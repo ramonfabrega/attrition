@@ -121,7 +121,7 @@ const OVER: &[(&str, &str, usize)] = &[
     // twenty-second pass). Paired within the section, §15 is 26,923 live
     // and §99 51,545; both are pinned below at that size and may only
     // shrink.
-    ("AI.md", "2. The production AI — read", 71_076),
+    ("AI.md", "2. The production AI — read", 71_073),
     (
         "AI.md",
         "15. The behavioural run — run18, 2026-08-25",
