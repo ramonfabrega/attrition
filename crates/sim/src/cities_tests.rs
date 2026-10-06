@@ -3029,6 +3029,62 @@ fn an_ai_builder_takes_the_next_site_nearest_first_and_least_crowded() {
     );
 }
 
+/// **`game->total_units` counts owners below nine** (`Unit::init@00612100
+/// :379`), and it is what picks `find_units`' walk for the builder tally
+/// `find_build_spot` takes (`docs/AI.md` §148). The list walk keeps a
+/// builder only within `range` plus its radius; the circle walk keeps every
+/// builder whose **cell** is in the ring, and a cell at offset (−4, −5) is
+/// in ring 6 while its unit can stand 4,900 units out. run672's `1/8` on
+/// 690: 134 counted units against `circle_radius[6]`'s 145, and nineteen
+/// owner-9 birds and beasts beside them.
+#[test]
+fn the_builder_tally_walks_the_lists_while_the_counted_units_are_few() {
+    use crate::tech::{TechTree, TypeDef};
+    let run = |pad_owner: Player| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.nation[0].human = false;
+        sim.lobby.starting_resources = 1;
+        let mut tree = TechTree::new();
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        let near = sim.place_building(0, t.farm, tile_pos(44, 40)).unwrap();
+        let far = sim.place_building(0, t.farm, tile_pos(40, 30)).unwrap();
+        let on_near = spawn(&mut sim, 0, citizen, tile_pos(44, 42));
+        sim.add_build_order(on_near, near, QueuePos::New, false);
+        // Cell (6, 5) against the searcher's (10, 10): ring 6 by the
+        // circle, 4,916 units out by `vector_dist`.
+        let on_far = spawn(&mut sim, 0, citizen, Pos::new(4776, 4076));
+        sim.add_build_order(on_far, far, QueuePos::New, false);
+        for _ in 0..150 {
+            let _ = spawn(&mut sim, pad_owner, citizen, tile_pos(4, 60));
+        }
+        let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+        assert!(sim.find_build_spot(u));
+        let held: Vec<Body> = sim.units[u].orders.iter().map(|o| o.body).collect();
+        (held, near, far)
+    };
+    // Three counted units and 150 of owner 9: the lists, so the far site's
+    // builder is out of reach and the far site is the emptier one.
+    let (held, _, far) = run(9);
+    assert!(
+        held.contains(&Body::Build(far)),
+        "owner 9 is not counted, so the tally walks the lists: {held:?}"
+    );
+    // 150 of the enemy's instead: counted, so the circle, the far site's
+    // builder in ring 6, and the tie goes to the nearer site.
+    let (held, near, _) = run(1);
+    assert!(
+        held.contains(&Body::Build(near)),
+        "a player's units are counted, so the tally walks the circle: {held:?}"
+    );
+}
+
 /// On open ground no move draws from the sync stream: a near one never
 /// asks the pathfinder, and a far one is planned by `find_wpath` at order
 /// time — before the RNG-thresholded re-plan branch, which only runs when

@@ -189,7 +189,7 @@ impl Sim {
         };
         let circle = crate::ai_place::circle();
         let ring = ((range + 0x2ff) / 0x300) as usize;
-        let live = self.units.iter().filter(|x| x.alive()).count();
+        let live = self.total_units();
         if live < circle.radius[ring] {
             let mut mine: Vec<usize> = (0..self.units.len())
                 .filter(|&u| self.units[u].owner == who)

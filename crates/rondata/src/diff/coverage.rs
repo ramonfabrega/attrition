@@ -2421,7 +2421,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // run656's frame-8 word (block 9), run660's frame-177 word (block 178),
     // run669's frame-185 word (block 186), and run672's frame-583 word
     // (block 584), frame-667 word (block 668, item 1532) and frame-727
-    // word (block 728, item 1539), each with two either side.
+    // word (block 728, item 1539), and run678's frame-982 word (block 983,
+    // item 1544), each with two either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2429,6 +2430,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN672, 584),
         (super::coverage_pair::RUN672, 668),
         (super::coverage_pair::RUN672, 728),
+        (super::coverage_pair::RUN678, 983),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2821,12 +2823,15 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1514: and run661's, where it stood before run662.
     let french_17244 = super::third_pair::french_east_indies_17244_window();
     // Item 1511: the coverage pair, the newest pair's open word; item
-    // 1532: and run669's, where it stood before run672.
+    // 1532: and run669's, where it stood before run672; item 1544: and
+    // run672's, where it stood before run678.
     let coverage_185 = super::coverage_pair::coverage_frame_185_window();
+    let coverage_583 = super::coverage_pair::coverage_frame_583_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2876,6 +2881,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         french_17171,
         french_17244,
         coverage_185,
+        coverage_583,
         coverage,
     )
     else {

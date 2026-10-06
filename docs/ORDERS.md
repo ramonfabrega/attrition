@@ -1655,10 +1655,13 @@ runs while `circle_radius[n]` is no more than `game->num_def_builds` for the
 one and `game->total_units` for the other. `num_def_builds` is a flat **200**
 (`Game::init_data@0058dca0`, beside `num_def_units = 200`; it is the
 per-player object-array size, which is why a building's `o` is `2000 + i`),
-and `total_units` is the live count `Unit::init`/`Unit::close` keep. So the
-build search is always the circle for any range a citizen uses, and the unit
-search is not: `circle_radius[3]` is 45 and `circle_radius[6]` is 145, against
-59 live units on run69's frame 2803.
+and `total_units` is the live count `Unit::init`/`Unit::close` keep — **for an
+owner below nine only** (`Unit::init@00612100:379`, `Unit::close@0060ee50:69`:
+the players and the animals, never an owner-9 flock bird or farm beast; item
+1544, `docs/AI.md` §148). So the build search is always the circle for any
+range a citizen uses, and the unit search is not: `circle_radius[3]` is 45 and
+`circle_radius[6]` is 145, against 59 live units on run69's frame 2803 and 134
+on run672's block 690.
 
 The circle path walks `circle_x`/`circle_y` out to `circle_radius[n]` around
 the searcher's own cell, takes each cell's object chain (`+8`/`+10` the head's

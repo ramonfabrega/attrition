@@ -15326,3 +15326,26 @@ SHA-256 `3ccadd56337b7ccbe0b4a0e7f922d46cd2aebb3b584d4ecd5d0f3d1fb56515af`.
 On the built tree leader 1's make list parts first, on block 581, and the new word 667's block, 668, holds `1/15` in the original's
 dump alone. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run669's, and
 the coverage driver reads its blocks 584 and 668. `docs/AI.md` §144.
+
+## run678 — the coverage pair: East Indies, Persians, All Technologies, blocks 977..1233 at the long's detail (2026-10-06, item 1544)
+
+**Disk gap**: run672 holds blocks 577..833 and run652 the draw stream; nothing dumped this lobby's buildings, units or leader record at
+the word's frame, 982 (ours 562 game draws against 696, index 13: ours `Leader::produce_building+0xc99`, theirs `Leader::produce_building
++0x1805`), whose block is 983. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 1242 --timeout 3600
+--log-window 977 1234 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch (17:16). One take: receipt
+`success: true`, `settings_restored: true`, exit 0, launch-to-exit 981 s, seed 12345 and map 18 verified. Blocks `977`..`1233` whole
+and a `1243` closing stub. `rngcmp.py rontrace-run652.log rontrace-run678.log`: **1,243 frames in common, 0 differing**.
+`STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, `MAP_STYLE 18` read back. Copied from the output directory to the archive names below.
+
+Archive `gamelog-run678-eastindies-persian-alltech-window-977-1233.txt`, 488,567,172 bytes,
+SHA-256 `6ef2c1ea48d66be70f34fc04ea0d45a86daea6a73a350589fbcd79b0f4b1f119`.
+
+Archive `rontrace-run678.log`, 27,370,944 bytes,
+SHA-256 `341b1768dd6e245ac7c62a5a71e61bd747d2992543af597165e39886bff9a2e2`.
+
+**What it holds**: `diff::coverage_pair::run678_s_word_frame_is_widened_whole` — 1,378 keys on item 1544's tree, 99 standing on
+block 977. Past it: `1/24`'s `form` on 979, leader 1's `MAKE[3].t`/`MAKE[4].t` (417 against 419) on 982, and on the word's block
+983 the site `1/2025` at (35712, 35904) in ours against (34368, 35136). It is the coverage pair's `AI_WORDS` window
+(`coverage_pair_word_window`), walked by the compared pin with run669's and run672's, and the coverage driver reads its block 983.
+`docs/AI.md` §148.

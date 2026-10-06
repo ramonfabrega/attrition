@@ -16556,7 +16556,62 @@ that fires).
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 148. Reserved for item 1544 (the coverage pair's frame 727)
+## 148. `total_units` counts owners below nine, and the word at 982 (2026-10-06, item 1544)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1539 left the coverage pair's word at **frame 727, ours 8 game draws against 7,
+index 0**: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run672
+(577..833) holds it. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 727`; the walk's `RON_DEBUG_SITES`). Theirs: a `Guy::inc_time`
+   idle (seed `de30bdf8`), a `Guy::set_anim+0x104b`, five `Farms::inc_time`. Ours spends one more first: the blocked stand
+   `Unit::move_step+0x823` of the citizen **`1/8`** (`TypeIndex` 50, `PEASANTS`, land), which on 728 collides with `1/6`.
+2. **Walked back to its first parted field.** `1/8`'s order stack agrees to block 690 (`[Build 2015]`, the Missile Silo it is
+   finishing). On 691 both hold `[ExploreTo, Build …]`, and the field list parts: `orders_x/y`, the move's `x`, `y`, `angle`, `off_x/y`
+   — ours (42072, 41928) against (41160, 40584). The build's target is the cause: ours' `Build(19)` is the **Lumber Mill `1/2012`**
+   (41952, 41376), the original's is the **Bunker `1/2020`** (41088, 40320); the approach is each site's ring spot (§144).
+3. **The chooser.** `1/8` finished `1/2015` on 690 and, an AI citizen, took `build_done` → `Unit::find_build_spot@00603e20`: the
+   unfinished sites by `find_builds`, ours `[2012, 2020, 2019]`, then the builder tally by `Objects::find_units(…, FILTER_BUILDREPAIR)`
+   and the first strict minimum (`docs/ORDERS.md` §5.5). Ours counted **`[2, 2, 2]`** (a probe in `find_build_spot`): `1/1` and `1/6`
+   on 2012, `1/5` and `1/12` on 2020, `1/3` and `1/10` on 2019 — the tie to the nearest ring, 2012. The dump's own stacks on 690 hold the
+   same six builders; its cell chains (`up`/`down`, rebuilt from block 690 — 93 chains, every member on its head's cell) put each in
+   the cell ours does, all inside ring 6.
+4. **The walk.** `find_units` takes the cell circle while `circle_radius[n] <= game->total_units`, and the lists otherwise (§5.5).
+   `total_units` is raised by `Unit::init@00612100:379` and lowered by `Unit::close@0060ee50:69` **only for `who < 9`**. Block 690
+   prints 14 units of player 0, 16 of player 1 and 104 animals (owner 8): **134**, under `circle_radius[6]`'s 145. Ours' count was
+   every live unit, 153 — the nineteen owner-9 units (flock birds, farm beasts, which no dump prints) with them — so ours walked the
+   circle where the original walked the lists. The list walk keeps a builder only within `vector_dist − R <= range` (4,608 at stance
+   1): `1/12` at 4,836 and `1/10` at 5,256 fall out, the counts are `[2, 1, 1]`, and the Bunker wins — the original's choice.
+
+**Built.** `Sim::total_units` (alive, owner below nine) replaces the live count in all five places that read `total_units`:
+`build_crowd` (`find_build_spot`), `find_push_candidates` (`detect_boat_collision`), `nearest_of_own_type` and
+`find_units_round` (`air.rs`), `find_idle_citizen` (`site_recruit.rs`). `build_crowd`'s list walk takes the list arm's own two
+tests it lacked: the candidate's tile region against the searcher's (`tregion_alt`, as `find_push_candidates` reads `get_tregion`),
+and the reach less the candidate's radius, now `Sim::find_units_reach`, shared with `find_push_candidates`. Unit test
+`cities_tests::the_builder_tally_walks_the_lists_while_the_counted_units_are_few` (150 owner-9 units: the lists, the far site;
+150 of a player's: the circle, the near one).
+
+**The value diff, and the word now.** run672: `1/8` on 691 holds `[ExploreTo (41160, 40584), angle −70647808, Build 2020]` in
+both and agrees in every compared field through 833 past its standing `form`; the University `1/2009` agrees through the window
+too (its flag had parted again on 779); **247 keys parted → 109**. `cargo test --release -p rondata` on the built tree: 754
+passed, and the two that failed were this pair's (`coverage_pair_first_parting`, run672's widening) — no other capture moved.
+`coverage_pair_first_parting`: **frame 727 → 982, count and sequence** — ours 562 game draws against 696, index 13: ours
+`Leader::produce_building+0xc99` (a spiral candidate), theirs `Leader::produce_building+0x1805` (the jitter). Past run672's last
+block, so **run678** (977..1233, `docs/RUNS.md`) widens it: `run678_s_word_frame_is_widened_whole`, 1,378 keys, 99 standing on 977
+(the control's set, and leader 1's buckets a few under the original's — the 583 price row's residue). Past the standing block:
+the new citizen `1/24`'s `form` on 979, then leader 1's make list on **982** — `MAKE[3].t` and `MAKE[4].t` 417 in ours against 419,
+their `val` 2,520,000 against 6,300,000 — and on the word's block 983 the site `1/2025` placed at (35712, 35904) against (34368,
+35136). A hypothesis, not a cause: the make list's `t` is the item after's first row.
+
+**Mutations** (`tools/mutate.py` on `a4c80e2a`, scored against `cargo test --release -p rondata diff::coverage_pair::`): owner 9
+counted again — held by `coverage_pair_first_parting` and run672's widening, and by the unit test; the list walk's radius dropped
+(`vector_dist > range`) — **held by nothing**; the list walk's region gate dropped — **held by nothing**. Neither arm is reached by
+a candidate this window decides: no builder stands within a radius of the reach, and every candidate is on one land region.
+
+**What is not established.** The original's count is `init` to `close`; ours' is `alive()` (`health > 0`), so a unit dying and
+not yet closed is counted there and not here — unread, and no search on these frames sits at the boundary. The `0xbc` vslot the
+list walk asks of each candidate (ours: `on_map`) is not read. `find_build_spot` swarms at **`QUEUE_LAST`**
+(`action_swarm_around(…, QUEUE_LAST, BUILD_AT, 0)`, line 177) and ours through `swarm_around`'s `QUEUE_FIRST` shape: the same
+stack for a builder holding nothing, which is every caller here (`build_done` returns early on more than one order).
+
+**Coverage.** Diff-backed: claims 1–4 (the walk moves past 727, and `1/8` agrees through 833). Reading-only: the list walk's
+radius and region tests, which no walk holds.
