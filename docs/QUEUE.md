@@ -13,22 +13,22 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and seven
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and eight
 landings since. French East Indies **14786** of 17,379 (was 12794);
 Toughest **12744**, floor 12744 (was 11985); fifty-one chapters closed.*
 
 - **Landed**: 1461, 1470, 1476, 1479 (Opus, newest pair, now 1481); 1429, 1472
-  (Sonnet, third map, now 1477); 1423 (Sonnet, ch51 closed). Lanes:
+  (Sonnet, third map, now 1477); 1423, 1468 (Sonnet, rules). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
   high` each; entry 58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1468, 1465, 1466.
+- **The rules lane is the coverage lane**: 1465, 1466.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 15 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482).
+- **Fable backlog: 16 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -65,14 +65,6 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     against −1), then 1/2000 against 1/2023 queued and escrow food and
     wealth 67 against 0 on 12583. The 134 standing keys are parked
     1430. No mechanism is named.
-
-1468. **The twenty-fourth pass's code-changing verdicts, built**
-    (`docs/audit/2026-10-05-fable-pass-24.md`, "The verdicts"): each
-    with the unit test that fails without it, group 22 first and then
-    in the audit's order; one that moves a floor backwards parks with
-    what moved. Every row names its falsifier; a row a kept dump can
-    falsify is checked against the dump first. Latent rows land too:
-    the shipped constants hide them, a modded table would not.
 
 1465. **The held-out battery** (DECISIONS 61 §6): three lobbies no
     scored word shares a nation, map and difficulty with. The first
