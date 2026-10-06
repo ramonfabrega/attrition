@@ -14798,6 +14798,55 @@ it does not on the walks run before the gate (the gate's own verdict is in the j
 read-back, the frame, the draw delta by site and the 226/48 key counts; *reading only*: every caller named above, and the
 choice of nation.
 
-## 129. The coverage pair at frame 0: the lobby's starting stockpile and what it moves (2026-10-06, item 1496)
+## 129. The coverage pair at frame 0: the lobby's three settings, a tech-race arm, and the Airbase (2026-10-06, item 1496)
 
-In progress: the widening of frame 0's word (195 versus 198 draws, index 26) is read first; sections follow.
+**What was established, how, how confident.** Item 1466 pinned this lobby's first word at **frame 0, 195 draws ours against 198,
+index 26**, with 226 keys parted on block 1 against the control's 48. This item took the 178 the lobby adds by value, walked the
+state's first parting forward with a window capture of the lobby's own first 33 blocks (**run656**, `LEADERS=9 BUILDS=7 UNITS=3`,
+trace identical to run652's first 41 frames: `rngcmp.py` 0 differing), and moved the word to **frame 8, 21 against 24, index 2**
+(ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`). Each claim below is *diff-backed* unless marked.
+
+1. **`STARTING_RESOURCES` is a row of `rules.xml`'s `startingresources`.** `Game::init_starting_resources@0058a500` multiplies the
+   base grant by the row's `lo` (`DATA` 0) and adds a spread of `hi − lo` only for rows 9..11; row 7 ("Deathmatch") is `100`/`100`
+   and pays `STARTING_GOODS[0]` for every good but knowledge, which keeps its own — **20000/20000/20000/10000/20000/20000**,
+   the Persians' food half as much again (30000), exactly run651's block 1 (`docs/ORDERS.md` §9.4; the table was "unread" in
+   `docs/COSTS.md`). `Lobby::starting_resources_row` carries it; `Sim::starting_good` applies it. **Not established**: the spread rows
+   (9..11) draw before the first dumped frame and no record holds what they chose, so they pay `lo × base`. Test:
+   `the_lobbys_resource_row_prices_the_opening_stockpile`, `coverage_pair_start_pays_its_lobby`.
+2. **A citizen of an all-technology start is born with 85 hit points, not 40** (the Militia line's, `Unit::update_hits`): the harness
+   seeded units from the type's `hits` and not `Sim::unit_hits`. Twenty-six units × four keys of block 1.
+3. **`Setup::build_units@005aafc0`'s steps 3 and 4 for the citizens past the farm list.** `starting_resources == 7` adds eight, so a
+   Small Town starts with thirteen citizens: two at the woodcutter, three at the farms, **four more at the woodcutter until it holds
+   its six** (`num_gatherers < gather_max`, the guard §9.3 already wrote down), four placed idle. The harness gave the surplus nothing.
+   This is the whole of the frame-0 draw delta by site (`Unit::do_idle` 18 → 10, `Guy::inc_time` 4 → 12: eight units).
+4. **The tech-race lobby's hard-coded branch of `Leader::research_techs@006c6ba0`** (the "seam" `docs/AI.md` §2.14 named, `6c6ccb`..
+   `6c6de7`): under `STARTING_RESOURCES 7` with `STARTING_TECHNOLOGY 8`, while the leader's raw bit for tech `0x243` (**Missile
+   Shield**; the test is `field_0x6c60 & 8`, bit 579 of the mask that starts at `+0x6c18`) is clear, every candidate but that one
+   is skipped, and that one is bought on the spot (`produce_tech(0x243, 1)`) when `TypeData::can_pay_cost@00667570(who, −1, −1, 1)`
+   holds. run656: the AI buys it on **frame 4** (library `2005` queued 1; knowledge 10000 → 5600, metal 20000 → 16700). `Build::
+   queue_up@00620f40` also stamps `tech_frame` and `tech_cat_frame[cat]` — four, theirs, on block 5; `Sim::queue_tech_with` writes
+   them now (a field `ai.rs` called "written only by `Leader::init`"). Unit-research `queue_up_with` does not (the `type_avail == 2`
+   arm): not established.
+5. **An Airbase is a military trainer.** The make-list valuation tested a five-ident list (Barracks, Stable, Siege Factory, Factory,
+   Auto Plant); the original's `BuildTypeData::is_military_trainer@0063bcf0` is the derived flag on the lineage root, which also
+   holds the Dock, the **Airbase** and the Missile Silo. run656 block 8: theirs `MAKE[3]`/`[7]` are `AIRBASE` (447) at 3,000,000,
+   ours were `FACTORY`/`BARRACKS` at 2,559,488; with the flag, block 8 agrees whole. **Not established**: the Missile Silo's own
+   offer, which the derived flag now sends through the trainer arm too and no block before frame 9 checks.
+
+**The word now.** Block 8 (frame 7) agrees; block 9 (frame 8) parts on 91 keys. The make list is the same at the start of frame 8
+and the original buys **six buildings** (`2006` a second city, `2007` Shipyard, `2008` Oil Well at tile (190, 202), `2009`
+University, `2010`/`2011` two Airbases) where ours buys four and no Oil Well: `Leader::produce_building`'s arm 4.2 (`ai_place.rs`)
+returns false for every `OILWELL`, because **the leader's oil patches (`LeaderData::oil_patches`, `+0x6e88`, a `SimpleArray<int>`; what it indexes — `TerrainOil.patch_data` is the
+likely list — is a reading, not a finding)
+are not modelled** — the seam that file and `ai_build.rs`'s `OIL_PATCHES` have named. The slot's expiry draw (`make_stuff+0x63d`)
+comes before any placement draw in ours and after one in theirs for the same reason. That is the next word's booking: *frame 8, 21
+against 24, index 2, an Oil Well the original places on `2008`*; it is a chapter of its own (the patch list's source, the well's
+placement and its gather), not a one-line arm.
+
+**What is not established.** Whether any other lobby setting (the Persians, Toughest) moves a draw: the three settings moved
+together. The census rows §127 predicted are still predictions (no `cover=1` trace). The 87 keys on run651's block 1 are the control's
+48 plus 39 more, most of them who=1's `SITE` rows (`rank`, `wx`, `wy`, `val`, `dist` — ours holds a tenth site `(40, 47)` the original does not list and
+values `(44, 51)` at 2499 against 2000), **unexplained and not on the word's path**: block 8 agrees without them, which is why they
+are listed and not chased (parked). *Diff-backed*: items 1, 2, 3 (block 1), 4 (block 5), 5 (block 8). *Reading only*: the bit's identity
+(`field_0x6c60 & 8` is 579 by the mask's base, `+0x6c18`, not by a probe), and `TechType` vslot `0x14` returning 0 for a tech
+(read off the PE: `0x4707c0`, `19e ≤ index < 21f`).
