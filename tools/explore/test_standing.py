@@ -50,6 +50,16 @@ mod tests {
 '''
 
 
+
+SIBLINGS = '''running 1 test
+  standing 17171 1/-1 leader:leader_flags: ours 0 theirs 2
+  standing 17171 1/67 order:move.pause: ours 0 theirs 1
+  f17244 1/67 order:move.pause: ours 1 theirs 0
+  f17244: 3 keys
+  near 17245: 2 rows
+test diff::third_pair::run661_s_word_frame_is_widened_whole ... ok
+'''
+
 class Standing(unittest.TestCase):
     def test_the_print_is_read_through_its_colour(self):
         rows = standing.firsts(PRINT.split('\n'))
@@ -113,6 +123,15 @@ class Standing(unittest.TestCase):
         lines, read = standing.report(standing.firsts(['test … ok']))
         self.assertEqual(read, 0)
         self.assertIn('RON_FIRSTS=1', lines[0])
+
+
+    def test_a_sibling_widening_s_standing_and_f_lines_are_read(self):
+        # Parked 1471: `widen_on_siblings` prints `standing <block> …` and
+        # `f<block> …`; two landings fed them through `sed` to read them here.
+        rows = standing.firsts(SIBLINGS.splitlines(True))
+        self.assertEqual([(f, who, o, what) for f, who, o, what, _ in rows],
+                         [(17171, 1, -1, 'leader:leader_flags'), (17171, 1, 67, 'order:move.pause'),
+                          (17244, 1, 67, 'order:move.pause')])
 
 
 if __name__ == '__main__':

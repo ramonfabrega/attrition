@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-29
+## Index — what stands, as of 2026-10-06
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -72,7 +72,8 @@ is append-only and amended in place, as it always was.
 - 58 extended by 59 — The seam is read on the field, a strike pairs within its section, and the waiting is the machine's
 - 59 extended by 60 — The workers run Sonnet, the commander subscribes to its lanes' idle, and three reaches are three tools
 - 60 extended by 61 — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
-- 61 standing — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
+- 61 extended by 62 — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
+- 62 standing — The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
 
 ## 1. Fidelity before divergence
 
@@ -4479,3 +4480,68 @@ booking and the census rows it names; hypotheses built after a kill
 against none; the blind list against 141 and the census's `never`
 against 137; the frame against 12,993; the backlog; the count at
 twenty.
+
+## 62. The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
+
+**Decided 2026-10-06**, the twenty-fifth pass
+(`docs/audit/2026-10-06-fable-pass-25.md`), the roster and the lane
+count with Ramon in conversation during the pass; the successor by
+entry 61 §6. Amends nothing; applies entry 61's rules 2, 5 and 6 for
+the first time.
+
+**What was measured.** Twenty landings in 13 h 09 m on three lanes,
+nobody typing between the twenty-fourth pass's spawn and this one's;
+workers 310.49 USD list at the day's table, the commander 19.70, 16.5 a
+landing. By lane, each model verified from its transcript: the newest
+pair's lane on Opus 5.5, nine landings, French East Indies 12794 →
+17244, 494 frames a landing at 15.45 USD, 56 minutes waiting; Toughest's
+on Sonnet 5.5 at `--effort high`, five, 12538 → 14512, 395 a landing at
+14.10, 106 waiting; the rules lane on Sonnet, six, at 16.83 — chapter
+fifty-one, the twenty-fourth pass's twenty-two verdict groups built,
+the battery, the coverage pair stood up and walked to 177. A landing
+waited 77.5 minutes against 50 on entry 58's three-lane Opus tranche:
+the suite 22.1, a capture 19.0, `other` 18.3, the gate 18.0; on another
+lane's capture 3.9. Neither kill rule tripped; 1429's booking-gate red
+was a pin two merges moved together. The battery read 576 / 6566 / 2974
+on the tree fifteen landings after it was taken, unmoved.
+
+**What it means.**
+
+1. **Sonnet at high costs what Opus costs.** Entry 59's 5.13 a landing
+   was effort `medium`; at `high` a Sonnet landing is 14 to 17 USD list
+   against Opus's 15, with deeper contexts (716 k peak on 1468) and more
+   waiting. Its frames a landing on Toughest beat the lane's own Opus
+   baseline (258). So there is no price reason to prefer it and no
+   quality reason to drop it; **the user's word: one more tranche on the
+   mix, then the roster is decided on two tranches' numbers**, and the
+   only edge left to find is whether the weekly meter weighs Sonnet
+   tokens lighter than list price does — the user's meter, not lore's.
+2. **Two lanes, by rule 5.** The waiting did not hold within a fifth, so
+   a lane comes off: the newest pair's (Opus) and Toughest's (Sonnet);
+   the rules lane's chapter waits for a lane the waiting earns back.
+   The sweep lane and its two-model trial (parked 1464) wait with it.
+3. **The coverage pair is the successor pair.** Item 1466 chose its lobby
+   by entry 61 §6 — the rows no trace has entered — so when the French
+   pair closes (135 frames from its end), the coverage pair is the
+   newest pair, scored, its word on the Opus lane; the scoreboard line
+   and the parser come with that booking. Parked 1498 closes on this.
+4. **The capture lane is a quarter of the waiting, not the whole.** The
+   user's reading that captures are the concurrency bottleneck is
+   measured against the split above: the suite and the gate are more
+   than half. A second prefix (parked 1139) stays his and is not built;
+   the suite's shared text (1138) is the next pass's measurement.
+
+**The estimate, written down to be wrong on record**: twenty landings on
+two lanes in under sixteen hours with nobody typing; the French pair
+closes and the coverage pair's word passes 2,000; Toughest passes
+15,000; a landing waits under 55 minutes on two lanes; `lanewait` exits
+LANDED at most 25 times for twenty landings; no merge backs out on an
+appended section; neither kill rule trips.
+
+**The measure for the next pass**: each lane's frames and USD a landing
+against this tranche's (Opus 494 at 15.45, Sonnet 395 at 14.10) and the
+roster's verdict on both tranches together; waiting minutes a landing
+against 77.5 and whether a third lane is earned back; `lanewait`'s exits
+by kind against 41 LANDED, 4 ENDED, 0 QUIET; merges backed out against
+seven; the battery against 576 / 6566 / 2974; the census's never against
+142 and the blind list against 142; the backlog against seventeen.

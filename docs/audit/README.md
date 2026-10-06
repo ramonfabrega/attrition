@@ -486,6 +486,29 @@ the release-node row below, one reach since the twentieth pass.
   and the standing rows of a window's first block held a field nothing
   wrote, twice.
 
+## The brief checklist, from the twenty-fifth pass
+
+The twenty-fifth tranche (DECISIONS 61, 62): twenty landings on a mixed
+roster, and the rows are the lanes' own Loop lines. The pass added these
+and paid by condensing four rows' wording, no number struck.
+
+- **The compared pin's unread list is grepped for the parted field**
+  (1475): seven journals of twenty named a key `coverage.rs` pins
+  uncompared on the cause — `construct_hits` and `myhits` twice, a
+  General's `mana_burn`, `leader_flags`, a field carried under another
+  name — and each was dated to its first block by a grep after the fact.
+  Quiet on such a key is a blind instrument, not agreement.
+- **`tools/standing.py` reads the sibling widening's print** (1471): the
+  third pair's and the coverage pair's `widen_on_siblings` write
+  `standing <block> …` and `f<block> …`, and two landings fed them through
+  `sed`; the tool reads both now.
+- **No `mkdir -p` before a launch, and a traceback with no receipt is a
+  dead take** (1513, 1503): `captures.txt`'s runner refuses an output
+  directory that exists, so the habit loses a launch; run659's first
+  take died in `autostart_receipt.py` with no receipt and the lane's
+  waiter sat on another lane's runner — `waitrun.sh` exits 2 on the
+  traceback at once.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

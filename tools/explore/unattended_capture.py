@@ -117,6 +117,23 @@ def stalled_before_frame_zero(gamelog):
         return True
 
 
+def stall_verdict(report, seconds_since_launch, stall, stalled):
+    """What a launch that has written no gamelog gets: `None` while it is
+    within `stall` seconds or `stall` is off; `'relaunch'` the first time;
+    `'give_up'` the second. One relaunch is parked 762's (DXVK's device
+    setup); a relaunch that stalls too is not the device — run584's second
+    start sat 48 minutes behind a permission prompt while the lane waited
+    out its timeout (item 1429, parked 1469; the twenty-fifth pass) — and
+    is ended at once, so the lane's wait is two stalls, not an hour."""
+    if not stall or not stalled or seconds_since_launch < stall:
+        return None
+    if 'relaunched_after_seconds' not in report:
+        return 'relaunch'
+    if 'stalled_twice_after_seconds' not in report:
+        return 'give_up'
+    return None
+
+
 def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
@@ -284,8 +301,9 @@ def capture(args, output, style):
             except subprocess.TimeoutExpired:
                 pass
             now = time.monotonic()
-            if stall and 'relaunched_after_seconds' not in report and now - launch >= stall \
-                    and stalled_before_frame_zero(output/'gamelog.txt'):
+            verdict = stall_verdict(report, now - launch, stall,
+                                    stalled_before_frame_zero(output/'gamelog.txt'))
+            if verdict == 'relaunch':
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait(timeout=10)
                 (output/'wine.log').replace(output/'wine-stalled.log')
@@ -293,6 +311,13 @@ def capture(args, output, style):
                 launch = time.monotonic()
                 process = start()
                 continue
+            if verdict == 'give_up':
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=10)
+                (output/'wine.log').replace(output/'wine-stalled-2.log')
+                report['stalled_twice_after_seconds'] = now - launch
+                raise RuntimeError(f'stalled before frame 0 twice, {stall} s each; '
+                                   'a permission prompt or a dead device — see wine-stalled-2.log')
             if now >= deadline:
                 raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
@@ -413,7 +438,8 @@ def main():
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
     ap.add_argument('--stall-seconds',type=int,default=300,
-                    help='relaunch once when no gamelog has appeared by then (0 disables; parked 762)')
+                    help='relaunch once when no gamelog has appeared by then, and give up when the '
+                         'relaunch stalls too (0 disables; parked 762, 1469)')
     ap.add_argument('--startup-probe',action='store_true',help='observe WinMain Media Foundation calls')
     ap.add_argument('--map',type=int,action='append',dest='maps',metavar='STYLE',
                     help='map style, repeatable; default 14 then 18')

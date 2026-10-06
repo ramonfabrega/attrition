@@ -144,6 +144,22 @@ class RunnerTest(unittest.TestCase):
         log.write_text(' MAP_STYLE 18\n')
         self.assertFalse(runner.stalled_before_frame_zero(log))
 
+    def test_a_second_stall_gives_up_instead_of_waiting_out_the_timeout(self):
+        # Parked 1469: run584's relaunch sat 48 minutes behind a permission
+        # prompt; the stall rule relaunched once and then only the timeout
+        # ended it. The verdict is pure: within the stall window nothing,
+        # then one relaunch, then a give-up, and never a third.
+        report={}
+        self.assertIsNone(runner.stall_verdict(report,100,300,True))
+        self.assertIsNone(runner.stall_verdict(report,400,300,False))
+        self.assertIsNone(runner.stall_verdict(report,400,0,True))
+        self.assertEqual(runner.stall_verdict(report,400,300,True),'relaunch')
+        report['relaunched_after_seconds']=400
+        self.assertIsNone(runner.stall_verdict(report,100,300,True))
+        self.assertEqual(runner.stall_verdict(report,300,300,True),'give_up')
+        report['stalled_twice_after_seconds']=300
+        self.assertIsNone(runner.stall_verdict(report,900,300,True))
+
     def test_a_groups_capture_must_print_groupdata(self):
         # Parked 735: run210, run215 and run223 asked for `GROUPS` and two
         # of them printed no `GROUPDATA` block, silently; the pool is what

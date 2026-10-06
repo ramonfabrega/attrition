@@ -432,7 +432,10 @@ the model and effort verified from each worker's transcript — the
 harness's defaults differ by model, and a trial once moved two
 settings for one). **Two kill rules ride with a Sonnet lane**: a
 booking gate red on its merge for what its own lane gate passed
-returns that lane to Opus, and a lane that lands nothing in three
+returns that lane to Opus — **a red on a pin another landing's merge
+moved is a re-pin, not a trip** (parked 1469; seven of twenty merges
+moved one in the twenty-fifth tranche, Opus lanes among them) — and a
+lane that lands nothing in three
 attempts on one word gets an Opus successor on that word. **No pass
 and no commander changes the roster**: a pass scores it lane by lane
 and recommends, and the user decides at a steer. The model is said in
@@ -496,7 +499,9 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
-that commit**, the gate to a file, `ccc push <ref> --base`,
+that commit**, the gate to a file, `ccc push <ref> --base` **read back
+by `git rev-parse HEAD origin/worktree-replan-pdb`** — it answered
+"nothing to push" with origin two commits behind once (parked 1492) —
 `ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
 worker pushes its branch, `ccc rm` deletes only the worktree and the local
 branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
@@ -508,7 +513,10 @@ a gate runs**: the handoff is rewritten before the gate, not during it.
 looks exactly like one that never started, so a handoff never says a lane
 produced nothing until `git status` in that lane has said so. **A brief
 reserves what two lanes could take in silence** — the run number and
-the section number when another lane is in the same document — **and
+the section number when another lane is in the same document, **and a
+reserved section's heading stub lands in the booking commit**, so two
+lanes append at their own anchors (parked 1491: seven of twenty merges
+backed out on an appended section or a pin) — **and
 code is not fenced**: two lanes in one
 module merge, or conflict out loud at `ccc update` or at the gate; the
 lane that lands second takes the update before its gate; a brief says

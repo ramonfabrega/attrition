@@ -20,16 +20,36 @@ def watching(**lanes):
 
 
 class Event(unittest.TestCase):
-    def test_a_push_is_a_landing(self):
+    def test_a_push_by_a_stopped_row_is_a_landing(self):
         watch = watching(a='1' * 40, b=None)
-        found = lanewait.event(watch, {'a': 'working', 'b': 'working'},
+        found = lanewait.event(watch, {'a': 'blocked', 'b': 'working'},
                                {'a': '2' * 40, 'b': None}, 5, 100)
         self.assertEqual(found, (0, 'LANDED a worktree-a 11111111..22222222'))
 
-    def test_a_first_push_is_a_landing(self):
+    def test_a_first_push_by_a_stopped_row_is_a_landing(self):
         watch = watching(a=None)
-        found = lanewait.event(watch, {'a': 'working'}, {'a': '3' * 40}, 5, 100)
+        found = lanewait.event(watch, {'a': 'done'}, {'a': '3' * 40}, 5, 100)
         self.assertEqual(found, (0, 'LANDED a worktree-a none..33333333'))
+
+    def test_a_push_while_the_row_works_is_noted_and_watched_on(self):
+        # The twenty-fifth tranche: 1500 pushed four times and 1502 five
+        # before each landed, and the waiter woke the commander on every one.
+        watch = watching(a='1' * 40)
+        notes = []
+        found = lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 5, 100, notes)
+        self.assertIsNone(found)
+        self.assertEqual(notes, ['PUSHED a worktree-a 11111111..22222222'])
+        # The same tip again is nothing new.
+        notes = []
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100, notes))
+        self.assertEqual(notes, [])
+
+    def test_a_row_that_pushed_and_then_stopped_has_landed(self):
+        watch = watching(a='1' * 40)
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 5, 100))
+        self.assertIsNone(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 6, 100))
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 7, 100),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
 
     def test_nothing_moved_is_no_event(self):
         watch = watching(a='1' * 40)

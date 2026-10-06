@@ -229,8 +229,8 @@ class Liveness(LaneLock):
             holder.wait()
 
     def test_the_state_of_a_free_lane(self):
-        run = self.shell('ron_lane_state')
-        self.assertEqual(run.stdout.strip(), 'free')
+        run = self.shell('ron_lane_state; echo "state=$?"')
+        self.assertEqual(run.stdout.strip().split('\n'), ['free', 'state=0'])
 
     def test_a_take_for_another_pid_holds_the_lane_for_it(self):
         # Parked 1234 (three reaches): the click-free runner launches
@@ -249,6 +249,10 @@ class Liveness(LaneLock):
         self.assertIn('rc=0', run.stdout, run.stdout + run.stderr)
         self.assertIn('held by test since', run.stdout)
         self.assertIn(f'(pid {pid}, sleep)', run.stdout)
+        # Parked 1488: a held lane answers 1, so `ron_lane_state && launch`
+        # launches only into a lane that would take it.
+        run = self.shell('ron_lane_state; echo "state=$?"')
+        self.assertIn('state=1', run.stdout, run.stdout + run.stderr)
         self.assertEqual(self.lock.read_text().split('\n')[2], str(pid))
         rc, err, _ = self.launch()
         self.assertEqual(rc, 75, err)

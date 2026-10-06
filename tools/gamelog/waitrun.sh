@@ -33,7 +33,11 @@
 # or a receipt says `"success": false`, or the script said `=== capture
 # failed: `; 2 — no runner is
 # alive and neither a banner nor a receipt came (the queue died, or was never
-# started; read the log's tail this prints); 64 — usage.
+# started; read the log's tail this prints), or the log ends in a Python
+# traceback no receipt follows — a runner that died (run659's first take,
+# item 1503, parked 1513; the twenty-fifth pass): it is called at once,
+# without waiting for every other lane's runner to go quiet, because
+# `pgrep` over the runner pattern sees any lane's; 64 — usage.
 set -u
 log=${1:-}
 poll=${2:-20}
@@ -49,6 +53,7 @@ runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|game
 # finished and this script called it a dead runner.
 captured='^=== captured: '
 failed='^=== capture failed: '
+traceback='Traceback (most recent call last):'
 
 # `run_in_background` reports a task the moment it exits, so a launch that
 # has not written its log yet is waited for too — but only for a while: a
@@ -69,6 +74,16 @@ while :; do
   if [ -r "$log" ] && grep -qE -- "$captured" "$log"; then
     grep -E -- "$captured" "$log"
     exit 0
+  fi
+  # A traceback that no receipt follows is a runner that died: the
+  # click-free runner prints its receipt line after `capture()` returns,
+  # and a `capture()` that raised printed none.
+  if [ -r "$log" ] && grep -qF -- "$traceback" "$log"; then
+    if ! sed -n "/$traceback/,\$p" "$log" | grep -qE -- "$receipt"; then
+      echo "waitrun: the runner died with a traceback and no receipt followed it" >&2
+      tail -n 20 "$log" >&2
+      exit 2
+    fi
   fi
   if ! pgrep -f -- "$runner_pattern" >/dev/null 2>&1; then
     # No runner. The click-free lane's receipts are its verdict, read only

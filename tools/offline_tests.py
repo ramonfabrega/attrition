@@ -39,6 +39,7 @@ SUITES = (
     'test_standing',
     'test_tranche',
     'test_lanewait',
+    'test_waitrun',
     'test_mutate',
     'test_repin',
 )

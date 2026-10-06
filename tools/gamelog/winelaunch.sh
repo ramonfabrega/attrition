@@ -106,6 +106,10 @@ _ron_lane_holder () {
 
 ron_lane_state () {
   # One line for a reader: `free`, `stale: …` or `held by … (pid N, …)`.
+  # The exit is the answer too (parked 1488, the twenty-fifth pass): 0 when
+  # the next launch would go — free, or stale and taken over — and 1 when
+  # the lane is held, so `ron_lane_state && launch` launches only then;
+  # item 1481's chained launch went regardless and the flock refused it.
   if [[ ! -r "$RON_LANE_LOCK" ]]; then
     print -r -- "free"
     return 0
@@ -113,7 +117,7 @@ ron_lane_state () {
   local pid held why=""
   if held=$(_ron_lane_holder --any); then
     print -r -- "held by $(sed -n 2p "$RON_LANE_LOCK") (pid $held, $(ps -o comm= -p "$held" 2>/dev/null))"
-    return 0
+    return 1
   fi
   for pid in "$(sed -n 1p "$RON_LANE_LOCK")" "$(sed -n 3p "$RON_LANE_LOCK")"; do
     [[ "$pid" == <-> ]] || continue

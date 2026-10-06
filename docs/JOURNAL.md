@@ -21048,3 +21048,25 @@ debt (1447). The model question is re-asked as the architecture
 question: one Opus 5.5 `--effort high` worker, sequential under
 `AGENTS.md`, from 1446, measured against the Codex tranche (1448);
 parked 1422's retro matrix is superseded. **DECISIONS 60.**
+
+**2026-10-05 — the twenty-fourth pass: the loop returns.** A steer with
+Ramon on the four shapes of the week — three Opus lanes, three Sonnet,
+Codex direct, one Opus sequential — then the pass: thirty landings read
+a second time (nine blind readings, nine adjudications, forty-two
+code-changing rows in twenty-two groups, booked as 1468), the two-spawn
+handoff built in place of the clear, `tools/lanewait.py`, the mixed
+roster and the unattended pass's fence. **DECISIONS 61.**
+`docs/audit/2026-10-05-fable-pass-24.md`.
+
+**2026-10-06 — the twenty-fifth pass: the first unattended tranche.**
+Twenty landings in 13 h 09 m with nobody typing: French East Indies
+12794 → 17244 of 17,379 on Opus, Toughest 12538 → 14512 and chapter
+fifty-one on Sonnet at high, the verdicts built, the battery measured
+(576 / 6566 / 2974, unmoved fifteen landings later) and the coverage
+pair stood up. Sonnet at high cost what Opus costs; a landing waited
+77.5 minutes, the suite its largest class; Ramon, present for the
+pass, took the mix once more on two lanes. Built: the waiter's push
+rule, the capture waiter's dead-take exit, the runner's second-stall
+give-up, the lane state's exit, the standing tool's sibling print; nine
+Loop items closed, 1516 filed, the backlog seventeen. **DECISIONS 62.**
+`docs/audit/2026-10-06-fable-pass-25.md`.

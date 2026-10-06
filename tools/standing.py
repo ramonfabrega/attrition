@@ -34,8 +34,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SIM = ROOT / 'crates/sim/src'
 # `first <frame> …` is the AI track's widening; `ch43 f<frame> …` is a
-# golden chapter's, the same row in the chapter's spelling (parked 1250).
-FIRST = re.compile(r'^\s*(?:first (-?\d+)|ch[0-9a-z]+ f(-?\d+)) (-?\d+)/(-?\d+) (\S+?): (.*)$')
+# golden chapter's, the same row in the chapter's spelling (parked 1250);
+# `standing <block> …` and `f<block> …` are `widen_on_siblings`' — the
+# third pair's and the coverage pair's — which items 1461 and 1466 fed
+# through `sed` (parked 1471, the twenty-fifth pass).
+FIRST = re.compile(r'^\s*(?:first (-?\d+)|ch[0-9a-z]+ f(-?\d+)|standing (-?\d+)|f(-?\d+))'
+                   r' (-?\d+)/(-?\d+) (\S+?): (.*)$')
 # Segments of a key that are the record's own spelling and not a field.
 NOT_A_FIELD = frozenset(('order', 'leader', 'group', 'g', 'build', 'guy', 'path', 'city',
                          'move', 'attack', 'unit', 'pool', 'death', 'ammo'))
@@ -47,8 +51,9 @@ def firsts(lines):
     for line in lines:
         m = FIRST.match(re.sub(r'\x1b\[[0-9;]*m', '', line.rstrip('\n')))
         if m:
-            f1, f2, who, o, what, values = m.groups()
-            out.append((int(f1 if f1 is not None else f2), int(who), int(o), what, values))
+            f1, f2, f3, f4, who, o, what, values = m.groups()
+            frame = next(f for f in (f1, f2, f3, f4) if f is not None)
+            out.append((int(frame), int(who), int(o), what, values))
     return out
 
 
