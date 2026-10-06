@@ -112,6 +112,7 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             }
         }
         crate::diff::harness::debug_leader(&built, at);
+        crate::diff::harness::debug_armies(&built, at);
         crate::diff::harness::debug_ammo(&built, at);
         crate::diff::harness::debug_builds(&built, at);
         crate::diff::harness::debug_tech(&built, at);

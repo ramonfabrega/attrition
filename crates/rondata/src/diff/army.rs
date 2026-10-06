@@ -472,7 +472,12 @@ mod tests {
         let init = log.initial().expect("the start-of-game block");
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
-        sim.lobby = lobby_of(&init.game_info, &loaded.map_styles, &loaded.wonder_wins);
+        sim.lobby = lobby_of(
+            &init.game_info,
+            &loaded.map_styles,
+            &loaded.wonder_wins,
+            &loaded.pop_wins,
+        );
         sim.sync_setup_from_lobby();
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
         // §1): the frame the stamps are compared against, and the sync
@@ -540,6 +545,12 @@ mod tests {
             }
             if let Some(v) = l.int("attacked_by") {
                 a.attacked_by = v as i32;
+            }
+            if let Some(v) = l.int("popwin_stamp") {
+                a.popwin_stamp = v;
+            }
+            if let Some(v) = l.int("popwin_timer") {
+                a.popwin_timer = v as i32;
             }
             if let Some(p) = l.kid("PERSONALITY") {
                 if let Some(v) = p.int("raid") {

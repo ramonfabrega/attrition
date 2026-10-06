@@ -693,6 +693,14 @@ pub struct Leader {
     /// (`Object::take_damage`, `docs/AI.md` §71).
     pub frame_attacked: i64,
     pub attacked_by: i32,
+    /// `popwin_stamp` (`+0x440`) and `popwin_timer` (`+0x444`): the
+    /// territory victory's clock and its running flag
+    /// (`GameDaemon::process_victory@00730ef0`, [`crate::victory`]). The
+    /// stamp gains the frame when the timer starts and loses it when it
+    /// stops, so a stopped timer leaves the time it ran as a negative
+    /// stamp that `Leader::process` pays back one a `TIMER_REFRESH_RATIO`.
+    pub popwin_stamp: i64,
+    pub popwin_timer: i32,
     /// `new_rares` (`LeaderData +0x6e6c`) — the **goods-list indices** of
     /// every merchant rare this leader has ever had a fog cell lifted over,
     /// in the order they were seen and never removed.
@@ -856,6 +864,8 @@ impl Leader {
             tech_frame: 0,
             frame_attacked: 0,
             attacked_by: -1,
+            popwin_stamp: 0,
+            popwin_timer: 0,
             tech_cat_frame: [0; 4],
             new_rares: Vec::new(),
             known_rares: 0,
@@ -1024,6 +1034,11 @@ pub struct Lobby {
     /// against it whatever `VICTORY` is. Every capture on file sets
     /// `WONDERWIN 5`, the "8 Wonder Points" row (`docs/AI.md` §124).
     pub wonder_win_points: i32,
+    /// The territory victory's share: rules.xml's `popwins` row that
+    /// `POPWIN` indexes, its `DATA` — a percentage of the world's land
+    /// (`GameDaemon::process_victory`'s `local_20`). Every capture on file
+    /// sets `POPWIN 8`, "70% of World Territory" (`docs/AI.md` §126).
+    pub pop_win_percent: i32,
     /// `GameInfo.flags & 4`, "No Nation Powers".
     pub no_nation_powers: bool,
     /// `semaphore[2] & 2`: a Conquer-the-World or scenario game.
@@ -1051,6 +1066,7 @@ impl Default for Lobby {
             elimination: 1,
             victory: 0,
             wonder_win_points: 8,
+            pop_win_percent: 70,
             no_nation_powers: false,
             conquest: false,
             reveal_map: 1,

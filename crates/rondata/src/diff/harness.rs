@@ -1352,11 +1352,22 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
                 .iter()
                 .map(|&u| format!("{}/{}", built.sim.units[u].owner, built.sim.units[u].index))
                 .collect();
+            // The target as the dump keys it: owner/index and position.
+            let target = a.target.map(|t| match t {
+                sim::combat::Obj::Unit(u) => {
+                    let u = &built.sim.units[u];
+                    format!("unit {}/{} ({},{})", u.owner, u.index, u.pos.x, u.pos.y)
+                }
+                sim::combat::Obj::Building(b) => {
+                    let b = &built.sim.buildings[b];
+                    format!("build {}/{} ({},{})", b.owner, b.index, b.pos.x, b.pos.y)
+                }
+            });
             eprintln!(
                 "  f{frame} army {w}/{slot} status {} target {:?} pos ({},{}) muster ({},{}) \
                  rally {} hurry {} units {} caps {} std {} [{}]",
                 a.status,
-                a.target,
+                target,
                 a.pos.x,
                 a.pos.y,
                 a.muster.x,

@@ -33,8 +33,7 @@ use crate::{Player, Sim};
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
 /// | `find_target`'s forts | §12's second scan | never a fort target |
-/// | `pop_issues`, `wonderwin_timer`, `popwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
-/// | `type_avail(SUPPLYWAGON)` | §12's wagon availability gate | a wagon-less army is not weak for it |
+/// | `pop_issues`, `wonderwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals, which also admits the government patriots |
 /// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
@@ -47,6 +46,9 @@ pub const SLOTS: usize = 16;
 /// `TypeIndex` `0x119`, `AAGUN`: `Army::normalize` takes it off the
 /// standard line.
 const AAGUN: crate::tech::TypeId = 0x119;
+/// `TypeIndex` `0x3f`, `SUPPLYWAGON`: `find_target`'s weak test asks
+/// `type_avail` of it.
+const SUPPLYWAGON: crate::tech::TypeId = 0x3f;
 /// `TypeIndex` `0x36`, the General — the lineage `Army::process` counts
 /// before its generals' turn; a government patriot `FROM General` is one.
 const GENERAL: crate::tech::TypeId = 0x36;
@@ -1864,7 +1866,15 @@ impl Sim {
         let siege = self.army_count_siege(who, slot);
         let supply = self.army_count_supply(who, slot);
         let cavalry = self.army_count_cataphracts(who, slot);
-        let weak_army = !navy && self.army_count_hoplites(who, slot) + 2 * siege + cavalry < 4;
+        // `local_54` (`6f6a1b..6f6a6b`): a land army is weak with fewer
+        // than four of hoplites, siege twice and cataphracts — **or**, past
+        // Military 2, with no wagon of its own while the leader can have
+        // one (`type_avail(SUPPLYWAGON, 1) != 0`, researchable included).
+        // French East Indies' army 0 is that on 14332..14844 and scores no
+        // enemy city; army 6 carries a wagon on 15088 (item 1487).
+        let weak_army = !navy
+            && (self.army_count_hoplites(who, slot) + 2 * siege + cavalry < 4
+                || (age > 2 && supply == 0 && self.type_avail(who, SUPPLYWAGON) != 0));
         let capital = self
             .cities_of(who)
             .into_iter()
@@ -2108,6 +2118,15 @@ impl Sim {
                         if !attacked {
                             v /= 2;
                         }
+                    }
+                    // `about_to_win` (`local_34`, `6f79d8`): an enemy's city
+                    // is worth a hundred times more while my territory
+                    // timer runs (`crate::victory`) — French East Indies'
+                    // Napata on 15088, 20040 against Paris's 345 (item
+                    // 1487). My `wonderwin_timer` is the other half; it is
+                    // a seam (the module doc).
+                    if enemy && self.ai[w].popwin_timer != 0 {
+                        v *= 100;
                     }
                     let (hits, health) = {
                         let bd = &self.buildings[cd.building];
@@ -3417,6 +3436,100 @@ mod tests {
                 sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
                 expected == 4,
                 "only four live real cavalry admit an enemy city"
+            );
+        }
+    }
+
+    /// [`sim_with_city`] at difficulty 5, at war with player 0, whose one
+    /// city one cell-region away is my city's clone; my capital is under
+    /// attack, so it scores `×10 ×10` over its draw. An army of four
+    /// hoplites at my city, and the enemy city's building, are returned.
+    fn sim_with_rival_city() -> (Sim, usize, usize) {
+        let (mut sim, c) = sim_with_city();
+        sim.lobby.difficulty = 5;
+        sim.ai[1].pers.early_army = 1;
+        sim.world
+            .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+        sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
+        sim.cities[c].no_heal = true;
+        let hop = soldier_type(&mut sim);
+        sim.unit_types[hop].cols.role |= role::HOPLITE;
+        let slot = sim.init_army(1, Some(c));
+        for i in 0..4 {
+            let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
+            sim.army_add_unit(1, slot, u);
+        }
+        let fb = sim.add_building(0, Pos::new(0x6000, 0x3000), 1);
+        let mut foe = sim.cities[c].clone();
+        foe.owner = 0;
+        foe.founder = 0;
+        foe.no_heal = false;
+        foe.building = fb;
+        foe.pos = sim.buildings[fb].pos;
+        let fc = sim.cities.len();
+        sim.cities.push(foe);
+        sim.buildings[fb].city = Some(fc);
+        sim.declare_war(1, 0);
+        // `declare_war` retargets the armies; the call under test starts
+        // from none.
+        sim.armies[1].list[slot].target = None;
+        (sim, slot, fb)
+    }
+
+    /// **`about_to_win`** (`find_target@006f69b0`, `local_34`, the `imul
+    /// 0x64` at `6f79de`): while my territory timer runs an enemy's city
+    /// scores a hundred times over — French East Indies' Napata on 15088,
+    /// 20040 against Paris's 345 on run649's packet (item 1487).
+    #[test]
+    fn my_running_territory_timer_makes_an_enemy_city_the_target() {
+        for (timer, enemy_wins) in [(0, false), (1, true)] {
+            let (mut sim, slot, fb) = sim_with_rival_city();
+            sim.ai[1].popwin_timer = timer;
+            sim.find_target(1, slot);
+            assert_eq!(
+                sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+                enemy_wins,
+                "timer {timer}: my attacked capital wins unless the timer runs"
+            );
+            assert_eq!(sim.ai[0].attacked_by == 1, enemy_wins, "the stamp");
+        }
+    }
+
+    /// **A wagon-less army past Military 2 is weak** (`local_54`,
+    /// `6f6a1b..6f6a6b`) while its leader can have a wagon at all: it
+    /// scores no enemy city. French East Indies' army 0 on 14332..14844
+    /// carries none and leaves Napata alone under a running timer; army 6
+    /// carries one on 15088 and takes it (item 1487).
+    #[test]
+    fn a_wagonless_army_past_military_two_scores_no_enemy_city() {
+        use crate::tech::{TechTree, TypeDef, UnitTraits};
+        for (wagon, enemy_wins) in [(false, false), (true, true)] {
+            let (mut sim, slot, fb) = sim_with_rival_city();
+            sim.ai[1].popwin_timer = 1;
+            // My capital untroubled: an enemy city one wagon short of two
+            // still loses a tenth past Military 2, and wins at that.
+            sim.cities[0].no_heal = false;
+            let mut tree = TechTree::default();
+            while tree.types.len() <= SUPPLYWAGON {
+                let mut d = TypeDef::unit("Unit", UnitTraits::default());
+                d.tribe_mask = u32::MAX;
+                tree.add(d);
+            }
+            sim.set_tech_tree(tree);
+            sim.tech[1].epoch[crate::tech::Line::Military.index()] = 3;
+            // Past `early_army`'s Military 2 the gate wants seven standard.
+            sim.armies[1].list[slot].num_standard = 7;
+            if wagon {
+                let t = soldier_type(&mut sim);
+                sim.unit_types[t].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
+                let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3030));
+                sim.army_add_unit(1, slot, u);
+            }
+            sim.find_target(1, slot);
+            assert_eq!(
+                sim.armies[1].list[slot].target == Some(Obj::Building(fb)),
+                enemy_wins,
+                "wagon {wagon}: the enemy city is scored only with a wagon"
             );
         }
     }
