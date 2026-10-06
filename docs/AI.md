@@ -15414,3 +15414,58 @@ does not show: no mechanism is named.
 No blind reading. The clause is diff-backed by run653's `1/2053` (the clock from
 `construct_hits` on three blocks and the completion frame) and the predicate's
 shape by the listing.
+
+## 133. The coverage pair's frame 8: the leader's oil patches, and the word at 177 (2026-10-06, item 1505)
+
+**What was established, how, how confident.** Item 1496 left the coverage pair's word at **frame 8, 21 draws ours against 24, index 2** (ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`): on run656's block 9 the original buys an Oil Well on `2008` at tile
+(190, 202), and `produce_building`'s arm 4.2 (`ai_place.rs`) returned false for every `OILWELL`. The booking's "`oil_patches` is unmodelled" was
+a hypothesis; the writers were counted before anything was built. `LeaderData +0x6e88` (`SimpleArray<int>`: count `+0x6e8c`, list `+0x6e98`,
+`types.txt`) has **four writers and one emptier** in the export, by offset: `World::reveal_fog@006b3d30` (an add), `World::compute_reg_territory@006b0bb0`
+(an add), `Leader::produce_building@006e1400` (a remove, by value) and `Leader::init@006e3930` (the empty); `Leader::create_buildings@006c1be0`
+reads the count (`+0x6e8c`, the `oil_ok` of §3.2). `BuildOut::make_options`' `+0x6e98` is another struct's field (`leaders.list - 1 + 0x6e98`), not this list.
+Each claim is *diff-backed* unless marked.
+
+1. **The list is the leader's goods-list indices of oil patches.** *Add (a)*: `reveal_fog`, after its rare arm and independent of that arm's
+   `0x200` gate, tests the **world cell's own flag `0x800`** (`cell::OIL`) at `(fx >> 1, fy >> 1)` and walks the goods list from the front for the
+   first **live** good standing on that cell — **whatever its type** — and adds its index unless it is already in the list. No human gate (`new_rare`
+   has one; this does not). *Add (b)*: `compute_reg_territory`, per cell it gives to a leader (`who >= 0`, 256 cells a frame, `border_pass.rs`),
+   runs the same first-live-good scan and adds an **oil** good (the good type's `TypeIndex == 5`) to that owner's list, or hands a rare to
+   `new_rare`. `Leader::init` empties the list. Oil goods are in the goods list and in no cell's chain (`world.rs`), which is why both scans walk the
+   list. `Leader::oil_patches`, `Sim::reveal_fog`, `Sim::claim_cell_goods`, `Sim::claim_oil_from_owners` (setup's wholesale pass, `settle_borders`, and the
+   harness's stand-in for an installed owner grid).
+2. **Arm 4.2** (`006e1730`–`006e195f`, read from the listing): the list **last to first**; skip a dead patch; a **land** patch (`!is_ocean`) whose cell owner is not
+   this leader is **removed from the list** (`SimpleArray<int>::remove@00462e70`: by value, the tail shifts down) and skipped; an **ocean** patch is skipped, not
+   removed, unless the leader has a transport level (`leader_flags & 0x700`, taken as `transport_level != 0`; `docs/TRANSPORT.md` sets the two together). The centre tile
+   `(4x + 2, 4y + 2)` must have `mask & 3 != 3` and bit 7 clear. With the cell's flag `2` clear and **no enemy object within `0x600` of the cell's centre**
+   (`ObjectsData::find`, `SEARCH_ENEMY`, `FILTER_ALL`), the score is **`2 · width − vector_dist(patch − anchor)`** in cells (both operands the near building's
+   cell, from the listing's `[ebp-0x4c]`/`[ebp-0x60]`) and a score `>= best` takes it — so a tie goes to the **earlier** patch; the candidate is `cell · 0x300 +
+   x_size · 0x60` per axis. With the flag set, no enemy within `0xf00` clears the bit. After the walk, `best > 0` and the candidate's cell `is_ocean` turns the type into
+   the **Oil Platform**, and the common tail reads the platform's record. `best == 0` fails (`006e25dc`). This arm, `pick_oil_patch`, replaces the spiral for `OILWELL`.
+3. **`oil_ok`** (`create_buildings`, `gather_slots[OIL] < oil_patches.count`) now reads the count: the make list's oil value is wanted when a patch is known.
+4. **The value diff on the word's frame.** run656 parts on **275 more keys** before than after, all on block 9 and after: `2008`'s `build:x_internal`/`y_internal`/`city_down`,
+   `2009`'s `city`/`constr_time`/`repeat_air`/`x_internal`/`y_internal` and `1/2010`, `1/2011` ("the dump holds it alone"), the make list's slots
+   (`MAKE[1].val` 4,750,000 against 47,500, `MAKE[2..7].t`), `bucket[1:timber]` 19810 against 19710, `[4:metal]` 16700 against 16650, `[5:oil]` 19930
+   against 19835, and 1/7, 1/8, 1/10 and 1/12's orders and paths. **run656: 364 keys parted → 89** (block 1's alone: the control's 48 and the SITE list's 41). The Oil Well
+   stands where theirs does, `2008` at (36480, 38784), tile (190, 202). `coverage_pair_first_parting`: **frame 8 → frame 177**.
+
+**What the walks do and do not hold** (`tools/mutate.py`, on the committed tree). Held by a walk: arm 4.2 back to `return false` (`coverage_pair_first_parting`,
+`run656_s_word_frame_is_widened_whole`, `run660_s_word_…`), and `oil_ok`'s count read as 0 (`run660_s_word_frame_is_widened_whole`). **Held by no walk, so a finding**:
+the reveal arm alone off, the owner claim alone off (the coverage pair's patch is both seen and owned, so either suffices), the prune of an unowned land patch, and the
+tie rule (`>=` against `>`). Each is held by a unit test in `ai_place.rs` (`a_reveal_and_a_claim_each_add_the_patch_once`, `an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned`,
+`an_equal_score_goes_to_the_earlier_patch`, and `an_enemy_within_three_halves_of_a_cell_refuses_a_patch`, `a_sea_patch_waits_for_a_transport_level_and_is_not_pruned`). Every other
+capture in the suite is unmoved: `cargo test --release -p rondata` (739 passed) failed only the three coverage-pair pins, all re-pinned.
+
+**The new word, 177: 9 draws ours against 8, index 2.** Ours takes `Leader::make_stuff+0x221` three times where theirs takes it twice, then the two animals' `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. **run660** (blocks 171..184 at the long's detail; `rngcmp.py` against run652: 191 frames, 0 differing) holds the word: the make list is empty on both
+sides at blocks 177 and 178, so the word is *inside* the tick — `make_me` fills the list and `make_stuff` buys its head, whose `t` is **414, the Village**, and walks
+every slot holding it: ours `[(414, 111058), (414, 1867), -, …, (414, 111058)]` — **three Village slots** (0, 1 and 9) — against two in theirs. The state that
+first parts is leader 1's **`SITE` list, standing since block 1** (run656 and run660 both: theirs has one more blank record in front — `SITE[2]` zero with `rank` 4 where ours holds
+`(50, 57)` there with rank 3 — and `SITE[4].val` 2499 against 2000, `SITE[9]` on 176 `val` 797 against 375130, `wy` 52 against 47, `SITE[6].wx` 54 against 44). 1496 parked it
+(`block 8 agrees without it`); the word now stands on it. It is **not** built here (parked 1506). *Not established*: which of `compute_sites`' steps leaves theirs a blank
+the sampler keeps; whether the three-against-two Village slots are the SITE list's alone.
+
+**What is not established.** The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing. The
+enemy walk is every object, not the cell chains of the `circle_radius[2]` ring (differs only at a ring corner). The order the original reaches a list's patches in at setup
+(the harness seeds the fog's, then the owner grid's, in the goods list's order): it only decides ties. `leader_flags & 0x700` as `transport_level != 0` rests on
+`docs/TRANSPORT.md`'s `leader_flags |= 0x700`. The cell flag `2` (read in arm 4.2) has no writer in this crate, so its two branches are unit-untested.

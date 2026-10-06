@@ -9427,3 +9427,14 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # `GROUPS was asked for and no GROUPDATA block was printed` after the game** (no group exists before frame ~34): drop
 # `GROUPS=1` from a window this early.
 # ==== TAKEN 2026-10-06, one take, 02:59–03:02 ====
+
+# ==== item 1505: the coverage pair's frame 177 word, run660 ====
+#
+# One run on the click-free lane, not a stanza (`docs/AI.md` §133; `docs/RUNS.md` run660): run651's lobby at the long's detail over blocks 171..184:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run660 \
+#     --map 18 --end-frame 190 --timeout 1800 --log-window 171 185 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run660.log` -> 0 differing in 191 frames;
+# `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. **The output directory must not exist** (the runner `mkdir`s it).
+# ==== TAKEN 2026-10-06, 06:29–06:31 (one lost launch on the directory) ====

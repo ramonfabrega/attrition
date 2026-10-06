@@ -14976,6 +14976,27 @@ standing on block 17165, and the first rows after it on 17167 (`1/69`'s front or
 first French East Indies window with rounds in flight: four, and `1/90`'s launch geometry parts
 (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). Run 657 only.
 
+## run660 — the coverage pair: East Indies, Persians, All Technologies, blocks 171..184 at the long's detail (2026-10-06, item 1505)
+
+**Disk gap**: run656 holds blocks 1..33 and run651 blocks 0, 1, 36 and 37 only, and run652 the draw stream; nothing dumped this lobby's make list, buildings or
+leader record at the word's frame, 177 (9 draws ours against 8, `Leader::make_stuff+0x221` against `Guy::set_anim+0x97a`). Through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 190 --timeout 1800 --log-window 171 185
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch and after. **One lost take**: the first launch refused (`FileExistsError`, the output
+directory — the worker had made it, the runner makes its own); the second ran, receipt `success: true`, `settings_restored: true`, process and wait
+exits 0. `rngcmp.py rontrace-run652.log rontrace-run660.log`: **191 frames in common, 0 differing**. `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`,
+`MAP_STYLE 18` read back from the lobby. Blocks `171`..`184` whole and a `191` stub.
+
+Archive `gamelog-run660-eastindies-persian-alltech-window-171-184.txt`, 24,916,502 bytes,
+SHA-256 `5c2b000d2436515fc3a83a27802bc8f6ff5fbd1b016c88345f5a9ae10e226b78`.
+
+Archive `rontrace-run660.log`, 10,838,144 bytes,
+SHA-256 `722fe7e0d782a6a2e65327f242a3b819e0f18a39afd5d04400e0bfea22451d6b`.
+
+**What it holds**: `diff::coverage_pair::run660_s_word_frame_is_widened_whole` — 132 keys: block 171's 90 standing rows (the control's and the SITE
+list's, parted since block 1), the SITE ranks and values from 176, and the make list from 183. Blocks 177 and 178 hold an empty make list on both sides, so the
+word's `make_me` fill is read from the harness, not the dump (`docs/AI.md` §133).
+
 ## run658 — French East Indies, the gap before 17171: blocks 17018..17057, with the leader probe (2026-10-06, item 1502)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1502-opus/run658-booking.json`,

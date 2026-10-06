@@ -291,33 +291,95 @@ impl Sim {
             && l.rare >> (good - economy::BASE_RARE) & 1 != 0
     }
 
-    /// `World::reveal_fog@006b3d30`'s rare arm — the only part of that
-    /// function this simulation has (`docs/ECONOMY.md`, "The rares a leader
-    /// has seen").
+    /// `World::reveal_fog@006b3d30`'s two goods arms — the rare arm and the
+    /// oil arm (`docs/ECONOMY.md`, "The rares a leader has seen"; the oil
+    /// arm is `docs/AI.md` §133).
     ///
     /// `(fx, fy)` is a **fog** cell, and the call happens exactly where
     /// `World::set_seen` answered that `seen2` changed, so a cell is offered
-    /// once per player for the life of a game. The original's own gate is a
+    /// once per player for the life of a game. The rare arm's own gate is a
     /// tile-mask read at `(2fx + 1, 2fy + 1)` — [`crate::world::tile`]'s
     /// `0x200`, which `Objects::init_good` sets over a good's footprint —
-    /// and only then the cell's `find_good_at`.
+    /// and only then the cell's `find_good_at`. **The oil arm is
+    /// independent of it**: it tests the world cell's own flag `0x800`
+    /// ([`crate::world::cell::OIL`]) and then walks the goods list, from the
+    /// front, for the first live good standing on the cell — whatever its
+    /// type — and adds it to the revealing leader's `oil_patches` unless
+    /// it is already there.
     pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
-        let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
-        if self.world.tile_mask(t) & crate::world::tile::AS_BUILDING == 0 {
-            return;
-        }
-        // `find_good_at(x, y, who, 1, 0)` — the **index** form, which
-        // answers before `type_avail` and so hands `new_rare` goods the
-        // caller could not yet build with. The alive and non-`OIL` tests
-        // are the same two [`Sim::find_good_at`] makes.
         let c = crate::world::Cell::new(fx >> 1, fy >> 1);
-        let Some((gi, g)) = self.world.good_at(c) else {
-            return;
-        };
-        if !g.alive || g.ty == crate::world::OIL {
-            return;
+        let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
+        if self.world.tile_mask(t) & crate::world::tile::AS_BUILDING != 0 {
+            // `find_good_at(x, y, who, 1, 0)` — the **index** form, which
+            // answers before `type_avail` and so hands `new_rare` goods the
+            // caller could not yet build with. The alive and non-`OIL` tests
+            // are the same two [`Sim::find_good_at`] makes.
+            if let Some((gi, g)) = self.world.good_at(c)
+                && g.alive
+                && g.ty != crate::world::OIL
+            {
+                self.new_rare(who, gi);
+            }
         }
-        self.new_rare(who, gi);
+        if self.world.cell_data(c).flags & crate::world::cell::OIL != 0
+            && let Some(gi) = self.first_live_good_at(c)
+        {
+            self.add_oil_patch(who, gi);
+        }
+    }
+
+    /// The first good in the goods list, front to back, that is alive and
+    /// stands on `c` — the scan both `reveal_fog`'s oil arm and
+    /// `compute_reg_territory`'s per-cell arm make (`div_3_table[(pos ^
+    /// 0x63637) >> 8]` on each axis against the cell).
+    pub(crate) fn first_live_good_at(&self, c: crate::world::Cell) -> Option<usize> {
+        self.world
+            .goods()
+            .iter()
+            .position(|g| g.alive && g.pos.cell() == c)
+    }
+
+    /// `ArrayBase<int>::add` guarded by the linear scan both writers make
+    /// first: the patch joins the leader's list once.
+    pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
+        let list = &mut self.ai[who as usize].oil_patches;
+        if !list.contains(&gi) {
+            list.push(gi);
+        }
+    }
+
+    /// `World::compute_reg_territory@006b0bb0`'s per-cell goods scan, for
+    /// one cell the pass has just given to `who`: when the first live good
+    /// standing on it is an oil patch, it goes into that leader's
+    /// `oil_patches`. (The scan's other branch — a rare — is
+    /// [`Sim::new_rare`]'s, which this crate reaches through the fog.)
+    pub(crate) fn claim_cell_goods(&mut self, c: crate::world::Cell, who: Player) {
+        if let Some(gi) = self.first_live_good_at(c)
+            && self.world.goods()[gi].ty == crate::world::OIL
+        {
+            self.add_oil_patch(who, gi);
+        }
+    }
+
+    /// [`Sim::claim_cell_goods`] over every cell at once — the wholesale
+    /// recompute of setup and of [`Sim::settle_borders`], and the harness's
+    /// stand-in for the passes a dump's installed owner grid skipped. Oil
+    /// patches in the goods list's order, which is the order the original's
+    /// per-cell scan reaches them in only where it reaches them by cell.
+    pub fn claim_oil_from_owners(&mut self) {
+        for gi in 0..self.world.goods().len() {
+            let g = self.world.goods()[gi];
+            if !g.alive || g.ty != crate::world::OIL {
+                continue;
+            }
+            let c = g.pos.cell();
+            if self.first_live_good_at(c) != Some(gi) {
+                continue;
+            }
+            if let Some(p) = self.world.owner(c).player() {
+                self.add_oil_patch(p, gi);
+            }
+        }
     }
 
     /// **Replay the start-of-game rare reveals over an installed fog
