@@ -311,16 +311,53 @@ fn run658_dates_the_gap_before_17171() {
     );
 }
 
+/// run662: the successor after `do_attack_to`'s look was gated on the order
+/// it was dispatched for, frame 17318 (item 1514), to the game's end.
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run662",
+        &[("gamelog-run662-islands-french-17318.txt", 17312)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[17319],
+        true,
+    )
+}
+
+#[test]
+fn run662_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 66, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1514: 562 — 138 standing on the first block, 17312 (run661's
+    // families: leader 0's sites and treaties, Napata's counts, the
+    // Merchants' pieces, who=1's `num_units`, `1/72` and `1/171`'s hit
+    // points), none on 17313..17318, and on the word's block 17319 25: the
+    // Elite Pikeman `1/115` (TypeIndex 135) walks a three-order stack, a
+    // `MOVE_TO` at its head and its path 1, where the original's stands on
+    // its lone `GUARD` (`cur_anim` 7 against 0, at (6122, 8925) against
+    // (6120, 8952)) — the draws ours spends under `Unit::find_attack_pos`;
+    // `1/69`, `1/131` and `1/177`'s figure clocks beside it. 399 more on
+    // 17320..17377, the game's last blocks.
+    pin_eq!(w.firsts.len(), 562, "initial run662 baseline");
+}
+
 /// run661: the successor after the guard's leg and the fire on the move,
 /// frame 17244 (item 1508).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_17244_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run661",
         &[("gamelog-run661-islands-french-17244.txt", 17238)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_17244,
         1,
         &[17245],
         true,
@@ -330,7 +367,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run661_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_17244_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -346,7 +383,11 @@ fn run661_s_word_frame_is_widened_whole() {
     // block 17245 38, `1/67` standing (`cur_anim` 0, `stopped` 1) where it
     // walks (`cur_anim` 7) — the draw ours spends under `Unit::do_move+0x11cf`
     // and the original does not; 76 more on 17246..17250.
-    pin_eq!(w.firsts.len(), 254, "initial run661 baseline");
+    // Item 1514: 254 → 139, every one standing on 17238. `do_attack_to`'s
+    // look runs only on the order it was dispatched for (AI §135): `1/67`'s
+    // `pause` reads 0 on 17244 on both sides and it walks on 17245, and the
+    // 76 rows after go with it.
+    pin_eq!(w.firsts.len(), 139, "initial run661 baseline");
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -1417,8 +1458,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run661-islands-french-17244.txt",
+            "gamelog-run662-islands-french-17318.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run661-islands-french-17244.txt",
+            WIDENING_FRENCH_EAST_INDIES_17244,
         ),
         (
             EAST_START,
@@ -1678,6 +1725,52 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 "engine-only fields are evidence, not sim parity"
             );
         } else if window == WIDENING_FRENCH_EAST_INDIES {
+            // Item 1514: run662, the word 17318's window, to the game's end.
+            // Before the word's block 17319 the only rows are the Dragoons'
+            // release offset (piece 60162, as run657's `1/90` and run661's
+            // `1/80`): `1/80`'s round launched on 17309 and `1/90`'s on 17311
+            // leave from the unit's square here and the release node there.
+            // From 17321 on, the rounds are the word's parting.
+            let mut want = std::collections::BTreeSet::new();
+            for (field, mine, dumped) in [
+                ("angle", -133758976, -142147584),
+                ("ex", 6315, 6319),
+                ("sx", 6648, 6640),
+                ("sy", 9000, 8853),
+                ("sz", 228, 436),
+                ("v1z", 12225000, -39775002),
+            ] {
+                want.insert((17312, (1, 80, 17309), field, mine, dumped));
+            }
+            for n in 17312..=17315 {
+                for (field, mine, dumped) in [
+                    ("angle", -61276160, -68419584),
+                    ("ex", 6176, 6179),
+                    ("sx", 6456, 6474),
+                    ("sy", 9240, 9179),
+                    ("sz", 186, 448),
+                    ("v1z", 27618750, -24781250),
+                ] {
+                    want.insert((n, (1, 90, 17311), field, mine, dumped));
+                }
+            }
+            let before: std::collections::BTreeSet<_> = ammo_differences
+                .iter()
+                .filter(|d| d.0 < 17319)
+                .cloned()
+                .collect();
+            assert_eq!(before, want, "the Dragoons' launches, explicit");
+            assert_eq!(
+                (ammo_counts, ammo_differences.len() - before.len()),
+                ((70, 73, 840), 344),
+                "the rounds past the word"
+            );
+            assert_eq!(
+                ammo_unmodelled.len(),
+                20,
+                "engine-only fields are evidence, not sim parity"
+            );
+        } else if window == WIDENING_FRENCH_EAST_INDIES_17244 {
             // Item 1508: run661, the word 17244's window. The Dragoon
             // `1/80`'s round, launched on 17242 on both sides, lives the same
             // three blocks and leaves from another point: ours the unit's
@@ -1921,9 +2014,14 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run657-islands-french-17171.txt",
             (WIDENING_FRENCH_EAST_INDIES_17171.0, 17_171),
         ),
-        // The open word's window, to the word's own block (item 1481).
+        // Item 1514: run661's, to the word 17244's own block.
         (
             "gamelog-run661-islands-french-17244.txt",
+            (WIDENING_FRENCH_EAST_INDIES_17244.0, 17_244),
+        ),
+        // The open word's window, to the word's own block (item 1481).
+        (
+            "gamelog-run662-islands-french-17318.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {

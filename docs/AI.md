@@ -15680,10 +15680,125 @@ Diff-backed:
 Reading only, listing-checked where arithmetic: the drop arm's turret fold
 (`5fb039`–`5fb05b`). No blind reading.
 
-## 135. Reserved for item 1514 (French East Indies frame 17244)
+## 135. An attack-move's look runs on its own order, not on one laid to the same point (2026-10-06, item 1514)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+Item 1508 left the word at **17244**, 9 draws against 6, parting at index
+0. Ours spent three `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, one per
+figure of `1/67`, where theirs spent nothing for it. `1/67` is TypeIndex
+355, `THEPRESIDENT`: a land government hero with no attack, on a guard's
+`ATTACK_TO` leg (`[Guard, AttackTo]`, read bottom first), in group 64.
+
+### 135.1 The event, both sides
+
+`1/67`'s leg on run661, block by block:
+
+| block | theirs `pause`/`timer`, anim | ours |
+| --- | --- | --- |
+| 17241..17243 | 3/3, 2/2, 1/1, standing | the same |
+| 17244 | **0**/29, `cur_anim` 7, at (6209, 8036) | **15**/29, walking, at (6209, 8036) |
+| 17245 | 0/28, walking, at (6194, 7987) | 14/28, standing (the word's three draws) |
+
+Both sides paused on frame 17228 (`(17228 + 67) % 15 == 0`), and both had
+counted the pause down with the timer. On 17243 the timer reaches 1 on
+both sides, and on both the unit steps once. After that frame, ours has
+written `pause` 15 and theirs has not.
+
+### 135.2 The inputs agree, the gate does not
+
+Ours' writer is `do_attack_to_pause` (ORDERS §24.9). A probe printing its
+count on 17228 and 17243 shows the same six members both times: `1/69`
+and `1/83` (HUSSARS), `1/71` and `1/78` (HORSEGRENADIER), `1/80` and `1/90`
+(DRAGOON). Each sits at the dump's own position and holds the dump's own
+head order. That gives `near` 6 and `attacking` 5: the five whose head is
+`ATTACK`, against `1/71`'s `GUARD`. The General `1/79` is filtered as a
+hero. Read through `Group::is_attacking_near`'s listing (`710e40`–`711061`),
+theirs' inputs on block 17243 answer yes too. `is_move@0046f050` leaves
+ECX holding the type, so the two tests after it read the order type, as
+§24.9 says.
+
+**The difference is in `do_attack_to@005f2320`'s gate.** After `do_move`
+it re-reads the head (`field_0xdc`, `+0xcc`) and requires `pUVar1 ==
+param_1`, the **same order object**. `do_move@005f7b30:182`–`186`
+handles a timer at 1 as `kill_current_order(0)`, then vslot `+0x188`
+(`Unit::work`, read off `vtables.txt`), then return. On the President,
+`work` runs `do_guard`, which lays a **new** `ATTACK_TO` to the same post,
+with a fresh `pause` 0 and a timer of 30 a cell, and steps it. That is
+the 29 and the step on both sides. The head is a new object, so the
+original skips the look. Ours tested "still the head" as kind
+`ATTACK_TO`, no group and the same `dest`, and the new leg passed. The
+same identity test sits in `do_explore_to@005f24a0`.
+
+### 135.3 What was built
+
+- **`Unit::head_serial`** (`sim::HeadSerial`) stands in for the head's
+  `UnitOrder *`. `Sim::new_head` bumps it wherever a different object
+  takes the head:
+  - `kill_order`'s pop;
+  - `remove_order_at(0)`;
+  - `enqueue`'s `New`, `First`, and `Last` onto an empty list;
+  - the front pushes of `add_gather_order`, `add_attack_order`,
+    `add_strafe_order` and `add_think_order`;
+  - `ungroup_one`'s new plain move (ORDERS §20 already says it is a new
+    object);
+  - `swarm_around`'s insert at 0.
+
+  It is identity, not state: `HeadSerial` compares equal to every serial,
+  so no comparison of state sees it. Without that, run69's checkpoint
+  interventions, whose reseat lays an equal order, read a difference
+  that never heals.
+- **The dispatch** (`Sim::work`'s move arm) takes the serial before the
+  step, and runs the `ATTACK_TO` and `EXPLORE_TO` tails only when the
+  serial is unchanged. `do_group_attack_to`'s `still_group_move` keeps its
+  group-order `id`, which already changes with the object.
+- `a_guard_s_leg_that_timed_out_is_a_new_order_and_takes_no_pause`
+  (`sim::group`): a leg with time left pauses 15, and one that timed out
+  on the phase pauses 0. It fails without the gate (15).
+
+### 135.4 The value diff, and the new word
+
+**run661, 254 → 139**, every one standing on its first block, 17238. On
+block 17244, `1/67`'s `pause` reads 0 on both sides (ours had read 15).
+On 17245 its `cur_anim` reads 7 on both, walking (ours had read 0). The 76
+rows on 17246..17250 go with them.
+
+**The word: 17244 → 17318**, 21 draws against 15, at index 5. Ours spends
+`Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` twice for `1/115` right
+after its `Unit::fight+0x824`, which both sides spend. Ours also spends
+six `Guy::set_anim+0x104b` for gaia `9/6` against theirs' two. That is
+two families, 2 + 4, in one frame. The pair ends 61 frames later, at
+17,379. **run662** (blocks 17312..17377, end 17378) widens it and holds
+every block to the game's end: **562 keys**. 138 stand on 17312 (run661's
+families), none part on 17313..17318, and 25 part on the word's block
+17319. The first of them is the Elite Pikeman `1/115` (TypeIndex 135,
+`ELITEPIKE`, land): the original's stands on its lone `GUARD` at (6120,
+8952), and ours walks a three-order stack with a `MOVE_TO` at its head, at
+(6122, 8925). Beside it are `1/69`, `1/131` and `1/177`'s figure clocks.
+No mechanism is named.
+
+### 135.5 Mutations
+
+Each mutation is scored by exit code on run661's and run662's pins
+(`tools/mutate.py`):
+
+| mutation | verdict |
+| --- | --- |
+| M1, the `ATTACK_TO` tail ungated | held: run661 254, run662 1058 |
+| M2, no bump on `kill_order`'s pop | failed nothing |
+| M4, M2 and no bump on `enqueue`'s `First` | held: 254, 1058 |
+| M3, the `EXPLORE_TO` tail ungated | failed nothing |
+
+M2 alone fails nothing because the guard's new leg is pushed `First`, and
+that push bumps the serial too. **M3 is an arm no walk holds**, and no unit
+test holds it either.
+
+### 135.6 Coverage
+
+Diff-backed: `1/67`'s rows on run661, and run661's whole window past its
+first block. The explore tail's identity test is read off the export and
+unit-tested by nothing; no capture on disk is known to reach it.
+
+Reading only, listing-checked: `is_attacking_near`'s arguments and the
+ECX that `is_move` leaves. No blind reading.
 
 ## 136. A tracked crew figure runs `Guy::move` in its own slot, and the word at 15101 (2026-10-06, item 1510)
 

@@ -1322,11 +1322,18 @@ impl Sim {
                 self.clear_partial_path(u);
                 self.update_action(u);
                 self.units[u].orders.push_back(order);
+                self.new_head(u);
             }
-            QueuePos::Last => self.units[u].orders.push_back(order),
+            QueuePos::Last => {
+                if self.units[u].orders.is_empty() {
+                    self.new_head(u);
+                }
+                self.units[u].orders.push_back(order);
+            }
             QueuePos::First => {
                 self.clear_partial_path(u);
                 self.units[u].orders.push_front(order);
+                self.new_head(u);
             }
         }
         self.update_action(u);
@@ -1361,6 +1368,12 @@ impl Sim {
     /// pop, the path segment, `update_action`.
     pub fn kill_current_order(&mut self, u: usize) {
         self.kill_order(u, false);
+    }
+
+    /// A different order object now heads `u`'s list ([`Unit::head_serial`]).
+    pub(crate) fn new_head(&mut self, u: usize) {
+        let h = &mut self.units[u].head_serial;
+        h.0 = h.0.wrapping_add(1);
     }
 
     /// `Unit::kill_current_order(closing)`: `closing` is the argument
@@ -1425,6 +1438,7 @@ impl Sim {
         // targeted cast's "started" bit, for whatever order dies.
         self.units[u].casting = false;
         self.units[u].orders.pop_front();
+        self.new_head(u);
         if order.is_move() && order.has(flag::PATHED) {
             self.kill_current_path(u);
         }
@@ -1440,6 +1454,9 @@ impl Sim {
     fn remove_order_at(&mut self, u: usize, i: usize) {
         if self.units[u].orders.remove(i).is_none() {
             return;
+        }
+        if i == 0 {
+            self.new_head(u);
         }
         self.units[u].movement.dest = None;
         self.clear_partial_path(u);
@@ -1699,6 +1716,7 @@ impl Sim {
             let o = self.units[u].orders.pop_back().expect("just pushed");
             self.clear_partial_path(u);
             self.units[u].orders.push_front(o);
+            self.new_head(u);
         }
         self.update_action(u);
     }
@@ -1748,6 +1766,7 @@ impl Sim {
             QueuePos::First => {
                 self.clear_partial_path(u);
                 self.units[u].orders.push_front(order);
+                self.new_head(u);
             }
             _ => self.units[u].orders.push_back(order),
         }
@@ -1808,6 +1827,7 @@ impl Sim {
         if pos == QueuePos::First {
             self.clear_partial_path(u);
             self.units[u].orders.push_front(order);
+            self.new_head(u);
             return;
         }
         self.enqueue(u, order, pos);
@@ -2331,6 +2351,7 @@ impl Sim {
             body: Body::Think,
         };
         self.units[u].orders.push_front(order);
+        self.new_head(u);
         self.clear_partial_path(u);
         self.update_action(u);
     }
@@ -2503,6 +2524,10 @@ impl Sim {
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
+                // `pUVar1 == param_1` after the step: the tails below run
+                // only while the order they were dispatched for still heads
+                // the list — not one put there in its place (AI §135).
+                let head = self.units[u].head_serial.0;
                 // §8.3: a `GroupMoveOrder` is stepped by `do_group_move`,
                 // which runs `do_move` for the **leader** alone and steers
                 // every follower off the leader's own position.
@@ -2516,10 +2541,11 @@ impl Sim {
                 } else {
                     self.do_move(u, frame);
                 }
-                if m.kind == MoveKind::ExploreTo {
+                let same = self.units[u].head_serial.0 == head;
+                if m.kind == MoveKind::ExploreTo && same {
                     self.do_explore_to_tail(u, frame, m.dest);
                 }
-                if m.kind == MoveKind::AttackTo && m.group.is_none() {
+                if m.kind == MoveKind::AttackTo && m.group.is_none() && same {
                     self.do_attack_to_tail(u, frame, m.dest);
                 }
             }
@@ -5436,6 +5462,7 @@ impl Sim {
             .remove(i)
             .expect("the order just matched");
         self.units[u].orders.push_front(order);
+        self.new_head(u);
         if !leader {
             self.kill_current_path(u);
         }
@@ -6859,6 +6886,9 @@ impl Sim {
         // everything that was queued.
         let at = usize::from(self.current_order(u).is_some_and(Order::is_transit));
         self.units[u].orders.insert(at, order);
+        if at == 0 {
+            self.new_head(u);
+        }
         self.update_action(u);
     }
 
