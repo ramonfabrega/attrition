@@ -12997,7 +12997,8 @@ pub(crate) mod tests {
                 // Item 1115 took four (306 → 302): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
                 // Item 1111 took the AI citizens' Militia-line rows (`docs/GOLDEN.md` §48).
                 // Item 1330 took 51 (166 → 115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-                (WIDENING_GREAT_LAKES_END.0, 99),
+                // Item 1468 took 28 (99 → 71): every unit is born snapped to the 48-grid's centre (group 17), a captain's come-out wipe (24), and the slot scan's `get_num` (13–14) — `orders_x`/`orders_y`, `g.x`, `form`, `speed` rows.
+                (WIDENING_GREAT_LAKES_END.0, 71),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
