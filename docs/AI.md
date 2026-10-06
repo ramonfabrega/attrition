@@ -15110,3 +15110,9 @@ parting of 17171 is in the gap, and no dump shows it.
 - No blind reading. The arm is diff-backed by run600's draw on 16857 and
   run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
   only; the two-order converse rests on the listing.
+
+---
+
+## 132. The President shortens a site's clock (2026-10-06, item 1503)
+
+*Stub, pushed first (parked 1491); the section is written below before the gate.*
