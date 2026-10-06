@@ -190,7 +190,7 @@ const UNREAD: &[(&str, &str)] = &[
     // run371 (item 1019, `docs/GOLDEN.md` §44).
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who visible",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     // **Item 989 added `Newcastle`**: a city's name is the record's one
@@ -482,6 +482,8 @@ fn drive(text: &str, out: &mut Paths) {
             let _ = crate::gamelog::farms_of(frame);
             // The golden widening's anti-air cycle rows (item 1112).
             let _ = super::golden::cycle_rows(frame);
+            // A building's `visible` byte (item 1423).
+            let _ = super::golden::visible_rows(frame);
             // The leader widening's reader (item 520): run117's and
             // run123's tests compare the whole record through it.
             // Item 592 added the census's per-region arrays beside it:
@@ -2681,10 +2683,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
     // The group record is compared whole since item 1061
-    // (`second::widen_records`) but for `think_frame`, which this crate
-    // does not carry. `role` is compared on an army's group alone, and
-    // registers on 5772..5776 (slot 72, ours 0 against 599056).
-    ("GroupDump", "think_frame"),
+    // (`second::widen_records`), `think_frame` since item 1423.
+    // `role` is compared on an army's group alone, and registers on
+    // 5772..5776 (slot 72, ours 0 against 599056).
 ];
 
 /// **Every field the parser carries is compared by the shared instrument

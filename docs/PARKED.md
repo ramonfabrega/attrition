@@ -52,6 +52,20 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1423, 2026-10-05 — chapter fifty-one's close
+
+(1473) **`Group::target_opportunity`'s member `find_melee_target` arm,
+walked**: built and held by unit tests only; ch50's staging never takes
+it (0/7 always has an ATTACK_TO action). A walk wants a formation wider
+than a Stockade's reach band, `@form`, or a unit attacker that beats the
+idle search. And the fog arm 1419 named — `update_local_seen_build`'s
+mask on a building's first round — left untaken.
+
+(1474) **The think tail's own add**: `Unit::think_attack`'s tail call of
+`Group::target_opportunity`, wired by 1423, adds its order with
+`add_attack_order(QUEUE_NEW)` where the original's `find_melee_target`
+adds its own; no walk parts on the difference yet.
+
 ## Parked by direct item 1426, 2026-10-01 — no word moved by these fields
 
 (1430) **Scholar birth orientation and stored order destination**:
@@ -3644,3 +3658,9 @@ it as a trip. The pass rules whether that reading stands.
 print** (1461's Loop line, 2026-10-05): the standing keys of the French
 East Indies widening are not put beside who in `sim` reads them, so the
 checklist row that names the tool has nothing to run on the newest word.
+
+(1475) **A pinned "unread" key is a tell for an arm held by nothing**
+(1423's Loop line, 2026-10-05): `think_frame` and a building's `visible`
+sat on `coverage.rs`'s unread list the whole time their arms were "held
+by a unit test alone". A check at booking that greps a booked arm's
+field against that list would have named both without a staging.
