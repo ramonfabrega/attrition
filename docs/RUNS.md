@@ -14482,3 +14482,26 @@ and `rontrace-run637.log`; the disk had 170 GB free after.
 this crate's has nine bits fewer (`docs/AI.md` §120). Tick 12540
 `this=1/101`: hit (610, 413), `will_be_corner` 3, `is_here(1/109) = 1` —
 the same line this crate prints for that sweep.
+(`diff::sahara_toughest`): 1,694 keys, 134 standing on block 12532, and the
+compared pin's window on block 12570 since item 1429. Run 584 only.
+
+## run636 — French East Indies, the word 14090's widening, with the leader probe (2026-10-05, item 1470)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1470-opus/run636-booking.json`,
+written before the run. run635 ends 12964; nothing dumps this game past 12965. Window
+**[14085,14098)**, end 14102, call window 14083..14098, `RON_LEADER_PROBE`, `--ffwd-minute 10`,
+`cover=0`, `--timeout 1800`, the detail as run635, through the click-free lane, with no wait
+(the lane was free). Receipt success; process and wait exits **0**; five settings files
+restored; 13 group blocks 14085..14097; seed 12345 read back. Launch-to-exit 503.358 s, total
+514.400 s. Game-RNG draws match run600 on all 14,103 shared frames (`rngcmp.py`), and seed for
+seed over 14040..14101.
+
+Archive `gamelog-run636-islands-french-14090.txt`, 48,510,302 bytes,
+SHA-256 `8a59aa3c8277de9a76bc4e9aa916b2859d745869f0577af7d5e34d04f10e60d8`.
+
+Archive `rontrace-run636.log`, 70,777,920 bytes,
+SHA-256 `9b335ae06a1159ff5076f5eb0506a42a39b061d5da094341a8ebc2731afaacb6`.
+
+**What it holds**: `run636_s_word_frame_is_widened_whole` (`diff::third_pair`): 210 keys,
+139 standing on block 14085, none on 14086, and who=1's `regen_roads` on thirteen buildings
+from block 14087. The word's block is 14091. Run 636 only.

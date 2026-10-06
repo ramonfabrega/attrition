@@ -1900,7 +1900,12 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// unit's `get_speed(x, y, 1)` at its own point (MOVEMENT, "The crew's
 /// speed"): 12794 → 12952, 39 vs 38 draws, index 34 Guy::set_anim under
 /// Guy::inc_time versus Guy::set_anim+0x104b. run635 block 12953.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 12_952;
+/// Item 1470: a French General recovers craft at `r = 4`
+/// (`Unit::process@00610bc0`, AI §119), so `1/79` affords the Forced March
+/// the original casts on 12952: 12952 → 14090, 490 vs 1298 draws, index
+/// 483 Guy::set_anim under Guy::inc_time versus
+/// PathFinder::calc_road_cost+0x46. run636 block 14091.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_090;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
@@ -1927,7 +1932,8 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_10131: (i64, i64) = (10126, 10138);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_10802: (i64, i64) = (10797, 10809);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_11582: (i64, i64) = (11577, 11589);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12794: (i64, i64) = (12789, 12801);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (12947, 12959);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_12952: (i64, i64) = (12947, 12959);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (14085, 14097);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8399,8 +8405,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        Some("run635_s_word_frame_is_widened_whole"),
-        1461,
+        Some("run636_s_word_frame_is_widened_whole"),
+        1470,
         Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (

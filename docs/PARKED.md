@@ -3664,3 +3664,8 @@ checklist row that names the tool has nothing to run on the newest word.
 sat on `coverage.rs`'s unread list the whole time their arms were "held
 by a unit test alone". A check at booking that greps a booked arm's
 field against that list would have named both without a staging.
+And 1470's (same day): `mana_burn`, `spell_time` and most `unit_masks`
+bits are read by no widening — a General's craft parted unseen for about
+2,000 frames before it parted a draw. And 1468's: group 4's `start_list`
+is a Lobby field the dump prints (eight lines, 29 dumps) and the harness
+does not read.
