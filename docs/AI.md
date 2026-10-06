@@ -15225,7 +15225,7 @@ clauses: the free first wonder, the Hanging Gardens and the Iroquois Senate stay
 | 14364 | `jc` 75221, not active, `regen_roads` 1, 752 | **0, active, `regen_roads` 0, 1000** | 0, active, 0, 1000 |
 
 run653's whole window (24 blocks, 378 keys before) now parts on **93 keys, all on
-its first block** (the standing rows) and on nothing from 14364 to 14380.
+its first block** (the standing rows; 88 on the tree merged after item 1496) and on nothing from 14364 to 14380.
 
 **New word: 14512.** The long walk (`run470_is_great_sahara_at_toughest…`) parts
 at 14512 by **sequence**, 53 draws each side, index 40: ours `Guy::set_anim+0x97a
@@ -15235,7 +15235,7 @@ Guy::turn_towards+0x69`; the count first parts at 15101. The frame is `1/141`'s
 four figures draw move, move, **turn**, move in the original (indices 38–41) and
 move, move, move, **turn** here. run659 (14506..14529, a click-free capture,
 `rngcmp` against run470 0 differing in 14,541 frames) widens it whole, both
-directions: **88 keys, all standing on its first block 14506, none on 14513 or
+directions: **83 keys, all standing on its first block 14506, none on 14513 or
 after**. No dumped record parts on the word's frame or the sixteen after it. So
 the delta is a draw *order* inside one unit's four figures, whose values the dump
 does not show: no mechanism is named.

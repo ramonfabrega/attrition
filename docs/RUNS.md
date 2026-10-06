@@ -14801,7 +14801,7 @@ SHA-256 `83ed385a2ceab1e216c37c74743189a9df7cf255e3de5c6ea3331f2d7784dba8`.
 Archive `rontrace-run659.log`, 94,873,536 bytes,
 SHA-256 `1aa332a3c59e856b9c8ca79c0cb86a404b77c08c4fbee5ab92f176961945f81d`.
 
-**What it holds**: `run659_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 88 keys over blocks
+**What it holds**: `run659_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 83 keys over blocks
 14506..14529, **all standing on the first block** and none on the word's block 14513 or after: the word
 is a draw order inside one bombard's four figures and no dumped record parts. The compared pin's window
 is block 14513.

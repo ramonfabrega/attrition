@@ -1706,15 +1706,15 @@ mod tests {
         // 53 draws on each side, parting at index 40 — ours `Guy::move+0x19f`,
         // theirs `Guy::turn_towards+0x69` — in `1/141`'s four figures (a
         // BOMBARD, move/move/turn/move there, move/move/move/turn here). **No
-        // dumped record parts on the frame or after it**: every one of the 88
+        // dumped record parts on the frame or after it**: every one of the 83
         // keys stands from the window's first block, so the delta is a draw
         // order whose values the dump does not print. No mechanism is booked.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(14506, 88)],
+            [(14506, 83)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 88, "every key parted on run659");
+        pin_eq!(w.firsts.len(), 83, "every key parted on run659");
     }
 
     /// **The word 11182, widened whole** (item 1379):
