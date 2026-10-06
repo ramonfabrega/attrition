@@ -16498,3 +16498,8 @@ no open word. The next third-map score is the coverage-pair lobby's (item 1538).
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 147. Reserved for item 1538 (Great Sahara in the coverage pair's lobby)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
