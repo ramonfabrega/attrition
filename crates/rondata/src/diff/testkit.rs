@@ -1919,7 +1919,13 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 18_140;
 /// Printing Press in slot 8 is bought on 14782: 14782 → 14786, 12 vs 11
 /// draws, index 0 Guy::set_anim under Unit::move_step versus Guy::set_anim
 /// under Unit::do_guard. run639 block 14787.
-pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 14_786;
+/// Item 1481: the wonder arm takes the type's `WONDER_VAL` (vslot
+/// `+0x118`, `get_wonder_value`) and the team's held points
+/// (`get_team_wonder_value`, AI §124), so who=1 lists Tikal at 1563477 on
+/// 14784 here as there (×4: its own 2, and the Pyramids held): 14786 →
+/// 15344, 44 vs 38 draws, index 0 Army::find_target+0x7df versus
+/// Animal::think_bird+0x82. run642 block 15345.
+pub(crate) const THIRD_PAIR_WORD_EAST_INDIES: i64 = 15_344;
 /// Great Lakes 2576, 36 vs 42 draws; index 4 bird versus make_stuff.
 /// run601 block 2577 widens it. These are frames, not mechanism bookings.
 /// Item 1444: the goody-ruins placement gate closes the stream at 5638.
