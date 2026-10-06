@@ -15045,3 +15045,36 @@ SHA-256 `acd473794aa4578ca50c965b399a6f07c5345c4c9bd5db1f9b7fb09eaf1667c7`.
 standing on block 17238, `1/67`'s move `pause` on 17244 and 38 rows on the word's block 17245.
 Three rounds in flight, `1/80`'s launched on 17242 with the Dragoon's release offset
 (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). `docs/AI.md` §134. Run 661 only.
+
+## run663 — run470's game over the new word 15101's window: the third map's bombards again (2026-10-06, item 1510)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 17` from
+frame 37), run659's detail with `GROUPS=1`, dumped over blocks 15095..15118 and quit at 15130. The word 14512
+(item 1503's) moved to 15101 on this item's tree (`docs/AI.md` §136); no capture on disk printed a block there
+(run659's window ends at 14529).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run663 \
+    --map 7 --end-frame 15130 --timeout 5000 --log-window 15095 15119 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** The word's own frame and the blocks after it: no gamelog on the disk holds a
+block between 14529 and 24000's trace (run470 is `cover=0` with no dump past block 14380).
+
+**Taken.** First take: receipt `success: true`, exit 0, 178.9 s launch to exit (189.0 s in all), 15,131 frames,
+map 7 and seed 12345 verified, five settings files restored, 24 `FRAME` blocks 15095..15118 and the closing block
+15131. `rngcmp.py rontrace-run470.log rontrace-run663.log` **0 differing**, 15,131 identical. The lane was
+free (no wait). 154 GB free after.
+
+Archive `gamelog-run663-greatsahara-toughest-15101.txt`, 63,781,320 bytes,
+SHA-256 `f033a9933814e3e07f79ebe6d1538b8a6031a93fee57a44fe5151cf01e9d6228`.
+
+Archive `rontrace-run663.log`, 109,227,360 bytes,
+SHA-256 `0b394444b247c1c95ef141f521eacbb5f408db9d1ea17beff379cf3fb09a0f94`.
+
+**What it holds**: `run663_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 263 keys over blocks
+15095..15118, 94 standing on the first, 4 on 15098, **27 on the word's block 15102, all `1/96`'s** (a Bombard:
+`cur_anim` 24 on all four figures against 0, 0, 7, 0, one `angle` against three). The compared pin's window is
+block 15102. `docs/AI.md` §136.
