@@ -575,9 +575,10 @@ impl Sim {
             return;
         }
         self.world.clear_seen();
-        for u in 0..self.units.len() {
-            self.update_seen(u, false);
-        }
+        // **The buildings come before the units** (`GameDaemon::update_all_seen
+        // @00732840`: the building loop closes before the unit loop;
+        // twenty-fourth pass, group 18; A8 row 12). Every write is an OR, so
+        // only `reveal_fog`'s order of discovery can show it.
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
             if bd.alive && bd.active {
@@ -585,6 +586,9 @@ impl Sim {
             } else if bd.alive && bd.started && bd.ty.is_some_and(|t| self.build_types[t].wonder) {
                 self.update_local_seen_build(b);
             }
+        }
+        for u in 0..self.units.len() {
+            self.update_seen(u, false);
         }
     }
 

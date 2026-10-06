@@ -5024,16 +5024,16 @@ fn a_city_hit_by_another_player_stops_healing_for_two_decay_ticks() {
     bd.damage = 10;
     bd.sync_health();
     for f in 102..first {
-        sim.process_building(b, f);
+        sim.process_building_whole(b, f);
     }
     assert_eq!(sim.buildings[b].damage, 10, "no heal while under attack");
-    sim.process_building(b, first);
+    sim.process_building_whole(b, first);
     assert_eq!(flags(&sim), (true, false, true), "the first tick: 0x4");
     for f in first + 1..first + 200 {
-        sim.process_building(b, f);
+        sim.process_building_whole(b, f);
     }
     assert_eq!(sim.buildings[b].damage, 10, "still no heal");
-    sim.process_building(b, first + 200);
+    sim.process_building_whole(b, first + 200);
     assert_eq!(flags(&sim), (false, false, true), "the second: 0x2");
     assert_eq!(sim.buildings[b].damage, 9, "and the heal, the same frame");
 }
@@ -5720,6 +5720,51 @@ fn a_new_city_reuses_only_its_owner_s_dead_slot() {
     assert_eq!(again, c1, "player 1 takes its own dead slot, not the first");
     let (_, back) = city_at(&mut sim, &t, 0, 20, 50);
     assert_eq!(back, c0, "and player 0 its own");
+}
+
+/// **`Build::process`'s order, per building, in object-number order**
+/// (twenty-fourth pass, group 18; A8 rows 20, 21, 22 and 27): head, the
+/// tower, `do_queue`, the gather re-entries, then the city block and the road
+/// replan — one building at a time, each leader's by object number and then
+/// the walls, not the `Vec`'s creation order.
+#[test]
+fn the_building_walk_is_per_building_in_object_order() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // Created high-numbered first, then a lower number of the same leader,
+    // then another leader's.
+    let (hi, _) = city_at(&mut sim, &t, 1, 50, 50);
+    let (own, _) = city_at(&mut sim, &t, 0, 20, 20);
+    let lo = sim.place_building(0, t.farm, tile_pos(28, 20)).unwrap();
+    sim.buildings[own].index = 2000;
+    sim.buildings[hi].index = 2007;
+    sim.buildings[lo].index = 2001;
+    sim.building_log.clear();
+    sim.tick();
+    let steps: Vec<(usize, &str)> = sim
+        .building_log
+        .iter()
+        .copied()
+        .filter(|(b, _)| *b == hi || *b == lo)
+        .collect();
+    // Leader 0's building first, whole, and only then leader 1's.
+    let names: Vec<&str> = steps.iter().map(|s| s.1).collect();
+    assert_eq!(steps.first().map(|s| s.0), Some(lo), "{steps:?}");
+    let first_hi = steps.iter().position(|s| s.0 == hi).expect("walked");
+    assert!(steps[..first_hi].iter().all(|s| s.0 == lo), "{steps:?}");
+    let of = |b: usize| -> Vec<&str> { steps.iter().filter(|s| s.0 == b).map(|s| s.1).collect() };
+    for b in [hi, lo] {
+        let seq = of(b);
+        let order = ["head", "tower", "queue", "gather", "tail"];
+        let mut at = 0;
+        for step in &seq {
+            let k = order.iter().position(|o| o == step).unwrap();
+            assert!(k >= at, "{step} out of order in {seq:?}");
+            at = k;
+        }
+        assert!(seq.contains(&"queue") && seq.contains(&"tail"), "{seq:?}");
+    }
+    let _ = names;
 }
 
 /// **A unit comes out with the body's speeds it froze at the door**

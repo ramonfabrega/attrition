@@ -552,7 +552,7 @@ impl Sim {
     }
 
     /// `Build::process@0061edf0`'s two re-entries, `0061f3c1`–`0061f41f`
-    /// (`docs/ECONOMY.md` §17.2), for every building in object order: an
+    /// (`docs/ECONOMY.md` §17.2), for one building: an
     /// **active** gather building that walks the ground, standing in a
     /// region carrying [`REGION_VERIFY_GATHER`], runs
     /// [`Sim::verify_gather_tiles`]; one in a region carrying
@@ -561,23 +561,20 @@ impl Sim {
     /// grew, shuffles it off the sync stream.
     ///
     /// The original takes both inside `Build::process`, right after the
-    /// building's own `do_queue`; this crate runs the queues as a pass of
-    /// their own (`Sim::process_queues`), and this is the pass after it.
-    pub(crate) fn gather_region_pass(&mut self) {
-        for b in 0..self.buildings.len() {
-            if !self.buildings[b].alive || !self.buildings[b].active || !self.walks_gather_tiles(b)
-            {
-                continue;
-            }
-            let Some(r) = self.world.region_of(self.buildings[b].pos.cell()) else {
-                continue;
-            };
-            if self.world.region_flags(r) & REGION_VERIFY_GATHER != 0 {
-                self.verify_gather_tiles(b);
-            }
-            if self.world.region_flags(r) & REGION_REFIND_GATHER != 0 {
-                self.find_gather_tiles(b);
-            }
+    /// building's own `do_queue`, and so does [`Sim::tick`] now (twenty-
+    /// fourth pass, group 18; A8 row 21): this is one building's.
+    pub(crate) fn gather_region_building(&mut self, b: usize) {
+        if !self.buildings[b].alive || !self.buildings[b].active || !self.walks_gather_tiles(b) {
+            return;
+        }
+        let Some(r) = self.world.region_of(self.buildings[b].pos.cell()) else {
+            return;
+        };
+        if self.world.region_flags(r) & REGION_VERIFY_GATHER != 0 {
+            self.verify_gather_tiles(b);
+        }
+        if self.world.region_flags(r) & REGION_REFIND_GATHER != 0 {
+            self.find_gather_tiles(b);
         }
     }
 
@@ -1603,7 +1600,9 @@ mod tests {
         s.world.cycle_gather_flags();
         assert_eq!(s.world.region_flags(region), REGION_REFIND_GATHER);
         let seed = s.rng.seed;
-        s.gather_region_pass();
+        for b in 0..s.buildings.len() {
+            s.gather_region_building(b);
+        }
         let grown = s.buildings[near].gather_from.len();
         assert!(
             grown > held,
@@ -1617,7 +1616,9 @@ mod tests {
         s.world.cycle_gather_flags();
         assert_eq!(s.world.region_flags(region), 0, "cleared on the next pass");
         let seed = s.rng.seed;
-        s.gather_region_pass();
+        for b in 0..s.buildings.len() {
+            s.gather_region_building(b);
+        }
         assert_eq!(s.rng.seed, seed, "no flag, no walk");
     }
 
@@ -1636,7 +1637,9 @@ mod tests {
             .set_owner(Cell::new(2, 2), Owner::Player(0), Owner::None);
         s.world.or_region_flags(region, REGION_VERIFY_GATHER);
         let seed = s.rng.seed;
-        s.gather_region_pass();
+        for b in 0..s.buildings.len() {
+            s.gather_region_building(b);
+        }
         assert_eq!(s.rng.seed, seed, "no draw");
         let kept: Vec<Pos> = before
             .iter()

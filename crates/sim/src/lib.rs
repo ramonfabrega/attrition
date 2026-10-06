@@ -1312,6 +1312,10 @@ pub struct Sim {
     /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
     /// row 28).
     pub(crate) pf_start: Pos,
+    /// The order a frame's building walk ran its five steps in, for the
+    /// test that holds `Build::process`'s sequence (group 18).
+    #[cfg(test)]
+    pub(crate) building_log: Vec<(usize, &'static str)>,
     /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
     /// whose target went invalid. `Leader::process@006b88b0` zeroes it
     /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
@@ -1662,6 +1666,8 @@ impl Sim {
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             pf_start: Pos::default(),
+            #[cfg(test)]
+            building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
             tuning,
             world,
@@ -5082,34 +5088,61 @@ impl Sim {
         // gatherers and builders that set them rather than in front, which is
         // the same net state at the start of a frame.
         //
-        // `Wall::process` first — the under-attack decay, the helpers reset,
-        // the building's own attrition, ejection, the capture re-test, the
-        // assimilation tick and the city heal (`docs/CITIES.md`) — then the
-        // queue, then the tower. Splitting the three into three passes over
-        // the list is still ours; the original does all three inside one
-        // `Build::process`, per building.
+        // **`Build::process@0061edf0`, per building, in the original's
+        // order** (twenty-fourth pass, group 18; A8 rows 20–22 and 27):
+        // `Wall::process` and the launch, then the tower's attack, then
+        // `Build::do_queue`, then the gather re-entries
+        // (`docs/ECONOMY.md` §17.2), then the city block and the road
+        // replan — so a tower sees only what the lower-numbered buildings
+        // have trained, and a captured city's queue advances before the
+        // re-test clears it.
         //
-        // **The queue is per building now** (item 1449): `Build::do_queue`
-        // runs inside the same building's `Build::process`, so a unit a
+        // **And the walk is `Objects::process_all`'s**: each leader's
+        // buildings in object-number order (`2000..build_mark`), then the
+        // walls (`3000..wall_mark`), not the `Vec`'s creation order — a
+        // reused low object number runs before the higher ones.
+        //
+        // The queue is per building (item 1449): `Build::do_queue` runs
+        // inside the same building's `Build::process`, so a unit a
         // lower-numbered building trains this frame is on the map when a
-        // higher-numbered one's `Wall::process` looks. run615 is the
-        // capture: city `1/2008` trains citizen `1/51` on frame 7962, the
-        // wonder `1/2022`'s site recruiter runs on its phase the same frame
-        // and sends it straight to the site — and here, with the queues
-        // in a pass of their own, the recruiter ran before it was born.
+        // higher-numbered one's `Wall::process` looks (run615: city `1/2008`
+        // trains citizen `1/51` on 7962 and the wonder `1/2022`'s recruiter
+        // sends it straight to the site).
         let mut trained = Vec::new();
-        for b in 0..self.buildings.len() {
+        let at_start = self.buildings.len();
+        let mut order: Vec<usize> = (0..at_start).collect();
+        order.sort_by_key(|&b| {
+            let bd = &self.buildings[b];
+            (bd.index >= WALL_BASE, bd.owner, bd.index)
+        });
+        // A building created mid-pass joins the walk after the rest, as the
+        // `Vec` walk always took it.
+        let mut known = at_start;
+        let mut at = 0;
+        while at < order.len() {
+            let b = order[at];
+            at += 1;
             self.buildings[b].gather_bumped = false;
-            self.process_building(b, frame);
+            #[cfg(test)]
+            self.building_log.push((b, "head"));
+            if self.process_building(b, frame) {
+                #[cfg(test)]
+                self.building_log.push((b, "tower"));
+                self.process_building_combat(b, frame);
+            }
+            #[cfg(test)]
+            self.building_log.push((b, "queue"));
             self.process_queue(b, &mut trained);
-        }
-        // `Build::process`'s gather re-entries, after its `do_queue`
-        // (`docs/ECONOMY.md` §17.2): a re-walk that finds freed ground
-        // shuffles it off the stream.
-        self.gather_region_pass();
-        // A building that shoots does so from `Build::process` too.
-        for b in 0..self.buildings.len() {
-            self.process_building_combat(b, frame);
+            #[cfg(test)]
+            self.building_log.push((b, "gather"));
+            self.gather_region_building(b);
+            #[cfg(test)]
+            self.building_log.push((b, "tail"));
+            self.process_building_tail(b, frame);
+            if self.buildings.len() > known {
+                order.extend(known..self.buildings.len());
+                known = self.buildings.len();
+            }
         }
         // A wonder that activated in this pass takes its entry in its
         // leader's wonder list, as `Build::activate` does
