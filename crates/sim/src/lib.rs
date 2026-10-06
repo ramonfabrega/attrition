@@ -1197,7 +1197,7 @@ pub struct Sim {
     pub wall_stats_dirty: Vec<bool>,
     /// `Game::wonders` (`Game +0x618`, `int[17]`), a bit per
     /// [`tech::wonder`] offset: a wonder type some player has activated.
-    /// `Wonders::init_wonder@0073c860` and `Wonder::init@0073c5e0` set it,
+    /// `Wonders::init_wonder@0073c860` sets it (`Wonder::init@0073c5e0` has no caller),
     /// nothing clears it, and `BuildTypeData::already_built@0063ce10` reads
     /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
     /// built for everyone").
@@ -1306,6 +1306,16 @@ pub struct Sim {
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
     /// has asked for, the throttle collision recovery reads (§6 step 6).
     pub repaths: Vec<i32>,
+    /// `PathFinder +0x58/+0x5c`, **the start argument's tile** the wrappers
+    /// write (`find_wpath@00688fc0:47-48`, `find_tpath@006897d0:40`,
+    /// `find_upath@00682f30:66-67`): the depth-1 shore test in `calc_cost`
+    /// reads it, not the unit's own tile (twenty-fourth pass, group 7; A4
+    /// row 28).
+    pub(crate) pf_start: Pos,
+    /// The order a frame's building walk ran its five steps in — written
+    /// only under test — for the test that holds `Build::process`'s sequence (group 18).
+    #[allow(dead_code)]
+    pub(crate) building_log: Vec<(usize, &'static str)>,
     /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
     /// whose target went invalid. `Leader::process@006b88b0` zeroes it
     /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
@@ -1655,6 +1665,8 @@ impl Sim {
             coll_copies: std::cell::RefCell::default(),
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
+            pf_start: Pos::default(),
+            building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
             tuning,
             world,
@@ -2637,12 +2649,26 @@ impl Sim {
             .iter()
             .enumerate()
             .rev()
-            .find(|(_, preqs)| {
-                preqs.is_some_and(|qs| {
-                    qs.iter().all(|&q| {
-                        self.tech_tree
-                            .has_tech_p(&self.setup, &self.tech[who as usize], q)
-                    })
+            .find(|(tier, _)| {
+                // A tier above the first also holds the one under it, two
+                // governments taken, and — Democracy being the tier
+                // below's `preq0` — Socialism or Capitalism (group 21;
+                // A1 row 5).
+                let p = &self.tech[who as usize];
+                let rows = &self.tech_tree.roles.democracy_preqs;
+                (0..=*tier).all(|k| {
+                    rows[k].is_some_and(|qs| {
+                        qs.iter()
+                            .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+                    }) && self.tech_tree.bonus_tier_extra(
+                        &self.setup,
+                        p,
+                        k,
+                        k.checked_sub(1).and_then(|b| match rows[b] {
+                            Some([tech::Preq::Of(t), ..]) => Some(t),
+                            _ => None,
+                        }),
+                    )
                 })
             })
             .map_or(0, |(tier, _)| self.tuning.democracy_tech_bonus[tier])
@@ -2696,10 +2722,11 @@ impl Sim {
         };
         match line {
             tech::Line::Military => {
-                let despot = match self.bonus_level(who, &self.tech_tree.roles.despotism_preq) {
-                    0 => 0,
-                    n => tu.despotism_military_cheaper[n - 1],
-                };
+                let despot =
+                    match self.government_bonus_level(who, &self.tech_tree.roles.despotism_preq) {
+                        0 => 0,
+                        n => tu.despotism_military_cheaper[n - 1],
+                    };
                 [
                     rare(0x15, tu.furs_military),
                     despot,
@@ -2980,7 +3007,11 @@ impl Sim {
     /// siblings: how many of a ladder's three bonuses the player holds,
     /// every one counted. The listing's `BUY_SELL` arm compares `0x2ad`
     /// against types the loops never reach, so it is dead in all three.
-    fn speed_upgrade_level(&self, who: Player, ladder: &[Option<tech::TypeId>; 3]) -> i32 {
+    pub(crate) fn speed_upgrade_level(
+        &self,
+        who: Player,
+        ladder: &[Option<tech::TypeId>; 3],
+    ) -> i32 {
         let p = &self.tech[who as usize];
         ladder
             .iter()
@@ -3390,6 +3421,11 @@ impl Sim {
     /// position until [`Sim::come_out`] or a formation moves them. The
     /// search takes no draw, so the stream does not know the difference.
     pub fn init_unit(&mut self, who: Player, ty: usize, pos: Pos) -> usize {
+        // **`Unit::init@00612100:68-73` snaps the birth point for every
+        // unit**, whatever its owner or domain (twenty-fourth pass, group
+        // 17; A3 row 3): a trained unit at its trainer's whole-tile centre
+        // is born 24 south and east of it, which a unit kept inside shows.
+        let pos = Pos::new(gaia::init_snap(pos.x), gaia::init_snap(pos.y));
         let n = self.unit_types[ty].combat.uber_size.max(1);
         let mut head = None;
         let mut prev = None;
@@ -4432,6 +4468,7 @@ impl Sim {
         let index = self
             .find_free(who, UNIT_BASE, BUILD_BASE)
             .unwrap_or(i16::MAX);
+        let pos = Pos::new(gaia::init_snap(pos.x), gaia::init_snap(pos.y));
         let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
@@ -5058,34 +5095,62 @@ impl Sim {
         // gatherers and builders that set them rather than in front, which is
         // the same net state at the start of a frame.
         //
-        // `Wall::process` first — the under-attack decay, the helpers reset,
-        // the building's own attrition, ejection, the capture re-test, the
-        // assimilation tick and the city heal (`docs/CITIES.md`) — then the
-        // queue, then the tower. Splitting the three into three passes over
-        // the list is still ours; the original does all three inside one
-        // `Build::process`, per building.
+        // **`Build::process@0061edf0`, per building, in the original's
+        // order** (twenty-fourth pass, group 18; A8 rows 20–22 and 27):
+        // `Wall::process` and the launch, then the tower's attack, then
+        // `Build::do_queue`, then the gather re-entries
+        // (`docs/ECONOMY.md` §17.2), then the city block and the road
+        // replan — so a tower sees only what the lower-numbered buildings
+        // have trained, and a captured city's queue advances before the
+        // re-test clears it.
         //
-        // **The queue is per building now** (item 1449): `Build::do_queue`
-        // runs inside the same building's `Build::process`, so a unit a
+        // **And the walk is `Objects::process_all`'s**: each leader's
+        // buildings in object-number order (`2000..build_mark`), then the
+        // walls (`3000..wall_mark`), not the `Vec`'s creation order — a
+        // reused low object number runs before the higher ones.
+        //
+        // The queue is per building (item 1449): `Build::do_queue` runs
+        // inside the same building's `Build::process`, so a unit a
         // lower-numbered building trains this frame is on the map when a
-        // higher-numbered one's `Wall::process` looks. run615 is the
-        // capture: city `1/2008` trains citizen `1/51` on frame 7962, the
-        // wonder `1/2022`'s site recruiter runs on its phase the same frame
-        // and sends it straight to the site — and here, with the queues
-        // in a pass of their own, the recruiter ran before it was born.
+        // higher-numbered one's `Wall::process` looks (run615: city `1/2008`
+        // trains citizen `1/51` on 7962 and the wonder `1/2022`'s recruiter
+        // sends it straight to the site).
         let mut trained = Vec::new();
-        for b in 0..self.buildings.len() {
+        let at_start = self.buildings.len();
+        let mut order: Vec<usize> = (0..at_start).collect();
+        order.sort_by_key(|&b| {
+            let bd = &self.buildings[b];
+            (bd.index >= WALL_BASE, bd.owner, bd.index)
+        });
+        // A building created mid-pass joins the walk after the rest, as the
+        // `Vec` walk always took it.
+        let mut known = at_start;
+        let mut at = 0;
+        while at < order.len() {
+            let b = order[at];
+            at += 1;
             self.buildings[b].gather_bumped = false;
-            self.process_building(b, frame);
+            self.log_building_step(b, "head");
+            // The head's answer is `Wall::process`'s `is_active` gate: a
+            // site never reaches the tower or the tail (the roads' replan
+            // is below it, `crate::roads` §1), though its queue is asked.
+            let live = self.process_building(b, frame);
+            if live {
+                self.log_building_step(b, "tower");
+                self.process_building_combat(b, frame);
+            }
+            self.log_building_step(b, "queue");
             self.process_queue(b, &mut trained);
-        }
-        // `Build::process`'s gather re-entries, after its `do_queue`
-        // (`docs/ECONOMY.md` §17.2): a re-walk that finds freed ground
-        // shuffles it off the stream.
-        self.gather_region_pass();
-        // A building that shoots does so from `Build::process` too.
-        for b in 0..self.buildings.len() {
-            self.process_building_combat(b, frame);
+            self.log_building_step(b, "gather");
+            self.gather_region_building(b);
+            if live {
+                self.log_building_step(b, "tail");
+                self.process_building_tail(b, frame);
+            }
+            if self.buildings.len() > known {
+                order.extend(known..self.buildings.len());
+                known = self.buildings.len();
+            }
         }
         // A wonder that activated in this pass takes its entry in its
         // leader's wonder list, as `Build::activate` does
@@ -5124,6 +5189,16 @@ impl Sim {
         self.scan_and_kill_stray_roads();
         events
     }
+
+    /// The building walk's step log, for the test that holds `Build::process`'s
+    /// sequence (group 18); nothing outside a test.
+    #[cfg(test)]
+    fn log_building_step(&mut self, b: usize, step: &'static str) {
+        self.building_log.push((b, step));
+    }
+
+    #[cfg(not(test))]
+    fn log_building_step(&mut self, _b: usize, _step: &'static str) {}
 
     /// Gives a unit a build order on a placed building — a player's
     /// `Group::action_swarm_around(BUILD_AT)` for one unit, replacing

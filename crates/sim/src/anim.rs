@@ -894,6 +894,26 @@ impl Sim {
             }
             guys.push(g);
         }
+        // **Figure 0 keeps the dead occupant's aim and turret flags**
+        // (twenty-fourth pass, group 16; A3 rows 16 and 17): `Unit::init:486`
+        // starts popping at the old `guy_mark`, so `Guy::clear` — the only
+        // reset of `+0x8e/+0x9f` and `+0x96/+0x98` — never runs on figure 0,
+        // and `init_real` writes none of them. Dump-observable
+        // (`GuyData::log_data`); nothing simulated reads them before the
+        // newborn's own `set_attack` or `set_all_pivots`.
+        if let Some(old) = self
+            .units
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
+            .and_then(|(_, old)| old.guys.first())
+            && let Some(first) = guys.first_mut()
+        {
+            first.aim = old.aim;
+            first.turret.node_flags = old.turret.node_flags;
+            first.turret.des_flags = old.turret.des_flags;
+        }
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
         // `update_gpiece`, then `set_new_location(x, y, 1, 1)`. The
@@ -3338,5 +3358,32 @@ mod tests {
             s.phase_marks.iter().any(|(l, _)| l == SITE_TURN_STAND),
             "the turn's draw"
         );
+    }
+}
+
+#[cfg(test)]
+mod survivor_tests {
+    use crate::combat::Obj;
+
+    /// **A newborn's first figure keeps the dead occupant's aim and turret
+    /// flags** (twenty-fourth pass, group 16; A3 rows 16 and 17), and a
+    /// slot nobody died in starts clear.
+    #[test]
+    fn a_newborn_s_first_figure_keeps_its_predecessors_aim_and_flags() {
+        let mut s = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
+        let a = s.add_unit(crate::Unit::new(0, 7, crate::Pos::new(500, 500), 10));
+        s.init_guys(a, None);
+        s.units[a].guys[0].aim = Some(Obj::Unit(3));
+        s.units[a].guys[0].turret.node_flags = 5;
+        s.units[a].guys[0].turret.des_flags = 6;
+        s.units[a].health = 0;
+        let b = s.add_unit(crate::Unit::new(0, 7, crate::Pos::new(500, 500), 10));
+        s.init_guys(b, None);
+        let g = &s.units[b].guys[0];
+        assert_eq!(g.aim, Some(Obj::Unit(3)));
+        assert_eq!((g.turret.node_flags, g.turret.des_flags), (5, 6));
+        let other = s.add_unit(crate::Unit::new(0, 8, crate::Pos::new(500, 500), 10));
+        s.init_guys(other, None);
+        assert_eq!(s.units[other].guys[0].aim, None, "a fresh slot is clear");
     }
 }

@@ -14196,6 +14196,84 @@ food and wealth escrow at 67 each and buckets 119 and 300 against 31 and
 `group:65.role`, the caravans) still stand: run637 covers 12538..12544
 only, and the gap 11985..12532 is still dark (parked 1430).
 
+## 121. Construction speeds the clock and raises the hit points (2026-10-05, item 1476)
+
+French East Indies' word 14090 was 490 draws against 1298 at index 483.
+Ours spent `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The original
+spent `PathFinder::calc_road_cost+0x46` under
+`PathFinder::astar_caravan_road` (`report.py … draws 14090`, seed
+`3c7315a2` first), 1291 of them in all.
+
+**The first parting, dated.** run636's 139 standing rows on 14085 include
+five of who=1's sites: `1/2047`, `1/2049` and `1/2050` (`orig_type` 425,
+**SMELTER**) and `1/2051` and `1/2052` (Granaries). Each holds
+`constr_time` 100000 here and **90000** there. The original's `1/2047`
+holds `myhits` **1100** where the type's `HITS` is 1000. Both are one level
+of Construction's two `TECHBONUSES` rows:
+
+- `BUILDINGS_FASTER_1` (row 70) feeds `(10 − n) × t / 10`.
+- `BUILDINGS_HP_1` (row 73) feeds `(BUILDING_HP_UPGRADE × n + 100) × h / 100`
+  (`docs/CITIES.md` §3.2, §3.4).
+
+`RON_DEBUG_TECH` on the word's walk shows our who=1 gaining
+**Construction on 13782**. The original's `tech_frame` prints 13782 on
+14085. So both sides hold the bonus from 13783. No dump on disk lies
+between run635's 12964 and run636's 14085, so the parting is dated by the
+tech's frame, not by a block. On 14085 the Smelter `1/2047` stands at
+`job_counter` 89800 of 90000 there and of 100000 here. It completes on
+14087 there (`ever_seen_completed` 0 → 2). The completion raises who=1's
+`regen_roads` on thirteen buildings, and the caravan road is re-laid on
+14090.
+
+**The cause is no counter.** `LeaderData::get_building_speed_upgrade@006dae90`
+and `get_building_hp_upgrade@006daee0` count `has_preq` of the three
+`BUILDINGS_FASTER` and the three `BUILDINGS_HP` bonuses. As in the ships'
+counter, the `BUY_SELL` arm is one the loop never reaches.
+`Nation::speed_upgrade` and `hp_upgrade` had no writer, so both levels read
+0 for every player. The ladders now sit in `Roles::buildings_speed_preq`
+and `buildings_hp_preq`, loaded from rows 70–72 and 73–75 (Construction,
+Architecture, Engineering). [`Sim::build_mods`] and [`Sim::update_hits`]
+count them through `speed_upgrade_level`. `gain_tech` already raised the
+`0x8000000` dirty flag, so `calc_wall_stats` re-bakes every unfinished
+site on the next frame.
+
+**The value diff.** On block 14085 ours holds `1/2047` at `job_counter`
+89800 of `constr_time` **90000**, and `construct_hits` **1097**. On 14086
+it holds 89900 and 1098. On 14087 it is complete with **1485**. These are
+the original's own values on each block. `1/2049`..`1/2052` hold 90000 on
+both sides.
+
+**What moved.** French East Indies **14090 → 14782**. run636's widening
+falls 210 → 134: the five `constr_time`s leave, and every row from 14087
+goes with the completion. The `regen_roads`, `1/49`'s order, `gather_down`
+and the walk rows of 14088..14097 all go. What is left is the 134 rows
+standing on 14085. `east_indies_wonder_start_is_first_contact_on_every_building`
+no longer finds `1/2047`'s `ever_seen_completed` rows.
+
+**The new word** is 14782: 15 draws against 16 at index 7, ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` and theirs
+`Leader::make_stuff+0x63d`. Its widening is run639 (239 keys): 136
+standing on 14777, with who=1's timber among them (`bucket` 786 against
+1034, `escrow` 224 against 251, `over_cap` 0 against 1), none on
+14778..14782, and on the word's block 14783 who=1's `MAKE[8].val`
+9999999 here against 99999 there, beside `1/93`'s move order 192 off on
+each axis.
+
+**What is not established.**
+
+- `myhits` and `construct_hits` are on the coverage pin's unread list for
+  `OBJECT`. The hit-point arm is read off this block's three values
+  (`debug_builds` against `theirs2047.txt`), not by a widening.
+- Levels 2 and 3 (Architecture, Engineering) are not reached by any
+  capture on file. They rest on the counter's loop and on the cheat run of
+  `docs/CITIES.md` §3.2, which saw 70000.
+- ~~Who=1's `leader:discovered` 33 against 34 still stands. It first parts on
+  run635's block 12959, the frame after ours gains Chemistry (`f12958`).
+  The Smelter is the one building whose `PREQ0` is Chemistry, and our
+  who=1 never holds its bit. That is a row, not a mechanism.~~ **Answered
+  by §123**: the one is Carpentry, handed to the French with Chemistry.
+- No blind reading has been done.
+
 ## 122. The census circle starts at entry 1 (2026-10-06, item 1477)
 
 Great Sahara at Toughest's word was **12744** on the base (item 1472): 49
@@ -14306,3 +14384,106 @@ formation (`curr` and `off`, all 27 slots: slot 0's `off` (−9, −3) here agai
 Guy::turn_towards+0x69`, theirs `… < Guy::inc_time+0x271`, index 33) is a
 `set_anim` roll reached through a turn here and through `inc_time`'s wrap
 there. Nothing here says which side acted, and no mechanism is booked.
+
+## 123. The French are handed the Carpentry line (2026-10-05, item 1479)
+
+French East Indies' word 14782 was 15 draws against 16 at index 7.
+Draws 0..6 agree: two `Leader::make_stuff+0x221` and five
+`Leader::make_stuff+0x63d`. The original spends a sixth `+0x63d` (seed
+`76675f2d`, `report.py … draws 14782`); ours goes on to
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (`1/79`).
+
+**The event, both sides.** Before the frame both who=1 make lists are the
+same: Printing Press (616) in slot 0 and again in slot 8, Barracks in 2
+and 7, Constitution in 9, Conscription in 10. Both buy the head, and both
+spend the two head draws and the five slot draws for the Barracks and
+Conscription. The sixth is slot 8. The original asks `make_this(8)`, and
+`produce_tech` answers 1 for a tech already in research, so slot 8's
+`val` becomes 99999 and its expiry walk spends a draw. Ours never reaches
+`make_this(8)`. Step 6's stockpile test wants `bucket ≥ cost(head) +
+cost(slot) + need` in timber: 640. The original's timber is **1040**
+before the head is paid. Ours is **790**, and 470 after.
+
+**The first parting, dated.** The timber is a standing row. On run636's
+14085 who=1's raw timber rate (`resources[1]`) is 3904 here and 4480 there.
+On run639's 14777 it is 3904 here and 5440 there, over a cap of 5376.
+Nothing in run635 (12947..12959) parts on timber. Its one who=1 row is
+`discovered` 33 against 34 on 12959, the block after Chemistry (`f12958`
+on both sides). Both increments are whole `LUMBERMILL_BONUS` steps on
+twelve woodcutters. Per gatherer, `peasant_rate` is 160 sixteenths:
+
+- 20 % → 50 % is 192 → 240, and 12 × 48 = **576** (3904 → 4480).
+- 50 % → 100 % is 240 → 320, and 12 × 80 = **960** (4480 → 5440).
+
+The levels are `LUMBERMILL2` and `3`, `TECHBONUSES` rows 22 and 23. Their
+`PREQ0`s are Carpentry and Logging Industry. Carpentry's `PREQ0` is
+Chemistry. Logging Industry's are Laws of Nature and Carpentry. So the
+state first parts on **12958**: the original hands who=1 Carpentry with
+Chemistry, and this crate does not.
+
+**Why.** `Leader::gain_tech@006dcb60`, at `6df93b`–`6df9d8` in the listing:
+
+```
+esi = 0x261                                    # CARPENTRY
+if has_tribe_bonus(0xa) and constants[+0x6c4]: # french_lumbermill_upgrades
+    while esi <= 0x263:                        # PAPERMILL
+        if has_preq(esi):
+            for i in 0 .. num_preq(esi):
+                if get_preq(esi, i, who) == gained:
+                    if type_eligible(esi, 1): gain_tech(esi, 0, 0, 0, 1)
+                    break
+        esi += 1
+```
+
+That is `docs/TECH.md` §13's French row, in [`tech::Shape::PreqMatch`]'s
+shape. The loader built the five predicate blocks and none of the range
+blocks ("each endpoint is its own reading and no capture reaches any of
+them"). `FRENCH_LUMBERMILL_UPGRADES` was loaded into `Tuning` and read by
+nothing. `seams.py --field free_rules` does not name the gap: its comment
+says "not loaded", not "SEAM".
+
+**The change.** `rondata::load` pushes the French block: `Gate::Power(10)`,
+`enabled` from `french_lumbermill_upgrades`, and the candidates are the
+listing's `0x261..=0x263` through `BASE_TECHTYPES`. By name those are
+Carpentry, Logging Industry and Papermill. Nothing else moves:
+`gain`'s step 13 already walks `free_rules`. Ours now gains Carpentry
+with Chemistry on 12958 and Logging Industry with Laws of Nature on 14607
+(`RON_DEBUG_TECH`).
+
+**The value diff.** On 14085 who=1's timber `resources` 4480, `income`
+4480, `rate` 280, `bucket` 532 and `leftover` 6000 are the original's
+values. On 14777 they are 5440, 5376 (capped), 336, 1034 and 6768, with
+`escrow` 251, `over_cap` 1 and `best_good` 1. Before the make on 14782
+the timber is 1040 and the escrow 253 (`RON_DEBUG_LEADER`), and on 14783
+slot 8's `val` is 99999 on both sides. `discovered` agrees on 12959,
+14085 and 14777. `1/93`'s move order agrees on 14783, as do the walk rows
+of 14784 that followed it.
+
+**What moved.** French East Indies **14782 → 14786**. The widenings fall:
+
+- run639: 239 → 226.
+- run636: 134 → 128.
+- run635: 119 → 118.
+
+**The new word** is 14786: 12 draws against 11 at index 0, ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` and theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. It lies inside run639,
+whose block 14787 holds it. The first rows after 14777's 127 standing are
+on block 14785: who=1's `MAKE[8]` holds a Temple (437, city 2, `val`
+800000, escrow 1) here and **Tikal** (532, city 3, `val` 1563477, escrow
+0) there. On 14786 the site `1/2054` is placed as each (`constr_time`
+37800 against 540000, a different city and spot). Food and timber are
+spent, and `1/25` and `1/57` take different orders. No mechanism is
+named here.
+
+**What is not established.**
+
+- Papermill is not reached by any capture: its `PREQ0` is Electronics.
+- The other range rows of §13's table (Russian, Egyptian, Mongol,
+  Persian, Korean, Chinese, Roman, the wonders) are still not loaded.
+  No capture's player holds those powers or wonders.
+- `tech_frame` and `tech_cat_frame` are unmodelled. The original's
+  `tech_frame` 14382 on 14777 is not this crate's 14607 for Laws of
+  Nature, and this item does not read why.
+- No blind reading has been done. The block's predicate is read off the
+  listing; the cascade it joins is §13's.

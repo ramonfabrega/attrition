@@ -521,7 +521,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `info.flags & 4` is asked of two layers — the AI's host function
     // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
     // tech tree's `Setup` — and it is one bit, so they are kept the same.
-    sim.setup.no_nation_powers = sim.lobby.no_nation_powers;
+    sim.sync_setup_from_lobby();
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
     sim.game_seed = get("seed").unwrap_or(0) as i32;
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)

@@ -617,7 +617,8 @@ impl Sim {
     /// FILTER_NOT_ME)` as `detect_boat_collision` asks it (`5fa935`–
     /// `5fa953`): the circle walk over the object chains while
     /// `circle_radius[ring]` is within the live unit count, the object
-    /// arrays with `vector_dist <= range` past it, and the `0x200` region
+    /// arrays by leader and number with `vector_dist − R <= range` past
+    /// it (R the candidate's radius, group 9), and the `0x200` region
     /// gate either way (`docs/COLLISION.md` §13.3). Region membership is
     /// tested on each candidate's tile, including the coastal refinement;
     /// a cell's primary region cannot stand in for all its occupants.
@@ -647,14 +648,31 @@ impl Sim {
                 }
             }
         } else {
-            for o in 0..self.units.len() {
+            // **The list branch** (`find_units@0065a620`, listing
+            // `65aa72..65aaa6`; twenty-fourth pass, group 9; A2 row 11): by
+            // leader, then object number, and a candidate is kept when
+            // `vector_dist − R <= range` with R its `push_size` if it is a sea
+            // unit and its `big_radius` otherwise. It runs only with fewer
+            // than nine units alive.
+            let mut order: Vec<usize> = (0..self.units.len()).collect();
+            order.sort_by_key(|&o| (self.units[o].owner, self.units[o].index));
+            for o in order {
                 let p = self.units[o].pos;
                 if o == u
                     || !self.units[o].alive()
                     || !self.units[o].on_map
                     || self.world.tregion_alt(p.tile()) != region
-                    || vector_dist(p.x - at.x, p.y - at.y) > range
                 {
+                    continue;
+                }
+                let r = if self.units[o].kind.domain == crate::attrition::Domain::Sea {
+                    self.profile(Obj::Unit(o)).push_size
+                } else {
+                    self.units[o]
+                        .ty
+                        .map_or(0, |t| self.unit_types[t].combat.big_radius)
+                };
+                if vector_dist(p.x - at.x, p.y - at.y) - r > range {
                     continue;
                 }
                 out.push(o);
@@ -4208,6 +4226,40 @@ mod tests {
                 "different tile region in same cell: {chains}"
             );
         }
+    }
+
+    /// **The list branch walks by leader and number and subtracts the
+    /// candidate's radius** (twenty-fourth pass, group 9; A2 row 11): a unit
+    /// whose centre is `range + R` away is kept, and the order is `(owner,
+    /// index)`, not creation order.
+    #[test]
+    fn the_list_branch_subtracts_the_candidates_radius_and_walks_by_leader() {
+        let at = Pos::new(7000, 7000);
+        let mut world = World::new(20, 20);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(19, 19));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let t = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            ..crate::UnitType::default()
+        });
+        sim.unit_types[t].combat.big_radius = 96;
+        let put = |sim: &mut Sim, owner: u8, index: i16, p: Pos| {
+            let mut un = Unit::new(owner, index, p, 40);
+            un.ty = Some(t);
+            un.on_map = true;
+            sim.add_unit(un)
+        };
+        let me = put(&mut sim, 0, 0, at);
+        let late = put(&mut sim, 1, 3, Pos::new(at.x + 144 + 50, at.y));
+        let early = put(&mut sim, 0, 5, Pos::new(at.x + 100, at.y));
+        put(&mut sim, 0, 6, Pos::new(at.x + 144 + 97, at.y));
+        assert!(crate::ai_place::circle().radius[1] > sim.units.len());
+        let found = sim.find_push_candidates(me, at, 144);
+        assert_eq!(
+            found,
+            vec![early, late],
+            "within range + 96 is kept, in leader order; `far` is 97 past"
+        );
     }
 
     /// §13.3's **land half** (item 696): a supply wagon takes

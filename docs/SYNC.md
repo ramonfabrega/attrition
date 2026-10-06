@@ -1903,9 +1903,12 @@ different ring spot (run614: bearing −1 there, bearing 0 here), because
 what parted the word on 8236 (run612, `1/41`'s collision with `1/56`).
 
 **The change.** The queue now runs per building, right after that
-building's own `process_building`. The tower pass and the gather region
-pass stay where they were; that split is still ours, and no capture shows
-it.
+building's own `process_building`. ~~The tower pass and the gather region
+pass stay where they were; that split is still ours~~ — **all five steps run
+per building now** (twenty-fourth pass, group 18; A8 rows 20–22, 27): head and
+launch, the tower, `do_queue`, the gather re-entries, then the city block and
+the road replan, a site going no further than its queue; and the walk is each
+leader's buildings by object number, then walls, not creation order.
 
 **What moved.** French East Indies **8236 → 8385**. Widened keys: run610
 156 → 127, run611 147 → 121, run612 210 → 124, run614 153 → 122, run615
@@ -1914,9 +1917,9 @@ it ends before the birth. Every other floor and pin in both suites holds
 (rondata, sim 1324). Putting the queues back into their own pass returns
 the word to 8236 and fails all five pins (measured).
 
-**Not established.** The tower's order against the queue within one
-building, and the gather re-entries per building, are read and not
-reordered. No capture separates them yet.
+**Not established.** No capture separates the tower's order against the
+queue, nor the gather re-entries, nor the city block's: the build held every
+floor and moved no word (item 1468).
 
 ## 3.29 The gull flies to its dock, from a snapped birth — French East Indies 9655 → 9777 (2026-10-04, item 1453)
 

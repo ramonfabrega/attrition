@@ -262,6 +262,28 @@ pub const SITE_UPATH_RETRY: &str = "PathFinder::astar_path+0x1697";
 /// tails as one is the error this pair exists to prevent.
 pub const SITE_UPATH_RETRY_BUDGET: &str = "PathFinder::astar_path+0x1159";
 
+/// What `astar_path@00683770:534-592` does with an exhausted work budget
+/// (`traversed + probes >= 64 × the grid's cap`, and not an `anti` search).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CapTail {
+    /// The tile grid under `anti_unit`: give up, no path.
+    Refuse,
+    /// The unit grid: roll the retry, `+0xb2 += 30`, no path.
+    Pause,
+    /// **Every other grid** — the world's and the tile grid's without
+    /// `anti_unit` — drains the open list for the node nearest the goal
+    /// and ends on it (twenty-fourth pass, group 8; A4 row 31).
+    Drain,
+}
+
+fn cap_tail(step: i32, anti_unit: bool) -> CapTail {
+    match step {
+        STEP_TILE if anti_unit => CapTail::Refuse,
+        STEP_UNIT => CapTail::Pause,
+        _ => CapTail::Drain,
+    }
+}
+
 impl Sim {
     /// `UnitData::invalid_loc(t, ignore_buildings, fog_relax,
     /// enemy_builds_only, transport_a, transport_b)` — the world's refusal
@@ -700,8 +722,10 @@ impl Sim {
             }
             embarks = true;
         } else if depth == 1 {
-            let own_tile = self.units[u].pos.tile();
-            shore = self.needs_transport(own_tile, to.tile());
+            // From `PathFinder +0x58/+0x5c`: the wrapper's start argument,
+            // which a group's plan makes something other than the unit's
+            // own tile (group 7; A4 row 28).
+            shore = self.needs_transport(self.pf_start, to.tile());
             if shore > 0 && can_transport {
                 if avoid_sea == 2 {
                     return (REFUSED, false);
@@ -844,7 +868,7 @@ impl Sim {
             };
             // Computer-controlled transport types can cross either terrain
             // without the same-region preference (PATHFINDER §31).
-            if self.ai_driven(self.units[u].owner)
+            if self.unit_ai_bit(self.units[u].owner)
                 && self.units[u].ty.is_some_and(|t| {
                     self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
                 })
@@ -1046,9 +1070,9 @@ impl Sim {
                 let mut end_id = cur_id;
                 let mut partial = false;
                 if traversed + probes >= work_cap && anti == 0 {
-                    match step {
-                        STEP_TILE if m.anti_unit => return 0,
-                        STEP_UNIT => {
+                    match cap_tail(step, m.anti_unit) {
+                        CapTail::Refuse => return 0,
+                        CapTail::Pause => {
                             // **The work-cap tail**, `astar_path@00683770:
                             // 552`-`564`. The retry roll's only gate here is
                             // that the current order is a **transit** — the
@@ -1066,9 +1090,13 @@ impl Sim {
                             self.units[u].safe += 30;
                             return 0;
                         }
-                        STEP_WORLD => {
+                        CapTail::Drain => {
                             // Drain the open list for the node nearest the
-                            // goal; the partial path is the answer.
+                            // goal; the partial path is the answer. **Every
+                            // grid but the unit grid does** — the tile grid
+                            // too, once its `anti_unit` arm above has gone
+                            // (`astar_path@00683770:568-592`, twenty-fourth
+                            // pass, group 8; A4 row 31).
                             let mut best = vector_dist(cur.x - goal.x, cur.y - goal.y);
                             while let Some((&k2, &n2)) = open.first_key_value() {
                                 open.remove(&k2);
@@ -1083,7 +1111,6 @@ impl Sim {
                             // SEAM: the can-transport goal re-push
                             // (flags |= 4) is dormant.
                         }
-                        _ => {}
                     }
                 }
                 return self.reconstruct(u, &m, &mut nodes, end_id, step, partial);
@@ -1429,6 +1456,7 @@ impl Sim {
         }
         // Same cell, or a type that flies like a helicopter (`+0x2b4 &
         // 0x20`, `689110`, item 1048): push back, done.
+        self.pf_start = here.tile();
         if here.cell() == gc || self.is_helicopter(u) {
             self.units[u].path.push(goal_e);
             return self.units[u].path.len() as i32;
@@ -1624,6 +1652,7 @@ impl Sim {
             return -1;
         }
         let ht = here.tile();
+        self.pf_start = ht;
         // The same tile, or a helicopter (`68990d`, item 1048).
         if ht == gt || self.is_helicopter(u) {
             goal_e.tolerance = 0;
@@ -1737,6 +1766,7 @@ impl Sim {
             return 0;
         };
         let here = self.units[u].pos;
+        self.pf_start = here.tile();
         let g48 = |p: Pos| Pos::new(p.x.div_euclid(0x30), p.y.div_euclid(0x30));
         let gg0 = g48(goal_e.to);
         if gg0.x < 0
@@ -2761,6 +2791,46 @@ mod tests {
             !sim.army_mode(u),
             "a worker with an attack is still a worker"
         );
+    }
+
+    /// **The depth-1 shore test reads the wrapper's start**, not the unit's
+    /// own tile (twenty-fourth pass, group 7; A4 row 28): `calc_cost`
+    /// redoes `needs_transport` from `PathFinder +0x58/+0x5c`, which
+    /// `find_wpath` writes from its start argument. A group's plan starts
+    /// somewhere else than the unit stands.
+    #[test]
+    fn the_first_step_s_shore_test_starts_where_the_plan_does() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        sim.units[u].auto_transport = true;
+        let m = Modes::default();
+        let from = Pos::new(0x180 + 0x300, 0x180);
+        let to = Pos::new(0x180 + 0x600, 0x180);
+        let wet = Pos::new(0x180 + 0x600 + 12, 0x180);
+        for t in [to.tile(), wet.tile()] {
+            sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
+        }
+        // The plan starts on dry ground: the step into the sea embarks.
+        sim.pf_start = from.tile();
+        let (_, dry) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
+        assert!(dry, "dry start, wet target");
+        // The plan starts at sea, though the unit stands on land: no
+        // shoreline crossed from where the search began.
+        sim.pf_start = wet.tile();
+        let (_, wetstart) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 1, 0, 1);
+        assert!(!wetstart, "the unit's own tile is not asked");
+    }
+
+    /// **An exhausted budget drains on every grid but the unit grid**
+    /// (group 8; A4 row 31): the tile grid without `anti_unit` is not an
+    /// exception.
+    #[test]
+    fn the_work_cap_drains_every_grid_but_the_unit_grid() {
+        assert_eq!(cap_tail(STEP_WORLD, false), CapTail::Drain);
+        assert_eq!(cap_tail(STEP_WORLD, true), CapTail::Drain);
+        assert_eq!(cap_tail(STEP_TILE, false), CapTail::Drain);
+        assert_eq!(cap_tail(STEP_TILE, true), CapTail::Refuse);
+        assert_eq!(cap_tail(STEP_UNIT, false), CapTail::Pause);
     }
 
     #[test]

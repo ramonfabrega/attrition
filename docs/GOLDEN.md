@@ -8520,8 +8520,10 @@ It is not staged here.
   decoy, of the land, armed (`UnitData::attack`), not `PEASANTS`..
   `SCHOLARSKOREAN`, not a caravan or a merchant, not the General, within
   `HeroData::get_radius × 0xc0` (`GENERAL_RADIUS` 6 × 3/2 = 9 tiles, 1,728)
-  is copied: `find_nearby_spot(its type, the General, 0x180, −1, 0, 0,
-  FILTER_NOT_ME)`, `Objects::init_unit`, its population handed back
+  is copied: `find_nearby_spot(the General's type, the General, 0x180, −1,
+  0, 0, FILTER_NOT_ME)` — the **caster's** type asks, `6746b9`; ~~its type~~
+  (twenty-fourth pass, group 11) — then `Objects::init_unit` with the
+  source's, its population handed back
   (`track_unit_type −1`), every figure `unit_masks |= 1`, `mana_burn` 0.
   None made: the craft's mana handed back.
 - **A decoy's frame** (`Unit::process@00610bc0`, its `unit_masks & 1` arm):
