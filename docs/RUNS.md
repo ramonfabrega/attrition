@@ -14770,6 +14770,42 @@ blocks 14357..14380, 93 standing on the first, and on the word's block 14364 six
 (`1/2031` 0 against 1, and the like; `1/2053` 1 against 0) and `1/66`'s and `1/115`'s order kind (6
 against 7); army 65's `off`/`curr` tail agrees. The compared pin's window is block 14364.
 
+## run659 — run470's game over the new word 14512's window: the third map's bombard and its four figures (2026-10-06, item 1503)
+
+**What it is.** Run470's game (`--map 7`, `DIFFICULTY=5`, the click-free lane, `cover=0`, `!ffwd 17`
+from frame 37), run584's detail with `GROUPS=1`, dumped over blocks 14506..14529 and quit at 14540. The
+word 14363 (item 1493's) moved to 14512 on this item's tree (`docs/AI.md` §132); no capture on disk
+printed a block there (run653's window ends at 14380).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run659 \
+    --map 7 --end-frame 14540 --timeout 5000 --log-window 14506 14530 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**What the disk could not answer.** The word's own frame and the blocks after it: no gamelog on the
+disk holds a block past 14380.
+
+**Taken.** **The first take died before frame 0**: a Wine page fault at `7BF2123D` in the first
+seconds (`wine.log`), the receipt refused with "extra lifecycle or fault records" — the shape of
+run657's first take. Kept as `2026-10-06-run659-take1-fault` and taken again once (1150). The second
+take: receipt `success: true`, exit 0, 184.2 s launch to exit (194.4 s in all), 14,541 frames, map 7
+and seed 12345 verified, five settings files restored, 24 `FRAME` blocks 14506..14529 and the closing
+block 14541. `rngcmp.py rontrace-run470.log rontrace-run659.log` **0 differing**, 14,541 identical.
+The lane was free (no wait). 154 GB free after.
+
+Archive `gamelog-run659-greatsahara-toughest-14512.txt`, 62,756,393 bytes,
+SHA-256 `83ed385a2ceab1e216c37c74743189a9df7cf255e3de5c6ea3331f2d7784dba8`.
+
+Archive `rontrace-run659.log`, 94,873,536 bytes,
+SHA-256 `1aa332a3c59e856b9c8ca79c0cb86a404b77c08c4fbee5ab92f176961945f81d`.
+
+**What it holds**: `run659_s_word_frame_is_widened_whole` (`diff::sahara_toughest`): 88 keys over blocks
+14506..14529, **all standing on the first block** and none on the word's block 14513 or after: the word
+is a draw order inside one bombard's four figures and no dumped record parts. The compared pin's window
+is block 14513.
+
 ## run650 — the coverage pair: can the click-free lane set a late starting age (2026-10-06, item 1466)
 
 **Disk gap**: one gamelog on the disk has `STARTING_TECHNOLOGY` other than 0 (run4 and run5, Gunpowder, the

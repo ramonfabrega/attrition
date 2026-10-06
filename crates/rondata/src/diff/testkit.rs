@@ -1995,6 +1995,19 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **14512 since item 1503** (`docs/AI.md` §132): `BuildData::construct_time`'s
+/// clause (c), `has_general(0, THEPRESIDENT) >= 0`, is a per-call clock: one of
+/// the owner's Presidents on the map within `get_radius × 0xc0` of the building
+/// less its footprint's `(x_size + y_size) × 0x60` takes the clock to
+/// `t × 100 / 133`. Great Sahara at Toughest's Smelter `1/2053` finished on
+/// frame 14363 at 75187 where its `job_counter` read 75038 + 183; this crate
+/// held the clock at 100000 and the site's `construct_hits` at 752 where the
+/// dump prints 997. The measured word on the base was 14363 (ours 11 draws,
+/// theirs 177). **The new word's delta: 53 draws on each side on frame 14512,
+/// parting at index 40**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+/// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`; the count
+/// first parts at 15101. Its widening is run659's.
+///
 /// **14363 since item 1493** (`docs/AI.md` §128): `Group::action_siege_attack_to`
 /// copies the siege sub-group's slot back into the army's table. The sub-group
 /// (`1/84`, `1/90`, `1/139`, `1/141`: bombards) lays out on its own record, and
@@ -2389,7 +2402,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 14_363;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 14_512;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8583,11 +8596,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // moved the word 12575 → 12744 inside the same window (block 12745);
         // item 1477 moved it 12744 → 12816, past it, and widened it on run640
         // over 12811..12834; item 1493 moved it 12816 → 14363 and widened it
-        // on run653 over 14357..14380; run640's test keeps the move's value
-        // diff on 12811..12817, run584's on 12532.
-        Some("run653_s_word_frame_is_widened_whole"),
-        1493,
-        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_14363),
+        // on run653 over 14357..14380; item 1503 moved it 14363 → 14512 and
+        // widened it on run659 over 14506..14529; run653's test keeps the
+        // move's value diff on 14357..14364, run640's on 12811..12817,
+        // run584's on 12532.
+        Some("run659_s_word_frame_is_widened_whole"),
+        1503,
+        Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_14512),
     ),
 ];
 
