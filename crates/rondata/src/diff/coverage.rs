@@ -206,9 +206,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1452: Lyons, the French city founded before run622's window, likewise.
     // Item 1455: Rheims, the fifth, founded on 9777 and named in run629.
     // Item 1481: Orleans, the sixth, named in run642's window.
+    // Item 1487: Amiens, the seventh, named in run655's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Rheims York flags increment length size",
+        "Amiens Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Rheims York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a

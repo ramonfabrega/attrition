@@ -14786,6 +14786,14 @@ from `POPWIN` through `rondata::load::Loaded::pop_wins`;
 and `popwin_timer` 1. run649's widening is 92 keys, every one standing on
 15086. run642 drops 1818 → 114 and keeps only its standing rows.
 
+**The new word, 16857**: 8 draws against 8, parting at index 2. Ours draws
+for the General `1/79` (TypeIndex 54) through `Guy::set_anim+0x97a <
+Guy::move+0x19f`; the original's third draw is `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x549` (the harness prints it as
+`5dac7a`). run655 widens it: 173 rows standing on 16851, none on
+16852..16857, and on the word's block 16858 `1/79`'s `g.cur_anim` 7
+against 0 and `g.cur_time` 16 against 1. No mechanism is named.
+
 **What is not established.**
 - The expiry and the immediate victory are seams (`sim::victory::seams`):
   no capture on file reaches either. `Game::popwin_timer`'s scaling by the

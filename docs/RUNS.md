@@ -14832,3 +14832,24 @@ SHA-256 `e7b72d3b57944a07e37a80bc94c1afd20cad4d7fed164f6fa0297ea79abe2c1a`.
 
 **What it holds**: `run649_s_decision_frame_is_widened_whole` (`diff::third_pair`): 92 keys, every
 one standing on block 15086; nothing on 15087..15090. Run 649 only.
+
+## run655 — French East Indies, the word 16857's widening, with the leader probe (2026-10-06, item 1487)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1487-opus/run655-booking.json`,
+written before the run. run642 ends 15357 and run649 15095; nothing dumps this game between them and
+run600's closing state. Window **[16851,16864)**, end 16868, call window 16849..16864,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1800`, run642's four `--detail`
+sections, through the click-free lane (`free` at launch). The run number is the commander's (run650–654
+were another lane's). Receipt success; process and wait exits **0**; five settings files restored;
+13 group blocks 16851..16863; seed 12345 read back. Launch-to-exit 731.469 s, total 742.001 s.
+Game-RNG draws match run600 on all 16,869 shared frames (`rngcmp.py`).
+
+Archive `gamelog-run655-islands-french-16857.txt`, 53,190,797 bytes,
+SHA-256 `63ba2ab74252974b6148785226fa569151cb207061b8793f31875e06cf81e1ed`.
+
+Archive `rontrace-run655.log`, 95,347,264 bytes,
+SHA-256 `32fccc08ce84cd3c7a833de4773fbcbc5f49fb55bb58600bb0f4ea0318b73707`.
+
+**What it holds**: `run655_s_word_frame_is_widened_whole` (`diff::third_pair`): 186 keys, 173
+standing on block 16851, none on 16852..16857, five on the word's block 16858 (the General `1/79`'s
+animation) and eight on 16860..16862. Run 655 only.
