@@ -14637,6 +14637,7 @@ start — so the map's French start (run595, run597) and the first pair's (run38
 Archive `gamelog-run648-greatsahara-egyptian-diff4-start.txt`, 149,605,345 bytes, SHA-256 `a0f2f6925ebfffc76832dc2b3f771f8e470056e2de9d2492bf106d4a7c54b4df`.
 
 Archive `rontrace-run648.log`, 8,622,848 bytes, SHA-256 `f9088335d0e05d359f0893f279f6837300899eecf6af6487399151d69f5beb4b`.
+
 ## run642 — French East Indies, the word 15344's widening, with the leader probe (2026-10-06, item 1481)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1481-opus/run642-booking.json`,
