@@ -221,17 +221,49 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run642: the successor after the wonder arm's points, frame 15344
+/// (item 1481).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run642",
+        &[("gamelog-run642-islands-french-15344.txt", 15339)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[15345],
+        true,
+    )
+}
+
+#[test]
+fn run642_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1481: 1852 — 134 standing on the first block, 15339; nothing on
+    // 15340..15344; on the word's block 15345 1447, who=1's army group 64
+    // the original's alone (150 rows) and the orders and positions of
+    // `1/67`, `1/79` and some thirty more of who=1's units among them. The
+    // word's block is 15345.
+    pin_eq!(w.firsts.len(), 1852, "initial run642 baseline");
+}
+
 /// run639: the successor after Construction's clock and hit points,
 /// frame 14782 (item 1476), and after the French Carpentry line, 14786
-/// (item 1479), inside it.
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+/// (item 1479), inside it. The word left it for 15344 (item 1481).
+pub(crate) fn french_east_indies_14786_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run639",
         &[("gamelog-run639-islands-french-14782.txt", 14777)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_14786,
         1,
         &[14787],
         true,
@@ -241,7 +273,7 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run639_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_14786_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
@@ -1148,8 +1180,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run639-islands-french-14782.txt",
+            "gamelog-run642-islands-french-15344.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run639-islands-french-14782.txt",
+            WIDENING_FRENCH_EAST_INDIES_14786,
         ),
         (
             EAST_START,
@@ -1549,11 +1587,14 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run636-islands-french-14090.txt",
             WIDENING_FRENCH_EAST_INDIES_14090,
         ),
-        // Item 1481: the word left run639 for 15344, whose widening is
-        // owed; run639 is walked whole.
         (
             "gamelog-run639-islands-french-14782.txt",
-            WIDENING_FRENCH_EAST_INDIES,
+            WIDENING_FRENCH_EAST_INDIES_14786,
+        ),
+        // The open word's window, to the word's own block (item 1481).
+        (
+            "gamelog-run642-islands-french-15344.txt",
+            (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
         let Some(rows) = east_indies_ever_seen(capture, window) else {

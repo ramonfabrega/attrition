@@ -1954,7 +1954,8 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_11582: (i64, i64) = (11577, 11589);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12794: (i64, i64) = (12789, 12801);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_12952: (i64, i64) = (12947, 12959);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_14090: (i64, i64) = (14085, 14097);
-pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (14777, 14789);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_14786: (i64, i64) = (14777, 14789);
+pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (15339, 15351);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 
@@ -8423,17 +8424,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item 1370 to 15985, inside it; item 1377 to 16009, inside it; item
     // 1383 to 16160, past it, widened on run572; item 1401 to 16179,
     // inside it; item 1418 to 16482, past it, widened on run579.
-    // Item 1481 moved the word to 15344, past run639's window
-    // (`run639_s_word_frame_is_widened_whole`, 127 standing on 14777 and
-    // nothing parted after it). Widening owed: run642 retake with
-    // `--detail`, by the next item — the row names 1481 until the
-    // commander books that item and re-numbers it here.
+    // Item 1481 moved the word to 15344, past run639's window, and widened
+    // it on run642 (15339..15351).
     (
         "THIRD_PAIR_WORD_EAST_INDIES",
         THIRD_PAIR_WORD_EAST_INDIES,
-        None,
+        Some("run642_s_word_frame_is_widened_whole"),
         1481,
-        None,
+        Some(WIDENING_FRENCH_EAST_INDIES),
     ),
     (
         "THIRD_PAIR_WORD_GREAT_LAKES",

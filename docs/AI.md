@@ -14477,6 +14477,13 @@ parted key.
   Gardens (528, worth 1) at 248009 here against the Terra Cotta Army
   (529, worth 2) at 250750 there, now agrees. 240 → 237 and 212 → 209.
 
+**The new word** is 15344: 44 draws against 38 at index 0. Ours spends
+`Army::find_target+0x7df` seven times, and theirs starts on
+`Animal::think_bird+0x82`. run642 (15339..15351) widens it: 134 standing
+on 15339, nothing on 15340..15344, and on the word's block 15345 an army
+group 64 that only the original holds, with some thirty of who=1's units'
+orders and positions. No mechanism is named here.
+
 **What is not established.**
 
 - **A wonder victory** (`VICTORY 6`) and the 2,000,000 arm are the
