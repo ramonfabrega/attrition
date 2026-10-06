@@ -1194,10 +1194,11 @@ mod tests {
         // against 0 on 9354: the pushed idle unit's guy 0 turn
         // (`turn_angles(bearing, &out, 1, 1)`) left it owing 4° and walking
         // a frame longer. With the turn, `8/2` and `1/86` agree through
-        // the window. The Senator `1/80`'s followers part their step on
+        // the window. The Senator `1/80`'s followers parted their step on
         // 9328 (ours 57, theirs 71: `Guy::move`'s crew step takes
-        // `GuyData::get_speed`, and this crate the cached `myspeed`), as
-        // they did before either move.
+        // `GuyData::get_speed`, and this crate took the cached `myspeed`),
+        // as they did before either move — until item 1461, which steps
+        // them on `Sim::get_speed_at` and leaves the row.
         pin_eq!(
             row(8, 2, "gaia:pos").as_deref(),
             None,
@@ -1208,31 +1209,18 @@ mod tests {
             None,
             "the wagon collides with nothing it pushed"
         );
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             row(1, 80, "g.last_speed[2]").as_deref(),
-            Some("9328: ours 57 theirs 71"),
+            None,
             "the Senator's crew step"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         // Item 1326 re-pinned on the tree merged with 1318's.
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [
-                (9318, 76),
-                (9328, 4),
-                (9329, 4),
-                (9330, 1),
-                (9332, 1),
-                (9333, 1),
-                (9355, 1),
-                (9376, 1),
-                (9401, 1),
-                (9446, 1),
-                (9447, 1),
-                (9512, 1),
-                (9513, 1),
-                (9574, 1)
-            ],
+            [(9318, 76), (9376, 1), (9401, 1)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 1802.
@@ -1241,9 +1229,10 @@ mod tests {
         // four rows of block 9533 — the Explorer `1/0` ours 12 against 10
         // and the Caravans `1/22`..`1/24` 7 against 6, ours a frame ahead
         // of the original's refresh.
+        // Item 1461: 95 → 78, the Senator `1/80`'s crew rows from 9328 leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(),
-            95,
+            78,
             "every key parted on run511 (1,802 before item 1332, 2,069 before item 1318)"
         );
     }
@@ -1690,27 +1679,21 @@ mod tests {
             pin_eq!(row(1, o, key), None, "1/{o}'s {key} agrees");
         }
         // The new word, 10144, is past this window's last block 10015.
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9759, 81),
+                (9759, 78),
                 (9765, 1),
-                (9773, 3),
-                (9774, 3),
-                (9775, 1),
                 (9776, 3),
                 (9781, 1),
                 (9782, 4),
                 (9799, 1),
                 (9801, 1),
                 (9824, 1),
-                (9981, 2),
-                (9982, 1),
                 (9985, 1),
-                (9989, 1),
                 (9993, 1),
                 (9994, 1),
-                (10004, 1),
                 (10011, 1),
                 (10014, 1)
             ],
@@ -1721,7 +1704,8 @@ mod tests {
         // Item 1346, on the tree merged with 1330's: 505 → 262.
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
         // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
-        pin_eq!(w.firsts.len(), 110, "every key parted on run529");
+        // Item 1461: 110 → 95; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        pin_eq!(w.firsts.len(), 95, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):
@@ -1790,28 +1774,18 @@ mod tests {
             None,
             "group 67's speed, before the march"
         );
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             row(1, 80, "g.last_speed[1]").as_deref(),
-            Some("9222: ours 57 theirs 71"),
+            None,
             "the Senator's crew step"
         );
         // Item 1326 re-pinned on the tree merged with 1318's.
         // Item 1457: [(9032, 76), (9084, 2), (9201, 1), (9222, 4), (… → [(9032, 76), (9201, 1), (9222, 4), (9223, 1), (…; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [
-                (9032, 76),
-                (9201, 1),
-                (9222, 4),
-                (9223, 1),
-                (9236, 2),
-                (9237, 1),
-                (9268, 1),
-                (9273, 1),
-                (9274, 1),
-                (9294, 2),
-                (9295, 3)
-            ],
+            [(9032, 76), (9201, 1)],
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 158.
@@ -1820,9 +1794,10 @@ mod tests {
         // guy 0's angle: `1/0`'s `g.angle[1]` on 9307, ours −402259968
         // against −363239852 → agreeing (`docs/ANIM.md` §11).
         // Item 1457: 95 → 93; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
+        // Item 1461: 93 → 77, the crew rows from 9222 leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(),
-            93,
+            77,
             "every key parted on run517 (1,154 without the march's speed)"
         );
     }

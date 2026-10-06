@@ -14354,3 +14354,19 @@ SHA-256 `816c107508d75fb84af7e3156b8dedfb67c02df4c0b0416cad39c0c78d490d81`.
 
 Archive `rontrace-run634.log`, 59,112,224 bytes,
 SHA-256 `49a8e4af14f2e9c7d02e8df6abe9cfa772f59fc7ec32fa275cfd53c79eba753e`.
+
+## run635 — French East Indies, the word 12952's widening, with the leader probe (2026-10-05, item 1461)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1461-opus/run635-booking.json`,
+written before the run. Window **[12947,12960)**, end 12964, call window 12945..12960,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1500`, the detail as run634,
+through the click-free lane, after 3,574 s waiting on another lane's hold. Receipt
+success; process and wait exits **0**; five settings files restored; 13 blocks; seed read
+back. Launch-to-exit 408.865 s, total 419.050 s. Game-RNG draws match run600 on every
+frame of 12900..12963, seed for seed; the quit frame 12964 differs.
+
+Archive `gamelog-run635-islands-french-12952.txt`, 47,420,054 bytes,
+SHA-256 `5fd5a82818ddef5e180078770263b95fa9ba3591977430b926a5f1a66a7cfe75`.
+
+Archive `rontrace-run635.log`, 59,890,528 bytes,
+SHA-256 `5bd9a8d8600b123dd005ce05e22be0c62ec34ca38a991331cfdc3dd69aa86138`.

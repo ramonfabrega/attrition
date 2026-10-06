@@ -3340,6 +3340,40 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
     );
 }
 
+/// **A tracked crew figure steps on its unit's order speed** (item 1461,
+/// `docs/MOVEMENT.md`, "The crew's speed"). `Guy::move`'s tracked branch
+/// asks `GuyData::get_speed@005de410`, which is the unit's own
+/// `get_speed(x, y, 1)` asked at the figure's point: a computer's guard
+/// scales the speed by ten eighths and a human's by nine, before the step's
+/// eleven eighths. French East Indies' Senator, `1/67`, stepped its second
+/// figure 71 on frame 12791 where the type's base 42 gave 57.
+#[test]
+fn a_guarding_computer_s_crew_steps_on_the_guard_s_speed() {
+    for (human, step) in [(false, 71), (true, 64)] {
+        let mut sim = skirmish(0);
+        sim.nation[1].human = human;
+        let charge = sim.add_unit(Unit::new(1, 1, Pos::new(4000, 400), 100));
+        let mut u = Unit::new(1, 2, Pos::new(4000, 400), 100);
+        u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+        let unit = sim.add_unit(u);
+        sim.art.tracks.insert(2, (96, 96));
+        make_mobile(&mut sim, unit, movement::Angle::EAST);
+        sim.units[unit].movement.speed = 42;
+        sim.seat_guys(unit);
+        sim.add_guard_order(unit, charge, 0, 0, orders::QueuePos::New);
+        // Three hundred short of its point, already facing it, so the
+        // frame is not given up to the turn and the step is not a snap.
+        let mut f = sim.units[unit].guys[1].follow.expect("the crew has a body");
+        f.body.pos = Pos::new(f.des.x - 300, f.des.y);
+        f.facing = movement::find_angle(300, 0);
+        sim.units[unit].guys[1].follow = Some(f);
+        sim.process_follower(unit, 1);
+        let after = sim.units[unit].guys[1].follow.unwrap();
+        assert_eq!(after.body.last_speed, step, "human {human}");
+        assert_ne!(after.body.pos, f.body.pos, "the figure stepped");
+    }
+}
+
 /// **And a tracked crew figure pays the turning stand of its own**
 /// (`docs/ANIM.md` §4.8, item 212) — the frame Great Lakes' word parted at
 /// 6463, on a scenario built here rather than borrowed from a capture.

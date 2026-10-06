@@ -221,16 +221,46 @@ pub(crate) fn french_east_indies_capacity_window() -> Option<harness::tests::Wid
     )
 }
 
+/// run635: the successor after the crew's `GuyData::get_speed`, frame
+/// 12952 (item 1461).
+pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EAST_START],
+        true,
+        EAST_LONG,
+        "run635",
+        &[("gamelog-run635-islands-french-12952.txt", 12947)],
+        WIDENING_FRENCH_EAST_INDIES,
+        1,
+        &[12953],
+        true,
+    )
+}
+
+#[test]
+fn run635_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_east_indies_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
+    // Item 1461: 640 — run634's 118 standing rows on the first block, 12947
+    // (`1/112`'s `form` for `1/109`'s), and nothing new before the word's
+    // block 12953, where who=1's walkers step short (`1/80` 37 against 52).
+    pin_eq!(w.firsts.len(), 640, "initial run635 baseline");
+}
+
 /// run634: the successor after the French siege cost, frame 12794
 /// (item 1460).
-pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn french_east_indies_12794_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[EAST_START],
         true,
         EAST_LONG,
         "run634",
         &[("gamelog-run634-islands-french-12794.txt", 12789)],
-        WIDENING_FRENCH_EAST_INDIES,
+        WIDENING_FRENCH_EAST_INDIES_12794,
         1,
         &[12795],
         true,
@@ -240,12 +270,13 @@ pub(crate) fn french_east_indies_word_window() -> Option<harness::tests::Widened
 #[test]
 fn run634_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = french_east_indies_word_window() else {
+    let Some(w) = french_east_indies_12794_window() else {
         return;
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 206, "initial run634 baseline");
+    // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+    pin_eq!(w.firsts.len(), 119, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -302,7 +333,8 @@ fn run629_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1457: 197 → 193; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 193 → 97; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 97, "initial run629 baseline");
+    // Item 1461: 97 → 90; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+    pin_eq!(w.firsts.len(), 90, "initial run629 baseline");
 }
 
 /// run630: the muster before the word 10802 (item 1457).
@@ -329,9 +361,10 @@ fn run630_s_muster_window_is_widened_whole() {
     pin_eq!(w.blocks, 37, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1458: 167 → 101; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
+    // Item 1461: 101 → 92; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
     pin_eq!(
         w.firsts.len(),
-        101,
+        92,
         "run630 after the members' come-out and the pushed slot's normalize"
     );
 }
@@ -1023,8 +1056,14 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         (
             EAST_START,
             EAST_LONG,
-            "gamelog-run634-islands-french-12794.txt",
+            "gamelog-run635-islands-french-12952.txt",
             WIDENING_FRENCH_EAST_INDIES,
+        ),
+        (
+            EAST_START,
+            EAST_LONG,
+            "gamelog-run634-islands-french-12794.txt",
+            WIDENING_FRENCH_EAST_INDIES_12794,
         ),
         (
             EAST_START,
@@ -1394,9 +1433,13 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             "gamelog-run631-islands-french-11582.txt",
             WIDENING_FRENCH_EAST_INDIES_11582,
         ),
-        // The open word's window, to the word's own block.
         (
             "gamelog-run634-islands-french-12794.txt",
+            WIDENING_FRENCH_EAST_INDIES_12794,
+        ),
+        // The open word's window, to the word's own block.
+        (
+            "gamelog-run635-islands-french-12952.txt",
             (WIDENING_FRENCH_EAST_INDIES.0, THIRD_PAIR_WORD_EAST_INDIES),
         ),
     ] {
