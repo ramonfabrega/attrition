@@ -1533,7 +1533,7 @@ landing either closes a row or narrows one. Nothing cites it by number, and
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
 | `find_nearby_spot`'s collision (§6.6 step 4) | re-slotting an invalid slot | it never asks the occupancy index (`docs/COLLISION.md`) |
 | `invalid_loc` on a slot, the `tregion` re-slot | §6.6 step 4 | same |
-| `QUEUE_FIRST`'s insert dance (§6.2, §10) | `set_up_insert` / `action_halt` / recurse / `finish_insert` | `charge`'s `QUEUE_FIRST` is a plain push-to-front on each member |
+| `QUEUE_FIRST`'s insert dance (§6.2, §10) | `set_up_insert` / `action_halt` / recurse / `finish_insert` | ~~`charge`'s `QUEUE_FIRST` is a plain push-to-front on each member~~ **Built** (§24; item 1528 reaches it: two charges on 15377, `docs/AI.md` §142.2) |
 | the scenario filter (§5) | `ignore_orders` | never set outside a scenario |
 | `unit_masks` `0x100` / `0x400` / `0x4000000` | three bits `action_halt` and §6.6 clear | unmodelled bits; no reader in the sim |
 | `is_entering_or_exiting` (§7), `OBJECT_NEW_THINK` (§8) | a halt skips a unit in a doorway; a stance write flags the unit for a re-think | two writes the third pass recorded and the sim does not model; no reader in the sim for either. `unit +0xab = width` **has left this row**: it is written now, and `get_form_mod_option` reads it (§6.4) |
@@ -3373,7 +3373,7 @@ capture on file:
 - the gather filter's `local_30`;
 - `is_busy`;
 - `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`;
-- `finish_insert`'s eighteen other cases.
+- `finish_insert`'s seventeen other cases (the guard arm, case `0xc`, is built: `docs/AI.md` §142.3).
 
 ### 24.5 What it moved
 

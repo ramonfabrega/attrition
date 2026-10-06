@@ -2696,7 +2696,8 @@ with its citations.
   unit and no plane. That includes figures, and it does not exempt
   citizens, which a move does (`docs/GROUPS.md` §6.6).
 - **Standing** (QUEUE_NEW): `get_loc_to` gives the leader's final point,
-  where it stands when it has no orders. Then `action_move_to(that,
+  where it stands when it has no orders (its `(ox, oy)` override is
+  measured from the leader's own position, `docs/AI.md` §142.4). Then `action_move_to(that,
   QUEUE_LAST, set_angle 0, angle 0, MOVE_TO, action 0, form −1, width −1,
   0)`, and `form −1` reads the byte just written through `get_form`. With
   a zero delta, the formation's bearing is the leader's heading less its
