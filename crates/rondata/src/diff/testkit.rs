@@ -1978,6 +1978,8 @@ pub(crate) const WIDENING_FRENCH_EAST_INDIES_15344: (i64, i64) = (15339, 15351);
 /// run655's blocks, the word 16857's until item 1500 moved it to 17171.
 pub(crate) const WIDENING_FRENCH_EAST_INDIES_16857: (i64, i64) = (16851, 16863);
 pub(crate) const WIDENING_FRENCH_EAST_INDIES: (i64, i64) = (17165, 17177);
+/// run658: the gap before 17171, blocks 17018..17057 (item 1502).
+pub(crate) const WIDENING_FRENCH_EAST_INDIES_GAP: (i64, i64) = (17018, 17057);
 pub(crate) const WIDENING_FRENCH_GREAT_LAKES: (i64, i64) = (2571, 2583);
 pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 

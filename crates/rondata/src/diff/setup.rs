@@ -1743,9 +1743,20 @@ impl Built {
                 self.build_ids(b)
             }
             Body::Gather(g) => self.build_ids(g.building),
+            // A building the link table does not hold is named by its own
+            // `(owner, index)`, as [`Self::unit_ids_dead_or_alive`] names a
+            // unit: on an attack order `None` scores as "attacking
+            // nothing", and Napata (`0/2000`, handle 0) read so on every
+            // attack of the French East Indies gap while the unit's combat
+            // target was that city (item 1502). `find_free` numbers a
+            // building as the original does, which `start_of_game`'s
+            // note checks for every pre-placed one.
             Body::Attack(_) => match self.sim.units[unit].combat.target? {
                 sim::combat::Obj::Unit(u) => self.unit_ids_dead_or_alive(u),
-                sim::combat::Obj::Building(b) => self.build_ids(b),
+                sim::combat::Obj::Building(b) => self.build_ids(b).or_else(|| {
+                    let x = self.sim.buildings.get(b)?;
+                    Some((i64::from(x.owner), i64::from(x.index)))
+                }),
             },
             // A `TradeOrder`'s `(o, who)` at `+0x8` name a **city**, not
             // an object of the unit lists this compares — and the dump

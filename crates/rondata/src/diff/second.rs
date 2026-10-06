@@ -2755,7 +2755,8 @@ mod tests {
         // Item 1457: 260 → 258; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 258 → 254; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 254 → 244; who=1's Tikal `MAKE[1]`/`[8]` 342150 → 684301 takes its `WONDER_VAL` 2, and the Pyramids and Colossus slots and their food and wealth `bucket` rows leave (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 193, "run594 record baseline");
+        // Item 1502: 193 → 165 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+        pin_eq!(w.firsts.len(), 165, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2844,7 +2845,8 @@ mod tests {
         // Item 1458: 255 → 244; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1461: 244 → 240; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         // Item 1481: 240 → 237; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 186, "run589 record baseline");
+        // Item 1502: 186 → 158 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+        pin_eq!(w.firsts.len(), 158, "run589 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -2934,7 +2936,8 @@ mod tests {
         // Item 1457: 225 → 223; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 223 → 212; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 212 → 209; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
-        pin_eq!(w.firsts.len(), 158, "run588 record baseline");
+        // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+        pin_eq!(w.firsts.len(), 134, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3071,7 +3074,8 @@ mod tests {
         }
         // Item 1457: 291 → 285; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 285 → 272; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 221, "every key parted on run585");
+        // Item 1502: 221 → 197 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+        pin_eq!(w.firsts.len(), 197, "every key parted on run585");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -3472,7 +3476,8 @@ mod tests {
         // 1073).
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4550, 61), (4585, 1), (4598, 1)],
+            // Item 1502: [(4550, 61), (4585, 1), (4598, 1)] → this, on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            [(4550, 58), (4601, 4), (4605, 3)],
             "the blocks keys first part on, the first three ((4550, 76) until \
              item 1061 compared the group record; 86, 18 and 1 on 4550, 4575 \
              and 4585 until item 1014, the scout's ten and eighteen)"
@@ -3775,7 +3780,8 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            [(4841, 72), (4997, 5), (5001, 2)],
+            // Item 1502: (4841, 72) → (4841, 59) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            [(4841, 59), (4997, 5), (5001, 2)],
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3814,7 +3820,8 @@ mod tests {
         // Item 1461: 91 → 86; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            79,
+            // Item 1502: 79 → 66 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            66,
             "every key parted on run373"
         );
     }
@@ -3903,11 +3910,13 @@ mod tests {
             );
         }
         // Their `order:target` parted on 5162 until item 1099; since, it
-        // first parts on 5195, the attack-move's standing family below.
+        // first parted on 5195, the attack-move's standing family below,
+        // until item 1502 named the city they take by `(owner, index)`: it
+        // agrees on every block now (`docs/AI.md` §131.4).
         for o in [24, 26] {
             pin_eq!(
                 first(1, o, "order:target").map(|(f, _)| f),
-                Some(5_195),
+                None,
                 "1/{o}'s target, on 5162 until item 1099"
             );
         }
@@ -3920,7 +3929,8 @@ mod tests {
         // families part in this window beneath it — `1/36`'s birth (`form`
         // on 5165, its order's `action` and `flags` on 5166), the
         // attack-move's `order:target` as each unit takes the city (the
-        // standing family run373 carries from 4841), and the AI scout
+        // standing family run373 carries from 4841; gone since item 1502,
+        // `docs/AI.md` §131.4), and the AI scout
         // `1/0`'s second figure, (3081, 20587) against (3065, 20580) on 5240.
         // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
@@ -3930,7 +3940,8 @@ mod tests {
         );
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5100, 57), (5147, 1), (5149, 1)],
+            // Item 1502: (5100, 57), (5149, 1) → (5100, 57), (5176, 2) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            [(5100, 57), (5147, 1), (5176, 2)],
             "the blocks keys first part on, the first three ((5100, 79) \
              until item 1330 took the births' `form`; (5100, 92), \
              (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
@@ -3944,7 +3955,8 @@ mod tests {
         // Item 1461: 90 → 84; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            77,
+            // Item 1502: 77 → 62 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            62,
             "every key parted on run396"
         );
     }
@@ -4016,7 +4028,8 @@ mod tests {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1330: 96 → 79, the births' `form` (`docs/GROUPS.md` §24.3).
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 71)],
+            // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 53)],
             "the blocks keys first part on, and how many"
         );
         pin!(
@@ -4028,7 +4041,8 @@ mod tests {
         // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3),
         // item 1248 the dead citizens' chains and the economy (108 → 96).
         // Item 1457: 80 → 78; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 71, "every key parted on run403");
+        // Item 1502: 71 → 53 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
+        pin_eq!(w.firsts.len(), 53, "every key parted on run403");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

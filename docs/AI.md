@@ -15163,3 +15163,161 @@ parting of 17171 is in the gap, and no dump shows it.
 - No blind reading. The arm is diff-backed by run600's draw on 16857 and
   run655's block 16858. The `+0xd8 <= 1` bound is diff-backed for one order
   only; the two-order converse rests on the listing.
+
+## 131. The gap before 17171 parts on frame 17025, in leader 0's dirty bit (2026-10-06, item 1502)
+
+Item 1500 left the word at **17171**, 11 draws against 10 at index 1. Ours
+spends `Unit::fight+0x824` and then `Guy::set_anim+0xf2f <
+Unit::set_anim+0x56` for `1/80`; theirs spends `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, seed `e9a5d9be`. run657's widening (17165..17177)
+stood 178 keys on its first block, and some of them had parted in the gap
+16869..17164, which no dump held. This item dates that gap. It names no
+mechanism and builds none; the word does not move.
+
+### 131.1 Ours, every tick of the gap
+
+`RON_DEBUG_GAP=<lo>-<hi>[:<who>/<o>,…]` (`diff::harness::debug_gap`) prints
+our side's watched values on every tick of a range, not only on a captured
+block. It prints each ledger's `gather_stamp` and `dirty`, the met and war
+matrices, each named unit's order stack, and every delivery of damage. Over
+16850..17166 it shows four things:
+
+- **Leader 0's ledger is never dirty.** `gather_stamp` stays 16744 until the
+  256 grid's 17152 (`economy::should_recompute`).
+- **The first strike of player 1 on player 0 is sim frame 17053:** `1/69` on
+  Napata (`0/2000`), damage 2. Napata is struck thirteen times through
+  17154, the last time by `1/83`.
+- **On 17136 the five units `1/69`, `1/78`, `1/80`, `1/83` and `1/90` take
+  `[AttackTo, Guard]`.** The guard's target is unit handle 244, the General
+  `1/79`.
+- **An attack is then pushed on top, and the walk is kept beneath it:**
+  `1/78` on 17142, `1/90` on 17145, `1/83` on 17152. That gives `[Attack,
+  AttackTo, Guard]`.
+
+Before 17136 the same push onto a bare `AttackTo` happens again and again
+from 16956. run658's window holds two of them, `1/90`'s on 17040 and
+`1/69`'s on 17052, and no order row parts on either.
+
+### 131.2 run658: the original's side, 17018..17057
+
+On the original's side, run657's first block already dated three things:
+`gather_stamp` 17032; leader 0's `attack_stamp[1]` and `raid_stamp[1]`, both
+17053; and Napata's `raid_stamp` 17154. The dirty bit's own frame and the
+treaty's had no record, so run658 (`docs/RUNS.md`) dumped blocks
+17018..17057. Its draws match run600 on all 17,063 frames.
+`run658_dates_the_gap_before_17171` widens it at **167 keys**, on the tree
+merged after items 1493 and 1496:
+
+- **166 stand on 17018.** These are run655's set, less item 1493's
+  zero-filled slots and item 1496's five `tech_frame` keys, plus two
+  changes in the gap:
+  - the group-move id of the move both sides issued on 16882. It decodes to
+    the same frame on both sides; the high part is the army slot here and
+    the pool slot there, the standing family `docs/ARMY.md` records (689);
+  - `1/-1 caras`, now 6 against our 5.
+- **`0/-1 leader:gather_stamp` on block 17033: ours 16744, theirs 17032.**
+- **`leader:treaties` on block 17054, ours 1 and theirs 3, on both leaders**,
+  and Napata's `city:raid_stamp`, ours 0 and theirs 17053.
+
+Nothing else parts on 17019..17057.
+
+**The first parting is frame 17025.** Leader 0's `leader_flags`, which no row
+compares, is 7 through block 17025. It reads 33554439 (`7 | 0x2000000`, the
+economy's dirty bit, `docs/ECONOMY.md`) on blocks 17026..17032, and 7 again on
+17033 beside the stamp 17032. That is the dirty grid's first point,
+`(0 + 17032) % 8 == 0`. The test pins the bit's blocks off the dump,
+`(17026, 17032, 7)`.
+
+**Who raised it is not on the dump.** Between blocks 17025 and 17026, the
+records of leader 0's own objects change only in four places:
+
+- the figure clocks;
+- building `0/2001`'s `recharging`, which advances every block;
+- unit `0/5`'s `avg_speed`, 6 → 4, decaying since it stopped walking on
+  block 17022;
+- the bit itself.
+
+The original raises the bit at 24 sites. `Unit::check_idle`'s
+fisherman-and-merchant latch, `Unit::work`, `do_gather`, `Group::action_alarm*`,
+`City::compute_trade` and `Build::activate` are among them; this crate has
+seven writers.
+
+**The treaty's second bit is the first strike's.**
+`Object::do_damage@0064a480:325-331` ors `2` into the victim's `aggression`
+and into the attacker's `treaties` slot for the victim's team, on every
+damage across owners. Its `:508-512` writes the victim's `raid_stamp` and
+`attack_stamp` for the attacker, once more than 300 frames have passed since the city was last
+struck.
+Both treaties read 1 on run655's last block, 16863, so 17053 is the first
+damage between the two players in the game. `Sim::treaties` carries bit 0
+only, the met bit (`lib.rs`), so the row stands from here on.
+
+### 131.3 The word's own chain is the third event, not the first
+
+`1/80`'s draw on 17171 is an attack pushed onto the guard's walk.
+run657 shows the same push for `1/69` inside its window. On block 17167 ours
+holds `[Attack(0/2000), AttackTo(6744,6888), Guard(1/79)]` with path length
+1, and the original holds `[Attack(0/2000), Guard(1/79)]` with path length 0.
+For `1/78`, `1/83` and `1/90` the original's side is only their stacks on
+17165. Their pushes on 17142, 17145 and 17152 are ours, and are not dated on
+the original's side.
+
+Neither the dirty bit nor the treaty bit is read by anything this crate models
+on the word's chain. The dirty bit moves leader 0's recompute from 17152 to
+17032, and no leader 0 row parts for it through 17057 or on 17165..17177.
+
+### 131.4 A reader gap the widening showed
+
+`1/69`, `1/71` and `1/83` stood on 17018 with `order:target`, ours `None`
+against `(0, 2000)`. Ours *does* attack Napata (`combat.target` is building
+handle 0), but `Built::build_ids` names only the buildings in the link
+table, and Napata, handle 0, is not in it. On an attack order `None` scores
+as "attacking nothing" (item 496). `target_ids` now names such a building by
+its own `(owner, index)`, as `unit_ids_dead_or_alive` names a unit. Only the
+attack arm changed. A `Build`, `Gather` or `Garrison` target still skips an
+unlinked building, because there `None` is silence and not a row.
+
+This is parked 681's fallback, which item 651 probed on chapter 6b's staged
+Airbases. Item 651 found then what this item finds now: the rows go, and
+nothing else moves. The fallback can only turn a `None` into a value, so a
+row it touches either agrees or stays a row. Every pin it moved fell.
+
+- **Third pair**, counted on the tree merged after 1493 and 1496 (whose
+  own re-pins are given first): run657 230 → **225**; run609's closing
+  residue 95 → **80**. All fifteen of run609's leaving rows are `1/9`..`1/23` on
+  `0/2000`, and none is added.
+- **Second pair:**
+  - each counted on the tree merged after 1496;
+  - run594 193 → 165, run589 186 → 158, run588 158 → 134, run585 221 → 197;
+  - run403 71 → 53, run396 77 → 62 (all fifteen of its leaving rows are the
+    attack-move's targets on the city, `1/24` and `1/26`'s 5195 among them),
+    run373 79 → 66;
+  - run356's first three blocks.
+- **Golden:** the `order:target` rows under chapters 6b, 21, 41, 42, 44,
+  47, 48, 50 and 51.
+
+### 131.5 What this has *not* established
+
+- **What raised leader 0's dirty bit on 17025.** No dumped field of a
+  player-0 object names it. A probe of the 24 writers on 17025 would.
+- **When the original dropped `1/78`, `1/83` and `1/90`'s guard walk.**
+  The analogy with `1/69` on 17167 says at their pushes. Only their 17165
+  stacks are on disk.
+- **Why the original drops the walk under the attack** when the walk is a
+  guard's, and keeps it when the walk is the bottom order. That is the
+  word's mechanism, and this item does not read it.
+
+### 131.6 Coverage
+
+Diff-backed:
+
+- the dirty bit's blocks and the stamp on 17033 (run658, both pinned);
+- the treaty and Napata's stamp on 17054 (run658);
+- `1/69`'s stacks on 17167 (run657);
+- the target fallback: run609's and run396's fifteen leaving rows each, the
+  second pair's and the golden chapters' moved pins.
+
+Ours' side of the gap is `RON_DEBUG_GAP`'s print, recorded in the journal.
+
+Listing-free: `Object::do_damage`'s writes are read off the export, not the
+listing.

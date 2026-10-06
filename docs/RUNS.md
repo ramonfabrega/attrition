@@ -14939,3 +14939,29 @@ SHA-256 `24d9deb01c629a6a9b65972e505488bcf05a2ee692fe483471c3a9ec54871509`.
 standing on block 17165, and the first rows after it on 17167 (`1/69`'s front order). It is the
 first French East Indies window with rounds in flight: four, and `1/90`'s launch geometry parts
 (`third_pair_windows_check_groups_and_projectiles_on_both_sides`). Run 657 only.
+
+## run658 — French East Indies, the gap before 17171: blocks 17018..17057, with the leader probe (2026-10-06, item 1502)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1502-opus/run658-booking.json`,
+written before the run. run655 ends 16868 and run657 starts 17165; run600 is a draw stream and
+checksums only. Its draws agree with ours through 17170, so no record on disk showed three things:
+the frame leader 0's dirty bit (`leader_flags` `0x2000000`) rose, behind run657's `gather_stamp`
+17032; the object whose change raised it; and whether `treaties` bit 2 rose on the first strike,
+17053, or earlier. Window **[17018,17058)**, end 17062, call window 17016..17058,
+`RON_LEADER_PROBE`, `--ffwd-minute 10`, `cover=0`, `--timeout 1800`, run657's four `--detail`
+sections, through the click-free lane (`free` at launch; no other lane's capture waited on).
+Receipt success; process and wait exits **0**; five settings files restored; 40 group blocks
+17018..17057; seed 12345 read back. Launch-to-exit 853.900 s, total 866.897 s. Game-RNG draws
+match run600 on all 17,063 shared frames (`rngcmp.py`).
+
+Archive `gamelog-run658-islands-french-17025.txt`, 127,103,356 bytes,
+SHA-256 `b4cb729e7991b2ebdcc6cb321d2634a8842d1802e343f85253bb04b0247e29aa`.
+
+Archive `rontrace-run658.log`, 98,661,856 bytes,
+SHA-256 `475158a99c800c7fd0d0adb2a9bc2013509b7e2237c2875970369146c1f79278`.
+
+**What it holds**: `run658_dates_the_gap_before_17171` (`diff::third_pair`). Leader 0's
+`leader_flags` is 7 through block 17025 and 33554439 (`7 | 0x2000000`) on blocks 17026..17032.
+It is 7 again on 17033, where `gather_stamp` reads 17032. `treaties` reads 1 against 3 from block
+17054, on both leaders, beside leader 0's `attack_stamp[1]` and `raid_stamp[1]` 17053.
+`docs/AI.md` §131. Run 658 only.
