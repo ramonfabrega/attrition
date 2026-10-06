@@ -387,6 +387,90 @@ impl Sim {
         )
     }
 
+    /// **4.2** (`006e1730`–`006e195f`): the leader's oil patches, last to
+    /// first. Answers `(best, best_sp, candidate)`; `best` is the score of
+    /// the pick and 0 when no patch qualified.
+    ///
+    /// Per patch: skip a dead one; a **land** patch the leader does not own
+    /// is *removed from the list* and skipped (`SimpleArray<int>::remove`,
+    /// by value, shifting the tail down), an **ocean** patch is skipped, and
+    /// not removed, unless the leader has a transport level
+    /// (`leader_flags & 0x700`). The centre tile `(4x + 2, 4y + 2)` must
+    /// hold no building footprint (`mask & 3 != 3`) and bit 7 clear. With
+    /// the cell's own flag `2` clear and no enemy object within `0x600` of
+    /// the cell's centre, the score is `2 · width − vector_dist(patch −
+    /// anchor)` in cells, kept when it is `>= best`; the candidate is the
+    /// cell's corner plus the well's half footprint, `x · 0x300 +
+    /// x_size · 0x60`. With the flag set, no enemy within `0xf00` clears it.
+    fn pick_oil_patch(
+        &mut self,
+        who: Player,
+        anchor: Cell,
+        bt: &crate::build::BuildType,
+    ) -> (i32, i32, Option<Pos>) {
+        let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
+        let transport = self.transport_level(who) as i32 != 0;
+        let mut i = self.ai[who as usize].oil_patches.len();
+        while i > 0 {
+            i -= 1;
+            let gi = self.ai[who as usize].oil_patches[i];
+            let g = self.world.goods()[gi];
+            if !g.alive {
+                continue;
+            }
+            let c = g.pos.cell();
+            if self.world.is_ocean(c) {
+                if !transport {
+                    continue;
+                }
+            } else if self.world.owner(c).player() != Some(who) {
+                self.ai[who as usize].oil_patches.remove(i);
+                continue;
+            }
+            let mask = self
+                .world
+                .tile_mask(Pos::new(c.x * TILES_PER_CELL + 2, c.y * TILES_PER_CELL + 2));
+            if mask & 3 == 3 || mask >> 7 & 1 != 0 {
+                continue;
+            }
+            let mut d = self.world.cell_data(c);
+            let centre = Pos::new(c.x * UNITS_PER_CELL + 0x180, c.y * UNITS_PER_CELL + 0x180);
+            if d.flags & 2 == 0 {
+                if self.enemy_object_within(who, centre, 0x600) {
+                    continue;
+                }
+                let score = self.world.width() * 2 - vector_dist(c.x - anchor.x, c.y - anchor.y);
+                if score >= best {
+                    best = score;
+                    best_sp = bt.x_size;
+                    best_cand = Some(Pos::new(
+                        c.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2),
+                        c.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2),
+                    ));
+                }
+            } else if !self.enemy_object_within(who, centre, 0xf00) {
+                d.flags &= !2;
+                self.world.set_cell_data(c, d);
+            }
+        }
+        (best, best_sp, best_cand)
+    }
+
+    /// `ObjectsData::find(point, SEARCH_ENEMY, who, range, FILTER_ALL)`
+    /// answering "any" — a live unit or building of a leader `who` is at
+    /// war with, within `range` of `at` by `vector_dist`. The original walks
+    /// the cell chains of the `circle_radius[(range + 0x2ff) / 0x300]`
+    /// ring; this walks every object, which differs only for one past that
+    /// ring and still inside `range` (a ring corner), and no capture has one.
+    pub(crate) fn enemy_object_within(&self, who: Player, at: Pos, range: i32) -> bool {
+        let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= range;
+        self.units.iter().any(|u| {
+            u.alive() && u.on_map && !u.is_gaia() && self.is_enemy(who, u.owner) && near(u.pos)
+        }) || self.buildings.iter().any(|b| {
+            b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos)
+        })
+    }
+
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
     /// placed (the original's 0). `near` is the reference building — a city
     /// centre for `place_building_with_cost`, any building for the orphan
@@ -431,11 +515,15 @@ impl Sim {
         }
         let scored_by_gather =
             gather && !matches!(ident, Ident::Farm | Ident::University | Ident::Mine);
-        // 4.2 Oil wells walk the leader's oil patches, which the simulation
-        // does not carry.
-        if ident == Ident::OilWell {
-            return false;
-        }
+        // 4.2 Oil wells walk the leader's oil patches, last to first, and
+        // skip 4.3's spiral altogether. The arm's pick joins the spiral's
+        // at its common tail (`006e25d9`): a `best` of 0 fails there too.
+        let oil = ident == Ident::OilWell;
+        let (oil_best, oil_sp, oil_cand) = if oil {
+            self.pick_oil_patch(who, anchor, &bt)
+        } else {
+            (0, 0, None)
+        };
 
         // 4.3 The spiral.
         let (w, h, max) = if !is_dock {
@@ -451,16 +539,16 @@ impl Sim {
             (4, 4, 8)
         };
         let end = circle.radius[rings.min(0x40)];
-        if start >= end {
+        if !oil && start >= end {
             return false;
         }
         let (xs, ys) = (self.world.width(), self.world.height());
         let big = bt.x_size.max(bt.y_size);
         let unlimited = self.lobby.resources_unlimited();
         let mut step = 1;
-        let mut best = 0i32;
-        let mut best_sp = 0;
-        let mut best_cand: Option<Pos> = None;
+        let mut best = oil_best;
+        let mut best_sp = oil_sp;
+        let mut best_cand: Option<Pos> = oil_cand;
         // **The index steps at the *bottom* of the iteration**, by the
         // stride as it stands *then* — `local_2c = local_2c + iVar13` at
         // `006e25bb`, after the body that may have set `iVar13` to 3. An
@@ -470,7 +558,7 @@ impl Sim {
         // (`docs/AI.md` §20). The body is a labelled block so that every
         // arm that used to `continue` still reaches the step.
         let mut idx = start;
-        while idx < end {
+        while !oil && idx < end {
             'cand: {
                 let cell = Cell::new(anchor.x + circle.x[idx], anchor.y + circle.y[idx]);
                 if !(0..xs).contains(&cell.x)
@@ -705,6 +793,20 @@ impl Sim {
         }
         let Some(mut cand) = best_cand else {
             return false;
+        };
+        // **A well whose best patch is on the sea becomes a platform**
+        // (`006e18f8`–`006e195f`): `best > 0` and the candidate's cell is
+        // `WorldData::is_ocean`. The tail below then reads the platform's
+        // own record (`ecx = [ebp+8]` at `006e25d9`).
+        let (rec, bt, ident) = if oil && best > 0 && self.world.is_ocean(cand.cell()) {
+            let platform = self
+                .build_types
+                .iter()
+                .position(|b| b.ident == Ident::OilPlatform)
+                .unwrap_or(rec);
+            (platform, self.build_types[platform].clone(), Ident::OilPlatform)
+        } else {
+            (rec, bt, ident)
         };
 
         // 4.5 The corner tile, the builder, the jitter.
