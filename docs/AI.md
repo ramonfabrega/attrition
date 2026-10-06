@@ -16341,7 +16341,7 @@ Each by `tools/mutate.py`, scored by exit code and the failed tests' names (`mut
 
 - **That no hit before 15377 reached the tail's later arms.** The earlier 135-point Cannon hits left `0/2000` at 1080 on both sides (`damage` agrees
   on every block), so 15377 is the tail's first run in both.
-- **`local_70`'s `fresh`** is read from `hits_now() > damage` before the blow; the original reads `vf 0x11c(0)` (`WallData::hits`/`BuildData::hits` —
+- **`local_70`'s `fresh`** is read from `hits_now() > damage` before the blow; the original reads the object's hits slot at argument 0 (`WallData::hits`/`BuildData::hits` —
   the latter adds the queue's training-time adjustment for two types, not modelled) against `+0x24`.
 - **A building shooter.** The tail reads `this->o`/`who` as the captor for `check_capture`; for a building attacker (a tower, a fort) the original's
   call reads a unit's fields at a building's index. This crate takes `check_capture` as false for a building and goes on to stamp.
