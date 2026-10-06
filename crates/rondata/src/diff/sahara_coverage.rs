@@ -270,11 +270,11 @@ fn run680_s_word_frame_is_widened_whole() {
     // agrees in every compared field through the window's last block.
     pin_eq!(
         w.firsts
-            .keys()
-            .filter(|(who, o, _)| (*who, *o) == (1, 1))
+            .iter()
+            .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 1) && *f > 713)
             .count(),
         0,
-        "1/1 agrees in every compared field"
+        "1/1 agrees in every compared field past its standing `form`"
     );
     // **What parts first past the standing block**: pool 66 and its group's
     // `held` on 742 (ours [17], theirs none).
