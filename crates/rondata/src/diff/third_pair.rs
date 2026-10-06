@@ -245,7 +245,13 @@ fn run636_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
-    pin_eq!(w.firsts.len(), 0, "initial run636 baseline");
+    // Item 1470: 210 — 139 standing on the first block, 14085 (run635's
+    // 118 less `1/112`'s `form`, `group:73.role` and `known_rares`, with
+    // who=1's timber, `caras`, `discovered` and five `constr_time`s among
+    // the arrivals); nothing on 14086; on block 14087 thirteen of who=1's
+    // buildings' `regen_roads` 0 against 1, beside `1/49`'s order kind 6
+    // against 7. The word's block is 14091.
+    pin_eq!(w.firsts.len(), 210, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -275,7 +281,11 @@ fn run635_s_word_frame_is_widened_whole() {
     // Item 1461: 640 — run634's 118 standing rows on the first block, 12947
     // (`1/112`'s `form` for `1/109`'s), and nothing new before the word's
     // block 12953, where who=1's walkers step short (`1/80` 37 against 52).
-    pin_eq!(w.firsts.len(), 640, "initial run635 baseline");
+    // Item 1470: 640 → 119, the word's frame now 14090 (a French General
+    // recovers craft at `r = 4`, AI §119): the 118 standing rows on 12947,
+    // and who=1's `leader:discovered` 33 against 34 on the last block,
+    // 12959, which stood in the 640 too. Nothing parts on 12948..12958.
+    pin_eq!(w.firsts.len(), 119, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -1484,9 +1494,21 @@ fn east_indies_wonder_start_is_first_contact_on_every_building() {
             continue;
         };
         eprintln!("{capture}: ever_seen rows {rows:?}");
+        // Item 1470: on run636, who=1's five newest buildings stand at
+        // `constr_time` 100000 here against 90000 there from 14085, so
+        // `1/2047` completes on 14087 there and not here: its
+        // `ever_seen_completed` 0 against 2 is the parted completion, the
+        // open word's row (`docs/AI.md` §119), not the byte's mechanism.
+        let want: std::collections::BTreeSet<_> =
+            if capture == "gamelog-run636-islands-french-14090.txt" {
+                (14087..=THIRD_PAIR_WORD_EAST_INDIES)
+                    .map(|f| (f, 1, 2047, "ever_seen_completed", 0, 2))
+                    .collect()
+            } else {
+                std::collections::BTreeSet::new()
+            };
         assert_eq!(
-            rows,
-            std::collections::BTreeSet::new(),
+            rows, want,
             "{capture}: every building's ever_seen bytes agree, both directions"
         );
     }

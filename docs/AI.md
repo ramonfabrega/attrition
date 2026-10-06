@@ -14087,7 +14087,18 @@ is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
 [`Sim::craft_rate`] and [`Sim::unit_mana`] (`crates/sim/src/cast.rs`).
 
 **What moved.** French East Indies **12952 → 14090**. Ours holds 102 on
-11376 and 1000 on 12953, the original's own values.
+11376 and 1000 on 12953, the original's own values. run635's widening
+falls 640 → 119: its 118 standing rows on 12947, and who=1's
+`leader:discovered` 33 against 34 on its last block, 12959, which stood
+in the 640 too. Nothing parts on 12948..12958. The full suites moved no
+other pin and no floor.
+
+**The new word** is 14090: 490 draws against 1298 at index 483, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
+`PathFinder::calc_road_cost+0x46`. Its widening is run636 (210 keys): 139
+standing on 14085, none on 14086, and on block 14087 thirteen of who=1's
+buildings carry `regen_roads` 0 here and 1 there, beside `1/49`'s order
+kind 6 against 7.
 
 **What is not established.** The supply wagon's gate before the arm
 (`is_supply` and `is_gov_hero`) and `unit_masks`' `0x2000` are still

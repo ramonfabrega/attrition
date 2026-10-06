@@ -764,8 +764,12 @@ impl Sim {
     /// `((frame & 1) + r) / 2`, while `unit_masks & 0x2a000` is clear —
     /// [`Self::craft_rate`] is `r` (`docs/AI.md` §119).
     ///
-    /// SEAM: the supply wagon's gate, and the two other bits of the mask
-    /// (`0x2000`, `0x8000`), none of which a capture holds.
+    /// `0x20000` is [`crate::Unit::casting`] and `0x8000`, Forced March,
+    /// is `marching`: run630 holds the original's `1/79` at 1000 from its
+    /// march on 10777 through run629's 10815, and ours resumes on 10928.
+    ///
+    /// SEAM: the supply wagon's gate, and the mask's `0x2000`, which no
+    /// capture holds.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
         if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
             self.burn_fuel(u);
