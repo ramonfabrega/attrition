@@ -13,22 +13,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-05, **the twenty-fourth pass** (DECISIONS 61,
-`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and nine
+`docs/audit/2026-10-05-fable-pass-24.md`), after a steer with Ramon, and ten
 landings since. French East Indies **15344** of 17,379 (was 12794);
 Toughest **12744**, floor 12744 (was 11985); fifty-one chapters closed.*
 
 - **Landed**: 1461, 1470, 1476, 1479, 1481 (Opus, newest pair, now 1487); 1429, 1472
-  (Sonnet, third map, now 1477); 1423, 1468 (Sonnet, rules). Lanes:
+  (Sonnet, third map, now 1477); 1423, 1468, 1465 (Sonnet, rules;
+  the battery reads 576 / 6566 / 2974, a measure). Lanes:
   the newest pair's on Opus 5.5, the others on Sonnet 5.5, `--effort
   high` each; entry 58's two kill rules ride with each Sonnet lane.
 - **You are `commander`**, spawned by the pass: wait on
   `tools/lanewait.py`, and at twenty landings, lanes drained and gate
   green, spawn `steer` (`CLAUDE.md`, "spawn each other").
-- **The rules lane is the coverage lane**: 1465, 1466.
+- **The rules lane is the coverage lane**: 1466.
 - **Ratified** (parked 1447, closed): nine blind readings on Opus;
   every captured predicate agrees; 42 code-changing rows are 1468.
 - **The user's**: the Sonnet lanes at the next steer; 1464's model; 1139.
-- **Fable backlog: 17 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488).
+- **Fable backlog: 19 Loop items** (1119, 1138, 1139, 1225, 1316, 1421, 1450, 1462, 1464, 1467, 1469, 1471, 1475, 1478, 1482, 1485, 1488, 1490, 1491).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -66,15 +67,6 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     against −1), then 1/2000 against 1/2023 queued and escrow food and
     wealth 67 against 0 on 12583. The 134 standing keys are parked
     1430. No mechanism is named.
-
-1465. **The held-out battery** (DECISIONS 61 §6): three lobbies no
-    scored word shares a nation, map and difficulty with. The first
-    step names them, with the census rows each should enter, and greps
-    the run ledger under `tools/gamelog/` for what the disk already
-    holds of each; each run is booked there, by its map and window
-    (the guard on such a booking reads this item then). Then the
-    frame each first parts on, pinned as a *measure* — read at every
-    pass, never a floor, never debugged against.
 
 1466. **The coverage pair** (DECISIONS 61 §6): the next pair is chosen
     by `tools/census.py --never`, not by adjacency. First whether the

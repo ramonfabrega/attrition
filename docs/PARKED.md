@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1465, 2026-10-06 — the held-out battery
+
+(1489) **The battery's three first partings — held out, never booked**
+(DECISIONS 61 §6): East Indies Germans/3 at 576 (ours 52 draws, theirs
+36), Great Lakes Russians/2 at 6566 (sequence 6563; 11 each, a
+`Guy::move` `set_anim` against `Unit::move_step`), Great Sahara
+Egyptians/4 at 2974 (ours 9, theirs 12). Measured at every pass by
+`diff::battery::battery_measure`; no item debugs against them.
+
 ## Parked by item 1468, 2026-10-06 — the twenty-fourth pass's verdicts
 
 (1483) **Group 15 row 9, an equal push onto an army's `last_group`
@@ -3704,6 +3713,17 @@ for 1,800 frames. And 1481's: stubs written "reads 1" or
 (1488) **`ron_lane_state` exits 0 when the lane is held** (1481's Loop
 line, 2026-10-06): `ron_lane_state && launch` launches anyway; the
 flock refused the second launch, so nothing collided.
+
+(1490) **The census cannot see what a click-free run entered** (1465's
+Loop line, 2026-10-06): its entered set reads `cover=1` traces and the
+click-free lane runs `cover=0` only, so the battery's census rows are
+predictions; a coverage battery would need the queue lane and a person.
+
+(1491) **Two lanes appending to `docs/AI.md` conflict at every merge**
+(the commander, 2026-10-06): 1472 against 1470, and 1465 against 1481,
+each a new section at the file's end; each cost a backed-out merge, an
+update and a second lane gate. A section reserved by number could be
+written at its place by a stub the commander lands at the spawn.
 
 (1485) **Three tool gaps from 1468** (its journal's Loop lines,
 2026-10-06): `tools/mutate.py` has no table mode — 33 mutations took a
