@@ -14578,6 +14578,7 @@ git at `~/ron-data/lab-captures/2026-10-05-run640/map-7`.
 the first, and on the word's block 12817 the formation of army 65 (`curr`,
 `off`, 27 slots) and `1/141`'s `g.end_time[2]` (31 against 23); the compared
 pin's window on block 12817. Take 2 only; take 1 has no test of its own.
+
 ## run639 — French East Indies, the word 14782's widening, with the leader probe (2026-10-05, item 1476)
 
 **Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-05-item-1476-opus/run639-booking.json`,
