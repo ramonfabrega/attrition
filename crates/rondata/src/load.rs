@@ -1627,6 +1627,19 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `EXPLORE_MAP_BONUS` is the seventh (`0x2b2`) and `REVEAL_ENEMY_BONUS`
+    // the ninth (`0x2b4`): the two prerequisites `gain_tech` turns into
+    // `leader_flags & 0x1000` and `& 0x800`, the bits `WorldData::was_seen`
+    // answers "seen" for outright (`docs/AI.md` §141). Electronics and
+    // `disable` in the shipped file.
+    tree.roles.explore_map_preq = match bonus_preqs.get(6) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
+    tree.roles.reveal_enemy_preq = match bonus_preqs.get(8) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `FISHERMEN1..3` are bonuses 19–21 (`0x2bf`–`0x2c1`) and
     // `MERCHANTS_1..4` are 99–102 (`0x30f`–`0x312`) — the two upgrade
     // ladders `LeaderData::calc_rare` indexes its percentages with

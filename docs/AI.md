@@ -16175,10 +16175,63 @@ Four single-key `dest_angle` partings stand outside it (`1/149` on 15266, `1/129
 is empty, 15378 carries 887 keys), the floor (`run470_is_great_sahara_at_toughest_and_its_word_holds`, 15275 → 15378). The loop bound rests on the decompile and the
 dump's `guy_mark 1`; the listing was not read.
 
-## 141. Reserved for item 1511 (the coverage pair's frame 177)
+## 141. All Technologies sees every cell: `was_seen`'s leader arm, and the word at 185 (2026-10-06, item 1511)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1505 left the coverage pair's word at **frame 177, 9 draws ours against 8, index 2**:
+ours `Leader::make_stuff+0x221` three times (`make_me` filled Village slots 0, 1 and 9 from two offered sites), theirs twice
+(one site). The state behind it was leader 1's `SITE` list, standing since block 1 (parked 1506). Each claim is *diff-backed* unless marked.
+
+1. **The site lists part on frame 0, in the sampler, not in its order.** `compute_sites` runs from `plan_strategy`'s tail on frames 0
+   and 175 on both sides (the trace's callers), with `site_mark` 0 then 4 on both (the `LEADERS=9` dumps), over a row-major region list
+   (`docs/SCOUT.md` §11): the same origins. A print of ours' sampler on block 1 named the two extra results: origins (39,47) and (41,48)
+   slide to **(40,47)** (32933, and 197600 skipped as a duplicate) where the original keeps nothing there, and (43,53) slides to
+   (44,51) at **2499 against 2000**. Ours counted **3 water cells** in (43,53)'s 5×5 and theirs, by the arithmetic, **4**: water 4 gives
+   2000 exactly (`420 × 250 / 5 = 21000 → … × 8 / 28`). The one cell ours left out is **(41,55)**, unowned sandy shallows whose `seen2`
+   at `(2x + 1, 2y + 1)` is 0 in run651's fog grid (GAME and FRAME 1 blocks identical) — the original saw a cell its own fog says it
+   never saw.
+2. **`WorldData::was_seen@006b53f0` has a leader arm ahead of the territory shortcut and the fog** — "seen" outright when
+   `leader_flags & 0x1000`, `& 0x800`, or `num_units[0x141]` — which `ai_sites.rs` had named and not modelled ("no flags, no `0x141` in
+   any run"). The bits are `Leader::gain_tech@006dcb60`'s: **`0x1000` when the tech gained is `EXPLORE_MAP_BONUS`'s `preq0`** (the
+   seventh `TECHBONUSES` row, `TypeIndex` 690: **Electronics** in the shipped `rules.xml`); **`0x800` when it is `REVEAL_ENEMY_BONUS`'s**
+   (the ninth, 692: `disable`) **or while the Space Program stands** (`has_wonder(0x21e)`); `Leader::fix_tech_flags@006d2480` re-derives both
+   from `has_tech` after a loss. An All Technologies start owns Electronics on frame 0, so **its leaders see every cell**. With the arm,
+   run651's block-1 `SITE` list agrees whole (the blank slots' `reg`, 65 against 0, is the control's and every lobby's).
+   `Sim::sees_every_cell`; `Roles::explore_map_preq`, `reveal_enemy_preq`; `wonder::SPACE_PROGRAM`.
+3. **`num_units[0x141]` is a Fouché, not a transport galleon.** `num_units` (`LeaderData +0x5762`, `ushort[352]`) starts at
+   `BASE_UNITTYPES` (50): `Leader::unit_prod_value@006cc580` walks it beside the unit-type list from byte offset `200 = 0x32 × 4`.
+   So slot `0x141` is `TypeIndex` 371, **`FOUCHE`**. Built first as `TRANSPORTGALLEON` (321, the bare index), **the floors killed it**:
+   run346's East Indies word fell to 16085 and run600's French East Indies word fell, both where a galleon stands. `docs/DANGER.md`'s
+   "owning a `TRANSPORTGALLEON`" is the same misreading for `is_seen`'s arm (struck there, pointed here); `docs/VISION.md` §9.4 writes
+   the slot and not a name.
+
+**The value diff, and the word now.** run651 block 1: **87 keys parted → 66** (the `SITE` list's 21 gone); run656 89 → 68; run660 132
+→ 97 (the `SITE` ranks from 176 and frame 177's third Village slot gone). `coverage_pair_first_parting`: **frame 177 → 185 (the draw
+sequence; the count parts on 377)** — 22 draws a side, index 8: ours `Leader::produce_building+0x1805 < make_this+0x328 <
+make_stuff+0x45a`, theirs `Leader::make_stuff+0x63d` (the slot loop's expiry). Every other capture is unmoved: `cargo test --release -p
+rondata` failed only the four coverage-pair pins (748 passed), all re-pinned.
+
+**Its widening is run669** (blocks 180..436, the word's block 186 with six before and 250 after; `rngcmp.py` against run652: 446 frames,
+0 differing): `diff::coverage_pair::run669_s_word_frame_is_widened_whole`, **192 keys**, 71 standing on block 180 (the control's: leader
+0's census, the blank `SITE` slots' `reg`, the pools). **The state parts first on block 183** (frame 182), two frames before the draw:
+building **`1/2021`, a Missile Silo** (`orig_type` 520), stands at **(36480, 41088) in ours against (41088, 37248) in theirs**, with
+`1/2002`'s `gather_down` 14 against −1, `1/14`'s order (kind 7 against 3, its position (40536,40536) against (40554,40519)) and
+`1/2000`'s `free` 253 against 254 beside it. On the word's block 186: `MAKE[2].t` −1 against 429 (`AUTOPLANT`), `MAKE[3].t` 421
+(`OILWELL`) against −1, and `1/2`, `1/4`, `1/8`'s order lengths. §129 left the Missile Silo's own offer *not established*; that is
+where the next item stands. No mechanism is named.
+
+**The scored tables** (parked 1513, 621): the pair has an `AI_WORDS` row (`Coverage pair`, `EastIndiesPersianAllTech`, window
+`coverage_pair_word_window` — run669 — walked by the compared pin), `NEWEST_PAIR` is `Coverage pair`, a `WIDENINGS` row names run669's
+test, and the coverage driver walks run656's, run660's and run669's word blocks (`UNREAD` gains `Persepolis`, a city name line).
+
+**What the walks hold** (`tools/mutate.py`, on the committed tree): the Electronics arm off — held by `coverage_pair_first_parting` and
+all four coverage widenings; the slot read as `TRANSPORTGALLEON` — held by `run346_is_east_indies_at_toughest_and_its_word_holds` and
+`run600_french_east_indies_word`. **Held by no walk, so a finding**: the Space Program arm (no capture stands one); the Fouché arm (no
+capture holds a Fouché; `electronics_or_a_fouche_sees_every_cell` holds it and the Electronics arm).
+
+**What is not established.** That `0x800`'s Space Program half is read live rather than sticky: the original raises it at a tech gain
+while the wonder stands and keeps it after the wonder falls, until `fix_tech_flags`; ours reads the wonder now. `is_seen`'s own leader
+arms (`0x800`, Fouché, `0x2000`'s owned ground; `docs/VISION.md` §9.4) are not built here; `was_seen` is. Whether any other reader of
+`was_seen` on this lobby (the goody search, the roads) parts: none does on any block run669 holds.
 
 ## 142. Reserved for item 1528 (Toughest frame 15378)
 

@@ -211,24 +211,13 @@ mod tests {
     /// parked 1498): the French pair closed at 17,379 on item 1519, and
     /// the coverage pair is the successor — one game, East Indies with
     /// the Persians at All Technologies — so the handoff carries its word
-    /// on a `Coverage pair:` line of the same shape. Until its `AI_WORDS`
-    /// row lands with the window its word owes (item 1511), the line is
-    /// read against the pair's own pins, the first parting of the draw
-    /// count and sequence. Made to fail first on the line with its word
-    /// moved by one.
+    /// on a `Coverage pair:` line of the same shape. Made to fail first on
+    /// the line with its word moved by one. **Read against `AI_WORDS` since
+    /// item 1511**, which gave the pair its row and window; before it, the
+    /// pair's own pins.
     #[test]
     fn the_handoff_s_coverage_pair_is_the_pinned_word() {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
-        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-        let line = q
-            .lines()
-            .find(|l| l.starts_with("Coverage pair:"))
-            .expect("docs/QUEUE.md has no `Coverage pair:` line in the handoff");
-        let c = &crate::diff::coverage_pair::COVERAGE;
-        let rows = [(c.name, c.count.min(c.sequence), c.length)];
-        if let Err(e) = ai_line_verdict(line, "Coverage pair", &rows) {
-            panic!("{e}");
-        }
+        the_handoff_carries("Coverage pair");
     }
 
     /// **The third map's line is its pinned word** (parked 1080, the

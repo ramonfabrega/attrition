@@ -332,6 +332,19 @@ pub struct Roles {
     /// (`docs/PRODUCTION.md`, "The missile's other arms"). `None` leaves
     /// the bonus unheld: a tree that does not know the shield raises none.
     pub missile_defense_preq: Option<TypeId>,
+    /// `EXPLORE_MAP_BONUS`'s one prerequisite, the seventh of `rules.xml`'s
+    /// `TECHBONUSES` (`0x2b2`) and **Electronics** in the shipped file.
+    /// `Leader::gain_tech@006dcb60` sets `leader_flags |= 0x1000` when the
+    /// tech it gains is this one (and `fix_tech_flags@006d2480` from
+    /// `has_tech` of it), and `WorldData::was_seen@006b53f0` answers every
+    /// cell seen for a leader holding the bit (`docs/AI.md` §141). `None`
+    /// leaves the bonus unheld.
+    pub explore_map_preq: Option<TypeId>,
+    /// `REVEAL_ENEMY_BONUS`'s one prerequisite, the ninth (`0x2b4`) — the
+    /// other half of `leader_flags & 0x800` beside the Space Program.
+    /// **`disable`** in the shipped file, so `None` there: only the wonder
+    /// raises the bit.
+    pub reveal_enemy_preq: Option<TypeId>,
     /// `LeaderData::get_gov@006d6a20`'s six tests, in its own order —
     /// `SOCIALISM_1`, `CAPITALISM_1`, `MONARCHY_1`, `DEMOCRACY_1`,
     /// `DESPOTISM_1`, `REPUBLIC_1` — each the bonus's three prerequisites
@@ -496,6 +509,9 @@ pub mod wonder {
     pub const KREMLIN: usize = 0x21a - BASE;
     pub const TAJ_MAHAL: usize = 0x21b - BASE;
     pub const EIFFEL_TOWER: usize = 0x21c - BASE;
+    /// `SPACEPROGRAM`: `gain_tech` and `fix_tech_flags` raise `leader_flags
+    /// & 0x800` while it is held (`has_wonder(0x21e)`).
+    pub const SPACE_PROGRAM: usize = 0x21e - BASE;
 }
 
 /// What gates a free-tech rule.
