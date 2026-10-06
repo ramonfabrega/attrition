@@ -1958,6 +1958,35 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
 /// Count first parts at 12569. No mechanism is booked for the new word.
 ///
+/// **12744 since item 1472** (`docs/AI.md` §120): `Unit::set_type`'s crew
+/// loop clears the old block. The measured word on the base was 12575
+/// (item 1461's `get_speed` had moved 12569 → 12575; 13 draws ours against
+/// 11, index 4: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs a
+/// third `… < Unit::do_guard+0x7f4`), and its first parted field was `1/109`'s
+/// `half_step` on block 12542 (`unit_masks` 262155 → 1310731 in the
+/// original, collider-less). run637 (`RON_COLLIDE_PROBE`, callwin
+/// 12540..12543) printed the sweep of 12541: the original's `collide_here`
+/// hit (609, 414), will_be_corner 7, `is_here(1/101) = 1` — a soft
+/// group-mate; this crate's hit (611, 414), no unit there. The live block
+/// (38, 25) had nine more bits here than there, (611..617, 414), (611, 415)
+/// and (617, 415): the rim of a size-3 block that `1/84`, a Trebuchet
+/// (`TypeIndex` 266, trackless crew), left behind on 11833 when it became a
+/// Bombard (267, size 2). `Unit::set_type`'s second kill loop calls
+/// `Objects::kill_guy` on every figure past the old `squad_size`, and
+/// `kill_guy` clears `radius[coll_size]` around the figure's cell by the old
+/// type. **The move's value diff** (run584, block 12542): `1/109`'s
+/// `half_step` ours 0, theirs 1 → agreeing, and its position (block 12543,
+/// (29302, 19854) against (29295, 19840)) → agreeing; run584's keys 1,528 →
+/// 367 and the word's frame 12575's draws 13 against 11 → agreeing.
+/// **The new word's delta: ours 49 draws and the original 51 on frame
+/// 12744, parting at index 35**: ours `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` where the original spends `Guy::init_real+0x52`, a
+/// unit born — `1/142` is the dump's alone, who=1's `peasants` and
+/// `num_units[0]` 50 against 51 on block 12745. Who=1's `MAKE[3]` parts
+/// first, on block 12582 (`cat` 8 against 4, `city` −1 against 3, `val`
+/// 237600 against 242560), and the queue of `1/2000` against `1/2023` on
+/// block 12583. Widened on run584 (block 12745).
+///
 /// **12569 since item 1429** (`docs/AI.md` §118): a standing turn runs
 /// inside guy 0's own `Guy::move`, ahead of the crew's. The measured word
 /// 12538 (item 1426, seven draws each, index 1: ours `Guy::move+0x19f`,
@@ -2282,7 +2311,7 @@ pub(crate) const WIDENING_FRENCH_LAKES_CLOSING: (i64, i64) = (5633, 5639);
 /// laid friendless three cells south of the original's, until
 /// `find_friends`' enhancer arm counted the farms beside it (block 5377,
 /// widened on run471).
-pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 12_569;
+pub(crate) const THIRD_WORD_GREAT_SAHARA_TOUGHEST: i64 = 12_744;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -8467,9 +8496,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // Item 1398 moved the word to 11882, past run571's window; item
         // 1416 widened it on run574 over 11876..12133, whose test keeps the
         // move's value diff on 11876..11988; item 1429 widened 12538 → 12569
-        // on run584 over 12532..12789 (the word's block 12570).
+        // on run584 over 12532..12789 (the word's block 12570); item 1472
+        // moved the word 12575 → 12744 inside the same window (block 12745).
         Some("run584_s_word_frame_is_widened_whole"),
-        1429,
+        1472,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_12538),
     ),
 ];

@@ -3691,6 +3691,10 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner;
+        // `set_type`'s crew loop kills every figure past the old
+        // `squad_size` before the type is swapped: `kill_guy` clears the
+        // old disc around each (`docs/AI.md` §120).
+        self.coll_kill_crew(u);
         // A decoy's type is no count of the leader's: both of `set_type`'s
         // `track_unit_type` calls sit behind `(unit_masks & 1) == 0`
         // (decompile lines 62 and 273). run346's decoy Peltasts took the

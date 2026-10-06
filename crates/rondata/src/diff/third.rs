@@ -86,7 +86,31 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
     let (mut count, mut sequence) = (None, None);
     for _ in 0..last {
         let at = built.sim.frame;
+        // `RON_SWEEP=<frame>:<who>/<o>` — every collision sweep one unit
+        // runs on one frame, as the second pair's walk prints it.
+        let sweep = std::env::var("RON_SWEEP").ok().and_then(|v| {
+            let (f, u) = v.split_once(':')?;
+            let (w, o) = u.split_once('/')?;
+            Some((
+                f.parse::<i64>().ok()?,
+                w.parse::<i32>().ok()?,
+                o.parse::<i32>().ok()?,
+            ))
+        });
+        if let Some((sf, w, o)) = sweep
+            && sf == at
+        {
+            built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+        }
         built.tick();
+        if let Some((sf, _, _)) = sweep
+            && sf == at
+            && let Some(rec) = built.sim.sweep_watch.take()
+        {
+            for l in rec.rendered() {
+                eprintln!("  sweep {sf}: {l}");
+            }
+        }
         crate::diff::harness::debug_leader(&built, at);
         crate::diff::harness::debug_ammo(&built, at);
         crate::diff::harness::debug_builds(&built, at);
