@@ -4619,7 +4619,22 @@ Opus meanwhile; **(iii) the handoff** is to become two permanent rows
 that clear each other (`ccc clear <other ref> --then <opener>`) instead
 of `spawn --replace`, once a clear aimed at another session is seen to
 fire; the archive clause stands until then. 1497 and a third word lane
-wait on the suite lane's numbers.
+wait on the suite lane's numbers. **(iv) The middle track is opened**:
+the sweep — one function of the original under the emulator against
+ours on chosen inputs, a unit-sized, verified, capture-free item that
+parallelises the way a matching decompilation does — becomes a lane
+with a score of its own, the census's backed column (parked 1467 is the
+suite lane's next item, so the number is on the board before the lane
+is). The project then carries two scores, words in lockstep and
+functions agreed, and the held-out battery judges both. **And the
+fallback is written down**: if the battery (576 / 6566 / 2974, unmoved
+for two tranches) has not moved after two tranches with a sweep lane and
+the chapters, a mechanical port of the simulation layer from the
+decompile export is considered — a readable C twin of the sim, the
+Rust ported from it and the two timed against each other — with the
+legal line weighed with Ramon first, since a transcribed engine is a
+derivative work where a re-implementation is not. That is a change of
+execution, not of oracle: the behavioural diff stays the judge.
 
 **The estimate, written down to be wrong on record**: twenty landings on
 three lanes in under fourteen hours with nobody typing; the coverage

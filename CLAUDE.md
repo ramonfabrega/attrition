@@ -207,9 +207,12 @@ booking is a frame, never a promise to build a name.
   `python3 tools/release_gate.py <install> --test-threads 4` in one
   command, under the memory cap, with the fixture audit and the paperwork
   guards; that is the gate a landing names. **A worker's is the same
-  line with `--lane`**: red only on the queue's lines — the commander's
-  to write at the merge — it goes on to the guards and exits 0, and red
-  on anything else it stops and names the test; the commander's booking
+  line with `--lane --tests <the word's filters>`** — the brief names
+  the filters; the lane gate runs those, the fast tests and the guards,
+  and leaves the timed ones to the booking gate (item 1567: 703 s → 74
+  s) — red only on the queue's lines — the commander's to write at the
+  merge — it goes on to the guards and exits 0, and red on anything
+  else it stops and names the test; the commander's booking
   gate takes no flag and forgives nothing. The debug profile is for the
   reflex (`tools/guard.sh`) and for stepping through one test; a debug
   run that reaches a kept dump refuses, by design.
