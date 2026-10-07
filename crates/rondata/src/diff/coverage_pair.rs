@@ -990,7 +990,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 177, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 173, "initial run710 baseline");
     // **The word 1719's value diff, item 1591** (`docs/AI.md` §164): the
     // ICBM `1/42` (`TypeIndex` 316, `ICBM`, inside the silo `1/2015`)
     // parted first on block 1570 — `order:length` 0 against 1,
@@ -1102,7 +1102,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 401, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 396, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil

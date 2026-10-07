@@ -519,7 +519,16 @@ impl Sim {
                 if self.num_buildings_of(who, rec) == 0 {
                     t = v.wrapping_mul(10000);
                 }
-                // `CityData.bordering` has no field here.
+                // `CityData.bordering`: a city a rival's border touches
+                // wants its temple a hundred times more
+                // (`create_buildings:324`–`326`, `docs/AI.md` §167).
+                if self.ai[w]
+                    .city_ai
+                    .get(f.c)
+                    .is_some_and(|r| r.bordering != 0)
+                {
+                    t = t.wrapping_mul(100);
+                }
                 v = t;
             }
             if build::is(&self.build_types, rec, Ident::Lookout) {
@@ -832,9 +841,17 @@ impl Sim {
                     (f.nb - have) / 2
                 };
                 let mut x = (d / 256).wrapping_mul(k);
-                // `CityData.bordering` reads 0 here: a fort is worth a
-                // hundredth, a tower unchanged.
-                if fort {
+                // `CityData.bordering` (`create_buildings:821`–`841`): a
+                // city a rival's border touches is worth ten times, and
+                // one it does not touch a hundredth for a fort, a tower
+                // unchanged (`docs/AI.md` §167).
+                if self.ai[w]
+                    .city_ai
+                    .get(f.c)
+                    .is_some_and(|r| r.bordering != 0)
+                {
+                    x = x.wrapping_mul(10);
+                } else if fort {
                     x /= 100;
                 }
                 // `city_flags & 0x1000` reads 0; `& 0x8` reads 0, so the
@@ -1974,6 +1991,27 @@ mod tests {
         sim.lobby.difficulty = 0;
         sim.ai[0].defense_mod = 0x200;
         assert!(value(&mut sim, 0, c, t.tower).is_some());
+    }
+
+    /// **A city a rival's border touches is worth ten times its tower**
+    /// (`create_buildings:821`–`841`, `CityData.bordering`, `docs/AI.md`
+    /// §167): Great Sahara's Persian city `1/2018`, `bordering` 3, is
+    /// offered a Bunker at 80000 against 8000 in a city no border touches.
+    /// Made to fail once with the multiplier removed.
+    #[test]
+    fn a_tower_city_a_rival_s_border_touches_is_worth_ten_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        let plain = value(&mut sim, 0, c, t.tower).expect("a hard AI wants a tower");
+        sim.ai[0].city_ai[c].bordering = 3;
+        let touched = value(&mut sim, 0, c, t.tower).expect("still wanted");
+        assert!(
+            (touched.val - plain.val * 10).abs() <= 10,
+            "{} against {}",
+            touched.val,
+            plain.val
+        );
     }
 
     #[test]

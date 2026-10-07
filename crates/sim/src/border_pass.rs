@@ -34,6 +34,9 @@ pub struct BorderPass {
     pub target: Vec<(Owner, Owner)>,
     /// `Region +0x2c`, by this crate's region index; sea regions never run.
     pub index: Vec<i32>,
+    /// [`Sim::territory_won`] as the fix computed it: the city each cell's
+    /// winning claim came from, whose `bordering` its runner-up marks.
+    pub won: Vec<i32>,
 }
 
 /// `compute_reg_territory`'s budget: `if (0xff < game_daemon->borders)`.
@@ -47,6 +50,9 @@ impl Sim {
             // Setup's pass, before the first frame: wholesale, and any pass
             // an earlier setup fix left is superseded by this target.
             self.border_pass = None;
+            let target = self.world.owners();
+            let won = self.territory_won.clone();
+            self.wholesale_bordering(&target, &won);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
             return;
@@ -54,7 +60,69 @@ impl Sim {
         let target = self.world.owners();
         self.world.set_owners(&before);
         let index = vec![0; self.world.region_count()];
-        self.border_pass = Some(BorderPass { target, index });
+        let won = self.territory_won.clone();
+        self.border_pass = Some(BorderPass { target, index, won });
+    }
+
+    /// Every city's `bordering` back to zero — `compute_reg_territory:92`,
+    /// which every land region's first call makes (its resume index at 0)
+    /// **before** its budget test, so the last region to start wins.
+    fn clear_bordering(&mut self) {
+        for leader in &mut self.ai {
+            for c in &mut leader.city_ai {
+                c.bordering = 0;
+            }
+        }
+    }
+
+    /// `compute_reg_territory:595`–`607`, at a cell it has just written: the
+    /// winner's city (`local_1c`) takes the winner's and the runner-up's
+    /// bits in its `bordering` (`+0x65`) when both are players and either
+    /// declares war on the other (`diplos == 0` on a side). A fort's win, a
+    /// runner-up that is none or `Ambiguous`, or the same player twice, marks
+    /// nothing. The `city_flags & 0x1000` arm beside it (a cell within four
+    /// cells of the city) is not modelled: no capture reads it.
+    fn mark_bordering(&mut self, who: Owner, who2: Owner, won: i32) {
+        let (Some(p), Some(q)) = (who.player(), who2.player()) else {
+            return;
+        };
+        let Ok(c) = usize::try_from(won) else {
+            return;
+        };
+        if p == q || !(self.at_war_with(p, q) || self.at_war_with(q, p)) {
+            return;
+        }
+        let owner = self.cities[c].owner as usize;
+        let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
+        if let Some(a) = self.ai.get_mut(owner) {
+            // A human's leader never sweeps, so its table starts short.
+            if a.city_ai.len() <= c {
+                a.city_ai.resize(c + 1, crate::ai::CityAi::default());
+            }
+            let rec = &mut a.city_ai[c];
+            rec.bordering = (rec.bordering | bits) & 0xff;
+        }
+    }
+
+    /// Setup's `compute_all_territory`: every land region in slot order,
+    /// each clearing every city's `bordering` and then marking its own
+    /// cells.
+    fn wholesale_bordering(&mut self, target: &[(Owner, Owner)], won: &[i32]) {
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        for r in lands {
+            self.clear_bordering();
+            for c in self.world.region_coords_strided(r, 0, 1) {
+                let i = (c.y * self.world.width() + c.x) as usize;
+                if let (Some(&(who, who2)), Some(&w)) = (target.get(i), won.get(i)) {
+                    self.mark_bordering(who, who2, w);
+                }
+            }
+        }
     }
 
     /// Finishes a pass at once — the wholesale recompute the original makes
@@ -63,6 +131,7 @@ impl Sim {
     pub fn settle_borders(&mut self) {
         if let Some(pass) = self.border_pass.take() {
             self.world.set_owners(&pass.target);
+            self.wholesale_bordering(&pass.target, &pass.won);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
         }
@@ -92,6 +161,9 @@ impl Sim {
             if size == 0 || *at >= size {
                 continue;
             }
+            if *at == 0 {
+                self.clear_bordering();
+            }
             if budget < CELLS_PER_FRAME {
                 let cells = self
                     .world
@@ -102,6 +174,9 @@ impl Sim {
                     let i = (c.y * self.world.width() + c.x) as usize;
                     let (who, who2) = pass.target[i];
                     self.world.set_owner(c, who, who2);
+                    if let Some(&w) = pass.won.get(i) {
+                        self.mark_bordering(who, who2, w);
+                    }
                     if let Some(p) = who.player() {
                         // `compute_reg_territory`'s per-cell goods scan: an
                         // oil patch on a cell it has just given away joins
@@ -182,5 +257,80 @@ mod tests {
         sim.advance_border_pass();
         assert!(sim.border_pass.is_none(), "the third frame finishes it");
         assert_eq!(sim.world.owner(Cell::new(199, 2)), Owner::Player(1));
+    }
+    /// A city of `who`'s, as `init_city` records it.
+    fn city_of(who: crate::Player) -> crate::city::City {
+        crate::city::City {
+            alive: true,
+            owner: who,
+            race: None,
+            founder: who,
+            building: 0,
+            members: Vec::new(),
+            reg: None,
+            pos: crate::Pos::new(0, 0),
+            capital: false,
+            founding_capital: false,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            attacking: false,
+            ever_attacked: false,
+            alarm: false,
+            no_muster: false,
+            was_capital: 0,
+            capture_stamp: 0,
+            assimilation_timer: 0,
+            attack_stamp: 0,
+            reduce_stamp: 0,
+            capture_strength: 0,
+            pop: 1,
+            has_citizen: false,
+            source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
+        }
+    }
+
+    /// **A rival's runner-up cell marks the winner's city `bordering`**
+    /// (`compute_reg_territory:595`–`607`, `docs/AI.md` §167): both
+    /// players' bits, only when a side is at war, only for a city's win
+    /// (a fort's, `−1`, marks nothing), and cleared when the region's pass
+    /// starts. Great Sahara's Persian city `1/2018` reads 3 from 1980.
+    ///
+    /// Made to fail once with the war test removed and once with the clear
+    /// removed.
+    #[test]
+    fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
+        let mut sim = Sim::new(crate::Tuning::RON, rows(8, 1), 2);
+        sim.cities.push(city_of(1));
+        sim.in_play = true;
+        let run = |sim: &mut Sim, won: i32| {
+            let before = sim.world.owners();
+            let mut target = before.clone();
+            target.fill((Owner::Player(1), Owner::Player(0)));
+            sim.world.set_owners(&target);
+            sim.territory_won = vec![won; 8];
+            sim.start_border_pass(before);
+            sim.advance_border_pass();
+        };
+        let bordering = |sim: &Sim| sim.ai[1].city_ai.first().map_or(0, |c| c.bordering);
+        run(&mut sim, 0);
+        assert_eq!(bordering(&sim), 0, "at peace, nothing is marked");
+        sim.declare_war(0, 1);
+        run(&mut sim, -1);
+        assert_eq!(bordering(&sim), 0, "a fort's win marks no city");
+        run(&mut sim, 0);
+        assert_eq!(bordering(&sim), 0b11, "both players' bits");
+        // A second fix clears it before it marks again: with the runner-up
+        // gone the city reads 0.
+        let before = sim.world.owners();
+        let mut target = before.clone();
+        target.fill((Owner::Player(1), Owner::None));
+        sim.world.set_owners(&target);
+        sim.territory_won = vec![0; 8];
+        sim.start_border_pass(before);
+        sim.advance_border_pass();
+        assert_eq!(bordering(&sim), 0, "the region's first call clears it");
     }
 }
