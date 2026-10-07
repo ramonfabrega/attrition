@@ -279,11 +279,13 @@ impl Sim {
     /// `radius[ring]` entries, and the first tile that is a good merchant
     /// spot, a valid location and unoccupied wins.
     ///
-    /// SEAM: `detect_unit_collision(x, y, 1, 1, 0, 0, 0)`, the third test,
-    /// is not asked. This crate's is `&mut` — it writes the
-    /// `collide_o`/`collide_who` bookkeeping every path out of the move
-    /// step depends on — and a read-only form is its own item; nothing on
-    /// disk reaches a ring walk at all.
+    /// The third test is `detect_unit_collision(x·192, y·192, quick 1,
+    /// boats 1, 0, 0, 0)` at the tile's **corner** (`00603ab0`): the quick
+    /// form, which names nobody and writes nothing on a miss
+    /// ([`Sim::detect_quick`]) — so a rare's own square, or a unit
+    /// standing on one, refuses the spot (item 1611: Great Sahara's
+    /// merchant `1/38` on 2205, the original's `(−1, −1)` against our
+    /// `(0, 0)`).
     fn find_merchant_spot(&mut self, u: usize, ring: usize) -> Option<Pos> {
         if !self.calc_gather(u) {
             return None;
@@ -298,6 +300,11 @@ impl Sim {
             if self.good_merchant_spot(u, t)
                 && self.invalid_loc(u, t, false, false, false, false, false)
                     == crate::path::loc::VALID
+                && !self.detect_quick(
+                    u,
+                    Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE),
+                    false,
+                )
             {
                 return Some(t);
             }
