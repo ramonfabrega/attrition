@@ -3165,6 +3165,84 @@ fn the_builder_tally_walks_the_lists_while_the_counted_units_are_few() {
     );
 }
 
+/// **The circle walk counts a builder by its own tile's region**
+/// (`Objects::find_units@0065a620`'s `0x200` gate, `docs/AI.md` §155): a
+/// builder standing on the water of a coastal cell — land by the cell's
+/// `region`, the sea by its `region2` for an ocean tile — is in the ring
+/// and is not counted. run679's `1/24`, carried at sea towards the Mine
+/// `1/2028` on 1340, left that site the emptier one, and `1/8` went to it.
+/// 150 of the enemy's units keep the tally on the circle (§148).
+#[test]
+fn the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water() {
+    use crate::tech::{TechTree, TypeDef};
+    let run = |at_sea: bool| {
+        let mut w = World::new(16, 16);
+        let land = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+        let coast = Cell::new(12, 12);
+        let mut d = w.cell_data(coast);
+        d.flags |= cell::HALFLAND;
+        d.region2 = Some(land + 1);
+        w.set_cell_data(coast, d);
+        for tx in 48..52 {
+            for ty in 48..52 {
+                w.set_tile_field(Pos::new(tx, ty), tile::SURFACE, tile::SURFACE_OCEAN);
+            }
+        }
+        let mut sim = Sim::new(Tuning::RON, w, 2);
+        sim.declare_war(0, 1);
+        for l in &mut sim.ledgers {
+            l.bucket = [10_000; economy::RESOURCES];
+        }
+        let t = install_types(&mut sim);
+        sim.nation[0].human = false;
+        sim.lobby.starting_resources = 1;
+        let mut tree = TechTree::new();
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        // Cell (9, 10) comes before (11, 10) on the circle (ring 1, `x`
+        // ascending), so a tie goes to `first`.
+        let first = sim.place_building(0, t.farm, tile_pos(36, 40)).unwrap();
+        let second = sim.place_building(0, t.farm, tile_pos(44, 40)).unwrap();
+        let on_first = spawn(&mut sim, 0, citizen, tile_pos(36, 42));
+        sim.add_build_order(on_first, first, QueuePos::New, false);
+        let on_second = spawn(&mut sim, 0, citizen, tile_pos(44, 42));
+        sim.add_build_order(on_second, second, QueuePos::New, false);
+        // A second builder on `first`: on the coastal cell's water, or on
+        // its land beside it.
+        let shore = if at_sea {
+            tile_pos(49, 49)
+        } else {
+            tile_pos(46, 46)
+        };
+        let carried = spawn(&mut sim, 0, citizen, shore);
+        sim.add_build_order(carried, first, QueuePos::New, false);
+        for _ in 0..150 {
+            let _ = spawn(&mut sim, 1, citizen, tile_pos(4, 60));
+        }
+        let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+        assert!(sim.find_build_spot(u));
+        let held: Vec<Body> = sim.units[u].orders.iter().map(|o| o.body).collect();
+        (held, first, second)
+    };
+    // At sea: one builder counted on each, and the tie goes to `first`.
+    let (held, first, _) = run(true);
+    assert!(
+        held.contains(&Body::Build(first)),
+        "the builder on the water is in another region: {held:?}"
+    );
+    // On land: two on `first`, so `second` is the emptier.
+    let (held, _, second) = run(false);
+    assert!(
+        held.contains(&Body::Build(second)),
+        "the builder on land is counted: {held:?}"
+    );
+}
+
 /// On open ground no move draws from the sync stream: a near one never
 /// asks the pathfinder, and a far one is planned by `find_wpath` at order
 /// time — before the RNG-thresholded re-plan branch, which only runs when

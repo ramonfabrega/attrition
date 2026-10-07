@@ -8716,13 +8716,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1278); run678's test keeps the move's value diff on `1/26` from 1183.
     // Item 1558 moved it to **1408**, inside run679 (block 1409); run678's
     // and run679's tests keep the move's value diff on the scout `1/0`
-    // from 1201.
+    // from 1201. Item 1563 moved it to **1532**, past run679's last block
+    // (1528), and took run710 over 1527..1783 (block 1533); run679's test
+    // keeps the move's value diff on the citizen `1/8` from 1340.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run679_s_word_frame_is_widened_whole"),
-        1558,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1277),
+        Some("run710_s_word_frame_is_widened_whole"),
+        1563,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1532),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

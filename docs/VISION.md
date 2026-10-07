@@ -705,9 +705,11 @@ branch, `Sim::update_all_seen`'s two arms and `Sim::init_build`'s check.
 Unit tests `a_wonder_s_start_is_first_contact` and
 `the_resync_relights_a_started_wonder_and_no_unfinished_site`, each made
 to fail by the mutation it names. Diffs: `run613_dates_first_contact_on_
-block_7946`, `east_indies_wonder_start_is_first_contact_on_every_building`
-(the shared instrument leaves `ever_seen` uncompared), the run610–613
-widenings, and run240's world pin.
+block_7946`, ~~`east_indies_wonder_start_is_first_contact_on_every_building`
+(the shared instrument leaves `ever_seen` uncompared)~~ — retired by item
+1563: the shared instrument compares `ever_seen` and `ever_seen_completed`
+on every window (`docs/AI.md` §155) — the run610–613 widenings, and
+run240's world pin.
 
 ### What is not established
 

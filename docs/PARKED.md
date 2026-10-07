@@ -3718,6 +3718,12 @@ first bad 1658 (SYNC §4.2); (124) the loop flag is per animation file;
 (116) the one `SITE` slot (AI §18); (166) `resource_cap` on five goods
 (ECONOMY); (107) `epoch[0]`.
 
+(1587) **The closing block's `ever_seen` residue** (1563, 2026-10-07):
+on a game's last block the original's buildings carry the defeated
+human's bit — two closings, fourteen rows each — and ours do not. Unread
+whether the defeat's reveal or the game's end writes it; no word stands
+on a closing block, so it names no score until one does.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3759,7 +3765,7 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-03 by item 1446 — a byte the instrument never compares
 
-(1450) **`ever_seen` and `ever_seen_completed` are pinned uncompared
+(1450) closed 2026-10-07 by item 1563: the shared widening compares both, and 1446's helper retired. **`ever_seen` and `ever_seen_completed` were pinned uncompared
 in `coverage::UNCOMPARED_BY_THE_INSTRUMENT`**, and they are what first
 contact hangs off. French East Indies parted on them for 236 blocks before
 the word did, and the met bits they drive part only through the leader
@@ -3842,7 +3848,7 @@ landings of one tranche, one tool. **And 1561's**: `docs/ANIM.md`
 §6.1 said `is_enemy(8)` "is never asked for", a wrong closure for its
 word — `seams.py` reads no "never asked/never reached" sentence, the
 same shape as 1555's "reached through the fog". Four landings. One
-reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach.
+reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings.
 
 (1554) **A standing row the word's readers read is ranked nowhere**
 (1546's Loop line, 2026-10-06): the cause was a standing row on a new
