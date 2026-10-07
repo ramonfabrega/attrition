@@ -103,8 +103,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // **2273** (count and sequence): ours 99 draws against 91, index 66,
     // ours `Unit::think_scout+0x64c`, theirs `Unit::think_scout+0x436`; the
     // word's first parting by index was 0 (the scout `1/0`'s own idle).
-    count: 2273,
-    sequence: 2273,
+    // Landing 8 (`docs/AI.md` §173): the blast lights its circle for every
+    // player (`Ammo::do_damage:268`–`:287`, `World::set_seen2` with mask
+    // `0xff` in both planes) and a hit across players ors bit 1 into both
+    // leaders' `treaties` (`Object::do_damage:327`) — 2273 → **2323** (count
+    // and sequence): ours 12 draws against 13, index 10, ours
+    // `Farms::inc_time+0x1ae`, theirs `Farms::inc_time+0x1de` (a sprout's
+    // `% empty` draw the original spends on the second farm of the walk).
+    count: 2323,
+    sequence: 2323,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -652,7 +659,7 @@ fn run702_s_word_frame_is_widened_whole() {
     // **116** on the merged tree: 258 (259 with item 1608's `spell_time`
     // row) before item 1611's two builds — the founding capital's border
     // bonus took 142 — and 51 of them stand on block 1979 (95 before).
-    pin_eq!(w.firsts.len(), 116, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 85, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         51,
@@ -762,15 +769,18 @@ fn run702_s_word_frame_is_widened_whole() {
 }
 
 /// run718, item 1611: the lobby's blocks 2267..2523 at the long's detail —
-/// the word 2273's block 2274 with six before it and 249 after.
+/// the word 2273's block 2274 with six before it and 249 after, and the
+/// word 2323's block 2324 inside it (item 1620).
 pub(crate) const RUN718: &str = "gamelog-run718-greatsahara-persian-alltech-window-2267-2524.txt";
 
-/// The window: block 2267 through 2523; the word 2273's own block is 2274.
+/// The window: block 2267 through 2523; the word 2273's own block is 2274
+/// and the word 2323's is 2324.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2273: (i64, i64) = (2267, 2523);
 
 /// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
 /// `GreatSaharaPersianAllTech`): run718 walked from run675's start with the
-/// recorder on — the word 2273's block 2274.
+/// recorder on — the word 2323's block 2324 (2273's, 2274, until item
+/// 1620).
 pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
@@ -780,7 +790,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN718, WIDENING_SAHARA_COVERAGE_FRAME_2273.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_2273,
         1,
-        &[2274],
+        &[2324],
         true,
     )
 }
@@ -797,10 +807,10 @@ fn run718_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 737, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 624, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        66,
+        62,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -818,16 +828,16 @@ fn run718_s_word_frame_is_widened_whole() {
     for key in ["build:ever_seen", "build:ever_seen_completed"] {
         pin_eq!(
             w.firsts.get(&(0, 2000, key.to_string())).map(|(f, _)| *f),
-            Some(2267),
-            "Napata's buildings stand at 255 in the original and 1 here"
+            None,
+            "Napata's buildings' `ever_seen` agrees: the blast lights the ground for all (item 1620)"
         );
     }
     pin_eq!(
         w.firsts
             .get(&(0, -1, "leader:treaties[1]".to_string()))
             .map(|(f, _)| *f),
-        Some(2267),
-        "the human's treaty bits stand at 3 in the original and 1 here"
+        None,
+        "the human's treaty bits agree: a hit across players ors bit 1 (item 1620)"
     );
     pin_eq!(
         w.firsts
@@ -855,7 +865,7 @@ fn run718_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(2271),
+        Some(2274),
         "the first parting past the standing block"
     );
 }
