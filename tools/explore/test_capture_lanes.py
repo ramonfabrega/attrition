@@ -223,11 +223,12 @@ class TheReader(unittest.TestCase):
             '130 x waited 1 33 300', '140 x release 2 22',
             '150 x capture 1 11 frames=300 launched=2026-10-07T00:00:00-0500 exited=2026-10-07T00:00:20-0500 success=true out=a',
             '160 x capture 2 22 frames=4341 launched=2026-10-07T00:00:00-0500 exited=2026-10-07T00:01:13-0500 success=true out=b',
-            '170 x take 1 44 pool',  # lane 1's runner died: the take closes it
+            '170 x take 1 44 pool',  # lane 1's runner died: the take closes it,
+            '175 x take 2 66 pool',  # so two lanes are held here, never three
             '180 x capture 3 55 frames=10 launched=- exited=- out=c', 'garbage'])
         with tempfile.TemporaryDirectory() as tmp:
             log = Path(tmp) / '.lane.log'; log.write_text(lines + '\n')
-            s = lanes.summarize(lanes.read([log], since=105))
+            s = lanes.summarize(lanes.read([log], since=172))
         self.assertEqual(s['peak'], 1)
         with tempfile.TemporaryDirectory() as tmp:
             log = Path(tmp) / '.lane.log'; log.write_text(lines + '\n')
