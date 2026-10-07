@@ -16913,7 +16913,7 @@ unless marked.
    `num_units[0x141]`; **`leader_flags & 0x2000` and the cell's `WData.who` an ally** (`is_ally`); else `seen & ally_mask`.
    `0x2000` is `fix_tech_flags@006d2480`'s and `gain_tech@006dcb60`'s from `bonustypes +0xacc` — the eighth `TECHBONUSES`
    row, "All units and buildings in your territory revealed", **Computerization**, which the All Technologies start holds.
-   `WorldData::is_really_seen@006b42c0` carries the same arm; nothing here reads it.
+   `WorldData::is_really_seen` carries the same arm; nothing here reads it.
 
 **Built.** `Sim::world_is_seen_fog` (`crates/sim/src/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
 `Sim::sees_every_unit` and `Sim::holds_bonus` (`ai_sites.rs`, `sees_every_cell` now `explore_map` over the two) and the
