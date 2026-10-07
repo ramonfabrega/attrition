@@ -125,11 +125,10 @@ Before any reading of the original, in this order:
   log>`**, backgrounded: its exit wakes you, so end your turn; read the
   log before acting on the exit; minutes waited on another lane's
   capture go in the journal.
-- **The lane says its own state** (1180): `RON_CAPTURE_LANE=<n>`
-  (1568) `zsh -c 'source tools/gamelog/winelaunch.sh;
-  ron_lane_state'` prints `free`, `stale` or `held by`; a stale lock is
-  the next launch's, never a hand's; the runner holds the lane through
-  its restore (1234). **A first take that dies before frame 0 is taken again once**
+- **The pool picks the lane** (1568, 1569): never set
+  `RON_CAPTURE_LANE`; the receipt names the lane, `ron_lane_state` its
+  state (1180); a stale lock is the next launch's, never a hand's; the
+  runner holds the lane through its restore (1234). **A first take that dies before frame 0 is taken again once**
   (1150); a traceback with no receipt is that death, and `waitrun.sh`
   says so (1503). **No `mkdir -p` before a
   launch**: the runner refuses an existing output directory (1513).

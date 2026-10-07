@@ -47,7 +47,9 @@ if [ -z "$log" ]; then
 fi
 banner='=== the queue, as it went ==='
 receipt='^{"map_requested"'
-runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|gamelog/startcapture.sh'}
+runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|gamelog/startcapture.sh|gamelog/lane.sh'}
+# `lane.sh N` builds a pool lane before its admission run starts a runner
+# (item 1569): run689's waiter read the build as a dead runner and exited 2.
 # A capture script launched on its own, with no queue around it, ends on one
 # of these (`startcapture.sh`; parked 1080, the nineteenth pass): run381
 # finished and this script called it a dead runner.

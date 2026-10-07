@@ -2912,68 +2912,95 @@ tick N — the word's — is still ahead of it (item 597, the twelfth pass;
 the worked case is `docs/EMULATOR.md` §8). Costs and what a packet establishes are
 `docs/EMULATOR.md` §8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md`.
 
-## Two click-free lanes (2026-10-07, item 1568; parked 1139)
+## The click-free lanes are a pool (2026-10-07, items 1568 and 1569; parked 1139)
 
-The click-free lane is two now. Everything a capture writes is a singleton
-of its lane — the prefix's `.lane.lock` and wineserver, the profile's
-`rise.ini`, `rise2.ini`, `gamelog.ini` and `Player.dat`, the install a
-run's directory links its data from — so the second lane is a second of
-each and nothing more; a run's directory, its tracer build and its logs
-were per capture already. **`RON_CAPTURE_LANE=2` chooses it**; unset is
-lane 1, as it always was. `tools/gamelog/lanes.sh` is the table:
+The click-free lane is a pool of lanes. Everything a capture writes is a
+singleton of its lane — the prefix's `.lane.lock` and wineserver, the
+profile's `rise.ini`, `rise2.ini`, `gamelog.ini` and `Player.dat`, the
+install a run's directory links its data from — so a lane is one of each
+and nothing more; a run's directory, its tracer build and its logs were per
+capture already. `tools/gamelog/lanes.sh` is the table and the cap:
 
 | lane | prefix | install | profile |
 |---|---|---|---|
 | 1 | `~/wine-ron` | the repo's `game/` | `~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations` |
-| 2 | `~/wine-ron-2` | `~/ron-capture-lane-2/game` | `~/ron-capture-lane-2/AppData/Roaming/Microsoft Games/Rise of Nations` |
+| N | `~/wine-ron-N` | `~/ron-capture-lane-N/game` | `~/ron-capture-lane-N/AppData/Roaming/Microsoft Games/Rise of Nations` |
 
-    RON_CAPTURE_LANE=2 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh <out> …
-    RON_CAPTURE_LANE=2 zsh -c 'source tools/gamelog/winelaunch.sh; ron_lane_state'
+**No caller names a lane.** `golden_capture.sh` hands the runner `-` for
+the install and the profile, and `unattended_capture.py`'s `pool_lane`
+takes the first admitted lane whose profile `flock` and lane lock it can
+get, under one pool `flock` (`~/.ron-capture-pool.lock`) so two runners
+never choose one lane. The runner's first line names the lane, and the
+receipt carries `lane` and `lane_prefix`. None free and fewer than
+**`RON_LANES_MAX`** (default 3, in `lanes.sh`) built: the pool runs
+`tools/gamelog/lane.sh N` and takes the new lane. At the cap it waits,
+trying again every five seconds with the lock's free/stale semantics, for
+up to `--lane-wait` (3600 s). `RON_CAPTURE_LANE=N` pins a lane, for a test
+and for the admission run; nothing else should set it.
 
-**Building it** is `zsh tools/gamelog/lane2.sh`, idempotent and needing no
-human: `wineboot -i` with Mono and Gecko declined, `prefix.sh` on the new
-prefix, the install cloned with `cp -c` (APFS shares the blocks: 2.8 GB of
-names, no disk), lane 1's profile copied while lane 1 is free, and the
-prefix's `AppData\Roaming\Microsoft Games` linked to it. Nothing enters the
-repo; nothing of lane 1 is written.
+    zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh <out> …
+    python3 tools/gamelog/lanes.py --since <commit>
 
-**What had to change for two to run at once**, each with its test
-(`tools/explore/test_capture_lanes.py`, `test_viadriver.py`):
+**A lane is admitted before any capture is staged on it.** `lane.sh N`
+(`wineboot -i` with Mono and Gecko declined, `prefix.sh`, the install
+cloned with `cp -c` — APFS shares the blocks, 2.8 GB of names for no
+disk — the profile from the pool's template `~/ron-capture-lanes/template`,
+which is lane 1's taken once while lane 1 was free, since a lane is grown
+exactly when every lane's profile is staged) then runs run676's recipe on
+lane N and `rngcmp.py` against run676's archived trace: 4341 frames in
+common and 0 differing writes `~/ron-capture-lane-N/admitted`, naming the
+run, the archive and the counts so the check can be run again;
+anything else writes `admission-failed`, which the pool never tries again
+until a person removes it. The check runs once, at creation, never per
+capture. Lane 2 was admitted by run684, lane 3 by run689 (`docs/RUNS.md`).
+The admission run is a game: run `lane.sh` through `viadriver.sh`, or let
+a pool runner (already under RonDriver) call it; `waitrun.sh` knows it as
+a runner.
 
-- **`winelaunch.sh` takes the lane's prefix**, its lock beside it; a
-  hand-set `RON_WINEPREFIX` still wins.
-- **`live_session.require_closed` is scoped to the lane's prefix.** It
-  refused while *any* `riseofnations` process ran, so lane 1 could never
-  start beside lane 2. A game is now attributed by the files it maps
-  (`lsof`: DXVK's `syswow64/d3d11.dll` and `dxgi.dll` are the prefix's
-  own); another lane's game is let be, and one in this prefix — or one no
-  lane accounts for, a human's — still refuses. Measured on run684's live
-  game: lane 1's check passed, lane 2's refused.
-- **`viadriver.sh` carries the lane in the arguments**: the spawned
-  program is `env RON_CAPTURE_LANE=2 zsh …`, so the lane is in the
-  launch's argv; `open` does pass the caller's environment on this macOS
-  (measured), so this records the lane rather than rescuing it. And **its log is
-  named by the second and the pid**: by the second alone two launches made
-  together — run685 and run686, 00:26:35 — would have written one log, and
-  each waiter read both receipts.
-- **The runner refuses another lane's install or profile** when
-  `RON_CAPTURE_LANE` is set, before writing anything, and `golden_capture.sh`
-  prints the lane first. Lane 2 ignores `RON_INSTALL` and `RON_PROFILE`, so
-  a lane-1 environment cannot point it at lane 1's files.
-- **The receipt stamps `launched_at` and `exited_at`** by the wall clock;
-  run685 and run686's overlap was read off file times.
+**The queue lane and the pool exclude each other.** The queue lane
+(`runqueue.sh`, `longtrace.sh`, `startcapture.sh`, `cliclick`) owns the
+cursor and finds the game's window by title, so a second game's window is
+one it could click. The runner's takes carry `RON_LANE_POOL=1` and write a
+holder line starting `pool `; `ron_lane_take` without it refuses (75)
+while any pool lane is held, and a pool take refuses while lane 1 is held
+by anything but the pool. The queue lane runs on lane 1 alone.
 
-**The proof**: run684 re-captured run676 on lane 2, `rngcmp` 4341 frames in
-common, 0 differing; run685 and run686 ran on the two lanes at once, each a
-`success` receipt, 301 frames, 0 differing from each other and from
-run676 (`docs/RUNS.md`).
+**What the pool records.** Each lane's `.lane.log`, beside its lock:
+`take` and `release` from `ron_lane_take`/`ron_lane_release`, a `capture`
+line per map from the runner (frames, `launched_at`, `exited_at`), and in
+lane 1's log the pool's `waited` lines (lane 0). `tools/gamelog/lanes.py
+--since <commit|date>` prints the tranche's peak lanes held at once,
+minutes waited at the cap, and each capture's frames per wall second with
+the median. **A pass raises the cap only when the waits are high and the
+rate held, and lowers it when the rate fell**: the lanes share one GPU and
+one box, and a starved game trips the stall relaunch on wall-clock
+timeouts before anything reads as wrong. On record: run685/686 (16.7 s
+and 19.8 s launch to exit for 300 frames side by side) and run687/688
+(15.1 and 15.8 frames per wall second) — a pair of short games did not
+slow each other measurably; three long traces at once are not measured.
 
-**What stays one.** The queue lane (`runqueue.sh`, `longtrace.sh`,
-`cliclick`) owns the cursor and finds the game's window by title, so it
-runs on lane 1 and **never beside a lane-2 game** — a second window with
-the same title is one it could click. `waitrun.sh` judges a click-free log
-once no runner of any lane is alive, so a lane's waiter may outlast its
-own run by the other lane's. And the two lanes share one GPU and one box:
-run686's 16.7 s launch-to-exit against run685's 19.8 s says a 300-frame
-pair did not slow each other measurably; a pair of long traces is not
-measured.
+**What had to change for more than one lane**, each with its test
+(`tools/explore/test_capture_lanes.py`, `test_viadriver.py`,
+`test_unattended_capture.py`):
+
+- `winelaunch.sh` takes the lane's prefix, its lock beside it; a hand-set
+  `RON_WINEPREFIX` still wins.
+- `live_session.require_closed` is scoped to the lane's prefix. It refused
+  while *any* `riseofnations` process ran; a game is now attributed by the
+  files it maps (`lsof`: DXVK's `syswow64/d3d11.dll` and `dxgi.dll` are the
+  prefix's own), another lane's is let be, and one in this prefix — or one
+  no lane accounts for, a human's — still refuses. Measured on run684's
+  live game.
+- `viadriver.sh` names its log by the second **and the pid**: by the second
+  alone, two launches made together (run685/686, 00:26:35) would have
+  written one log and each waiter read both receipts. It also puts a
+  pinned lane in the spawned program's argv (`env RON_CAPTURE_LANE=N zsh
+  …`); `open` does pass the caller's environment on this macOS (measured),
+  so that is a record in the log's `args` line, not a rescue.
+- The runner refuses a pinned lane's mismatched install or profile before
+  writing; lane N ignores `RON_INSTALL` and `RON_PROFILE`.
+- The receipt stamps `launched_at` and `exited_at` by the wall clock.
+
+**What stays one**: the queue lane, above. `waitrun.sh` judges a
+click-free log once no runner of any lane is alive, so a lane's waiter may
+outlast its own run by another lane's.

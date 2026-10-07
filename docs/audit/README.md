@@ -549,11 +549,13 @@ struck (`tools/brief/frame.md` at 12,989 of 13,000).
   new key adds `coverage::`. The worker runs the whole suite once on its
   own tree after its last `ccc update`; the booking gate runs it again
   and forgives nothing. Every landing had run it three times on one box.
-- **A capture names its click-free lane** (1568, parked 1139): two words
-  that capture take `RON_CAPTURE_LANE=1` and `=2` in their briefs, each
-  its own run range; `RON_CAPTURE_LANE=2 zsh -c 'source
-  tools/gamelog/winelaunch.sh; ron_lane_state'` is lane 2's state, and
-  the queue lane runs only on lane 1, never beside a lane-2 game.
+- **No brief names a click-free lane** (1568, 1569, parked 1139): the
+  runner takes the first free lane of the pool, grows one to
+  `RON_LANES_MAX` and waits at the cap; the receipt names the lane, and a
+  brief reserves only the run range. `RON_CAPTURE_LANE` is a test's. The
+  queue lane and the pool exclude each other; `tools/gamelog/lanes.py
+  --since <the pass's commit>` is the number the pass moves the cap on —
+  peak lanes, minutes waited at the cap, frames per wall second.
 
 ## How a second reading is run
 

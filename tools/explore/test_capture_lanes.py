@@ -10,6 +10,7 @@ stage a lane-2 capture into whatever profile it was handed. Never
 launches a game: the closed-game check reads a canned `ps` and `lsof`.
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -195,6 +196,15 @@ class TheQueueLaneAndThePool(unittest.TestCase):
     def test_pool_lanes_take_beside_each_other(self):
         self.assertEqual(self.take(1, self.sleeper.pid, pool=True).returncode, 0)
         self.assertEqual(self.take(2, os.getpid(), pool=True).returncode, 0)
+
+
+class TheWaiter(unittest.TestCase):
+    def test_the_waiter_knows_a_lane_build_as_a_runner(self):
+        # run689: `lane.sh 3` was in `wineboot` with no runner yet, and
+        # `waitrun.sh` called it dead at once (item 1569).
+        body = (ROOT / 'tools/gamelog/waitrun.sh').read_text()
+        default = re.search(r"runner_pattern=\$\{WAITRUN_RUNNER:-'([^']*)'\}", body)
+        self.assertIn('gamelog/lane.sh', default.group(1))
 
 
 class TheReader(unittest.TestCase):
