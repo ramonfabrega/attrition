@@ -17318,3 +17318,7 @@ walked as every object of the owner's. `Build::close`'s animal walk is read as r
 **Coverage.** Diff-backed: claims 1–3, the value diff, and 5's two draws. Listing-backed: claim 4's predicates past the nuke
 arm's one frame, 5's two gates.
 
+## 165. Reserved for item 1594 (the coverage pair's word 1960)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

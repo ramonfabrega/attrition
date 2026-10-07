@@ -3730,6 +3730,18 @@ the pull-back walk's arm for a non-air unit that *can* transport — is held
 by a unit test and by no walk. The rules track's shape (DECISIONS 56 §3):
 a chapter that stages one, joined to 1497's list when a staging reaches it.
 
+(1595) **The silo's other arms, and one built arm a unit test does not
+hold** (1591, 2026-10-07): `Object::do_launch`'s silo arm is built for a
+nuke only; its non-nuke branch and the forts' and wonders' loops are
+reached by no capture (the scan is in the `SEAM`). And 1591's mutation (b)
+is held by the walk and by no unit test. The rules track's shape.
+
+(1596) **Run710's rows past the old word that 1591's build left** (1591,
+2026-10-07): `0/-1`'s `leader:production_step` 0 against 1 on 1601 (the
+launch), `treaties[1]`/`[0]` 1 against 3 on 1720 (the landing), `ever_seen`
+1 against 255 on every `0/20xx` on 1721, `0/2000`'s `city:raid_stamp` 0
+against 1745 on 1746. Behind the word at 1960; a candidate when one names them.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3797,6 +3809,14 @@ both sides spent the same grid draw, and a scratch test of `cost_marks`
 against the proxied `calc_cost` answered it in one run. The third reach
 (7070's road search, `world.rs`'s 4803, this): it graduates into a
 `RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach.
+
+(1597) **A projectile's landing reads the shooter's first parted key**
+(1591's Loop line, 2026-10-07): the frame's event was a nuke in one
+`report.py draws` line, but the cause was 150 frames back and drew nothing;
+a `RON_FIRSTS` grep for the struck object's *attacker* (`1/42`) went
+straight to block 1570, where the trace could not. A brief-checklist row:
+"a word whose event is a projectile's landing reads the shooter's first
+parted key, not the target's". One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
