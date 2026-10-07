@@ -2547,6 +2547,55 @@ mod tests {
         );
     }
 
+    /// **The unpack's re-seat** (`cast_unpack@006709c0:60`–`:63`, item
+    /// 1608): a crew figure whose unpacked piece still tracks, at another
+    /// offset, is put on the new offset the frame it unpacks rather than
+    /// walking there. No capture holds it — the machine gun's unpacked
+    /// crew has no track, and stands on its leader either way — so this
+    /// test is the arm's only holder. Made to fail with the re-seat
+    /// removed.
+    #[test]
+    fn an_unpack_puts_a_tracked_crew_figure_on_its_new_offset() {
+        let mut s = sim_at(1);
+        let ty = s.add_unit_type(UnitType {
+            hits: 100,
+            ..UnitType::default()
+        });
+        s.unit_types[ty].combat.packs = true;
+        s.unit_types[ty].type_index = 0x7f;
+        let piece = |guy: i32, gender: bool| {
+            0x7f - 0x32
+                + FIRST_UNIT_PIECE
+                + PIECES_PER_CREW * guy
+                + if gender { PIECES_PER_GENDER } else { 0 }
+        };
+        for guy in 0..2 {
+            for gender in [false, true] {
+                s.art
+                    .piece_lengths
+                    .insert(piece(guy, gender), BTreeMap::new());
+            }
+        }
+        s.art.tracks.insert(piece(1, true), (67, -100));
+        s.art.tracks.insert(piece(1, false), (0, -192));
+        let at = Pos::new(0x4000, 0x4000);
+        let mut unit = Unit::new(1, 3, at, 100);
+        unit.ty = Some(ty);
+        unit.on_map = true;
+        let u = s.add_unit(unit);
+        s.units[u].guys = vec![Guy::fresh(-1), Guy::fresh(-1)];
+        s.units[u].movement.body.pos = at;
+        s.units[u].combat.packed = true;
+        s.update_gpiece(u);
+        s.set_new_location(u, at, true);
+        let packed = s.units[u].guys[1].follow.expect("tracked").body.pos;
+        s.cast_unpack(u);
+        let f = s.units[u].guys[1].follow.expect("still tracked");
+        assert_eq!(f.track, (0, -192));
+        assert_ne!(f.des, packed, "the new offset is elsewhere");
+        assert_eq!(f.body.pos, f.des, "and the figure is put on it");
+    }
+
     fn stepped(seed: u32, n: usize) -> u32 {
         let mut r = Rng::new(seed);
         for _ in 0..n {
