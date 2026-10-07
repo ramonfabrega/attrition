@@ -1456,6 +1456,92 @@ mod tests {
         assert_eq!(spent[0] + 2, spent[1], "the V2's two scatter draws alone");
     }
 
+    /// **A computer's silo strikes an enemy city with its nuke** (item
+    /// 1591, `Object::do_launch@0064f3b0`'s silo arm, `Sim::silo_strike`):
+    /// on `(frame + id) % 128 == 0` the nuke at the head of a computer's
+    /// silo takes `AIR_ATTACK_GROUND` at the city building's point, home
+    /// none, the action bit set — run710's ICBM `1/42` on 1569, at
+    /// Napata. Nothing off the 128-frame cadence (on the sortie's 32), for
+    /// a V2, over a city nobody has seen, over one with an object of the
+    /// silo's owner within 0x1800, or for a human's silo. Made to fail
+    /// with the silo's arm dropped (no order), with the cadence read as 32,
+    /// and with the friendly search dropped.
+    #[test]
+    fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
+        for (case, strikes) in [
+            ("strikes", true),
+            ("off the cadence", false),
+            ("a V2", false),
+            ("unseen", false),
+            ("a friend beside it", false),
+            ("human", false),
+        ] {
+            let (mut s, silo, m, enemy) = silo_with_a_v2();
+            s.nation[0].human = case == "human";
+            if case != "a V2" {
+                let ty = s.units[m].ty.unwrap();
+                s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            }
+            // Past 0x1800 of the silo itself, an object of its owner's.
+            s.buildings[enemy].pos = Pos::new(20160, 20160);
+            if case == "unseen" {
+                s.buildings[enemy].ever_seen = 0;
+            }
+            if case == "a friend beside it" {
+                let at = s.buildings[enemy].pos;
+                friend(&mut s, Pos::new(at.x + 0x1800, at.y));
+            }
+            let pos = s.buildings[enemy].pos;
+            s.cities.push(crate::city::City {
+                alive: true,
+                owner: 1,
+                race: Some(1),
+                founder: 1,
+                building: enemy,
+                members: Vec::new(),
+                reg: None,
+                pos,
+                capital: true,
+                founding_capital: true,
+                was_founding_capital: false,
+                unassimilated: false,
+                no_heal: false,
+                attacking: false,
+                ever_attacked: false,
+                alarm: false,
+                no_muster: false,
+                was_capital: 0,
+                capture_stamp: 0,
+                assimilation_timer: 0,
+                attack_stamp: 0,
+                reduce_stamp: 0,
+                capture_strength: 0,
+                pop: 1,
+                has_citizen: false,
+                source: None,
+                trade_val: 0,
+                traded_with: [0; 8],
+            });
+            let id = i64::from(s.buildings[silo].index);
+            s.frame = 128 * 30 - id + if case == "off the cadence" { 32 } else { 0 };
+            s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+            s.do_launch(silo);
+            let order = s.units[m].orders.front().copied();
+            if strikes {
+                let o = order.expect("the nuke is ordered");
+                assert_eq!(o.flags, crate::orders::flag::ACTION, "the action bit");
+                let crate::orders::Body::AirAttackGround(g) = o.body else {
+                    panic!("an air attack on the ground")
+                };
+                assert_eq!(g.at, pos, "the city building's point");
+                assert_eq!(g.home, None, "home −1");
+                assert_eq!(s.units[m].inside, Some(silo), "it waits inside");
+            } else {
+                assert_eq!(order, None, "{case}: ordered");
+            }
+        }
+    }
+
     /// **A missile that fires leaves its type's count** (item 1078,
     /// `Unit::close@0060ee50`'s `track_unit_type(·, −1)`): the next V2 is
     /// priced as if none stood — run390's `0/2010` charged 100 and 100 on
@@ -1583,7 +1669,9 @@ mod tests {
         assert_eq!(p.sz, dz, "the ground at 0 and the offset's height");
         assert_eq!(p.total_time, crate::air::MISSILE_FLIGHT);
         assert_eq!(p.target, None, "a round at the ground");
-        assert_eq!(s.units[v2].hold_frames, 121, "held for its round");
+        // 120 frames of flight, one, and `nuke_effect +0x108`'s 30 (item
+        // 1594): `Object::die` adds the spread time to every round.
+        assert_eq!(s.units[v2].hold_frames, 151, "held for its round");
     }
 
     /// **A missile's round, on run371's own numbers** (item 1050,

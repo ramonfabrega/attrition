@@ -7169,7 +7169,10 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   window that exists. ~~run146 culls on 771 (parked 617).~~ It does not:
   its three records live from their deaths to 999 on both sides. What
   parted on 771 is the slot the record holds, §59.
-- **`nuke_effect[0x108]`** in §11's hold, taken as zero.
+- ~~**`nuke_effect[0x108]`** in §11's hold, taken as zero.~~ It is 30
+  (`Nuke::init@0092c960`, `92c987`), added to every round's remaining
+  time (`docs/AI.md` §165, item 1594): run711's ICBM number is held thirty
+  frames past its round.
 
 ### 42.6 Coverage
 
@@ -8476,6 +8479,10 @@ row was believed (§48.2's table is that print).
 
 Before the fix, the window `[605, 630)` held 87 keys. **Nothing parted on
 626 that had not already parted on 625.**
+
+**Item 1605** took the human's twelve `0/2000 city:*` rows off the pin on
+605: the human leader takes the sweep (`docs/AI.md` §169). Thirteen keys
+stand — the eleven `form`s and the army group's `speed`/`new_speed`.
 
 ### 48.2 The frame: `0/8` on tick 624
 

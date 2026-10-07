@@ -49,6 +49,63 @@ pub(crate) struct Word {
     pub difficulty: i32,
 }
 
+fn debug_slots(sim: &sim::Sim, at: i64) {
+    let Some((lo, hi)) = std::env::var("RON_DEBUG_SLOTS").ok().and_then(|v| {
+        let (a, b) = v.split_once('-')?;
+        Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&at) {
+        return;
+    }
+    thread_local! {
+        static PREV: std::cell::RefCell<Vec<(i16, usize, bool)>> =
+            const { std::cell::RefCell::new(Vec::new()) };
+    }
+    // The latest occupant of each of player 1's numbers, and whether it lives.
+    let mut now: Vec<(i16, usize, bool)> = Vec::new();
+    for (i, u) in sim.units.iter().enumerate() {
+        if u.owner == 1 {
+            now.retain(|e| e.0 != u.index);
+            now.push((u.index, i, u.alive()));
+        }
+    }
+    now.sort_unstable();
+    PREV.with(|p| {
+        let prev = p.borrow();
+        if at > lo {
+            for e in &now {
+                let was = prev.iter().find(|w| w.0 == e.0);
+                if e.2 && was.is_none_or(|w| w.1 != e.1) {
+                    let u = &sim.units[e.1];
+                    eprintln!(
+                        "  slots f{at}: + 1/{} unit#{} ty {:?} at ({}, {})",
+                        e.0, e.1, u.ty, u.pos.x, u.pos.y
+                    );
+                }
+            }
+            for w in prev.iter() {
+                if w.2 && !now.iter().any(|e| e.1 == w.1 && e.2) {
+                    eprintln!(
+                        "  slots f{at}: - 1/{} hold {}",
+                        w.0, sim.units[w.1].hold_frames
+                    );
+                }
+            }
+        }
+    });
+    if at % 25 == 0 || at == hi {
+        let held: Vec<(i16, i32)> = now
+            .iter()
+            .filter(|e| !e.2 && sim.units[e.1].hold_frames != 0)
+            .map(|e| (e.0, sim.units[e.1].hold_frames))
+            .collect();
+        eprintln!("  slots f{at}: held {held:?}");
+    }
+    PREV.with(|p| *p.borrow_mut() = now);
+}
+
 /// A Great Sahara capture walked from its own start dump with run381's head
 /// borrowed, until the draw stream parts (or the trace ends). `None` when
 /// the captures are not on this machine.
@@ -103,6 +160,10 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
+        // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by
+        // object number over a window, with the dead slots' holds — the
+        // allocator's view, for a word that is a numbering (item 1594).
+        debug_slots(&built.sim, at);
         if let Some((sf, _, _)) = sweep
             && sf == at
             && let Some(rec) = built.sim.sweep_watch.take()
@@ -553,7 +614,7 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 22)],
+            [(1, 11)],
             "the blocks keys first part on"
         );
         // Gaia's herds hold over the whole window.
@@ -562,7 +623,7 @@ mod tests {
             "gaia's animals agree to block 259"
         );
         // Item 1354, the `mylos` cache: 23 → 22.
-        pin_eq!(w.firsts.len(), 22, "keys parted over the window");
+        pin_eq!(w.firsts.len(), 11, "keys parted over the window");
     }
 
     /// **The third map's long word, 12783, widened whole** (item 1133):
@@ -647,7 +708,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_12783_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12778, 61)],
+            [(12778, 39)],
             "the blocks keys first part on, to the old word's"
         );
         // The make list's value parted on 12979 until item 1251, the
@@ -664,7 +725,7 @@ mod tests {
         // 23 Citizens' `mylos` of block 12944, ours 4 against 2 a frame
         // ahead of the original's refresh.
         // Item 1457: 172 → 164; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 131, "every key parted on run416");
+        pin_eq!(w.firsts.len(), 108, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):
@@ -747,7 +808,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 13_183)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13177, 63)],
+            [(13177, 41)],
             "the blocks keys first part on, to the old word's"
         );
         pin!(
@@ -769,7 +830,7 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 173.
         // Item 1457: 117 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 67, "every key parted on run417");
+        pin_eq!(w.firsts.len(), 44, "every key parted on run417");
     }
 
     /// **The third map's long word, 14587, widened whole** (item 1163):
@@ -851,7 +912,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_14587_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(14582, 73), (14587, 2)],
+            [(14582, 51), (14587, 2)],
             "the blocks keys first part on, to the old word's"
         );
         // **14661: the Spice route** (item 1189, the value diff of the
@@ -874,7 +935,7 @@ mod tests {
             pin_eq!(row(1, o, what), None, "1/{o}'s {what} agrees");
         }
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 161.
-        pin_eq!(w.firsts.len(), 76, "every key parted on run418");
+        pin_eq!(w.firsts.len(), 53, "every key parted on run418");
     }
 
     /// **The third map's long word, 15586, widened whole** (item 1171):
@@ -946,12 +1007,12 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15586_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15581, 73)],
+            [(15581, 51)],
             "the blocks keys first part on, to the old word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 176.
         // Item 1451, `largest_gather` (AI §115): 122 → 119.
-        pin_eq!(w.firsts.len(), 86, "every key parted on run426");
+        pin_eq!(w.firsts.len(), 62, "every key parted on run426");
     }
 
     /// **The third map's long word, 15982, widened whole** (item 1177):
@@ -1042,7 +1103,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15982_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15977, 65)],
+            [(15977, 42)],
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: the human's
@@ -1051,7 +1112,7 @@ mod tests {
         // against 48600 — the 15982 pair's ratio.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 164.
         // Item 1451, `largest_gather` (AI §115): 111 → 108.
-        pin_eq!(w.firsts.len(), 75, "every key parted on run428");
+        pin_eq!(w.firsts.len(), 51, "every key parted on run428");
     }
 
     /// **The third map's long word, 16681, widened whole** (item 1189):
@@ -1138,7 +1199,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_16681_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16676, 75)],
+            [(16676, 52)],
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: a make offer's value on
@@ -1147,7 +1208,7 @@ mod tests {
         // army group's id on 16891, stamped six frames apart again.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 177.
         // Item 1451, `largest_gather` (AI §115): 123 → 119.
-        pin_eq!(w.firsts.len(), 86, "every key parted on run442");
+        pin_eq!(w.firsts.len(), 60, "every key parted on run442");
     }
 
     /// **The third map's long word, 17623, widened whole** (item 1194):
@@ -1204,7 +1265,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_17623_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(17618, 65)],
+            [(17618, 43)],
             "the blocks keys first part on, to the old word's"
         );
         // **Past it, the standing families and one row they reach**:
@@ -1223,7 +1284,7 @@ mod tests {
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         // Item 1451, `largest_gather` (AI §115): 106 → 104.
-        pin_eq!(w.firsts.len(), 71, "every key parted on run449");
+        pin_eq!(w.firsts.len(), 48, "every key parted on run449");
     }
 
     /// **The gap before the third map's word, widened** (item 1206):
@@ -1286,12 +1347,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 102 → 100.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(17140, 67), (17147, 9), (17176, 1), (17201, 1), (17403, 6)],
+            [(17140, 44), (17147, 9), (17176, 1), (17403, 6)],
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 172.
         // Item 1451, `largest_gather` (AI §115): 119 → 117.
-        pin_eq!(w.firsts.len(), 84, "every key parted on run457");
+        pin_eq!(w.firsts.len(), 60, "every key parted on run457");
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):
@@ -1334,12 +1395,12 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 103 → 101.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(23744, 68), (23801, 1)],
+            [(23744, 46)],
             "the blocks keys first part on"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 157.
         // Item 1451, `largest_gather` (AI §115): 104 → 102.
-        pin_eq!(w.firsts.len(), 69, "every key parted on run458");
+        pin_eq!(w.firsts.len(), 46, "every key parted on run458");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

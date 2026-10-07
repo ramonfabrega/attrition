@@ -434,6 +434,26 @@ pub const fn reload_frames(
 }
 
 impl crate::Sim {
+    /// `LeaderData::get_spy_upgrade@006e1090`: how many of `SPIES_UPGRADE_1..3`
+    /// the player holds.
+    pub(crate) fn spy_upgrade_level(&self, who: Player) -> i32 {
+        let p = &self.tech[who as usize];
+        self.tech_tree
+            .roles
+            .spy_upgrade_preq
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .count() as i32
+    }
+
+    /// `ObjectData::is(0x3a, 0)` on a unit type: the Spy line.
+    pub(crate) fn is_spy_type(&self, rec: usize) -> bool {
+        self.unit_types[rec].tree.is_some_and(|t| {
+            self.tech_tree.types.get(0x3a).is_some() && self.tech_tree.is(t, 0x3a, false)
+        })
+    }
+
     /// Count every held supply-upgrade prerequisite, not a leading run.
     pub(crate) fn supply_upgrade_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];

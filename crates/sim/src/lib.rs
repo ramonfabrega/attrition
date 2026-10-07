@@ -135,6 +135,16 @@ pub const ATTRITION_REFRESH_FRAMES: i64 = 32;
 /// [`ATTRITION_REFRESH_FRAMES`]' is nested inside. `docs/COMBAT.md` §33.
 pub const TARGETED_DECAY_FRAMES: i64 = 16;
 
+/// `TypeIndex` `HVYMACHINEGUN` — the lineage `get_job_time` halves the
+/// machine gun's pack and unpack for (`is(0x7d, 0)`, [`Sim::cast_job_time`]).
+const HVYMACHINEGUN: tech::TypeId = 0x7d;
+/// `TypeIndex` `HOWITZER`, `KATYUSHA` and `MLRS` — the three types
+/// `get_job_time` shortens the siege pack and unpack for, each asked
+/// strictly (`is(x, 1)`, [`Sim::cast_job_time`]).
+const HOWITZER: tech::TypeId = 0x10f;
+const KATYUSHA: tech::TypeId = 0x116;
+const MLRS: tech::TypeId = 0x111;
+
 /// [`Unit::head_serial`]: the head order's identity, the original's
 /// `UnitOrder *`. **Identity, not state**: it compares equal to every other
 /// serial, so two units that differ only in which object heads their list
@@ -1252,6 +1262,11 @@ pub struct Sim {
     /// [`border_pass`]): the owners a fix computed and every region's resume
     /// index. `None` once every land region is done.
     pub border_pass: Option<border_pass::BorderPass>,
+    /// Per cell (row-major), the city whose claim [`Sim::recompute_territory`]
+    /// last found winning it, `−1` for none or a fort's — `compute_reg_territory`'s
+    /// `local_1c`, which names the city a runner-up marks `bordering`
+    /// (`docs/AI.md` §167).
+    pub territory_won: Vec<i32>,
     /// `GoodData::ever_seen` (`+0x20`), the bits `World::compute_reg_territory`'s
     /// per-cell goods scan sets beside `Leader::new_rare` (item 1555,
     /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
@@ -1695,6 +1710,7 @@ impl Sim {
             wonders_built: 0,
             borders_fixed: false,
             border_pass: None,
+            territory_won: Vec::new(),
             good_seen_bits: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
@@ -2114,17 +2130,20 @@ impl Sim {
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
+        let uranium = self.uranium_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 discount,
                 stable_rares,
+                uranium,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
                 discount,
                 stable_rares,
+                uranium,
                 ..cost::Modifiers::default()
             },
         };
@@ -2142,6 +2161,52 @@ impl Sim {
             .and_then(|d| d.where_)
             .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
             .map(|b| b.ident)
+    }
+
+    /// `TypeData::get_cost@00664090:416`–`420`: a type of the Nuclear Missile
+    /// line (`is(0x13b, 0)`) takes `URANIUM_NUKE_COST` off the scaled base
+    /// when the player holds Uranium — one more arm of the pre-ramp tail,
+    /// on the train and the research arm alike. Great Sahara's Persians
+    /// collect it between frames 1985 and 2182; their second queued ICBM
+    /// (`1/2034` on 2183) is priced 927/1069 for it (`docs/AI.md` §167).
+    pub fn uranium_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM) {
+            self.tuning.uranium_nuke_cost
+        } else {
+            0
+        }
+    }
+
+    /// `is(0x13b, 0)` on a unit record's type: the Nuclear Missile's line.
+    fn is_nuke_line_type(&self, ty: usize) -> bool {
+        self.unit_types[ty].tree.is_some_and(|t| {
+            t == airbase::NUCLEARMISSILE
+                || (t < self.tech_tree.types.len()
+                    && self.tech_tree.is(t, airbase::NUCLEARMISSILE, false))
+        })
+    }
+
+    /// What `get_cost`'s ramp counts beyond `num_units + num_queued`
+    /// (`LeaderData::get_support_count@006da110` and `get_cost:546`): the
+    /// leader's **`nukes_used`**, once for the two types the support count
+    /// names by index (`0x13b`, `0x13c`) and once more for any type of the
+    /// Nuclear Missile's line — so a spent nuke makes the next missile
+    /// dearer forever, and an ICBM twice over (`docs/AI.md` §167). The
+    /// matching `missiles_used` term (`0x139`, `0x13a`) is not modelled: no
+    /// capture prices one after a launch.
+    fn nuke_ramp_extra(&self, who: Player, ty: usize) -> i32 {
+        let Some(t) = self.unit_types[ty].tree else {
+            return 0;
+        };
+        let used = self.nukes.used_of(who);
+        let mut extra = 0;
+        if t == 0x13b || t == 0x13c {
+            extra += used;
+        }
+        if self.is_nuke_line_type(ty) {
+            extra += used;
+        }
+        extra
     }
 
     /// `TypeData::get_cost@00664090`'s Horses and Rubber arm, in the
@@ -2189,10 +2254,35 @@ impl Sim {
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
         let french = self.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
-            self.tuning.french_siege_cost
-        } else {
-            0
+            return self.tuning.french_siege_cost;
         }
+        // The tail's last arm (`get_cost:336`–`343`): a Spy or a General
+        // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
+        // (Great Sahara's Spy at `1/2030` is 25/25 on 1983, 50/50 before
+        // item 1583). The Russian spy arm before it is not modelled.
+        if self.is_spy_or_general(ty)
+            && self
+                .tech_tree
+                .roles
+                .spy_general_cheaper_preq
+                .is_some_and(|t| {
+                    self.tech_tree
+                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                })
+        {
+            return self.tuning.spy_general_cost;
+        }
+        0
+    }
+
+    /// `is(0x3a, 1) || is(0x36, 1)`: a Spy or a General, the strict test.
+    fn is_spy_or_general(&self, ty: usize) -> bool {
+        let strict = |x: tech::TypeId| {
+            self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, true)
+            })
+        };
+        strict(0x3a) || strict(0x36)
     }
 
     /// A unit type's trainer as the raw `UnitTypeData +0x40`.
@@ -2273,7 +2363,7 @@ impl Sim {
         let mut discount = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
-                - self.tech_tree.military_level_of(t);
+                - self.tech_tree.military_level_in(&self.setup, t);
             if ahead > 0 {
                 discount = self.tuning.military_upgrade_discount * ahead;
                 let span = self.setup.ending - self.setup.starting_age + 1;
@@ -2313,7 +2403,7 @@ impl Sim {
         }
         let level = self.unit_types[ty]
             .tree
-            .map_or(0, |t| self.tech_tree.military_level_of(t))
+            .map_or(0, |t| self.tech_tree.military_level_in(&self.setup, t))
             .max(1);
         let ahead = self.tech[who as usize].epoch[tech::Line::Military.index()] - level;
         if ahead <= 0 {
@@ -2402,7 +2492,10 @@ impl Sim {
         // ramp reads only the first of the two arrays; see
         // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
-            of_type: muster.by_type[ty] + muster.queued_by_type[ty] + self.worker_support(who, ty),
+            of_type: muster.by_type[ty]
+                + muster.queued_by_type[ty]
+                + self.worker_support(who, ty)
+                + self.nuke_ramp_extra(who, ty),
             of_group: unit
                 .group
                 .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
@@ -3071,6 +3164,21 @@ impl Sim {
         if let Some(ladder) = ladder {
             let n = self.speed_upgrade_level(who, ladder);
             tail.push(production::Adjust::Ratio(10 - n, 10));
+        }
+        // `SPIES_GENERALS_CREATED_FASTER`: a Spy or a General under the
+        // bonus takes half (`train_time@006508c0:271`–`283`, after the
+        // cotton arm and before the wool one; item 1584).
+        if self.is_spy_or_general(ty)
+            && self
+                .tech_tree
+                .roles
+                .spy_general_faster_preq
+                .is_some_and(|t| {
+                    self.tech_tree
+                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                })
+        {
+            tail.push(production::Adjust::Ratio(1, 2));
         }
         tail
     }
@@ -4809,7 +4917,22 @@ impl Sim {
     /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.players.len()).expect("too many players");
-        territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);
+        let by_source = territory::compute_all_territory_won(
+            &mut self.world,
+            &self.tuning,
+            &self.sources,
+            players,
+        );
+        let mut city_of = vec![-1; self.sources.len()];
+        for (c, city) in self.cities.iter().enumerate() {
+            if let Some(si) = city.source.filter(|&si| si < city_of.len()) {
+                city_of[si] = c as i32;
+            }
+        }
+        self.territory_won = by_source
+            .into_iter()
+            .map(|si| usize::try_from(si).map_or(-1, |si| city_of[si]))
+            .collect();
     }
 
     /// Records the stream's word *before* the phase named runs, so the
@@ -4839,19 +4962,53 @@ impl Sim {
     /// casts.
     ///
     /// SEAM, and it is a list rather than a shrug: the function adjusts
-    /// nine of the fifty-five rows and **none of them is one this crate
-    /// issues**. `0x27d` Entrench takes the French tribe bonus and
-    /// Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
-    /// `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c`, the siege pack pair, take
-    /// the Turkish bonus, Napoleon's, a half for two type masks and a
-    /// quarter for a third; `0x28d`/`0x28e`, the machine gun's, halve for
-    /// one; `0x280`/`0x281`, Sabotage and Sniper, halve under a tribe
-    /// bonus and flatten to 10 for one mask. The fishing boat's `0x292`
-    /// and the transport `0x28a` are named by no arm, so the record's
-    /// field is the number — run58's forty frames between the queue on
-    /// 4948 and the unpack on 4989 (`docs/ORDERS.md` §6.9).
+    /// nine of the fifty-five rows. `0x27d` Entrench takes the French
+    /// tribe bonus and Antipater's rate; `0x275` Bribe and `0x27f`
+    /// Informer halve under `SPIES_CRAFT_FASTER`; `0x280`/`0x281`,
+    /// Sabotage and Sniper, halve under a tribe bonus and flatten to 10 for
+    /// one mask; and the siege pair's Turkish `turk_pack` and Napoleon's
+    /// `napoleon_pack` — none of them reached, and neither constant loaded.
+    /// ~~The siege pair's three lineages and the machine gun's one~~:
+    /// [`Sim::cast_job_time`] (item 1608). The fishing boat's `0x292` and
+    /// the transport `0x28a` are named by no arm, so the record's field is
+    /// the number — run58's forty frames between the queue on 4948 and the
+    /// unpack on 4989 (`docs/ORDERS.md` §6.9).
     pub fn spell_job_time(&self, spell: i32) -> i16 {
         self.spell(spell).map_or(0, |s| s.job_time)
+    }
+
+    /// `get_job_time(o, who)@00675800` for caster `u`: [`Sim::spell_job_time`]
+    /// with the two type arms, read off the listing.
+    ///
+    /// - **The siege pair** `0x28b`/`0x28c` (`00675a10`–`00675ac1`): a
+    ///   caster whose type `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)`
+    ///   (Katyusha) takes the row's `JOB_TIME` halved; otherwise one that
+    ///   `is(0x111, 1)` (MLRS) takes it quartered (`cltd; and 3; sar 2`,
+    ///   toward zero). The Catapult's 80 is 20 for an MLRS: the coverage
+    ///   pair's `1/65` casts its unpack on 2879 and stands unpacked on
+    ///   block 2900.
+    /// - **The machine gun's** `0x28d`/`0x28e` (`00675ac3`–`00675b16`): a
+    ///   caster whose type `is(0x7d, 0)` — the Heavy Machine Gun's lineage,
+    ///   the Advanced Machine Gun in it — takes it halved. 50 is 25: the
+    ///   pair's Advanced Machine Gun `1/74` casts on 2868 and stands
+    ///   unpacked on block 2894 (`docs/AI.md` §170).
+    pub(crate) fn cast_job_time(&self, u: usize, spell: i32) -> i16 {
+        use orders::spell;
+        let t = self.spell_job_time(spell);
+        let exactly = |x: tech::TypeId| {
+            self.unit_tree(u)
+                .is_some_and(|ut| self.tech_tree.is(ut, x, true))
+        };
+        match spell {
+            spell::PACK | spell::UNPACK if exactly(HOWITZER) || exactly(KATYUSHA) => t / 2,
+            spell::PACK | spell::UNPACK if exactly(MLRS) => t / 4,
+            spell::PACK_MACHINEGUN | spell::UNPACK_MACHINEGUN
+                if self.unit_line_is(u, HVYMACHINEGUN) =>
+            {
+                t / 2
+            }
+            _ => t,
+        }
     }
 
     /// `GameAccess::rnd(n)@0043cca0` — `Random::get(game_random, 0, 0xffff)

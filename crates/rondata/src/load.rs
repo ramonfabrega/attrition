@@ -1627,6 +1627,16 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `SPIES_GENERALS_CHEAPER` is the 88th (`0x303`), Strategy in the
+    // shipped file: the gate on `get_cost`'s Spy and General discount.
+    tree.roles.spy_general_faster_preq = match bonus_preqs.get(86) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
+    tree.roles.spy_general_cheaper_preq = match bonus_preqs.get(87) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `EXPLORE_MAP_BONUS` is the seventh (`0x2b2`) and `REVEAL_ENEMY_BONUS`
     // the ninth (`0x2b4`): the two prerequisites `gain_tech` turns into
     // `leader_flags & 0x1000` and `& 0x800`, the bits `WorldData::was_seen`
@@ -1721,6 +1731,7 @@ pub fn load_tables(
     tree.roles.troops_speed_preq = [bonus_at(58), bonus_at(59), bonus_at(60)];
     tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
+    tree.roles.spy_upgrade_preq = [bonus_at(92), bonus_at(93), bonus_at(94)];
     // `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3`, rows 70–72 and
     // 73–75: the construction clock's and the hit points' levels
     // (`docs/AI.md` §121).

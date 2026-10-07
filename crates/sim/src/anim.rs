@@ -795,6 +795,18 @@ impl Sim {
     /// its `cur_time` and its `end_time` — the length it was given when
     /// the animation was set — and the next `set_anim` picks up the new
     /// piece's lengths.
+    ///
+    /// **The track is the piece's, and it is re-read** (`Guy::update_gpiece
+    /// @005d8530:52`–`:68`): a crew guy (`guy_num != 0`) takes the new
+    /// piece's `track_dx/dy`, and a piece with none writes **zero** — the
+    /// figure stands on its leader. So a crew figure whose packed piece
+    /// tracked loses its [`Follow`] when the unpacked one does not, and
+    /// gains one, seated on guy 0's point, the other way round; the
+    /// caller's `set_new_location(…, 1)` then puts it on its offset. The
+    /// coverage pair's Advanced Machine Gun `1/74` unpacks on 2893 and its
+    /// second figure stands on guy 0's point on block 2894 (`docs/AI.md`
+    /// §170). Until item 1608 the track was read once, by
+    /// [`Sim::seat_guys`].
     pub fn update_gpiece(&mut self, u: usize) {
         let (who, o, ty) = {
             let unit = &self.units[u];
@@ -802,9 +814,29 @@ impl Sim {
         };
         let packed = self.units[u].combat.packed;
         let Some(ty) = ty else { return };
+        let (at, facing) = (
+            self.units[u].movement.body.pos,
+            self.units[u].movement.facing,
+        );
         for n in 0..self.units[u].guys.len() {
             let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
             self.units[u].guys[n].gpiece = piece;
+            if n == 0 {
+                continue;
+            }
+            let track = self.art.tracks.get(&piece).copied();
+            let guy = &mut self.units[u].guys[n];
+            guy.follow = match (guy.follow, track) {
+                (Some(f), Some(track)) => Some(Follow { track, ..f }),
+                (None, Some(track)) => Some(Follow {
+                    body: crate::movement::Body::at(at),
+                    des: at,
+                    facing,
+                    des_angle: facing,
+                    track,
+                }),
+                (_, None) => None,
+            };
         }
     }
 
@@ -2451,6 +2483,118 @@ mod tests {
     use crate::combat::Rng;
     use crate::tuning::Tuning;
     use crate::world::World;
+
+    /// **An unpack re-reads the crew's track, and a trackless figure
+    /// stands on its leader** (`Guy::update_gpiece@005d8530:52`–`:68`,
+    /// `cast_unpack@006709c0:60`–`:63`, item 1608, `docs/AI.md` §170). A
+    /// two-figure packer whose packed crew piece tracks at (67, −100) and
+    /// whose plain one names no track: packed, figure 1 stands on its
+    /// offset; unpacked, it has no [`Follow`] and shares guy 0's point;
+    /// packed again, it is back on the offset. The coverage pair's Advanced
+    /// Machine Gun `1/74` on block 2894. Made to fail with `update_gpiece`
+    /// leaving the follow alone.
+    #[test]
+    fn an_unpack_puts_a_trackless_crew_figure_on_its_leader() {
+        let mut s = sim_at(1);
+        let ty = s.add_unit_type(UnitType {
+            hits: 100,
+            ..UnitType::default()
+        });
+        s.unit_types[ty].combat.packs = true;
+        s.unit_types[ty].type_index = 0x7f;
+        let piece = |guy: i32, gender: bool| {
+            0x7f - 0x32
+                + FIRST_UNIT_PIECE
+                + PIECES_PER_CREW * guy
+                + if gender { PIECES_PER_GENDER } else { 0 }
+        };
+        for guy in 0..2 {
+            for gender in [false, true] {
+                s.art
+                    .piece_lengths
+                    .insert(piece(guy, gender), BTreeMap::new());
+            }
+        }
+        s.art.tracks.insert(piece(1, true), (67, -100));
+        let at = Pos::new(0x4000, 0x4000);
+        let mut unit = Unit::new(1, 3, at, 100);
+        unit.ty = Some(ty);
+        unit.on_map = true;
+        let u = s.add_unit(unit);
+        s.units[u].guys = vec![Guy::fresh(-1), Guy::fresh(-1)];
+        s.units[u].movement.body.pos = at;
+        s.units[u].combat.packed = true;
+        s.update_gpiece(u);
+        s.set_new_location(u, at, true);
+        let offset = s.units[u].guys[1].follow.expect("a tracked crew figure");
+        assert_eq!(offset.track, (67, -100));
+        assert_ne!(offset.body.pos, at, "packed, it stands on its offset");
+        s.cast_unpack(u);
+        assert!(!s.units[u].combat.packed);
+        assert_eq!(s.units[u].guys[1].gpiece, piece(1, false));
+        assert_eq!(
+            s.units[u].guys[1].follow, None,
+            "unpacked, the piece names no track: the figure is on its leader"
+        );
+        s.cast_pack(u);
+        let back = s.units[u].guys[1]
+            .follow
+            .expect("packed again, tracked again");
+        assert_eq!(back.track, (67, -100));
+        assert_eq!(
+            back.body.pos, offset.body.pos,
+            "and snapped onto its offset"
+        );
+    }
+
+    /// **The unpack's re-seat** (`cast_unpack@006709c0:60`–`:63`, item
+    /// 1608): a crew figure whose unpacked piece still tracks, at another
+    /// offset, is put on the new offset the frame it unpacks rather than
+    /// walking there. No capture holds it — the machine gun's unpacked
+    /// crew has no track, and stands on its leader either way — so this
+    /// test is the arm's only holder. Made to fail with the re-seat
+    /// removed.
+    #[test]
+    fn an_unpack_puts_a_tracked_crew_figure_on_its_new_offset() {
+        let mut s = sim_at(1);
+        let ty = s.add_unit_type(UnitType {
+            hits: 100,
+            ..UnitType::default()
+        });
+        s.unit_types[ty].combat.packs = true;
+        s.unit_types[ty].type_index = 0x7f;
+        let piece = |guy: i32, gender: bool| {
+            0x7f - 0x32
+                + FIRST_UNIT_PIECE
+                + PIECES_PER_CREW * guy
+                + if gender { PIECES_PER_GENDER } else { 0 }
+        };
+        for guy in 0..2 {
+            for gender in [false, true] {
+                s.art
+                    .piece_lengths
+                    .insert(piece(guy, gender), BTreeMap::new());
+            }
+        }
+        s.art.tracks.insert(piece(1, true), (67, -100));
+        s.art.tracks.insert(piece(1, false), (0, -192));
+        let at = Pos::new(0x4000, 0x4000);
+        let mut unit = Unit::new(1, 3, at, 100);
+        unit.ty = Some(ty);
+        unit.on_map = true;
+        let u = s.add_unit(unit);
+        s.units[u].guys = vec![Guy::fresh(-1), Guy::fresh(-1)];
+        s.units[u].movement.body.pos = at;
+        s.units[u].combat.packed = true;
+        s.update_gpiece(u);
+        s.set_new_location(u, at, true);
+        let packed = s.units[u].guys[1].follow.expect("tracked").body.pos;
+        s.cast_unpack(u);
+        let f = s.units[u].guys[1].follow.expect("still tracked");
+        assert_eq!(f.track, (0, -192));
+        assert_ne!(f.des, packed, "the new offset is elsewhere");
+        assert_eq!(f.body.pos, f.des, "and the figure is put on it");
+    }
 
     fn stepped(seed: u32, n: usize) -> u32 {
         let mut r = Rng::new(seed);

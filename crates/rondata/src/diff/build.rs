@@ -516,9 +516,11 @@ mod tests {
         // on item 661**: the `city` slot and the `city_down` link, and
         // `bad` stays empty on both (`docs/AI.md` §63). **279,430 →
         // 372,056 on item 763**: `damage` and `damage_frac`, and `bad`
-        // stays empty (parked 728).
+        // stays empty (parked 728). **372,056 → 464,682 on item 1563**:
+        // `ever_seen` and `ever_seen_completed`, and `bad` stays empty
+        // (parked 1450).
         assert_eq!(
-            seen, 372_056,
+            seen, 464_682,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

@@ -2076,6 +2076,63 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     assert_eq!(sim.muster[0].by_type[phalanx], 1);
 }
 
+/// **A spent nuke makes the next missile dearer, and Uranium cheaper**
+/// (`LeaderData::get_support_count@006da110`, `TypeData::get_cost@00664090`
+/// `:416`–`420` and `:546`, `docs/AI.md` §167). The ICBM (`0x13c`, `FROM` the
+/// Nuclear Missile `0x13b`) counts `nukes_used` once as the support count
+/// names its index and once as a type of the nuke's line; the rare's 5 % comes
+/// off the scaled base before the ramp. Great Sahara's Persians price their
+/// second ICBM at 927/1069 on frame 2183 for both.
+///
+/// Made to fail once with each arm removed.
+#[test]
+fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+    let mut tree = TechTree::new();
+    let barracks = tree.add(TypeDef::building("Silo"));
+    let mut ids = Vec::new();
+    while tree.types.len() <= 0x13c {
+        ids.push(tree.add(TypeDef::unit("filler", UnitTraits::default()).at(barracks)));
+    }
+    tree.types[0x13c].from = Some(0x13b);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let (kn, oil) = (economy::Resource::Knowledge, economy::Resource::Oil);
+    let icbm = sim.add_unit_type(UnitType {
+        tree: Some(0x13c),
+        price: cost::Price {
+            class: cost::RampClass::Military,
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(kn, 75)
+                .with_base(oil, 90)
+                .with_support(oil, 75)
+                .with_support(kn, 75)
+        },
+        ..citizen_type()
+    });
+    let at = |sim: &Sim, uranium: i32| {
+        let m = cost::Modifiers {
+            uranium,
+            ..cost::Modifiers::default()
+        };
+        let p = sim.price_with(0, icbm, &m);
+        (p[kn.index()], p[oil.index()])
+    };
+    assert_eq!(at(&sim, 0), (750, 900), "no nuke spent, nothing queued");
+    sim.nukes.used = vec![1, 0];
+    assert_eq!(
+        at(&sim, 0),
+        (750 + 150, 900 + 150),
+        "one spent nuke counts twice for the ICBM"
+    );
+    assert_eq!(sim.uranium_discount(0, icbm), 0, "without the rare");
+    sim.ledgers[0].rare |= 1 << (economy::URANIUM - economy::BASE_RARE);
+    assert_eq!(sim.uranium_discount(0, icbm), 5);
+    // `(100 − 5) × 750 / 100 = 712`, then the ramp's 150; 855 + 150 on oil.
+    assert_eq!(at(&sim, 5), (712 + 150, 855 + 150));
+}
+
 #[test]
 fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_discount() {
     // `docs/AI.md` §56, on Great Lakes' own numbers: the Phalanx whose
@@ -2159,6 +2216,87 @@ fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_di
     // discount never runs the other way.
     sim.tech[0].epoch[Line::Military.index()] = 0;
     assert_eq!(pair(sim.price_of(0, phalanx)), (50, 30));
+}
+
+#[test]
+fn a_spy_costs_half_under_the_spies_and_generals_bonus() {
+    // `get_cost@00664090:336`–`343`: a Spy (`TypeIndex 0x3a`) or a General
+    // (`0x36`) takes `SPY_GENERAL_COST` (a half) off while the leader holds
+    // `SPIES_GENERALS_CHEAPER`'s prerequisite — Strategy, `TECHBONUSES` row
+    // 88. Great Sahara's Spy at `1/2030` queues at 25/25 on 1983, 50/50
+    // before item 1583 (`docs/AI.md` §158). Made to fail with the arm
+    // dropped (50 throughout) and with the gate read as always held.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let strategy = tree.add(TypeDef::epoch("Strategy", crate::tech::Line::Science, 0));
+    while tree.types.len() < 0x3a {
+        tree.add(TypeDef::building("pad"));
+    }
+    let spy_t = tree.add(TypeDef::unit("Spy", UnitTraits::default()));
+    assert_eq!(spy_t, 0x3a);
+    tree.roles.spy_general_cheaper_preq = Some(strategy);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let spy = sim.add_unit_type(UnitType {
+        tree: Some(spy_t),
+        price: cost::Price {
+            class: cost::RampClass::OtherCivilian,
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Wealth, 5)
+        },
+        ..citizen_type()
+    });
+    sim.tech[0].tech[spy_t] = true;
+    sim.tech[1].tech[spy_t] = true;
+    sim.tech[0].tech[strategy] = false;
+    let wealth = economy::Resource::Wealth.index();
+    assert_eq!(sim.price_of(0, spy)[wealth], 50, "no Strategy yet");
+    sim.tech[0].tech[strategy] = true;
+    assert_eq!(sim.price_of(0, spy)[wealth], 25, "Strategy: a half");
+    // The player without it still pays the whole of it.
+    assert_eq!(sim.price_of(1, spy)[wealth], 50);
+}
+
+#[test]
+fn a_spy_trains_in_half_the_time_under_the_created_faster_bonus() {
+    // `ObjectData::train_time@006508c0:271`–`283`: a Spy or a General under
+    // `SPIES_GENERALS_CREATED_FASTER` (Tactics, `TECHBONUSES` row 87) takes
+    // half. Great Sahara's Spy at `1/2030` is born on 2077 in the original
+    // and ours finished it later (item 1584, `docs/AI.md` §159). Made to
+    // fail with the arm dropped and with the gate read as always held.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let tactics = tree.add(TypeDef::epoch("Tactics", crate::tech::Line::Science, 0));
+    while tree.types.len() < 0x3a {
+        tree.add(TypeDef::building("pad"));
+    }
+    let spy_t = tree.add(TypeDef::unit("Spy", UnitTraits::default()));
+    let citizen_t = tree.add(TypeDef::unit("Citizen", UnitTraits::default()));
+    tree.roles.spy_general_faster_preq = Some(tactics);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let spy = sim.add_unit_type(UnitType {
+        tree: Some(spy_t),
+        ..citizen_type()
+    });
+    let citizen = sim.add_unit_type(UnitType {
+        tree: Some(citizen_t),
+        ..citizen_type()
+    });
+    sim.tech[0].tech[tactics] = false;
+    let half = |s: &Sim, ty| {
+        s.train_tail(0, ty)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Ratio(1, 2)))
+    };
+    assert!(!half(&sim, spy), "no Tactics yet");
+    sim.tech[0].tech[tactics] = true;
+    assert!(half(&sim, spy), "Tactics: a half");
+    assert!(!half(&sim, citizen), "a Citizen is not a Spy");
 }
 
 #[test]
@@ -3740,6 +3878,12 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
     sim.units[unit].combat.packed = true;
+    // The siege row at `craftrules.xml`'s 80, so the first `do_cast`
+    // frame is the animation's and not the cast's: with no table the
+    // job time read 0 and the unpack landed at once (item 1608).
+    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    let row = usize::try_from(crate::orders::spell::UNPACK - crate::orders::spell::FIRST).unwrap();
+    sim.spells[row].job_time = 80;
     // The unit's own angle is ahead of the figure's: a turn still owed.
     sim.units[unit].movement.heading = movement::Angle::NORTH;
     assert_ne!(

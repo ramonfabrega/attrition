@@ -462,9 +462,11 @@ pub struct CityAi {
     pub dock_tile: i32,
     pub space: [i32; 3],
     pub ter: [i32; RESOURCES],
-    /// `CityData::ocean_filled` (+0x66) and `bordering` (+0x65): zeroed
-    /// by the sweep, read by the site score and the dock family; no
-    /// writer is modelled yet.
+    /// `CityData::ocean_filled` (+0x66): zeroed by the sweep, read by the
+    /// dock family; no writer is modelled yet. `bordering` (+0x65) is
+    /// written by the border pass ([`crate::Sim::advance_border_pass`], item
+    /// 1600): the winner's and the runner-up's player bits, on the winning
+    /// city of a cell whose runner-up is at war with its owner.
     pub ocean_filled: i32,
     pub bordering: i32,
 }
@@ -625,6 +627,16 @@ impl Census {
     /// A per-region slot, 0 off the table.
     pub fn reg(v: &[i32], r: u16) -> i32 {
         v.get(r as usize).copied().unwrap_or(0)
+    }
+
+    /// A per-region slot of a `ushort[64]` field read the way the
+    /// original's ordered tests read it: unsigned. `reg_free_peasants`
+    /// goes below zero (`Leader::produce_building`, `produce_city` and
+    /// `make_this` subtract one at a site that no peasant was counted
+    /// for) and the dump prints it as 65534; `create_units`, `found_cities`
+    /// and `create_buildings` compare it as the `ushort` (`docs/AI.md` §158).
+    pub fn reg_u16(v: &[i32], r: u16) -> i32 {
+        i32::from(Self::reg(v, r) as u16)
     }
 }
 
@@ -1279,6 +1291,19 @@ pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_ushort_region_slot_reads_unsigned() {
+        // `reg_free_peasants` is a `ushort[64]` and `Leader::produce_building`
+        // subtracts one at a site nothing counted: the dump prints 65534
+        // where this crate holds −2, and `create_units`' `reg_free >=
+        // reg_cities` is the unsigned compare (`docs/AI.md` §158).
+        let v = [0, -2, 3];
+        assert_eq!(Census::reg(&v, 1), -2);
+        assert_eq!(Census::reg_u16(&v, 1), 65534);
+        assert_eq!(Census::reg_u16(&v, 2), 3);
+        assert_eq!(Census::reg_u16(&v, 9), 0);
+    }
+
     use super::*;
 
     /// **Two offers of one type at one value are not one offer**, and the

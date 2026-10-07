@@ -144,7 +144,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -212,9 +212,11 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1532: Pasargadae, the Persians' second, named in run672's window.
     // Item 1546: Arak, the Persians' third, named on run678's block 1184.
     // Item 1561: Tabriz, the Persians' fourth, named in run683's window.
+    // Item 1565: Khomein, the Persians' fifth, named on run683's block 1819.
+    // Item 1581: Rigan, the Persians' sixth, named on run702's block 1986.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Tabriz York flags increment length size",
+        "Amiens Arak Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -260,7 +262,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
@@ -2426,7 +2428,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // word (block 728, item 1539), and run678's frame-982 word (block 983,
     // item 1544) and frame-1183 word (block 1184, item 1546), and run679's
     // frame-1277 word (block 1278, item 1552) and frame-1408 word (block
-    // 1409, item 1558), each with two either side.
+    // 1409, item 1558), and run710's frame-1532 word (block 1533, item
+    // 1563), frame-1610 word (block 1611, item 1586), frame-1696 word
+    // (block 1697, item 1588) and frame-1719 word (block 1720, item 1589),
+    // and run711's frame-1960 word (block 1961, item 1591) and frame-2166
+    // word (block 2167, item 1594), and run714's frame-2288 word (block
+    // 2289, item 1598) and frame-2296 word (block 2297, item 1602), and
+    // run715's frame-2868 word (block 2869, item 1605) and frame-2969
+    // word (block 2970, item 1608), each
+    // with two either side; the third map's
+    // lobby's run683 frame-1582 word (block 1583, item 1561), frame-1818
+    // word (block 1819, item 1565) and frame-1830 word (block 1831, item
+    // 1581).
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2438,11 +2451,24 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN678, 1184),
         (super::coverage_pair::RUN679, 1278),
         (super::coverage_pair::RUN679, 1409),
+        (super::coverage_pair::RUN710, 1533),
+        (super::coverage_pair::RUN710, 1611),
+        (super::coverage_pair::RUN710, 1697),
+        (super::coverage_pair::RUN710, 1720),
+        (super::coverage_pair::RUN711, 1961),
+        (super::coverage_pair::RUN711, 2167),
+        (super::coverage_pair::RUN714, 2289),
+        (super::coverage_pair::RUN714, 2297),
+        (super::coverage_pair::RUN715, 2869),
+        (super::coverage_pair::RUN715, 2970),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),
         (super::sahara_coverage::RUN681, 1251),
         (super::sahara_coverage::RUN683, 1583),
+        (super::sahara_coverage::RUN683, 1819),
+        (super::sahara_coverage::RUN683, 1831),
+        (super::sahara_coverage::RUN702, 1986),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2708,19 +2734,29 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1443: run603 has paired cast orders; both fields leave the pin.
     // Item 1439: run594 carries a paired cast; both fields leave again.
     // Item 1440: 18089 has no paired cast; both return to the pin.
+    // Item 1591: run710's ICBM `1/42` holds its `AIR_ATTACK_GROUND` from
+    // 1570 to 1600 in both, so the air ground order's four, the air
+    // order's six and the patrol's three leave the pin.
+    // Item 1583 (the same silo, on the third map): run702's window carries the silo's missile order (the
+    // air attack on the ground, `docs/AI.md` §158): the air-order fields
+    // (`ag_*`, `air_*`, `cruising_alt`, `patrol_*`, `returning`,
+    // `sharp_turn`, `waypoint`) are compared and leave the pin (measured
+    // on the tree after `ccc update`'s base).
+    // Item 1598: run714's window carries a paired strafe; `strafe_xx` and
+    // `strafe_yy` leave the pin.
     (
         "OrderDump",
-        "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt \
+        "attempts build_type \
          garrison_search \
          metric non_flat_gather \
-         orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
-         strafe_yy tolerance uid waypoint ",
+         orig_x orig_y retry \
+         tolerance uid ",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
-    // `mining_size`, `construct_hits`, `ever_seen` and
-    // `ever_seen_completed` no site compares. `queue` registers here: a
+    // `mining_size` and `construct_hits` no site compares; `ever_seen`
+    // and `ever_seen_completed` are compared by the shared instrument
+    // since item 1563 (parked 1450's ruling). `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
     // site (`!active && flags & 4 == 0`, item 1086), and one stood on
     // 5974..5978; since item 1120 none does on run414's 6150..6154. **One
@@ -2743,8 +2779,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // merged with it `job_counter` is compared and off this pin again.
     (
         "BuildDump",
-        "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+        "cliff construct_hits flags max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -2837,10 +2872,18 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1511: the coverage pair, the newest pair's open word; item
     // 1532: and run669's, where it stood before run672; item 1544: and
     // run672's, where it stood before run678; item 1552: and run678's,
-    // where it stood before run679.
+    // where it stood before run679; item 1563: and run679's, where it
+    // stood before run710.
     let coverage_185 = super::coverage_pair::coverage_frame_185_window();
     let coverage_583 = super::coverage_pair::coverage_frame_583_window();
     let coverage_982 = super::coverage_pair::coverage_frame_982_window();
+    let coverage_1277 = super::coverage_pair::coverage_frame_1277_window();
+    // Item 1591: and run710's, where it stood before run711.
+    let coverage_1532 = super::coverage_pair::coverage_frame_1532_window();
+    // Item 1598: and run711's, where it stood before run714.
+    let coverage_1960 = super::coverage_pair::coverage_frame_1960_window();
+    // Item 1605: and run714's, where it stood before run715.
+    let coverage_2288 = super::coverage_pair::coverage_frame_2288_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2849,10 +2892,17 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1555: and run681's blocks around the word 1197 and the word 1250.
     let sahara_1197 = super::sahara_coverage::sahara_coverage_frame_1250_window();
     // Item 1561: and run683's blocks around the word 1582.
-    let sahara_1582 = super::sahara_coverage::sahara_coverage_word_window();
+    let sahara_1582 = super::sahara_coverage::sahara_coverage_frame_1582_window();
+    // Item 1581: and run702's blocks around the word 1985.
+    let sahara_1985 = super::sahara_coverage::sahara_coverage_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2910,11 +2960,16 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_185,
         coverage_583,
         coverage_982,
+        coverage_1277,
+        coverage_1532,
+        coverage_1960,
+        coverage_2288,
         coverage,
         sahara_12,
         sahara_720,
         sahara_1197,
         sahara_1582,
+        sahara_1985,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

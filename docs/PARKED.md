@@ -223,6 +223,8 @@ against 15350409, a re-formed group's id stamp; no draw parts on them.
 original censuses a city when it is founded (run529 block 9759: land 9,
 filled 1, against ours 0), and the human player's city is never
 censused here — both standing rows under every word that reads them.
+**The human's half closed by 1605** (AI §169): the human leader takes the
+sweep.
 
 ## Parked by item 1465, 2026-10-06 — the held-out battery
 
@@ -950,7 +952,7 @@ reaches a repair while escrow stands.
 `0/2000` here, and `1/2000` is one off on `filled` and `land` from the
 first block; this crate keeps the census for a computer's cities only
 (`crate::ai`). `WANT_CH40`'s standing rows; any capture that prints a
-human's City at `CITIES=5` carries them.
+human's City at `CITIES=5` carries them. **Closed by 1605** (AI §169).
 
 (1184) **Chapter forty's built and unreached arms** (`crate::alarm`'s
 SEAMs): the gather's Scholars and University, a probe past the target's
@@ -3533,6 +3535,7 @@ Carried with it: the original runs a **full census for its human leader**
 (`0/gatherers 5`, `0/peasants 5` in every dump) and this crate runs none,
 so `census_strategy`'s `weaker` test reads the opponent's `attack` as
 nought even once the gate is fixed. That is the part to build first.
+**The carried part closed by 1605** (AI §169): the human's census runs.
 
 (380) **A bare coordinate on the staged channel is a TILE**, `n × 0xc0 +
 0x60` — measured by item 364, not read: `add hoplite who=0 4,40` put the
@@ -3684,7 +3687,8 @@ two.
 (451) **The original runs its war census for the HUMAN leader, and this
 crate leaves it at zero forever.** Opened by run115's window (item 390,
 2026-09-21) and not that item's: `0/wars`, `0/active_wars` and
-`0/active_wars_with` agree at nought for 121 blocks and part on **8001**,
+`0/active_wars_with` agree at nought for 121 blocks and part on **8001**
+(**closed by 1605**, AI §169: the human leader takes the sweep),
 where the original writes the human `wars 1`, `active_wars 1`,
 `active_wars_with 2` beside a single `production_step` tick that falls
 back to 0 on 8002 — 56 blocks after first contact. **First direct
@@ -3717,6 +3721,78 @@ woodcutter's clock, 445 v 480 (ORDERS §6.4); (105/45) Gaia's positions,
 first bad 1658 (SYNC §4.2); (124) the loop flag is per animation file;
 (116) the one `SITE` slot (AI §18); (166) `resource_cap` on five goods
 (ECONOMY); (107) `epoch[0]`.
+
+(1587) **The closing block's `ever_seen` residue** (1563, 2026-10-07):
+on a game's last block the original's buildings carry the defeated
+human's bit — two closings, fourteen rows each — and ours do not. Unread
+whether the defeat's reveal or the game's end writes it; no word stands
+on a closing block, so it names no score until one does.
+
+(1592) **`find_tpath`'s goal kept across a region seam by a land unit
+that can transport** (1589, 2026-10-07): mutation (b) of 1589's build —
+the pull-back walk's arm for a non-air unit that *can* transport — is held
+by a unit test and by no walk. The rules track's shape (DECISIONS 56 §3):
+a chapter that stages one, joined to 1497's list when a staging reaches it.
+
+(1595) **The silo's other arms, and one built arm a unit test does not
+hold** (1591, 2026-10-07): `Object::do_launch`'s silo arm is built for a
+nuke only; its non-nuke branch and the forts' and wonders' loops are
+reached by no capture (the scan is in the `SEAM`). And 1591's mutation (b)
+is held by the walk and by no unit test. The rules track's shape.
+
+(1596) **Run710's rows past the old word that 1591's build left** (1591,
+2026-10-07): `0/-1`'s `leader:production_step` 0 against 1 on 1601 (the
+launch), `treaties[1]`/`[0]` 1 against 3 on 1720 (the landing), `ever_seen`
+1 against 255 on every `0/20xx` on 1721, `0/2000`'s `city:raid_stamp` 0
+against 1745 on 1746. Behind the word at 1960; a candidate when one names them.
+
+(1599) **Three rows 1594's build left** (1594, 2026-10-07): `1/71`/`1/72`'s
+`form` −1 against 0 on 1954 (born 1924/1925 in the undumped gap);
+`insert_inside`'s and `remove_from_inside`'s leader counters
+(`+0xa28`..`+0xa34`) carried nowhere in this crate; and `Object::die`'s
+`max_range` gate read as met by every shooter with a round in flight
+(reading-only). Behind the word at 2166.
+
+(1603) **A unit leaving a building, and the rival landing end** (1598,
+2026-10-07): `come_out_place` still paints the spot fresh where the
+original paints the retained point and then moves it — 1598's build is the
+transport's arm only; unmeasured. And the rival end (the whole boarding
+disc cleared) differs from the built one only for a landing within
+`2·coll_size + 1` cells of the boarding point; no capture has one.
+
+(1606) **The closed cell's other arms** (1602, 2026-10-07): (a) the
+spiral's next arm (`produce_building:609-637`) — a city with
+`city_flags & 2` refuses a cell whose 3×3 neighbourhood holds an enemy
+object, stride 3 — unmodelled, no capture known to reach it; (b)
+`capture_city`'s tribe-0x13 arm closes with reason 0 (`:1114`), which
+flags the cell, where ours closes every capture silently; (c) ours closes
+a converted building's old half `silent` (reason 5: no refund, the mask
+kept) where the original passes 0 — only the flag is the original's here.
+
+(1609) **The human's sweep, what 1605 left** (1605, 2026-10-07): (a)
+computer assist (`leader_flags & 8`) is not modelled — an assisted human
+would run the machine and seed armies; no capture has one; (b) the human's
+research tick between sweeps is not taken; (c) the human's standing
+`control` 14 and `num_units[0]` 13 against 0 (ours counts its dead units,
+`0/0`..`0/13` `death:extra`), `treaties[1]` 1 against 3, and `SITE[].reg`
+65 against 0 — other writers', standing on every widening.
+
+(1612) **The ramp's and the border's other arms** (1600, 2026-10-07): (a)
+`produce_building`'s placement multiplies a site's score by 10 in a
+bordered city inside `circle_radius[3]` (`:570`–`576`) — not built, ours
+does not read `bordering` there; (b) the `city_flags & 0x1000` flag the
+border pass sets beside `bordering` (a cell within four cells of the city)
+and its readers (tower ×2 or ×10, temple) — no city in the window carries
+it; (c) `missiles_used` (the two missile types below the nuke) in the ramp
+is not tracked; (d) AI §158 and `ai_units.rs`'s `get_nukes` comment say the
+ICBM's `FROM` is none, where a probe reads `from(316) = Some(315)`,
+`is(316, 315)` true — the count there may need a re-read.
+
+(1615) **The guard's and the cast's unwalked arms** (1608, 2026-10-07):
+`cast_unpack`'s re-seat is held by no walk (mutation 4) — it wants a
+staging with a packer whose unpacked crew piece tracks; `get_job_time`'s
+Turkish and Napoleon arms on the siege pair (neither constant loaded) and
+its other five rows; `do_guard`'s `0x46` arm has no capture.
 
 ## Older backlog
 
@@ -3759,7 +3835,7 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-03 by item 1446 — a byte the instrument never compares
 
-(1450) **`ever_seen` and `ever_seen_completed` are pinned uncompared
+(1450) closed 2026-10-07 by item 1563: the shared widening compares both, and 1446's helper retired. **`ever_seen` and `ever_seen_completed` were pinned uncompared
 in `coverage::UNCOMPARED_BY_THE_INSTRUMENT`**, and they are what first
 contact hangs off. French East Indies parted on them for 236 blocks before
 the word did, and the met bits they drive part only through the leader
@@ -3767,6 +3843,90 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 (`third_pair::east_indies_ever_seen`); every other window still leaves
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
+
+## Loop, filed 2026-10-07 — the twenty-seventh tranche's
+
+(1590) **A seam's "no capture on file" is a dated claim nobody re-runs**
+(1588's Loop line, 2026-10-07): 1588's cause was a `SEAM` in
+`Wall::process` whose text said no capture on file holds its oil-platform
+arm (checklist row 1132), and nobody re-ran it when run679 was captured.
+A seam that says "no capture on file" could carry the `scan:` that
+notices the first capture that does — a guard, or a `seams.py` pass over
+every such seam against `docs/RUNS.md`'s runs. One reach.
+
+(1593) **A cost-grid probe against the trace's proxied `calc_cost`, as a
+tool** (1589's Loop line, 2026-10-07): the draw that parted was ten
+frames late; the cause sat on the frame before the position parted, where
+both sides spent the same grid draw, and a scratch test of `cost_marks`
+against the proxied `calc_cost` answered it in one run. The third reach
+(7070's road search, `world.rs`'s 4803, this): it graduates into a
+`RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach.
+
+(1597) **A projectile's landing reads the shooter's first parted key**
+(1591's Loop line, 2026-10-07): the frame's event was a nuke in one
+`report.py draws` line, but the cause was 150 frames back and drew nothing;
+a `RON_FIRSTS` grep for the struck object's *attacker* (`1/42`) went
+straight to block 1570, where the trace could not. A brief-checklist row:
+"a word whose event is a projectile's landing reads the shooter's first
+parted key, not the target's". **And 1594's** (2026-10-07), a sibling
+row: the field list of the first parting was another unit's, because two
+slots swapped; the answer was the births in an undumped gap, read by
+`uid` against our own allocation (`RON_DEBUG_SLOTS`, now in `third.rs`):
+"a word where two numbers swap reads the births by `uid` across the gap
+before any unit's fields". One reach.
+
+(1601) **The race's Loop lines** (1565, 1581, 1583–1585, the Sonnet
+racer's journals, 2026-10-07): (a) a lane greps the integration branch,
+`docs/AI.md` and the journals for the function it is about to build — two
+lanes built `do_launch`'s silo arm the same hour (1585); (b) a
+`who/o`-sliced `BUILDDATA` printer beside `samegame.py` (1565); (c) a
+widening's `RON_FIRSTS` prints, beside each dense block, whether any draw
+on or before the word's frame differs, since a block no draw reads is not
+the word (1581, two captures spent); (d) a per-unit history of a key, not
+its first parting only (1581); (e) "a mechanism that makes a record kind
+appear in a window runs the `coverage` tests too", a checklist row (1583);
+(f) a coverage row that fails on a `ushort` read above 32767 — the loader
+mapped 65534 to −2 silently (1583); (g) a `WORLD` category in the coverage
+lobby's capture for the danger map, and a guard listing each consumer of a
+derived `build_flags` bit beside whether it reads `basic_type()` (1584).
+One reach each.
+
+(1604) **A byte watch as a tracer define** (1598's Loop line,
+2026-10-07): what found 1598's writer was a packet compared cell for cell
+against ours over a rectangle, then a per-frame watch of one byte (43 s a
+run) — a scratch `#ifdef` per item (1438's run592, now 1598's run713). A
+`RON_WATCH_BYTE=<va expr>@<lo>-<hi>` define in the tracer is the third
+reach of the shape; it graduates into `tools/`.
+
+(1607) **A pin that names a residue bit by value is a seam in disguise**
+(1602's Loop line, 2026-10-07): 1602's writer was a world-cell bit no dump
+prints, found by grepping the export for `| 2` on a `0x1c`-stride pointer;
+the full suite then found run240's older pin (776's "a bit the searches do
+not read") recording the same bit as residue. `seams.py` could list the
+pins whose comments say "a bit … not read". One reach.
+
+(1610) **A standing row a reader starts reading on the word's frame**
+(1605's Loop line, 2026-10-07): 1605's cause was a row every widening had
+printed as standing for weeks, and a walk back by first partings is blind
+to a reader that starts reading a standing value on the word's frame.
+When a draw is a per-candidate score, list the candidates' standing rows:
+`standing.py` could take a frame and print the standing keys of every
+object the frame's function reads. One reach.
+
+(1613) **1600's Loop lines** (2026-10-07): (a) the race's re-check as
+written ("1578 is not in the Sonnet chain") cost the lane its first hour;
+`grep -n military_level_in crates/sim/src/tech.rs` answered it — a race's
+closing record carries the grep that tests each "disagree" row before it
+is booked; (b) a mutation whose arm no capture reaches fails nothing on
+the walk: `tools/mutate.py` could print which test names ran, so "failed
+nothing" reads at once as unwalked rather than untested. One reach each.
+
+(1616) **A seam built is checked against the field that would show it**
+(1608's Loop line, 2026-10-07): `spell_time`, the field 1608's arithmetic
+lives in, was printed on every block and pinned unread; the cast's end was
+all any walk saw. `seams.py --field` could list the unread pins
+(`coverage.rs`) of the struct a seam's function writes. A sibling of 1607
+and 1610; one reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
@@ -3842,7 +4002,7 @@ landings of one tranche, one tool. **And 1561's**: `docs/ANIM.md`
 §6.1 said `is_enemy(8)` "is never asked for", a wrong closure for its
 word — `seams.py` reads no "never asked/never reached" sentence, the
 same shape as 1555's "reached through the fog". Four landings. One
-reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach.
+reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings. **And 1586's**: the writer `Group::normalize` was named in `GROUPS.md` §18.1's own list and its callers nobody counted — the callers-of-the-writer half of the same mode; six.
 
 (1554) **A standing row the word's readers read is ranked nowhere**
 (1546's Loop line, 2026-10-06): the cause was a standing row on a new

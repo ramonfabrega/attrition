@@ -143,6 +143,15 @@ pub struct Tuning {
     pub supply_radius: i32,
     /// Added to that reach per step of the supply upgrade chain.
     pub supply_radius_upgrade: i32,
+    /// Hit points a supply unit adds at supply-upgrade level 0..3
+    /// (`Constants +0xcb4`, read by `Unit::update_hits`).
+    pub supply_hp_upgrade: [i32; 4],
+    /// A Spy's hit points at spy-upgrade level 0..3 (`SPY_UPGRADE_HP`,
+    /// `Unit::update_hits@0060e930`: the table's entry **replaces** the
+    /// type's hits).
+    pub spy_upgrade_hp: [i32; 4],
+    /// Sight a Spy gains per spy-upgrade level (`SPY_UPGRADE_LOS`).
+    pub spy_upgrade_los: i32,
     /// Added to a supply or general radius by the Terra Cotta Army. Ships as
     /// zero: the wonder is wired in and contributes nothing.
     pub terra_cotta_range: i32,
@@ -356,6 +365,9 @@ pub struct Tuning {
     /// Percentage off a French leader's unit trained at the Siege Factory
     /// or Factory line (`TypeData::get_cost`'s nation tail).
     pub french_siege_cost: i32,
+    /// Percentage off a Spy or General while the leader holds
+    /// `SPIES_GENERALS_CHEAPER` (`TypeData::get_cost`'s nation tail).
+    pub spy_general_cost: i32,
     /// Percentage faster for the same units under Versailles.
     pub versailles_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
@@ -472,6 +484,10 @@ pub struct Tuning {
     /// `get_cost`'s research arm, before `RESEARCH_PREMIUM` (`00664eef`;
     /// `docs/AI.md` §94). Ships as `20%`.
     pub wine_unit_upgrades: i32,
+    /// Percentage off a Nuclear Missile line type's price when the player
+    /// holds Uranium — `get_cost`'s pre-ramp tail (`:416`–`420`;
+    /// `docs/AI.md` §167). Ships as `5%`.
+    pub uranium_nuke_cost: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -963,6 +979,9 @@ impl Tuning {
 
         supply_radius: 14,
         supply_radius_upgrade: 2,
+        supply_hp_upgrade: [0, 20, 40, 60],
+        spy_upgrade_hp: [15, 45, 90, 150],
+        spy_upgrade_los: 2,
         terra_cotta_range: 0,
         general_radius: 6,
         parmenio_radius_adjust: 384,
@@ -1037,6 +1056,7 @@ impl Tuning {
         french_timber_commerce: 10,
         french_siege_move: 20,
         french_siege_cost: 15,
+        spy_general_cost: 50,
         versailles_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
@@ -1085,6 +1105,7 @@ impl Tuning {
         troops_upgrade_los: 2,
         rubber_autoplant_cost: 15,
         wine_unit_upgrades: 20,
+        uranium_nuke_cost: 5,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1288,7 +1309,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 354] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 359] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1356,6 +1377,9 @@ impl Tuning {
                 "SUPPLY_RADIUS_UPGRADE",
                 Slot::Value(T.supply_radius_upgrade),
             ),
+            ("SUPPLY_HP_UPGRADE", Slot::Entries(&T.supply_hp_upgrade)),
+            ("SPY_UPGRADE_HP", Slot::Entries(&T.spy_upgrade_hp)),
+            ("SPY_UPGRADE_LOS", Slot::Value(T.spy_upgrade_los)),
             ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
             (
@@ -1457,6 +1481,7 @@ impl Tuning {
             ),
             ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
             ("FRENCH_SIEGE_COST", Slot::Value(T.french_siege_cost)),
+            ("SPY_GENERAL_COST", Slot::Value(T.spy_general_cost)),
             (
                 "VERSAILLES_UNITS_MOVE",
                 Slot::Value(T.versailles_units_move),
@@ -1620,6 +1645,7 @@ impl Tuning {
                 Slot::Value(T.rubber_autoplant_cost),
             ),
             ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
+            ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),

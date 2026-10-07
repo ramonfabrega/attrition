@@ -2988,14 +2988,16 @@ where a leader whose sweep never ran would carry zeros; and its
 change one frame late, exactly as leader 1's 175-phase changes show at 376,
 576, 776).
 
-`Sim::strategy_all` skips a human outright instead, so the human's census
+~~`Sim::strategy_all` skips a human outright instead, so the human's census
 never runs and its thirteen site fields stay zero on all 5,201 frames.
 **Not yet fixed, and not a one-liner**: this crate's sweep would then also
 run step 16, which seeds an army — and the original's human has no
 `ARMYDATA` record on any capture, so a gate this crate does not model sits
-between step 13 and step 16. `Sim::check_orphaned_buildings` already has
-its own human bail; `check_explore` here only writes `census.explored` and
-issues nothing.
+between step 13 and step 16.~~ **Fixed by item 1605** (§169): the gate is
+`(leader_flags & 0xc) != 4` at `plan_strategy@006b9620:1642`, around step
+16 alone, and the human's sweep now runs on its phase frame.
+`Sim::check_orphaned_buildings` already has its own human bail;
+`check_explore` here only writes `census.explored` and issues nothing.
 
 One reader does not wait for that fix. `Region::go_here` reads the human's
 `reg_cities`, and it now takes them from `Sim::leader_reg_cities`'s recount
@@ -8636,8 +8638,9 @@ after the under-attack decay and **before** `helpers` is reset (`:172`):
 
 1. The site is not active (`WallData::is_active`, `+8 & 4`) and its owner is
    not human (`leader_flags & 4`).
-2. SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
-   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.
+2. ~~SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
+   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.~~
+   Built and diff-backed by item 1588: §162.
 3. **The gate**: `is_wonder()` (Build vslot `+0x2c`, `BuildData::is_wonder`
    in `vtables.txt`), **or** `ptype.is_fort()` (`ObjectTypeData` vslot
    `+0xfc`, named by the PDB's `LF_ONEMETHOD` record — the export has no
@@ -16989,3 +16992,810 @@ Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchang
 `a_walking_animal_in_the_way_is_not_waited_for`.
 
 **Coverage.** Diff-backed: the cause (the word moves 1250 → 1582 and `1/35` agrees through block 1447; run681's keys 885 → 185). Reading-only: the second term of `is_enemy`.
+
+## 155. A builder at sea is in another region, and the word at 1532 (2026-10-07, item 1563)
+
+**What was established, how, how confident.** Item 1558 left the coverage pair's word at **frame 1408, ours 39 game draws
+against 40, index 25**: ours `Objects::process_all+0x2df`, theirs `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89`,
+then `Guy::init_real < Unit::init < Objects::init_unit`. run679 (1272..1528) holds it whole. Each claim is *diff-backed* unless
+marked.
+
+0. **The vision bytes first** (parked 1450's ruling, the twenty-sixth pass). The shared instrument (`harness::compare`'s
+   building arm) compares `ever_seen` and `ever_seen_completed` on every linked building of every frame it walks, and both
+   leave `coverage::UNCOMPARED_BY_THE_INSTRUMENT`. On every window the compared pin walks, and on run56's, run57's and run58's
+   3,000–5,200 frames, **nothing parts**; on the coverage pair's word frames 1340 and 1408 every building agrees. What parts is
+   one residue, on a game's **closing block** only: the second pair's East Indies 18141 (`1/2056`..`1/2062`) and French Great
+   Lakes 5639 (`1/2019`..`1/2025`) read 3 in the original against ours' 2 in both bytes (`1/2020`'s `ever_seen` 1) — the
+   defeated human's bit, set on the block the game ends. Item 1446's own walk of the French windows
+   (`east_indies_wonder_start_is_first_contact_on_every_building`) retires into the shared instrument: with the wonder's start
+   write dropped, 33 of `diff::third_pair`'s walks fail without it.
+1. **The draws, both sides** (run652's trace, `report.py draws 1408`). Both spend 25 animal draws first; the original then spends
+   `Unit::do_cast`'s stand (seed `bca58498`) and a `Guy::init_real` birth (`b6833f17`) — the citizen **`1/8`** (`TypeIndex` 50,
+   `PEASANTS`, land) casting its transport, the barge `1/46` — where ours spends neither.
+2. **Walked back to its first parted field** (run679, `RON_FIRSTS`, `RON_DEBUG_UNIT=1/8@1330-1342`). `1/8`'s stack agrees through
+   block 1339 (`[Build 2024]`, the site it is finishing at (40344, 36168)); on 1340 both hold `[ExploreTo, Build]` and the field
+   list parts: `orders_x/y`, the move's `x`, `y`, `angle`, `off_x/y` — ours (36168, 35976), off (72, 648), angle −1036976128,
+   against (37416, 33864), (552, 72), −346619904. A probe in `swarm_around` names the sites: ours sends `1/8` to the **Bunker
+   `1/2030`** (35712, 35904), the original to the **Mine `1/2028`** (37248, 33600) — its approach is exactly ours' `1/2`'s ring
+   spot for 2028.
+3. **The chooser** (`build_done` → `Unit::find_build_spot@00603e20`, `docs/ORDERS.md` §5.5). Every player-1 stack agrees on 1339
+   (the dump's own and ours, unit by unit). Ours' candidates, by the circle, are `[2030, 2028, 2027]` and its tally **`[2, 2, 2]`**
+   (a probe in `find_build_spot`): `1/11`, `1/12` on 2030; `1/7`, `1/24` on 2028; `1/6`, `1/9` on 2027 — the tie to 2030. `1/20`
+   (34776, 35322), whose action is 2028 too, is out of ring 6 on both sides. 159 live units against `circle_radius[6]`'s 145:
+   the circle walk.
+4. **The region gate** (`Objects::find_units@0065a620`, the decompile's circle loop): with `0x200` the query's tile region is
+   `WorldData::get_tregion` at `div_3_table[pos >> 6]`, and **every unit of every cell of the ring** is gated by its own tile's
+   region against it — the cell itself is never region-tested. Ours tested the cell's `region` and counted every unit in it.
+   `1/24` (42665, 36966) is a citizen carried at sea towards the Mine — its tile is the water of a coastal cell, `tregion_alt`
+   0 against the searcher's 12 — so the original counts 2028 at **1**, and the first strict minimum is 2028.
+
+**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders.rs`) walks every cell of the ring and gates each unit by
+`World::tregion_alt` of its own tile against the searcher's, as the list walk has since §148. Unit test
+`cities_tests::the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water`: a builder on a coastal cell's water is not
+counted (the tie goes to the first site), one on its land is. `docs/ORDERS.md` §5.10's region-gate paragraph is struck and
+amended.
+
+**The value diff, and the word now.** run679 block 1340: `1/8` holds `[ExploreTo (37416, 33864), off (552, 72), angle
+−346619904, Build 2028]` in both; it casts on 1408 and is inside `1/46` on 1409 in both, and no key of `1/8` parts past its
+standing `form`; the scout `1/0` agrees through the window (its barge on 1424 was `1/47` against `1/48`). **run679 457 keys →
+203.** `coverage_pair_first_parting`: **frame 1408 → 1532, count and sequence** — ours 13 game draws against 11, index 8: ours
+`Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae`; theirs spends four `Unit::do_move+0xe84 < Unit::do_attack_to` draws,
+ours six. Past run679, so **run710** (1527..1783, `docs/RUNS.md`) and `run710_s_word_frame_is_widened_whole` (block 1533):
+1,034 keys, 167 standing on 1527 — among them army 1's `1/28`, `1/38`, `1/43`, `1/44`, `1/45`, apart by hundreds there. Walked
+back on run679 (the fixed tree): the army parts first on **1435**, by a few units (`1/38` (42511, 37009) against (42517, 37030),
+`1/43`, `1/45`), and before it, on **1420**, ours holds the site `1/2037` alone (`build:extra`). The first parting past run710's
+standing block is `1/28`'s on 1528 (`half_step`, its move's `dest_x/y` (40200, 40968) against (39432, 41736)). Hypotheses for
+the item after, not a cause. `cargo test --release -p sim -p rondata` on the built tree: rondata 769 passed, the one red the
+handoff's `Coverage pair:` line; sim 1,418 passed.
+
+**Mutations** (`tools/mutate.py` on `d6c06b6c`): the circle's per-unit region gate dropped — held by
+`coverage_pair_first_parting`, run679's widening and the unit test; the wonder's start write dropped (`update_local_seen_build`'s
+`0xff`) with 1446's test skipped — held by 33 of `diff::third_pair`'s walks.
+
+**What is not established.** The circle walk's other gates (`valid_search`, the `+8`/`+0xbc` vslots, `valid_filter`'s
+`FILTER_BUILDREPAIR` arm) are read as ours' tally's alive-and-friendly test, as §148 left them. Whether the closing block's
+`ever_seen` bit is the defeat's reveal or the game's end is unread: it is a residue of two closings, and no walk reaches a third.
+
+**Coverage.** Diff-backed: claims 0–4 (the word moves, `1/8` agrees through run679). Reading-only: the circle walk's other gates.
+
+## 156. A gather enhancer is seated only in the city it is placed for, and the word at 1818 (2026-10-07, item 1565)
+
+**Established by**: run683's widening (`diff::sahara_coverage::run683_s_word_frame_is_widened_whole`, the word 1582's block 1583, now also the word 1818's block 1819), the draw
+stream on frame 1582 (`RON_DEBUG_SITES=1582-1582`, `sahara_coverage_first_parting`), `Leader::produce_building@006e1400`'s spiral (the `is_gather_enhancer` arm) beside
+`BuildTypeData::get_town@00639b90`, and `CityData` (`types.txt`, `+0x8 o`).
+
+**The word.** Great Sahara in the coverage lobby parted on **1582** (item 1561's): ours 28 draws against 29, index 8. Both streams agree through index 7; the original spends a **fourth**
+`produce_building+0x1805` (the 2×2 jitter) and ours three, and the four `make_stuff+0x63d` after it agree. The spiral spends no draw for an enhancer, so the two sides picked different
+sites: the Persians' Refinery `1/2045` (`TypeIndex` 426, bought for city 2 by a `MAKE` row both print alike) stands at **(30432, 19872)**, `city` 2, chained after `1/2006` in the original and
+at **(30432, 22176)**, `city` 1, chained after `1/2041` in ours — the same column, three cells further south, inside the other city's catchment.
+
+**The cause.** `produce_building`'s spiral, after scoring a candidate by its friends, asks `BuildTypeData::is_gather_enhancer` and for an enhancer reads
+`get_town(type, cand's tile, owner)`, **and drops the candidate unless the answer equals `param_2`** (`near`). `get_town` returns `CityData +0x8`, the covering city's building `o`,
+and `near` is the city's own building (`make_this`'s `centre`; `ai_host`'s hint is a city building only when it is one), so the test is "the site belongs to the city the order is for".
+This crate had only the `city.is_none()` half of it (`break 'cand`), so the candidates of a spiral that reaches over a neighbouring city's mask were scored, and the last of the tied
+1000-point ones — the spiral keeps the last of equals — was in city 1. Built: for `is_enhancer`, a candidate stays only when `get_town(who, rec, cand) == Some(city)`.
+The one-per-city `+100` push of `find_city_at` is why the test is *not* repeatable after the building stands: a Granary placed in city 0 answers city 1 afterwards, and the unit test reads
+the building's own `city`, not a second `get_town`.
+
+**The move.** The Refinery `1/2045` agrees in every compared field (`build:y_internal` and `build:city` no longer part on 1583), run683's keys **1183 → 863**, and the word goes
+**1582 → 1818**: ours 3215 draws against 3218, index 3201, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. Inside run683 (block 1819), widened by the
+same test (block 1819 joins its recorded blocks). What parts first past the standing block is still 1583 and is not the word's: leader 1's `pool:65` / `group:65.held`
+(ours [69, 70, 71], theirs none) and the queue rows' `cost` (ours 100 against 99, 120 against 118, 180 against 178 — a price one or two off, `1/2009`, `1/2022`, `1/2023`, `1/2026`);
+no draw agrees differently for them through 1817. The first dense parting before the word is **1789** (276 keys).
+
+**What is not established.** The word's own cause (the next item's, 1581): ours and the original's last draw before the parting are a `set_anim` against `calc_road_cost` on a frame of three
+thousand draws. `get_town`'s tile arguments are the candidate's tile as `div_3_table[pos >> 6]`; this crate passes the candidate's `Pos` and `get_town` snaps it, which agrees on every
+site the walk reaches. Only enhancers of a **city** are gated; an enhancer with no city is refused as before.
+
+**Mutation** (`tools/mutate.py`, the `get_town` comparison dropped): held by `an_enhancer_is_seated_in_the_city_it_is_placed_for` and by `sahara_coverage_first_parting`.
+
+**Coverage.** Diff-backed: the cause (the word moves 1582 → 1818, the Refinery agrees, run683's keys 1183 → 863). Reading-only: the `find_city_at` side of `get_town` for a type that is not one-per-city.
+
+## 157. A restarted caravan search consumes the reset flag, and the word at 1830 (2026-10-07, item 1581)
+
+**Established by**: run683's trace (`rontrace-run683.log`'s `calc_road_cost` and `astar_caravan_road` records, compared node for node by
+`diff::sahara_coverage::run683_s_road_searches_hold_node_for_node`), `Caravan::build_road@0073db10`'s listing (the labels `LAB_0073dbe9` and `LAB_0073dbf5`) beside
+`Caravans::reset_paths@0073e060`, and run700 (blocks 1535..1791) and run701 (blocks 1550..1606, `GROUPDATA` printed) for what turned out not to be the word.
+
+**The word.** Great Sahara in the coverage lobby parted on **1818** (item 1565's): ours 3215 draws against 3218, index 3201, all `PathFinder::calc_road_cost+0x46` — one road search,
+ours three nodes short. The trace's brackets on 1808..1818 are two caravans' searches of the Persians' trade routes, slot 7 (`1/2000` to `1/2028`) from 1808 and slot 0
+(`1/2000` to `1/2018`) from 1811, each resumed frame to frame (the budget, `0xc80` nodes a call). Ours and the original's priced nodes agree **node for node on every frame
+from 1577 to 1817** — 34 frames of searches. On 1818 ours' first node is slot 7's start, (40800, 17184) from (40800, 16992); the original's is the middle of the search it
+parked on 1817, (31008, 16800): **ours restarted the search the original resumed**.
+
+**The cause.** On 1817 slot 0's search found its road, laid it, and ran `Caravans::reset_paths` — which sets `reset_road` (`+0x24`) on every other caravan that is
+`making_road` (`+0x20`), slot 7 among them. Slot 7's own turn followed in the same frame and, flagged, started over. `build_road`'s gate (`0073db10`) has three exits: resume
+when `making_road && !reset_road && a search is parked`; otherwise, when `reset_road` is set or nothing is parked, `LAB_0073dbf5` runs `clear_temp_road` **and writes
+`+0x24 = 0`**; then `find_road`. This crate cleared the parked search and left the flag, so the search it parked at the end of 1817 saw the flag still raised on 1818, was
+thrown away, and started again — and so every frame, until the road found a way. Built: the gate is `Sim::road_gate`, and the restart zeroes `reset_road`.
+
+**The move.** Slot 7 resumes on 1818, the search agrees node for node to 1829, and the word goes **1818 → 1830**: ours 3218 draws against 3219, index 2, ours
+`PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Inside run683 (block 1831), widened by `run683_s_word_frame_is_widened_whole`. Run683's
+keys **863 → 842**.
+
+**What the walk back found, and is not the word.** Before the road searches, the 1789 block held 276 keys parted (the Persian army's guard slots, `1/17`..`1/56`, ±48 off):
+all one cause, the supply wagon `1/67`'s heading, which parted before the window opened. Its steps agree with ours to 1562 and **1563's is the original's, 43.6 long, against
+ours' 40.8** (run700, `1/67`'s positions every frame from its birth on 1541): the wagon walks at the group's cap, and the cap — `GROUPDATA` id 66's `speed`/`new_speed`, which run701
+prints for 1550..1606 — is `(47, 40)` at the end of 1563 in the original and `(40, 40)` in ours. It is the one frame; the pair before and after agrees with ours' on every
+frame of the window but that one. **A reset to the leader's own speed ran before the group's leader (`1/60`) reported on 1563** — `Army::process@006f93d0`'s periodic `normalize` for player 1's army 0
+(§161's arithmetic, `frame ≡ 26 mod 128`; run701 dates this one on 1563), which item 1586 built on the integration branch the same hour and which this lane met at its `ccc update`. **With it merged the 276 keys are gone** (run683's keys 842 → 182 on the
+union) and the word on the merged tree is no longer 1830. (A scratch `Groups::process` cursor at `f + 39` also fixed the 276 keys and the wagon, and was **wrong**: the same wagon steps, a different writer. It moved no draw
+either way until 1823.) What this lane's own capture added: the wagon is the cap's only witness in this lobby (a unit with an action order is not capped), and `GROUPDATA` id 66's pair on every frame of 1550..1606 (run701)
+— `(47, 40)` at the end of 1563 — is the dump that dates the writer. What did land from the walk back: the wagon's hit points.
+
+**Supply upgrade hit points.** `Unit::update_hits@0060e930`'s last term: a supply unit adds `supply_hp_upgrade[get_supply_upgrade]` (`Constants +0xcb4`, `[0, 20, 40, 60]` in `rules.xml`),
+the count of the three upgrade prerequisites its leader holds. The wagon is 90 + 60 = **150** at All Technologies; ours was 90 on every wagon — three keys parted on every window with a
+wagon, run683's and the Toughest and French East Indies' (twelve pins re-pinned, −3 each). Built: `Sim::unit_hits`' tail and `Tuning::supply_hp_upgrade`.
+
+**The merged tree's word.** Item 1586's build and this one together: the word is **1985** by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
+`Leader::make_stuff+0x63d` — past run683's last block (1833), widened on run702 (blocks 1979..2235, block 1986): `run702_s_word_frame_is_widened_whole` — 1398 keys, 154 standing; what parts first past the standing block is Persian city `1/2018`'s `bordering` on 1980 (ours 0, theirs 3) and leader 1's make list on 1981 (the Supply Wagon against the MLRS in row 1). No mechanism: the next item's first read.
+
+**What is not established.** A supply upgrade gained mid-game does not re-read the wagons already out (`update_hits` runs on a tech gain in the original; this crate's refresh is the
+Citizen's only).
+
+**Mutations** (`tools/mutate.py`): the flag left set — held by `a_restart_consumes_the_reset_flag` and `run683_s_road_searches_hold_node_for_node`; the wagon's term dropped — held by
+`a_supply_unit_adds_the_supply_hp_upgrade` and `run683_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: the caravan reset (road searches node for node 1577..1829, the word's move), the wagon's hit points (`myhits` agrees in run683, run663/664/668, run655..667).
+Reading-only: `reset_paths`' leader gate (`leader_flags & 3 == 3`, read as true for the AI).
+
+## 158. Six things the coverage lobby's Persians do at All Technologies, and the word at 1985 (2026-10-07, item 1583)
+
+**Established by**: run702's blocks 1979..2235 (`run702_s_word_frame_is_widened_whole`, every dumped record on the word's window), the draw sequence of frame 1985 (`RON_DEBUG_SITES`, ours and the original's
+site by site), and, for each mechanism below, the function's listing or decompile read beside the dump field that shows it. No new capture: run702 holds all of it.
+
+**The word.** The merged tree's word was 1985 by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`.
+Its widening (§157) showed the standing keys and then Persian city `1/2018`'s `bordering` (1980, a bit no mechanism of this section reaches) and leader 1's make list from 1981. The make list parted
+because of the first six mechanisms; with them the make list agrees to the end of the window but for the Persian army, and **the word moves 1985 → 2048** (count and sequence alike): ours 44 draws
+against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Unit::do_move+0xe84`. The value diff beside it is unit `1/43`'s path: its heading, `pos`, `order:move.dest` and a path of four
+nodes against two part on **2046** (run702's block 2047), the draw on 2048 being the move step it takes. No mechanism: the next item's first read. Keys on run702's window 1398 → 1192, standing 154 → 117;
+run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no floor moved; the newest pair's word went 1719 → 1735 on this lane's tree by the silo's launch alone and to 1960 on item 1591's, which built the same arm).
+
+**1. The air arm's `remaining`** (`create_units` 361–478). `remaining = air_cap` (2, 4 or 16 by difficulty) is the loop's own variable and the tail reads it; this crate left the caller's default of 5. `air_value` sets it.
+Held by `the_air_arm_sets_remaining_to_the_air_cap`.
+
+**2. A unit's Military level is read through the lobby's remap** (`TypeData::get_preq@00668700`, slot 1). In a game that starts in the Information Age (`STARTING_TECHNOLOGY 8`) the Military epoch a modern unit asks
+for is removed (its age is below the start), so the unit stands at level 0, which `get_cost`'s late discount floors at 1 (`MILITARY_UNIT_DISCOUNT`, `(span·pct+7)>>3`, floor 1 below span 8). This crate read the
+table's column and held every unit six levels behind the player's seven. Built: `TechTree::military_level_in(setup, t)`; `military_level_of` is the standard lobby's. Held by
+`a_unit_s_military_level_is_read_through_the_lobby_remap`, and the price call (`Sim::military_unit_discount`) by `sahara_coverage::` (the Supply Wagon/MLRS rows of the make list). The research arm's call (`research_modifiers`)
+is reading-only: no capture prices a research by it.
+
+**3. `get_nukes`** (`LeaderData::get_nukes@006ebe50`). The nuke arm of `missile_value` counts the leader's **Nuclear Missiles** (`0x13b`'s line, queued and held; none without `tech.ptr[0x27] & 8`) against its silos and the
+others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here.
+
+**4. The computer's silo fires** (`Object::do_launch@0064f3b0`, the branch past `64fdcd`). Every 128 frames, phased by the silo's `o`, the missile at the chain's head is given an air attack on the enemy city of best
+value in its reach, and then waits for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours,
+and the bucket, the ring of damage and the cities' `num_queued` all followed from it. **This lane built the arm (`Sim::silo_sortie`, with its own test) and so did item 1591 on the integration branch the same day, for the newest pair's ICBM
+(§164); at the merge the integration branch's was taken whole** (`air.rs`, `airbase.rs`), and the third map's pins were re-measured on it: the run702 window agrees on the silo's strike either way. The nuke's ring over a gaia owner is item 1591's
+(it passes over the animals); `Sim::mods_of`, the zero modifiers of an owner past the players' `mods`, stays as the guard under it (`a_gaia_owner_has_no_modifiers`).
+
+**5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88;
+`Roles::spy_general_cheaper_preq`) takes `SPY_GENERAL_COST` (50) off the base, before the ramp: Great Sahara's Spy at `1/2030` queues at 25/25 and, a second, at 35/35 on 1983 (50/50 and 60/60 in ours before). Built in
+`Sim::nation_unit_discount`; held by `a_spy_costs_half_under_the_spies_and_generals_bonus`. The Russian spy arm before it is not modelled.
+
+**6. `reg_free_peasants` is a `ushort[64]`**. `Leader::produce_building`, `produce_city` and `make_this` subtract one for a site that no peasant was counted for, so the region's slot goes to −2 in this crate and to **65534
+in the dump**; `create_units`' `reg_free_peasants >= reg_cities` (`:1198`), `found_cities`' (`:104`) and `create_buildings`' (`:1513`) compares are unsigned. Ours offered the Citizen on 1983 (region 1, `-2 < 6`); the original did not, and its
+make row 5 stayed the stale `(-1, val 145)` until 1986. `Census::reg_u16`; held by `a_ushort_region_slot_reads_unsigned`, and the call sites by `sahara_coverage_first_parting` (the draw it spent).
+
+**Mutations** (`tools/mutate.py`, each held but the last): the air cap's assignment, the military level's slot, `get_nukes`' body, the census' two halves, the silo arm and its friendly-object test (on this lane's own build, before the merge took item 1591's), the gaia fallback, the Spy arm,
+its gate, `reg_u16`, and its call site (`sahara_coverage_first_parting`). `research_modifiers`' call to `military_level_in` **failed nothing**: reading-only, as above.
+
+**What is not established.** The nuke's flight reads **five** corners that are not known to be the original's single (`COMBAT.md` §46.3), in run702 (and three in the newest pair's run710): `testkit::GROUND_INEXACT` pins them. The strike's fall time reads the height as a bomb's does; its landing frame is not compared with the original's (no dump prints it). `game.armageddon` (the count of nukes landed) is not carried, so its check always passes; a missile that is not a nuke (V2, cruise)
+takes a different arm of `do_launch`, not built; the forts' and wonders' target loops are not built; the mid-game nuke in flight is not counted by `get_nukes`. The air-order fields (`ag_*`, `air_*`, `waypoint`, ...) are
+compared now (the compared pin lost thirteen names, `coverage.rs`).
+
+**Coverage.** Diff-backed: 1, 2 (price arm), 4, 5, 6 (all through the make list and the queue's costs on run702); 3 by unit test and the census alone. Reading-only: the research-arm level, the
+cruise-missile arm, `game.armageddon`.
+
+## 159. An upgraded building weighs its basic type's trainer bit, a Spy trains in half the time, and the word at 2048 (2026-10-07, item 1584)
+
+**Established by**: run702's blocks 1979..2235 (the word 2048's block 2049 is inside), the unit search's `calc_cost` calls on the trace (`rontrace-run702.log`, every priced step of frames 2044, 2045 and 2048 compared
+key for key and price for price), `GameDaemon::calc_danger@00732d10`'s listing at the building weight and `ObjectData::train_time@006508c0`'s tail. No new capture.
+
+**The word.** After §158 the word was **2048**: unit `1/43` (a Citizen finishing a Build and sent to gather) parted on 2046 — its path four nodes against two, `path_recursion` 2 against 1. Its search on 2045 (`PathFinder::astar_path`,
+the world grid) prices **510 steps in the original and 518 in ours, every one of the original's shared, and 8 of the shared priced apart by 2 to 5** — the world grid's step is `danger / 8` (§ DANGER), so the danger map
+parts, by 40 over one half-cell and 20 around it. That is a missing weight of exactly 40 at the half-cell of the Auto Plant `1/2025` (one at (38976, 19584)): ten in ours, fifty in the original.
+
+**1. `calc_danger` reads the basic type's trainer bit.** The building weight is a fort or tower's half hit points, a hundred for a city, Airbase or Dock, and otherwise fifty if the **basic type** of the building's type (`BuildTypeData::basic_type`,
+the root of the `FROM` chain) is a military trainer and ten if not (`calc_danger@00732d10:158`). The flag is derived on the type units name as their `WHERE` (`UnitType::init`), the Factory; the Auto Plant, its upgrade, names none of its own, so this crate read ten.
+Built: `Sim::danger_building_value` through `build_root`. Held by `an_upgrade_weighs_the_trainer_bit_of_its_basic_type` and `sahara_coverage_first_parting`. With it every priced step of 2044, 2045 and 2048 agrees, and the word moves
+**2048 → 2077**: the Spy `1/103` of city `1/2030` is born a second earlier in the original (`Guy::init_real` at index 7).
+
+**2. `SPIES_GENERALS_CREATED_FASTER`** (`train_time@006508c0:271`–`283`). A Spy or a General under the bonus whose prerequisite is **Tactics** (`TECHBONUSES` row 87; `Roles::spy_general_faster_preq`) trains in half the time, after the
+speed-upgrade step and before the wool arm. Built in `Sim::train_tail` as `Ratio(1, 2)`; held by `a_spy_trains_in_half_the_time_under_the_created_faster_bonus` and `sahara_coverage_first_parting`. The word moves **2077 → 2118**
+(count and sequence): ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
+
+**The value diff beside the word 2118** (`run702_s_word_frame_is_widened_whole`; keys 1192 → 404): the Spy `1/103` parts on its first block, **2078** — `myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36 (the three Spy upgrades:
+`SPY_UPGRADE_HP` `[15, 45, 90, 150]`, `SPY_UPGRADE_LOS` 2 a level, and the speed ladder; the Spy is at the top of all three at All Technologies) — and its path on **2104** (`order:move.dest`, 14 nodes against 13). Past it:
+`ever_seen` of the Persians' buildings 1 against 255 from 2105 and the treaties on 2102. No mechanism: the next item's first read.
+
+**Other lobbies.** No pin of any other lobby moved (the full suite's only reds are the commander's queue lines); the newest pair's word stands at 1735 (§158).
+
+**What is not established.** The Russian spy arm of `get_cost` and the cotton and wool arms of `train_time` are not built. The Spy's search, once the danger map agrees, is exact; the map itself has no dump in this window (the `WORLD` category is not
+enabled), so the weights are argued from prices, which agree to the step.
+
+**Mutations** (`tools/mutate.py`, all held): the root read dropped (`an_upgrade_weighs…`, and `sahara_coverage_first_parting`); the half dropped (`a_spy_trains_in_half…`, and `sahara_coverage_first_parting`).
+
+**Coverage.** Diff-backed: both (the search's 1,600 prices; the Spy's birth frame). Reading-only: the Auto Plant's weight is argued from prices, not from a printed danger map.
+
+## 160. A Spy's hit points, sight and speed climb with the Spy upgrades, and the word at 2118 (2026-10-07, item 1585)
+
+**Established by**: run702's blocks 1979..2235 (the word 2118's block 2119 is inside), the Spy `1/103`'s records on every block from its birth on 2077, and the three listings `Unit::update_hits@0060e930`, `Unit::update_los@0060e4d0` and
+`Unit::update_speed@006055c0` beside `LeaderData::get_spy_upgrade@006e1090`. No new capture.
+
+**The word.** After §159 the word was **2118** (ours 22 draws against 20, index 5: ours `Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`). The Spy `1/103` of city `1/2030`, born on 2077 in both, parted on its first block, 2078:
+`myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36. It walks slower and sees less in ours, so it meets what it meets on another frame — and the original's spy takes damage where ours has not got there.
+
+**The mechanism.** `get_spy_upgrade` counts the held ones of `SPIES_UPGRADE_1..3` (rows 92–94 of `TECHBONUSES`: Tactics, Operations, Strategy in the shipped file; `Roles::spy_upgrade_preq`; all three at All Technologies). Three terms read it:
+
+- **hit points**: `spy_upgrade_hp[clamp(level, 0, 3)]` — `[15, 45, 90, 150]` — *replaces* the type's hits (`update_hits`, `0060eb98`..`0060ebd8`, a different shape from the supply wagon's added term);
+- **sight**: `+ level × SPY_UPGRADE_LOS` (2) added to `mylos` after the troops' terms (`update_los`);
+- **speed**: `+ level × speed / 4` toward zero after the aluminum and Versailles arms (`update_speed:131`–`134`).
+
+Built: `Sim::spy_upgrade_level`, `Sim::is_spy_type` (`supply.rs`), `Sim::unit_hits`, `Sim::unit_los`, `Sim::type_speed`; `Tuning::spy_upgrade_hp` and `spy_upgrade_los` (two slots). Held by `a_spy_climbs_with_the_spy_upgrades`; and each of the three terms by
+`run702_s_word_frame_is_widened_whole` (the Spy's `myhits`, `mylos` and `myspeed` are pinned as agreeing in the window). With them the word moves **2118 → 2185** (count and sequence): ours 30 draws against 32, index 12, ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Run702's keys 487 → 317, and the newest pair's run711 482 → 401 (its Spies climb as well; its word 2166 stands); no other pin moved (the full suite's reds are the commander's lines).
+
+**The value diff beside the word 2185** (`run702_s_word_frame_is_widened_whole`): the dump parts first on **2183** at building `1/2034`'s queue — `queue[0].cost[0]` ours 816 theirs 927, `cost[1]` 965 against 1069 (the same entry, priced about 12 % dearer in the
+original) — with the knowledge and oil buckets 111 and 104 apart; on **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against 80000, `escrow` 0 against 1, `city` 5 against 1), the next frame the buildings' `city_down`/`city`
+link. Between the Spy's agreement and 2183 the first partings are the raid (`death:extra` of player 0's citizens from 2121, `city:raid_stamp` on 2131, `treaties` on 2102): an infiltrated city, which the next read should date. No mechanism claimed.
+
+**What is not established.** The General's upgrades (rows 89–91, `get_general_upgrade`) are the same shape and not built; the 12 % on `1/2034`'s queue is not read (a unit or a building: `1/2034`'s entry `t`).
+
+**Mutations** (`tools/mutate.py`, all held): the hit points' replacement, the sight term and the speed term, each by `a_spy_climbs_with_the_spy_upgrades` and by `run702_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: all three terms (the Spy's records agree over 160 frames). Reading-only: none.
+
+## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
+
+**What was established, how, how confident.** Item 1563 left the coverage pair's word at **frame 1532, ours 13 game draws
+against 11, index 8**: ours `Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae`. run710 (1527..1783) holds it whole. Each
+claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1532`; ours `RON_DEBUG_SITES=1532-1532`). Both spend three
+   `GameDaemon::calc_market` draws and an animal's `Guy::set_anim < Animal::do_idle` (seeds `9d368de9`..`3289a986`); the
+   original then spends four `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b` grid draws (`350df32d`,
+   `3c6d3aa8`, `8dc1dde7`, `5940421a`), ours six — `1/18`, `1/27`, `1/30`, `1/36`, `1/43`, `1/45`, army `1/0`'s marchers, by then
+   apart by hundreds of units (run710 block 1527).
+2. **Walked back to the first parted field** (run679, `RON_FIRSTS`, `RON_DEBUG_UNIT`). Army `1/0` (seventeen members: TOWs
+   `TypeIndex` 141 at speed 25, Armored Cavalry 220 at 47 — `1/28`, `1/38` — and Mech Infantry 104 at 38, `1/43`..`1/45`) parts
+   first on block **1435**, by a few units, on `1/38`, `1/43`, `1/45` — ours (42511, 37009), (42587, 38956), (42572, 38466)
+   against (42517, 37030), (42588, 38964), (42574, 38482). All three carry an `ATTACK_TO` with `flags 1` (no action bit) on both
+   sides, so `get_action` is null and the group cap applies (`docs/GROUPS.md` §18). Solved from the dump's own deltas, the
+   original's steps on frame 1434 are `1/38` 47, `1/45` 47 (38 × 5/4) and `1/43` 23 (its half step of 47), where ours steps 25,
+   31 and 15 — the cap of 25 the TOW leader `1/16` left at slot 1's `Groups::process` reset on 1409. Through block 1434 the
+   original's `1/43` stepped 31 too: **the original lifts the cap on frame 1434**, to the Armored Cavalry `1/28`'s 47, the
+   leader since 1411 (ours' `find_leader` names it too). `1/28` itself carries `flags 5` and is uncapped on both sides.
+3. **The writer** (`Army::process@006f93d0`, the decompile's first branch). With `param_1 == 0` an army runs `normalize(this)`
+   when `(frame − 30 + (army + 2·who)·2) & 0x7f == 0` — for player 1's army 0, `frame ≡ 26 (mod 128)`, and **1434 is one**.
+   `Army::normalize@006f9b50` calls `Group::normalize@00711540` on each of its groups, and that function's tail, after
+   `find_role`, is `speed = new_speed = UnitData::speed(find_leader)` (or 0 for no leader or a building group) — every
+   time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
+   *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
+
+**Built.** `Sim::army_normalize` (`crates/sim/src/army.rs`) ends its prune with `Group::normalize`'s speed tail
+(`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
+ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
+`army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
+the leader's 47, both halves.
+
+**The value diff, and the word now.** run679 block 1435: `1/38` (42517, 37030), `1/43` (42588, 38964), `1/45` (42574, 38482) in
+both; no key of `1/28`, `1/38`, `1/43`..`1/45` parts in run679's window (pinned in `run679_s_word_frame_is_widened_whole`), and
+army 1 leaves run710's standing set. **run679 203 keys → 146; run710 1,034 → 764** (167 standing → 151).
+`coverage_pair_first_parting`: **frame 1532 → 1610, count and sequence** — ours 589 game draws against 598, index 0: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (the blocked stand), and the
+original's frame holds 586 `PathFinder::calc_road_cost < PathFinder::astar_caravan_road` draws. Inside run710 (block 1611),
+which `run710_s_word_frame_is_widened_whole` walks. On the fixed tree run710 first parts past its standing block on 1529
+(`1/52`'s `form`, the block it is born); `1/10` (the citizen of §144) parts from 1584 (its order stack, ours 4 against 2) and
+its path from 1610; and on 1583 the sites `1/2037` and `1/2043` part (`x/y_internal`, `city`), `1/2037` being the site ours
+alone has held since 1420. Hypotheses for the item after, not a cause.
+
+**What else it moved** (every pin a fall): the second pair's run414 86 → 84, run445 77 → 76, run480 85 → 84, run490 100 → 98,
+run583 202 → 199, run589 158 → 157, run594 177 → 176; Toughest's run640 88 → 87; and Great Sahara's coverage widening run683
+**1,183 → 540** (159 standing → 151), its word 1582 unmoved. No word, floor or endpoint moved.
+
+**What is not established.** `Group::normalize`'s prune is ours' existing back-pointer prune; its `priority` arm (only a hotkey
+group sets it) and `find_role` are not modelled, as §19 left them. An army with two or more groups — `Army::normalize` walks them
+last to first and returns at the first emptied one — is not a shape this crate carries.
+
+**Coverage.** Diff-backed: claims 1–2 and the cap's lift (army 1 agrees through run679 and run710's standing block). Reading-
+and listing-backed: claim 3's call chain, which the diff confirms on its one frame.
+
+## 162. An Oil Platform site nobody is building is disbanded, and the word at 1696 (2026-10-07, item 1588)
+
+**What was established, how, how confident.** Item 1586 left the coverage pair's word at **frame 1610, ours 589 game draws
+against 598, index 0**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+run710 (1527..1783) holds it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1610`; ours `RON_DEBUG_SITES=1610-1610`). The original: one
+   `Unit::move_step+0x823` stand (seed `46e3b40d`), four `Guy::move` animation draws, **586** `PathFinder::calc_road_cost <
+   astar_caravan_road`, four idle `Guy::inc_time`, three `Farms::inc_time` — 598. Ours: four `Guy::move` (`1/29`, `1/31`),
+   **578** road-cost draws, four idle, three farm — 589. Two partings on one frame: the stand, and the caravan A*'s expansion
+   count.
+2. **The frame's cast** (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`). The citizen **`1/10`** (`TypeIndex` 50,
+   `PEASANTS`) parts from block 1584 — ours' stack 4 with an `ExploreTo` (28488, 31272), the original's 2, `[Build 2038,
+   ExploreTo (34632, 33528)]` — and its path from 1610; `1/14` collides with it on 1611 in the original. On 1583 the sites
+   `1/2037` and `1/2043` part (`x/y_internal`, `city`). Ours' `1/10` (`RON_DEBUG_UNIT`) carried `[…, ExploreTo (28488,
+   31272), Build 2037, …]`: the Oil Platform site at (28032, 31104), `orig_type` 422, that ours alone held.
+3. **Walked back** (run679, `one.py`): the original holds `1/2037` — the same Oil Platform site, (28032, 31104), `city −1`,
+   `constr_time` 29400 — on blocks 1418 and 1419 and **not on 1420**; ours holds it on. Frame 1419 is the site's 128-frame
+   phase: **1419 + 2037 = 3456 = 27 × 128**. On block 1419 the original's `1/10` holds `[Build 2038, ExploreTo, Build 2037,
+   ExploreTo, Build 2026]` (the dump lists the stack bottom first): the site is two orders under the current `Build 2026`, and
+   it is still there on block 1420 — the disband does not touch it.
+4. **The writer** (`Wall::process@00640450`, listing `6404c6`–`640588`). In the `(frame + o) & 31 == 0` block, for a site that
+   is not active (`+8 & 4`) whose owner is not human (`leader_flags & 4`), before the recruiter (§69.4): on `(frame + o) & 0x7f
+   == 0`, if the type's vslot `+0x60` answers `is(0x1a6, 0)` — the lineage test, arguments read off the listing (`640519`,
+   `64051b`) — and `ObjectsData::find_unit@0065ca80(x, y, SEARCH_FRIENDLY, who, −1, 0, FILTER_TARGET, o, who, FILTER_ALL)` is
+   negative, `Object::disband(0)` and return. Range −1 is the list walk over the searcher's own units (`SEARCH_FRIENDLY`,
+   §69.4). `FILTER_TARGET` is 11 by the PDB's `FilterIndex`; its arm, entry 10 of `Search::valid_filter`'s table at `0067e57c`,
+   is **`0067dfa4`** (read off the PE): the object is a unit (vslot `+0x18`), `UnitData::get_action@00608450` is non-null, its
+   vslot `+0xb4` — **`get_target_order`**, by the PDB's `LF_ONEMETHOD` record (the export's vtable names a folded
+   `Window::get_button`) — is non-null, and that order's `+0x8`/`+0xc` (`ox`/`whom`) are the site's `o` and `who`. So only a
+   unit whose **action** targets the site keeps it; claim 3's `1/10` does not, and the site goes. *Listing-backed*; the diff
+   confirms it on its one frame.
+
+**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/site_recruit.rs`), called from `Sim::process_building` inside the
+recruiter's gates and ahead of it; a disband returns from the head as `Wall::process` does. The target test is
+`action_of`'s order: `Build`, `Repair`, `Garrison`, `Gather` (its building), `Attack` (the unit's combat target) or `Cast` on
+the site. `site_recruit.rs`'s SEAM for this arm is gone. Unit test
+`cities_tests::an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase`: a site a citizen is building
+stands; with another build on top of it, it stands on a 32-frame phase and is disbanded with its price back on the 128-frame
+one; a human's never.
+
+**The value diff, and the word now.** run679 block 1420: `1/2037` absent in both (pinned in
+`run679_s_word_frame_is_widened_whole`), and leader 1's `gather_stamp` (1391 against 1423 on 1424) parts no more. run710 block
+1583: `1/2037` is the next site placed — (32640, 34176), city 2 — in both, and `1/2043` the Wonder at (34560, 37632); block
+1584: `1/10` holds two orders, `ExploreTo (34632, 33528)` over `Build 2038`, in both; no key of `1/10`, `1/2037`, `1/2043` or
+`1/2044` parts in run710's window (pinned). **run679 146 keys → 144; run710 764 → 478** (151 standing).
+`coverage_pair_first_parting`: **frame 1610 → 1696, count and sequence** — ours 41 game draws against 40, index 29: ours
+`Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. Inside run710 (block 1697). On the fixed tree `1/52`
+parts first on 1529 (`form`, the block it is born) and again on 1686 (`path:length` 9 against 17, `path_recursion` 10
+against 1, `last_x/y`); `1/40` on 1703 (`inside` 52 against −1). Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing: every other widening (179 run) holds; no floor, endpoint or other word moved.
+
+**What is not established.** `find_unit`'s two object gates (vslots `+8` and `+0xbc`) are read as ours' search reads them
+everywhere — alive and on the map — so a citizen riding a barge to the platform would not keep it here; whether `+0xbc`
+admits a passenger is not read. A follow or a guard order names a unit in this crate and is not tested against a building;
+`get_action`'s `0x12` skip is ours' `is_transit` as elsewhere. The arm on a non-computer site is gated as the recruiter is.
+
+**Coverage.** Diff-backed: claims 1–3 and the disband on 1419 (run679, run710). Listing- and PE-backed: claim 4's filter arm
+and slot names, which the diff confirms on its one frame.
+
+## 163. A transport keeps its tile goal across the regions, and the word at 1719 (2026-10-07, item 1589)
+
+**What was established, how, how confident.** Item 1588 left the coverage pair's word at **frame 1696, ours 41 game draws
+against 40, index 29**: ours `Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. run710 (1527..1783) holds
+it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run710's trace, `report.py draws 1696`; ours `RON_DEBUG_SITES`). Both sides spend the same 27
+   `Animal::think_bird`, two `Guy::move`, two bird `Objects::process_all`, five idle `Guy::inc_time` and four
+   `Farms::inc_time` draws in the same order; ours spends **one more**, `Unit::do_move+0xe84` — the grid draw a move pays when
+   `find_path` refuses its line — between the `Guy::move` pair and the birds. One parting, ours alone.
+2. **The unit** (run710's `GUY` block): `1/52` is `type` 322, **`TRANSPORTFREIGHTER`** — sea, born on 1529, carrying `1/40`
+   (`inside_down` 40), `unit_masks` 0x840008, under an `AttackTo` to (35256, 36936). Its first parted keys are on block 1686
+   (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`): `path:length` 9 against 17, `path_recursion` 10 against 1,
+   `order:move.last_x/y` (42816, 37233) against −1, the heading; its position agrees through 1686 and parts on 1687.
+3. **The frame before** (run710's trace, frame 1685; block 1686). Both sides spend one grid draw `Unit::do_move+0xe84 <
+   do_attack_to` (seed `b30bf2d5`, 9775; `% 5` = 0, the 8-cell threshold), so the plan is the **near** arm and, with
+   `collide` 0, the tile grid. The original then runs `astar_path(step 192)` from tile (221, 191) to its top waypoint
+   (42168, 37704), tile (219, 196) — 63 proxied `calc_cost` calls — and takes the 7-entry plan: block 1686 holds the 17-entry
+   stack, `last` cleared. Ours made **no** `calc_cost` call for `1/52` on 1685 (`cost_marks` on a probe), popped the waypoint
+   and wandered west until the second grid draw on 1696.
+4. **Why** (a probe of ours' `find_tpath`; the listing). Ours' pull-back walk read `tregion_alt` 0 at the Freighter's own tile
+   and 12 at the goal's, stepped the goal home tile by tile, and returned the stack unchanged — a refusal. The original's walk
+   is gated (`PathFinder::find_tpath@006897d0`, listing `68994c`–`689960`): `cmp [type + 0x218], 2; jge 689aa6`, then `call
+   UnitData::can_transport@0046f960; test eax, eax; jne 689aa6` — the near test and the search. So the walk runs only for a
+   unit that is not an aircraft and **cannot transport**, the conjunction `find_upath`'s pre-walk has (`docs/PATHFINDER.md`
+   §18.1), not `find_wpath`'s. `can_transport` is `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, or the type's
+   `+0x2b4 & 0x10`; the Freighter's `unit_masks` carries 0x800000. *Listing-backed*; the diff confirms it on its one frame.
+
+**Built.** `Sim::find_tpath` (`crates/sim/src/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
+!unit_can_transport(u)` — `find_upath`'s own predicate. Unit test `path::tests::a_transport_keeps_a_tile_goal_in_another_region`:
+a goal two regions over is kept by a unit that can transport and walked toward its own region by one that cannot.
+
+**The value diff, and the word now.** run710 block 1686: `1/52`'s stack 17 entries in both, its top (42744, 36936) and
+`path_recursion` 1, `last` −1 in both; on 1685 ours' 63 `calc_cost` calls are the original's, call for call. No key of `1/52`
+parts in run710's window past its standing `form` on 1529 (pinned). **run710 478 keys → 360** (151 standing).
+`coverage_pair_first_parting`: **frame 1696 → 1719, count and sequence** — ours 15 game draws against 16, index 11: ours
+`Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. Inside run710 (block 1720). On the fixed tree the first unit to
+part past 1655 is `1/40`, the Freighter's passenger, on 1703 (`pos` (42648, 37176) against (42648, 37128): it comes ashore
+48 south of the original's spot), and on 1720 the original's `0/2000` holds `damage` 1560, `reduce_stamp` 1719 and
+`city_flags` 0xe that ours does not. Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing measured: every other widening, floor and word holds (the suite below).
+
+**What is not established.** The gate's first half is read as this crate's `Domain::Air` — `+0x218 < 2` as `find_upath`'s
+reading has it; the helicopter test (`+0x2b4 & 0x20`) ahead of it is unchanged. Whether a land unit that can board (a citizen
+with a Dock on its side) now plans its tile leg differently across a region seam was not met in any walk the suite runs.
+
+**Coverage.** Diff-backed: claims 1–3 and the value diff (run710, run710's trace). Listing-backed: claim 4's gate, which the
+diff confirms on its one frame.
+
+## 164. The computer's silo strikes with its nuke, and the word at 1960 (2026-10-07, item 1591)
+
+**What was established, how, how confident.** Item 1589 left the coverage pair's word at **frame 1719, ours 15 game draws
+against 16, index 11**: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. run710 (1527..1783) holds it whole.
+Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run710's trace, `report.py draws 1719`; ours `RON_DEBUG_SITES`). The same eleven unit and bird
+   draws, then the original alone spends `Object::take_damage+0xe1 < Object::do_damage < Nuke::do_damage` (seed `f7aea196`)
+   behind a sound draw from `Nuke::add_nuke < Ammo::do_damage < Ammo::inc_time`: a **nuke's round lands** on 1719 and its
+   ring's first blow is a building's first wound. Ours had no round in flight (`RON_DEBUG_AMMO` 1700..1721).
+2. **The round** (run710's dump; the trace). The silo `1/2015` (`MISSILESILO`) holds the ICBM `1/42` (`TypeIndex` 316,
+   `ICBM`; `inside_down` 42) from the window's first block. Its `recharging` counts 2, 1, 0 on blocks 1599..1601, `visible`
+   −1 on 1601 and `inside_down` −1: launched on frame 1600 (`Build::do_missile_launch+0x22d`'s sound draw on 1600), and 119
+   frames later the round lands on Napata, `0/2000`, at (6240, 7008) — the human's one city, `damage` 1560 on 1720.
+3. **The order** (`RON_FIRSTS`, run710's widening). `1/42`'s first parted keys are on block 1570: `order:length` 0 against 1,
+   `orders.len` 0 against 1. On 1570 the original's holds one order, type 24 (`AIR_ATTACK_GROUND`), `att_x/att_y` (6240,
+   7008); ours held none, idle in the silo through 1606. Nothing in the frame's draw stream: no draw is spent.
+4. **Who gave it** (the decompile; the listing, `0064f3b0`, `64f81c`..`6508a7`). Of the callers of
+   `add_air_attack_ground_order`, `Object::do_launch` is the one on a building's own process: past the chain walk, the
+   computer's sortie gate (`leader_flags & 4` clear, `(frame + o) & 31 == 0`, not `leader_flags2 & 8`) and then, for a base
+   that `is(MISSILESILO)` (`64f89a`), the **silo's arm** at `64fdcd`: `(frame + o) & 127 == 0` — 1569 + 2015 = 28 × 128 —
+   `num_inside(1) != 0`, and the chain's head `m`; `is(m, NUCLEARMISSILE)` (`64fe33`) selects the nuke arm, gated on
+   `armageddon < get_armageddon() − 2`; `reach = m->get_speed(x, y, 1) × mana(m)` (vslot `0x17c`, `64fea2`). Over the eight
+   leaders `L` with `leader_flags & 1`, `is_enemy(owner, L)` and not `has_preq(L, MISSILE_DEFENSE_BONUS)`: each city
+   with `city_flags & 1` whose building's `ever_seen` (`WallData +0x62`) is non-zero — **any** player's bit: the `1 << who`
+   tested beside it (`64ff66`..`64ff71`) is never 0 — and with no object of the owner's within 0x1800
+   (`ObjectsData::find(x, y, SEARCH_FRIENDLY, who, 0x1800, …)`, `64ffba`) scores `num_buildings(city) × (hits_left + 1000)`
+   (`CityData::num_buildings@00738190`, `ObjectData::hits_left`, vslot `0x114`), skipped past `reach`
+   (`vector_dist(building − silo)`, `jg`), over `d / 0x1200 + 1`; strictly greater replaces from −1. The best takes
+   `add_air_attack_ground_order(m, its point, −1, −1, QUEUE_NEW, 1)` (`650862`..`6508a2`). Napata's `ever_seen` is 1 (who=0's
+   bit alone), which is why the owner's-bit reading cannot be the original's. *Listing-backed*; the diff confirms the nuke
+   arm on its one frame.
+5. **Two more on the blast's chain**, found by walking the word on: (a) ours' ring struck the chicken `9/6` beside Napata
+   and spent its death draw on 1735 — `Nuke::do_damage`'s unit search is `Objects::find_units(…, 1)`, and the last argument
+   set keeps both of its arms to `who < 8` (`0065a620`: `SBORROW4(who, 8)` on the cell arm, `(param_11 == 0 || who < 8)` on
+   the list arm), so the original never strikes an animal; (b) the pasture `0/2002`, flattened on 1734 in both, left its
+   chicken `9/9` to `think_farm_animal` on 1747 in ours — `Build::close@00628980:273–297` walks the animals' list for a
+   gather building whose good is food (`BuildTypeData::get_good` 0) and closes each active, herdless (`+0x86 < 0`),
+   non-air animal whose farm reference (`AnimalData +0x150/+0x152`) is the building, through `Unit::close(0, −1, 0)`:
+   no death draw. *Listing-backed*; each moved the word in its own run.
+
+**Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
+cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/nuke.rs`) passes over a
+unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
+tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
+within 0x1800, a human's silo), `nuke::tests::the_ring_never_strikes_an_animal` and
+`farms::tests::a_pasture_s_close_takes_its_animals_and_spends_no_draw`.
+
+**The value diff, and the word now.** run710 block 1570: `1/42` holds `[AirAttackGround (6240, 7008)]`, flags 4, in both; it
+leaves on 1600 and its round lands on 1719 in both; no key of `1/42` parts in run710's window (pinned). **run710 360 keys →
+224** (151 standing). `coverage_pair_first_parting`: **frame 1719 → 1960 (the sequence; the count parts on 1982)** — 36 game
+draws a side, index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a
+< Guy::move+0x19f`. Past run710's last block; **run711** (1954..2210, block 1961) widens it: 2077 keys, 310 standing on 1954.
+On 1961 `1/42`'s `path_recursion` 2 against 1 and `1/62`'s 1 against 2: ours' `1/42` is the original's `1/62` (both a
+two-figure unit at (35886, 39011)), and the original's `1/42` a citizen at (30456, 37080) — slot 42, freed by the ICBM on
+1600, was handed out differently between 1784 and 1953. Standing on 1954 too: the human's leader `active` 14 against 0,
+`control` 14 against 0, `num_units[0]` 13 against 0 — run710 shows the first step on 1738, 14 against 13, the frame after
+the ring's first kill: ours' leader counts do not fall when the nuke kills. Hypotheses for the item after, not a cause.
+
+**What else it moved.** The compared pin: `OrderDump`'s thirteen air-order fields leave it (the ICBM's order is compared
+1570..1600). The ground guard: one read at the round's `ez` on Napata, and the walk past it (`GROUND_INEXACT`: 4, 3, 4, 4).
+Every other widening, floor and word holds.
+
+**What is not established.** The non-nuke arm (a V2 or Cruise Missile at the head: `hits_left ≥ 500`, `damage + 1000`, a
+`% 10` draw for a city whose `city_flags & 2` is clear, a third list of targets) — no trace on disk draws from `do_launch`
+(the scan in its `SEAM`); the forts' and wonders' loops; the Armageddon gate, read as open; the friendly search's cell ring,
+walked as every object of the owner's. `Build::close`'s animal walk is read as reached on every close, a transfer's too.
+
+**Coverage.** Diff-backed: claims 1–3, the value diff, and 5's two draws. Listing-backed: claim 4's predicates past the nuke
+arm's one frame, 5's two gates.
+
+## 165. A transport at its oil platform dies and hands in its passenger, and the word at 2166 (2026-10-07, item 1594)
+
+**What was established, how, how confident.** Item 1591 left the coverage pair's word at **frame 1960, 36 game draws a
+side, index 0**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a <
+Guy::move+0x19f`, inside run711 (block 1961), its hypotheses a slot swap of `1/42`/`1/62`. Each claim is *diff-backed*
+unless marked.
+
+1. **The draws are the same four in another order** (run711's trace, `report.py draws 1960`; ours `RON_DEBUG_SITES`).
+   Ours spends `1/42`'s turn (two draws) and then `1/46`'s arrival stand (two); the original `1/46`'s stand and then its
+   turner's — the same type-61 two-figure unit, which the original numbers 62. The objects are stepped in number order, so
+   the frame parts on numbering alone.
+2. **The numbers were handed out differently in the undumped 1784..1953** (run711 block 1954's `uid`s against ours'
+   births, `RON_DEBUG_SLOTS`, a print this item added to the third walk). The original's births in the gap are uids 127..137
+   → 65, **37**, **62**, 67, **42**, 68..72, 46; ours' were 65, **62**, **42**, 67, 68..72, 46. Two inputs to
+   `Objects::find_free` parted: ours' Freighter `1/37` (`TypeIndex` 322, `TRANSPORTFREIGHTER`) lived where the original's
+   number 37 was free, and ours' number 42 — the ICBM's, launched on 1600 (§164) — came free about 30 frames early.
+3. **The Freighter.** In run710's last block (1783) `1/37` carries the citizen `1/26` (`inside_up 37`) beside the Oil
+   Platform `1/2031` it built. On run711's 1954 the original has `1/26` `inside_up 2031`, `2031` `inside_down 26`, and no
+   `1/37`; ours had `1/37` inside `2031` with `1/26` still aboard (`inside` 37 against 2031). Ours' freighter takes its
+   `GatherOrder` on the platform on 1787 and arrives on 1788.
+4. **`Unit::do_gather@005ef2a0`'s platform arrival for a transport** (the listing `5efa39`..`5efacf`). Past the
+   scholar test, a platform's arrival asks `ObjectData::can_carry(GROUND)@00646c40` — a unit (vslot `0x18`) whose type's
+   `carry` (`+0x2d4`) is not 0 and which is not `is(0x15f)`, the Aircraft Carrier. When it can: `Unit::same_damage` on the
+   passenger, the head of the boat's `inside_down` (`+0x28`, `+0x3e`; `5efa4a`..`5efa73`), if there is one;
+   `Unit::go_inside(boat, platform, who, 0)`; `kill_current_order(boat, 0)`; and `Object::die(boat, 0, −1, 0)` (vslot
+   `0x158`). The die's `Object::close@00647160` finds the boat off the map (vslot `0xbc`) and so takes
+   `remove_from_inside`, not `kill_contents`: `Object::remove_from_inside@006480f0` splices the boat out of the platform's
+   chain — the platform's `inside_down` the boat's, the passenger's `inside_up` the platform. *Listing-backed*; the diff
+   confirms the end state on 1954.
+5. **`Object::die@00647080`'s hold adds 30** (the listing `6470a9`..`64713c`). Over the live rounds whose shooter is the
+   dying object, gated on the type's `max_range` (`ObjectTypeData +0x1fc`) not 0, the hold is `[0xc0a888] + 1 +
+   total_time − cur_time`, maxed against what `close` left (30). `0xc0a888` is `nuke_effect +0x108`, which
+   `Nuke::init@0092c960` sets to `0x1e` (`92c987`) — a nuke's spread time, which `Nuke::do_damage` reads after `+0x104`'s
+   10 frames — and nothing in the simulation writes again. This crate had taken it as zero (`docs/COMBAT.md` §42.5). The
+   ICBM's number is held to about 1871 rather than 1841, so the 1852 birth takes 62 and the 1908 citizen 42, as the
+   original's uids 129 and 131 do. *Listing-backed* for the arithmetic; the births confirm the 30 on this one number.
+
+**Built.** `Sim::transport_into_platform` (`crates/sim/src/transport.rs`), from `do_gather`'s arrival for an Oil Platform
+before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
+shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/fight.rs`), added in `hold_dead_slot`. Unit test
+`transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
+`carry` passed by); `airbase::tests::the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth` reads 151 for the
+V2's hold (121 before). Mutations (`tools/mutate.py`, scored by exit and the failed tests' names): the arm cut from
+`do_gather`, and the rival reading in which the passenger dies with the boat (`kill_contents`), each held by
+`coverage_pair_first_parting`, `run711_s_word_frame_is_widened_whole` and the transport unit test; the hold's 30 dropped,
+by the same two walks and the silo's unit test.
+
+**The value diff, and the word now.** run711 block 1954: `1/26` `inside 2031` in both; `1/37` at (38010, 41471), `1/42`
+at (30456, 37080), `1/62` at (35886, 39011) and `1/67`..`1/70` agree in every compared field (pinned); `1/71`/`1/72` keep
+`form` −1 against 0. **run711 2077 keys → 482** (310 standing → 150); the first parting past 1954 is still `1/40` on
+1956. `coverage_pair_first_parting`: **frame 1960 → 2166** (count and sequence) — ours 602 game draws against 604, index
+6: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823`. Inside run711, block 2167, now on the widening's and the coverage driver's
+block lists.
+
+**What else it moved.** Nothing: the whole suite on the build's tree was red only on run711's two pins. The hold's 30
+reaches every ranged unit that dies with a round in flight, and no other floor, widening or word saw it.
+
+**What is not established.** The arm's `same_damage` is this crate's whole-unit form (its own SEAM); the passenger's
+squad below the head is spliced as the chain's, and no capture carries a squad to a platform. `insert_inside`'s and
+`remove_from_inside`'s leader counters (`+0xa28`..`+0xa34`, the Lakota and American bonuses) are not carried. The `max_range`
+gate on the hold is read as met by every shooter with a round in flight.
+
+**Coverage.** Diff-backed: claims 1–3, the end state of 4, and 5 on the ICBM's number. Listing-backed: 4's predicates and
+5's arithmetic past that one number.
+
+## 166. A passenger put ashore clears where it boarded, and the word at 2288 (2026-10-07, item 1598)
+
+**What was established, how, how confident.** Item 1594 left the coverage pair's word at **frame 2166, ours 602 game
+draws against 604, index 6**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`, theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823`, inside run711 (block 2167), its hypothesis `1/68`'s
+position on 2164. Each claim is *diff-backed* unless marked.
+
+1. **The extra draw is `1/68`'s blocked stand** (run711's trace, `report.py draws 2166`; ours `RON_DEBUG_SITES`). The
+   original's index 6 falls between `1/64`'s turns and `1/74`'s, and block 2167 has `1/68` (`TypeIndex` 104,
+   `MECHINFANTRY`) at `collide_frame 2166`, `collide 1`, `collide_o 73` (the citizen `1/73`). The second extra draw, the
+   frame's last `Guy::set_anim+0x104b`, is an animal's roll on the shifted stream.
+2. **`1/68` took a half step on 2164.** Its guy `angle` and unit `angle` agree with ours' facing and heading on 2164; the
+   original moves (−17, +24), which is this crate's trig at step **29**, half of ours' 58 (a `get_speed` halving would give
+   28). Owing 5.9° after the turn, `Unit::move_step@005faf30` halves only on `unit_masks & 0x100000`, which
+   `do_move@005f7b30:507`'s probe of a freshly taken waypoint sets on a soft hit (`docs/COLLISION.md` §4.3, §5.1). The
+   waypoint is (40152, 40920); the TOW `1/52` stands 113 from it in the original and 145 here.
+3. **`1/52` has trailed by a step since 2045**: the original's dump carries `0x100000` on 2045 (it turned in place, keeping
+   the bit) and it steps 18 against ours' 37 on 2046, about 19 units behind for the rest of run711. Its own waypoint probe
+   (38280, 43464) was soft on the ARMOREDCAVALRY `1/40` (`TypeIndex` 220), 150 away in the original and 239 here
+   (`RON_SWEEP` reads ours' probe clear).
+4. **`1/40` parted on 1703** (run710's widening): Freighter `1/52` (`TypeIndex` 322) reaches its landing point and puts it
+   ashore at (42648, **37128**) in the original and (42648, **37176**) here. `come_out`'s host ring (`docs/TRANSPORT.md`
+   §6.4) from the freighter's (42744, 37036) reaches the original's spot as its fourth candidate; this crate refused it on
+   occupancy cell (890, 771) alone (the first three are refused in both).
+5. **The occupancy bit** (run712's packet at logger frame 1702; run713's per-frame watch). The original's `CollBlock` bits
+   over unit cells x 882..897, y 764..779 equal this crate's except (890, 771). It is set on 1034 in both, by Freighter
+   `1/27`'s birth on its caster's land cell, and **cleared in the original during tick 1113**, when Boat `1/25` puts its
+   passenger `1/12` ashore far away: `1/12` had boarded from unit cell (891, 772) on 1008.
+6. **`Unit::come_out@00617c10`'s two steps** (the export, `:514` and `:518`): `Object::remove_from_inside@006480f0` ends in
+   `add_to_world`, which paints the disc at guy 0's retained point — where it boarded — and `set_new_location(·, ·, 1, 1)`
+   then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
+   farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
+
+**Built.** `Sim::coll_come_out` (`crates/sim/src/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
+
+**What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x823`. Past run711's last block (2210): run714 widens it over 2283..2539 (block 2289), 2,949 keys on the
+tree merged with the race's 1565 chain (3,015 on 1598's own base), 181 standing on 2283. On 2289 `1/83` has `collide` 0 against 1, `collide_o` −1 against 91, `order:coll` (39240, 38952)
+against (42131, 38062) — the original's `1/83` stood blocked by `1/91`. `1/83`'s `pos` stands parted on 2283 ((38358,
+38097) against (42035, 38170)) and its move order first parts on run711's 2183 (`orders_x/y` (28488, 31272) against
+(44760, 24648)). The item after's hypothesis, not a cause. run710's widening 224 → 210 keys, run711's 482 → 286 on 1598's base
+(163 and 204 merged with the race's chain); no other floor, word or chapter moved, Great Sahara's included.
+
+**Not established.** A unit leaving a **building** takes the same `come_out` lines; `come_out_place` still paints the
+spot fresh, and no capture has been read for it. The rival end — clearing the whole boarding disc rather than the cells
+farther than `coll_size` from the spot — differs only for a landing within `2·coll_size + 1` cells of the boarding point,
+which no capture here has.
+
+## 167. A rival's border marks a city `bordering`, a spent nuke and Uranium price the ICBM, and the word at 2206 (2026-10-07, item 1600)
+
+**Established by**: run702's blocks 1979..2235 (the word 2185's block 2186 is inside), a scratch probe of ours' price and offer terms on 2180–2185, and the listings `TypeData::get_cost@00664090` (`:416`–`420`, `:546`), `LeaderData::get_support_count@006da110`, `World::compute_reg_territory@006b0bb0` (`:92`, `:595`–`607`) and `Leader::create_buildings@006c1be0` (`:324`, `:821`–`841`). No new capture.
+
+**The race's re-check (1578).** The Opus racer's rule — a lobby starting at technology 8 caches a Military `preq[1]` unit's `military_level` as 0 — **is already in this tree**: item 1583 built it independently (`TechTree::military_level_in`, §158 mechanism 2), the same rescale (`age < start` drops the epoch; otherwise `0x23b + ((0x1c / (end − start + 1)) · (age − start + 1) + 3) / 4`, clamped), and the race's "not in the Sonnet chain" was a misreading of §158. The dump agrees: ours' 1 % is on every military price, and the first parting was a price 12 % dearer, not 1 %. Nothing was carried from `e0169bd9`.
+
+**The word 2185's first parting, 2183.** Building `1/2034`'s queue holds a second ICBM (`TypeIndex` 316; the first stands at `1/2017` at 742/891, 99 % of 750/900): the original 927/1069, ours 816/965. Two terms, solved from the pair — 927/0.99 = 937 = 750 · 95 % + 225 and 1069/0.99 = 1080 = 900 · 95 % + 225 — and each read:
+
+- **The ramp counts spent nukes twice.** `get_support_count` adds `nukes_used` for `0x13b` and `0x13c` by index, and `get_cost:546` adds the field again for any type `is(0x13b)` (the ICBM's `FROM` is the Nuclear Missile, `0x13b`; probed). One queued ICBM and one spent nuke make count 3, 225 on each support slot (`Oil 75`, `Knowledge 75`), where ours counted 1. Built: `Sim::nuke_ramp_extra` (`lib.rs`), in `price_with`'s count. The matching `missiles_used` (the two missile types below the nuke) is not tracked.
+- **Uranium takes `URANIUM_NUKE_COST` (5 %) off the scaled base** of a type of the nuke's line, in the pre-ramp tail (`get_cost:416`–`420`; `rare` bit `35 − 6 = 29`, byte 3 bit 5). The Persians hold it from between 1985 and 2182 (`rares_collected[29]`). Built: `Modifiers::uranium`, `Sim::uranium_discount`, `Tuning::uranium_nuke_cost` (`rules.xml` `5%`), `economy::URANIUM`.
+
+**The word 2185 itself, 2185.** With the price agreed the make list's row 8 still parted: the original lists a **Bunker** (`TypeIndex` 442, `val` 80000, `escrow` 1, city 1) where ours listed the Library (435, 39981, city 5). Ours' Bunker for the city was 8000 — ten times less. `create_buildings:821`–`841`: for a Tower- or Fort-line type, `CityData.bordering == 0` leaves a tower as it is (a fort `/ 100`) and **any `bordering` ≠ 0 multiplies by 10**; the Temple arm multiplies by 100 (`:324`). The dump's `bordering` of Persian city `1/2018` is 3 (bits 1 and 0) from 1980 and ours read 0 — §76.4's `compute_reg_territory` clears it, and this is its other half. **`compute_reg_territory` sets it** per cell it writes: the winner `local_14` and the runner-up `local_24` (both players, the winner's claim a *city* — `local_1c` ≥ 0, a fort's win clears it) and `leaders[a].diplos[b] == 0 || leaders[b].diplos[a] == 0` (at war either side): the winner's city takes `1 << a | 1 << b`. Every land region's first call (resume index 0) clears every city's `bordering` before its budget test, so the last region started keeps it. Built: `territory::compute_all_territory_won` (the winning city per cell), `Sim::territory_won`, `BorderPass::won`, `Sim::mark_bordering`, `clear_bordering` and `wholesale_bordering` (`border_pass.rs`); read by `building_value`'s tower, fort and temple arms.
+
+**The move.** The word **2185 → 2206** (count and sequence): ours 14 draws against 16, index 3 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Run702's keys 317 → 258 on the merged tree (with 1605's human sweep); the coverage pair's windows lose keys (run710 138 → 134, run711 130 → 124, run714 162 → 154, run715 6302 → 6299; its word does not move) and chapter forty-eight's pin loses `656 1/2000 city:bordering`.
+
+**The value diff beside the word 2206.** Persian unit `1/38` parts first on **2205**: its move order's destination `x` 40920 against 40728, `y` 1944 against 1752 (the offsets `off_x` 216 against 24, `off_y` 408 against 216); on 2206 its order kind (14 against 1), its order count (1 against 2), its path (0 nodes against 1) and its heading; on 2207 `pos` (41016, 2040) against (41016, 2016). No mechanism claimed.
+
+**What is not established.** The `0x1000` flag the same cell write sets (a cell within four cells of the city, `:608`–`:613`) and its readers (the tower arm ×2 or ×10, the temple arm) are not modelled — no city in the window carries it (`city_flags` 145, 1, 129). `produce_building`'s placement scoring multiplies a site's score by 10 in a bordered city inside `circle_radius[3]` (`:570`–`:576`) and is **not built**: ours does not read `bordering` there. Whether the ICBM's `FROM` is the Nuclear Missile in the data — probed `true` here — agrees with `get_nukes`' count (§158 says the ICBM's `FROM` is none; the probe says it is `0x13b`).
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the nuke line's term, held by `run702_s_word_frame_is_widened_whole` and `a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off`; Uranium's 5 %, held by the widening; the tower arm's ×10, held by the widening; the war test, **held by the unit test alone** (both players are at war throughout the capture, so the peace arm is unreached); the region clear, held by the unit test; the temple arm's ×100, **no walk holds it** (the first mutation failed nothing) — held now by `a_temple_in_a_bordered_city_is_worth_a_hundred_times`.
+
+**Coverage.** Diff-backed: the ICBM's two terms (927/1069 on 2183, the buckets 111 and 104 apart), `bordering` on `1/2018` and the Nubian city, the Bunker's offer. Reading-only: the temple arm, the war test's peace branch, the fort arm's `/100`.
+
+## 168. A building's close flags its cell for the placement AI, and the word at 2296 (2026-10-07, item 1602)
+
+**What was established, how, how confident.** Item 1598 left the coverage pair's word at **frame 2288, ours 38 game draws
+against 39, index 34**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823`, inside run714 (block 2289), its hypothesis `1/83`'s move order parting on
+run711's 2183. Each claim is *diff-backed* unless marked.
+
+1. **The extra draw is a blocked stand** (run714's trace, `report.py draws 2288`; ours `RON_DEBUG_SITES=2287-2288`): every
+   other draw of the frame agrees. Block 2289 has the citizen `1/83` (`TypeIndex` 50) at `collide 1`, `collide_o` 91.
+2. **`1/83` builds the other Oil Platform.** run711's widening on 2183: leader 1's `1/2048` (`orig_type` 422,
+   `OILPLATFORM`) stands at (28032, 31104) in ours and (44928, 24192) in the original; on 2186 `1/2049` takes the other
+   site. `1/83`'s move order on 2183 is the approach to its `1/2048`. Both sides' make lists hold the same Oil Well offer
+   (`t 421`, city 0), so the anchor is city 0's centre, cell (51, 52).
+3. **Ours' walk of the patches** (a scratch print in `pick_oil_patch`, §133 claim 2): on 2182 patch A, cell (58, 31),
+   scores 98 and patch B, cell (36, 40), 101, neither refused; ours takes B. It walked them on 1182, 1185, 1382, 1385, 1982,
+   1985, 2182 and 2185; on 1985 it took B.
+4. **The original's site on B was disbanded on 2048.** run711's dump holds `1/2048` at (28032, 31104) from block 1986 and
+   not on 2049: 2048 + 2048 = 4096 = 32 × 128, `Wall::process`'s 128-frame phase (§162). Ours disbands it on the same
+   frame (no key of it parts before 2183).
+5. **`Build::close@00628980:183-187` sets bit `0x2` of the cell under the building** (`WData.flags`, `World +0x134`, the
+   cell `div_3_table[(pos ^ 0x63637) >> 8]` per axis), inside its `flags & 1` block and only when the reason is not 5.
+   `Object::disband@006455c0:181` reaches it as `close(0, −1, 0)` for an unfinished building (vslot `+0x150`, `vtables.txt`)
+   and `Object::die@00647080` with its own reason. Reason 5 is `Cities::capture_city@00733380`'s alone (`:1173`, and `:1114`
+   but for the tribe-0x13 arm); `City::find_buildings@007384c0:222` and `Leader::defeat_by@006d1c80:195` close a converted
+   building's old half with 0. *Export-backed.*
+6. **`Leader::produce_building@006e1400` reads it twice.** The oil arm (§133 claim 2, `:263`, `:296`) skips a flagged
+   patch, clearing the bit when no enemy object is within `0xf00` of the cell's centre; the spiral (`006e23f0`–`006e2484`,
+   read from the listing: the test after `best <= score`, the search at x then y of the centre, the clear at `006e2451`)
+   refuses a flagged cell with an enemy within `0xf00` and otherwise clears the bit and goes on. No other reader in the
+   simulation: the export's other `0x134` readers of `& 2` are map-making and `compute_site_stats`' `+0xd`.
+7. **run240's world on Great Lakes' block 17087** parted on one cell, (2, 40), ours `flags` 128 against 130 — this bit.
+   With the setter it agrees on every cell.
+
+**Built.** `world::cell::CLOSED` (`0x2`); `Sim::mark_closed_cell`, from `close_building` for every reason but 5 and from
+the two conversions (`crates/sim/src/city.rs`); the oil arm names the bit and the spiral's arm is new
+(`crates/sim/src/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
+`cities_tests::a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near`.
+
+**What it moved.** The word **2288 → 2296**, count and sequence: ours 51 game draws against 52, index 3, ours
+`Animal::think_bird+0x82`, theirs `Army::find_target+0x7df`, inside run714 (block 2297). The value diff: `1/83`, `1/2048`
+and `1/2049` agree in every compared field over run711's window, and `1/83` and `1/2048` over run714's (`1/2049` parts
+on 2383). run711 204 → 151 keys; run714 2,949 → 1,986, 181 → 135 standing on 2283, its first parting past that block
+2289 → 2293 (leader 1's pool row 70, the kind run711 parts on 1972..2188); run240's cells 1 → 0. On block 2297 the human
+leader has `attacked_by` 1 and `frame_attacked` 2296 in the original alone, and leader 1's army (`1/49`, `1/51`, `1/59`,
+`1/75`) is ordered toward (2328, 5400) there: the item after's hypothesis, not a cause.
+
+**Not established.** The spiral's next arm (`:609`–`:637`): for a city with `city_flags & 2`, a cell whose 3×3 neighbourhood
+holds an enemy object is refused with the stride set to 3. It is not modelled and no capture is known to reach it. The
+spiral's flag arm has run in no walk that a diff holds (the coverage pair's placements are the oil arm's); it is
+listing-backed. `capture_city`'s tribe-0x13 close with reason 0 is not modelled.
+
+**Coverage.** Diff-backed: claims 1–4 and 7, and the oil arm's skip (the word's move). Export- and listing-backed: claim 5's
+reason gate and the conversions' close, claim 6's spiral arm.
+
+## 169. The human leader takes the sweep, and the navy scores Napata (2026-10-07, item 1605)
+
+**What was established, how, how confident.** Item 1602 left the coverage pair's word at **frame 2296, ours 51 game draws
+against 52, index 3**: ours `Animal::think_bird+0x82`, theirs `Army::find_target+0x7df`, inside run714 (block 2297), its
+hypothesis leader 1's pool row 70 on 2293. Each claim is *diff-backed* unless marked.
+
+1. **The missing draw is a fourth city score** (run714's trace, `report.py draws 2296`; ours `RON_DEBUG_SITES=2295-2296`):
+   the original spends four `find_target+0x7df` draws (`ARMY.md` §12, one per candidate city) and ours three; the other 48
+   agree draw for draw. The original's whole game draws `find_target` on 2040 (three) and 2296 (four) alone (`report.py
+   when`).
+2. **The army is leader 1's navy, slot 2, and the fourth city is the human's Napata** (a scratch print in `find_target`,
+   reverted): on 2296 the human passes the leader gate (`num_standard` 9 against `7 − 2 × raid` 9; on 2040 it was 6), and
+   Napata, `0/2000`, reaches the navy's coast test with `is_coast` true and `ocean` read from the human's `city_ai`, which
+   ours had never written: 0. The dump prints Napata `ocean 25`. Leader 1's own three cities score in both. On block 2297
+   the original's human has `frame_attacked 2296`, `attacked_by 1`: the navy took Napata.
+3. **`Leaders::strategy_all@006ed430` sweeps every leader with `leader_flags & 3 == 3`** — the human's flags are 7 — and
+   `plan_strategy@006b9620`'s step 16 (the army seeding) alone is gated, `if ((leader_flags & 0xc) != 4)` (`:1642`): a
+   human without computer assist seeds no army. The sweep's end arms the step machine (`:1747`), and
+   `Leader::production_ai@006c1960:15` sends a human straight to its `default`, which writes 0. *Export-backed*; the arm
+   and disarm are diff-backed — the human's `production_step` reads 1 on the block after its phase frame (13601, 17001,
+   18601, 20601, 15401 on four maps) and parted there until this item.
+4. **With the sweep, the human's census agrees on every capture**: Napata's twelve census rows (`ocean`, `land`,
+   `filled`, `dock_tile`, `space`, `ter`, `busy`, `gatherers`, `peasant_dist`) from run58's frame 1 onward, and the human
+   leader's `active`, `ally_mask`, the three team-territory fields, `peasants`, `peasant_high`, `filled_gather_slots`,
+   `gatherers`, `free_peasants`, `attacked`, `wars`, `active_wars` and `active_wars_with` (§43, §45: the human's war census
+   on run115's 8001 agrees).
+
+**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai_drive.rs`): on the human's phase frame the census and
+`compute_sites` (whose own human gate stands), then the machine armed; on the next frame disarmed. Step 16 is gated on a
+human in `Sim::census` (`crates/sim/src/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
+
+**What it moved.** The word **2296 → 2868**, count and sequence: ours 17 game draws against 18, index 7, ours
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, past run714's last
+block; run715 is its window (block 2869, 6,302 keys, 122 standing on 2863). Its first parting past the standing block is on
+2869: `1/74`'s `order:kind` 12 against 14, and `1/94` blocked by `1/74` in the original alone — the item after's
+hypothesis. The value diff, run714: on 2297 the human's `attacked_by` 1 and `frame_attacked` 2296 in both (ours −1 and 0
+before), nothing of the human parting from 2284 to the word's block, Napata's census rows agreeing from 2283; leader 1's
+army marches on Napata in both, and `1/51`'s `path[2].to` on 2297, (1848, 8616) against (2616, 8616), is the first of the
+march to part. run714 1,986 → 163 keys, run711 151 → 131, run651 66 → 43; the human's rows leave every widening on every map
+(ninety-odd counts fell, none rose); no floor and no other word moved.
+
+**Not established.** The research tick between a human's sweeps (`plan_strategy`'s head, every 30 phase-frames) is not
+taken: it reads the make list's head, which only the script fills, and no dump shows a human buying. `check_explore`,
+`compute_score` and `diplomacy` for a human are as for a computer leader (the first a recount, the others unmodelled).
+Computer assist (`leader_flags & 8`) is not modelled: an assisted human would run the machine and seed armies. The human's
+standing rows that remain — `control` and `num_units` (ours count the dead), `treaties[1]`, `SITE[].reg` 65 against 0 and
+Napata's `raid_stamp` — are other writers'.
+
+**Coverage.** Diff-backed: claims 1, 2, 4, the arm and disarm of claim 3. Export-backed: claim 3's step-16 gate — no
+capture holds a human with computer assist, and no walk would hold the gate's removal but the unit test (the mutation
+below).
+
+## 170. A packer on its post unpacks, and its cast is as long as its type says (2026-10-07, item 1608)
+
+**What was established, how, how confident.** Item 1605 left the coverage pair's word at **frame 2868, ours 17 game
+draws against 18, index 7**: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, inside run715 (block 2869), its hypothesis `1/74`'s order list and `1/94` blocked by `1/74`.
+Each claim is *diff-backed* unless marked.
+
+1. **The missing draw is the AA missile `1/94`'s blocked stand** (`move_step+0x823`, `anim::SITE_BLOCKED`): the
+   original's two `move_step` draws at indices 6 and 7 fall between `1/91` and `1/95`, and its `1/94` stands on block
+   2869 at (35112, 36840) with `collide_o 74`, `collide_frame 2868` and ten detour waypoints pushed. Both sides propose
+   the same step on 2868, (35091, 36863) to (35116, 36865), the original's `coll_x/coll_y` (a scratch print in
+   `unit_step`, reverted). Ours' probe answered nobody and `invalid_loc` refused the tile change, as it had on every
+   frame since 2864.
+2. **`1/74` is the reason, not the cause**: the Advanced Machine Gun (`TypeIndex` 127) guarding `1/72` carries a
+   `CASTORDER` 654 (`UNPACK2`, `paid 0`) over its `GUARDORDER` on block 2869, at `idle 30`. `detect_unit_collision`'s
+   land pusher refuses a packer that is unpacking (`collide.rs`, `5fac8b`–`5faccc`), so the cast turns `1/94`'s push into
+   a hard hit. Ours never cast: its guard had no unpack.
+3. **`Unit::do_guard@005e5c70:298`–`:316`**, past the idle increment: a type that packs (`+0x2b8 & 4`), packer stance
+   `PACKER_AUTO` (vslot `+0x100`), standing packed (`unit_masks & 0x80000`) and not `is_unpacking`, casts
+   `add_cast_order(0x28c, QUEUE_FIRST)` once the guard's `idle` reaches `0x1e` for `is(0x7b, 0)` (the machine gun's
+   lineage) and `0x46` otherwise, and returns before the stand's `set_anim`. *Export-backed*; the `0x1e` arm diff-backed
+   (`1/74` on 2868), the `0x46` arm by the unit test alone.
+4. **`SpellTypeData::get_job_time@00675800`'s two type arms**, read off the listing (`00675a10`–`00675b16`): the siege
+   pair `0x28b`/`0x28c` halves for `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)` (Katyusha) and quarters for `is(0x111, 1)`
+   (MLRS), `cltd`-rounded; the machine gun's `0x28d`/`0x28e` halves for `is(0x7d, 0)` (the Heavy Machine Gun's lineage).
+   `1/74` casts 50 / 2 = **25** frames (`spell_time` 1 on block 2870, 24 on 2893, 0 and unpacked on 2894) and the MLRS
+   `1/65`, cast on 2879 by `think_attack_packed`'s computer arm, 80 / 4 = **20** (unpacked on block 2900). Ours read the
+   raw 80 and 50.
+5. **The unpack re-seats its crew** (`SpellType::cast_unpack@006709c0:60`–`:63`, `set_new_location(own x, own y, 1,
+   1)`, as `cast_pack` does) **and `Guy::update_gpiece@005d8530:52`–`:68` re-reads the track from the new piece**, zero
+   when it has none. The machine gun's unpacked crew piece names no track, so `1/74`'s second figure stands on guy 0's
+   point on block 2894, (35208, 36984) where it had stood at (35275, 36884); run715's `1/89` likewise on 2928.
+
+**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
+(`crates/sim/src/lib.rs`), which `do_cast`'s clock reads; `cast_unpack`'s tail re-seat (`transport.rs`); and
+`Sim::update_gpiece` (`anim.rs`) re-reading a crew figure's track — a tracked figure whose new piece has none loses its
+`Follow`, and one that gains a track is given one on guy 0's point. `UnitData::spell_time` is now compared on every
+unit-frame (`harness.rs`, off `coverage.rs`'s unread list). Unit tests
+`fight::tests::a_packed_packer_on_its_post_unpacks_when_its_idle_runs_out`,
+`fight::tests::get_job_time_shortens_the_pack_and_unpack_by_type`,
+`anim::tests::an_unpack_puts_a_trackless_crew_figure_on_its_leader`; the fixture of
+`an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it` given the siege row's 80, without which its cast
+landed on its first frame.
+
+**What it moved.** The word **2868 → 2969**, count and sequence: ours 18 game draws against 19, index 0, ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, inside run715
+(block 2970). The value diff, block 2869: `1/74` `order:kind` 14 and `orders.len` 2, and `1/94` at (35112, 36840) with
+`collide_o` 74, on both sides (ours 12, 1, (35091, 36863) and −1 before); none of `1/65`, `1/74`, `1/94` parts to block
+2970. run715 6,299 → 5,842 keys; the first parting past its standing block is now `1/152`'s `form` on 2872 (−1 against
+0). On 2970 the original's `1/16` stands blocked by `1/9` (`collide_o 9`, `coll` (35374, 37865)) where ours walked on
+to (35375, 37892) under a half step — the item after's hypothesis.
+
+**Not established.** `get_job_time`'s other arms: the siege pair's Turkish `turk_pack` and Napoleon's `napoleon_pack`
+(neither constant is loaded), Entrench, the spies' crafts, Sabotage and Sniper. `do_guard`'s `0x46` arm has no capture.
+`update_gpiece`'s new-follow arm (a crew figure gaining a track on a pack) is seated on guy 0's point and snapped by
+`cast_pack`'s own re-seat; no capture packs a machine gun.
+
+**Coverage.** Diff-backed: claims 1, 2, the `0x1e` arm of 3, 4's machine-gun and MLRS arms, 5. Export- and
+listing-backed: 3's `0x46` arm, 4's Howitzer and Katyusha arms, and 5's re-seat — which no walk holds, since run715's
+unpacked crew has no track and stands on guy 0 either way — held by the unit tests
+(`anim::tests::an_unpack_puts_a_tracked_crew_figure_on_its_new_offset` for the re-seat).
+
+## 171. Reserved for item 1611 (Great Sahara's coverage word 2206)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
+
+## 172. Reserved for item 1614 (the coverage pair's word 2969)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

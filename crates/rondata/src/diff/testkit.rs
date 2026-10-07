@@ -6821,6 +6821,18 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // The coverage pair's run715 (item 1605): four reads in the replay's
+    // diverged tail past the word 2969 — `coverage_pair_first_parting`,
+    // which walks to the word, reads none.
+    ("run715_s_word_frame_is_widened_whole", 4),
+    // Great Sahara in the coverage lobby (item 1583): the nuke the silo
+    // launches on 1983 flies over run702's ground; five reads of a corner
+    // that is not known to be the original's single, in the flight to the
+    // strike. The strike's fall time reads the height as the bomb's does.
+    ("run702_s_word_frame_is_widened_whole", 5),
+    // The same lobby walked to the word (items 1584, 1585): the nuke's
+    // flight reads the five corners run702's window does.
+    ("sahara_coverage_first_parting", 5),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -6933,6 +6945,23 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run551's ground: 32 reads (pinned at 31, it fails).
     ("chapter_forty_eight_holds_to_the_golden_word", 32),
     ("chapter_forty_eight_s_word_frame_is_widened_whole", 32),
+    // The coverage pair's ICBM (item 1591): `1/42`'s round's `ez` at
+    // Napata's point (6240, 7008) on 1600, launched by the computer's silo
+    // strike, and the walk past the blast to the word 1960 (pinned at one
+    // under each, it fails).
+    ("coverage_pair_first_parting", 4),
+    ("run710_s_word_frame_is_widened_whole", 3),
+    ("run711_s_word_frame_is_widened_whole", 4),
+    // And run714's, which walks past it to the word 2288 (item 1598).
+    ("run714_s_word_frame_is_widened_whole", 4),
+    // The coverage driver walks run710's and run711's windows: run710's
+    // three reads, and run711's four (item 1591; pinned at 3, run711's
+    // walk fails). Item 1583 (the third map's run702, whose nuke reads five
+    // corners of its own over 1979..2235): five, and the driver's.
+    (
+        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        5,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -8716,13 +8745,38 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1278); run678's test keeps the move's value diff on `1/26` from 1183.
     // Item 1558 moved it to **1408**, inside run679 (block 1409); run678's
     // and run679's tests keep the move's value diff on the scout `1/0`
-    // from 1201.
+    // from 1201. Item 1563 moved it to **1532**, past run679's last block
+    // (1528), and took run710 over 1527..1783 (block 1533); run679's test
+    // keeps the move's value diff on the citizen `1/8` from 1340. Item
+    // 1586 moved it to **1610**, inside run710 (block 1611); run679's test
+    // keeps the move's value diff on army `1/0` from 1435. Item 1588 moved
+    // it to **1696**, inside run710 (block 1697); run710's test keeps the
+    // move's value diff on the citizen `1/10` from 1584. Item 1589 moved
+    // it to **1719**, inside run710 (block 1720); run710's test keeps the
+    // move's value diff on the Freighter `1/52` from 1686. Item 1591
+    // moved it to **1960**, past run710's last block (1783), and took
+    // run711 over 1954..2210 (block 1961); run710's test keeps the move's
+    // value diff on the ICBM `1/42` from 1570. Item 1594 moved it to
+    // **2166**, inside run711 (block 2167); run711's test keeps the move's
+    // value diff on the gap's births and the platform's citizen on 1954.
+    // Item 1598 moved it to **2288**, past run711's last block (2210), and
+    // took run714 over 2283..2539 (block 2289); run710's and run711's tests
+    // keep the move's value diff on the landing `1/40` from 1703 and the
+    // chain to 2166. Item 1602 moved it to **2296**, inside run714 (block
+    // 2297); run711's and run714's tests keep the move's value diff on the
+    // Oil Platforms `1/2048`, `1/2049` and their builder `1/83` from 2183.
+    // Item 1605 moved it to **2868**, past run714's last block (2539), and
+    // took run715 over 2863..3119 (block 2869); run714's test keeps the
+    // move's value diff on the human leader and Napata from 2283. Item
+    // 1608 moved it to **2969**, inside run715 (block 2970); run715's test
+    // keeps the move's value diff on the guard's packer `1/74` and the
+    // missile `1/94` it met on 2868.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run679_s_word_frame_is_widened_whole"),
-        1558,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1277),
+        Some("run715_s_word_frame_is_widened_whole"),
+        1608,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2868),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -8736,13 +8790,26 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // on the Merchant `1/38`. Item 1561 moved it to **1582** (a walker
     // blocked by a walking animal repaths) and widened it on run683 over
     // 1577..1833 (block 1583); run681's test keeps the move's value diff
-    // on `1/35`.
+    // on `1/35`. Item 1565 moved it to **1818** (a gather enhancer is
+    // seated only in the city it is placed for), inside run683 (block
+    // 1819); run683's test keeps the move's value diff on the Refinery
+    // `1/2045` from 1583. Item 1581 moved it to **1830** (a restarted
+    // caravan search consumes the reset flag), inside the same window
+    // (block 1831); `run683_s_road_searches_hold_node_for_node` keeps the
+    // move's value diff, every road search from 1577 to 1829. Merged with
+    // item 1586's army normalize it moved to **1985** (count 2048), past
+    // run683's last block (1833), and took run702 over 1979..2235 (block
+    // 1986). Item 1583 moved it to **2048** (the silo's launch, the Spy's
+    // discount, `reg_free_peasants` read unsigned, the nuke census, the
+    // air cap and the lobby's military level: `docs/AI.md` §158), inside
+    // the same window (block 2049); the test keeps the move's value diff
+    // on `1/43`'s path from 2046.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run683_s_word_frame_is_widened_whole"),
-        1565,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
+        Some("run702_s_word_frame_is_widened_whole"),
+        1583,
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1985),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

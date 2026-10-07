@@ -168,6 +168,13 @@ pub const SPICE: usize = 12;
 /// [`Ledger::rare`] already ([`crate::Sim::has_rare`]).
 pub const TOBACCO: usize = 19;
 
+/// `TypeIndex::URANIUM` — the rare `TypeData::get_cost@00664090`'s
+/// pre-ramp tail reads for a Nuclear Missile line type: `testb $0x20,
+/// 0x6da7(%ecx)`, else the same at `0x6dcf`, byte 3 bit 5 of `rare` or of
+/// `rare_conquest`, which is bit `35 - `[`BASE_RARE`]` = 29`
+/// (`URANIUM_NUKE_COST`, `docs/AI.md` §167).
+pub const URANIUM: usize = 35;
+
 /// `TypeIndex::SILVER` — the rare `TypeData::get_cost@00664090`'s **age**
 /// arm reads: `testb $0x10, 0x6da5(%ecx,%eax)`, else the same at `0x6dcd`
 /// (`00666b1b`), byte 1 bit 4 of `rare` or of `rare_conquest`, which is bit

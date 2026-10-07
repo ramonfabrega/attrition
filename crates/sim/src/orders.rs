@@ -3906,8 +3906,7 @@ impl Sim {
     ///
     /// SEAM, none of them reached by a capture on file: the building-target
     /// arm (`action_guard`'s building arm
-    /// is itself a seam, so no building is ever a target here); the
-    /// packer's unpack after `0x1e`/`0x46` frames on the post; and the
+    /// is itself a seam, so no building is ever a target here); and the
     /// sixteen-frame engagement, which asks [`Self::find_melee_target`]'s
     /// idle radius rather than `find_melee_target(−1, 0, 0, 1, 0)`'s own
     /// guard arm.
@@ -4091,8 +4090,46 @@ impl Sim {
         }
         g.idle += 1;
         store(self, 0, g);
+        if self.guard_unpacks(u, g.idle) {
+            return;
+        }
         self.mark(SITE_GUARD_IDLE);
         self.set_anim(u, anim::DEFAULT, false, true);
+    }
+
+    /// **A packed packer on its post unpacks** (`do_guard@005e5c70:298`–
+    /// `:316`, `docs/AI.md` §170): past the idle increment, a type that
+    /// packs (`+0x2b8 & 4`) whose packer stance is `PACKER_AUTO` (vslot
+    /// `+0x100`), standing packed (`unit_masks & 0x80000`) and not already
+    /// unpacking, casts its unpack at `QUEUE_FIRST` once the guard's `idle`
+    /// reaches `0x1e` for the machine gun's lineage (`is(0x7b, 0)`) and
+    /// `0x46` for any other — and returns, so the stand's `set_anim` is not
+    /// asked. `add_cast_order` re-aims the machine gun's `0x28c` at `0x28e`.
+    /// The coverage pair's Advanced Machine Gun `1/74` guarding `1/72` casts
+    /// on 2868 at `idle 30`; its unpacking body is what the AA missile
+    /// `1/94`'s step meets that frame.
+    fn guard_unpacks(&mut self, u: usize, idle: i32) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs
+            || self.unit_stance_type(u) != crate::group::StanceType::Packer
+            || self.units[u].stance != PACKER_AUTO
+            || !self.units[u].combat.packed
+            || self.is_unpacking(u)
+        {
+            return false;
+        }
+        let threshold = if self.unit_line_is(u, MACHINEGUN) {
+            0x1e
+        } else {
+            0x46
+        };
+        if idle < threshold {
+            return false;
+        }
+        self.add_cast_order(u, spell::UNPACK);
+        true
     }
 
     /// `Unit::do_follow@005e65d0` (`docs/ORDERS.md` §28), with the
@@ -7345,11 +7382,10 @@ impl Sim {
     ///
     /// The filter itself is subsumed: a unit with a `BUILD_AT` action is
     /// one `FILTER_BUILDREPAIR` keeps. What is *not* subsumed is the
-    /// search's own reach, so the two paths are both here — and the list
-    /// path's region test is the searcher's cell region against the
-    /// candidate's, where the original indexes its cell grid with **tile**
-    /// coordinates (`div_3_table[pos >> 6]`, a `>> 8` everywhere else).
-    /// That arithmetic is not reproduced; it is a count that breaks ties.
+    /// search's own reach, so the two paths are both here — and on both
+    /// the region test is the candidate's own **tile** region against the
+    /// searcher's (`get_tregion` at `div_3_table[pos >> 6]`, a `>> 8`
+    /// everywhere else), read as [`crate::world::World::tregion_alt`].
     fn build_crowd(&self, u: usize, range: i32, sites: &[usize]) -> Vec<i32> {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
@@ -7374,17 +7410,27 @@ impl Sim {
             }
         };
         if circle.radius[ring] <= live {
+            // The circle walk (`find_units@0065a620`, the decompile's
+            // lines 50–125): every cell of the ring is walked, and the `0x200` region gate
+            // is **each unit's own tile region** against the searcher's
+            // (`get_tregion` at `div_3_table[pos >> 6]`), never the cell's.
+            // A builder carried at sea stands on the coastal cell's water
+            // and answers the sea region: run679's `1/24` on 1340, bound for
+            // the Mine `1/2028` as a barge, is not counted (`docs/AI.md` §155).
             let c0 = here.cell();
-            let region = self.world.region_of(c0);
+            let region = self.world.tregion_alt(here.tile());
             for i in 0..circle.radius[ring] {
                 let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
-                if !self.world.contains(c) || self.world.region_of(c) != region {
+                if !self.world.contains(c) {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
                 let mut next = self.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
+                    if self.world.tregion_alt(self.units[o].pos.tile()) != region {
+                        continue;
+                    }
                     tally(self, o, &mut counts);
                 }
             }
@@ -7864,6 +7910,13 @@ impl Sim {
             g.been_there = true;
             self.store_gather(u, g);
             self.ledgers[who as usize].dirty = true;
+            // A transport carrying the platform's builder goes in and dies,
+            // its passenger spliced into the platform in its place
+            // ([`Sim::transport_into_platform`], `5efa39`).
+            if ident == Ident::OilPlatform && self.transport_into_platform(u, b) {
+                self.check_gatherers(b);
+                return;
+            }
             if self.worker_of(u) == Worker::Scholar || ident == Ident::OilPlatform {
                 self.go_inside(u, b);
                 self.check_gatherers(b);

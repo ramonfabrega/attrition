@@ -1257,7 +1257,7 @@ off the map" (stack emptied).
 | entry | grid / `astar_path` step | before A\* |
 |---|---|---|
 | `find_wpath(Stack*, x, y, who, o)@00688fc0` (4-arg wrapper `@00688e10` from the unit's position) | world cells, `0x300` | same cell or flyer → push the goal back, return length. Else (leaders without flag 4: walk from the goal toward the start in `0x180`/`0x30` steps until `get_tregion` matches and, for sea, `invalid_loc(…,0,1,1,1,0)` is clear; flag-4 leaders: a `was_seen` fog walk) → push goal; **cell-Manhattan < 3 → return length**. Else push `{goal cell centre, tol 0x180, flags 0}`, `{start cell centre, tol 0}`, set `scouting`/`army`/`worker`; `astar_path(0x300, 0)`; 0 → pop, return `−(flags & 1)`; else length. |
-| `find_tpath(Stack*, x, y, who, o)@006897d0` (wrapper `@00688e60`) | tiles, `0xc0` | same tile or flyer → push goal (tol 0), return. Walk from the goal toward the start until `get_tregion` matches and `valid_tcoord`; within `0x60` on both axes without that and not final → 0. Tile-Manhattan < 2 → push goal, return; else push goal, `{goal tile centre, tol 0x60 (0x180 kept), flags 0}`, `{start tile centre, tol 0}`; `offx/offy = mo->off % 0xc0 − 0x60`; `astar_path(0xc0, 0)`; on failure pop a non-final top. |
+| `find_tpath(Stack*, x, y, who, o)@006897d0` (wrapper `@00688e60`) | tiles, `0xc0` | same tile or flyer → push goal (tol 0), return. A non-transport (AI §163) walks the goal toward the start until `get_tregion` matches and `valid_tcoord`; within `0x60` on both axes without that and not final → 0. Tile-Manhattan < 2 → push goal, return; else push goal, `{goal tile centre, tol 0x60 (0x180 kept), flags 0}`, `{start tile centre, tol 0}`; `offx/offy = mo->off % 0xc0 − 0x60`; `astar_path(0xc0, 0)`; on failure pop a non-final top. |
 | `find_upath(Stack*, x, y, who, o, anti)@00682f30` (wrapper `@00688eb0` sets `limit = 500 / repaths[who]²`, halved with `anti`) | 48-unit cells, `0x30` | same 48-cell → push goal, return; walk on the 48-grid with `get_tregion` + `valid_ucoord`; within `0x18` → 0 unless final; 48-Manhattan < 2 → push goal; else goal, goal 48-centre, start 48-centre; `astar_path(0x30, anti)`; on failure pop a non-final top **and kill the unit's current order** unless a move with `retry != 0`; on success with more than three entries drop a top equal to the unit's position and compact collinear `flags & 2` side-steps. |
 | `find_upath_restore(Stack*, who, o)@00688f40` | `saving = 1`, `limit = 300 / repaths²` | resumes the suspended search |
 | `find_wpath_army@00683730`, `find_road@00688a40` | | the group's; the caravan's |
@@ -1671,10 +1671,17 @@ has no distance test at all**; the list path, which walks the per-leader
 object arrays instead, keeps a candidate when `vector_dist − R <= range`, R
 its `push_size` at sea and its `big_radius` otherwise, walking by leader and
 object number (`65aa72..65aaa6`; twenty-fourth pass, group 9). The `0x200` flag is the
-region gate — the cell's `+4` against the query point's — and on the list path
-`find_units` computes the query cell as `div_3_table[pos >> 6]`, a **tile**
-coordinate indexed into the cell grid, where every other site uses `>> 8`.
-That is the original's own arithmetic and is not reproduced here.
+region gate. ~~The cell's `+4` against the query point's — and on the list
+path `find_units` computes the query cell as `div_3_table[pos >> 6]`, a
+**tile** coordinate indexed into the cell grid, where every other site uses
+`>> 8`. That is the original's own arithmetic and is not reproduced here.~~
+In `find_builds` it is the cell's `+4` against the query point's cell, on the
+circle path per cell and on the list path per building. In `find_units` it is
+`WorldData::get_tregion` at `div_3_table[pos >> 6]` — a **tile** region, the
+coastal cell's `region2` for its water — of **each candidate unit** against
+the query point's, on **both** paths: the circle walks every cell of the ring
+and gates per unit, never per cell. Item 1563 built the circle arm
+(`docs/AI.md` §155); item 1544 had built the list arm (§148).
 
 `FILTER_CONSTRUCT` is arm 5 of `Search::valid_filter@0067dbb0`'s jump table
 (the index is `filter − FILTER_TYPE`; the table is at `0067e57c` and the arm
@@ -2395,8 +2402,9 @@ times are the deploy's whole cost:
 | `0x28f` / `0x290` | Merchant | 148 |
 | `0x291` / **`0x292`** | Fishermen | **40** |
 
-`get_job_time` adjusts **nine** of the fifty-five and none of them is one
-this crate issues: `0x27d` Entrench takes the French tribe bonus and
+`get_job_time` adjusts **nine** of the fifty-five ~~and none of them is one
+this crate issues~~ — the siege pair's three type arms and the machine
+gun's one are built by item 1608 (`Sim::cast_job_time`, `docs/AI.md` §170): `0x27d` Entrench takes the French tribe bonus and
 Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
 `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c` take the Turkish bonus, Napoleon's, a
 half for two type masks and a quarter for a third; `0x28d`/`0x28e` halve
@@ -2596,10 +2604,11 @@ stand-in remains (`rondata::diff::order`, it does not score).
 **What is not established.**
 
 - **`get_job_time`'s `0x28b`/`0x28c` arms** (§6.9): the Turkish
-  `turk_pack` percentage, Napoleon's `napoleon_pack` behind a general,
-  a half for two lineages and a quarter for a third
-  (`get_job_time@00675800`). This crate reads the raw `JOB_TIME`, for the unpack
-  as before and for the pack now; run544's Bombard waits exactly 80.
+  `turk_pack` percentage and Napoleon's `napoleon_pack` behind a general
+  (`get_job_time@00675800`). ~~A half for two lineages and a quarter for a
+  third; this crate reads the raw `JOB_TIME`~~ — built by item 1608 with
+  the machine gun's half (`docs/AI.md` §170); run544's Bombard still waits
+  exactly 80.
 - **The order's `tolerance`** (`MoveOrder +0x14`), which arm 1 zeroes,
   is not a field this crate's move carries.
 - **The MOVE_TO re-add above it** (`0060d36a`, `unit_masks & 0x4000000`),
@@ -6187,7 +6196,8 @@ coins agree draw for draw.
   `QUEUE_FIRST` attack. The original's own guard range
   (`unit_guard_respond_range` of the post) is not read. Run133's wagon
   is always moving, so the arm is never reached.
-- **The packer's unpack** on the post.
+- ~~**The packer's unpack** on the post.~~ Built by item 1608: the coverage
+  pair's Advanced Machine Gun `1/74` casts on 2868 at `idle 30` (`docs/AI.md` §170).
 
 ### 24.8 Coverage
 
@@ -6267,9 +6277,10 @@ would raise. No captain fights in run133, so `attacking` is never
 non-zero here, and the `≥ near / 2` side is backed only by the unit test
 `an_unarmed_attack_mover_waits_on_its_phase_for_a_captain_at_its_heels`.
 `GroupData::member`'s flag test (`objects +0x8 & 1`) is taken as
-`alive()`. The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
+`alive()`. ~~The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
 `unit_masks & 0x80000` → `add_cast_order(0x28c)`, `5e63df`–`5e6449`) is
-read and not built. Hoplites never take it.
+read and not built. Hoplites never take it.~~ Built by item 1608
+(`docs/AI.md` §170).
 
 **Coverage.** Diff-backed by `chapter_four_s_word_frame_is_widened_whole`,
 which fails with the pause write reverted (`1416 1/10 order:move.pause`

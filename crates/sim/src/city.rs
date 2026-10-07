@@ -15,7 +15,7 @@ use crate::cost;
 use crate::economy::RESOURCES;
 use crate::place::Blocked;
 use crate::territory;
-use crate::world::{Pos, UNITS_PER_TILE, tile, vector_dist};
+use crate::world::{Pos, UNITS_PER_TILE, cell, tile, vector_dist};
 use crate::{Building, Player, Sim};
 
 /// `TypeIndex` 0x163, `THEPRESIDENT` — what The Senator becomes
@@ -594,6 +594,9 @@ impl Sim {
                 && let Some(n) = self.swap_team(b, by)
             {
                 self.activate(n, false, false);
+                // `Leader::defeat_by@006d1c80:195` closes the old half with
+                // reason 0, which flags its cell.
+                self.mark_closed_cell(b);
                 self.close_building(b, true);
                 continue;
             }
@@ -693,6 +696,9 @@ impl Sim {
                 self.add_to_city(b, c);
             } else if let Some(n) = self.swap_team(b, who) {
                 self.activate(n, false, false);
+                // `City::find_buildings@007384c0:222` closes the old half
+                // with reason 0, which flags its cell.
+                self.mark_closed_cell(b);
                 self.close_building(b, true);
             } else {
                 // A failed conversion kills the building and **ends the
@@ -2194,6 +2200,17 @@ impl Sim {
         self.buildings[b].hold_frames = 1;
     }
 
+    /// `Build::close@00628980:183-187`: for any reason but 5 the cell under
+    /// the building's position takes [`cell::CLOSED`], which the AI's
+    /// placement reads (`docs/AI.md` §168). The cell is the position's own,
+    /// `div_3_table[(pos ^ 0x63637) >> 8]` on each axis.
+    pub(crate) fn mark_closed_cell(&mut self, b: usize) {
+        let c = self.buildings[b].pos.cell();
+        let mut d = self.world.cell_data(c);
+        d.flags |= cell::CLOSED;
+        self.world.set_cell_data(c, d);
+    }
+
     /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
     /// the footprint stays marked for the copy that replaces it.
     pub fn close_building(&mut self, b: usize, silent: bool) {
@@ -2260,7 +2277,13 @@ impl Sim {
             let i = crate::economy::Resource::Wealth.index();
             self.ledgers[who as usize].gather_slots[i] -= 1;
         }
+        if !silent {
+            self.mark_closed_cell(b);
+        }
         self.give_back_gather_tiles(b);
+        if self.building_is(b, Ident::Farm) {
+            self.close_pasture_animals(b);
+        }
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
@@ -2355,6 +2378,9 @@ impl Sim {
             && !self.buildings[b].active
             && !self.nation[self.buildings[b].owner as usize].human
         {
+            if self.oil_platform_abandoned(b, frame) {
+                return false;
+            }
             self.site_recruit(b);
         }
         self.buildings[b].helpers = 0;

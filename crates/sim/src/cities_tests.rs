@@ -3085,6 +3085,84 @@ fn the_builder_tally_walks_the_lists_while_the_counted_units_are_few() {
     );
 }
 
+/// **The circle walk counts a builder by its own tile's region**
+/// (`Objects::find_units@0065a620`'s `0x200` gate, `docs/AI.md` §155): a
+/// builder standing on the water of a coastal cell — land by the cell's
+/// `region`, the sea by its `region2` for an ocean tile — is in the ring
+/// and is not counted. run679's `1/24`, carried at sea towards the Mine
+/// `1/2028` on 1340, left that site the emptier one, and `1/8` went to it.
+/// 150 of the enemy's units keep the tally on the circle (§148).
+#[test]
+fn the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water() {
+    use crate::tech::{TechTree, TypeDef};
+    let run = |at_sea: bool| {
+        let mut w = World::new(16, 16);
+        let land = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+        let coast = Cell::new(12, 12);
+        let mut d = w.cell_data(coast);
+        d.flags |= cell::HALFLAND;
+        d.region2 = Some(land + 1);
+        w.set_cell_data(coast, d);
+        for tx in 48..52 {
+            for ty in 48..52 {
+                w.set_tile_field(Pos::new(tx, ty), tile::SURFACE, tile::SURFACE_OCEAN);
+            }
+        }
+        let mut sim = Sim::new(Tuning::RON, w, 2);
+        sim.declare_war(0, 1);
+        for l in &mut sim.ledgers {
+            l.bucket = [10_000; economy::RESOURCES];
+        }
+        let t = install_types(&mut sim);
+        sim.nation[0].human = false;
+        sim.lobby.starting_resources = 1;
+        let mut tree = TechTree::new();
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        // Cell (9, 10) comes before (11, 10) on the circle (ring 1, `x`
+        // ascending), so a tie goes to `first`.
+        let first = sim.place_building(0, t.farm, tile_pos(36, 40)).unwrap();
+        let second = sim.place_building(0, t.farm, tile_pos(44, 40)).unwrap();
+        let on_first = spawn(&mut sim, 0, citizen, tile_pos(36, 42));
+        sim.add_build_order(on_first, first, QueuePos::New, false);
+        let on_second = spawn(&mut sim, 0, citizen, tile_pos(44, 42));
+        sim.add_build_order(on_second, second, QueuePos::New, false);
+        // A second builder on `first`: on the coastal cell's water, or on
+        // its land beside it.
+        let shore = if at_sea {
+            tile_pos(49, 49)
+        } else {
+            tile_pos(46, 46)
+        };
+        let carried = spawn(&mut sim, 0, citizen, shore);
+        sim.add_build_order(carried, first, QueuePos::New, false);
+        for _ in 0..150 {
+            let _ = spawn(&mut sim, 1, citizen, tile_pos(4, 60));
+        }
+        let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+        assert!(sim.find_build_spot(u));
+        let held: Vec<Body> = sim.units[u].orders.iter().map(|o| o.body).collect();
+        (held, first, second)
+    };
+    // At sea: one builder counted on each, and the tie goes to `first`.
+    let (held, first, _) = run(true);
+    assert!(
+        held.contains(&Body::Build(first)),
+        "the builder on the water is in another region: {held:?}"
+    );
+    // On land: two on `first`, so `second` is the emptier.
+    let (held, _, second) = run(false);
+    assert!(
+        held.contains(&Body::Build(second)),
+        "the builder on land is counted: {held:?}"
+    );
+}
+
 /// On open ground no move draws from the sync stream: a near one never
 /// asks the pathfinder, and a far one is planned by `find_wpath` at order
 /// time — before the RNG-thresholded re-plan branch, which only runs when
@@ -4511,6 +4589,77 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     assert_eq!(standing, [monarch], "the Despot became the Monarch");
     sim.tech[0].no_patriots = true;
     assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
+}
+
+/// **`Wall::process`'s oil-platform arm** (`docs/AI.md` §162, item 1588).
+/// On `(frame + o) & 0x7f == 0`, a computer leader's unfinished Oil Platform
+/// that no unit of its owner holds as its **action** is disbanded, its price
+/// refunded; a citizen with the site queued beneath another build does not
+/// keep it. run679's `1/2037` goes on 1419 with `1/10` on `Build 2026` and
+/// `Build 2037` two orders down.
+#[test]
+fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase() {
+    let mut sim = world_sim();
+    sim.tuning.city_gather = [0; 6];
+    let t = install_types(&mut sim);
+    sim.nation[0].human = false;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let oil = sim.add_build_type(bt(Ident::OilPlatform, None, "", 2, 2, 2000, 2000, 0));
+    // A site placed as a Barracks and then made an Oil Platform: the arm
+    // reads the type, and the placement rules for water are not its test.
+    let site = sim.place_building(0, t.barracks, tile_pos(44, 32)).unwrap();
+    sim.buildings[site].ty = Some(oil);
+    let other = sim.place_building(0, t.barracks, tile_pos(44, 44)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    let due = |sim: &Sim, b: usize, after: i64| -> i64 {
+        (after..)
+            .find(|f| sim.buildings[b].phase(*f) & 0x7f == 0)
+            .unwrap()
+    };
+
+    // 1. The citizen's action is the site: it stands.
+    sim.add_build_order(u, site, QueuePos::New, true);
+    let f = due(&sim, site, 200);
+    sim.process_building(site, f);
+    assert!(sim.buildings[site].alive, "its builder holds it");
+
+    // 2. Another build on top: the site is two orders down, and only on the
+    //    128-frame phase — not on a 32-frame one — is it disbanded.
+    sim.add_build_order(u, other, QueuePos::First, true);
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| o.body == Body::Build(site)),
+        "the site is still in the stack"
+    );
+    let f = due(&sim, site, f + 1);
+    sim.process_building(site, f - 32);
+    assert!(
+        sim.buildings[site].alive,
+        "a 32-frame phase is not the arm's"
+    );
+    let before = sim.ledgers[0].bucket[1];
+    assert!(!sim.process_building(site, f), "Wall::process returns");
+    assert!(!sim.buildings[site].alive, "nobody's action is the site");
+    assert_eq!(
+        sim.ledgers[0].bucket[1],
+        before + 100,
+        "the whole price back"
+    );
+    assert!(
+        sim.buildings[other].alive,
+        "a Barracks site is not the arm's"
+    );
+
+    // 3. A human's site is never the arm's.
+    let site = sim.place_building(0, t.barracks, tile_pos(20, 44)).unwrap();
+    sim.buildings[site].ty = Some(oil);
+    sim.nation[0].human = true;
+    let f = due(&sim, site, f + 1);
+    sim.process_building(site, f);
+    assert!(sim.buildings[site].alive, "the gate is the owner's");
 }
 
 /// **`Wall::process`'s site recruiter** (`docs/AI.md` §69, item 715). On
@@ -6596,4 +6745,79 @@ fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
             "tribe {tribe}: the third city is none"
         );
     }
+}
+
+/// **A gather enhancer stays in the city it is placed for** (item 1565,
+/// `docs/AI.md` §156). `Leader::produce_building`'s spiral, for a type
+/// `is_gather_enhancer` answers, drops every candidate whose
+/// `BuildTypeData::get_town` is not the city the order is for (`006e20eb`:
+/// the covering city's building `o` against `near`) — so a Granary or a
+/// Refinery for one city is never seated in the next one's catchment, where
+/// the Persians' Refinery `1/2045` stood at y 22176, city 1, in ours and at
+/// 19872, city 2, in the original.
+///
+/// Made to fail once with the `get_town` comparison removed: the Granary for
+/// the first city stands in the second's.
+#[test]
+fn an_enhancer_is_seated_in_the_city_it_is_placed_for() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 2;
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
+    assert_ne!(c0, c1);
+    for (near, city) in [(b0, c0), (sim.cities[c1].building, c1)] {
+        let before = sim.buildings.len();
+        assert!(sim.produce_building(0, t.granary, near, Some(city), false));
+        let g = sim.buildings.len() - 1;
+        assert!(g >= before, "a Granary was placed");
+        assert_eq!(
+            sim.buildings[g].city,
+            Some(city),
+            "the Granary for city {city} at {:?} stands in its own city",
+            sim.buildings[g].pos
+        );
+    }
+}
+
+/// **The spiral passes over a cell a building closed on only while an enemy
+/// is near** (item 1602, `docs/AI.md` §168): `Build::close@00628980:183-187`
+/// sets [`cell::CLOSED`] on the cell under the building, and
+/// `Leader::produce_building`'s spiral (`006e23f0`–`006e2484`), for a
+/// candidate that would win, refuses it when an enemy object stands within
+/// `0xf00` of the cell's centre and otherwise clears the bit and takes it.
+#[test]
+fn a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let place = |sim: &mut Sim| {
+        assert!(sim.produce_building(0, t.granary, b0, Some(c0), false));
+        let g = sim
+            .buildings
+            .iter()
+            .position(|b| b.alive && b.ty == Some(t.granary))
+            .expect("a Granary");
+        sim.buildings[g].pos
+    };
+    let at = place(&mut sim.clone());
+    let c = at.cell();
+    let centre = Pos::new(
+        c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+        c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+    );
+    // A building closes on the cell: an unbuilt one, so nothing else of
+    // the close touches the spiral.
+    let lost = sim.add_building(0, centre, 8);
+    sim.close_building(lost, false);
+    let flagged = |sim: &Sim| sim.world.cell_data(c).flags & cell::CLOSED != 0;
+    assert!(flagged(&sim), "the close flags its cell");
+    let mut near = sim.clone();
+    let enemy = near.add_building(1, Pos::new(centre.x, centre.y + 0xe00), 8);
+    let _ = enemy;
+    near.declare_war(0, 1);
+    assert_ne!(place(&mut near).cell(), c, "an enemy within 0xf00");
+    assert!(flagged(&near), "and the bit stands");
+    assert_eq!(place(&mut sim), at, "no enemy: the cell is the spiral's");
+    assert!(!flagged(&sim), "and the bit is gone");
 }
