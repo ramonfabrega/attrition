@@ -210,9 +210,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1511: Persepolis, the Persian capital, on the coverage pair's
     // windows (run656, run660, run669), driven since that item.
     // Item 1532: Pasargadae, the Persians' second, named in run672's window.
+    // Item 1546: Arak, the Persians' third, named on run678's block 1184.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims York flags increment length size",
+        "Amiens Arak Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2422,7 +2423,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // run669's frame-185 word (block 186), and run672's frame-583 word
     // (block 584), frame-667 word (block 668, item 1532) and frame-727
     // word (block 728, item 1539), and run678's frame-982 word (block 983,
-    // item 1544), each with two either side.
+    // item 1544) and frame-1183 word (block 1184, item 1546), each with two
+    // either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2431,6 +2433,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN672, 668),
         (super::coverage_pair::RUN672, 728),
         (super::coverage_pair::RUN678, 983),
+        (super::coverage_pair::RUN678, 1184),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
     ] {

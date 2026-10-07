@@ -15348,7 +15348,8 @@ SHA-256 `341b1768dd6e245ac7c62a5a71e61bd747d2992543af597165e39886bff9a2e2`.
 block 977. Past it: `1/24`'s `form` on 979, leader 1's `MAKE[3].t`/`MAKE[4].t` (417 against 419) on 982, and on the word's block
 983 the site `1/2025` at (35712, 35904) in ours against (34368, 35136). It is the coverage pair's `AI_WORDS` window
 (`coverage_pair_word_window`), walked by the compared pin with run669's and run672's, and the coverage driver reads its block 983.
-`docs/AI.md` §148.
+`docs/AI.md` §148. **Item 1546** moved the word to **1183**, inside this window (block 1184): 307 keys on its tree, the make
+list agreeing on 982, the citizen `1/26`'s order parting on 1183; the coverage driver reads block 1184 too. `docs/AI.md` §149.
 ## run675 — Great Sahara in the coverage pair's lobby: the `DUMP_ALL` start (2026-10-06, item 1538)
 
 **Map 7 (Great Sahara), human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345** — run651's

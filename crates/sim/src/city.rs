@@ -1860,6 +1860,38 @@ impl Sim {
         self.sync_territory();
     }
 
+    /// **The Persians' second capital** — `Build::activate@00623e20`'s city
+    /// arm, lines 463–475 and 513–518 (`docs/AI.md` §149): a city that is
+    /// not the leader's first, of a leader with tribe bonus `0x17`, takes
+    /// `city_flags |= 0x10` alone — a capital, never the founding one
+    /// (`0x4000`) — when `LeaderData::find_capital(−1, −1)` answers one of
+    /// the leader's own cities and a second `find_capital` that skips it
+    /// answers nothing: exactly one own capital, and no other leader holds
+    /// a city that was one of mine (the search's second arm, as
+    /// [`Sim::capital_lost`] reads it). Asked before `init_city`, so the
+    /// new record is not among the cities searched.
+    ///
+    /// SEAM: the grant's last factor, `~leader_flags2 & 1`, is read as 1:
+    /// no field here carries `leader_flags2`, and every dump prints it 0.
+    fn persian_second_capital(&self, who: Player) -> bool {
+        if !self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x17)
+        {
+            return false;
+        }
+        let own = self
+            .cities
+            .iter()
+            .filter(|c| c.alive && c.owner == who && c.capital)
+            .count();
+        own == 1
+            && !self
+                .cities
+                .iter()
+                .any(|c| c.alive && c.owner != who && c.was_capital & (1u64 << (who as u32)) != 0)
+    }
+
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
     /// A building type the tree files as a wonder — the test
     /// `Build::activate` and `Build::close` gate the unit-stats flag on.
@@ -1949,7 +1981,11 @@ impl Sim {
         }
         if self.building_is_city(b) {
             let capital = !captured && self.city_num(who) == 0;
+            let second = !capital && self.persian_second_capital(who);
             let c = self.init_city(who, b, captured, capital);
+            if second {
+                self.cities[c].capital = true;
+            }
             if !captured {
                 self.cities[c].race = Some(who);
                 self.cities[c].founder = who;

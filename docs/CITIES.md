@@ -174,7 +174,7 @@ A building has three states: *placed* (`0x1`), *started* (`0x3`), *active*
 | `0x2` | "do not heal / auto-repair" — the PDB's `CITY_UNDER_ATTACK` | read by `Build::process`; ~~the setter was not found~~ **set by `Object::take_damage@00652020`** on another player's hit on any building of the city, **cleared by `Build::process`'s 200-frame decay** once `0x4` has gone (`docs/COMBAT.md` §69, item 1034) |
 | `0x4` | `CITY_ATTACKING` | set with `0x2`; the decay's first stage (`docs/COMBAT.md` §69) |
 | `0x8` | `CITY_EVER_ATTACKED` | set with `0x2`; cleared by nothing found (`docs/COMBAT.md` §69) |
-| `0x10` | **capital** | `City::init`'s fifth argument; `find_capital` searches it |
+| `0x10` | **capital** | `City::init`'s fifth argument; a Persian's second city in `Build::activate` (§5.1); `find_capital` searches it |
 | `0x40` | alarm (`CITY_ALARM`, PDB `CityFlag`) | `Group::action_alarm`; cleared by `come_out` when the city empties |
 | `0x80` | has an active TEMPLE | `add_to_city` / `remove_from_city` / `activate`; `update_hits` reads it |
 | `0x100` | **captured by an enemy, unassimilated** | `City::capture` sets; `City::assimilate` clears; the plunder protection (§8.3) |
@@ -1003,7 +1003,11 @@ from the building's cell, `x, y`; `city_flags = 1`; `race = −1`; stamps
 = get_pop_value()`; `leader.pop += pv`, `world_pop += pv`, `reg_pop[reg] +=
 pv`, `reg_cities[reg]++`; `calc_pop_cap`; every region's `borders` (+0x2c)
 zeroed (a border recompute trigger); capital → `city_flags |= 0x10 | 0x4000`;
-name; `fix_world_vals` (AI site values: quartered out to ring `(radius +
+**a Persian's second capital** — `Build::activate@00623e20`'s city arm
+(lines 463–475, 513–518): any later city of a leader with tribe bonus
+`0x17` takes `0x10` alone when `find_capital` answers exactly one own
+capital and nothing past it, and `leader_flags2 & 1` is clear (`docs/AI.md`
+§149, item 1546); name; `fix_world_vals` (AI site values: quartered out to ring `(radius +
 3) / 4` of the circle round the centre and halved on three rings beyond,
 `docs/AI.md` §67). `City::close` (§8.4) undoes the rest, not the values.
 

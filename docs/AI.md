@@ -16651,10 +16651,70 @@ stack for a builder holding nothing, which is every caller here (`build_done` re
 **Coverage.** Diff-backed: claims 1–4 (the walk moves past 727, and `1/8` agrees through 833). Reading-only: the list walk's
 radius and region tests, which no walk holds.
 
-## 149. Reserved for item 1546 (the coverage pair's frame 982)
+## 149. A Persian's second city is a second capital, and the word at 1183 (2026-10-06, item 1546)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1544 left the coverage pair's word at **frame 982, ours 562 game draws
+against 696, index 13**: ours `Leader::produce_building+0xc99`, theirs `Leader::produce_building+0x1805`. run678 (977..1233)
+holds it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 982`; the walk's `RON_DEBUG_SITES=982-982`). Both spend the same
+   four `make_stuff` draws, then `produce_building`'s spiral: theirs takes **9** candidates (`+0xc99`), the jitter (`+0x1805`, three)
+   and a `Build::init` whose `find_gather_tiles` spends 184 — a gather building placed; ours takes 56 candidates, four jitter draws
+   and a `Farms::add` — a Farm placed. The building differs, not the spiral.
+2. **The make list both sides** (run678 blocks 981..983, `RON_DEBUG_LEADER=981-983`). Leader 1's list is rebuilt on 981 (the
+   `Buildings` step) and spent on 982. Block 982: `MAKE[3]` and `MAKE[4]` hold the **Mine** (`TypeIndex` 419, `MINE`) at
+   6,300,000, city 1, in the original; ours holds the **Farm** (417, `FARM`) at 2,520,000. The 1544 booking's "`t` 417 against 419".
+3. **Why ours lists no Mine.** A probe in `gather_value`/`create_buildings` on 981: the second city `1/2006` (ours' `c2`, the
+   dump's `city 1`) values the Mine at base **12,600,000** (`(pop·7000/cv + level·3000 + open·4000)·infra/256` = 252,000, ×5 for
+   the leader's first Mine, ×10 for a city with no member yet) and the multiplier saturates at 256; `base · 256` does not fit in 32
+   bits, the product wraps negative, `v` is clamped to 9,999,999, and `check_income · v` wraps again to −6,777,217, which `make_me`
+   refuses. The original's 6,300,000 is **12,600,000 / 2** — `6,300,000 · 256` fits, and nothing wraps.
+4. **The halving is the capital's.** `create_buildings@006c1be0` halves the gather base when the city's `city_flags & 0x10`
+   (`CityData +0x4`) is set. run678 block 977 prints `1/2006`'s `city_flags` **17** (`0x11`) against ours' capital bit clear —
+   a standing row (`city:city_flags[0x10]`), and on run672 it parts on block **612**, the block the city is founded. `0x10`
+   without `0x4000`: a capital that is not the founding one.
+5. **Who sets it.** The writers of `city_flags |= 0x10` by offset (`+0x4`, every spelling): `City::init` (with `0x4000`, the
+   first city), `City::capture` (a recaptured capital) and **`Build::activate@00623e20`'s city arm** (lines 463–475, 513–518).
+   There, a city that is not the leader's first (`city_num != 0`, or `leader_flags2 & 1`) of a leader with
+   `has_tribe_bonus(0x17)` — the Persians — calls `LeaderData::find_capital@006eb930(−1, −1)`; when it answers one of the
+   leader's **own** cities and a second call that skips that one answers nothing (no second own capital, and no other leader
+   holds a city whose `was_capital_flags` names me), the new city takes `0x10` alone, times `~leader_flags2 & 1`. Every dump
+   prints `leader_flags2` 0.
+
+**Built.** `Sim::persian_second_capital` (`crates/sim/src/city.rs`), asked in `activate`'s city arm before `init_city` (so the new
+record is not searched): tribe bonus `0x17`, exactly one own live capital, and no other leader's live city carrying my
+`was_capital` bit; the new city's `capital` is set and `founding_capital` left clear. A captured city is handed over by
+`City::capture` after `activate`, which rewrites both bits, in ours (`city_capture_record`) as in the original. Unit test
+`cities_tests::a_persian_second_city_is_a_second_capital_and_the_third_is_not` (the British: one capital of three; the
+Persians: two, the second not the founding one). `docs/CITIES.md` §5.1 and its flag table name the arm.
+
+**The value diff, and the word now.** `1/2006`'s capital bit agrees from its founding (run672 block 612; run678's standing set
+loses the row): **run672 109 keys → 107, run678 1,378 → 307**. On block 982 leader 1's `MAKE[3]`/`[4]` hold the Mine at
+6,300,000 in both, the list next parts on **1186**, and the site `1/2025` stands where the original's does. `cargo test --release
+-p rondata` on the built tree (before the update to 1538's merge): 754 passed, and the three that failed were this pair's
+(`coverage_pair_first_parting`, run672's and run678's widenings) — no other capture moved; on the merged tree Great Sahara's
+coverage word (1538, a Persian lobby too) holds at 720. `coverage_pair_first_parting`: **frame 982 → 1183, count and sequence** —
+ours 29 game draws against 28, index 21: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. Inside run678 (block 1184), so no capture: `run678_s_word_frame_is_widened_whole` widens it, and the
+coverage driver reads block 1184. Past the standing block: `1/24`'s `form` on 979, then queue prices a unit under on 983
+(`1/2022`, `1/2024`; leader 1's buckets standing a few under from 977). On the word's own frame the citizen **`1/26`**
+(`TypeIndex` 50, `PEASANTS`) holds one order (kind 6) at (36478, 34118) on block 1183 against the original's two (kind 3,
+(42936, 34104), a path of 8), and on 1184 stands at x 36478 against 36502. A hypothesis, not a cause; `1/26` sits in ours'
+pool 66 from 1022 (`group:66.held` `[26]` against none) — a row the item after reads first.
+
+**Mutations** (`tools/mutate.py` on `3f37c042`, scored against `cargo test --release -p rondata diff::coverage_pair::`): the
+arm dropped — held by `coverage_pair_first_parting` and run672's and run678's widenings (and the unit test); "at least one own
+capital" for "exactly one" — held by run678's widening (the Persians' third city, Arak, founded inside it; and the unit test);
+the founding bit `0x4000` set too — held by run672's and run678's widenings (and the unit test); **the other-leader arm dropped
+— held by nothing**: no leader of this lobby holds another's former capital.
+
+**What is not established.** `leader_flags2 & 1` is read as clear (a `SEAM`: no field carries it, and every dump prints 0). The
+other-leader arm of `find_capital` is read as `capital_lost` reads it — every other leader's live city, without the outer
+loop's `leader_flags & 3 == 3` gate. The `semaphore[1] & 8` arm (the first city's capital by `city_num == 0` alone) is not
+separated; ours' first-city test is `!captured && city_num == 0`, as before.
+
+**Coverage.** Diff-backed: claims 1–4 and the founding block of claim 5 (the bit agrees on 612 and the word moves). Reading-only:
+the second `find_capital`'s other-leader arm (no other leader holds a city that was my capital), which no walk holds.
 
 ## 150. The oil well's stand is on `CHAR_FARM`, and the word at 1182 (2026-10-06, item 1549)
 
@@ -16700,3 +16760,8 @@ oil platform's arm (`go_inside`) are the original's other branches and unchanged
 (`Guy::move+0x19f` on a gather that is not an oil well) are untouched.
 
 **Coverage.** Diff-backed: the cause (the word moves 720 → 1182 and `1/1` agrees through block 969). Reading-only: the guard.
+
+## 151. Reserved for item 1552 (the coverage pair's frame 1183)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
