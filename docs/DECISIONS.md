@@ -4603,6 +4603,24 @@ under two. Neither kill rule tripped; 1538's booking-gate red was a pin
    and the share count — is in the record's gate paragraph, and 1138
    closes or stays on it.
 
+**Amended the same evening, with Ramon, in conversation.** Three lanes
+is not the step: the twenty-fifth tranche's third lane bought no wall
+clock (13 h 09 m on three against 12 h 40 m on two) because every landing
+runs the full release suite three times on one box. So: **(i) a suite
+lane** (1567, Opus 5.5, spawned and merged by the pass) runs first — the
+lane gate without the full suite, the second click-free prefix (parked
+1139), a sidecar index measured — each with a number; **(ii) the roster
+question is settled by a race, not by inverting lanes**: Great Sahara's
+coverage word run by Opus 5.5 and Sonnet 5.5 at once, each in its own
+worktree, run range and capture prefix, five landings each and nothing
+merged between them, scored on frames, cost, wall clock and whether the
+causes agree, the better chain merged after; the newest pair's lane runs
+Opus meanwhile; **(iii) the handoff** is to become two permanent rows
+that clear each other (`ccc clear <other ref> --then <opener>`) instead
+of `spawn --replace`, once a clear aimed at another session is seen to
+fire; the archive clause stands until then. 1497 and a third word lane
+wait on the suite lane's numbers.
+
 **The estimate, written down to be wrong on record**: twenty landings on
 three lanes in under fourteen hours with nobody typing; the coverage
 pair's word passes 2,500 and Great Sahara's 3,000; chapter fifty-two

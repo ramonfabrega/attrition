@@ -17,16 +17,17 @@ DECISIONS 63): French East Indies **closed at 17,379**; Toughest **closed
 at 15,432**; Great Sahara in the coverage lobby **1582**; the coverage
 pair **1408**. The twenty-seventh tranche counts from the pass's commit.*
 
-- **Three lanes** (DECISIONS 63 §2): the newest pair's (1563, Opus
-  5.5), the third map's (1565, Sonnet 5.5) and the rules track's (1497,
-  Sonnet 5.5), `--effort high` all. Next run 684, next section §155.
+- **The suite lane first** (DECISIONS 63, amended with Ramon): 1567 on
+  Opus 5.5, spawned and merged by the pass, lands the gate split and the
+  second capture prefix before the tranche; then the commander spawns
+  1563 (Opus 5.5) and 1565 as a **five-landing race**, Opus and Sonnet
+  each in its own worktree, run range and prefix, nothing merged between
+  them; 1497 waits. Next run 687, next section §155.
 - **1563's first row is 1450's**: the shared widening takes `ever_seen`
   and `ever_seen_completed` (1558's cause was a vision gate).
 - **The coverage pair is the newest pair** (DECISIONS 62 §3).
 - **A lane that lands second takes `ccc update att-<n> --keep-conflicts`**
-  on a section stub and keeps both (seven lanes last tranche).
-- **A `--replace` spawn archives the row it stopped** (`ccc archive
-  <ref>`; CLAUDE.md's clause, parked 1541 closed).
+  on a stub and keeps both; a `--replace` spawn archives the row it stopped.
 - **Fable backlog: 23 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -38,16 +39,15 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-seventh tranche — `commander` (Opus 5.5): spawn
-1563 (Opus 5.5), 1565 (Sonnet 5.5) and 1497 (Sonnet 5.5), each
-`--effort high`; the chain is `CLAUDE.md`'s; stop at twenty landings,
-counted by `git log` from the pass's commit, and spawn `steer`.**
+**Opener: 1567 lands, the pass merges it, writes the race's protocol
+here, then spawns `commander` (Opus 5.5) for the twenty-seventh
+tranche — 1563 on Opus 5.5 and 1565 as the race.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **Three lanes**: the newest
-pair's (1563), the third map's (1565) and the rules track's (1497),
-lower map first — East Indies (All Technologies).
+In dependency order, headline-nearest first. **The suite lane (1567)
+first; then two word lanes**: the newest pair's (1563) and the third
+map's race (1565); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
@@ -65,6 +65,15 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     widened by `run683_s_word_frame_is_widened_whole`: the Persian
     Refinery 1/2045's site, y 22176 against 19872, city 1 against 2.
     No mechanism.
+
+1567. **The suite lane: three builds, each with a number** (DECISIONS
+    63, amended): (a) the lane gate runs the word's tests and the guards;
+    the two coverage giants (118 s and 80 s alone) and the full suite are
+    the booking gate's — score: lane-gate seconds, suites a landing 3 → 2;
+    (b) parked 1139: a second click-free prefix `~/wine-ron-2`, its own
+    install copy and profile, chosen by environment — score: run676
+    (Great Sahara) re-captured there as run 684, `rngcmp` equal, 685 and 686
+    overlapping; (c) a sidecar index on one window, its tests timed — the ratio.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
