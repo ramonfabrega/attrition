@@ -17147,7 +17147,7 @@ Its widening (§157) showed the standing keys and then Persian city `1/2018`'s `
 because of the first six mechanisms; with them the make list agrees to the end of the window but for the Persian army, and **the word moves 1985 → 2048** (count and sequence alike): ours 44 draws
 against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Unit::do_move+0xe84`. The value diff beside it is unit `1/43`'s path: its heading, `pos`, `order:move.dest` and a path of four
 nodes against two part on **2046** (run702's block 2047), the draw on 2048 being the move step it takes. No mechanism: the next item's first read. Keys on run702's window 1398 → 1192, standing 154 → 117;
-run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no floor moved; **the newest pair's word 1719 → 1735** by the silo's launch alone: ours 6 draws against 5, index 0, ours `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`).
+run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no floor moved; the newest pair's word went 1719 → 1735 on this lane's tree by the silo's launch alone and to 1960 on item 1591's, which built the same arm).
 
 **1. The air arm's `remaining`** (`create_units` 361–478). `remaining = air_cap` (2, 4 or 16 by difficulty) is the loop's own variable and the tail reads it; this crate left the caller's default of 5. `air_value` sets it.
 Held by `the_air_arm_sets_remaining_to_the_air_cap`.
@@ -17162,10 +17162,10 @@ is reading-only: no capture prices a research by it.
 others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here.
 
 **4. The computer's silo fires** (`Object::do_launch@0064f3b0`, the branch past `64fdcd`). Every 128 frames, phased by the silo's `o`, the missile at the chain's head is given an air attack on the enemy city of best
-value in its reach (value `num_buildings × (hits_left + 1000)` over `dist / 0x1200 + 1`; a nuke needs no friendly object within `0x1800`; not on a holder of `MISSILE_DEFENSE_BONUS`; `reach = mana × get_speed(missile, 1)`), and then waits
-for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours, and the
-bucket, the ring of damage and the cities' `num_queued` all followed from it. Built: `Sim::silo_sortie` and `friendly_within` (`air.rs`), held by `the_computer_s_silo_orders_its_nuke_on_an_enemy_city` (the arm dropped, and the
-friendly-object test dropped). **A nuke's ring strikes the animals around the city**, whose owner (gaia, index 9) is past the players' `mods`: `Sim::mods_of` answers the zero modifiers (`a_gaia_owner_has_no_modifiers`).
+value in its reach, and then waits for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours,
+and the bucket, the ring of damage and the cities' `num_queued` all followed from it. **This lane built the arm (`Sim::silo_sortie`, with its own test) and so did item 1591 on the integration branch the same day, for the newest pair's ICBM
+(§164); at the merge the integration branch's was taken whole** (`air.rs`, `airbase.rs`), and the third map's pins were re-measured on it: the run702 window agrees on the silo's strike either way. The nuke's ring over a gaia owner is item 1591's
+(it passes over the animals); `Sim::mods_of`, the zero modifiers of an owner past the players' `mods`, stays as the guard under it (`a_gaia_owner_has_no_modifiers`).
 
 **5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88;
 `Roles::spy_general_cheaper_preq`) takes `SPY_GENERAL_COST` (50) off the base, before the ramp: Great Sahara's Spy at `1/2030` queues at 25/25 and, a second, at 35/35 on 1983 (50/50 and 60/60 in ours before). Built in
@@ -17175,7 +17175,7 @@ friendly-object test dropped). **A nuke's ring strikes the animals around the ci
 in the dump**; `create_units`' `reg_free_peasants >= reg_cities` (`:1198`), `found_cities`' (`:104`) and `create_buildings`' (`:1513`) compares are unsigned. Ours offered the Citizen on 1983 (region 1, `-2 < 6`); the original did not, and its
 make row 5 stayed the stale `(-1, val 145)` until 1986. `Census::reg_u16`; held by `a_ushort_region_slot_reads_unsigned`, and the call sites by `sahara_coverage_first_parting` (the draw it spent).
 
-**Mutations** (`tools/mutate.py`, each held but the last): the air cap's assignment, the military level's slot, `get_nukes`' body, the census' two halves, the silo arm, its friendly-object test, the gaia fallback, the Spy arm,
+**Mutations** (`tools/mutate.py`, each held but the last): the air cap's assignment, the military level's slot, `get_nukes`' body, the census' two halves, the silo arm and its friendly-object test (on this lane's own build, before the merge took item 1591's), the gaia fallback, the Spy arm,
 its gate, `reg_u16`, and its call site (`sahara_coverage_first_parting`). `research_modifiers`' call to `military_level_in` **failed nothing**: reading-only, as above.
 
 **What is not established.** The nuke's flight reads **five** corners that are not known to be the original's single (`COMBAT.md` §46.3), in run702 (and three in the newest pair's run710): `testkit::GROUND_INEXACT` pins them. The strike's fall time reads the height as a bomb's does; its landing frame is not compared with the original's (no dump prints it). `game.armageddon` (the count of nukes landed) is not carried, so its check always passes; a missile that is not a nuke (V2, cruise)
