@@ -1019,7 +1019,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 138, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 134, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1148,7 +1148,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 130, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 124, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1268,7 +1268,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 162, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 154, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1346,7 +1346,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // and `1/94` blocked by `1/74` in the original alone (`collide_o` 74,
     // `pos` (35091, 36863) against (35112, 36840)) — the item after's
     // hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 6302, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 6299, "initial run715 baseline");
     let first = w
         .firsts
         .values()

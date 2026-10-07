@@ -2076,6 +2076,63 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     assert_eq!(sim.muster[0].by_type[phalanx], 1);
 }
 
+/// **A spent nuke makes the next missile dearer, and Uranium cheaper**
+/// (`LeaderData::get_support_count@006da110`, `TypeData::get_cost@00664090`
+/// `:416`–`420` and `:546`, `docs/AI.md` §167). The ICBM (`0x13c`, `FROM` the
+/// Nuclear Missile `0x13b`) counts `nukes_used` once as the support count
+/// names its index and once as a type of the nuke's line; the rare's 5 % comes
+/// off the scaled base before the ramp. Great Sahara's Persians price their
+/// second ICBM at 927/1069 on frame 2183 for both.
+///
+/// Made to fail once with each arm removed.
+#[test]
+fn a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+    let mut tree = TechTree::new();
+    let barracks = tree.add(TypeDef::building("Silo"));
+    let mut ids = Vec::new();
+    while tree.types.len() <= 0x13c {
+        ids.push(tree.add(TypeDef::unit("filler", UnitTraits::default()).at(barracks)));
+    }
+    tree.types[0x13c].from = Some(0x13b);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let (kn, oil) = (economy::Resource::Knowledge, economy::Resource::Oil);
+    let icbm = sim.add_unit_type(UnitType {
+        tree: Some(0x13c),
+        price: cost::Price {
+            class: cost::RampClass::Military,
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(kn, 75)
+                .with_base(oil, 90)
+                .with_support(oil, 75)
+                .with_support(kn, 75)
+        },
+        ..citizen_type()
+    });
+    let at = |sim: &Sim, uranium: i32| {
+        let m = cost::Modifiers {
+            uranium,
+            ..cost::Modifiers::default()
+        };
+        let p = sim.price_with(0, icbm, &m);
+        (p[kn.index()], p[oil.index()])
+    };
+    assert_eq!(at(&sim, 0), (750, 900), "no nuke spent, nothing queued");
+    sim.nukes.used = vec![1, 0];
+    assert_eq!(
+        at(&sim, 0),
+        (750 + 150, 900 + 150),
+        "one spent nuke counts twice for the ICBM"
+    );
+    assert_eq!(sim.uranium_discount(0, icbm), 0, "without the rare");
+    sim.ledgers[0].rare |= 1 << (economy::URANIUM - economy::BASE_RARE);
+    assert_eq!(sim.uranium_discount(0, icbm), 5);
+    // `(100 − 5) × 750 / 100 = 712`, then the ramp's 150; 855 + 150 on oil.
+    assert_eq!(at(&sim, 5), (712 + 150, 855 + 150));
+}
+
 #[test]
 fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_discount() {
     // `docs/AI.md` §56, on Great Lakes' own numbers: the Phalanx whose

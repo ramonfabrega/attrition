@@ -226,6 +226,12 @@ pub struct Modifiers {
     /// (`get_cost`'s pre-ramp tail, before the research arm and the ramp;
     /// `docs/AI.md` §62). Zero is the identity.
     pub stable_rares: [i32; 2],
+    /// `URANIUM_NUKE_COST`'s percentage off a type of the Nuclear Missile's
+    /// line when the player holds Uranium, one more `(100 − x) × cost / 100`
+    /// in the same pre-ramp tail (`get_cost:416`–`420`, after Despotism and
+    /// the Statue of Liberty, before the research arm and the ramp;
+    /// `docs/AI.md` §167). Zero is the identity.
+    pub uranium: i32,
     /// Percentage off the whole price, after the ramp. `MILITARY_UNIT_DISCOUNT`,
     /// Monarchy on stable units, Socialism on siege, air and dock units, Salmon
     /// on ships, then Sugar, Coal, Gold, Iron and Gypsum by resource, and — in
@@ -397,6 +403,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled * (100 - m.discount) / 100;
     for pct in m.stable_rares {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.uranium != 0 {
+        cost = (100 - m.uranium) * cost / 100;
     }
     // `LeaderData::calc_science_discount`, where the original calls it: after
     // the factor and the nation tail, before the age-behind discount and the

@@ -26,8 +26,12 @@
 //! **Seams.** What the sim does not carry yet, each answering as an empty
 //! world would, and each named at its use:
 //!
-//! - `CityData.bordering` (+0x65) and `city_flags & 0x8` / `& 0x1000`: no
-//!   field and no known setter (`create-buildings.md` §9) — read as 0.
+//! - ~~`CityData.bordering` (+0x65)~~: written by [`Sim::advance_border_pass`]
+//!   since item 1600 (`docs/AI.md` §167) and read by the temple and the
+//!   tower and fort arms. `city_flags & 0x8` / `& 0x1000`: no known setter
+//!   (`create-buildings.md` §9) — read as 0; the `0x1000` arm the border
+//!   pass sets beside `bordering` (a cell within four of the city) is not
+//!   modelled.
 //! - `CityData.ocean_filled` (+0x66): no field — `ocean_open` is
 //!   [`crate::ai::CityAi::ocean`].
 //! - `LeaderData::city_num` / `village_num`: the census does not keep them —
@@ -519,7 +523,16 @@ impl Sim {
                 if self.num_buildings_of(who, rec) == 0 {
                     t = v.wrapping_mul(10000);
                 }
-                // `CityData.bordering` has no field here.
+                // `CityData.bordering`: a city a rival's border touches
+                // wants its temple a hundred times more
+                // (`create_buildings:324`–`326`, `docs/AI.md` §167).
+                if self.ai[w]
+                    .city_ai
+                    .get(f.c)
+                    .is_some_and(|r| r.bordering != 0)
+                {
+                    t = t.wrapping_mul(100);
+                }
                 v = t;
             }
             if build::is(&self.build_types, rec, Ident::Lookout) {
@@ -832,9 +845,17 @@ impl Sim {
                     (f.nb - have) / 2
                 };
                 let mut x = (d / 256).wrapping_mul(k);
-                // `CityData.bordering` reads 0 here: a fort is worth a
-                // hundredth, a tower unchanged.
-                if fort {
+                // `CityData.bordering` (`create_buildings:821`–`841`): a
+                // city a rival's border touches is worth ten times, and
+                // one it does not touch a hundredth for a fort, a tower
+                // unchanged (`docs/AI.md` §167).
+                if self.ai[w]
+                    .city_ai
+                    .get(f.c)
+                    .is_some_and(|r| r.bordering != 0)
+                {
+                    x = x.wrapping_mul(10);
+                } else if fort {
                     x /= 100;
                 }
                 // `city_flags & 0x1000` reads 0; `& 0x8` reads 0, so the
@@ -1974,6 +1995,50 @@ mod tests {
         sim.lobby.difficulty = 0;
         sim.ai[0].defense_mod = 0x200;
         assert!(value(&mut sim, 0, c, t.tower).is_some());
+    }
+
+    /// **A city a rival's border touches is worth ten times its tower**
+    /// (`create_buildings:821`–`841`, `CityData.bordering`, `docs/AI.md`
+    /// §167): Great Sahara's Persian city `1/2018`, `bordering` 3, is
+    /// offered a Bunker at 80000 against 8000 in a city no border touches.
+    /// Made to fail once with the multiplier removed.
+    #[test]
+    fn a_tower_city_a_rival_s_border_touches_is_worth_ten_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        let plain = value(&mut sim, 0, c, t.tower).expect("a hard AI wants a tower");
+        sim.ai[0].city_ai[c].bordering = 3;
+        let touched = value(&mut sim, 0, c, t.tower).expect("still wanted");
+        assert!(
+            (touched.val - plain.val * 10).abs() <= 10,
+            "{} against {}",
+            touched.val,
+            plain.val
+        );
+    }
+
+    /// **A bordered city wants its temple a hundred times more**
+    /// (`create_buildings:324`–`326`, `docs/AI.md` §167). No capture holds
+    /// the arm — its mutation failed nothing on the walk — so this does.
+    /// Made to fail once with the multiplier removed.
+    #[test]
+    fn a_temple_in_a_bordered_city_is_worth_a_hundred_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        // A wanted wonder takes a hundredth first, so the ×10000 stays
+        // inside a signed thirty-two-bit product.
+        sim.ai[0].wonder_mod = 1;
+        let plain = value(&mut sim, 0, c, t.temple).expect("a temple is listed");
+        sim.ai[0].city_ai[c].bordering = 3;
+        let touched = value(&mut sim, 0, c, t.temple).expect("still listed");
+        assert!(
+            (touched.val - plain.val * 100).abs() <= 100,
+            "{} against {}",
+            touched.val,
+            plain.val
+        );
     }
 
     #[test]

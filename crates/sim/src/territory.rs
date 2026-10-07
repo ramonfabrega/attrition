@@ -346,10 +346,27 @@ pub const fn cost_cap(t: &Tuning) -> i32 {
 /// ownership is identical either way; the transient is a deliberate
 /// simplification here until a recorded-game diff says it matters.
 pub fn compute_all_territory(world: &mut World, t: &Tuning, sources: &[Source], players: u8) {
+    compute_all_territory_won(world, t, sources, players);
+}
+
+/// [`compute_all_territory`], and the index into `sources` of the **city**
+/// that won each cell (row-major, `−1` for a cell no city won — a fort's,
+/// an unowned one's). `compute_reg_territory` keeps it as `local_1c`: the
+/// city whose `bordering` the cell's runner-up marks
+/// (`docs/AI.md` §167).
+pub fn compute_all_territory_won(
+    world: &mut World,
+    t: &Tuning,
+    sources: &[Source],
+    players: u8,
+) -> Vec<i32> {
+    let mut won = vec![-1; (world.width() * world.height()) as usize];
     let regions: Vec<(u16, Terrain)> = world.regions().collect();
     for (region, terrain) in regions {
         match terrain {
-            Terrain::Land => compute_region_territory(world, t, sources, players, region),
+            Terrain::Land => {
+                compute_region_territory_won(world, t, sources, players, region, &mut won)
+            }
             // Sea is never owned. The original writes 0xFF into both claimant
             // bytes of every sea cell after the land pass; the effect is that
             // a coastal border stops at the water rather than reaching over it.
@@ -361,6 +378,7 @@ pub fn compute_all_territory(world: &mut World, t: &Tuning, sources: &[Source], 
             }
         }
     }
+    won
 }
 
 /// Recomputes ownership for one land region.
@@ -375,11 +393,24 @@ pub fn compute_region_territory(
     players: u8,
     region: u16,
 ) {
+    let mut won = vec![-1; (world.width() * world.height()) as usize];
+    compute_region_territory_won(world, t, sources, players, region, &mut won);
+}
+
+fn compute_region_territory_won(
+    world: &mut World,
+    t: &Tuning,
+    sources: &[Source],
+    players: u8,
+    region: u16,
+    won: &mut [i32],
+) {
     let cap = cost_cap(t);
     let cells: Vec<Cell> = world.cells_in(region).collect();
     for cell in cells {
         let here = cell.centre_tile();
         let mut best: Option<(i32, Owner)> = None;
+        let mut best_city: i32 = -1;
         let mut second: Option<(i32, Owner)> = None;
 
         // The player scan order is rotated by the cell's x coordinate. Ties go
@@ -390,7 +421,7 @@ pub fn compute_region_territory(
         // modulus is the only change, and it preserves the intent exactly.
         for step in 0..players {
             let p = ((step as i32 + cell.x).rem_euclid(players as i32)) as Player;
-            for s in sources.iter().filter(|s| s.owner == p) {
+            for (si, s) in sources.iter().enumerate().filter(|(_, s)| s.owner == p) {
                 let d = vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
                 // The limit is tested against the raw distance, before the
                 // contraction. Testing the contracted one would let a source
@@ -434,6 +465,12 @@ pub fn compute_region_territory(
                         SourceKind::Fort => second = best,
                     }
                     best = Some((c, claimant));
+                    // `local_1c`: a city's win names it, a fort's clears it.
+                    best_city = if s.kind == SourceKind::City {
+                        si as i32
+                    } else {
+                        -1
+                    };
                 }
             }
         }
@@ -443,6 +480,9 @@ pub fn compute_region_territory(
             best.map_or(Owner::None, |(_, o)| o),
             second.map_or(Owner::None, |(_, o)| o),
         );
+        if let Some(w) = won.get_mut((cell.y * world.width() + cell.x) as usize) {
+            *w = best_city;
+        }
     }
 }
 

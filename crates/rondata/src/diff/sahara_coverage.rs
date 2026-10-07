@@ -88,8 +88,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // climb with the Spy upgrades — 2118 → **2185** (count and sequence):
     // ours 30 draws against 32, index 12, ours `Leader::make_stuff+0x63d`,
     // theirs `Leader::produce_building+0x1805`.
-    count: 2185,
-    sequence: 2185,
+    //
+    // Landing 6 (`docs/AI.md` §167): a city a rival's border touches
+    // (`CityData.bordering`) is worth ten times its tower — the Persians'
+    // second ICBM is priced for Uranium and the spent nuke, and their
+    // Bunker is offered at 80000 where ours' Library led — 2185 →
+    // **2206** (count and sequence): ours 14 draws against 16, index 3, ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a
+    // < Unit::move_step+0x823`.
+    count: 2206,
+    sequence: 2206,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -613,7 +621,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN702, WIDENING_SAHARA_COVERAGE_FRAME_1985.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1985,
         1,
-        &[1986],
+        &[2207],
         true,
     )
 }
@@ -630,10 +638,10 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 294, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 258, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        96,
+        95,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
@@ -654,8 +662,8 @@ fn run702_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(1, 2018, "city:bordering".to_string()))
             .map(|(f, _)| *f),
-        Some(1980),
-        "Persian city 1/2018's bordering parts on 1980"
+        None,
+        "Persian city 1/2018's bordering agrees (item 1600: the border pass writes it)"
     );
     // Items 1584 and 1585 (`docs/AI.md` §159, §160): the unit `1/43` agrees
     // for the whole window now (the danger map weighs an upgraded trainer at
@@ -684,23 +692,42 @@ fn run702_s_word_frame_is_widened_whole() {
     // original), with the knowledge and oil buckets 111 and 104 apart; on
     // **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against
     // 80000 with `escrow` 1, `city` 5 against 1).
-    for (key, frame) in [
-        ("queue:queue[0].cost[0]", 2183),
-        ("queue:queue[0].cost[1]", 2183),
-    ] {
+    for key in ["queue:queue[0].cost[0]", "queue:queue[0].cost[1]"] {
         pin_eq!(
             w.firsts.get(&(1, 2034, key.to_string())).map(|(f, _)| *f),
-            Some(frame),
-            "building 1/2034's queued entry is priced apart from 2183"
+            None,
+            "building 1/2034's queued entry agrees (item 1600: Uranium and the spent nuke)"
         );
     }
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:MAKE[8].t".to_string()))
             .map(|(f, _)| *f),
-        Some(2185),
-        "leader 1's make row 8 parts on 2185, the word"
+        None,
+        "leader 1's make row 8 agrees (item 1600: the Bunker, bordering ×10)"
     );
+    // **The word 2206's value diff** (item 1600, `docs/AI.md` §167): the
+    // draws agree to index 2 on 2206 and the fourth is where ours idles
+    // Persian unit `1/38` (`Unit::do_idle+0x7d`) and the original steps it
+    // (`Unit::move_step+0x823`). The unit's order parts first, on **2205**:
+    // its move's destination (`x` 40920 against 40728, `y` 1944 against
+    // 1752, the offsets 216/408 against 24/216); on 2206 its order kind (14
+    // against 1), its order count (1 against 2) and its path (0 nodes
+    // against 1).
+    for key in ["order:move.x", "order:move.y", "orders_x", "orders_y"] {
+        pin_eq!(
+            w.firsts.get(&(1, 38, key.to_string())).map(|(f, _)| *f),
+            Some(2205),
+            "unit 1/38's move destination parts on 2205"
+        );
+    }
+    for key in ["order:kind", "path:length", "heading"] {
+        pin_eq!(
+            w.firsts.get(&(1, 38, key.to_string())).map(|(f, _)| *f),
+            Some(2206),
+            "unit 1/38's order, path and heading part on 2206, the word"
+        );
+    }
     // **What parts first past the standing block.**
     let first = w
         .firsts
@@ -710,7 +737,7 @@ fn run702_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1980),
+        Some(1991),
         "the first parting past the standing block"
     );
 }
