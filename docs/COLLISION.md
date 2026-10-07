@@ -3900,3 +3900,54 @@ fail.
 **Not established.** The move-job exemption is read and not exercised.
 The siege, supply and hero arms of the push-back have no capture. The
 unit test reaches the push-back through `work`, not through a full tick.
+
+## 25. A unit put ashore clears where it boarded (2026-10-07, item 1598)
+
+**Measured trigger.** The coverage pair's word 2166 was `1/68`'s blocked
+stand (`Unit::move_step+0x823`), and its chain walked back through two
+half steps off waypoint probes (§5.1) to the ARMOREDCAVALRY `1/40`, put
+ashore by Freighter `1/52` on 1703 one unit cell south of the original's
+spot: (42648, 37176) against (42648, 37128). `come_out`'s host ring
+(`docs/TRANSPORT.md` §6.4) reaches the original's spot as its fourth
+candidate, and this crate refused it on one occupancy cell, (890, 771).
+
+**The packet and the watch.** run712's packet at logger frame 1702 holds
+the original's `CollBlock` bits over unit cells x 882..897, y 764..779,
+and every one of them equals this crate's except (890, 771): clear there,
+set here. run713, a read-only watch of that cell's byte at every
+`Game::do_frame` entry (a scratch tracer define, item 1438's run592
+shape), dates it: set on 1034 when Freighter `1/27` is born on its
+caster's land cell and moved to the water (this crate sets it the same
+way, §2's two-ended `move_unit` leaving the overlap behind), and cleared
+during tick 1113 — byte `0xf` to `0x7`, that one bit. On tick 1113 Boat
+`1/25` puts its passenger `1/12` ashore at (41665, 35536), far away; `1/12`
+had boarded on 1008 from (42772, 37062), unit cell (891, 772), whose
+radius-1 disc is (890..892, 771..773).
+
+**The mechanism.** `Unit::come_out@00617c10:514` calls
+`Object::remove_from_inside@006480f0`, which ends in `add_to_world`: the
+disc is painted at guy 0's **retained** point (`+0xc`/`+0x10`), where the
+figure stood when it went in — nothing moves it while it is inside. Only
+then does `:518`'s `set_new_location(·, ·, 1, 1)` reach
+`Guy::set_new_location@005d86f0` and `CollCheck::move_unit(old, spot)`,
+which clears the old disc's cells farther than `coll_size` from the spot
+and sets the spot's. Net: the boarding footprint ends clear, and with it
+any bit another unit painted there while the passenger was away — the
+bits are not refcounted (§2). This crate painted the spot fresh
+(`coll_add`) and never touched the boarding point.
+`Sim::coll_come_out` is the two steps, called from `land_passenger` with
+the body's point as it was aboard.
+
+**What it moved.** The coverage pair's word **2166 → 2288**; run710's
+widening 224 → 210 keys and run711's 482 → 286, neither with a key of
+`1/40`, `1/52`, `1/68` or `1/73` parting past their birth blocks. No other
+floor, word or chapter moved. Unit test
+`transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
+
+**What this has *not* established.** The same `come_out` lines serve a
+unit leaving a **building**, whose retained point is where it went in (or
+`Unit::init`'s birth point for a trained unit); `come_out_place` still
+paints the spot fresh, and no capture has been read for the difference.
+Nor has a passenger landed in the same unit cell it boarded from, where
+`move_unit` is not called at all and `add_to_world`'s paint is the whole
+of it — `coll_come_out` reaches the same end there.

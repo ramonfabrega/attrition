@@ -337,7 +337,7 @@ impl CollGrid {
             .is_some_and(|i| self.bits[i / 64] & (1u64 << (i % 64)) != 0)
     }
 
-    fn set(&mut self, x: i32, y: i32, on: bool) {
+    pub(crate) fn set(&mut self, x: i32, y: i32, on: bool) {
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);
