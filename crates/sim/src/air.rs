@@ -4669,9 +4669,20 @@ mod infantry_step_tests {
     #[test]
     fn a_walking_modern_infantry_packs_on_its_own_phase() {
         const PIECE: i32 = 7;
-        let packs = |age: i32, flags: u32| {
+        let packs_beside = |age: i32, flags: u32, general: bool| {
             let (mut s, u) = walker(age, flags);
             s.units[u].index = 7;
+            if general {
+                // A marching General standing where the walk starts.
+                let mut ty = UnitType::default();
+                ty.cols.unit_flags2 = crate::ai_load::uflags2::GENERAL;
+                let ty = s.add_unit_type(ty);
+                let mut g = Unit::new(1, 0, s.units[u].pos, 50);
+                g.ty = Some(ty);
+                g.on_map = true;
+                g.marching = Some(i64::MAX);
+                s.add_unit(g);
+            }
             s.units[u].guys.push(crate::anim::Guy::fresh(PIECE));
             s.art
                 .piece_lengths
@@ -4695,6 +4706,7 @@ mod infantry_step_tests {
             }
             seen
         };
+        let packs = |age: i32, flags: u32| packs_beside(age, flags, false);
         // o 7: `7 · 0x11 + 9 = 128`, so frames 9 and 137 of the walk (it
         // has arrived by 265), and the unit stands on each, `retry` 22
         // frames of `CHAR_PACK`.
@@ -4705,6 +4717,15 @@ mod infantry_step_tests {
         );
         assert!(packs(5, 0x100).is_empty(), "not past age 5: it walks on");
         assert!(packs(6, 0).is_empty(), "not the flag: it walks on");
+        // `has_general(0x8000, -1) >= 0` (`5f8326`–`5f8336`, item 1614): a
+        // General on the march in range keeps it walking through its phase
+        // (`docs/AI.md` §172) — frame 9, a few steps out; by 137 it has
+        // walked past the General's nine tiles and packs again.
+        assert_eq!(
+            packs_beside(6, 0x100, true),
+            [(137, true)],
+            "a marching General in range: it walks on"
+        );
     }
 
     #[test]

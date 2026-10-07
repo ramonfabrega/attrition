@@ -4845,8 +4845,10 @@ the next block. Each stands 22 frames and walks on.
   it).
 - `do_move`'s pack arm, where the SEAM comment stood. A figure with no art
   (`end_time` `anim::UNKNOWN`) waits 0 frames.
-- **SEAM**: `has_general(0x8000, −1)` is taken as "none", as in §18's
-  `march`: nothing here places a General.
+- ~~**SEAM**: `has_general(0x8000, −1)` is taken as "none", as in §18's
+  `march`: nothing here places a General.~~ `Sim::near_marching_hero`
+  since item 1614 (`docs/AI.md` §172): the coverage pair's TOW `1/66`
+  walks through its phase on 2974 beside the marching General `1/150`.
 
 ### 34.5 What it moved
 
