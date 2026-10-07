@@ -2355,6 +2355,9 @@ impl Sim {
             && !self.buildings[b].active
             && !self.nation[self.buildings[b].owner as usize].human
         {
+            if self.oil_platform_abandoned(b, frame) {
+                return false;
+            }
             self.site_recruit(b);
         }
         self.buildings[b].helpers = 0;

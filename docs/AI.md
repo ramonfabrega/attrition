@@ -8636,8 +8636,9 @@ after the under-attack decay and **before** `helpers` is reset (`:172`):
 
 1. The site is not active (`WallData::is_active`, `+8 & 4`) and its owner is
    not human (`leader_flags & 4`).
-2. SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
-   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.
+2. ~~SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
+   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.~~
+   Built and diff-backed by item 1588: §162.
 3. **The gate**: `is_wonder()` (Build vslot `+0x2c`, `BuildData::is_wonder`
    in `vtables.txt`), **or** `ptype.is_fort()` (`ObjectTypeData` vslot
    `+0xfc`, named by the PDB's `LF_ONEMETHOD` record — the export has no
@@ -17249,7 +17250,118 @@ last to first and returns at the first emptied one — is not a shape this crate
 **Coverage.** Diff-backed: claims 1–2 and the cap's lift (army 1 agrees through run679 and run710's standing block). Reading-
 and listing-backed: claim 3's call chain, which the diff confirms on its one frame.
 
-## 162. Reserved for item 1588 (the coverage pair's word 1610)
+## 162. An Oil Platform site nobody is building is disbanded, and the word at 1696 (2026-10-07, item 1588)
+
+**What was established, how, how confident.** Item 1586 left the coverage pair's word at **frame 1610, ours 589 game draws
+against 598, index 0**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+run710 (1527..1783) holds it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1610`; ours `RON_DEBUG_SITES=1610-1610`). The original: one
+   `Unit::move_step+0x823` stand (seed `46e3b40d`), four `Guy::move` animation draws, **586** `PathFinder::calc_road_cost <
+   astar_caravan_road`, four idle `Guy::inc_time`, three `Farms::inc_time` — 598. Ours: four `Guy::move` (`1/29`, `1/31`),
+   **578** road-cost draws, four idle, three farm — 589. Two partings on one frame: the stand, and the caravan A*'s expansion
+   count.
+2. **The frame's cast** (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`). The citizen **`1/10`** (`TypeIndex` 50,
+   `PEASANTS`) parts from block 1584 — ours' stack 4 with an `ExploreTo` (28488, 31272), the original's 2, `[Build 2038,
+   ExploreTo (34632, 33528)]` — and its path from 1610; `1/14` collides with it on 1611 in the original. On 1583 the sites
+   `1/2037` and `1/2043` part (`x/y_internal`, `city`). Ours' `1/10` (`RON_DEBUG_UNIT`) carried `[…, ExploreTo (28488,
+   31272), Build 2037, …]`: the Oil Platform site at (28032, 31104), `orig_type` 422, that ours alone held.
+3. **Walked back** (run679, `one.py`): the original holds `1/2037` — the same Oil Platform site, (28032, 31104), `city −1`,
+   `constr_time` 29400 — on blocks 1418 and 1419 and **not on 1420**; ours holds it on. Frame 1419 is the site's 128-frame
+   phase: **1419 + 2037 = 3456 = 27 × 128**. On block 1419 the original's `1/10` holds `[Build 2038, ExploreTo, Build 2037,
+   ExploreTo, Build 2026]` (the dump lists the stack bottom first): the site is two orders under the current `Build 2026`, and
+   it is still there on block 1420 — the disband does not touch it.
+4. **The writer** (`Wall::process@00640450`, listing `6404c6`–`640588`). In the `(frame + o) & 31 == 0` block, for a site that
+   is not active (`+8 & 4`) whose owner is not human (`leader_flags & 4`), before the recruiter (§69.4): on `(frame + o) & 0x7f
+   == 0`, if the type's vslot `+0x60` answers `is(0x1a6, 0)` — the lineage test, arguments read off the listing (`640519`,
+   `64051b`) — and `ObjectsData::find_unit@0065ca80(x, y, SEARCH_FRIENDLY, who, −1, 0, FILTER_TARGET, o, who, FILTER_ALL)` is
+   negative, `Object::disband(0)` and return. Range −1 is the list walk over the searcher's own units (`SEARCH_FRIENDLY`,
+   §69.4). `FILTER_TARGET` is 11 by the PDB's `FilterIndex`; its arm, entry 10 of `Search::valid_filter`'s table at `0067e57c`,
+   is **`0067dfa4`** (read off the PE): the object is a unit (vslot `+0x18`), `UnitData::get_action@00608450` is non-null, its
+   vslot `+0xb4` — **`get_target_order`**, by the PDB's `LF_ONEMETHOD` record (the export's vtable names a folded
+   `Window::get_button`) — is non-null, and that order's `+0x8`/`+0xc` (`ox`/`whom`) are the site's `o` and `who`. So only a
+   unit whose **action** targets the site keeps it; claim 3's `1/10` does not, and the site goes. *Listing-backed*; the diff
+   confirms it on its one frame.
+
+**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/site_recruit.rs`), called from `Sim::process_building` inside the
+recruiter's gates and ahead of it; a disband returns from the head as `Wall::process` does. The target test is
+`action_of`'s order: `Build`, `Repair`, `Garrison`, `Gather` (its building), `Attack` (the unit's combat target) or `Cast` on
+the site. `site_recruit.rs`'s SEAM for this arm is gone. Unit test
+`cities_tests::an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase`: a site a citizen is building
+stands; with another build on top of it, it stands on a 32-frame phase and is disbanded with its price back on the 128-frame
+one; a human's never.
+
+**The value diff, and the word now.** run679 block 1420: `1/2037` absent in both (pinned in
+`run679_s_word_frame_is_widened_whole`), and leader 1's `gather_stamp` (1391 against 1423 on 1424) parts no more. run710 block
+1583: `1/2037` is the next site placed — (32640, 34176), city 2 — in both, and `1/2043` the Wonder at (34560, 37632); block
+1584: `1/10` holds two orders, `ExploreTo (34632, 33528)` over `Build 2038`, in both; no key of `1/10`, `1/2037`, `1/2043` or
+`1/2044` parts in run710's window (pinned). **run679 146 keys → 144; run710 764 → 478** (151 standing).
+`coverage_pair_first_parting`: **frame 1610 → 1696, count and sequence** — ours 41 game draws against 40, index 29: ours
+`Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. Inside run710 (block 1697). On the fixed tree `1/52`
+parts first on 1529 (`form`, the block it is born) and again on 1686 (`path:length` 9 against 17, `path_recursion` 10
+against 1, `last_x/y`); `1/40` on 1703 (`inside` 52 against −1). Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing: every other widening (179 run) holds; no floor, endpoint or other word moved.
+
+**What is not established.** `find_unit`'s two object gates (vslots `+8` and `+0xbc`) are read as ours' search reads them
+everywhere — alive and on the map — so a citizen riding a barge to the platform would not keep it here; whether `+0xbc`
+admits a passenger is not read. A follow or a guard order names a unit in this crate and is not tested against a building;
+`get_action`'s `0x12` skip is ours' `is_transit` as elsewhere. The arm on a non-computer site is gated as the recruiter is.
+
+**Coverage.** Diff-backed: claims 1–3 and the disband on 1419 (run679, run710). Listing- and PE-backed: claim 4's filter arm
+and slot names, which the diff confirms on its one frame.
+
+## 163. A transport keeps its tile goal across the regions, and the word at 1719 (2026-10-07, item 1589)
+
+**What was established, how, how confident.** Item 1588 left the coverage pair's word at **frame 1696, ours 41 game draws
+against 40, index 29**: ours `Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. run710 (1527..1783) holds
+it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run710's trace, `report.py draws 1696`; ours `RON_DEBUG_SITES`). Both sides spend the same 27
+   `Animal::think_bird`, two `Guy::move`, two bird `Objects::process_all`, five idle `Guy::inc_time` and four
+   `Farms::inc_time` draws in the same order; ours spends **one more**, `Unit::do_move+0xe84` — the grid draw a move pays when
+   `find_path` refuses its line — between the `Guy::move` pair and the birds. One parting, ours alone.
+2. **The unit** (run710's `GUY` block): `1/52` is `type` 322, **`TRANSPORTFREIGHTER`** — sea, born on 1529, carrying `1/40`
+   (`inside_down` 40), `unit_masks` 0x840008, under an `AttackTo` to (35256, 36936). Its first parted keys are on block 1686
+   (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`): `path:length` 9 against 17, `path_recursion` 10 against 1,
+   `order:move.last_x/y` (42816, 37233) against −1, the heading; its position agrees through 1686 and parts on 1687.
+3. **The frame before** (run710's trace, frame 1685; block 1686). Both sides spend one grid draw `Unit::do_move+0xe84 <
+   do_attack_to` (seed `b30bf2d5`, 9775; `% 5` = 0, the 8-cell threshold), so the plan is the **near** arm and, with
+   `collide` 0, the tile grid. The original then runs `astar_path(step 192)` from tile (221, 191) to its top waypoint
+   (42168, 37704), tile (219, 196) — 63 proxied `calc_cost` calls — and takes the 7-entry plan: block 1686 holds the 17-entry
+   stack, `last` cleared. Ours made **no** `calc_cost` call for `1/52` on 1685 (`cost_marks` on a probe), popped the waypoint
+   and wandered west until the second grid draw on 1696.
+4. **Why** (a probe of ours' `find_tpath`; the listing). Ours' pull-back walk read `tregion_alt` 0 at the Freighter's own tile
+   and 12 at the goal's, stepped the goal home tile by tile, and returned the stack unchanged — a refusal. The original's walk
+   is gated (`PathFinder::find_tpath@006897d0`, listing `68994c`–`689960`): `cmp [type + 0x218], 2; jge 689aa6`, then `call
+   UnitData::can_transport@0046f960; test eax, eax; jne 689aa6` — the near test and the search. So the walk runs only for a
+   unit that is not an aircraft and **cannot transport**, the conjunction `find_upath`'s pre-walk has (`docs/PATHFINDER.md`
+   §18.1), not `find_wpath`'s. `can_transport` is `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, or the type's
+   `+0x2b4 & 0x10`; the Freighter's `unit_masks` carries 0x800000. *Listing-backed*; the diff confirms it on its one frame.
+
+**Built.** `Sim::find_tpath` (`crates/sim/src/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
+!unit_can_transport(u)` — `find_upath`'s own predicate. Unit test `path::tests::a_transport_keeps_a_tile_goal_in_another_region`:
+a goal two regions over is kept by a unit that can transport and walked toward its own region by one that cannot.
+
+**The value diff, and the word now.** run710 block 1686: `1/52`'s stack 17 entries in both, its top (42744, 36936) and
+`path_recursion` 1, `last` −1 in both; on 1685 ours' 63 `calc_cost` calls are the original's, call for call. No key of `1/52`
+parts in run710's window past its standing `form` on 1529 (pinned). **run710 478 keys → 360** (151 standing).
+`coverage_pair_first_parting`: **frame 1696 → 1719, count and sequence** — ours 15 game draws against 16, index 11: ours
+`Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. Inside run710 (block 1720). On the fixed tree the first unit to
+part past 1655 is `1/40`, the Freighter's passenger, on 1703 (`pos` (42648, 37176) against (42648, 37128): it comes ashore
+48 south of the original's spot), and on 1720 the original's `0/2000` holds `damage` 1560, `reduce_stamp` 1719 and
+`city_flags` 0xe that ours does not. Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing measured: every other widening, floor and word holds (the suite below).
+
+**What is not established.** The gate's first half is read as this crate's `Domain::Air` — `+0x218 < 2` as `find_upath`'s
+reading has it; the helicopter test (`+0x2b4 & 0x20`) ahead of it is unchanged. Whether a land unit that can board (a citizen
+with a Dock on its side) now plans its tile leg differently across a region seam was not met in any walk the suite runs.
+
+**Coverage.** Diff-backed: claims 1–3 and the value diff (run710, run710's trace). Listing-backed: claim 4's gate, which the
+diff confirms on its one frame.
+
+## 164. Reserved for item 1591 (the coverage pair's word 1719)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.

@@ -3724,6 +3724,12 @@ human's bit — two closings, fourteen rows each — and ours do not. Unread
 whether the defeat's reveal or the game's end writes it; no word stands
 on a closing block, so it names no score until one does.
 
+(1592) **`find_tpath`'s goal kept across a region seam by a land unit
+that can transport** (1589, 2026-10-07): mutation (b) of 1589's build —
+the pull-back walk's arm for a non-air unit that *can* transport — is held
+by a unit test and by no walk. The rules track's shape (DECISIONS 56 §3):
+a chapter that stages one, joined to 1497's list when a staging reaches it.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3773,6 +3779,24 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 (`third_pair::east_indies_ever_seen`); every other window still leaves
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
+
+## Loop, filed 2026-10-07 — the twenty-seventh tranche's
+
+(1590) **A seam's "no capture on file" is a dated claim nobody re-runs**
+(1588's Loop line, 2026-10-07): 1588's cause was a `SEAM` in
+`Wall::process` whose text said no capture on file holds its oil-platform
+arm (checklist row 1132), and nobody re-ran it when run679 was captured.
+A seam that says "no capture on file" could carry the `scan:` that
+notices the first capture that does — a guard, or a `seams.py` pass over
+every such seam against `docs/RUNS.md`'s runs. One reach.
+
+(1593) **A cost-grid probe against the trace's proxied `calc_cost`, as a
+tool** (1589's Loop line, 2026-10-07): the draw that parted was ten
+frames late; the cause sat on the frame before the position parted, where
+both sides spent the same grid draw, and a scratch test of `cost_marks`
+against the proxied `calc_cost` answered it in one run. The third reach
+(7070's road search, `world.rs`'s 4803, this): it graduates into a
+`RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

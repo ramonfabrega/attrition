@@ -123,6 +123,22 @@ pub(crate) struct Pair {
     /// draws against 598, index 0: ours `Guy::set_anim+0x97a <
     /// Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`
     /// — before 586 `PathFinder::calc_road_cost` draws in the original.
+    /// **Item 1588 moved it from 1610 to 1696 (count and sequence)**:
+    /// `Wall::process`'s oil-platform arm disbands a computer leader's
+    /// unfinished Oil Platform that no unit of its owner holds as its
+    /// action, every 128 frames by `o`, so `1/2037` goes on 1419 as the
+    /// original removes it and the citizen `1/10` no longer walks to it
+    /// (`docs/AI.md` §162). At 1696, ours 41 game draws against 40, index
+    /// 29: ours `Unit::do_move+0xe84` (`1/52`), theirs
+    /// `Objects::process_all+0x2df`.
+    /// **Item 1589 moved it from 1696 to 1719 (count and sequence)**:
+    /// `PathFinder::find_tpath`'s pull-back walk runs only for a unit that
+    /// is not an aircraft and cannot transport, as `find_upath`'s does, so
+    /// the Freighter `1/52` keeps its tile goal across the regions on 1685
+    /// and searches to it as the original does, where ours walked the goal
+    /// home, refused the plan and spent a second grid draw on 1696
+    /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
+    /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -140,8 +156,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1610,
-    sequence: 1610,
+    count: 1719,
+    sequence: 1719,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -827,10 +843,14 @@ fn run679_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **146** on the tree item 1586 landed (203 on item 1563's, 457 on
-    // item 1558's, 608 on item 1552's); 127 stand from the window's first
-    // block.
-    pin_eq!(w.firsts.len(), 104, "initial run679 baseline");
+    // **144** on the tree item 1588 landed (146 on item 1586's, 203 on
+    // item 1563's, 457 on item 1558's, 608 on item 1552's); 127 stand from
+    // the window's first block. Item 1588's two: the Oil Platform site
+    // `1/2037`, held by ours alone from 1420 — the original disbands it on
+    // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
+    // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
+    // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
+    pin_eq!(w.firsts.len(), 144, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -893,6 +913,16 @@ fn run679_s_word_frame_is_widened_whole() {
         0,
         "the word's army 1/0 agrees in every compared field"
     );
+    // The Oil Platform site `1/2037` (`orig_type` 422) is gone on block
+    // 1420 in both (item 1588).
+    pin_eq!(
+        w.firsts
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 2037))
+            .count(),
+        0,
+        "the Oil Platform site 1/2037 is disbanded on 1419 in both"
+    );
     pin_eq!(
         first,
         Some(1277),
@@ -909,8 +939,9 @@ pub(crate) const WIDENING_COVERAGE_FRAME_1532: (i64, i64) = (1527, 1783);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run710 walked from run651's start with the recorder on. It holds the
-/// word 1532 (item 1563), block 1533, and the word 1610 (item 1586), block
-/// 1611.
+/// word 1532 (item 1563), block 1533, the word 1610 (item 1586), block
+/// 1611, the word 1696 (item 1588), block 1697, and the word 1719 (item
+/// 1589), block 1720.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -920,7 +951,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN710, 1527)],
         WIDENING_COVERAGE_FRAME_1532,
         1,
-        &[1533, 1611],
+        &[1533, 1611, 1697, 1720],
         true,
     )
 }
@@ -932,13 +963,54 @@ fn run710_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **764** on the tree item 1586 landed (1034 on item 1563's); 151
-    // stand from the window's first block (167 on 1563's), and army 1's
+    // **360** on the tree item 1589 landed (478 on item 1588's, 764 on
+    // item 1586's, 1034 on item 1563's); 151 stand from the window's first block (167 on
+    // 1563's), and army 1's
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
-    // leader's 47 (`docs/AI.md` §161). On run679's 1420 ours still holds
-    // the site `1/2037` alone, and on 1583 its `x/y_internal` part.
-    pin_eq!(w.firsts.len(), 639, "initial run710 baseline");
+    // leader's 47 (`docs/AI.md` §161).
+    pin_eq!(w.firsts.len(), 360, "initial run710 baseline");
+    // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
+    // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
+    // `1/40`) parted first on block 1686 — `path:length` 9 against 17,
+    // `path_recursion` 10 against 1, `order:move.last_x/y` (42816, 37233)
+    // against −1 — where on 1685 the original's tile search ran 63
+    // `calc_cost`s from tile (221, 191) to its waypoint (42168, 37704)
+    // and ours, walking the goal back from region 12 toward its own tile's
+    // 0, refused the plan, popped the waypoint and spent a second grid draw
+    // on 1696. No key of `1/52` parts past its standing `form` on its
+    // birth block, 1529.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| *who == 1 && *o == 52 && *f > 1529)
+            .count(),
+        0,
+        "the word's Freighter 1/52 agrees in every compared field"
+    );
+    // **The word 1610's value diff, item 1588** (`docs/AI.md` §162): the
+    // citizen `1/10` (`TypeIndex` 50, `PEASANTS`) parted first on block
+    // 1584 — ours' stack 4 with an `ExploreTo` (28488, 31272) for the
+    // Oil Platform site ours alone held at (28032, 31104), against the
+    // original's 2, `[Build 2038, ExploreTo (34632, 33528)]` — and on 1610
+    // its caravan path (586 `calc_road_cost` draws against 578). The
+    // original disbanded that site on frame 1419 (`Wall::process`'s
+    // oil-platform arm), so the next site placed took its number: on 1583
+    // `1/2037` is at (32640, 34176), city 2, in both, where ours' was
+    // (28032, 31104), city −1, and `1/2043` the Wonder at (34560, 37632).
+    // `1/10` holds two orders on 1584 in both and no key of it parts in
+    // the window past its standing `form` on 1527; nor does a key of the
+    // four sites.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| {
+                *who == 1 && [10, 2037, 2043, 2044].contains(o) && *f > 1527
+            })
+            .count(),
+        0,
+        "the word's citizen 1/10 and the sites agree in every compared field"
+    );
     let first = w
         .firsts
         .values()
