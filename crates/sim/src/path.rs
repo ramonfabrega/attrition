@@ -1671,34 +1671,36 @@ impl Sim {
         let mut goal = goal_e.to;
         let pulls_back =
             self.unit_domain_of(u) != crate::attrition::Domain::Air && !self.unit_can_transport(u);
-        while pulls_back {
-            if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
-                && self.valid_tcoord(u, goal)
-            {
-                break;
-            }
-            let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-            if dx.abs() < 0x60 && dy.abs() < 0x60 {
-                if goal_e.flags & path_flag::FINAL == 0 {
-                    return 0;
+        if pulls_back {
+            loop {
+                if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
+                    && self.valid_tcoord(u, goal)
+                {
+                    break;
                 }
-                break;
-            }
-            let ang = movement::find_angle(dx, dy);
-            // `0x60`, the same constant as the give-up test above, and no
-            // caller-level fold — `mov ebx, 0x60` at `0x6899da`, negated to
-            // `0xffffffa0` only inside the sine's own fold.
-            let s = 0x60;
-            let sx = movement::sin_component(ang, s);
-            let cy = movement::cos_component(ang, s);
-            goal = Pos::new(goal.x + sx, goal.y - cy);
-            goal_e.to = goal;
-            if goal.tile() == ht {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-            if sx == 0 && cy == 0 {
-                break;
+                let (dx, dy) = (here.x - goal.x, here.y - goal.y);
+                if dx.abs() < 0x60 && dy.abs() < 0x60 {
+                    if goal_e.flags & path_flag::FINAL == 0 {
+                        return 0;
+                    }
+                    break;
+                }
+                let ang = movement::find_angle(dx, dy);
+                // `0x60`, the same constant as the give-up test above, and no
+                // caller-level fold — `mov ebx, 0x60` at `0x6899da`, negated to
+                // `0xffffffa0` only inside the sine's own fold.
+                let s = 0x60;
+                let sx = movement::sin_component(ang, s);
+                let cy = movement::cos_component(ang, s);
+                goal = Pos::new(goal.x + sx, goal.y - cy);
+                goal_e.to = goal;
+                if goal.tile() == ht {
+                    self.units[u].path.push(goal_e);
+                    return self.units[u].path.len() as i32;
+                }
+                if sx == 0 && cy == 0 {
+                    break;
+                }
             }
         }
         let gt = goal.tile();
