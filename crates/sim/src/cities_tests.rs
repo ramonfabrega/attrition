@@ -6746,3 +6746,36 @@ fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
         );
     }
 }
+
+/// **A gather enhancer stays in the city it is placed for** (item 1565,
+/// `docs/AI.md` §156). `Leader::produce_building`'s spiral, for a type
+/// `is_gather_enhancer` answers, drops every candidate whose
+/// `BuildTypeData::get_town` is not the city the order is for (`006e20eb`:
+/// the covering city's building `o` against `near`) — so a Granary or a
+/// Refinery for one city is never seated in the next one's catchment, where
+/// the Persians' Refinery `1/2045` stood at y 22176, city 1, in ours and at
+/// 19872, city 2, in the original.
+///
+/// Made to fail once with the `get_town` comparison removed: the Granary for
+/// the first city stands in the second's.
+#[test]
+fn an_enhancer_is_seated_in_the_city_it_is_placed_for() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 2;
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
+    assert_ne!(c0, c1);
+    for (near, city) in [(b0, c0), (sim.cities[c1].building, c1)] {
+        let before = sim.buildings.len();
+        assert!(sim.produce_building(0, t.granary, near, Some(city), false));
+        let g = sim.buildings.len() - 1;
+        assert!(g >= before, "a Granary was placed");
+        assert_eq!(
+            sim.buildings[g].city,
+            Some(city),
+            "the Granary for city {city} at {:?} stands in its own city",
+            sim.buildings[g].pos
+        );
+    }
+}

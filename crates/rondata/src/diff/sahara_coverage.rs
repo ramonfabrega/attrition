@@ -10,7 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     name: "GreatSaharaPersianAllTech",
@@ -49,8 +49,47 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // as an enemy) moved it again, 1250 → **1582**: ours 28 draws against 29
     // at index 8, ours `Leader::make_stuff+0x63d`, theirs
     // `Leader::produce_building+0x1805`.
-    count: 1582,
-    sequence: 1582,
+    //
+    // Item 1565's build (a gather enhancer is seated only in the city it is
+    // placed for, `docs/AI.md` §156: `produce_building`'s
+    // `get_town(cand) == near`) moved it again, 1582 → **1818**: ours 3215
+    // draws against 3218 at index 3201, ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
+    //
+    // Item 1581's build (a restarted caravan road search consumes the reset
+    // flag, `docs/AI.md` §157: slot 7's search was restarted every frame
+    // from 1817 where the original resumes it) moved it again, 1818 →
+    // **1830**: ours 3218 draws against 3219 at index 2, ours
+    // `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a <
+    // Unit::do_guard+0x7f4`.
+    //
+    // Merged with item 1586's build (an army's normalize puts its group's cap
+    // back to its leader's speed, `docs/AI.md` §161 — the writer of the cap
+    // reset item 1581 parked as 1582) the word moves again, 1830 → **1985**
+    // by the draw sequence and 2048 by the count: ours 16 draws against 16 at
+    // index 4, ours `Leader::produce_building+0x1805`, theirs
+    // `Leader::make_stuff+0x63d`.
+    //
+    // Landing 3 of the race on item 1565 (`docs/AI.md` §158): the mechanisms
+    // the merged tree's word 1985 stood on — a bomber's cap, a modern unit's
+    // level in an all-tech game, the nuke count, the silo's own launch, the
+    // Spy's discount and `reg_free_peasants` read unsigned — move it again,
+    // 1985 → **2048** by the count and the sequence alike: ours 44 draws
+    // against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+    // theirs `Unit::do_move+0xe84`.
+    //
+    // Landing 4 (`docs/AI.md` §159): an upgraded building weighs its basic
+    // type's trainer bit in the danger map, and a Spy trains in half the
+    // time under Tactics — 2048 → **2077** → **2118** (count and sequence):
+    // ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a <
+    // Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
+    //
+    // Landing 5 (`docs/AI.md` §160): a Spy's hit points, sight and speed
+    // climb with the Spy upgrades — 2118 → **2185** (count and sequence):
+    // ours 30 draws against 32, index 12, ours `Leader::make_stuff+0x63d`,
+    // theirs `Leader::produce_building+0x1805`.
+    count: 2185,
+    sequence: 2185,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -274,7 +313,7 @@ fn run680_s_word_frame_is_widened_whole() {
     // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
     // Persians' `SITE` table on 776, the two queues' prices and leader 1's
     // two buckets on 783, leader 0's `production_step` on 801.
-    pin_eq!(w.firsts.len(), 111, "initial run680 baseline");
+    pin_eq!(w.firsts.len(), 74, "initial run680 baseline");
     // **The word's value diff, block 721** (item 1549): the dump prints no
     // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
     // value on the word's frame is the draw record — frame 720, ours 25
@@ -358,10 +397,10 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 185, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 128, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        140,
+        96,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -401,22 +440,24 @@ fn run681_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1201),
+        Some(1192),
         "the first parting past the standing block"
     );
 }
 
 /// run683, item 1561: the lobby's blocks 1577..1833 at the long's detail —
-/// the word 1582's block 1583 with six before it and 250 after.
+/// the word 1582's block 1583 with six before it and 250 after, and item
+/// 1565's word 1818 inside it (block 1819).
 pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt";
 
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
-/// recorder on — the word 1582's block 1583.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run683 walked from run675's start with the recorder on — the word
+/// 1582's block 1583, the word 1818's block 1819 and the word 1830's block
+/// 1831. It was the `AI_WORDS` window until the word moved past it, to
+/// run702's (item 1581, merged with item 1586's build).
+pub(crate) fn sahara_coverage_frame_1582_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -425,7 +466,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1582,
         1,
-        &[1583],
+        &[1583, 1819, 1831],
         true,
     )
 }
@@ -433,7 +474,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run683_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_1582_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -442,36 +483,38 @@ fn run683_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 1586: 1183 → 540, 159 → 151 standing; the word 1582 holds; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 540, "initial run683 baseline");
+    // **1183** on the tree at item 1561's build, **863** after item 1565's
+    // (`docs/AI.md` §156): the Refinery's site and city, and what the
+    // shifted stream moved after them, agree. **842** after item 1581's
+    // (`docs/AI.md` §157): the Persian supply wagon `1/67`'s `myhits` (150,
+    // the type's 90 and `SUPPLY_HP_UPGRADE[3]`'s 60 — three standing keys:
+    // `myhits`, `hits_left` and `hits:myhits`) and the caravan search that
+    // restarted each frame from 1817 (the other 18). Item 1586 (on a tree
+    // without 1565's and 1581's): 1183 → 540, 159 → 151 standing — an army's
+    // normalize puts its group's cap back to its leader's speed
+    // (`docs/AI.md` §161); the merged tree's count is the union, measured:
+    // **182**, 148 standing.
+    pin_eq!(w.firsts.len(), 121, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        151,
+        107,
         "the keys standing on the window's first block"
     );
-    // **The word 1582's value diff, block 1583** (item 1561): the Persians'
-    // `REFINERY` (`orig_type` 426) `1/2045`, bought for city 2 (`1/2006`, at
-    // (27744, 19296)) by a `MAKE` row both sides print alike, stands at
-    // (30432, 19872) in the original — `city` 2, chained after `1/2006`
-    // (`city_down` 2045) — and at (30432, 22176) in ours, `city` 1, chained
-    // after `1/2041`. The original spends four `produce_building+0x1805`
-    // jitter draws (a 2×2, every sub-position unblocked) and ours three, so
-    // every roll after it sits a place off: the human's `0/5` and `1/65`
-    // re-target on the same block from the shifted stream (their
-    // `orders_x/y`, `dest_angle`), and are no cause.
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:y_internal".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "the Refinery's y parts on the word's block"
-    );
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:city".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "and its city"
+    // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
+    // Persians' `REFINERY` (`orig_type` 426) `1/2045`, bought for city 2
+    // (`1/2006`, at (27744, 19296)) by a `MAKE` row both sides print alike,
+    // stands at (30432, 19872) in the original — `city` 2, chained after
+    // `1/2006` (`city_down` 2045) — and stood at (30432, 22176) in ours,
+    // `city` 1, chained after `1/2041`: the spiral's candidate loop dropped
+    // no site outside the city the Refinery was placed for, and the
+    // original's `get_town(cand) == near` (`docs/AI.md` §156) drops them.
+    // The original's four `produce_building+0x1805` jitter draws (a 2×2,
+    // every sub-position unblocked) were three in ours. It agrees in every
+    // compared field since the build, and so do the human's `0/5` and `1/65`
+    // whose targets sat a place off the shifted stream.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2045)),
+        "the Refinery 1/2045 agrees in every compared field"
     );
     // **What parts first past the standing block** is the word's own block.
     let first = w
@@ -483,6 +526,191 @@ fn run683_s_word_frame_is_widened_whole() {
     pin_eq!(
         first,
         Some(1583),
+        "the first parting past the standing block"
+    );
+}
+
+/// **Every road search to 1829, node for node** (item 1581). run683's trace
+/// proxies `valid_roadcoord` and `calc_road_cost` over the game, so each
+/// search's priced nodes are comparable with ours from frame 0, as run483's
+/// were at Toughest. It parted on 1818, at node 0: caravan slot 7's search
+/// (`1/2000` to `1/2028`) restarted where the original resumed it, the
+/// reset flag `Caravans::reset_paths` raised on 1817 never consumed
+/// (`docs/AI.md` §157); the window from 1577 holds 23 more searches that
+/// agree.
+#[test]
+fn run683_s_road_searches_hold_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else { return };
+    let (Some(path), Some(sib), Some(t683)) = (
+        dump(SAHARA_COVERAGE.long.0),
+        dump(SAHARA_COVERAGE.start),
+        trace("rontrace-run683.log"),
+    ) else {
+        eprintln!("skipping: no run676/run675/run683 (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    if let Some(t) = trace(SAHARA_COVERAGE.long.1) {
+        borrow_pasture(&mut init, &t);
+    }
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_phases = true;
+    built.sim.trace_costs = true;
+    let mut parted = Vec::new();
+    let mut searched = 0;
+    while built.sim.frame < 1830 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        if f < 1577 {
+            continue;
+        }
+        let theirs = t683.road_nodes(f);
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if let Some(i) = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i)) {
+            parted.push(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+        }
+    }
+    pin_eq!(searched, 35, "the road-search frames from 1577 to 1829");
+    pin!(parted.is_empty(), "a road search parted: {parted:?}");
+}
+
+/// run702, item 1581: the lobby's blocks 1979..2235 at the long's detail —
+/// the word 1985's block 1986 with six before it and 249 after, taken on the
+/// tree that merged item 1586's army normalize.
+pub(crate) const RUN702: &str = "gamelog-run702-greatsahara-persian-alltech-window-1979-2235.txt";
+
+/// The window: block 1979 through 2235; the word 1985's own block is 1986.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1985: (i64, i64) = (1979, 2235);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run702 walked from run675's start with the
+/// recorder on — the word 1985's block 1986.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run702",
+        &[(RUN702, WIDENING_SAHARA_COVERAGE_FRAME_1985.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_1985,
+        1,
+        &[1986],
+        true,
+    )
+}
+
+#[test]
+fn run702_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 317, "initial run702 baseline");
+    pin_eq!(
+        w.firsts.values().filter(|(f, _)| *f == 1979).count(),
+        117,
+        "the keys standing on the window's first block"
+    );
+    // **The word 1985's value diff** (item 1581, on the tree that merged
+    // item 1586), and what it became (item 1583, `docs/AI.md` §158). The
+    // draws agreed to index 3 on 1985 and the fifth was where the original
+    // rolled `Leader::make_stuff+0x63d` and ours the placement jitter
+    // `Leader::produce_building+0x1805`; the make list's rows 1 and 2 had
+    // parted on 1981 (the Supply Wagon against the MLRS). With the landing's
+    // six mechanisms the make list agrees to the end of the window but for
+    // the Persian army's march, and **the word is 2048**: unit `1/43`'s
+    // path parts on **2046** (its heading, `pos`, a path of four nodes
+    // against two) — the draw on 2048 is the move step it takes. What parts
+    // first past the standing block is Persian city `1/2018`'s `bordering` on
+    // **1980** (ours 0, theirs 3, the bit of each leader whose ground touches
+    // the city's), and then, of the compared leader keys, only
+    // `production_step` on 2001.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2018, "city:bordering".to_string()))
+            .map(|(f, _)| *f),
+        Some(1980),
+        "Persian city 1/2018's bordering parts on 1980"
+    );
+    // Items 1584 and 1585 (`docs/AI.md` §159, §160): the unit `1/43` agrees
+    // for the whole window now (the danger map weighs an upgraded trainer at
+    // fifty, so its search is priced node for node), and the Spy `1/103` of
+    // Persian city `1/2030`, born on 2077 (a Spy trains in half the time under
+    // Tactics), agrees in every compared field (its hit points, sight and
+    // speed climb with the Spy upgrades); the word is **2185**.
+    for (o, key) in [
+        (43, "pos"),
+        (103, "myhits"),
+        (103, "mylos"),
+        (103, "myspeed"),
+    ] {
+        pin_eq!(
+            w.firsts.get(&(1, o, key.to_string())).map(|(f, _)| *f),
+            None,
+            "a unit the earlier words moved agrees in the window"
+        );
+    }
+    // **The word 2185's value diff** (item 1585): the draws agree to index 11
+    // and the twelfth is where the original places a building
+    // (`Leader::produce_building+0x1805`, 32 draws) where ours rolls
+    // `Leader::make_stuff+0x63d` (30). The dump parts first on **2183** at
+    // building `1/2034`'s queue (`queue[0].cost[0]` ours 816 theirs 927,
+    // `cost[1]` 965 against 1069: the same entry, priced 12 % dearer in the
+    // original), with the knowledge and oil buckets 111 and 104 apart; on
+    // **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against
+    // 80000 with `escrow` 1, `city` 5 against 1).
+    for (key, frame) in [
+        ("queue:queue[0].cost[0]", 2183),
+        ("queue:queue[0].cost[1]", 2183),
+    ] {
+        pin_eq!(
+            w.firsts.get(&(1, 2034, key.to_string())).map(|(f, _)| *f),
+            Some(frame),
+            "building 1/2034's queued entry is priced apart from 2183"
+        );
+    }
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[8].t".to_string()))
+            .map(|(f, _)| *f),
+        Some(2185),
+        "leader 1's make row 8 parts on 2185, the word"
+    );
+    // **What parts first past the standing block.**
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1979)
+        .min();
+    pin_eq!(
+        first,
+        Some(1980),
         "the first parting past the standing block"
     );
 }

@@ -1783,10 +1783,12 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(15095, 94), (15098, 4)],
+            // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+            [(15095, 91), (15098, 4)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 98, "every key parted on run663");
+        // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+        pin_eq!(w.firsts.len(), 95, "every key parted on run663");
         // **The word 15101's block, 15102** (item 1510, `docs/AI.md` §136):
         // ours 19 draws against 17, parting at index 7, and block 15102
         // parted on 27 keys of `1/96`, a Bombard (`cur_anim` 24 theirs
@@ -1928,10 +1930,12 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(15207, 92)],
+            // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+            [(15207, 89)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 92, "every key parted on run664");
+        // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+        pin_eq!(w.firsts.len(), 89, "every key parted on run664");
         // **The word 15213's block, 15214** (item 1517, `docs/AI.md` §137):
         // ours 8 draws against 7, parting at index 4 — ours
         // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. Item
@@ -2085,10 +2089,12 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(5).collect::<Vec<_>>(),
-            [(15230, 92), (15266, 1), (15268, 1), (15326, 1), (15366, 1)],
+            // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+            [(15230, 89), (15266, 1), (15268, 1), (15326, 1), (15366, 1)],
             "the blocks keys first part on, the first five"
         );
-        pin_eq!(w.firsts.len(), 171, "every key parted on run668");
+        // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
+        pin_eq!(w.firsts.len(), 168, "every key parted on run668");
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
         // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs

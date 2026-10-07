@@ -17056,30 +17056,193 @@ handoff's `Coverage pair:` line; sim 1,418 passed.
 
 **Coverage.** Diff-backed: claims 0–4 (the word moves, `1/8` agrees through run679). Reading-only: the circle walk's other gates.
 
-## 156. Reserved for the race on item 1565, its landing 1 (Great Sahara's coverage word 1582)
+## 156. A gather enhancer is seated only in the city it is placed for, and the word at 1818 (2026-10-07, item 1565)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's widening (`diff::sahara_coverage::run683_s_word_frame_is_widened_whole`, the word 1582's block 1583, now also the word 1818's block 1819), the draw
+stream on frame 1582 (`RON_DEBUG_SITES=1582-1582`, `sahara_coverage_first_parting`), `Leader::produce_building@006e1400`'s spiral (the `is_gather_enhancer` arm) beside
+`BuildTypeData::get_town@00639b90`, and `CityData` (`types.txt`, `+0x8 o`).
 
-## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
+**The word.** Great Sahara in the coverage lobby parted on **1582** (item 1561's): ours 28 draws against 29, index 8. Both streams agree through index 7; the original spends a **fourth**
+`produce_building+0x1805` (the 2×2 jitter) and ours three, and the four `make_stuff+0x63d` after it agree. The spiral spends no draw for an enhancer, so the two sides picked different
+sites: the Persians' Refinery `1/2045` (`TypeIndex` 426, bought for city 2 by a `MAKE` row both print alike) stands at **(30432, 19872)**, `city` 2, chained after `1/2006` in the original and
+at **(30432, 22176)**, `city` 1, chained after `1/2041` in ours — the same column, three cells further south, inside the other city's catchment.
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**The cause.** `produce_building`'s spiral, after scoring a candidate by its friends, asks `BuildTypeData::is_gather_enhancer` and for an enhancer reads
+`get_town(type, cand's tile, owner)`, **and drops the candidate unless the answer equals `param_2`** (`near`). `get_town` returns `CityData +0x8`, the covering city's building `o`,
+and `near` is the city's own building (`make_this`'s `centre`; `ai_host`'s hint is a city building only when it is one), so the test is "the site belongs to the city the order is for".
+This crate had only the `city.is_none()` half of it (`break 'cand`), so the candidates of a spiral that reaches over a neighbouring city's mask were scored, and the last of the tied
+1000-point ones — the spiral keeps the last of equals — was in city 1. Built: for `is_enhancer`, a candidate stays only when `get_town(who, rec, cand) == Some(city)`.
+The one-per-city `+100` push of `find_city_at` is why the test is *not* repeatable after the building stands: a Granary placed in city 0 answers city 1 afterwards, and the unit test reads
+the building's own `city`, not a second `get_town`.
 
-## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
+**The move.** The Refinery `1/2045` agrees in every compared field (`build:y_internal` and `build:city` no longer part on 1583), run683's keys **1183 → 863**, and the word goes
+**1582 → 1818**: ours 3215 draws against 3218, index 3201, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. Inside run683 (block 1819), widened by the
+same test (block 1819 joins its recorded blocks). What parts first past the standing block is still 1583 and is not the word's: leader 1's `pool:65` / `group:65.held`
+(ours [69, 70, 71], theirs none) and the queue rows' `cost` (ours 100 against 99, 120 against 118, 180 against 178 — a price one or two off, `1/2009`, `1/2022`, `1/2023`, `1/2026`);
+no draw agrees differently for them through 1817. The first dense parting before the word is **1789** (276 keys).
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**What is not established.** The word's own cause (the next item's, 1581): ours and the original's last draw before the parting are a `set_anim` against `calc_road_cost` on a frame of three
+thousand draws. `get_town`'s tile arguments are the candidate's tile as `div_3_table[pos >> 6]`; this crate passes the candidate's `Pos` and `get_town` snaps it, which agrees on every
+site the walk reaches. Only enhancers of a **city** are gated; an enhancer with no city is refused as before.
 
-## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
+**Mutation** (`tools/mutate.py`, the `get_town` comparison dropped): held by `an_enhancer_is_seated_in_the_city_it_is_placed_for` and by `sahara_coverage_first_parting`.
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Coverage.** Diff-backed: the cause (the word moves 1582 → 1818, the Refinery agrees, run683's keys 1183 → 863). Reading-only: the `find_city_at` side of `get_town` for a type that is not one-per-city.
 
-## 160. Reserved for the race on item 1565, its landing 5 (Great Sahara's coverage word 1582)
+## 157. A restarted caravan search consumes the reset flag, and the word at 1830 (2026-10-07, item 1581)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's trace (`rontrace-run683.log`'s `calc_road_cost` and `astar_caravan_road` records, compared node for node by
+`diff::sahara_coverage::run683_s_road_searches_hold_node_for_node`), `Caravan::build_road@0073db10`'s listing (the labels `LAB_0073dbe9` and `LAB_0073dbf5`) beside
+`Caravans::reset_paths@0073e060`, and run700 (blocks 1535..1791) and run701 (blocks 1550..1606, `GROUPDATA` printed) for what turned out not to be the word.
+
+**The word.** Great Sahara in the coverage lobby parted on **1818** (item 1565's): ours 3215 draws against 3218, index 3201, all `PathFinder::calc_road_cost+0x46` — one road search,
+ours three nodes short. The trace's brackets on 1808..1818 are two caravans' searches of the Persians' trade routes, slot 7 (`1/2000` to `1/2028`) from 1808 and slot 0
+(`1/2000` to `1/2018`) from 1811, each resumed frame to frame (the budget, `0xc80` nodes a call). Ours and the original's priced nodes agree **node for node on every frame
+from 1577 to 1817** — 34 frames of searches. On 1818 ours' first node is slot 7's start, (40800, 17184) from (40800, 16992); the original's is the middle of the search it
+parked on 1817, (31008, 16800): **ours restarted the search the original resumed**.
+
+**The cause.** On 1817 slot 0's search found its road, laid it, and ran `Caravans::reset_paths` — which sets `reset_road` (`+0x24`) on every other caravan that is
+`making_road` (`+0x20`), slot 7 among them. Slot 7's own turn followed in the same frame and, flagged, started over. `build_road`'s gate (`0073db10`) has three exits: resume
+when `making_road && !reset_road && a search is parked`; otherwise, when `reset_road` is set or nothing is parked, `LAB_0073dbf5` runs `clear_temp_road` **and writes
+`+0x24 = 0`**; then `find_road`. This crate cleared the parked search and left the flag, so the search it parked at the end of 1817 saw the flag still raised on 1818, was
+thrown away, and started again — and so every frame, until the road found a way. Built: the gate is `Sim::road_gate`, and the restart zeroes `reset_road`.
+
+**The move.** Slot 7 resumes on 1818, the search agrees node for node to 1829, and the word goes **1818 → 1830**: ours 3218 draws against 3219, index 2, ours
+`PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Inside run683 (block 1831), widened by `run683_s_word_frame_is_widened_whole`. Run683's
+keys **863 → 842**.
+
+**What the walk back found, and is not the word.** Before the road searches, the 1789 block held 276 keys parted (the Persian army's guard slots, `1/17`..`1/56`, ±48 off):
+all one cause, the supply wagon `1/67`'s heading, which parted before the window opened. Its steps agree with ours to 1562 and **1563's is the original's, 43.6 long, against
+ours' 40.8** (run700, `1/67`'s positions every frame from its birth on 1541): the wagon walks at the group's cap, and the cap — `GROUPDATA` id 66's `speed`/`new_speed`, which run701
+prints for 1550..1606 — is `(47, 40)` at the end of 1563 in the original and `(40, 40)` in ours. It is the one frame; the pair before and after agrees with ours' on every
+frame of the window but that one. **A reset to the leader's own speed ran before the group's leader (`1/60`) reported on 1563** — `Army::process@006f93d0`'s periodic `normalize` for player 1's army 0
+(§161's arithmetic, `frame ≡ 26 mod 128`; run701 dates this one on 1563), which item 1586 built on the integration branch the same hour and which this lane met at its `ccc update`. **With it merged the 276 keys are gone** (run683's keys 842 → 182 on the
+union) and the word on the merged tree is no longer 1830. (A scratch `Groups::process` cursor at `f + 39` also fixed the 276 keys and the wagon, and was **wrong**: the same wagon steps, a different writer. It moved no draw
+either way until 1823.) What this lane's own capture added: the wagon is the cap's only witness in this lobby (a unit with an action order is not capped), and `GROUPDATA` id 66's pair on every frame of 1550..1606 (run701)
+— `(47, 40)` at the end of 1563 — is the dump that dates the writer. What did land from the walk back: the wagon's hit points.
+
+**Supply upgrade hit points.** `Unit::update_hits@0060e930`'s last term: a supply unit adds `supply_hp_upgrade[get_supply_upgrade]` (`Constants +0xcb4`, `[0, 20, 40, 60]` in `rules.xml`),
+the count of the three upgrade prerequisites its leader holds. The wagon is 90 + 60 = **150** at All Technologies; ours was 90 on every wagon — three keys parted on every window with a
+wagon, run683's and the Toughest and French East Indies' (twelve pins re-pinned, −3 each). Built: `Sim::unit_hits`' tail and `Tuning::supply_hp_upgrade`.
+
+**The merged tree's word.** Item 1586's build and this one together: the word is **1985** by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
+`Leader::make_stuff+0x63d` — past run683's last block (1833), widened on run702 (blocks 1979..2235, block 1986): `run702_s_word_frame_is_widened_whole` — 1398 keys, 154 standing; what parts first past the standing block is Persian city `1/2018`'s `bordering` on 1980 (ours 0, theirs 3) and leader 1's make list on 1981 (the Supply Wagon against the MLRS in row 1). No mechanism: the next item's first read.
+
+**What is not established.** A supply upgrade gained mid-game does not re-read the wagons already out (`update_hits` runs on a tech gain in the original; this crate's refresh is the
+Citizen's only).
+
+**Mutations** (`tools/mutate.py`): the flag left set — held by `a_restart_consumes_the_reset_flag` and `run683_s_road_searches_hold_node_for_node`; the wagon's term dropped — held by
+`a_supply_unit_adds_the_supply_hp_upgrade` and `run683_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: the caravan reset (road searches node for node 1577..1829, the word's move), the wagon's hit points (`myhits` agrees in run683, run663/664/668, run655..667).
+Reading-only: `reset_paths`' leader gate (`leader_flags & 3 == 3`, read as true for the AI).
+
+## 158. Six things the coverage lobby's Persians do at All Technologies, and the word at 1985 (2026-10-07, item 1583)
+
+**Established by**: run702's blocks 1979..2235 (`run702_s_word_frame_is_widened_whole`, every dumped record on the word's window), the draw sequence of frame 1985 (`RON_DEBUG_SITES`, ours and the original's
+site by site), and, for each mechanism below, the function's listing or decompile read beside the dump field that shows it. No new capture: run702 holds all of it.
+
+**The word.** The merged tree's word was 1985 by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`.
+Its widening (§157) showed the standing keys and then Persian city `1/2018`'s `bordering` (1980, a bit no mechanism of this section reaches) and leader 1's make list from 1981. The make list parted
+because of the first six mechanisms; with them the make list agrees to the end of the window but for the Persian army, and **the word moves 1985 → 2048** (count and sequence alike): ours 44 draws
+against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Unit::do_move+0xe84`. The value diff beside it is unit `1/43`'s path: its heading, `pos`, `order:move.dest` and a path of four
+nodes against two part on **2046** (run702's block 2047), the draw on 2048 being the move step it takes. No mechanism: the next item's first read. Keys on run702's window 1398 → 1192, standing 154 → 117;
+run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no floor moved; the newest pair's word went 1719 → 1735 on this lane's tree by the silo's launch alone and to 1960 on item 1591's, which built the same arm).
+
+**1. The air arm's `remaining`** (`create_units` 361–478). `remaining = air_cap` (2, 4 or 16 by difficulty) is the loop's own variable and the tail reads it; this crate left the caller's default of 5. `air_value` sets it.
+Held by `the_air_arm_sets_remaining_to_the_air_cap`.
+
+**2. A unit's Military level is read through the lobby's remap** (`TypeData::get_preq@00668700`, slot 1). In a game that starts in the Information Age (`STARTING_TECHNOLOGY 8`) the Military epoch a modern unit asks
+for is removed (its age is below the start), so the unit stands at level 0, which `get_cost`'s late discount floors at 1 (`MILITARY_UNIT_DISCOUNT`, `(span·pct+7)>>3`, floor 1 below span 8). This crate read the
+table's column and held every unit six levels behind the player's seven. Built: `TechTree::military_level_in(setup, t)`; `military_level_of` is the standard lobby's. Held by
+`a_unit_s_military_level_is_read_through_the_lobby_remap`, and the price call (`Sim::military_unit_discount`) by `sahara_coverage::` (the Supply Wagon/MLRS rows of the make list). The research arm's call (`research_modifiers`)
+is reading-only: no capture prices a research by it.
+
+**3. `get_nukes`** (`LeaderData::get_nukes@006ebe50`). The nuke arm of `missile_value` counts the leader's **Nuclear Missiles** (`0x13b`'s line, queued and held; none without `tech.ptr[0x27] & 8`) against its silos and the
+others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here.
+
+**4. The computer's silo fires** (`Object::do_launch@0064f3b0`, the branch past `64fdcd`). Every 128 frames, phased by the silo's `o`, the missile at the chain's head is given an air attack on the enemy city of best
+value in its reach, and then waits for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours,
+and the bucket, the ring of damage and the cities' `num_queued` all followed from it. **This lane built the arm (`Sim::silo_sortie`, with its own test) and so did item 1591 on the integration branch the same day, for the newest pair's ICBM
+(§164); at the merge the integration branch's was taken whole** (`air.rs`, `airbase.rs`), and the third map's pins were re-measured on it: the run702 window agrees on the silo's strike either way. The nuke's ring over a gaia owner is item 1591's
+(it passes over the animals); `Sim::mods_of`, the zero modifiers of an owner past the players' `mods`, stays as the guard under it (`a_gaia_owner_has_no_modifiers`).
+
+**5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88;
+`Roles::spy_general_cheaper_preq`) takes `SPY_GENERAL_COST` (50) off the base, before the ramp: Great Sahara's Spy at `1/2030` queues at 25/25 and, a second, at 35/35 on 1983 (50/50 and 60/60 in ours before). Built in
+`Sim::nation_unit_discount`; held by `a_spy_costs_half_under_the_spies_and_generals_bonus`. The Russian spy arm before it is not modelled.
+
+**6. `reg_free_peasants` is a `ushort[64]`**. `Leader::produce_building`, `produce_city` and `make_this` subtract one for a site that no peasant was counted for, so the region's slot goes to −2 in this crate and to **65534
+in the dump**; `create_units`' `reg_free_peasants >= reg_cities` (`:1198`), `found_cities`' (`:104`) and `create_buildings`' (`:1513`) compares are unsigned. Ours offered the Citizen on 1983 (region 1, `-2 < 6`); the original did not, and its
+make row 5 stayed the stale `(-1, val 145)` until 1986. `Census::reg_u16`; held by `a_ushort_region_slot_reads_unsigned`, and the call sites by `sahara_coverage_first_parting` (the draw it spent).
+
+**Mutations** (`tools/mutate.py`, each held but the last): the air cap's assignment, the military level's slot, `get_nukes`' body, the census' two halves, the silo arm and its friendly-object test (on this lane's own build, before the merge took item 1591's), the gaia fallback, the Spy arm,
+its gate, `reg_u16`, and its call site (`sahara_coverage_first_parting`). `research_modifiers`' call to `military_level_in` **failed nothing**: reading-only, as above.
+
+**What is not established.** The nuke's flight reads **five** corners that are not known to be the original's single (`COMBAT.md` §46.3), in run702 (and three in the newest pair's run710): `testkit::GROUND_INEXACT` pins them. The strike's fall time reads the height as a bomb's does; its landing frame is not compared with the original's (no dump prints it). `game.armageddon` (the count of nukes landed) is not carried, so its check always passes; a missile that is not a nuke (V2, cruise)
+takes a different arm of `do_launch`, not built; the forts' and wonders' target loops are not built; the mid-game nuke in flight is not counted by `get_nukes`. The air-order fields (`ag_*`, `air_*`, `waypoint`, ...) are
+compared now (the compared pin lost thirteen names, `coverage.rs`).
+
+**Coverage.** Diff-backed: 1, 2 (price arm), 4, 5, 6 (all through the make list and the queue's costs on run702); 3 by unit test and the census alone. Reading-only: the research-arm level, the
+cruise-missile arm, `game.armageddon`.
+
+## 159. An upgraded building weighs its basic type's trainer bit, a Spy trains in half the time, and the word at 2048 (2026-10-07, item 1584)
+
+**Established by**: run702's blocks 1979..2235 (the word 2048's block 2049 is inside), the unit search's `calc_cost` calls on the trace (`rontrace-run702.log`, every priced step of frames 2044, 2045 and 2048 compared
+key for key and price for price), `GameDaemon::calc_danger@00732d10`'s listing at the building weight and `ObjectData::train_time@006508c0`'s tail. No new capture.
+
+**The word.** After §158 the word was **2048**: unit `1/43` (a Citizen finishing a Build and sent to gather) parted on 2046 — its path four nodes against two, `path_recursion` 2 against 1. Its search on 2045 (`PathFinder::astar_path`,
+the world grid) prices **510 steps in the original and 518 in ours, every one of the original's shared, and 8 of the shared priced apart by 2 to 5** — the world grid's step is `danger / 8` (§ DANGER), so the danger map
+parts, by 40 over one half-cell and 20 around it. That is a missing weight of exactly 40 at the half-cell of the Auto Plant `1/2025` (one at (38976, 19584)): ten in ours, fifty in the original.
+
+**1. `calc_danger` reads the basic type's trainer bit.** The building weight is a fort or tower's half hit points, a hundred for a city, Airbase or Dock, and otherwise fifty if the **basic type** of the building's type (`BuildTypeData::basic_type`,
+the root of the `FROM` chain) is a military trainer and ten if not (`calc_danger@00732d10:158`). The flag is derived on the type units name as their `WHERE` (`UnitType::init`), the Factory; the Auto Plant, its upgrade, names none of its own, so this crate read ten.
+Built: `Sim::danger_building_value` through `build_root`. Held by `an_upgrade_weighs_the_trainer_bit_of_its_basic_type` and `sahara_coverage_first_parting`. With it every priced step of 2044, 2045 and 2048 agrees, and the word moves
+**2048 → 2077**: the Spy `1/103` of city `1/2030` is born a second earlier in the original (`Guy::init_real` at index 7).
+
+**2. `SPIES_GENERALS_CREATED_FASTER`** (`train_time@006508c0:271`–`283`). A Spy or a General under the bonus whose prerequisite is **Tactics** (`TECHBONUSES` row 87; `Roles::spy_general_faster_preq`) trains in half the time, after the
+speed-upgrade step and before the wool arm. Built in `Sim::train_tail` as `Ratio(1, 2)`; held by `a_spy_trains_in_half_the_time_under_the_created_faster_bonus` and `sahara_coverage_first_parting`. The word moves **2077 → 2118**
+(count and sequence): ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
+
+**The value diff beside the word 2118** (`run702_s_word_frame_is_widened_whole`; keys 1192 → 404): the Spy `1/103` parts on its first block, **2078** — `myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36 (the three Spy upgrades:
+`SPY_UPGRADE_HP` `[15, 45, 90, 150]`, `SPY_UPGRADE_LOS` 2 a level, and the speed ladder; the Spy is at the top of all three at All Technologies) — and its path on **2104** (`order:move.dest`, 14 nodes against 13). Past it:
+`ever_seen` of the Persians' buildings 1 against 255 from 2105 and the treaties on 2102. No mechanism: the next item's first read.
+
+**Other lobbies.** No pin of any other lobby moved (the full suite's only reds are the commander's queue lines); the newest pair's word stands at 1735 (§158).
+
+**What is not established.** The Russian spy arm of `get_cost` and the cotton and wool arms of `train_time` are not built. The Spy's search, once the danger map agrees, is exact; the map itself has no dump in this window (the `WORLD` category is not
+enabled), so the weights are argued from prices, which agree to the step.
+
+**Mutations** (`tools/mutate.py`, all held): the root read dropped (`an_upgrade_weighs…`, and `sahara_coverage_first_parting`); the half dropped (`a_spy_trains_in_half…`, and `sahara_coverage_first_parting`).
+
+**Coverage.** Diff-backed: both (the search's 1,600 prices; the Spy's birth frame). Reading-only: the Auto Plant's weight is argued from prices, not from a printed danger map.
+
+## 160. A Spy's hit points, sight and speed climb with the Spy upgrades, and the word at 2118 (2026-10-07, item 1585)
+
+**Established by**: run702's blocks 1979..2235 (the word 2118's block 2119 is inside), the Spy `1/103`'s records on every block from its birth on 2077, and the three listings `Unit::update_hits@0060e930`, `Unit::update_los@0060e4d0` and
+`Unit::update_speed@006055c0` beside `LeaderData::get_spy_upgrade@006e1090`. No new capture.
+
+**The word.** After §159 the word was **2118** (ours 22 draws against 20, index 5: ours `Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`). The Spy `1/103` of city `1/2030`, born on 2077 in both, parted on its first block, 2078:
+`myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36. It walks slower and sees less in ours, so it meets what it meets on another frame — and the original's spy takes damage where ours has not got there.
+
+**The mechanism.** `get_spy_upgrade` counts the held ones of `SPIES_UPGRADE_1..3` (rows 92–94 of `TECHBONUSES`: Tactics, Operations, Strategy in the shipped file; `Roles::spy_upgrade_preq`; all three at All Technologies). Three terms read it:
+
+- **hit points**: `spy_upgrade_hp[clamp(level, 0, 3)]` — `[15, 45, 90, 150]` — *replaces* the type's hits (`update_hits`, `0060eb98`..`0060ebd8`, a different shape from the supply wagon's added term);
+- **sight**: `+ level × SPY_UPGRADE_LOS` (2) added to `mylos` after the troops' terms (`update_los`);
+- **speed**: `+ level × speed / 4` toward zero after the aluminum and Versailles arms (`update_speed:131`–`134`).
+
+Built: `Sim::spy_upgrade_level`, `Sim::is_spy_type` (`supply.rs`), `Sim::unit_hits`, `Sim::unit_los`, `Sim::type_speed`; `Tuning::spy_upgrade_hp` and `spy_upgrade_los` (two slots). Held by `a_spy_climbs_with_the_spy_upgrades`; and each of the three terms by
+`run702_s_word_frame_is_widened_whole` (the Spy's `myhits`, `mylos` and `myspeed` are pinned as agreeing in the window). With them the word moves **2118 → 2185** (count and sequence): ours 30 draws against 32, index 12, ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Run702's keys 487 → 317, and the newest pair's run711 482 → 401 (its Spies climb as well; its word 2166 stands); no other pin moved (the full suite's reds are the commander's lines).
+
+**The value diff beside the word 2185** (`run702_s_word_frame_is_widened_whole`): the dump parts first on **2183** at building `1/2034`'s queue — `queue[0].cost[0]` ours 816 theirs 927, `cost[1]` 965 against 1069 (the same entry, priced about 12 % dearer in the
+original) — with the knowledge and oil buckets 111 and 104 apart; on **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against 80000, `escrow` 0 against 1, `city` 5 against 1), the next frame the buildings' `city_down`/`city`
+link. Between the Spy's agreement and 2183 the first partings are the raid (`death:extra` of player 0's citizens from 2121, `city:raid_stamp` on 2131, `treaties` on 2102): an infiltrated city, which the next read should date. No mechanism claimed.
+
+**What is not established.** The General's upgrades (rows 89–91, `get_general_upgrade`) are the same shape and not built; the 12 % on `1/2034`'s queue is not read (a unit or a building: `1/2034`'s entry `t`).
+
+**Mutations** (`tools/mutate.py`, all held): the hit points' replacement, the sight term and the speed term, each by `a_spy_climbs_with_the_spy_upgrades` and by `run702_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: all three terms (the Spy's records agree over 160 frames). Reading-only: none.
 
 ## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
 

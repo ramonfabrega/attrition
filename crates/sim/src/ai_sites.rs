@@ -1025,7 +1025,7 @@ impl Sim {
             if Census::reg(&c.reg_pop, reg) <= Census::reg(&c.reg_peasants, reg) {
                 v = mul(v, 2);
             }
-            if cmp <= Census::reg(&c.reg_free_peasants, reg) {
+            if cmp <= Census::reg_u16(&c.reg_free_peasants, reg) {
                 v = mul(v, 2);
             }
         }

@@ -225,7 +225,13 @@ impl crate::Sim {
         }) {
             return 100;
         }
-        if ty.is_some_and(|t| self.build_types[t].has(build::flags::MILITARY_TRAINER)) {
+        // The trainer bit is the **basic type's** (`BuildTypeData::basic_type`,
+        // the root of the `FROM` chain: `calc_danger@00732d10:158`), so an
+        // Auto Plant, upgraded from a Factory, weighs fifty and not ten
+        // (`docs/AI.md` §159).
+        if ty.is_some_and(|t| {
+            self.build_types[self.build_root(t)].has(build::flags::MILITARY_TRAINER)
+        }) {
             50
         } else {
             10
@@ -307,6 +313,30 @@ mod tests {
         sim.build_types[barracks].flags &= !flags::NO_CITY;
         sim.buildings[b].city = Some(0);
         assert!(sim.danger_counts_building(b), "a member of a city");
+    }
+
+    /// **An upgraded building weighs its basic type's fifty**
+    /// (`calc_danger@00732d10:158`, `basic_type()`): the Auto Plant, a
+    /// Factory's upgrade that no unit names as its `WHERE`, is a trainer in
+    /// the danger map though its own row carries no trainer bit — Great
+    /// Sahara's `1/2025` over (25, 12), priced ten here and fifty there
+    /// (item 1584). Made to fail with the row's own flags read.
+    #[test]
+    fn an_upgrade_weighs_the_trainer_bit_of_its_basic_type() {
+        let (mut sim, _city, barracks) = fx();
+        let upgrade = sim.add_build_type(BuildType {
+            ident: Ident::Other,
+            x_size: 3,
+            y_size: 3,
+            hits: 400,
+            from: Some(barracks),
+            ..BuildType::default()
+        });
+        let b = sim.init_build(0, upgrade, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);
+        sim.buildings[b].active = true;
+        assert_eq!(sim.danger_building_value(b), 50);
+        sim.build_types[barracks].flags &= !flags::MILITARY_TRAINER;
+        assert_eq!(sim.danger_building_value(b), 10);
     }
 
     /// **Your own building makes the ground under it negative**, at its

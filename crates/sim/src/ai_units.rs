@@ -269,7 +269,7 @@ impl Sim {
     // ---- small helpers over the tree and the buildings ----
 
     /// The root of a building record's `from` chain.
-    fn build_root(&self, rec: usize) -> usize {
+    pub(crate) fn build_root(&self, rec: usize) -> usize {
         let mut r = rec;
         for _ in 0..32 {
             match self.build_types[r].from {
@@ -306,6 +306,47 @@ impl Sim {
             .ty
             .and_then(|rec| self.build_types[rec].tree)
             .is_some_and(|bt| self.tech_tree.is(bt, wt, false))
+    }
+
+    /// `LeaderData::get_nukes@006ebe50`: the leader's **Nuclear Missiles** —
+    /// type `0x13b`'s queued and held count and its line's, none when the
+    /// leader lacks the tech (`tech.ptr[0x27] & 8`), less the nukes in
+    /// flight. It is the missile the AI counts against its silos, not the
+    /// type it is offering: a queued ICBM (`0x13c`, whose `FROM` is none) is
+    /// not a nuke here, so `create_units` offers one while the silo's queue
+    /// holds one (`docs/AI.md` §158). The in-flight count is zero in this
+    /// crate: no capture launches one.
+    fn get_nukes(&self, who: Player) -> i32 {
+        let Some(n) = self.tech_tree.roles.nuclearmissile else {
+            return 0;
+        };
+        if !self.tech[who as usize]
+            .tech
+            .get(n)
+            .copied()
+            .unwrap_or(false)
+        {
+            return 0;
+        }
+        self.line_count(who, n, true) + self.line_count(who, n, false)
+    }
+
+    /// `missile_value`'s nuke arm's census: my Nuclear Missiles
+    /// ([`Self::get_nukes`]), the most any leader I am not allied to holds,
+    /// and whether there is such a leader at all.
+    fn nuke_standing(&self, who: Player) -> (i32, i32, bool) {
+        let mine = self.get_nukes(who);
+        let mut max_enemy = 0;
+        let mut vulnerable = false;
+        for j in 0..self.players.len() {
+            let jw = j as Player;
+            if self.defeated[j] || self.is_ally(who, jw) {
+                continue;
+            }
+            vulnerable = true;
+            max_enemy = max_enemy.max(self.get_nukes(jw));
+        }
+        (mine, max_enemy, vulnerable)
     }
 
     /// `LeaderData::get_units(t, 0)` / `get_queued(t, …)`: the count of `t`
@@ -820,7 +861,7 @@ impl Sim {
                         base,
                         r,
                         army_target,
-                        remaining,
+                        &mut remaining,
                         &mut escrow,
                         &mut num,
                         pop_cap,
@@ -1024,7 +1065,7 @@ impl Sim {
         base: i32,
         r: u16,
         army_target: i32,
-        _remaining: i32,
+        remaining: &mut i32,
         escrow: &mut i32,
         num: &mut i32,
         pop_cap: i32,
@@ -1049,6 +1090,11 @@ impl Sim {
         } else {
             16
         };
+        // `remaining = air_cap` is the loop's own variable (`create_units`
+        // 361–478): the tail's `num = min(num, remaining)` and the cap
+        // multiplier read it, not the step-5 default of 5 (`docs/AI.md`
+        // §158).
+        *remaining = air_cap;
         let remaining = air_cap;
         let n = self.line_count(who, t, true) + self.line_count(who, t, false);
         if n >= air_cap {
@@ -1135,20 +1181,7 @@ impl Sim {
         } else {
             200_000
         };
-        let mine = self.line_count(who, t, false) + self.line_count(who, t, true);
-        let mut max_enemy = 0;
-        let mut vulnerable = false;
-        for j in 0..self.players.len() {
-            let jw = j as Player;
-            if self.defeated[j] || self.is_ally(who, jw) {
-                continue;
-            }
-            vulnerable = true;
-            let theirs = self.line_count(jw, t, false);
-            if theirs > max_enemy {
-                max_enemy = theirs;
-            }
-        }
+        let (mine, max_enemy, vulnerable) = self.nuke_standing(who);
         if !vulnerable {
             return None;
         }
@@ -1640,7 +1673,7 @@ impl Sim {
         let mut b = wm(self.ai[w].infra_mod, base) / 256;
         let q = self.count_queue(city_o, None);
         let cn = &self.ai[w].census;
-        if Census::reg(&cn.reg_free_peasants, r) >= Census::reg(&cn.reg_cities, r) {
+        if Census::reg_u16(&cn.reg_free_peasants, r) >= Census::reg(&cn.reg_cities, r) {
             return None;
         }
         let ca = self.ai[w].city_ai.get(c).copied().unwrap_or_default();
@@ -2684,6 +2717,106 @@ mod tests {
         // And with neither correction, the tie §50 measured: one number
         // for two cities, below the Citizen's 234,782.
         assert_eq!(offer_value(FAC, WANT, without_third(7), DIVISOR), 45_568);
+    }
+
+    /// **The air arm sets the caller's `remaining` to the air cap**
+    /// (`create_units` 361–478: `remaining = air_cap` is the loop's own
+    /// variable, item 1583, `docs/AI.md` §158) — 2, 4 or 16 by difficulty,
+    /// not the step-5 default of 5 the Great Sahara coverage lobby's Bomber
+    /// was priced with. Made to fail with the assignment dropped.
+    #[test]
+    fn the_air_arm_sets_remaining_to_the_air_cap() {
+        let mut sim = bare();
+        let mut tree = tech::TechTree::new();
+        let airbase = tree.add(tech::TypeDef::building("Airbase"));
+        let unit = tree.add(tech::TypeDef::unit(
+            "Fighter",
+            tech::UnitTraits {
+                combat: true,
+                ..tech::UnitTraits::default()
+            },
+        ));
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        let mut ty = crate::UnitType {
+            tree: Some(unit),
+            ..crate::UnitType::default()
+        };
+        ty.price.pop = 1;
+        ty.combat.combat_role = true;
+        ty.combat.attack = 100;
+        ty.combat.domain = crate::attrition::Domain::Air;
+        ty.group = Some(0);
+        sim.add_unit_type(ty);
+        let rec = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            ident: Ident::Airbase,
+            tree: Some(airbase),
+            ..crate::build::BuildType::default()
+        });
+        let b = sim.add_building(0, crate::Pos::default(), 8);
+        sim.buildings[b].ty = Some(rec);
+        let f = sim.unit_facts(unit).expect("a unit record");
+        for (difficulty, cap) in [(0, 2), (2, 4), (3, 16)] {
+            sim.lobby.difficulty = difficulty;
+            let (mut remaining, mut escrow, mut num) = (5, 0, 0);
+            sim.air_value(
+                0,
+                unit,
+                &f,
+                100,
+                1,
+                100,
+                &mut remaining,
+                &mut escrow,
+                &mut num,
+                100,
+            );
+            assert_eq!(remaining, cap, "difficulty {difficulty}");
+        }
+    }
+
+    /// **`get_nukes` counts the Nuclear Missile line, not the type offered**
+    /// (`LeaderData::get_nukes@006ebe50`, item 1583, `docs/AI.md` §158): a
+    /// queued ICBM is not a nuke here, and a leader without the tech has
+    /// none. Made to fail with the line counted from the ICBM.
+    #[test]
+    fn the_nuke_count_is_the_nuclear_missile_line() {
+        let mut sim = bare();
+        let mut tree = tech::TechTree::new();
+        let nuke = tree.add(tech::TypeDef::unit(
+            "Nuclear Missile",
+            tech::UnitTraits::default(),
+        ));
+        let icbm = tree.add(tech::TypeDef::unit("ICBM", tech::UnitTraits::default()));
+        tree.roles.nuclearmissile = Some(nuke);
+        tree.roles.icbm = Some(icbm);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        let rec = |sim: &mut Sim, t: TypeId| {
+            sim.add_unit_type(crate::UnitType {
+                tree: Some(t),
+                ..crate::UnitType::default()
+            })
+        };
+        let (n, i) = (rec(&mut sim, nuke), rec(&mut sim, icbm));
+        sim.muster[0].by_type[n] = 1;
+        sim.muster[0].queued_by_type[n] = 2;
+        sim.muster[0].by_type[i] = 5;
+        sim.muster[0].queued_by_type[i] = 7;
+        assert_eq!(sim.get_nukes(0), 0, "without the tech");
+        sim.tech[0].tech[nuke] = true;
+        assert_eq!(sim.get_nukes(0), 3, "held and queued Nuclear Missiles");
+        // The census the nuke arm reads: mine against the most of the others.
+        sim.players = vec![Default::default(); 2];
+        sim.defeated = vec![false; 2];
+        sim.tech.push(sim.tech[0].clone());
+        sim.muster.push(sim.muster[0].clone());
+        sim.muster[1].by_type[n] = 4;
+        sim.muster[1].queued_by_type[n] = 0;
+        sim.tech[1].tech[nuke] = true;
+        let (mine, most, vulnerable) = sim.nuke_standing(0);
+        assert_eq!((mine, most, vulnerable), (3, 4, true));
     }
 
     #[test]
