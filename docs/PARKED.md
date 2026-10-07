@@ -3817,6 +3817,24 @@ run715's standing rows past 2863 — pools' `held` on 2910/2917, Napata's
 flags on 2940, `mirror` bits, `caras`, a group's `id` on 3069 — none a
 position.
 
+(1628) **The sweep's second batch, what it parted** (1619, 2026-10-07):
+(a) `get_empty_trade_routes` parts twice — the original matches `(city,
+owner)` as a pair of shorts where the port keeps the city, and tests
+`flags & 2` where the port needs bit 0 too; neither reachable; (b)
+`compute_largest_gather` is a weak row — the port is hardwired to the
+shipped `LANDS`, where every answer is 1; (c) `get_land`'s modes 0 and < 0
+have no port counterpart; (d) the panics-where-the-original-wraps class
+(1617 (c)) grows: `find_angle` past 2¹⁷, `has_blocked_neighbors` and
+`space_at_corner` past 2²⁹–2³⁰; (e) `Farms::snip` takes a cell index with
+no bounds where the original's signed test writes backwards. No frame
+reaches any of them today.
+
+(1632) **The nuke's other arms** (1620, 2026-10-07): (a) `Nuke::do_damage`'s
+two `Leader::action_declare` arms — a struck player at peace declares war on
+the shooter — are not built; this lobby is at war from frame 0; (b) the
+nuke's kills lay no corpse in the original (the blow's `dtype`), ours lays
+14 — standing beside the human's dead (1092/1328) under 1631.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3981,7 +3999,8 @@ reads every file under `crates/sim`, so the sweep's test rows (the
 original's own values, as inputs and outputs) bank twelve constants nobody
 built. 1619's fix — skip `sweep/`, or `#[cfg(test)]` as `no_float.rs` does —
 was refused by the classifier as audit tampering. **Ramon's word,
-2026-10-07: skip `sweep/` to unblock 1619, flagged for the pass** —
+2026-10-07: skip `sweep/` to unblock 1619, flagged for the pass**; he
+approved it in 1619's session and it landed there (`8b4bb9af`) —
 FABLE: ratify the exclusion, or replace it with the `#[cfg(test)]` skip
 `no_float.rs` uses, which would cover every test's literals, not one
 directory's. One reach.
@@ -3992,6 +4011,21 @@ directory's. One reach.
 frames before the word; `standing.py` could flag a row parting at birth on
 a unit whose type answers `is_hero`, since its radius reaches every unit
 near it. A sibling of 1610; one reach.
+
+(1629) **A fanned batch's subagent worktrees, and the shared target dir**
+(1619's Loop line, 2026-10-07): all ten of 1619's isolated subagent
+worktrees started on `dfa4b699`, older than the scaffold commit, so each
+reset to the lane's branch before it could see `sweep/`; and the shared
+`CARGO_TARGET_DIR` served two a stale test binary ("0 tests"), cured by
+`touch`. A brief for a fanned batch says both. One reach.
+
+(1633) **1620's Loop lines** (2026-10-07): (a) the cause was named by a
+SEAM in `nuke.rs` that says "fog", not the field — `tools/seams.py --field
+ever_seen` missed it; a brief row "grep SEAMs for the subsystem the event
+goes through (fog, treaties), not the field"; (b) a comparison that reduces
+a word to one bit (`has_met` for `treaties`) is blind to the others for as
+long as it stays — `coverage.rs`'s unread list could tag "compared as a
+reduction". A sibling of 1607 and 1616; one reach each.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

@@ -2173,6 +2173,16 @@ impl Sim {
         {
             return None;
         }
+        // **A hit on another player's object marks both leaders' treaties**
+        // (`Object::do_damage@0064a480:327`–`:332`, after the scaling and
+        // before `take_damage`): `treaties[victim] |= 2` on the attacker's
+        // leader and `treaties[attacker] |= 2` on the victim's — bit 1, the
+        // "has struck" bit beside `meet`'s bit 0. Unconditional on what the
+        // hit does, so a nuke's ring marks the struck leader's row.
+        let (hit_by, hit_who) = (self.owner_of(attacker), self.owner_of(target));
+        if hit_by != hit_who {
+            self.treaty_on(hit_by, hit_who, 2);
+        }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let at = self.attacker_side(attacker);

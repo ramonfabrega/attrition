@@ -153,7 +153,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             1
         };
         out.push((format!("diplos[{i}]"), d));
-        let met = i64::from(built.sim.has_met(who as sim::Player, i));
+        // **The word, not its met bit** (item 1620): `Object::do_damage`
+        // ors bit 1 into both leaders' slots on a hit across players
+        // (`Sim::do_damage`), so the dump's 3 is read as it stands. A
+        // defeated leader keeps the bits it had; only the leader's own
+        // slot, which the original prints 1, is the met bit's reading.
+        let met = if i == who {
+            1
+        } else {
+            i64::from(built.sim.treaties[who][i])
+        };
         out.push((format!("treaties[{i}]"), met));
         // `agendas[i]` (`+0xb4`, item 1209): the one bit written here is
         // `Unit::resolve_block`'s `2`, a building of `i`'s across one of
@@ -2732,11 +2741,9 @@ mod tests {
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
         (0, "scouts"),
-        (0, "treaties[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
-        (1, "treaties[0]"),
     ];
 
     /// **run117's window — the leader record across two market

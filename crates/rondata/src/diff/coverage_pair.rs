@@ -1049,7 +1049,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 134, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 109, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1178,7 +1178,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 124, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 108, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1239,7 +1239,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // item 1598).
     pin_eq!(
         first,
-        Some(1966),
+        Some(1971),
         "the first parting past the standing block"
     );
 }
@@ -1298,7 +1298,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 154, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1396,13 +1396,14 @@ fn run715_s_word_frame_is_widened_whole() {
     // is ashore on 2996: **no position parts in the window**. What stands
     // past 2863 is births' `form`, two pools' `held`, Napata's flags,
     // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
-    // on 3069. The word 3142 lies past the window (run716's). **151** on
-    // item 1625's tree: Napata's `damage` and `city_flags` `[0x2]`, `[0x4]`
-    // on 2940 agree — the Jet Fighter `1/115`'s AA rockets of 2933 and
-    // 2938 are missiles, and land on 2945 and 2950 along their spline
-    // where the straight line put them on 2939 and 2942 (`docs/AI.md`
-    // §174).
-    pin_eq!(w.firsts.len(), 151, "initial run715 baseline");
+    // on 3069. The word 3142 lies past the window (run716's). Item 1620:
+    // 154 → 150 on its merged tree, `treaties` compared as the word
+    // (`docs/AI.md` §173). Item 1625: Napata's `damage` and `city_flags`
+    // `[0x2]`, `[0x4]` on 2940 agree — the Jet Fighter `1/115`'s AA rockets
+    // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
+    // spline where the straight line put them on 2939 and 2942
+    // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
+    pin_eq!(w.firsts.len(), 147, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1466,23 +1467,24 @@ fn run716_s_word_frame_is_widened_whole() {
     // 1, three orders against two) and stands at (3342, 12584) on 3142
     // against ours' (3320, 12634): the attack roll ours spends at index
     // 3. The item after's hypothesis, not a cause.
-    // **194** on item 1625's tree, 128 standing on 3137 — **the word
+    // Item 1620: 2160 → 2156 (`docs/AI.md` §173). **Item 1625, the word
     // 3142's value diff** (`docs/AI.md` §174): Napata's `damage` 1524 13/16
     // on block 3137 and 1560 on 3138 on both sides now, `1/49`'s first
     // cruise missile landing on 3136 and its second on 3137 (13 frames
-    // along the spline, run717); so on 3141 the city is capture-eligible,
-    // `do_move`'s building arm asks `valid_target` — the SEAM no longer
-    // decides it — and `1/59` keeps its move: on block 3142 it stands at
-    // (3342, 12584) under `MOVE` to (3528, 12168) over `ATTACK` (`new_ord`
-    // 1) over `ATTACK_TO`, three orders, and on 3143 `ox` −1, `recharging`
-    // 0, in both. Napata's `reduce_stamp` and the bombers' and jets'
-    // strafes (`kind` 16 against 17 on 3139–3140) agree too. The first
-    // parting past the standing block is Napata's `damage_frac` at its
-    // ceiling on 3138 (ours 0, the original's 10); what stands past it is
-    // births' `form`, group `id`s and, from 3383, a city's queue cost, a
-    // `MAKE` value and `1/203`'s position on 3387. The word 3395 lies past
-    // the window (run721's).
-    pin_eq!(w.firsts.len(), 194, "initial run716 baseline");
+    // along the spline, run717); so on 3141 the city is at its ceiling,
+    // `do_move`'s building arm finds it out of range here (`active`) as
+    // the original's `valid_target` refuses it there, and `1/59` keeps its
+    // move: on block 3142 it stands at (3342, 12584) under `MOVE` to
+    // (3528, 12168) over `ATTACK` (`new_ord` 1) over `ATTACK_TO`, three
+    // orders, and on 3143 `ox` −1, `recharging` 0, in both. Napata's
+    // `reduce_stamp` and the bombers' and jets' strafes (`kind` 16 against
+    // 17 on 3139–3140) agree too. The first parting past the standing
+    // block is Napata's `damage_frac` at its ceiling on 3138 (ours 0, the
+    // original's 10); what stands past it is births' `form`, group `id`s
+    // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
+    // position on 3387. The word 3395 lies past the window (run721's).
+    // **190** on item 1625's tree merged with 1620's (194 before it).
+    pin_eq!(w.firsts.len(), 190, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1527,7 +1529,7 @@ fn run721_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **2330** on item 1625's tree; 151 stand from the window's first
+    // **2326** on item 1625's tree; 151 stand from the window's first
     // block — the human leader's and its units' rows, the pools, Napata,
     // `1/84` and `1/203` (whose position parts on 3387, run716). The first
     // parting past it is `1/203`'s figure angle on 3390, then births'
@@ -1536,7 +1538,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against 0 — beside
     // ours' `PathFinder::calc_road_cost` draws on 3395. The item after's
     // hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 2330, "initial run721 baseline");
+    // 2330 before item 1620's landing; **2326** on the merged tree.
+    pin_eq!(w.firsts.len(), 2326, "initial run721 baseline");
     let first = w
         .firsts
         .values()

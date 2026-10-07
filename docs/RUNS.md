@@ -15914,7 +15914,7 @@ SHA-256 `6611a5b01b1faf861ef7be26a3cca6d145ccc51ebd2014bd05d22d55b5e9a1ed`.
 Archive `rontrace-run721.log`, 184,091,776 bytes,
 SHA-256 `ee0b37a38c936e949a9a0f4fa535b78b8c4d96d5ed9ec591e3a6cd16ad3ed2fc`.
 
-**What it holds**: `diff::coverage_pair::run721_s_word_frame_is_widened_whole` — **2,330** keys on item 1625's tree,
+**What it holds**: `diff::coverage_pair::run721_s_word_frame_is_widened_whole` — **2,326** keys on item 1625's tree merged with 1620's,
 151 standing on 3389; the first parting past it is `1/203`'s figure angle on 3390. On block 3395, before the word's
 3396, four of the computer's buildings (`1/2028`, `1/2035`, `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against
 0, beside ours' `calc_road_cost` draws. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`),
