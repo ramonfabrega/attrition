@@ -17810,3 +17810,8 @@ unpacked crew has no track and stands on guy 0 either way — held by the unit t
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 173. Reserved for item 1620 (Great Sahara's coverage word 2273)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
