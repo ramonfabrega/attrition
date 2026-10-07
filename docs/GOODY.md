@@ -320,9 +320,16 @@ Three things there are worth naming.
   models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
   without the shortcut — over the same four half-cells, which is the same
   accumulation under a different name and at cell rather than item
-  resolution. Unmodelled with it: the Spanish `has_tribe_bonus(9)` arm and
+  resolution. Unmodelled with it: the Spanish `has_tribe_bonus(9)` arm ~~and
   the fall-through to `WorldData::is_seen`, the *current* grid rather than
-  the accumulated one.
+  the accumulated one~~ — the fall-through is **carried since item 1558**
+  (`docs/AI.md` §153): `WorldData::is_seen` at the item's half-cell, whose
+  territory arm (`leader_flags & 0x2000`, Computerization) answers yes for
+  a box on the finder's or an ally's ground. run682's packet holds the box
+  the coverage pair's scout turns for — `ever_seen` 0, `seen2` clear on all
+  four half-cells, the cell `who` 1 — so that arm is the only one that
+  passes there. A box sits at its cell's centre on that packet, and the
+  half-cell read is `(2x + 1, 2y + 1)` for every box on that assumption.
 
 ### 7.3 The order — `Unit::get_goody_box@005f7690`
 
@@ -380,4 +387,5 @@ target, over four legs, and it agrees too.
 | `think_scout`'s head call | reading — every capture reaches it and none accepts there; by the time a scout is idle beside a box the box is taken |
 | The region compare, read raw | reading |
 | `find_goody_at`'s chain walk and `ever_seen` itself | read, **not modelled** — §7.2's seam |
+| `is_seen`'s fall-through to `WorldData::is_seen`, its territory arm | diff — the coverage pair's scout re-aims on 1200 (run678 block 1201) only with it; run682's packet (`docs/AI.md` §153) |
 | `reveal_fog`'s third call site | read, **not modelled** — nothing sets `unit_masks & 0x100` |

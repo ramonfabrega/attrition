@@ -8714,11 +8714,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `1/2006`'s capital bit. Item 1552 moved it to **1277**, past
     // run678's last block (1233), and took run679 over 1272..1528 (block
     // 1278); run678's test keeps the move's value diff on `1/26` from 1183.
+    // Item 1558 moved it to **1408**, inside run679 (block 1409); run678's
+    // and run679's tests keep the move's value diff on the scout `1/0`
+    // from 1201.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run679_s_word_frame_is_widened_whole"),
-        1552,
+        1558,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1277),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

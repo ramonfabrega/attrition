@@ -15455,3 +15455,36 @@ SHA-256 `3624bfb86741607474ef86511c5a90187d5ad997f20629ede489aa5d9c0e9eda`.
 **What it holds**: `diff::sahara_coverage::run680_s_word_frame_is_widened_whole` — **582** keys parted on the tree at the base (83 standing on
 block 713), **111** after item 1549's build (the oil well's stand on `CHAR_FARM`). The word 720's block is 721; the first state past the
 standing block is pool 66 on 742. `docs/AI.md` §150.
+
+## run682 — the coverage pair: East Indies, Persians, All Technologies, a packet at logger frame 1200 (2026-10-06, item 1558)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-06-item-1558-opus/run682-booking.json`, written before the run. No capture of
+this lobby prints the `WORLD` record (`seen2`) past run651's start blocks, and no logger prints a goody item's `ever_seen`, the `seen` plane
+or which gate of `find_goody_box` passes; run678 prints only the order the sweep left on block 1201. Through `viadriver.sh
+tools/explore/golden_capture.sh`: `--map 18 --end-frame 1205 --timeout 3600 --log-window 1199 1203 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --tracer-def RON_STATE_FRAME=1200` with item 597's plan, `cover=0`, the click-free lane, free at launch (20:26). One take:
+receipt `success: true`, five files restored, exit 0, launch-to-exit 34.5 s, total 43.4 s, 1,206 frames, map 18 and seed 12345 verified.
+`rngcmp.py rontrace-run652.log` against its trace: **1,206 frames in common, 0 differing**. Killers: block 1201 prints `1/0` bound for
+(29592, 26520), as run678.
+
+On the packet (`fogprobe682.py`, `terrprobe682.py`, scratch, the evidence directory; the state after trace tick 1199):
+
+| read | answer |
+| --- | --- |
+| cell (38, 34) | flags `0x8200`, chain `down -3`, `down_who 0`, `who` **1** |
+| item 0 | flags `0x1`, **`ever_seen 0x00`**, at (29568, 26496), half-cell (77, 69) — the cell's centre |
+| half-cells (76..77, 68..69) | `seen` and `seen2` **0** |
+| `seen2`, all 14,400 half-cells, against this crate's after tick 1199 (item 1552's tree) | **0 differ** |
+| `WData.who`, all 3,600 cells, against this crate's (the same) | **0 differ** |
+
+Packet `~/ron-data/lab-captures/2026-10-06-run682/map-18/frame-snapshot.bin`, 923,558,240 bytes,
+SHA-256 `d26b5412d6f21e8ee70e635851f85bd5ae3b54dc708571475ffaaf0b32746a68`.
+
+Archive `gamelog-run682-eastindies-persian-alltech-packet-1200.txt`, 7,704,536 bytes,
+SHA-256 `93024f041d5eaf6e3624943afc782b5444223f5baac8b06c77672d20266f2891`.
+
+Archive `rontrace-run682.log`, 27,119,488 bytes,
+SHA-256 `c11166a3027697ac338dc6a3826f50aabc8064a995d0c1f902c6154307b629d6`.
+
+**What it holds**: the packet's answers above; no widening test (the window is run678's). `docs/AI.md` §153. Run 682 only.
