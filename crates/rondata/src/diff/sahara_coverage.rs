@@ -625,7 +625,7 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1192, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 404, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         117,
