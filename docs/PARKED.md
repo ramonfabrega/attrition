@@ -3749,6 +3749,13 @@ against 1745 on 1746. Behind the word at 1960; a candidate when one names them.
 `max_range` gate read as met by every shooter with a round in flight
 (reading-only). Behind the word at 2166.
 
+(1603) **A unit leaving a building, and the rival landing end** (1598,
+2026-10-07): `come_out_place` still paints the spot fresh where the
+original paints the retained point and then moves it — 1598's build is the
+transport's arm only; unmeasured. And the rival end (the whole boarding
+disc cleared) differs from the built one only for a landing within
+`2·coll_size + 1` cells of the boarding point; no capture has one.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3845,6 +3852,13 @@ mapped 65534 to −2 silently (1583); (g) a `WORLD` category in the coverage
 lobby's capture for the danger map, and a guard listing each consumer of a
 derived `build_flags` bit beside whether it reads `basic_type()` (1584).
 One reach each.
+
+(1604) **A byte watch as a tracer define** (1598's Loop line,
+2026-10-07): what found 1598's writer was a packet compared cell for cell
+against ours over a rectangle, then a per-frame watch of one byte (43 s a
+run) — a scratch `#ifdef` per item (1438's run592, now 1598's run713). A
+`RON_WATCH_BYTE=<va expr>@<lo>-<hi>` define in the tracer is the third
+reach of the shape; it graduates into `tools/`.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

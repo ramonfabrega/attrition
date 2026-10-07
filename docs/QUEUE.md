@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-07, the twenty-seventh tranche (`commander`, Opus 5.5, from
-`dfa4b699`), eleven landings in: the coverage pair **1408 → 2166** (1563,
-1586, 1588, 1589, 1591, 1594); Great Sahara in the coverage lobby **1582 →
+`dfa4b699`), twelve landings in: the coverage pair **1408 → 2288** (1563,
+1586, 1588, 1589, 1591, 1594, 1598); Great Sahara in the coverage lobby **1582 →
 2185** by the race's winner (1565, 1581, 1583, 1584, 1585).*
 
 - **The race is scored** (`docs/audit/2026-10-07-race-1565.md`): Sonnet
@@ -22,41 +22,42 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   71.08 in 5 h 04. The Sonnet chain merged; `origin/worktree-att-1565-opus`
   stays as the record; the roster decision is Ramon's. One disagreement,
   1578, is 1600's first row.
-- **Three lanes**: `att-1598` (Opus 5.5) on the coverage pair's word, runs
-  712–714, AI §166; `att-1600` (Sonnet 5.5, the third map's lane) on Great
+- **Three lanes**: `att-1602` (Opus 5.5) on the coverage pair's word, runs
+  715–717, AI §168; `att-1600` (Sonnet 5.5, the third map's lane) on Great
   Sahara's word, AI §167; `att-1567` (Opus 5.5) on 1575, the sweep.
-- **Next number 1602, run 715, section §168**; 1497 waits. Lane gate
-  filters: 1598 `coverage_pair:: floors::`, 1600 `sahara_coverage:: floors::`.
-- **Fable backlog: 28 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601).
+- **Next number 1605, run 718, section §169**; 1497 waits. Lane gate
+  filters: 1602 `coverage_pair:: floors:: coverage::`, 1600 `sahara_coverage:: floors::`.
+- **Fable backlog: 29 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601, 1604).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w2166 of 4,730
+Coverage pair: EastIndiesPersianAllTech w2288 of 4,730
 Census: simulation backed 45 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2185 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-seventh tranche, live — `commander` (Opus 5.5):
-merge 1598's, 1600's and 1575's landings as they come; stop at twenty
+merge 1602's, 1600's and 1575's landings as they come; stop at twenty
 landings and spawn `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The sweep lane (1575)
-beside two word lanes**: the newest pair's (1598) and the third
+beside two word lanes**: the newest pair's (1602) and the third
 map's (1600); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1598. **The coverage pair's word: frame 2166, 602 versus 604 draws**,
-    index 6: ours `set_anim < Guy::do_turn < Guy::turn_towards+0x69`,
-    theirs `set_anim < Unit::set_anim+0x56 < Unit::move_step+0x823`. Inside
-    run711 (block 2167), widened by `run711_s_word_frame_is_widened_whole`
-    (482 keys): `1/68` (`MECHINFANTRY`) parts first on 2164, `pos` (40407,
-    40440) against (40423, 40416) — 1594's hypothesis. No mechanism.
+1602. **The coverage pair's word: frame 2288, 38 versus 39 draws**,
+    index 34: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823`.
+    Inside run714 (block 2289), widened by `run714_s_word_frame_is_widened_whole`
+    (2,949 keys): `1/83` parts first on 2289, `collide` 0 against 1,
+    `collide_o` 91; its move order parts on run711's 2183 — 1598's
+    hypothesis. No mechanism.
 
 1600. **Great Sahara in the coverage lobby: frame 2185, 30 versus 32
     draws**, index 12: ours `Leader::make_stuff+0x63d`, theirs
