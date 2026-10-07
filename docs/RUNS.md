@@ -15685,4 +15685,63 @@ on block 1954; the first parting past it is `1/40`'s on 1956. It is the coverage
 (`coverage_pair_word_window`), walked by the compared pin with run710's (`coverage_frame_1532_window` since), and the
 coverage driver reads its block 1961. `docs/AI.md` §164. **Item 1594**: 482 keys (150 standing on 1954), the gap's
 births on the original's numbers; it holds the word 2166 too, block 2167, which the widening and the coverage driver now
-read. `docs/AI.md` §165.
+read. `docs/AI.md` §165. **Item 1598**: 286 keys, the word 2166's chain (`1/40`, `1/52`,
+`1/68`, `1/73`) agreeing over the whole window; `coverage_frame_1960_window` since run714 took the word.
+
+## run712 — the coverage pair: East Indies, Persians, All Technologies, a packet at logger frame 1702 (2026-10-07, item 1598)
+
+**Disk gap** and killers: `~/ron-data/lab-experiments/2026-10-07-item-1598-opus/run712-booking.json`, written before the run.
+No logger prints `CollBlock` bits; run710 prints `1/40`'s landing on block 1703 and nothing under its sweep. Through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 1707 --timeout 3600 --log-window 1701 1705 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=1702` with item 597's plan, `cover=0`, the pool
+(lane 1, `~/wine-ron`). One take: receipt `success: true`, five files restored, exit 0, launched 08:32:56, launch-to-exit
+33.5 s, 1,708 frames, map 18 and seed 12345 verified. `rngcmp.py rontrace-run652.log` against its trace: **1,708 frames in
+common, 0 differing**. Killers: block 1703 prints `1/40` at (42648, 37128), as run710.
+
+On the packet (`collprobe712.py`, scratch, the evidence directory; the state after trace tick 1701): world cells (55, 47)
+and (55, 48) have `region` 11; over unit cells x 882..897, y 764..779 every `CollBlock` bit equals this crate's after tick
+1701 except **(890, 771): clear** (set here). `docs/COLLISION.md` §25.
+
+Packet `~/ron-data/lab-captures/2026-10-07-run712/map-18/frame-snapshot.bin`, 932,127,072 bytes,
+SHA-256 `9a78ed359641535f953fa0632f49cb3aa46a306fb35d13698fa5cfb2627b8e6c`.
+
+## run713 — the coverage pair: East Indies, Persians, All Technologies, a per-frame watch of one occupancy byte (2026-10-07, item 1598)
+
+**Disk gap** and killers: `run713-booking.json` in the same directory, written before the run. run712's packet holds one
+frame of the bit. run712's recipe with `--end-frame 1705 --log-window 1701 1703` and, in place of the packet, a scratch
+tracer define `RON_ITEM1598_BIT` (item 1438's run592 shape, not kept in the tree): at every `Game::do_frame` entry from
+1025 to 1703, an INFO record (code 1598) with world cell (55, 48)'s `CollBlock` pointer, the byte holding unit cells
+(890, 768..775), and the cell's `region`. `cover=0`, the pool (lane 1). One take: receipt `success: true`, exit 0, 1,706
+frames, map 18 and seed 12345 verified; `rngcmp.py` against run652: **1,706 frames in common, 0 differing**.
+
+What it holds: the byte is `0x0` to 1033, **`0xf` from 1034** (Freighter `1/27`'s birth), **`0x7` from 1114** — (890, 771)
+cleared during tick 1113, when passenger `1/12` comes ashore — and `0xff` on 1703 (`1/40`'s landing). On 1702 bit 3 is
+clear, as run712's packet. `docs/COLLISION.md` §25.
+
+Archive: `~/ron-data/lab-captures/2026-10-07-run713/map-18/rontrace.log`, 36,241,056 bytes,
+SHA-256 `33c87e796c95c551cc96163c346be6582a8df8b30ddd99628aa98c1ae963ce72`.
+
+## run714 — the coverage pair: East Indies, Persians, All Technologies, blocks 2283..2539 at the long's detail (2026-10-07, item 1598)
+
+**Disk gap**: run711 ends at block 2210 and run652 holds the draw stream; nothing dumped this lobby's records at the word's
+frame, 2288 (ours 38 game draws against 39, index 34: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823`), whose block is 2289. Booking `run714-booking.json`.
+run711's recipe with the window moved: `--map 18 --end-frame 2548 --timeout 3600 --log-window 2283 2540 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take: receipt `success:
+true`, `settings_restored: true`, exit 0, launched 08:38:59, launch-to-exit 1,212 s, 2,549 frames, seed 12345 and map 18
+verified. Blocks `2283`..`2539` whole and a `2549` closing block (258 `BEGIN FRAME`s). `rngcmp.py rontrace-run652.log
+rontrace-run714.log`: **2,549 frames in common, 0 differing**. `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7` read
+back.
+
+Archive `gamelog-run714-eastindies-persian-alltech-window-2283-2539.txt`, 550,323,985 bytes,
+SHA-256 `e5005406f944f218fcde3f9228908e4fcb3b05c0792f13aaae7f7d4436a6fba1`.
+
+Archive `rontrace-run714.log`, 76,418,784 bytes,
+SHA-256 `94c6d2af009325a9c83b589e988e7bad1554cf5e517d37da74a22eef9a47e5f1`.
+
+**What it holds**: `diff::coverage_pair::run714_s_word_frame_is_widened_whole` — 3,015 keys on item 1598's tree, 238
+standing on block 2283; the first parting past it is on the word's block 2289, `1/83`'s `collide` 0 against 1 (`collide_o`
+91). It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run711's,
+and the coverage driver reads its block 2289. `docs/AI.md` §166.

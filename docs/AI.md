@@ -17384,7 +17384,52 @@ gate on the hold is read as met by every shooter with a round in flight.
 **Coverage.** Diff-backed: claims 1–3, the end state of 4, and 5 on the ICBM's number. Listing-backed: 4's predicates and
 5's arithmetic past that one number.
 
-## 166. Reserved for item 1598 (the coverage pair's word 2166)
+## 166. A passenger put ashore clears where it boarded, and the word at 2288 (2026-10-07, item 1598)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1594 left the coverage pair's word at **frame 2166, ours 602 game
+draws against 604, index 6**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`, theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823`, inside run711 (block 2167), its hypothesis `1/68`'s
+position on 2164. Each claim is *diff-backed* unless marked.
+
+1. **The extra draw is `1/68`'s blocked stand** (run711's trace, `report.py draws 2166`; ours `RON_DEBUG_SITES`). The
+   original's index 6 falls between `1/64`'s turns and `1/74`'s, and block 2167 has `1/68` (`TypeIndex` 104,
+   `MECHINFANTRY`) at `collide_frame 2166`, `collide 1`, `collide_o 73` (the citizen `1/73`). The second extra draw, the
+   frame's last `Guy::set_anim+0x104b`, is an animal's roll on the shifted stream.
+2. **`1/68` took a half step on 2164.** Its guy `angle` and unit `angle` agree with ours' facing and heading on 2164; the
+   original moves (−17, +24), which is this crate's trig at step **29**, half of ours' 58 (a `get_speed` halving would give
+   28). Owing 5.9° after the turn, `Unit::move_step@005faf30` halves only on `unit_masks & 0x100000`, which
+   `do_move@005f7b30:507`'s probe of a freshly taken waypoint sets on a soft hit (`docs/COLLISION.md` §4.3, §5.1). The
+   waypoint is (40152, 40920); the TOW `1/52` stands 113 from it in the original and 145 here.
+3. **`1/52` has trailed by a step since 2045**: the original's dump carries `0x100000` on 2045 (it turned in place, keeping
+   the bit) and it steps 18 against ours' 37 on 2046, about 19 units behind for the rest of run711. Its own waypoint probe
+   (38280, 43464) was soft on the ARMOREDCAVALRY `1/40` (`TypeIndex` 220), 150 away in the original and 239 here
+   (`RON_SWEEP` reads ours' probe clear).
+4. **`1/40` parted on 1703** (run710's widening): Freighter `1/52` (`TypeIndex` 322) reaches its landing point and puts it
+   ashore at (42648, **37128**) in the original and (42648, **37176**) here. `come_out`'s host ring (`docs/TRANSPORT.md`
+   §6.4) from the freighter's (42744, 37036) reaches the original's spot as its fourth candidate; this crate refused it on
+   occupancy cell (890, 771) alone (the first three are refused in both).
+5. **The occupancy bit** (run712's packet at logger frame 1702; run713's per-frame watch). The original's `CollBlock` bits
+   over unit cells x 882..897, y 764..779 equal this crate's except (890, 771). It is set on 1034 in both, by Freighter
+   `1/27`'s birth on its caster's land cell, and **cleared in the original during tick 1113**, when Boat `1/25` puts its
+   passenger `1/12` ashore far away: `1/12` had boarded from unit cell (891, 772) on 1008.
+6. **`Unit::come_out@00617c10`'s two steps** (the export, `:514` and `:518`): `Object::remove_from_inside@006480f0` ends in
+   `add_to_world`, which paints the disc at guy 0's retained point — where it boarded — and `set_new_location(·, ·, 1, 1)`
+   then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
+   farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
+
+**Built.** `Sim::coll_come_out` (`crates/sim/src/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
+
+**What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x823`. Past run711's last block (2210): run714 widens it over 2283..2539 (block 2289), 3,015 keys, 238
+standing on 2283. On 2289 `1/83` has `collide` 0 against 1, `collide_o` −1 against 91, `order:coll` (39240, 38952)
+against (42131, 38062) — the original's `1/83` stood blocked by `1/91`. `1/83`'s `pos` stands parted on 2283 ((38358,
+38097) against (42035, 38170)) and its move order first parts on run711's 2183 (`orders_x/y` (28488, 31272) against
+(44760, 24648)). The item after's hypothesis, not a cause. run710's widening 224 → 210 keys, run711's 482 → 286; no other
+floor, word or chapter moved.
+
+**Not established.** A unit leaving a **building** takes the same `come_out` lines; `come_out_place` still paints the
+spot fresh, and no capture has been read for it. The rival end — clearing the whole boarding disc rather than the cells
+farther than `coll_size` from the spot — differs only for a landing within `2·coll_size + 1` cells of the boarding point,
+which no capture here has.
