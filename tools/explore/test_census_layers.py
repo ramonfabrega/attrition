@@ -60,9 +60,9 @@ Cited outside coverage: `x@005e0000`.
 
 - the walk `Unit::move_step`, and `f@00610000` on every frame.
 
-**Reading-only**: `Guy::move`, and `g@00630000`.
+**Listing-backed**: `h@00640000` — a listing closes the span as a reading does.
 
-**Listing-backed**: `h@00640000`.
+**Reading-only**: `Guy::move`, and `g@00630000`.
 
 **Dump-backed**: `Twin::a` names two functions and counts as neither.
 
