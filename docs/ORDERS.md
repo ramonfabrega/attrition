@@ -6194,7 +6194,8 @@ coins agree draw for draw.
   `QUEUE_FIRST` attack. The original's own guard range
   (`unit_guard_respond_range` of the post) is not read. Run133's wagon
   is always moving, so the arm is never reached.
-- **The packer's unpack** on the post.
+- ~~**The packer's unpack** on the post.~~ Built by item 1608: the coverage
+  pair's Advanced Machine Gun `1/74` casts on 2868 at `idle 30` (`docs/AI.md` §170).
 
 ### 24.8 Coverage
 
@@ -6274,9 +6275,10 @@ would raise. No captain fights in run133, so `attacking` is never
 non-zero here, and the `≥ near / 2` side is backed only by the unit test
 `an_unarmed_attack_mover_waits_on_its_phase_for_a_captain_at_its_heels`.
 `GroupData::member`'s flag test (`objects +0x8 & 1`) is taken as
-`alive()`. The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
+`alive()`. ~~The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
 `unit_masks & 0x80000` → `add_cast_order(0x28c)`, `5e63df`–`5e6449`) is
-read and not built. Hoplites never take it.
+read and not built. Hoplites never take it.~~ Built by item 1608
+(`docs/AI.md` §170).
 
 **Coverage.** Diff-backed by `chapter_four_s_word_frame_is_widened_whole`,
 which fails with the pause write reverted (`1416 1/10 order:move.pause`

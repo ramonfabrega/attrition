@@ -795,6 +795,18 @@ impl Sim {
     /// its `cur_time` and its `end_time` — the length it was given when
     /// the animation was set — and the next `set_anim` picks up the new
     /// piece's lengths.
+    ///
+    /// **The track is the piece's, and it is re-read** (`Guy::update_gpiece
+    /// @005d8530:52`–`:68`): a crew guy (`guy_num != 0`) takes the new
+    /// piece's `track_dx/dy`, and a piece with none writes **zero** — the
+    /// figure stands on its leader. So a crew figure whose packed piece
+    /// tracked loses its [`Follow`] when the unpacked one does not, and
+    /// gains one, seated on guy 0's point, the other way round; the
+    /// caller's `set_new_location(…, 1)` then puts it on its offset. The
+    /// coverage pair's Advanced Machine Gun `1/74` unpacks on 2893 and its
+    /// second figure stands on guy 0's point on block 2894 (`docs/AI.md`
+    /// §170). Until item 1608 the track was read once, by
+    /// [`Sim::seat_guys`].
     pub fn update_gpiece(&mut self, u: usize) {
         let (who, o, ty) = {
             let unit = &self.units[u];
@@ -802,9 +814,29 @@ impl Sim {
         };
         let packed = self.units[u].combat.packed;
         let Some(ty) = ty else { return };
+        let (at, facing) = (
+            self.units[u].movement.body.pos,
+            self.units[u].movement.facing,
+        );
         for n in 0..self.units[u].guys.len() {
             let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
             self.units[u].guys[n].gpiece = piece;
+            if n == 0 {
+                continue;
+            }
+            let track = self.art.tracks.get(&piece).copied();
+            let guy = &mut self.units[u].guys[n];
+            guy.follow = match (guy.follow, track) {
+                (Some(f), Some(track)) => Some(Follow { track, ..f }),
+                (None, Some(track)) => Some(Follow {
+                    body: crate::movement::Body::at(at),
+                    des: at,
+                    facing,
+                    des_angle: facing,
+                    track,
+                }),
+                (_, None) => None,
+            };
         }
     }
 
