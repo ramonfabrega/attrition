@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1552, 2026-10-06 — the seeker swap
+
+(1559) **What 1552 left beside the seeker swap** (AI §151): the
+loaded-member arm (a `SEAM`; no swarm with a carrier); the level gate
+and the citizen test, held by no walk; `orig_type`, compared by
+nothing (parked 728's) — the word's site type was read by hand.
+
 ## Parked by item 1549, 2026-10-06 — the oil well's stand
 
 (1556) **Great Sahara's coverage pool 66 `held` `[17]` on 742** (1549's
@@ -3763,6 +3770,15 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1560) **`seams.py` finds a field, not an object type** (1552's Loop
+line, 2026-10-06): the cause was an arm §133 had written down as
+unreached ("the Oil Platform conversion and the ocean branch: no
+capture reaches them"), and `seams.py --field orders_x` missed it
+because the paragraph names the Oil Platform, not the field. A mode
+that greps a word's own object types (here `OILPLATFORM`) through the
+"not established" paragraphs would have named it before the probe.
+One reach.
 
 (1557) **`ccc update` takes the lane's ref, not a SHA** (1549's Loop
 line, 2026-10-06): a commander's "take `ccc update` onto <sha>" is
