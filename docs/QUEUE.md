@@ -19,15 +19,14 @@ the coverage lobby **1582**; the coverage pair **1408**.*
 
 - **The suite lane landed** (1567–1571): the lane gate is `--lane --tests
   <filters>` (703 s → 74 s); the click-free lanes are a pool (1–3, no
-  caller names one); the suite 641 s → 611 s. `att-1567` (Opus 5.5) runs
-  1467 next; the commander merges it as any lane.
+  caller names one); the suite 641 s → 611 s; the census's backed column
+  is on the board. `att-1567` (Opus 5.5) runs 1575, the sweep, next.
 - **The twenty-seventh tranche**: 1563 (Opus 5.5) and 1565 as a
   **five-landing race** (the pass's record, "The race protocol"); 1497
   waits. Next run 690, next section §155.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3); 1563's
-  first row is 1450's: the shared widening takes `ever_seen` (1558's cause).
-- **A lane that lands second takes `ccc update att-<n> --keep-conflicts`**
-  on a stub and keeps both; a `--replace` spawn archives the row it stopped.
+  first row is 1450's shared widening of `ever_seen`. A lane landing second
+  takes `ccc update att-<n> --keep-conflicts`; `--replace` archives its row.
 - **Fable backlog: 25 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,6 +34,7 @@ Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w1408 of 4,730
+Census: simulation backed 45 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w1582 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -45,7 +45,7 @@ protocol"); merge `att-1567` (1467) as any lane; stop at twenty and spawn `steer
 
 ## The queue
 
-In dependency order, headline-nearest first. **The suite lane (1467)
+In dependency order, headline-nearest first. **The sweep lane (1575)
 beside two word lanes**: the newest pair's (1563) and the third
 map's race (1565); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
@@ -68,14 +68,14 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     brief, five self-chained landings each, numbers and runs reserved per
     racer, nothing merged until the end; the protocol is the pass's record.
 
-1467. **The suite lane: the census by layer, with the backed column**
-    (parked 1467, the sweep's score; DECISIONS 63 (iv)): `tools/census.py`
-    files each function under its source path's layer — simulation, AI,
-    engine, interface — and a `backed` column: a logged run's diff reaches
-    it (a document's coverage section says so) or a sweep `#[test]` names
-    its address; the scoreboard number is the simulation layer's backed
-    share, pinned, with its line read by the handoff's parser. Score: the
-    number on the board; the sweep lane is booked against it.
+1575. **The sweep: ten never-backed simulation functions, both models**
+    (DECISIONS 63 (iv), parked 1464's trial; the score `Census:` 45 of
+    3611): each function run under the emulator on chosen inputs against
+    this crate's (`callfn.py` pure, `step4.py` on a packet), a `#[test]` in
+    `crates/sim` naming the address; agreed, or the input that parts,
+    parked with its frame. The lane fans the batch to subagents and merges
+    once; the same ten swept by Opus 5.5 subagents and by Sonnet 5.5,
+    scored in functions agreed, inputs parted, USD a function; no dump taken.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
@@ -106,7 +106,7 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
   `Golden:` (`<name> closed`, or `every chapter closed` first), `Endpoint <frame>:`,
-  `Second pair:`, `Third map:`, `Fable backlog: N Loop items` and `lower map first — <map>` — read
+  `Second pair:`, `Third map:`, `Census:`, `Fable backlog: N Loop items` and `lower map first — <map>` — read
   literally and **never wrapped**, or the count guard matches this line
   instead (twice, 09-19). The length guard counts every line to the next `## `.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS
