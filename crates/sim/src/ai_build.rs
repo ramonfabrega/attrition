@@ -2014,6 +2014,29 @@ mod tests {
         );
     }
 
+    /// **A bordered city wants its temple a hundred times more**
+    /// (`create_buildings:324`–`326`, `docs/AI.md` §167). No capture holds
+    /// the arm — its mutation failed nothing on the walk — so this does.
+    /// Made to fail once with the multiplier removed.
+    #[test]
+    fn a_temple_in_a_bordered_city_is_worth_a_hundred_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        // A wanted wonder takes a hundredth first, so the ×10000 stays
+        // inside a signed thirty-two-bit product.
+        sim.ai[0].wonder_mod = 1;
+        let plain = value(&mut sim, 0, c, t.temple).expect("a temple is listed");
+        sim.ai[0].city_ai[c].bordering = 3;
+        let touched = value(&mut sim, 0, c, t.temple).expect("still listed");
+        assert!(
+            (touched.val - plain.val * 100).abs() <= 100,
+            "{} against {}",
+            touched.val,
+            plain.val
+        );
+    }
+
     #[test]
     fn the_gather_multiplier_saturates_at_one() {
         // `cmpl %esi, -0x14(%ebp); cmovll` at 0x6c2762 is a minimum against
