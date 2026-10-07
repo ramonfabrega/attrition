@@ -15864,3 +15864,31 @@ On the word's block 3143 the Advanced Battleship `1/59` (`TypeIndex` 350) attack
 original. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with
 run715's, and the coverage driver reads its block 3143. Fourteen inexact height reads in its window
 (`GROUND_INEXACT`). `docs/AI.md` §172.
+
+## run717 — the coverage pair: East Indies, Persians, All Technologies, the original's rounds over blocks 3104..3141 (2026-10-07, item 1625, `att-1625`)
+
+**Disk gap**: no capture of this lobby prints `AMMO` or a figure's clock (run715 and run716 are `GUYS=2`), so nothing on
+disk said when the Advanced Battleship `1/49`'s rounds at Napata left, how long they flew, or where its figure's clock
+stood. run715 ends at block 3119 (Napata's `damage` 1477), run716 starts at 3137 (1524 13/16); ours' first round
+lands on 3142. Booking and killers, written before the run:
+`~/ron-data/lab-experiments/2026-10-07-item-1625-opus/run717-booking.json`. run716's recipe with the window moved and
+two categories added, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 3150 --timeout
+3600 --log-window 3104 3142 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1,
+`~/wine-ron`). First take: receipt `success: true`, `settings_restored: true`, exit 0, launched 14:52:15,
+launch-to-exit 334.6 s, 3,151 frames, seed 12345 and map 18 verified; output `~/ron-data/lab-captures/2026-10-07-run717`.
+Blocks `3104`..`3141` whole and a `3151` closing block (39 `BEGIN FRAME`s). `rngcmp.py rontrace-run652.log
+rontrace-run717.log`: **3,151 frames in common, 0 differing**. `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 8` read back; killers: Napata's `damage` 1477 on 3104 and 1524 13/16 on 3137, as run715 and run716.
+No wait for the lane.
+
+Archive `gamelog-run717-eastindies-persian-alltech-ammo-3104-3141.txt`, 117,945,395 bytes,
+SHA-256 `1954e6b94791fd717fa8bf665648900ec2b5c3ed4214e94d96bd8396df0dd4ad`.
+
+Archive `rontrace-run717.log`, 136,122,112 bytes,
+SHA-256 `14f02563a570f7a5a6e439a5e57b66e4038fd0c837a115cf60c5c1506547594f`.
+
+**What it holds**: `1/49`'s six rounds at `0/2000`, each `traj 2` (a spline) and `total_time 13`, leaving on 3124,
+3125, 3126, 3127 and 3128 twice — ours' release frames — from (4472, 12771) and the like, the release nodes, to
+landings near (6221, 7338); the first lands on 3136 and the second on 3137. The straight line gives 19.
+`diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count` pins it from the dump. `docs/AI.md` §174.

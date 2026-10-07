@@ -2087,8 +2087,8 @@ impl Sim {
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
             // `ATTACK_GROUND`/`AIR_ATTACK_GROUND` test is `target` being
             // `None` here — and the target a land-domain unit. The third term,
-            // "the piece is not lofted", is the ammo flag `8` this crate
-            // loads no art for; a siege shot is a ground shot and so
+            // "the piece is not a missile", is the ammo flag `8`, `rolling`
+            // above (item 1625); a siege shot is a ground shot and so
             // never reaches the question.
             rolling,
             missed: false,

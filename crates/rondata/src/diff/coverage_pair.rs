@@ -1496,3 +1496,59 @@ fn run716_s_word_frame_is_widened_whole() {
         "the first parting past the standing block"
     );
 }
+
+/// run717, item 1625: blocks 3104..3141 with `GUYS=4` and `AMMO=5` — the
+/// Advanced Battleship `1/49`'s cruise missiles at Napata.
+pub(crate) const RUN717: &str = "gamelog-run717-eastindies-persian-alltech-ammo-3104-3141.txt";
+
+/// **A missile flies its spline's point count** (item 1625, `docs/AI.md`
+/// §174): run717's six rounds from `1/49` at Napata (`0/2000`) leave on
+/// 3124, 3125, 3126, 3127 and 3128 twice — this crate's release frames —
+/// and every one prints `traj` 2 and `total_time` 13, which
+/// `sim::combat::missile_flight_time` gives each from its own launch,
+/// landing and angle at `1/49`'s speed, 300; the straight line gives 19.
+#[test]
+fn run717_s_missiles_fly_their_spline_s_count() {
+    let Some(path) = dump(RUN717) else {
+        eprintln!("skipping: no run717 (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let _pins = Pins::hold();
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let mut launched = Vec::new();
+    for f in 3104..=3141 {
+        let Some(at) = ix.frames().iter().position(|x| x.number == f) else {
+            continue;
+        };
+        let body = ix.read_frame(at).unwrap();
+        for (a, _) in crate::diff::ammo::blocks(&body) {
+            if (a.who, a.o) != (1, 49) {
+                continue;
+            }
+            pin_eq!((a.whom, a.ox), (0, 2000), "a round on Napata");
+            pin_eq!((a.traj, a.total_time), (2, 13), "a spline of thirteen");
+            if a.cur_time == 1 {
+                launched.push(f - 1);
+                let at = |x: i64, y: i64| sim::world::Pos::new(x as i32, y as i32);
+                let lead = Some((sim::movement::Angle(a.angle as i32), 1500));
+                pin_eq!(
+                    sim::combat::missile_flight_time(
+                        at(a.sx, a.sy),
+                        a.sz as i32,
+                        at(a.ex, a.ey),
+                        a.ez as i32,
+                        lead,
+                        300
+                    ),
+                    13,
+                    "this crate's count"
+                );
+            }
+        }
+    }
+    pin_eq!(
+        launched,
+        [3124, 3125, 3126, 3127, 3128, 3128],
+        "the six release frames, this crate's too"
+    );
+}

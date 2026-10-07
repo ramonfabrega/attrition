@@ -17887,7 +17887,77 @@ march's length (run715's march outlives the window either way).
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 174. Reserved for item 1625 (the coverage pair's word 3142)
+## 174. A missile flies its spline (2026-10-07, item 1625)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1614 left the coverage pair's word at **frame 3142, ours 21 game
+draws against 20, index 3**: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, inside run716 (block 3143), its hypothesis the Advanced Battleship `1/59` attacking Napata.
+Each claim is *diff-backed* unless marked.
+
+1. **The extra draw is `1/59`'s attack roll** (`TypeIndex` 350, `ADVANCEDBATTLESHIP`; `RON_DEBUG_SITES`). Its order
+   parts a block earlier: on block 3141 both carry `MOVE` to (3528, 12168) over a fresh `ATTACK` on Napata
+   (`0/2000`, `new_ord` 1) over `ATTACK_TO`; on 3142 the original's walks on to (3342, 12584) and ours stands at
+   (3320, 12634) under the attack. Ours' `do_move` killed the move on 3141 (building arm, in range).
+2. **The parting is the city's damage, not the gate.** Napata is at its ceiling in the original from block 3138
+   (`damage` 1560 of 1560, `flags` 55), at 1479 in ours. There the original's kill is refused by
+   `Object::valid_target@00648ba0` (`do_move@005f7b30:311`, the SEAM this crate carries), which refuses a
+   capture-eligible building to an attacker that cannot take it; `ObjectData::is_in_range@006486b0` asks the target's
+   `flags & 1` and a unit's `on_map`, never its health. This crate refuses it in `is_in_range_at_margin`'s `active`,
+   which asks a building for health left (a scratch print on 3141: `in_range` false, true before the build) — the
+   same answer by another road; the SEAM stands.
+3. **The damage is the Advanced Battleship `1/49`'s salvo**, which both sides fire on 3105 (`recharging` 40 on block
+   3106, no row parts in run715 or run716). Its six rounds leave on 3124, 3125, 3126, 3127 and 3128 twice on both
+   sides (run717's `AMMO`; ours' release events at 19–23 of `CHAR_ATTACK1`). One round adds 47 13/16 to Napata:
+   ours' first lands on 3142, the original's by block 3137 (1477 → 1524 13/16), its second on 3137 (to the ceiling).
+4. **The rounds are cruise missiles and fly a spline.** `Cruisemissile0`/`1` carry `missile="1"`
+   (`effects_graphics.xml`; `ammo_flags & 8`, §55.1 of `docs/COMBAT.md`), and `Ammo::init@0067bbf0`'s `local_30`
+   (`:144`–`:148`) sends such a round down `Spline::calc_from_dir@00913960`, whose point count is its `total_time`
+   (`67cdd4`–`67cddd`). run717 prints `traj 2`, `total_time 13` on all six (5,440 to 6,279 long, where the straight
+   line gives 19), and the spline's middle control point 1,500 = 5 × 300 out along the round's angle at the launch's
+   height. The count:
+   - `set_min_seg_length@009125e0`: resolution `(int)(L / speed)`, `L` the control polygon's length, `speed`
+     `(float)(unit_move_speed × proj_speed)` (`67cd6a`–`67cdcc`, `xmm1`, saved at `91396e` and reloaded at `913a8b`);
+   - `calc_spline@00912f00`: capped at `3 × 4.0 = 12`, raised to the degree 2;
+   - `generate_bspline@00911820`: one point more than the resolution.
+   So a missile longer than twelve speeds flies 13 frames. The middle point is `5 × speed` along the figure's angle
+   for a sea or air shooter (`67cb7d`–`67cb9b`); a building's or land unit's (`+0x218 == 0`, `67c437`–`67c469`) is
+   half a stack local at a fixed pitch.
+5. **A missile is not led and never rolls** (`Ammo::init:798`, `:355`–`:360`: `local_30 == 0` in both). *Export-
+   backed*: no walk holds either (below).
+6. **In flight a missile homes** (`Ammo::inc_time@0067d380`, the `+0x68` arm): it detonates at its next spline point
+   once that is within `0xc0` of a building (a unit's type `+0x300`) and 191 in height, and re-aims at a unit every
+   four frames. *Read, not built*: `1/49`'s end point lies ~330 from Napata's centre and none of its rounds detonates
+   early (run717: all six run to `total_time`).
+
+The ten missile ammo are the helicopters' `SmallRocket`, the submarines' and PT boat's `SubTorpedo`, the SAM's, the
+jets' `AARocket0`/`1`, the Avenger's `StingerMissile` and the four `Cruisemissile`s. The Jet Fighter `1/115`'s two
+rounds on Napata of 2933 and 2938 were the first: they land on 2945 and 2950 now, as the original's damage says.
+
+**Built.** `rondata::artdata::missile_ammo` and the release's fourth element (`sim::anim::Release`); `fire_ammo_aim`'s
+`missile` (`fight.rs`): `combat::missile_flight_time` for the time, no lead, no rolling. Unit tests
+`combat::tests::a_missile_flies_its_spline_s_point_count` (run717's first round: 13; the straight line 19) and
+`fight::tests::a_missile_s_round_is_not_led_and_does_not_roll`.
+
+**What it moved.** The word **3142 → 3395**, count and sequence: **ours 1310 game draws against 636, index 628**,
+ours `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271` — past run716's last block
+(3393). The value diff on the word's block, run716 (`run716_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`): Napata's
+`damage` 1524 13/16 on block 3137 and 1560 on 3138, both sides (ours 1479 before); `1/59` on block 3142 at (3342,
+12584) under three orders with the move to (3528, 12168) in front, and on 3143 `ox` −1, `recharging` 0, both sides
+(ours (3320, 12634), the attack, `ox` 2000, `recharging` 40 before). The strategic bombers' and jets' strafes on
+Napata (`kind` 16 against 17 on 3139–3140) and its `reduce_stamp` agree too. run716 2,160 → **194** keys, 128
+standing; the first past them is Napata's `damage_frac` at the ceiling on 3138 (ours 0, the original's 10). run715
+154 → **151**: Napata's `damage` and two `city_flags` bits on 2940. run721 widens the new word.
+
+**Mutations** (`tools/mutate.py` on `63846271`, scored by `cargo test --release -p rondata coverage_pair::`): M1, the
+straight line back, **held** (exit 101: `coverage_pair_first_parting`, run715's and run716's widenings); M4, no ammo
+read as a missile, **held** (the same three). M2, missiles led, and M3, missiles rolling, **failed nothing** — no
+walk reaches a missile at a moving or land unit; each fails the unit test (exit 101). The rules track's to stage.
+
+**Not established.** Whether the two roads of 2 ever disagree: a city at its ceiling that a capturing attacker, or
+a `mandatory` vehicle, may still shoot (`valid_target`'s 1) is out of range here. The homing and early detonation (6); a land shooter's and a building's control point (the
+Avenger, the SAM Installation, whose `WallCycle` releases this crate does not flag) and the figure's pitch (`GuyData
++0x4c`, zero on `1/49`) — each reaches the count only below twelve speeds; the float rounding of `L` there. The
+launch point: ours leaves from `1/49`'s square, the original from its release node (4472, 12771).
+
+**Coverage.** Diff-backed: 1–4, by `coverage_pair_first_parting`, run715's and run716's widenings and run717's `AMMO`
+records (read, not pinned). Export-backed and held by unit tests alone: 5. Read only: 6.
