@@ -537,7 +537,12 @@ mod tests {
         assert_eq!(s.find_merchant_spot(u, 1), Some(t), "nothing in the way");
         // Another unit on the candidate's corner cell.
         let ty = s.units[u].ty;
-        let mut b = crate::Unit::new(0, 20, crate::collide::ucell_centre(crate::collide::ucell(corner)), 20);
+        let mut b = crate::Unit::new(
+            0,
+            20,
+            crate::collide::ucell_centre(crate::collide::ucell(corner)),
+            20,
+        );
         b.ty = ty;
         b.type_index = 0x3d;
         s.add_unit(b);
