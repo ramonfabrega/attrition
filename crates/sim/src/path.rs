@@ -1659,9 +1659,19 @@ impl Sim {
             self.units[u].path.push(goal_e);
             return self.units[u].path.len() as i32;
         }
-        // The pull-back walk on tiles.
+        // The pull-back walk on tiles — **gated as `find_upath`'s is**
+        // (`006897d0`, listing `68994c`–`689960`): `cmp [type + 0x218], 2;
+        // jge` and `UnitData::can_transport@0046f960`, `jne`, both to the
+        // near test at `689aa6`. So only a unit that is not an aircraft and
+        // cannot transport walks its goal back toward its own tile region;
+        // a transport keeps the goal it was given. run710's Freighter `1/52`
+        // (`unit_masks & 0x800000`) stands on 1685 on a tile whose region is
+        // not its goal's, and without the gate its walk came all the way
+        // home and the plan was refused (`docs/AI.md` §163).
         let mut goal = goal_e.to;
-        loop {
+        let pulls_back =
+            self.unit_domain_of(u) != crate::attrition::Domain::Air && !self.unit_can_transport(u);
+        while pulls_back {
             if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
                 && self.valid_tcoord(u, goal)
             {
@@ -2301,6 +2311,41 @@ mod tests {
         assert!(sim.find_tpath(u) > 1, "expected a tile route");
         let vetoed: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
         assert_eq!(vetoed, plain, "the veto puts the half-tile back");
+    }
+
+    /// **`find_tpath`'s pull-back walk is `find_upath`'s gate** (item
+    /// 1589, `006897d0`, listing `68994c`–`689960`): a goal tile in another
+    /// tile region from the unit's own is walked back toward the unit only
+    /// when the unit cannot transport. run710's Freighter `1/52` kept its
+    /// goal across the regions and searched to it; this crate walked the
+    /// goal home and refused the plan (`docs/AI.md` §163).
+    #[test]
+    fn a_transport_keeps_a_tile_goal_in_another_region() {
+        let start = Pos::new(4 * 0xc0 + 0x60, 4 * 0xc0 + 0x60);
+        let goal = Pos::new(20 * 0xc0 + 0x60, 4 * 0xc0 + 0x60);
+        let bottom = |transport: bool| {
+            let mut sim = flat_sim(12);
+            let other = sim.world.add_region(Terrain::Land);
+            for x in 4..12 {
+                for y in 0..12 {
+                    sim.world.set_region(Cell::new(x, y), other);
+                }
+            }
+            assert_ne!(
+                sim.world.tregion_alt(start.tile()),
+                sim.world.tregion_alt(goal.tile()),
+                "the goal is in another region"
+            );
+            let u = walker(&mut sim, start);
+            sim.units[u].auto_transport = transport;
+            push_goal(&mut sim, u, goal);
+            assert!(sim.find_tpath(u) > 0, "expected a tile route");
+            sim.units[u].path[0].to
+        };
+        assert_eq!(bottom(true), goal, "a transport keeps its goal");
+        let walked = bottom(false);
+        assert_ne!(walked, goal, "a unit that cannot transport walks it back");
+        assert!(walked.x < goal.x, "toward its own region: {walked:?}");
     }
 
     #[test]

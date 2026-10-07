@@ -1067,6 +1067,10 @@ break test has a second clause for a **sea** unit — the matched region
 must also pass `invalid_loc(t, 0, 1, 1, 1, 0)` — which this crate does
 not make. No boat in any capture has re-planned from inside the pull-back.
 
+`find_tpath@006897d0`'s walk has the conjunction `find_upath`'s has (§18.1),
+not `find_wpath`'s: `domain < 2 && !can_transport` (`68994c`–`689960`);
+built by item 1589, `docs/AI.md` §163.
+
 ## 15. The pull-back asks `get_tregion`, and the sim was asking the other one (2026-09-01)
 
 **Amended by §16 the same day.** The fourth site is *half* a site: line
