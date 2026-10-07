@@ -12,20 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth tranche at its eighteenth landing (counted by
+*2026-10-06, the twenty-sixth tranche at its nineteenth landing (counted by
 `git log` from `b3b0ae03`): French East Indies **closed at 17,379** (1514,
 1519); Toughest **closed at 15,432** (1510–1528, its closing state 1535:
 counts `[0, 0, 0, 0, 0, 6, 0]`), and in the coverage lobby (1538, 1549, 1555) parts
-on **1250**; the coverage pair **1277** (1511, 1530, 1532, 1539, 1544, 1546, 1552).*
+on **1250**; the coverage pair **1408** (1511, 1530, 1532, 1539, 1544, 1546, 1552, 1558).*
 
-- **Two lanes**: `att-1558` (Opus 5.5, the coverage pair, run 682, AI
-  §153) and `att-1561` (Sonnet 5.5, Great Sahara's coverage word 1250, run
-  683, AI §154), `--effort high` both. Wait on them with
-  `tools/lanewait.py att-1558 att-1561`. Next run 684, next section §155.
+- **One lane, draining for the pass**: 1563 (the coverage pair) is not
+  spawned — the twentieth landing is `att-1561` (Sonnet 5.5, Great Sahara's coverage word 1250, run
+  683, AI §154), `--effort high`. Wait on it with
+  `tools/lanewait.py att-1561`. Next run 684, next section §155.
   1497 waits for a lane.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
   in `AI_WORDS`, its `Coverage pair:` line read by
-  `the_handoff_s_coverage_pair_is_the_pinned_word`; 1277 since 1552.
+  `the_handoff_s_coverage_pair_is_the_pinned_word`; 1408 since 1558.
 - **Merges back out on a section stub** when a lane's base predates the
   next booking's stub: the lane takes `ccc update --keep-conflicts` and
   keeps both (1511, once). Kill rules: neither tripped.
@@ -35,29 +35,29 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w1277 of 4,730
+Coverage pair: EastIndiesPersianAllTech w1408 of 4,730
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w1250 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-sixth tranche, after the clear at ten — `commander`:
-wait on 1558 (Opus 5.5) and 1561 (Sonnet 5.5); at twenty it spawns `steer`.**
+wait on 1561 (Sonnet 5.5), the twentieth; at twenty it spawns `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1558) and the third map's (1561); 1497 waits for a free lane,
+pair's (1563) and the third map's (1561); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1558. **The coverage pair's word: frame 1277, 10 versus 15 draws**,
-    index 2: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
-    `Unit::explore_goody+0x27c` (five). Inside run679 (block 1278),
-    widened by `run679_s_word_frame_is_widened_whole`. The scout 1/0
-    (`TypeIndex` 77) parts on run678's block 1201: the original turns
-    it to (29592, 26520), ours keeps (24312, 26616) — 1552's
-    hypothesis, the goody sweep answering on 1200. No mechanism.
+1563. **The coverage pair's word: frame 1408, 39 versus 40 draws**,
+    index 25: ours `Objects::process_all+0x2df`, theirs `Guy::set_anim
+    < Unit::do_cast+0xc89`, then `Guy::init_real`. Inside run679 (block
+    1409), widened by `run679_s_word_frame_is_widened_whole`: citizen
+    1/8 casts its transport into barge 1/46 in the original only. 1/8
+    parts first on block 1340 (`ExploreTo` (37416, 33864) against
+    (36168, 35976)) — 1558's hypothesis. No mechanism.
 
 1561. **Great Sahara in the coverage lobby: frame 1250, 10 versus 9
     draws**, index 0: ours `Guy::set_anim+0x97a <

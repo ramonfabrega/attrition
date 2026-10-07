@@ -175,27 +175,42 @@ impl Sim {
     /// `ItemData::is_seen@00677850` (vtable `+0x48`) on the box's own
     /// item, as far as a simulation with no item chain can answer it.
     ///
-    /// The original's first arm is `ever_seen & ally_mask` — a per-item
-    /// byte that `check_ever_seen` ORs the **current** line-of-sight grid
-    /// into every frame the object is processed, which makes it the same
-    /// monotone accumulation `World::seen2` already is. So this reads
-    /// `was_really_seen` — the fog with none of `was_seen`'s
-    /// ally-territory shortcut — over the cell's four half-cells, because
-    /// the item's own point inside the cell is not something this crate
-    /// carries.
+    /// ```text
+    /// if ever_seen & ally_mask:                      return 1
+    /// if who >= 0 && has_tribe_bonus(9) && <the item's cell is who's>:
+    ///                                                return was_seen(item half-cell)
+    /// return WorldData::is_seen(item half-cell, who)
+    /// ```
     ///
-    /// SEAM: the two arms below it — the Spanish `has_tribe_bonus(9)`
-    /// exemption and the fall-through to `WorldData::is_seen`, the
-    /// *current* grid rather than the accumulated one — and the whole
-    /// chain walk that finds the item in the first place
-    /// (`docs/QUEUE.md` item 48). A box on a cell nothing has ever seen
-    /// answers no here either way.
+    /// The first arm is `ever_seen & ally_mask` — a per-item byte that
+    /// `World::reveal_fog@006b3d30` ORs `1 << who` into when a half-cell
+    /// of the item's cell is first revealed, the same monotone
+    /// accumulation `World::seen2` already is. So it reads
+    /// `was_really_seen` — the fog with none of `was_seen`'s
+    /// ally-territory shortcut — over the cell's four half-cells.
+    ///
+    /// **The fall-through is the current line of sight**, and its
+    /// territory arm is what the coverage pair's word turned on (item
+    /// 1558, `docs/AI.md` §153): [`Sim::world_is_seen_fog`] at the item's
+    /// half-cell, so a leader holding the territory-reveal bonus
+    /// (Computerization, `leader_flags & 0x2000`) sees a box on its own
+    /// ground with no unit of its ever having looked. run682's packet holds
+    /// the one box this crate has read whole: item 0 at the **cell centre**
+    /// (29568, 26496), half-cell `(2x + 1, 2y + 1)`, `ever_seen` 0 and
+    /// `seen2` clear on all four half-cells, the cell `who` 1. The centre
+    /// is assumed for every box.
+    ///
+    /// SEAM: the Spanish `has_tribe_bonus(9)` arm, and the whole chain walk
+    /// that finds the item in the first place (`docs/QUEUE.md` item 48). A
+    /// box on a cell nothing has ever seen and nobody's ground answers no
+    /// here either way.
     fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
         let (x, y) = (2 * c.x, 2 * c.y);
         self.was_really_seen_fog(x + 1, y + 1, who)
             || self.was_really_seen_fog(x, y + 1, who)
             || self.was_really_seen_fog(x + 1, y, who)
             || self.was_really_seen_fog(x, y, who)
+            || self.world_is_seen_fog(x + 1, y + 1, who)
     }
 
     /// `Unit::get_goody_box@005f7690`: a one-member group, and an
@@ -369,6 +384,46 @@ mod tests {
         s.world.set_seen(6, 4, 1 << 1);
         assert!(s.find_goody_box(u), "one half-cell is enough");
         assert_eq!(aimed_at(&s, u), Some(Cell::new(3, 2)));
+    }
+
+    /// **The item's gate falls through to the current sight, and its
+    /// territory arm sees a leader's own ground** (item 1558, `docs/AI.md`
+    /// §153). Electronics answers the cell's `was_seen` for every cell, and
+    /// a box no unit has looked at is still refused by the item's own gate;
+    /// on the leader's ground with Computerization held (`leader_flags &
+    /// 0x2000`), `WorldData::is_seen` answers yes and the sweep takes it.
+    /// An enemy's ground is not lit, and nor is the leader's own without the
+    /// bonus.
+    #[test]
+    fn a_box_on_its_own_ground_is_seen_once_the_leader_holds_computerization() {
+        use crate::tech::Kind;
+        use crate::world::Owner;
+        let (mut s, u) = sweeper();
+        assert!(s.world.set_fog(vec![0; 16 * 16]));
+        let mut tree = s.tech_tree.clone();
+        let electronics = tree.types.len();
+        tree.types.push(TypeDef::new("Electronics", Kind::Final));
+        let computerization = tree.types.len();
+        tree.types
+            .push(TypeDef::new("Computerization", Kind::Final));
+        tree.roles.explore_map_preq = Some(electronics);
+        tree.roles.territory_reveal_preq = Some(computerization);
+        s.set_tech_tree(tree);
+        for p in &mut s.tech {
+            p.tech.resize(computerization + 1, false);
+        }
+        s.tech[1].tech[electronics] = true;
+        assert!(!s.find_goody_box(u), "explored is not seen");
+        let c = Cell::new(3, 2);
+        s.world.set_owner(c, Owner::Player(1), Owner::None);
+        assert!(!s.find_goody_box(u), "its own ground, without the bonus");
+        s.tech[1].tech[computerization] = true;
+        let mut enemy = s.clone();
+        assert!(s.find_goody_box(u), "its own ground, with Computerization");
+        assert_eq!(aimed_at(&s, u), Some(c));
+        enemy.world.set_owner(c, Owner::Player(0), Owner::None);
+        assert!(!enemy.find_goody_box(u), "an enemy's ground is not lit");
+        assert!(enemy.units[u].orders.is_empty());
     }
 
     /// A box in another region is not a candidate however close it is: the
