@@ -4586,12 +4586,16 @@ impl Sim {
         // is the retry branch above; the frame it runs out, `attempts`
         // goes back to 0.
         //
-        // SEAM: `ObjectData::has_general(0x8000, -1) < 0` (`5f832f`) is
-        // taken as true — a General nearby would keep the squad walking,
-        // and nothing here places one.
+        // ~~SEAM: `ObjectData::has_general(0x8000, -1) < 0` (`5f832f`) is
+        // taken as true~~ — **a marching General in range keeps the squad
+        // walking** (`5f8326`–`5f8336`, `jns` past the pack):
+        // [`Sim::near_marching_hero`]. The coverage pair's TOW `1/66`,
+        // sixteen tiles from the General `1/150` on its march, walks on
+        // through its phase on 2974 (`docs/AI.md` §172).
         if (i64::from(self.units[u].index) * 0x11 + self.frame) & 0x7f == 0
             && !self.units[u].in_danger
             && self.is_modern_infantry(u)
+            && !self.near_marching_hero(u)
         {
             let facing = self.units[u].movement.facing;
             self.unit_set_angle(u, facing);

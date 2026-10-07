@@ -268,6 +268,16 @@ impl Sim {
         if self.is_spy_type(ty) {
             speed += self.spy_upgrade_level(who) * speed / 4;
         }
+        // A hero's (`is_hero`, `unit_flags2 & 0x20`) the same quarter per
+        // General upgrade (`update_speed@006055c0:135`–`144`): the coverage
+        // pair's General `1/150` is born at 73 on a `MOVES` of 42 with all
+        // three held (`docs/AI.md` §172).
+        if self.unit_types[ty]
+            .cols
+            .flag2(crate::ai_load::uflags2::GENERAL)
+        {
+            speed += self.general_upgrade_level(who) * speed / 4;
+        }
         if self.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
