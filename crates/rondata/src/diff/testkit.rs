@@ -6828,17 +6828,6 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run702_s_word_frame_is_widened_whole", 5),
     // The same lobby walked to the word (item 1584): one read of the nuke's flight.
     ("sahara_coverage_first_parting", 1),
-    // The coverage driver walks the same window (run702, 1979..2235) and
-    // the nuke's flight reads five corners of it, as in run702 itself; the
-    // newest pair's lobby (run710) launches from a silo of its own and reads
-    // three.
-    (
-        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        5,
-    ),
-    ("run710_s_word_frame_is_widened_whole", 3),
-    // East Indies' coverage pair (run652, item 1583): one read in the walk.
-    ("coverage_pair_first_parting", 1),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -6960,10 +6949,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run711_s_word_frame_is_widened_whole", 4),
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
-    // walk fails).
+    // walk fails). Item 1583 (the third map's run702, whose nuke reads five
+    // corners of its own over 1979..2235): five, and the driver's.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        4,
+        5,
     ),
 ];
 

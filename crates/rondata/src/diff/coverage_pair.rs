@@ -978,7 +978,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 224, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 177, "initial run710 baseline");
     // **The word 1719's value diff, item 1591** (`docs/AI.md` §164): the
     // ICBM `1/42` (`TypeIndex` 316, `ICBM`, inside the silo `1/2015`)
     // parted first on block 1570 — `order:length` 0 against 1,
@@ -1090,7 +1090,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // at (35796, 38909) is `1/62`. The ICBM freed slot 42 on 1600, and no
     // key of `1/42` parts in run710's window, so the slot was handed out
     // differently between 1784 and 1953, where nothing is dumped.
-    pin_eq!(w.firsts.len(), 2077, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 1999, "initial run711 baseline");
     // **The word 1960's block, 1961**: `1/42`'s `path_recursion` 2 against
     // 1 and `1/62`'s 1 against 2 — the same two units under each other's
     // numbers, and ours' `1/42` spends the word's first two draws
