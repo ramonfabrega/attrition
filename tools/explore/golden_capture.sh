@@ -10,23 +10,17 @@
 # with `nodrv_CreateWindow` ("The graphics driver is missing") and no frames.
 # `viadriver.sh` is the lane's answer — LaunchServices makes `RonDriver.app`
 # the responsible process — and it runs a zsh script, so this is the shim that
-# hands it a Python runner. The install and the profile are the machine's, not
+# hands it a Python runner. The install and the profile are the lane's, not
 # the caller's; everything else is passed through.
 set -e
 W=${0:A:h:h:h}
-# The lane's own default, as longtrace.sh has it: a worktree has no `game`.
-# **Which lane is `RON_CAPTURE_LANE`'s** (parked 1139, item 1567): 2 is
-# `~/wine-ron-2` with its own install copy and profile, `lanes.sh` has the
-# table, and `viadriver.sh` carries the variable through LaunchServices.
-source "$W/tools/gamelog/lanes.sh"
-INSTALL=$RON_LANE_INSTALL
-PROFILE=$RON_LANE_PROFILE
-export RON_CAPTURE_LANE
+# **The lane is the pool's** (parked 1139; items 1568, 1569): the runner is
+# handed `-` for the install and the profile and takes the first free lane
+# of `tools/gamelog/lanes.sh`'s pool, which chooses both; its first line
+# says which. `RON_CAPTURE_LANE=N` pins a lane, for a test.
 [ $# -ge 1 ] || { echo "usage: golden_capture.sh <output> [unattended_capture.py options...]" >&2; exit 64 }
 OUT=$1; shift
-echo "lane:    $RON_CAPTURE_LANE ($RON_LANE_PREFIX)"
-echo "install: $INSTALL"
-echo "profile: $PROFILE"
+echo "lane:    ${RON_CAPTURE_LANE:-the pool's}"
 echo "output:  $OUT"
 # **A relative `--cmd-file` is resolved against the repo root, not against
 # `tools/explore`.** This script cds into the runner's directory before
@@ -49,4 +43,4 @@ for a in "$@"; do
   prev=$a
 done
 cd "$W/tools/explore"
-exec python3 unattended_capture.py "$INSTALL" "$OUT" "$PROFILE" "${args[@]}"
+exec python3 unattended_capture.py - "$OUT" - "${args[@]}"

@@ -17,7 +17,8 @@ class RunnerTest(unittest.TestCase):
         # The lane lock the runner takes (parked 1234) lives in the prefix;
         # here the prefix is the temporary directory, never `~/wine-ron`.
         env=patch.dict(os.environ,{'RON_WINEPREFIX':str(self.root),'RON_LANE_LOCK':str(self.root/'.lane.lock'),
-                                   'RON_WINE_BIN':'/usr/bin/true','RON_LANE_HOLDER':'unattended_capture'})
+                                   'RON_WINE_BIN':'/usr/bin/true','RON_LANE_HOLDER':'unattended_capture',
+                                   'RON_LANES_ROOT':str(self.root)})
         env.start();self.addCleanup(env.stop)
         os.environ.pop('RON_LANE_TAKEN',None)
 
@@ -35,7 +36,8 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(self.lane_state(),'free')
         with runner.capture_lane(self.root):
             state=self.lane_state()
-            self.assertTrue(state.startswith('held by unattended_capture since'),state)
+            # The runner's takes are the pool's (item 1569), and say so.
+            self.assertTrue(state.startswith('held by pool unattended_capture since'),state)
             self.assertIn(f'(pid {os.getpid()},',state)
             self.assertEqual(os.environ.get('RON_LANE_TAKEN'),str(os.getpid()))
             log=self.root/'wine.log'
@@ -246,12 +248,15 @@ class RunnerTest(unittest.TestCase):
              patch.object(runner.subprocess,'run'), \
              patch.object(runner.subprocess,'Popen',return_value=Game()), \
              patch.object(runner.live_session,'restore'), \
-             patch.object(runner,'verify_restored',return_value=5):
+             patch.object(runner,'verify_restored',return_value=5), \
+             patch.dict(runner.HELD,{'lane':2,'prefix':'/h/wine-ron-2'}):
             (self.root/'rise.ini').write_text('Seed (0 for random)=1\n')
             with self.assertRaises(Exception):runner.capture(args,output,7)
         receipt=json.loads((output/'receipt.json').read_text())
         self.assertRegex(receipt['launched_at'],r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$')
         self.assertLessEqual(receipt['launched_at'],receipt['exited_at'])
+        # And the lane it ran on (item 1569): no caller names one any more.
+        self.assertEqual((receipt['lane'],receipt['lane_prefix']),(2,'/h/wine-ron-2'))
 
     def test_failure_after_stage_still_restores_and_records(self):
         output=self.root/'output';output.mkdir()

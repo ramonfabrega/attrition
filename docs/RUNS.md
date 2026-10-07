@@ -15581,3 +15581,55 @@ Archive `rontrace-run686.log`, 9,393,472 bytes,
 SHA-256 `ce1528fc5a8fdea58cba7e9b2ccc63b39298f710df4ad465d02ff9d00dfedfb0`.
 
 **What it holds**: the concurrency proof's lane-2 half; nothing a test reads.
+
+## run687 — the pool, no lane named: lane 1's half (2026-10-07, item 1569)
+
+The pool's proof (item 1569): two captures launched in the same second (00:45:27) with **no lane named** — `zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-07-run687 --map 7 --end-frame 300 --timeout 900 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --allow-early-end`, and run688 the same with its own output — on tree
+`da330934`. The runner was handed `-` for the install and the profile and printed `lane: 1 (/Users/rf-studio/wine-ron), from the pool`. Receipt
+`success`, **`lane` 1, `lane_prefix` `/Users/rf-studio/wine-ron`**, 301 frames, last frame 300, `launched_at` 00:45:36, `exited_at` 00:45:56,
+five files restored, seed 12345, `MAP_STYLE 7`. `rngcmp.py rontrace-run676.log rontrace-run687.log`: 301 frames in common, 0 differing.
+`tools/gamelog/lanes.py --since 2026-10-07T00:45`: peak 2 pool lanes held at once, 0 minutes waited at the cap, 15.1 frames per wall second here.
+
+Archive `gamelog-run687-greatsahara-persian-alltech-300-pool.txt`, 1,205,407 bytes,
+SHA-256 `73178c05ad4a70f87bbfc326766af83ce93be4cf55138e41ac7302fdb60bed70`.
+
+Archive `rontrace-run687.log`, 9,270,016 bytes,
+SHA-256 `26795ed975699278d83a5c63cacc31d21c3cdb7683963efd105c30f2ce7af24b`.
+
+**What it holds**: the pool proof's lane-1 half; nothing a test reads.
+
+## run688 — the pool, no lane named: lane 2's half (2026-10-07, item 1569)
+
+run687's command with its own output, launched in the same second; the runner printed `lane: 2 (/Users/rf-studio/wine-ron-2), from the pool`.
+Receipt `success`, **`lane` 2, `lane_prefix` `/Users/rf-studio/wine-ron-2`**, 301 frames, last frame 300, `launched_at` 00:45:36, `exited_at`
+00:45:55 — the whole game beside run687's — five files restored to lane 2's profile, seed 12345, `MAP_STYLE 7`. `rngcmp.py rontrace-run687.log
+rontrace-run688.log`: **301 frames in common, 0 differing**, and against run676 the same. 15.8 frames per wall second; the median of the pair 15.4.
+
+Archive `gamelog-run688-greatsahara-persian-alltech-300-pool.txt`, 1,205,407 bytes,
+SHA-256 `e71fbbbbd73a21c15a3c6d363de843b25442ff24e1950ae91c7409ed6d93d354`.
+
+Archive `rontrace-run688.log`, 9,344,864 bytes,
+SHA-256 `e243f55b19ec1094ec196d97b494a6d5d6d83522f4e144046414abd91792f556`.
+
+**What it holds**: the pool proof's lane-2 half; nothing a test reads.
+
+## run689 — lane 3's admission: run676's recipe on a lane `lane.sh` just built (2026-10-07, item 1569)
+
+`RON_ADMISSION_RUN=run689 zsh tools/gamelog/viadriver.sh tools/gamelog/lane.sh 3`, tree `da330934`: `wineboot -i` into `~/wine-ron-3`, `prefix.sh`,
+the install cloned to `~/ron-capture-lane-3/game`, the profile from the pool's template (`~/ron-capture-lanes/template`, lane 1's while it was
+free), then run676's recipe pinned to lane 3 (`RON_CAPTURE_LANE=3`, the runner's `-` install and profile), output
+`~/ron-capture-lane-3/run689-20261007-004646`. Receipt `success`, `lane` 3, `ended_early` at 4340 as run676 did, 4341 frames, launched 00:46:55,
+exited 00:48:10 (74.9 s), five files restored. **`rngcmp.py rontrace-run676.log rontrace-run689.log`: 4341 frames in common, 0 differing**, and
+`lane.sh` wrote `~/ron-capture-lane-3/admitted` naming the run, the archive and the counts. The gamelog is run676's byte count and differs on the
+`Rules` stamps (1073165780) and two `SYNCPOINT` wall times only, as run684's did. `waitrun.sh` exited 2 at once on this launch — `lane.sh` was in
+`wineboot`, with no runner yet — and knows `gamelog/lane.sh` as a runner since.
+
+Archive `gamelog-run689-greatsahara-persian-alltech-24k-trace-lane3-admission.txt`, 18,637,566 bytes,
+SHA-256 `8def8b206d473027a975e1c7c0ed094a89b33358021d0d9550bcefab85d96aa9`.
+
+Archive `rontrace-run689.log`, 198,296,256 bytes,
+SHA-256 `dc17bfcf573f7e5602ce95595e4d4008aa939224bcee1acb08848c75754d5d98`.
+
+**What it holds**: lane 3's admission; nothing a test reads.
