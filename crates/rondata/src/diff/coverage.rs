@@ -212,9 +212,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1532: Pasargadae, the Persians' second, named in run672's window.
     // Item 1546: Arak, the Persians' third, named on run678's block 1184.
     // Item 1561: Tabriz, the Persians' fourth, named in run683's window.
+    // Item 1565: Khomein, the Persians' fifth, named on run683's block 1819.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Tabriz York flags increment length size",
+        "Amiens Arak Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Tabriz York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2426,7 +2427,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // word (block 728, item 1539), and run678's frame-982 word (block 983,
     // item 1544) and frame-1183 word (block 1184, item 1546), and run679's
     // frame-1277 word (block 1278, item 1552) and frame-1408 word (block
-    // 1409, item 1558), each with two either side.
+    // 1409, item 1558), each with two either side; the third map's lobby's
+    // run683 frame-1582 word (block 1583, item 1561) and frame-1818 word
+    // (block 1819, item 1565).
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2443,6 +2446,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN681, 1198),
         (super::sahara_coverage::RUN681, 1251),
         (super::sahara_coverage::RUN683, 1583),
+        (super::sahara_coverage::RUN683, 1819),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);

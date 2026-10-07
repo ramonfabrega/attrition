@@ -49,8 +49,14 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // as an enemy) moved it again, 1250 → **1582**: ours 28 draws against 29
     // at index 8, ours `Leader::make_stuff+0x63d`, theirs
     // `Leader::produce_building+0x1805`.
-    count: 1582,
-    sequence: 1582,
+    //
+    // Item 1565's build (a gather enhancer is seated only in the city it is
+    // placed for, `docs/AI.md` §156: `produce_building`'s
+    // `get_town(cand) == near`) moved it again, 1582 → **1818**: ours 3215
+    // draws against 3218 at index 3201, ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
+    count: 1818,
+    sequence: 1818,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -407,7 +413,8 @@ fn run681_s_word_frame_is_widened_whole() {
 }
 
 /// run683, item 1561: the lobby's blocks 1577..1833 at the long's detail —
-/// the word 1582's block 1583 with six before it and 250 after.
+/// the word 1582's block 1583 with six before it and 250 after, and item
+/// 1565's word 1818 inside it (block 1819).
 pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt";
 
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
@@ -425,7 +432,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1582,
         1,
-        &[1583],
+        &[1583, 1819],
         true,
     )
 }
@@ -442,35 +449,30 @@ fn run683_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1183, "initial run683 baseline");
+    // **1183** on the tree at item 1561's build, **863** after item 1565's
+    // (`docs/AI.md` §156): the Refinery's site and city, and what the
+    // shifted stream moved after them, agree.
+    pin_eq!(w.firsts.len(), 863, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
         159,
         "the keys standing on the window's first block"
     );
-    // **The word 1582's value diff, block 1583** (item 1561): the Persians'
-    // `REFINERY` (`orig_type` 426) `1/2045`, bought for city 2 (`1/2006`, at
-    // (27744, 19296)) by a `MAKE` row both sides print alike, stands at
-    // (30432, 19872) in the original — `city` 2, chained after `1/2006`
-    // (`city_down` 2045) — and at (30432, 22176) in ours, `city` 1, chained
-    // after `1/2041`. The original spends four `produce_building+0x1805`
-    // jitter draws (a 2×2, every sub-position unblocked) and ours three, so
-    // every roll after it sits a place off: the human's `0/5` and `1/65`
-    // re-target on the same block from the shifted stream (their
-    // `orders_x/y`, `dest_angle`), and are no cause.
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:y_internal".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "the Refinery's y parts on the word's block"
-    );
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:city".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "and its city"
+    // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
+    // Persians' `REFINERY` (`orig_type` 426) `1/2045`, bought for city 2
+    // (`1/2006`, at (27744, 19296)) by a `MAKE` row both sides print alike,
+    // stands at (30432, 19872) in the original — `city` 2, chained after
+    // `1/2006` (`city_down` 2045) — and stood at (30432, 22176) in ours,
+    // `city` 1, chained after `1/2041`: the spiral's candidate loop dropped
+    // no site outside the city the Refinery was placed for, and the
+    // original's `get_town(cand) == near` (`docs/AI.md` §156) drops them.
+    // The original's four `produce_building+0x1805` jitter draws (a 2×2,
+    // every sub-position unblocked) were three in ours. It agrees in every
+    // compared field since the build, and so do the human's `0/5` and `1/65`
+    // whose targets sat a place off the shifted stream.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2045)),
+        "the Refinery 1/2045 agrees in every compared field"
     );
     // **What parts first past the standing block** is the word's own block.
     let first = w

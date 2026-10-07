@@ -16995,10 +16995,38 @@ Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchang
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 156. Reserved for the race on item 1565, its landing 1 (Great Sahara's coverage word 1582)
+## 156. A gather enhancer is seated only in the city it is placed for, and the word at 1818 (2026-10-07, item 1565)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's widening (`diff::sahara_coverage::run683_s_word_frame_is_widened_whole`, the word 1582's block 1583, now also the word 1818's block 1819), the draw
+stream on frame 1582 (`RON_DEBUG_SITES=1582-1582`, `sahara_coverage_first_parting`), `Leader::produce_building@006e1400`'s spiral (the `is_gather_enhancer` arm) beside
+`BuildTypeData::get_town@00639b90`, and `CityData` (`types.txt`, `+0x8 o`).
+
+**The word.** Great Sahara in the coverage lobby parted on **1582** (item 1561's): ours 28 draws against 29, index 8. Both streams agree through index 7; the original spends a **fourth**
+`produce_building+0x1805` (the 2×2 jitter) and ours three, and the four `make_stuff+0x63d` after it agree. The spiral spends no draw for an enhancer, so the two sides picked different
+sites: the Persians' Refinery `1/2045` (`TypeIndex` 426, bought for city 2 by a `MAKE` row both print alike) stands at **(30432, 19872)**, `city` 2, chained after `1/2006` in the original and
+at **(30432, 22176)**, `city` 1, chained after `1/2041` in ours — the same column, three cells further south, inside the other city's catchment.
+
+**The cause.** `produce_building`'s spiral, after scoring a candidate by its friends, asks `BuildTypeData::is_gather_enhancer` and for an enhancer reads
+`get_town(type, cand's tile, owner)`, **and drops the candidate unless the answer equals `param_2`** (`near`). `get_town` returns `CityData +0x8`, the covering city's building `o`,
+and `near` is the city's own building (`make_this`'s `centre`; `ai_host`'s hint is a city building only when it is one), so the test is "the site belongs to the city the order is for".
+This crate had only the `city.is_none()` half of it (`break 'cand`), so the candidates of a spiral that reaches over a neighbouring city's mask were scored, and the last of the tied
+1000-point ones — the spiral keeps the last of equals — was in city 1. Built: for `is_enhancer`, a candidate stays only when `get_town(who, rec, cand) == Some(city)`.
+The one-per-city `+100` push of `find_city_at` is why the test is *not* repeatable after the building stands: a Granary placed in city 0 answers city 1 afterwards, and the unit test reads
+the building's own `city`, not a second `get_town`.
+
+**The move.** The Refinery `1/2045` agrees in every compared field (`build:y_internal` and `build:city` no longer part on 1583), run683's keys **1183 → 863**, and the word goes
+**1582 → 1818**: ours 3215 draws against 3218, index 3201, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. Inside run683 (block 1819), widened by the
+same test (block 1819 joins its recorded blocks). What parts first past the standing block is still 1583 and is not the word's: leader 1's `pool:65` / `group:65.held`
+(ours [69, 70, 71], theirs none) and the queue rows' `cost` (ours 100 against 99, 120 against 118, 180 against 178 — a price one or two off, `1/2009`, `1/2022`, `1/2023`, `1/2026`);
+no draw agrees differently for them through 1817. The first dense parting before the word is **1789** (276 keys).
+
+**What is not established.** The word's own cause (the next item's, 1581): ours and the original's last draw before the parting are a `set_anim` against `calc_road_cost` on a frame of three
+thousand draws. `get_town`'s tile arguments are the candidate's tile as `div_3_table[pos >> 6]`; this crate passes the candidate's `Pos` and `get_town` snaps it, which agrees on every
+site the walk reaches. Only enhancers of a **city** are gated; an enhancer with no city is refused as before.
+
+**Mutation** (`tools/mutate.py`, the `get_town` comparison dropped): held by `an_enhancer_is_seated_in_the_city_it_is_placed_for` and by `sahara_coverage_first_parting`.
+
+**Coverage.** Diff-backed: the cause (the word moves 1582 → 1818, the Refinery agrees, run683's keys 1183 → 863). Reading-only: the `find_city_at` side of `get_town` for a type that is not one-per-city.
 
 ## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
 
