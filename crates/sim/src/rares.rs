@@ -993,6 +993,59 @@ mod tests {
         assert_eq!(s.unit_hits(1, spy), 15, "another leader");
     }
 
+    /// **A General climbs with the General upgrades** (`get_general_upgrade
+    /// @006e0830`, item 1614, `docs/AI.md` §172): with all three of
+    /// `GENERALS_UPGRADE_1..3`' prerequisites held, the coverage pair's
+    /// General `1/150` is born at 599 hit points on a type of 109 (`+ 3² ×
+    /// 109 / 2`), sees 14 on 8 (`+ 3 × GENERAL_UPGRADE_LOS`), walks 73 on 42
+    /// (`+ 3 × 42 / 4`) and reaches 18 tiles on `GENERAL_RADIUS` 6
+    /// (`× (3 + 3) / 2`) — 109, 8, 42 and 9 with none. A Citizen takes none
+    /// of it. Made to fail with each term dropped.
+    #[test]
+    fn a_general_climbs_with_the_general_upgrades() {
+        let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
+        let mut tree = tech::TechTree::new();
+        let steps = [
+            tree.add(tech::TypeDef::plain("step one", 0)),
+            tree.add(tech::TypeDef::plain("step two", 0)),
+            tree.add(tech::TypeDef::plain("step three", 0)),
+        ];
+        tree.roles.general_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let ty = |flags2| crate::UnitType {
+            hits: 109,
+            los: 8,
+            moves: 42,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: flags2,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        };
+        let general = s.add_unit_type(ty(crate::ai_load::uflags2::GENERAL));
+        let citizen = s.add_unit_type(ty(0));
+        let mut unit = crate::Unit::new(0, 0, crate::Pos::new(1000, 1000), 40);
+        unit.ty = Some(general);
+        let g = s.add_unit(unit);
+        let stats = |s: &crate::Sim| {
+            (
+                s.unit_hits(0, general),
+                s.unit_los(g),
+                s.type_speed(0, general),
+                s.hero_radius(g),
+            )
+        };
+        assert_eq!(stats(&s), (109, 8, 42, 9));
+        for step in steps {
+            s.gain_tech(0, step);
+        }
+        assert_eq!(s.general_upgrade_level(0), 3);
+        assert_eq!(stats(&s), (599, 14, 73, 18));
+        assert_eq!(s.unit_hits(0, citizen), 109, "a Citizen takes none of it");
+        assert_eq!(s.type_speed(0, citizen), 42);
+        assert_eq!(s.unit_hits(1, general), 109, "another leader");
+    }
+
     /// **The walk, end to end.** One idle Fisherman on a fish: the rate is
     /// the good's, the mask carries the fish's bit, and nothing else does.
     #[test]
