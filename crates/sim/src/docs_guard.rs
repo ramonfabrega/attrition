@@ -1756,7 +1756,12 @@ fn a_constant_a_document_names_is_built_or_pinned() {
             let path = entry.expect("entry").path();
             if path.is_dir() {
                 stack.push(path);
-            } else if path.extension().is_some_and(|e| e == "rs") {
+            } else if path.extension().is_some_and(|e| e == "rs")
+                // The sweep's tests (item 1619) run the original under the
+                // emulator on chosen inputs: their literals are rows, not
+                // a mechanic built (ten of them banked 12 constants).
+                && !path.components().any(|c| c.as_os_str() == "sweep")
+            {
                 // Code, and of a comment only the offset spelling (`+0x7c`,
                 // `-0x10`) this guard's contract names: a bare `0x..` in
                 // prose counted as building the constant (parked 802, the
