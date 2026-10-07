@@ -17080,7 +17080,57 @@ A stub the booking lands so the race's winner writes its landings at their own a
 A stub the booking lands so the race's winner writes its landings at their own anchors
 (parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
 
-## 161. Reserved for item 1586 (the coverage pair's word 1532)
+## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1563 left the coverage pair's word at **frame 1532, ours 13 game draws
+against 11, index 8**: ours `Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae`. run710 (1527..1783) holds it whole. Each
+claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1532`; ours `RON_DEBUG_SITES=1532-1532`). Both spend three
+   `GameDaemon::calc_market` draws and an animal's `Guy::set_anim < Animal::do_idle` (seeds `9d368de9`..`3289a986`); the
+   original then spends four `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b` grid draws (`350df32d`,
+   `3c6d3aa8`, `8dc1dde7`, `5940421a`), ours six — `1/18`, `1/27`, `1/30`, `1/36`, `1/43`, `1/45`, army `1/0`'s marchers, by then
+   apart by hundreds of units (run710 block 1527).
+2. **Walked back to the first parted field** (run679, `RON_FIRSTS`, `RON_DEBUG_UNIT`). Army `1/0` (seventeen members: TOWs
+   `TypeIndex` 141 at speed 25, Armored Cavalry 220 at 47 — `1/28`, `1/38` — and Mech Infantry 104 at 38, `1/43`..`1/45`) parts
+   first on block **1435**, by a few units, on `1/38`, `1/43`, `1/45` — ours (42511, 37009), (42587, 38956), (42572, 38466)
+   against (42517, 37030), (42588, 38964), (42574, 38482). All three carry an `ATTACK_TO` with `flags 1` (no action bit) on both
+   sides, so `get_action` is null and the group cap applies (`docs/GROUPS.md` §18). Solved from the dump's own deltas, the
+   original's steps on frame 1434 are `1/38` 47, `1/45` 47 (38 × 5/4) and `1/43` 23 (its half step of 47), where ours steps 25,
+   31 and 15 — the cap of 25 the TOW leader `1/16` left at slot 1's `Groups::process` reset on 1409. Through block 1434 the
+   original's `1/43` stepped 31 too: **the original lifts the cap on frame 1434**, to the Armored Cavalry `1/28`'s 47, the
+   leader since 1411 (ours' `find_leader` names it too). `1/28` itself carries `flags 5` and is uncapped on both sides.
+3. **The writer** (`Army::process@006f93d0`, the decompile's first branch). With `param_1 == 0` an army runs `normalize(this)`
+   when `(frame − 30 + (army + 2·who)·2) & 0x7f == 0` — for player 1's army 0, `frame ≡ 26 (mod 128)`, and **1434 is one**.
+   `Army::normalize@006f9b50` calls `Group::normalize@00711540` on each of its groups, and that function's tail, after
+   `find_role`, is `speed = new_speed = UnitData::speed(find_leader)` (or 0 for no leader or a building group) — every
+   time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
+   *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
+
+**Built.** `Sim::army_normalize` (`crates/sim/src/army.rs`) ends its prune with `Group::normalize`'s speed tail
+(`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
+ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
+`army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
+the leader's 47, both halves.
+
+**The value diff, and the word now.** run679 block 1435: `1/38` (42517, 37030), `1/43` (42588, 38964), `1/45` (42574, 38482) in
+both; no key of `1/28`, `1/38`, `1/43`..`1/45` parts in run679's window (pinned in `run679_s_word_frame_is_widened_whole`), and
+army 1 leaves run710's standing set. **run679 203 keys → 146; run710 1,034 → 764** (167 standing → 151).
+`coverage_pair_first_parting`: **frame 1532 → 1610, count and sequence** — ours 589 game draws against 598, index 0: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (the blocked stand), and the
+original's frame holds 586 `PathFinder::calc_road_cost < PathFinder::astar_caravan_road` draws. Inside run710 (block 1611),
+which `run710_s_word_frame_is_widened_whole` walks. On the fixed tree run710 first parts past its standing block on 1529
+(`1/52`'s `form`, the block it is born); `1/10` (the citizen of §144) parts from 1584 (its order stack, ours 4 against 2) and
+its path from 1610; and on 1583 the sites `1/2037` and `1/2043` part (`x/y_internal`, `city`), `1/2037` being the site ours
+alone has held since 1420. Hypotheses for the item after, not a cause.
+
+**What else it moved** (every pin a fall): the second pair's run414 86 → 84, run445 77 → 76, run480 85 → 84, run490 100 → 98,
+run583 202 → 199, run589 158 → 157, run594 177 → 176; Toughest's run640 88 → 87; and Great Sahara's coverage widening run683
+**1,183 → 540** (159 standing → 151), its word 1582 unmoved. No word, floor or endpoint moved.
+
+**What is not established.** `Group::normalize`'s prune is ours' existing back-pointer prune; its `priority` arm (only a hotkey
+group sets it) and `find_role` are not modelled, as §19 left them. An army with two or more groups — `Army::normalize` walks them
+last to first and returns at the first emptied one — is not a shape this crate carries.
+
+**Coverage.** Diff-backed: claims 1–2 and the cap's lift (army 1 agrees through run679 and run710's standing block). Reading-
+and listing-backed: claim 3's call chain, which the diff confirms on its one frame.

@@ -442,10 +442,11 @@ fn run683_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1183, "initial run683 baseline");
+    // Item 1586: 1183 → 540, 159 → 151 standing; the word 1582 holds; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
+    pin_eq!(w.firsts.len(), 540, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        159,
+        151,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (item 1561): the Persians'
