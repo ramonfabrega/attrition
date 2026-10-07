@@ -8720,12 +8720,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (1528), and took run710 over 1527..1783 (block 1533); run679's test
     // keeps the move's value diff on the citizen `1/8` from 1340. Item
     // 1586 moved it to **1610**, inside run710 (block 1611); run679's test
-    // keeps the move's value diff on army `1/0` from 1435.
+    // keeps the move's value diff on army `1/0` from 1435. Item 1588 moved
+    // it to **1696**, inside run710 (block 1697); run710's test keeps the
+    // move's value diff on the citizen `1/10` from 1584.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run710_s_word_frame_is_widened_whole"),
-        1586,
+        1588,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1532),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
