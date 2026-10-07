@@ -1456,27 +1456,51 @@ mod tests {
         assert_eq!(spent[0] + 2, spent[1], "the V2's two scatter draws alone");
     }
 
-    /// **The computer's silo orders its nuke on an enemy city** (item
-    /// 1583, `Object::do_launch@0064f3b0`'s silo arm, `docs/AI.md` §158):
-    /// on the 128-frame cadence phased by the silo's `o`, the nuke at the
-    /// chain's head is given an air attack on the nearest-value enemy city
-    /// it can reach; off the cadence, for a human, or with a friendly
-    /// object near the city, it is not. Made to fail with the arm dropped
-    /// (no order) and with the friendly-object test dropped.
+    /// **A computer's silo strikes an enemy city with its nuke** (item
+    /// 1591, `Object::do_launch@0064f3b0`'s silo arm, `Sim::silo_strike`):
+    /// on `(frame + id) % 128 == 0` the nuke at the head of a computer's
+    /// silo takes `AIR_ATTACK_GROUND` at the city building's point, home
+    /// none, the action bit set — run710's ICBM `1/42` on 1569, at
+    /// Napata. Nothing off the 128-frame cadence (on the sortie's 32), for
+    /// a V2, over a city nobody has seen, over one with an object of the
+    /// silo's owner within 0x1800, or for a human's silo. Made to fail
+    /// with the silo's arm dropped (no order), with the cadence read as 32,
+    /// and with the friendly search dropped.
     #[test]
-    fn the_computer_s_silo_orders_its_nuke_on_an_enemy_city() {
-        // Past the silo's own 0x1800: its owner's objects count as friends.
-        let city_at = Pos::new(30000, 14976);
-        let add_city = |s: &mut Sim, building: usize| {
+    fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
+        for (case, strikes) in [
+            ("strikes", true),
+            ("off the cadence", false),
+            ("a V2", false),
+            ("unseen", false),
+            ("a friend beside it", false),
+            ("human", false),
+        ] {
+            let (mut s, silo, m, enemy) = silo_with_a_v2();
+            s.nation[0].human = case == "human";
+            if case != "a V2" {
+                let ty = s.units[m].ty.unwrap();
+                s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            }
+            // Past 0x1800 of the silo itself, an object of its owner's.
+            s.buildings[enemy].pos = Pos::new(20160, 20160);
+            if case == "unseen" {
+                s.buildings[enemy].ever_seen = 0;
+            }
+            if case == "a friend beside it" {
+                let at = s.buildings[enemy].pos;
+                friend(&mut s, Pos::new(at.x + 0x1800, at.y));
+            }
+            let pos = s.buildings[enemy].pos;
             s.cities.push(crate::city::City {
                 alive: true,
                 owner: 1,
                 race: Some(1),
                 founder: 1,
-                building,
+                building: enemy,
                 members: Vec::new(),
                 reg: None,
-                pos: city_at,
+                pos,
                 capital: true,
                 founding_capital: true,
                 was_founding_capital: false,
@@ -1498,37 +1522,23 @@ mod tests {
                 trade_val: 0,
                 traded_with: [0; 8],
             });
-        };
-        // (human, on the cadence, a friend by the city) -> is it ordered
-        for (human, on_cadence, friend_near, ordered) in [
-            (false, true, false, true),
-            (true, true, false, false),
-            (false, false, false, false),
-            (false, true, true, false),
-        ] {
-            let (mut s, silo, m, enemy) = silo_with_a_v2();
-            let ty = s.units[m].ty.unwrap();
-            s.unit_types[ty].tree = Some(NUCLEARMISSILE);
-            s.unit_types[ty].mana = 1000;
-            s.nation[0].human = human;
-            s.buildings[enemy].pos = city_at;
-            add_city(&mut s, enemy);
-            if friend_near {
-                friend(&mut s, Pos::new(30000 - 100, 14976));
-            }
             let id = i64::from(s.buildings[silo].index);
-            s.frame = 128 * 30 - id + if on_cadence { 0 } else { 32 };
+            s.frame = 128 * 30 - id + if case == "off the cadence" { 32 } else { 0 };
             s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
             s.do_launch(silo);
-            let got = s.units[m].orders.front().and_then(|o| match o.body {
-                crate::orders::Body::AirAttackGround(g) => Some(g.at),
-                _ => None,
-            });
-            assert_eq!(
-                got,
-                ordered.then_some(city_at),
-                "human {human}, cadence {on_cadence}, friend {friend_near}"
-            );
+            let order = s.units[m].orders.front().copied();
+            if strikes {
+                let o = order.expect("the nuke is ordered");
+                assert_eq!(o.flags, crate::orders::flag::ACTION, "the action bit");
+                let crate::orders::Body::AirAttackGround(g) = o.body else {
+                    panic!("an air attack on the ground")
+                };
+                assert_eq!(g.at, pos, "the city building's point");
+                assert_eq!(g.home, None, "home −1");
+                assert_eq!(s.units[m].inside, Some(silo), "it waits inside");
+            } else {
+                assert_eq!(order, None, "{case}: ordered");
+            }
         }
     }
 

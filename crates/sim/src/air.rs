@@ -1350,7 +1350,7 @@ impl Sim {
     ///
     /// ```text
     /// (frame + base id) % 32 == 0, and not leader_flags2 & 8
-    /// a base that is(MISSILESILO): the silo's arm (SEAM, below)
+    /// a base that is(MISSILESILO): the silo's arm ([`Sim::silo_strike`])
     /// else, over the eight leaders L with leader_flags & 3 == 3 that the
     ///   owner is not at peace with, best = -1, strictly greater replaces:
     ///   L's cities with city_flags & 3 == 3 (alive and under attack):
@@ -1368,9 +1368,7 @@ impl Sim {
     /// ```
     ///
     /// SEAM: `leader_flags2 & 8`, the combat AI's scenario switch, which
-    /// no staging sets; the silo's arm (`64fdcd`: every 128 frames, a
-    /// strike from the missile at the chain's head, with a draw); the
-    /// forts' and wonders' loops (`64fa71`..`64fda4`), which this crate
+    /// no staging sets; the forts' and wonders' loops (`64fa71`..`64fda4`), which this crate
     /// keeps no list for; the AIRDEFENSE search's radius, read as twelve
     /// tiles from `find_building`'s tile arithmetic and not run.
     fn computer_sortie(&mut self, b: usize) {
@@ -1383,7 +1381,7 @@ impl Sim {
             return;
         }
         if self.building_ident(b) == crate::build::Ident::MissileSilo {
-            self.silo_sortie(b);
+            self.silo_strike(b);
             return;
         }
         let base = self.buildings[b].pos;
@@ -1442,58 +1440,65 @@ impl Sim {
         }
     }
 
-    /// **The computer's silo arm** (`Object::do_launch@0064f3b0`, the
-    /// branch past `64fdcd`, `docs/AI.md` §158): every 128 frames phased by
-    /// the silo's `o` (inside the sortie's 32), the missile at the chain's
-    /// head is given a strike on the best enemy target in its reach.
+    /// **The computer's silo strike** (`Object::do_launch@0064f3b0`'s
+    /// silo arm, `64fdcd`..`6508a6`, item 1591, `docs/AI.md` §164): past
+    /// the sortie's own gate, at a base that `is(MISSILESILO)`.
     ///
     /// ```text
-    /// the missile is(NUCLEARMISSILE): armageddon - 2 <= game.armageddon -> none
-    /// over the leaders L in play and enemy of the owner, without
-    ///   MISSILE_DEFENSE_BONUS: L's cities with city_flags & 1 and
-    ///   ever_seen != 0: a nuke needs no friendly object within 0x1800
-    ///   (ObjectsData::find, SEARCH_FRIENDLY, FILTER_ALL); value
-    ///   num_buildings(city) * (hits_left + 1000);
-    ///   vector_dist(city - silo) <= mana * get_speed(missile, 1);
-    ///   value / (dist / 0x1200 + 1), strictly greater replaces, best = -1
-    /// best found: add_air_attack_ground_order(missile, the city's point,
-    ///   no home, QUEUE_NEW, action 1)
+    /// (frame + base id) % 128 == 0, and num_inside(1) != 0
+    /// m = the chain's head (inside_down: the first to have entered)
+    /// m is(NUCLEARMISSILE) → the nuke arm (an ICBM is one by its line)
+    ///   (armageddon >= get_armageddon() - 2 → nothing: SEAM, below)
+    /// reach = get_speed(m, at m, 1) * mana(m)       # the vslot 0x17c
+    /// over the eight leaders L with leader_flags & 1, is_enemy(owner, L)
+    ///   and not has_preq(L, MISSILE_DEFENSE_BONUS), best = -1:
+    ///   L's cities with city_flags & 1 whose building's ever_seen != 0
+    ///   (`64ff58`: any player's bit; the `1 << who` beside it is never
+    ///   0) and no object of the owner's within 0x1800 of it
+    ///   (ObjectsData::find(SEARCH_FRIENDLY, 0x1800, FILTER_ALL) < 0):
+    ///     v = num_buildings(city) * (hits_left + 1000)
+    ///     d = vector_dist(building - silo); skipped when d > reach
+    ///     v /= d / 0x1200 + 1; strictly greater replaces
+    /// a target: add_air_attack_ground_order(m, its point, home -1,
+    ///   QUEUE_NEW, action 1)
     /// ```
     ///
-    /// The strike then waits in `launching` for the silo's `recharging`
-    /// (30) to run out, as the human's does (`do_launch`'s chain walk and
-    /// `do_missile_launch`): Great Sahara's Persian silo `1/2017` orders on
-    /// 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on 1983.
+    /// run710's ICBM `1/42` (`TypeIndex` 316) in the silo `1/2015`: on
+    /// 1569 (`(1569 + 2015) % 128 == 0`) it takes `AIR_ATTACK_GROUND` at
+    /// Napata's point (6240, 7008), the human's one city; the next
+    /// `do_launch` counts the silo's `recharging` down from 30, it leaves
+    /// on 1600 and its round lands on 1719.
     ///
-    /// SEAM: the forts' and wonders' loops (this crate keeps no list for
-    /// them, as the sortie's); the arms of a missile that is not a nuke (a
-    /// V2 or a cruise missile: a draw, `Random::get(0, 0xffff) % 10`, on a
-    /// city with `city_flags & 2`); `game.armageddon`, the count of nukes
-    /// landed, which nothing carries — the check always passes; the
-    /// missile's own speed through vslot `0x17c`, read as `get_speed(1)`.
-    fn silo_sortie(&mut self, b: usize) {
-        let owner = self.buildings[b].owner;
+    /// SEAM: the non-nuke arm (a V2 or Cruise Missile at the head:
+    /// `hits_left ≥ 500`, `damage + 1000`, a draw `% 10` for a city whose
+    /// `city_flags & 2` is clear, and a third list of targets), which no
+    /// capture has reached (scan: `report.py <log> when Object::do_launch`
+    /// over the 351 `rontrace-*.log` on 2026-10-07: no draw from
+    /// `do_launch` in any — the arm's `% 10` roll is its only draw, so a
+    /// V2 at a silo's head over an unflagged city was never met); the
+    /// forts' and wonders' loops (`650150`..`650544`), for which this
+    /// crate keeps no list; the Armageddon counter (`Game +0x6e0`), which
+    /// no field here holds (`crate::nuke`), so the gate is read as open; and the friendly search's cell ring,
+    /// walked here as every object of the owner's within the radius
+    /// ([`Sim::enemy_object_within`]'s same reading).
+    fn silo_strike(&mut self, b: usize) {
         let id = i64::from(self.buildings[b].index);
         if (self.frame + id) % 128 != 0 {
             return;
         }
-        let Some(&u) = self.buildings[b]
-            .garrison
-            .iter()
-            .find(|&&u| self.units[u].inside == Some(b) && self.units[u].alive())
-        else {
+        let Some(&m) = self.buildings[b].garrison.first() else {
             return;
         };
-        if !self.air_line_is(u, crate::airbase::NUCLEARMISSILE) {
+        if !self.air_line_is(m, crate::airbase::NUCLEARMISSILE) {
             return;
         }
-        let reach = self.unit_mana(u) * self.get_speed(u, 1);
-        let base = self.buildings[b].pos;
+        let owner = self.buildings[b].owner;
+        let silo = self.buildings[b].pos;
+        let reach = self.get_speed(m, 1) * self.unit_mana(m);
         let mut best = -1;
-        let mut target: Option<Pos> = None;
-        for l in 0..self.players.len() as crate::Player {
-            if self.defeated[l as usize] || !self.is_enemy(owner, l) || self.missile_defense_held(l)
-            {
+        let mut target = None;
+        for l in 0..self.players.len().min(8) as crate::Player {
+            if !self.is_enemy(owner, l) || self.missile_defense_held(l) {
                 continue;
             }
             for c in 0..self.cities.len() {
@@ -1501,21 +1506,17 @@ impl Sim {
                 if city.owner != l || !city.alive {
                     continue;
                 }
-                let bd = &self.buildings[city.building];
-                if bd.ever_seen == 0 {
+                let cb = city.building;
+                let at = self.buildings[cb].pos;
+                if self.buildings[cb].ever_seen == 0 || self.own_object_within(owner, at, 0x1800) {
                     continue;
                 }
-                let at = bd.pos;
-                if self.friendly_within(owner, at, 0x1800) {
-                    continue;
-                }
-                let mut v =
-                    self.num_buildings(c) * (self.buildings[city.building].health.max(0) + 1000);
-                let d = vector_dist(at.x - base.x, at.y - base.y);
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
                 if d > reach {
                     continue;
                 }
-                v /= d / 0x1200 + 1;
+                let v = self.num_buildings(c) * (self.buildings[cb].health.max(0) + 1000)
+                    / (d / 0x1200 + 1);
                 if v > best {
                     best = v;
                     target = Some(at);
@@ -1523,23 +1524,24 @@ impl Sim {
             }
         }
         if let Some(at) = target {
-            self.add_air_attack_ground_order(u, at, None, crate::orders::QueuePos::New, true);
+            self.add_air_attack_ground_order(m, at, None, crate::orders::QueuePos::New, true);
         }
     }
 
-    /// `ObjectsData::find(x, y, SEARCH_FRIENDLY, who, radius, …, FILTER_ALL)`
-    /// `>= 0`: a live object of `who`'s or an ally's within `radius` of the
-    /// point.
-    fn friendly_within(&self, who: crate::Player, at: Pos, radius: i32) -> bool {
-        let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= radius;
-        let friend = |o: crate::Player| o == who || self.is_ally(who, o);
+    /// `ObjectsData::find(x, y, SEARCH_FRIENDLY, who, range, ·, FILTER_ALL)
+    /// >= 0`, as the silo strike asks it: a live unit on the map or a live
+    /// building of `who`'s own (`SEARCH_FRIENDLY` is case 1 of
+    /// `Search::valid_search@0067daa0`, the asker alone), within `range`
+    /// of `at`.
+    fn own_object_within(&self, who: crate::Player, at: Pos, range: i32) -> bool {
+        let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= range;
         self.units
             .iter()
-            .any(|u| u.alive() && u.on_map && friend(u.owner) && near(u.pos))
+            .any(|u| u.alive() && u.on_map && u.owner == who && near(u.pos))
             || self
                 .buildings
                 .iter()
-                .any(|b| b.alive && friend(b.owner) && near(b.pos))
+                .any(|bd| bd.alive && bd.owner == who && near(bd.pos))
     }
 
     /// `LeaderData::is_peace@006e1200`: two players, a treaty each way,

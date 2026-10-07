@@ -17,23 +17,23 @@ from `dfa4b699`). French East Indies **closed at 17,379**; Toughest
 **closed at 15,432**; Great Sahara in the coverage lobby **1582**; the
 coverage pair **1408 → 1532** (1563, the first landing).*
 
-- **Three lanes**: `att-1591` (Opus 5.5) on the coverage pair's word,
-  run 711, AI §164 (1563 shared `ever_seen`; four landings moved it);
+- **Three lanes**: `att-1594` (Opus 5.5) on the coverage pair's word,
+  run 712, AI §165 (1563 shared `ever_seen`; five landings moved it);
   `att-1567` (Opus 5.5) on 1575, the sweep, no runs reserved.
 - **1565 runs as a race** (DECISIONS 63 (ii); the pass's record, "The race
   protocol"): `att-1565-opus` (Opus 5.5) takes numbers 1576–1580 and runs
   690–699; `att-1565-sonnet` (Sonnet 5.5) numbers 1581–1585 and runs
   700–709. AI §156–§160 are the race's five landings, one set for both:
   only the winner merges. Nothing merges from either until both have five.
-- **Next number 1594, run 712, section §165**; 1497 waits. Lane gate
-  filters: 1591 `coverage_pair:: floors::`, the race `sahara_coverage:: floors::`.
-- **Fable backlog: 26 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593).
+- **Next number 1598, run 713, section §166**; 1497 waits. Lane gate
+  filters: 1594 `coverage_pair:: floors::`, the race `sahara_coverage:: floors::`.
+- **Fable backlog: 27 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w1719 of 4,730
+Coverage pair: EastIndiesPersianAllTech w1960 of 4,730
 Census: simulation backed 45 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w1582 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
@@ -46,17 +46,17 @@ end by the protocol; stop at twenty landings and spawn `steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The sweep lane (1575)
-beside two word lanes**: the newest pair's (1591) and the third
+beside two word lanes**: the newest pair's (1594) and the third
 map's race (1565); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1591. **The coverage pair's word: frame 1719, 15 versus 16 draws**,
-    index 11: ours `Farms::inc_time+0x1ae`, theirs
-    `Object::take_damage+0xe1`. Inside run710 (block 1720), widened by
-    `run710_s_word_frame_is_widened_whole` (360 keys): `1/40` ashore on
-    1703 (`pos` y 37176 against 37128), `0/2000`'s `damage` 1560 on 1720 —
-    1589's hypotheses. No mechanism.
+1594. **The coverage pair's word: frame 1960, 36 draws a side**,
+    index 0 (the count parts on 1982): ours `set_anim < Guy::do_turn <
+    Unit::move_step+0x389`, theirs `set_anim < Guy::move+0x19f`. Inside
+    run711 (block 1961), widened by `run711_s_word_frame_is_widened_whole`
+    (2077 keys): `1/42`/`1/62` a slot swap on 1961; the human leader's
+    `active` 14 against 0 from 1738 — 1591's hypotheses. No mechanism.
 
 1565. **Great Sahara in the coverage lobby: frame 1582, 28 versus 29
     draws**, index 8: ours `Leader::make_stuff+0x63d`, theirs

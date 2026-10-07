@@ -2431,9 +2431,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // 1409, item 1558), and run710's frame-1532 word (block 1533, item
     // 1563), frame-1610 word (block 1611, item 1586), frame-1696 word
     // (block 1697, item 1588) and frame-1719 word (block 1720, item 1589),
-    // each with two either side; the third map's lobby's run683 frame-1582
-    // word (block 1583, item 1561), frame-1818 word (block 1819, item 1565)
-    // and frame-1830 word (block 1831, item 1581).
+    // and run711's frame-1960 word (block 1961, item 1591), each with two
+    // either side; the third map's lobby's run683 frame-1582 word (block
+    // 1583, item 1561), frame-1818 word (block 1819, item 1565) and
+    // frame-1830 word (block 1831, item 1581).
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2449,6 +2450,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN710, 1611),
         (super::coverage_pair::RUN710, 1697),
         (super::coverage_pair::RUN710, 1720),
+        (super::coverage_pair::RUN711, 1961),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),
@@ -2722,7 +2724,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1443: run603 has paired cast orders; both fields leave the pin.
     // Item 1439: run594 carries a paired cast; both fields leave again.
     // Item 1440: 18089 has no paired cast; both return to the pin.
-    // Item 1583: run702's window carries the silo's missile order (the
+    // Item 1591: run710's ICBM `1/42` holds its `AIR_ATTACK_GROUND` from
+    // 1570 to 1600 in both, so the air ground order's four, the air
+    // order's six and the patrol's three leave the pin.
+    // Item 1583 (the same silo, on the third map): run702's window carries the silo's missile order (the
     // air attack on the ground, `docs/AI.md` §158): the air-order fields
     // (`ag_*`, `air_*`, `cruising_alt`, `patrol_*`, `returning`,
     // `sharp_turn`, `waypoint`) are compared and leave the pin (measured
@@ -2861,6 +2866,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_583 = super::coverage_pair::coverage_frame_583_window();
     let coverage_982 = super::coverage_pair::coverage_frame_982_window();
     let coverage_1277 = super::coverage_pair::coverage_frame_1277_window();
+    // Item 1591: and run710's, where it stood before run711.
+    let coverage_1532 = super::coverage_pair::coverage_frame_1532_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2935,6 +2942,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_583,
         coverage_982,
         coverage_1277,
+        coverage_1532,
         coverage,
         sahara_12,
         sahara_720,

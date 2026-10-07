@@ -8894,7 +8894,8 @@ branch that reaches the call:
   - not `leader_flags2 & 8`, the combat AI's scenario switch, which `ai
     off` does not touch.
 
-  A base that `is(MISSILESILO)` takes the silo's arm instead. Otherwise the
+  A base that `is(MISSILESILO)` takes the silo's arm instead (built by
+  item 1591 for a nuke at the chain's head, `docs/AI.md` §164). Otherwise the
   best target is chosen over the eight leaders `L` with `leader_flags & 3
   == 3` that the owner is not at peace with (`is_peace` answers no for a
   player and itself). A strictly greater value replaces the best, from −1:

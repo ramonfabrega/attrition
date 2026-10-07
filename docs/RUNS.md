@@ -15690,8 +15690,8 @@ Archive `rontrace-run710.log`, 38,386,464 bytes,
 SHA-256 `5c00f7e7d128e85a3e3e7f1f4865931282a963354d855f6e22db0a61f38024b2`.
 
 **What it holds**: `diff::coverage_pair::run710_s_word_frame_is_widened_whole` — 1,034 keys on item 1563's tree, 167 standing on
-block 1527, army 1's five units among them; the first parting past it is `1/28`'s on 1528. It is the coverage pair's `AI_WORDS`
-window (`coverage_pair_word_window`), walked by the compared pin with run669's, run672's, run678's and run679's
+block 1527, army 1's five units among them; the first parting past it is `1/28`'s on 1528. It was the coverage pair's `AI_WORDS`
+window (`coverage_pair_word_window`; `coverage_frame_1532_window` since item 1591 took run711), walked by the compared pin with run669's, run672's, run678's and run679's
 (`coverage_frame_1277_window` since), and the coverage driver reads its block 1533. `docs/AI.md` §155.
 
 
@@ -15711,3 +15711,26 @@ SHA-256 `afb310c73c36df9fddf81fe6b5cf03ef8ee7e85fd6601cac5c60177427ccfc80`.
 
 **What it holds**: `diff::sahara_coverage::run702_s_word_frame_is_widened_whole` — **1398** keys parted on the merged tree (154 standing on block 1979). The first state past the standing block is Persian city `1/2018`'s
 `bordering` on 1980, then leader 1's make list on 1981 (the Supply Wagon against the MLRS in row 1). `docs/AI.md` §157.
+## run711 — the coverage pair: East Indies, Persians, All Technologies, blocks 1954..2210 at the long's detail (2026-10-07, item 1591)
+
+**Disk gap**: run710 ends at block 1783 and run652 holds the draw stream; nothing dumped this lobby's records at the word's frame,
+1960 (36 game draws a side, index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs
+`Guy::set_anim+0x97a < Guy::move+0x19f`; the count parts on 1982), whose block is 1961. run710's recipe with the window moved,
+through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 2219 --timeout 3600 --log-window 1954 2211
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take: receipt `success: true`,
+`settings_restored: true`, exit 0, launched 06:16:56, launch-to-exit 1,239 s, 2220 frames, seed 12345 and map 18 verified;
+output `~/ron-data/lab-captures/2026-10-07-run711`. Blocks `1954`..`2210` whole and a `2220` closing block (258 `BEGIN
+FRAME`s). `rngcmp.py rontrace-run652.log rontrace-run711.log`: **2,220 frames in common, 0 differing**. `MAP_STYLE 18`,
+`DIFFICULTY 5`, `STARTING_RESOURCES 7` read back. Copied from the output directory to the archive names below.
+
+Archive `gamelog-run711-eastindies-persian-alltech-window-1954-2210.txt`, 528,063,208 bytes,
+SHA-256 `6e550d5b36b699465df65d0789ebc00e8199e2789ab0ec83efe82da55263e8bd`.
+
+Archive `rontrace-run711.log`, 51,276,160 bytes,
+SHA-256 `daaaed96dffc55052da6056688c1258def5b6a97641f59a18480df6686cbaf60`.
+
+**What it holds**: `diff::coverage_pair::run711_s_word_frame_is_widened_whole` — 2,077 keys on item 1591's tree, 310 standing
+on block 1954; the first parting past it is `1/40`'s on 1956. It is the coverage pair's `AI_WORDS` window
+(`coverage_pair_word_window`), walked by the compared pin with run710's (`coverage_frame_1532_window` since), and the
+coverage driver reads its block 1961. `docs/AI.md` §164.
