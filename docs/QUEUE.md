@@ -17,13 +17,13 @@ DECISIONS 63): French East Indies **closed at 17,379**; Toughest **closed
 at 15,432**; Great Sahara in the coverage lobby **1582**; the coverage
 pair **1408**. The twenty-seventh tranche counts from the pass's commit.*
 
-- **The suite lane first** (DECISIONS 63, amended with Ramon): 1567 (a)
-  landed — the lane gate is `--lane --tests <the word's filters>`, 703 s
-  → 74 s; (b) landed — `~/wine-ron-2` reproduces run676, two captures ran
-  at once; 1569 (Opus 5.5, the same lane) pools the lanes; then the commander spawns
+- **The suite lane first** (DECISIONS 63, amended with Ramon): landed —
+  the lane gate is `--lane --tests <the word's filters>`, 703 s → 74 s;
+  the click-free lanes are a pool (lanes 1–3, `RON_LANES_MAX=3`, no
+  caller names a lane); 1571 (Opus 5.5) measures the index; then the commander spawns
   1563 (Opus 5.5) and 1565 as a **five-landing race**, Opus and Sonnet
   each in its own worktree, run range and prefix, nothing merged between
-  them; 1497 waits. Next run 687, next section §155.
+  them; 1497 waits. Next run 690, next section §155.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3); 1563's
   first row is 1450's: the shared widening takes `ever_seen` (1558's cause).
 - **A lane that lands second takes `ccc update att-<n> --keep-conflicts`**
@@ -39,13 +39,13 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1569 lands, the pass merges it, writes the race's protocol
+**Opener: 1571 lands, the pass merges it, writes the race's protocol
 here, then spawns `commander` (Opus 5.5) for the twenty-seventh
 tranche — 1563 on Opus 5.5 and 1565 as the race.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The suite lane (1569)
+In dependency order, headline-nearest first. **The suite lane (1571)
 first; then two word lanes**: the newest pair's (1563) and the third
 map's race (1565); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
@@ -66,14 +66,14 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     Refinery 1/2045's site, y 22176 against 19872, city 1 against 2.
     No mechanism.
 
-1569. **The suite lane: the pool, then the index** (1568's successor;
-    (b) landed: `~/wine-ron-2` reproduces run676 (Great Sahara) to the
-    frame, 685 and 686 ran at once): (b2) no caller names a lane — the launcher takes the
-    first free click-free prefix, grows to `RON_LANES_MAX` by `lane.sh N`
-    with the rngcmp admission run, else waits; the queue lane and the pool
-    exclude each other; a take/release log and a reader for occupancy and
-    minutes waited at cap — score: two captures with no lane named land on
-    two prefixes; (c) a sidecar index on one window, its tests timed — the ratio.
+1571. **The suite lane: the index shared** (1569's successor; the pool
+    landed: runs 687 and 688 with no lane named took lanes 1 and 2, lane 3
+    admitted by 689, `lanes.py` reads peak, waits and frames a second):
+    the frame index `capture::indexed` builds on every read is shared in
+    process like the text — weak, by path, length and mtime — because the
+    four Great Lakes widenings (run226, 218, 211, 202; 192 s alone) index
+    the same fourteen captures at ~15 s each; score: those four tests'
+    seconds alone and the suite's, before and after; a sidecar only if a cold run needs it.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
