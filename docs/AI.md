@@ -17262,7 +17262,7 @@ lane's own reading took `SEARCH_FRIENDLY` for the owner's allies too; §164 read
 asker alone, and no capture puts an ally's object beside a target city to tell them apart.
 
 **Mutations** (`tools/mutate.py`, scored by cargo's exit): the silo's call removed — held by
-`run693_s_word_frame_is_widened_whole` (1316 → 1328 on this lane's build).
+`run693_s_word_frame_is_widened_whole` (1316 → 1328 on this lane's build; 1313 → 1328 on the merged tree, at 1591's call).
 
 **Coverage.** Diff-backed: the nuke's order (target, frame) and launch on Great Sahara (run693, run676's trace).
 
