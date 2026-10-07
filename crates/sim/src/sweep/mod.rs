@@ -12,15 +12,25 @@
 //! as `path::tests::the_emulated_original_agrees_on_every_row` does.
 
 mod build_type_corner_tile;
+mod build_type_get_good;
+mod city_get_empty_trade_routes;
 mod cosx;
 mod farms_grow;
+mod farms_snip;
+mod find_angle;
 mod flanking;
 mod gather_point_is_inside;
+mod good_type_compute_largest_gather;
 mod object_is_in_range;
 mod reversing;
 mod unit_get_speed;
 mod unit_mana_left;
+mod unit_type_get_stance_type;
 mod wcoord_to_tcoord;
+mod world_get_land;
+mod world_has_blocked_neighbors;
+mod world_is_ocean;
+mod world_space_at_corner;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
 /// `None` (said on stderr) where the install or `uv` is absent.
