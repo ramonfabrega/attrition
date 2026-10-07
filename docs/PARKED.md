@@ -3770,6 +3770,18 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1572) **A lane's own status strands the waiter** (the twenty-sixth
+pass, 2026-10-07, at 1569's landing): `tools/lanewait.py` exits `ENDED
+<lane> blocked` when a row has left `working`, and a lane that wrote
+`blocked — awaiting timings from steer session` as its own status and
+never refreshed it read that way for an hour while its pane showed it
+writing code; three re-arms exited at once, and the commander's wait on
+it was dead until the lane refreshed its row. A row's self-written
+state is not the harness's: the waiter could read the pane's activity
+(ccc's `busy`/`idle`, which stayed `busy`) beside the state, or treat
+`blocked` with a `detail` the lane wrote as working until the pane
+goes idle. One reach.
+
 (1570) **Retire the queue lane** (the twenty-sixth pass, with Ramon,
 2026-10-07, at 1568's landing): the click-free lane is pooled now
 (1569) and the mouse lane is the one lane that cannot join it — it owns
