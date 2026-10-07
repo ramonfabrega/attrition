@@ -52,6 +52,12 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1549, 2026-10-06 — the oil well's stand
+
+(1556) **Great Sahara's coverage pool 66 `held` `[17]` on 742** (1549's
+journal): ours against the original's none, the first row past
+run680's standing block; names no score yet.
+
 ## Parked by item 1546, 2026-10-06 — the second capital
 
 (1553) **What 1546 left beside the second capital** (AI §149): the
@@ -3757,6 +3763,12 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1557) **`ccc update` takes the lane's ref, not a SHA** (1549's Loop
+line, 2026-10-06): a commander's "take `ccc update` onto <sha>" is
+one word off what the verb takes; a brief's and a message's template
+could say `ccc update <lane ref>` and name the SHA only as the base it
+lands. One reach.
 
 (1554) **A standing row the word's readers read is ranked nowhere**
 (1546's Loop line, 2026-10-06): the cause was a standing row on a new

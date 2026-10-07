@@ -7879,6 +7879,20 @@ impl Sim {
                 self.buildings[b].recharging += 1;
                 self.buildings[b].gather_bumped = true;
             }
+            // **The farm animation, and its guard** (`do_gather@005ef2a0:377`):
+            // a guy already on `CHAR_FARM` returns here, and any other is put
+            // on it before it is turned — so `Guy::move`'s arrival test, which
+            // wants `CHAR_WALK`, never sees the walk the turn arm puts back
+            // and the arrival stand `Guy::move+0x19f` is never rolled
+            // (`docs/AI.md` §150, item 1549).
+            if self.units[u]
+                .guys
+                .first()
+                .is_some_and(|g| g.anim == anim::FARM)
+            {
+                return;
+            }
+            self.set_anim(u, anim::FARM, false, true);
             self.units[u].movement.set_heading(Angle(0x4000_0000));
             let stand = Pos::new(bpos.x + OILWELL_OFFSET, bpos.y);
             if self.world.accepts(stand) {
