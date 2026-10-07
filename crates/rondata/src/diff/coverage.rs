@@ -213,9 +213,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1546: Arak, the Persians' third, named on run678's block 1184.
     // Item 1561: Tabriz, the Persians' fourth, named in run683's window.
     // Item 1565: Khomein, the Persians' fifth, named on run683's block 1819.
+    // Item 1581: Rigan, the Persians' sixth, named on run702's block 1986.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Tabriz York flags increment length size",
+        "Amiens Arak Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
