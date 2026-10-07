@@ -6940,6 +6940,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("coverage_pair_first_parting", 4),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
+    // And run714's, which walks past it to the word 2288 (item 1598).
+    ("run714_s_word_frame_is_widened_whole", 4),
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
     // walk fails).
@@ -8744,12 +8746,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // value diff on the ICBM `1/42` from 1570. Item 1594 moved it to
     // **2166**, inside run711 (block 2167); run711's test keeps the move's
     // value diff on the gap's births and the platform's citizen on 1954.
+    // Item 1598 moved it to **2288**, past run711's last block (2210), and
+    // took run714 over 2283..2539 (block 2289); run710's and run711's tests
+    // keep the move's value diff on the landing `1/40` from 1703 and the
+    // chain to 2166.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run711_s_word_frame_is_widened_whole"),
-        1594,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1960),
+        Some("run714_s_word_frame_is_widened_whole"),
+        1598,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2288),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

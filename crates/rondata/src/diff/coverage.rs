@@ -2430,7 +2430,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // 1563), frame-1610 word (block 1611, item 1586), frame-1696 word
     // (block 1697, item 1588) and frame-1719 word (block 1720, item 1589),
     // and run711's frame-1960 word (block 1961, item 1591) and frame-2166
-    // word (block 2167, item 1594), each with two either side.
+    // word (block 2167, item 1594), and run714's frame-2288 word (block
+    // 2289, item 1598), each with two either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2448,6 +2449,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN710, 1720),
         (super::coverage_pair::RUN711, 1961),
         (super::coverage_pair::RUN711, 2167),
+        (super::coverage_pair::RUN714, 2289),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),
@@ -2721,13 +2723,15 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1591: run710's ICBM `1/42` holds its `AIR_ATTACK_GROUND` from
     // 1570 to 1600 in both, so the air ground order's four, the air
     // order's six and the patrol's three leave the pin.
+    // Item 1598: run714's window carries a paired strafe; `strafe_xx` and
+    // `strafe_yy` leave the pin.
     (
         "OrderDump",
         "attempts build_type \
          garrison_search \
          metric non_flat_gather \
-         orig_x orig_y retry strafe_xx \
-         strafe_yy tolerance uid ",
+         orig_x orig_y retry \
+         tolerance uid ",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
@@ -2857,6 +2861,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_1277 = super::coverage_pair::coverage_frame_1277_window();
     // Item 1591: and run710's, where it stood before run711.
     let coverage_1532 = super::coverage_pair::coverage_frame_1532_window();
+    // Item 1598: and run711's, where it stood before run714.
+    let coverage_1960 = super::coverage_pair::coverage_frame_1960_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2869,6 +2875,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2930,6 +2937,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_982,
         coverage_1277,
         coverage_1532,
+        coverage_1960,
         coverage,
         sahara_12,
         sahara_720,
