@@ -1671,10 +1671,17 @@ has no distance test at all**; the list path, which walks the per-leader
 object arrays instead, keeps a candidate when `vector_dist − R <= range`, R
 its `push_size` at sea and its `big_radius` otherwise, walking by leader and
 object number (`65aa72..65aaa6`; twenty-fourth pass, group 9). The `0x200` flag is the
-region gate — the cell's `+4` against the query point's — and on the list path
-`find_units` computes the query cell as `div_3_table[pos >> 6]`, a **tile**
-coordinate indexed into the cell grid, where every other site uses `>> 8`.
-That is the original's own arithmetic and is not reproduced here.
+region gate. ~~The cell's `+4` against the query point's — and on the list
+path `find_units` computes the query cell as `div_3_table[pos >> 6]`, a
+**tile** coordinate indexed into the cell grid, where every other site uses
+`>> 8`. That is the original's own arithmetic and is not reproduced here.~~
+In `find_builds` it is the cell's `+4` against the query point's cell, on the
+circle path per cell and on the list path per building. In `find_units` it is
+`WorldData::get_tregion` at `div_3_table[pos >> 6]` — a **tile** region, the
+coastal cell's `region2` for its water — of **each candidate unit** against
+the query point's, on **both** paths: the circle walks every cell of the ring
+and gates per unit, never per cell. Item 1563 built the circle arm
+(`docs/AI.md` §155); item 1544 had built the list arm (§148).
 
 `FILTER_CONSTRUCT` is arm 5 of `Search::valid_filter@0067dbb0`'s jump table
 (the index is `filter − FILTER_TYPE`; the table is at `0067e57c` and the arm

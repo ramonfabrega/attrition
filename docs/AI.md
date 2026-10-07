@@ -16990,10 +16990,70 @@ Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchang
 
 **Coverage.** Diff-backed: the cause (the word moves 1250 → 1582 and `1/35` agrees through block 1447; run681's keys 885 → 185). Reading-only: the second term of `is_enemy`.
 
-## 155. Reserved for item 1563 (the coverage pair's word 1408)
+## 155. A builder at sea is in another region, and the word at 1532 (2026-10-07, item 1563)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1558 left the coverage pair's word at **frame 1408, ours 39 game draws
+against 40, index 25**: ours `Objects::process_all+0x2df`, theirs `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89`,
+then `Guy::init_real < Unit::init < Objects::init_unit`. run679 (1272..1528) holds it whole. Each claim is *diff-backed* unless
+marked.
+
+0. **The vision bytes first** (parked 1450's ruling, the twenty-sixth pass). The shared instrument (`harness::compare`'s
+   building arm) compares `ever_seen` and `ever_seen_completed` on every linked building of every frame it walks, and both
+   leave `coverage::UNCOMPARED_BY_THE_INSTRUMENT`. On every window the compared pin walks, and on run56's, run57's and run58's
+   3,000–5,200 frames, **nothing parts**; on the coverage pair's word frames 1340 and 1408 every building agrees. What parts is
+   one residue, on a game's **closing block** only: the second pair's East Indies 18141 (`1/2056`..`1/2062`) and French Great
+   Lakes 5639 (`1/2019`..`1/2025`) read 3 in the original against ours' 2 in both bytes (`1/2020`'s `ever_seen` 1) — the
+   defeated human's bit, set on the block the game ends. Item 1446's own walk of the French windows
+   (`east_indies_wonder_start_is_first_contact_on_every_building`) retires into the shared instrument: with the wonder's start
+   write dropped, 33 of `diff::third_pair`'s walks fail without it.
+1. **The draws, both sides** (run652's trace, `report.py draws 1408`). Both spend 25 animal draws first; the original then spends
+   `Unit::do_cast`'s stand (seed `bca58498`) and a `Guy::init_real` birth (`b6833f17`) — the citizen **`1/8`** (`TypeIndex` 50,
+   `PEASANTS`, land) casting its transport, the barge `1/46` — where ours spends neither.
+2. **Walked back to its first parted field** (run679, `RON_FIRSTS`, `RON_DEBUG_UNIT=1/8@1330-1342`). `1/8`'s stack agrees through
+   block 1339 (`[Build 2024]`, the site it is finishing at (40344, 36168)); on 1340 both hold `[ExploreTo, Build]` and the field
+   list parts: `orders_x/y`, the move's `x`, `y`, `angle`, `off_x/y` — ours (36168, 35976), off (72, 648), angle −1036976128,
+   against (37416, 33864), (552, 72), −346619904. A probe in `swarm_around` names the sites: ours sends `1/8` to the **Bunker
+   `1/2030`** (35712, 35904), the original to the **Mine `1/2028`** (37248, 33600) — its approach is exactly ours' `1/2`'s ring
+   spot for 2028.
+3. **The chooser** (`build_done` → `Unit::find_build_spot@00603e20`, `docs/ORDERS.md` §5.5). Every player-1 stack agrees on 1339
+   (the dump's own and ours, unit by unit). Ours' candidates, by the circle, are `[2030, 2028, 2027]` and its tally **`[2, 2, 2]`**
+   (a probe in `find_build_spot`): `1/11`, `1/12` on 2030; `1/7`, `1/24` on 2028; `1/6`, `1/9` on 2027 — the tie to 2030. `1/20`
+   (34776, 35322), whose action is 2028 too, is out of ring 6 on both sides. 159 live units against `circle_radius[6]`'s 145:
+   the circle walk.
+4. **The region gate** (`Objects::find_units@0065a620`, the decompile's circle loop): with `0x200` the query's tile region is
+   `WorldData::get_tregion` at `div_3_table[pos >> 6]`, and **every unit of every cell of the ring** is gated by its own tile's
+   region against it — the cell itself is never region-tested. Ours tested the cell's `region` and counted every unit in it.
+   `1/24` (42665, 36966) is a citizen carried at sea towards the Mine — its tile is the water of a coastal cell, `tregion_alt`
+   0 against the searcher's 12 — so the original counts 2028 at **1**, and the first strict minimum is 2028.
+
+**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders.rs`) walks every cell of the ring and gates each unit by
+`World::tregion_alt` of its own tile against the searcher's, as the list walk has since §148. Unit test
+`cities_tests::the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water`: a builder on a coastal cell's water is not
+counted (the tie goes to the first site), one on its land is. `docs/ORDERS.md` §5.10's region-gate paragraph is struck and
+amended.
+
+**The value diff, and the word now.** run679 block 1340: `1/8` holds `[ExploreTo (37416, 33864), off (552, 72), angle
+−346619904, Build 2028]` in both; it casts on 1408 and is inside `1/46` on 1409 in both, and no key of `1/8` parts past its
+standing `form`; the scout `1/0` agrees through the window (its barge on 1424 was `1/47` against `1/48`). **run679 457 keys →
+203.** `coverage_pair_first_parting`: **frame 1408 → 1532, count and sequence** — ours 13 game draws against 11, index 8: ours
+`Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae`; theirs spends four `Unit::do_move+0xe84 < Unit::do_attack_to` draws,
+ours six. Past run679, so **run710** (1527..1783, `docs/RUNS.md`) and `run710_s_word_frame_is_widened_whole` (block 1533):
+1,034 keys, 167 standing on 1527 — among them army 1's `1/28`, `1/38`, `1/43`, `1/44`, `1/45`, apart by hundreds there. Walked
+back on run679 (the fixed tree): the army parts first on **1435**, by a few units (`1/38` (42511, 37009) against (42517, 37030),
+`1/43`, `1/45`), and before it, on **1420**, ours holds the site `1/2037` alone (`build:extra`). The first parting past run710's
+standing block is `1/28`'s on 1528 (`half_step`, its move's `dest_x/y` (40200, 40968) against (39432, 41736)). Hypotheses for
+the item after, not a cause. `cargo test --release -p sim -p rondata` on the built tree: rondata 769 passed, the one red the
+handoff's `Coverage pair:` line; sim 1,418 passed.
+
+**Mutations** (`tools/mutate.py` on `d6c06b6c`): the circle's per-unit region gate dropped — held by
+`coverage_pair_first_parting`, run679's widening and the unit test; the wonder's start write dropped (`update_local_seen_build`'s
+`0xff`) with 1446's test skipped — held by 33 of `diff::third_pair`'s walks.
+
+**What is not established.** The circle walk's other gates (`valid_search`, the `+8`/`+0xbc` vslots, `valid_filter`'s
+`FILTER_BUILDREPAIR` arm) are read as ours' tally's alive-and-friendly test, as §148 left them. Whether the closing block's
+`ever_seen` bit is the defeat's reveal or the game's end is unread: it is a residue of two closings, and no walk reaches a third.
+
+**Coverage.** Diff-backed: claims 0–4 (the word moves, `1/8` agrees through run679). Reading-only: the circle walk's other gates.
 
 ## 156. Reserved for the race on item 1565, its landing 1 (Great Sahara's coverage word 1582)
 

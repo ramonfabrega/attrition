@@ -794,11 +794,11 @@ pub(crate) const RUN679: &str = "gamelog-run679-eastindies-persian-alltech-windo
 /// The window: block 1272 through 1528; the word 1277's own block is 1278.
 pub(crate) const WIDENING_COVERAGE_FRAME_1277: (i64, i64) = (1272, 1528);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run679 walked from run651's start with the recorder on. It holds the
 /// word 1277 (item 1552), block 1278, and the word 1408 (item 1558), block
-/// 1409.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// 1409; it was the `AI_WORDS` window until item 1563 moved the word past
+/// it, to run710's.
+pub(crate) fn coverage_frame_1277_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -815,7 +815,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run679_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_1277_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -868,6 +868,58 @@ fn run679_s_word_frame_is_widened_whole() {
     pin_eq!(
         first,
         Some(1277),
+        "the first parting past the standing block"
+    );
+}
+
+/// run710, item 1563: the lobby's blocks 1527..1783 at the long's detail —
+/// the word 1532's block 1533 with six before it and 250 after.
+pub(crate) const RUN710: &str = "gamelog-run710-eastindies-persian-alltech-window-1527-1783.txt";
+
+/// The window: block 1527 through 1783; the word 1532's own block is 1533.
+pub(crate) const WIDENING_COVERAGE_FRAME_1532: (i64, i64) = (1527, 1783);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run710 walked from run651's start with the recorder on. It holds the
+/// word 1532 (item 1563), block 1533.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run710",
+        &[(RUN710, 1527)],
+        WIDENING_COVERAGE_FRAME_1532,
+        1,
+        &[1533],
+        true,
+    )
+}
+
+#[test]
+fn run710_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **1034** on the tree item 1563 landed; 167 stand from the window's
+    // first block, among them army 1's `1/28`, `1/38`, `1/43`, `1/44` and
+    // `1/45` — apart by a few units from run679's block 1435, and by
+    // hundreds here. Before them, on run679's 1420, ours holds the site
+    // `1/2037` alone. The next item's hypotheses, not a cause.
+    pin_eq!(w.firsts.len(), 1034, "initial run710 baseline");
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1527)
+        .min();
+    // `1/28`'s `half_step` and its move's `dest_x/y` (40200, 40968) against
+    // (39432, 41736), four blocks before the word's 1533.
+    pin_eq!(
+        first,
+        Some(1528),
         "the first parting past the standing block"
     );
 }
