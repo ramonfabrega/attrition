@@ -24,7 +24,6 @@ mod wcoord_to_tcoord;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
 /// `None` (said on stderr) where the install or `uv` is absent.
-#[allow(dead_code)] // the ten modules call it; the scaffold lands first
 pub(crate) fn emu_rows(script: &str) -> Option<String> {
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
     let Some(install) = crate::testenv::install_root() else {
