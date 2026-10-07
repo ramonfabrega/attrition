@@ -6747,6 +6747,30 @@ fn a_persian_second_city_is_a_second_capital_and_the_third_is_not() {
     }
 }
 
+/// **The capital's territory bonus is the founding capital's** (item 1611,
+/// `compute_reg_territory@006b0bb0:445`–`:464`): the border sum adds
+/// `CAPITAL_TERRITORY_BONUS` for `city_flags & 0x4000` or a Forbidden City
+/// and the level's own bonus for every other city — the Persians' second
+/// capital (`0x10` alone, `Build::activate:518`) included. Great Sahara's
+/// `1/2018` took the capital's bonus here, claimed eight more of the human
+/// Napata's cells on 1089 and parted the whole territory table by 35 cells.
+#[test]
+fn a_second_capital_projects_its_level_s_border_not_the_capital_s() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.set_tribe(0, 23);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 3;
+    let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
+    assert!(sim.cities[c1].capital && !sim.cities[c1].founding_capital);
+    let bonus = |sim: &Sim, c: usize| sim.sources[sim.cities[c].source.expect("a source")].bonuses;
+    assert_eq!(
+        bonus(&sim, c0) - bonus(&sim, c1),
+        sim.tuning.capital_territory_bonus - sim.tuning.city_upgrade_terr[0],
+        "only the founding capital takes the capital's bonus"
+    );
+}
+
 /// **A gather enhancer stays in the city it is placed for** (item 1565,
 /// `docs/AI.md` §156). `Leader::produce_building`'s spiral, for a type
 /// `is_gather_enhancer` answers, drops every candidate whose

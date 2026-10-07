@@ -3805,6 +3805,12 @@ and `UnitData::get_speed`'s land arm and group cap (`div_3_table`); (e)
 `Sim::unit_speed` reads the domain from the type, `get_speed_at` from
 `unit.kind.domain`. No frame reaches any of them today.
 
+(1621) **The capital flag's other writer, and diplomacy** (1611,
+2026-10-07): (a) the Senate's capital move now projects the level's bonus,
+not the capital's, because it sets `0x10` alone (`Build::activate:274`,
+listing-backed) — no capture parts on it; (b) `Leader::diplomacy@006bc950`
+(3,282 lines) is not carried and holds the other `treaties` readers.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3945,6 +3951,15 @@ row for any of the trial's twenty spawns, so output tokens — the dearest
 class — are an estimate in its table and every USD is a floor. A trial
 that prices per function wants that row, or the parent's notification's
 `subagent_tokens` split by class. One reach.
+
+(1622) **1611's Loop lines** (2026-10-07): (a) the brief's "grep each
+value the booking names" found nothing for a value diff between two
+destinations; reading both sides' printed state (`RON_DEBUG_UNIT` beside
+the dump) did, and the next word's cause parted 205 frames early with
+every draw agreeing — a checklist row "list the firsts of the unit the
+word's draws name, whatever the frame"; (b) the brief's whole-suite width
+(`tools/memcap.sh 20`) is another box's: 4 threads reach 12 GiB on this
+tree and 8 reach 14.5. One reach each.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
