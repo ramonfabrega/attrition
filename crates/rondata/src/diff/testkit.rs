@@ -8730,7 +8730,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
         None,
-        1549,
+        1555,
         None,
     ),
     (
