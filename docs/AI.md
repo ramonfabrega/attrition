@@ -16889,7 +16889,46 @@ timing; the capture agrees on the Merchants' picks, not on the frame the Wool wa
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 154. Reserved for item 1561 (Great Sahara's coverage word 1250)
+## 154. A walker blocked by a walking animal repaths, and the word at 1582 (2026-10-06, item 1561)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run681's widening (`diff::sahara_coverage::run681_s_word_frame_is_widened_whole`, the word 1250's block 1251), `Sim::sweep_watch` (`RON_SWEEP=1247:1/35`) on
+the word's frame, the dump's `diplos`/`treaties` rows, `Unit::resolve_unit_collision@005f9d30`'s listing (step 5) against `LeaderData::is_enemy@006ebaa0`, and run683's
+widening (`run683_s_word_frame_is_widened_whole`, blocks 1577..1833, the new word's block 1583).
+
+**The word.** Great Sahara in the coverage lobby parted on **1250** (item 1555's): ours 10 draws against 9, index 0, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`
+(unit `8/2`), theirs `Animal::do_idle+0x83`. `8/2` is a gaia animal (`TypeIndex` 413, domain gaia) walking toward (39048, 20424); its stand roll is one ours makes and the
+original does not, and its step on 1250 differs (ours (38360, 20200), theirs (38382, 20208) on block 1251).
+
+**The first parting on the frame's state is earlier: `1/35` on 1248.** `1/35` is a Persian soldier (`TypeIndex` 104, land, army 0) on an `AttackTo` to (36456, 19080). On
+1247 it proposes (38371, 20297) and the sweep (`RON_SWEEP=1247:1/35`) hits cell (798, 421) — the block of `8/2`, which has stepped ahead of it that frame
+(gaia is the ninth owner band, before player 1 in 1247's rotation): `will 1 … 8/2=1,corner 0 hard 8/2`. Both sides collide on 1247: the original's `collide_frame` reads 1247 (block 1429's record) and ours' `collide` is 1 on 1248. They part in
+what the collision does next. Ours **waits** — `waiting_on`, no step — and stands at (38398, 20336) on 1248..1251 (its `collide` counter 1, 2, 3, 4 by 1251 against the original's 1 on 1249); the original steps (38376, 20328) on 1248 and its path's fifth and sixth nodes are another route's ((37992, 20328) and (38088, 20424) where ours keeps (38328, 20040) and
+(38328, 20232)): **it repaths**.
+
+**The cause.** `resolve_unit_collision`'s step 5 (`005f9d30`, the branch at `LAB_005fa559`, the wait) waits only when `LeaderData::is_enemy(my leader, collider's owner) == 0`. `is_enemy` is
+`param != who && (diplos[param] == 0 || leaders.list[param].diplos[who] == 0)` (`006ebaa0`), and **`diplos` is `int[8]`**: for a gaia collider (owner 8) the read goes past the array into
+`treaties[0]` (`+0x94`), and the second term reads the gaia leader's own `diplos[who]`. The dump prints Persian leader 1's `treaties[0]` as **0** (the `LEADERDATA` block's `treaties[scan]`
+row, 0 for every leader but the first's own), so the first term is 1: a gaia collider is "an enemy" to the AI, and the walker **never waits for an animal** — it repaths. This crate
+answered `at_war_with(1, 8)` out of its table and read false, so it waited. Built: step 5's `enemy_owner` is `is_gaia() || at_war_with(…)`.
+(`docs/ANIM.md` §6.1 had said `is_enemy(8)` "is never asked for"; step 5 asks it, and is the one place a walker's collider can be gaia and moving.)
+
+**The move.** Run681's keys **885 → 185**, `1/35` agrees in every compared field through the window, and the word goes **1250 → 1582**: ours 28 draws
+against 29, index 8, ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Every closed word and floor held — the full `rondata` and `sim` suites (`cargo test
+--release`) moved only the two partings' pins; the walk reaches a walking animal in no earlier capture.
+
+**The new word, read.** Frame 1582, block 1583 (run683). The draws agree through index 7 (two `make_stuff+0x221`, three `+0x63d`, three `produce_building+0x1805`); the original
+spends a **fourth** `produce_building+0x1805` (the placement jitter, a 2×2 of sub-positions, one roll per unblocked one, §2.20) where ours goes on to `make_stuff+0x63d`. The
+record is the Persians' **`REFINERY`** (`orig_type` 426) `1/2045`, bought for city 2 (`1/2006` at (27744, 19296)) by a `MAKE` row both sides print alike (`t 426 city 2 escrow 1`,
+`val` 307200): in the original it stands at **(30432, 19872)**, `city` 2, chained after `1/2006` (`city_down` 2045); in ours at **(30432, 22176)**, `city` 1, chained after
+`1/2041`. The next rolls of the stream sit a place off, so the human's `0/5` and `1/65` re-target on the same block (their `orders_x/y`, `dest_angle`) — they are downstream, not
+the cause. No mechanism: the spiral's pick for an enhancer in a city with no Oil Well near it is the next item's first read.
+
+**What is not established.** The gaia leader's own `diplos[who]` (the second term) is read as non-contributing, because the first term already answers for the AI; the human's
+`treaties[0]` of its own reads 1 in the dump, so a human walker's wait on an animal would rest on that leader's `diplos` alone — no capture has one. The Persian leader's `treaties[0]` is
+the measured 0 on every block of this lobby; a game in which the AI has *met* the human (the met bit is `treaties[i] & 1`, §55) would make the first term 0 and the original would wait.
+Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchanged here: no capture has a gaia collider on an attacker's step.
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the `is_gaia()` arm dropped — held by `sahara_coverage_first_parting`, `run681_s_word_frame_is_widened_whole` and the unit test
+`a_walking_animal_in_the_way_is_not_waited_for`.
+
+**Coverage.** Diff-backed: the cause (the word moves 1250 → 1582 and `1/35` agrees through block 1447; run681's keys 885 → 185). Reading-only: the second term of `is_enemy`.

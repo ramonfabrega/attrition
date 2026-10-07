@@ -15475,3 +15475,21 @@ SHA-256 `ce61da7ffaf9ab0b950c62e0bfae5251c9739a3bc2ee45829384399e4ac10e2d`.
 **885** after item 1555's build (the border pass's rare arm). The word 1197's block is 1198 and the word 1250's, 1251; the first state past the standing block is
 leader 0's `production_step` on 1201, and the first state the original and ours place differently is the Persian Merchant `1/38`'s order on 1197.
 `docs/AI.md` §152.
+
+## run683 — Great Sahara in the coverage pair's lobby: the word 1582's widening, blocks 1577..1833 (2026-10-06, item 1561)
+
+**Disk gap**: run681 holds blocks 1191..1447, so no dump of this lobby held a unit, a building or a leader record at the word's frame 1582 (block 1583), which item 1561's
+build (a walker blocked by a walking animal repaths) moved the word to from 1250. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 1841
+--timeout 3600 --log-window 1577 1834 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch (21:05). Receipt `success`, 1842 frames, closing frame 1842, launch-to-exit 917.6 s, total 938.7 s, five
+files restored. `rngcmp.py rontrace-run676.log rontrace-run683.log`: **1842 frames in common, 0 differing**. `MAP_STYLE 7`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`,
+`STARTING_RESOURCES 7`, seed 12345 read back. 257 window blocks, 1577..1833, and a closing block (258 `BEGIN FRAME`s).
+
+Archive `gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt`, 489,102,705 bytes,
+SHA-256 `0b32c77d7d6a2243574b1850cab147c9a2dd40848d828ab4029791d2318e333a`.
+
+Archive `rontrace-run683.log`, 59,945,504 bytes,
+SHA-256 `35ff0978ad26f0278b3e27c510d402afb82d5e1cbcbf3058893774b36393d4de`.
+
+**What it holds**: `diff::sahara_coverage::run683_s_word_frame_is_widened_whole` — **1183** keys parted on the tree at item 1561's build (159 standing on block 1577). The word 1582's
+block is 1583, and the first state past the standing block is on it: the Persians' `REFINERY` `1/2045`'s `y_internal` and `city`. `docs/AI.md` §154.
