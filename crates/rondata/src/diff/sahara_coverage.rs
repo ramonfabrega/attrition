@@ -412,10 +412,10 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 109, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 63, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        75,
+        47,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -455,7 +455,7 @@ fn run681_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1192),
+        Some(1203),
         "the first parting past the standing block"
     );
 }
@@ -509,10 +509,10 @@ fn run683_s_word_frame_is_widened_whole() {
     // normalize puts its group's cap back to its leader's speed
     // (`docs/AI.md` §161); the merged tree's count is the union, measured:
     // **182**, 148 standing.
-    pin_eq!(w.firsts.len(), 99, "initial run683 baseline");
+    pin_eq!(w.firsts.len(), 57, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        89,
+        48,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
@@ -649,10 +649,13 @@ fn run702_s_word_frame_is_widened_whole() {
     // 259 since item 1608 compares `spell_time`: `1/38` 1 against 0 on
     // 2207, the word 2206's own block — ours has a cast's first frame
     // there that the original has not.
-    pin_eq!(w.firsts.len(), 259, "initial run702 baseline");
+    // **116** on the merged tree: 258 (259 with item 1608's `spell_time`
+    // row) before item 1611's two builds — the founding capital's border
+    // bonus took 142 — and 51 of them stand on block 1979 (95 before).
+    pin_eq!(w.firsts.len(), 116, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        95,
+        51,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
@@ -724,19 +727,24 @@ fn run702_s_word_frame_is_widened_whole() {
     // its move's destination (`x` 40920 against 40728, `y` 1944 against
     // 1752, the offsets 216/408 against 24/216); on 2206 its order kind (14
     // against 1), its order count (1 against 2) and its path (0 nodes
-    // against 1).
+    // against 1). **Item 1611's value diff** (`docs/AI.md` §171): the unit
+    // is a Merchant standing on the rare `8/6`; `find_merchant_spot`'s ring
+    // walk took tile (0, 0) here and the original's third test, the quick
+    // `detect_unit_collision` at the tile's corner, refused it and took
+    // (−1, −1) — the destination (40728, 1752) and the offsets 24/216. Every
+    // key of `1/38` agrees on the window now.
     for key in ["order:move.x", "order:move.y", "orders_x", "orders_y"] {
         pin_eq!(
             w.firsts.get(&(1, 38, key.to_string())).map(|(f, _)| *f),
-            Some(2205),
-            "unit 1/38's move destination parts on 2205"
+            None,
+            "unit 1/38's move destination agrees (item 1611: the spot's quick collision)"
         );
     }
     for key in ["order:kind", "path:length", "heading"] {
         pin_eq!(
             w.firsts.get(&(1, 38, key.to_string())).map(|(f, _)| *f),
-            Some(2206),
-            "unit 1/38's order, path and heading part on 2206, the word"
+            None,
+            "unit 1/38's order, path and heading agree (item 1611)"
         );
     }
     // **What parts first past the standing block.**
@@ -784,5 +792,70 @@ fn run718_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    pin_eq!(w.firsts.len(), 0, "initial run718 baseline");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 737, "initial run718 baseline");
+    pin_eq!(
+        w.firsts.values().filter(|(f, _)| *f == 2267).count(),
+        66,
+        "the keys standing on the window's first block"
+    );
+    // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
+    // Persian scout `1/0` thinks on 2273 at (22, 34): the draws agree to
+    // index 65 (the two rings of its own city, then Napata's three) and
+    // the 66th is where ours rolls the cell jitter `Unit::think_scout+0x64c`
+    // of a Napata ring cell the original has refused (99 draws against 91,
+    // the same target — `1/0` agrees in every key). The refusal is the
+    // fog's (`seen` and the cell not the Persians') and the fog's cause
+    // stands in the dump from **2102**: the original's `treaties` between
+    // the two leaders read 3 and every human building's `ever_seen` 255 from
+    // 2105 (ours 1 and 1) — Napata was struck on 2101 (`city_flags`
+    // `0x2|0x4|0x8`, `reduce_stamp` 2101 on both sides) — and by 2267 the
+    // original's human holds no unit (`control` 0) where ours holds 14.
+    for key in ["build:ever_seen", "build:ever_seen_completed"] {
+        pin_eq!(
+            w.firsts.get(&(0, 2000, key.to_string())).map(|(f, _)| *f),
+            Some(2267),
+            "Napata's buildings stand at 255 in the original and 1 here"
+        );
+    }
+    pin_eq!(
+        w.firsts
+            .get(&(0, -1, "leader:treaties[1]".to_string()))
+            .map(|(f, _)| *f),
+        Some(2267),
+        "the human's treaty bits stand at 3 in the original and 1 here"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(0, -1, "leader:control".to_string()))
+            .map(|(f, _)| *f),
+        Some(2267),
+        "the human's units are all dead in the original on the window's first block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 0, "order:move.x".to_string()))
+            .map(|(f, _)| *f),
+        None,
+        "the scout `1/0`'s target agrees (item 1611: the territory table)"
+    );
+    // **What parts first past the standing block**: the order lists of the
+    // Persian units `1/18`, `1/34`, `1/58`, `1/81`, `1/97` and `1/116` (kind
+    // 17 against 16, one order against two; the first on 2271) — the item
+    // after's, with the fog's nuke aftermath above.
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 2267)
+        .min();
+    pin_eq!(
+        first,
+        Some(2271),
+        "the first parting past the standing block"
+    );
 }
