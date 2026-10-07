@@ -647,7 +647,7 @@ mod tests {
             sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
             sim.art.releases.insert(
                 PIECE,
-                [(crate::anim::ATTACK2, vec![(4, node, false)])]
+                [(crate::anim::ATTACK2, vec![(4, node, false, false)])]
                     .into_iter()
                     .collect(),
             );

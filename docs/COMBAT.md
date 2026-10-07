@@ -1330,8 +1330,8 @@ noted as the one cosmetic float on this path). Clamp to the map.
   unit_move_speed)` — integer, and **independent of the actual distance**.
 - a building shooter: `sqrtf(dx² + dy²) / (proj_speed × unit_move_speed)`
   likewise, or `/ (unit_move_speed × 90)` for `get_shot() == 0` (arrows).
-- a lofted piece (ammo flag 8) flies a spline; missiles fly a nuke spline
-  (`Spline::calc_nuke_spline`, float) — not modelled.
+- a missile (ammo flag 8) flies a spline, its point count (AI §174);
+  a missile unit's, `calc_nuke_spline`.
 
 **`total_time` of zero becomes 1** *(second reading)* — a shot always lands
 at least a frame after launch, which with `cur_time` counted up before the
@@ -1341,7 +1341,7 @@ landing point pushed `sinx(·) × total_time` in x and `− cosx(·) × total_ti
 in y — ~~the decompiler dropped the operands; the natural reading, taken here,
 is the target's heading and per-frame speed~~ they are its `angle` and its
 first figure's `avg_speed` (§47.4), so the shot is aimed where the target will
-be. Not for ground shots, bombers or lofted pieces.
+be. Not for ground shots, bombers or missiles (AI §174).
 `splash_area = A.type.splash_area`; `flags |= 2` (live); `cur_time = 0`;
 `num_guys = A.guy_mark` (unit) or 0.
 
@@ -7210,7 +7210,7 @@ records of the whole capture; the four `cur_anim 17` deaths.
   reaches;
 - the `dtype == 4` pair of draws, likewise;
 - §42.2's flag-4 predicate beyond "a land unit target that is not a
-  ground shot" — the lofted term is unmodelled and the ground-order term
+  ground shot" — ~~the lofted term is unmodelled~~ (AI §174) and the ground-order term
   is exercised only by siege, which no capture on disk fires here.
 
 ## 43. The frozen frame, and the target the order keeps (item 496, 2026-09-22)

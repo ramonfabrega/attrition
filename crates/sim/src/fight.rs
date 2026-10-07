@@ -1310,7 +1310,7 @@ impl Sim {
         }
         let from = self.units[i].pos;
         let sz = self.ground_z(from) + 100;
-        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0, false);
+        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0, false, false);
     }
 
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
@@ -1707,6 +1707,7 @@ impl Sim {
         sz: i32,
         node: i8,
         harmless: bool,
+        missile: bool,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -1717,6 +1718,7 @@ impl Sim {
             sz,
             node,
             harmless,
+            missile,
         );
     }
 
@@ -1781,7 +1783,17 @@ impl Sim {
         launch: Pos,
         sz: i32,
     ) {
-        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, 0, false);
+        self.fire_ammo_aim(
+            shooter,
+            Aim::At(target),
+            angle,
+            frame,
+            launch,
+            sz,
+            0,
+            false,
+            false,
+        );
     }
 
     /// A round at the shooter's **attack-ground order's point**
@@ -1799,6 +1811,7 @@ impl Sim {
         sz: i32,
         node: i8,
         harmless: bool,
+        missile: bool,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -1809,6 +1822,7 @@ impl Sim {
             sz,
             node,
             harmless,
+            missile,
         );
     }
 
@@ -1883,6 +1897,7 @@ impl Sim {
         sz: i32,
         node: i8,
         harmless: bool,
+        missile: bool,
     ) {
         // **A round at an aircraft rolls to hit** (item 1102,
         // `docs/COMBAT.md` §81): `Ammo::init`'s air arm, ahead of the
@@ -1993,9 +2008,26 @@ impl Sim {
             )
         };
         let mut landing = clamp(landing, &self.world);
+        // **A missile never rolls** (`Ammo::init@0067bbf0:355`–`:360`,
+        // the `local_30 == 0` conjunct; item 1625, `docs/AI.md` §174):
+        // flag `4` and the `0x4b` over a land unit are a shell's.
+        let rolling = land_unit && !strafes && !missile;
+        let ez = match target {
+            Some(t) => self.aim_z(t, rolling),
+            None => self.ground_z(target_pos).max(0),
+        };
         // Flight time — never zero.
         let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
-        let total_time = if p.siege {
+        let total_time = if missile {
+            // **A missile flies a spline** (item 1625, `docs/AI.md`
+            // §174): `Ammo::init`'s `local_30` arm, whose time is the
+            // spline's point count. A sea or air shooter's middle control
+            // point is five speeds along its angle; a land shooter's is
+            // [`combat::missile_flight_time`]'s SEAM.
+            let lead = (p.domain != Domain::Land)
+                .then(|| (angle, i32::try_from(d * 5).unwrap_or(i32::MAX)));
+            combat::missile_flight_time(launch, sz, landing, ez, lead, d)
+        } else if p.siege {
             combat::siege_flight_time(
                 self.max_range_of(shooter),
                 p.proj_speed,
@@ -2029,17 +2061,17 @@ impl Sim {
         // run373's `0/1` on 5024 was led by the original and missed by
         // this crate. `UnitData +0x50` is `angle`, which is
         // [`crate::Movement::heading`] here, not the figure's facing.
-        landing = self.lead_landing(target, landing, total_time);
+        // **Not a missile's** (`Ammo::init@0067bbf0:798`: `local_30 == 0`
+        // beside the bomb and ground tests, item 1625): a spline round is
+        // not led.
+        if !missile {
+            landing = self.lead_landing(target, landing, total_time);
+        }
         let _ = frame;
         // **A strafer's round never rolls** (`67c548`..`67c557`, item
         // 1200): the unit-strafer test jumps past `67c633`, where flag `4`
         // and the `0x4b` over a land unit are set. Chapter forty-one's
         // Biplane on 1529, whose round lands behind it, short of `0/9`.
-        let rolling = land_unit && !strafes;
-        let ez = match target {
-            Some(t) => self.aim_z(t, rolling),
-            None => self.ground_z(target_pos).max(0),
-        };
         self.add_ammo(combat::Projectile {
             shooter,
             owner: self.owner_of(shooter),
@@ -2055,8 +2087,8 @@ impl Sim {
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
             // `ATTACK_GROUND`/`AIR_ATTACK_GROUND` test is `target` being
             // `None` here — and the target a land-domain unit. The third term,
-            // "the piece is not lofted", is the ammo flag `8` this crate
-            // loads no art for; a siege shot is a ground shot and so
+            // "the piece is not a missile", is the ammo flag `8`, `rolling`
+            // above (item 1625); a siege shot is a ground shot and so
             // never reaches the question.
             rolling,
             missed: false,
@@ -7862,6 +7894,63 @@ mod tests {
                 crate::movement::sin_component(facing, 9) * t,
                 -crate::movement::cos_component(facing, 9) * t
             ),
+        );
+    }
+
+    /// **A missile's round is not led and never rolls, and flies its
+    /// spline's count** (item 1625, `docs/AI.md` §174). `Ammo::init`'s
+    /// `local_30` — the ammo's `missile="1"` — takes the round past the
+    /// rolling flag and the `0x4b` (`Ammo::init@0067bbf0:355`–`:360`) and
+    /// past the lead (`:798`), and times it by the spline
+    /// ([`combat::missile_flight_time`]). The same shot without the flag
+    /// at a fleeing land unit is led and rolls. Made to fail with each
+    /// `missile` conjunct dropped.
+    #[test]
+    fn a_missile_s_round_is_not_led_and_does_not_roll() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        sim.add_move_order(
+            foe,
+            Pos::new(0x1300, 0x0800),
+            crate::orders::MoveKind::FleeTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        sim.units[foe].movement.heading = crate::movement::Angle(117_506_048);
+        let fire = |missile: bool, avg: i32| {
+            let mut s = sim.clone();
+            s.units[foe].movement.body.avg_speed = avg;
+            s.fire_ammo_pub(
+                Obj::Unit(me),
+                Obj::Unit(foe),
+                Angle(0),
+                0,
+                Pos::new(0x1000, 0x1000),
+                0,
+                0,
+                false,
+                missile,
+            );
+            *s.projectiles.last().expect("a shot")
+        };
+        let (shell, missile) = (fire(false, 23), fire(true, 23));
+        assert!(shell.rolling, "a shell at a land unit rolls");
+        assert!(!missile.rolling, "a missile does not");
+        assert_ne!(shell.landing, fire(false, 0).landing, "a shell is led");
+        assert_eq!(missile.landing, fire(true, 0).landing, "a missile is not");
+        let d = i64::from(sim.profile(Obj::Unit(me)).proj_speed);
+        assert_eq!(
+            missile.total_time,
+            combat::missile_flight_time(
+                Pos::new(0x1000, 0x1000),
+                0,
+                missile.landing,
+                missile.ez,
+                None,
+                d
+            ),
+            "a land shooter's spline, its control point on the line"
         );
     }
 

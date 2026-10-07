@@ -209,6 +209,14 @@ pub(crate) struct Pair {
     /// Freighter `1/152` keeps its guard and lands `1/41` on 2995
     /// (`docs/AI.md` §172). At 3142, ours 21 game draws against 20, index
     /// 3: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Item 1625 moved it
+    /// from 3142 to 3395**: the roll was the Advanced Battleship `1/59`'s
+    /// attack on Napata, whose approach ours ended on 3141 because the city
+    /// stood short of its ceiling (1479 of 1560, the original's 1560) — the
+    /// Advanced Battleship `1/49`'s six cruise missiles flew 19 frames in a
+    /// straight line here and 13 along the original's spline (run717,
+    /// `docs/AI.md` §174). At 3395, ours 1310 game draws against 636, index
+    /// 628: ours `PathFinder::calc_road_cost+0x46`, theirs
     /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
@@ -227,8 +235,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3142,
-    sequence: 3142,
+    count: 3395,
+    sequence: 3395,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1388,8 +1396,14 @@ fn run715_s_word_frame_is_widened_whole() {
     // is ashore on 2996: **no position parts in the window**. What stands
     // past 2863 is births' `form`, two pools' `held`, Napata's flags,
     // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
-    // on 3069. The word 3142 lies past the window (run716's).
-    pin_eq!(w.firsts.len(), 150, "initial run715 baseline"); // Item 1620: 154 → 150 on the merged tree, `treaties` compared as the word (`docs/AI.md` §173).
+    // on 3069. The word 3142 lies past the window (run716's). Item 1620:
+    // 154 → 150 on its merged tree, `treaties` compared as the word
+    // (`docs/AI.md` §173). Item 1625: Napata's `damage` and `city_flags`
+    // `[0x2]`, `[0x4]` on 2940 agree — the Jet Fighter `1/115`'s AA rockets
+    // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
+    // spline where the straight line put them on 2939 and 2942
+    // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
+    pin_eq!(w.firsts.len(), 147, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1418,10 +1432,9 @@ pub(crate) const RUN716: &str = "gamelog-run716-eastindies-persian-alltech-windo
 /// The window: block 3137 through 3393; the word 3142's own block is 3143.
 pub(crate) const WIDENING_COVERAGE_FRAME_3142: (i64, i64) = (3137, 3393);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run716 walked from run651's start with the recorder on. It holds the
-/// word 3142 (item 1614), block 3143.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run716 walked from run651's start with the recorder on. It held the
+/// word 3142 (item 1614), block 3143, until item 1625 moved it to 3395.
+pub(crate) fn coverage_frame_3142_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1438,7 +1451,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run716_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3142_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1454,7 +1467,24 @@ fn run716_s_word_frame_is_widened_whole() {
     // 1, three orders against two) and stands at (3342, 12584) on 3142
     // against ours' (3320, 12634): the attack roll ours spends at index
     // 3. The item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 2156, "initial run716 baseline"); // Item 1620: 2160 → 2156 (`docs/AI.md` §173).
+    // Item 1620: 2160 → 2156 (`docs/AI.md` §173). **Item 1625, the word
+    // 3142's value diff** (`docs/AI.md` §174): Napata's `damage` 1524 13/16
+    // on block 3137 and 1560 on 3138 on both sides now, `1/49`'s first
+    // cruise missile landing on 3136 and its second on 3137 (13 frames
+    // along the spline, run717); so on 3141 the city is at its ceiling,
+    // `do_move`'s building arm finds it out of range here (`active`) as
+    // the original's `valid_target` refuses it there, and `1/59` keeps its
+    // move: on block 3142 it stands at (3342, 12584) under `MOVE` to
+    // (3528, 12168) over `ATTACK` (`new_ord` 1) over `ATTACK_TO`, three
+    // orders, and on 3143 `ox` −1, `recharging` 0, in both. Napata's
+    // `reduce_stamp` and the bombers' and jets' strafes (`kind` 16 against
+    // 17 on 3139–3140) agree too. The first parting past the standing
+    // block is Napata's `damage_frac` at its ceiling on 3138 (ours 0, the
+    // original's 10); what stands past it is births' `form`, group `id`s
+    // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
+    // position on 3387. The word 3395 lies past the window (run721's).
+    // **190** on item 1625's tree merged with 1620's (194 before it).
+    pin_eq!(w.firsts.len(), 190, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1465,5 +1495,116 @@ fn run716_s_word_frame_is_widened_whole() {
         first,
         Some(3138),
         "the first parting past the standing block"
+    );
+}
+
+/// run721, item 1625: the lobby's blocks 3389..3645 at the long's detail —
+/// the word 3395's block 3396 with seven before it and 249 after.
+pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-window-3389-3645.txt";
+
+/// The window: block 3389 through 3645; the word 3395's own block is 3396.
+pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run721 walked from run651's start with the recorder on. It holds the
+/// word 3395 (item 1625), block 3396.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run721",
+        &[(RUN721, 3389)],
+        WIDENING_COVERAGE_FRAME_3395,
+        1,
+        &[3396],
+        true,
+    )
+}
+
+#[test]
+fn run721_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **2326** on item 1625's tree; 151 stand from the window's first
+    // block — the human leader's and its units' rows, the pools, Napata,
+    // `1/84` and `1/203` (whose position parts on 3387, run716). The first
+    // parting past it is `1/203`'s figure angle on 3390, then births'
+    // `form`. **The word 3395's own block, 3396**, and the block before:
+    // on 3395 four of the computer's buildings (`1/2028`, `1/2035`,
+    // `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against 0 — beside
+    // ours' `PathFinder::calc_road_cost` draws on 3395. The item after's
+    // hypothesis, not a cause.
+    // 2330 before item 1620's landing; **2326** on the merged tree.
+    pin_eq!(w.firsts.len(), 2326, "initial run721 baseline");
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 3389)
+        .min();
+    pin_eq!(
+        first,
+        Some(3390),
+        "the first parting past the standing block"
+    );
+}
+
+/// run717, item 1625: blocks 3104..3141 with `GUYS=4` and `AMMO=5` — the
+/// Advanced Battleship `1/49`'s cruise missiles at Napata.
+pub(crate) const RUN717: &str = "gamelog-run717-eastindies-persian-alltech-ammo-3104-3141.txt";
+
+/// **A missile flies its spline's point count** (item 1625, `docs/AI.md`
+/// §174): run717's six rounds from `1/49` at Napata (`0/2000`) leave on
+/// 3124, 3125, 3126, 3127 and 3128 twice — this crate's release frames —
+/// and every one prints `traj` 2 and `total_time` 13, which
+/// `sim::combat::missile_flight_time` gives each from its own launch,
+/// landing and angle at `1/49`'s speed, 300; the straight line gives 19.
+#[test]
+fn run717_s_missiles_fly_their_spline_s_count() {
+    let Some(path) = dump(RUN717) else {
+        eprintln!("skipping: no run717 (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let _pins = Pins::hold();
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let mut launched = Vec::new();
+    for f in 3104..=3141 {
+        let Some(at) = ix.frames().iter().position(|x| x.number == f) else {
+            continue;
+        };
+        let body = ix.read_frame(at).unwrap();
+        for (a, _) in crate::diff::ammo::blocks(&body) {
+            if (a.who, a.o) != (1, 49) {
+                continue;
+            }
+            pin_eq!((a.whom, a.ox), (0, 2000), "a round on Napata");
+            pin_eq!((a.traj, a.total_time), (2, 13), "a spline of thirteen");
+            if a.cur_time == 1 {
+                launched.push(f - 1);
+                let at = |x: i64, y: i64| sim::world::Pos::new(x as i32, y as i32);
+                let lead = Some((sim::movement::Angle(a.angle as i32), 1500));
+                pin_eq!(
+                    sim::combat::missile_flight_time(
+                        at(a.sx, a.sy),
+                        a.sz as i32,
+                        at(a.ex, a.ey),
+                        a.ez as i32,
+                        lead,
+                        300
+                    ),
+                    13,
+                    "this crate's count"
+                );
+            }
+        }
+    }
+    pin_eq!(
+        launched,
+        [3124, 3125, 3126, 3127, 3128, 3128],
+        "the six release frames, this crate's too"
     );
 }
