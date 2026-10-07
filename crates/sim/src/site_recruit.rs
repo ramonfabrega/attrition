@@ -25,7 +25,8 @@
 //! nearest citizen that is not busy and is sent straight back.
 
 use crate::Sim;
-use crate::orders::{QueuePos, index};
+use crate::combat::Obj;
+use crate::orders::{Body, QueuePos, index};
 use crate::world::{Cell, Pos, vector_dist};
 
 /// `max(4, helpers)`: the floor of builders a recruiting site wants.
@@ -43,12 +44,7 @@ impl Sim {
     /// The recruit arm, for building `b` on a frame where its `(frame + o)
     /// & 31` is zero. The caller has already taken the arm's two outer
     /// gates — not active, not a human's — and has **not** yet reset
-    /// `helpers`.
-    ///
-    /// SEAM: the oil platform's arm beside it — every 128 frames, an
-    /// unfinished `0x1a6` with no friendly unit targeting it
-    /// (`find_unit(…, FILTER_TARGET, o, who)`) is disbanded — is not
-    /// modelled; no capture on file has an oil platform site.
+    /// `helpers`; [`Sim::oil_platform_abandoned`] has run first.
     pub(crate) fn site_recruit(&mut self, b: usize) {
         let bd = &self.buildings[b];
         // `BuildData::is_wonder@00472320`, the range `0x20d < type < 0x21f`
@@ -75,6 +71,64 @@ impl Sim {
             return;
         };
         self.add_build_order(u, b, QueuePos::New, false);
+    }
+
+    /// **The oil platform's arm** (`Wall::process@00640450`, `64050e`–
+    /// `640588`; `docs/AI.md` §162), inside the recruiter's block and ahead
+    /// of it: on `(frame + o) & 0x7f == 0`, a site whose type `is(0x1a6, 0)`
+    /// (the type's vslot `+0x60`, the lineage test) and that no unit of its
+    /// owner targets is disbanded (`Object::disband(0)`) and `Wall::process`
+    /// returns. The search is `ObjectsData::find_unit@0065ca80(site,
+    /// SEARCH_FRIENDLY, who, −1, 0, FILTER_TARGET, o, who, FILTER_ALL)`:
+    /// range −1 walks the owner's whole list, and `FILTER_TARGET` (11, the
+    /// arm at `0067dfa4` of `Search::valid_filter`'s table at `0067e57c`)
+    /// asks `UnitData::get_action@00608450` — the action, never a queued
+    /// order — for its `get_target_order` (order vslot `+0xb4`, by the
+    /// PDB's method record) and compares that order's `ox`/`whom`
+    /// (`+0x8`/`+0xc`) with the site. A citizen holding the site two orders
+    /// down its stack does not keep it: run679's `1/10`, on `Build 2026`
+    /// with `Build 2037` beneath, and the Oil Platform `1/2037` gone on
+    /// frame 1419 (1419 + 2037 = 27 × 128).
+    ///
+    /// Returns whether the site was disbanded.
+    pub(crate) fn oil_platform_abandoned(&mut self, b: usize, frame: i64) -> bool {
+        let bd = &self.buildings[b];
+        if bd.phase(frame) & 0x7f != 0
+            || !bd.ty.is_some_and(|t| {
+                crate::build::is(&self.build_types, t, crate::build::Ident::OilPlatform)
+            })
+        {
+            return false;
+        }
+        let who = bd.owner;
+        let targeted = (0..self.units.len()).any(|u| {
+            let unit = &self.units[u];
+            unit.alive() && unit.on_map && unit.owner == who && self.action_targets_building(u, b)
+        });
+        if targeted {
+            return false;
+        }
+        self.disband_building(b, false);
+        true
+    }
+
+    /// `FILTER_TARGET`'s test on one unit: its action's target order names
+    /// building `b`. The `TargetOrder` classes whose target can be a
+    /// building in this crate — build, repair, garrison, gather, attack and
+    /// a cast; a follow or a guard names a unit.
+    fn action_targets_building(&self, u: usize, b: usize) -> bool {
+        let unit = &self.units[u];
+        let Some(i) = self.action_of(u) else {
+            return false;
+        };
+        match unit.orders[i].body {
+            Body::Build(t) | Body::Repair(t) => t == b,
+            Body::Garrison { building, .. } => building == b,
+            Body::Gather(g) => g.building == b,
+            Body::Attack(_) => unit.combat.target == Some(Obj::Building(b)),
+            Body::Cast(c) => c.target == Some(Obj::Building(b)),
+            _ => false,
+        }
     }
 
     /// `BuildData::is_wonder@00472320`: the type's range flag, which the
