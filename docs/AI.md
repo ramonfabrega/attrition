@@ -17232,7 +17232,7 @@ enabled), so the weights are argued from prices, which agree to the step.
 
 Built: `Sim::spy_upgrade_level`, `Sim::is_spy_type` (`supply.rs`), `Sim::unit_hits`, `Sim::unit_los`, `Sim::type_speed`; `Tuning::spy_upgrade_hp` and `spy_upgrade_los` (two slots). Held by `a_spy_climbs_with_the_spy_upgrades`; and each of the three terms by
 `run702_s_word_frame_is_widened_whole` (the Spy's `myhits`, `mylos` and `myspeed` are pinned as agreeing in the window). With them the word moves **2118 → 2185** (count and sequence): ours 30 draws against 32, index 12, ours
-`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Run702's keys 487 → 317; no other lobby's pin moved (the full suite's reds are the commander's lines).
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Run702's keys 487 → 317, and the newest pair's run711 482 → 401 (its Spies climb as well; its word 2166 stands); no other pin moved (the full suite's reds are the commander's lines).
 
 **The value diff beside the word 2185** (`run702_s_word_frame_is_widened_whole`): the dump parts first on **2183** at building `1/2034`'s queue — `queue[0].cost[0]` ours 816 theirs 927, `cost[1]` 965 against 1069 (the same entry, priced about 12 % dearer in the
 original) — with the knowledge and oil buckets 111 and 104 apart; on **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against 80000, `escrow` 0 against 1, `city` 5 against 1), the next frame the buildings' `city_down`/`city`
