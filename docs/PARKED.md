@@ -3974,8 +3974,11 @@ a window to the driver, so every word lane's filters want `coverage::`;
 reads every file under `crates/sim`, so the sweep's test rows (the
 original's own values, as inputs and outputs) bank twelve constants nobody
 built. 1619's fix — skip `sweep/`, or `#[cfg(test)]` as `no_float.rs` does —
-was refused by the classifier as audit tampering; the guard is the pass's,
-and 1619 waits on Ramon's word. One reach.
+was refused by the classifier as audit tampering. **Ramon's word,
+2026-10-07: skip `sweep/` to unblock 1619, flagged for the pass** —
+FABLE: ratify the exclusion, or replace it with the `#[cfg(test)]` skip
+`no_float.rs` uses, which would cover every test's literals, not one
+directory's. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
