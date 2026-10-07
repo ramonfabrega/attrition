@@ -872,7 +872,13 @@ impl Sim {
                 &territory::City {
                     pos: city.pos,
                     level,
-                    capital: city.capital,
+                    // `compute_reg_territory:445`–`:464`: the capital bonus is
+                    // `city_flags & 0x4000` — the **founding** capital — or a
+                    // Forbidden City (`is(0x213)`), never `0x10` alone: the
+                    // Persians' second capital and a Senate's both set `0x10`
+                    // and nothing else (`Build::activate:274`, `:518`).
+                    capital: city.founding_capital
+                        || self.building_is(city.building, Ident::ForbiddenCity),
                     temple: self.city_has(c, Ident::Temple),
                     owner_agrees: true,
                 },
