@@ -8722,9 +8722,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
-    // over 713..969 (block 721, item 1549), and **1182** after item 1549's
-    // build, past run680's last block; run680's test keeps the move's value
-    // diff on 720. The word 1182's widening is owed.
+    // over 713..969 (block 721, item 1549), **1182** after item 1549's
+    // build, past run680's last block, and **1197** once item 1546's
+    // second-capital arm merged; run680's test keeps the move's value diff
+    // on 720. The word 1197's widening is owed.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,

@@ -32,8 +32,13 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // oil well's stand is on `CHAR_FARM`, `docs/AI.md` §150) moved it
     // 720 → **1182**: ours 146 draws against 84 at index 2, ours
     // `Leader::produce_building+0xc99`, theirs `Leader::make_stuff+0x63d`.
-    count: 1182,
-    sequence: 1182,
+    //
+    // Item 1546's second-capital arm (`Build::activate`'s 0x17, merged beside
+    // this build) moved it again, 1182 → **1197**: ours 4 draws against 3 at
+    // index 0, ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`.
+    count: 1197,
+    sequence: 1197,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry

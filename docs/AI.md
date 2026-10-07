@@ -16747,7 +16747,9 @@ animation hides the walk from the arrival test. Built in `Sim::do_gather`'s oil-
 past the standing block pool 66 and its group's `held` on 742 (ours [17], theirs none), then the Persians' `SITE` table on 776, two
 queues' prices and leader 1's wood and metal buckets on 783 (a unit or two under the original's, the 583 price row's residue), leader
 0's `production_step` on 801, pools 67 and 68 on 820 and 925. `1/1` agrees in every compared field through the window. The word 1182's
-widening is owed (a window of its own).
+widening is owed (a window of its own). **On the merged tree** item 1546's second-capital arm (§149/§151's `Build::activate`) moved it
+again, 1182 → **1197**: ours 4 draws against 3, index 0, ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+(a move step ours rolls and the original does not, as 1538's 718 was). Past run680's window (969); run680's 111 keys are unchanged.
 
 **Mutations** (`tools/mutate.py` on `5d95faea`/`870dc20e`): the `set_anim(CHAR_FARM)` dropped — held by
 `sahara_coverage_first_parting` (the word returns to 720) and by the unit test; the guard dropped — held by the unit test
