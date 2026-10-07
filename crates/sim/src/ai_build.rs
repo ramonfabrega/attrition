@@ -26,8 +26,12 @@
 //! **Seams.** What the sim does not carry yet, each answering as an empty
 //! world would, and each named at its use:
 //!
-//! - `CityData.bordering` (+0x65) and `city_flags & 0x8` / `& 0x1000`: no
-//!   field and no known setter (`create-buildings.md` §9) — read as 0.
+//! - ~~`CityData.bordering` (+0x65)~~: written by [`Sim::advance_border_pass`]
+//!   since item 1600 (`docs/AI.md` §167) and read by the temple and the
+//!   tower and fort arms. `city_flags & 0x8` / `& 0x1000`: no known setter
+//!   (`create-buildings.md` §9) — read as 0; the `0x1000` arm the border
+//!   pass sets beside `bordering` (a cell within four of the city) is not
+//!   modelled.
 //! - `CityData.ocean_filled` (+0x66): no field — `ocean_open` is
 //!   [`crate::ai::CityAi::ocean`].
 //! - `LeaderData::city_num` / `village_num`: the census does not keep them —
