@@ -17134,3 +17134,8 @@ last to first and returns at the first emptied one — is not a shape this crate
 
 **Coverage.** Diff-backed: claims 1–2 and the cap's lift (army 1 agrees through run679 and run710's standing block). Reading-
 and listing-backed: claim 3's call chain, which the diff confirms on its one frame.
+
+## 162. Reserved for item 1588 (the coverage pair's word 1610)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
