@@ -7843,7 +7843,11 @@ impl Sim {
             // wants `CHAR_WALK`, never sees the walk the turn arm puts back
             // and the arrival stand `Guy::move+0x19f` is never rolled
             // (`docs/AI.md` §150, item 1549).
-            if self.units[u].guys.first().is_some_and(|g| g.anim == anim::FARM) {
+            if self.units[u]
+                .guys
+                .first()
+                .is_some_and(|g| g.anim == anim::FARM)
+            {
                 return;
             }
             self.set_anim(u, anim::FARM, false, true);

@@ -983,6 +983,19 @@ mod tests {
             "the worker works the well on the farm animation"
         );
         assert_eq!(arrivals, 0, "and it rolls no arrival stand");
+        // **The guard**: a guy already on `CHAR_FARM` returns before the
+        // turn and the relocation, so a worker nudged off its stand is not
+        // put back (`do_gather:377`).
+        let stand = sim.units[u].pos;
+        let nudged = Pos::new(stand.x + 8, stand.y);
+        let from = sim.units[u].pos;
+        sim.set_new_location(u, nudged, true);
+        sim.moved_to(u, from, false);
+        sim.tick();
+        assert_eq!(
+            sim.units[u].pos, nudged,
+            "the guard leaves the worker where it stands"
+        );
     }
 
     #[test]
