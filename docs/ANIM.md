@@ -1680,7 +1680,7 @@ divergence no path reaches.
 **The second bound is also why the first is never tested.**
 `LeaderData::diplos` is `int[8]` (`+0x74`, with `treaties` at `+0x94`), so
 `is_enemy(8)` would read `treaties[0]` — the original has no answer for a
-leader outside the table, and never asks for one.
+leader outside the table, and never asks for one. **Amended** (item 1561, `docs/AI.md` §154): `resolve_unit_collision`'s wait *does* ask it, of a gaia collider, and the read is the measured `treaties[0]` = 0.
 
 In the sim: `world::PLAYER_SLOTS = 8`, which `Unit::is_gaia` is defined
 against; `Sim::valid_target` carries `valid_target_const`'s first line; and

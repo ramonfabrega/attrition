@@ -43,8 +43,14 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // and `reveal_fog`'s tile gate never did) moved it again, 1197 →
     // **1250**: ours 10 draws against 9 at index 0, ours `Guy::set_anim+0x97a
     // < Unit::move_step+0x823`, theirs `Animal::do_idle+0x83`.
-    count: 1250,
-    sequence: 1250,
+    //
+    // Item 1561's build (a walker blocked by a walking animal repaths rather
+    // than waits, `docs/AI.md` §154: step 5's `is_enemy` reads a gaia owner
+    // as an enemy) moved it again, 1250 → **1582**: ours 28 draws against 29
+    // at index 8, ours `Leader::make_stuff+0x63d`, theirs
+    // `Leader::produce_building+0x1805`.
+    count: 1582,
+    sequence: 1582,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -316,11 +322,10 @@ pub(crate) const RUN681: &str = "gamelog-run681-greatsahara-persian-alltech-wind
 /// The window: block 1191 through 1447; the word 1197's own block is 1198.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1197: (i64, i64) = (1191, 1447);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run681 walked from run675's start with the
-/// recorder on — the word 1197's block 1198 and, once item 1555's build
-/// moved it, the word 1250's block 1251.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run681 walked from run675's start with the recorder on: the word 1197's
+/// block 1198 and the word 1250's block 1251. It was the `AI_WORDS` window
+/// until item 1561's build moved the word past it, to run683's.
+pub(crate) fn sahara_coverage_frame_1250_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -337,7 +342,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run681_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_1250_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -347,11 +352,13 @@ fn run681_s_word_frame_is_widened_whole() {
         "the keys the capture prints and nothing reads"
     );
     // **1138** on the tree at base a792e271 (the word 1197), **885** after
-    // the border pass met the Wool (`docs/AI.md` §152): 140 stand on block
-    // 1191 (the control's set: both leaders' `SITE` `reg`, `form`, the city
-    // and pool fields, `scouts`, the territory counts) and the rest part
-    // later.
-    pin_eq!(w.firsts.len(), 885, "initial run681 baseline");
+    // the border pass met the Wool (`docs/AI.md` §152), **185** after item
+    // 1561's build (a walker blocked by a walking animal repaths rather than
+    // waits, `docs/AI.md` §154): 140 stand on block 1191 (the control's set:
+    // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
+    // the territory counts) and the rest part later. The 700 that went part
+    // downstream of `1/35`'s stall on 1247 (not itemised row by row).
+    pin_eq!(w.firsts.len(), 185, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
         140,
@@ -371,6 +378,19 @@ fn run681_s_word_frame_is_widened_whole() {
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 38)),
         "1/38 agrees in every compared field"
     );
+    // **The word 1250's value diff, block 1251** (item 1561): `1/35`, a
+    // Persian soldier (`TypeIndex` 104, land) on an `AttackTo` to (36456,
+    // 19080), proposes (38371, 20297) on 1247 and meets the gaia animal
+    // `8/2` (`TypeIndex` 413) walking ahead of it: ours waits (step 5 of
+    // `resolve_unit_collision`) and stands where it is through 1250, the
+    // original repaths — its path's fifth and sixth nodes and its position
+    // part on 1248 — and steps. `8/2`'s own step on 1250 then differs by
+    // one `Unit::move_step+0x823` stand roll, which is the word. It agrees
+    // in every compared field since the build.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 35)),
+        "1/35 agrees in every compared field"
+    );
     // **What parts first past the standing block**: leader 0's
     // `production_step` on 1201 (ours 0, theirs 1).
     let first = w
@@ -382,6 +402,86 @@ fn run681_s_word_frame_is_widened_whole() {
     pin_eq!(
         first,
         Some(1201),
+        "the first parting past the standing block"
+    );
+}
+
+/// run683, item 1561: the lobby's blocks 1577..1833 at the long's detail —
+/// the word 1582's block 1583 with six before it and 250 after.
+pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt";
+
+/// The window: block 1577 through 1833; the word 1582's own block is 1583.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
+/// recorder on — the word 1582's block 1583.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run683",
+        &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_1582,
+        1,
+        &[1583],
+        true,
+    )
+}
+
+#[test]
+fn run683_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 1183, "initial run683 baseline");
+    pin_eq!(
+        w.firsts.values().filter(|(f, _)| *f == 1577).count(),
+        159,
+        "the keys standing on the window's first block"
+    );
+    // **The word 1582's value diff, block 1583** (item 1561): the Persians'
+    // `REFINERY` (`orig_type` 426) `1/2045`, bought for city 2 (`1/2006`, at
+    // (27744, 19296)) by a `MAKE` row both sides print alike, stands at
+    // (30432, 19872) in the original — `city` 2, chained after `1/2006`
+    // (`city_down` 2045) — and at (30432, 22176) in ours, `city` 1, chained
+    // after `1/2041`. The original spends four `produce_building+0x1805`
+    // jitter draws (a 2×2, every sub-position unblocked) and ours three, so
+    // every roll after it sits a place off: the human's `0/5` and `1/65`
+    // re-target on the same block from the shifted stream (their
+    // `orders_x/y`, `dest_angle`), and are no cause.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2045, "build:y_internal".to_string()))
+            .map(|(f, _)| *f),
+        Some(1583),
+        "the Refinery's y parts on the word's block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2045, "build:city".to_string()))
+            .map(|(f, _)| *f),
+        Some(1583),
+        "and its city"
+    );
+    // **What parts first past the standing block** is the word's own block.
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1577)
+        .min();
+    pin_eq!(
+        first,
+        Some(1583),
         "the first parting past the standing block"
     );
 }
