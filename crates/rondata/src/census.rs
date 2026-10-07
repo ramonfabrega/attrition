@@ -16,7 +16,7 @@
 //! the repo; a machine without them skips and says so.
 
 /// Simulation-layer functions a coverage section's diff or a sweep backs.
-pub const SIMULATION_BACKED: usize = 57;
+pub const SIMULATION_BACKED: usize = 68;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

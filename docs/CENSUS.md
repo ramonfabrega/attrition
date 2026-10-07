@@ -708,3 +708,13 @@ functions and three more the port shares (`BuildData::gather_inside`,
 `UnitData::get_speed`'s vslot, `UnitData::mana`); `ObjectData::is_in_range`
 needs a packet. `docs/journal/2026-10-07-item-1575.md` has the batch, its
 findings and the Opus–Sonnet trial.
+
+**Item 1619, the sweep's second batch** (same day): **simulation backed 68
+of 3,611 (1.9 %)** — 31 by a coverage section, 37 by a sweep. Ten more
+`crates/sim/src/sweep/` tests, all packet-free: `find_angle`,
+`UnitTypeData::get_stance_type`, `BuildTypeData::get_good`,
+`WorldData::get_land` (the `mode > 0` arm), `is_ocean`,
+`has_blocked_neighbors`, `space_at_corner`, `GoodType::compute_largest_gather`,
+`Farms::snip` and `CityData::get_empty_trade_routes`. Nine agree on every
+row they compare (`get_land` only its `mode > 0` arm); `get_empty_trade_routes` parts twice and holds both in its test.
+`docs/journal/2026-10-07-item-1619.md` has the batch and its findings.
