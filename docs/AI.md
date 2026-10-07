@@ -17079,3 +17079,8 @@ A stub the booking lands so the race's winner writes its landings at their own a
 
 A stub the booking lands so the race's winner writes its landings at their own anchors
 (parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+
+## 161. Reserved for item 1586 (the coverage pair's word 1532)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
