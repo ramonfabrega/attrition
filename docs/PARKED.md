@@ -3794,6 +3794,17 @@ staging with a packer whose unpacked crew piece tracks; `get_job_time`'s
 Turkish and Napoleon arms on the siege pair (neither constant loaded) and
 its other five rows; `do_guard`'s `0x46` arm has no capture.
 
+(1617) **The sweep's first batch, what it parted** (1575, 2026-10-07): (a)
+`cosx`/`sinx` at distance `i32::MIN` — the port panics, the original's
+`neg` wraps; (b) `Farms::grow` on a cut cell decayed k ≥ 1 — the port's
+`201 − 2k` lands a few ulps below the original's float, and the port's one
+caller never grows a cut cell; (c) the class "the port panics where the
+original wraps": `WCoord` past 2²⁹, `corner_tile` past ±10⁷, `mana_left`'s
+overflow; (d) packets owed for `ObjectData::is_in_range` (`0x006486d6`)
+and `UnitData::get_speed`'s land arm and group cap (`div_3_table`); (e)
+`Sim::unit_speed` reads the domain from the type, `get_speed_at` from
+`unit.kind.domain`. No frame reaches any of them today.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3927,6 +3938,13 @@ lives in, was printed on every block and pinned unread; the cast's end was
 all any walk saw. `seams.py --field` could list the unread pins
 (`coverage.rs`) of the struct a seam's function writes. A sibling of 1607
 and 1610; one reach.
+
+(1618) **A trial that prices subagents wants their final usage row**
+(1575's Loop line, 2026-10-07): lore's spawn telemetry had no final usage
+row for any of the trial's twenty spawns, so output tokens — the dearest
+class — are an estimate in its table and every USD is a floor. A trial
+that prices per function wants that row, or the parent's notification's
+`subagent_tokens` split by class. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
