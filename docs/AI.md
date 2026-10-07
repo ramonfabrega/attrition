@@ -15465,7 +15465,9 @@ first parts is leader 1's **`SITE` list, standing since block 1** (run656 and ru
 (`block 8 agrees without it`); the word now stands on it. It is **not** built here (parked 1506). *Not established*: which of `compute_sites`' steps leaves theirs a blank
 the sampler keeps; whether the three-against-two Village slots are the SITE list's alone.
 
-**What is not established.** The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing. The
+**What is not established.** ~~The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing.~~
+Reached by run678 on 1182 (item 1552, §151): leader 1's Oil Well offer becomes the Oil Platform `1/2031` at (43392, 34176), `orig_type` 422 in the
+dump and `OilPlatform` in ours, read by hand (`orig_type` is compared by nothing). The
 enemy walk is every object, not the cell chains of the `circle_radius[2]` ring (differs only at a ring corner). The order the original reaches a list's patches in at setup
 (the harness seeds the fog's, then the owner grid's, in the goods list's order): it only decides ties. `leader_flags & 0x700` as `transport_level != 0` rests on
 `docs/TRANSPORT.md`'s `leader_flags |= 0x700`. The cell flag `2` (read in arm 4.2) has no writer in this crate, so its two branches are unit-untested.

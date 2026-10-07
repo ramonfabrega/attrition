@@ -88,6 +88,15 @@ pub(crate) struct Pair {
     /// original does (`docs/AI.md` §149). At 1183, ours 29 game draws
     /// against 28, index 21: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
     /// theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    /// **Item 1552 moved it from 1183 to 1277 (count and sequence)**: a
+    /// citizen swarming a water building is searched as the leader's
+    /// barge once the leader transports civilians (`Group::
+    /// action_swarm_around@0070fbe0`, `00710238`–`007102cb`), so `1/26`,
+    /// sent to the Oil Platform `1/2031` at sea on 1182, takes the ring's
+    /// first water point (42936, 34104) as the original does
+    /// (`docs/AI.md` §151). At 1277, ours 10 game draws against 15,
+    /// index 2: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+    /// `Unit::explore_goody+0x27c`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -105,8 +114,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1183,
-    sequence: 1183,
+    count: 1277,
+    sequence: 1277,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -682,10 +691,10 @@ fn run678_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **307** on the tree item 1546 landed (1,378 on item 1544's); 98
-    // stand from the window's first block — `1/2006`'s capital bit no
-    // longer among them.
-    pin_eq!(w.firsts.len(), 307, "initial run678 baseline");
+    // **160** on the tree item 1552 landed (307 on item 1546's, 1,378 on
+    // item 1544's); 98 stand from the window's first block — `1/2006`'s
+    // capital bit no longer among them.
+    pin_eq!(w.firsts.len(), 160, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -700,11 +709,7 @@ fn run678_s_word_frame_is_widened_whole() {
     );
     // **What parts first past the standing block**: the citizen `1/24`'s
     // `form` on 979, then the queue prices on 983 a unit under (`1/2022`,
-    // `1/2024`: the bucket residue standing from 977). On **the word's
-    // frame, 1183**, the citizen `1/26` (`TypeIndex` 50, `PEASANTS`) holds
-    // one order (kind 6) at (36478, 34118) against the original's two
-    // (kind 3, (42936, 34104), a path of 8), and on the word's block 1184
-    // it stands at x 36478 against 36502: the word's extra `Guy::move`.
+    // `1/2024`: the bucket residue standing from 977).
     let first = w
         .firsts
         .values()
@@ -720,8 +725,8 @@ fn run678_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(1, -1, "leader:MAKE[3].t".to_string()))
             .map(|(f, _)| *f),
-        Some(1186),
-        "leader 1's make list agrees on 982 and parts on block 1186"
+        None,
+        "leader 1's make list agrees through the window (1186 before item 1552)"
     );
     pin_eq!(
         w.firsts
@@ -730,16 +735,20 @@ fn run678_s_word_frame_is_widened_whole() {
         None,
         "the site 1/2025 stands where the original's does"
     );
+    // **The move's value diff, item 1552** (`docs/AI.md` §151): the word
+    // 1183's citizen `1/26` (`TypeIndex` 50, `PEASANTS`) held one order on
+    // block 1183, the bare `Build` of the Oil Platform `1/2031` (kind 6, at
+    // its own point (36478, 34118)), against the original's two — the
+    // `ExploreTo` to (42936, 34104) with a path of 8, then the build — and
+    // on 1184 stood at x 36478 against 36502. The swarm ring is searched
+    // as the leader's barge, takes the water, and `1/26` agrees in every
+    // compared field through the window's last block.
     pin_eq!(
         w.firsts
-            .get(&(1, 26, "order:kind".to_string()))
-            .map(|(f, _)| *f),
-        Some(1183),
-        "the word's citizen 1/26 holds another order on block 1183"
-    );
-    pin_eq!(
-        w.firsts.get(&(1, 26, "pos".to_string())).map(|(f, _)| *f),
-        Some(1184),
-        "and stands elsewhere on the word's block 1184"
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 26))
+            .count(),
+        0,
+        "1/26 agrees in every compared field"
     );
 }
