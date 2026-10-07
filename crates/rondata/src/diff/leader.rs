@@ -2741,11 +2741,9 @@ mod tests {
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
         (0, "scouts"),
-        (0, "treaties[1]"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
-        (1, "treaties[0]"),
     ];
 
     /// **run117's window — the leader record across two market
