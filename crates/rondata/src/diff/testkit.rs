@@ -6826,6 +6826,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // that is not known to be the original's single, in the flight to the
     // strike. The strike's fall time reads the height as the bomb's does.
     ("run702_s_word_frame_is_widened_whole", 5),
+    // The same lobby walked to the word (item 1584): one read of the nuke's flight.
+    ("sahara_coverage_first_parting", 1),
     // The coverage driver walks the same window (run702, 1979..2235) and
     // the nuke's flight reads five corners of it, as in run702 itself; the
     // newest pair's lobby (run710) launches from a silo of its own and reads

@@ -2195,12 +2195,7 @@ impl Sim {
         // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
         // (Great Sahara's Spy at `1/2030` is 25/25 on 1983, 50/50 before
         // item 1583). The Russian spy arm before it is not modelled.
-        let strict = |x: tech::TypeId| {
-            self.unit_types[ty].tree.is_some_and(|t| {
-                self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, true)
-            })
-        };
-        if (strict(0x3a) || strict(0x36))
+        if self.is_spy_or_general(ty)
             && self
                 .tech_tree
                 .roles
@@ -2213,6 +2208,16 @@ impl Sim {
             return self.tuning.spy_general_cost;
         }
         0
+    }
+
+    /// `is(0x3a, 1) || is(0x36, 1)`: a Spy or a General, the strict test.
+    fn is_spy_or_general(&self, ty: usize) -> bool {
+        let strict = |x: tech::TypeId| {
+            self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, true)
+            })
+        };
+        strict(0x3a) || strict(0x36)
     }
 
     /// A unit type's trainer as the raw `UnitTypeData +0x40`.
@@ -3091,6 +3096,21 @@ impl Sim {
         if let Some(ladder) = ladder {
             let n = self.speed_upgrade_level(who, ladder);
             tail.push(production::Adjust::Ratio(10 - n, 10));
+        }
+        // `SPIES_GENERALS_CREATED_FASTER`: a Spy or a General under the
+        // bonus takes half (`train_time@006508c0:271`–`283`, after the
+        // cotton arm and before the wool one; item 1584).
+        if self.is_spy_or_general(ty)
+            && self
+                .tech_tree
+                .roles
+                .spy_general_faster_preq
+                .is_some_and(|t| {
+                    self.tech_tree
+                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                })
+        {
+            tail.push(production::Adjust::Ratio(1, 2));
         }
         tail
     }

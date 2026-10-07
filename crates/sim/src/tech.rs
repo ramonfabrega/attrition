@@ -337,6 +337,10 @@ pub struct Roles {
     /// `SPY_GENERAL_COST` off a Spy or a General in `TypeData::get_cost`'s
     /// nation tail. `None` leaves the discount unheld.
     pub spy_general_cheaper_preq: Option<TypeId>,
+    /// `SPIES_GENERALS_CREATED_FASTER`'s one prerequisite (`0x302`, the 87th
+    /// row) — **Tactics** in the shipped file. Held, a Spy or a General
+    /// trains in half the time (`ObjectData::train_time@006508c0`).
+    pub spy_general_faster_preq: Option<TypeId>,
     /// `EXPLORE_MAP_BONUS`'s one prerequisite, the seventh of `rules.xml`'s
     /// `TECHBONUSES` (`0x2b2`) and **Electronics** in the shipped file.
     /// `Leader::gain_tech@006dcb60` sets `leader_flags |= 0x1000` when the

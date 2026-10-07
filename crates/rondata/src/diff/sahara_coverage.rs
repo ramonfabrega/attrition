@@ -77,8 +77,14 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // 1985 → **2048** by the count and the sequence alike: ours 44 draws
     // against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
     // theirs `Unit::do_move+0xe84`.
-    count: 2048,
-    sequence: 2048,
+    //
+    // Landing 4 (`docs/AI.md` §159): an upgraded building weighs its basic
+    // type's trainer bit in the danger map, and a Spy trains in half the
+    // time under Tactics — 2048 → **2077** → **2118** (count and sequence):
+    // ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a <
+    // Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
+    count: 2118,
+    sequence: 2118,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -631,7 +637,7 @@ fn run702_s_word_frame_is_widened_whole() {
     // rolled `Leader::make_stuff+0x63d` and ours the placement jitter
     // `Leader::produce_building+0x1805`; the make list's rows 1 and 2 had
     // parted on 1981 (the Supply Wagon against the MLRS). With the landing's
-    // seven mechanisms the make list agrees to the end of the window but for
+    // six mechanisms the make list agrees to the end of the window but for
     // the Persian army's march, and **the word is 2048**: unit `1/43`'s
     // path parts on **2046** (its heading, `pos`, a path of four nodes
     // against two) — the draw on 2048 is the move step it takes. What parts
@@ -646,11 +652,34 @@ fn run702_s_word_frame_is_widened_whole() {
         Some(1980),
         "Persian city 1/2018's bordering parts on 1980"
     );
+    // Item 1584 (`docs/AI.md` §159): the unit `1/43` agrees past 2046 now
+    // (the danger map weighs an upgraded trainer at fifty, so its search is
+    // priced node for node); the word is **2118**.
     pin_eq!(
         w.firsts.get(&(1, 43, "pos".to_string())).map(|(f, _)| *f),
-        Some(2046),
-        "unit 1/43's position parts on 2046, the word 2048's move"
+        Some(2183),
+        "unit 1/43's position no longer parts on 2046, the word 2048's move"
     );
+    // **The word 2118's value diff** (item 1584): the Spy `1/103` of Persian
+    // city `1/2030`, born on **2077** in both (a Spy trains in half the time
+    // under Tactics), parts on its first block, **2078**: `myhits` ours 15
+    // theirs 150, `mylos` 8 against 14, `myspeed` 21 against 36 (the Spy
+    // upgrades `SPY_UPGRADE_HP`/`_LOS` and the speed, not yet built); its
+    // path parts on **2104** (`order:move.dest`, 14 nodes against 13), and
+    // the draw on 2118 is the original's `Object::take_damage` where ours
+    // steps the Spy on (`Unit::do_move+0x11cf`).
+    for (key, frame) in [
+        ("myhits", 2078),
+        ("mylos", 2078),
+        ("myspeed", 2078),
+        ("order:move.dest", 2104),
+    ] {
+        pin_eq!(
+            w.firsts.get(&(1, 103, key.to_string())).map(|(f, _)| *f),
+            Some(frame),
+            "the Spy 1/103's first parting"
+        );
+    }
     // **What parts first past the standing block.**
     let first = w
         .firsts

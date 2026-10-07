@@ -2203,6 +2203,46 @@ fn a_spy_costs_half_under_the_spies_and_generals_bonus() {
 }
 
 #[test]
+fn a_spy_trains_in_half_the_time_under_the_created_faster_bonus() {
+    // `ObjectData::train_time@006508c0:271`–`283`: a Spy or a General under
+    // `SPIES_GENERALS_CREATED_FASTER` (Tactics, `TECHBONUSES` row 87) takes
+    // half. Great Sahara's Spy at `1/2030` is born on 2077 in the original
+    // and ours finished it later (item 1584, `docs/AI.md` §159). Made to
+    // fail with the arm dropped and with the gate read as always held.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let tactics = tree.add(TypeDef::epoch("Tactics", crate::tech::Line::Science, 0));
+    while tree.types.len() < 0x3a {
+        tree.add(TypeDef::building("pad"));
+    }
+    let spy_t = tree.add(TypeDef::unit("Spy", UnitTraits::default()));
+    let citizen_t = tree.add(TypeDef::unit("Citizen", UnitTraits::default()));
+    tree.roles.spy_general_faster_preq = Some(tactics);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let spy = sim.add_unit_type(UnitType {
+        tree: Some(spy_t),
+        ..citizen_type()
+    });
+    let citizen = sim.add_unit_type(UnitType {
+        tree: Some(citizen_t),
+        ..citizen_type()
+    });
+    sim.tech[0].tech[tactics] = false;
+    let half = |s: &Sim, ty| {
+        s.train_tail(0, ty)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Ratio(1, 2)))
+    };
+    assert!(!half(&sim, spy), "no Tactics yet");
+    sim.tech[0].tech[tactics] = true;
+    assert!(half(&sim, spy), "Tactics: a half");
+    assert!(!half(&sim, citizen), "a Citizen is not a Spy");
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per

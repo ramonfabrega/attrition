@@ -269,7 +269,7 @@ impl Sim {
     // ---- small helpers over the tree and the buildings ----
 
     /// The root of a building record's `from` chain.
-    fn build_root(&self, rec: usize) -> usize {
+    pub(crate) fn build_root(&self, rec: usize) -> usize {
         let mut r = rec;
         for _ in 0..32 {
             match self.build_types[r].from {
