@@ -8746,13 +8746,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `1/2045` from 1583. Item 1581 moved it to **1830** (a restarted
     // caravan search consumes the reset flag), inside the same window
     // (block 1831); `run683_s_road_searches_hold_node_for_node` keeps the
-    // move's value diff, every road search from 1577 to 1829.
+    // move's value diff, every road search from 1577 to 1829. Merged with
+    // item 1586's army normalize it moved to **1985** (count 2048), past
+    // run683's last block (1833), and took run702 over 1979..2235 (block
+    // 1986).
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run683_s_word_frame_is_widened_whole"),
+        Some("run702_s_word_frame_is_widened_whole"),
         1583,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1985),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

@@ -17125,7 +17125,7 @@ the count of the three upgrade prerequisites its leader holds. The wagon is 90 +
 wagon, run683's and the Toughest and French East Indies' (twelve pins re-pinned, −3 each). Built: `Sim::unit_hits`' tail and `Tuning::supply_hp_upgrade`.
 
 **The merged tree's word.** Item 1586's build and this one together: the word is **1985** by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
-`Leader::make_stuff+0x63d` — past run683's last block (1833), widened on run702 (§158's item).
+`Leader::make_stuff+0x63d` — past run683's last block (1833), widened on run702 (blocks 1979..2235, block 1986): `run702_s_word_frame_is_widened_whole` — 1398 keys, 154 standing; what parts first past the standing block is Persian city `1/2018`'s `bordering` on 1980 (ours 0, theirs 3) and leader 1's make list on 1981 (the Supply Wagon against the MLRS in row 1). No mechanism: the next item's first read.
 
 **What is not established.** A supply upgrade gained mid-game does not re-read the wagons already out (`update_hits` runs on a tech gain in the original; this crate's refresh is the
 Citizen's only).

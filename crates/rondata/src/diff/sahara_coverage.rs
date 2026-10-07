@@ -434,10 +434,11 @@ pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-wind
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
-/// recorder on — the word 1582's block 1583.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run683 walked from run675's start with the recorder on — the word
+/// 1582's block 1583, the word 1818's block 1819 and the word 1830's block
+/// 1831. It was the `AI_WORDS` window until the word moved past it, to
+/// run702's (item 1581, merged with item 1586's build).
+pub(crate) fn sahara_coverage_frame_1582_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -454,7 +455,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run683_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_1582_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -571,4 +572,87 @@ fn run683_s_road_searches_hold_node_for_node() {
     }
     pin_eq!(searched, 35, "the road-search frames from 1577 to 1829");
     pin!(parted.is_empty(), "a road search parted: {parted:?}");
+}
+
+/// run702, item 1581: the lobby's blocks 1979..2235 at the long's detail —
+/// the word 1985's block 1986 with six before it and 249 after, taken on the
+/// tree that merged item 1586's army normalize.
+pub(crate) const RUN702: &str = "gamelog-run702-greatsahara-persian-alltech-window-1979-2235.txt";
+
+/// The window: block 1979 through 2235; the word 1985's own block is 1986.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1985: (i64, i64) = (1979, 2235);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run702 walked from run675's start with the
+/// recorder on — the word 1985's block 1986.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run702",
+        &[(RUN702, WIDENING_SAHARA_COVERAGE_FRAME_1985.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_1985,
+        1,
+        &[1986],
+        true,
+    )
+}
+
+#[test]
+fn run702_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 1398, "initial run702 baseline");
+    pin_eq!(
+        w.firsts.values().filter(|(f, _)| *f == 1979).count(),
+        154,
+        "the keys standing on the window's first block"
+    );
+    // **The word 1985's value diff** (item 1581, on the tree that merged
+    // item 1586): the draws agree to index 3 on 1985 and the fifth is where
+    // the original rolls `Leader::make_stuff+0x63d` and ours the placement
+    // jitter `Leader::produce_building+0x1805` — a different make row first.
+    // What parts first past the standing block is Persian city `1/2018`'s
+    // `bordering` on **1980** (ours 0, theirs 3, the bit of each leader
+    // whose ground touches the city's) and then leader 1's make list on
+    // **1981**: row 1 is the Supply Wagon (`TypeIndex` 63, `num` 1) in the
+    // original and the MLRS (273, `num` 2) in ours, and row 2 the other way
+    // about, its `val` 9999999 in ours (the wagon) against 6384749 in the
+    // original (the MLRS). No mechanism: the
+    // successor item's first read.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 2018, "city:bordering".to_string()))
+            .map(|(f, _)| *f),
+        Some(1980),
+        "Persian city 1/2018's bordering parts on 1980"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[1].t".to_string()))
+            .map(|(f, _)| *f),
+        Some(1981),
+        "leader 1's first make row parts on 1981"
+    );
+    // **What parts first past the standing block.**
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1979)
+        .min();
+    pin_eq!(
+        first,
+        Some(1980),
+        "the first parting past the standing block"
+    );
 }

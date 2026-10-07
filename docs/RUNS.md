@@ -15694,3 +15694,20 @@ block 1527, army 1's five units among them; the first parting past it is `1/28`'
 window (`coverage_pair_word_window`), walked by the compared pin with run669's, run672's, run678's and run679's
 (`coverage_frame_1277_window` since), and the coverage driver reads its block 1533. `docs/AI.md` §155.
 
+
+## run702 — Great Sahara in the coverage pair's lobby: the word 1985's widening, blocks 1979..2235 (2026-10-07, item 1581, race lane `att-1565-sonnet`)
+
+**Disk gap**: run683 ends on block 1833, so no dump of this lobby held a unit, a building or a leader record at the word 1985's frame (block 1986), which item 1581's build merged with item 1586's army normalize
+moved the word to from 1830. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 2243 --timeout 3600 --log-window 1979 2236 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, the pool took lane 1, free at launch (04:34). Receipt `success`, 2244 frames,
+closing frame 2244, launch-to-exit 990.3 s, total 1010.7 s. `rngcmp.py rontrace-run676.log rontrace-run702.log`: **2244 frames in common, 0 differing**. 258 `FRAME` blocks, 1979..2235 and a closing block.
+Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run702-greatsahara-persian-alltech-window-1979-2235.txt`, 511,517,619 bytes,
+SHA-256 `37a9487fa5b30c88d1123ce78c954eaa7e39926621678a3acaa497fa13f55741`.
+
+Archive `rontrace-run702.log`, 70,701,664 bytes,
+SHA-256 `afb310c73c36df9fddf81fe6b5cf03ef8ee7e85fd6601cac5c60177427ccfc80`.
+
+**What it holds**: `diff::sahara_coverage::run702_s_word_frame_is_widened_whole` — **1398** keys parted on the merged tree (154 standing on block 1979). The first state past the standing block is Persian city `1/2018`'s
+`bordering` on 1980, then leader 1's make list on 1981 (the Supply Wagon against the MLRS in row 1). `docs/AI.md` §157.
