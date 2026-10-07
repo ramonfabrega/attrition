@@ -539,6 +539,16 @@ struck (`tools/brief/frame.md` at 12,989 of 13,000).
   now; `tools/memcap.sh 10` is breached by the full run (10.2 GiB) where
   the gate caps at 20; `cargo test … run677 sahara_coverage` errors and
   prints nothing.
+- **The lane gate names the word's tests; the slow ones are the
+  booking gate's** (1567, DECISIONS 63 amended): the commander's brief
+  passes the word's filters — the widening the item cites, the walk its
+  map's floor is pinned by — as `--lane --tests <filters>`, and the gate
+  `--skip`s every rondata test the timings file times over a second
+  unless a filter names it (the two coverage pins first, 118 s and 80 s
+  alone); a filter that matched no test is red, and a word that reads a
+  new key adds `coverage::`. The worker runs the whole suite once on its
+  own tree after its last `ccc update`; the booking gate runs it again
+  and forgives nothing. Every landing had run it three times on one box.
 
 ## How a second reading is run
 

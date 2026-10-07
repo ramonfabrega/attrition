@@ -1,8 +1,7 @@
 # The brief's frame
 
 What every brief says, by kind; `tools/brief.py` composes one from this
-file and the queue. **The steering pass writes this
-file**, under `tools/explore/test_brief.py`'s ceiling (1226); a row's
+file and the queue. **The pass writes this file**, under `tools/explore/test_brief.py`'s ceiling (1226); a row's
 number is its checklist row (`docs/audit/README.md`).
 
 ## opening
@@ -173,8 +172,7 @@ Before any reading of the original, in this order:
   names**, never by an output pattern. A mechanism you call built has a
   unit test that fails without it. A mutation no walk holds is a
   finding: name the arm; the rules track stages it next.
-- **The tests a re-pin touches run green before a mutation is scored**
-  (1083). A floor or widening test takes `let _pins = Pins::hold();` and
+- **A re-pin's tests run green before a mutation is scored** (1083). A floor or widening test takes `let _pins = Pins::hold();` and
   `pin_eq!`/`pin_ne!`/`pin!`, so one run shows every pin that moved,
   and `tools/repin.py <log> --write` rewrites them (1349, 1411);
   "stands from N" says whether N is the window's first block or the
@@ -193,9 +191,8 @@ Before any reading of the original, in this order:
   a group move — runs the widenings whose captures reach it before the
   gate** (1313): `RON_FIRSTS` grepped for `inside_up` going to −1 names
   the disembarks.
-- **A command the worktree guard refuses is written to
-  `$CLAUDE_JOB_DIR/tmp/` and run from there** — `timeout` is absent on
-  macOS (1537); **`no verdict (error)` is an outage — back off on a
+- **A command the worktree guard refuses runs from
+  `$CLAUDE_JOB_DIR/tmp/`** — no `timeout` on macOS (1537); **`no verdict (error)` is an outage — back off on a
   Monitor, five minutes and up to an hour**; what needs a human is one
   line to me, and the turn ends (1315).
 
@@ -205,9 +202,10 @@ Before any reading of the original, in this order:
   field and both sides' values on the word's frame, or on the frame the
   state first parted, walked back. Re-pin the constant with the
   word's delta in its comment and the word's block in its widening.
-- **Write the documents and the journal, commit, then gate.** The gate
-  is `python3 tools/release_gate.py ~/code/fun/attrition/game
-  --test-threads 4 --lane`, to a file, never piped, backgrounded; read
+- **Run the whole suite once; write the documents and the journal,
+  commit, then gate.** The gate is `python3 tools/release_gate.py
+  ~/code/fun/attrition/game --test-threads 4 --lane --tests <the
+  word's filters>` (1567), to a file, never piped, backgrounded; read
   its exit before saying anything landed, and quote its `Lane verdict:`
   and `Gate steps:` lines (969); its verdict is a second commit.
 - **`ccc update att-<n>` takes the lane's ref, never a SHA** (1557);
