@@ -115,6 +115,11 @@ pub(crate) struct Pair {
     /// game draws against 11, index 8: ours `Unit::do_move+0xe84`, theirs
     /// `Farms::inc_time+0x1ae` — theirs four `Unit::do_move+0xe84 <
     /// Unit::do_attack_to` draws, ours six.
+    /// **Item 1577 moved it from 1532 to 1610 (count and sequence)**, a
+    /// landing of the Great Sahara race on another word: `Army::normalize`
+    /// runs `Group::normalize` whole, its speed tail included, so an army's
+    /// 128-frame turn resets its march's cap to the leader's own speed
+    /// (`docs/AI.md` §158). Not read past the move.
     pub count: i64,
     pub sequence: i64,
 }
@@ -132,8 +137,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1532,
-    sequence: 1532,
+    count: 1610,
+    sequence: 1610,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -820,8 +825,10 @@ fn run679_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 257, "every captured block");
     // **203** on the tree item 1563 landed (457 on item 1558's, 608 on
-    // item 1552's); 127 stand from the window's first block.
-    pin_eq!(w.firsts.len(), 203, "initial run679 baseline");
+    // item 1552's); 127 stand from the window's first block. **146** after
+    // item 1577's build (an army's normalize resets its group's speed,
+    // `docs/AI.md` §158).
+    pin_eq!(w.firsts.len(), 146, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -907,8 +914,11 @@ fn run710_s_word_frame_is_widened_whole() {
     // first block, among them army 1's `1/28`, `1/38`, `1/43`, `1/44` and
     // `1/45` — apart by a few units from run679's block 1435, and by
     // hundreds here. Before them, on run679's 1420, ours holds the site
-    // `1/2037` alone. The next item's hypotheses, not a cause.
-    pin_eq!(w.firsts.len(), 1034, "initial run710 baseline");
+    // `1/2037` alone. The next item's hypotheses, not a cause. **764**
+    // after item 1577's build (an army's normalize resets its group's
+    // speed, `docs/AI.md` §158), the first parting past the standing block
+    // 1528 → 1529.
+    pin_eq!(w.firsts.len(), 764, "initial run710 baseline");
     let first = w
         .firsts
         .values()
@@ -919,7 +929,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // (39432, 41736), four blocks before the word's 1533.
     pin_eq!(
         first,
-        Some(1528),
+        Some(1529),
         "the first parting past the standing block"
     );
 }

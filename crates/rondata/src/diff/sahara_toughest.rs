@@ -1669,10 +1669,12 @@ mod tests {
         pin_eq!(row(1, -3, "group:65.off[0]"), None, "and its offset");
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(12811, 87), (12825, 1)],
+            [(12811, 87)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 88, "every key parted on run640");
+        // Item 1577: 88 → 87, block 12825's one (an army's normalize resets
+        // its group's speed, `docs/AI.md` §158).
+        pin_eq!(w.firsts.len(), 87, "every key parted on run640");
     }
 
     /// **The word 14363, widened whole** (item 1493):

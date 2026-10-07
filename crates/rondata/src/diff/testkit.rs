@@ -8744,12 +8744,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // moved it to **1830** (a reset route's restart clears the reset),
     // inside the same window (block 1831); `run676_s_road_searches_hold_
     // node_for_node` keeps the move's value diff on caravan 7's search.
+    // Item 1577 moved it to **1985** (an army's normalize resets its
+    // group's speed), past run683's last block, and widened it on run693
+    // over 1979..2235 (block 1986); run683's test keeps the move's value
+    // diff on the soldiers' guard orders and `1/69`.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run683_s_word_frame_is_widened_whole"),
-        1577,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
+        Some("run693_s_word_frame_is_widened_whole"),
+        1578,
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1985),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

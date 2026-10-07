@@ -5003,3 +5003,16 @@ that moved.
 
 §37.1 is diff-backed by run630 and the word. §37.2 is diff-backed by
 run630's 10766.
+
+## 38. `Army::normalize` resets its group's cap — the fourth writer on a schedule (item 1577, 2026-10-07)
+
+§19's `Groups::process` is not the only clock that puts a cap back. `Army::process@006f93d0` runs `Army::normalize@006f9b50` on the
+frame `(frame − 0x1e + (slot + who·2)·2) & 0x7f == 0`, and `Army::normalize` calls the **whole** `Group::normalize@00711540` on each
+of its groups (`6f9b8a`) — the prune, `find_role`, and the tail `speed = new_speed = UnitData::speed(find_leader)`. This crate's
+`army_normalize` had the prune and not the tail. Measured on Great Sahara's coverage lobby: run691 prints group 66 (player 1's army 0)
+at 40/40 on block 1562 and **47/40** on 1563, `groups.proc_group` reads 26 on run692's packet at logger frame 1562 (so not §19's
+cursor), and `step4.py` on `Armies::process_all` names the two writes, `Group::normalize+0x1ba`/`+0x1bd`, through `Army::process →
+Army::normalize`. Player 1's army 0 has the turn on frames ≡ 26 mod 128, and 1562 is one. `docs/AI.md` §158 has the walk and the move.
+
+**Coverage.** Diff-backed: the tail on the army's turn (run691's pair; the word 1830 → 1985; seven second-pair windows and run640 each
+lose a key or two). Reading-only: an army of several groups (`Army::normalize` walks every group in its list; no capture has two).

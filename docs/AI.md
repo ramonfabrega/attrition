@@ -17130,10 +17130,59 @@ leader's order (the reset lands on a search that already ran that frame) is the 
 
 **Coverage.** Diff-backed: the clear (every road search to 1829 node for node; the word moves 1818 → 1830).
 
-## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
+## 158. An army's normalize resets its march's cap, and the word at 1985 (2026-10-07, item 1577)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's widening (the word 1830's rows), `RON_SWEEP` and `RON_DEBUG_UNIT` on ours, three captures and a packet —
+run690 (blocks 1521..1590, the gap no dump held), run691 (group 66's `GROUPDATA` over 1556..1566), run692 (a packet at logger frame 1562),
+run693 (the new word's window) — and `tools/recomp/step4.py` on the packet. `docs/GROUPS.md` §38 holds the rule.
+
+**The word.** Frame 1830 (§157's): 3218 draws against 3219, index 2, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_guard+0x7f4` — a guarding unit's stand ours does not roll. The rows before it are the Persian army's: `1/69` holds `[AttackTo,
+Guard]` on block 1829, 9 units short of its spot (ours (37407, 19083), theirs (37416, 19080)), where the original has arrived and holds
+`[Guard]`; its first parted field is `half_step` on 1827.
+
+**The walk back**, one unit at a time, each read on both sides:
+
+- **`1/71`, 1719.** Both take the waypoint (39741, 18945) on tick 1718 and turn 59° to it; the original steps **half** (23 units), ours
+  whole (47). `unit_masks & 0x100000` is clear on both blocks either side, so the original set and spent the soft-collision bit inside the
+  tick: `do_move`'s waypoint probe (`docs/COLLISION.md` §5.1) hit a squadmate. Ours' probe (`RON_SWEEP=1718:1/71`) at cell (827, 394)
+  is **clear**.
+- **`1/67`, 1718.** The squadmate near that waypoint is the Persian **Supply Wagon** `1/67` (`TypeIndex` 63, land, group 66): already
+  stepped that tick, at y 18769 in the original (cell 391) and 18765 in ours (cell 390). It has stood (2, −2) apart since before run683.
+- **`1/67`, 1563** (run690). Born on 1541 at (44088, 17880), it agrees through block 1562 and parts on **1563**: from (43954, 18349) the
+  original steps (−26, +35) and ours (−24, +33), both along facing −1711927077 — 43 against 41. Ours walks at group 66's cap, 40, as on
+  every frame before; the original walked at the wagon's own 43 for one tick.
+- **Group 66, tick 1562** (run691). `speed/new_speed` reads 40/40 on blocks 1558..1562 and **47/40 on 1563**: a reset to the leader's own
+  `UnitData::speed` (47) before the leader `1/60`'s report wrote `new_speed` 40. The same shape on block 1556–1557 is the refresh ours
+  already has (`do_group_move → group_refresh_order` on 1555).
+- **Who reset it** (run692). `groups.proc_group` reads **26** on the packet (1562 mod 64), so §19's `Groups::process` is not it.
+  `step4.py --entry 006f3b00` (`Armies::process_all`) with group 66's pair watched: two writes, 47 each, at `Group::normalize+0x1ba` and
+  `+0x1bd`, reached through `Army::process → Army::normalize`.
+
+**The cause.** `Army::process@006f93d0` runs `Army::normalize@006f9b50` on frames `(frame − 0x1e + (slot + who·2)·2) & 0x7f == 0` —
+player 1's army 0 on frames ≡ 26 mod 128, and 1562 is one — and `Army::normalize` calls the whole `Group::normalize@00711540` on its group:
+the prune, `find_role`, and the tail `speed = new_speed = UnitData::speed(find_leader)` (`007116fa`/`007116fd`). This crate's
+`army_normalize` did the prune and the counts and not the tail. Built: `army_normalize` ends the group step with `group_set_speed`
+(`crates/sim/src/army.rs`).
+
+**The move.** Run683's keys **845 → 185** (the army's guard orders and half steps from 1719 on agree; 151 stand on 1577), and the word goes
+**1830 → 1985** (sequence; the count parts at 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
+`Leader::make_stuff+0x63d`. The fix is on every army's 128-frame turn, so it reaches every capture with a marching army: seven second-pair
+windows (run414, run445, run480, run490, run583, run589, run594) and run640 each lose one to three keys, and **the coverage pair's word
+moves 1532 → 1610** (item 1563's lane; run679's keys 203 → 146, run710's 1034 → 764). No pin moved the wrong way; every floor held.
+
+**The new word, read.** Block 1986 is run693's (blocks 1979..2235): 1401 keys, 157 standing on 1979. City `1/2018`'s `bordering` parts on
+1980 (ours 0, theirs 3), and on 1981 the Persians' make list orders the Supply Wagon (type 63) and type 273 the other way round —
+`MAKE[1].t` ours 273 theirs 63, the Wagon's `val` ours 9999999 theirs 6384749. No mechanism.
+
+**What is not established.** An army of several groups: `Army::normalize` walks each group in its list and the crate's army holds one; no
+capture has two. The second arm of `Army::process`'s schedule (`(frame + iVar5) & 0xff`, the 256-frame tick) opens with `normalize` too;
+ours' `army_tick` calls `army_normalize` first, so it carries the tail now as well — no capture separates the two arms' resets.
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the tail removed — held by `sahara_coverage_first_parting`,
+`run683_s_word_frame_is_widened_whole` and the unit test `army_normalize_resets_the_group_s_speed_to_its_leader_s`.
+
+**Coverage.** Diff-backed: the tail on the army's turn (run691's pair; run692's watched writes; the word 1830 → 1985).
 
 ## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
 

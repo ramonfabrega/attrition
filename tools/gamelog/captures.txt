@@ -9534,3 +9534,18 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run683.log` -> 0 differing in 1842 frames;
 # `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `DIFFICULTY 5` / `(int)seed 12345` in `GAME INFO`. The output directory must not exist.
 # ==== TAKEN 2026-10-06, one take, 21:05–21:21 ====
+
+# ==== item 1577: Great Sahara in the coverage pair's lobby, the word 1830's walk-back and the word 1985's widening (`docs/AI.md` §158; `docs/RUNS.md` run690..run693) ====
+#
+# Four runs on the click-free lane, none a stanza; run683's recipe with the window moved, each through
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-07-run69N \
+#     --map 7 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --timeout 3600 ...
+# run690: --end-frame 1598 --log-window 1521 1591 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 (the gap 1448..1576).
+# run691: --end-frame 1574 --log-window 1556 1567 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 (take 3, `-take3`;
+#   takes 1 and 2 asked GROUPS with GUYS=2, and with MISC=9,UNITS=9,GROUPS=9,GUYS=2,LEADERS=1, and printed no GROUPDATA).
+# run692: --end-frame 1566 --log-window 1561 1565, run691's detail, --tracer-def RON_STATE_FRAME=1562
+#   --tracer-def 'RON_STATE_PLAN="<item 597's plan>/plan.h"' (the packet).
+# run693: --end-frame 2243 --log-window 1979 2236 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 (the word 1985's window).
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run69N.log` -> 0 differing on each;
+# `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `DIFFICULTY 5` in `GAME INFO`. The output directory must not exist.
+# ==== TAKEN 2026-10-07, 03:58–05:17 ====

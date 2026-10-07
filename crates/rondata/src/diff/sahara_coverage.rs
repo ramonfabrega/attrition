@@ -63,8 +63,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // resumed it) moved it again, 1818 → **1830**: ours 3218 draws against
     // 3219 at index 2, ours `PathFinder::calc_road_cost+0x46`, theirs
     // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
-    count: 1830,
-    sequence: 1830,
+    //
+    // Item 1577's build (`Army::normalize` runs `Group::normalize` whole, its
+    // speed tail included, so an army's 128-frame turn resets its march's cap
+    // to the leader's own speed, `docs/AI.md` §158 — the Supply Wagon `1/67`
+    // stepped 41 where the original steps 43 on tick 1562) moved it again:
+    // the sequence 1830 → **1985**, ours 16 draws against 16 at index 4, ours
+    // `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
+    // the count 1830 → **2048**.
+    count: 2048,
+    sequence: 1985,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -429,11 +437,11 @@ pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-wind
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
-/// recorder on — the word 1582's block 1583, the word 1818's block 1819 and
-/// the word 1830's block 1831.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run683 walked from run675's start with the recorder on — the word 1582's
+/// block 1583, the word 1818's block 1819 and the word 1830's block 1831. It
+/// was the `AI_WORDS` window until item 1577's build moved the word past
+/// it, to run693's.
+pub(crate) fn sahara_coverage_frame_1830_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -450,7 +458,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run683_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_1830_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -467,10 +475,13 @@ fn run683_s_word_frame_is_widened_whole() {
     // reset, `docs/AI.md` §157): the eighteen that went part on 1818..1829
     // downstream of caravan 7's search, which drew 3201 rolls where the
     // original's resumed one drew 3204.
-    pin_eq!(w.firsts.len(), 845, "initial run683 baseline");
+    // **185** after item 1577's build (an army's 128-frame normalize resets
+    // its group's speed, `docs/AI.md` §158): the soldiers' guard orders and
+    // half steps that parted from 1719 agree; 151 stand on 1577.
+    pin_eq!(w.firsts.len(), 185, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        159,
+        151,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (item 1561): the Persians'
@@ -607,5 +618,80 @@ fn run676_s_road_searches_hold_node_for_node() {
         searched.iter().find(|s| s.0 == 1818).copied(),
         Some((1818, 3204, 3204)),
         "1818's search resumes caravan 7's parked plan"
+    );
+}
+
+/// run693, item 1577: the lobby's blocks 1979..2235 at the long's detail —
+/// the word 1985's block 1986 with seven before it and 249 after, and the
+/// draw count's own parting 2048's block 2049.
+pub(crate) const RUN693: &str = "gamelog-run693-greatsahara-persian-alltech-window-1979-2235.txt";
+
+/// The window: block 1979 through 2235; the word 1985's own block is 1986.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1985: (i64, i64) = (1979, 2235);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run693 walked from run675's start with the
+/// recorder on — the word 1985's block 1986 and the count's 2049.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run693",
+        &[(RUN693, WIDENING_SAHARA_COVERAGE_FRAME_1985.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_1985,
+        1,
+        &[1986, 2049],
+        true,
+    )
+}
+
+#[test]
+fn run693_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // **1401** on the tree at item 1577's build (an army's normalize resets
+    // its group's speed, `docs/AI.md` §158): 157 stand from the window's
+    // first block (the control's set, as run683's), and the rest part
+    // from 1980.
+    pin_eq!(w.firsts.len(), 1401, "initial run693 baseline");
+    pin_eq!(
+        w.firsts.values().filter(|(f, _)| *f == 1979).count(),
+        157,
+        "the keys standing on the window's first block"
+    );
+    // **The word 1985's block 1986** (item 1577's move): ours spends a
+    // `produce_building+0x1805` jitter draw where the original goes on in
+    // `make_stuff+0x63d`, and the Persians' make list has parted two
+    // blocks before — on 1981 `MAKE[1].t` ours 273 theirs 63 (the Supply
+    // Wagon) and `MAKE[2]` the other way round, the Wagon's `val` ours
+    // 9999999 theirs 6384749. **What parts first past the standing block**
+    // is city `1/2018`'s `bordering` on 1980 (ours 0, theirs 3). Landing
+    // 1578's to read.
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[1].t".to_string()))
+            .map(|(f, _)| *f),
+        Some(1981),
+        "the make list's order parts on block 1981"
+    );
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1979)
+        .min();
+    pin_eq!(
+        first,
+        Some(1980),
+        "the first parting past the standing block"
     );
 }

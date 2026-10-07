@@ -15636,6 +15636,77 @@ SHA-256 `dc17bfcf573f7e5602ce95595e4d4008aa939224bcee1acb08848c75754d5d98`.
 
 **What it holds**: lane 3's admission; nothing a test reads.
 
+## run690 — Great Sahara in the coverage pair's lobby: the gap before run683, blocks 1521..1590 (2026-10-07, item 1577)
+
+**Disk gap**: run681 holds blocks 1191..1447 and run683 1577..1833, so no dump of this lobby held the Supply Wagon `1/67` (`TypeIndex` 63), born
+between 1527 and 1547 and already (2, −2) apart on run683's first block. The word 1830's walk-back (`1/69`'s half step on 1827 → `1/71`'s on
+1719 → `1/67` one cell over on 1718) ends there. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 1598 --timeout
+3600 --log-window 1521 1591 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane (lane 1), free at launch (03:58). Receipt `success`,
+1599 frames, launch-to-exit 266.7 s, total 279.0 s, five files restored. `rngcmp.py rontrace-run676.log rontrace-run690.log`: **1599 frames in
+common, 0 differing**. `MAP_STYLE 7`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7` read back. 70 window blocks, 1521..1590.
+
+Archive `gamelog-run690-greatsahara-persian-alltech-window-1521-1590.txt`, 131,278,530 bytes,
+SHA-256 `3f26e78291020b52f55741aa470eb08d17f2a050b739e9f492e90df443377679`.
+
+Archive `rontrace-run690.log`, 37,579,200 bytes,
+SHA-256 `fc68c12d416cd7b629f42973981c9ed1c5f6490df4b91cc658838567569771e8`.
+
+**What it holds**: `1/67` agrees from its birth (1541, at (44088, 17880)) through block 1562 and parts on **1563**: from (43954, 18349) the
+original steps (−26, +35), 43 along its facing, and this crate (−24, +33), 41 — both facing −1711927077. No widening test (the reading was
+one unit's walk; the window is the gap's). `docs/AI.md` §158.
+
+## run691 — the same game, group 66's pool record over blocks 1556..1566 (2026-10-07, item 1577)
+
+**Disk gap**: no capture of this lobby prints `GROUPDATA` past run675's start dump, and the wagon's step of 43 on tick 1562 reads as group 66's
+cap lifted for a frame. Three takes; the first two lost the pool: `--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,GROUPS=9`
+and then `end:MISC=9,UNITS=9,GROUPS=9,GUYS=2,LEADERS=1` both drew the runner's `GROUPS was asked for and no GROUPDATA block was printed
+(parked 735)`. **Take 3** (`~/ron-data/lab-captures/2026-10-07-run691-take3`) took run663's line, `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
+LEADERS=9,GROUPS=1`, `--map 7 --end-frame 1574 --log-window 1556 1567`, the lobby's three profiles, `cover=0`, lane 1: receipt `success`,
+`groupdata_blocks` 5632, total 80.5 s. `rngcmp.py rontrace-run676.log rontrace-run691.log`: **1575 frames in common, 0 differing**.
+
+Archive `gamelog-run691-greatsahara-persian-alltech-groups-1556-1566.txt`, 24,247,070 bytes,
+SHA-256 `6187f06e6ddbb4d227c9fbaa1cb312c89fc2e3acdab3901c765f563dd083c317`.
+
+Archive `rontrace-run691.log`, 37,414,656 bytes,
+SHA-256 `a5c8053e5017af2056c3c831edcd35f353c09131a6270af1805da391e5860c81`.
+
+**What it holds**: group 66 (player 1's army 0, 31 members, the only group order `1/60`'s own) reads `speed/new_speed` 47/47 on block 1556,
+47/40 on 1557, 40/40 on 1558..1562, **47/40 on 1563** and 40/40 after: a reset to the leader's own `UnitData::speed` on tick 1562 before
+`1/60`'s report. `docs/AI.md` §158.
+
+## run692 — the same game, a packet at logger frame 1562 (2026-10-07, item 1577)
+
+**Disk gap**: run691 dates the reset to tick 1562 and no dump says which function wrote it. `--tracer-def RON_STATE_FRAME=1562` with item
+597's plan (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h`), `--end-frame 1566 --log-window 1561 1565`, run691 take 3's detail,
+the lobby's three profiles, `cover=0`, lane 1, one take: receipt `success`, total 60.5 s.
+
+Packet `~/ron-data/lab-captures/2026-10-07-run692/map-7/frame-snapshot.bin`, 891,306,272 bytes.
+
+**What it holds**: `groups.proc_group` (`0x00e85f50`) reads **26** = 1562 mod 64, so `Groups::process` does not reach group 66 on that tick.
+`tools/recomp/step4.py --entry 006f3b00` (`Armies::process_all`, `this` `00c09700`) with group 66's `new_speed`/`speed` watched: two writes,
+`Group::normalize+0x1ba` and `+0x1bd`, 47 each, reached by `Army::process → Army::normalize → Group::normalize` (17 functions entered,
+31,565 instructions). `docs/AI.md` §158.
+
+## run693 — Great Sahara in the coverage pair's lobby: the word 1985's widening, blocks 1979..2235 (2026-10-07, item 1577)
+
+**Disk gap**: run683 holds blocks 1577..1833, so no dump of this lobby held a record at the word's frame 1985 (block 1986), which item 1577's
+build (an army's normalize resets its group's speed) moved the word to from 1830. Through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 7 --end-frame 2243 --timeout 3600 --log-window 1979 2236 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane (lane 1), free at
+launch (04:53). Receipt `success`, 2244 frames, launch-to-exit 1412.8 s, total 1433.7 s, five files restored. `rngcmp.py
+rontrace-run676.log rontrace-run693.log`: **2244 frames in common, 0 differing**. The lobby's settings read back. 257 window blocks, 1979..2235.
+
+Archive `gamelog-run693-greatsahara-persian-alltech-window-1979-2235.txt`, 511,517,618 bytes,
+SHA-256 `1d05af76959abbe0dfdc1fb7f4a06284fb7e2597263ad6727ef032e15a0df8af`.
+
+Archive `rontrace-run693.log`, 70,697,792 bytes,
+SHA-256 `67322663908d66cc8c35cbf5de909be55c1e699b9835108707420aaed08d0db5`.
+
+**What it holds**: `diff::sahara_coverage::run693_s_word_frame_is_widened_whole` — **1401** keys on item 1577's tree, 157 standing on block
+1979; the first past it is city `1/2018`'s `bordering` on 1980, and the Persians' make list parts on 1981 (`MAKE[1].t` 273 against 63). It is
+the lobby's `AI_WORDS` window (`sahara_coverage_word_window`), and the coverage driver reads its block 1986. `docs/AI.md` §158.
+
 ## run710 — the coverage pair: East Indies, Persians, All Technologies, blocks 1527..1783 at the long's detail (2026-10-07, item 1563)
 
 **Disk gap**: run679 ends at block 1528 and run652 holds the draw stream; nothing dumped this lobby's records at the word's frame,
