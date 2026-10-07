@@ -12,21 +12,21 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-07, the twenty-sixth pass done and the suite work with it
-(`docs/audit/2026-10-06-fable-pass-26.md`, DECISIONS 63): French East
-Indies **closed at 17,379**; Toughest **closed at 15,432**; Great Sahara in
-the coverage lobby **1582**; the coverage pair **1408**.*
+*2026-10-07, the twenty-seventh tranche opened (`commander`, Opus 5.5,
+from `dfa4b699`). French East Indies **closed at 17,379**; Toughest
+**closed at 15,432**; Great Sahara in the coverage lobby **1582**; the
+coverage pair **1408**. No word has moved this tranche yet.*
 
-- **The suite lane landed** (1567–1571): the lane gate is `--lane --tests
-  <filters>` (703 s → 74 s); the click-free lanes are a pool (1–3, no
-  caller names one); the suite 641 s → 611 s; the census's backed column
-  is on the board. `att-1567` (Opus 5.5) runs 1575, the sweep, next.
-- **The twenty-seventh tranche**: 1563 (Opus 5.5) and 1565 as a
-  **five-landing race** (the pass's record, "The race protocol"); 1497
-  waits. Next run 690, next section §155.
-- **The coverage pair is the newest pair** (DECISIONS 62 §3); 1563's
-  first row is 1450's shared widening of `ever_seen`. A lane landing second
-  takes `ccc update att-<n> --keep-conflicts`; `--replace` archives its row.
+- **Three lanes**: `att-1563` (Opus 5.5) on the coverage pair's word,
+  run 710, AI §155, its first row 1450's shared widening of `ever_seen`;
+  `att-1567` (Opus 5.5) on 1575, the sweep, no runs reserved.
+- **1565 runs as a race** (DECISIONS 63 (ii); the pass's record, "The race
+  protocol"): `att-1565-opus` (Opus 5.5) takes numbers 1576–1580 and runs
+  690–699; `att-1565-sonnet` (Sonnet 5.5) numbers 1581–1585 and runs
+  700–709. AI §156–§160 are the race's five landings, one set for both:
+  only the winner merges. Nothing merges from either until both have five.
+- **Next number 1586, run 711, section §161**; 1497 waits. Lane gate
+  filters: 1563 `coverage_pair:: floors::`, the race `sahara_coverage:: floors::`.
 - **Fable backlog: 25 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -39,9 +39,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-seventh tranche — `commander` (Opus 5.5): spawn
-1563 (Opus 5.5) and 1565 as the race (the pass's record, "The race
-protocol"); merge `att-1567` (1467) as any lane; stop at twenty and spawn `steer`.**
+**Opener: the twenty-seventh tranche, live — `commander` (Opus 5.5):
+merge 1563's and 1575's landings as they come; the race merges at its
+end by the protocol; stop at twenty landings and spawn `steer`.**
 
 ## The queue
 

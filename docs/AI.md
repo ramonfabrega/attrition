@@ -16989,3 +16989,33 @@ Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchang
 `a_walking_animal_in_the_way_is_not_waited_for`.
 
 **Coverage.** Diff-backed: the cause (the word moves 1250 → 1582 and `1/35` agrees through block 1447; run681's keys 885 → 185). Reading-only: the second term of `is_enemy`.
+
+## 155. Reserved for item 1563 (the coverage pair's word 1408)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
+
+## 156. Reserved for the race on item 1565, its landing 1 (Great Sahara's coverage word 1582)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+
+## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+
+## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+
+## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+
+## 160. Reserved for the race on item 1565, its landing 5 (Great Sahara's coverage word 1582)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
