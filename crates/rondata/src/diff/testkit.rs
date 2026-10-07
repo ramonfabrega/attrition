@@ -8730,13 +8730,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 713..969 (block 721, item 1549), **1182** after item 1549's
     // build, past run680's last block, and **1197** once item 1546's
     // second-capital arm merged; run680's test keeps the move's value diff
-    // on 720. The word 1197's widening is owed.
+    // on 720. Item 1555 widened 1197 on run681 over 1191..1447 (block 1198)
+    // and moved it to **1250** by the border pass's rare arm, inside the
+    // same window (block 1251); run681's test keeps the move's value diff
+    // on the Merchant `1/38`.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        None,
+        Some("run681_s_word_frame_is_widened_whole"),
         1555,
-        None,
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1197),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

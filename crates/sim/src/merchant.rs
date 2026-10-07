@@ -91,7 +91,7 @@ impl Sim {
                 continue;
             };
             // `SubObjectData.flags & 1`, then `ever_seen & (1 << who)`.
-            if !g.alive || !self.good_ever_seen(g.pos, who) {
+            if !g.alive || !(self.good_seen_bit(gi, who) || self.good_ever_seen(g.pos, who)) {
                 continue;
             }
             let c = g.pos.cell();
@@ -224,6 +224,16 @@ impl Sim {
     /// `was_really_seen` — the bare line-of-sight accumulation, with none
     /// of `was_seen`'s ally-territory shortcut. [`crate::goody`] reads the
     /// same field of an item the same way and says why.
+    /// The `ever_seen` bit `compute_reg_territory`'s goods scan set on this
+    /// good for `who` ([`Sim::claim_cell_goods`]).
+    pub(crate) fn good_seen_bit(&self, gi: usize, who: Player) -> bool {
+        who < 8
+            && self
+                .good_seen_bits
+                .get(gi)
+                .is_some_and(|b| b >> who & 1 != 0)
+    }
+
     pub fn good_ever_seen(&self, at: Pos, who: Player) -> bool {
         let t = at.tile();
         self.was_really_seen_fog(t.x >> 1, t.y >> 1, who)

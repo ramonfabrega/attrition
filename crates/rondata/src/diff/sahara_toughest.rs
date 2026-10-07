@@ -1058,10 +1058,11 @@ mod tests {
         };
         // **Block 7780 stands on 130 keys** (132 before item 1275's trade):
         // run483's families, and new past it who=1's `known_rares`, ours one
-        // short.
+        // short — until item 1555's border-pass rare arm (`docs/AI.md` §152) gave
+        // the leader the rare the reveal's tile gate missed, **None** since.
         pin_eq!(
             row(1, -1, "leader:known_rares").as_deref(),
-            Some("7780: ours 3 theirs 4"),
+            None,
             "who=1's known rares stand"
         );
         // **The make list parted before the word** (item 1251's 7785): on
@@ -1088,14 +1089,14 @@ mod tests {
                 .filter(|(b, _)| **b <= TOUGHEST_WORD_BLOCK_7786 + 3)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(7780, 48)],
+            [(7780, 47)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 138.
         // Item 1451, `largest_gather` (AI §115): 82 → 80, MAKE[0].val and MAKE[4].val.
         pin_eq!(
             w.firsts.len(),
-            51,
+            50,
             "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }

@@ -1252,6 +1252,11 @@ pub struct Sim {
     /// [`border_pass`]): the owners a fix computed and every region's resume
     /// index. `None` once every land region is done.
     pub border_pass: Option<border_pass::BorderPass>,
+    /// `GoodData::ever_seen` (`+0x20`), the bits `World::compute_reg_territory`'s
+    /// per-cell goods scan sets beside `Leader::new_rare` (item 1555,
+    /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
+    /// answered by the fog read in [`Sim::good_ever_seen`].
+    pub good_seen_bits: Vec<u8>,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
@@ -1690,6 +1695,7 @@ impl Sim {
             wonders_built: 0,
             borders_fixed: false,
             border_pass: None,
+            good_seen_bits: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
             // of owners 8 and 9 and take numbers from their own bands.
