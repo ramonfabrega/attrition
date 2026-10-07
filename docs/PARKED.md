@@ -3742,6 +3742,13 @@ launch), `treaties[1]`/`[0]` 1 against 3 on 1720 (the landing), `ever_seen`
 1 against 255 on every `0/20xx` on 1721, `0/2000`'s `city:raid_stamp` 0
 against 1745 on 1746. Behind the word at 1960; a candidate when one names them.
 
+(1599) **Three rows 1594's build left** (1594, 2026-10-07): `1/71`/`1/72`'s
+`form` −1 against 0 on 1954 (born 1924/1925 in the undumped gap);
+`insert_inside`'s and `remove_from_inside`'s leader counters
+(`+0xa28`..`+0xa34`) carried nowhere in this crate; and `Object::die`'s
+`max_range` gate read as met by every shooter with a round in flight
+(reading-only). Behind the word at 2166.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3816,7 +3823,12 @@ against the proxied `calc_cost` answered it in one run. The third reach
 a `RON_FIRSTS` grep for the struck object's *attacker* (`1/42`) went
 straight to block 1570, where the trace could not. A brief-checklist row:
 "a word whose event is a projectile's landing reads the shooter's first
-parted key, not the target's". One reach.
+parted key, not the target's". **And 1594's** (2026-10-07), a sibling
+row: the field list of the first parting was another unit's, because two
+slots swapped; the answer was the births in an undumped gap, read by
+`uid` against our own allocation (`RON_DEBUG_SLOTS`, now in `third.rs`):
+"a word where two numbers swap reads the births by `uid` across the gap
+before any unit's fields". One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

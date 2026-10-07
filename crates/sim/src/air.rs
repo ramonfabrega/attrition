@@ -1737,7 +1737,8 @@ impl Sim {
     /// (item 1050): `dtype` 0, so `Unit::close` takes no death draw and
     /// leaves no death object; the squad relink, the slot held while its
     /// round flies (`Object::die`'s tail, the same as a combat death's:
-    /// `total_time − cur_time + 1` of its live ammo, 121 on run371's 2701),
+    /// `nuke_effect +0x108` + 1 + `total_time − cur_time` of its live
+    /// ammo, 151 on run371's 2701 — 121 until item 1594 read the 30 in),
     /// the supply slot and both collision indices, and the object
     /// forgotten.
     ///

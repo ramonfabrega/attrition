@@ -2773,8 +2773,9 @@ impl Sim {
     /// The ammo is matched on its **shooter**: `+0x3c`/`+0x40`, which
     /// `Ammo::init` fills from the firing object, and the same pair
     /// `Ammo::inc_time` reads for its own per-frame bump. `nuke_effect`'s
-    /// term is an effect-table entry this crate does not load and is
-    /// taken as zero (§42.5); no capture on disk has a nuke.
+    /// term is [`Self::NUKE_SPREAD`], the 30 `Nuke::init` writes — on
+    /// every ammo, not a nuke's alone (item 1594, `docs/AI.md` §165): the
+    /// listing adds `[0xc0a888]` at `64710b` with no test of the round.
     ///
     /// **And the `hold_frames` it maxes against is already
     /// [`Self::CLOSE_HOLD`]** (§59.3): `die` calls `close` through vslot
@@ -2787,7 +2788,7 @@ impl Sim {
         let mut hold = Self::CLOSE_HOLD;
         for p in &self.projectiles {
             if p.shooter == Obj::Unit(i) {
-                hold = hold.max(p.total_time - p.cur_time + 1);
+                hold = hold.max(Self::NUKE_SPREAD + 1 + p.total_time - p.cur_time);
             }
         }
         self.units[i].hold_frames = hold;
@@ -2800,6 +2801,15 @@ impl Sim {
     /// frame, and `Objects::find_free` will not hand the number out until
     /// it is zero.
     pub(crate) const CLOSE_HOLD: i32 = 0x1e;
+
+    /// **`nuke_effect +0x108`**, a nuke's spread time in frames:
+    /// `Nuke::init@0092c960` writes `0x1e` to it (`92c987`, `0xc0a888`), and
+    /// nothing in the simulation writes it again (`Nuke::registration`
+    /// exposes it as a tuning variable). `Nuke::do_damage` reads it as the
+    /// blast's growth after `+0x104`'s 10 frames, and `Object::die` adds it
+    /// to every live round's remaining time when it holds a dead shooter's
+    /// number (item 1594, `docs/AI.md` §165).
+    pub(crate) const NUKE_SPREAD: i32 = 0x1e;
 
     /// **`DeathObj::inc_time@008d5240`'s first statement**, and
     /// `Ammo::inc_time@0067d380`'s: every frame, a death object bumps its

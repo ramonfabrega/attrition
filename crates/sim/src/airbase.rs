@@ -1669,7 +1669,9 @@ mod tests {
         assert_eq!(p.sz, dz, "the ground at 0 and the offset's height");
         assert_eq!(p.total_time, crate::air::MISSILE_FLIGHT);
         assert_eq!(p.target, None, "a round at the ground");
-        assert_eq!(s.units[v2].hold_frames, 121, "held for its round");
+        // 120 frames of flight, one, and `nuke_effect +0x108`'s 30 (item
+        // 1594): `Object::die` adds the spread time to every round.
+        assert_eq!(s.units[v2].hold_frames, 151, "held for its round");
     }
 
     /// **A missile's round, on run371's own numbers** (item 1050,

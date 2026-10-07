@@ -15733,4 +15733,6 @@ SHA-256 `daaaed96dffc55052da6056688c1258def5b6a97641f59a18480df6686cbaf60`.
 **What it holds**: `diff::coverage_pair::run711_s_word_frame_is_widened_whole` — 2,077 keys on item 1591's tree, 310 standing
 on block 1954; the first parting past it is `1/40`'s on 1956. It is the coverage pair's `AI_WORDS` window
 (`coverage_pair_word_window`), walked by the compared pin with run710's (`coverage_frame_1532_window` since), and the
-coverage driver reads its block 1961. `docs/AI.md` §164.
+coverage driver reads its block 1961. `docs/AI.md` §164. **Item 1594**: 482 keys (150 standing on 1954), the gap's
+births on the original's numbers; it holds the word 2166 too, block 2167, which the widening and the coverage driver now
+read. `docs/AI.md` §165.

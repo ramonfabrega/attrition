@@ -7873,6 +7873,13 @@ impl Sim {
             g.been_there = true;
             self.store_gather(u, g);
             self.ledgers[who as usize].dirty = true;
+            // A transport carrying the platform's builder goes in and dies,
+            // its passenger spliced into the platform in its place
+            // ([`Sim::transport_into_platform`], `5efa39`).
+            if ident == Ident::OilPlatform && self.transport_into_platform(u, b) {
+                self.check_gatherers(b);
+                return;
+            }
             if self.worker_of(u) == Worker::Scholar || ident == Ident::OilPlatform {
                 self.go_inside(u, b);
                 self.check_gatherers(b);

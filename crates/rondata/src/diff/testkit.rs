@@ -8750,12 +8750,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // move's value diff on the Freighter `1/52` from 1686. Item 1591
     // moved it to **1960**, past run710's last block (1783), and took
     // run711 over 1954..2210 (block 1961); run710's test keeps the move's
-    // value diff on the ICBM `1/42` from 1570.
+    // value diff on the ICBM `1/42` from 1570. Item 1594 moved it to
+    // **2166**, inside run711 (block 2167); run711's test keeps the move's
+    // value diff on the gap's births and the platform's citizen on 1954.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run711_s_word_frame_is_widened_whole"),
-        1591,
+        1594,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1960),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

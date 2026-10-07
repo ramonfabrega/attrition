@@ -1423,6 +1423,14 @@ impl Sim {
                 self.disembark_squad(boat, r);
             }
         }
+        self.transport_dies(boat);
+    }
+
+    /// `Object::die(boat, 0, −1, 0)` on a transport, from either of its two
+    /// callers: [`Sim::disembark`] ashore, and
+    /// [`Sim::transport_into_platform`] at an oil platform. `dtype` 0, so
+    /// no death draw and no death object.
+    fn transport_dies(&mut self, boat: usize) {
         self.units[boat].health = 0;
         // `Unit::close@0060ee50`'s count, at `0060f3db` (§16): the boat
         // that came in through `set_type`'s `+1` goes out the same gate.
@@ -1443,6 +1451,64 @@ impl Sim {
         self.units[boat].on_map = false;
         self.coll_remove(boat);
         self.chain_remove(boat);
+    }
+
+    /// **`Unit::do_gather@005ef2a0`'s oil-platform arrival for a transport**
+    /// (item 1594, `docs/AI.md` §165; the listing `5efa39`..`5efacf`): a
+    /// unit that `ObjectData::can_carry(GROUND)@00646c40` — a unit whose
+    /// type's `carry` (`+0x2d4`) is not 0 and which is not `is(0x15f)` —
+    /// arriving at the platform it gathers:
+    ///
+    /// 1. `Unit::same_damage(passenger, boat)` on the head of its
+    ///    `inside_down` (`+0x28`, `+0x3e`), when it has one;
+    /// 2. `Unit::go_inside(boat, platform, who, 0)` — the boat joins the
+    ///    platform's chain;
+    /// 3. `kill_current_order(boat, 0)`;
+    /// 4. `Object::die(boat, 0, −1, 0)`. Its `Object::close@00647160` finds
+    ///    the boat off the map (vslot `0xbc`), so it takes the
+    ///    `remove_from_inside` arm and not `kill_contents`:
+    ///    `Object::remove_from_inside@006480f0` splices the boat out of the
+    ///    chain, the platform's `inside_down` becoming the boat's and the
+    ///    passenger's `inside_up` the platform. The passenger is the
+    ///    platform's now, and the boat is gone.
+    ///
+    /// run711 block 1954: the citizen `1/26` `inside_up 2031` (the
+    /// `OILPLATFORM` its Freighter `1/37` built), `2031 inside_down 26`, and
+    /// no `1/37`; uid 128, born in the gap, holds number 37.
+    pub(crate) fn transport_into_platform(&mut self, boat: usize, b: usize) -> bool {
+        let carry = self.units[boat]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.carry != 0);
+        if !carry || self.units[boat].type_index == 0x15f {
+            return false;
+        }
+        let riders: Vec<usize> = (0..self.units.len())
+            .filter(|&i| self.units[i].inside_unit == Some(boat))
+            .collect();
+        if let Some(&head) = riders.first() {
+            self.same_damage(head, boat);
+        }
+        self.go_inside(boat, b);
+        self.kill_current_order(boat);
+        // The splice: each passenger takes the boat's place in the chain.
+        let at = self.buildings[b]
+            .garrison
+            .iter()
+            .position(|&g| g == boat)
+            .unwrap_or(self.buildings[b].garrison.len());
+        self.buildings[b].garrison.retain(|&g| g != boat);
+        let mut k = at;
+        for &r in &riders {
+            self.units[r].inside_unit = None;
+            self.units[r].inside = Some(b);
+            if self.units[r].o_up.is_none() {
+                self.buildings[b].garrison.insert(k, r);
+                k += 1;
+            }
+        }
+        self.units[boat].inside = None;
+        self.transport_dies(boat);
+        true
     }
 
     /// `come_out`'s `set_new_location(·, ·, 1, 1)` on a passenger: out of
@@ -1886,6 +1952,54 @@ mod tests {
         assert!(!f.sim.units[g].alive());
         assert!(!f.sim.docks[1].slots[0].active());
         assert_eq!(f.sim.docks[1].slots[0].gull, Some(g));
+    }
+
+    /// **A transport that reaches its oil platform dies there, and its
+    /// passenger is the platform's** (item 1594, `docs/AI.md` §165;
+    /// `Unit::do_gather`'s `can_carry(GROUND)` arm, `5efa39`): the boat goes
+    /// inside, its order is killed, and `Object::die`'s `remove_from_inside`
+    /// splices the citizen into its place. run711 block 1954: `1/26`
+    /// `inside_up 2031`, and the Freighter `1/37` gone. A sea unit that
+    /// carries nothing is not a transport and takes no part of the arm.
+    ///
+    /// Made to fail by leaving the arm out of `do_gather`: the boat stands
+    /// in the garrison with the citizen still aboard.
+    #[test]
+    fn a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[b].cols.carry = 1;
+        let platform = f.sim.add_build_type(BuildType {
+            ident: Ident::OilPlatform,
+            x_size: 4,
+            y_size: 4,
+            flags: flags::parse("igbe"),
+            hits: 500,
+            ..BuildType::default()
+        });
+        let site = place_dock(&mut f.sim, 1, platform, tile_pos(40, 16));
+        f.sim.activate(site, false, true);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let boat = unit(&mut f.sim, 1, b, tile_pos(38, 16));
+        f.sim.board(rider, boat);
+        f.sim
+            .add_gather_order(boat, site, crate::orders::QueuePos::New, false);
+        // Its own step: `Unit::process` → `do_gather`'s arrival.
+        assert!(
+            f.sim.adjacent_to(boat, site),
+            "the boat stands at the platform"
+        );
+        f.sim.work(boat, 0);
+        assert!(!f.sim.units[boat].alive(), "the boat dies");
+        assert_eq!(f.sim.units[boat].hold_frames, Sim::CLOSE_HOLD);
+        assert!(f.sim.units[boat].orders.is_empty(), "its gather is killed");
+        assert_eq!(f.sim.units[rider].inside, Some(site));
+        assert_eq!(f.sim.units[rider].inside_unit, None);
+        assert_eq!(f.sim.buildings[site].garrison, vec![rider]);
+        // A ship with no `carry` is no transport: the arm passes it by.
+        let ship = unit(&mut f.sim, 1, f.ship, tile_pos(38, 20));
+        assert!(!f.sim.transport_into_platform(ship, site));
+        assert!(f.sim.units[ship].alive());
     }
 
     /// A barge type, so `cast_transport` has something to build.
