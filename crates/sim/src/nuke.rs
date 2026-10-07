@@ -161,7 +161,7 @@ impl Sim {
     /// - on `t == NUKE_FRAMES` the original moves the Armageddon counter
     ///   (`Game +0x6e0`), which is not carried here: no dump prints it and
     ///   nothing built reads it but the computer's silo strike, whose gate
-    ///   reads it as open (`Sim::silo_strike`'s SEAM; the game's end at
+    ///   reads it as open (a gap `Sim::silo_strike` names; the game's end at
     ///   `get_armageddon` is not built);
     /// - while the ring lives ([`ring_radius`]), every unit of the eight
     ///   players (`find_units`' last argument 1: `who < 8`, item 1591)

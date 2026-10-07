@@ -1475,10 +1475,10 @@ impl Sim {
     /// capture has reached (scan: `report.py <log> when Object::do_launch`
     /// over the 351 `rontrace-*.log` on 2026-10-07: no draw from
     /// `do_launch` in any — the arm's `% 10` roll is its only draw, so a
-    /// V2 at a silo's head over an unflagged city was never met); the forts' and wonders' loops (`650150`..
-    /// `650544`), for which this crate keeps no list; the Armageddon
-    /// counter (`Game +0x6e0`), which is not carried (`crate::nuke`), so
-    /// the gate is read as open; and the friendly search's cell ring,
+    /// V2 at a silo's head over an unflagged city was never met); the
+    /// forts' and wonders' loops (`650150`..`650544`), for which this
+    /// crate keeps no list; the Armageddon counter (`Game +0x6e0`), which
+    /// no field here holds (`crate::nuke`), so the gate is read as open; and the friendly search's cell ring,
     /// walked here as every object of the owner's within the radius
     /// ([`Sim::enemy_object_within`]'s same reading).
     fn silo_strike(&mut self, b: usize) {
