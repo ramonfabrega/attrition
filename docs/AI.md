@@ -17359,8 +17359,11 @@ unless marked.
 before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
 shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/fight.rs`), added in `hold_dead_slot`. Unit test
 `transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
-`carry` passed by); `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` reads 151 for the V2's hold
-(121 before).
+`carry` passed by); `airbase::tests::the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth` reads 151 for the
+V2's hold (121 before). Mutations (`tools/mutate.py`, scored by exit and the failed tests' names): the arm cut from
+`do_gather`, and the rival reading in which the passenger dies with the boat (`kill_contents`), each held by
+`coverage_pair_first_parting`, `run711_s_word_frame_is_widened_whole` and the transport unit test; the hold's 30 dropped,
+by the same two walks and the silo's unit test.
 
 **The value diff, and the word now.** run711 block 1954: `1/26` `inside 2031` in both; `1/37` at (38010, 41471), `1/42`
 at (30456, 37080), `1/62` at (35886, 39011) and `1/67`..`1/70` agree in every compared field (pinned); `1/71`/`1/72` keep
