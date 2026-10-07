@@ -412,9 +412,6 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // …and the landing search it opens, thirty rounds of two.
     (0x005d_7c8a, None, sim::gaia::SITE_BIRD_SEARCH_CELL),
     (0x005d_7cb3, None, sim::gaia::SITE_BIRD_SEARCH_SCORE),
-    // `Object::do_launch@0064f3b0`'s silo arm — a conventional missile's
-    // `rnd % 10` at a city not under attack (`docs/AI.md` §160).
-    (0x0065_0083, None, sim::air::SITE_SILO_ROLL),
     // `Unit::do_air_physics@005e86d0` — the edge coin, thrown on the frame
     // a bird's step first leaves the world and not again until one lands
     // inside (`docs/SYNC.md` §3.9). run54's is at 5437.

@@ -139,16 +139,15 @@ pub(crate) struct Pair {
     /// home, refused the plan and spent a second grid draw on 1696
     /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
     /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
-    /// **Item 1579 moved it from 1719 to 1735 (count and sequence)**: a
-    /// computer's Missile Silo, on its 128-frame turn, takes the missile at
-    /// the head of its inside chain and lays an air strike on the enemy
-    /// city it values most (`Object::do_launch`'s silo arm, `docs/AI.md`
-    /// §160), so the Persians' missile `1/42` is ordered on 1570 and
-    /// strikes the human's capital `0/2000` on 1719 as the original's does
-    /// (its `take_damage` draw; block 1720's `build:damage` 1560 and
-    /// `reduce_stamp` 1719 agree). At 1735, ours 6 game draws against 5,
-    /// index 0: ours `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a <
-    /// Guy::inc_time+0x271`.
+    /// **Item 1591 moved it from 1719 to 1960 (the sequence; the count
+    /// parts on 1982)**: `Object::do_launch`'s silo arm strikes for a
+    /// computer, so the ICBM `1/42` in the silo `1/2015` takes
+    /// `AIR_ATTACK_GROUND` at Napata's point on 1569 as the original does,
+    /// leaves on 1600 and lands on 1719; the blast's ring passes over the
+    /// animals (`find_units(…, 1)`), and a pasture's close takes its
+    /// chickens with it (`docs/AI.md` §164). At 1960, 36 game draws a side,
+    /// index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    /// Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -166,8 +165,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1735,
-    sequence: 1735,
+    count: 1982,
+    sequence: 1960,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -950,12 +949,12 @@ pub(crate) const RUN710: &str = "gamelog-run710-eastindies-persian-alltech-windo
 /// The window: block 1527 through 1783; the word 1532's own block is 1533.
 pub(crate) const WIDENING_COVERAGE_FRAME_1532: (i64, i64) = (1527, 1783);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run710 walked from run651's start with the recorder on. It holds the
 /// word 1532 (item 1563), block 1533, the word 1610 (item 1586), block
 /// 1611, the word 1696 (item 1588), block 1697, and the word 1719 (item
-/// 1589), block 1720.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// 1589), block 1720; it was the `AI_WORDS` window until item 1591 moved
+/// the word past it, to run711's.
+pub(crate) fn coverage_frame_1532_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -972,19 +971,35 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run710_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_1532_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **360** on the tree item 1589 landed (478 on item 1588's, 764 on
-    // item 1586's, 1034 on item 1563's); 151 stand from the window's first block (167 on
-    // 1563's), and army 1's
+    // **224** on the tree item 1591 landed (360 on item 1589's, 478 on
+    // item 1588's, 764 on item 1586's, 1034 on item 1563's); 151 stand
+    // from the window's first block (167 on 1563's), and army 1's
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    // Item 1578: 360 → 315 on the tree item 1589 landed, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
-    // Item 1579: 315 → 213, the missile `1/42` ordered on 1570 by its silo's arm and its strike on `0/2000` on 1719 agree (`docs/AI.md` §160).
-    pin_eq!(w.firsts.len(), 213, "initial run710 baseline");
+    // Item 1578: 224 → 177 on the tree item 1591 landed, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 177, "initial run710 baseline");
+    // **The word 1719's value diff, item 1591** (`docs/AI.md` §164): the
+    // ICBM `1/42` (`TypeIndex` 316, `ICBM`, inside the silo `1/2015`)
+    // parted first on block 1570 — `order:length` 0 against 1,
+    // `orders.len` 0 against 1: on frame 1569 (`(1569 + 2015) % 128 ==
+    // 0`) the original's silo arm gave it `AIR_ATTACK_GROUND` (type 24) at
+    // Napata's point (6240, 7008), and ours had no silo arm. It leaves on
+    // 1600 (the silo's `visible` −1 on 1601) and its round lands on 1719,
+    // `0/2000`'s `damage` 1560 on 1720 in both. No key of `1/42` parts in
+    // the window now.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), _)| *who == 1 && *o == 42)
+            .count(),
+        0,
+        "the word's ICBM 1/42 agrees in every compared field"
+    );
     // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
     // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
     // `1/40`) parted first on block 1686 — `path:length` 9 against 17,
@@ -1037,6 +1052,63 @@ fn run710_s_word_frame_is_widened_whole() {
     pin_eq!(
         first,
         Some(1529),
+        "the first parting past the standing block"
+    );
+}
+
+/// run711, item 1591: the lobby's blocks 1954..2210 at the long's detail —
+/// the word 1960's block 1961 with six before it and 250 after.
+pub(crate) const RUN711: &str = "gamelog-run711-eastindies-persian-alltech-window-1954-2210.txt";
+
+/// The window: block 1954 through 2210; the word 1960's own block is 1961.
+pub(crate) const WIDENING_COVERAGE_FRAME_1960: (i64, i64) = (1954, 2210);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run711 walked from run651's start with the recorder on. It holds the
+/// word 1960 (item 1591), block 1961.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run711",
+        &[(RUN711, 1954)],
+        WIDENING_COVERAGE_FRAME_1960,
+        1,
+        &[1961],
+        true,
+    )
+}
+
+#[test]
+fn run711_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **2077** on the tree item 1591 landed; 310 stand from the window's
+    // first block. Among them a slot number: ours' `1/42` is a two-figure
+    // unit at (35886, 39011), `myhits` 90, where the original's is a
+    // citizen (`TypeIndex` 50) at (30456, 37080) and its two-figure unit
+    // at (35796, 38909) is `1/62`. The ICBM freed slot 42 on 1600, and no
+    // key of `1/42` parts in run710's window, so the slot was handed out
+    // differently between 1784 and 1953, where nothing is dumped.
+    // Item 1578: 2077 → 2002 on the tree item 1591 landed, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 2002, "initial run711 baseline");
+    // **The word 1960's block, 1961**: `1/42`'s `path_recursion` 2 against
+    // 1 and `1/62`'s 1 against 2 — the same two units under each other's
+    // numbers, and ours' `1/42` spends the word's first two draws
+    // (`Guy::do_turn < Unit::move_step`). Hypotheses for the item after.
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1954)
+        .min();
+    pin_eq!(
+        first,
+        Some(1956),
         "the first parting past the standing block"
     );
 }

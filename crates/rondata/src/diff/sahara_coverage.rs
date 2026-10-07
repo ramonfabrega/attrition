@@ -72,9 +72,10 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
     // the count 1830 → **2048**.
     //
-    // Item 1579's build (the silo's arm of the computer's sortie: silo
-    // `1/2017` orders its ICBM `1/96` at Napata on 1951 and launches it on
-    // 1982, `docs/AI.md` §160) holds the word at 1985 and brings the count
+    // Item 1591's build (the silo's arm of the computer's sortie,
+    // `docs/AI.md` §164), measured on this map by item 1579: silo `1/2017`
+    // orders its ICBM `1/96` at Napata on 1951 and launches it on 1982
+    // (`docs/AI.md` §160). It holds the word at 1985 and brings the count
     // down to it, 2048 → **1985**: ours 18 draws against 16 at index 6, ours
     // `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
     count: 1985,
@@ -674,8 +675,9 @@ fn run693_s_word_frame_is_widened_whole() {
     // first block (the control's set, as run683's), and the rest part
     // from 1980.
     // Item 1578: 1401 → 1328, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
-    // Item 1579: 1328 → 1316, the ICBM `1/96`'s order (1979) and its launch (1982) agree (`docs/AI.md` §160).
-    pin_eq!(w.firsts.len(), 1316, "initial run693 baseline");
+    // Item 1579: 1328 → 1316, the ICBM `1/96`'s order (1979) and its launch (1982) agree (`docs/AI.md` §160);
+    // 1316 → 1313 on the tree item 1591 landed (its nuke ring and pasture builds, not attributed key by key).
+    pin_eq!(w.firsts.len(), 1313, "initial run693 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         120,
@@ -683,8 +685,8 @@ fn run693_s_word_frame_is_widened_whole() {
     );
     // **The word 1985's block 1986** (item 1577's move): ours spends a
     // `produce_building+0x1805` jitter draw later than the original, ours
-    // 18 draws against 16 since item 1579. Item 1578's build (the 1%) and
-    // item 1579's (the silo's arm: the ICBM `1/96` ordered on 1951 and
+    // 18 draws against 16 since item 1591's. Item 1578's build (the 1%) and
+    // item 1591's (the silo's arm: the ICBM `1/96` ordered on 1951 and
     // launched on 1982 as the original's) bring the Persians' make list to
     // agree but two rows on 1984: `MAKE[5]` a Peasant (type 50) offer in
     // ours, val 7210, where the original's slot is empty, and the Spy's

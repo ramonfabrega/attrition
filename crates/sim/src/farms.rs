@@ -629,6 +629,35 @@ impl Sim {
         );
     }
 
+    /// **A farm's close takes its pasture's animals with it**
+    /// (`Build::close@00628980:273–297`, item 1591, `docs/AI.md` §164): a
+    /// gather building whose good is food (`BuildTypeData::get_good` 0, the
+    /// Farm) walks the animals' list (`objects +0x110`) and closes every
+    /// one that is active, herdless (`UnitData +0x86 < 0`), not of the air
+    /// domain (`+0x218 != 2`) and whose farm reference (`AnimalData +0x150`
+    /// / `+0x152`) is this building — `Unit::close(0, −1, 0)` through vslot
+    /// `+0x150`: no death draw, the slot held thirty frames. run710's
+    /// pasture `0/2002`, flattened by the ICBM on 1734, leaves no chicken
+    /// to think on 1747; this crate's `9/9` did, one draw the original
+    /// never spent.
+    pub(crate) fn close_pasture_animals(&mut self, b: usize) {
+        for u in 0..self.units.len() {
+            let unit = &self.units[u];
+            if !unit.alive()
+                || unit.herd.is_some()
+                || unit.kind.domain == crate::attrition::Domain::Air
+                || unit.farm_animal.is_none_or(|fa| fa.build != b)
+            {
+                continue;
+            }
+            self.units[u].health = self.units[u].health.min(0);
+            self.relink_squad(u);
+            self.close_dead_orders(u);
+            self.hold_dead_slot(u);
+            self.forget(crate::combat::Obj::Unit(u));
+        }
+    }
+
     /// `Farms::inc_time`, from `Objects::inc_time` after the ammo — every
     /// complete, enabled farm, in building order.
     pub fn farms_inc_time(&mut self) {
@@ -808,6 +837,41 @@ mod tests {
     /// `o · (slot + 1) + frame` is zero at frame 0. Six draws where a crop
     /// farm spends one — run20's frame 0, draws 138–143 (`docs/SYNC.md`
     /// §3.6).
+    /// **A pasture's close takes its five animals, and spends no draw**
+    /// (item 1591, `Build::close@00628980:273–297`): each is closed through
+    /// `Unit::close(0, −1, 0)` — dead, its slot held thirty frames, no
+    /// death roll — and a second pasture's animals stand. run710's `9/9`,
+    /// whose pasture `0/2002` the ICBM flattened on 1734, thought on 1747
+    /// in this crate. Made to fail with the walk dropped (the five alive).
+    #[test]
+    fn a_pasture_s_close_takes_its_animals_and_spends_no_draw() {
+        let (mut s, b) = farm_sim();
+        let chicken = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[chicken].tree = Some(FARMCHICKEN);
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        let animals = s.farm_add_animals(b, &[]);
+        let t = s.buildings[b].ty.unwrap();
+        let other = s.init_build(0, t, Pos::new(10 * 192 + 96, 10 * 192 + 96), false);
+        s.activate(other, false, true);
+        s.buildings[other].farm.farm_type = ANIMAL_FARM;
+        let others = s.farm_add_animals(other, &[]);
+        assert_eq!(others.len(), FARM_ANIMALS as usize);
+        let seed = s.rng.seed;
+        s.die_building(b);
+        assert_eq!(s.rng.seed, seed, "no draw");
+        for &u in &animals {
+            assert!(!s.units[u].alive(), "the pasture's animal is closed");
+            assert_eq!(s.units[u].hold_frames, Sim::CLOSE_HOLD, "its slot held");
+        }
+        assert!(
+            others.iter().all(|&u| s.units[u].alive()),
+            "another pasture's animals stand"
+        );
+    }
+
     #[test]
     fn a_pasture_spends_no_crop_draw_and_six_on_its_animals() {
         let (mut s, b) = farm_sim();

@@ -6825,14 +6825,6 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // ordered at Napata by silo `1/2017`'s arm on 1951 and launched on
     // 1982, reads the ground under its flight.
     ("run693_s_word_frame_is_widened_whole", 5),
-    // The coverage pair's lobby has a silo too (item 1579): its missiles,
-    // ordered by the same arm, read the ground under their flights.
-    ("coverage_pair_first_parting", 1),
-    ("run710_s_word_frame_is_widened_whole", 3),
-    (
-        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        5,
-    ),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -6945,6 +6937,21 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run551's ground: 32 reads (pinned at 31, it fails).
     ("chapter_forty_eight_holds_to_the_golden_word", 32),
     ("chapter_forty_eight_s_word_frame_is_widened_whole", 32),
+    // The coverage pair's ICBM (item 1591): `1/42`'s round's `ez` at
+    // Napata's point (6240, 7008) on 1600, launched by the computer's silo
+    // strike, and the walk past the blast to the word 1960 (pinned at one
+    // under each, it fails).
+    ("coverage_pair_first_parting", 4),
+    ("run710_s_word_frame_is_widened_whole", 3),
+    ("run711_s_word_frame_is_widened_whole", 4),
+    // The coverage driver walks run710's and run711's windows: run710's
+    // three reads, and run711's four (item 1591; pinned at 3, run711's
+    // walk fails); and run693's block 1986 with Great Sahara's ICBM
+    // `1/96` in flight, five (item 1579).
+    (
+        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        5,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -8736,13 +8743,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // it to **1696**, inside run710 (block 1697); run710's test keeps the
     // move's value diff on the citizen `1/10` from 1584. Item 1589 moved
     // it to **1719**, inside run710 (block 1720); run710's test keeps the
-    // move's value diff on the Freighter `1/52` from 1686.
+    // move's value diff on the Freighter `1/52` from 1686. Item 1591
+    // moved it to **1960**, past run710's last block (1783), and took
+    // run711 over 1954..2210 (block 1961); run710's test keeps the move's
+    // value diff on the ICBM `1/42` from 1570.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run710_s_word_frame_is_widened_whole"),
-        1589,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1532),
+        Some("run711_s_word_frame_is_widened_whole"),
+        1591,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1960),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

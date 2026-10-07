@@ -17234,51 +17234,37 @@ unchanged by construction.
 
 **Coverage.** Diff-backed: the 1% (run690's and run693's queue prices, the MLRS's fac on 1980). Packet-backed: the cached level 0.
 
-## 160. A computer's silo strikes the human's seen city on its turn, and the word at 1985 holds (2026-10-07, item 1579)
+## 160. Great Sahara's silo strikes with its nuke, and the word at 1985 holds (2026-10-07, item 1579)
 
-**Established by**: run693's widening (blocks 1979..2235), run676's trace on 1951 and 1982, and `Object::do_launch@0064f3b0`'s silo
-arm (`64fdcd`..`6508a7`; the `ever_seen` byte test at `64ff58`, the roll's return at `00650083`).
+**Established by**: run693's widening (blocks 1979..2235) and run676's trace on 1951 and 1982. The rule is §164's (item 1591,
+`Sim::silo_strike`, `Object::do_launch@0064f3b0`'s silo arm), which this lane built in parallel from the same listing and took
+from the integration at the merge; this section is what it moves on the coverage lobby's third map.
 
-**The word.** Frame 1985 (§158's, held by §159): on 1984 the original's Persian make list leads with an ICBM (type 316, val 4000000,
-escrowed) that ours never offers, because ours' ICBM `1/96` — finished on tick 1982 — still stands in silo `1/2017` with no order, where
-the original's was ordered on 1979 (the first block run693 prints) and launched on 1982 (`Build::do_missile_launch+0x22d <
-Object::do_launch` in run676's trace). `computer_sortie` named the gap as a seam: its silo returned at once.
+**The word.** Frame 1985 (§158's, held by §159): on 1984 the original's Persian make list led with an ICBM (type 316, val
+4000000, escrowed) that ours never offered, because ours' ICBM `1/96` — finished on tick 1982 — still stood in silo `1/2017`
+with no order, where the original's was ordered before 1979 (the first block run693 prints) and launched on 1982
+(`Build::do_missile_launch+0x22d < Object::do_launch` in run676's trace).
 
-**The rule** (`Object::do_launch`'s silo arm, built as `Sim::silo_strike` in `crates/sim/src/air.rs`). On the base's 32-frame turn
-when also `(frame + o) & 0x7f == 0` — run676's silo takes its turn on 1951, `1951 + 2017 = 31 · 128` — a silo holding anything takes
-the missile at the head of its inside chain; `reach = mana · get_speed(…, 1)`; over every leader the owner is at war with and that does
-not hold `MISSILE_DEFENSE_BONUS`, over that leader's live cities whose building's `ever_seen` byte is not 0: a nuke passes over a city
-with any object of its own side within `0x1800` and values `num_buildings · (hits_left + 1000)`; a conventional missile passes over a
-city under 500 hits left, values `damage + 1000`, and at a city not under attack rolls `Random % 10` — not 0 passes over, 0 divides the
-value by 50 (`SITE_SILO_ROLL`). A city beyond `reach` is passed over; the rest are valued `v / (d/0x1200 + 1)`, kept when strictly
-greater. The chosen city's building takes `add_air_attack_ground_order(head, its point, QUEUE_NEW, action 1)`, and the silo's own
-countdown launches it.
+**The arm's turn on this map.** Silo `1/2017` takes its turn on 1951 (`1951 + 2017 = 31 · 128`) and orders `1/96` at the
+human's Napata, (6240, 30048) — on Great Sahara the human's one seen city.
 
-**The move.** ICBM `1/96` agrees in every compared field: its order at Napata (6240, 30048) from 1979, its launch on 1982, and the
-extra row run693 printed for it on 1983 is gone. run693's keys 1328 → 1316 (122 → 120 standing). **The word holds at 1985**, and the
-count comes down to it, 2048 → 1985: ours 18 draws against 16, parting at index 6. On 1984 the make list now agrees but two rows —
-`MAKE[5]` a Peasant (type 50, val 7210) in ours where the original's slot is empty, and the Spy's `val` 1083333 against 1129432
-(`check_income`'s `fac` 235 against 245, the wealth price over income/16 one notch apart; wealth income 3205 against 3158, territory
-1924 against 1889 since the standing block). First past the standing block: city `1/2018`'s `bordering` on 1980, ours 0 theirs 3.
+**The move.** ICBM `1/96` agrees in every compared field (pinned): its order at Napata from 1979, its launch on 1982, and the
+extra row run693 printed for it on 1983 is gone. run693's keys 1328 → 1316 (122 → 120 standing) on this lane's own build,
+1313 on the merged tree. **The word holds at 1985**, and the count comes down to it, 2048 → 1985: ours 18 draws against 16,
+parting at index 6, ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. On 1984 the make list agrees
+but two rows — `MAKE[5]` a Peasant (type 50, val 7210) in ours where the original's slot is empty, and the Spy's `val`
+1083333 against 1129432 (`check_income`'s `fac` 235 against 245, the wealth price over income/16 one notch apart; wealth
+income 3205 against 3158, territory 1924 against 1889 since the standing block). First past the standing block: city
+`1/2018`'s `bordering` on 1980, ours 0 theirs 3.
 
-**The coverage pair's word moves too, 1719 → 1735** (count and sequence). Its Persians hold a silo as well: missile `1/42` (type 266)
-is now ordered on 1570 (`orders.len` ours 0 theirs 1 before) and strikes the human's capital `0/2000` on 1719 — the original's
-`Object::take_damage+0xe1` draw that word 1719 named; block 1720's `build:damage` 1560, `reduce_stamp` 1719 and `city_flags` 2, 4, 8
-agree. run710's keys 315 → 213. At 1735 ours 6 game draws against 5, parting at index 0: ours `Unit::close+0xcb6`, theirs
-`Guy::set_anim+0x97a < Guy::inc_time+0x271`; past it the human's units `0/3`, `0/13`, `0/12`, … die in ours from 1738 and live in the
-original.
+**What is not established.** As §164: the conventional arm, the forts' and wonders' loops, the Armageddon counter. This
+lane's own reading took `SEARCH_FRIENDLY` for the owner's allies too; §164 reads `Search::valid_search`'s case 1 as the
+asker alone, and no capture puts an ally's object beside a target city to tell them apart.
 
-**What is not established.** The forts' and wonders' target loops (`650148`..`65052c`) and the conventional arm's loop over the
-leader's units are not built (this crate keeps no per-leader list there; a `SEAM`); the Armageddon counter (`Game +0x6e0`) that stops
-a nuke at `get_armageddon() − 2` is not carried; the friendly search is read as every live object of the side within `0x1800`, not
-the original's cell walk. No capture has yet fired a conventional missile, so `SITE_SILO_ROLL` is unexercised by a diff.
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the silo's call removed — held by
+`run693_s_word_frame_is_widened_whole` (1316 → 1328 on this lane's build).
 
-**Mutations** (`tools/mutate.py`, scored by cargo's exit): the silo's call removed — held by `run693_s_word_frame_is_widened_whole` and
-the unit test `a_computer_s_silo_strikes_the_human_s_seen_city_on_its_turn`.
-
-**Coverage.** Diff-backed: the nuke's order (target, frame) and launch (run693, run676's trace); the coverage pair's missile's
-order and its damage to the city (run710). Reading-only: the conventional arm,
-the roll, the friendly search's radius.
+**Coverage.** Diff-backed: the nuke's order (target, frame) and launch on Great Sahara (run693, run676's trace).
 
 ## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
 
@@ -17446,7 +17432,78 @@ with a Dock on its side) now plans its tile leg differently across a region seam
 **Coverage.** Diff-backed: claims 1–3 and the value diff (run710, run710's trace). Listing-backed: claim 4's gate, which the
 diff confirms on its one frame.
 
-## 164. Reserved for item 1591 (the coverage pair's word 1719)
+## 164. The computer's silo strikes with its nuke, and the word at 1960 (2026-10-07, item 1591)
+
+**What was established, how, how confident.** Item 1589 left the coverage pair's word at **frame 1719, ours 15 game draws
+against 16, index 11**: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. run710 (1527..1783) holds it whole.
+Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run710's trace, `report.py draws 1719`; ours `RON_DEBUG_SITES`). The same eleven unit and bird
+   draws, then the original alone spends `Object::take_damage+0xe1 < Object::do_damage < Nuke::do_damage` (seed `f7aea196`)
+   behind a sound draw from `Nuke::add_nuke < Ammo::do_damage < Ammo::inc_time`: a **nuke's round lands** on 1719 and its
+   ring's first blow is a building's first wound. Ours had no round in flight (`RON_DEBUG_AMMO` 1700..1721).
+2. **The round** (run710's dump; the trace). The silo `1/2015` (`MISSILESILO`) holds the ICBM `1/42` (`TypeIndex` 316,
+   `ICBM`; `inside_down` 42) from the window's first block. Its `recharging` counts 2, 1, 0 on blocks 1599..1601, `visible`
+   −1 on 1601 and `inside_down` −1: launched on frame 1600 (`Build::do_missile_launch+0x22d`'s sound draw on 1600), and 119
+   frames later the round lands on Napata, `0/2000`, at (6240, 7008) — the human's one city, `damage` 1560 on 1720.
+3. **The order** (`RON_FIRSTS`, run710's widening). `1/42`'s first parted keys are on block 1570: `order:length` 0 against 1,
+   `orders.len` 0 against 1. On 1570 the original's holds one order, type 24 (`AIR_ATTACK_GROUND`), `att_x/att_y` (6240,
+   7008); ours held none, idle in the silo through 1606. Nothing in the frame's draw stream: no draw is spent.
+4. **Who gave it** (the decompile; the listing, `0064f3b0`, `64f81c`..`6508a7`). Of the callers of
+   `add_air_attack_ground_order`, `Object::do_launch` is the one on a building's own process: past the chain walk, the
+   computer's sortie gate (`leader_flags & 4` clear, `(frame + o) & 31 == 0`, not `leader_flags2 & 8`) and then, for a base
+   that `is(MISSILESILO)` (`64f89a`), the **silo's arm** at `64fdcd`: `(frame + o) & 127 == 0` — 1569 + 2015 = 28 × 128 —
+   `num_inside(1) != 0`, and the chain's head `m`; `is(m, NUCLEARMISSILE)` (`64fe33`) selects the nuke arm, gated on
+   `armageddon < get_armageddon() − 2`; `reach = m->get_speed(x, y, 1) × mana(m)` (vslot `0x17c`, `64fea2`). Over the eight
+   leaders `L` with `leader_flags & 1`, `is_enemy(owner, L)` and not `has_preq(L, MISSILE_DEFENSE_BONUS)`: each city
+   with `city_flags & 1` whose building's `ever_seen` (`WallData +0x62`) is non-zero — **any** player's bit: the `1 << who`
+   tested beside it (`64ff66`..`64ff71`) is never 0 — and with no object of the owner's within 0x1800
+   (`ObjectsData::find(x, y, SEARCH_FRIENDLY, who, 0x1800, …)`, `64ffba`) scores `num_buildings(city) × (hits_left + 1000)`
+   (`CityData::num_buildings@00738190`, `ObjectData::hits_left`, vslot `0x114`), skipped past `reach`
+   (`vector_dist(building − silo)`, `jg`), over `d / 0x1200 + 1`; strictly greater replaces from −1. The best takes
+   `add_air_attack_ground_order(m, its point, −1, −1, QUEUE_NEW, 1)` (`650862`..`6508a2`). Napata's `ever_seen` is 1 (who=0's
+   bit alone), which is why the owner's-bit reading cannot be the original's. *Listing-backed*; the diff confirms the nuke
+   arm on its one frame.
+5. **Two more on the blast's chain**, found by walking the word on: (a) ours' ring struck the chicken `9/6` beside Napata
+   and spent its death draw on 1735 — `Nuke::do_damage`'s unit search is `Objects::find_units(…, 1)`, and the last argument
+   set keeps both of its arms to `who < 8` (`0065a620`: `SBORROW4(who, 8)` on the cell arm, `(param_11 == 0 || who < 8)` on
+   the list arm), so the original never strikes an animal; (b) the pasture `0/2002`, flattened on 1734 in both, left its
+   chicken `9/9` to `think_farm_animal` on 1747 in ours — `Build::close@00628980:273–297` walks the animals' list for a
+   gather building whose good is food (`BuildTypeData::get_good` 0) and closes each active, herdless (`+0x86 < 0`),
+   non-air animal whose farm reference (`AnimalData +0x150/+0x152`) is the building, through `Unit::close(0, −1, 0)`:
+   no death draw. *Listing-backed*; each moved the word in its own run.
+
+**Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
+cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/nuke.rs`) passes over a
+unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/farms.rs`), from `close_building` for a Farm. Unit
+tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
+within 0x1800, a human's silo), `nuke::tests::the_ring_never_strikes_an_animal` and
+`farms::tests::a_pasture_s_close_takes_its_animals_and_spends_no_draw`.
+
+**The value diff, and the word now.** run710 block 1570: `1/42` holds `[AirAttackGround (6240, 7008)]`, flags 4, in both; it
+leaves on 1600 and its round lands on 1719 in both; no key of `1/42` parts in run710's window (pinned). **run710 360 keys →
+224** (151 standing). `coverage_pair_first_parting`: **frame 1719 → 1960 (the sequence; the count parts on 1982)** — 36 game
+draws a side, index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a
+< Guy::move+0x19f`. Past run710's last block; **run711** (1954..2210, block 1961) widens it: 2077 keys, 310 standing on 1954.
+On 1961 `1/42`'s `path_recursion` 2 against 1 and `1/62`'s 1 against 2: ours' `1/42` is the original's `1/62` (both a
+two-figure unit at (35886, 39011)), and the original's `1/42` a citizen at (30456, 37080) — slot 42, freed by the ICBM on
+1600, was handed out differently between 1784 and 1953. Standing on 1954 too: the human's leader `active` 14 against 0,
+`control` 14 against 0, `num_units[0]` 13 against 0 — run710 shows the first step on 1738, 14 against 13, the frame after
+the ring's first kill: ours' leader counts do not fall when the nuke kills. Hypotheses for the item after, not a cause.
+
+**What else it moved.** The compared pin: `OrderDump`'s thirteen air-order fields leave it (the ICBM's order is compared
+1570..1600). The ground guard: one read at the round's `ez` on Napata, and the walk past it (`GROUND_INEXACT`: 4, 3, 4, 4).
+Every other widening, floor and word holds.
+
+**What is not established.** The non-nuke arm (a V2 or Cruise Missile at the head: `hits_left ≥ 500`, `damage + 1000`, a
+`% 10` draw for a city whose `city_flags & 2` is clear, a third list of targets) — no trace on disk draws from `do_launch`
+(the scan in its `SEAM`); the forts' and wonders' loops; the Armageddon gate, read as open; the friendly search's cell ring,
+walked as every object of the owner's. `Build::close`'s animal walk is read as reached on every close, a transfer's too.
+
+**Coverage.** Diff-backed: claims 1–3, the value diff, and 5's two draws. Listing-backed: claim 4's predicates past the nuke
+arm's one frame, 5's two gates.
+
+## 165. Reserved for item 1594 (the coverage pair's word 1960)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
