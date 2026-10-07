@@ -198,7 +198,18 @@ pub(crate) struct Pair {
     /// `1/65` agree over run715 (`docs/AI.md` §170). At 2969, ours 18 game
     /// draws against 19, index 0: ours `Guy::set_anim+0x97a <
     /// Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a <
-    /// Unit::move_step+0x823`.
+    /// Unit::move_step+0x823`. **Item 1614 moved it from 2969 to 3142**:
+    /// the stand was the TOW `1/16`'s, whose step on 2969 was the Forced
+    /// March's 64 in the original — the General `1/150`'s march reaching
+    /// it at 18 tiles, `get_general_upgrade` 3 in a lobby that starts with
+    /// every technology, where this crate held the level at 0 (9 tiles).
+    /// The same count gives the General 599 hits, sight 14 and speed 73;
+    /// a marching General keeps the TOW `1/66` from packing on 2974; and
+    /// `do_move`'s unreachable-goal arm kills one order, not two, so the
+    /// Freighter `1/152` keeps its guard and lands `1/41` on 2995
+    /// (`docs/AI.md` §172). At 3142, ours 21 game draws against 20, index
+    /// 3: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -216,8 +227,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 2969,
-    sequence: 2969,
+    count: 3142,
+    sequence: 3142,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1350,8 +1361,9 @@ fn run715_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **5842** on item 1608's tree merged with item 1600's (6299 on that
-    // base, 6302 on item 1605's); 122 stand from the window's first block
+    // **154** on item 1614's tree (5842 on item 1608's merged with item
+    // 1600's, 6299 on that base, 6302 on item 1605's); 119 stand from the
+    // window's first block — 122 before item 1614
     // — the human leader's `control`, `num_units`, `treaties[1]` and
     // `SITE` `reg`, its units' `death:extra`, Napata's `ever_seen`.
     // **The word 2868's value diff, item 1608** (`docs/AI.md` §170): on
@@ -1367,8 +1379,18 @@ fn run715_s_word_frame_is_widened_whole() {
     // (−1 against 0), which the base's 2869 hid. The word 2969's block
     // 2970: the original's `1/16` blocked by `1/9` (`collide_o` 9, `coll`
     // (35374, 37865)), ours walked on to (35375, 37892) under a half step
-    // — the item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 5842, "initial run715 baseline");
+    // — the item after's hypothesis, not a cause. **The word 2969's value
+    // diff, item 1614** (`docs/AI.md` §172): the original's step was the
+    // Forced March's 64, not ours' 37 — the General `1/150`, 599 hits,
+    // sight 14 and speed 73 on block 2909 in both now, reaches `1/16` at
+    // 18 tiles — and on block 2970 `1/16` stands blocked by `1/9` at
+    // (35400, 37944) on both sides. Block 2975's `1/66` at (34744, 39242)
+    // and block 2995's `1/152` with its guard alone agree too, and `1/41`
+    // is ashore on 2996: **no position parts in the window**. What stands
+    // past 2863 is births' `form`, two pools' `held`, Napata's flags,
+    // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
+    // on 3069. The word 3142 lies past the window (run716's).
+    pin_eq!(w.firsts.len(), 154, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
