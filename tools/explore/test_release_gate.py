@@ -61,6 +61,10 @@ error: 1 target failed:
 """
 
 
+# A word filter RELEASE_LOG's rondata ran: what a lane gate names (1567).
+WORD = ['the_gate_has_a_bounded_test_width']
+
+
 def release_ran(kwargs, log=RELEASE_LOG, present=True):
     """What a release child leaves behind: the fixture audit and the log."""
     write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'], present)
@@ -284,7 +288,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG)
             with patch('builtins.print') as printed:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
                              ['offline','clippy','fmt','survey','release','guard'])
@@ -300,7 +304,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(own)
             with patch('builtins.print') as printed, self.assertRaises(subprocess.CalledProcessError):
-                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual(gate.step_name(calls[-1][0]), 'release')
             self.assertIn("Lane verdict: red on the worker's own (1)", said)
@@ -313,7 +317,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG, returncode=137)
             with self.assertRaises(subprocess.CalledProcessError):
-                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
             self.assertEqual(gate.step_name(calls[-1][0]), 'release')
 
     def test_the_commander_s_gate_forgives_nothing(self):
@@ -349,6 +353,87 @@ class GateTests(unittest.TestCase):
         reads=set(re.findall(r'fn (the_handoff_s_\w+)\(\)', source))
         self.assertGreaterEqual(len(reads), 5)
         self.assertEqual(reads - set(gate.COMMANDERS_LINES), set())
+
+    # The lane gate's suite (1567, DECISIONS 63 amended): every landing ran
+    # the whole release suite three times on one box, and a third lane
+    # bought no wall clock. The lane gate leaves the slow timed tests — the
+    # two coverage pins first — to the booking gate, and runs the word's.
+    TIMINGS = ('# a comment\n'
+               '118.13\tdiff::coverage::every_key_the_dump_prints_is_read_or_pinned\n'
+               '79.70\tdiff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned\n'
+               '50.40\tdiff::harness::tests::run218_s_word_frame_is_widened_whole\n'
+               '19.58\tdiff::second::tests::run589_s_word_frame_is_widened_whole\n'
+               '1.00\tdiff::golden::at_the_budget\n'
+               '0.02\tdiff::floors::tests::the_gate_has_a_bounded_test_width\n')
+
+    def release_command(self, **kw):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if '--release' in command:
+                    release_ran(kwargs)
+            with patch('builtins.print'):
+                gate.gate(path, report_dir=path/'report', run=run, test_threads=4, **kw)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        return next(c for c in calls if '--release' in c), policy
+
+    def test_a_lane_gate_leaves_the_slow_timed_tests_to_the_booking_gate(self):
+        command, policy = self.release_command(lane=True, tests=WORD)
+        skipped=[command[i+1] for i, a in enumerate(command) if a == '--skip']
+        self.assertIn('--exact', command)
+        self.assertIn('diff::coverage::every_key_the_dump_prints_is_read_or_pinned', skipped)
+        self.assertIn('diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned', skipped)
+        self.assertNotIn('diff::floors::tests::the_gate_has_a_bounded_test_width', skipped)
+        self.assertEqual(len(skipped), policy['lane']['skipped'])
+        self.assertGreater(len(skipped), 400)
+        self.assertEqual(command[:8], ['zsh','tools/memcap.sh','20','cargo','test','--release','--no-fail-fast','--'])
+
+    def test_the_booking_gate_skips_nothing(self):
+        command, policy = self.release_command()
+        self.assertEqual(command[-2:], ['--', '--test-threads=4'])
+        self.assertNotIn('lane', policy)
+
+    def test_the_skips_are_the_over_budget_rows_the_word_does_not_name(self):
+        self.assertEqual(gate.lane_skips(self.TIMINGS, ['run589_s_word']), [
+            'diff::coverage::every_key_the_dump_prints_is_read_or_pinned',
+            'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned',
+            'diff::harness::tests::run218_s_word_frame_is_widened_whole'])
+        # A word that reads a new key runs the coverage pins itself.
+        self.assertEqual(gate.lane_skips(self.TIMINGS, ['coverage::', 'run218']),
+                         ['diff::second::tests::run589_s_word_frame_is_widened_whole'])
+
+    def test_a_lane_gate_names_its_word_and_the_booking_gate_takes_none(self):
+        for kw in ({'lane': True}, {'lane': True, 'tests': []}, {'lane': True, 'tests': ['']},
+                   {'tests': WORD}):
+            with self.subTest(**kw), tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                with self.assertRaises(ValueError):
+                    gate.gate(path, report_dir=path/'report', run=lambda *a, **k: self.fail('ran'), **kw)
+
+    def test_a_word_filter_that_matched_no_test_is_red(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            with patch('builtins.print'), self.assertRaises(ValueError) as caught:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True,
+                          tests=WORD + ['run683_s_wrod'])
+            self.assertIn('run683_s_wrod', str(caught.exception))
+            self.assertNotIn('the_gate_has', str(caught.exception))
+            self.assertEqual(gate.step_name(calls[-1]), 'release')
+
+    def test_the_timings_file_is_the_suite_s(self):
+        # The constant names a file that exists, holds the two coverage pins
+        # over budget, and parses whole.
+        text=gate.TIMINGS.read_text()
+        skips=gate.lane_skips(text, [])
+        self.assertIn('diff::coverage::every_key_the_dump_prints_is_read_or_pinned', skips)
+        self.assertGreater(len(skips), 400)
 
 
 if __name__ == '__main__':

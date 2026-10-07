@@ -1,5 +1,36 @@
 #!/usr/bin/env python3
-"""Run the full local gate with an explicit install, including its data survey."""
+"""Run the full local gate with an explicit install, including its data survey.
+
+**Two gates, one script** (1567, `docs/DECISIONS.md` 63 amended). With no
+flag this is the commander's booking gate: six steps, the whole release
+suite, nothing forgiven. With `--lane` it is a worker's, and since the
+twenty-seventh tranche it no longer runs the whole suite — every landing
+ran it three times on one box (the worker's own run, its lane gate, the
+booking gate), and a third word lane bought no wall clock for that reason.
+
+The lane gate's release step runs:
+
+  * every test of every crate that is **not timed over budget** — the
+    timings file (`TIMINGS`, every rondata release test alone, one at a
+    time) names each rondata test that took over `LANE_BUDGET_SECONDS`, and
+    those are `--skip`ped by exact name; a test the file does not name (the
+    worker's new widening among them) runs. So the sim suite, the paperwork
+    guards and the data layer run whole, and rondata's walks under a second;
+  * **the word's own tests**, `--tests FILTER ...`, which the brief names
+    and the lane gate refuses to run without: a timed test that contains a
+    filter is kept, however slow, and a filter that matched no test that
+    ran turns the gate red — a typo is not a pass;
+  * and **never** the two coverage pins or the rest of the slow walks
+    (`coverage::every_key_the_dump_prints_is_read_or_pinned`, 118 s alone;
+    `..._every_parsed_field_is_compared_by_the_instrument_or_pinned`, 80 s):
+    those, and the whole suite, are the booking gate's. A worker whose
+    landing reads a new key passes `--tests coverage::` and runs them.
+
+The worker's own full run, measured on the tree after its last `ccc
+update`, is still owed before the gate (the brief's "measure" rows); the
+lane gate is the confirmation of the word and the paperwork, not the
+search for a re-pin. Suites a landing: three to two.
+"""
 import argparse
 import json
 import os
@@ -107,6 +138,40 @@ COMMANDERS_LINES = (
     'the_handoff_s_third_map_is_the_pinned_word',
     'the_handoff_s_coverage_pair_is_the_pinned_word',
 )
+# **The lane gate's suite** (1567): the timed tests over this many seconds
+# alone are the booking gate's. The file is the twenty-sixth pass's
+# measure (`docs/audit/2026-10-06-suite-timings.txt`, tree bcf8968b: 463 of
+# 771 rondata tests over a second, 2,550 of 2,606 s); a newer measure is a
+# new dated file and this constant moves to it.
+TIMINGS = ROOT / 'docs/audit/2026-10-06-suite-timings.txt'
+LANE_BUDGET_SECONDS = 1.0
+RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
+
+
+def lane_skips(timings, tests):
+    """The timed tests a lane gate leaves to the booking gate: every name
+    whose seconds alone exceed the budget and which no word filter in
+    `tests` names. `timings` is the file's text: `seconds<TAB>name` rows,
+    `#` comments."""
+    skips = []
+    for line in timings.splitlines():
+        if not line.strip() or line.startswith('#'):
+            continue
+        seconds, name = line.split('\t')
+        if float(seconds) > LANE_BUDGET_SECONDS and not any(f in name for f in tests):
+            skips.append(name)
+    return sorted(skips)
+
+
+def unmatched_filters(log, tests):
+    """The word filters no test that ran contains — read off the release
+    log's `test <name> ... ok|FAILED` lines, so an ignored test is not a
+    match and neither is a filter cargo never saw."""
+    ran = [m.group(1) for raw in Path(log).read_bytes().splitlines()
+           if (m := RAN_TEST.match(raw.decode('utf-8', 'replace')))]
+    return [f for f in tests if not any(f in name for name in ran)]
+
+
 # What `cargo test` exits with when a test failed; a kill (memcap's 137) or
 # a build error is not a red test and is never forgiven.
 CARGO_TESTS_FAILED = 101
@@ -125,9 +190,18 @@ def lane_verdict(failed_tests):
 
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False):
+         lane=False, tests=None):
     if type(test_threads) is not int or test_threads not in (2, 3, 4):
         raise ValueError('test threads must be 2, 3, or 4')
+    tests = list(tests or [])
+    if lane and not tests:
+        raise ValueError("a lane gate names its word's tests: --tests FILTER [FILTER ...] "
+                         '(the widening, the pinned walk); the full suite is the booking gate\'s')
+    if tests and not lane:
+        raise ValueError('--tests is a lane gate\'s; the booking gate runs the whole suite')
+    if any(not f.strip() for f in tests):
+        raise ValueError('an empty --tests filter would keep every slow test')
+    skips = lane_skips(TIMINGS.read_text(), tests) if lane else []
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -143,9 +217,11 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
-    (report_dir / 'gate-policy.json').write_text(json.dumps(
-        {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20},
-        indent=2) + '\n')
+    policy = {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20}
+    if lane:
+        policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)),
+                          'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips)}
+    (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
     # clippy and fmt run **before** the release suite (parked 639, the
@@ -162,13 +238,17 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}'],
+        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}']
+        + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if lane else []),
         ['zsh', 'tools/guard.sh'],
     ]
+    if lane:
+        print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
+              f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}", flush=True)
     reached = []
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
-                   require_fixtures=require_fixtures, reached=reached, lane=lane)
+                   require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests)
     finally:
         print(steps_line(commands, reached), flush=True)
     return report_dir
@@ -209,7 +289,7 @@ def steps_line(commands, reached):
 
 
 def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
-               lane=False):
+               lane=False, word=()):
     for command in commands:
         child_env = env.copy()
         is_release = '--release' in command
@@ -261,6 +341,8 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                 raise ValueError('release printed no test result; the suite is unobserved')
             if require_fixtures and summary['missing_fixtures']:
                 raise ValueError('requested fixtures are missing; see fixture-coverage.json')
+            if word and (missed := unmatched_filters(extra['log'], word)):
+                raise ValueError(f"the word's filters matched no test that ran: {', '.join(missed)}")
 
 
 def main():
@@ -271,11 +353,15 @@ def main():
     parser.add_argument('--test-threads', type=int, choices=(2, 3, 4), default=2,
                         help='release width under the 20 GiB monitor; default: 2')
     parser.add_argument('--lane', action='store_true',
-                        help="a worker's gate: red only on the commander's lines goes on to guard and exits 0")
+                        help="a worker's gate: the suite without the slow timed tests, plus --tests; "
+                             "red only on the commander's lines goes on to guard and exits 0")
+    parser.add_argument('--tests', nargs='+', metavar='FILTER',
+                        help="with --lane, required: the word's own tests, kept however slow; "
+                             'each must match a test that ran')
     args = parser.parse_args()
     try:
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
-             test_threads=args.test_threads, lane=args.lane)
+             test_threads=args.test_threads, lane=args.lane, tests=args.tests)
     except ValueError as exc:
         parser.error(str(exc))
 
