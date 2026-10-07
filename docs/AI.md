@@ -17246,3 +17246,8 @@ with a Dock on its side) now plans its tile leg differently across a region seam
 
 **Coverage.** Diff-backed: claims 1–3 and the value diff (run710, run710's trace). Listing-backed: claim 4's gate, which the
 diff confirms on its one frame.
+
+## 164. Reserved for item 1591 (the coverage pair's word 1719)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

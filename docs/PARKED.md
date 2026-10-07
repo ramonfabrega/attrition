@@ -3724,6 +3724,12 @@ human's bit — two closings, fourteen rows each — and ours do not. Unread
 whether the defeat's reveal or the game's end writes it; no word stands
 on a closing block, so it names no score until one does.
 
+(1592) **`find_tpath`'s goal kept across a region seam by a land unit
+that can transport** (1589, 2026-10-07): mutation (b) of 1589's build —
+the pull-back walk's arm for a non-air unit that *can* transport — is held
+by a unit test and by no walk. The rules track's shape (DECISIONS 56 §3):
+a chapter that stages one, joined to 1497's list when a staging reaches it.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3783,6 +3789,14 @@ arm (checklist row 1132), and nobody re-ran it when run679 was captured.
 A seam that says "no capture on file" could carry the `scan:` that
 notices the first capture that does — a guard, or a `seams.py` pass over
 every such seam against `docs/RUNS.md`'s runs. One reach.
+
+(1593) **A cost-grid probe against the trace's proxied `calc_cost`, as a
+tool** (1589's Loop line, 2026-10-07): the draw that parted was ten
+frames late; the cause sat on the frame before the position parted, where
+both sides spent the same grid draw, and a scratch test of `cost_marks`
+against the proxied `calc_cost` answered it in one run. The third reach
+(7070's road search, `world.rs`'s 4803, this): it graduates into a
+`RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
