@@ -17980,3 +17980,8 @@ records (`run717_s_missiles_fly_their_spline_s_count`). Export-backed and held b
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 176. Reserved for item 1634 (the coverage pair's word 3395)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

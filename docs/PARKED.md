@@ -3835,6 +3835,15 @@ the shooter — are not built; this lobby is at war from frame 0; (b) the
 nuke's kills lay no corpse in the original (the blow's `dtype`), ours lays
 14 — standing beside the human's dead (1092/1328) under 1631.
 
+(1635) **The missile's unwalked arms, and a building's last health** (1625,
+2026-10-07): the rules track's arms no walk holds — a missile's lead and
+rolling (M2, M3), its homing and early detonation (`Ammo::inc_time`'s
+`+0x68` arm), a land shooter's and a building's control point (the
+Avenger, the SAM Installation's `WallCycle`); `is_in_range_at_margin`'s
+`active` refusing a building with no health left where
+`is_in_range@006486b0` does not; and Napata's `damage_frac` at its ceiling
+on 3138 (ours 0, the original's 10), run716's first parting left.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -4026,6 +4035,13 @@ goes through (fog, treaties), not the field"; (b) a comparison that reduces
 a word to one bit (`has_met` for `treaties`) is blind to the others for as
 long as it stays — `coverage.rs`'s unread list could tag "compared as a
 reduction". A sibling of 1607 and 1616; one reach each.
+
+(1636) **A building's damage series across a capture gap** (1625's Loop
+line, 2026-10-07): the cause stood on a unit the booking never named and in
+a gap (3120–3136) between two windows; a widening that pins a building's
+`damage` as standing at its window's first block could print that
+building's damage series on both sides across the gap's ends — found by
+hand here. A sibling of 1610 and 1627; one reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
