@@ -25,9 +25,9 @@ census's backed column **45 → 57** (1575, the sweep's first batch).*
 - **Three lanes**: `att-1614` (Opus 5.5) on the coverage pair's word, runs
   716–717, AI §172; `att-1620` (Sonnet 5.5, the third map's lane) on Great
   Sahara's word, runs 719–720, AI §173; `att-1619` (Sonnet 5.5) on the sweep.
-- **Next number 1623, run 721, section §174**; 1497 waits. Lane gate
-  filters: 1614 `coverage_pair:: floors:: coverage::`, 1620 `sahara_coverage:: floors:: coverage_pair::`.
-- **Fable backlog: 35 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601, 1604, 1607, 1610, 1613, 1616, 1618, 1622).
+- **Next number 1625, run 721, section §174**; 1497 waits. Lane gate
+  filters: 1614 `coverage_pair:: floors:: coverage::`, 1620 `sahara_coverage:: floors:: coverage_pair:: coverage::`.
+- **Fable backlog: 37 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601, 1604, 1607, 1610, 1613, 1616, 1618, 1622, 1623, 1624).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

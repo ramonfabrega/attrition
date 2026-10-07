@@ -6960,10 +6960,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
     // walk fails). Item 1583 (the third map's run702, whose nuke reads five
-    // corners of its own over 1979..2235): five, and the driver's.
+    // corners of its own over 1979..2235): five, and the driver's. Item
+    // 1611 put run718's window in the driver: six, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        5,
+        6,
     ),
 ];
 

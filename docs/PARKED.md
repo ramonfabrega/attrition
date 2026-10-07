@@ -3961,6 +3961,22 @@ word's draws name, whatever the frame"; (b) the brief's whole-suite width
 (`tools/memcap.sh 20`) is another box's: 4 threads reach 12 GiB on this
 tree and 8 reach 14.5. One reach each.
 
+(1623) **A word lane's gate filters miss the coverage driver** (the
+commander, 2026-10-07): 1611's brief named `sahara_coverage:: floors::
+coverage_pair::`; its widening put run718's window in the coverage driver,
+and `diff::coverage`'s two pins (a sixth height read, the city `Babylon`)
+went red only on the booking gate — a second commit. Every widening adds
+a window to the driver, so every word lane's filters want `coverage::`;
+`tools/brief.py` could add it from the item's kind. One reach.
+
+(1624) **The constant guard counts a sweep test's row literal as built**
+(1619, 2026-10-07): `docs_guard::a_constant_a_document_names_is_built_or_pinned`
+reads every file under `crates/sim`, so the sweep's test rows (the
+original's own values, as inputs and outputs) bank twelve constants nobody
+built. 1619's fix — skip `sweep/`, or `#[cfg(test)]` as `no_float.rs` does —
+was refused by the classifier as audit tampering; the guard is the pass's,
+and 1619 waits on Ramon's word. One reach.
+
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
 (1573) **The lane gate's skip list is a measurement that ages** (1571's
