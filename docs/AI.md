@@ -17383,3 +17383,8 @@ gate on the hold is read as met by every shooter with a round in flight.
 
 **Coverage.** Diff-backed: claims 1–3, the end state of 4, and 5 on the ICBM's number. Listing-backed: 4's predicates and
 5's arithmetic past that one number.
+
+## 166. Reserved for item 1598 (the coverage pair's word 2166)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
