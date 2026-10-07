@@ -8763,7 +8763,11 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // move's value diff, every road search from 1577 to 1829. Merged with
     // item 1586's army normalize it moved to **1985** (count 2048), past
     // run683's last block (1833), and took run702 over 1979..2235 (block
-    // 1986).
+    // 1986). Item 1583 moved it to **2048** (the silo's launch, the Spy's
+    // discount, `reg_free_peasants` read unsigned, the nuke census, the
+    // air cap and the lobby's military level: `docs/AI.md` §158), inside
+    // the same window (block 2049); the test keeps the move's value diff
+    // on `1/43`'s path from 2046.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,

@@ -17136,10 +17136,53 @@ Citizen's only).
 **Coverage.** Diff-backed: the caravan reset (road searches node for node 1577..1829, the word's move), the wagon's hit points (`myhits` agrees in run683, run663/664/668, run655..667).
 Reading-only: `reset_paths`' leader gate (`leader_flags & 3 == 3`, read as true for the AI).
 
-## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
+## 158. Six things the coverage lobby's Persians do at All Technologies, and the word at 1985 (2026-10-07, item 1583)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run702's blocks 1979..2235 (`run702_s_word_frame_is_widened_whole`, every dumped record on the word's window), the draw sequence of frame 1985 (`RON_DEBUG_SITES`, ours and the original's
+site by site), and, for each mechanism below, the function's listing or decompile read beside the dump field that shows it. No new capture: run702 holds all of it.
+
+**The word.** The merged tree's word was 1985 by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`.
+Its widening (§157) showed the standing keys and then Persian city `1/2018`'s `bordering` (1980, a bit no mechanism of this section reaches) and leader 1's make list from 1981. The make list parted
+because of the first six mechanisms; with them the make list agrees to the end of the window but for the Persian army, and **the word moves 1985 → 2048** (count and sequence alike): ours 44 draws
+against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Unit::do_move+0xe84`. The value diff beside it is unit `1/43`'s path: its heading, `pos`, `order:move.dest` and a path of four
+nodes against two part on **2046** (run702's block 2047), the draw on 2048 being the move step it takes. No mechanism: the next item's first read. Keys on run702's window 1398 → 1192, standing 154 → 117;
+run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no word of theirs moved, no floor).
+
+**1. The air arm's `remaining`** (`create_units` 361–478). `remaining = air_cap` (2, 4 or 16 by difficulty) is the loop's own variable and the tail reads it; this crate left the caller's default of 5. `air_value` sets it.
+Held by `the_air_arm_sets_remaining_to_the_air_cap`.
+
+**2. A unit's Military level is read through the lobby's remap** (`TypeData::get_preq@00668700`, slot 1). In a game that starts in the Information Age (`STARTING_TECHNOLOGY 8`) the Military epoch a modern unit asks
+for is removed (its age is below the start), so the unit stands at level 0, which `get_cost`'s late discount floors at 1 (`MILITARY_UNIT_DISCOUNT`, `(span·pct+7)>>3`, floor 1 below span 8). This crate read the
+table's column and held every unit six levels behind the player's seven. Built: `TechTree::military_level_in(setup, t)`; `military_level_of` is the standard lobby's. Held by
+`a_unit_s_military_level_is_read_through_the_lobby_remap`, and the price call (`Sim::military_unit_discount`) by `sahara_coverage::` (the Supply Wagon/MLRS rows of the make list). The research arm's call (`research_modifiers`)
+is reading-only: no capture prices a research by it.
+
+**3. `get_nukes`** (`LeaderData::get_nukes@006ebe50`). The nuke arm of `missile_value` counts the leader's **Nuclear Missiles** (`0x13b`'s line, queued and held; none without `tech.ptr[0x27] & 8`) against its silos and the
+others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here.
+
+**4. The computer's silo fires** (`Object::do_launch@0064f3b0`, the branch past `64fdcd`). Every 128 frames, phased by the silo's `o`, the missile at the chain's head is given an air attack on the enemy city of best
+value in its reach (value `num_buildings × (hits_left + 1000)` over `dist / 0x1200 + 1`; a nuke needs no friendly object within `0x1800`; not on a holder of `MISSILE_DEFENSE_BONUS`; `reach = mana × get_speed(missile, 1)`), and then waits
+for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours, and the
+bucket, the ring of damage and the cities' `num_queued` all followed from it. Built: `Sim::silo_sortie` and `friendly_within` (`air.rs`), held by `the_computer_s_silo_orders_its_nuke_on_an_enemy_city` (the arm dropped, and the
+friendly-object test dropped). **A nuke's ring strikes the animals around the city**, whose owner (gaia, index 9) is past the players' `mods`: `Sim::mods_of` answers the zero modifiers (`a_gaia_owner_has_no_modifiers`).
+
+**5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88, `0x303`;
+`Roles::spy_general_cheaper_preq`) takes `SPY_GENERAL_COST` (50) off the base, before the ramp: Great Sahara's Spy at `1/2030` queues at 25/25 and, a second, at 35/35 on 1983 (50/50 and 60/60 in ours before). Built in
+`Sim::nation_unit_discount`; held by `a_spy_costs_half_under_the_spies_and_generals_bonus`. The Russian spy arm before it is not modelled.
+
+**6. `reg_free_peasants` is a `ushort[64]`**. `Leader::produce_building`, `produce_city` and `make_this` subtract one for a site that no peasant was counted for, so the region's slot goes to −2 in this crate and to **65534
+in the dump**; `create_units`' `reg_free_peasants >= reg_cities` (`:1198`), `found_cities`' (`:104`) and `create_buildings`' (`:1513`) compares are unsigned. Ours offered the Citizen on 1983 (region 1, `-2 < 6`); the original did not, and its
+make row 5 stayed the stale `(-1, val 145)` until 1986. `Census::reg_u16`; held by `a_ushort_region_slot_reads_unsigned`, and the call sites by `sahara_coverage_first_parting` (the draw it spent).
+
+**Mutations** (`tools/mutate.py`, each held but the last): the air cap's assignment, the military level's slot, `get_nukes`' body, the census' two halves, the silo arm, its friendly-object test, the gaia fallback, the Spy arm,
+its gate, `reg_u16`, and its call site (`sahara_coverage_first_parting`). `research_modifiers`' call to `military_level_in` **failed nothing**: reading-only, as above.
+
+**What is not established.** The nuke's flight reads **five** corners that are not known to be the original's single (`COMBAT.md` §46.3), in run702 (and three in the newest pair's run710): `testkit::GROUND_INEXACT` pins them. The strike's fall time reads the height as a bomb's does; its landing frame is not compared with the original's (no dump prints it). `game.armageddon` (the count of nukes landed) is not carried, so its check always passes; a missile that is not a nuke (V2, cruise)
+takes a different arm of `do_launch`, not built; the forts' and wonders' target loops are not built; the mid-game nuke in flight is not counted by `get_nukes`. The air-order fields (`ag_*`, `air_*`, `waypoint`, ...) are
+compared now (the compared pin lost thirteen names, `coverage.rs`).
+
+**Coverage.** Diff-backed: 1, 2 (price arm), 4, 5, 6 (all through the make list and the queue's costs on run702); 3 by unit test and the census alone. Reading-only: the research-arm level, the
+cruise-missile arm, `game.armageddon`.
 
 ## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
 
