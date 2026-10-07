@@ -2106,7 +2106,11 @@ fn a_lobby_starting_at_technology_eight_caches_military_level_zero() {
     );
     let mut sim = skirmish(4);
     sim.set_tech_tree(tree);
-    assert_eq!(sim.unit_military_level(tank), 7, "a full span reads preq[1]");
+    assert_eq!(
+        sim.unit_military_level(tank),
+        7,
+        "a full span reads preq[1]"
+    );
     sim.lobby.starting_technology = 8;
     sim.lobby.ending_technology = 7;
     assert_eq!(

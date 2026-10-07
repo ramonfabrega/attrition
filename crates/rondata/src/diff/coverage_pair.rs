@@ -972,8 +972,8 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    // Item 1578: a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
-    pin_eq!(w.firsts.len(), 360, "initial run710 baseline");
+    // Item 1578: 360 → 315 on the tree item 1589 landed, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 315, "initial run710 baseline");
     // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
     // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
     // `1/40`) parted first on block 1686 — `path:length` 9 against 17,
