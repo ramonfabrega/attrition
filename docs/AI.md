@@ -17270,7 +17270,7 @@ Each claim is *diff-backed* unless marked.
    that `is(MISSILESILO)` (`64f89a`), the **silo's arm** at `64fdcd`: `(frame + o) & 127 == 0` — 1569 + 2015 = 28 × 128 —
    `num_inside(1) != 0`, and the chain's head `m`; `is(m, NUCLEARMISSILE)` (`64fe33`) selects the nuke arm, gated on
    `armageddon < get_armageddon() − 2`; `reach = m->get_speed(x, y, 1) × mana(m)` (vslot `0x17c`, `64fea2`). Over the eight
-   leaders `L` with `leader_flags & 1`, `is_enemy(owner, L)` and not `has_preq(L, MISSILE_DEFENSE_BONUS 0x2b5)`: each city
+   leaders `L` with `leader_flags & 1`, `is_enemy(owner, L)` and not `has_preq(L, MISSILE_DEFENSE_BONUS)`: each city
    with `city_flags & 1` whose building's `ever_seen` (`WallData +0x62`) is non-zero — **any** player's bit: the `1 << who`
    tested beside it (`64ff66`..`64ff71`) is never 0 — and with no object of the owner's within 0x1800
    (`ObjectsData::find(x, y, SEARCH_FRIENDLY, who, 0x1800, …)`, `64ffba`) scores `num_buildings(city) × (hits_left + 1000)`
