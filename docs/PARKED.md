@@ -52,6 +52,15 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1558, 2026-10-06 — what the goody sees
+
+(1564) **What 1558 left beside `world_sees`** (AI §153): its new arms
+(the territory arm, `0x800`, Fouché) are held by no walk — the fight
+side's `target_is_seen`/`set_attacking` reach it and nothing parts
+either way; the item's half-cell is assumed the cell's centre (one box
+on run682); the Spanish arm stays a seam; `WorldData::is_really_seen`
+carries the same territory arm and nothing here reads it.
+
 ## Parked by item 1555, 2026-10-06 — the Merchant's wool
 
 (1562) **Great Sahara's coverage pools 68 and 65 `held` on 1203 and
@@ -3789,7 +3798,13 @@ that greps a word's own object types (here `OILPLATFORM`) through the
 "reached through the fog" — a seam-shaped sentence that closed the
 question wrongly for 1538..1549; a search by a function's callers in
 the export (`new_rare` has two) would have found it in a minute.
-One reach.
+**And 1558's**: the cause was a `SEAM` two files already named
+(`target_is_seen`, `goody_item_is_seen`: "the fall-through to
+`WorldData::is_seen`… not carried"), out of reach of `--field
+orders_x` because the seam names a gate the order's writer calls — a
+mode over the callees of the parted field's writer (`find_goody_box`
+→ `goody_item_is_seen`) would have named it before the packet. Three
+landings of one tranche, one tool. One reach.
 
 (1557) **`ccc update` takes the lane's ref, not a SHA** (1549's Loop
 line, 2026-10-06): a commander's "take `ccc update` onto <sha>" is
