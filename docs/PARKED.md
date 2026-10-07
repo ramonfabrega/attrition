@@ -3830,6 +3830,22 @@ slots swapped; the answer was the births in an undumped gap, read by
 "a word where two numbers swap reads the births by `uid` across the gap
 before any unit's fields". One reach.
 
+(1601) **The race's Loop lines** (1565, 1581, 1583–1585, the Sonnet
+racer's journals, 2026-10-07): (a) a lane greps the integration branch,
+`docs/AI.md` and the journals for the function it is about to build — two
+lanes built `do_launch`'s silo arm the same hour (1585); (b) a
+`who/o`-sliced `BUILDDATA` printer beside `samegame.py` (1565); (c) a
+widening's `RON_FIRSTS` prints, beside each dense block, whether any draw
+on or before the word's frame differs, since a block no draw reads is not
+the word (1581, two captures spent); (d) a per-unit history of a key, not
+its first parting only (1581); (e) "a mechanism that makes a record kind
+appear in a window runs the `coverage` tests too", a checklist row (1583);
+(f) a coverage row that fails on a `ushort` read above 32767 — the loader
+mapped 65534 to −2 silently (1583); (g) a `WORLD` category in the coverage
+lobby's capture for the danger map, and a guard listing each consumer of a
+derived `build_flags` bit beside whether it reads `basic_type()` (1584).
+One reach each.
+
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
 (1573) **The lane gate's skip list is a measurement that ages** (1571's

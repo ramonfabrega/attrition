@@ -17551,3 +17551,8 @@ gate on the hold is read as met by every shooter with a round in flight.
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 167. Reserved for item 1600 (Great Sahara's coverage word 2185)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
