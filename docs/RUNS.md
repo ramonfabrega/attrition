@@ -15430,3 +15430,23 @@ SHA-256 `3624bfb86741607474ef86511c5a90187d5ad997f20629ede489aa5d9c0e9eda`.
 **What it holds**: `diff::sahara_coverage::run680_s_word_frame_is_widened_whole` — **582** keys parted on the tree at the base (83 standing on
 block 713), **111** after item 1549's build (the oil well's stand on `CHAR_FARM`). The word 720's block is 721; the first state past the
 standing block is pool 66 on 742. `docs/AI.md` §150.
+
+## run681 — Great Sahara in the coverage pair's lobby: the word 1197's widening, blocks 1191..1447 (2026-10-06, item 1555)
+
+**Disk gap**: run680 holds blocks 713..969, so no dump of this lobby held a unit, a building or a leader record at the word's frame 1197 (block 1198). Through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 1455 --timeout 3600 --log-window 1191 1448 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch (19:28, after run679's). Receipt `success`, 1456 frames, closing frame 1456, launch-to-exit 882.4 s, total
+902.5 s, five files restored. `rngcmp.py rontrace-run676.log rontrace-run681.log`: **1456 frames in common, 0 differing**. `MAP_STYLE 7`, `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345 read back. 257 window blocks, 1191..1447, and a closing block.
+
+Archive `gamelog-run681-greatsahara-persian-alltech-window-1191-1447.txt`, 464,448,251 bytes,
+SHA-256 `babd7e653946efef4aa76f85e099d0f85629bbe724ee5f96192e7d7bea39eced`.
+
+Archive `rontrace-run681.log`, 36,331,904 bytes,
+SHA-256 `ce61da7ffaf9ab0b950c62e0bfae5251c9739a3bc2ee45829384399e4ac10e2d`.
+
+**What it holds**: `diff::sahara_coverage::run681_s_word_frame_is_widened_whole` — **1138** keys parted on the tree at the base (140 standing on block 1191),
+**885** after item 1555's build (the border pass's rare arm). The word 1197's block is 1198 and the word 1250's, 1251; the first state past the standing block is
+leader 0's `production_step` on 1201, and the first state the original and ours place differently is the Persian Merchant `1/38`'s order on 1197.
+`docs/AI.md` §152.

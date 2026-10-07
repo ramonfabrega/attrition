@@ -16807,7 +16807,7 @@ move step ours makes; `1/35`'s position parts a unit step on 1248, its order's `
 Run681's keys: **1138** on the tree at the base, **885** after (140 standing on 1191, the control's set); the first past the standing block is leader 0's
 `production_step` on 1201. The word 1250's block, 1251, is inside the window.
 
-**What moved elsewhere** (every walk the arm reaches, `cargo test --release -p rondata -p sim`): eighteen widenings' pins fell — their counts by one or two
+**What moved elsewhere** (every walk the arm reaches, `cargo test --release -p rondata -p sim`): sixteen widenings' pins fell — their counts by one or two
 keys, none rose. Great Sahara at Toughest's run488 loses `who=1`'s `known_rares` row (ours 3, theirs 4 on 7780: **agrees** now), and the second and third
 pairs' words (run508..run594, run634..run655) lose one or two of their parted keys each. The arm makes the AI's list, and the counts read from it, agree with the
 original's on every map it reaches; no closed word or open floor moved.

@@ -227,7 +227,11 @@ impl Sim {
     /// The `ever_seen` bit `compute_reg_territory`'s goods scan set on this
     /// good for `who` ([`Sim::claim_cell_goods`]).
     pub(crate) fn good_seen_bit(&self, gi: usize, who: Player) -> bool {
-        who < 8 && self.good_seen_bits.get(gi).is_some_and(|b| b >> who & 1 != 0)
+        who < 8
+            && self
+                .good_seen_bits
+                .get(gi)
+                .is_some_and(|b| b >> who & 1 != 0)
     }
 
     pub fn good_ever_seen(&self, at: Pos, who: Player) -> bool {
