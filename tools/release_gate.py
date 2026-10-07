@@ -137,6 +137,7 @@ COMMANDERS_LINES = (
     'the_handoff_s_third_pair_is_the_pinned_words',
     'the_handoff_s_third_map_is_the_pinned_word',
     'the_handoff_s_coverage_pair_is_the_pinned_word',
+    'the_handoff_s_census_is_the_pinned_share',
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
 # alone are the booking gate's. The file is the twenty-sixth pass's

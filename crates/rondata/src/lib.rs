@@ -30,6 +30,7 @@ pub mod artdata;
 pub mod balance;
 pub mod blind;
 pub mod capture;
+pub mod census;
 pub mod commands;
 pub mod debug_view;
 pub mod diff;
