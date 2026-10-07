@@ -17189,10 +17189,50 @@ ours' `army_tick` calls `army_normalize` first, so it carries the tail now as we
 
 **Coverage.** Diff-backed: the tail on the army's turn (run691's pair; run692's watched writes; the word 1830 → 1985).
 
-## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
+## 159. A lobby that starts at technology 8 prices every military unit 1% off, and the word at 1985 holds (2026-10-07, item 1578)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run693's and run690's widenings, a scratch probe of `create_units`' MLRS offer on tick 1980, run692's packet read for
+`UnitTypeData::military_level` (`+0x2dc`) and the leaders' epochs, and `Types::finalize_grafting@00669840`, `get_military_level_slow
+@0061d4d0` (listing `0061d4d4`: `preq[0]` is `+0x30`) and `TypeData::get_preq@00668700`.
+
+**The word.** Frame 1985 (§158's): 16 draws against 16, parting at index 4 — ours `produce_building+0x1805`, theirs `make_stuff+0x63d`.
+The Persians' make list parts first on 1981: the MLRS (type 273) reads 9999999 in ours, the negative-wrap sentinel of `offer_value`,
+against the original's 6384749. Ours' terms: v 449808, val 899616000 (the ×1000 arm: no MLRS yet, over two cities), want 2, divisor 6,
+**fac 155** — 155 · (2 · 899616000 / 6) overflows. The original's 6384749 is exactly the same terms with **fac 163**. `fac` is
+`check_income`'s product over metal and oil of `(100 − 4q)/100`, `q = price / (income/16)`: incomes agree (480, 560), so the original's
+price is lower — metal under 180 with oil still above 175.
+
+**The residue it comes from.** Every leader-1 queue price in run690 (blocks 1521..1590) and since run680's block 783 is ours' price
+**× 99/100, truncated**: 100 → 99, 180 → 178, 750 → 742, 900 → 891, 135 → 133, 85 → 84, 140 → 138, 168 → 166, 115 → 113. A 1% off
+every military unit. `get_cost`'s military-level discount is `MILITARY_UNIT_DISCOUNT × (epoch[Military] − level)`, scaled for a span
+under eight ages by `(span · d + 7) >> 3` and floored at 1; this lobby's span, `ending_technology − starting_technology + 1`, is
+`7 − 8 + 1 = 0`, so any positive `ahead` gives exactly 1%. The epochs agree (7 on both sides, the packet's `LeaderDataEncrypt +0xe8`).
+The level does not: the packet reads `military_level` **0** for the MLRS and nine other types, where this crate computed 7.
+
+**The cause.** `finalize_grafting` caches `get_military_level_slow` into every unit type at load: `preq[0]` if it is a Military epoch,
+else `get_preq(1, −1)`. In a full-span game that is `preq[1]`; otherwise it is rescaled — and a unit's Military-epoch `preq[1]` whose
+`age` (`+0x1c8`) is below the starting technology answers `TYPE_NONE`. With `STARTING_TECHNOLOGY 8` every such epoch is below it, so the
+level is 0, `get_cost` floors it to 1, `ahead` is 6 and the price takes 1%. This crate's `TechTree::military_level_of` read `preq[1]` as
+it stands (its own comment named the unread rescale). Built: `Sim::unit_military_level`, the cached level with `get_preq(1, −1)`'s
+Military rescale (`0x23b + ((0x1c / (end − s + 1)) · (age − s + 1) + 3) / 4`, clamped `BASE_MILITARYTYPES`..`SELECTIVE_SERVICE`), read by
+both the train discount and the upgrade discount (`crates/sim/src/lib.rs`).
+
+**The move.** The MLRS's offer now reads 6384749, leader 1's buckets agree but wealth's by 3, and every coverage-lobby widening shrinks:
+run693 1401 → 1328 keys (157 → 122 standing), run683 185 → 126, run681 185 → 128, run680 111 → 74, run690 126, and on the coverage pair
+run672 107 → 83, run678 139 → 95, run679 144 → 102, run710 478 → 433. **The word holds at 1985**: on 1984 the original's list leads with
+an **ICBM** (316, val 4000000, escrowed) that ours never offers, because ours already holds one — `1/96`, finished on tick 1982 and
+standing in silo `1/2017` with no order — where the original fired its own on the same tick (`Build::do_missile_launch+0x22d <
+Object::do_launch` in run676's trace on 1982). Ours' `computer_sortie` names the gap as a seam: its `NUCLEARMISSILE` arm (`can_nuke`) is
+not built. That is the next item's.
+
+**What is not established.** The rescale's other arm (a non-Military line's epoch, mapped to its own line's base) is not built: it never
+yields a Military level. The Iroquois arm of `get_preq(1, …)` is skipped at the cache (`param_2` −1). A full-span lobby's level is
+unchanged by construction.
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the rescale removed (full-span reading always) — held by
+`run693_s_word_frame_is_widened_whole` and the unit test `a_lobby_starting_at_technology_eight_caches_military_level_zero`.
+
+**Coverage.** Diff-backed: the 1% (run690's and run693's queue prices, the MLRS's fac on 1980). Packet-backed: the cached level 0.
 
 ## 160. Reserved for the race on item 1565, its landing 5 (Great Sahara's coverage word 1582)
 

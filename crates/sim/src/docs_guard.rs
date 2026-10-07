@@ -1616,8 +1616,13 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 1479 banked two** (AI 32 → 30): `0x261` and `0x263`, `CARPENTRY`
 /// and `PAPERMILL`, are the French Carpentry block's range in
 /// `rondata::load` (`docs/AI.md` §123).
+///
+/// **Item 1578 banked three** (AI 30 → 29, PRODUCTION 6 → 5, TECH 13 → 12):
+/// `Sim::unit_military_level` builds `get_preq(1, −1)`'s rescale, which
+/// clamps to `BASE_MILITARYTYPES`..`SELECTIVE_SERVICE` above
+/// `INTERNATIONAL_LAW` (`docs/AI.md` §159).
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 30),
+    ("AI.md", 29),
     ("ANIM.md", 4),
     ("ARMY.md", 7),
     ("ATTRITION.md", 1),
@@ -1631,10 +1636,10 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GROUPS.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 12),
-    ("PRODUCTION.md", 6),
+    ("PRODUCTION.md", 5),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 13),
+    ("TECH.md", 12),
     ("TRANSPORT.md", 3),
     ("VISION.md", 2),
 ];

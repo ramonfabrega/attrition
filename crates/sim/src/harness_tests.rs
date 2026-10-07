@@ -2076,6 +2076,47 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     assert_eq!(sim.muster[0].by_type[phalanx], 1);
 }
 
+/// **A lobby that starts at technology 8 caches every Military `preq[1]`
+/// as level 0** (`TypeData::get_preq(1, −1)@00668700`'s rescale, which
+/// `Types::finalize_grafting` runs into `military_level` at load): the
+/// epoch's `age` is below the starting technology, so `get_preq` answers
+/// `TYPE_NONE`, and `get_cost` floors the level to 1 — the 1% Great
+/// Sahara's coverage lobby charges every military unit (`docs/AI.md`
+/// §159). A full-span game reads `preq[1]` as it stands, and a Military
+/// `preq[0]` is read before `get_preq` in either.
+///
+/// Made to fail once with the rescale removed.
+#[test]
+fn a_lobby_starting_at_technology_eight_caches_military_level_zero() {
+    use crate::tech::{Line, TechTree, TypeDef, UnitTraits};
+    let mut tree = TechTree::new();
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let modern = tree.add(TypeDef::age("Modern Age", 5));
+    let seventh = tree.add(TypeDef::epoch("Seventh", Line::Military, 6));
+    let tank = tree.add(
+        TypeDef::unit("Tank", UnitTraits::default())
+            .at(barracks)
+            .needs(0, modern)
+            .needs(1, seventh),
+    );
+    let first = tree.add(
+        TypeDef::unit("Guard", UnitTraits::default())
+            .at(barracks)
+            .needs(0, seventh),
+    );
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    assert_eq!(sim.unit_military_level(tank), 7, "a full span reads preq[1]");
+    sim.lobby.starting_technology = 8;
+    sim.lobby.ending_technology = 7;
+    assert_eq!(
+        sim.unit_military_level(tank),
+        0,
+        "the age 6 epoch is below the starting technology"
+    );
+    assert_eq!(sim.unit_military_level(first), 7, "preq[0] is read first");
+}
+
 #[test]
 fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_discount() {
     // `docs/AI.md` §56, on Great Lakes' own numbers: the Phalanx whose

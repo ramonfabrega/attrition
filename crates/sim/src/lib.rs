@@ -2272,8 +2272,8 @@ impl Sim {
         }
         let mut discount = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
-            let ahead = self.tech[w].epoch[tech::Line::Military.index()]
-                - self.tech_tree.military_level_of(t);
+            let ahead =
+                self.tech[w].epoch[tech::Line::Military.index()] - self.unit_military_level(t);
             if ahead > 0 {
                 discount = self.tuning.military_upgrade_discount * ahead;
                 let span = self.setup.ending - self.setup.starting_age + 1;
@@ -2307,13 +2307,75 @@ impl Sim {
     /// the `+ 7` and floored at 1. Zero for anything else. It is the only
     /// late discount this crate applies, so the fold into
     /// [`cost::Modifiers::late_discount`] is exact.
+    /// `UnitTypeData::military_level` (`+0x2dc`) as
+    /// `Types::finalize_grafting@00669840` caches it at load:
+    /// `get_military_level_slow@0061d4d0` — `preq[0]` (`+0x30`) when it is a
+    /// Military epoch, else **`TypeData::get_preq(1, −1)@00668700`**, and
+    /// the level is that tech's `TypeIndex − 0x23b` when it is a Military
+    /// epoch, else 0.
+    ///
+    /// `get_preq(1, −1)` is `preq[1]` only in a full-span game. With a
+    /// starting technology `s` (the lower of the two under `game_rules` 8)
+    /// other than 0, or an ending technology below 7, a unit's Military
+    /// epoch `preq[1]` is **rescaled**: dropped (`TYPE_NONE`) when its `age`
+    /// (`+0x1c8`) is below `s`, and otherwise mapped to `0x23b +
+    /// ((0x1c / (end − s + 1)) · (age − s + 1) + 3) / 4`, clamped to the
+    /// line (`BASE_MILITARYTYPES`..`SELECTIVE_SERVICE`). The coverage
+    /// lobbies start at technology 8, so every Military `preq[1]` is dropped
+    /// and the cache is **0** for those units — the packet at Great Sahara's
+    /// logger frame 1562 reads it so for the MLRS and nine others — which
+    /// `get_cost` floors to level 1 (`docs/AI.md` §159). Ignored here: the
+    /// Iroquois arm (`param_2` is −1 at the cache) and the non-Military
+    /// lines' rescale, which never yields a Military epoch.
+    pub fn unit_military_level(&self, t: tech::TypeId) -> i32 {
+        let tree = &self.tech_tree;
+        let military = |x: tech::TypeId| match tree.kind(x) {
+            tech::Kind::Epoch {
+                line: tech::Line::Military,
+                level,
+            } => Some(i32::from(level) + 1),
+            _ => None,
+        };
+        let d = &tree.types[t];
+        if let tech::Preq::Of(p0) = d.preq[0]
+            && let Some(l) = military(p0)
+        {
+            return l;
+        }
+        let tech::Preq::Of(p1) = d.preq[1] else {
+            return 0;
+        };
+        let Some(level) = military(p1) else {
+            return 0;
+        };
+        let lobby = &self.lobby;
+        let s = if lobby.game_rules == 8 {
+            lobby.starting_technology.min(lobby.starting_technology2)
+        } else {
+            lobby.starting_technology
+        };
+        let end = lobby.ending_technology;
+        if s == 0 && end >= 7 {
+            return level;
+        }
+        let age = tree.types[p1].age;
+        if age < s {
+            return 0;
+        }
+        let v = (0x1c / (end - s + 1)) * (age - s + 1) + 3;
+        // `(v + (v >> 31 & 3)) >> 2`: a division truncating toward zero,
+        // and `v` is at least 3 here (`age ≥ s`).
+        let r = v / 4 + 0x23b;
+        if r > 0x23b { r.min(0x242) - 0x23b } else { 1 }
+    }
+
     pub fn military_unit_discount(&self, who: Player, ty: usize) -> i32 {
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY == 0 {
             return 0;
         }
         let level = self.unit_types[ty]
             .tree
-            .map_or(0, |t| self.tech_tree.military_level_of(t))
+            .map_or(0, |t| self.unit_military_level(t))
             .max(1);
         let ahead = self.tech[who as usize].epoch[tech::Line::Military.index()] - level;
         if ahead <= 0 {

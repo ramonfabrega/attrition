@@ -296,7 +296,8 @@ fn run680_s_word_frame_is_widened_whole() {
     // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
     // Persians' `SITE` table on 776, the two queues' prices and leader 1's
     // two buckets on 783, leader 0's `production_step` on 801.
-    pin_eq!(w.firsts.len(), 111, "initial run680 baseline");
+    // Item 1578: 111 → 74, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 74, "initial run680 baseline");
     // **The word's value diff, block 721** (item 1549): the dump prints no
     // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
     // value on the word's frame is the draw record — frame 720, ours 25
@@ -380,10 +381,11 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 185, "initial run681 baseline");
+    // Item 1578: 185 → 128, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 128, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        140,
+        96,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -423,7 +425,7 @@ fn run681_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1201),
+        Some(1192),
         "the first parting past the standing block"
     );
 }
@@ -480,10 +482,11 @@ fn run683_s_word_frame_is_widened_whole() {
     // half steps that parted from 1719 agree; 151 stand on 1577. (Item
     // 1586 landed the same tail on the integration branch first, for the
     // coverage pair's army `1/0`, and pinned 540 there on its own tree.)
-    pin_eq!(w.firsts.len(), 185, "initial run683 baseline");
+    // Item 1578: 185 → 126, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 126, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        151,
+        110,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (item 1561): the Persians'
@@ -664,26 +667,28 @@ fn run693_s_word_frame_is_widened_whole() {
     // its group's speed, `docs/AI.md` §158): 157 stand from the window's
     // first block (the control's set, as run683's), and the rest part
     // from 1980.
-    pin_eq!(w.firsts.len(), 1401, "initial run693 baseline");
+    // Item 1578: 1401 → 1328, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
+    pin_eq!(w.firsts.len(), 1328, "initial run693 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        157,
+        122,
         "the keys standing on the window's first block"
     );
     // **The word 1985's block 1986** (item 1577's move): ours spends a
     // `produce_building+0x1805` jitter draw where the original goes on in
-    // `make_stuff+0x63d`, and the Persians' make list has parted two
-    // blocks before — on 1981 `MAKE[1].t` ours 273 theirs 63 (the Supply
-    // Wagon) and `MAKE[2]` the other way round, the Wagon's `val` ours
-    // 9999999 theirs 6384749. **What parts first past the standing block**
-    // is city `1/2018`'s `bordering` on 1980 (ours 0, theirs 3). Landing
-    // 1578's to read.
+    // `make_stuff+0x63d`. Item 1578's build (the 1%) brought the Persians'
+    // make list to agree until 1984, where the original's leads with an
+    // ICBM (316, val 4000000, escrowed) ours never offers: ours' ICBM `1/96`
+    // was finished on tick 1982 and stands in its silo, where the original
+    // fired its own the same tick (`Build::do_missile_launch` in run676's
+    // trace). **What parts first past the standing block** is city
+    // `1/2018`'s `bordering` on 1980 (ours 0, theirs 3).
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:MAKE[1].t".to_string()))
             .map(|(f, _)| *f),
-        Some(1981),
-        "the make list's order parts on block 1981"
+        Some(1984),
+        "the make list's order parts on block 1984"
     );
     let first = w
         .firsts
@@ -696,4 +701,41 @@ fn run693_s_word_frame_is_widened_whole() {
         Some(1980),
         "the first parting past the standing block"
     );
+}
+
+/// run690, item 1577: the lobby's blocks 1521..1590 at the long's detail —
+/// the gap between run681 and run683 where the Supply Wagon `1/67` was born
+/// and parted (`docs/AI.md` §158).
+pub(crate) const RUN690: &str = "gamelog-run690-greatsahara-persian-alltech-window-1521-1590.txt";
+
+/// The window: block 1521 through 1590.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1521: (i64, i64) = (1521, 1590);
+
+/// run690 walked from run675's start with the recorder on.
+pub(crate) fn sahara_coverage_frame_1521_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run690",
+        &[(RUN690, WIDENING_SAHARA_COVERAGE_FRAME_1521.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_1521,
+        1,
+        &[1563],
+        true,
+    )
+}
+
+#[test]
+fn run690_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_frame_1521_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 70, "every captured block");
+    // **126** on item 1578's tree: the Supply Wagon `1/67` parts on 1563
+    // (item 1577's walk, `docs/AI.md` §158, now agreeing) and leader 1's
+    // queue prices, which item 1578's 1% brought into line, stood here
+    // before it.
+    pin_eq!(w.firsts.len(), 126, "initial run690 baseline");
 }
