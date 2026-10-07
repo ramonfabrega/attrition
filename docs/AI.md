@@ -17216,10 +17216,33 @@ enabled), so the weights are argued from prices, which agree to the step.
 
 **Coverage.** Diff-backed: both (the search's 1,600 prices; the Spy's birth frame). Reading-only: the Auto Plant's weight is argued from prices, not from a printed danger map.
 
-## 160. Reserved for the race on item 1565, its landing 5 (Great Sahara's coverage word 1582)
+## 160. A Spy's hit points, sight and speed climb with the Spy upgrades, and the word at 2118 (2026-10-07, item 1585)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run702's blocks 1979..2235 (the word 2118's block 2119 is inside), the Spy `1/103`'s records on every block from its birth on 2077, and the three listings `Unit::update_hits@0060e930`, `Unit::update_los@0060e4d0` and
+`Unit::update_speed@006055c0` beside `LeaderData::get_spy_upgrade@006e1090`. No new capture.
+
+**The word.** After §159 the word was **2118** (ours 22 draws against 20, index 5: ours `Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`). The Spy `1/103` of city `1/2030`, born on 2077 in both, parted on its first block, 2078:
+`myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36. It walks slower and sees less in ours, so it meets what it meets on another frame — and the original's spy takes damage where ours has not got there.
+
+**The mechanism.** `get_spy_upgrade` counts the held ones of `SPIES_UPGRADE_1..3` (rows 92–94 of `TECHBONUSES`: Tactics, Operations, Strategy in the shipped file; `Roles::spy_upgrade_preq`; all three at All Technologies). Three terms read it:
+
+- **hit points**: `spy_upgrade_hp[clamp(level, 0, 3)]` — `[15, 45, 90, 150]` — *replaces* the type's hits (`update_hits`, `0060eb98`..`0060ebd8`, a different shape from the supply wagon's added term);
+- **sight**: `+ level × SPY_UPGRADE_LOS` (2) added to `mylos` after the troops' terms (`update_los`);
+- **speed**: `+ level × speed / 4` toward zero after the aluminum and Versailles arms (`update_speed:131`–`134`).
+
+Built: `Sim::spy_upgrade_level`, `Sim::is_spy_type` (`supply.rs`), `Sim::unit_hits`, `Sim::unit_los`, `Sim::type_speed`; `Tuning::spy_upgrade_hp` and `spy_upgrade_los` (two slots). Held by `a_spy_climbs_with_the_spy_upgrades`; and each of the three terms by
+`run702_s_word_frame_is_widened_whole` (the Spy's `myhits`, `mylos` and `myspeed` are pinned as agreeing in the window). With them the word moves **2118 → 2185** (count and sequence): ours 30 draws against 32, index 12, ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. Run702's keys 487 → 317; no other lobby's pin moved (the full suite's reds are the commander's lines).
+
+**The value diff beside the word 2185** (`run702_s_word_frame_is_widened_whole`): the dump parts first on **2183** at building `1/2034`'s queue — `queue[0].cost[0]` ours 816 theirs 927, `cost[1]` 965 against 1069 (the same entry, priced about 12 % dearer in the
+original) — with the knowledge and oil buckets 111 and 104 apart; on **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against 80000, `escrow` 0 against 1, `city` 5 against 1), the next frame the buildings' `city_down`/`city`
+link. Between the Spy's agreement and 2183 the first partings are the raid (`death:extra` of player 0's citizens from 2121, `city:raid_stamp` on 2131, `treaties` on 2102): an infiltrated city, which the next read should date. No mechanism claimed.
+
+**What is not established.** The General's upgrades (rows 89–91, `get_general_upgrade`) are the same shape and not built; the 12 % on `1/2034`'s queue is not read (a unit or a building: `1/2034`'s entry `t`).
+
+**Mutations** (`tools/mutate.py`, all held): the hit points' replacement, the sight term and the speed term, each by `a_spy_climbs_with_the_spy_upgrades` and by `run702_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: all three terms (the Spy's records agree over 160 frames). Reading-only: none.
 
 ## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
 
