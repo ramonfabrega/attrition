@@ -498,6 +498,56 @@ mod tests {
         assert_eq!(s.units[u].spell_time, 1, "and the clock has started");
     }
 
+    /// **The spot's third test is the quick collision** (`Unit::find_merchant_spot
+    /// @00603ab0`: `detect_unit_collision(x·192, y·192, 1, 1, 0, 0, 0)` at the
+    /// tile's corner): a candidate whose corner cell holds another unit is
+    /// refused, and the walk goes on to the next tile of the ring. Great
+    /// Sahara's Merchant `1/38` stood on the rare `8/6` on 2205 and the
+    /// original took `(−1, −1)` where this crate took `(0, 0)` (item 1611).
+    #[test]
+    fn a_unit_on_a_candidate_s_corner_refuses_the_spot() {
+        let (mut s, u) = merchant_sim();
+        // `BLOCK_RADIUS 1`, `coll_size 1` — the profile that blocks.
+        let rec = s.units[u].ty.expect("a type");
+        s.unit_types[rec].combat.block_radius = 48;
+        s.unit_types[rec].combat.big_radius = 48;
+        s.unit_types[rec].combat.uber_size = 1;
+        // The merchant stands inside tile `t`, off its corner's unit cell.
+        let t = Pos::new(82, 106);
+        let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
+        let at = crate::collide::ucell_centre(Pos::new(
+            crate::collide::ucell(corner).x + 2,
+            crate::collide::ucell(corner).y + 2,
+        ));
+        assert!(s.set_new_location(u, at, true));
+        assert_eq!(at.tile(), t);
+        // A rare on the tile, so `calc_gather` answers at every ring tile
+        // the walk reaches first.
+        for (dx, dy) in [(0, 0), (-1, -1)] {
+            let p = Pos::new((t.x + dx) * UNITS_PER_TILE, (t.y + dy) * UNITS_PER_TILE);
+            s.world.add_good(Good {
+                pos: p,
+                ty: 26,
+                alive: true,
+            });
+            let q = p.tile();
+            let m = s.world.tile_mask(q);
+            s.world.set_tile_mask(q, m | tile::AS_BUILDING);
+        }
+        assert_eq!(s.find_merchant_spot(u, 1), Some(t), "nothing in the way");
+        // Another unit on the candidate's corner cell.
+        let ty = s.units[u].ty;
+        let mut b = crate::Unit::new(0, 20, crate::collide::ucell_centre(crate::collide::ucell(corner)), 20);
+        b.ty = ty;
+        b.type_index = 0x3d;
+        s.add_unit(b);
+        assert_ne!(
+            s.find_merchant_spot(u, 1),
+            Some(t),
+            "the quick collision refuses the corner's tile"
+        );
+    }
+
     /// **`cast_unpack`'s merchant arm** (`docs/MERCHANT.md` §3.2): the
     /// deploy seats the trader on its tile's corner — `(−24, −24)` from the
     /// unit-cell centre it walked to — blocks the two-by-two under it and
