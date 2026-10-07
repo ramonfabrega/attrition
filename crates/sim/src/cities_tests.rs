@@ -633,6 +633,44 @@ fn a_rock_cell_refuses_a_farm_and_a_flat_gather_type_needs_its_good() {
     );
 }
 
+/// **An enhancer stays in the city it is bought for** (`produce_building`'s
+/// `is_gather_enhancer` arm, `006e20b3`–`006e20f3`, `docs/AI.md` §156): a
+/// candidate whose tile `get_town` gives to another city is skipped, so a
+/// Granary bought for the second of two cities whose radii overlap stands
+/// in that city however the spiral's scores tie. Run683's Refinery
+/// `1/2045`, bought for city 2, took a cell of city 1's on frame 1582.
+///
+/// Made to fail once with the arm reduced to its old `city.is_none()`.
+#[test]
+fn an_enhancer_stays_in_the_city_it_is_bought_for() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // The spiral keeps the **last** of equal scores, and a ring is walked
+    // `dx` outer ascending, so its east side is where a tie lands: the city
+    // the Granary is bought for is the western one.
+    let (ab, a) = city_at(&mut sim, &t, 0, 22, 32);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let (_, b) = city_at(&mut sim, &t, 0, 47, 32);
+    // The two radii overlap between the cities: the spiral round the
+    // first city's centre reaches tiles the second city covers.
+    let shared = (23..47).any(|x| {
+        let p = tile_pos(x, 32);
+        sim.find_city_at(0, p, None) == Some(b) && world::vector_dist(x - 22, 0) <= sim.radius_of(a)
+    });
+    assert!(shared, "the fixture's radii overlap");
+    let before = sim.buildings.len();
+    assert!(sim.produce_building(0, t.granary, ab, Some(a), false));
+    let g = (before..sim.buildings.len())
+        .find(|&i| sim.buildings[i].ty == Some(t.granary))
+        .expect("a Granary placed");
+    assert_eq!(
+        sim.buildings[g].city,
+        Some(a),
+        "the Granary at {:?} joins the city it was bought for",
+        sim.buildings[g].pos.tile()
+    );
+}
+
 #[test]
 fn a_library_needs_a_city_and_there_is_one_per_city() {
     let mut sim = world_sim();

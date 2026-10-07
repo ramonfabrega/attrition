@@ -8736,12 +8736,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // on the Merchant `1/38`. Item 1561 moved it to **1582** (a walker
     // blocked by a walking animal repaths) and widened it on run683 over
     // 1577..1833 (block 1583); run681's test keeps the move's value diff
-    // on `1/35`.
+    // on `1/35`. Item 1565 moved it to **1818** (an enhancer stays in the
+    // city it is bought for), inside the same window (block 1819); run683's
+    // test keeps the move's value diff on the Refinery `1/2045`.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
         Some("run683_s_word_frame_is_widened_whole"),
-        1565,
+        1576,
         Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
     ),
     (

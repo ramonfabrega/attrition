@@ -739,10 +739,24 @@ impl Sim {
                             score *= f + 2;
                         }
                     }
-                    if is_enhancer(ident) && city.is_none() {
-                        // `get_town(cand) == city_o`: an enhancer stays in the
-                        // city it is placed for; with no city there is none.
-                        break 'cand;
+                    // **An enhancer stays in the city it is bought for**
+                    // (`006e20b3`–`006e20f3`): `is_gather_enhancer`, then
+                    // `get_town(cand's tile, who) != city` skips the
+                    // candidate. `get_town` takes the candidate's *tile* and
+                    // re-centres it (`tile · 0xc0 + 0x60`), so the test is
+                    // the covering city of the tile, not "a city at all":
+                    // run683's Refinery `1/2045`, bought for city 2, had
+                    // taken a cell of city 1's on 1582 here (`docs/AI.md`
+                    // §156).
+                    if is_enhancer(ident) {
+                        let t = cand.tile();
+                        let at = Pos::new(
+                            t.x * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+                            t.y * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+                        );
+                        if self.get_town(who, rec, at) != city {
+                            break 'cand;
+                        }
                     }
                 } else {
                     score = d * 1000;

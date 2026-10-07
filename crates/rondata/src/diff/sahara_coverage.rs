@@ -49,8 +49,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // as an enemy) moved it again, 1250 → **1582**: ours 28 draws against 29
     // at index 8, ours `Leader::make_stuff+0x63d`, theirs
     // `Leader::produce_building+0x1805`.
-    count: 1582,
-    sequence: 1582,
+    //
+    // Item 1565's build (an enhancer stays in the city it is bought for:
+    // `produce_building`'s `get_town(cand) != city` skip, `docs/AI.md`
+    // §156 — the Refinery `1/2045` had taken a cell of city 1's) moved it
+    // again, 1582 → **1818**: ours 3215 draws against 3218 at index 3201,
+    // ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `PathFinder::calc_road_cost+0x46` (a caravan road's A*).
+    count: 1818,
+    sequence: 1818,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -407,7 +414,8 @@ fn run681_s_word_frame_is_widened_whole() {
 }
 
 /// run683, item 1561: the lobby's blocks 1577..1833 at the long's detail —
-/// the word 1582's block 1583 with six before it and 250 after.
+/// the word 1582's block 1583 with six before it and 250 after, and the word
+/// 1818's block 1819 (item 1565) with 242 before it and fourteen after.
 pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt";
 
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
@@ -415,7 +423,7 @@ pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
 
 /// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
 /// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
-/// recorder on — the word 1582's block 1583.
+/// recorder on — the word 1582's block 1583 and the word 1818's block 1819.
 pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
@@ -425,7 +433,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1582,
         1,
-        &[1583],
+        &[1583, 1819],
         true,
     )
 }
@@ -442,7 +450,11 @@ fn run683_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1183, "initial run683 baseline");
+    // **1183** on the tree at base e02e4b0c (the word 1582), **863** after
+    // item 1565's build (an enhancer stays in the city it is bought for,
+    // `docs/AI.md` §156): the 320 that went part downstream of the
+    // Refinery's site and its four jitter draws (not itemised row by row).
+    pin_eq!(w.firsts.len(), 863, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
         159,
@@ -458,21 +470,33 @@ fn run683_s_word_frame_is_widened_whole() {
     // every roll after it sits a place off: the human's `0/5` and `1/65`
     // re-target on the same block from the shifted stream (their
     // `orders_x/y`, `dest_angle`), and are no cause.
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:y_internal".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "the Refinery's y parts on the word's block"
+    //
+    // The cause (item 1565): `produce_building`'s `is_gather_enhancer` arm
+    // skips a candidate whose tile `get_town` gives to another city than
+    // the one the enhancer is bought for (`006e20b3`–`006e20f3`); this
+    // crate skipped only "no city at all", and the spiral's last tie, at
+    // (30432, 22176), was city 1's. It agrees in every compared field since
+    // the build, and so does its city's chain.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 2045)),
+        "1/2045 agrees in every compared field"
     );
-    pin_eq!(
-        w.firsts
-            .get(&(1, 2045, "build:city".to_string()))
-            .map(|(f, _)| *f),
-        Some(1583),
-        "and its city"
-    );
-    // **What parts first past the standing block** is the word's own block.
+    for b in [2006, 2041] {
+        pin!(
+            !w.firsts
+                .contains_key(&(1, b, "build:city_down".to_string())),
+            "1/{b}'s city chain agrees"
+        );
+    }
+    // **What parts first past the standing block** is the word's own block:
+    // the human's `0/5`, the Persians' pool 65 and the queues' prices,
+    // which stood beside the Refinery before the build and are no part of
+    // it. **The word 1818's block 1819** (item 1565's move): the draw
+    // stream's delta is three `PathFinder::calc_road_cost+0x46` draws of a
+    // caravan road's A* the original spends and ours does not; the first
+    // rows on the frame are the Persian soldiers' guard and path offsets
+    // (`1/39`, `1/71`) downstream of the army's re-targets since 1789 —
+    // landing 1576's to read.
     let first = w
         .firsts
         .values()

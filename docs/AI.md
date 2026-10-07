@@ -16995,10 +16995,43 @@ Step 3's enemy ladder reads `is_enemy` too (`collide_who != who`) and is unchang
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 156. Reserved for the race on item 1565, its landing 1 (Great Sahara's coverage word 1582)
+## 156. An enhancer stays in the city it is bought for, and the word at 1818 (2026-10-07, item 1565)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's widening (`diff::sahara_coverage::run683_s_word_frame_is_widened_whole`, blocks 1577..1833, the word 1582's block 1583), the draw
+print (`RON_DEBUG_SITES=1581-1583`) beside run676's trace (`tools/trace/report.py … draws 1582`), and `Leader::produce_building@006e1400`'s enhancer arm
+(the decompile's lines 466–478; the listing's `006e20b3`–`006e20f3`: `call is_gather_enhancer`, `call get_town` with the candidate's two `div_3_table` tiles, `cmp eax, [ebp+0xc]` — the city argument — and `jmp 006e25b5`, the step) against `BuildTypeData::get_town@00639b90`.
+
+**The word.** Frame 1582 (item 1561's): 28 draws against 29, index 8. The draws agree through index 7 — two `make_stuff+0x221`, three `+0x63d`, three
+`produce_building+0x1805` — and the original spends a **fourth** jitter draw (seed `2dbfe9e0`, 5054) where ours goes on to `make_stuff+0x63d`. The jitter is
+§2.20's 2×2 of sub-positions, one roll per unblocked one: the original's site had four clear, ours three. The record is the Persians' `REFINERY` (`orig_type`
+426) `1/2045`, bought for city 2 (`1/2006`, at (27744, 19296)) by a `MAKE` row both sides print alike: on block 1583 its `y_internal` is ours **22176**, theirs
+**19872**, its `city` ours **1**, theirs **2**; `1/2006`'s `city_down` ours −1, theirs 2045, and `1/2041`'s (city 1's chain) ours 2045, theirs −1. The site, not
+the jitter, parted: the jitter rolled on a different cell.
+
+**The cause.** After the spiral scores a candidate, `produce_building` asks `BuildTypeData::is_gather_enhancer` of the type and, for one of the four enhancers,
+`get_town(div_3_table[cand.x >> 6], div_3_table[cand.y >> 6], who)` — the candidate's **tile** — and skips the candidate (`goto LAB_006e25bb`, the step) when the
+answer is not `param_2`, the city the building is bought for. `get_town` re-centres the tile (`tile · 0xc0 + 0x60`), wants every footprint tile inside a city
+mask, and answers the nearest covering city's id (`find_city_at`, or `find_town_at` for a `NEEDS_TOWN` type). This crate had the arm as "skip only when there is no
+city": an enhancer could take any cell the spiral reached, and the spiral keeps the **last** of equal scores (`score < best` refuses, a tie replaces), so a
+friendless Refinery's 1000 + `0xff − val` tie went to the far side of city 2's rings, a cell nearer city 1. Built: the arm compares `get_town` of the candidate's
+tile centre against `city` (`crates/sim/src/ai_place.rs`).
+
+**The move.** `1/2045` agrees in every compared field through the window, and so do `1/2006`'s and `1/2041`'s chains; run683's keys **1183 → 863**. The word goes
+**1582 → 1818**: ours 3215 draws against 3218, index 3201, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46 <
+PathFinder::astar_caravan_road+0x52b` — a caravan road's A*, three cost rolls the original spends past where ours' search ended. The full `sim` suite (1418) and
+`rondata` suite moved only the two partings' pins and run683's; every closed word and floor held. Block 1819 is inside run683, so the window is the word's too
+(`WIDENINGS` row, the coverage driver's block 1819; `Khomein`, the Persians' fifth city, named on it, joins the unread `CITY` row).
+
+**What is not established.** The `+8` field `get_town` answers (`*(short *)(city + 8)`) is read as the city's index, the same one `MAKE`'s `city` and
+`produce_building`'s `param_2` carry; the two agree on every block of this window. The `NEEDS_TOWN` arm (`find_town_at`) is not reached by an enhancer in any
+capture. What the word 1818 is — whose road the A* lays and why the original's search runs three nodes further — is landing 1576's first read; the frame's
+first state rows are the Persian soldiers' guard offsets (`1/39`, `1/71`), downstream of the army's re-targets since 1789.
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the arm reduced to its old `city.is_none()` — held by the unit test
+`an_enhancer_stays_in_the_city_it_is_bought_for` (`crates/sim/src/cities_tests.rs`) and by `sahara_coverage_first_parting` and
+`run683_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: the arm (the word moves 1582 → 1818 and `1/2045` agrees through block 1833). Reading-only: the `NEEDS_TOWN` arm for an enhancer.
 
 ## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
 
