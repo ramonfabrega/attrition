@@ -9493,3 +9493,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # option is `action=append`): `end:MISC`, `start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`, `misc:CHECKSUM=2`,
 # `endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
 # ==== TAKEN 2026-10-06, one take each, 16:35–17:00 ====
+# ==== item 1549: Great Sahara in the coverage pair's lobby, the word 720's widening (`docs/AI.md` §150; `docs/RUNS.md` run680) ====
+#
+# One run on the click-free lane, none a stanza: run677's recipe with the window moved to the word 720's block 721 with eight before it and 248 after:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run680 \
+#     --map 7 --end-frame 977 --timeout 3600 --log-window 713 970 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run680.log` -> 0 differing in 978 frames;
+# `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `DIFFICULTY 5` / `(int)seed 12345` in `GAME INFO`. The output directory must not exist.
+# ==== TAKEN 2026-10-06, one take, 18:10–18:25 ====
