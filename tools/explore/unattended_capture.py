@@ -243,6 +243,9 @@ def wall():
 
 def capture(args, output, style):
     report = {'map_requested': style, 'success': False, 'settings_restored': False}
+    if HELD:
+        report['lane'] = HELD['lane']
+        report['lane_prefix'] = HELD['prefix']
     staged = False
     process = None
     started = time.monotonic()
@@ -394,25 +397,130 @@ def require_closed():
 
 
 def lane_paths(env=None):
-    """This shell's capture lane as `lanes.sh` reads it: the lane, its
-    prefix (a hand-set `RON_WINEPREFIX` wins, as in `winelaunch.sh`), its
-    install, its profile and every lane's prefix."""
+    """A capture lane as `lanes.sh` reads it — `RON_CAPTURE_LANE` in `env`,
+    1 when unset: the lane, its prefix (a hand-set `RON_WINEPREFIX` wins,
+    as in `winelaunch.sh`), its install, its profile, its own directory,
+    every lane's prefix and the cap."""
     out = subprocess.run(
         ['zsh', '-c', f'source {LANES} || exit $?; print -r -- $RON_CAPTURE_LANE; '
                       'print -r -- ${RON_WINEPREFIX:-$RON_LANE_PREFIX}; print -r -- $RON_LANE_INSTALL; '
-                      'print -r -- $RON_LANE_PROFILE; print -r -- ${(j:\t:)RON_LANE_PREFIXES}'],
+                      'print -r -- $RON_LANE_PROFILE; print -r -- ${(j:\t:)RON_LANE_PREFIXES}; '
+                      'print -r -- $RON_LANE_HOME; print -r -- $RON_LANES_MAX'],
         capture_output=True, text=True, env=env)
     if out.returncode:
         raise ValueError(out.stderr.strip() or f'lanes.sh refused (rc {out.returncode})')
-    lane, prefix, install, profile, prefixes = out.stdout.rstrip('\n').split('\n')
+    lane, prefix, install, profile, prefixes, home, cap = out.stdout.rstrip('\n').split('\n')
     return {'lane': lane, 'prefix': prefix, 'install': Path(install), 'profile': Path(profile),
-            'prefixes': prefixes.split('\t')}
+            'prefixes': prefixes.split('\t'), 'home': Path(home), 'max': int(cap)}
 
 
-def lane(verb):
+def lane_env(n=None):
+    """The environment a lane's shell runs in: the pool's mark on every
+    take this runner makes (item 1569), and lane `n` when given."""
+    env = dict(os.environ, RON_LANE_POOL='1')
+    env.setdefault('RON_LANE_HOLDER', 'unattended_capture')
+    if n is not None:
+        env['RON_CAPTURE_LANE'] = str(n)
+    return env
+
+
+def lane(verb, env=None):
     """The launch line's lane lock, spoken to: `ron_lane_take <pid>`,
     `ron_lane_release <pid>`, `ron_lane_state`."""
-    return subprocess.run(['zsh', '-c', f'source {LANE}; {verb}'], capture_output=True, text=True)
+    return subprocess.run(['zsh', '-c', f'source {LANE}; {verb}'], capture_output=True, text=True,
+                          env=env if env is not None else lane_env())
+
+
+# The lane this runner holds, for its receipt and its lane log.
+HELD = {}
+
+
+def lane_log(prefix, verb, *rest):
+    """A line in the lane's `.lane.log`, the format `_ron_lane_log` writes:
+    epoch, instant, verb, lane, pid, the rest (item 1569)."""
+    try:
+        with (Path(prefix)/'.lane.log').open('a') as f:
+            f.write(' '.join([str(int(time.time())), wall(), verb, str(HELD.get('lane', 0)),
+                              str(os.getpid()), *map(str, rest)]) + '\n')
+    except OSError:
+        pass
+
+
+def admitted(paths):
+    """Lane 1 is the reference; any other is in the pool once its
+    `admitted` file names the run that reproduced run676's trace."""
+    return paths['lane'] == '1' or (paths['home']/'admitted').is_file()
+
+
+def build_lane(n):
+    """Grow the pool: `lane.sh N` builds lane N and runs its admission."""
+    done = subprocess.run(['zsh', str(ROOT/'tools/gamelog/lane.sh'), str(n)],
+                          capture_output=True, text=True, env=dict(os.environ))
+    print(done.stdout + done.stderr, flush=True)
+    return done.returncode == 0
+
+
+@contextmanager
+def pool_lane(wait_seconds=3600, poll=5, build=build_lane):
+    """The first free lane of the pool, held as `capture_lane` holds one
+    (item 1569; parked 1139). No caller names a lane.
+
+    Under one pool `flock` — so two runners never choose one lane — each
+    admitted lane is tried in order: its profile's `flock`, then its lane
+    lock taken for this pid with the pool's mark. None free and fewer than
+    `RON_LANES_MAX` built: the next is built and admitted (`lane.sh N`),
+    still under the pool lock, and tried. At the cap: wait, released, and
+    try again every `poll` seconds — the free/stale semantics of the lock
+    — for up to `wait_seconds`, the wait written to lane 1's log.
+    """
+    pid = os.getpid()
+    first = lane_paths(lane_env(1))
+    pool_lock = Path(first['prefix']).parent/'.ron-capture-pool.lock'
+    started = time.monotonic()
+    held = None
+    tried = set()
+    while held is None:
+        with pool_lock.open('a') as pool:
+            fcntl.flock(pool, fcntl.LOCK_EX)
+            grow = None
+            for n in range(1, first['max'] + 1):
+                paths = lane_paths(lane_env(n))
+                if not paths['profile'].is_dir() or not admitted(paths):
+                    if grow is None and n not in tried and not (paths['home']/'admission-failed').exists():
+                        grow = n
+                    continue
+                handle = (paths['profile']/'.attrition-capture.lock').open('a')
+                try:
+                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    handle.close()
+                    continue
+                if lane(f'ron_lane_take {pid}', lane_env(n)).returncode:
+                    handle.close()
+                    continue
+                held = (paths, handle)
+                break
+            if held is None and grow is not None:
+                # Once a runner: a build that fails without its marker is
+                # not retried in a loop.
+                tried.add(grow)
+                build(grow)
+                continue
+        if held is None:
+            waited = time.monotonic() - started
+            if waited >= wait_seconds:
+                raise BlockingIOError(f'every lane of the pool is held ({first["max"]}, RON_LANES_MAX) '
+                                      f'and none freed in {wait_seconds} s')
+            time.sleep(poll)
+    paths, handle = held
+    waited = time.monotonic() - started
+    if waited >= poll:
+        lane_log(first['prefix'], 'waited', f'{waited:.0f}')
+    try:
+        with handle:
+            yield paths
+    finally:
+        lane(f'ron_lane_release {pid}', lane_env(int(paths['lane'])))
 
 
 @contextmanager
@@ -434,7 +542,6 @@ def capture_lane(profile):
     with (profile/'.attrition-capture.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         pid = os.getpid()
-        os.environ.setdefault('RON_LANE_HOLDER', 'unattended_capture')
         took = lane(f'ron_lane_take {pid}')
         if took.returncode:
             raise BlockingIOError(took.stderr.strip() or f'the lane refused the take (rc {took.returncode})')
@@ -444,6 +551,26 @@ def capture_lane(profile):
         finally:
             os.environ.pop('RON_LANE_TAKEN', None)
             lane(f'ron_lane_release {pid}')
+
+
+@contextmanager
+def holding(paths):
+    """What a held lane sets for the capture: its launches' environment
+    (the lane, the taken pid, the pool's mark), the closed-game check's
+    scope, and the receipt's and the lane log's lane."""
+    saved = {k: os.environ.get(k) for k in ('RON_CAPTURE_LANE', 'RON_LANE_TAKEN', 'RON_LANE_POOL')}
+    os.environ.update(RON_CAPTURE_LANE=paths['lane'], RON_LANE_TAKEN=str(os.getpid()), RON_LANE_POOL='1')
+    os.environ.setdefault('RON_LANE_HOLDER', 'unattended_capture')
+    SCOPE.update(prefix=paths['prefix'], prefixes=paths['prefixes'])
+    HELD.update(lane=int(paths['lane']), prefix=paths['prefix'])
+    try:
+        yield
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
 
 def capture_all(args):
@@ -460,6 +587,13 @@ def capture_all(args):
     try:
         for style in args.maps:
             reports.append(capture(args,args.output/f'map-{style}',style))
+            if HELD:
+                # The rate a pass reads (item 1569): frames over the wall
+                # seconds from launch to exit, per capture, per lane.
+                r=reports[-1]
+                lane_log(HELD['prefix'],'capture',f"frames={r.get('frames',0)}",
+                         f"launched={r.get('launched_at','-')}",f"exited={r.get('exited_at','-')}",
+                         f"success={str(r.get('success')).lower()}",f"out={args.output/f'map-{style}'}")
             print(json.dumps(reports[-1]),flush=True)
     except BaseException:
         for made in [*sorted(args.output.glob('map-*')),args.output]:
@@ -475,9 +609,11 @@ def interrupted(signum, frame):
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('install',type=Path)
+    ap.add_argument('install',type=Path,help="the install, or `-` for the pool's (item 1569)")
     ap.add_argument('output',type=Path)
-    ap.add_argument('profile',type=Path)
+    ap.add_argument('profile',type=Path,help="the profile, or `-` for the pool's")
+    ap.add_argument('--lane-wait',type=int,default=3600,
+                    help='seconds the pool waits for a lane at its cap before refusing')
     ap.add_argument('--end-frame',type=int,default=36)
     ap.add_argument('--allow-early-end',action='store_true',
                     help='a game that ends itself before --end-frame is a success, with `ended_early` '
@@ -511,6 +647,20 @@ def main():
         ap.error('--profile takes KEY=N')
     args.maps=tuple(args.maps or (14,18))
     signal.signal(signal.SIGTERM, interrupted)
+    pinned=os.environ.get('RON_CAPTURE_LANE')
+    pool=str(args.install)=='-' and str(args.profile)=='-'
+    if (str(args.install)=='-')!=(str(args.profile)=='-'):
+        ap.error("`-` is the pool's install and profile together, never one of them")
+    if pool and pinned:
+        # A pinned lane is the pool's lane N (a test, an admission run).
+        try:
+            paths=lane_paths(lane_env(pinned))
+        except ValueError as exc:
+            ap.error(str(exc))
+        args.install,args.profile=paths['install'],paths['profile']
+        pool=False
+    if pool:
+        args.install=args.profile=Path('/nonexistent-pool-lane')
     args.install,args.profile,args.output=(p.resolve() for p in (args.install,args.profile,args.output))
     if not 36<=args.end_frame<=24000 or args.timeout<=0 or not 1<=args.seed<=0x7fffffff:
         ap.error('invalid frame, timeout, or seed bound')
@@ -520,22 +670,30 @@ def main():
         args.cmd_file=args.cmd_file.resolve()
         if not args.cmd_file.is_file():
             ap.error(f'no such command file: {args.cmd_file}')
-    # **Two click-free lanes** (parked 1139, item 1567): a lane named by
-    # `RON_CAPTURE_LANE` runs only on its own install and profile — a lane-2
-    # game staged into lane 1's profile would write under a running lane-1
-    # game — and the closed-game check is scoped to the lane's prefix.
+    # **The pool** (parked 1139; items 1568, 1569): `-` for the install and
+    # the profile takes the first free lane, and the lane chooses both. A
+    # lane named by `RON_CAPTURE_LANE` runs only on its own install and
+    # profile — a lane-2 game staged into lane 1's profile would write
+    # under a running lane-1 game — and the closed-game check is scoped to
+    # the lane's prefix either way.
+    if pool:
+        with pool_lane(args.lane_wait) as paths, holding(paths):
+            args.install,args.profile=paths['install'].resolve(),paths['profile'].resolve()
+            print(f"lane: {paths['lane']} ({paths['prefix']}), from the pool",flush=True)
+            require_closed()
+            capture_all(args)
+        return
     try:
-        paths=lane_paths()
+        paths=lane_paths(lane_env(pinned))
     except ValueError as exc:
         ap.error(str(exc))
-    if os.environ.get('RON_CAPTURE_LANE'):
+    if pinned:
         for name in ('install','profile'):
             if getattr(args,name)!=paths[name].resolve():
                 ap.error(f'capture lane {paths["lane"]} runs on its own {name}, {paths[name]}; '
                          f'got {getattr(args,name)}')
-    SCOPE.update(prefix=paths['prefix'], prefixes=paths['prefixes'])
     # Cooperative lock: protects runners using this tool, not arbitrary GUI use.
-    with capture_lane(args.profile):
+    with holding(paths), capture_lane(args.profile):
         require_closed()
         capture_all(args)
 

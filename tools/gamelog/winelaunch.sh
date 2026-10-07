@@ -159,9 +159,10 @@ _ron_lane_free () {
 }
 
 _ron_lane_write () {
-  # $1 the pid on the first line, $2 the script's pid or nothing.
+  # $1 the pid on the first line, $2 the script's pid or nothing. A pool
+  # take's holder line starts `pool ` (item 1569): the queue lane reads it.
   print -r -- "$1" > "$RON_LANE_LOCK"
-  print -r -- "${RON_LANE_HOLDER:-${ZSH_ARGZERO:-$0}} since $(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$RON_LANE_LOCK"
+  print -r -- "${RON_LANE_POOL:+pool }${RON_LANE_HOLDER:-${ZSH_ARGZERO:-$0}} since $(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$RON_LANE_LOCK"
   if [[ -n "$2" ]]; then print -r -- "$2" >> "$RON_LANE_LOCK"; fi
   local pid
   for pid in "$1" "$2"; do
@@ -171,6 +172,39 @@ _ron_lane_write () {
   done
 }
 
+# **The pool and the queue lane exclude each other** (item 1569). The
+# click-free runner's takes carry `RON_LANE_POOL=1` and mark their holder
+# `pool`; any other take is the queue lane's (or a hand's), which owns the
+# cursor and finds the game's window by title — so it refuses while any
+# pool lane is held, and a pool take refuses while lane 1 is held by
+# anything but the pool. A lock is read by `_ron_lane_holder --any` on its
+# own path, so the check costs a few `kill -0`s.
+_ron_other_lane_held () {
+  # Prints the first lock in `RON_LANE_PREFIXES` other than this one that
+  # a live pid holds — with $1 = pool, only one whose holder is not the
+  # pool's; with $1 = any, any holder.
+  local prefix lock line held
+  for prefix in $RON_LANE_PREFIXES; do
+    lock=$prefix/.lane.lock
+    [[ "$lock" == "$RON_LANE_LOCK" ]] && continue
+    [[ -r "$lock" ]] || continue
+    held=$(RON_LANE_LOCK=$lock _ron_lane_holder --any) || continue
+    line=$(sed -n 2p "$lock")
+    if [[ "$1" == any || "$line" != pool\ * ]]; then
+      print -r -- "$lock ($line, pid $held)"
+      return 0
+    fi
+  done
+  return 1
+}
+
+_ron_lane_log () {
+  # One line beside the lock, `.lane.log`: epoch, instant, verb, lane, pid,
+  # and the rest — what `tools/gamelog/lanes.py` reads (item 1569).
+  print -r -- "$(date +%s) $(date '+%Y-%m-%dT%H:%M:%S%z') $1 ${RON_CAPTURE_LANE:-1} ${@:2}" \
+    >> "${RON_LANE_LOCK:h}/.lane.log" 2>/dev/null
+}
+
 ron_lane_take () {
   # `ron_lane_take [pid]`: the lane is taken for this shell, or for the pid
   # given — a runner that launches through a child shell takes it for its
@@ -178,9 +212,20 @@ ron_lane_take () {
   # its game lives (parked 1234, the twenty-first pass: run467's game had
   # exited, the lane read `stale`, and another lane's long trace launched
   # while the runner's `finally` was still putting the profile back).
+  local other
+  if [[ -n "${RON_LANE_POOL:-}" ]]; then
+    if other=$(RON_LANE_PREFIXES=($RON_LANE_PREFIXES[1]) _ron_other_lane_held queue); then
+      print -u2 "ron_lane_take: the queue lane holds $other; a pool lane waits for it."
+      return 75
+    fi
+  elif other=$(_ron_other_lane_held any); then
+    print -u2 "ron_lane_take: a pool lane is held, $other; the queue lane finds the game's window by title and never runs beside one."
+    return 75
+  fi
   _ron_lane_free || return 75
   RON_LANE_TAKEN=${1:-$$}
   _ron_lane_write "$RON_LANE_TAKEN" "$RON_LANE_TAKEN"
+  _ron_lane_log take "$RON_LANE_TAKEN" "${${RON_LANE_POOL:+pool}:-queue}"
 }
 
 ron_lane_release () {
@@ -202,6 +247,7 @@ ron_lane_release () {
     fi
   done
   command rm -f -- "$RON_LANE_LOCK"
+  _ron_lane_log release "$mine"
 }
 
 ron_wine () {

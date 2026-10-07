@@ -68,7 +68,7 @@ class LaneLock(unittest.TestCase):
         return self.lock.read_text().split('\n')[0]
 
     def launch(self, **extra):
-        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                    RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='test')
         env.pop('RON_LANE_WAIT', None)
         env.pop('RON_LANE_FORCE', None)
@@ -118,7 +118,7 @@ class LaneLock(unittest.TestCase):
 
 class TakeFirst(LaneLock):
     def shell(self, body, **extra):
-        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                    RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='test')
         env.pop('RON_LANE_WAIT', None)
         env.pop('RON_LANE_FORCE', None)
@@ -141,7 +141,7 @@ class TakeFirst(LaneLock):
     def test_a_taken_lane_refuses_another_script(self):
         holder = subprocess.Popen(
             ['zsh', '-c', f'source {SCRIPT}; ron_lane_take; echo taken; sleep 20'],
-            env=dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+            env=dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                      RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='the first lane'),
             stdout=subprocess.PIPE, text=True)
         self.holders.append(holder.pid)
@@ -183,7 +183,7 @@ class Liveness(LaneLock):
     tranche: `ron_lane_state` says which it is."""
 
     def shell(self, body, **extra):
-        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+        env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                    RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='test')
         env.pop('RON_LANE_WAIT', None)
         env.pop('RON_LANE_FORCE', None)
@@ -212,7 +212,7 @@ class Liveness(LaneLock):
     def test_a_launch_stamps_what_it_writes(self):
         holder = subprocess.Popen(
             ['zsh', '-c', f'source {SCRIPT}; ron_lane_take; echo taken; sleep 20'],
-            env=dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root),
+            env=dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                      RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='the first lane'),
             stdout=subprocess.PIPE, text=True)
         self.holders.append(holder.pid)
