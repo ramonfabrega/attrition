@@ -331,6 +331,24 @@ impl Sim {
         self.line_count(who, n, true) + self.line_count(who, n, false)
     }
 
+    /// `missile_value`'s nuke arm's census: my Nuclear Missiles
+    /// ([`Self::get_nukes`]), the most any leader I am not allied to holds,
+    /// and whether there is such a leader at all.
+    fn nuke_standing(&self, who: Player) -> (i32, i32, bool) {
+        let mine = self.get_nukes(who);
+        let mut max_enemy = 0;
+        let mut vulnerable = false;
+        for j in 0..self.players.len() {
+            let jw = j as Player;
+            if self.defeated[j] || self.is_ally(who, jw) {
+                continue;
+            }
+            vulnerable = true;
+            max_enemy = max_enemy.max(self.get_nukes(jw));
+        }
+        (mine, max_enemy, vulnerable)
+    }
+
     /// `LeaderData::get_units(t, 0)` / `get_queued(t, …)`: the count of `t`
     /// plus every type whose grafted `from` chain reaches it — the line's
     /// count including the nation's variants and later upgrades.
@@ -1163,20 +1181,7 @@ impl Sim {
         } else {
             200_000
         };
-        let mine = self.get_nukes(who);
-        let mut max_enemy = 0;
-        let mut vulnerable = false;
-        for j in 0..self.players.len() {
-            let jw = j as Player;
-            if self.defeated[j] || self.is_ally(who, jw) {
-                continue;
-            }
-            vulnerable = true;
-            let theirs = self.get_nukes(jw);
-            if theirs > max_enemy {
-                max_enemy = theirs;
-            }
-        }
+        let (mine, max_enemy, vulnerable) = self.nuke_standing(who);
         if !vulnerable {
             return None;
         }
@@ -2802,6 +2807,16 @@ mod tests {
         assert_eq!(sim.get_nukes(0), 0, "without the tech");
         sim.tech[0].tech[nuke] = true;
         assert_eq!(sim.get_nukes(0), 3, "held and queued Nuclear Missiles");
+        // The census the nuke arm reads: mine against the most of the others.
+        sim.players = vec![Default::default(); 2];
+        sim.defeated = vec![false; 2];
+        sim.tech.push(sim.tech[0].clone());
+        sim.muster.push(sim.muster[0].clone());
+        sim.muster[1].by_type[n] = 4;
+        sim.muster[1].queued_by_type[n] = 0;
+        sim.tech[1].tech[nuke] = true;
+        let (mine, most, vulnerable) = sim.nuke_standing(0);
+        assert_eq!((mine, most, vulnerable), (3, 4, true));
     }
 
     #[test]
