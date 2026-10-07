@@ -1336,11 +1336,10 @@ pub(crate) const RUN715: &str = "gamelog-run715-eastindies-persian-alltech-windo
 /// The window: block 2863 through 3119; the word 2868's own block is 2869.
 pub(crate) const WIDENING_COVERAGE_FRAME_2868: (i64, i64) = (2863, 3119);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run715 walked from run651's start with the recorder on. It holds the
-/// word 2868 (item 1605), block 2869, and the word 2969 (item 1608), block
-/// 2970.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run715 walked from run651's start with the recorder on — the newest
+/// pair's word's window until item 1614. It holds the word 2868 (item
+/// 1605), block 2869, and the word 2969 (item 1608), block 2970.
+pub(crate) fn coverage_frame_2868_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1357,7 +1356,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run715_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_2868_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1408,6 +1407,63 @@ fn run715_s_word_frame_is_widened_whole() {
     pin_eq!(
         first,
         Some(2872),
+        "the first parting past the standing block"
+    );
+}
+
+/// run716, item 1614: the lobby's blocks 3137..3393 at the long's detail —
+/// the word 3142's block 3143 with six before it and 250 after.
+pub(crate) const RUN716: &str = "gamelog-run716-eastindies-persian-alltech-window-3137-3393.txt";
+
+/// The window: block 3137 through 3393; the word 3142's own block is 3143.
+pub(crate) const WIDENING_COVERAGE_FRAME_3142: (i64, i64) = (3137, 3393);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run716 walked from run651's start with the recorder on. It holds the
+/// word 3142 (item 1614), block 3143.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run716",
+        &[(RUN716, 3137)],
+        WIDENING_COVERAGE_FRAME_3142,
+        1,
+        &[3143],
+        true,
+    )
+}
+
+#[test]
+fn run716_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **2160** on item 1614's tree; 131 stand from the window's first
+    // block, the human leader's and its units' among them. The first
+    // parting past it is Napata's `reduce_stamp` on 3138 (ours 2383, the
+    // original's 3137), then the planes `1/139`, `1/155` and `1/158`'s
+    // order (`kind` 16 against 17, two orders against one) on 3139–3140.
+    // **The word 3142's own block, 3143**: the Advanced Battleship `1/59`
+    // (`TypeIndex` 350, leader 1's navy, army slot 2) carries an
+    // `ATTACKORDER` (kind 10) on Napata in ours — its figure's `ox` 2000,
+    // `whom` 0, `recharging` 40 — where the original's has a move (kind
+    // 1, three orders against two) and stands at (3342, 12584) on 3142
+    // against ours' (3320, 12634): the attack roll ours spends at index
+    // 3. The item after's hypothesis, not a cause.
+    pin_eq!(w.firsts.len(), 2160, "initial run716 baseline");
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 3137)
+        .min();
+    pin_eq!(
+        first,
+        Some(3138),
         "the first parting past the standing block"
     );
 }

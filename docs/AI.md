@@ -17859,13 +17859,21 @@ claim is *diff-backed* unless marked.
 **What it moved.** The word **2969 → 2976 → 2995 → 3142**, count and sequence, one mechanism a step: the upgrades
 (2976: `1/66` stands in ours), the pack (2995: `1/152` idles in ours), the single kill. At **3142, ours 21 game draws
 against 20, index 3**: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a <
-Guy::inc_time+0x271` — an attack roll ours spends and the original does not, past run715's last block (3119); run716
-holds it. The value diff, run715: block 2970's `1/16` (above) agrees on both sides, and so do block 2909's `1/150`
+Guy::inc_time+0x271` — an attack roll ours spends and the original does not, past run715's last block (3119). run716
+widens it (`run716_s_word_frame_is_widened_whole`, 2,160 keys, 131 standing on 3137): the first parting past the
+standing block is Napata's `reduce_stamp` on 3138 (ours 2383, the original's 3137), and on the word's block 3143 the
+Advanced Battleship `1/59` (`TypeIndex` 350, leader 1's navy) carries an `ATTACKORDER` on Napata in ours (its figure's
+`ox` 2000, `recharging` 40) where the original's carries a move, at (3320, 12634) against (3342, 12584) on 3142 — the
+item after's hypothesis. The value diff, run715: block 2970's `1/16` (above) agrees on both sides, and so do block 2909's `1/150`
 (599, 14, 73), block 2975's `1/66` at (34744, 39242), block 2995's `1/152` with its guard alone and block 2996's `1/41`
 ashore; **no position parts in run715's 257 blocks**. run715 5,842 → **154** keys, 119 standing on 2863. What stands
 past it: births' `form` (−1 against 0, parked 1615's shape), two pushed pools' `held` on 2910 and 2917, Napata's
 `city_flags` and a hit on 2940, three `mirror` bits, `caras` on 2950, the human's `SITE[8].reg` on 2976, and on 3069
 one group's `id` (3068005 against 3074505) across its eighteen members.
+
+**Elsewhere.** Great Sahara's run718 (item 1611's window) gains one key, 737 → 738: `1/131`, born a General in ours
+and an 85-hit-point unit in the original on 2509, now parts on `mylos` (14 against 8) beside its hits and speed; its
+word 2273 holds. No other widening moved.
 
 **Not established.** The General's rally armour (`UnitData::armor@00610160`, `general_rally_armor × (level + 1)`),
 which this crate does not carry at all (`docs/COMBAT.md` §4.2); the ambush, whose cast is not modelled. Who in the

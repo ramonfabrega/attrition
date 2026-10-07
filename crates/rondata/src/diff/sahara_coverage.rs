@@ -797,7 +797,12 @@ fn run718_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 737, "initial run718 baseline");
+    // **738** on item 1614's tree (737 on item 1611's): `1/131`, born on
+    // 2509 a General in ours and an 85-hit-point unit in the original,
+    // takes the General's upgrades, so its `mylos` parts beside its hits
+    // and speed (14 against 8; `docs/AI.md` §172). The birth's type is the
+    // residue, not the upgrade.
+    pin_eq!(w.firsts.len(), 738, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         66,
