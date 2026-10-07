@@ -15633,3 +15633,37 @@ Archive `rontrace-run689.log`, 198,296,256 bytes,
 SHA-256 `dc17bfcf573f7e5602ce95595e4d4008aa939224bcee1acb08848c75754d5d98`.
 
 **What it holds**: lane 3's admission; nothing a test reads.
+
+## run700 — Great Sahara in the coverage pair's lobby: the wagon's walk, blocks 1535..1791 (2026-10-07, item 1581, race lane `att-1565-sonnet`)
+
+**Disk gap**: run683 opens on block 1577, and the Persian supply wagon `1/67` (born on 1541) was already apart from ours' walk by 1577 — position two units off, heading 0.1° — with 36
+frames of its life in a gap no dump held. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 1799 --timeout 3600 --log-window 1535 1792
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the
+click-free lane, the pool took lane 2 (`~/wine-ron-2`), free at launch (03:16). Receipt `success`, 1800 frames, closing frame 1800, launch-to-exit 1009.2 s, total 1030.5 s, five files
+restored. `rngcmp.py rontrace-run676.log rontrace-run700.log`: **1800 frames in common, 0 differing**. 258 `FRAME` blocks, 1535..1791 and a closing block.
+
+Archive `gamelog-run700-greatsahara-persian-alltech-window-1535-1791.txt`, 485,694,466 bytes,
+SHA-256 `b6a492e341065ae6a3168922fee1a354a7250a2a3768b3bd9be35fc6edd1767c`.
+
+Archive `rontrace-run700.log`, 40,977,440 bytes,
+SHA-256 `c0a0da07f1223c8c2f72c92e86fc0cbe37270c6892dee24de578f7ed75584698`.
+
+**What it holds**: `1/67`'s state on every frame from its birth (1541): its positions agree with ours through 1562 and its step on 1563 is 43.6 long against ours' 40.8 (`docs/AI.md` §157);
+the 1789 block's guard slots. No test reads it yet (no widening was owed by the landing: the word 1830 is inside run683). Minutes waited on another lane's capture: none.
+
+## run701 — the same window's group pool: `GROUPDATA` on blocks 1550..1606 (2026-10-07, item 1581, race lane `att-1565-sonnet`)
+
+**What run700 could not answer**: the cap the wagon walked at — `GROUPDATA` id 66's `speed` and `new_speed` — which no block of run700 prints. **First take**: run700's detail with `GROUPS=1` beside `GUYS=2`
+printed no `GROUPDATA` and the runner raised `GROUPS was asked for and no GROUPDATA block was printed` — the trap `captures.txt` names (the pool is accepted against the type the previous dumper
+left behind, and `GUYS=2` is below it), lane 1, 275 s, receipt `success: false`. **Taken again** with `GUYS=4` (run666's and run668's): `--map 7 --end-frame 1606 --timeout 3600 --log-window 1550 1607
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, lane 1,
+launch-to-exit 263.4 s, total 275.3 s, receipt `success`, 1607 frames, **29,184 `GROUPDATA` blocks** (512 a frame). `rngcmp.py rontrace-run676.log rontrace-run701.log`: **1607 frames in common,
+0 differing**.
+
+Archive `gamelog-run701-greatsahara-persian-alltech-groups-window-1550-1606.txt`, 125,930,945 bytes,
+SHA-256 `a9c1afbb4bbabca60bb2cb828126263b8f1c00331f81ef4a298b9434cd5acd6e`.
+
+Archive `rontrace-run701.log`, 37,627,776 bytes,
+SHA-256 `3895168bd833244a12c73f69da811f24afc0fe83c42b9079c9c7eac1b056d2a8`.
+
+**What it holds**: group 66's pair every frame — `(47, 40)` at the end of 1563, the one frame ours does not reproduce — and the only dump of this lobby with the pool (`docs/AI.md` §157).

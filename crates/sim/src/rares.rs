@@ -887,6 +887,46 @@ mod tests {
         assert_eq!(s.unit_hits(1, merchant), 90, "not Nubian");
     }
 
+    /// **A supply unit's hits climb with the supply upgrades its leader
+    /// holds** (`Unit::update_hits`' last term, `SUPPLY_HP_UPGRADE`
+    /// `[0, 20, 40, 60]`; `docs/AI.md` §157): the Persian wagon `1/67` is 150
+    /// on a type of 90 once all three steps are held, and a General or any
+    /// other type takes the type's.
+    ///
+    /// Made to fail once with the term dropped: the wagon stays at 90.
+    #[test]
+    fn a_supply_unit_adds_the_supply_hp_upgrade() {
+        use crate::ai_load::uflags2;
+        let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
+        let mut tree = tech::TechTree::new();
+        let steps = [
+            tree.add(tech::TypeDef::plain("step one", 0)),
+            tree.add(tech::TypeDef::plain("step two", 0)),
+            tree.add(tech::TypeDef::plain("step three", 0)),
+        ];
+        tree.roles.supply_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let ty = |flags2: u32| crate::UnitType {
+            hits: 90,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: flags2,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        };
+        let wagon = s.add_unit_type(ty(uflags2::SUPPLY_OR_HERO));
+        let general = s.add_unit_type(ty(uflags2::GENERAL));
+        let other = s.add_unit_type(ty(0));
+        assert_eq!(s.unit_hits(0, wagon), 90);
+        for (step, expected) in [(steps[0], 110), (steps[1], 130), (steps[2], 150)] {
+            s.gain_tech(0, step);
+            assert_eq!(s.unit_hits(0, wagon), expected);
+        }
+        assert_eq!(s.unit_hits(1, wagon), 90, "another leader");
+        assert_eq!(s.unit_hits(0, general), 90, "a General is not a wagon");
+        assert_eq!(s.unit_hits(0, other), 90);
+    }
+
     /// **The walk, end to end.** One idle Fisherman on a fish: the rate is
     /// the good's, the mask carries the fish's bit, and nothing else does.
     #[test]

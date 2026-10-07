@@ -196,7 +196,7 @@ impl Sim {
     /// birth block 603, the type's 90 × 150 % (`docs/GOLDEN.md` §54).
     ///
     /// SEAM: the other terms — the American marines, Copper and Bananas,
-    /// the Iroquois, the Dutch, the Spy, General and supply upgrades —
+    /// the Iroquois, the Dutch, the Spy and General upgrades —
     /// which no staged nation or holding takes.
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
         let mut hits = self.type_hits(who, rec);
@@ -211,6 +211,15 @@ impl Sim {
             })
         {
             hits = (self.tuning.nubian_hit_points + 100) * hits / 100;
+        }
+        // The last term (`0060ecad`): a supply unit adds
+        // `supply_hp_upgrade[get_supply_upgrade]`, the count of the three
+        // upgrade prerequisites its leader holds (`docs/AI.md` §157).
+        if t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+            && !t.cols.flag2(crate::ai_load::uflags2::GENERAL)
+        {
+            let level = self.supply_upgrade_level(who).clamp(0, 3) as usize;
+            hits += self.tuning.supply_hp_upgrade[level];
         }
         hits
     }

@@ -9534,3 +9534,23 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run683.log` -> 0 differing in 1842 frames;
 # `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `DIFFICULTY 5` / `(int)seed 12345` in `GAME INFO`. The output directory must not exist.
 # ==== TAKEN 2026-10-06, one take, 21:05–21:21 ====
+# ==== item 1581: Great Sahara in the coverage pair's lobby, the supply wagon's walk (`docs/AI.md` §157; `docs/RUNS.md` run700) ====
+#
+# One run on the click-free lane, none a stanza: run683's recipe with the window moved to the wagon's birth, 1541, with six blocks before it and 250 after:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-07-run700 \
+#     --map 7 --end-frame 1799 --timeout 3600 --log-window 1535 1792 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run700.log` -> 0 differing in 1800 frames;
+# `MAP_STYLE 7` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `DIFFICULTY 5` / `(int)seed 12345` in `GAME INFO`. The output directory must not exist.
+# ==== TAKEN 2026-10-07, one take, 03:16–03:33 (lane 2) ====
+# ==== item 1581: the same window's group pool (`docs/AI.md` §157; `docs/RUNS.md` run701) ====
+#
+# run700's recipe with `GROUPS=1` beside `GUYS=4` — **`GUYS=2` is the trap**: the first take printed no `GROUPDATA` and the runner refused it (the pool is accepted against the
+# type the previous dumper left behind, as run666 and run668 carried it). The window is the wagon's cap, 1550 to 1606:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-07-run701-take2 \
+#     --map 7 --end-frame 1606 --timeout 3600 --log-window 1550 1607 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run676.log rontrace-run701.log` -> 0 differing in 1607 frames; 29,184 `BEGIN GROUPDATA` blocks.
+# ==== TAKEN 2026-10-07, two takes (the first refused), 03:48–03:57 (lane 1) ====

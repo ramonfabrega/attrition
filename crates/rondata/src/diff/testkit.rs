@@ -8739,12 +8739,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // on `1/35`. Item 1565 moved it to **1818** (a gather enhancer is
     // seated only in the city it is placed for), inside run683 (block
     // 1819); run683's test keeps the move's value diff on the Refinery
-    // `1/2045` from 1583.
+    // `1/2045` from 1583. Item 1581 moved it to **1830** (a restarted
+    // caravan search consumes the reset flag), inside the same window
+    // (block 1831); `run683_s_road_searches_hold_node_for_node` keeps the
+    // move's value diff, every road search from 1577 to 1829.
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
         Some("run683_s_word_frame_is_widened_whole"),
-        1581,
+        1583,
         Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
     ),
     (

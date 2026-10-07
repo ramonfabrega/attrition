@@ -10,7 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     name: "GreatSaharaPersianAllTech",
@@ -55,8 +55,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // `get_town(cand) == near`) moved it again, 1582 → **1818**: ours 3215
     // draws against 3218 at index 3201, ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
-    count: 1818,
-    sequence: 1818,
+    //
+    // Item 1581's build (a restarted caravan road search consumes the reset
+    // flag, `docs/AI.md` §157: slot 7's search was restarted every frame
+    // from 1817 where the original resumes it) moved it again, 1818 →
+    // **1830**: ours 3218 draws against 3219 at index 2, ours
+    // `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a <
+    // Unit::do_guard+0x7f4`.
+    count: 1830,
+    sequence: 1830,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -432,7 +439,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1582,
         1,
-        &[1583, 1819],
+        &[1583, 1819, 1831],
         true,
     )
 }
@@ -451,11 +458,14 @@ fn run683_s_word_frame_is_widened_whole() {
     );
     // **1183** on the tree at item 1561's build, **863** after item 1565's
     // (`docs/AI.md` §156): the Refinery's site and city, and what the
-    // shifted stream moved after them, agree.
-    pin_eq!(w.firsts.len(), 863, "initial run683 baseline");
+    // shifted stream moved after them, agree. **842** after item 1581's
+    // (`docs/AI.md` §157): the Persian supply wagon `1/67`'s `myhits` (150,
+    // the type's 90 and `SUPPLY_HP_UPGRADE[3]`'s 60 — three standing keys:
+    // `myhits`, `hits_left` and `hits:myhits`) and the caravan search that
+    // restarted each frame from 1817 (the other 18).
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        159,
+        156,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
@@ -486,4 +496,67 @@ fn run683_s_word_frame_is_widened_whole() {
         Some(1583),
         "the first parting past the standing block"
     );
+}
+
+/// **Every road search to 1829, node for node** (item 1581). run683's trace
+/// proxies `valid_roadcoord` and `calc_road_cost` over the game, so each
+/// search's priced nodes are comparable with ours from frame 0, as run483's
+/// were at Toughest. It parted on 1818, at node 0: caravan slot 7's search
+/// (`1/2000` to `1/2028`) restarted where the original resumed it, the
+/// reset flag `Caravans::reset_paths` raised on 1817 never consumed
+/// (`docs/AI.md` §157); the window from 1577 holds 23 more searches that
+/// agree.
+#[test]
+fn run683_s_road_searches_hold_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else { return };
+    let (Some(path), Some(sib), Some(t683)) = (
+        dump(SAHARA_COVERAGE.long.0),
+        dump(SAHARA_COVERAGE.start),
+        trace("rontrace-run683.log"),
+    ) else {
+        eprintln!("skipping: no run676/run675/run683 (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    if let Some(t) = trace(SAHARA_COVERAGE.long.1) {
+        borrow_pasture(&mut init, &t);
+    }
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_phases = true;
+    built.sim.trace_costs = true;
+    let mut parted = Vec::new();
+    let mut searched = 0;
+    while built.sim.frame < 1830 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        if f < 1577 {
+            continue;
+        }
+        let theirs = t683.road_nodes(f);
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if let Some(i) = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i)) {
+            parted.push(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+        }
+    }
+    pin_eq!(searched, 35, "the road-search frames from 1577 to 1829");
+    pin!(parted.is_empty(), "a road search parted: {parted:?}");
 }

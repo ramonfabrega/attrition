@@ -2429,7 +2429,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // frame-1277 word (block 1278, item 1552) and frame-1408 word (block
     // 1409, item 1558), each with two either side; the third map's lobby's
     // run683 frame-1582 word (block 1583, item 1561) and frame-1818 word
-    // (block 1819, item 1565).
+    // (block 1819, item 1565) and frame-1830 word (block 1831, item 1581).
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2447,6 +2447,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN681, 1251),
         (super::sahara_coverage::RUN683, 1583),
         (super::sahara_coverage::RUN683, 1819),
+        (super::sahara_coverage::RUN683, 1831),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);

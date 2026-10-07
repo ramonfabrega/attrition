@@ -774,6 +774,27 @@ impl Sim {
     // §5 — `Caravan::build_road@0073db10`
     // ------------------------------------------------------------------
 
+    /// **`build_road`'s gate** (`0073dbb0`–`0073dc5b`): `true` when a parked
+    /// search is to be resumed — `making_road` (`+0x20`), no `reset_road`
+    /// (`+0x24`) and a search parked (`+0x28`). Otherwise the search starts
+    /// over, and when `+0x24` is set or nothing is parked the label
+    /// `LAB_0073dbf5` runs `clear_temp_road` and writes `+0x24 = 0` — **the
+    /// restart consumes the flag**, so the search it parks is resumed on the
+    /// next frame and not thrown away again. This crate cleared the search
+    /// and kept the flag from the route's first reset to its next road
+    /// (`docs/AI.md` §157).
+    fn road_gate(van: &mut Caravan) -> bool {
+        if van.making_road && !van.reset_road && van.search.is_some() {
+            return true;
+        }
+        if van.reset_road || van.search.is_none() {
+            van.search = None;
+            van.making_road = false;
+            van.reset_road = false;
+        }
+        false
+    }
+
     /// One frame's worth of the route's road plan.
     ///
     /// Returns the original's own answer: 1 when the road was laid, 0 when
@@ -797,17 +818,13 @@ impl Sim {
         // The three-way gate at `build_road`'s head: a parked search that
         // nothing has invalidated is **resumed**; anything else starts over,
         // and `clear_temp_road` throws the parked one away.
-        let van = &self.caravans[w].slots[v];
-        let resume = van.making_road && !van.reset_road && van.search.is_some();
+        let resume = Self::road_gate(&mut self.caravans[w].slots[v]);
         let mut st = if resume {
             self.caravans[w].slots[v]
                 .search
                 .take()
                 .expect("the parked search")
         } else {
-            if self.caravans[w].slots[v].reset_road || self.caravans[w].slots[v].search.is_none() {
-                self.clear_temp_road(who, v);
-            }
             let Some(st) = self.start_road(ends.0, ends.1) else {
                 return -1;
             };
@@ -1246,5 +1263,32 @@ mod tests {
             sim.caravans[1].slots[v].road.is_empty(),
             "the route is planned again"
         );
+    }
+    /// **A restart consumes the reset flag** (item 1581, `docs/AI.md`
+    /// §157): `LAB_0073dbf5` writes `+0x24 = 0` as it throws the parked
+    /// search away, so the search the restart parks is resumed next frame —
+    /// Great Sahara's caravan slot 7 from 1817, 3,201 nodes where the
+    /// original's second frame was its 3,204.
+    ///
+    /// Made to fail once with the flag left set.
+    #[test]
+    fn a_restart_consumes_the_reset_flag() {
+        let mut van = Caravan {
+            making_road: true,
+            reset_road: true,
+            ..Caravan::default()
+        };
+        assert!(!Sim::road_gate(&mut van), "a flagged route starts over");
+        assert!(
+            !van.reset_road && !van.making_road && van.search.is_none(),
+            "and the flag goes with the search it threw away"
+        );
+        // A route with nothing parked starts over too, flag or none.
+        let mut bare = Caravan {
+            making_road: true,
+            ..Caravan::default()
+        };
+        assert!(!Sim::road_gate(&mut bare));
+        assert!(!bare.making_road);
     }
 }

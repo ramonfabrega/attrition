@@ -17028,10 +17028,49 @@ site the walk reaches. Only enhancers of a **city** are gated; an enhancer with 
 
 **Coverage.** Diff-backed: the cause (the word moves 1582 → 1818, the Refinery agrees, run683's keys 1183 → 863). Reading-only: the `find_city_at` side of `get_town` for a type that is not one-per-city.
 
-## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
+## 157. A restarted caravan search consumes the reset flag, and the word at 1830 (2026-10-07, item 1581)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run683's trace (`rontrace-run683.log`'s `calc_road_cost` and `astar_caravan_road` records, compared node for node by
+`diff::sahara_coverage::run683_s_road_searches_hold_node_for_node`), `Caravan::build_road@0073db10`'s listing (the labels `LAB_0073dbe9` and `LAB_0073dbf5`) beside
+`Caravans::reset_paths@0073e060`, and run700 (blocks 1535..1791) and run701 (blocks 1550..1606, `GROUPDATA` printed) for what turned out not to be the word.
+
+**The word.** Great Sahara in the coverage lobby parted on **1818** (item 1565's): ours 3215 draws against 3218, index 3201, all `PathFinder::calc_road_cost+0x46` — one road search,
+ours three nodes short. The trace's brackets on 1808..1818 are two caravans' searches of the Persians' trade routes, slot 7 (`1/2000` to `1/2028`) from 1808 and slot 0
+(`1/2000` to `1/2018`) from 1811, each resumed frame to frame (the budget, `0xc80` nodes a call). Ours and the original's priced nodes agree **node for node on every frame
+from 1577 to 1817** — 34 frames of searches. On 1818 ours' first node is slot 7's start, (40800, 17184) from (40800, 16992); the original's is the middle of the search it
+parked on 1817, (31008, 16800): **ours restarted the search the original resumed**.
+
+**The cause.** On 1817 slot 0's search found its road, laid it, and ran `Caravans::reset_paths` — which sets `reset_road` (`+0x24`) on every other caravan that is
+`making_road` (`+0x20`), slot 7 among them. Slot 7's own turn followed in the same frame and, flagged, started over. `build_road`'s gate (`0073db10`) has three exits: resume
+when `making_road && !reset_road && a search is parked`; otherwise, when `reset_road` is set or nothing is parked, `LAB_0073dbf5` runs `clear_temp_road` **and writes
+`+0x24 = 0`**; then `find_road`. This crate cleared the parked search and left the flag, so the search it parked at the end of 1817 saw the flag still raised on 1818, was
+thrown away, and started again — and so every frame, until the road found a way. Built: the gate is `Sim::road_gate`, and the restart zeroes `reset_road`.
+
+**The move.** Slot 7 resumes on 1818, the search agrees node for node to 1829, and the word goes **1818 → 1830**: ours 3218 draws against 3219, index 2, ours
+`PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Inside run683 (block 1831), widened by `run683_s_word_frame_is_widened_whole`. Run683's
+keys **863 → 842**.
+
+**What the walk back found, and is not the word.** Before the road searches, the 1789 block held 276 keys parted (the Persian army's guard slots, `1/17`..`1/56`, ±48 off):
+all one cause, the supply wagon `1/67`'s heading, which parted before the window opened. Its steps agree with ours to 1562 and **1563's is the original's, 43.6 long, against
+ours' 40.8** (run700, `1/67`'s positions every frame from its birth on 1541): the wagon walks at the group's cap, and the cap — `GROUPDATA` id 66's `speed`/`new_speed`, which run701
+prints for 1550..1606 — is `(47, 40)` at the end of 1563 in the original and `(40, 40)` in ours. It is the one frame; the pair before and after agrees with ours' on every
+frame of the window but that one. **A reset to the leader's own speed ran before the group's leader (`1/60`) reported on 1563**: `Groups::process`' slot cursor at `f + 39` mod 64 would
+be one reading (it fixes the 276 keys, `RON_CURSOR_K=39` in a scratch tree, and the word stays 1818), a writer this crate does not model (`equals_group`'s `normalize` on a push,
+`find_nearby_target`'s on a find) another; run120's reading (`docs/GROUPS.md` §19) put the cursor at `f mod 64`, which the dump's other resets cannot yet date here. It moves no draw until
+1823 and is **parked** in the journal (1582). What did land from it: the wagon's hit points.
+
+**Supply upgrade hit points.** `Unit::update_hits@0060e930`'s last term: a supply unit adds `supply_hp_upgrade[get_supply_upgrade]` (`Constants +0xcb4`, `[0, 20, 40, 60]` in `rules.xml`),
+the count of the three upgrade prerequisites its leader holds. The wagon is 90 + 60 = **150** at All Technologies; ours was 90 on every wagon — three keys parted on every window with a
+wagon, run683's and the Toughest and French East Indies' (twelve pins re-pinned, −3 each). Built: `Sim::unit_hits`' tail and `Tuning::supply_hp_upgrade`.
+
+**What is not established.** A supply upgrade gained mid-game does not re-read the wagons already out (`update_hits` runs on a tech gain in the original; this crate's refresh is the
+Citizen's only). The reset's mechanism on 1563 (above).
+
+**Mutations** (`tools/mutate.py`): the flag left set — held by `a_restart_consumes_the_reset_flag` and `run683_s_road_searches_hold_node_for_node`; the wagon's term dropped — held by
+`a_supply_unit_adds_the_supply_hp_upgrade` and `run683_s_word_frame_is_widened_whole`.
+
+**Coverage.** Diff-backed: the caravan reset (road searches node for node 1577..1829, the word's move), the wagon's hit points (`myhits` agrees in run683, run663/664/668, run655..667).
+Reading-only: `reset_paths`' leader gate (`leader_flags & 3 == 3`, read as true for the AI).
 
 ## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
 
