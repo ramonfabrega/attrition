@@ -332,6 +332,15 @@ pub struct Roles {
     /// (`docs/PRODUCTION.md`, "The missile's other arms"). `None` leaves
     /// the bonus unheld: a tree that does not know the shield raises none.
     pub missile_defense_preq: Option<TypeId>,
+    /// `SPIES_GENERALS_CHEAPER`'s one prerequisite (`0x303`, the 88th
+    /// `TECHBONUSES` row) — **Strategy** in the shipped file. Held, it takes
+    /// `SPY_GENERAL_COST` off a Spy or a General in `TypeData::get_cost`'s
+    /// nation tail. `None` leaves the discount unheld.
+    pub spy_general_cheaper_preq: Option<TypeId>,
+    /// `SPIES_GENERALS_CREATED_FASTER`'s one prerequisite (`0x302`, the 87th
+    /// row) — **Tactics** in the shipped file. Held, a Spy or a General
+    /// trains in half the time (`ObjectData::train_time@006508c0`).
+    pub spy_general_faster_preq: Option<TypeId>,
     /// `EXPLORE_MAP_BONUS`'s one prerequisite, the seventh of `rules.xml`'s
     /// `TECHBONUSES` (`0x2b2`) and **Electronics** in the shipped file.
     /// `Leader::gain_tech@006dcb60` sets `leader_flags |= 0x1000` when the
@@ -433,6 +442,10 @@ pub struct Roles {
     pub troops_los_preq: [Option<TypeId>; 3],
     /// SUPPLY_WAGONS_1..3, bonus rows 79..81 (SUPPLY, "Upgrade speed").
     pub supply_upgrade_preq: [Option<TypeId>; 3],
+    /// `SPIES_UPGRADE_1..3`' prerequisites (rows 92–94, Tactics, Operations
+    /// and Strategy in the shipped file): `LeaderData::get_spy_upgrade`
+    /// counts the ones held.
+    pub spy_upgrade_preq: [Option<TypeId>; 3],
     /// The three ladders `ObjectData::train_time@006508c0`'s speed-upgrade
     /// step counts (`docs/PRODUCTION.md`, "The tail's first caller"):
     /// `SHIPS_FASTER_1..3`, `TROOPS_FASTER_1..3` and `VEHICLES_FASTER_1..3`,
@@ -898,6 +911,18 @@ impl TechTree {
     /// `0061d55b`); the line's first tech is `0x23c`, so level **1** is this
     /// crate's zero-based `level` plus one. Anything else is level 0.
     pub fn military_level_of(&self, t: TypeId) -> i32 {
+        self.military_level_in(&Setup::STANDARD, t)
+    }
+
+    /// [`Self::military_level_of`] in a lobby: the slot-1 prerequisite is
+    /// `get_preq(1, −1)`, which `starting_technology` remaps (`TypeData::get_preq
+    /// @00668700`) — in a game that starts in Information (`STARTING_TECHNOLOGY
+    /// 8`) the Military epoch a modern unit asks for is **removed** (its age
+    /// is below the start), so the unit stands at level 0, floored to 1 by
+    /// `get_cost`, and every unit is "six levels behind" the player's seven
+    /// (`docs/AI.md` §158). The scaled arm clamps into the line as the
+    /// ordinary `get_preq` does.
+    pub fn military_level_in(&self, setup: &Setup, t: TypeId) -> i32 {
         let military = |p: Preq| match p {
             Preq::Of(x) => match self.kind(x) {
                 Kind::Epoch {
@@ -910,7 +935,7 @@ impl TechTree {
         };
         let d = &self.types[t];
         military(d.preq[0])
-            .or_else(|| military(d.preq[1]))
+            .or_else(|| military(self.get_preq_1(setup, None, t)))
             .unwrap_or(0)
     }
 
@@ -3024,6 +3049,35 @@ mod tests {
             t.get_preq(&Setup::STANDARD, Some(&p), u, 1),
             Preq::Of(mil[3])
         );
+    }
+
+    #[test]
+    fn a_unit_s_military_level_is_read_through_the_lobby_remap() {
+        // `military_level_in` asks `get_preq(1, −1)`, which the lobby
+        // rescales: the Dragoons that ask for Military 4 stand at level 3 in
+        // the lobby of `the_lobby_remap_rescales_a_units_military_requirement`
+        // and at 4 in the full game; a requirement from before the start
+        // vanishes, so the unit stands at level 0 (floored to 1 by
+        // `get_cost`) where the table's column says 2 (`docs/AI.md` §158).
+        let f = fixture();
+        let mut t = f.tree.clone();
+        let mil = f.epochs[Line::Military.index()];
+        let u = t.add(
+            TypeDef::unit("Dragoons", J)
+                .needs(0, f.ages[2])
+                .needs(1, mil[3]),
+        );
+        let v = t.add(TypeDef::unit("Old", J).needs(1, mil[1]));
+        let s = Setup {
+            starting_age: 3,
+            ending: 5,
+            ..Setup::STANDARD
+        };
+        assert_eq!(t.military_level_in(&s, u), 3);
+        assert_eq!(t.military_level_in(&s, v), 0);
+        assert_eq!(t.military_level_in(&Setup::STANDARD, u), 4);
+        assert_eq!(t.military_level_in(&Setup::STANDARD, v), 2);
+        assert_eq!(t.military_level_of(u), 4);
     }
 
     #[test]

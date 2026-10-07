@@ -1046,7 +1046,7 @@ impl Sim {
         let cat = 4;
         let mut found = false;
         let mut cap = 0x100;
-        let free_peasants = Census::reg(&cen.reg_free_peasants, f.reg);
+        let free_peasants = Census::reg_u16(&cen.reg_free_peasants, f.reg);
         if free_peasants == 0 && self.muster[w].cap - self.muster[w].control <= 1 {
             return None;
         }

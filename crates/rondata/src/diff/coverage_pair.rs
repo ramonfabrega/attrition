@@ -634,7 +634,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`).
-    pin_eq!(w.firsts.len(), 107, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 81, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -675,14 +675,14 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(581),
+        Some(601),
         "the first parting past the standing block"
     );
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:MAKE[2].num".to_string()))
             .map(|(f, _)| *f),
-        Some(581),
+        None,
         "leader 1's make list parts on block 581"
     );
     // **The move's value diff** (item 1539, `docs/AI.md` §146): on 668
@@ -768,7 +768,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 139, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 95, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -882,7 +882,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 144, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 102, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -995,13 +995,14 @@ fn run710_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **210** on the tree item 1598 landed (224 on item 1591's, 360 on item 1589's, 478 on
+    // **163** on the tree item 1598 landed, merged with the race's 1565 chain
+    // (210 on 1598's own base, 224 on item 1591's, 360 on item 1589's, 478 on
     // item 1588's, 764 on item 1586's, 1034 on item 1563's); 151 stand
     // from the window's first block (167 on 1563's), and army 1's
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 210, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 163, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1122,14 +1123,15 @@ fn run711_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **286** on the tree item 1598 landed (482 on item 1594's, 2077 on
-    // item 1591's); 150
+    // **204** on the tree item 1598 landed, merged with the race's 1565
+    // chain (286 on 1598's own base, 482 on item 1594's, 2077 on item
+    // 1591's); 150
     // stand from the window's first block (310 on 1591's). On 1591's tree
     // ours' `1/42` was a two-figure unit at (35886, 39011), `myhits` 90,
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 286, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 204, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1212,15 +1214,16 @@ fn run714_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **3015** on the tree item 1598 landed; 238 stand from the window's
-    // first block, the human leader's rows (`active` 14 against 0, `SITE`
+    // **2949** on the tree item 1598 landed, merged with the race's 1565
+    // chain (3015 on 1598's own base); 181 stand from the window's
+    // first block (238 on its own base), the human leader's rows (`active` 14 against 0, `SITE`
     // `reg` 65 against 0, item 1591's) and its units' `death:extra` among
     // them. **The word 2288's own block** parts on `1/83`: `collide` 0
     // against 1, `collide_o` −1 against 91, `order:coll` (39240, 38952)
     // against (42131, 38062) — the original's `1/83` stood blocked by
     // `1/91` on 2288 (the extra `move_step+0x823`), and ours walked on.
     // The item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 3015, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 2949, "initial run714 baseline");
     let first = w
         .firsts
         .values()

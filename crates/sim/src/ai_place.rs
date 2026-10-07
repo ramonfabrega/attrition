@@ -739,10 +739,16 @@ impl Sim {
                             score *= f + 2;
                         }
                     }
-                    if is_enhancer(ident) && city.is_none() {
-                        // `get_town(cand) == city_o`: an enhancer stays in the
-                        // city it is placed for; with no city there is none.
-                        break 'cand;
+                    if is_enhancer(ident) {
+                        // `get_town(cand) == city_o` (`006e20eb`): an enhancer
+                        // stays in the city it is placed for; with no city
+                        // there is none. The original compares the covering
+                        // city's building `o` (`CityData +0x8`) with `near`,
+                        // which is the city's own building here.
+                        match city {
+                            Some(c) if self.get_town(who, rec, cand) == Some(c) => {}
+                            _ => break 'cand,
+                        }
                     }
                 } else {
                     score = d * 1000;

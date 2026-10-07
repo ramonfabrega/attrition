@@ -212,9 +212,11 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1532: Pasargadae, the Persians' second, named in run672's window.
     // Item 1546: Arak, the Persians' third, named on run678's block 1184.
     // Item 1561: Tabriz, the Persians' fourth, named in run683's window.
+    // Item 1565: Khomein, the Persians' fifth, named on run683's block 1819.
+    // Item 1581: Rigan, the Persians' sixth, named on run702's block 1986.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Brest Edinburgh London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Tabriz York flags increment length size",
+        "Amiens Arak Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2431,7 +2433,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // (block 1697, item 1588) and frame-1719 word (block 1720, item 1589),
     // and run711's frame-1960 word (block 1961, item 1591) and frame-2166
     // word (block 2167, item 1594), and run714's frame-2288 word (block
-    // 2289, item 1598), each with two either side.
+    // 2289, item 1598), each with two either side; the third map's
+    // lobby's run683 frame-1582 word (block 1583, item 1561), frame-1818
+    // word (block 1819, item 1565) and frame-1830 word (block 1831, item
+    // 1581).
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2455,6 +2460,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN681, 1198),
         (super::sahara_coverage::RUN681, 1251),
         (super::sahara_coverage::RUN683, 1583),
+        (super::sahara_coverage::RUN683, 1819),
+        (super::sahara_coverage::RUN683, 1831),
+        (super::sahara_coverage::RUN702, 1986),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2723,6 +2731,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1591: run710's ICBM `1/42` holds its `AIR_ATTACK_GROUND` from
     // 1570 to 1600 in both, so the air ground order's four, the air
     // order's six and the patrol's three leave the pin.
+    // Item 1583 (the same silo, on the third map): run702's window carries the silo's missile order (the
+    // air attack on the ground, `docs/AI.md` §158): the air-order fields
+    // (`ag_*`, `air_*`, `cruising_alt`, `patrol_*`, `returning`,
+    // `sharp_turn`, `waypoint`) are compared and leave the pin (measured
+    // on the tree after `ccc update`'s base).
     // Item 1598: run714's window carries a paired strafe; `strafe_xx` and
     // `strafe_yy` leave the pin.
     (
@@ -2871,10 +2884,13 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1555: and run681's blocks around the word 1197 and the word 1250.
     let sahara_1197 = super::sahara_coverage::sahara_coverage_frame_1250_window();
     // Item 1561: and run683's blocks around the word 1582.
-    let sahara_1582 = super::sahara_coverage::sahara_coverage_word_window();
+    let sahara_1582 = super::sahara_coverage::sahara_coverage_frame_1582_window();
+    // Item 1581: and run702's blocks around the word 1985.
+    let sahara_1985 = super::sahara_coverage::sahara_coverage_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2943,6 +2959,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         sahara_720,
         sahara_1197,
         sahara_1582,
+        sahara_1985,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

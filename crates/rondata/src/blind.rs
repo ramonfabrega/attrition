@@ -270,7 +270,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// reaches. **144** with item 1528's cites of
 /// `Army::charge@006f9a90` and `WallData::hits@00642bb0` (`docs/AI.md` §142):
 /// run668 shows the charge's orders and the city's stamp on the block the
-/// word's frame writes, but `cover=0` traces enter no function.
+/// word's frame writes, but `cover=0` traces enter no function. **145**
+/// with item 1583's cite of `LeaderData::get_nukes@006ebe50` (`docs/AI.md`
+/// §158): read off its listing, and no trace enters it.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -291,7 +293,7 @@ pub const NEVER: &[u32] = &[
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006c_e190, 0x006d_0370, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10,
     0x006d_5230, 0x006d_6740,
-    0x006d_6e80, 0x006d_a740, 0x006d_a8a0, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
+    0x006d_6e80, 0x006d_a740, 0x006d_a8a0, 0x006e_0c60, 0x006e_be50, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0, 0x006f_9a90,
     0x0070_0010, 0x0070_20c0,
     0x0070_84c0,

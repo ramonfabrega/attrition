@@ -213,6 +213,11 @@ impl Sim {
         ) {
             los += self.troops_los_level(unit.owner) * self.tuning.troops_upgrade_los;
         }
+        // A Spy sees `SPY_UPGRADE_LOS` more per upgrade held (`0060e87c`,
+        // `docs/AI.md` §160).
+        if self.is_spy_type(rec) {
+            los += self.spy_upgrade_level(unit.owner) * self.tuning.spy_upgrade_los;
+        }
         // The last word: a decoy (`unit_masks & 1`) sees one tile
         // (`0060e84a`; run422's decoys print `mylos 1`).
         if unit.decoy {
