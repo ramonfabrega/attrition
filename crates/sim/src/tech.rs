@@ -345,6 +345,14 @@ pub struct Roles {
     /// **`disable`** in the shipped file, so `None` there: only the wonder
     /// raises the bit.
     pub reveal_enemy_preq: Option<TypeId>,
+    /// The eighth `TECHBONUSES` row's one prerequisite (`0x2b3`, "All units
+    /// and buildings in your territory revealed") — **Computerization** in
+    /// the shipped file. `Leader::gain_tech@006dcb60` and
+    /// `fix_tech_flags@006d2480` turn holding it into `leader_flags |=
+    /// 0x2000`, and `WorldData::is_seen@006b55c0` answers yes for a
+    /// half-cell whose cell an ally of the holder owns (`docs/AI.md` §153).
+    /// `None` leaves the bonus unheld.
+    pub territory_reveal_preq: Option<TypeId>,
     /// `LeaderData::get_gov@006d6a20`'s six tests, in its own order —
     /// `SOCIALISM_1`, `CAPITALISM_1`, `MONARCHY_1`, `DEMOCRACY_1`,
     /// `DESPOTISM_1`, `REPUBLIC_1` — each the bonus's three prerequisites

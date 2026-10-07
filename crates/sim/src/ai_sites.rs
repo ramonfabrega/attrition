@@ -223,14 +223,16 @@ impl Sim {
     /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
     /// §141).
     pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
-        let w = who as usize;
-        let Some(tech) = self.tech.get(w) else {
-            return false;
-        };
-        let roles = &self.tech_tree.roles;
-        let holds =
-            |t: Option<TypeId>| t.is_some_and(|t| self.tech_tree.has_tech(&self.setup, tech, t));
-        if holds(roles.explore_map_preq) || holds(roles.reveal_enemy_preq) {
+        self.holds_bonus(who, self.tech_tree.roles.explore_map_preq) || self.sees_every_unit(who)
+    }
+
+    /// The two always-true leader arms `WorldData::was_seen@006b53f0` shares
+    /// with `WorldData::is_seen@006b55c0`: `leader_flags & 0x800`
+    /// (`REVEAL_ENEMY_BONUS` held, or the Space Program) and
+    /// `num_units[0x141]`, a Fouché standing. `is_seen` lacks the `0x1000`
+    /// arm [`Sim::sees_every_cell`] adds — an explored map is not a lit one.
+    pub(crate) fn sees_every_unit(&self, who: Player) -> bool {
+        if self.holds_bonus(who, self.tech_tree.roles.reveal_enemy_preq) {
             return true;
         }
         if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
@@ -239,6 +241,17 @@ impl Sim {
         self.units
             .iter()
             .any(|u| u.owner == who && u.alive() && u.type_index == FOUCHE)
+    }
+
+    /// Whether `who` holds a bonus's one prerequisite — `has_tech` of it,
+    /// read live, which is what `fix_tech_flags@006d2480` turns each
+    /// `leader_flags` bonus bit into. A role the tree does not know is not
+    /// held.
+    pub(crate) fn holds_bonus(&self, who: Player, preq: Option<TypeId>) -> bool {
+        let Some(tech) = self.tech.get(who as usize) else {
+            return false;
+        };
+        preq.is_some_and(|t| self.tech_tree.has_tech(&self.setup, tech, t))
     }
 
     /// `WorldData::is_ocean@006b4830`: **the cell's own kind**, not its

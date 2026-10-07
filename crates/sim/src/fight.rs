@@ -920,10 +920,9 @@ impl Sim {
     ///     return 1;
     /// ```
     ///
-    /// and `WorldData::is_seen@006b55c0` is `seen[fy * fog_xs + fx] &
-    /// ally_mask`, with three always-true arms above it: `who > 7`,
-    /// `reveal_map == 3`, and the two leader flags (`0x800`, and a
-    /// `num_units[0x141]` count) this crate does not carry.
+    /// and `WorldData::is_seen@006b55c0` is [`Sim::world_is_seen_fog`]:
+    /// `seen[fy * fog_xs + fx] & ally_mask` under its three always-true
+    /// arms and its territory arm.
     ///
     /// The fallback under the fog test is `ObjectData::visible`, and since
     /// item 457 it is modelled: [`Sim::set_attacking`] sets the target's
@@ -931,11 +930,10 @@ impl Sim {
     /// stays a legal target of yours through the fog** until it goes back
     /// to work. `docs/VISION.md` §7.
     ///
-    /// SEAM: `WorldData::is_seen`'s **third** arm — `leader_flags &
-    /// 0x2000` and the cell's `WData::who` being an ally, which returns 1
-    /// over friendly ground whatever the fog says — is not carried, and
-    /// nor are the two always-true leader arms above it (`0x800`, and a
-    /// `num_units` count). All three can only *refuse* further here.
+    /// ~~SEAM: `WorldData::is_seen`'s **third** arm — `leader_flags &
+    /// 0x2000` and the cell's `WData::who` being an ally — is not
+    /// carried, and nor are the two always-true leader arms above it~~ —
+    /// all three carried since item 1558 ([`Sim::world_is_seen_fog`]).
     ///
     /// SEAM: `is_seen`'s stealth arm above the fog test — `unit_masks`
     /// `0x800`/`0x1000`, `unit_masks2 0x8000`, the type's
@@ -999,13 +997,49 @@ impl Sim {
 
     /// `WorldData::is_seen@006b55c0` at one object's position: does `who`'s
     /// alliance currently light the half-cell it stands on?
-    ///
-    /// Off the grid keeps [`crate::world::World::seen`]'s "no answer"
-    /// reading, which is what its other callers take — the original has no
-    /// bounds test here at all and would read past the plane.
     pub(crate) fn world_sees(&self, p: Pos, who: crate::Player) -> bool {
         let fog = crate::vision::UNITS_PER_FOG;
-        let Some(bits) = self.world.seen(p.x / fog, p.y / fog) else {
+        self.world_is_seen_fog(p.x / fog, p.y / fog, who)
+    }
+
+    /// **`WorldData::is_seen@006b55c0`** at the fog grid's own coordinates —
+    /// the *current* line of sight, with its four arms in the original's
+    /// order:
+    ///
+    /// ```text
+    /// if who > 7 || reveal_map == 3:                      return 1
+    /// if leader_flags & 0x800 || num_units[0x141]:        return 1
+    /// if leader_flags & 0x2000 && wdata[fy/2][fx/2].who >= 0
+    ///    && is_ally(who, that who):                       return 1
+    /// return seen[fy * fog_xs + fx] & ally_mask
+    /// ```
+    ///
+    /// The third arm is the eighth `TECHBONUSES` row, "All units and
+    /// buildings in your territory revealed" (Computerization,
+    /// [`crate::tech::Roles::territory_reveal_preq`]): a half-cell whose
+    /// **cell** an ally of `who` owns is seen whatever the fog says. The
+    /// coverage pair's All Technologies start holds it from frame 0
+    /// (`leader_flags` `0x2063003` on run678), and it is what lets its scout
+    /// walk to a goody box no unit of its has ever seen (`docs/AI.md` §153).
+    ///
+    /// Off the grid keeps [`crate::world::World::seen`]'s "no answer"
+    /// reading, which is what its callers take — the original has no
+    /// bounds test here at all and would read past the plane.
+    pub(crate) fn world_is_seen_fog(&self, fx: i32, fy: i32, who: crate::Player) -> bool {
+        if who > 7 || self.lobby.reveal_map == 3 {
+            return true;
+        }
+        if self.sees_every_unit(who) {
+            return true;
+        }
+        if self.holds_bonus(who, self.tech_tree.roles.territory_reveal_preq)
+            && let crate::world::Owner::Player(o) =
+                self.world.owner(crate::Cell::new(fx >> 1, fy >> 1))
+            && self.is_ally(who, o)
+        {
+            return true;
+        }
+        let Some(bits) = self.world.seen(fx, fy) else {
             return true;
         };
         bits & self.seen_ally_mask(who) != 0

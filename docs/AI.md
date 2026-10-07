@@ -16884,10 +16884,67 @@ timing; the capture agrees on the Merchants' picks, not on the frame the Wool wa
 
 **Coverage.** Diff-backed: the cause (the word moves 1197 → 1250 and `1/38` agrees through block 1447). Reading-only: the pass's flag exits.
 
-## 153. Reserved for item 1558 (the coverage pair's frame 1277)
+## 153. A goody box on a leader's own ground is seen with Computerization, and the word at 1408 (2026-10-06, item 1558)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1552 left the coverage pair's word at **frame 1277, ours 10 game draws
+against 15, index 2**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::explore_goody+0x27c` (five, from
+`Unit::set_new_location`). run679 (1272..1528) holds it, run678 (977..1233) the scout's parting. Each claim is *diff-backed*
+unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1277`; the walk's `RON_DEBUG_SITES`). Both spend two
+   `Animal::do_idle` stands, the walkers' `Guy::move` and `Unit::move_step` draws and five `Farms::inc_time`; the original
+   spends five `explore_goody` draws between them, the scout `1/0` (`TypeIndex` 77, `ELITESPECIALFORCES`, land) stepping onto
+   the box at (38, 34). Ours' scout is elsewhere.
+2. **The event** (run678 blocks 1199..1202; `RON_DEBUG_UNIT=1/0@1190-1205`). Both walk `1/0`'s `ExploreTo` (24312, 26616) at
+   the same points through block 1200; on 1201 the original's is bound for (29592, 26520), the box cell's centre plus the
+   48-unit snap, with a path of 3 — `get_goody_box` (`docs/GOODY.md` §7.3). Frame 1200 is `(o + frame) % 15 == 0` for `o` 0:
+   `do_explore_to`'s look.
+3. **Which gate refuses in ours** (a probe in `find_goody_box` on tick 1200, scratch): the scout at cell (35, 37); (38, 34)
+   in its region (8), flags `0x8200`, `was_seen` yes (Electronics, `docs/AI.md` §141) — and the **item's** gate no:
+   `was_really_seen` clear on all four half-cells (76..77, 68..69). Nothing of player 1's has ever looked there: the scout
+   came ashore from the barge `1/24` at (69, 75) on 1182 (`come_out` writes the spot before `set_new_location`, so no disc is
+   thrown, `00617c10`'s listing at `61864f`–`6186bc`), and its rings since are at radius 16.
+4. **The packet** (run682, logger frame 1200, `docs/RUNS.md`). The original's item 0 at the cell's centre (29568, 26496) has
+   **`ever_seen` 0**; `seen` and `seen2` are 0 on all four half-cells; the whole `seen2` plane is this crate's (0 of 14,400
+   differ) and so is `WData.who` (0 of 3,600). The cell's `who` is **1**, and leader 1's `leader_flags` are `0x2063003` on
+   run678: `0x2000` set. So the arm that passes is `ItemData::is_seen@00677850`'s fall-through.
+5. **The reading.** `ItemData::is_seen` returns `ever_seen & ally_mask`, else (Spanish only) `was_seen`, else
+   **`WorldData::is_seen@006b55c0`** at the item's half-cell: `who > 7` or `reveal_map == 3`; `leader_flags & 0x800` or
+   `num_units[0x141]`; **`leader_flags & 0x2000` and the cell's `WData.who` an ally** (`is_ally`); else `seen & ally_mask`.
+   `0x2000` is `fix_tech_flags@006d2480`'s and `gain_tech@006dcb60`'s from `bonustypes +0xacc` — the eighth `TECHBONUSES`
+   row, "All units and buildings in your territory revealed", **Computerization**, which the All Technologies start holds.
+   `WorldData::is_really_seen` carries the same arm; nothing here reads it.
+
+**Built.** `Sim::world_is_seen_fog` (`crates/sim/src/fight.rs`) — `WorldData::is_seen` whole, its leader arms through
+`Sim::sees_every_unit` and `Sim::holds_bonus` (`ai_sites.rs`, `sees_every_cell` now `explore_map` over the two) and the
+territory arm through `Roles::territory_reveal_preq` (`tech.rs`, loaded from the eighth bonus in `rondata`'s `load.rs`).
+`Sim::world_sees` — `target_is_seen`'s and `set_attacking`'s fog read — is it at a position, so `fight.rs`'s seam on the
+three arms is struck, and `docs/VISION.md` §9.4's with it. `goody_item_is_seen` (`goody.rs`) takes the fall-through at
+`(2x + 1, 2y + 1)`. Unit test `goody::tests::a_box_on_its_own_ground_is_seen_once_the_leader_holds_computerization`:
+Electronics alone, no; its own ground without the bonus, no; with it, the walk; an enemy's ground, no.
+
+**The value diff, and the word now.** run678 block 1201: `1/0`'s `orders_x/y` (24312, 26616) → **(29592, 26520)**, path 12
+→ 3, the theirs' values; `1/0` agrees in every compared field through 1233, **run678 160 keys → 139**. run679: `1/0`'s
+standing `pos` (29065, 27134) against (29060, 27038) on 1272 is gone and `1/0` agrees through 1528; **608 keys → 457**.
+`coverage_pair_first_parting`: **frame 1277 → 1408, count and sequence** — ours 39 game draws against 40, index 25: ours
+`Objects::process_all+0x2df`, theirs `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89`, then `Guy::init_real <
+Unit::init < Objects::init_unit` (ours spends one more `Guy::set_anim+0x104b` on the bird `9/16`). Inside run679 (block 1409):
+on 1408 the original's citizen `1/8` (`TypeIndex` 50) holds a cast (kind 14) over an `ExploreTo` (37416, 33864) and its
+`Build`, and on 1409 it is inside the barge `1/46`; ours holds two orders. `1/8` parts first on **1340**: the original's
+`ExploreTo` goes to (37416, 33864), ours' to (36168, 35976) — a hypothesis for the item after, beside §151's swarm.
+
+**Mutations** (`tools/mutate.py` on `bcc34203`, against `cargo test --release -p rondata diff::coverage_pair::`): the item
+gate's fall-through dropped — held by `coverage_pair_first_parting`, run678's and run679's widenings, and by the unit test;
+the territory arm dropped from `world_is_seen_fog` — held by the same three; **`world_sees` back on the bare `seen` read —
+failed nothing**: no walk holds the new arms on the fight side.
+
+**What is not established.** The item's half-cell is the cell's centre on run682's one box and assumed for every box. The
+Spanish arm stays a seam. Whether `world_sees`'s new arms move a walk that `target_is_seen` reaches with a leader holding
+Computerization, Space Program or a Fouché: only this lobby holds Computerization, and its walks are the gate's.
+
+**Coverage.** Diff-backed: claims 1–4, and claim 5's territory arm (the word moves, `1/0` agrees). Reading-only: the `0x800`
+and Fouché arms in `world_is_seen_fog` (shared with `was_seen`'s; no capture raises either), and `world_sees`' use of the
+territory arm.
 
 ## 154. Reserved for item 1561 (Great Sahara's coverage word 1250)
 

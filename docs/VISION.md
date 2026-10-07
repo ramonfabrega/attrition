@@ -1093,9 +1093,13 @@ is_seen(fx, fy, who):
 
 The third arm — **a player with `leader_flags & 0x2000` sees everything
 standing on ground it or an ally owns** — is not in §31.2's transcription
-and is not carried here. Like the two above it, it can only ever *refuse*
+~~and is not carried here. Like the two above it, it can only ever *refuse*
 further, so the seam is one-directional. No capture on disk raises any of
-the three.
+the three.~~ **All three are carried since item 1558** (`docs/AI.md` §153,
+`Sim::world_is_seen_fog`): the coverage pair's All Technologies start holds
+Computerization — the eighth `TECHBONUSES` row, `0x2000` — from frame 0, and
+`ItemData::is_seen`'s fall-through takes the arm for a goody box on the AI's
+own ground.
 
 ### 9.5 What it moved
 

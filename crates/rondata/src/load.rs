@@ -1640,6 +1640,13 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // The eighth (`0x2b3`, `bonustypes +0xacc`): `leader_flags & 0x2000`,
+    // the arm of `WorldData::is_seen` that sees over an ally's ground.
+    // Computerization in the shipped file (`docs/AI.md` §153).
+    tree.roles.territory_reveal_preq = match bonus_preqs.get(7) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `FISHERMEN1..3` are bonuses 19–21 (`0x2bf`–`0x2c1`) and
     // `MERCHANTS_1..4` are 99–102 (`0x30f`–`0x312`) — the two upgrade
     // ladders `LeaderData::calc_rare` indexes its percentages with
