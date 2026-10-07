@@ -8741,7 +8741,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
         Some("run683_s_word_frame_is_widened_whole"),
-        1561,
+        1565,
         Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1582),
     ),
     (

@@ -3787,6 +3787,13 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1566) **Two debug-print gaps from 1561** (its journal's Loop lines,
+2026-10-06): `RON_DEBUG_UNIT=8/*@…` prints only *moving* units, so
+`8/2` vanished at the frame it stalled — an "every unit within N of X"
+form would show a stall in one run; and `RON_DEBUG_SITES` is read by
+`sahara_coverage_first_parting` and not by the widening test, so a
+first read needs both runs. One reach.
+
 (1560) **`seams.py` finds a field, not an object type** (1552's Loop
 line, 2026-10-06): the cause was an arm §133 had written down as
 unreached ("the Oil Platform conversion and the ocean branch: no
@@ -3804,7 +3811,11 @@ the export (`new_rare` has two) would have found it in a minute.
 orders_x` because the seam names a gate the order's writer calls — a
 mode over the callees of the parted field's writer (`find_goody_box`
 → `goody_item_is_seen`) would have named it before the packet. Three
-landings of one tranche, one tool. One reach.
+landings of one tranche, one tool. **And 1561's**: `docs/ANIM.md`
+§6.1 said `is_enemy(8)` "is never asked for", a wrong closure for its
+word — `seams.py` reads no "never asked/never reached" sentence, the
+same shape as 1555's "reached through the fog". Four landings. One
+reach.
 
 (1557) **`ccc update` takes the lane's ref, not a SHA** (1549's Loop
 line, 2026-10-06): a commander's "take `ccc update` onto <sha>" is

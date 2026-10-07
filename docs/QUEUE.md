@@ -12,41 +12,39 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth tranche at its nineteenth landing (counted by
-`git log` from `b3b0ae03`): French East Indies **closed at 17,379** (1514,
-1519); Toughest **closed at 15,432** (1510–1528, its closing state 1535:
-counts `[0, 0, 0, 0, 0, 6, 0]`), and in the coverage lobby (1538, 1549, 1555) parts
-on **1250**; the coverage pair **1408** (1511, 1530, 1532, 1539, 1544, 1546, 1552, 1558).*
+*2026-10-06, the twenty-sixth tranche at twenty (`git log` from
+`b3b0ae03`), the pass due: French East Indies **closed at 17,379**;
+Toughest **closed at 15,432** (1535 its closing state); Great Sahara in
+the coverage lobby **1582** (1538–1561); the coverage pair **1408** (from 177).*
 
-- **One lane, draining for the pass**: 1563 (the coverage pair) is not
-  spawned — the twentieth landing is `att-1561` (Sonnet 5.5, Great Sahara's coverage word 1250, run
-  683, AI §154), `--effort high`. Wait on it with
-  `tools/lanewait.py att-1561`. Next run 684, next section §155.
-  1497 waits for a lane.
-- **The coverage pair is the newest pair** (DECISIONS 62 §3): its row is
-  in `AI_WORDS`, its `Coverage pair:` line read by
-  `the_handoff_s_coverage_pair_is_the_pinned_word`; 1408 since 1558.
+- **No lane live**: drained for the pass. The next commander spawns two
+  — 1563 (the coverage pair, Opus 5.5) and 1565 (Great Sahara's coverage
+  word, Sonnet 5.5), `--effort high` both. Next run 684, next section
+  §155. 1497 waits for a lane.
+- **The coverage pair is the newest pair** (DECISIONS 62 §3); 1408 since 1558.
 - **Merges back out on a section stub** when a lane's base predates the
   next booking's stub: the lane takes `ccc update --keep-conflicts` and
-  keeps both (1511, once). Kill rules: neither tripped.
-- **Fable backlog: 31 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537, 1541, 1543, 1548, 1551, 1554, 1557, 1560).
+  keeps both (1511, 1555, 1558, 1561). Kill rules: neither tripped; one
+  booking gate red (1538, a pin 1544's merge moved: re-pinned, green).
+- **Fable backlog: 32 Loop items** (1119, 1138, 1139, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1482, 1485, 1490, 1507, 1513, 1516, 1518, 1521, 1526, 1527, 1529, 1534, 1537, 1541, 1543, 1548, 1551, 1554, 1557, 1560, 1566).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w1408 of 4,730
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w1250 of 4,340
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w1582 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-sixth tranche, after the clear at ten — `commander`:
-wait on 1561 (Sonnet 5.5), the twentieth; at twenty it spawns `steer`.**
+**Opener: the twenty-sixth steering pass — `steer` (Fable 5.1): measure the
+tranche, rule the 32 Loop items, write the twenty-seventh opener and
+spawn `commander`, which spawns 1563 and 1565.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two lanes**: the newest
-pair's (1563) and the third map's (1561); 1497 waits for a free lane,
+pair's (1563) and the third map's (1565); 1497 waits for a free lane,
 lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,12 +57,12 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     parts first on block 1340 (`ExploreTo` (37416, 33864) against
     (36168, 35976)) — 1558's hypothesis. No mechanism.
 
-1561. **Great Sahara in the coverage lobby: frame 1250, 10 versus 9
-    draws**, index 0: ours `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`, theirs `Animal::do_idle+0x83`. Inside
-    run681 (block 1251), widened by `run681_s_word_frame_is_widened_whole`;
-    the value diff on 1250 is unread. `1/35`'s position parts one step
-    on 1248, and its order's `dest`. No mechanism.
+1565. **Great Sahara in the coverage lobby: frame 1582, 28 versus 29
+    draws**, index 8: ours `Leader::make_stuff+0x63d`, theirs
+    `Leader::produce_building+0x1805`. Inside run683 (block 1583),
+    widened by `run683_s_word_frame_is_widened_whole`: the Persian
+    Refinery 1/2045's site, y 22176 against 19872, city 1 against 2.
+    No mechanism.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
