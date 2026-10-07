@@ -7169,7 +7169,10 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   window that exists. ~~run146 culls on 771 (parked 617).~~ It does not:
   its three records live from their deaths to 999 on both sides. What
   parted on 771 is the slot the record holds, §59.
-- **`nuke_effect[0x108]`** in §11's hold, taken as zero.
+- ~~**`nuke_effect[0x108]`** in §11's hold, taken as zero.~~ It is 30
+  (`Nuke::init@0092c960`, `92c987`), added to every round's remaining
+  time (`docs/AI.md` §165, item 1594): run711's ICBM number is held thirty
+  frames past its round.
 
 ### 42.6 Coverage
 

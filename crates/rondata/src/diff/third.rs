@@ -49,6 +49,63 @@ pub(crate) struct Word {
     pub difficulty: i32,
 }
 
+fn debug_slots(sim: &sim::Sim, at: i64) {
+    let Some((lo, hi)) = std::env::var("RON_DEBUG_SLOTS").ok().and_then(|v| {
+        let (a, b) = v.split_once('-')?;
+        Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&at) {
+        return;
+    }
+    thread_local! {
+        static PREV: std::cell::RefCell<Vec<(i16, usize, bool)>> =
+            const { std::cell::RefCell::new(Vec::new()) };
+    }
+    // The latest occupant of each of player 1's numbers, and whether it lives.
+    let mut now: Vec<(i16, usize, bool)> = Vec::new();
+    for (i, u) in sim.units.iter().enumerate() {
+        if u.owner == 1 {
+            now.retain(|e| e.0 != u.index);
+            now.push((u.index, i, u.alive()));
+        }
+    }
+    now.sort_unstable();
+    PREV.with(|p| {
+        let prev = p.borrow();
+        if at > lo {
+            for e in &now {
+                let was = prev.iter().find(|w| w.0 == e.0);
+                if e.2 && was.is_none_or(|w| w.1 != e.1) {
+                    let u = &sim.units[e.1];
+                    eprintln!(
+                        "  slots f{at}: + 1/{} unit#{} ty {:?} at ({}, {})",
+                        e.0, e.1, u.ty, u.pos.x, u.pos.y
+                    );
+                }
+            }
+            for w in prev.iter() {
+                if w.2 && !now.iter().any(|e| e.1 == w.1 && e.2) {
+                    eprintln!(
+                        "  slots f{at}: - 1/{} hold {}",
+                        w.0, sim.units[w.1].hold_frames
+                    );
+                }
+            }
+        }
+    });
+    if at % 25 == 0 || at == hi {
+        let held: Vec<(i16, i32)> = now
+            .iter()
+            .filter(|e| !e.2 && sim.units[e.1].hold_frames != 0)
+            .map(|e| (e.0, sim.units[e.1].hold_frames))
+            .collect();
+        eprintln!("  slots f{at}: held {held:?}");
+    }
+    PREV.with(|p| *p.borrow_mut() = now);
+}
+
 /// A Great Sahara capture walked from its own start dump with run381's head
 /// borrowed, until the draw stream parts (or the trace ends). `None` when
 /// the captures are not on this machine.
@@ -103,6 +160,10 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
         }
         built.tick();
+        // `RON_DEBUG_SLOTS=<lo>-<hi>`: player 1's births and deaths by
+        // object number over a window, with the dead slots' holds — the
+        // allocator's view, for a word that is a numbering (item 1594).
+        debug_slots(&built.sim, at);
         if let Some((sf, _, _)) = sweep
             && sf == at
             && let Some(rec) = built.sim.sweep_watch.take()

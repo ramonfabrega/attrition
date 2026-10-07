@@ -148,6 +148,18 @@ pub(crate) struct Pair {
     /// chickens with it (`docs/AI.md` §164). At 1960, 36 game draws a side,
     /// index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
     /// Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
+    /// **Item 1594 moved it from 1960 to 2166**: the draws on 1960 were the
+    /// same four in another order, the turning two-figure unit numbered 42
+    /// in ours and 62 in the original. Two allocator inputs parted in the
+    /// undumped 1784..1953: the Freighter `1/37` that reached its Oil
+    /// Platform `1/2031` on 1787 dies there and hands its citizen in
+    /// (`Unit::do_gather`'s `can_carry(GROUND)` arm), and `Object::die`
+    /// holds the ICBM's number 30 frames past its round (`nuke_effect
+    /// +0x108`) — so the gap's births take the original's numbers
+    /// (`docs/AI.md` §165). At 2166, ours 602 game draws against 604, index
+    /// 6: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    /// Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a <
+    /// Unit::set_anim+0x56 < Unit::move_step+0x823`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -165,8 +177,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1982,
-    sequence: 1960,
+    count: 2166,
+    sequence: 2166,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1061,7 +1073,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_1960: (i64, i64) = (1954, 2210);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run711 walked from run651's start with the recorder on. It holds the
-/// word 1960 (item 1591), block 1961.
+/// word 1960 (item 1591), block 1961, and the word 2166 (item 1594), block
+/// 2167.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1071,7 +1084,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN711, 1954)],
         WIDENING_COVERAGE_FRAME_1960,
         1,
-        &[1961],
+        &[1961, 2167],
         true,
     )
 }
@@ -1083,18 +1096,36 @@ fn run711_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **2077** on the tree item 1591 landed; 310 stand from the window's
-    // first block. Among them a slot number: ours' `1/42` is a two-figure
-    // unit at (35886, 39011), `myhits` 90, where the original's is a
-    // citizen (`TypeIndex` 50) at (30456, 37080) and its two-figure unit
-    // at (35796, 38909) is `1/62`. The ICBM freed slot 42 on 1600, and no
-    // key of `1/42` parts in run710's window, so the slot was handed out
-    // differently between 1784 and 1953, where nothing is dumped.
-    pin_eq!(w.firsts.len(), 2077, "initial run711 baseline");
-    // **The word 1960's block, 1961**: `1/42`'s `path_recursion` 2 against
-    // 1 and `1/62`'s 1 against 2 — the same two units under each other's
-    // numbers, and ours' `1/42` spends the word's first two draws
-    // (`Guy::do_turn < Unit::move_step`). Hypotheses for the item after.
+    // **482** on the tree item 1594 landed (2077 on item 1591's); 150
+    // stand from the window's first block (310 on 1591's). On 1591's tree
+    // ours' `1/42` was a two-figure unit at (35886, 39011), `myhits` 90,
+    // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
+    // and its two-figure unit is `1/62`: the gap's births had taken other
+    // numbers.
+    pin_eq!(w.firsts.len(), 482, "initial run711 baseline");
+    // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
+    // 1954 every number player 1's births took in the gap is the
+    // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
+    // Platform `1/2031` on 1787 carrying the citizen `1/26`; it dies there
+    // and `1/26` stands `inside 2031` in both, where ours kept the boat in
+    // the platform with `1/26` aboard (`inside` 37 against 2031), and ours'
+    // 1835 birth took 62 for the original's 37. The ICBM's number 42 is
+    // held to 1871 (30 frames past its round), so the 1852 birth takes 62
+    // and the 1908 citizen 42: `1/37` at (38010, 41471), `1/42` at (30456,
+    // 37080), `1/62` at (35886, 39011) and `1/67`..`1/70` agree in every
+    // compared field to 2163, and `1/71`/`1/72` keep only `form` (−1
+    // against 0) on 1954. The first of them to part is `1/68`, on 2164 —
+    // two frames before the word 2166, and the item after's to read.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| {
+                *who == 1 && *f < 2164 && [26, 37, 42, 62, 67, 68, 69, 70, 2031].contains(o)
+            })
+            .count(),
+        0,
+        "the gap's births and the platform's citizen agree in every compared field"
+    );
     let first = w
         .firsts
         .values()

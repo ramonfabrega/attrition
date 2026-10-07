@@ -17318,7 +17318,68 @@ walked as every object of the owner's. `Build::close`'s animal walk is read as r
 **Coverage.** Diff-backed: claims 1–3, the value diff, and 5's two draws. Listing-backed: claim 4's predicates past the nuke
 arm's one frame, 5's two gates.
 
-## 165. Reserved for item 1594 (the coverage pair's word 1960)
+## 165. A transport at its oil platform dies and hands in its passenger, and the word at 2166 (2026-10-07, item 1594)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1591 left the coverage pair's word at **frame 1960, 36 game draws a
+side, index 0**: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a <
+Guy::move+0x19f`, inside run711 (block 1961), its hypotheses a slot swap of `1/42`/`1/62`. Each claim is *diff-backed*
+unless marked.
+
+1. **The draws are the same four in another order** (run711's trace, `report.py draws 1960`; ours `RON_DEBUG_SITES`).
+   Ours spends `1/42`'s turn (two draws) and then `1/46`'s arrival stand (two); the original `1/46`'s stand and then its
+   turner's — the same type-61 two-figure unit, which the original numbers 62. The objects are stepped in number order, so
+   the frame parts on numbering alone.
+2. **The numbers were handed out differently in the undumped 1784..1953** (run711 block 1954's `uid`s against ours'
+   births, `RON_DEBUG_SLOTS`, a print this item added to the third walk). The original's births in the gap are uids 127..137
+   → 65, **37**, **62**, 67, **42**, 68..72, 46; ours' were 65, **62**, **42**, 67, 68..72, 46. Two inputs to
+   `Objects::find_free` parted: ours' Freighter `1/37` (`TypeIndex` 322, `TRANSPORTFREIGHTER`) lived where the original's
+   number 37 was free, and ours' number 42 — the ICBM's, launched on 1600 (§164) — came free about 30 frames early.
+3. **The Freighter.** In run710's last block (1783) `1/37` carries the citizen `1/26` (`inside_up 37`) beside the Oil
+   Platform `1/2031` it built. On run711's 1954 the original has `1/26` `inside_up 2031`, `2031` `inside_down 26`, and no
+   `1/37`; ours had `1/37` inside `2031` with `1/26` still aboard (`inside` 37 against 2031). Ours' freighter takes its
+   `GatherOrder` on the platform on 1787 and arrives on 1788.
+4. **`Unit::do_gather@005ef2a0`'s platform arrival for a transport** (the listing `5efa39`..`5efacf`). Past the
+   scholar test, a platform's arrival asks `ObjectData::can_carry(GROUND)@00646c40` — a unit (vslot `0x18`) whose type's
+   `carry` (`+0x2d4`) is not 0 and which is not `is(0x15f)`, the Aircraft Carrier. When it can: `Unit::same_damage` on the
+   passenger, the head of the boat's `inside_down` (`+0x28`, `+0x3e`; `5efa4a`..`5efa73`), if there is one;
+   `Unit::go_inside(boat, platform, who, 0)`; `kill_current_order(boat, 0)`; and `Object::die(boat, 0, −1, 0)` (vslot
+   `0x158`). The die's `Object::close@00647160` finds the boat off the map (vslot `0xbc`) and so takes
+   `remove_from_inside`, not `kill_contents`: `Object::remove_from_inside@006480f0` splices the boat out of the platform's
+   chain — the platform's `inside_down` the boat's, the passenger's `inside_up` the platform. *Listing-backed*; the diff
+   confirms the end state on 1954.
+5. **`Object::die@00647080`'s hold adds 30** (the listing `6470a9`..`64713c`). Over the live rounds whose shooter is the
+   dying object, gated on the type's `max_range` (`ObjectTypeData +0x1fc`) not 0, the hold is `[0xc0a888] + 1 +
+   total_time − cur_time`, maxed against what `close` left (30). `0xc0a888` is `nuke_effect +0x108`, which
+   `Nuke::init@0092c960` sets to `0x1e` (`92c987`) — a nuke's spread time, which `Nuke::do_damage` reads after `+0x104`'s
+   10 frames — and nothing in the simulation writes again. This crate had taken it as zero (`docs/COMBAT.md` §42.5). The
+   ICBM's number is held to about 1871 rather than 1841, so the 1852 birth takes 62 and the 1908 citizen 42, as the
+   original's uids 129 and 131 do. *Listing-backed* for the arithmetic; the births confirm the 30 on this one number.
+
+**Built.** `Sim::transport_into_platform` (`crates/sim/src/transport.rs`), from `do_gather`'s arrival for an Oil Platform
+before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
+shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/fight.rs`), added in `hold_dead_slot`. Unit test
+`transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
+`carry` passed by); `airbase::tests::the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth` reads 151 for the
+V2's hold (121 before). Mutations (`tools/mutate.py`, scored by exit and the failed tests' names): the arm cut from
+`do_gather`, and the rival reading in which the passenger dies with the boat (`kill_contents`), each held by
+`coverage_pair_first_parting`, `run711_s_word_frame_is_widened_whole` and the transport unit test; the hold's 30 dropped,
+by the same two walks and the silo's unit test.
+
+**The value diff, and the word now.** run711 block 1954: `1/26` `inside 2031` in both; `1/37` at (38010, 41471), `1/42`
+at (30456, 37080), `1/62` at (35886, 39011) and `1/67`..`1/70` agree in every compared field (pinned); `1/71`/`1/72` keep
+`form` −1 against 0. **run711 2077 keys → 482** (310 standing → 150); the first parting past 1954 is still `1/40` on
+1956. `coverage_pair_first_parting`: **frame 1960 → 2166** (count and sequence) — ours 602 game draws against 604, index
+6: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`, theirs `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823`. Inside run711, block 2167, now on the widening's and the coverage driver's
+block lists.
+
+**What else it moved.** Nothing: the whole suite on the build's tree was red only on run711's two pins. The hold's 30
+reaches every ranged unit that dies with a round in flight, and no other floor, widening or word saw it.
+
+**What is not established.** The arm's `same_damage` is this crate's whole-unit form (its own SEAM); the passenger's
+squad below the head is spliced as the chain's, and no capture carries a squad to a platform. `insert_inside`'s and
+`remove_from_inside`'s leader counters (`+0xa28`..`+0xa34`, the Lakota and American bonuses) are not carried. The `max_range`
+gate on the hold is read as met by every shooter with a round in flight.
+
+**Coverage.** Diff-backed: claims 1–3, the end state of 4, and 5 on the ICBM's number. Listing-backed: 4's predicates and
+5's arithmetic past that one number.
