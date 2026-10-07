@@ -970,7 +970,7 @@ if !(unit_masks & 8):
     elif r == 2: return 1
     if masks & 8: goto STEP
     // the straight line is not enough: ask the pathfinder
-    if invalid_loc(tile of mo->x,y, 1,0,0,0,1) and orderlist.length > 1: kill twice, return 1
+    if invalid_loc(tile of mo->x,y, 1,0,0,0,1) and orderlist.length > 1: ~~kill twice~~ kill, return 1
     n = Random::get(game_random, 0, 0xffff)                        // *** the sync RNG ***
     thr = n%5==2 ? 0x600 : n%5==0 ? 0x1800 : 0xf00  // 2, 8 or 5 world cells, Manhattan
     if |dest − pos|_manhattan > thr:

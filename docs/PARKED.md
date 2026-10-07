@@ -3811,6 +3811,12 @@ not the capital's, because it sets `0x10` alone (`Build::activate:274`,
 listing-backed) — no capture parts on it; (b) `Leader::diplomacy@006bc950`
 (3,282 lines) is not carried and holds the other `treaties` readers.
 
+(1626) **The General's rally armour, and run715's standing rows** (1614,
+2026-10-07): `UnitData::armor@00610160`'s rally term is not carried; and
+run715's standing rows past 2863 — pools' `held` on 2910/2917, Napata's
+flags on 2940, `mirror` bits, `caras`, a group's `id` on 3069 — none a
+position.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3960,6 +3966,32 @@ every draw agreeing — a checklist row "list the firsts of the unit the
 word's draws name, whatever the frame"; (b) the brief's whole-suite width
 (`tools/memcap.sh 20`) is another box's: 4 threads reach 12 GiB on this
 tree and 8 reach 14.5. One reach each.
+
+(1623) **A word lane's gate filters miss the coverage driver** (the
+commander, 2026-10-07): 1611's brief named `sahara_coverage:: floors::
+coverage_pair::`; its widening put run718's window in the coverage driver,
+and `diff::coverage`'s two pins (a sixth height read, the city `Babylon`)
+went red only on the booking gate — a second commit. Every widening adds
+a window to the driver, so every word lane's filters want `coverage::`;
+`tools/brief.py` could add it from the item's kind. One reach.
+
+(1624) **The constant guard counts a sweep test's row literal as built**
+(1619, 2026-10-07): `docs_guard::a_constant_a_document_names_is_built_or_pinned`
+reads every file under `crates/sim`, so the sweep's test rows (the
+original's own values, as inputs and outputs) bank twelve constants nobody
+built. 1619's fix — skip `sweep/`, or `#[cfg(test)]` as `no_float.rs` does —
+was refused by the classifier as audit tampering. **Ramon's word,
+2026-10-07: skip `sweep/` to unblock 1619, flagged for the pass** —
+FABLE: ratify the exclusion, or replace it with the `#[cfg(test)]` skip
+`no_float.rs` uses, which would cover every test's literals, not one
+directory's. One reach.
+
+(1627) **A hero's born-parted row is an aura's input** (1614's Loop line,
+2026-10-07): 1614's cause had stood in the widening as a born-parted
+`myhits`/`myspeed`/`mylos` row on a unit the brief never named, sixty
+frames before the word; `standing.py` could flag a row parting at birth on
+a unit whose type answers `is_hero`, since its radius reaches every unit
+near it. A sibling of 1610; one reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

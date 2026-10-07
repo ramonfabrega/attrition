@@ -446,6 +446,11 @@ pub struct Roles {
     /// and Strategy in the shipped file): `LeaderData::get_spy_upgrade`
     /// counts the ones held.
     pub spy_upgrade_preq: [Option<TypeId>; 3],
+    /// `GENERALS_UPGRADE_1..3`' prerequisites (rows 89–91, `0x305..0x307`):
+    /// `LeaderData::get_general_upgrade@006e0830` counts **every** one
+    /// held — the listing's `BUY_SELL` arm (`0x2ad`) lies outside its
+    /// loop's range and is never taken.
+    pub general_upgrade_preq: [Option<TypeId>; 3],
     /// The three ladders `ObjectData::train_time@006508c0`'s speed-upgrade
     /// step counts (`docs/PRODUCTION.md`, "The tail's first caller"):
     /// `SHIPS_FASTER_1..3`, `TROOPS_FASTER_1..3` and `VEHICLES_FASTER_1..3`,

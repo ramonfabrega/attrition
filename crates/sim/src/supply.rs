@@ -447,6 +447,23 @@ impl crate::Sim {
             .count() as i32
     }
 
+    /// `LeaderData::get_general_upgrade@006e0830`: how many of
+    /// `GENERALS_UPGRADE_1..3` the player holds — every one, not a leading
+    /// run (`docs/AI.md` §172). A hero's speed, hits and sight climb with
+    /// it, and so do its radius, its march, its ambush and its decoys.
+    pub(crate) fn general_upgrade_level(&self, who: Player) -> i32 {
+        let Some(p) = self.tech.get(who as usize) else {
+            return 0;
+        };
+        self.tech_tree
+            .roles
+            .general_upgrade_preq
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .count() as i32
+    }
+
     /// `ObjectData::is(0x3a, 0)` on a unit type: the Spy line.
     pub(crate) fn is_spy_type(&self, rec: usize) -> bool {
         self.unit_types[rec].tree.is_some_and(|t| {
