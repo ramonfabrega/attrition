@@ -3777,6 +3777,17 @@ research tick between sweeps is not taken; (c) the human's standing
 `0/0`..`0/13` `death:extra`), `treaties[1]` 1 against 3, and `SITE[].reg`
 65 against 0 — other writers', standing on every widening.
 
+(1612) **The ramp's and the border's other arms** (1600, 2026-10-07): (a)
+`produce_building`'s placement multiplies a site's score by 10 in a
+bordered city inside `circle_radius[3]` (`:570`–`576`) — not built, ours
+does not read `bordering` there; (b) the `city_flags & 0x1000` flag the
+border pass sets beside `bordering` (a cell within four cells of the city)
+and its readers (tower ×2 or ×10, temple) — no city in the window carries
+it; (c) `missiles_used` (the two missile types below the nuke) in the ramp
+is not tracked; (d) AI §158 and `ai_units.rs`'s `get_nukes` comment say the
+ICBM's `FROM` is none, where a probe reads `from(316) = Some(315)`,
+`is(316, 315)` true — the count there may need a re-read.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3895,6 +3906,14 @@ to a reader that starts reading a standing value on the word's frame.
 When a draw is a per-candidate score, list the candidates' standing rows:
 `standing.py` could take a frame and print the standing keys of every
 object the frame's function reads. One reach.
+
+(1613) **1600's Loop lines** (2026-10-07): (a) the race's re-check as
+written ("1578 is not in the Sonnet chain") cost the lane its first hour;
+`grep -n military_level_in crates/sim/src/tech.rs` answered it — a race's
+closing record carries the grep that tests each "disagree" row before it
+is booked; (b) a mutation whose arm no capture reaches fails nothing on
+the walk: `tools/mutate.py` could print which test names ran, so "failed
+nothing" reads at once as unwalked rather than untested. One reach each.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

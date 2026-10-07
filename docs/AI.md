@@ -17732,3 +17732,8 @@ below).
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 171. Reserved for item 1611 (Great Sahara's coverage word 2206)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
