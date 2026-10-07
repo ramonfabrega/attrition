@@ -16716,10 +16716,52 @@ separated; ours' first-city test is `!captured && city_num == 0`, as before.
 **Coverage.** Diff-backed: claims 1–4 and the founding block of claim 5 (the bit agrees on 612 and the word moves). Reading-only:
 the second `find_capital`'s other-leader arm (no other leader holds a city that was my capital), which no walk holds.
 
-## 150. Reserved for item 1549 (Great Sahara's coverage word 720)
+## 150. The oil well's stand is on `CHAR_FARM`, and the word at 1182 (2026-10-06, item 1549)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run680's widening (`diff::sahara_coverage::run680_s_word_frame_is_widened_whole`, blocks 713..969, the word's block
+721), the draw record on frame 720, and `Unit::do_gather@005ef2a0:377–385`'s listing.
+
+**The word.** Item 1538's build moved Great Sahara's coverage word to 718 and 1544's `total_units` tally, merged beside it, to **720**
+(the commander's re-pin, `9b962c3c`): ours 25 draws against 24, index 0, ours `Guy::set_anim+0x97a < Guy::move+0x19f` (the arrival
+stand), theirs `Animal::think_bird+0x82`. The other 24 agree draw for draw. Run680 widened it: 582 keys parted on that tree, 83 of
+them standing on block 713 (the control's set).
+
+**The unit.** `1/1` is a Peasant (`TypeIndex` 50, land). It built the Oil Well `1/2013` (`TypeIndex` 421) — the patch §147's order
+chose — and on 718 the finished well hands the builder a `Gather` of it. In both sides' dumps the citizen stands at (45216, 8832) from
+719 and its order is the same gather throughout (`type 7`, `ox 2013`); nothing the dump prints for it parts. The dump prints no
+animation (`GUYS=2` is type, position and angle), so the value diff on the frame is the draw record. Ours' anim for `1/1`, from the
+harness's own print: 33 (`BUILD`) on 718, **8 (`WALK`)** on 719, and a roll of the arrival stand on 720 — `Guy::move`'s test is
+`cur_anim == CHAR_WALK` and a stopped body.
+
+**The cause.** The oil well's arm of `do_gather` (`@005ef2a0:377–385`) is: if the guy's first slot is already on `CHAR_FARM` (0x25)
+**return**; otherwise `set_anim(CHAR_FARM, 0, 1)`, `set_angle(0x40000000, …, 0)`, `set_new_location(b.x + 0x120, b.y, 1, 1)`. This
+crate set the heading and relocated and never put the worker on an animation, so the turn arm of `Guy::move` (§4.7 of `docs/ANIM.md`:
+a body at its destination owed a turn goes back to `CHAR_WALK`) left it on the walk and the next frame rolled the stand. The original's
+worker is on `CHAR_FARM` every frame after the first — the turn arm still takes the walk on 719, and `do_gather` puts the farm
+animation back on 720 before `Guy::move` reads it — so no arrival stand is ever drawn. The same shape as §4.6's builder, whose work
+animation hides the walk from the arrival test. Built in `Sim::do_gather`'s oil-well arm, with the guard; `1/1`'s anim reads 33 → 8 →
+37 now.
+
+**The move.** The word goes **720 → 1182**, past run680's last block (969): at 1182 ours spends 146 draws against 84, parting at index
+2 — ours `Leader::produce_building+0xc99`, theirs `Leader::make_stuff+0x63d`. Run680 on the new tree: 111 keys (83 standing), the first
+past the standing block pool 66 and its group's `held` on 742 (ours [17], theirs none), then the Persians' `SITE` table on 776, two
+queues' prices and leader 1's wood and metal buckets on 783 (a unit or two under the original's, the 583 price row's residue), leader
+0's `production_step` on 801, pools 67 and 68 on 820 and 925. `1/1` agrees in every compared field through the window. The word 1182's
+widening is owed (a window of its own). **On the merged tree** item 1546's second-capital arm (§149/§151's `Build::activate`) moved it
+again, 1182 → **1197**: ours 4 draws against 3, index 0, ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+(a move step ours rolls and the original does not, as 1538's 718 was). Past run680's window (969); run680's 111 keys are unchanged.
+
+**Mutations** (`tools/mutate.py` on `5d95faea`/`870dc20e`): the `set_anim(CHAR_FARM)` dropped — held by
+`sahara_coverage_first_parting` (the word returns to 720) and by the unit test; the guard dropped — held by the unit test
+(`holdings::tests::an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival`) and by **no walk**: with the worker already
+on `CHAR_FARM` the repeated turn and relocation land on the same cell, so no capture's frame tells the two apart.
+
+**What is not established.** That the guard's byte is the first guy's `cur_anim` is `docs/ANIM.md` §2's layout (`+0xf4 → [0] → +0x9c`),
+read the same way at `Guy::move`; no capture prints the slot, so the value it is compared with (0x25) rests on the listing. The farm arm (`ident == Farm`, `do_farm`) and the
+oil platform's arm (`go_inside`) are the original's other branches and unchanged here. The arrival stand's other callers
+(`Guy::move+0x19f` on a gather that is not an oil well) are untouched.
+
+**Coverage.** Diff-backed: the cause (the word moves 720 → 1182 and `1/1` agrees through block 969). Reading-only: the guard.
 
 ## 151. Reserved for item 1552 (the coverage pair's frame 1183)
 

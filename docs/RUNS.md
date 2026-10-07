@@ -15410,3 +15410,23 @@ SHA-256 `20f183d33dde960858a40b0ab5958d67b99cc6cfa251a8173c88169e84f742cc`.
 **What it holds**: `diff::sahara_coverage::run677_s_word_frame_is_widened_whole` — **395** keys parted on the base (67 standing on block 6), **69**
 since item 1538's build. The word 12's block is 13; the first row past the standing block is leader 1's `known_rares` on block 8, and the first
 state the original and ours place differently is the Oil Well `1/2013` on block 12. `docs/AI.md` §147.
+
+## run680 — Great Sahara in the coverage pair's lobby: the word 720's widening, blocks 713..969 (2026-10-06, item 1549)
+
+**Disk gap**: run677 holds blocks 6..262 and run676 the draw stream, so no dump of this lobby held a unit, a building or a leader record at
+the word's frame 720 (block 721). Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 977 --timeout 3600
+--log-window 713 970 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch (18:10). Receipt `success`, 978 frames,
+closing block 978, launch-to-exit 865.9 s, total 884.4 s, five files restored. `rngcmp.py rontrace-run676.log rontrace-run680.log`:
+**978 frames in common, 0 differing**. `MAP_STYLE 7`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345 read back.
+257 window blocks, 713..969, and a closing block.
+
+Archive `gamelog-run680-greatsahara-persian-alltech-window-713-969.txt`, 432,096,605 bytes,
+SHA-256 `fee293da0d3641549c22d14d8d15a421c99ee477c9965077d2318b5ac98223cc`.
+
+Archive `rontrace-run680.log`, 18,783,552 bytes,
+SHA-256 `3624bfb86741607474ef86511c5a90187d5ad997f20629ede489aa5d9c0e9eda`.
+
+**What it holds**: `diff::sahara_coverage::run680_s_word_frame_is_widened_whole` — **582** keys parted on the tree at the base (83 standing on
+block 713), **111** after item 1549's build (the oil well's stand on `CHAR_FARM`). The word 720's block is 721; the first state past the
+standing block is pool 66 on 742. `docs/AI.md` §150.

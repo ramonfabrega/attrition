@@ -28,9 +28,25 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // Item 1538 moved it 12 → 718 (the tied oil patches); item 1544's
     // `total_units` tally, merged beside it, moved it 718 → 720: ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f` against the original's
-    // `Animal::think_bird+0x82`, 25 draws against 24.
-    count: 720,
-    sequence: 720,
+    // `Animal::think_bird+0x82`, 25 draws against 24. Item 1549's build (the
+    // oil well's stand is on `CHAR_FARM`, `docs/AI.md` §150) moved it
+    // 720 → **1182**: ours 146 draws against 84 at index 2, ours
+    // `Leader::produce_building+0xc99`, theirs `Leader::make_stuff+0x63d`.
+    //
+    // Item 1546's second-capital arm (`Build::activate`'s 0x17, merged beside
+    // this build) moved it again, 1182 → **1197**: ours 4 draws against 3 at
+    // index 0, ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`.
+    count: 1197,
+    sequence: 1197,
+};
+
+/// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
+/// it: the lower of the two partings.
+pub(crate) const SAHARA_COVERAGE_WORD: i64 = if SAHARA_COVERAGE.count < SAHARA_COVERAGE.sequence {
+    SAHARA_COVERAGE.count
+} else {
+    SAHARA_COVERAGE.sequence
 };
 
 /// **The third map's first parting in the coverage pair's lobby**, walked
@@ -136,9 +152,10 @@ pub(crate) const RUN677: &str = "gamelog-run677-greatsahara-persian-alltech-wind
 /// The window: block 6 through 262; the word 12's own block is 13.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_12: (i64, i64) = (6, 262);
 
-/// **The third map's coverage-lobby word's window**: run677 walked from
-/// run675's start with the recorder on.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// **The coverage lobby's frame-12 window**: run677 walked from run675's
+/// start with the recorder on. It was the `AI_WORDS` window until item
+/// 1538's build moved the word past it, to run680's.
+pub(crate) fn sahara_coverage_frame_12_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -155,7 +172,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run677_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_12_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -199,5 +216,89 @@ fn run677_s_word_frame_is_widened_whole() {
             .map(|(f, _)| *f),
         Some(8),
         "leader 1's known rares part on block 8"
+    );
+}
+
+/// run680, item 1549: the lobby's blocks 713..969 at the long's detail —
+/// the word 720's block 721 with eight before it and 248 after.
+pub(crate) const RUN680: &str = "gamelog-run680-greatsahara-persian-alltech-window-713-969.txt";
+
+/// The window: block 713 through 969; the word 720's own block is 721.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_720: (i64, i64) = (713, 969);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run680 walked from run675's start with the
+/// recorder on.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run680",
+        &[(RUN680, WIDENING_SAHARA_COVERAGE_FRAME_720.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_720,
+        1,
+        &[721],
+        true,
+    )
+}
+
+#[test]
+fn run680_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // **582** on the tree at base 9b962c3c, before the oil well's stand took
+    // the farm animation (`docs/AI.md` §150), **111** after: 83 stand from
+    // the window's first block (the control's set: both leaders' `SITE`
+    // `reg`, `form`, the pools, `scouts`, the `ally_mask`/territory counts),
+    // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
+    // Persians' `SITE` table on 776, the two queues' prices and leader 1's
+    // two buckets on 783, leader 0's `production_step` on 801.
+    pin_eq!(w.firsts.len(), 111, "initial run680 baseline");
+    // **The word's value diff, block 721** (item 1549): the dump prints no
+    // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
+    // value on the word's frame is the draw record — frame 720, ours 25
+    // against 24 at index 0, ours `Guy::set_anim+0x97a < Guy::move+0x19f`
+    // (the arrival stand of the Peasant `1/1`, `TypeIndex` 50, land) and
+    // theirs `Animal::think_bird+0x82`. `1/1` finished the Oil Well `1/2013`
+    // on 718 and stood at its (45216, 8832) from 719 in both; ours put it on
+    // `CHAR_WALK` (anim 8) through the turn arm and rolled the stand on 720,
+    // and the original's `do_gather` puts the guy on `CHAR_FARM` first. It
+    // agrees in every compared field through the window's last block.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 1) && *f > 713)
+            .count(),
+        0,
+        "1/1 agrees in every compared field past its standing `form`"
+    );
+    // **What parts first past the standing block**: pool 66 and its group's
+    // `held` on 742 (ours [17], theirs none).
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 713)
+        .min();
+    pin_eq!(
+        first,
+        Some(742),
+        "the first parting past the standing block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -2, "pool:66".to_string()))
+            .map(|(f, _)| *f),
+        Some(742),
+        "leader 1's pool 66 parts on block 742"
     );
 }

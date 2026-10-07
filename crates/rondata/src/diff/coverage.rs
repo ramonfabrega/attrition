@@ -2434,6 +2434,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN672, 728),
         (super::coverage_pair::RUN678, 983),
         (super::coverage_pair::RUN678, 1184),
+        (super::sahara_coverage::RUN677, 13),
+        (super::sahara_coverage::RUN680, 721),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2831,9 +2833,15 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_185 = super::coverage_pair::coverage_frame_185_window();
     let coverage_583 = super::coverage_pair::coverage_frame_583_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
+    // Item 1549: the third map in the coverage lobby, run677's blocks around
+    // the word 12 and run680's around the word 720.
+    let sahara_12 = super::sahara_coverage::sahara_coverage_frame_12_window();
+    let sahara_720 = super::sahara_coverage::sahara_coverage_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2886,6 +2894,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_185,
         coverage_583,
         coverage,
+        sahara_12,
+        sahara_720,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");
