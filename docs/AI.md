@@ -17185,10 +17185,36 @@ compared now (the compared pin lost thirteen names, `coverage.rs`).
 **Coverage.** Diff-backed: 1, 2 (price arm), 4, 5, 6 (all through the make list and the queue's costs on run702); 3 by unit test and the census alone. Reading-only: the research-arm level, the
 cruise-missile arm, `game.armageddon`.
 
-## 159. Reserved for the race on item 1565, its landing 4 (Great Sahara's coverage word 1582)
+## 159. An upgraded building weighs its basic type's trainer bit, a Spy trains in half the time, and the word at 2048 (2026-10-07, item 1584)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run702's blocks 1979..2235 (the word 2048's block 2049 is inside), the unit search's `calc_cost` calls on the trace (`rontrace-run702.log`, every priced step of frames 2044, 2045 and 2048 compared
+key for key and price for price), `GameDaemon::calc_danger@00732d10`'s listing at the building weight and `ObjectData::train_time@006508c0`'s tail. No new capture.
+
+**The word.** After §158 the word was **2048**: unit `1/43` (a Citizen finishing a Build and sent to gather) parted on 2046 — its path four nodes against two, `path_recursion` 2 against 1. Its search on 2045 (`PathFinder::astar_path`,
+the world grid) prices **510 steps in the original and 518 in ours, every one of the original's shared, and 8 of the shared priced apart by 2 to 5** — the world grid's step is `danger / 8` (§ DANGER), so the danger map
+parts, by 40 over one half-cell and 20 around it. That is a missing weight of exactly 40 at the half-cell of the Auto Plant `1/2025` (one at (38976, 19584)): ten in ours, fifty in the original.
+
+**1. `calc_danger` reads the basic type's trainer bit.** The building weight is a fort or tower's half hit points, a hundred for a city, Airbase or Dock, and otherwise fifty if the **basic type** of the building's type (`BuildTypeData::basic_type`,
+the root of the `FROM` chain) is a military trainer and ten if not (`calc_danger@00732d10:158`). The flag is derived on the type units name as their `WHERE` (`UnitType::init`), the Factory; the Auto Plant, its upgrade, names none of its own, so this crate read ten.
+Built: `Sim::danger_building_value` through `build_root`. Held by `an_upgrade_weighs_the_trainer_bit_of_its_basic_type` and `sahara_coverage_first_parting`. With it every priced step of 2044, 2045 and 2048 agrees, and the word moves
+**2048 → 2077**: the Spy `1/103` of city `1/2030` is born a second earlier in the original (`Guy::init_real` at index 7).
+
+**2. `SPIES_GENERALS_CREATED_FASTER`** (`train_time@006508c0:271`–`283`). A Spy or a General under the bonus whose prerequisite is **Tactics** (`TECHBONUSES` row 87; `Roles::spy_general_faster_preq`) trains in half the time, after the
+speed-upgrade step and before the wool arm. Built in `Sim::train_tail` as `Ratio(1, 2)`; held by `a_spy_trains_in_half_the_time_under_the_created_faster_bonus` and `sahara_coverage_first_parting`. The word moves **2077 → 2118**
+(count and sequence): ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
+
+**The value diff beside the word 2118** (`run702_s_word_frame_is_widened_whole`; keys 1192 → 404): the Spy `1/103` parts on its first block, **2078** — `myhits` 15 against 150, `mylos` 8 against 14, `myspeed` 21 against 36 (the three Spy upgrades:
+`SPY_UPGRADE_HP` `[15, 45, 90, 150]`, `SPY_UPGRADE_LOS` 2 a level, and the speed ladder; the Spy is at the top of all three at All Technologies) — and its path on **2104** (`order:move.dest`, 14 nodes against 13). Past it:
+`ever_seen` of the Persians' buildings 1 against 255 from 2105 and the treaties on 2102. No mechanism: the next item's first read.
+
+**Other lobbies.** No pin of any other lobby moved (the full suite's only reds are the commander's queue lines); the newest pair's word stands at 1735 (§158).
+
+**What is not established.** The Russian spy arm of `get_cost` and the cotton and wool arms of `train_time` are not built. The Spy's search, once the danger map agrees, is exact; the map itself has no dump in this window (the `WORLD` category is not
+enabled), so the weights are argued from prices, which agree to the step.
+
+**Mutations** (`tools/mutate.py`, all held): the root read dropped (`an_upgrade_weighs…`, and `sahara_coverage_first_parting`); the half dropped (`a_spy_trains_in_half…`, and `sahara_coverage_first_parting`).
+
+**Coverage.** Diff-backed: both (the search's 1,600 prices; the Spy's birth frame). Reading-only: the Auto Plant's weight is argued from prices, not from a printed danger map.
 
 ## 160. Reserved for the race on item 1565, its landing 5 (Great Sahara's coverage word 1582)
 
