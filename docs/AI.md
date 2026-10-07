@@ -17147,7 +17147,7 @@ Its widening (§157) showed the standing keys and then Persian city `1/2018`'s `
 because of the first six mechanisms; with them the make list agrees to the end of the window but for the Persian army, and **the word moves 1985 → 2048** (count and sequence alike): ours 44 draws
 against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Unit::do_move+0xe84`. The value diff beside it is unit `1/43`'s path: its heading, `pos`, `order:move.dest` and a path of four
 nodes against two part on **2046** (run702's block 2047), the draw on 2048 being the move step it takes. No mechanism: the next item's first read. Keys on run702's window 1398 → 1192, standing 154 → 117;
-run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no word of theirs moved, no floor).
+run683 182 → 121, run681 185 → 128, run680 111 → 74, and the newest pair's run672/678/679/710 107 → 81, 139 → 95, 146 → 104, 764 → 639 (no floor moved; **the newest pair's word 1719 → 1735** by the silo's launch alone: ours 6 draws against 5, index 0, ours `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`).
 
 **1. The air arm's `remaining`** (`create_units` 361–478). `remaining = air_cap` (2, 4 or 16 by difficulty) is the loop's own variable and the tail reads it; this crate left the caller's default of 5. `air_value` sets it.
 Held by `the_air_arm_sets_remaining_to_the_air_cap`.

@@ -140,7 +140,9 @@ pub(crate) struct Pair {
     /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
     /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
     /// **Item 1583 moved it from 1719 to 1735 (count and sequence)**, as a
-    /// side effect of the third map's landing (`docs/AI.md` §158); the word
+    /// side effect of the third map's landing: the computer's silo fires
+    /// (`Object::do_launch`'s silo arm, `docs/AI.md` §158 item 4; with the arm
+    /// dropped the word is 1719, the other five mechanisms move nothing here); the word
     /// at 1735 is ours 6 game draws against 5, index 0: ours
     /// `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
