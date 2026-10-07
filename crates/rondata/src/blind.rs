@@ -272,7 +272,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// run668 shows the charge's orders and the city's stamp on the block the
 /// word's frame writes, but `cover=0` traces enter no function. **145**
 /// with item 1583's cite of `LeaderData::get_nukes@006ebe50` (`docs/AI.md`
-/// §158): read off its listing, and no trace enters it.
+/// §158): read off its listing, and no trace enters it. **146** with item
+/// 1602's cite of `Object::disband@006455c0` (`docs/AI.md` §168): run711's
+/// original disbands the Oil Platform site `1/2048` on 2048, but its
+/// tracer does not hook the function (`rontrace.funcs` lacks it).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -287,7 +290,7 @@ pub const NEVER: &[u32] = &[
     0x0060_3470, 0x0060_4550, 0x0060_8850,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_9880, 0x0063_e390,
-    0x0064_2bb0, 0x0064_40c0,
+    0x0064_2bb0, 0x0064_40c0, 0x0064_55c0,
     0x0064_e4a0,
     0x0065_cfd0, 0x0067_1500, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
