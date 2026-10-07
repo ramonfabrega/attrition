@@ -441,7 +441,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_185: (i64, i64) = (180, 436);
 
 /// run669 walked from run651's start with the recorder on: the newest
 /// pair's word's window from item 1511 to item 1532, which moved the word
-/// to run672's ([`coverage_pair_word_window`]).
+/// to run672's ([`coverage_frame_583_window`]).
 pub(crate) fn coverage_frame_185_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -661,11 +661,11 @@ pub(crate) const RUN678: &str = "gamelog-run678-eastindies-persian-alltech-windo
 /// The window: block 977 through 1233; the word 982's own block is 983.
 pub(crate) const WIDENING_COVERAGE_FRAME_982: (i64, i64) = (977, 1233);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run678 walked from run651's start with the recorder on. It held the
-/// word 982 (item 1544), block 983, and holds the word 1183 (item 1546),
-/// block 1184.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run678 walked from run651's start with the recorder on: the word 982
+/// (item 1544), block 983, and the word 1183 (item 1546), block 1184. It
+/// was the `AI_WORDS` window until item 1552 moved the word past it, to
+/// run679's.
+pub(crate) fn coverage_frame_982_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -682,7 +682,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run678_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_982_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -751,4 +751,38 @@ fn run678_s_word_frame_is_widened_whole() {
         0,
         "1/26 agrees in every compared field"
     );
+}
+
+/// run679, item 1552: the lobby's blocks 1272..1528 at the long's detail —
+/// the word 1277's block 1278 with six before it and 250 after.
+pub(crate) const RUN679: &str = "gamelog-run679-eastindies-persian-alltech-window-1272-1528.txt";
+
+/// The window: block 1272 through 1528; the word 1277's own block is 1278.
+pub(crate) const WIDENING_COVERAGE_FRAME_1277: (i64, i64) = (1272, 1528);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run679 walked from run651's start with the recorder on. It holds the
+/// word 1277 (item 1552), block 1278.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run679",
+        &[(RUN679, 1272)],
+        WIDENING_COVERAGE_FRAME_1277,
+        1,
+        &[1278],
+        true,
+    )
+}
+
+#[test]
+fn run679_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(w.firsts.len(), 0, "initial run679 baseline");
 }

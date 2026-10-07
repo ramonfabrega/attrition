@@ -8711,13 +8711,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 983); run672's test keeps the move's value diff on `1/8` from 691.
     // Item 1546 moved it to **1183**, inside run678 (block 1184); run678's
     // test keeps the move's value diff on leader 1's make list on 982 and
-    // `1/2006`'s capital bit.
+    // `1/2006`'s capital bit. Item 1552 moved it to **1277**, past
+    // run678's last block (1233), and took run679 over 1272..1528 (block
+    // 1278); run678's test keeps the move's value diff on `1/26` from 1183.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run678_s_word_frame_is_widened_whole"),
-        1546,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_982),
+        Some("run679_s_word_frame_is_widened_whole"),
+        1552,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1277),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
