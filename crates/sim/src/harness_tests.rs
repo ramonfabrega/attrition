@@ -3878,6 +3878,12 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     make_mobile(&mut sim, unit, movement::Angle::EAST);
     sim.seat_guys(unit);
     sim.units[unit].combat.packed = true;
+    // The siege row at `craftrules.xml`'s 80, so the first `do_cast`
+    // frame is the animation's and not the cast's: with no table the
+    // job time read 0 and the unpack landed at once (item 1608).
+    sim.spells = vec![crate::orders::SpellType::default(); 55];
+    let row = usize::try_from(crate::orders::spell::UNPACK - crate::orders::spell::FIRST).unwrap();
+    sim.spells[row].job_time = 80;
     // The unit's own angle is ahead of the figure's: a turn still owed.
     sim.units[unit].movement.heading = movement::Angle::NORTH;
     assert_ne!(
