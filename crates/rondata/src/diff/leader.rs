@@ -1649,7 +1649,7 @@ mod tests {
     /// 1: fourteen gone and `SITE[1].dist`/`.val` arriving, a site the
     /// slot order moved.
     const PARTS_ON_RUN115: &[(usize, &str)] = &[
-        // Item 1605: the human's census rows agree; the human leader
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
         // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 32 site fields now agree; none added.
         (0, "SITE[0].reg"),
@@ -1662,7 +1662,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "production_step"),
         (0, "scouts"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
@@ -2558,7 +2557,7 @@ mod tests {
     /// it between sweeps, and the sweep counts an unfinished site too
     /// (`docs/AI.md` §2, step 11). None arrived.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
-        // Item 1605: the human's census rows agree; the human leader
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
         // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 40 site fields now agree; none added.
         (0, "SITE[0].reg"),
@@ -2571,7 +2570,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "production_step"),
         (0, "scouts"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
@@ -2720,7 +2718,7 @@ mod tests {
     /// **60 → 59 on item 904** (`docs/AI.md` §78): leader 1's `SITE[4].rank`,
     /// once the rock arm refuses a city site the original never listed.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
-        // Item 1605: the human's census rows agree; the human leader
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
         // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 15 site fields now agree; none added.
         (0, "SITE[0].reg"),
@@ -2733,7 +2731,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "production_step"),
         (0, "scouts"),
         (0, "treaties[1]"),
         (1, "SITE[0].reg"),

@@ -440,7 +440,7 @@ fn run651_s_word_frame_is_widened_whole() {
     // `hits_left` and `hits:myhits` (ours 40, theirs 85), their gather
     // order's `been_there`/`wait` and `idle`, and a move order and its
     // path. The word's own draw delta is §127's.
-    pin_eq!(w.firsts.len(), 43, "initial run651 baseline");
+    pin_eq!(w.firsts.len(), 42, "initial run651 baseline");
 }
 
 /// run656, item 1496: the lobby's first 33 blocks at the long's detail
@@ -482,7 +482,7 @@ fn run656_s_word_frame_is_widened_whole() {
     // 364 before item 1505 (the oil patches): block 9's 275 keys are gone and the
     // 89 left are block 1's (the control's 48 and the SITE list's). 68 since
     // item 1511: the SITE list agrees (`docs/AI.md` §141).
-    pin_eq!(w.firsts.len(), 45, "initial run656 baseline");
+    pin_eq!(w.firsts.len(), 44, "initial run656 baseline");
 }
 
 /// run660, item 1505: the lobby's blocks 171..184 at the long's detail, so
@@ -565,7 +565,7 @@ fn run669_s_word_frame_is_widened_whole() {
     // leader 0's `production_step` on 201 and a blank `SITE` slot's `reg`
     // on 376, nothing else: a busy builder's next build takes its own
     // approach.
-    pin_eq!(w.firsts.len(), 50, "initial run669 baseline");
+    pin_eq!(w.firsts.len(), 49, "initial run669 baseline");
     // **The move's value diff, block 183** (item 1530, `docs/AI.md` §143):
     // the Silo `1/2021` stood at (36480, 41088) in ours against (41088,
     // 37248) and agrees in every field now; the three buildings placed on
@@ -651,7 +651,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`).
-    pin_eq!(w.firsts.len(), 58, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 57, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -692,7 +692,7 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(601),
+        Some(612),
         "the first parting past the standing block"
     );
     pin_eq!(
@@ -785,7 +785,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 72, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 71, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -899,7 +899,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 78, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 77, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -1019,7 +1019,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 139, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 138, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1148,7 +1148,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 131, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 130, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1268,7 +1268,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 163, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 162, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1280,10 +1280,10 @@ fn run714_s_word_frame_is_widened_whole() {
     pin_eq!(
         w.firsts
             .iter()
-            .filter(|((who, _, _), (f, _))| *who == 0 && *f > 2283)
+            .filter(|((who, _, _), (f, _))| *who == 0 && (2284..=2297).contains(f))
             .count(),
         0,
-        "nothing of the human parts past the standing block"
+        "nothing of the human parts past the standing block to the word's"
     );
     pin_eq!(
         w.firsts
@@ -1338,12 +1338,24 @@ fn run715_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    pin_eq!(w.firsts.len(), 0, "initial run715 baseline");
+    // **6302** on item 1605's tree; 122 stand from the window's first
+    // block — the human leader's `control`, `num_units`, `treaties[1]` and
+    // `SITE` `reg`, its units' `death:extra`, Napata's `ever_seen` — and
+    // the first parting past them is **the word 2868's own block 2869**:
+    // `1/74`'s `order:kind` 12 against 14 and `orders.len` 1 against 2,
+    // and `1/94` blocked by `1/74` in the original alone (`collide_o` 74,
+    // `pos` (35091, 36863) against (35112, 36840)) — the item after's
+    // hypothesis, not a cause.
+    pin_eq!(w.firsts.len(), 6302, "initial run715 baseline");
     let first = w
         .firsts
         .values()
         .map(|(f, _)| *f)
         .filter(|f| *f > 2863)
         .min();
-    pin_eq!(first, None, "the first parting past the standing block");
+    pin_eq!(
+        first,
+        Some(2869),
+        "the first parting past the standing block"
+    );
 }

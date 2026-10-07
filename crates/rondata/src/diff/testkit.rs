@@ -6821,6 +6821,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // The coverage pair's run715 (item 1605): four reads in the replay's
+    // diverged tail past the word 2868 — `coverage_pair_first_parting`,
+    // which walks to the word, reads none.
+    ("run715_s_word_frame_is_widened_whole", 4),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the

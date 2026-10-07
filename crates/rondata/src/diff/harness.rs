@@ -10988,7 +10988,7 @@ pub(crate) mod tests {
         // Item 1477: 106 → 104; the census circle walk starts at entry 1 (`docs/AI.md` §122).
         pin_eq!(
             under, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            54,
+            53,
             "the floor under the word"
         );
         let pair: Vec<String> = firsts
@@ -11585,7 +11585,7 @@ pub(crate) mod tests {
         // Item 1461: (112, 118) → (106, 112); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (54, 60),
+            (53, 59),
             "the floor"
         );
     }
@@ -11806,7 +11806,7 @@ pub(crate) mod tests {
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (60, 152),
+            (59, 151),
             "the floor"
         );
     }
@@ -12039,7 +12039,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (152, 2, 154),
+            (151, 2, 153),
             "the floor"
         );
     }
@@ -12193,7 +12193,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -12334,7 +12334,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -12495,7 +12495,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -12660,7 +12660,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -12794,7 +12794,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -12952,7 +12952,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (154, 0, 154),
+            (153, 0, 153),
             "the floor"
         );
     }
@@ -13076,7 +13076,9 @@ pub(crate) mod tests {
             .collect();
         pin_eq!(
             own,
-            [(20_601, 0, -1, 1)],
+            // Item 1605 took the human's `production_step` on 20601
+            // (`docs/AI.md` §169).
+            Vec::<(i64, i64, i64, usize)>::new(),
             "who first parts on 20501..20801, the old word's block, and on how many keys"
         );
         // **The value diff on the old word's block, 20801** (item 899):
@@ -13113,7 +13115,7 @@ pub(crate) mod tests {
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (40, 2, 1, 43),
+            (40, 2, 0, 42),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -13123,7 +13125,7 @@ pub(crate) mod tests {
             // `production_step` (0 here, 1 there) stands on this block and
             // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            43,
+            42,
             "every row standing on the old word's block"
         );
     }
@@ -15640,7 +15642,7 @@ pub(crate) mod tests {
         // 66: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (147, 147, 151).
         // Item 1330 took 30 (139/139/143 → 109/109/112): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (38, 38, 39), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (38, 38, 38), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -15713,10 +15715,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             under,
-            [
-                "11401 0/-1 leader:production_step: ours 0 theirs 1",
-                "11363 1/42 g.angle[0]: ours 1431655765 theirs 0"
-            ],
+            ["11363 1/42 g.angle[0]: ours 1431655765 theirs 0"],
             "the rows under the word and on it"
         );
         let scout: Vec<(i64, usize)> = {
@@ -15880,7 +15879,7 @@ pub(crate) mod tests {
         // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 158, 159).
         // Item 1330 took 31 (140/149/150 → 109/115/116): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (37, 39, 40), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (37, 38, 39), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -15950,7 +15949,9 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             under,
-            ["13601 0/-1 leader:production_step: ours 0 theirs 1",],
+            // Item 1605 took the human's `production_step` on 13601
+            // (`docs/AI.md` §169).
+            Vec::<String>::new(),
             "the rows under the word and on it"
         );
         // **The word's own blocks, every row new on them** (`standing`
@@ -16022,7 +16023,7 @@ pub(crate) mod tests {
         // `1/49`, `1/52` 69 against 68, and `1/53`'s on 13594 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (153, 162, 162).
         // Item 1330 took 40 (153/155/155 → 113/114/114): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (38, 39, 39), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (38, 38, 38), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -16289,7 +16290,7 @@ pub(crate) mod tests {
             .collect();
         pin_eq!(
             past,
-            ["16001 0/-1 leader:production_step: ours 0 theirs 1"],
+            Vec::<String>::new(),
             "every key first parting past the word"
         );
         // **The floor**: 280 keys standing on the window's first block —
@@ -16309,7 +16310,7 @@ pub(crate) mod tests {
         // Item 1115 took the caravan's four rows here ((261, 261, 271) → (257, 257, 267); `docs/CARAVAN.md` §11.3).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (157, 157, 163).
         // Item 1330 took 40 (151/151/156 → 111/111/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (37, 37, 38), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (37, 37, 37), "the floor");
     }
 
     /// **run227 — East Indies' word 16683, widened whole, both directions**
@@ -16393,10 +16394,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             under,
-            [
-                "16401 0/-1 leader:production_step: ours 0 theirs 1",
-                "16681 1/63 form: ours -1 theirs 0"
-            ],
+            ["16681 1/63 form: ours -1 theirs 0"],
             "the rows under the word and on it"
         );
         // **The census, on the window's first block** (the floor's): who=1's
@@ -16510,7 +16508,7 @@ pub(crate) mod tests {
         // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (159, 166, 166).
         // Item 1330 took 41 (153/158/158 → 112/115/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (37, 39, 39), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (37, 38, 38), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -16603,7 +16601,8 @@ pub(crate) mod tests {
         }
         let got: Vec<(String, usize)> = per_unit.into_values().map(|((_, r), n)| (r, n)).collect();
         let want: Vec<(String, usize)> = [
-            ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
+            // Item 1605 took the human's `production_step` on 17001
+            // (`docs/AI.md` §169).
             // who=1's wealth family (`income`, `resources`, `leftover`,
             // `bucket` and `rate` of wealth, 1234 against 1380 from 17184)
             // left with item 839: the British take the territory tax twice
@@ -16781,7 +16780,7 @@ pub(crate) mod tests {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (37, 39, 39, 45),
+            (37, 38, 38, 44),
             "the floor"
         );
     }
@@ -16915,7 +16914,7 @@ pub(crate) mod tests {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (43, 0, 43, 45),
+            (43, 0, 43, 44),
             "the floor"
         );
     }
@@ -17066,7 +17065,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/11` 64 against −1, `1/48`..`1/71` 72
             // against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 275/4/279/285, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 2380 against 2372 on 18177.
-            (38, 0, 38, 39),
+            (38, 0, 38, 38),
             "the floor"
         );
     }
@@ -17214,7 +17213,7 @@ pub(crate) mod tests {
         // readers are who=0's own `plan_strategy` and `production_ai`.
         pin_eq!(
             rows,
-            ["19001 0/-1 leader:production_step: ours 0 theirs 1"],
+            Vec::<String>::new(),
             "the keys first parting under item 837's word"
         );
         // **Item 839's value diff.** who=1's purse and wood on 19176 and
@@ -17319,7 +17318,7 @@ pub(crate) mod tests {
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
             // Item 1106: → 287/1/288/289, who=1's `leftover[2:wealth]` 3588 against 3580 on the first block, the border pass's economy flag (`docs/AI.md` §84).
-            (38, 1, 39, 40),
+            (38, 0, 39, 39),
             "the floor"
         );
     }
@@ -17413,7 +17412,7 @@ pub(crate) mod tests {
         // `5e656b`), and its guard's `retry` reads 8 on block 19607 on both.
         pin_eq!(
             under(WORD_BLOCK + 1, TAIL),
-            ["19601 0/-1 leader:production_step: ours 0 theirs 1"],
+            Vec::<String>::new(),
             "the keys first parting past it"
         );
         // No figure's animation changes on one side only near item 850's
@@ -17469,7 +17468,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
-            (39, 0, 40, 41),
+            (39, 0, 40, 40),
             "the floor"
         );
     }
@@ -17594,7 +17593,7 @@ pub(crate) mod tests {
         // Item 1330 took 46 (162/0/162/167 → 116/0/116/119): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (39, 0, 39, 41),
+            (39, 0, 39, 40),
             "the floor"
         );
     }
@@ -17691,11 +17690,7 @@ pub(crate) mod tests {
             .filter(|(_, (f, _))| *f > WORD_BLOCK)
             .map(row)
             .collect();
-        pin_eq!(
-            past,
-            ["20801 0/-1 leader:production_step: ours 0 theirs 1"],
-            "the runway past the old word"
-        );
+        pin_eq!(past, Vec::<String>::new(), "the runway past the old word");
         let wealth = standing
             .get(&FIRST)
             .and_then(|m| m.get(&(1, -1, "leader:leftover[2:wealth]".to_string())))
@@ -17722,7 +17717,7 @@ pub(crate) mod tests {
         // Item 1330 took 46 (162/0/162/163 → 116/0/116/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (39, 0, 39, 40),
+            (39, 0, 39, 39),
             "the floor"
         );
     }
@@ -17829,11 +17824,7 @@ pub(crate) mod tests {
         // `g.end_time[0]` 58 against 31 → 0 and 31 on both; the draws on
         // 23420 go 7 against 31 → 31 against 31.
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
-        pin_eq!(
-            runway,
-            ["23201 0/-1 leader:production_step: ours 0 theirs 1"],
-            "the runway to the new word"
-        );
+        pin_eq!(runway, Vec::<String>::new(), "the runway to the new word");
         let escrow = standing
             .get(&WORD_BLOCK)
             .map(|m| {
@@ -17863,7 +17854,7 @@ pub(crate) mod tests {
         // Item 1330 took 46 (161/0/161/163/165 → 115/0/115/116/118): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, on_new, firsts.len()),
-            (38, 0, 38, 38, 39),
+            (38, 0, 38, 38, 38),
             "the floor"
         );
     }
@@ -18381,12 +18372,12 @@ pub(crate) mod tests {
         // 18511.
         pin_eq!(
             rows,
-            [
-                // Item 1106 closed `bucket[2:wealth]` 108 against 107 on
-                // 18511 (and `leftover[2:wealth]` on 18428): the border
-                // pass's economy flag (`docs/AI.md` §84).
-                "18601 0/-1 leader:production_step: ours 0 theirs 1",
-            ],
+            // Item 1106 closed `bucket[2:wealth]` 108 against 107 on
+            // 18511 (and `leftover[2:wealth]` on 18428): the border
+            // pass's economy flag (`docs/AI.md` §84). Item 1605 closed
+            // the human's `production_step` on 18601: the human's sweep
+            // arms the machine and `production_ai` disarms it (§169).
+            Vec::<String>::new(),
             "the keys first parting past the window's first block"
         );
         // **R2 and R3** (the stanza's): the original's group 71 reads
@@ -18418,7 +18409,7 @@ pub(crate) mod tests {
             // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
             // (`docs/GROUPS.md` §29).
             // Item 1106: → 284/1/283/285, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` on 18428 and `bucket[2:wealth]` on 18511.
-            (38, 1, 38, 39),
+            (38, 0, 38, 38),
             "the floor"
         );
     }
@@ -18565,7 +18556,7 @@ pub(crate) mod tests {
         // Item 1291 took (148, 151, 153) → (148, 150, 152): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 150, 152).
         // Item 1330 took 29 (141/143/144 → 112/114/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (41, 41, 42), "the floor");
+        pin_eq!((first, under, firsts.len()), (41, 41, 41), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -18715,7 +18706,7 @@ pub(crate) mod tests {
         // Item 1291 took (148, 148, 152) → (148, 148, 151): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 148, 151).
         // Item 1330 took 29 (142/142/144 → 113/113/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (41, 41, 42), "the floor");
+        pin_eq!((first, under, firsts.len()), (41, 41, 41), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -19415,7 +19406,7 @@ pub(crate) mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (127, 147, 155).
         // Item 1330 took 26 (127/142/147 → 101/114/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1407 took one (101/114/117 → 101/113/116): a boat's embark flag (`docs/AI.md` §105).
-        pin_eq!((first, under, firsts.len()), (37, 41, 42), "the floor");
+        pin_eq!((first, under, firsts.len()), (37, 40, 41), "the floor");
     }
 
     #[test]

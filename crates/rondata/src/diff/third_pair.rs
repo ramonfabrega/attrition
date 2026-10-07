@@ -784,7 +784,7 @@ fn run634_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 57, "initial run634 baseline");
+    pin_eq!(w.firsts.len(), 56, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -842,7 +842,7 @@ fn run629_s_word_frame_is_widened_whole() {
     // Item 1457: 197 → 193; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 193 → 97; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 1461: 97 → 90; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 31, "initial run629 baseline");
+    pin_eq!(w.firsts.len(), 30, "initial run629 baseline");
 }
 
 /// run630: the muster before the word 10802 (item 1457).

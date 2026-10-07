@@ -15794,4 +15794,32 @@ SHA-256 `94c6d2af009325a9c83b589e988e7bad1554cf5e517d37da74a22eef9a47e5f1`.
 **What it holds**: `diff::coverage_pair::run714_s_word_frame_is_widened_whole` — 2,949 keys on item 1598's tree merged
 with the race's 1565 chain (3,015 on its own base), 181 standing on block 2283; the first parting past it is on the word's block 2289, `1/83`'s `collide` 0 against 1 (`collide_o`
 91). It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run711's,
-and the coverage driver reads its block 2289. `docs/AI.md` §166.
+and the coverage driver reads its block 2289. `docs/AI.md` §166. **Item 1602**: 1,986 keys, the word 2296's block 2297.
+**Item 1605**: 163 keys, the human's census rows agreeing from 2283; `coverage_frame_2288_window` since run715 took the
+word.
+
+## run715 — the coverage pair: East Indies, Persians, All Technologies, blocks 2863..3119 at the long's detail (2026-10-07, item 1605)
+
+**Disk gap**: run714 ends at block 2539 and run652 holds the draw stream; nothing dumped this lobby's records at the word's
+frame, 2868 (ours 17 game draws against 18, index 7: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823`), whose block is 2869. run714's recipe with the window moved, through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 3128 --timeout 3600 --log-window 2863 3120 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take: receipt `success:
+true`, `settings_restored: true`, exit 0, launched 10:42:26, launch-to-exit 1,217 s, 3,129 frames, seed 12345 and map 18
+verified; output `~/ron-data/lab-captures/2026-10-07-run715`. Blocks `2863`..`3119` whole and a `3129` closing block (258
+`BEGIN FRAME`s). `rngcmp.py rontrace-run652.log rontrace-run715.log`: **3,129 frames in common, 0 differing**. `MAP_STYLE
+18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7` read back. Copied from the output directory to the archive names below.
+
+Archive `gamelog-run715-eastindies-persian-alltech-window-2863-3119.txt`, 595,066,056 bytes,
+SHA-256 `e0cc42e13bf68e3e8dd2aefe28c60658d1812b6a7b161b45498faeafd4b56f2d`.
+
+Archive `rontrace-run715.log`, 135,700,160 bytes,
+SHA-256 `40a9569e2538b1ec0361a8d5a4e66f4d50b2e1b06f2a12ae0bad5d15e8499372`.
+
+**What it holds**: `diff::coverage_pair::run715_s_word_frame_is_widened_whole` — 6,302 keys on item 1605's tree, 122 standing on block
+2863; the first parting past it is on the word's block 2869, `1/74`'s `order:kind` 12 against 14 and `1/94` blocked by
+`1/74` in the original alone. It is the coverage pair's
+`AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run714's, and the coverage driver reads its
+block 2869. `docs/AI.md` §169.
+
