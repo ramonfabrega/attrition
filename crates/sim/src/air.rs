@@ -29,6 +29,9 @@ use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 /// The coin the bird throws when its next step would leave the world:
 /// `Random::get(0, 0xffff)`, whose low bit alone picks the way it turns.
 pub const SITE_AIR_TURN: &str = "Unit::do_air_physics+0x639";
+/// The silo arm's roll for a conventional missile at a city not under
+/// attack (`Random::get(0, 0xffff)` returning to `00650083`, then `% 10`).
+pub const SITE_SILO_ROLL: &str = "Object::do_launch+0xcd3";
 
 /// **A non-bomber plane's altitude redraw** — `Random::get(0, 0xffff)` at
 /// `Unit::do_air_physics+0xba` (`0x5e878a`) on every frame `(o + frame) &
@@ -1383,6 +1386,9 @@ impl Sim {
             return;
         }
         if self.building_ident(b) == crate::build::Ident::MissileSilo {
+            if (self.frame + id) % 128 == 0 {
+                self.silo_strike(b);
+            }
             return;
         }
         let base = self.buildings[b].pos;
@@ -1439,6 +1445,124 @@ impl Sim {
             }
             self.add_air_patrol_order(u, at, Some(b), false);
         }
+    }
+
+    /// **The silo's arm of the computer's sortie** (`Object::do_launch
+    /// @0064f3b0`, `64fdcd`..`6508a7`, item 1579): on the base's 32-frame
+    /// turn when also `(frame + o) & 0x7f == 0`, a Missile Silo holding
+    /// anything (`num_inside(1)`) picks a target for the missile at the
+    /// head of its inside chain and lays an air strike on it:
+    ///
+    /// ```text
+    /// nuke = is(head, NUCLEARMISSILE); a nuke at get_armageddon() − 2 or
+    ///   more nukes landed stops (the counter is not carried; SEAM)
+    /// reach = mana(head) · get_speed(head at its point, 1)
+    /// over the leaders L in use, is_enemy(owner, L), not holding
+    ///   MISSILE_DEFENSE_BONUS:
+    ///   L's live cities whose building's ever_seen (+0x62) is not 0:
+    ///     a nuke: skipped if any object of the owner's side stands within
+    ///       0x1800 (find, SEARCH_FRIENDLY, FILTER_ALL); the value is
+    ///       num_buildings(city) · (hits_left + 1000)
+    ///     else: skipped below 500 hits_left; damage + 1000, and a city not
+    ///       under attack (city_flags & 2 clear) rolls rnd % 10 — not 0
+    ///       skips, 0 divides the value by 50
+    ///   d = vector_dist(building − silo) ≤ reach: value / (d/0x1200 + 1),
+    ///   kept when strictly greater
+    /// a target: add_air_attack_ground_order(head, the building's point,
+    ///   −1, −1, QUEUE_NEW, action 1)
+    /// ```
+    ///
+    /// The `ever_seen` test is the byte against 0 (`64ff58`); the `1 << who`
+    /// beside it (`64ff6d`) is never 0. Run676's silo `1/2017` takes its
+    /// turn on 1951 (`1951 + 2017 = 31 · 128`), orders its ICBM `1/96` at
+    /// the human's Napata (6240, 30048) — the order run693 prints on 1979 —
+    /// and the silo's countdown launches it on 1982 (`Build::do_missile_
+    /// launch` in run676's trace; `docs/AI.md` §160).
+    ///
+    /// SEAM: the forts' and wonders' loops (`650148`..`65052c`) and the
+    /// non-nuke arm's loop over L's units, for which this crate keeps no
+    /// list; the Armageddon counter (`Game +0x6e0`); the friendly search's
+    /// own cell walk, read as every live object of the owner or an ally
+    /// within `0x1800`.
+    fn silo_strike(&mut self, b: usize) {
+        let owner = self.buildings[b].owner;
+        let Some(&head) = self.buildings[b].garrison.first() else {
+            return;
+        };
+        if !self.units[head].alive() {
+            return;
+        }
+        let nuke = self.air_line_is(head, crate::airbase::NUCLEARMISSILE);
+        let reach = self.unit_mana(head) * self.get_speed(head, 1);
+        let silo = self.buildings[b].pos;
+        let mut best = -1;
+        let mut target: Option<usize> = None;
+        for l in 0..self.players.len() as crate::Player {
+            if self.defeated[l as usize] || !self.is_enemy(owner, l) || self.missile_defense_held(l)
+            {
+                continue;
+            }
+            for c in 0..self.cities.len() {
+                let city = &self.cities[c];
+                if city.owner != l || !city.alive {
+                    continue;
+                }
+                let cb = city.building;
+                let attacked = city.no_heal;
+                if self.buildings[cb].ever_seen == 0 {
+                    continue;
+                }
+                let at = self.buildings[cb].pos;
+                let hits_left = self.buildings[cb].health.max(0);
+                let mut v = if nuke {
+                    if self.friendly_object_within(owner, at, 0x1800) {
+                        continue;
+                    }
+                    self.num_buildings(c) * (hits_left + 1000)
+                } else {
+                    if hits_left < 500 {
+                        continue;
+                    }
+                    let bd = &self.buildings[cb];
+                    let mut v = (bd.hits - bd.health) + 1000;
+                    if !attacked {
+                        self.mark(SITE_SILO_ROLL);
+                        if self.rng.roll() % 10 != 0 {
+                            continue;
+                        }
+                        v /= 50;
+                    }
+                    v
+                };
+                let d = vector_dist(at.x - silo.x, at.y - silo.y);
+                if d > reach {
+                    continue;
+                }
+                v /= d / 0x1200 + 1;
+                if best < v {
+                    best = v;
+                    target = Some(cb);
+                }
+            }
+        }
+        let Some(t) = target else {
+            return;
+        };
+        let at = self.buildings[t].pos;
+        self.add_air_attack_ground_order(head, at, None, crate::orders::QueuePos::New, true);
+    }
+
+    /// `ObjectsData::find(x, y, SEARCH_FRIENDLY, who, range, FILTER_ALL)`
+    /// answering "any": a live object of `who` or an ally of `who`'s
+    /// within `range` by `vector_dist`, gaia excluded.
+    fn friendly_object_within(&self, who: crate::Player, at: Pos, range: i32) -> bool {
+        let near = |p: Pos| vector_dist(p.x - at.x, p.y - at.y) <= range;
+        self.units.iter().any(|u| {
+            u.alive() && u.on_map && !u.is_gaia() && self.is_ally(who, u.owner) && near(u.pos)
+        }) || self
+            .buildings
+            .iter()
+            .any(|bd| bd.alive && bd.owner < 8 && self.is_ally(who, bd.owner) && near(bd.pos))
     }
 
     /// `LeaderData::is_peace@006e1200`: two players, a treaty each way,
@@ -2442,6 +2566,116 @@ mod launch_tests {
         s.go_inside(u, base);
         s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
         u
+    }
+
+    /// **A computer's silo strikes the human's seen city on its 128-frame
+    /// turn** (`Object::do_launch`'s silo arm, item 1579, `docs/AI.md`
+    /// §160): the nuke at the head of the silo's chain takes an air
+    /// strike on the city's building; a city with an object of the silo's
+    /// side within `0x1800` is passed over, and so is every frame off the
+    /// turn. run676's silo `1/2017` orders its ICBM at Napata on 1951.
+    ///
+    /// Made to fail once with the arm removed (the silo returning at once).
+    #[test]
+    fn a_computer_s_silo_strikes_the_human_s_seen_city_on_its_turn() {
+        let setup = |friend_near: bool| -> (Sim, usize, usize, Pos) {
+            let mut s = sim();
+            let silo_t = s.add_build_type(crate::build::BuildType {
+                ident: crate::build::Ident::MissileSilo,
+                ..crate::build::BuildType::default()
+            });
+            let silo = s.add_building(1, Pos::new(43392, 19584), 0);
+            s.buildings[silo].ty = Some(silo_t);
+            s.buildings[silo].active = true;
+            let napata = Pos::new(6240, 30048);
+            let cb = s.add_building(0, napata, 0);
+            s.buildings[cb].started = true;
+            s.buildings[cb].active = true;
+            s.buildings[cb].health = 1000;
+            s.buildings[cb].ever_seen = 1;
+            s.cities.push(crate::city::City {
+                alive: true,
+                owner: 0,
+                race: Some(0),
+                founder: 0,
+                building: cb,
+                members: Vec::new(),
+                reg: None,
+                pos: napata,
+                capital: true,
+                founding_capital: true,
+                was_founding_capital: false,
+                unassimilated: false,
+                no_heal: false,
+                attacking: false,
+                ever_attacked: false,
+                alarm: false,
+                no_muster: false,
+                was_capital: 0,
+                capture_stamp: 0,
+                assimilation_timer: 0,
+                attack_stamp: 0,
+                reduce_stamp: 0,
+                capture_strength: 0,
+                pop: 0,
+                has_citizen: false,
+                source: None,
+                trade_val: 0,
+                traded_with: [0; 8],
+            });
+            let t = UnitType {
+                hits: 100,
+                moves: 75,
+                mana: 2000,
+                kind: crate::attrition::UnitKind {
+                    domain: Domain::Air,
+                    ..crate::attrition::UnitKind::default()
+                },
+                combat: combat::Profile {
+                    domain: Domain::Air,
+                    ..combat::Profile::default()
+                },
+                ..UnitType::default()
+            };
+            let ty = s.add_unit_type(t);
+            s.unit_types[ty].tree = Some(super::super::airbase::NUCLEARMISSILE);
+            let index = i16::try_from(s.units.len()).unwrap();
+            let mut u = Unit::new(1, index, Pos::new(43416, 19608), 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let nuke = s.add_unit(u);
+            s.units[nuke].kind = s.unit_types[ty].kind;
+            s.units[nuke].movement.speed = 75;
+            s.go_inside(nuke, silo);
+            if friend_near {
+                let index = i16::try_from(s.units.len()).unwrap();
+                let mut f = Unit::new(1, index, Pos::new(6240 + 0x600, 30048), 100);
+                f.on_map = true;
+                s.add_unit(f);
+            }
+            // The silo's turn: `(frame + o) % 128 == 0`.
+            let o = i64::from(s.buildings[silo].index);
+            s.frame = 1951 + (128 - (1951 + o).rem_euclid(128)) % 128;
+            (s, silo, nuke, napata)
+        };
+        let (mut s, silo, nuke, napata) = setup(false);
+        s.frame += 32;
+        s.computer_sortie(silo);
+        assert!(s.units[nuke].orders.is_empty(), "off the silo's turn");
+        s.frame -= 32;
+        s.computer_sortie(silo);
+        let o = s.units[nuke].orders.front().expect("a strike");
+        match o.body {
+            Body::AirAttackGround(g) => assert_eq!(g.at, napata),
+            ref b => panic!("{b:?}"),
+        }
+        assert!(o.flags & flag::ACTION != 0, "with the action bit");
+        let (mut s, silo, nuke, _) = setup(true);
+        s.computer_sortie(silo);
+        assert!(
+            s.units[nuke].orders.is_empty(),
+            "an own unit beside the city spares it"
+        );
     }
 
     /// **A base on ground under 0 is aimed at from 0** (item 1009,

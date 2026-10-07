@@ -139,6 +139,16 @@ pub(crate) struct Pair {
     /// home, refused the plan and spent a second grid draw on 1696
     /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
     /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    /// **Item 1579 moved it from 1719 to 1735 (count and sequence)**: a
+    /// computer's Missile Silo, on its 128-frame turn, takes the missile at
+    /// the head of its inside chain and lays an air strike on the enemy
+    /// city it values most (`Object::do_launch`'s silo arm, `docs/AI.md`
+    /// §160), so the Persians' missile `1/42` is ordered on 1570 and
+    /// strikes the human's capital `0/2000` on 1719 as the original's does
+    /// (its `take_damage` draw; block 1720's `build:damage` 1560 and
+    /// `reduce_stamp` 1719 agree). At 1735, ours 6 game draws against 5,
+    /// index 0: ours `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a <
+    /// Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -156,8 +166,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1719,
-    sequence: 1719,
+    count: 1735,
+    sequence: 1735,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -973,7 +983,8 @@ fn run710_s_word_frame_is_widened_whole() {
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
     // Item 1578: 360 → 315 on the tree item 1589 landed, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
-    pin_eq!(w.firsts.len(), 315, "initial run710 baseline");
+    // Item 1579: 315 → 213, the missile `1/42` ordered on 1570 by its silo's arm and its strike on `0/2000` on 1719 agree (`docs/AI.md` §160).
+    pin_eq!(w.firsts.len(), 213, "initial run710 baseline");
     // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
     // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
     // `1/40`) parted first on block 1686 — `path:length` 9 against 17,

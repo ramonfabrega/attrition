@@ -6821,6 +6821,18 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Great Sahara's coverage lobby (item 1579): the Persians' ICBM `1/96`,
+    // ordered at Napata by silo `1/2017`'s arm on 1951 and launched on
+    // 1982, reads the ground under its flight.
+    ("run693_s_word_frame_is_widened_whole", 5),
+    // The coverage pair's lobby has a silo too (item 1579): its missiles,
+    // ordered by the same arm, read the ground under their flights.
+    ("coverage_pair_first_parting", 1),
+    ("run710_s_word_frame_is_widened_whole", 3),
+    (
+        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        5,
+    ),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),

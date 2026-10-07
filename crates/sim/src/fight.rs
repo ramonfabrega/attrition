@@ -319,7 +319,14 @@ impl Sim {
     /// `thesenator_build_armor` before the halving. Not modelled; scan:
     /// a building struck in a capture whose `GUY` blocks hold type 353.
     pub fn armor_of(&self, o: Obj) -> i32 {
-        let armor = self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor;
+        // A gaia or nature owner has no row here; the original's leader
+        // slot for it carries no armour bonus (a nuke's ring strikes the
+        // animals and trees it reaches, item 1579).
+        let bonus = self
+            .mods
+            .get(self.owner_of(o) as usize)
+            .map_or(0, |m| m.armor);
+        let armor = self.profile(o).armor + bonus;
         match o {
             Obj::Building(b) if !self.buildings[b].active => armor / 2,
             _ => armor,

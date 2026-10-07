@@ -71,7 +71,13 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // the sequence 1830 → **1985**, ours 16 draws against 16 at index 4, ours
     // `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
     // the count 1830 → **2048**.
-    count: 2048,
+    //
+    // Item 1579's build (the silo's arm of the computer's sortie: silo
+    // `1/2017` orders its ICBM `1/96` at Napata on 1951 and launches it on
+    // 1982, `docs/AI.md` §160) holds the word at 1985 and brings the count
+    // down to it, 2048 → **1985**: ours 18 draws against 16 at index 6, ours
+    // `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
+    count: 1985,
     sequence: 1985,
 };
 
@@ -668,27 +674,34 @@ fn run693_s_word_frame_is_widened_whole() {
     // first block (the control's set, as run683's), and the rest part
     // from 1980.
     // Item 1578: 1401 → 1328, a coverage-lobby military unit's cached level is 0, so its price takes the floored 1% (`docs/AI.md` §159).
-    pin_eq!(w.firsts.len(), 1328, "initial run693 baseline");
+    // Item 1579: 1328 → 1316, the ICBM `1/96`'s order (1979) and its launch (1982) agree (`docs/AI.md` §160).
+    pin_eq!(w.firsts.len(), 1316, "initial run693 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        122,
+        120,
         "the keys standing on the window's first block"
     );
     // **The word 1985's block 1986** (item 1577's move): ours spends a
-    // `produce_building+0x1805` jitter draw where the original goes on in
-    // `make_stuff+0x63d`. Item 1578's build (the 1%) brought the Persians'
-    // make list to agree until 1984, where the original's leads with an
-    // ICBM (316, val 4000000, escrowed) ours never offers: ours' ICBM `1/96`
-    // was finished on tick 1982 and stands in its silo, where the original
-    // fired its own the same tick (`Build::do_missile_launch` in run676's
-    // trace). **What parts first past the standing block** is city
-    // `1/2018`'s `bordering` on 1980 (ours 0, theirs 3).
+    // `produce_building+0x1805` jitter draw later than the original, ours
+    // 18 draws against 16 since item 1579. Item 1578's build (the 1%) and
+    // item 1579's (the silo's arm: the ICBM `1/96` ordered on 1951 and
+    // launched on 1982 as the original's) bring the Persians' make list to
+    // agree but two rows on 1984: `MAKE[5]` a Peasant (type 50) offer in
+    // ours, val 7210, where the original's slot is empty, and the Spy's
+    // `val` ours 1083333 theirs 1129432 (`check_income`'s `fac` 235 against
+    // 245: the wealth price over income/16 one notch apart). **What parts
+    // first past the standing block** is city `1/2018`'s `bordering` on
+    // 1980 (ours 0, theirs 3).
     pin_eq!(
         w.firsts
-            .get(&(1, -1, "leader:MAKE[1].t".to_string()))
+            .get(&(1, -1, "leader:MAKE[5].t".to_string()))
             .map(|(f, _)| *f),
         Some(1984),
-        "the make list's order parts on block 1984"
+        "the make list's extra Peasant parts on block 1984"
+    );
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 96)),
+        "the ICBM 1/96 agrees in every compared field"
     );
     let first = w
         .firsts
