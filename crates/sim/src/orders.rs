@@ -4835,12 +4835,15 @@ impl Sim {
             if !self.units[u].line_ok {
                 // The straight line is not enough: the pathfinder's job
                 // (§4.4). An unreachable goal with more orders queued kills
-                // this one and the next.
+                // **this one** — ~~and the next~~: `5f8990`–`5f8997` jump to
+                // `5f82a3`, one `kill_current_order(0)` and `return 1`. The
+                // coverage pair's Transport Freighter `1/152`, whose move
+                // ends inland, keeps the guard under it on block 2995 and
+                // hands it ashore with `1/41` (`docs/AI.md` §172).
                 let here = self.units[u].pos;
                 if self.invalid_loc(u, mo.dest.tile(), true, false, false, false, true) != 0
                     && self.units[u].orders.len() > 1
                 {
-                    self.kill_current_order(u);
                     self.kill_current_order(u);
                     return Did::Something;
                 }
