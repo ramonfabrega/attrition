@@ -1508,7 +1508,7 @@ is pre-empted); then `add_build_order(o, who, QUEUE_LAST, action)` (or
 
 Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
 swarm is a **re-entry that halts the group first**; a barge or a carried unit
-has its footprint substituted; the scratch group closes with an
+has its footprint substituted (built: `docs/AI.md` §151); the scratch group closes with an
 `action_move_to`; and the members' spots deconflict **through
 `find_nearby_spot`'s own occupancy test**, not through any geometric
 spreading — which is why two builders never need a formation.

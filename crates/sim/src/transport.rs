@@ -1050,7 +1050,18 @@ impl Sim {
         } else {
             ty::TRANSPORTBARGE
         };
-        let who = self.units[u].owner as usize;
+        self.upgraded_unit_type(self.units[u].owner, base)
+    }
+
+    /// `LeaderData::current_upgrade(TRANSPORTBARGE)` as a unit type: the
+    /// leader's barge, or the base barge where the tree has no upgrade.
+    pub(crate) fn barge_type(&self, who: Player) -> Option<usize> {
+        self.upgraded_unit_type(who, ty::TRANSPORTBARGE)
+    }
+
+    /// `LeaderData::current_upgrade(base)` as an index into the unit types.
+    fn upgraded_unit_type(&self, who: Player, base: TypeId) -> Option<usize> {
+        let who = who as usize;
         // A tree that does not carry the base type — the harness's small
         // fixtures — has no upgrade to offer, and the base is the answer.
         let id = match self.tech.get(who) {
@@ -1910,6 +1921,72 @@ mod tests {
         // `think_civilian_transport` wants.
         assert_eq!(w.num_waterhalf(Cell::new(8, 3)), 0, "not HALFLAND");
         assert_eq!(w.num_waterhalf(Cell::new(7, 3)), 0, "no water tile in it");
+    }
+
+    /// `Group::action_swarm_around@0070fbe0`'s barge arm (`docs/AI.md`
+    /// §151): a citizen swarming an Oil Platform at sea searches the ring as
+    /// the leader's barge once the leader transports civilians, so its
+    /// approach is a point on the water; before that its own (land) type
+    /// finds nothing and the build goes in bare. A water Dock is excepted.
+    #[test]
+    fn a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports() {
+        use crate::orders::{Body, MoveKind};
+        let mut f = fix();
+        barge(&mut f.sim);
+        let platform = f.sim.add_build_type(BuildType {
+            ident: Ident::OilPlatform,
+            x_size: 4,
+            y_size: 4,
+            flags: flags::parse("igbe"),
+            hits: 500,
+            ..BuildType::default()
+        });
+        let water_dock = f.sim.add_build_type(BuildType {
+            ident: Ident::Dock,
+            x_size: 4,
+            y_size: 4,
+            flags: flags::parse("ebn"),
+            hits: 500,
+            ..BuildType::default()
+        });
+        let site = place_dock(&mut f.sim, 1, platform, tile_pos(40, 16));
+        let c = unit(&mut f.sim, 1, f.citizen, tile_pos(20, 16));
+        let ocean = |sim: &Sim, p: Pos| {
+            sim.world.tile_mask(p.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
+        };
+
+        // No transport level: the land ring finds no land, and the build
+        // goes in with no approach in front of it.
+        f.sim.swarm_around(c, site, Body::Build(site), true);
+        assert_eq!(f.sim.units[c].orders.len(), 1);
+        assert!(matches!(f.sim.units[c].orders[0].body, Body::Build(b) if b == site));
+
+        // A finished dock grants the civilian level; the ring is now the
+        // barge's, and its first answer is water.
+        let d = place_dock(&mut f.sim, 1, f.dock, tile_pos(30, 28));
+        f.sim.activate(d, false, true);
+        assert_eq!(f.sim.transport_level(1), TransportType::Civilian);
+        f.sim.clear_orders(c);
+        f.sim.swarm_around(c, site, Body::Build(site), true);
+        assert_eq!(f.sim.units[c].orders.len(), 2);
+        let Body::Move(m) = f.sim.units[c].orders[0].body else {
+            panic!("an approach first: {:?}", f.sim.units[c].orders);
+        };
+        assert_eq!(m.kind, MoveKind::ExploreTo, "a computer's builder explores");
+        assert!(ocean(&f.sim, m.dest), "the approach stands on the water");
+        assert!(matches!(f.sim.units[c].orders[1].body, Body::Build(b) if b == site));
+
+        // The Dock lineage is excepted (`is(DOCK)`): its ring is the
+        // citizen's own, and nothing on it is land.
+        let dock_site = place_dock(&mut f.sim, 1, water_dock, tile_pos(44, 8));
+        f.sim.clear_orders(c);
+        f.sim
+            .swarm_around(c, dock_site, Body::Build(dock_site), true);
+        assert_eq!(
+            f.sim.units[c].orders.len(),
+            1,
+            "no water approach to a dock"
+        );
     }
 
     /// §6.1 and §6.2 end to end: a land unit with the bit that steps onto

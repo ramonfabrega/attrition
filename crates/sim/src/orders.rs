@@ -6831,7 +6831,24 @@ impl Sim {
         }
         let here = self.units[u].pos;
         let angle = find_angle(here.x - bd.pos.x, here.y - bd.pos.y);
-        let spot = self.find_nearby_spot(u, bd.pos, r, 0, -1, angle, Some(b))?;
+        let seeker = match self.swarm_seeker_type(u, b) {
+            Some(t) => Seeker::TypeFor(t, u),
+            None => Seeker::Unit(u),
+        };
+        let sweep = |centre: Pos, min: i32, max: i32, step: i32| {
+            self.spot_sweep(
+                seeker,
+                centre,
+                min,
+                max,
+                step,
+                angle,
+                Some(b),
+                Coll::Pairwise,
+                false,
+            )
+        };
+        let spot = sweep(bd.pos, r, 0, -1)?;
         let facing = find_angle(bd.pos.x - spot.x, bd.pos.y - spot.y);
         if !building {
             return Some((spot, facing));
@@ -6848,11 +6865,36 @@ impl Sim {
             }
         };
         let nudged = Pos::new(nudge(spot.x, bd.pos.x), nudge(spot.y, bd.pos.y));
-        Some((
-            self.find_nearby_spot(u, nudged, 0, 0, 0, angle, Some(b))
-                .unwrap_or(spot),
-            facing,
-        ))
+        Some((sweep(nudged, 0, 0, 0).unwrap_or(spot), facing))
+    }
+
+    /// **The type the swarm ring is searched as** (`Group::action_swarm_around
+    /// @0070fbe0`, `00710238`–`007102cb`): a **water** building
+    /// (`is_wallbuild`, its type's `domain` 1 — the Oil Platform, the Dock
+    /// lineage excepted by `is(DOCK)`) swarmed by a citizen
+    /// (`ObjectData::is_peasant`) of a leader that `can_transport` at
+    /// `TRANSPORT_CIVILIAN` or above is searched as that leader's
+    /// `current_upgrade(TRANSPORTBARGE)` — a sea type, so the ring takes
+    /// water, with the member still the pairwise pair's `not_o`. Anything
+    /// else is searched as the member's own type (`None`). run678's citizen
+    /// `1/26` on 1182, sent to the Oil Platform `1/2031` at sea, walks to
+    /// the ring's first water point in the original and stood in ours
+    /// (`docs/AI.md` §151).
+    ///
+    /// SEAM: the arm after it (`007102d6`–`0071039e`) — a member carrying
+    /// citizens (`count_inside(PEASANTS)`) swarming a **land** building is
+    /// searched as its `inside_down` passenger's type. No member of a
+    /// swarm here carries anyone.
+    fn swarm_seeker_type(&self, u: usize, b: usize) -> Option<usize> {
+        let t = self.buildings[b].ty?;
+        if self.build_types[t].domain() != crate::build::BuildDomain::Water
+            || crate::build::is_dock(&self.build_types, t)
+            || !self.is_peasant(u)
+            || self.transport_level(self.units[u].owner) < crate::transport::TransportType::Civilian
+        {
+            return None;
+        }
+        self.barge_type(self.units[u].owner)
     }
 
     /// `Group::action_swarm_around` for one unit: the approach move in

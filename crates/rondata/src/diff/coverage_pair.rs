@@ -88,6 +88,15 @@ pub(crate) struct Pair {
     /// original does (`docs/AI.md` §149). At 1183, ours 29 game draws
     /// against 28, index 21: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
     /// theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    /// **Item 1552 moved it from 1183 to 1277 (count and sequence)**: a
+    /// citizen swarming a water building is searched as the leader's
+    /// barge once the leader transports civilians (`Group::
+    /// action_swarm_around@0070fbe0`, `00710238`–`007102cb`), so `1/26`,
+    /// sent to the Oil Platform `1/2031` at sea on 1182, takes the ring's
+    /// first water point (42936, 34104) as the original does
+    /// (`docs/AI.md` §151). At 1277, ours 10 game draws against 15,
+    /// index 2: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+    /// `Unit::explore_goody+0x27c`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -105,8 +114,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1183,
-    sequence: 1183,
+    count: 1277,
+    sequence: 1277,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -432,7 +441,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_185: (i64, i64) = (180, 436);
 
 /// run669 walked from run651's start with the recorder on: the newest
 /// pair's word's window from item 1511 to item 1532, which moved the word
-/// to run672's ([`coverage_pair_word_window`]).
+/// to run672's ([`coverage_frame_583_window`]).
 pub(crate) fn coverage_frame_185_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -652,11 +661,11 @@ pub(crate) const RUN678: &str = "gamelog-run678-eastindies-persian-alltech-windo
 /// The window: block 977 through 1233; the word 982's own block is 983.
 pub(crate) const WIDENING_COVERAGE_FRAME_982: (i64, i64) = (977, 1233);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run678 walked from run651's start with the recorder on. It held the
-/// word 982 (item 1544), block 983, and holds the word 1183 (item 1546),
-/// block 1184.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run678 walked from run651's start with the recorder on: the word 982
+/// (item 1544), block 983, and the word 1183 (item 1546), block 1184. It
+/// was the `AI_WORDS` window until item 1552 moved the word past it, to
+/// run679's.
+pub(crate) fn coverage_frame_982_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -673,7 +682,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run678_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_982_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -682,10 +691,10 @@ fn run678_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // **307** on the tree item 1546 landed (1,378 on item 1544's); 98
-    // stand from the window's first block — `1/2006`'s capital bit no
-    // longer among them.
-    pin_eq!(w.firsts.len(), 307, "initial run678 baseline");
+    // **160** on the tree item 1552 landed (307 on item 1546's, 1,378 on
+    // item 1544's); 98 stand from the window's first block — `1/2006`'s
+    // capital bit no longer among them.
+    pin_eq!(w.firsts.len(), 160, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -700,11 +709,7 @@ fn run678_s_word_frame_is_widened_whole() {
     );
     // **What parts first past the standing block**: the citizen `1/24`'s
     // `form` on 979, then the queue prices on 983 a unit under (`1/2022`,
-    // `1/2024`: the bucket residue standing from 977). On **the word's
-    // frame, 1183**, the citizen `1/26` (`TypeIndex` 50, `PEASANTS`) holds
-    // one order (kind 6) at (36478, 34118) against the original's two
-    // (kind 3, (42936, 34104), a path of 8), and on the word's block 1184
-    // it stands at x 36478 against 36502: the word's extra `Guy::move`.
+    // `1/2024`: the bucket residue standing from 977).
     let first = w
         .firsts
         .values()
@@ -720,8 +725,8 @@ fn run678_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(1, -1, "leader:MAKE[3].t".to_string()))
             .map(|(f, _)| *f),
-        Some(1186),
-        "leader 1's make list agrees on 982 and parts on block 1186"
+        None,
+        "leader 1's make list agrees through the window (1186 before item 1552)"
     );
     pin_eq!(
         w.firsts
@@ -730,16 +735,91 @@ fn run678_s_word_frame_is_widened_whole() {
         None,
         "the site 1/2025 stands where the original's does"
     );
+    // **The move's value diff, item 1552** (`docs/AI.md` §151): the word
+    // 1183's citizen `1/26` (`TypeIndex` 50, `PEASANTS`) held one order on
+    // block 1183, the bare `Build` of the Oil Platform `1/2031` (kind 6, at
+    // its own point (36478, 34118)), against the original's two — the
+    // `ExploreTo` to (42936, 34104) with a path of 8, then the build — and
+    // on 1184 stood at x 36478 against 36502. The swarm ring is searched
+    // as the leader's barge, takes the water, and `1/26` agrees in every
+    // compared field through the window's last block.
     pin_eq!(
         w.firsts
-            .get(&(1, 26, "order:kind".to_string()))
-            .map(|(f, _)| *f),
-        Some(1183),
-        "the word's citizen 1/26 holds another order on block 1183"
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 26))
+            .count(),
+        0,
+        "1/26 agrees in every compared field"
     );
+    // **Where the next word starts** (item 1552): the scout `1/0` walks to
+    // (24312, 26616) on both sides through block 1200; on 1201 the
+    // original's is bound for the goody cell (38, 34)'s centre, (29592,
+    // 26520), with a path of 3 — the box it takes on 1277.
     pin_eq!(
-        w.firsts.get(&(1, 26, "pos".to_string())).map(|(f, _)| *f),
-        Some(1184),
-        "and stands elsewhere on the word's block 1184"
+        w.firsts
+            .get(&(1, 0, "orders_x".to_string()))
+            .map(|(f, _)| *f),
+        Some(1201),
+        "the scout 1/0 turns for the goody on block 1201 in the original"
+    );
+}
+
+/// run679, item 1552: the lobby's blocks 1272..1528 at the long's detail —
+/// the word 1277's block 1278 with six before it and 250 after.
+pub(crate) const RUN679: &str = "gamelog-run679-eastindies-persian-alltech-window-1272-1528.txt";
+
+/// The window: block 1272 through 1528; the word 1277's own block is 1278.
+pub(crate) const WIDENING_COVERAGE_FRAME_1277: (i64, i64) = (1272, 1528);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run679 walked from run651's start with the recorder on. It holds the
+/// word 1277 (item 1552), block 1278.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run679",
+        &[(RUN679, 1272)],
+        WIDENING_COVERAGE_FRAME_1277,
+        1,
+        &[1278],
+        true,
+    )
+}
+
+#[test]
+fn run679_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **608** on the tree item 1552 landed; 136 stand from the window's
+    // first block.
+    pin_eq!(w.firsts.len(), 608, "initial run679 baseline");
+    // **The word, 1277** (`docs/AI.md` §151): the original spends five
+    // `Unit::explore_goody+0x27c` draws — the scout `1/0` (`TypeIndex` 77)
+    // stepping into cell (38, 34) — where ours spends none. `1/0` stands
+    // apart from the window's first block: (29065, 27134) in ours against
+    // (29060, 27038), its move bound for (24312, 26616) in ours and the
+    // goody cell's centre (29592, 26520) in the original since frame 1200
+    // (run678's block 1201). The first parting past the standing block is
+    // on the word's own block, `1/28`'s group id.
+    pin_eq!(
+        w.firsts.get(&(1, 0, "pos".to_string())).map(|(f, _)| *f),
+        Some(1272),
+        "the word's scout 1/0 stands apart from the first block"
+    );
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1272)
+        .min();
+    pin_eq!(
+        first,
+        Some(1277),
+        "the first parting past the standing block"
     );
 }
