@@ -17658,7 +17658,54 @@ listing-backed. `capture_city`'s tribe-0x13 close with reason 0 is not modelled.
 **Coverage.** Diff-backed: claims 1–4 and 7, and the oil arm's skip (the word's move). Export- and listing-backed: claim 5's
 reason gate and the conversions' close, claim 6's spiral arm.
 
-## 169. Reserved for item 1605 (the coverage pair's word 2296)
+## 169. The human leader takes the sweep, and the navy scores Napata (2026-10-07, item 1605)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1602 left the coverage pair's word at **frame 2296, ours 51 game draws
+against 52, index 3**: ours `Animal::think_bird+0x82`, theirs `Army::find_target+0x7df`, inside run714 (block 2297), its
+hypothesis leader 1's pool row 70 on 2293. Each claim is *diff-backed* unless marked.
+
+1. **The missing draw is a fourth city score** (run714's trace, `report.py draws 2296`; ours `RON_DEBUG_SITES=2295-2296`):
+   the original spends four `find_target+0x7df` draws (`ARMY.md` §12, one per candidate city) and ours three; the other 48
+   agree draw for draw. The original's whole game draws `find_target` on 2040 (three) and 2296 (four) alone (`report.py
+   when`).
+2. **The army is leader 1's navy, slot 2, and the fourth city is the human's Napata** (a scratch print in `find_target`,
+   reverted): on 2296 the human passes the leader gate (`num_standard` 9 against `7 − 2 × raid` 9; on 2040 it was 6), and
+   Napata, `0/2000`, reaches the navy's coast test with `is_coast` true and `ocean` read from the human's `city_ai`, which
+   ours had never written: 0. The dump prints Napata `ocean 25`. Leader 1's own three cities score in both. On block 2297
+   the original's human has `frame_attacked 2296`, `attacked_by 1`: the navy took Napata.
+3. **`Leaders::strategy_all@006ed430` sweeps every leader with `leader_flags & 3 == 3`** — the human's flags are 7 — and
+   `plan_strategy@006b9620`'s step 16 (the army seeding) alone is gated, `if ((leader_flags & 0xc) != 4)` (`:1642`): a
+   human without computer assist seeds no army. The sweep's end arms the step machine (`:1747`), and
+   `Leader::production_ai@006c1960:15` sends a human straight to its `default`, which writes 0. *Export-backed*; the arm
+   and disarm are diff-backed — the human's `production_step` reads 1 on the block after its phase frame (13601, 17001,
+   18601, 20601, 15401 on four maps) and parted there until this item.
+4. **With the sweep, the human's census agrees on every capture**: Napata's twelve census rows (`ocean`, `land`,
+   `filled`, `dock_tile`, `space`, `ter`, `busy`, `gatherers`, `peasant_dist`) from run58's frame 1 onward, and the human
+   leader's `active`, `ally_mask`, the three team-territory fields, `peasants`, `peasant_high`, `filled_gather_slots`,
+   `gatherers`, `free_peasants`, `attacked`, `wars`, `active_wars` and `active_wars_with` (§43, §45: the human's war census
+   on run115's 8001 agrees).
+
+**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai_drive.rs`): on the human's phase frame the census and
+`compute_sites` (whose own human gate stands), then the machine armed; on the next frame disarmed. Step 16 is gated on a
+human in `Sim::census` (`crates/sim/src/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
+
+**What it moved.** The word **2296 → 2868**, count and sequence: ours 17 game draws against 18, index 7, ours
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, past run714's last
+block; run715 is its window (block 2869, 6,302 keys, 122 standing on 2863). Its first parting past the standing block is on
+2869: `1/74`'s `order:kind` 12 against 14, and `1/94` blocked by `1/74` in the original alone — the item after's
+hypothesis. The value diff, run714: on 2297 the human's `attacked_by` 1 and `frame_attacked` 2296 in both (ours −1 and 0
+before), nothing of the human parting from 2284 to the word's block, Napata's census rows agreeing from 2283; leader 1's
+army marches on Napata in both, and `1/51`'s `path[2].to` on 2297, (1848, 8616) against (2616, 8616), is the first of the
+march to part. run714 1,986 → 163 keys, run711 151 → 131, run651 66 → 43; the human's rows leave every widening on every map
+(ninety-odd counts fell, none rose); no floor and no other word moved.
+
+**Not established.** The research tick between a human's sweeps (`plan_strategy`'s head, every 30 phase-frames) is not
+taken: it reads the make list's head, which only the script fills, and no dump shows a human buying. `check_explore`,
+`compute_score` and `diplomacy` for a human are as for a computer leader (the first a recount, the others unmodelled).
+Computer assist (`leader_flags & 8`) is not modelled: an assisted human would run the machine and seed armies. The human's
+standing rows that remain — `control` and `num_units` (ours count the dead), `treaties[1]`, `SITE[].reg` 65 against 0 and
+Napata's `raid_stamp` — are other writers'.
+
+**Coverage.** Diff-backed: claims 1, 2, 4, the arm and disarm of claim 3. Export-backed: claim 3's step-16 gate — no
+capture holds a human with computer assist, and no walk would hold the gate's removal but the unit test (the mutation
+below).
