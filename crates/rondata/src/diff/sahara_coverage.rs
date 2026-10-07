@@ -289,7 +289,11 @@ fn run680_s_word_frame_is_widened_whole() {
         .map(|(f, _)| *f)
         .filter(|f| *f > 713)
         .min();
-    pin_eq!(first, Some(742), "the first parting past the standing block");
+    pin_eq!(
+        first,
+        Some(742),
+        "the first parting past the standing block"
+    );
     pin_eq!(
         w.firsts
             .get(&(1, -2, "pool:66".to_string()))
