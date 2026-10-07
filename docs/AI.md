@@ -12904,8 +12904,8 @@ run500 737 keys → 149). **The word 9323**: ours 7 draws against 5 at index
 **Not established**: ~~Forced March's speed (`UnitData::speed@0060aae0`,
 `forced_march_speed` through `HeroesData::find_hero`), so who=1's army
 walks 9112..9262 at its own speed here~~ — built by item 1318, §99.15; `cast_ambush`, Rally,
-`use_spies`, `use_scouts`; `general_upgrade` (0; 9368's coin bounds it at
-1).
+`use_spies`, `use_scouts`; ~~`general_upgrade` (0; 9368's coin bounds it at
+1)~~ (§172).
 
 **Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
 `run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
@@ -13046,8 +13046,8 @@ first — **answered by item 1346** (§99.16): the Gunpowder Age with
 Silver, bought by the cheap tick; 9982 → 9999.
 
 **Not established**: Alexander's arm, the Iroquois bonus and the hero
-auras below the march (`Sim::unit_speed`'s `SEAM`); `get_general_upgrade`
-(0); `is(t, 1)` for the patriots, taken as the type.
+auras below the march (`Sim::unit_speed`'s `SEAM`); ~~`get_general_upgrade`
+(0)~~ (§172); `is(t, 1)` for the patriots, taken as the type.
 
 **Coverage.** Diff-backed by the run470 walk (9323) and
 `run517_s_gap_is_widened_whole`; the unit test
@@ -17240,7 +17240,7 @@ Built: `Sim::spy_upgrade_level`, `Sim::is_spy_type` (`supply.rs`), `Sim::unit_hi
 original) — with the knowledge and oil buckets 111 and 104 apart; on **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against 80000, `escrow` 0 against 1, `city` 5 against 1), the next frame the buildings' `city_down`/`city`
 link. Between the Spy's agreement and 2183 the first partings are the raid (`death:extra` of player 0's citizens from 2121, `city:raid_stamp` on 2131, `treaties` on 2102): an infiltrated city, which the next read should date. No mechanism claimed.
 
-**What is not established.** The General's upgrades (rows 89–91, `get_general_upgrade`) are the same shape and not built; the 12 % on `1/2034`'s queue is not read (a unit or a building: `1/2034`'s entry `t`).
+**What is not established.** ~~The General's upgrades (rows 89–91, `get_general_upgrade`) are the same shape and not built~~ — built by item 1614 (§172); the 12 % on `1/2034`'s queue is not read (a unit or a building: `1/2034`'s entry `t`).
 
 **Mutations** (`tools/mutate.py`, all held): the hit points' replacement, the sight term and the speed term, each by `a_spy_climbs_with_the_spy_upgrades` and by `run702_s_word_frame_is_widened_whole`.
 
@@ -17806,10 +17806,81 @@ unpacked crew has no track and stands on guy 0 either way — held by the unit t
 
 **Coverage.** Diff-backed: 1 (the destination, offsets and order on 2205..2207), 2 (the territory table at nine dumped frames, the scout's target). Listing-backed: the Senate arm's flags, the Forbidden City arm.
 
-## 172. Reserved for item 1614 (the coverage pair's word 2969)
+## 172. A General's upgrades, its march's reach, and a dead move that keeps its guard (2026-10-07, item 1614)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1608 left the coverage pair's word at **frame 2969, ours 18 game
+draws against 19, index 0**: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, inside run715 (block 2970), its hypothesis the TOW `1/16` blocked by the citizen `1/9`. Each
+claim is *diff-backed* unless marked.
+
+1. **The missing draw is the TOW `1/16`'s blocked stand** (`TypeIndex` 141, `TOW`), before `1/46`'s guard roll: on
+   block 2970 the original carries `collide 1`, `collide_o 9`, `collide_frame 2969`, `coll` (35374, 37865) and the
+   resolve's snap to (35400, 37944) (the trace's `set_new_location(35400, 37944, 1, 0)` on 2969, then three
+   `astar_path`s). The citizen `1/9` (`TypeIndex` 50, `PEASANTS`) stands at (35350, 37744), unit cell (736, 786).
+2. **The step was longer, not the blocker nearer.** From (35376, 37929) the original proposed (35374, 37865), 64 long,
+   unit cell (736, 788) — Chebyshev 2 from `1/9`, a hit; ours proposed (35375, 37892), 37 long, cell (736, 789), and
+   walked on (`RON_SWEEP=2969:1/16`: soft on `1/96`, no hard hit). `1/16` had stepped 37 and 18 alternately since 2958
+   in both; it steps 65 on 2974 in the original. 65 is Forced March: `max(FORCED_MARCH_SPEED × UNIT_MOVE_SPEED,
+   myspeed) = max(42, 25)`, × 10 / 8 for a computer's `GUARD` action, × 5 / 4 for modern infantry.
+3. **The march was cast in both, and reached `1/16` in the original alone.** The General `1/150` (`TypeIndex` 54,
+   born on 2908) takes `unit_masks & 0x8000` on block 2969 with `mana_burn` 1000 — ours casts on the same frame (`craft
+   1000`). It stands at (35285, 41033), `vector_dist` about 3,150 from `1/16`. `HeroData::get_radius@00739e50` is
+   `GENERAL_RADIUS × (get_general_upgrade + 3) / 2`: 9 tiles (1,728) with no upgrade, **18 (3,456) with three**.
+4. **`LeaderData::get_general_upgrade@006e0830` counts every one of `GENERALS_UPGRADE_1..3` held** (bonus rows
+   89–91; listing `6e0837`–`6e0877`, `has_preq` per row; its `BUY_SELL` arm lies outside the loop's range). This lobby starts with every technology, so it is 3, where this crate had the constant 0. The same count
+   gives the General itself, all four on block 2909 where ours had 109, 8 and 42:
+   - **hits** `+ level² × hits / 2` (`update_hits@0060e930`, `0060ec03`–`0060ec33`): 109 → **599**;
+   - **sight** `+ level × GENERAL_UPGRADE_LOS` (2; `update_los@0060e4d0`, `0060e8a3`–`0060e8db`): 8 → **14**;
+   - **speed** `+ level × speed / 4` (`update_speed@006055c0:135`–`144`): 42 → **73**.
+   It is also the march's length (`cast_march@00671500`, 150 + 3 × 75 frames), the decoys' limit and life
+   (`cast_create_decoy@00674370`, `Unit::process@00610bc0`) and the ambush's — read, carried where this crate carries
+   the spell; *export-backed* for the decoys, whose capture holds no upgrade.
+5. **A marching General keeps a modern-infantry squad from packing** (`do_move@005f7b30`, `5f8326`–`5f8336`:
+   `has_general(this, 0x8000, −1)`, `jns` past the pack). The TOW `1/66`, on its phase on 2974 and sixteen tiles from
+   `1/150`, walks 64 to (34744, 39242) in the original; ours packed (`retry` 3, `attempts` −3) and stood. The SEAM
+   `GROUPS.md` §34.4 named is this.
+6. **`do_move`'s unreachable-goal arm kills one order** (`5f8990`–`5f8997` → `5f82a3`: one `kill_current_order(0)`,
+   `return 1`). §4.4 of `ORDERS.md` had "kill twice", and so did this crate. The Transport Freighter `1/152`
+   (`TypeIndex` 322, `TRANSPORTFREIGHTER`) carrying `1/41` (`TypeIndex` 127) has its move to (35400, 34968) inland; the
+   original keeps the `GUARDORDER` under it on block 2995 (`orders.len` 1, `orders_x/y` its own point) and on 2995
+   lands `1/41` at (33240, 42552) with the guard and a fresh ten-waypoint move, the boat gone on 2996. Ours killed the
+   guard with the move, idled the boat (`Unit::do_idle+0x7d`, the 2995 word's extra draw) and never landed.
+
+**Built.** `Roles::general_upgrade_preq` (loaded from rows 89–91, `rondata::load`) and `Sim::general_upgrade_level`
+(`crates/sim/src/supply.rs`); the `GENERAL_UPGRADE` constant is gone from `cast.rs`, and `hero_radius`, `cast_march`,
+`cast_create_decoy`'s limit and a decoy's life read the leader's level. The hero terms of `Sim::type_speed`
+(`rares.rs`), `Sim::unit_hits` (`cast.rs`) and `Sim::unit_los` (`vision.rs`, with `Tuning::general_upgrade_los`,
+`GENERAL_UPGRADE_LOS` 2). `do_move`'s pack arm asks `Sim::near_marching_hero`, and its unreachable-goal arm kills once
+(`orders.rs`). Unit tests `rares::tests::a_general_climbs_with_the_general_upgrades`,
+`air::infantry_step_tests::a_walking_modern_infantry_packs_on_its_own_phase` (the General case),
+`orders::unreachable_goal_tests::an_unreachable_goal_kills_the_move_and_keeps_the_guard`.
+
+**What it moved.** The word **2969 → 2976 → 2995 → 3142**, count and sequence, one mechanism a step: the upgrades
+(2976: `1/66` stands in ours), the pack (2995: `1/152` idles in ours), the single kill. At **3142, ours 21 game draws
+against 20, index 3**: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` — an attack roll ours spends and the original does not, past run715's last block (3119). run716
+widens it (`run716_s_word_frame_is_widened_whole`, 2,160 keys, 131 standing on 3137): the first parting past the
+standing block is Napata's `reduce_stamp` on 3138 (ours 2383, the original's 3137), and on the word's block 3143 the
+Advanced Battleship `1/59` (`TypeIndex` 350, leader 1's navy) carries an `ATTACKORDER` on Napata in ours (its figure's
+`ox` 2000, `recharging` 40) where the original's carries a move, at (3320, 12634) against (3342, 12584) on 3142 — the
+item after's hypothesis. The value diff, run715: block 2970's `1/16` (above) agrees on both sides, and so do block 2909's `1/150`
+(599, 14, 73), block 2975's `1/66` at (34744, 39242), block 2995's `1/152` with its guard alone and block 2996's `1/41`
+ashore; **no position parts in run715's 257 blocks**. run715 5,842 → **154** keys, 119 standing on 2863. What stands
+past it: births' `form` (−1 against 0, parked 1615's shape), two pushed pools' `held` on 2910 and 2917, Napata's
+`city_flags` and a hit on 2940, three `mirror` bits, `caras` on 2950, the human's `SITE[8].reg` on 2976, and on 3069
+one group's `id` (3068005 against 3074505) across its eighteen members.
+
+**Elsewhere.** Great Sahara's run718 (item 1611's window) gains one key, 737 → 738: `1/131`, born a General in ours
+and an 85-hit-point unit in the original on 2509, now parts on `mylos` (14 against 8) beside its hits and speed; its
+word 2273 holds. No other widening moved.
+
+**Not established.** The General's rally armour (`UnitData::armor@00610160`, `general_rally_armor × (level + 1)`),
+which this crate does not carry at all (`docs/COMBAT.md` §4.2); the ambush, whose cast is not modelled. Who in the
+original reads the General's own `mylos` 14 on these blocks — the fog's — is not diffed beyond the field.
+
+**Coverage.** Diff-backed: 1–3, 4's level, hits, sight, speed and radius, 5 and 6, by `coverage_pair_first_parting`
+and `run715_s_word_frame_is_widened_whole`. Export-backed and held by the unit test alone: 4's decoy terms and the
+march's length (run715's march outlives the window either way).
 
 ## 173. Reserved for item 1620 (Great Sahara's coverage word 2273)
 

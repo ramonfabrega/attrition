@@ -15837,3 +15837,30 @@ SHA-256 `a553afd1a02fbecbc543bed1f6c5d2b89d66eb7bdcd2e1892ca0f2fa2b67a425`.
 
 **What it holds**: `diff::sahara_coverage::run718_s_word_frame_is_widened_whole` — **737** keys parted on item 1611's tree, 66 standing on block 2267; the first parting past it is the Persian units' order lists on 2271 (`1/34`, kind 17 against 16). The word's block 2274 is inside it. The standing set holds the cause by value: the human's `treaties[1]` 3 against 1, Napata's buildings' `ever_seen` 255 against 1, `control` 0 against 14. It is the third map's `AI_WORDS` window (`sahara_coverage_word_window`), walked by the compared pin with run702's (`sahara_coverage_frame_1985_window` since), and the coverage driver reads its block 2274. `docs/AI.md` §171.
 
+
+## run716 — the coverage pair: East Indies, Persians, All Technologies, blocks 3137..3393 at the long's detail (2026-10-07, item 1614, `att-1614`)
+
+**Disk gap**: run715 ends at block 3119 and run652 holds the draw stream; nothing dumped this lobby's records at the
+word's frame, 3142 (ours 21 game draws against 20, index 3: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`), whose block is 3143. run715's recipe with the window moved, through
+`viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 3402 --timeout 3600 --log-window 3137 3394
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take: receipt `success:
+true`, `settings_restored: true`, exit 0, launched 13:38:46, launch-to-exit 2,020 s, 3,403 frames, seed 12345 and map
+18 verified; output `~/ron-data/lab-captures/2026-10-07-run716`. Blocks `3137`..`3393` whole and a `3403` closing
+block (258 `BEGIN FRAME`s). `rngcmp.py rontrace-run652.log rontrace-run716.log`: **3,403 frames in common, 0
+differing**. `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 8` read back. Copied from
+the output directory to the archive names below.
+
+Archive `gamelog-run716-eastindies-persian-alltech-window-3137-3393.txt`, 652,210,877 bytes,
+SHA-256 `63423994e8d15947d3c75dd6200e86c5317e7d8a41f474dd1c6f0bb68ffb33d6`.
+
+Archive `rontrace-run716.log`, 165,746,624 bytes,
+SHA-256 `cf08092a3900085e29aafd8560646ea46c3576a706e3796ae84ae040760893b0`.
+
+**What it holds**: `diff::coverage_pair::run716_s_word_frame_is_widened_whole` — **2,160** keys on item 1614's tree, 131
+standing on block 3137; the first parting past it is Napata's `reduce_stamp` on 3138 (ours 2383, the original's 3137).
+On the word's block 3143 the Advanced Battleship `1/59` (`TypeIndex` 350) attacks Napata in ours and moves in the
+original. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with
+run715's, and the coverage driver reads its block 3143. Fourteen inexact height reads in its window
+(`GROUND_INEXACT`). `docs/AI.md` §172.

@@ -1732,6 +1732,9 @@ pub fn load_tables(
     tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
     tree.roles.spy_upgrade_preq = [bonus_at(92), bonus_at(93), bonus_at(94)];
+    // `GENERALS_UPGRADE_1..3` (`0x305`): the level `get_general_upgrade`
+    // counts — a hero's speed, hits, sight and radius (`docs/AI.md` §172).
+    tree.roles.general_upgrade_preq = [bonus_at(89), bonus_at(90), bonus_at(91)];
     // `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3`, rows 70–72 and
     // 73–75: the construction clock's and the hit points' levels
     // (`docs/AI.md` §121).

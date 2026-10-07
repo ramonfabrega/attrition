@@ -22,8 +22,6 @@ pub(crate) const PEASANTS: i32 = 0x32;
 pub(crate) const MILITIA: i32 = 0x42;
 const MINUTEMAN: i32 = 0x43;
 const PARTISAN: i32 = 0x44;
-/// `LeaderData::get_general_upgrade`, which no staged leader raises.
-const GENERAL_UPGRADE: i32 = 0;
 /// `TypeIndex` rows [`Sim::craft_rate`] asks (`enums/TypeIndex.txt`).
 const GENERAL: crate::tech::TypeId = 0x36;
 const SPY: crate::tech::TypeId = 0x3a;
@@ -196,8 +194,9 @@ impl Sim {
     /// birth block 603, the type's 90 × 150 % (`docs/GOLDEN.md` §54).
     ///
     /// SEAM: the other terms — the American marines, Copper and Bananas,
-    /// the Iroquois, the Dutch, the Spy and General upgrades —
-    /// which no staged nation or holding takes.
+    /// the Iroquois, the Dutch — which no staged nation or holding takes.
+    /// The Spy's upgrades are carried (item 1585), and the General's
+    /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
         let mut hits = self.type_hits(who, rec);
         let t = &self.unit_types[rec];
@@ -206,6 +205,13 @@ impl Sim {
         if self.is_spy_type(rec) {
             let level = self.spy_upgrade_level(who).clamp(0, 3) as usize;
             hits = self.tuning.spy_upgrade_hp[level];
+        }
+        // A hero adds `level² × hits / 2` (`0060ec03`..`0060ec33`): the
+        // coverage pair's General `1/150`, 109 on its type, is 599 with
+        // all three upgrades (`docs/AI.md` §172).
+        if t.cols.flag2(crate::ai_load::uflags2::GENERAL) {
+            let level = self.general_upgrade_level(who);
+            hits += level * level * hits / 2;
         }
         let trader = matches!(t.type_index, 0x3d | 0x3e | 400)
             || t.cols.flag2(crate::ai_load::uflags2::CARAVAN);
@@ -665,13 +671,15 @@ impl Sim {
     /// `0/19`..`0/21`; six `Guy::init_real` draws, and the new figures'
     /// `do_idle` on the same frame.
     ///
-    /// SEAM: `general_upgrade` (0: `get_general_upgrade` counts the three
-    /// `GENERALS_UPGRADE_n` prerequisites, none held here); Porus's and
+    /// `general_upgrade` is the caster's leader's
+    /// [`Sim::general_upgrade_level`] (`docs/AI.md` §172).
+    ///
+    /// SEAM: Porus's and
     /// Kutosov's multiples; the leader's other two counters
     /// (`+0x93c`, `+0x808`); `is_caravan` as the two caravan ids; the sound.
     pub(crate) fn cast_create_decoy(&mut self, g: usize) {
         let who = self.units[g].owner;
-        let limit = (GENERAL_UPGRADE + 2) * 5;
+        let limit = (self.general_upgrade_level(who) + 2) * 5;
         let mut made = self
             .units
             .iter()
@@ -814,7 +822,8 @@ impl Sim {
         // takes every seventh frame on another's ground.
         if self.units[u].decoy {
             self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
-            let life = (GENERAL_UPGRADE + 2) * self.tuning.decoy_time / 2;
+            let life =
+                (self.general_upgrade_level(self.units[u].owner) + 2) * self.tuning.decoy_time / 2;
             if life <= i32::from(self.units[u].mana_burn) {
                 self.close_decoy(u);
             }
@@ -919,7 +928,8 @@ impl Sim {
         let Some(d) = self.spell(crate::orders::spell::FORCED_MARCH) else {
             return;
         };
-        let end = self.frame + i64::from(d.duration + GENERAL_UPGRADE * d.duration_upgrade);
+        let level = self.general_upgrade_level(self.units[g].owner);
+        let end = self.frame + i64::from(d.duration + level * d.duration_upgrade);
         self.units[g].marching = Some(end);
         let who = self.units[g].owner as usize;
         self.forced_march[who] = true;
@@ -956,7 +966,12 @@ impl Sim {
     /// `0x163`, `0x165`) bonus — [`crate::supply::general_radius`] in that
     /// order. run470's Senator `1/80` is type 353, `0x161`: 6 × 3 / 2 + 1.
     ///
-    /// SEAM: `get_general_upgrade` is [`GENERAL_UPGRADE`]; the wonder test
+    /// `get_general_upgrade` is the hero's leader's
+    /// [`Sim::general_upgrade_level`]: with all three held the radius is
+    /// 18 tiles, not 9 — the coverage pair's General `1/150` marches
+    /// `1/16` sixteen tiles off (`docs/AI.md` §172).
+    ///
+    /// SEAM: the wonder test
     /// (`has_wonder(0x211)`) is read as absent — `TERRA_COTTA_RANGE` ships 0;
     /// the patriot tests are `is(t, 1)`, taken as the type itself.
     pub(crate) fn hero_radius(&self, h: usize) -> i32 {
@@ -970,7 +985,7 @@ impl Sim {
         crate::supply::general_radius(
             &self.tuning,
             &crate::supply::General {
-                upgrades: GENERAL_UPGRADE,
+                upgrades: self.general_upgrade_level(self.units[h].owner),
                 parmenio: t == 0x168,
                 wellington: t == 0x170,
                 kutosov: t == 0x176,

@@ -218,6 +218,12 @@ impl Sim {
         if self.is_spy_type(rec) {
             los += self.spy_upgrade_level(unit.owner) * self.tuning.spy_upgrade_los;
         }
+        // A hero sees `GENERAL_UPGRADE_LOS` more per General upgrade
+        // (`0060e8a3`..`0060e8db`): the coverage pair's General `1/150`
+        // prints 14 on its type's 8 (`docs/AI.md` §172).
+        if ty.cols.flag2(uflags2::GENERAL) {
+            los += self.general_upgrade_level(unit.owner) * self.tuning.general_upgrade_los;
+        }
         // The last word: a decoy (`unit_masks & 1`) sees one tile
         // (`0060e84a`; run422's decoys print `mylos 1`).
         if unit.decoy {
