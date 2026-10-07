@@ -2261,6 +2261,9 @@ impl Sim {
             self.ledgers[who as usize].gather_slots[i] -= 1;
         }
         self.give_back_gather_tiles(b);
+        if self.building_is(b, Ident::Farm) {
+            self.close_pasture_animals(b);
+        }
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
