@@ -2415,14 +2415,12 @@ mod tests {
             danger_bad.len()
         );
         // **W's killer fires: the world is the original's where the two
-        // searches look.** Every cell of the map but one agrees, and that
-        // one is (2, 40), sixty cells west, on a bit the searches do not
-        // read (`0x2`).
-        assert_eq!(
-            cell_bad,
-            vec![(2, 40, "(128, 0, 0, 0, 4) v (130, 0, 0, 0, 4)".to_string())],
-            "the cells at 17087"
-        );
+        // searches look.** Every cell of the map agrees. Until item 1602
+        // one did not — (2, 40), sixty cells west, ours `flags` 128 against
+        // 130: bit `0x2`, which `Build::close@00628980:183-187` sets on the
+        // cell under a building that closes (`world::cell::CLOSED`,
+        // `docs/AI.md` §168), and nothing here set.
+        assert_eq!(cell_bad, Vec::new(), "the cells at 17087");
         // Every tile mask that parts parts on `0x4` alone —
         // `Wall::mark_behind_tiles`' residue, which `run72`'s and
         // `run189`'s pins carry the same way — and `invalid_loc` reads the

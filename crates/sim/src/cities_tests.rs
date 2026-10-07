@@ -6779,3 +6779,45 @@ fn an_enhancer_is_seated_in_the_city_it_is_placed_for() {
         );
     }
 }
+
+/// **The spiral passes over a cell a building closed on only while an enemy
+/// is near** (item 1602, `docs/AI.md` §168): `Build::close@00628980:183-187`
+/// sets [`cell::CLOSED`] on the cell under the building, and
+/// `Leader::produce_building`'s spiral (`006e23f0`–`006e2484`), for a
+/// candidate that would win, refuses it when an enemy object stands within
+/// `0xf00` of the cell's centre and otherwise clears the bit and takes it.
+#[test]
+fn a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let place = |sim: &mut Sim| {
+        assert!(sim.produce_building(0, t.granary, b0, Some(c0), false));
+        let g = sim
+            .buildings
+            .iter()
+            .position(|b| b.alive && b.ty == Some(t.granary))
+            .expect("a Granary");
+        sim.buildings[g].pos
+    };
+    let at = place(&mut sim.clone());
+    let c = at.cell();
+    let centre = Pos::new(
+        c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+        c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+    );
+    // A building closes on the cell: an unbuilt one, so nothing else of
+    // the close touches the spiral.
+    let lost = sim.add_building(0, centre, 8);
+    sim.close_building(lost, false);
+    let flagged = |sim: &Sim| sim.world.cell_data(c).flags & cell::CLOSED != 0;
+    assert!(flagged(&sim), "the close flags its cell");
+    let mut near = sim.clone();
+    let enemy = near.add_building(1, Pos::new(centre.x, centre.y + 0xe00), 8);
+    let _ = enemy;
+    near.declare_war(0, 1);
+    assert_ne!(place(&mut near).cell(), c, "an enemy within 0xf00");
+    assert!(flagged(&near), "and the bit stands");
+    assert_eq!(place(&mut sim), at, "no enemy: the cell is the spiral's");
+    assert!(!flagged(&sim), "and the bit is gone");
+}

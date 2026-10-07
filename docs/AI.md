@@ -17602,7 +17602,56 @@ which no capture here has.
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 168. Reserved for item 1602 (the coverage pair's word 2288)
+## 168. A building's close flags its cell for the placement AI, and the word at 2296 (2026-10-07, item 1602)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1598 left the coverage pair's word at **frame 2288, ours 38 game draws
+against 39, index 34**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+Unit::set_anim+0x56 < Unit::move_step+0x823`, inside run714 (block 2289), its hypothesis `1/83`'s move order parting on
+run711's 2183. Each claim is *diff-backed* unless marked.
+
+1. **The extra draw is a blocked stand** (run714's trace, `report.py draws 2288`; ours `RON_DEBUG_SITES=2287-2288`): every
+   other draw of the frame agrees. Block 2289 has the citizen `1/83` (`TypeIndex` 50) at `collide 1`, `collide_o` 91.
+2. **`1/83` builds the other Oil Platform.** run711's widening on 2183: leader 1's `1/2048` (`orig_type` 422,
+   `OILPLATFORM`) stands at (28032, 31104) in ours and (44928, 24192) in the original; on 2186 `1/2049` takes the other
+   site. `1/83`'s move order on 2183 is the approach to its `1/2048`. Both sides' make lists hold the same Oil Well offer
+   (`t 421`, city 0), so the anchor is city 0's centre, cell (51, 52).
+3. **Ours' walk of the patches** (a scratch print in `pick_oil_patch`, §133 claim 2): on 2182 patch A, cell (58, 31),
+   scores 98 and patch B, cell (36, 40), 101, neither refused; ours takes B. It walked them on 1182, 1185, 1382, 1385, 1982,
+   1985, 2182 and 2185; on 1985 it took B.
+4. **The original's site on B was disbanded on 2048.** run711's dump holds `1/2048` at (28032, 31104) from block 1986 and
+   not on 2049: 2048 + 2048 = 4096 = 32 × 128, `Wall::process`'s 128-frame phase (§162). Ours disbands it on the same
+   frame (no key of it parts before 2183).
+5. **`Build::close@00628980:183-187` sets bit `0x2` of the cell under the building** (`WData.flags`, `World +0x134`, the
+   cell `div_3_table[(pos ^ 0x63637) >> 8]` per axis), inside its `flags & 1` block and only when the reason is not 5.
+   `Object::disband@006455c0:181` reaches it as `close(0, −1, 0)` for an unfinished building (vslot `+0x150`, `vtables.txt`)
+   and `Object::die@00647080` with its own reason. Reason 5 is `Cities::capture_city@00733380`'s alone (`:1173`, and `:1114`
+   but for the tribe-0x13 arm); `City::find_buildings@007384c0:222` and `Leader::defeat_by@006d1c80:195` close a converted
+   building's old half with 0. *Export-backed.*
+6. **`Leader::produce_building@006e1400` reads it twice.** The oil arm (§133 claim 2, `:263`, `:296`) skips a flagged
+   patch, clearing the bit when no enemy object is within `0xf00` of the cell's centre; the spiral (`006e23f0`–`006e2484`,
+   read from the listing: the test after `best <= score`, the search at x then y of the centre, the clear at `006e2451`)
+   refuses a flagged cell with an enemy within `0xf00` and otherwise clears the bit and goes on. No other reader in the
+   simulation: the export's other `0x134` readers of `& 2` are map-making and `compute_site_stats`' `+0xd`.
+7. **run240's world on Great Lakes' block 17087** parted on one cell, (2, 40), ours `flags` 128 against 130 — this bit.
+   With the setter it agrees on every cell.
+
+**Built.** `world::cell::CLOSED` (`0x2`); `Sim::mark_closed_cell`, from `close_building` for every reason but 5 and from
+the two conversions (`crates/sim/src/city.rs`); the oil arm names the bit and the spiral's arm is new
+(`crates/sim/src/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
+`cities_tests::a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near`.
+
+**What it moved.** The word **2288 → 2296**, count and sequence: ours 51 game draws against 52, index 3, ours
+`Animal::think_bird+0x82`, theirs `Army::find_target+0x7df`, inside run714 (block 2297). The value diff: `1/83`, `1/2048`
+and `1/2049` agree in every compared field over run711's window, and `1/83` and `1/2048` over run714's (`1/2049` parts
+on 2383). run711 204 → 151 keys; run714 2,949 → 1,986, 181 → 135 standing on 2283, its first parting past that block
+2289 → 2293 (leader 1's pool row 70, the kind run711 parts on 1972..2188); run240's cells 1 → 0. On block 2297 the human
+leader has `attacked_by` 1 and `frame_attacked` 2296 in the original alone, and leader 1's army (`1/49`, `1/51`, `1/59`,
+`1/75`) is ordered toward (2328, 5400) there: the item after's hypothesis, not a cause.
+
+**Not established.** The spiral's next arm (`:609`–`:637`): for a city with `city_flags & 2`, a cell whose 3×3 neighbourhood
+holds an enemy object is refused with the stride set to 3. It is not modelled and no capture is known to reach it. The
+spiral's flag arm has run in no walk that a diff holds (the coverage pair's placements are the oil arm's); it is
+listing-backed. `capture_city`'s tribe-0x13 close with reason 0 is not modelled.
+
+**Coverage.** Diff-backed: claims 1–4 and 7, and the oil arm's skip (the word's move). Export- and listing-backed: claim 5's
+reason gate and the conversions' close, claim 6's spiral arm.
