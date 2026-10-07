@@ -1532,6 +1532,9 @@ impl Sim {
         //
         // [`turn_speed`]: crate::movement::turn_speed
         let body = self.units[r].movement.body;
+        // Guy 0's retained point: where the passenger stood when it went
+        // aboard, which `coll_come_out` paints and moves away from.
+        let retained = body.pos;
         self.units[r].movement = crate::Movement {
             speed: self.units[r].movement.speed,
             turning: self.units[r].movement.turning,
@@ -1544,7 +1547,7 @@ impl Sim {
             ..crate::Movement::at(at)
         };
         self.units[r].on_map = true;
-        self.coll_add(r);
+        self.coll_come_out(r, retained);
         self.chain_add(r);
     }
 
