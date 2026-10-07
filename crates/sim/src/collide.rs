@@ -337,7 +337,7 @@ impl CollGrid {
             .is_some_and(|i| self.bits[i / 64] & (1u64 << (i % 64)) != 0)
     }
 
-    fn set(&mut self, x: i32, y: i32, on: bool) {
+    pub(crate) fn set(&mut self, x: i32, y: i32, on: bool) {
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);
@@ -696,6 +696,30 @@ impl Sim {
         let at = self.units[u].pos;
         self.coll_paint(u, at, true);
         self.units[u].coll_at = Some(at);
+    }
+
+    /// **A unit coming out of something, on the occupancy index**
+    /// (`docs/COLLISION.md` §25): `Unit::come_out@00617c10:514`'s
+    /// `Object::remove_from_inside@006480f0` ends in `add_to_world`, which
+    /// paints the disc at guy 0's **retained** point — where the figure
+    /// stood when it went in, since nothing moves it while it is inside —
+    /// and only then does `:518`'s `set_new_location(·, ·, 1, 1)` reach
+    /// `Guy::set_new_location@005d86f0`'s `CollCheck::move_unit(old,
+    /// spot)`. So the old footprint is painted and cleared again everywhere
+    /// farther than `coll_size` from the spot — **taking with it any bit
+    /// another unit had painted there since**, because the bits are not
+    /// refcounted (§2) — and the spot's disc is set. East Indies' AI
+    /// passenger `1/12`, put ashore on tick 1113 far from the point it
+    /// boarded from on 1008, clears unit cell (890, 771) of Freighter
+    /// `1/27`'s birth disc in run713's watch; this crate left it set.
+    pub(crate) fn coll_come_out(&mut self, u: usize, from: Pos) {
+        if !(self.units[u].alive() && self.units[u].on_map) {
+            return;
+        }
+        let to = self.units[u].pos;
+        self.coll_paint(u, from, true);
+        self.coll_move(u, from, to);
+        self.units[u].coll_at = Some(to);
     }
 
     /// A reused unit slot retains guy 0's old point. `Unit::init` seats
