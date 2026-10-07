@@ -3770,6 +3770,25 @@ pinned count moves at once) is the pass's to decide. **The twenty-fourth pass ru
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
+(1573) **The lane gate's skip list is a measurement that ages** (1571's
+Loop line, 2026-10-07): `tools/release_gate.py --lane` skips the tests
+`docs/audit/2026-10-06-suite-timings.txt` times over a second, and
+every landing adds a widening that file has never timed, so a new slow
+test runs on every lane gate until the file is re-made. The pass's
+own: each steering pass re-times the suite (one test a process,
+`--test-threads 1`, the table's header says how) and commits the new
+file; a guard that fails when the newest widening's test is absent from
+the file would make it a rule. One reach.
+
+(1574) **`waitrun.sh`'s runner list is a list** (1571's Loop line,
+2026-10-07, the fourth miss of its kind): `WAITRUN_RUNNER` names
+`runqueue.sh|unattended_capture.py|startcapture.sh`, and `lane.sh`'s
+wineboot phase was not on it, so the waiter exited 2 on a lane being
+built. Every new launcher has missed it once (656, 1503, 1513, this).
+The pattern wants deriving — every script that sources
+`winelaunch.sh`, read off the tree — or the lane lock's holder, which
+the launch line already stamps. One reach.
+
 (1572) **A lane's own status strands the waiter** (the twenty-sixth
 pass, 2026-10-07, at 1569's landing): `tools/lanewait.py` exits `ENDED
 <lane> blocked` when a row has left `working`, and a lane that wrote
@@ -3910,18 +3929,6 @@ with its own sweep, and merges once. **The user's word on its model**:
 the swarm is tried on both — the same batch of functions swept once by
 Opus 5.5 subagents and once by Sonnet 5.5, scored in functions agreed,
 inputs that parted and USD a function — before either is the rule. **The twenty-fifth pass**: no lane was added — rule 5 removed one on the waiting (77.5 minutes a landing against 50) — so the sweep lane and its two-model trial wait for a tranche whose waiting holds. Stays, the user's trial. **The twenty-sixth pass**: the waiting held — 48.1 minutes a landing against 77.5 — so a lane comes back (DECISIONS 63), and it is the queue's 1497, not the sweep: the queue holds what names a score and the sweep's column (1467) is not on the board yet. The two-model trial stays the user's.
-
-(1467) **The census by layer, with the column it has owed since
-DECISIONS 41** (the pass's own, on banteg's `harvest`, which says "x
-per cent" by exact bytes over its whole executable and by a
-port-relevance layer): `tools/census.py` files every function under
-the class Ghidra's export names; the PDB names 1,251 source paths.
-Build: each function's layer from its source path — simulation, AI,
-engine, interface — and a `backed` column: a logged run's diff reaches
-it (a document's coverage section says so) or a sweep `#[test]` names
-its address. The number on the scoreboard is the simulation layer's
-backed share. The next pass's first build; the sweep lane is what
-moves it. **The twenty-fifth pass**: not built. The census regenerated over the pinned fifty-eight traces: cited 1,235 in 191 classes (from 1,195), entered 7,901 (unmoved: no `cover=1` trace landed), never 142 (from 137), the order family 65 cited of 410 for the fifth tranche. Stays, the next pass's first build. **The twenty-sixth pass**: not built, the third pass to say so. The census regenerated over the fifty-eight pinned traces: cited 1,242 in 191 classes (from 1,235), entered 7,901 (unmoved), never 144 (from 142). Stays; the next pass builds it or strikes it.
 
 (1475) **A pinned "unread" key is a tell for an arm held by nothing**
 (1423's Loop line, 2026-10-05): `think_frame` and a building's `visible`

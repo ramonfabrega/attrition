@@ -12,23 +12,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-06, the twenty-sixth steering pass done (`docs/audit/2026-10-06-fable-pass-26.md`,
-DECISIONS 63): French East Indies **closed at 17,379**; Toughest **closed
-at 15,432**; Great Sahara in the coverage lobby **1582**; the coverage
-pair **1408**. The twenty-seventh tranche counts from the pass's commit.*
+*2026-10-07, the twenty-sixth pass done and the suite work with it
+(`docs/audit/2026-10-06-fable-pass-26.md`, DECISIONS 63): French East
+Indies **closed at 17,379**; Toughest **closed at 15,432**; Great Sahara in
+the coverage lobby **1582**; the coverage pair **1408**.*
 
-- **The suite lane first** (DECISIONS 63, amended with Ramon): landed —
-  the lane gate is `--lane --tests <the word's filters>`, 703 s → 74 s;
-  the click-free lanes are a pool (lanes 1–3, `RON_LANES_MAX=3`, no
-  caller names a lane); 1571 (Opus 5.5) measures the index; then the commander spawns
-  1563 (Opus 5.5) and 1565 as a **five-landing race**, Opus and Sonnet
-  each in its own worktree, run range and prefix, nothing merged between
-  them; 1497 waits. Next run 690, next section §155.
+- **The suite lane landed** (1567–1571): the lane gate is `--lane --tests
+  <filters>` (703 s → 74 s); the click-free lanes are a pool (1–3, no
+  caller names one); the suite 641 s → 611 s. `att-1567` (Opus 5.5) runs
+  1467 next; the commander merges it as any lane.
+- **The twenty-seventh tranche**: 1563 (Opus 5.5) and 1565 as a
+  **five-landing race** (the pass's record, "The race protocol"); 1497
+  waits. Next run 690, next section §155.
 - **The coverage pair is the newest pair** (DECISIONS 62 §3); 1563's
   first row is 1450's: the shared widening takes `ever_seen` (1558's cause).
 - **A lane that lands second takes `ccc update att-<n> --keep-conflicts`**
   on a stub and keeps both; a `--replace` spawn archives the row it stopped.
-- **Fable backlog: 24 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572).
+- **Fable backlog: 25 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,14 +39,14 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: 1571 lands, the pass merges it, writes the race's protocol
-here, then spawns `commander` (Opus 5.5) for the twenty-seventh
-tranche — 1563 on Opus 5.5 and 1565 as the race.**
+**Opener: the twenty-seventh tranche — `commander` (Opus 5.5): spawn
+1563 (Opus 5.5) and 1565 as the race (the pass's record, "The race
+protocol"); merge `att-1567` (1467) as any lane; stop at twenty and spawn `steer`.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The suite lane (1571)
-first; then two word lanes**: the newest pair's (1563) and the third
+In dependency order, headline-nearest first. **The suite lane (1467)
+beside two word lanes**: the newest pair's (1563) and the third
 map's race (1565); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -68,14 +68,14 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     brief, five self-chained landings each, numbers and runs reserved per
     racer, nothing merged until the end; the protocol is the pass's record.
 
-1571. **The suite lane: the index shared** (1569's successor; the pool
-    landed: runs 687 and 688 with no lane named took lanes 1 and 2, lane 3
-    admitted by 689, `lanes.py` reads peak, waits and frames a second):
-    the frame index `capture::indexed` builds on every read is shared in
-    process like the text — weak, by path, length and mtime — because the
-    four Great Lakes widenings (run226, 218, 211, 202; 192 s alone) index
-    the same fourteen captures at ~15 s each; score: those four tests'
-    seconds alone and the suite's, before and after; a sidecar only if a cold run needs it.
+1467. **The suite lane: the census by layer, with the backed column**
+    (parked 1467, the sweep's score; DECISIONS 63 (iv)): `tools/census.py`
+    files each function under its source path's layer — simulation, AI,
+    engine, interface — and a `backed` column: a logged run's diff reaches
+    it (a document's coverage section says so) or a sweep `#[test]` names
+    its address; the scoreboard number is the simulation layer's backed
+    share, pinned, with its line read by the handoff's parser. Score: the
+    number on the board; the sweep lane is booked against it.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
