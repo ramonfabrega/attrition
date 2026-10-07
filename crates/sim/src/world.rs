@@ -349,6 +349,15 @@ pub struct World {
 /// sets them; `0x400` has no name here. `0x800` is **`OIL`**, settled by
 /// `WorldData::is_oil_at@00472af0`, which is that bit and nothing else.
 pub mod cell {
+    /// The bit `Build::close@00628980` sets on the cell under a building's
+    /// position when it closes for any reason but 5, a city's capture
+    /// (`:186`, `or $2`): a building lost — destroyed, disbanded, or the old
+    /// half of a conversion. `Leader::produce_building@006e1400` is its
+    /// only reader in the simulation, and its only clearer: the oil arm
+    /// skips a flagged patch for that pass, the spiral a flagged cell with
+    /// an enemy object within `0xf00` (`docs/AI.md` §168). The PDB names no
+    /// `WData` flag.
+    pub const CLOSED: u16 = 0x2;
     /// `COAST` — a land cell of the shore; the muster search's class 3.
     pub const COAST: u16 = 0x4;
     /// `ROCK` — `WorldData::is_rocks@006b4380`; the land class 6, or 7
