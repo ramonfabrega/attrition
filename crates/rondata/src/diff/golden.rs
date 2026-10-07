@@ -2707,19 +2707,9 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     //   for a group with an id, and this crate's army group takes its
     //   speed later.
     let got: Vec<(&str, i64)> = first.iter().map(|(k, (n, _))| (k.as_str(), *n)).collect();
+    // Item 1605 took the human's twelve `0/2000 city:*` rows: the human
+    // leader takes the sweep (`docs/AI.md` §169).
     let measured = [
-        ("city:busy 0/2000", 605),
-        ("city:filled 0/2000", 605),
-        ("city:gatherers 0/2000", 605),
-        ("city:land 0/2000", 605),
-        ("city:peasant_dist 0/2000", 605),
-        ("city:space[0] 0/2000", 605),
-        ("city:space[1] 0/2000", 605),
-        ("city:space[2] 0/2000", 605),
-        ("city:ter[0] 0/2000", 605),
-        ("city:ter[1] 0/2000", 605),
-        ("city:ter[3] 0/2000", 605),
-        ("city:ter[4] 0/2000", 605),
         ("form 0/0", 605),
         ("form 0/1", 605),
         ("form 0/2", 605),
@@ -5168,8 +5158,10 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 24,
         "the standing rows on run127's first block moved: {at_floor:?}"
     );
     // **Nothing parts under the word's own block.** The trace's frame
@@ -5557,7 +5549,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
     pin_eq!(first_parting, None, "run132's first parting moved");
     pin_eq!(
         firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
-        12,
+        0,
         "the standing rows on run132's first block moved"
     );
 }
@@ -5872,8 +5864,10 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 27,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 25,
         "the standing rows on run133's first block moved: {at_floor:?}"
     );
     // **The bleed agrees, tick for tick, on every block of run133** (item
@@ -6898,7 +6892,8 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         // Item 1330 took ch7c's three staged births' `form` (30 → 27).
         // Item 1477 took the two `1/2000` rows `city:filled` and `city:land` (27 → 25,
         // the census walk starts at entry 1, `docs/AI.md` §122).
-        .zip([(25usize, &[][..] as &[i64]), (25usize, &[][..])])
+        // Item 1605 took the human's census rows (25 → 11, `docs/AI.md` §169).
+        .zip([(11usize, &[][..] as &[i64]), (11usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -6990,8 +6985,10 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch6: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -7049,8 +7046,10 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX_B.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        floor.iter().all(|w| standing(w)) && floor.len() == 11,
         "ch6b: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -7128,8 +7127,10 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_ELEVEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch11: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -7251,8 +7252,10 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWELVE.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch12: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -7316,8 +7319,10 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        floor.iter().all(|w| standing(w)) && floor.len() == 11,
         "ch13: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -7386,8 +7391,10 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_FOURTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        floor.iter().all(|w| standing(w)) && floor.len() == 11,
         "ch14: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -9646,8 +9653,10 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch10: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -9745,8 +9754,10 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_NINE.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch9: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -9833,8 +9844,10 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_EIGHT.0)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        floor.iter().all(|w| standing(w)) && floor.len() == 24,
         "ch8: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
@@ -9926,7 +9939,9 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // Item 1330 took the control's three staged births' `form` (30 →
         // 27, `docs/GROUPS.md` §24.3). Item 1477 took the two `1/2000` rows
         // `city:filled` and `city:land` (27 → 25, `docs/AI.md` §122).
-        let floor = 25;
+        // Item 1605 took the human's census rows (25 → 11, `docs/AI.md`
+        // §169).
+        let floor = 11;
         pin!(
             at_floor
                 .iter()
@@ -10478,8 +10493,10 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 24,
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
     // **What parts first, and what parts on the word's own two blocks**
@@ -11270,8 +11287,10 @@ fn chapter_three_s_restage_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THREE_RESTAGE.0)
         .map(|((_, _, what), _)| what)
         .collect::<Vec<_>>();
+    // Item 1605 took the human's `filled_gather_slots` (and city) rows: the
+    // human leader takes the sweep (`docs/AI.md` §169).
     pin!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 24,
         "the standing rows on run146's first block moved: {at_floor:?}"
     );
     // **What parts first, and on the word's own two blocks** (item 595;
@@ -13119,23 +13138,9 @@ fn chapter_forty_nine_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH49: &[&str] = &[
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -13289,23 +13294,9 @@ const WANT_CH51: &[&str] = &[
     // §131.4); these rows agree and leave: 698 0/7 order:target, 847 0/9
     // order:target, 848 0/8 order:target.
     "1054 0/7 death:extra",
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -13342,23 +13333,9 @@ const WANT_CH50: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 700 0/7 order:target, 832 0/9
     // order:target, 833 0/8 order:target.
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -13608,26 +13585,12 @@ fn chapter_forty_five_s_word_frame_is_widened_whole() {
 /// the Dye's pay from 769 (`income[2:wealth]` 320 against 400,
 /// `resources[3:knowledge]` 160 against 240).
 const WANT_CH45: &[&str] = &[
-    "600 0/-1 leader:filled_gather_slots[0:food]",
-    "600 0/-1 leader:filled_gather_slots[1:timber]",
     "600 0/0 form",
     "600 0/1 form",
     "600 0/2 form",
     "600 0/3 form",
     "600 0/4 form",
     "600 0/5 form",
-    "600 0/2000 city:busy",
-    "600 0/2000 city:filled",
-    "600 0/2000 city:gatherers",
-    "600 0/2000 city:land",
-    "600 0/2000 city:peasant_dist",
-    "600 0/2000 city:space[0]",
-    "600 0/2000 city:space[1]",
-    "600 0/2000 city:space[2]",
-    "600 0/2000 city:ter[0]",
-    "600 0/2000 city:ter[1]",
-    "600 0/2000 city:ter[3]",
-    "600 0/2000 city:ter[4]",
     "600 1/1 form",
     "600 1/2 form",
     "600 1/3 form",
@@ -13649,23 +13612,9 @@ const WANT_CH44: &[&str] = &[
     // Item 1502: an attack's `order:target` on a building the start dump did
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 611 1/6 order:target.
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -13741,23 +13690,9 @@ fn chapter_forty_six_s_word_frame_is_widened_whole() {
 ///   rows on slot 3 (ours stacked three moves on `0/7`, two on `0/8` and
 ///   one on `0/9`); all agree.
 const WANT_CH46: &[&str] = &[
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -13923,23 +13858,9 @@ const WANT_CH48: &[&str] = &[
     "1482 0/6 ammo[7].ox",
     "1482 0/6 ammo[7].whom",
     "1490 1/2000 city:raid_stamp",
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14001,27 +13922,12 @@ const WANT_CH47: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 682 1/6 order:target, 682 1/7
     // order:target, 682 1/8 order:target.
-    "1001 0/2000 city:free",
     "1021 1/6 order:group.id",
     "1021 1/7 order:group.id",
     "1021 1/8 order:group.id",
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14100,23 +14006,9 @@ fn chapter_forty_three_s_word_frame_is_widened_whole() {
 /// 1488) and with it every row from 1553; and the 1900 line's refusal
 /// (the DLL's refusal 3) every row from 1902.
 const WANT_CH43: &[&str] = &[
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14156,23 +14048,9 @@ const WANT_CH42: &[&str] = &[
     // Item 1502: an attack's `order:target` on a building the start dump did
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 622 0/6 order:target.
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14202,23 +14080,9 @@ const WANT_CH41: &[&str] = &[
     // §131.4); these rows agree and leave: 632 0/6 order:target.
     "1622 0/7 death:extra",
     "1725 0/8 death:extra",
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14301,23 +14165,9 @@ fn chapter_forty_s_word_frame_is_widened_whole() {
 /// block it is not 0 there) and the computer's `1/2000` is one cell off
 /// on `filled` and `land` from the first block.
 const WANT_CH40: &[&str] = &[
-    "605 0/-1 leader:filled_gather_slots[0:food]",
-    "605 0/-1 leader:filled_gather_slots[1:timber]",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
-    "605 0/2000 city:busy",
-    "605 0/2000 city:filled",
-    "605 0/2000 city:gatherers",
-    "605 0/2000 city:land",
-    "605 0/2000 city:peasant_dist",
-    "605 0/2000 city:space[0]",
-    "605 0/2000 city:space[1]",
-    "605 0/2000 city:space[2]",
-    "605 0/2000 city:ter[0]",
-    "605 0/2000 city:ter[1]",
-    "605 0/2000 city:ter[3]",
-    "605 0/2000 city:ter[4]",
     "605 0/3 form",
     "605 0/4 form",
     "605 0/5 form",
@@ -14326,7 +14176,6 @@ const WANT_CH40: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "801 0/2000 city:free",
 ];
 
 /// Chapter forty's pool rows (item 1167): each press's pushed selection's

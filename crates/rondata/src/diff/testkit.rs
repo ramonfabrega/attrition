@@ -6821,6 +6821,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // The coverage pair's run715 (item 1605): four reads in the replay's
+    // diverged tail past the word 2868 — `coverage_pair_first_parting`,
+    // which walks to the word, reads none.
+    ("run715_s_word_frame_is_widened_whole", 4),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the
@@ -8761,12 +8765,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // chain to 2166. Item 1602 moved it to **2296**, inside run714 (block
     // 2297); run711's and run714's tests keep the move's value diff on the
     // Oil Platforms `1/2048`, `1/2049` and their builder `1/83` from 2183.
+    // Item 1605 moved it to **2868**, past run714's last block (2539), and
+    // took run715 over 2863..3119 (block 2869); run714's test keeps the
+    // move's value diff on the human leader and Napata from 2283.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run714_s_word_frame_is_widened_whole"),
-        1602,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2288),
+        Some("run715_s_word_frame_is_widened_whole"),
+        1605,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2868),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

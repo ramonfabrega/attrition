@@ -334,8 +334,12 @@ impl Sim {
         self.census_city_sites(who);
         self.census_wars(who);
         self.census_strategy(who);
-        // Step 16, the army seeding (`docs/ARMY.md` §15).
-        self.census_seed_army(who);
+        // Step 16, the army seeding (`docs/ARMY.md` §15): not for a human
+        // leader without computer assist, `(leader_flags & 0xc) != 4`
+        // (`plan_strategy@006b9620:1642`).
+        if !self.nation[w].human {
+            self.census_seed_army(who);
+        }
     }
 
     /// Step 1. Once the leader holds more than two cities and villages,
@@ -1931,6 +1935,47 @@ mod tests {
         build(&mut f.sim, 1, f.village, 40, 40);
         f.sim.census(1);
         assert_eq!(f.sim.ai[1].census.strategy[r], 8);
+    }
+
+    /// **A human leader takes the sweep, but for its army** (item 1605,
+    /// `docs/AI.md` §169). `Leaders::strategy_all@006ed430` gates on
+    /// `leader_flags & 3 == 3` alone, so the human's city carries the
+    /// circle walk's picture, and `plan_strategy@006b9620:1642` seeds an
+    /// army only for `(leader_flags & 0xc) != 4` — the same city of a
+    /// computer leader takes one.
+    #[test]
+    fn a_human_s_sweep_fills_its_city_and_seeds_no_army() {
+        let mut f = fix();
+        let b = build(&mut f.sim, 0, f.village, 20, 20);
+        let c = f.sim.buildings[b].city.unwrap();
+        f.sim.defeated[1] = true;
+        f.sim.frame = 0;
+        f.sim.strategy_all();
+        assert!(
+            f.sim.ai[0].city_ai.get(c).is_some_and(|r| r.land > 0),
+            "the human's city is swept"
+        );
+        assert_eq!(f.sim.armies[0].valid().count(), 0, "and no army is seeded");
+        assert_eq!(
+            f.sim.ai[0].step,
+            crate::ai::Step::Script,
+            "the sweep arms the machine"
+        );
+        f.sim.frame = 1;
+        f.sim.strategy_all();
+        assert_eq!(
+            f.sim.ai[0].step,
+            crate::ai::Step::Idle,
+            "and `production_ai`'s default disarms it"
+        );
+        f.sim.frame = 0;
+        f.sim.nation[0].human = false;
+        f.sim.strategy_all();
+        assert_eq!(
+            f.sim.armies[0].valid().count(),
+            1,
+            "a computer leader's same city seeds one"
+        );
     }
 
     /// A city's circle walk fills `land`, `filled` and `space`, and
