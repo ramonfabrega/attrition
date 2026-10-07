@@ -657,3 +657,46 @@ is 29 of the 151, and 122 are open** (29 of 225 and 196 open before item
 DECISIONS 29 asks to be accepted function by function, and `NEVER` is
 where each is. **After item 1011: `RESIDUE` is 31 of the 145, and 114
 are open.** **After item 1019: 31 of the 143, and 112 open.**
+
+## The census by layer, and the backed column (2026-10-07, item 1467)
+
+`tools/census.py --layers` files every function of the export under a
+layer by the PDB source path its line record starts in, and marks it
+**backed** when a coverage section's diff-backed span or a sweep test in
+`crates/sim` names it. The rule — the layer table, the span markers, what
+a sweep is — and what it cannot count are the tool's docstring;
+`rondata::census` pins the board's number and `diff::floors` reads the
+handoff's `Census:` line against it.
+
+On 2026-10-07, tree at item 1467's landing:
+
+| layer | functions | backed | by a coverage section | by a sweep |
+|---|---|---|---|---|
+| simulation | 3,611 | **45** | 31 | 14 |
+| AI | 1,661 | 1 | 1 | 0 |
+| engine | 9,375 | 0 | 0 | 0 |
+| interface | 3,303 | 0 | 0 | 0 |
+| unknown | 30,283 | 0 | 0 | 0 |
+
+**The board's number: simulation backed 45 of 3,611 (1.2 %).** The
+denominator is the 17,950 functions with a line record that the rule
+files somewhere, simulation's share of them; 30,282 have no line record
+(`_global`'s thunks, runtime and compiler-generated functions — 28,427
+of `_global`'s 30,146) and one sits at `main\`'s root, and all of those
+are **unknown**, in no layer's denominator.
+
+**What "backed" counted**: 31 simulation functions cited by address, or
+by a whole `Class::method` naming one function, in a span a coverage
+section opens with **Diff-backed**, **Dump-backed**, **Oracle-backed** or
+**Packet-backed** — the walkers (`Guy::move`, `Unit::move_step`,
+`Unit::do_move`), the pathfinder's cost, armies and groups, walls, roads,
+farms' tick; and 14 that a `crates/sim` test running the original under
+the emulator names (`vector_dist`, `get_estimate`, `Nuke::do_damage`,
+`Object::do_launch`, `Build::train`, …). **What it could not**: a
+function a diff reaches that no coverage section names by address or by
+its whole name — most coverage prose names fields and runs, not
+functions, so this is a floor of what the diffs reach, not a measure of
+it; a document's diff claim outside a coverage section; and whether a
+diff checked a function's predicate or only passed through it. The
+traces' `entered` column (7,901) is the other bound: reached by a run,
+compared by nothing named.

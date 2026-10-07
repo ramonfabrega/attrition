@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""census.py — the executable as the denominator.
+r"""census.py — the executable as the denominator.
 
     census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [--pin] [<rontrace.log> ...]
 
@@ -25,6 +25,55 @@ trace entered, grouped by class, largest group first — and a `never` count
 on the total line. It is `report.py`'s `blind` verb grouped, and the
 measurement `rondata::blind`'s guard pins; `docs/CENSUS.md`'s "The blind
 list, ranked" is written from it (item 923).
+
+**`--layers`: the census by layer, with the backed column** (item 1467,
+parked since DECISIONS 41; DECISIONS 63 (iv) makes it the sweep lane's
+score). Every function the export lists is filed under a **layer** by its
+PDB source path — the file its line record starts in, read from
+`llvm-pdbutil dump --l` of `rise.pdb` (section 1's offset 0 is VA
+0x401000) — and marked **backed** or not. Prints one row per layer and
+the board's number, the simulation layer's backed share;
+`--layers --json` prints the same as JSON for `rondata::census`'s pin.
+
+The layer rule, first match wins, on the lower-cased source path:
+
+1. outside `…\main\` (the compiler's runtime, SDK headers), or under a
+   third-party root (`zlib`, `pnglib`, `packages`, `cellsdk`,
+   `steamworks_sdk`, `cpclib`, `crossplaynetlib`, `game\minizip`) →
+   **engine**; so are `main\basic` and `main\bighuge`;
+2. `main\game\script\` (the BHS script VM) and the script API and AI
+   files at `game\` (`LAYER_AI`) → **AI**;
+3. a `game\` file whose stem `INTERFACE` matches (windows, menus,
+   editors, chat, GameSpy, Conquer the World) → **interface**;
+4. a `game\` file whose stem `ENGINE` matches (rendering, sound,
+   platform, network, logging, saving) → **engine**;
+5. any other `game\` file → **simulation**, listed by `--layers` so a
+   misfiled file is visible;
+6. anything else under `main\`, and a function with no line record
+   (28,000-odd of `_global`'s thunks and runtime) → **unknown**, counted
+   and listed, never in a denominator.
+
+A function is **backed** when either:
+
+* **a document's coverage section says a diff reaches it**: inside a
+  `docs/*.md` section whose heading names coverage, a paragraph that opens
+  on a bold marker naming a compare against the original (`**Diff-backed**`,
+  `**Dump-backed**`, `**Oracle-backed**`, `**Packet-backed**`) starts a
+  backed span, one naming a reading, a listing, a unit test or "not"
+  (`**Reading-only**`, `**Listing-backed**`, `**Unit-backed only**`,
+  `**Not established**`) ends it, and every `name@00xxxxxx` cited in the span —
+  or `Class::method` written whole and naming one function of the export —
+  counts; or
+* **a sweep `#[test]` in `crates/sim` names it**: a test whose doc comment
+  or body runs the original under the emulator (`tools/emu/`,
+  `tools/recomp/`, "emulat…") and cites the function the same two ways.
+
+What it cannot count: a function a diff reaches that no coverage section
+cites by address or by its whole name (a bare `find_upath` is not
+resolved), a function a document calls diff-backed outside a coverage
+section, and whether the diff checked the function's predicate rather
+than merely passing through it. It is a floor of what is backed, read
+from what the documents assert.
 """
 import argparse
 import glob
@@ -126,6 +175,233 @@ def pinned_logs(archive=ARCHIVE):
     return logs
 
 
+# **The layer table** (item 1467): the rule is the module docstring's.
+THIRD_PARTY = ("zlib\\", "pnglib\\", "packages\\", "cellsdk\\", "steamworks_sdk\\",
+               "cpclib\\", "crossplaynetlib\\", "game\\minizip\\", "basic\\", "bighuge\\")
+MAIN = "e:\\agent\\_work\\2\\s\\main\\"
+LAYER_AI = {"leaders", "leaderoptions", "scriptfunctions", "scriptfuncinits", "scriptstructs",
+            "scripttimers", "gamescript"}
+INTERFACE = re.compile(
+    r"^(iface|conquest|gamespy|optionswin|mainmenu|tutorial|buddy|chat|steamgroupchat|wnd_|mp_?"
+    r"|trigger|scripteditor|scriptwatch|scriptlog|editorgroup|rivereditor|scenarioeditor"
+    r"|scenariosplash|splashscreen|topmenu|mouseover|popup|pointer|cursors|hotkeygroups|keymap|keys$"
+    r"|console|animnotice|selectgroups|saytimer|taunts|dropcontrol|compass|forms|helpxml|motd|mseula"
+    r"|objectivesdlg|setupwin|presetupwin|colorpick|parameterwindow|gravwindow|aboutbox|messagebox"
+    r"|messagewin|helpbox|statwin|skilltest|credits|replaywin|loadingwin|loadwin|endgamewin"
+    r"|achievewin|gamereportwin|netsearchwin|memwin|sectionprofilewin|workshopwin|terrainwin"
+    r"|publish|downloading|scripteditbox)|(win|box|dlg|window)$")
+ENGINE = re.compile(
+    r"(render|graphic|transformmethod|vshader|particle|skybox|shockwave|smoketrails|spline|sound"
+    r"|jukebox|steam|workshop|leaderboard|achieve|^scene$|^camera$|^light$|^underlay$|^grassclumps$"
+    r"|^terrainout|^tileset$|colors$|^main$|^main_win32$|^gamemain$|^system$|^version$|logger$"
+    r"|^gamelog$|^excepthandler$|^watson$|^http$|^patching$|^netdaemon$|^network_event_notifier$"
+    r"|^connectiondata$|^gamedaemon$|^packagefifo$|^statbridge$|^profanityfilterer$|^playerprofile$"
+    r"|^options$|^istatsandachievements$|elohelper$|^sync(file|dir|display)$|^parsebase$|^macros$"
+    r"|^ordmemmgr$|^save$|^autosave$|^recordgame$|^scenariofile$|^scenariodata$|^checksums$"
+    r"|^gamemod$|^cdkeyhash$)")
+
+
+def layer_of(path):
+    """A lower-cased PDB source path's layer, by the docstring's rule."""
+    if path is None:
+        return "unknown"
+    if not path.startswith(MAIN):
+        return "engine"
+    rel = path[len(MAIN):]
+    if rel.startswith(THIRD_PARTY):
+        return "engine"
+    if rel.startswith("game\\script\\"):
+        return "AI"
+    if not rel.startswith("game\\") or "\\" in rel[len("game\\"):]:
+        return "unknown"
+    stem = rel[len("game\\"):].rsplit(".", 1)[0]
+    if stem in LAYER_AI:
+        return "AI"
+    if INTERFACE.search(stem):
+        return "interface"
+    if ENGINE.search(stem):
+        return "engine"
+    return "simulation"
+
+
+PDBUTIL = ("llvm-pdbutil", "/opt/homebrew/opt/llvm/bin/llvm-pdbutil")
+LINE_FILE = re.compile(r"^([a-zA-Z]:\\.*?) \(MD5")
+LINE_RANGE = re.compile(r"^\s+0001:([0-9A-F]{8})-([0-9A-F]{8}),")
+
+
+def source_ranges(pdb):
+    """(start, end, path) for every line record of section 1, as VAs."""
+    import shutil
+    tool = next((t for t in PDBUTIL if shutil.which(t) or os.path.isfile(t)), None)
+    if tool is None:
+        sys.exit("census: no llvm-pdbutil (brew install llvm)")
+    text = subprocess.run([tool, "dump", "--l", pdb], capture_output=True, text=True,
+                          errors="replace", check=True).stdout
+    out, cur = [], None
+    for line in text.splitlines():
+        m = LINE_FILE.match(line)
+        if m:
+            cur = m.group(1).lower()
+            continue
+        m = LINE_RANGE.match(line)
+        if m and cur:
+            out.append((0x401000 + int(m.group(1), 16), 0x401000 + int(m.group(2), 16), cur))
+    return sorted(out)
+
+
+def source_of(ranges, vas):
+    import bisect
+    starts = [r[0] for r in ranges]
+    out = {}
+    for va in vas:
+        i = bisect.bisect_right(starts, va) - 1
+        out[va] = ranges[i][2] if i >= 0 and ranges[i][0] <= va <= ranges[i][1] else None
+    return out
+
+
+QUALIFIED = re.compile(r"\b([A-Z][A-Za-z0-9_]*::~?[A-Za-z_][A-Za-z0-9_]*)\b")
+BOLD = re.compile(r"^\s*(?:[-*]\s+)?\*\*([^*]+)\*\*")
+HEADING = re.compile(r"^(#+)\s+(.*)")
+
+
+def named(text, by_name):
+    """Addresses a text cites: `name@00xxxxxx`, and `Class::method` written
+    whole where it names exactly one function of the export."""
+    out = {int(m.group(1), 16) for m in CITE.finditer(text)}
+    for m in QUALIFIED.finditer(text):
+        hits = by_name.get(m.group(1), ())
+        if len(hits) == 1:
+            out.add(hits[0])
+    return out
+
+
+def doc_backed(docs, by_name):
+    """Every function a coverage section's diff-backed span cites."""
+    out = set()
+    for p in glob.glob(os.path.join(docs, "*.md")):
+        with open(p, errors="replace") as f:
+            lines = f.read().splitlines()
+        level, backed, span = None, False, []
+        for line in lines + ["# end"]:
+            h = HEADING.match(line)
+            if h:
+                if span:
+                    out |= named("\n".join(span), by_name)
+                span, backed = [], False
+                depth = len(h.group(1))
+                if "coverage" in h.group(2).lower():
+                    level = depth
+                elif level is not None and depth <= level:
+                    level = None
+                continue
+            if level is None:
+                continue
+            b = BOLD.match(line)
+            if b:
+                word = b.group(1).lower()
+                if re.search(r"diff|dump-backed|oracle-backed|packet-backed", word) and "not" not in word:
+                    backed = True
+                elif re.search(r"reading|read only|not\b|blind|unbacked|seam|listing|unit-|decompile",
+                               word):
+                    if span:
+                        out |= named("\n".join(span), by_name)
+                    span, backed = [], False
+            if backed:
+                span.append(line)
+    return out
+
+
+SWEEP = re.compile(r"tools/emu/|tools/recomp/|emulat", re.I)
+# The paperwork guard names the emulator's tables in its own constants.
+NOT_A_SWEEP = ("docs_guard.rs",)
+
+
+def tests_in(text):
+    """Each `#[test]` function of a Rust source: its `///` doc comment and
+    attributes above it, and its body to the closing brace."""
+    lines = text.split("\n")
+    starts = [i for i, l in enumerate(lines) if l.strip() == "#[test]"]
+    for i in starts:
+        top = i
+        while top > 0 and re.match(r"\s*(///|#\[)", lines[top - 1]):
+            top -= 1
+        rest = "\n".join(lines[i:])
+        brace = rest.find("{")
+        depth, end = 0, len(rest)
+        for j in range(brace, len(rest)):
+            depth += {"{": 1, "}": -1}.get(rest[j], 0)
+            if depth == 0:
+                end = j + 1
+                break
+        yield "\n".join(lines[top:i]) + "\n" + rest[:end]
+
+
+def sweep_backed(src, by_name):
+    """Every function a `crates/sim` test that runs the original under the
+    emulator cites, in its doc comment or its body."""
+    out = set()
+    for p in glob.glob(os.path.join(src, "**", "*.rs"), recursive=True):
+        if os.path.basename(p) in NOT_A_SWEEP:
+            continue
+        with open(p, errors="replace") as f:
+            text = f.read()
+        for chunk in tests_in(text):
+            if SWEEP.search(chunk):
+                out |= named(chunk, by_name)
+    return out
+
+
+def layers(index, docs, sim_src, pdb):
+    """The census by layer: {layer: {functions, backed, doc, sweep}}, the
+    unknowns' sources, and the simulation layer's files."""
+    names = {}
+    by_name = {}
+    with open(index) as f:
+        for line in f:
+            addr, name = line.rstrip("\n").split("\t")[:2]
+            va = int(addr, 16)
+            names[va] = name
+            by_name.setdefault(name, []).append(va)
+    source = source_of(source_ranges(pdb), names)
+    by_doc = doc_backed(docs, by_name) & names.keys()
+    by_sweep = sweep_backed(sim_src, by_name) & names.keys()
+    rows, sim_files, unknown = {}, Counter(), Counter()
+    for va, path in source.items():
+        lay = layer_of(path)
+        r = rows.setdefault(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0})
+        r["functions"] += 1
+        r["doc"] += va in by_doc
+        r["sweep"] += va in by_sweep
+        r["backed"] += va in by_doc or va in by_sweep
+        if lay == "simulation":
+            sim_files[path.rsplit("\\", 1)[-1]] += 1
+        elif lay == "unknown":
+            unknown[path.rsplit("\\", 2)[-2] + "\\" if path else "(no line record)"] += 1
+    return rows, sim_files, unknown
+
+
+def print_layers(rows, sim_files, unknown, as_json):
+    import json
+    sim = rows.get("simulation", {"functions": 0, "backed": 0})
+    if as_json:
+        print(json.dumps({"layers": rows, "simulation_backed": sim["backed"],
+                          "simulation_functions": sim["functions"]}, indent=1, sort_keys=True))
+        return
+    print(f"{'layer':12} {'functions':>9} {'backed':>7} {'by doc':>7} {'by sweep':>8} {'share':>7}")
+    for lay in ("simulation", "AI", "engine", "interface", "unknown"):
+        r = rows.get(lay, {"functions": 0, "backed": 0, "doc": 0, "sweep": 0})
+        share = f"{100 * r['backed'] / r['functions']:.1f}%" if r["functions"] else "-"
+        print(f"{lay:12} {r['functions']:9} {r['backed']:7} {r['doc']:7} {r['sweep']:8} {share:>7}")
+    print()
+    print("# simulation, by source file (rule 5's default — a misfiled file shows here)")
+    print(" ".join(f"{f}:{n}" for f, n in sim_files.most_common()))
+    print()
+    print("# unknown, by where the source sits")
+    print(" ".join(f"{f}:{n}" for f, n in unknown.most_common()))
+    print()
+    print(f"Census: simulation backed {sim['backed']} of {sim['functions']}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("logs", nargs="*")
@@ -135,7 +411,16 @@ def main():
     ap.add_argument("--never", action="store_true")
     ap.add_argument("--pin", action="store_true",
                     help="read the traces rondata::blind::TRACES pins, from $RON_GAMELOG_DIR")
+    ap.add_argument("--layers", action="store_true",
+                    help="the census by layer with the backed column, and the board's number (item 1467)")
+    ap.add_argument("--json", action="store_true", help="with --layers: the same as JSON")
+    ap.add_argument("--pdb", default=os.path.join(
+        os.environ.get("RON_INSTALL", os.path.join(HERE, "..", "game")), "sbl", "rise.pdb"))
+    ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
     a = ap.parse_args()
+    if a.layers:
+        print_layers(*layers(a.index, a.docs, a.sim_src, a.pdb), a.json)
+        return
     if a.pin:
         a.logs = pinned_logs() + a.logs
 

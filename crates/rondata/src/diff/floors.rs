@@ -229,6 +229,29 @@ mod tests {
         the_handoff_carries("Third map");
     }
 
+    /// **The census line is the pinned share** (item 1467): the board's
+    /// number for the sweep lane, `Census: simulation backed <B> of <N>`,
+    /// read against `census::SIMULATION_BACKED` and `SIMULATION_FUNCTIONS`
+    /// — the line a commander writes beside the words. Made to fail first
+    /// on a handoff with no such line.
+    #[test]
+    fn the_handoff_s_census_is_the_pinned_share() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let want = format!(
+            "Census: simulation backed {} of {}",
+            crate::census::SIMULATION_BACKED,
+            crate::census::SIMULATION_FUNCTIONS
+        );
+        let line = q.lines().find(|l| l.starts_with("Census:"));
+        assert_eq!(
+            line.map(str::trim_end),
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries `{want}` (the census's simulation share, \
+             `tools/census.py --layers`), beside the Scoreboard"
+        );
+    }
+
     fn the_handoff_carries(prefix: &str) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
