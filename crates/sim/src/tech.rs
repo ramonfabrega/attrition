@@ -3044,6 +3044,35 @@ mod tests {
     }
 
     #[test]
+    fn a_unit_s_military_level_is_read_through_the_lobby_remap() {
+        // `military_level_in` asks `get_preq(1, −1)`, which the lobby
+        // rescales: the Dragoons that ask for Military 4 stand at level 3 in
+        // the lobby of `the_lobby_remap_rescales_a_units_military_requirement`
+        // and at 4 in the full game; a requirement from before the start
+        // vanishes, so the unit stands at level 0 (floored to 1 by
+        // `get_cost`) where the table's column says 2 (`docs/AI.md` §158).
+        let f = fixture();
+        let mut t = f.tree.clone();
+        let mil = f.epochs[Line::Military.index()];
+        let u = t.add(
+            TypeDef::unit("Dragoons", J)
+                .needs(0, f.ages[2])
+                .needs(1, mil[3]),
+        );
+        let v = t.add(TypeDef::unit("Old", J).needs(1, mil[1]));
+        let s = Setup {
+            starting_age: 3,
+            ending: 5,
+            ..Setup::STANDARD
+        };
+        assert_eq!(t.military_level_in(&s, u), 3);
+        assert_eq!(t.military_level_in(&s, v), 0);
+        assert_eq!(t.military_level_in(&Setup::STANDARD, u), 4);
+        assert_eq!(t.military_level_in(&Setup::STANDARD, v), 2);
+        assert_eq!(t.military_level_of(u), 4);
+    }
+
+    #[test]
     fn barbarians_defenders_start_with_both_settings() {
         let f = fixture();
         let s = Setup {

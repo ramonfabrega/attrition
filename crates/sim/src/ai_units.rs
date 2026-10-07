@@ -2714,6 +2714,96 @@ mod tests {
         assert_eq!(offer_value(FAC, WANT, without_third(7), DIVISOR), 45_568);
     }
 
+    /// **The air arm sets the caller's `remaining` to the air cap**
+    /// (`create_units` 361–478: `remaining = air_cap` is the loop's own
+    /// variable, item 1583, `docs/AI.md` §158) — 2, 4 or 16 by difficulty,
+    /// not the step-5 default of 5 the Great Sahara coverage lobby's Bomber
+    /// was priced with. Made to fail with the assignment dropped.
+    #[test]
+    fn the_air_arm_sets_remaining_to_the_air_cap() {
+        let mut sim = bare();
+        let mut tree = tech::TechTree::new();
+        let airbase = tree.add(tech::TypeDef::building("Airbase"));
+        let unit = tree.add(tech::TypeDef::unit(
+            "Fighter",
+            tech::UnitTraits {
+                combat: true,
+                ..tech::UnitTraits::default()
+            },
+        ));
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        let mut ty = crate::UnitType {
+            tree: Some(unit),
+            ..crate::UnitType::default()
+        };
+        ty.price.pop = 1;
+        ty.combat.combat_role = true;
+        ty.combat.attack = 100;
+        ty.combat.domain = crate::attrition::Domain::Air;
+        ty.group = Some(0);
+        sim.add_unit_type(ty);
+        let rec = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            ident: Ident::Airbase,
+            tree: Some(airbase),
+            ..crate::build::BuildType::default()
+        });
+        let b = sim.add_building(0, crate::Pos::default(), 8);
+        sim.buildings[b].ty = Some(rec);
+        let f = sim.unit_facts(unit).expect("a unit record");
+        for (difficulty, cap) in [(0, 2), (2, 4), (3, 16)] {
+            sim.lobby.difficulty = difficulty;
+            let (mut remaining, mut escrow, mut num) = (5, 0, 0);
+            sim.air_value(
+                0,
+                unit,
+                &f,
+                100,
+                1,
+                100,
+                &mut remaining,
+                &mut escrow,
+                &mut num,
+                100,
+            );
+            assert_eq!(remaining, cap, "difficulty {difficulty}");
+        }
+    }
+
+    /// **`get_nukes` counts the Nuclear Missile line, not the type offered**
+    /// (`LeaderData::get_nukes@006ebe50`, item 1583, `docs/AI.md` §158): a
+    /// queued ICBM is not a nuke here, and a leader without the tech has
+    /// none. Made to fail with the line counted from the ICBM.
+    #[test]
+    fn the_nuke_count_is_the_nuclear_missile_line() {
+        let mut sim = bare();
+        let mut tree = tech::TechTree::new();
+        let nuke = tree.add(tech::TypeDef::unit(
+            "Nuclear Missile",
+            tech::UnitTraits::default(),
+        ));
+        let icbm = tree.add(tech::TypeDef::unit("ICBM", tech::UnitTraits::default()));
+        tree.roles.nuclearmissile = Some(nuke);
+        tree.roles.icbm = Some(icbm);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        let rec = |sim: &mut Sim, t: TypeId| {
+            sim.add_unit_type(crate::UnitType {
+                tree: Some(t),
+                ..crate::UnitType::default()
+            })
+        };
+        let (n, i) = (rec(&mut sim, nuke), rec(&mut sim, icbm));
+        sim.muster[0].by_type[n] = 1;
+        sim.muster[0].queued_by_type[n] = 2;
+        sim.muster[0].by_type[i] = 5;
+        sim.muster[0].queued_by_type[i] = 7;
+        assert_eq!(sim.get_nukes(0), 0, "without the tech");
+        sim.tech[0].tech[nuke] = true;
+        assert_eq!(sim.get_nukes(0), 3, "held and queued Nuclear Missiles");
+    }
+
     #[test]
     fn create_units_offers_nothing_without_a_tree() {
         let mut sim = bare();

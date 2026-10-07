@@ -4474,6 +4474,21 @@ pub(crate) const fn turret_near(a: i32, b: i32) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn a_gaia_owner_has_no_modifiers() {
+        // A nuke's ring strikes the animals around a city (`docs/AI.md`
+        // §158): their owner is past `mods`, which holds the players.
+        let sim = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(16, 16),
+            2,
+        );
+        assert_eq!(sim.mods_of(9).attack, 0);
+        assert_eq!(sim.mods_of(9).armor, 0);
+        assert_eq!(sim.mods_of(9).range, 0);
+        assert_eq!(sim.mods_of(1), sim.mods[1]);
+    }
+
     use super::*;
     use crate::world::{PLAYER_SLOTS, World};
 

@@ -1456,6 +1456,82 @@ mod tests {
         assert_eq!(spent[0] + 2, spent[1], "the V2's two scatter draws alone");
     }
 
+    /// **The computer's silo orders its nuke on an enemy city** (item
+    /// 1583, `Object::do_launch@0064f3b0`'s silo arm, `docs/AI.md` §158):
+    /// on the 128-frame cadence phased by the silo's `o`, the nuke at the
+    /// chain's head is given an air attack on the nearest-value enemy city
+    /// it can reach; off the cadence, for a human, or with a friendly
+    /// object near the city, it is not. Made to fail with the arm dropped
+    /// (no order) and with the friendly-object test dropped.
+    #[test]
+    fn the_computer_s_silo_orders_its_nuke_on_an_enemy_city() {
+        // Past the silo's own 0x1800: its owner's objects count as friends.
+        let city_at = Pos::new(30000, 14976);
+        let add_city = |s: &mut Sim, building: usize| {
+            s.cities.push(crate::city::City {
+                alive: true,
+                owner: 1,
+                race: Some(1),
+                founder: 1,
+                building,
+                members: Vec::new(),
+                reg: None,
+                pos: city_at,
+                capital: true,
+                founding_capital: true,
+                was_founding_capital: false,
+                unassimilated: false,
+                no_heal: false,
+                attacking: false,
+                ever_attacked: false,
+                alarm: false,
+                no_muster: false,
+                was_capital: 0,
+                capture_stamp: 0,
+                assimilation_timer: 0,
+                attack_stamp: 0,
+                reduce_stamp: 0,
+                capture_strength: 0,
+                pop: 1,
+                has_citizen: false,
+                source: None,
+                trade_val: 0,
+                traded_with: [0; 8],
+            });
+        };
+        // (human, on the cadence, a friend by the city) -> is it ordered
+        for (human, on_cadence, friend_near, ordered) in [
+            (false, true, false, true),
+            (true, true, false, false),
+            (false, false, false, false),
+            (false, true, true, false),
+        ] {
+            let (mut s, silo, m, enemy) = silo_with_a_v2();
+            let ty = s.units[m].ty.unwrap();
+            s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            s.unit_types[ty].mana = 1000;
+            s.nation[0].human = human;
+            s.buildings[enemy].pos = city_at;
+            add_city(&mut s, enemy);
+            if friend_near {
+                friend(&mut s, Pos::new(30000 - 100, 14976));
+            }
+            let id = i64::from(s.buildings[silo].index);
+            s.frame = 128 * 30 - id + if on_cadence { 0 } else { 32 };
+            s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+            s.do_launch(silo);
+            let got = s.units[m].orders.front().and_then(|o| match o.body {
+                crate::orders::Body::AirAttackGround(g) => Some(g.at),
+                _ => None,
+            });
+            assert_eq!(
+                got,
+                ordered.then_some(city_at),
+                "human {human}, cadence {on_cadence}, friend {friend_near}"
+            );
+        }
+    }
+
     /// **A missile that fires leaves its type's count** (item 1078,
     /// `Unit::close@0060ee50`'s `track_unit_type(·, −1)`): the next V2 is
     /// priced as if none stood — run390's `0/2010` charged 100 and 100 on

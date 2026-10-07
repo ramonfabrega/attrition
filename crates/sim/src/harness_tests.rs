@@ -2162,6 +2162,47 @@ fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_di
 }
 
 #[test]
+fn a_spy_costs_half_under_the_spies_and_generals_bonus() {
+    // `get_cost@00664090:336`–`343`: a Spy (`TypeIndex 0x3a`) or a General
+    // (`0x36`) takes `SPY_GENERAL_COST` (a half) off while the leader holds
+    // `SPIES_GENERALS_CHEAPER`'s prerequisite — Strategy, `TECHBONUSES` row
+    // 88. Great Sahara's Spy at `1/2030` queues at 25/25 on 1983, 50/50
+    // before item 1583 (`docs/AI.md` §158). Made to fail with the arm
+    // dropped (50 throughout) and with the gate read as always held.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let strategy = tree.add(TypeDef::epoch("Strategy", crate::tech::Line::Science, 0));
+    while tree.types.len() < 0x3a {
+        tree.add(TypeDef::building("pad"));
+    }
+    let spy_t = tree.add(TypeDef::unit("Spy", UnitTraits::default()));
+    assert_eq!(spy_t, 0x3a);
+    tree.roles.spy_general_cheaper_preq = Some(strategy);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let spy = sim.add_unit_type(UnitType {
+        tree: Some(spy_t),
+        price: cost::Price {
+            class: cost::RampClass::OtherCivilian,
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Wealth, 5)
+        },
+        ..citizen_type()
+    });
+    sim.tech[0].tech[spy_t] = true;
+    sim.tech[1].tech[spy_t] = true;
+    sim.tech[0].tech[strategy] = false;
+    let wealth = economy::Resource::Wealth.index();
+    assert_eq!(sim.price_of(0, spy)[wealth], 50, "no Strategy yet");
+    sim.tech[0].tech[strategy] = true;
+    assert_eq!(sim.price_of(0, spy)[wealth], 25, "Strategy: a half");
+    // The player without it still pays the whole of it.
+    assert_eq!(sim.price_of(1, spy)[wealth], 50);
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per
