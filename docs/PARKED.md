@@ -3774,6 +3774,16 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-07 — the twenty-seventh tranche's
+
+(1590) **A seam's "no capture on file" is a dated claim nobody re-runs**
+(1588's Loop line, 2026-10-07): 1588's cause was a `SEAM` in
+`Wall::process` whose text said no capture on file holds its oil-platform
+arm (checklist row 1132), and nobody re-ran it when run679 was captured.
+A seam that says "no capture on file" could carry the `scan:` that
+notices the first capture that does — a guard, or a `seams.py` pass over
+every such seam against `docs/RUNS.md`'s runs. One reach.
+
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
 (1573) **The lane gate's skip list is a measurement that ages** (1571's

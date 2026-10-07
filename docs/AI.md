@@ -17196,3 +17196,8 @@ admits a passenger is not read. A follow or a guard order names a unit in this c
 
 **Coverage.** Diff-backed: claims 1–3 and the disband on 1419 (run679, run710). Listing- and PE-backed: claim 4's filter arm
 and slot names, which the diff confirms on its one frame.
+
+## 163. Reserved for item 1589 (the coverage pair's word 1696)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
