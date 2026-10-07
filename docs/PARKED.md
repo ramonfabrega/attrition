@@ -3829,6 +3829,12 @@ have no port counterpart; (d) the panics-where-the-original-wraps class
 no bounds where the original's signed test writes backwards. No frame
 reaches any of them today.
 
+(1632) **The nuke's other arms** (1620, 2026-10-07): (a) `Nuke::do_damage`'s
+two `Leader::action_declare` arms — a struck player at peace declares war on
+the shooter — are not built; this lobby is at war from frame 0; (b) the
+nuke's kills lay no corpse in the original (the blow's `dtype`), ours lays
+14 — standing beside the human's dead (1092/1328) under 1631.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -4012,6 +4018,14 @@ worktrees started on `dfa4b699`, older than the scaffold commit, so each
 reset to the lane's branch before it could see `sweep/`; and the shared
 `CARGO_TARGET_DIR` served two a stale test binary ("0 tests"), cured by
 `touch`. A brief for a fanned batch says both. One reach.
+
+(1633) **1620's Loop lines** (2026-10-07): (a) the cause was named by a
+SEAM in `nuke.rs` that says "fog", not the field — `tools/seams.py --field
+ever_seen` missed it; a brief row "grep SEAMs for the subsystem the event
+goes through (fog, treaties), not the field"; (b) a comparison that reduces
+a word to one bit (`has_met` for `treaties`) is blind to the others for as
+long as it stays — `coverage.rs`'s unread list could tag "compared as a
+reduction". A sibling of 1607 and 1616; one reach each.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

@@ -12,22 +12,22 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-07, the twenty-seventh tranche at twenty (`commander`, Opus 5.5,
-from `dfa4b699`): the coverage pair **1408 → 3142** (eleven landings);
-Great Sahara's coverage word **1582 → 2273** (the race's five, 1600, 1611);
+*2026-10-07, the twenty-seventh tranche at twenty-one, draining
+(`commander`, Opus 5.5, from `dfa4b699`): the coverage pair **1408 →
+3142** (eleven landings); Great Sahara's coverage word **1582 → 2323**
+(the race's five, 1600, 1611, 1620);
 the census's backed column **45 → 68** (1575, 1619: the sweep).*
 
 - **Two trials, scored; the roster is Ramon's.** The race
   (`docs/audit/2026-10-07-race-1565.md`): Sonnet 5.5 2185 for 74.43 USD,
   Opus 5.5 1985 for 71.08. The sweep (1575's journal): Opus 8 of 10 for
   5.23, Sonnet 9 for 3.68, each finding the parting the other missed.
-- **Draining**: `att-1620` (Sonnet 5.5) landed 2273 → 2323 and conflicted
-  with 1614's merge — it re-lands on the merged tree, AI §173; `att-1625`
-  (Opus 5.5) on the coverage pair's 3142, runs 717 and 721, AI §174. No
-  lane refills; each is merged and booked as it lands, then `steer`.
-- **Next number 1631, run 722, section §175**; 1497 waits. Lane gate
-  filters: 1625 `coverage_pair:: floors:: coverage::`, 1620 `sahara_coverage:: floors:: coverage_pair:: coverage::`.
-- **Fable backlog: 39 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601, 1604, 1607, 1610, 1613, 1616, 1618, 1622, 1623, 1624, 1627, 1629).
+- **Draining**: `att-1625` (Opus 5.5) on the coverage pair's 3142, runs
+  717 and 721, AI §174 — merged and booked when it lands, then `steer`.
+  No lane refills; 1631 (Great Sahara) and 1630 (the sweep) wait for it.
+- **Next number 1634, run 722, section §176**; 1497 waits. Lane gate
+  filters: 1625 `coverage_pair:: floors:: coverage::`, 1631 `sahara_coverage:: floors:: coverage_pair:: coverage::`.
+- **Fable backlog: 40 Loop items** (1119, 1138, 1316, 1421, 1462, 1464, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572, 1573, 1574, 1590, 1593, 1597, 1601, 1604, 1607, 1610, 1613, 1616, 1618, 1622, 1623, 1624, 1627, 1629, 1633).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,18 +35,18 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w3142 of 4,730
 Census: simulation backed 68 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2273 of 4,340
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2323 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-seventh tranche, draining — `commander` (Opus 5.5):
-merge 1620's and 1625's landings, refill nothing, then spawn `steer`.**
+merge 1625's landing, refill nothing, then spawn `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The sweep lane (1630)
 beside two word lanes**: the newest pair's (1625) and the third
-map's (1620); 1497 waits; lower map first — East Indies (All Technologies).
+map's (1631); 1497 waits; lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
@@ -57,13 +57,13 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
     `run716_s_word_frame_is_widened_whole` (2,160 keys): on 3143 the
     Advanced Battleship `1/59` attacks Napata in ours — 1614's hypothesis.
 
-1620. **Great Sahara in the coverage lobby: frame 2273, 99 versus 91
-    draws**, index 66: ours `Unit::think_scout+0x64c`, theirs
-    `Unit::think_scout+0x436`. Inside run718 (block 2274), widened by
-    `run718_s_word_frame_is_widened_whole` (737 keys, 66 standing): on 2102
-    the original's `treaties[1]` is 3 (ours 1), on 2105 every human
-    building's `ever_seen` 255 (ours 1), the human's units dead by 2139 —
-    after Napata's strike on 2101; 1611's hypothesis. No mechanism.
+1631. **Great Sahara in the coverage lobby: frame 2323, 12 versus 13
+    draws** (count and sequence), index 10: ours `Farms::inc_time+0x1ae`,
+    theirs `+0x1de`. Inside run718 (block 2324), widened by
+    `run718_s_word_frame_is_widened_whole` (624 keys, 62 standing): nothing
+    dumped before 2323 parts on a farm; the human's dead stand (parked
+    1092/1328, 1632) — 1620's hypothesis, the walk's second farm's `empty`.
+    Runs 719–720, AI §175.
 
 1630. **The sweep's third batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 68 of 3611): 1575's and 1619's
