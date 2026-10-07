@@ -17655,3 +17655,8 @@ listing-backed. `capture_city`'s tribe-0x13 close with reason 0 is not modelled.
 
 **Coverage.** Diff-backed: claims 1–4 and 7, and the oil arm's skip (the word's move). Export- and listing-backed: claim 5's
 reason gate and the conversions' close, claim 6's spiral arm.
+
+## 169. Reserved for item 1605 (the coverage pair's word 2296)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

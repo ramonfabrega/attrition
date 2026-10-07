@@ -3756,6 +3756,15 @@ transport's arm only; unmeasured. And the rival end (the whole boarding
 disc cleared) differs from the built one only for a landing within
 `2·coll_size + 1` cells of the boarding point; no capture has one.
 
+(1606) **The closed cell's other arms** (1602, 2026-10-07): (a) the
+spiral's next arm (`produce_building:609-637`) — a city with
+`city_flags & 2` refuses a cell whose 3×3 neighbourhood holds an enemy
+object, stride 3 — unmodelled, no capture known to reach it; (b)
+`capture_city`'s tribe-0x13 arm closes with reason 0 (`:1114`), which
+flags the cell, where ours closes every capture silently; (c) ours closes
+a converted building's old half `silent` (reason 5: no refund, the mask
+kept) where the original passes 0 — only the flag is the original's here.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3859,6 +3868,13 @@ against ours over a rectangle, then a per-frame watch of one byte (43 s a
 run) — a scratch `#ifdef` per item (1438's run592, now 1598's run713). A
 `RON_WATCH_BYTE=<va expr>@<lo>-<hi>` define in the tracer is the third
 reach of the shape; it graduates into `tools/`.
+
+(1607) **A pin that names a residue bit by value is a seam in disguise**
+(1602's Loop line, 2026-10-07): 1602's writer was a world-cell bit no dump
+prints, found by grepping the export for `| 2` on a `0x1c`-stride pointer;
+the full suite then found run240's older pin (776's "a bit the searches do
+not read") recording the same bit as residue. `seams.py` could list the
+pins whose comments say "a bit … not read". One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
