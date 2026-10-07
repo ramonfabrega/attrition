@@ -2329,9 +2329,18 @@ impl Sim {
                             && v.index == self.units[o].collide_o
                     })
                     .is_some_and(|v| v.waiting_on);
+            //
+            // **A gaia collider is always "an enemy"** (`005fa5f0`'s
+            // `LeaderData::is_enemy@006ebaa0` on the collider's owner):
+            // `diplos` is `int[8]`, so a gaia owner 8 reads `treaties[0]` of
+            // *my* leader — 0 for the AI toward the human, as every capture
+            // prints — and the gaia leader's own `diplos[who]` is never
+            // written. A walker blocked by a walking animal repaths rather
+            // than waits (item 1561, Great Sahara's 1247).
+            let enemy_owner = self.units[o].is_gaia() || self.at_war_with(who, self.units[o].owner);
             if i32::from(self.units[o].collide) < cap
                 && i32::from(self.units[u].collide) < cap
-                && !self.at_war_with(who, self.units[o].owner)
+                && !enemy_owner
                 && !on_me
                 && !(self.units[o].waiting_on && its_chain_blocks)
             {
@@ -3589,6 +3598,35 @@ mod tests {
             "waits for the boat's cast"
         );
         assert!(!run(crate::orders::spell::PACK), "another cast is repathed");
+    }
+
+    /// **A walking animal is never waited for** (item 1561, Great Sahara's
+    /// 1247): step 5's `LeaderData::is_enemy` reads a gaia owner's
+    /// `diplos[8]` as `treaties[0]`, so the collider is "an enemy" and the
+    /// walker repaths instead of standing. A walking player-owned unit that
+    /// is not at war with it is still waited for.
+    #[test]
+    fn a_walking_animal_in_the_way_is_not_waited_for() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let run = |owner: u8| {
+            let (mut sim, x, y) = pair(a, b);
+            sim.order_move(x, goal);
+            sim.order_move(y, Pos::new(35 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+            sim.tick();
+            sim.units[y].owner = owner;
+            sim.units[x].collide_o = sim.units[y].index;
+            sim.units[x].collide_who = owner as i8;
+            sim.units[x].waiting_on = false;
+            sim.units[y].collide_o = -1;
+            sim.units[y].collide_who = -1;
+            sim.units[y].waiting_on = false;
+            sim.resolve_unit_collision(x);
+            sim.units[x].waiting_on
+        };
+        assert!(run(1), "a walking neighbour at peace is waited for");
+        assert!(!run(8), "a walking animal is repathed around");
     }
 
     /// A wait chain reads a retained slot, including a closed transport.
