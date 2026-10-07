@@ -30,7 +30,12 @@ pub struct IndexedCapture {
 }
 
 // Share only offsets, never capture text or parsed state. A process-wide
-// eight-MiB/32-entry FIFO bounds retained index storage across test captures.
+// eight-MiB FIFO bounds retained index storage across test captures. **By
+// bytes alone** (item 1571): a 32-entry bound beside it evicted the suite's
+// indexes long before the bytes did — every distinct capture's index
+// together is 4.0 MB — so the release suite built 623 indexes for 329
+// captures, 145 of its 290 index seconds rebuilding what it had dropped;
+// without it, 336 for 328, and the rondata suite 641 s → 611 s.
 #[derive(Clone)]
 struct Cached {
     path: PathBuf,
@@ -105,6 +110,26 @@ impl SetupRanges {
     }
 }
 
+/// Opens, counted (item 1571): `RON_INDEX_STATS=<file>` appends one line
+/// per open — `hit` or `build`, the build's seconds, the index's bytes, the
+/// path — so a suite's re-indexing can be measured after it ran, as
+/// `RON_READ_STATS` measures its reads. One `write` a line: the suite's
+/// threads append at once, and `writeln!` interleaved them.
+fn index_stat(kind: &str, seconds: f64, path: &Path, bytes: usize) {
+    let Ok(stats) = std::env::var("RON_INDEX_STATS") else {
+        return;
+    };
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(stats)
+    {
+        use std::io::Write;
+        let line = format!("{kind} {seconds:.4} {bytes} {}\n", path.display());
+        let _ = f.write_all(line.as_bytes());
+    }
+}
+
 fn invalid(message: &str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message)
 }
@@ -124,6 +149,7 @@ impl IndexedCapture {
                 .iter()
                 .find(|e| e.path == path && e.length == meta.len() && e.modified == modified)
         {
+            index_stat("hit", 0.0, &path, 0);
             return Ok(Self {
                 file,
                 path: path.clone(),
@@ -133,6 +159,7 @@ impl IndexedCapture {
                 setup: Arc::clone(&entry.setup),
             });
         }
+        let built = std::time::Instant::now();
         let mut reader = BufReader::with_capacity(256 * 1024, file);
         let mut line = Vec::new();
         let mut offset = 0u64;
@@ -214,6 +241,9 @@ impl IndexedCapture {
             setup: setup.ranges.into(),
         };
         capture.check_metadata(capture.file.metadata()?)?;
+        let bytes = std::mem::size_of_val(capture.frames.as_ref())
+            + std::mem::size_of_val(capture.setup.as_ref());
+        index_stat("build", built.elapsed().as_secs_f64(), &path, bytes);
         let entry = Cached {
             path,
             length: capture.length,
@@ -226,7 +256,7 @@ impl IndexedCapture {
         {
             entries.retain(|e| e.path != entry.path);
             entries.push(entry);
-            while entries.len() > 32 || cache_bytes(&entries) > CACHE_BYTES {
+            while cache_bytes(&entries) > CACHE_BYTES {
                 entries.remove(0);
             }
         }
@@ -564,6 +594,22 @@ mod tests {
         let third = IndexedCapture::open(&input.0).unwrap();
         assert_eq!(third.frames[0].number, 12345);
         assert!(!Arc::ptr_eq(&first.frames, &third.frames));
+    }
+
+    #[test]
+    fn the_cache_is_bounded_by_bytes_not_by_entries() {
+        // Item 1571: a 32-entry bound evicted half the release suite's
+        // indexes while every one of them together was 4.0 MB. Forty tiny
+        // captures fit the bytes, so the first is still shared.
+        let inputs: Vec<Input> = (0..40)
+            .map(|i| Input::new(&format!("BEGIN GAME\n BEGIN FRAME {i}\n")))
+            .collect();
+        let first = IndexedCapture::open(&inputs[0].0).unwrap();
+        for input in &inputs[1..] {
+            IndexedCapture::open(&input.0).unwrap();
+        }
+        let again = IndexedCapture::open(&inputs[0].0).unwrap();
+        assert!(Arc::ptr_eq(&first.frames, &again.frames));
     }
 
     #[test]
