@@ -6025,6 +6025,11 @@ mod no_float;
 #[cfg(test)]
 mod soak;
 
+// The original's functions under the emulator, one module a function: the
+// census's backed column (item 1575).
+#[cfg(test)]
+mod sweep;
+
 /// The install-backed tests' one question: where is the game.
 #[cfg(test)]
 pub(crate) mod testenv {
