@@ -85,5 +85,19 @@ class Event(unittest.TestCase):
         self.assertEqual(found, (4, 'QUIET a b 100'))
 
 
+class StateOf(unittest.TestCase):
+    def test_a_running_turn_is_working_whatever_the_row_says(self):
+        # Parked 1572: a lane's self-written `blocked` stranded the waiter.
+        self.assertEqual(lanewait.state_of({'state': 'blocked'}, {'tempo': 'working'}), 'working')
+        self.assertEqual(lanewait.state_of({'state': 'working'}, {'tempo': 'working'}), 'working')
+
+    def test_an_attached_but_resting_row_keeps_its_state(self):
+        # `status: busy` means something is attached (a Monitor, a background
+        # bash), not that the turn runs — ccc's word, 2026-10-07.
+        self.assertEqual(lanewait.state_of({'state': 'blocked', 'status': 'busy'}, {'tempo': 'idle'}), 'blocked')
+        self.assertEqual(lanewait.state_of({'state': 'done', 'status': 'busy'}, {}), 'done')
+        self.assertEqual(lanewait.state_of({'state': 'done'}), 'done')
+        self.assertIsNone(lanewait.state_of({}))
+
 if __name__ == '__main__':
     unittest.main()

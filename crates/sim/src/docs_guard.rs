@@ -1760,6 +1760,10 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                 // The sweep's tests (item 1619) run the original under the
                 // emulator on chosen inputs: their literals are rows, not
                 // a mechanic built (ten of them banked 12 constants).
+                // Ratified by the twenty-seventh pass (parked 1624) as a
+                // directory skip, not a `#[cfg(test)]` one: the hex
+                // spelling is read from every test on purpose, because
+                // the harness's pins are tests, and "or pinned" is them.
                 && !path.components().any(|c| c.as_os_str() == "sweep")
             {
                 // Code, and of a comment only the offset spelling (`+0x7c`,

@@ -83,8 +83,12 @@ class TheFrameHoldsTheChecklist(unittest.TestCase):
         # 10,125 characters to 12,959 in the twentieth pass, where a brief's
         # length had been measured as a cost. The ceiling is the size the
         # last pass left the frame at, and a pass that adds a row strikes
-        # one; it may only fall.
-        self.assertLessEqual(len(brief.FRAME.read_text()), brief.FRAME_CEILING)
+        # one; it may only fall. The twenty-seventh pass added a kind
+        # (`sweep`) no word lane reads, so the measure is each kind's own
+        # sections — the brief a worker reads — never the file.
+        body = brief.sections(brief.FRAME.read_text())
+        for kind, names in brief.KINDS.items():
+            self.assertLessEqual(sum(len(body[n]) for n in names), brief.FRAME_CEILING, kind)
 
     def test_every_kind_s_sections_are_in_the_frame(self):
         have = set(brief.sections(brief.FRAME.read_text()))
@@ -95,7 +99,8 @@ class TheFrameHoldsTheChecklist(unittest.TestCase):
 class ABriefIsComposed(unittest.TestCase):
     def compose(self, item, kind='residue', **kw):
         args = dict(queue=QUEUE, frame=brief.FRAME.read_text(), base='abc1234',
-                    model='Opus 5.5', runs=['run423', 'run424'], sections=[], read=[], note='')
+                    model='Opus 5.5', runs=['run423', 'run424'], sections=[], read=[], note='',
+                    tests=['sahara::', 'floors::'])
         args.update(kw)
         return brief.compose(item, kind, **args)
 
@@ -142,6 +147,34 @@ class ABriefIsComposed(unittest.TestCase):
             self.assertIn('Opus 5.5', text)
             self.assertIn(f'item-{item}.md', text)
 
+    def test_coverage_is_always_among_a_word_s_filters(self):
+        # Parked 1623: 1611's lane gate ran `sahara_coverage:: floors::
+        # coverage_pair::` and its widening had put run718's window in the
+        # coverage driver, whose two pins went red on the booking gate.
+        text = self.compose(1133)
+        self.assertIn('--tests sahara:: floors:: coverage::', text)
+        self.assertNotIn('{tests}', text)
+        with self.assertRaisesRegex(ValueError, '--tests'):
+            self.compose(1133, tests=[])
+        self.assertEqual(brief.filters('residue', ['coverage::', 'x::']), ['coverage::', 'x::'])
+
+    def test_a_sweep_brief_has_its_section_and_no_booking(self):
+        # Parked 1629: a fanned batch's brief says where its subagents'
+        # worktrees are cut and what a stale shared target binary looks like.
+        queue = QUEUE.replace('1131. **Chapter thirty-eight\'s word: frame 878, ours 7 draws against 5**\n'
+                              '    (1113). No mechanism is named.',
+                              '1131. **The sweep\'s third batch: ten never-backed simulation functions**\n'
+                              '    (DECISIONS 63 (iv)). Packet-free first.')
+        self.assertNotEqual(queue, QUEUE)
+        text = self.compose(1131, 'sweep', queue=queue, tests=[])
+        self.assertIn('## The sweep', text)
+        self.assertIn('scaffold commit', text)
+        self.assertIn('--tests sweep::', text)
+        self.assertNotIn('The frame and the draw delta are the booking', text)
+        self.assertNotIn('## Before any reading', text)
+        self.assertIn('the sweep track', text)
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+
     def test_the_commander_s_own_note_is_last_before_the_landing(self):
         text = self.compose(1133, note='Read `1/2`\'s path on block 6 first.')
         self.assertLess(text.index("Read `1/2`'s path"), text.index('## Landing'))
@@ -156,7 +189,7 @@ class ABriefIsComposed(unittest.TestCase):
     def test_the_live_queue_composes(self):
         queue = (ROOT / 'docs/QUEUE.md').read_text()
         for item, headline in brief.open_items(queue):
-            kind = 'chapter' if 'Chapter' in headline else 'residue'
+            kind = 'chapter' if 'Chapter' in headline else 'sweep' if 'sweep' in headline.lower() else 'residue'
             text = self.compose(item, kind, queue=queue)
             self.carried(headline, text)
 

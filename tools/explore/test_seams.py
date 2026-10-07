@@ -321,5 +321,38 @@ class TheLiveTree(unittest.TestCase):
         self.assertGreater(n, 150)
 
 
+class TheExportsCallGraph(unittest.TestCase):
+    """Parked 1560: a seam about a gate the parted field's writer calls is
+    out of `--field`'s reach (`find_goody_box` → `goody_item_is_seen`),
+    and a writer's callers were counted by nobody (`Group::normalize`).
+    The fixture is a two-function export."""
+
+    def setUp(self):
+        self.export = Path(tempfile.mkdtemp())
+        (self.export / 'funcs/Unit').mkdir(parents=True)
+        (self.export / 'INDEX.tsv').write_text(
+            '00500000\tUnit::find_goody_box\tfuncs/Unit/find_goody_box@00500000.c\n'
+            '00500100\tUnit::goody_item_is_seen\tfuncs/Unit/goody_item_is_seen@00500100.c\n'
+            '00500200\tWorldData::is_seen\tfuncs/Unit/is_seen@00500200.c\n')
+        (self.export / 'funcs/Unit/find_goody_box@00500000.c').write_text(
+            'int Unit::find_goody_box(Unit *this) {\n  if (Unit::goody_item_is_seen(this, 3)) return 1;\n'
+            '  return strlen("x");\n}\n')
+        (self.export / 'funcs/Unit/goody_item_is_seen@00500100.c').write_text(
+            'int Unit::goody_item_is_seen(Unit *this, int i) {\n  return WorldData::is_seen(i);\n}\n')
+        (self.export / 'funcs/Unit/is_seen@00500200.c').write_text('int WorldData::is_seen(int i) { return i; }\n')
+
+    def test_the_callees_are_the_export_s_names_alone(self):
+        self.assertEqual(seams.callees('Unit::find_goody_box', self.export), ['Unit::goody_item_is_seen'])
+        self.assertEqual(seams.callees('WorldData::is_seen', self.export), [])
+
+    def test_the_callers_are_found_across_the_export(self):
+        self.assertEqual(seams.callers('WorldData::is_seen', self.export), ['Unit::goody_item_is_seen'])
+        self.assertEqual(seams.callers('Unit::find_goody_box', self.export), [])
+
+    def test_a_name_the_export_lacks_is_none(self):
+        self.assertIsNone(seams.callees('Unit::nothing', self.export))
+        self.assertIsNone(seams.callees('Unit::find_goody_box', self.export / 'missing'))
+
+
 if __name__ == '__main__':
     unittest.main()

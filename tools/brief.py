@@ -44,8 +44,14 @@ KINDS = {
                 'capture', 'build', 'landing'),
     'chapter': ('opening', 'booked', 'lanes', 'before-reading', 'reading',
                 'chapter', 'capture', 'build', 'landing'),
+    # A sweep batch (DECISIONS 63 (iv), parked 1629): no word, no booking
+    # paragraph — its section says how a fanned batch is cut and merged.
+    'sweep': ('opening', 'lanes', 'sweep', 'landing'),
 }
-TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track'}
+TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track'}
+# The lane gate's filters every word lane runs (parked 1623): a widening
+# puts its window in the coverage driver, so `coverage::` is a word's own.
+ALWAYS_TESTS = {'residue': ('coverage::',), 'chapter': ('coverage::',), 'sweep': ('sweep::',)}
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -80,9 +86,20 @@ def open_items(queue):
     return out
 
 
-def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note):
+def filters(kind, tests):
+    """The lane gate's `--tests` for a brief: what the commander names,
+    and the kind's own always among them (1623: 1611's lane gate never ran
+    the coverage pins its widening moved, and the booking gate was red)."""
+    tests = [t for t in (tests or ()) if t]
+    if kind != 'sweep' and not tests:
+        raise ValueError("a word's brief names its lane gate's filters: --tests FILTER [FILTER ...]")
+    return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
+
+
+def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=()):
     if kind not in KINDS:
         raise ValueError(f'no such kind of brief: {kind}; one of {sorted(KINDS)}')
+    tests = filters(kind, tests)
     items = open_items_text(queue)
     if item not in items:
         raise ValueError(f'docs/QUEUE.md books no item {item}; its open items are {sorted(items)}')
@@ -93,11 +110,14 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
 
     def fill(text):
         return (text.replace('{item}', str(item)).replace('{model}', model)
-                .replace('{base}', base).replace('{track}', TRACKS[kind]))
+                .replace('{base}', base).replace('{track}', TRACKS[kind])
+                .replace('{tests}', ' '.join(tests)))
 
     others = [(n, h) for n, h in open_items(queue) if n != item]
     out = [fill(body['opening']), '']
-    out += ['## The item, as the queue books it', '', items[item], '', fill(body['booked']), '']
+    out += ['## The item, as the queue books it', '', items[item], '']
+    if 'booked' in KINDS[kind]:
+        out += [fill(body['booked']), '']
     out += ['## Read first', '']
     out += [f'- `docs/QUEUE.md`: the opener, and item {item}.']
     out += [f'- `{r}`' if not r.startswith('`') else f'- {r}' for r in read]
@@ -111,7 +131,7 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
                                   'amend your documents\' sections in place; name a new '
                                   'section to me before you write it') + '.']
     titles = {'before-reading': 'Before any reading', 'reading': 'Reading the original',
-              'capture': 'A capture or a packet', 'chapter': 'A chapter',
+              'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
               'build': 'Build', 'landing': 'Landing'}
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):
@@ -133,6 +153,8 @@ def main():
                     help='a document or journal to read first, repeatable')
     ap.add_argument('--note-file', type=Path, help="the commander's own note for this item")
     ap.add_argument('--model', default='Opus 5.5')
+    ap.add_argument('--tests', nargs='+', default=[],
+                    help="the lane gate's filters for the word; `coverage::` is added (1623)")
     args = ap.parse_args()
     base = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
@@ -141,7 +163,8 @@ def main():
                        base=base, model=args.model,
                        runs=[r for r in args.runs.split(',') if r],
                        sections=args.sections, read=args.read,
-                       note=args.note_file.read_text() if args.note_file else '')
+                       note=args.note_file.read_text() if args.note_file else '',
+                       tests=args.tests)
     except ValueError as e:
         print(f'brief.py: {e}', file=sys.stderr)
         sys.exit(2)

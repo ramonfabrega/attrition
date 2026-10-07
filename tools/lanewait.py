@@ -82,6 +82,21 @@ def event(watch, states, tips, minutes, quiet_after, notes=None):
     return None
 
 
+def state_of(session, job=None):
+    """A row's state as the waiter reads it. A row whose turn is running is
+    working whatever its state says: a lane that wrote `blocked — awaiting
+    …` as its own status and never refreshed it read as ended for an hour
+    while its pane showed it writing code (parked 1572), and three re-arms
+    exited on it at once. The field that means "the turn is running" is
+    the job's `tempo` (ccc's word, 2026-10-07: `session.status` is only
+    "something is attached" — a Monitor or a background bash keeps a
+    resting commander `busy` indefinitely, and ccc's own clear gate had
+    to switch fields); `state` is the lane's own word, the fallback."""
+    state = session.get('state')
+    if state != WORKING and (job or {}).get('tempo') == WORKING:
+        return WORKING
+    return state
+
 def roster():
     """Each named session's (state, cwd, branch), by name; None when ccc did not answer."""
     out = subprocess.run(['ccc', 'list', '--json'], capture_output=True, text=True, check=False).stdout
@@ -95,7 +110,7 @@ def roster():
         name = session.get('name')
         # A name's newest row wins: `--replace` leaves the stopped one listed.
         if name and (name not in found or session.get('startedAt', '') > found[name][3]):
-            found[name] = (session.get('state'), session.get('cwd'),
+            found[name] = (state_of(session, row.get('job')), session.get('cwd'),
                            (row.get('worktree') or {}).get('branch'), session.get('startedAt', ''))
     return found
 

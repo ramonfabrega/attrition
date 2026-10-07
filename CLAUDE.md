@@ -610,19 +610,21 @@ floor can only ever agree with the framing that fenced it.
 
 **The commander and the pass spawn each other, and neither waits on a
 person** (`docs/DECISIONS.md` entry 61). Each is a session of its own in
-the integration worktree, started fresh: the pass ends by spawning the
-commander — `ccc spawn --name commander --replace --model
-'claude-opus-5-5[1m]' --effort high --cwd <the worktree>`, its prompt the
-queue's opener — and the commander, at twenty landings, with its handoff
-written, its gate green and its lanes drained, ends by spawning the pass:
-`ccc spawn --name steer --replace --model claude-fable-5-1 --cwd <the
-worktree>`. `--replace` names the *other* session, never the caller's
-own; a session's arm of its own clear has been refused by the classifier
-and dropped by the pane, and a spawn has been neither. **The row
-`--replace` stopped is archived by the spawner in the same turn** —
-`ccc archive <ref>`, never `ccc rm`, which takes the worktree — so one
-row of each name stands on the integration worktree (parked 1541: two
-stale rows stood for a day, renamed by hand). One of the two is
+the integration worktree, started fresh: the pass ends by clearing the
+commander's row into the next tranche — `ccc clear commander --then
+"<the queue's opener>"`, armed with the tree committed — and the
+commander, at twenty landings, with its handoff written, its gate green
+and its lanes drained, ends by clearing the pass's row the same way:
+`ccc clear steer --then "<the opener>"`. **The two rows are permanent
+and `spawn --replace` is not used**: a cross-session clear fires (ccc
+measured it, 2026-10-07, `docs/DECISIONS.md` entry 64 (iv)) when the
+target's tree is committed at the arm and at the fire, the target is at
+`tempo=idle`, and ccc.app or a headless attach is serving; the session
+uuid changes and the name, model and bridge id stay. A stray row is
+dropped with `ccc rm <ref>`, which takes a worktree only from a
+`--worktree` spawn — a `--cwd` row loses the row alone (parked 1541:
+four stale rows stood for a day and the twenty-seventh pass removed
+them that way). One of the two is
 live at a time and only the live one edits the worktree; the `attrition`
 row is the user's, where a steer with the user happens, and it edits
 nothing there while a commander's lanes are out.

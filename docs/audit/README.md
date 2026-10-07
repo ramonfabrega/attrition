@@ -557,6 +557,51 @@ struck (`tools/brief/frame.md` at 12,989 of 13,000).
   --since <the pass's commit>` is the number the pass moves the cap on —
   peak lanes, minutes waited at the cap, frames per wall second.
 
+## The brief checklist, from the twenty-seventh pass
+
+The twenty-seventh tranche (DECISIONS 63, 64): twenty-two landings on
+three lanes, a race and a sweep among them. The pass added these rows,
+each a lane's own Loop line, a `sweep` section for the fanned batch's
+brief, and paid by condensing eight rows' wording, no number struck; the
+ceiling is each kind's own sections now (the chapter kind at 12,988 of
+13,000), since the sweep's section reaches no word lane.
+
+- **A projectile's landing reads the shooter's firsts, not the target's;
+  two numbers that swap are read as births by `uid` across the gap**
+  (1597): 1591's cause was 150 frames behind the nuke's landing and drew
+  nothing — the attacker's `RON_FIRSTS` went straight to it; 1594's first
+  parting was another unit's field list because two slots had swapped.
+- **Grep the integration branch, `docs/AI.md` and the journals for a
+  function before building it; a mechanism that makes a record kind
+  appear in a window runs the `coverage` tests too** (1601): two lanes
+  built `do_launch`'s silo arm in one hour, and a widening that first
+  prints a kind moves the coverage pins.
+- **When the booking is two destinations, print both sides' unit state
+  and list the firsts of the unit the draws name, whatever the frame**
+  (1622): "grep each value the booking names" found nothing for 1611; the
+  cause parted 205 frames early with every draw agreeing.
+- **Grep the `SEAM`s for the subsystem the event goes through, not the
+  field** (1633): 1620's cause was a seam in `nuke.rs` that says "fog",
+  which `seams.py --field ever_seen` could not reach.
+- **The lane gate's filters always carry `coverage::`** (1623):
+  `tools/brief.py --tests` adds it; 1611's widening put a window in the
+  coverage driver and the two coverage pins were red on the booking gate
+  alone.
+- **A fanned batch's subagent worktrees are cut from the scaffold
+  commit, and the shared target dir serves a stale binary** (1629):
+  1619's ten started on the base and each reset before it could see
+  `sweep/`; "0 tests" is the stale binary, cured by `touch`.
+- **A sweep row's literal banks no constant** (1624): the constant guard
+  skips `sweep/` by design, ratified by the pass.
+- **At 300 k of context a lane writes its journal as a draft, commits,
+  and arms its own clear with "continue item N from the journal"**
+  (1637, decided with Ramon after the pass): one item runs 150 to 270
+  requests and grows to half a million tokens of dump greps; about half
+  a lane's price is spent above 300 k (the tranche reader's deep share,
+  0.46 to 0.72 on the coverage lane), and four fifths of the bill is
+  cache reads priced the same on Opus and Sonnet — so the context, not
+  the model, is the cost. The commander's clear at ten is the same move.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

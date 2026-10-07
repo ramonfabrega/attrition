@@ -66,6 +66,31 @@ class Fold(unittest.TestCase):
         self.assertEqual(tranche.classify({'input': '{"to":"attrition","message":"1291 status"}'}), 'status')
         self.assertEqual(tranche.classify(None), 'other')
 
+    def test_the_classes_the_twenty_fifth_pass_asked_for(self):
+        # Parked 1421: a gate run through a script in the job's tmp, and a
+        # fanned batch's subagents, folded into `other` — 86 of 1477's 176
+        # minutes, 56 of 1619's 63.
+        self.assertEqual(tranche.classify({'input': '{"command":"zsh $CLAUDE_JOB_DIR/tmp/gate.sh"}'}), 'script')
+        self.assertEqual(tranche.classify(
+            {'input': '{"command":"python3 /Users/x/.claude/jobs/abc/tmp/probe.py 3395"}'}), 'script')
+        self.assertEqual(tranche.classify({'tool': 'Agent', 'input': '{"prompt":"Sweep find_angle"}'}),
+                         'subagent')
+
+    def test_a_gap_that_ends_at_an_inbound_message_is_waiting_on_it(self):
+        # Parked 1421's second class: 1398 waited 334 minutes for a
+        # commander's reply and the gap read as the suite.
+        trace = {'transactions': [
+            {'ts': '2026-09-30T10:00:00.000Z', 'kind': 'prompt',
+             'requests': [req('2026-09-30T10:00:00.000Z')],
+             'instructions': [ins('2026-09-30T10:00:01.000Z', 'cargo test --release -p rondata x',
+                                  '2026-09-30T10:00:00.000Z')]},
+            {'ts': '2026-09-30T12:00:00.000Z', 'kind': 'relay',
+             'requests': [req('2026-09-30T12:00:00.000Z')],
+             'instructions': []},
+        ]}
+        row = tranche.fold(trace, gap_s=90, deep_k=300)
+        self.assertEqual(row['on'], {'message': 120.0})
+
 
 if __name__ == '__main__':
     unittest.main()

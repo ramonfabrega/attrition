@@ -140,11 +140,13 @@ COMMANDERS_LINES = (
     'the_handoff_s_census_is_the_pinned_share',
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
-# alone are the booking gate's. The file is the twenty-sixth pass's
-# measure (`docs/audit/2026-10-06-suite-timings.txt`, tree bcf8968b: 463 of
-# 771 rondata tests over a second, 2,550 of 2,606 s); a newer measure is a
-# new dated file and this constant moves to it.
-TIMINGS = ROOT / 'docs/audit/2026-10-06-suite-timings.txt'
+# alone are the booking gate's. The file is the twenty-seventh pass's
+# measure by `tools/suite_timings.py` (`docs/audit/2026-10-07-suite-timings.txt`,
+# tree 850a2ef8: 475 of 779 rondata tests over a second, 2,818 s in all);
+# the pass re-times it (`suite_timings.py --stale` says how far it has
+# aged — 14 untimed and 6 gone when this one was made), and a newer
+# measure is a new dated file this constant moves to.
+TIMINGS = ROOT / 'docs/audit/2026-10-07-suite-timings.txt'
 LANE_BUDGET_SECONDS = 1.0
 RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
 

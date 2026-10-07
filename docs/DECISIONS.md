@@ -75,6 +75,7 @@ is append-only and amended in place, as it always was.
 - 61 extended by 62 — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
 - 62 standing — The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
 - 63 standing — The mixed roster's second tranche is scored, a third lane returns, and the replaced session is archived
+- 64 standing — The race is scored, the sweep is a lane, the loop's debt is paid down, and a fourth lane returns by rule
 
 ## 1. Fidelity before divergence
 
@@ -4650,3 +4651,105 @@ shared text in; `lanewait`'s exits by kind against 36 / 2 / 2 by the
 same grep; conflicted updates against seven; the battery against 576 /
 6566 / 2974; the census's never against 144; the backlog against
 twenty-three; the rows of the roster on `ccc list` for the worktree.
+
+## 64. The race is scored, the sweep is a lane, the loop's debt is paid down, and a fourth lane returns by rule
+
+**Decided 2026-10-07**, the twenty-seventh pass
+(`docs/audit/2026-10-07-fable-pass-27.md`), unattended until Ramon
+wrote once mid-pass to hold the commander for a talk; the roster stays
+the user's and the pass recommends. Amends nothing; applies entry 61's
+rules 2, 5 and entry 54's two-tranche closure.
+
+**What was measured.** Twenty-two landings in 13 h 15 m on three lanes,
+from the opening booking (`e02e4b0c`, 07:44Z) to the drain (`850a2ef8`,
+20:59Z), Ramon typing once (1619's guard, parked 1624); workers 414.72
+USD list over nineteen sessions, 15.62 a merged landing with the Opus
+racer's chain set aside. The coverage pair 1408 → 3395 on Opus 5.5 at
+14.66 a landing, 33 minutes waiting; Great Sahara's coverage word 1582
+→ 2323 — the race's Sonnet chain 1582 → 2185 at 14.89 (the Opus chain
+1985 at 14.22, kept on origin), then three Sonnet landings at 14.71 and
+90 waiting; the census's backed column 45 → 68 by two sweep batches
+(Opus 8 of 10 agreed for 5.23, Sonnet 9 for 3.68). A landing on a word
+lane waited 44.6 minutes against 48.1; the gate's share fell 14.8 → 4.4
+with the lane gate. Neither kill rule tripped. The battery read 576 /
+6566 / 2974, unmoved for a third tranche.
+
+**What it means.**
+
+1. **The race and the sweep trial point the same way, and the roster is
+   still the user's.** Sonnet 5.5 at high reached further on the one
+   word both ran, agreed with Opus wherever both named a cause, and
+   swept one function more for a third less; its price a landing was
+   Opus's this tranche (14.82 against 14.66) after being half of it the
+   tranche before. The pass changes no lane's model; the recommendation
+   at the top of the record is Sonnet on every lane, the kill rules
+   covering the downside, decided at the next steer.
+2. **The sweep is a lane with a score** (entry 63 (iv), done): `Census:
+   simulation backed 68 of 3611` is on the board, item 1630 is its next
+   batch, and the brief has a `sweep` kind. Parked 1464 closes.
+3. **Four lanes, by rule 5.** The waiting fell (44.6 against 48.1,
+   within the fifth), so a lane comes back, and it is the rules track's
+   1497 — chapter fifty-two, on Sonnet by the roster — because the
+   battery has not moved for three tranches and only a chapter reaches
+   it. The suite lane's 728 idle minutes are excluded from that measure
+   as a wait on the pass, not the machine, and the waiter reads a busy
+   pane as working now (parked 1572). Past four is the user's.
+4. **A Loop item two tranches did not reach closes** (entry 54, applied
+   to 1485, 1478, 1516, 1490), and **nineteen of forty-one left the
+   backlog**, seven by a build each made to fail first where it could:
+   the suite re-timed by a tool (1573), the waiter's runner list a
+   guard (1574), the tranche reader's three classes (1421), `repin.py`
+   through comments (1462), `seams.py`'s call graph (1560, in part),
+   and `brief.py`'s filters and sweep kind (1623, 1629). The frame's
+   ceiling is each kind's own sections now, since the sweep's section
+   reaches no word lane.
+5. **The constant guard's `sweep/` skip is ratified** (parked 1624):
+   the hex spelling is read from every test on purpose, because the
+   pins are tests; a `#[cfg(test)]` skip would un-count them.
+
+**Amended the same evening, with Ramon, in conversation.** The race's
+money was read by class: 79 and 86 per cent of the two racers' bills
+were cache reads, priced the same on both models ($0.20 a million), so
+Sonnet's half-price tokens bought nothing and the model question was
+half a context question — the racers chained five items in one session
+and peaked at 865 k, and a single item on a regular lane runs to half a
+million. So: **(i) the race is re-run as 1639 with the racers shaped
+like workers** — one session a landing, respawned by the commander off
+the racer's own chain tip, nothing merged until the end — in three
+arms, Opus 5.5 high, Sonnet 5.5 high and Sonnet 5.5 medium, since
+Sonnet 5.5's effort levels are recalibrated and medium is the next
+thing to test; **(ii) every lane clears itself at 300 k of context**
+(frame row 1637: the journal as a draft, a commit, `ccc clear` on its
+own ref with "continue item N from the journal"), measured next pass by
+the tranche reader's peak and deep-share columns; **(iii) the
+reading-heavy half of an item in a subagent** is parked as 1638, after
+(ii) has numbers; **(iv) the handoff between `commander` and `steer`
+is a cross-session clear** (entry 63 (iii)) from the next time the
+commander goes out: the ccc session proved one fires (2026-10-07, a
+fixture answered the prompt another session armed), with four
+conditions — the target's tree committed when it is armed and when it
+fires, the target at `tempo=idle`, something serving the control
+socket, and the session uuid changing while the name and bridge id
+stay. Every `spawn --replace` leaves a row; the ccc session measured
+that `ccc rm` on a row launched with `--cwd` drops the row alone — a
+tree goes only when the job file names one (a `--worktree` spawn) or
+the branch carries `ccc-cut` — so the four archived rows on this
+worktree were removed by the pass, the tree, branch and target intact,
+and a `ccc forget` that enforces the rule is on ccc's side; the lore
+session has the spawn-telemetry gap (1618). The lane count is five
+sessions plus the sweep for the race's length, Ramon's call past rule 5.
+
+**The estimate, written down to be wrong on record**: twenty landings on
+four lanes in under fourteen hours with nobody typing; the coverage
+pair's word passes 4,000; Great Sahara's passes 3,000; chapter fifty-two
+closes and the battery moves on at least one lobby; the backed column
+passes 80; a landing waits under 50 minutes on four lanes; neither kill
+rule trips; `tools/suite_timings.py --stale` reads under twenty-five
+untimed tests at the next pass.
+
+**The measure for the next pass**: the record's "The next steer" list —
+each lane's USD and waiting against 14.66 / 33 and 14.82 / 59, the
+fourth lane's against 50; the suite's ageing by `--stale`; the waiter's
+exits against 22 / 2 / 0 / 14; conflicted updates against 23 mentions;
+the battery against 576 / 6566 / 2974; never against 148 and backed
+against 68; the backlog against twenty-two; the disk against 91 GiB.

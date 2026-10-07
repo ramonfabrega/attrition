@@ -32,6 +32,7 @@ word, case-blind, with `Class::` stripped: `Unit::think_scout` is
 `think_scout`.
 """
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -345,6 +346,46 @@ def spec_rows(rx, docs=DOCS):
     return out
 
 
+EXPORT = Path(os.path.expanduser('~/ghidra-projects/decomp'))
+CALL = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_]*)*)\s*\(')
+
+
+def export_index(export=EXPORT):
+    """`{name: path}` from the decompile export's `INDEX.tsv`
+    (`addr<TAB>name<TAB>file`); None when the export is not on this box."""
+    index = export / 'INDEX.tsv'
+    if not index.exists():
+        return None
+    out = {}
+    for line in index.read_text().splitlines():
+        parts = line.split('\t')
+        if len(parts) == 3:
+            out[parts[1]] = export / parts[2]
+    return out
+
+
+def callees(name, export=EXPORT):
+    """The functions `name`'s decompiled body calls, by the export's
+    names — the names a seam about a gate the writer calls is written in
+    (parked 1560: `find_goody_box` → `goody_item_is_seen`; six landings
+    of two tranches sat a step past `--field`'s reach)."""
+    index = export_index(export)
+    if index is None or name not in index:
+        return None
+    body = index[name].read_text()
+    return sorted({c for c in CALL.findall(body) if c in index and c != name})
+
+
+def callers(name, export=EXPORT):
+    """The functions whose decompiled bodies call `name` (1586's
+    `Group::normalize`: its callers nobody counted)."""
+    index = export_index(export)
+    if index is None or name not in index:
+        return None
+    needle = re.compile(r'\b' + re.escape(name) + r'\s*\(')
+    return sorted(n for n, path in index.items() if n != name and needle.search(path.read_text()))
+
+
 def clip(text, n):
     return text if len(text) <= n else text[:n - 1].rstrip() + '…'
 
@@ -361,6 +402,10 @@ def main():
                     help='list the live seams that name a function this crate now carries')
     ap.add_argument('--unwritten', metavar='STRUCT',
                     help='list the fields of a `crates/sim` struct that no non-test line writes')
+    ap.add_argument('--callees', action='append', default=[], metavar='FN',
+                    help="an export name (`Wall::process`): its callees' names are scanned too (parked 1560)")
+    ap.add_argument('--callers', action='append', default=[], metavar='FN',
+                    help="an export name: its callers' names are scanned too")
     ap.add_argument('--width', type=int, default=260)
     args = ap.parse_args()
 
@@ -405,9 +450,17 @@ def main():
                             for fn in functions_naming(f.read_text(), field)})
             print(f'    no `.{field}`; the name occurs in ' + (', '.join(where) or 'no function'))
         names += [field] + writers + readers
+    graph = [(f, 'callees', callees) for f in args.callees] + [(f, 'callers', callers) for f in args.callers]
+    for fn, mode, found_by in graph:
+        more = found_by(fn)
+        if more is None:
+            print(f'seams.py: `{fn}` is not in the export at {EXPORT / "INDEX.tsv"}', file=sys.stderr)
+            return 2
+        print(f'{mode} of `{fn}`: ' + (', '.join(more) or 'none'))
+        names += [fn] + more
     rx = matcher(names)
     if rx is None:
-        ap.error('no name given: pass names, --item or --chain')
+        ap.error('no name given: pass names, --item, --chain, --callees or --callers')
     print('names: ' + ', '.join(dict.fromkeys(bare(n) for n in names)))
 
     found = 0

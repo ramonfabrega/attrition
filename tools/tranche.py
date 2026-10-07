@@ -55,12 +55,20 @@ CLASSES = [
     # A status line to the commander, then nothing: the wait is on whatever
     # the worker had backgrounded, and the message says which.
     ("status", re.compile(r'"to":"attrition"')),
+    # A script in the job's tmp (parked 1421): the frame's own row for a
+    # command the worktree guard refuses, so its text names no gate or
+    # suite — `--show-gaps` reads the script's name.
+    ("script", re.compile(r"(?:\$CLAUDE_JOB_DIR|jobs/[^/\s]+)/tmp/\S+\.(?:sh|py)\b")),
 ]
 
 
 def classify(instruction: dict | None) -> str:
     if not instruction:
         return "other"
+    # A fanned batch's subagents (1619: 56 of 63 minutes): the wait is on
+    # the Agent tool, whatever its prompt says.
+    if instruction.get("tool") == "Agent":
+        return "subagent"
     text = instruction.get("input") or ""
     for name, rx in CLASSES:
         if rx.search(text):
@@ -90,10 +98,16 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
     """Reduce one `lore trace --steps` to the row a pass reads."""
     requests: list[dict] = []
     instructions: list[dict] = []
+    # The turn each request opened, by kind: a gap that ends at a `relay`
+    # turn was a wait on another session's message (parked 1421: 1398's
+    # 334 minutes for a commander's reply read as the suite).
+    opened_by: dict[str, str] = {}
     for tx in tr.get("transactions", []):
         reqs = tx.get("requests")
         if isinstance(reqs, list):
             requests.extend(reqs)
+            if reqs:
+                opened_by[min(r["ts"] for r in reqs)] = tx.get("kind") or ""
         instructions.extend(tx.get("instructions") or [])
     requests.sort(key=lambda r: r["ts"])
     instructions.sort(key=lambda i: i["ts"])
@@ -121,6 +135,8 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
             if c != "other":
                 cls = c
                 break
+        if opened_by.get(b["ts"]) == "relay":
+            cls = "message"
         waiting += secs / 60
         on[cls] = on.get(cls, 0.0) + secs / 60
         gaps.append((a["ts"], secs / 60, (last or {}).get("input", "")[:120]))

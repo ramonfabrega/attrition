@@ -47,7 +47,10 @@ if [ -z "$log" ]; then
 fi
 banner='=== the queue, as it went ==='
 receipt='^{"map_requested"'
-runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|gamelog/startcapture.sh|gamelog/lane.sh'}
+# Every launcher in the tree — a script that calls `ron_wine`, and `lane.sh`
+# — held to this list by `test_waitrun.py` (parked 1574: four launchers
+# each missed it once, and the waiter read a live capture as dead).
+runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|gamelog/startcapture.sh|gamelog/lane.sh|gamelog/longtrace.sh|gamelog/live.sh|gamelog/runwin.sh|gamelog/roadcapture.sh|gamelog/censuswindow.sh|fuzz/run.sh|fuzz/gate.sh'}
 # `lane.sh N` builds a pool lane before its admission run starts a runner
 # (item 1569): run689's waiter read the build as a dead runner and exited 2.
 # A capture script launched on its own, with no queue around it, ends on one

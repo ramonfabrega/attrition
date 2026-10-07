@@ -28,6 +28,7 @@ stay the worker's to write (`CLAUDE.md`, "the re-pin is split on purpose").
 """
 import argparse
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -70,9 +71,42 @@ def parse(log):
     return sites
 
 
+def blank_comments(text):
+    """`text` with every `// …` comment (outside a string) replaced by
+    spaces of the same length, so offsets into it are offsets into the
+    source. Parked 1462: a comma in a comment between the arguments split
+    them, and a comment's text made a literal `want` "not a literal" — 50
+    of 131 sites left by hand in one landing. The comment itself stays in
+    the file: an edit's span is the trimmed literal, never the blanks."""
+    out, k, in_str = [], 0, False
+    while k < len(text):
+        c = text[k]
+        if in_str:
+            out.append(c)
+            if c == '\\':
+                k += 1
+                out.append(text[k] if k < len(text) else '')
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+            out.append(c)
+        elif text.startswith('//', k):
+            end = text.find('\n', k)
+            end = len(text) if end < 0 else end
+            out.append(' ' * (end - k))
+            k = end
+            continue
+        else:
+            out.append(c)
+        k += 1
+    return ''.join(out)
+
+
 def invocation(text, line):
     """`(start, end)` offsets of the `pin_eq!(…)` whose opening is on
-    `line` (1-based), or None."""
+    `line` (1-based), or None. `text` is the source with its comments
+    blanked (`blank_comments`), so a `pin_eq!` in a comment is not one."""
     offset = sum(len(l) + 1 for l in text.split('\n')[:line - 1])
     m = re.compile(r'pin_eq!\s*\(').search(text, offset)
     if not m or text[offset:m.start()].count('\n') > 0:
@@ -159,7 +193,7 @@ def plan(sites, root=ROOT):
         if not path.exists():
             by_hand.append((file, line, 'no such file', msg, got, want))
             continue
-        text = path.read_text()
+        text = blank_comments(path.read_text())
         span = invocation(text, line)
         if not span:
             by_hand.append((file, line, 'no pin_eq! opens on that line', msg, got, want))
@@ -192,6 +226,7 @@ def main(argv=None):
     ap.add_argument('log', help='a cargo test log holding "N pins moved:" reports')
     ap.add_argument('--write', action='store_true', help='rewrite the literal sites (default: report)')
     ap.add_argument('--root', default=str(ROOT))
+    ap.add_argument('--no-fmt', action='store_true', help='do not run `cargo fmt` after --write')
     args = ap.parse_args(argv)
     root = Path(args.root)
     sites = parse(Path(args.log).read_text())
@@ -208,6 +243,10 @@ def main(argv=None):
     if args.write and edits:
         apply(edits, root)
         print(f'wrote {n} pin(s) in {len(edits)} file(s)')
+        if not args.no_fmt and (root / 'Cargo.toml').exists():
+            # Parked 1462: a rewritten tuple is the formatter's to wrap, and
+            # an edit made before `cargo fmt` was lost to it twice.
+            subprocess.run(['cargo', 'fmt'], cwd=root, check=False)
     elif not args.write and edits:
         print('nothing written: pass --write')
     return 0

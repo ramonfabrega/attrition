@@ -10,6 +10,7 @@ traceback an earlier map printed, with a later receipt, is judged by the
 receipt; the banner and the receipts keep their verdicts.
 """
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -73,6 +74,28 @@ class Waitrun(unittest.TestCase):
         code, _, err = self.run_it('Staged: /x/map-7\n')
         self.assertEqual(code, 2)
         self.assertIn('holds no banner', err)
+
+
+class TheRunnerList(unittest.TestCase):
+    def test_every_launcher_in_the_tree_is_on_the_default_runner_pattern(self):
+        # Parked 1574: `WAITRUN_RUNNER`'s default is a list, and every new
+        # launcher has missed it once (656, 1503, 1513, 1571) — the waiter
+        # read a live capture as a dead runner and exited 2. A launcher is
+        # a script that calls the launch line's `ron_wine` (or builds a
+        # lane, `lane.sh`); this holds the list to the tree.
+        line = next(l for l in SCRIPT.read_text().splitlines() if l.startswith('runner_pattern='))
+        pattern = re.search(r"WAITRUN_RUNNER:-'([^']*)'", line).group(1)
+        launchers = set()
+        for path in list((ROOT / 'tools').rglob('*.sh')) + list((ROOT / 'tools').rglob('*.py')):
+            if path.name.startswith('test_') or path.name == 'winelaunch.sh':
+                continue
+            if re.search(r'^[^#]*\bron_wine\b', path.read_text(), flags=re.M):
+                launchers.add(path.name)
+        launchers.add('lane.sh')
+        unmatched = sorted(n for n in launchers if not re.search(pattern, 'tools/gamelog/' + n)
+                           and not re.search(pattern, 'tools/explore/' + n)
+                           and not re.search(pattern, 'tools/fuzz/' + n))
+        self.assertEqual(unmatched, [], 'launchers the waiter would read as a dead runner')
 
 
 if __name__ == '__main__':

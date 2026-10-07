@@ -21070,3 +21070,31 @@ rule, the capture waiter's dead-take exit, the runner's second-stall
 give-up, the lane state's exit, the standing tool's sibling print; nine
 Loop items closed, 1516 filed, the backlog seventeen. **DECISIONS 62.**
 `docs/audit/2026-10-06-fable-pass-25.md`.
+
+**2026-10-06 — the twenty-sixth pass: the mixed roster's second
+tranche, scored.** Twenty landings in 12 h 40 m with nobody typing:
+French East Indies closed at 17,379 and the coverage pair 177 → 1408 on
+Opus; Toughest closed at 15,432 with its closing state and Great Sahara
+stood up in the coverage lobby to 1582 on Sonnet at high, at 7.86 a
+landing against Opus's 12.39. The replaced session is archived by its
+spawner; the suite's shared text built and measured (memory, not
+seconds); the suite lane spawned and the race protocol written with
+Ramon — the roster to be settled by a race on Great Sahara's word, the
+sweep opened as a scored middle track, the fallback named. Eleven Loop
+items closed, five built, the backlog twenty-three. **DECISIONS 63.**
+`docs/audit/2026-10-06-fable-pass-26.md`.
+
+**2026-10-07 — the twenty-seventh pass: the race scored, the sweep a
+lane.** Twenty-two landings in 13 h 15 m on three lanes, drained: the
+coverage pair 1408 → 3395 on Opus (14.66 a landing), Great Sahara's
+coverage word 1582 → 2323 — Sonnet's chain won the race (2185 against
+1985, 74.43 against 71.08 USD) and the lane ran on — and the census's
+backed column 45 → 68 by two sweep batches (Sonnet 9 of 10 for 3.68,
+Opus 8 for 5.23). The battery unmoved for a third tranche. Built: the
+suite re-timed by a tool, the waiter's runner list a guard, a busy pane
+read as working, the tranche reader's three classes, `repin.py` through
+comments, `seams.py`'s call graph, `brief.py`'s filters and sweep kind;
+nineteen Loop items closed, the backlog twenty-two; the `sweep/` skip
+ratified. Four lanes next by rule 5, chapter fifty-two the fourth; the
+commander held for a talk with Ramon. **DECISIONS 64.**
+`docs/audit/2026-10-07-fable-pass-27.md`.

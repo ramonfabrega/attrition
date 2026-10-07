@@ -104,6 +104,43 @@ class Repin(unittest.TestCase):
         repin.main([str(log), '--root', str(self.root), '--write'])
         self.assertNotEqual(self.file.read_text(), SOURCE)
 
+    def test_a_want_beside_a_comment_is_rewritten_and_the_comment_kept(self):
+        # Parked 1462, the fifth reach: `repin.py` left 50 of 131 sites by
+        # hand when a `want` carried a comment between the arguments, or
+        # followed a comment line — a comma in the comment split the
+        # arguments, and the comment's text made the want "not a literal".
+        source = """fn t() {
+    let _pins = Pins::hold();
+    pin_eq!(
+        w.count,
+        // the word: 3142 -> 3395 (1625), stands from the gap, not the block
+        3142,
+        "the coverage pair's word"
+    );
+    pin_eq!(
+        w.sequence, // 2323 (1620)
+        2273, "the sequence"
+    );
+}
+"""
+        log = """1 pin moved:
+  crates/rondata/src/diff/fixture.rs:3: the coverage pair's word
+    got  3395
+    want 3142
+1 pin moved:
+  crates/rondata/src/diff/fixture.rs:9: the sequence
+    got  2323
+    want 2273
+"""
+        self.file.write_text(source)
+        edits, by_hand = repin.plan(repin.parse(log), self.root)
+        self.assertEqual(by_hand, [])
+        self.assertEqual(sum(len(v) for v in edits.values()), 2)
+        repin.apply(edits, self.root)
+        text = self.file.read_text()
+        self.assertIn('// the word: 3142 -> 3395 (1625), stands from the gap, not the block\n        3395,', text)
+        self.assertIn('w.sequence, // 2323 (1620)\n        2323, "the sequence"', text)
+
 
 if __name__ == '__main__':
     unittest.main()
