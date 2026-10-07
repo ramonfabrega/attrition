@@ -64,16 +64,36 @@ impl Sim {
     /// no capture shows a human one.
     pub fn strategy_all(&mut self) {
         for w in 0..self.players.len() {
-            if self.nation[w].human || self.defeated[w] {
+            if self.defeated[w] {
                 continue;
             }
             let who = w as Player;
             if cadence::explore_due(w, self.frame, self.ai_speed) {
                 self.check_explore(who);
             }
+            if self.nation[w].human {
+                self.plan_strategy_human(who);
+                continue;
+            }
             self.plan_strategy(who);
             // `compute_score(0)` and `diplomacy` — not modelled.
         }
+    }
+
+    /// `Leader::plan_strategy@006b9620` for a human leader without computer
+    /// assist (`leader_flags & 0xc == 4`). The sweep runs on the leader's
+    /// phase as it does for a computer one, minus step 16's army seeding,
+    /// whose gate is `(leader_flags & 0xc) != 4` (`:1642`). The step
+    /// machine it arms is disarmed on the next frame by `production_ai`'s
+    /// `default`, which produces nothing (`docs/AI.md` §23.1), so it is
+    /// not armed here; nor is the research tick taken between sweeps,
+    /// which reads a make list only the script fills.
+    fn plan_strategy_human(&mut self, who: Player) {
+        if !cadence::sweep_due(who as usize, self.frame, self.ai_speed) {
+            return;
+        }
+        self.census(who);
+        self.compute_sites(who, false);
     }
 
     /// `Leader::plan_strategy@006b9620`'s head (`docs/AI.md` §2.2): a

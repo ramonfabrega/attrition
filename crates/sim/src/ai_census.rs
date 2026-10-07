@@ -334,8 +334,12 @@ impl Sim {
         self.census_city_sites(who);
         self.census_wars(who);
         self.census_strategy(who);
-        // Step 16, the army seeding (`docs/ARMY.md` §15).
-        self.census_seed_army(who);
+        // Step 16, the army seeding (`docs/ARMY.md` §15): not for a human
+        // leader without computer assist, `(leader_flags & 0xc) != 4`
+        // (`plan_strategy@006b9620:1642`).
+        if !self.nation[w].human {
+            self.census_seed_army(who);
+        }
     }
 
     /// Step 1. Once the leader holds more than two cities and villages,
