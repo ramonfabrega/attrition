@@ -12905,7 +12905,7 @@ run500 737 keys → 149). **The word 9323**: ours 7 draws against 5 at index
 `forced_march_speed` through `HeroesData::find_hero`), so who=1's army
 walks 9112..9262 at its own speed here~~ — built by item 1318, §99.15; `cast_ambush`, Rally,
 `use_spies`, `use_scouts`; ~~`general_upgrade` (0; 9368's coin bounds it at
-1)~~ — the leader's count of `GENERALS_UPGRADE_1..3` since item 1614 (§172).
+1)~~ (§172).
 
 **Coverage.** Diff-backed by the run470 walk (8856, 9112, 9240) and
 `run500_s_word_frame_is_widened_whole`; unit tests in `sim::spellcaster`.
@@ -13047,7 +13047,7 @@ Silver, bought by the cheap tick; 9982 → 9999.
 
 **Not established**: Alexander's arm, the Iroquois bonus and the hero
 auras below the march (`Sim::unit_speed`'s `SEAM`); ~~`get_general_upgrade`
-(0)~~ — the leader's count since item 1614, §172; `is(t, 1)` for the patriots, taken as the type.
+(0)~~ (§172); `is(t, 1)` for the patriots, taken as the type.
 
 **Coverage.** Diff-backed by the run470 walk (9323) and
 `run517_s_gap_is_widened_whole`; the unit test
@@ -17826,9 +17826,8 @@ claim is *diff-backed* unless marked.
    born on 2908) takes `unit_masks & 0x8000` on block 2969 with `mana_burn` 1000 — ours casts on the same frame (`craft
    1000`). It stands at (35285, 41033), `vector_dist` about 3,150 from `1/16`. `HeroData::get_radius@00739e50` is
    `GENERAL_RADIUS × (get_general_upgrade + 3) / 2`: 9 tiles (1,728) with no upgrade, **18 (3,456) with three**.
-4. **`LeaderData::get_general_upgrade@006e0830` counts every one of `GENERALS_UPGRADE_1..3` held** (`0x305..0x307`,
-   bonus rows 89–91; listing `6e0837`–`6e0877`, `has_preq` per row; its `BUY_SELL` arm at `0x2ad` lies outside the loop's
-   range). This lobby starts with every technology, so it is 3, where this crate had the constant 0. The same count
+4. **`LeaderData::get_general_upgrade@006e0830` counts every one of `GENERALS_UPGRADE_1..3` held** (bonus rows
+   89–91; listing `6e0837`–`6e0877`, `has_preq` per row; its `BUY_SELL` arm lies outside the loop's range). This lobby starts with every technology, so it is 3, where this crate had the constant 0. The same count
    gives the General itself, all four on block 2909 where ours had 109, 8 and 42:
    - **hits** `+ level² × hits / 2` (`update_hits@0060e930`, `0060ec03`–`0060ec33`): 109 → **599**;
    - **sight** `+ level × GENERAL_UPGRADE_LOS` (2; `update_los@0060e4d0`, `0060e8a3`–`0060e8db`): 8 → **14**;
