@@ -96,8 +96,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // **2206** (count and sequence): ours 14 draws against 16, index 3, ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a
     // < Unit::move_step+0x823`.
-    count: 2206,
-    sequence: 2206,
+    //
+    // Landing 7 (`docs/AI.md` §171): the quick collision `find_merchant_spot`
+    // asks (the Merchant `1/38`'s walk) and the founding capital's border
+    // bonus (the territory table agrees on every dumped block) — 2206 →
+    // **2273** (count and sequence): ours 99 draws against 91, index 66,
+    // ours `Unit::think_scout+0x64c`, theirs `Unit::think_scout+0x436`; the
+    // word's first parting by index was 0 (the scout `1/0`'s own idle).
+    count: 2273,
+    sequence: 2273,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -609,10 +616,11 @@ pub(crate) const RUN702: &str = "gamelog-run702-greatsahara-persian-alltech-wind
 /// The window: block 1979 through 2235; the word 1985's own block is 1986.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1985: (i64, i64) = (1979, 2235);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run702 walked from run675's start with the
-/// recorder on — the word 1985's block 1986.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run702 walked from run675's start with the recorder on — the word 1985's
+/// block 1986, the word 2048's and the word 2185's and 2206's blocks. It was
+/// the `AI_WORDS` window until the word moved past it, to run718's (item
+/// 1611).
+pub(crate) fn sahara_coverage_frame_1985_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -629,7 +637,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run702_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_1985_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -740,4 +748,38 @@ fn run702_s_word_frame_is_widened_whole() {
         Some(1991),
         "the first parting past the standing block"
     );
+}
+
+/// run718, item 1611: the lobby's blocks 2267..2523 at the long's detail —
+/// the word 2273's block 2274 with six before it and 249 after.
+pub(crate) const RUN718: &str = "gamelog-run718-greatsahara-persian-alltech-window-2267-2524.txt";
+
+/// The window: block 2267 through 2523; the word 2273's own block is 2274.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2273: (i64, i64) = (2267, 2523);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run718 walked from run675's start with the
+/// recorder on — the word 2273's block 2274.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run718",
+        &[(RUN718, WIDENING_SAHARA_COVERAGE_FRAME_2273.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_2273,
+        1,
+        &[2274],
+        true,
+    )
+}
+
+#[test]
+fn run718_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(w.firsts.len(), 0, "initial run718 baseline");
 }
