@@ -1672,8 +1672,7 @@ mod tests {
             [(12811, 87)],
             "the blocks keys first part on, the first three"
         );
-        // Item 1577: 88 → 87, block 12825's one (an army's normalize resets
-        // its group's speed, `docs/AI.md` §158).
+        // Item 1586: 88 → 87 (12825's 1 goes); an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 87, "every key parted on run640");
     }
 

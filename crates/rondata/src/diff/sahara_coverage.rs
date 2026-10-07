@@ -477,7 +477,9 @@ fn run683_s_word_frame_is_widened_whole() {
     // original's resumed one drew 3204.
     // **185** after item 1577's build (an army's 128-frame normalize resets
     // its group's speed, `docs/AI.md` §158): the soldiers' guard orders and
-    // half steps that parted from 1719 agree; 151 stand on 1577.
+    // half steps that parted from 1719 agree; 151 stand on 1577. (Item
+    // 1586 landed the same tail on the integration branch first, for the
+    // coverage pair's army `1/0`, and pinned 540 there on its own tree.)
     pin_eq!(w.firsts.len(), 185, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),

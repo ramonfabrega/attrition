@@ -8636,8 +8636,9 @@ after the under-attack decay and **before** `helpers` is reset (`:172`):
 
 1. The site is not active (`WallData::is_active`, `+8 & 4`) and its owner is
    not human (`leader_flags & 4`).
-2. SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
-   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.
+2. ~~SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
+   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.~~
+   Built and diff-backed by item 1588: §162.
 3. **The gate**: `is_wonder()` (Build vslot `+0x2c`, `BuildData::is_wonder`
    in `vtables.txt`), **or** `ptype.is_fort()` (`ObjectTypeData` vslot
    `+0xfc`, named by the PDB's `LF_ONEMETHOD` record — the export has no
@@ -17162,14 +17163,17 @@ Guard]` on block 1829, 9 units short of its spot (ours (37407, 19083), theirs (3
 **The cause.** `Army::process@006f93d0` runs `Army::normalize@006f9b50` on frames `(frame − 0x1e + (slot + who·2)·2) & 0x7f == 0` —
 player 1's army 0 on frames ≡ 26 mod 128, and 1562 is one — and `Army::normalize` calls the whole `Group::normalize@00711540` on its group:
 the prune, `find_role`, and the tail `speed = new_speed = UnitData::speed(find_leader)` (`007116fa`/`007116fd`). This crate's
-`army_normalize` did the prune and the counts and not the tail. Built: `army_normalize` ends the group step with `group_set_speed`
-(`crates/sim/src/army.rs`).
+`army_normalize` did the prune and the counts and not the tail. Built: `army_normalize` ends the group step with the speed tail
+(`crates/sim/src/army.rs`). **Item 1586 found and landed the same tail first**, on the coverage pair's army `1/0` (§161), while this walk
+ran; the merge took its code (`seat_set_speed`) and its unit test, and this section is the second, independent measurement of the rule
+on another lobby — the walk, run691's pair and the packet's named writer are this item's.
 
 **The move.** Run683's keys **845 → 185** (the army's guard orders and half steps from 1719 on agree; 151 stand on 1577), and the word goes
 **1830 → 1985** (sequence; the count parts at 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
 `Leader::make_stuff+0x63d`. The fix is on every army's 128-frame turn, so it reaches every capture with a marching army: seven second-pair
 windows (run414, run445, run480, run490, run583, run589, run594) and run640 each lose one to three keys, and **the coverage pair's word
-moves 1532 → 1610** (item 1563's lane; run679's keys 203 → 146, run710's 1034 → 764). No pin moved the wrong way; every floor held.
+moves 1532 → 1610** (item 1563's lane; run679's keys 203 → 146, run710's 1034 → 764) — measured on this branch before the merge, and
+§161's own move. No pin moved the wrong way; every floor held.
 
 **The new word, read.** Block 1986 is run693's (blocks 1979..2235): 1401 keys, 157 standing on 1979. City `1/2018`'s `bordering` parts on
 1980 (ours 0, theirs 3), and on 1981 the Persians' make list orders the Supply Wagon (type 63) and type 273 the other way round —
@@ -17180,7 +17184,8 @@ capture has two. The second arm of `Army::process`'s schedule (`(frame + iVar5) 
 ours' `army_tick` calls `army_normalize` first, so it carries the tail now as well — no capture separates the two arms' resets.
 
 **Mutations** (`tools/mutate.py`, scored by cargo's exit): the tail removed — held by `sahara_coverage_first_parting`,
-`run683_s_word_frame_is_widened_whole` and the unit test `army_normalize_resets_the_group_s_speed_to_its_leader_s`.
+`run683_s_word_frame_is_widened_whole` and `run693_s_word_frame_is_widened_whole` (measured before the merge; §161's unit test
+`an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed` holds it on the merged tree).
 
 **Coverage.** Diff-backed: the tail on the army's turn (run691's pair; run692's watched writes; the word 1830 → 1985).
 
@@ -17194,7 +17199,123 @@ A stub the booking lands so the race's winner writes its landings at their own a
 A stub the booking lands so the race's winner writes its landings at their own anchors
 (parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
 
-## 161. Reserved for item 1586 (the coverage pair's word 1532)
+## 161. An army's normalize puts its group's cap back to the leader's speed, and the word at 1610 (2026-10-07, item 1586)
+
+**What was established, how, how confident.** Item 1563 left the coverage pair's word at **frame 1532, ours 13 game draws
+against 11, index 8**: ours `Unit::do_move+0xe84`, theirs `Farms::inc_time+0x1ae`. run710 (1527..1783) holds it whole. Each
+claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1532`; ours `RON_DEBUG_SITES=1532-1532`). Both spend three
+   `GameDaemon::calc_market` draws and an animal's `Guy::set_anim < Animal::do_idle` (seeds `9d368de9`..`3289a986`); the
+   original then spends four `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b` grid draws (`350df32d`,
+   `3c6d3aa8`, `8dc1dde7`, `5940421a`), ours six — `1/18`, `1/27`, `1/30`, `1/36`, `1/43`, `1/45`, army `1/0`'s marchers, by then
+   apart by hundreds of units (run710 block 1527).
+2. **Walked back to the first parted field** (run679, `RON_FIRSTS`, `RON_DEBUG_UNIT`). Army `1/0` (seventeen members: TOWs
+   `TypeIndex` 141 at speed 25, Armored Cavalry 220 at 47 — `1/28`, `1/38` — and Mech Infantry 104 at 38, `1/43`..`1/45`) parts
+   first on block **1435**, by a few units, on `1/38`, `1/43`, `1/45` — ours (42511, 37009), (42587, 38956), (42572, 38466)
+   against (42517, 37030), (42588, 38964), (42574, 38482). All three carry an `ATTACK_TO` with `flags 1` (no action bit) on both
+   sides, so `get_action` is null and the group cap applies (`docs/GROUPS.md` §18). Solved from the dump's own deltas, the
+   original's steps on frame 1434 are `1/38` 47, `1/45` 47 (38 × 5/4) and `1/43` 23 (its half step of 47), where ours steps 25,
+   31 and 15 — the cap of 25 the TOW leader `1/16` left at slot 1's `Groups::process` reset on 1409. Through block 1434 the
+   original's `1/43` stepped 31 too: **the original lifts the cap on frame 1434**, to the Armored Cavalry `1/28`'s 47, the
+   leader since 1411 (ours' `find_leader` names it too). `1/28` itself carries `flags 5` and is uncapped on both sides.
+3. **The writer** (`Army::process@006f93d0`, the decompile's first branch). With `param_1 == 0` an army runs `normalize(this)`
+   when `(frame − 30 + (army + 2·who)·2) & 0x7f == 0` — for player 1's army 0, `frame ≡ 26 (mod 128)`, and **1434 is one**.
+   `Army::normalize@006f9b50` calls `Group::normalize@00711540` on each of its groups, and that function's tail, after
+   `find_role`, is `speed = new_speed = UnitData::speed(find_leader)` (or 0 for no leader or a building group) — every
+   time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
+   *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
+
+**Built.** `Sim::army_normalize` (`crates/sim/src/army.rs`) ends its prune with `Group::normalize`'s speed tail
+(`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
+ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
+`army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
+the leader's 47, both halves.
+
+**The value diff, and the word now.** run679 block 1435: `1/38` (42517, 37030), `1/43` (42588, 38964), `1/45` (42574, 38482) in
+both; no key of `1/28`, `1/38`, `1/43`..`1/45` parts in run679's window (pinned in `run679_s_word_frame_is_widened_whole`), and
+army 1 leaves run710's standing set. **run679 203 keys → 146; run710 1,034 → 764** (167 standing → 151).
+`coverage_pair_first_parting`: **frame 1532 → 1610, count and sequence** — ours 589 game draws against 598, index 0: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (the blocked stand), and the
+original's frame holds 586 `PathFinder::calc_road_cost < PathFinder::astar_caravan_road` draws. Inside run710 (block 1611),
+which `run710_s_word_frame_is_widened_whole` walks. On the fixed tree run710 first parts past its standing block on 1529
+(`1/52`'s `form`, the block it is born); `1/10` (the citizen of §144) parts from 1584 (its order stack, ours 4 against 2) and
+its path from 1610; and on 1583 the sites `1/2037` and `1/2043` part (`x/y_internal`, `city`), `1/2037` being the site ours
+alone has held since 1420. Hypotheses for the item after, not a cause.
+
+**What else it moved** (every pin a fall): the second pair's run414 86 → 84, run445 77 → 76, run480 85 → 84, run490 100 → 98,
+run583 202 → 199, run589 158 → 157, run594 177 → 176; Toughest's run640 88 → 87; and Great Sahara's coverage widening run683
+**1,183 → 540** (159 standing → 151), its word 1582 unmoved. No word, floor or endpoint moved.
+
+**What is not established.** `Group::normalize`'s prune is ours' existing back-pointer prune; its `priority` arm (only a hotkey
+group sets it) and `find_role` are not modelled, as §19 left them. An army with two or more groups — `Army::normalize` walks them
+last to first and returns at the first emptied one — is not a shape this crate carries.
+
+**Coverage.** Diff-backed: claims 1–2 and the cap's lift (army 1 agrees through run679 and run710's standing block). Reading-
+and listing-backed: claim 3's call chain, which the diff confirms on its one frame.
+
+## 162. An Oil Platform site nobody is building is disbanded, and the word at 1696 (2026-10-07, item 1588)
+
+**What was established, how, how confident.** Item 1586 left the coverage pair's word at **frame 1610, ours 589 game draws
+against 598, index 0**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+run710 (1527..1783) holds it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1610`; ours `RON_DEBUG_SITES=1610-1610`). The original: one
+   `Unit::move_step+0x823` stand (seed `46e3b40d`), four `Guy::move` animation draws, **586** `PathFinder::calc_road_cost <
+   astar_caravan_road`, four idle `Guy::inc_time`, three `Farms::inc_time` — 598. Ours: four `Guy::move` (`1/29`, `1/31`),
+   **578** road-cost draws, four idle, three farm — 589. Two partings on one frame: the stand, and the caravan A*'s expansion
+   count.
+2. **The frame's cast** (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`). The citizen **`1/10`** (`TypeIndex` 50,
+   `PEASANTS`) parts from block 1584 — ours' stack 4 with an `ExploreTo` (28488, 31272), the original's 2, `[Build 2038,
+   ExploreTo (34632, 33528)]` — and its path from 1610; `1/14` collides with it on 1611 in the original. On 1583 the sites
+   `1/2037` and `1/2043` part (`x/y_internal`, `city`). Ours' `1/10` (`RON_DEBUG_UNIT`) carried `[…, ExploreTo (28488,
+   31272), Build 2037, …]`: the Oil Platform site at (28032, 31104), `orig_type` 422, that ours alone held.
+3. **Walked back** (run679, `one.py`): the original holds `1/2037` — the same Oil Platform site, (28032, 31104), `city −1`,
+   `constr_time` 29400 — on blocks 1418 and 1419 and **not on 1420**; ours holds it on. Frame 1419 is the site's 128-frame
+   phase: **1419 + 2037 = 3456 = 27 × 128**. On block 1419 the original's `1/10` holds `[Build 2038, ExploreTo, Build 2037,
+   ExploreTo, Build 2026]` (the dump lists the stack bottom first): the site is two orders under the current `Build 2026`, and
+   it is still there on block 1420 — the disband does not touch it.
+4. **The writer** (`Wall::process@00640450`, listing `6404c6`–`640588`). In the `(frame + o) & 31 == 0` block, for a site that
+   is not active (`+8 & 4`) whose owner is not human (`leader_flags & 4`), before the recruiter (§69.4): on `(frame + o) & 0x7f
+   == 0`, if the type's vslot `+0x60` answers `is(0x1a6, 0)` — the lineage test, arguments read off the listing (`640519`,
+   `64051b`) — and `ObjectsData::find_unit@0065ca80(x, y, SEARCH_FRIENDLY, who, −1, 0, FILTER_TARGET, o, who, FILTER_ALL)` is
+   negative, `Object::disband(0)` and return. Range −1 is the list walk over the searcher's own units (`SEARCH_FRIENDLY`,
+   §69.4). `FILTER_TARGET` is 11 by the PDB's `FilterIndex`; its arm, entry 10 of `Search::valid_filter`'s table at `0067e57c`,
+   is **`0067dfa4`** (read off the PE): the object is a unit (vslot `+0x18`), `UnitData::get_action@00608450` is non-null, its
+   vslot `+0xb4` — **`get_target_order`**, by the PDB's `LF_ONEMETHOD` record (the export's vtable names a folded
+   `Window::get_button`) — is non-null, and that order's `+0x8`/`+0xc` (`ox`/`whom`) are the site's `o` and `who`. So only a
+   unit whose **action** targets the site keeps it; claim 3's `1/10` does not, and the site goes. *Listing-backed*; the diff
+   confirms it on its one frame.
+
+**Built.** `Sim::oil_platform_abandoned` (`crates/sim/src/site_recruit.rs`), called from `Sim::process_building` inside the
+recruiter's gates and ahead of it; a disband returns from the head as `Wall::process` does. The target test is
+`action_of`'s order: `Build`, `Repair`, `Garrison`, `Gather` (its building), `Attack` (the unit's combat target) or `Cast` on
+the site. `site_recruit.rs`'s SEAM for this arm is gone. Unit test
+`cities_tests::an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase`: a site a citizen is building
+stands; with another build on top of it, it stands on a 32-frame phase and is disbanded with its price back on the 128-frame
+one; a human's never.
+
+**The value diff, and the word now.** run679 block 1420: `1/2037` absent in both (pinned in
+`run679_s_word_frame_is_widened_whole`), and leader 1's `gather_stamp` (1391 against 1423 on 1424) parts no more. run710 block
+1583: `1/2037` is the next site placed — (32640, 34176), city 2 — in both, and `1/2043` the Wonder at (34560, 37632); block
+1584: `1/10` holds two orders, `ExploreTo (34632, 33528)` over `Build 2038`, in both; no key of `1/10`, `1/2037`, `1/2043` or
+`1/2044` parts in run710's window (pinned). **run679 146 keys → 144; run710 764 → 478** (151 standing).
+`coverage_pair_first_parting`: **frame 1610 → 1696, count and sequence** — ours 41 game draws against 40, index 29: ours
+`Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. Inside run710 (block 1697). On the fixed tree `1/52`
+parts first on 1529 (`form`, the block it is born) and again on 1686 (`path:length` 9 against 17, `path_recursion` 10
+against 1, `last_x/y`); `1/40` on 1703 (`inside` 52 against −1). Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing: every other widening (179 run) holds; no floor, endpoint or other word moved.
+
+**What is not established.** `find_unit`'s two object gates (vslots `+8` and `+0xbc`) are read as ours' search reads them
+everywhere — alive and on the map — so a citizen riding a barge to the platform would not keep it here; whether `+0xbc`
+admits a passenger is not read. A follow or a guard order names a unit in this crate and is not tested against a building;
+`get_action`'s `0x12` skip is ours' `is_transit` as elsewhere. The arm on a non-computer site is gated as the recruiter is.
+
+**Coverage.** Diff-backed: claims 1–3 and the disband on 1419 (run679, run710). Listing- and PE-backed: claim 4's filter arm
+and slot names, which the diff confirms on its one frame.
+
+## 163. Reserved for item 1589 (the coverage pair's word 1696)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.

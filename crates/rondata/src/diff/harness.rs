@@ -1520,6 +1520,27 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
                     format!("build {}/{} ({},{})", b.owner, b.index, b.pos.x, b.pos.y)
                 }
             });
+            // The group's cap, its accumulator, its pool slot and leader
+            // (item 1586): what `get_speed`'s last arm reads for a member.
+            let g = built.sim.army_group(w as u8, slot);
+            let leader = built
+                .sim
+                .group_find_leader(&g)
+                .map(|u| format!("{}/{}", built.sim.units[u].owner, built.sim.units[u].index));
+            let list: Vec<String> = g
+                .list
+                .iter()
+                .map(|&u| format!("{}", built.sim.units[u].index))
+                .collect();
+            eprintln!(
+                "  f{frame} army {w}/{slot} cap {}/{} pool {:?} march {} leader {:?} list [{}]",
+                a.group.speed,
+                a.group.new_speed,
+                a.group.pool,
+                a.group.march,
+                leader,
+                list.join(" ")
+            );
             eprintln!(
                 "  f{frame} army {w}/{slot} status {} target {:?} pos ({},{}) muster ({},{}) \
                  rally {} hurry {} units {} caps {} std {} [{}]",

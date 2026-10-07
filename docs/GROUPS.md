@@ -2441,6 +2441,12 @@ Four gates, and each is load-bearing.
 and it runs from `Group::add@00714350` (only when the group's `id` is not
 −1, which excludes every stack-local group), `Group::kill@00714110`,
 `Group::normalize@00711540` and `Group::clear@00713e80` (to zero).
+`normalize`'s is reached on every army's own phase too —
+`Army::process@006f93d0` normalizes the army every 128 frames, and
+`Army::normalize@006f9b50` normalizes each of its groups — which this
+crate's `army_normalize` did not apply until item 1586 (`docs/AI.md`
+§161): run679's army `1/0` walks at 25 to 1434 and at its leader's 47
+from it.
 
 That is not where a marching group's number comes from. Two more
 functions write the pair, and **both have zero callers in the
@@ -5012,7 +5018,8 @@ of its groups (`6f9b8a`) — the prune, `find_role`, and the tail `speed = new_s
 `army_normalize` had the prune and not the tail. Measured on Great Sahara's coverage lobby: run691 prints group 66 (player 1's army 0)
 at 40/40 on block 1562 and **47/40** on 1563, `groups.proc_group` reads 26 on run692's packet at logger frame 1562 (so not §19's
 cursor), and `step4.py` on `Armies::process_all` names the two writes, `Group::normalize+0x1ba`/`+0x1bd`, through `Army::process →
-Army::normalize`. Player 1's army 0 has the turn on frames ≡ 26 mod 128, and 1562 is one. `docs/AI.md` §158 has the walk and the move.
+Army::normalize`. Player 1's army 0 has the turn on frames ≡ 26 mod 128, and 1562 is one. `docs/AI.md` §158 has the walk and the move;
+item 1586 built the same tail first on the coverage pair (§161), and this is the second lobby's measurement of it.
 
 **Coverage.** Diff-backed: the tail on the army's turn (run691's pair; the word 1830 → 1985; seven second-pair windows and run640 each
 lose a key or two). Reading-only: an army of several groups (`Army::normalize` walks every group in its list; no capture has two).

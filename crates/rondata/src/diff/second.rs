@@ -1081,7 +1081,7 @@ mod tests {
         // Item 1291 took 2: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 167.
         // Item 1458: 113 → 111; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 86 → 84 (6135's 2 go); an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 84, "every key parted on run414");
     }
 
@@ -1622,7 +1622,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 180.
         // Item 1457: 117 → 113; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 113 → 109; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 77 → 76; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 76, "every key parted on run445");
     }
 
@@ -1837,7 +1837,7 @@ mod tests {
         // Item 1407: 139 → 138.
         // Item 1457: 135 → 124; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 124 → 119; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 85 → 84; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 84, "every key parted on run480");
     }
 
@@ -1953,8 +1953,7 @@ mod tests {
         pin_eq!(
             w.firsts.len(),
             // Item 1407: 153 → 152 (11445's 2 → 1).
-            // Item 1577: 100 → 98, 11411's two: an army's 128-frame
-            // normalize resets its group's speed (`docs/AI.md` §158).
+            // Item 1586: 100 → 98 (11411's 2 go); an army's normalize puts its group's cap back to the leader's speed (`docs/AI.md` §161).
             98,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
@@ -2753,7 +2752,7 @@ mod tests {
         // Item 1481: 254 → 244; who=1's Tikal `MAKE[1]`/`[8]` 342150 → 684301 takes its `WONDER_VAL` 2, and the Pyramids and Colossus slots and their food and wealth `bucket` rows leave (`docs/AI.md` §124).
         // Item 1502: 193 → 165 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 1563: 163 → 177; the shared instrument compares `ever_seen` and `ever_seen_completed` (parked 1450), and on the closing block 18141 seven of player 1's buildings, `1/2056`..`1/2062`, read 3 in the original against 2 — the defeated human's bit, a closing residue.
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 177 → 176; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 176, "run594 record baseline");
         pin_eq!(
             w.firsts
@@ -2844,7 +2843,7 @@ mod tests {
         // Item 1461: 244 → 240; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         // Item 1481: 240 → 237; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
         // Item 1502: 186 → 158 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 158 → 157; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 157, "run589 record baseline");
         pin_eq!(
             w.firsts
@@ -3157,7 +3156,7 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 286 → 285, MAKE[4].val.
         // Item 1457: 285 → 271; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 271 → 266; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        // Item 1577: one army's 128-frame normalize resets its group's speed (`docs/AI.md` §158).
+        // Item 1586: 202 → 199; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         pin_eq!(w.firsts.len(), 199, "every key parted on run583");
     }
 

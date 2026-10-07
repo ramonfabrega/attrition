@@ -4671,6 +4671,77 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
 }
 
+/// **`Wall::process`'s oil-platform arm** (`docs/AI.md` §162, item 1588).
+/// On `(frame + o) & 0x7f == 0`, a computer leader's unfinished Oil Platform
+/// that no unit of its owner holds as its **action** is disbanded, its price
+/// refunded; a citizen with the site queued beneath another build does not
+/// keep it. run679's `1/2037` goes on 1419 with `1/10` on `Build 2026` and
+/// `Build 2037` two orders down.
+#[test]
+fn an_oil_platform_site_nobody_is_building_is_disbanded_on_its_128_frame_phase() {
+    let mut sim = world_sim();
+    sim.tuning.city_gather = [0; 6];
+    let t = install_types(&mut sim);
+    sim.nation[0].human = false;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let oil = sim.add_build_type(bt(Ident::OilPlatform, None, "", 2, 2, 2000, 2000, 0));
+    // A site placed as a Barracks and then made an Oil Platform: the arm
+    // reads the type, and the placement rules for water are not its test.
+    let site = sim.place_building(0, t.barracks, tile_pos(44, 32)).unwrap();
+    sim.buildings[site].ty = Some(oil);
+    let other = sim.place_building(0, t.barracks, tile_pos(44, 44)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    let due = |sim: &Sim, b: usize, after: i64| -> i64 {
+        (after..)
+            .find(|f| sim.buildings[b].phase(*f) & 0x7f == 0)
+            .unwrap()
+    };
+
+    // 1. The citizen's action is the site: it stands.
+    sim.add_build_order(u, site, QueuePos::New, true);
+    let f = due(&sim, site, 200);
+    sim.process_building(site, f);
+    assert!(sim.buildings[site].alive, "its builder holds it");
+
+    // 2. Another build on top: the site is two orders down, and only on the
+    //    128-frame phase — not on a 32-frame one — is it disbanded.
+    sim.add_build_order(u, other, QueuePos::First, true);
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| o.body == Body::Build(site)),
+        "the site is still in the stack"
+    );
+    let f = due(&sim, site, f + 1);
+    sim.process_building(site, f - 32);
+    assert!(
+        sim.buildings[site].alive,
+        "a 32-frame phase is not the arm's"
+    );
+    let before = sim.ledgers[0].bucket[1];
+    assert!(!sim.process_building(site, f), "Wall::process returns");
+    assert!(!sim.buildings[site].alive, "nobody's action is the site");
+    assert_eq!(
+        sim.ledgers[0].bucket[1],
+        before + 100,
+        "the whole price back"
+    );
+    assert!(
+        sim.buildings[other].alive,
+        "a Barracks site is not the arm's"
+    );
+
+    // 3. A human's site is never the arm's.
+    let site = sim.place_building(0, t.barracks, tile_pos(20, 44)).unwrap();
+    sim.buildings[site].ty = Some(oil);
+    sim.nation[0].human = true;
+    let f = due(&sim, site, f + 1);
+    sim.process_building(site, f);
+    assert!(sim.buildings[site].alive, "the gate is the owner's");
+}
+
 /// **`Wall::process`'s site recruiter** (`docs/AI.md` §69, item 715). On
 /// its `(frame + o) & 31` phase an unfinished wonder or fort of a computer
 /// leader wants `max(4, helpers)` builders, and while it is short it hands

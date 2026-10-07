@@ -2429,7 +2429,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // item 1544) and frame-1183 word (block 1184, item 1546), and run679's
     // frame-1277 word (block 1278, item 1552) and frame-1408 word (block
     // 1409, item 1558), and run710's frame-1532 word (block 1533, item
-    // 1563), each with two either side.
+    // 1563), frame-1610 word (block 1611, item 1586) and frame-1696 word
+    // (block 1697, item 1588), each with two either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2442,6 +2443,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN679, 1278),
         (super::coverage_pair::RUN679, 1409),
         (super::coverage_pair::RUN710, 1533),
+        (super::coverage_pair::RUN710, 1611),
+        (super::coverage_pair::RUN710, 1697),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),

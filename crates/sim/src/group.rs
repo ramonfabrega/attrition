@@ -944,7 +944,7 @@ impl Sim {
 
     /// `speed = new_speed = UnitData::speed(find_leader)`, or 0 — the tail
     /// `compute_speed`, `kill` and `normalize` share (§18.1).
-    fn seat_set_speed(&mut self, seat: Seat) {
+    pub(crate) fn seat_set_speed(&mut self, seat: Seat) {
         let g = self.seat_group(seat);
         let v = self.group_compute_speed(&g);
         let (_, st) = self.seat_parts(seat);
@@ -1667,7 +1667,9 @@ impl Sim {
     /// a site this crate has — `Form::categorize`'s call to `Group::sort`,
     /// which kills a member out of category order and re-adds it, is not
     /// modelled. What is modelled is [`Sim::group_normalize`] and the two
-    /// sites that open with it.
+    /// sites that open with it, [`Sim::seat_normalize`], and
+    /// `Army::normalize`'s own pass over its group
+    /// ([`Sim::army_normalize`], item 1586).
     pub(crate) fn group_compute_speed(&self, g: &Group) -> i32 {
         if g.list.is_empty() {
             return 0;

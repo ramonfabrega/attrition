@@ -3774,6 +3774,16 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-07 — the twenty-seventh tranche's
+
+(1590) **A seam's "no capture on file" is a dated claim nobody re-runs**
+(1588's Loop line, 2026-10-07): 1588's cause was a `SEAM` in
+`Wall::process` whose text said no capture on file holds its oil-platform
+arm (checklist row 1132), and nobody re-ran it when run679 was captured.
+A seam that says "no capture on file" could carry the `scan:` that
+notices the first capture that does — a guard, or a `seams.py` pass over
+every such seam against `docs/RUNS.md`'s runs. One reach.
+
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
 (1573) **The lane gate's skip list is a measurement that ages** (1571's
@@ -3848,7 +3858,7 @@ landings of one tranche, one tool. **And 1561's**: `docs/ANIM.md`
 §6.1 said `is_enemy(8)` "is never asked for", a wrong closure for its
 word — `seams.py` reads no "never asked/never reached" sentence, the
 same shape as 1555's "reached through the fog". Four landings. One
-reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings.
+reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings. **And 1586's**: the writer `Group::normalize` was named in `GROUPS.md` §18.1's own list and its callers nobody counted — the callers-of-the-writer half of the same mode; six.
 
 (1554) **A standing row the word's readers read is ranked nowhere**
 (1546's Loop line, 2026-10-06): the cause was a standing row on a new
