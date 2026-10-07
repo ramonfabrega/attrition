@@ -11073,7 +11073,7 @@ pub(crate) mod tests {
             .collect();
         let (first_block, tail) = window;
         let loaded = crate::load::load(&inst).unwrap();
-        let texts: Vec<std::sync::Arc<str>> = siblings
+        let texts: Vec<crate::capture::Text> = siblings
             .iter()
             .filter_map(|n| dump(n))
             .map(crate::capture::read)

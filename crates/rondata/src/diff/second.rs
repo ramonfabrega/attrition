@@ -54,7 +54,7 @@ pub(crate) fn walk_second_probed(
     let text = crate::capture::read(&path);
     let log = Log::parse(&text);
     let mut init = log.initial().unwrap();
-    let sib_texts: Vec<std::sync::Arc<str>> = if east_indies {
+    let sib_texts: Vec<crate::capture::Text> = if east_indies {
         dump("gamelog-run38-islands-start.txt")
             .map(crate::capture::read)
             .into_iter()

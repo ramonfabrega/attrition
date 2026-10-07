@@ -1937,7 +1937,7 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<std::sync::Arc<str>> = paths.iter().map(crate::capture::read).collect();
+        let texts: Vec<crate::capture::Text> = paths.iter().map(crate::capture::read).collect();
         let captures: Vec<Vec<Frame>> =
             texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 
@@ -2099,7 +2099,7 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<std::sync::Arc<str>> = paths.iter().map(crate::capture::read).collect();
+        let texts: Vec<crate::capture::Text> = paths.iter().map(crate::capture::read).collect();
         let captures: Vec<Vec<Frame>> =
             texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 

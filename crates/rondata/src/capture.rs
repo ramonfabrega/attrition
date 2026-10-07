@@ -56,7 +56,7 @@ use std::time::SystemTime;
 /// modification time, because a capture is renamed over an archive name
 /// while the suite runs (the module's header).
 #[allow(clippy::type_complexity)]
-static SHARED: Mutex<Option<HashMap<PathBuf, (u64, Option<SystemTime>, Weak<str>)>>> =
+static SHARED: Mutex<Option<HashMap<PathBuf, (u64, Option<SystemTime>, Weak<String>)>>> =
     Mutex::new(None);
 
 /// Reads and shares, counted: `RON_READ_STATS=<file>` appends `reads
@@ -82,12 +82,32 @@ fn counted(shared: bool) {
     }
 }
 
+/// A capture's text, shared: the `String` the file was read into, behind an
+/// `Arc`, and never copied — `Arc<str>` would copy it once more on the way
+/// in, and the gate measured that copy as 2.6 GiB on the suite's peak.
+#[derive(Clone, Debug)]
+pub struct Text(Arc<String>);
+
+impl std::ops::Deref for Text {
+    type Target = str;
+    fn deref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Text {
+    /// Whether two handles hold one allocation.
+    pub fn same(a: &Text, b: &Text) -> bool {
+        Arc::ptr_eq(&a.0, &b.0)
+    }
+}
+
 /// Reads a capture into memory, or shares the copy another caller holds.
 ///
 /// An unreadable path answers with the empty string — the shape every
 /// caller here already expects, having checked the file is there, and the
 /// same one `std::fs::read_to_string(..).unwrap_or_default()` has.
-pub fn read(path: impl AsRef<Path>) -> Arc<str> {
+pub fn read(path: impl AsRef<Path>) -> Text {
     let path = path.as_ref();
     let stamp = std::fs::metadata(path)
         .ok()
@@ -101,18 +121,18 @@ pub fn read(path: impl AsRef<Path>) -> Arc<str> {
             .and_then(|(_, _, weak)| weak.upgrade());
         if let Some(text) = held {
             counted(true);
-            return text;
+            return Text(text);
         }
         drop(shared);
         counted(false);
-        let text: Arc<str> = Arc::from(std::fs::read_to_string(path).unwrap_or_default());
+        let text = Arc::new(std::fs::read_to_string(path).unwrap_or_default());
         let mut shared = SHARED.lock().unwrap_or_else(|e| e.into_inner());
         let map = shared.get_or_insert_with(HashMap::new);
         map.retain(|_, (_, _, w)| w.strong_count() > 0);
         map.insert(path.to_path_buf(), (len, modified, Arc::downgrade(&text)));
-        return text;
+        return Text(text);
     }
-    Arc::from(String::new())
+    Text(Arc::new(String::new()))
 }
 
 /// How many of the texts this process holds are shared right now: a
@@ -128,8 +148,7 @@ pub mod indexed;
 
 #[cfg(test)]
 mod tests {
-    use super::read;
-    use std::sync::Arc;
+    use super::{Text, read};
 
     /// Two holders of one capture share one text; a capture rewritten
     /// under the suite (a different length) is read afresh; a text nobody
@@ -142,11 +161,11 @@ mod tests {
         std::fs::write(&path, "BEGIN FRAME 1\n").unwrap();
         let first = read(&path);
         let second = read(&path);
-        assert!(Arc::ptr_eq(&first, &second), "a held text is shared");
+        assert!(Text::same(&first, &second), "a held text is shared");
         std::fs::write(&path, "BEGIN FRAME 1\nBEGIN FRAME 2\n").unwrap();
         let third = read(&path);
         assert!(
-            !Arc::ptr_eq(&first, &third),
+            !Text::same(&first, &third),
             "a rewritten capture is read afresh"
         );
         assert_eq!(&*third, "BEGIN FRAME 1\nBEGIN FRAME 2\n");

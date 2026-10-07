@@ -129,7 +129,7 @@ pub(crate) const SIBLING_DUMPS: &[&str] = &[
     "gamelog-run13-window-95-105.txt",
 ];
 
-pub(crate) fn sibling_texts() -> Vec<std::sync::Arc<str>> {
+pub(crate) fn sibling_texts() -> Vec<crate::capture::Text> {
     SIBLING_DUMPS
         .iter()
         .filter_map(|n| dump(n))
