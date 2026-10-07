@@ -115,6 +115,14 @@ pub(crate) struct Pair {
     /// game draws against 11, index 8: ours `Unit::do_move+0xe84`, theirs
     /// `Farms::inc_time+0x1ae` — theirs four `Unit::do_move+0xe84 <
     /// Unit::do_attack_to` draws, ours six.
+    /// **Item 1586 moved it from 1532 to 1610 (count and sequence)**:
+    /// `Army::normalize` runs `Group::normalize` on the army's group, whose
+    /// tail puts the cap back to its leader's own speed, so army `1/0`'s
+    /// periodic normalize on 1434 lifts the slow squad's 25 to `1/28`'s 47
+    /// as the original does (`docs/AI.md` §161). At 1610, ours 589 game
+    /// draws against 598, index 0: ours `Guy::set_anim+0x97a <
+    /// Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`
+    /// — before 586 `PathFinder::calc_road_cost` draws in the original.
     pub count: i64,
     pub sequence: i64,
 }
@@ -132,8 +140,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1532,
-    sequence: 1532,
+    count: 1610,
+    sequence: 1610,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -819,9 +827,10 @@ fn run679_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **203** on the tree item 1563 landed (457 on item 1558's, 608 on
-    // item 1552's); 127 stand from the window's first block.
-    pin_eq!(w.firsts.len(), 203, "initial run679 baseline");
+    // **146** on the tree item 1586 landed (203 on item 1563's, 457 on
+    // item 1558's, 608 on item 1552's); 127 stand from the window's first
+    // block.
+    pin_eq!(w.firsts.len(), 146, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -865,6 +874,25 @@ fn run679_s_word_frame_is_widened_whole() {
         .map(|(f, _)| *f)
         .filter(|f| *f > 1272)
         .min();
+    // **The word 1532's value diff, item 1586** (`docs/AI.md` §161): army
+    // `1/0`'s `1/38`, `1/43` and `1/45` parted first on block 1435 — ours
+    // (42511, 37009), (42587, 38956), (42572, 38466) against (42517,
+    // 37030), (42588, 38964), (42574, 38482) — stepping at the group's cap
+    // of 25 (`1/45` 31, the Modern Infantry's `× 5 / 4`) where the original
+    // steps at the leader `1/28`'s 47: frame 1434 is the army's normalize
+    // (`1434 − 30 + 4 ≡ 0 mod 128`), and `Group::normalize`'s tail lifts
+    // the cap. No key of army 1's members parts in the window past `1/28`'s
+    // `order:group.id` stamp on 1277 (1276002 against 1282502) now.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| {
+                *who == 1 && [28, 38, 43, 44, 45].contains(o) && *f > 1277
+            })
+            .count(),
+        0,
+        "the word's army 1/0 agrees in every compared field"
+    );
     pin_eq!(
         first,
         Some(1277),
@@ -881,7 +909,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_1532: (i64, i64) = (1527, 1783);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run710 walked from run651's start with the recorder on. It holds the
-/// word 1532 (item 1563), block 1533.
+/// word 1532 (item 1563), block 1533, and the word 1610 (item 1586), block
+/// 1611.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -891,7 +920,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN710, 1527)],
         WIDENING_COVERAGE_FRAME_1532,
         1,
-        &[1533],
+        &[1533, 1611],
         true,
     )
 }
@@ -903,23 +932,24 @@ fn run710_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **1034** on the tree item 1563 landed; 167 stand from the window's
-    // first block, among them army 1's `1/28`, `1/38`, `1/43`, `1/44` and
-    // `1/45` — apart by a few units from run679's block 1435, and by
-    // hundreds here. Before them, on run679's 1420, ours holds the site
-    // `1/2037` alone. The next item's hypotheses, not a cause.
-    pin_eq!(w.firsts.len(), 1034, "initial run710 baseline");
+    // **764** on the tree item 1586 landed (1034 on item 1563's); 151
+    // stand from the window's first block (167 on 1563's), and army 1's
+    // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
+    // the army's normalize on 1434 puts its group's cap back to the
+    // leader's 47 (`docs/AI.md` §161). On run679's 1420 ours still holds
+    // the site `1/2037` alone, and on 1583 its `x/y_internal` part.
+    pin_eq!(w.firsts.len(), 764, "initial run710 baseline");
     let first = w
         .firsts
         .values()
         .map(|(f, _)| *f)
         .filter(|f| *f > 1527)
         .min();
-    // `1/28`'s `half_step` and its move's `dest_x/y` (40200, 40968) against
-    // (39432, 41736), four blocks before the word's 1533.
+    // `1/52`'s `form`, −1 in ours against 0, on the block it is born
+    // (`1/28`'s `half_step` and move on 1528 until item 1586).
     pin_eq!(
         first,
-        Some(1528),
+        Some(1529),
         "the first parting past the standing block"
     );
 }

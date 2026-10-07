@@ -442,6 +442,14 @@ impl Sim {
             }
         }
         self.army_keep_units(w, slot, units);
+        // `Group::normalize`'s tail (`00711540`, after `find_role`):
+        // `speed = new_speed = UnitData::speed(find_leader)`, or 0 — the
+        // cap goes back to the leader's own speed on every army normalize,
+        // whatever its members reported (`docs/GROUPS.md` §18.1). run679's
+        // army `1/0` takes its periodic normalize on 1434, `1434 − 30 + 4 ≡
+        // 0 (mod 128)`, and its leader `1/28` lifts the cap from the slow
+        // squad's 25 to its own 47 (`docs/AI.md` §161).
+        self.seat_set_speed(crate::group::Seat::Army(who, slot));
         let a = &mut self.armies[w].list[slot];
         a.role = 0;
         a.num_units = a.units.len() as i32;
@@ -3589,6 +3597,38 @@ mod tests {
             wide_limit: false,
         };
         sim.add_unit(u)
+    }
+
+    /// **`Army::normalize` puts the group's cap back to its leader's
+    /// speed** (`docs/AI.md` §161): it calls `Group::normalize@00711540`
+    /// on each of the army's groups, and that ends with `speed =
+    /// new_speed = UnitData::speed(find_leader)` whatever the members
+    /// reported. run679's army `1/0` walks at the slow squad's 25 until
+    /// its periodic normalize on 1434 and at its leader `1/28`'s 47 after.
+    /// Made to fail first: without the tail the cap stays 25.
+    #[test]
+    fn an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let leader = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        let slow = put(&mut sim, 1, t, Pos::new(0x1200, 0x1000));
+        sim.units[leader].movement.speed = 47;
+        sim.army_add_unit(1, slot, leader);
+        sim.army_add_unit(1, slot, slow);
+        let g = sim.army_group(1, slot);
+        assert_eq!(
+            sim.group_find_leader(&g),
+            Some(leader),
+            "the fixture: a tie on `type_cat` goes to the first"
+        );
+        // A follower's report has driven both halves down to its 25.
+        sim.armies[1].list[slot].group.speed = 25;
+        sim.armies[1].list[slot].group.new_speed = 25;
+        assert_eq!(sim.group_speed_of(slow), 25);
+        sim.army_normalize(1, slot);
+        assert_eq!(sim.group_speed_of(slow), 47, "the leader's own speed");
+        assert_eq!(sim.armies[1].list[slot].group.new_speed, 47, "both halves");
     }
 
     #[test]
