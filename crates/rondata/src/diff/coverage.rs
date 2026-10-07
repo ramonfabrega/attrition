@@ -2423,8 +2423,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // run669's frame-185 word (block 186), and run672's frame-583 word
     // (block 584), frame-667 word (block 668, item 1532) and frame-727
     // word (block 728, item 1539), and run678's frame-982 word (block 983,
-    // item 1544) and frame-1183 word (block 1184, item 1546), each with two
-    // either side.
+    // item 1544) and frame-1183 word (block 1184, item 1546), and run679's
+    // frame-1277 word (block 1278, item 1552), each with two either side.
     for (name, block) in [
         (super::coverage_pair::RUN656, 9),
         (super::coverage_pair::RUN660, 178),
@@ -2434,6 +2434,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN672, 728),
         (super::coverage_pair::RUN678, 983),
         (super::coverage_pair::RUN678, 1184),
+        (super::coverage_pair::RUN679, 1278),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),
@@ -2831,9 +2832,11 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let french_17244 = super::third_pair::french_east_indies_17244_window();
     // Item 1511: the coverage pair, the newest pair's open word; item
     // 1532: and run669's, where it stood before run672; item 1544: and
-    // run672's, where it stood before run678.
+    // run672's, where it stood before run678; item 1552: and run678's,
+    // where it stood before run679.
     let coverage_185 = super::coverage_pair::coverage_frame_185_window();
     let coverage_583 = super::coverage_pair::coverage_frame_583_window();
+    let coverage_982 = super::coverage_pair::coverage_frame_982_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2898,6 +2901,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         french_17244,
         coverage_185,
         coverage_583,
+        coverage_982,
         coverage,
         sahara_12,
         sahara_720,

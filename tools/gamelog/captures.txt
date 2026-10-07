@@ -9475,6 +9475,17 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run678.log` -> 0 differing in 1243 frames;
 # `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. The output directory must not exist.
 # ==== TAKEN 2026-10-06, one take, 17:16–17:32 ====
+# ==== item 1552: the coverage pair's frame 1277 word, run679 ====
+#
+# One run on the click-free lane, not a stanza (`docs/AI.md` §151; `docs/RUNS.md` run679): run678's recipe over blocks 1272..1528,
+# the word's block 1278 with six before it and 250 after:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-06-run679 \
+#     --map 18 --end-frame 1537 --timeout 3600 --log-window 1272 1529 \
+#     --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 \
+#     --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+# Checks, as a stanza would carry them: `python3 tools/gamelog/rngcmp.py rontrace-run652.log rontrace-run679.log` -> 0 differing in 1538 frames;
+# `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `MAP_STYLE 18` in `GAME INFO`. The output directory must not exist.
+# ==== TAKEN 2026-10-06, one take, 19:08–19:27 ====
 # ==== item 1538: Great Sahara in the coverage pair's lobby (DECISIONS 56 §1) ====
 #
 # Three runs on the click-free lane, none a stanza (`docs/AI.md` §147; `docs/RUNS.md` run675..677): run651's and run652's recipes with the map moved to

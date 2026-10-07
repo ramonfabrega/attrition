@@ -15465,7 +15465,9 @@ first parts is leader 1's **`SITE` list, standing since block 1** (run656 and ru
 (`block 8 agrees without it`); the word now stands on it. It is **not** built here (parked 1506). *Not established*: which of `compute_sites`' steps leaves theirs a blank
 the sampler keeps; whether the three-against-two Village slots are the SITE list's alone.
 
-**What is not established.** The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing. The
+**What is not established.** ~~The Oil Platform conversion and the ocean branch: no capture reaches them (the coverage pair's patch is on land) — reading only, from the listing.~~
+Reached by run678 on 1182 (item 1552, §151): leader 1's Oil Well offer becomes the Oil Platform `1/2031` at (43392, 34176), `orig_type` 422 in the
+dump and `OilPlatform` in ours, read by hand (`orig_type` is compared by nothing). The
 enemy walk is every object, not the cell chains of the `circle_radius[2]` ring (differs only at a ring corner). The order the original reaches a list's patches in at setup
 (the harness seeds the fog's, then the owner grid's, in the goods list's order): it only decides ties. `leader_flags & 0x700` as `transport_level != 0` rests on
 `docs/TRANSPORT.md`'s `leader_flags |= 0x700`. The cell flag `2` (read in arm 4.2) has no writer in this crate, so its two branches are unit-untested.
@@ -16763,10 +16765,65 @@ oil platform's arm (`go_inside`) are the original's other branches and unchanged
 
 **Coverage.** Diff-backed: the cause (the word moves 720 → 1182 and `1/1` agrees through block 969). Reading-only: the guard.
 
-## 151. Reserved for item 1552 (the coverage pair's frame 1183)
+## 151. A citizen swarms a water building as the leader's barge, and the word at 1277 (2026-10-06, item 1552)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1546 left the coverage pair's word at **frame 1183, ours 29 game draws
+against 28, index 21**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+run678 (977..1233) holds it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run652's trace, `report.py draws 1183`; the walk's `RON_DEBUG_SITES=1183-1183`). Both spend 21
+   `Leader::create_units` draws and close on five `Farms::inc_time`; ours spends one `Guy::move` animation draw more, before the
+   two walkers' `Guy::inc_time` draws both sides spend.
+2. **The event both sides** (run678 blocks 1182..1184; `RON_DEBUG_UNIT=1/26@1180-1184`). On 1182 the citizen `1/26` (`TypeIndex`
+   50, `PEASANTS`) walks a `MoveTo` on both sides, and leader 1's `Make` step places the **Oil Platform** `1/2031` at (43392,
+   34176) — `orig_type` 422 in the dump, `OilPlatform` in ours (`RON_DEBUG_BUILDS`; `orig_type` is compared by nothing, so read
+   by hand) — §133's ocean conversion, reached here for the first time. Block 1183: the original's `1/26` holds `[ExploreTo
+   (42936, 34104), Build 2031]` with a path of 8; ours holds the bare `Build`. On 1184 the original's has stepped to x 36502.
+3. **Why ours has no approach.** `order_builder` sends `1/26` through `swarm_around` (its action is a move, not a build: the
+   `QUEUE_NEW` arm), and a probe in `swarm_spot` showed the ring answering nothing: every candidate from r 432 to 624 is ocean
+   (`mask 0x20`) or the platform's footprint, and a land seeker refuses ocean (`find_nearby_spot@0061de70:212–224`). The
+   original's approach is the **first** candidate of that ring — r 432, k 0, (42984, 34152) — nudged `0x30` on each axis.
+4. **The seeker type** (`Group::action_swarm_around@0070fbe0:258–312`, the listing `00710221`–`007103a7`). Before the ring,
+   the target's `is_wallbuild` (vslot `+0x1c`, named by `SubObjectData`'s field list in the PDB) and its type's `domain`
+   (`+0x218`) **1** — water — with the target not `is(DOCK)` (`0x1b0`), the member `ObjectData::is_peasant` (`0046d310`) and
+   the group owner's (`+0x4a`) `LeaderData::can_transport` (`006e0c60`) **≥ 3** (`TRANSPORT_CIVILIAN`), take the type
+   `LeaderData::current_upgrade(0x140)` — the leader's barge — for both `find_nearby_spot` calls; a sea type, so the ring
+   takes water. The pairwise pair is still the member's (`FILTER_NOT_ME`, `local_20`, the owner). Otherwise a member carrying
+   citizens (`count_inside(PEASANTS)`) swarming a **land** building searches as its `inside_down` passenger's type, and every
+   other member as its own.
+
+**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
+with the site's footprint), and `Sim::barge_type` (`transport.rs`, `current_upgrade(TRANSPORTBARGE)` as a unit type, shared
+with `transport_type_for`). Unit test `transport::tests::a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports`:
+no level, no approach; the civilian level, an `ExploreTo` on the water; a water Dock, the citizen's own ring. `docs/ORDERS.md`
+§5.4 points here.
+
+**The value diff, and the word now.** On block 1183 `1/26` holds `[ExploreTo (42936, 34104), Build 2031]` with the
+original's path of 8, and on 1184 stands at (36502, 34118): it agrees in every compared field through run678's last block,
+leader 1's make list agrees through the window (it parted on 1186), and **run678 307 keys → 160**. `cargo test --release -p
+rondata` on the built tree: only this pair's pins moved (and the commander's handoff line). `coverage_pair_first_parting`:
+**frame 1183 → 1277, count and sequence** — ours 10 game draws against 15, index 2: ours `Guy::set_anim+0x97a <
+Guy::move+0x19f`, theirs `Unit::explore_goody+0x27c` (five, from `Unit::set_new_location`). Past run678, so **run679**
+(1272..1528) and `run679_s_word_frame_is_widened_whole` (block 1278): 608 keys, 136 standing on 1272. Two units change cell on
+1277 in the original, the scout **`1/0`** (`TypeIndex` 77) into (38, 34) and `1/12`; the goody is `1/0`'s. Ours' `1/0` stands
+apart from 1272 — (29065, 27134) against (29060, 27038) — and run678 dates it: both walk it to (24312, 26616) through block
+1200, and on **1201** the original's is bound for (29592, 26520), cell (38, 34)'s centre, with a path of 3. A hypothesis for
+the item after: the goody sweep (`Unit::find_goody_box`, `docs/GOODY.md` §7) answers on frame 1200 in the original only.
+1546's `group:66.held` row stands where it stood (1022): not this word's cause.
+
+**Mutations** (`tools/mutate.py` on `b6fca950`): the arm dropped — held by `coverage_pair_first_parting` and run678's
+widening; the `is(DOCK)` exception dropped — held across the East Indies walks (run221…run299's widenings, the endpoint, the
+ladder) and by the unit test; **the level gate dropped — failed nothing** in all of `rondata` (the two tests it failed fail on
+the unmutated tree: the handoff line and the `WIDENINGS` row this item then wrote); **the citizen test dropped — failed
+nothing** on the coverage pair. The unit test holds the level gate.
+
+**What is not established.** The second arm (a loaded member swarming a land building as its passenger's type) is a `SEAM`:
+no swarm here has a carrier as a member. `current_upgrade` is called with the register `can_transport` left, read as the same
+leader. Whether a land approach on the water is walked as the original walks it — the embark at the shore — is the next
+blocks' to say: `1/26` agrees through 1233.
+
+**Coverage.** Diff-backed: claims 1–3 and the barge arm of claim 4 (the word moves and `1/26` agrees). Reading-only: the
+level gate, the citizen test, the loaded-member arm.
 
 ## 152. The border pass meets a rare the reveal's tile gate missed, and the word at 1250 (2026-10-06, item 1555)
 
@@ -16826,3 +16883,8 @@ timing; the capture agrees on the Merchants' picks, not on the frame the Wool wa
 **Mutations** (`tools/mutate.py` on the built tree): see the journal.
 
 **Coverage.** Diff-backed: the cause (the word moves 1197 → 1250 and `1/38` agrees through block 1447). Reading-only: the pass's flag exits.
+
+## 153. Reserved for item 1558 (the coverage pair's frame 1277)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

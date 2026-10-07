@@ -15350,6 +15350,31 @@ block 977. Past it: `1/24`'s `form` on 979, leader 1's `MAKE[3].t`/`MAKE[4].t` (
 (`coverage_pair_word_window`), walked by the compared pin with run669's and run672's, and the coverage driver reads its block 983.
 `docs/AI.md` §148. **Item 1546** moved the word to **1183**, inside this window (block 1184): 307 keys on its tree, the make
 list agreeing on 982, the citizen `1/26`'s order parting on 1183; the coverage driver reads block 1184 too. `docs/AI.md` §149.
+**Item 1552** moved the word to **1277**, past this window, to run679's: 160 keys on its tree, `1/26` agreeing through 1233,
+the scout `1/0` parting on 1201 (`coverage_frame_982_window`, still walked by the compared pin). `docs/AI.md` §151.
+
+## run679 — the coverage pair: East Indies, Persians, All Technologies, blocks 1272..1528 at the long's detail (2026-10-06, item 1552)
+
+**Disk gap**: run678 ends at block 1233 and run652 holds the draw stream; nothing dumped this lobby's records at the word's
+frame, 1277 (ours 10 game draws against 15, index 2: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Unit::explore_goody+0x27c`), whose block is 1278. run678's recipe with the window moved: `--map 18 --end-frame 1537 --timeout
+3600 --log-window 1272 1529 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, free at launch
+(19:08). One take: receipt `success: true`, `settings_restored: true`, exit 0, launch-to-exit 1,138 s, seed 12345 and map 18
+verified. Blocks `1272`..`1528` whole and a `1538` closing stub. `rngcmp.py rontrace-run652.log rontrace-run679.log`: **1,538
+frames in common, 0 differing**. `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, `MAP_STYLE 18`, `DIFFICULTY 5` read back.
+Copied from the output directory to the archive names below.
+
+Archive `gamelog-run679-eastindies-persian-alltech-window-1272-1528.txt`, 503,312,631 bytes,
+SHA-256 `fa685b9f10f2c403f90100a5f76dc3d1447a89889ceb28ae8aadc94d31c80e19`.
+
+Archive `rontrace-run679.log`, 32,497,440 bytes,
+SHA-256 `a78d288d7007795f6ce0a78e9ff63b327f402014ba3bb05a51a924d5fbee630a`.
+
+**What it holds**: `diff::coverage_pair::run679_s_word_frame_is_widened_whole` — 608 keys on item 1552's tree, 136 standing
+on block 1272, among them the scout `1/0`'s position and move; the first parting past it is on the word's block, 1278. It is
+the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run669's, run672's and
+run678's, and the coverage driver reads its block 1278. `docs/AI.md` §151.
 ## run675 — Great Sahara in the coverage pair's lobby: the `DUMP_ALL` start (2026-10-06, item 1538)
 
 **Map 7 (Great Sahara), human Nubians (4) against Persians (23), Toughest, `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345** — run651's
