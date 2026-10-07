@@ -52,6 +52,13 @@ first row. **The twentieth pass**: `waypoint` is a row of
 pinned; comparing it under `dest 0` re-pins every widening that holds a
 move, and returns when a score names a follower's leg.
 
+## Parked by item 1555, 2026-10-06 — the Merchant's wool
+
+(1562) **Great Sahara's coverage pools 68 and 65 `held` on 1203 and
+1233** (1555's journal): ours `[39]` / `[40, 41, 42]` against none,
+the first rows past leader 0's `production_step` on 1201; parked
+1556's `held` family; names no score yet.
+
 ## Parked by item 1552, 2026-10-06 — the seeker swap
 
 (1559) **What 1552 left beside the seeker swap** (AI §151): the
@@ -3778,6 +3785,10 @@ capture reaches them"), and `seams.py --field orders_x` missed it
 because the paragraph names the Oil Platform, not the field. A mode
 that greps a word's own object types (here `OILPLATFORM`) through the
 "not established" paragraphs would have named it before the probe.
+**And 1555's**: `claim_cell_goods`'s doc said its other branch was
+"reached through the fog" — a seam-shaped sentence that closed the
+question wrongly for 1538..1549; a search by a function's callers in
+the export (`new_rare` has two) would have found it in a minute.
 One reach.
 
 (1557) **`ccc update` takes the lane's ref, not a SHA** (1549's Loop
