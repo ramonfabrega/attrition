@@ -17946,7 +17946,10 @@ ours `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Guy::inc_t
 (ours (3320, 12634), the attack, `ox` 2000, `recharging` 40 before). The strategic bombers' and jets' strafes on
 Napata (`kind` 16 against 17 on 3139–3140) and its `reduce_stamp` agree too. run716 2,160 → **194** keys, 128
 standing; the first past them is Napata's `damage_frac` at the ceiling on 3138 (ours 0, the original's 10). run715
-154 → **151**: Napata's `damage` and two `city_flags` bits on 2940. run721 widens the new word.
+154 → **151**: Napata's `damage` and two `city_flags` bits on 2940. run721 widens the new word
+(`run721_s_word_frame_is_widened_whole`, 2,330 keys, 151 standing on 3389): on block 3395 four of the computer's
+buildings (`1/2028`, `1/2035`, `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against 0 — the item after's
+hypothesis.
 
 **Mutations** (`tools/mutate.py` on `63846271`, scored by `cargo test --release -p rondata coverage_pair::`): M1, the
 straight line back, **held** (exit 101: `coverage_pair_first_parting`, run715's and run716's widenings); M4, no ammo

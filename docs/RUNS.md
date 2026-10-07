@@ -15892,3 +15892,31 @@ SHA-256 `14f02563a570f7a5a6e439a5e57b66e4038fd0c837a115cf60c5c1506547594f`.
 3125, 3126, 3127 and 3128 twice — ours' release frames — from (4472, 12771) and the like, the release nodes, to
 landings near (6221, 7338); the first lands on 3136 and the second on 3137. The straight line gives 19.
 `diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count` pins it from the dump. `docs/AI.md` §174.
+
+## run721 — the coverage pair: East Indies, Persians, All Technologies, blocks 3389..3645 at the long's detail (2026-10-07, item 1625, `att-1625`)
+
+**Disk gap**: run716 ends at block 3393 and run652 holds the draw stream; nothing dumped this lobby's records at the
+word's frame, 3395 (ours 1310 game draws against 636, index 628: ours `PathFinder::calc_road_cost+0x46`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`), whose block is 3396. Booking and killers, written before the run:
+`~/ron-data/lab-experiments/2026-10-07-item-1625-opus/run721-booking.json`. run716's recipe with the window moved,
+through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 3654 --timeout 3600 --log-window 3389
+3646 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take: receipt
+`success: true`, `settings_restored: true`, five files restored, exit 0, launched 15:09:51, launch-to-exit 1,604 s,
+3,655 frames, seed 12345 and map 18 verified; output `~/ron-data/lab-captures/2026-10-07-run721`. Blocks
+`3389`..`3645` whole and a `3655` closing block (258 `BEGIN FRAME`s). `rngcmp.py rontrace-run652.log
+rontrace-run721.log`: **3,655 frames in common, 0 differing**. `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 8` read back. No wait for the lane; the whole suite ran beside it.
+
+Archive `gamelog-run721-eastindies-persian-alltech-window-3389-3645.txt`, 649,903,775 bytes,
+SHA-256 `6611a5b01b1faf861ef7be26a3cca6d145ccc51ebd2014bd05d22d55b5e9a1ed`.
+
+Archive `rontrace-run721.log`, 184,091,776 bytes,
+SHA-256 `ee0b37a38c936e949a9a0f4fa535b78b8c4d96d5ed9ec591e3a6cd16ad3ed2fc`.
+
+**What it holds**: `diff::coverage_pair::run721_s_word_frame_is_widened_whole` — **2,330** keys on item 1625's tree,
+151 standing on 3389; the first parting past it is `1/203`'s figure angle on 3390. On block 3395, before the word's
+3396, four of the computer's buildings (`1/2028`, `1/2035`, `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against
+0, beside ours' `calc_road_cost` draws. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`),
+walked by the compared pin with run716's, and the coverage driver reads its block 3396. 149 inexact height reads in
+its window (`GROUND_INEXACT`). `docs/AI.md` §174.

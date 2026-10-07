@@ -6829,6 +6829,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // past the word 3142 — `coverage_pair_first_parting` read none until
     // item 1625 walked it through the window to 3395 (below).
     ("run716_s_word_frame_is_widened_whole", 14),
+    // And run721 (item 1625): 149 reads in its window, the replay past
+    // the word 3395 (pinned at 148, it fails).
+    ("run721_s_word_frame_is_widened_whole", 149),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the
@@ -6969,10 +6972,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // corners of its own over 1979..2235): five, and the driver's. Item
     // 1611 put run718's window in the driver: six, as that window's own.
     // Item 1614 put run716's window in the compared pin: fourteen, as
-    // that window's own.
+    // that window's own. Item 1625 put run721's: 149, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        14,
+        149,
     ),
 ];
 
@@ -8786,13 +8789,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run715's last block (3119), and took run716 over 3137..3393 (block
     // 3143); run715's test keeps the move's value diff on the TOW `1/16`,
     // the General `1/150` whose march reached it, `1/66` and the Freighter
-    // `1/152` from 2909.
+    // `1/152` from 2909. Item 1625 moved it to **3395**, past run716's
+    // last block (3393), and took run721 over 3389..3645 (block 3396);
+    // run716's test keeps the move's value diff on Napata's ceiling and the
+    // Advanced Battleship `1/59` from 3137.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run716_s_word_frame_is_widened_whole"),
-        1614,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3142),
+        Some("run721_s_word_frame_is_widened_whole"),
+        1625,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
