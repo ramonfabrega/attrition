@@ -2988,14 +2988,16 @@ where a leader whose sweep never ran would carry zeros; and its
 change one frame late, exactly as leader 1's 175-phase changes show at 376,
 576, 776).
 
-`Sim::strategy_all` skips a human outright instead, so the human's census
+~~`Sim::strategy_all` skips a human outright instead, so the human's census
 never runs and its thirteen site fields stay zero on all 5,201 frames.
 **Not yet fixed, and not a one-liner**: this crate's sweep would then also
 run step 16, which seeds an army — and the original's human has no
 `ARMYDATA` record on any capture, so a gate this crate does not model sits
-between step 13 and step 16. `Sim::check_orphaned_buildings` already has
-its own human bail; `check_explore` here only writes `census.explored` and
-issues nothing.
+between step 13 and step 16.~~ **Fixed by item 1605** (§169): the gate is
+`(leader_flags & 0xc) != 4` at `plan_strategy@006b9620:1642`, around step
+16 alone, and the human's sweep now runs on its phase frame.
+`Sim::check_orphaned_buildings` already has its own human bail;
+`check_explore` here only writes `census.explored` and issues nothing.
 
 One reader does not wait for that fix. `Region::go_here` reads the human's
 `reg_cities`, and it now takes them from `Sim::leader_reg_cities`'s recount

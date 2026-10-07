@@ -8480,6 +8480,10 @@ row was believed (§48.2's table is that print).
 Before the fix, the window `[605, 630)` held 87 keys. **Nothing parted on
 626 that had not already parted on 625.**
 
+**Item 1605** took the human's twelve `0/2000 city:*` rows off the pin on
+605: the human leader takes the sweep (`docs/AI.md` §169). Thirteen keys
+stand — the eleven `form`s and the army group's `speed`/`new_speed`.
+
 ### 48.2 The frame: `0/8` on tick 624
 
 Attributing the draws per unit (`RON_GOLDEN_SITES=620-627`): the two

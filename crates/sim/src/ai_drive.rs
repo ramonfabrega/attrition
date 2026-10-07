@@ -48,20 +48,18 @@ impl Sim {
         leader.choose_script(&mut self.rng, player_flags, team_style, team, lakota);
     }
 
-    /// `Leaders::strategy_all@006ed430`: every active computer leader, every
-    /// frame — `check_explore`, `plan_strategy`, `compute_score`,
-    /// `diplomacy`. Only `plan_strategy` decides anything the simulation
-    /// models; the other three are recounts and the diplomacy pass.
+    /// `Leaders::strategy_all@006ed430`: every leader in play, every frame
+    /// — `check_explore`, `plan_strategy`, `compute_score`, `diplomacy`.
+    /// Only `plan_strategy` decides anything the simulation models; the
+    /// other three are recounts and the diplomacy pass.
     ///
-    /// **The human filter here is this crate's, not the original's**
-    /// (`docs/AI.md` §23.1). `strategy_all`'s gate is `leader_flags & 3 ==
-    /// 3` and nothing more, and `Leader::production_ai` is where a human
-    /// without computer assist bails — to a `default` that clears the step
-    /// machine, so the sweep re-arms and runs on every phase frame. run58's
-    /// `CITY` record shows the human's site picture filled from frame 1 and
-    /// its `peasant_dist` moving on leader 0's own phase frame. Moving the
-    /// gate down is not a one-liner: the sweep's step 16 seeds an army, and
-    /// no capture shows a human one.
+    /// **The human is swept too** (`docs/AI.md` §23.1, §169). The gate is
+    /// `leader_flags & 3 == 3` and nothing more, and `Leader::production_ai`
+    /// is where a human without computer assist bails — to a `default` that
+    /// clears the step machine, so the sweep re-arms and runs on every phase
+    /// frame. run58's `CITY` record shows the human's site picture filled
+    /// from frame 1 and its `peasant_dist` moving on leader 0's own phase
+    /// frame; an AI navy reads the human city's `ocean` when it scores it.
     pub fn strategy_all(&mut self) {
         for w in 0..self.players.len() {
             if self.defeated[w] {
@@ -83,17 +81,23 @@ impl Sim {
     /// `Leader::plan_strategy@006b9620` for a human leader without computer
     /// assist (`leader_flags & 0xc == 4`). The sweep runs on the leader's
     /// phase as it does for a computer one, minus step 16's army seeding,
-    /// whose gate is `(leader_flags & 0xc) != 4` (`:1642`). The step
-    /// machine it arms is disarmed on the next frame by `production_ai`'s
-    /// `default`, which produces nothing (`docs/AI.md` §23.1), so it is
-    /// not armed here; nor is the research tick taken between sweeps,
-    /// which reads a make list only the script fills.
+    /// whose gate is `(leader_flags & 0xc) != 4` (`:1642`), and arms the
+    /// step machine; on the next frame `Leader::production_ai@006c1960:15`
+    /// sends a human to its `default`, which disarms it having produced
+    /// nothing (`docs/AI.md` §23.1, §169). The research tick between sweeps
+    /// reads a make list only the script fills, and is not taken.
     fn plan_strategy_human(&mut self, who: Player) {
-        if !cadence::sweep_due(who as usize, self.frame, self.ai_speed) {
+        let w = who as usize;
+        if self.ai[w].step != Step::Idle {
+            self.ai[w].step = Step::Idle;
+            return;
+        }
+        if !cadence::sweep_due(w, self.frame, self.ai_speed) {
             return;
         }
         self.census(who);
         self.compute_sites(who, false);
+        self.ai[w].step = Step::Script;
     }
 
     /// `Leader::plan_strategy@006b9620`'s head (`docs/AI.md` §2.2): a

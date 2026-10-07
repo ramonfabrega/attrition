@@ -8761,12 +8761,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // chain to 2166. Item 1602 moved it to **2296**, inside run714 (block
     // 2297); run711's and run714's tests keep the move's value diff on the
     // Oil Platforms `1/2048`, `1/2049` and their builder `1/83` from 2183.
+    // Item 1605 moved it to **2868**, past run714's last block (2539), and
+    // took run715 over 2863..3119 (block 2869); run714's test keeps the
+    // move's value diff on the human leader and Napata from 2283.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run714_s_word_frame_is_widened_whole"),
-        1602,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2288),
+        Some("run715_s_word_frame_is_widened_whole"),
+        1605,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2868),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
