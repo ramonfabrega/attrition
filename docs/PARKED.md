@@ -223,6 +223,8 @@ against 15350409, a re-formed group's id stamp; no draw parts on them.
 original censuses a city when it is founded (run529 block 9759: land 9,
 filled 1, against ours 0), and the human player's city is never
 censused here — both standing rows under every word that reads them.
+**The human's half closed by 1605** (AI §169): the human leader takes the
+sweep.
 
 ## Parked by item 1465, 2026-10-06 — the held-out battery
 
@@ -950,7 +952,7 @@ reaches a repair while escrow stands.
 `0/2000` here, and `1/2000` is one off on `filled` and `land` from the
 first block; this crate keeps the census for a computer's cities only
 (`crate::ai`). `WANT_CH40`'s standing rows; any capture that prints a
-human's City at `CITIES=5` carries them.
+human's City at `CITIES=5` carries them. **Closed by 1605** (AI §169).
 
 (1184) **Chapter forty's built and unreached arms** (`crate::alarm`'s
 SEAMs): the gather's Scholars and University, a probe past the target's
@@ -3533,6 +3535,7 @@ Carried with it: the original runs a **full census for its human leader**
 (`0/gatherers 5`, `0/peasants 5` in every dump) and this crate runs none,
 so `census_strategy`'s `weaker` test reads the opponent's `attack` as
 nought even once the gate is fixed. That is the part to build first.
+**The carried part closed by 1605** (AI §169): the human's census runs.
 
 (380) **A bare coordinate on the staged channel is a TILE**, `n × 0xc0 +
 0x60` — measured by item 364, not read: `add hoplite who=0 4,40` put the
@@ -3684,7 +3687,8 @@ two.
 (451) **The original runs its war census for the HUMAN leader, and this
 crate leaves it at zero forever.** Opened by run115's window (item 390,
 2026-09-21) and not that item's: `0/wars`, `0/active_wars` and
-`0/active_wars_with` agree at nought for 121 blocks and part on **8001**,
+`0/active_wars_with` agree at nought for 121 blocks and part on **8001**
+(**closed by 1605**, AI §169: the human leader takes the sweep),
 where the original writes the human `wars 1`, `active_wars 1`,
 `active_wars_with 2` beside a single `production_step` tick that falls
 back to 0 on 8002 — 56 blocks after first contact. **First direct
@@ -3764,6 +3768,14 @@ object, stride 3 — unmodelled, no capture known to reach it; (b)
 flags the cell, where ours closes every capture silently; (c) ours closes
 a converted building's old half `silent` (reason 5: no refund, the mask
 kept) where the original passes 0 — only the flag is the original's here.
+
+(1609) **The human's sweep, what 1605 left** (1605, 2026-10-07): (a)
+computer assist (`leader_flags & 8`) is not modelled — an assisted human
+would run the machine and seed armies; no capture has one; (b) the human's
+research tick between sweeps is not taken; (c) the human's standing
+`control` 14 and `num_units[0]` 13 against 0 (ours counts its dead units,
+`0/0`..`0/13` `death:extra`), `treaties[1]` 1 against 3, and `SITE[].reg`
+65 against 0 — other writers', standing on every widening.
 
 ## Older backlog
 
@@ -3875,6 +3887,14 @@ prints, found by grepping the export for `| 2` on a `0x1c`-stride pointer;
 the full suite then found run240's older pin (776's "a bit the searches do
 not read") recording the same bit as residue. `seams.py` could list the
 pins whose comments say "a bit … not read". One reach.
+
+(1610) **A standing row a reader starts reading on the word's frame**
+(1605's Loop line, 2026-10-07): 1605's cause was a row every widening had
+printed as standing for weeks, and a walk back by first partings is blind
+to a reader that starts reading a standing value on the word's frame.
+When a draw is a per-candidate score, list the candidates' standing rows:
+`standing.py` could take a frame and print the standing keys of every
+object the frame's function reads. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

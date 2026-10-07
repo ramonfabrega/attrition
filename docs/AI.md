@@ -17709,3 +17709,8 @@ Napata's `raid_stamp` — are other writers'.
 **Coverage.** Diff-backed: claims 1, 2, 4, the arm and disarm of claim 3. Export-backed: claim 3's step-16 gate — no
 capture holds a human with computer assist, and no walk would hold the gate's removal but the unit test (the mutation
 below).
+
+## 170. Reserved for item 1608 (the coverage pair's word 2868)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
