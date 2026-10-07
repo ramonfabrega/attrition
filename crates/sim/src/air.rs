@@ -3300,6 +3300,7 @@ mod launch_tests {
                 1231,
                 0,
                 false,
+                false,
             );
             let p = s.projectiles.last().unwrap();
             assert_eq!(p.rolling, !strafes, "strafes {strafes}");
@@ -3329,6 +3330,7 @@ mod launch_tests {
             870,
             0,
             false,
+            false,
         );
         assert_eq!(s.projectiles.len(), n + 1, "a round");
         assert_eq!(s.rng, before, "and no draw");
@@ -3354,6 +3356,7 @@ mod launch_tests {
                 at,
                 873,
                 node,
+                false,
                 false,
             );
             s.projectiles.last().unwrap().landing
@@ -3626,7 +3629,7 @@ impl Sim {
         let to = self.pos_of(t);
         let angle = find_angle(to.x - from.x, to.y - from.y);
         let frame = self.frame;
-        self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless);
+        self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless, false);
         for p in self.projectiles.iter_mut() {
             if p.shooter == me && p.cur_time == 0 {
                 p.num_guys = 0;
@@ -4301,6 +4304,7 @@ mod flak_tests {
                 Pos::new(22272, 16512),
                 235,
                 0,
+                false,
                 false,
             );
             assert_eq!(s.projectiles.len(), 1);

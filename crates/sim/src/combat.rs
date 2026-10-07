@@ -1327,6 +1327,60 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
     q.trunc_to_int()
 }
 
+/// **A missile's flight time** (item 1625, `docs/AI.md` §174): the point
+/// count of the spline `Ammo::init@0067bbf0` builds for a round whose
+/// ammo carries `missile="1"` (`ammo_flags & 8`, `local_30`), in place
+/// of [`flight_time`]'s straight line.
+///
+/// `Spline::calc_from_dir@00913960` takes three control points — the
+/// launch, a point `lead` ahead of it, the landing — and
+/// `set_min_seg_length@009125e0` sets the resolution to `(int)(L /
+/// speed)`, `L` the control polygon's length and `speed` the
+/// `(float)(unit_move_speed × proj_speed)` that `67cd6a`–`67cdcc` load
+/// into `xmm1`. `calc_spline@00912f00` caps it at `3 × 4.0 = 12` and
+/// raises it to the degree, 2, and `generate_bspline@00911820` emits
+/// one point more than the resolution: the round lands on its
+/// thirteenth frame however far it flies, once `L` reaches twelve
+/// speeds. run717 prints `total_time 13` on all six of the Advanced
+/// Battleship `1/49`'s rounds, 5,440 to 6,279 long, where the straight
+/// line gave 19.
+///
+/// `lead` is the middle point's offset: a sea or air shooter's is `5 ×
+/// speed` along the figure's angle (`67cb7d`–`67cb9b`; run717's `1/49`
+/// puts it 1,500 out at the launch's height). `None` is the building's
+/// and land unit's arm (`67c437`–`67c469`), whose length and pitch are
+/// a stack local this crate does not carry.
+///
+/// SEAM: a land shooter's control point is taken on the straight line
+/// (`L` the plain distance); and the figure's pitch (`GuyData +0x4c`,
+/// zero on `1/49`) is not carried. Both reach the count only below
+/// twelve speeds, as do the float rounding of `L` and the sum.
+pub fn missile_flight_time(
+    launch: Pos,
+    sz: i32,
+    landing: Pos,
+    ez: i32,
+    lead: Option<(Angle, i32)>,
+    speed: i64,
+) -> i32 {
+    let (from, ahead) = match lead {
+        Some((angle, r)) => (
+            Pos::new(
+                launch.x + crate::movement::sin_component(angle, r),
+                launch.y - crate::movement::cos_component(angle, r),
+            ),
+            i64::from(r),
+        ),
+        None => (launch, 0),
+    };
+    let dx = i128::from(landing.x - from.x);
+    let dy = i128::from(landing.y - from.y);
+    let dz = i128::from(ez - sz);
+    let rest = isqrt((dx * dx + dy * dy + dz * dz) as u128) as i64;
+    let resolution = if speed > 0 { (ahead + rest) / speed } else { 0 };
+    (resolution.clamp(2, 12) + 1) as i32
+}
+
 /// **A bomb's flight time** (`docs/ORDERS.md` §35.3): `Ammo::init@0067bbf0`'s
 /// Bomber arm, `0x67d24b`–`0x67d26f` — `(int)sqrtf((float)((ez − sz) · 2) /
 /// GRAV_Z)`, the time a round dropped from `sz` takes to fall to `ez` under
@@ -1529,6 +1583,36 @@ pub const fn garrison_arrows(attack: i32, base_arrows: i32, most_shots: i32, gar
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **A missile flies thirteen frames once its polygon reaches twelve
+    /// speeds** (item 1625, `docs/AI.md` §174): run717's first round of
+    /// the Advanced Battleship `1/49`, launched on 3124 and landing on
+    /// 3136 — the straight line's 19 put it on 3142. Shorter shots count
+    /// their polygon in speeds; the floor is three points.
+    #[test]
+    fn a_missile_flies_its_spline_s_point_count() {
+        let a = Angle(213_450_752);
+        let (launch, land) = (Pos::new(4472, 12771), Pos::new(6221, 7338));
+        assert_eq!(flight_time(5707 * 5707, 300), 19, "the straight line");
+        assert_eq!(
+            missile_flight_time(launch, 171, land, 193, Some((a, 1500)), 300),
+            13
+        );
+        assert_eq!(missile_flight_time(launch, 171, land, 193, None, 300), 13);
+        // 1,500 north, then 500 back: a polygon of 2,000, six speeds.
+        let o = Pos::new(10_000, 10_000);
+        let near = Pos::new(10_000, 9_000);
+        assert_eq!(
+            missile_flight_time(o, 0, near, 0, Some((Angle(0), 1500)), 300),
+            7
+        );
+        assert_eq!(missile_flight_time(o, 0, near, 0, None, 300), 4);
+        assert_eq!(
+            missile_flight_time(o, 0, Pos::new(10_000, 9_900), 0, None, 300),
+            3
+        );
+        assert_eq!(missile_flight_time(o, 0, near, 0, None, 0), 3);
+    }
 
     const T: Tuning = Tuning::RON;
 

@@ -493,9 +493,10 @@ impl Guy {
 }
 
 /// One `<RELEASEEVENT>`, as [`Art::releases`] holds it: the game frame it
-/// fires on, its node, and whether its ammo is harmless (`do_damage="0"`)
-/// — item 853, `docs/ORDERS.md` §39.5.
-pub type Release = (u32, i8, bool);
+/// fires on, its node, whether its ammo is harmless (`do_damage="0"`) —
+/// item 853, `docs/ORDERS.md` §39.5 — and whether it is a missile
+/// (`missile="1"`, item 1625, `docs/AI.md` §174).
+pub type Release = (u32, i8, bool, bool);
 
 /// The art the clock reads — an input, like the map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -1801,7 +1802,7 @@ impl Sim {
             // is the guy's, forced to `-1` while the clock reads zero.
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
-            for (t, node, harmless) in times {
+            for (t, node, harmless, missile) in times {
                 let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
@@ -1896,12 +1897,11 @@ impl Sim {
                     // strafer's side from it (`docs/ORDERS.md` §39.3).
                     let me = crate::combat::Obj::Unit(u);
                     match (target, ground) {
-                        (Some(t), _) => {
-                            self.fire_ammo_pub(me, t, angle, frame, from, sz, node, harmless)
-                        }
-                        (None, Some(g)) => {
-                            self.fire_ammo_ground(me, g, angle, frame, from, sz, node, harmless)
-                        }
+                        (Some(t), _) => self
+                            .fire_ammo_pub(me, t, angle, frame, from, sz, node, harmless, missile),
+                        (None, Some(g)) => self.fire_ammo_ground(
+                            me, g, angle, frame, from, sz, node, harmless, missile,
+                        ),
                         (None, None) => unreachable!(),
                     }
                 }

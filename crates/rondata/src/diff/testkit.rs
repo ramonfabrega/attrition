@@ -6826,7 +6826,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // which walks to the word, reads none.
     ("run715_s_word_frame_is_widened_whole", 4),
     // And run716 (item 1614): fourteen reads in its window, the replay
-    // past the word 3142 — `coverage_pair_first_parting` reads none.
+    // past the word 3142 — `coverage_pair_first_parting` read none until
+    // item 1625 walked it through the window to 3395 (below).
     ("run716_s_word_frame_is_widened_whole", 14),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
@@ -6954,8 +6955,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The coverage pair's ICBM (item 1591): `1/42`'s round's `ez` at
     // Napata's point (6240, 7008) on 1600, launched by the computer's silo
     // strike, and the walk past the blast to the word 1960 (pinned at one
-    // under each, it fails).
-    ("coverage_pair_first_parting", 4),
+    // under each, it fails). Item 1625's walk to the word 3395 crosses
+    // run716's window and reads its corners too: 17 (pinned at 16, it
+    // fails).
+    ("coverage_pair_first_parting", 17),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).

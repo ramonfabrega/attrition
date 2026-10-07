@@ -368,7 +368,12 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 /// `GraphicPieces::init_ammo_piece_ranges@008f6140` keeps as
 /// `ammo_flags & 0x80` and `Ammo::init` turns into the round's flag `0x10`:
 /// the round flies, and lands without `Ammo::do_damage`.
-pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool)>>>;
+///
+/// **And a fourth, `missile`** (item 1625, `docs/AI.md` §174): the
+/// ammo's `missile="1"`, which the same walk keeps as `ammo_flags & 8`
+/// and `Ammo::init@0067bbf0` reads into its `local_30` (`0067c2a5`): a
+/// missile round flies a spline, is not led, and never rolls.
+pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool, bool)>>>;
 
 /// The `<AMMO>` names of `effects_graphics.xml` whose `do_damage` is 0.
 ///
@@ -378,6 +383,20 @@ pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool)>>>;
 /// `ammo_names`, `String::operator==`). The install names three:
 /// `NoDamage Tracer`, `NoDamage ArcherArrow` and `ThrowingDagger`.
 pub fn harmless_ammo(install: &Install) -> std::collections::BTreeSet<String> {
+    ammo_where(install, "do_damage", 0)
+}
+
+/// The `<AMMO>` names of `effects_graphics.xml` whose `missile` is 1:
+/// `init_ammo_piece_ranges`' `ammo_flags |= 8` (`docs/COMBAT.md` §55.1,
+/// `docs/AI.md` §174). The install names ten — the rockets, the torpedo, the SAM's,
+/// the Stinger and the four cruise missiles; `CruiseMissile`, the missile
+/// *unit*'s own graphic, carries `missile="0"`.
+pub fn missile_ammo(install: &Install) -> std::collections::BTreeSet<String> {
+    ammo_where(install, "missile", 1)
+}
+
+/// The `<AMMO>` names whose integer attribute `attr` reads `value`.
+fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BTreeSet<String> {
     let path = install.data("effects_graphics.xml");
     let Ok(text) = crate::read(&path) else {
         return Default::default();
@@ -388,9 +407,9 @@ pub fn harmless_ammo(install: &Install) -> std::collections::BTreeSet<String> {
     doc.descendants()
         .filter(|n| n.has_tag_name("AMMO"))
         .filter(|n| {
-            n.attribute("do_damage")
+            n.attribute(attr)
                 .and_then(|v| v.trim().parse::<i32>().ok())
-                .is_some_and(|v| v == 0)
+                .is_some_and(|v| v == value)
         })
         .filter_map(|n| n.attribute("name").map(str::to_string))
         .collect()
@@ -519,6 +538,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         by_graph.entry(g.trim()).or_default().push(ty);
     }
     let harmless = harmless_ammo(install);
+    let missile = missile_ammo(install);
     let mut out = PieceReleases::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -530,7 +550,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(types) = by_graph.get(p.graph) else {
             continue;
         };
-        let mut rows: BTreeMap<i8, Vec<(u32, i8, bool)>> = BTreeMap::new();
+        let mut rows: BTreeMap<i8, Vec<(u32, i8, bool, bool)>> = BTreeMap::new();
         for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
             let (Some(anim), Some(start)) = (e.attribute("anim"), e.attribute("starttime")) else {
                 continue;
@@ -547,9 +567,10 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
                 .and_then(|v| v.trim().parse::<i8>().ok())
                 .unwrap_or(-1);
             let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
+            let flies = e.attribute("type").is_some_and(|t| missile.contains(t));
             rows.entry(slot)
                 .or_default()
-                .push((release_frame(ms), node, quiet));
+                .push((release_frame(ms), node, quiet, flies));
         }
         if rows.is_empty() {
             continue;
@@ -1023,6 +1044,26 @@ mod tests {
         let fb = swing("FIGHTERBOMBER");
         assert_eq!(fb.len(), 16);
         assert_eq!(fb.iter().filter(|r| !r.2).count(), 10, "ten damage");
+        assert!(
+            fighter.iter().chain(&fb).all(|r| !r.3),
+            "guns, not missiles"
+        );
+        // The Advanced Battleship's six cruise missiles (item 1625):
+        // `Cruisemissile0`/`1`, `missile="1"`, frames 19..23.
+        let missiles = missile_ammo(&inst);
+        assert_eq!(missiles.len(), 10, "{missiles:?}");
+        let ship = rel[&piece("ADVANCEDBATTLESHIP")][&sim::anim::ATTACK1].clone();
+        assert_eq!(
+            ship.iter().map(|r| (r.0, r.3)).collect::<Vec<_>>(),
+            [
+                (19, true),
+                (20, true),
+                (21, true),
+                (22, true),
+                (23, true),
+                (23, true)
+            ]
+        );
     }
 
     /// The `<UNIT>` name grammar, and the piece each coordinate lands on.

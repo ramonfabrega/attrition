@@ -209,6 +209,14 @@ pub(crate) struct Pair {
     /// Freighter `1/152` keeps its guard and lands `1/41` on 2995
     /// (`docs/AI.md` §172). At 3142, ours 21 game draws against 20, index
     /// 3: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Item 1625 moved it
+    /// from 3142 to 3395**: the roll was the Advanced Battleship `1/59`'s
+    /// attack on Napata, whose approach ours ended on 3141 because the city
+    /// stood short of its ceiling (1479 of 1560, the original's 1560) — the
+    /// Advanced Battleship `1/49`'s six cruise missiles flew 19 frames in a
+    /// straight line here and 13 along the original's spline (run717,
+    /// `docs/AI.md` §174). At 3395, ours 1310 game draws against 636, index
+    /// 628: ours `PathFinder::calc_road_cost+0x46`, theirs
     /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
@@ -227,8 +235,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3142,
-    sequence: 3142,
+    count: 3395,
+    sequence: 3395,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1388,8 +1396,13 @@ fn run715_s_word_frame_is_widened_whole() {
     // is ashore on 2996: **no position parts in the window**. What stands
     // past 2863 is births' `form`, two pools' `held`, Napata's flags,
     // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
-    // on 3069. The word 3142 lies past the window (run716's).
-    pin_eq!(w.firsts.len(), 154, "initial run715 baseline");
+    // on 3069. The word 3142 lies past the window (run716's). **151** on
+    // item 1625's tree: Napata's `damage` and `city_flags` `[0x2]`, `[0x4]`
+    // on 2940 agree — the Jet Fighter `1/115`'s AA rockets of 2933 and
+    // 2938 are missiles, and land on 2945 and 2950 along their spline
+    // where the straight line put them on 2939 and 2942 (`docs/AI.md`
+    // §174).
+    pin_eq!(w.firsts.len(), 151, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1454,7 +1467,23 @@ fn run716_s_word_frame_is_widened_whole() {
     // 1, three orders against two) and stands at (3342, 12584) on 3142
     // against ours' (3320, 12634): the attack roll ours spends at index
     // 3. The item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 2160, "initial run716 baseline");
+    // **194** on item 1625's tree, 128 standing on 3137 — **the word
+    // 3142's value diff** (`docs/AI.md` §174): Napata's `damage` 1524 13/16
+    // on block 3137 and 1560 on 3138 on both sides now, `1/49`'s first
+    // cruise missile landing on 3136 and its second on 3137 (13 frames
+    // along the spline, run717); so on 3141 the city is capture-eligible,
+    // `do_move`'s building arm asks `valid_target` — the SEAM no longer
+    // decides it — and `1/59` keeps its move: on block 3142 it stands at
+    // (3342, 12584) under `MOVE` to (3528, 12168) over `ATTACK` (`new_ord`
+    // 1) over `ATTACK_TO`, three orders, and on 3143 `ox` −1, `recharging`
+    // 0, in both. Napata's `reduce_stamp` and the bombers' and jets'
+    // strafes (`kind` 16 against 17 on 3139–3140) agree too. The first
+    // parting past the standing block is Napata's `damage_frac` at its
+    // ceiling on 3138 (ours 0, the original's 10); what stands past it is
+    // births' `form`, group `id`s and, from 3383, a city's queue cost, a
+    // `MAKE` value and `1/203`'s position on 3387. The word 3395 lies past
+    // the window (run721's).
+    pin_eq!(w.firsts.len(), 194, "initial run716 baseline");
     let first = w
         .firsts
         .values()
