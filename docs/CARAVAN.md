@@ -198,10 +198,15 @@ not alive), then a three-way gate:
 
 ```
 making_road and not reset_road and openlist != 0  → find_road_restore(…)
-otherwise                                          → clear_temp_road if
+otherwise                                          → clear_temp_road and
+                                                     reset_road = 0 if
                                                      reset_road or no openlist;
                                                      find_road(…)
 ```
+
+The clear is `0073dbfc` (`mov dword [esi+0x24], 0`, after the call at
+`0073dbf7`): a route reset by another's road restarts **once** and is resumed
+from the next frame (item 1576, `docs/AI.md` §157).
 
 Both calls carry the same arguments — `(city2.o, whom, city3.o, whose,
 unit o, who)` — and differ only in `PathFinder::find_road_restore@00685950`
@@ -546,7 +551,10 @@ original_s_node_for_node`, and its Great Lakes sibling on run73):
   capture with three cities of one leader would separate them.
 - `CityData::is_seen`, taken here as "the owner has seen the tile"; the
   original keeps a per-leader bit on the city.
-- §5's `reset_road` path, which needs two routes planning at once.
+- ~~§5's `reset_road` path, which needs two routes planning at once.~~
+  run676 has it: caravan 0's road on 1817 resets caravan 7's parked search,
+  which restarts on 1817 and resumes on 1818, node for node
+  (`run676_s_road_searches_hold_node_for_node`; `docs/AI.md` §157).
 - §5.3's **water sampling**: run64's road has no ocean node, so the
   countdown of four, the `0x180` tolerance and the two end exemptions rest
   on the loop alone. A route between two coasts of one region would show

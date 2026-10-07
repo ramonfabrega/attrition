@@ -127,6 +127,15 @@ pub struct RoadSearch {
     goal: (i32, i32),
 }
 
+impl RoadSearch {
+    /// How many nodes the search has made — a resumed search keeps its
+    /// pool, a restarted one begins again from its two ends.
+    #[cfg(test)]
+    pub(crate) fn len(&self) -> usize {
+        self.nodes.len()
+    }
+}
+
 /// What one call of the search came back with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RoadPlan {

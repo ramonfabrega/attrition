@@ -1610,6 +1610,48 @@ fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
     assert_eq!(sim.cities[c0].trade_val, 34 * 8, "and so is the power");
 }
 
+/// **A search restarted for a reset is resumed the next frame**
+/// (`Caravan::build_road@0073db10`'s `LAB_0073dbf5`): the arm that throws a
+/// parked search away for `reset_road` clears the flag too (`0073dbfc`), so
+/// the fresh search it starts parks on the budget and is resumed. Left set,
+/// the route started over every frame until it found a road whole — run676's
+/// caravan 7 on 1818, after caravan 0's road on 1817 reset it (item 1576,
+/// `docs/AI.md` §157).
+///
+/// Made to fail once with the clear removed.
+#[test]
+fn a_reset_route_s_fresh_search_is_resumed() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 2;
+    let (_, c0) = city_at(&mut sim, &t, 0, 6, 6);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let (_, c1) = city_at(&mut sim, &t, 0, 56, 56);
+    let v = sim.init_caravan(0, 0).expect("a slot");
+    let slot = &mut sim.caravans[0].slots[v];
+    // No caravan unit: nothing here may ride a transport.
+    slot.unit = None;
+    slot.linked = true;
+    slot.city_a = Some(c0);
+    slot.city_b = Some(c1);
+    // Another leader's road was laid while this route was mid-search.
+    slot.making_road = true;
+    slot.reset_road = true;
+    assert_eq!(sim.caravan_build_road(0, v), -1, "the fresh search parks");
+    let slot = &sim.caravans[0].slots[v];
+    assert!(slot.making_road && slot.search.is_some());
+    assert!(!slot.reset_road, "the reset is spent on the restart");
+    // The next frame resumes it: the parked search's node pool grows rather
+    // than starting from the two ends again.
+    let parked = slot.search.as_ref().map(|s| s.len());
+    sim.caravan_build_road(0, v);
+    let after = sim.caravans[0].slots[v].search.as_ref().map(|s| s.len());
+    assert!(
+        after > parked,
+        "resumed, not restarted: {parked:?} nodes then {after:?}"
+    );
+}
+
 /// **A new route refreshes both its cities' trade** (item 1275):
 /// `do_trade@005ed270:393–396` runs `City::compute_trade` on the two ends
 /// the first time the order is stepped, after the pair is linked and before

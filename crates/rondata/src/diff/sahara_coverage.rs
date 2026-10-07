@@ -56,8 +56,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // again, 1582 → **1818**: ours 3215 draws against 3218 at index 3201,
     // ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `PathFinder::calc_road_cost+0x46` (a caravan road's A*).
-    count: 1818,
-    sequence: 1818,
+    //
+    // Item 1576's build (a route reset by another's road clears the reset
+    // when it restarts: `Caravan::build_road`'s `0073dbfc`, `docs/AI.md`
+    // §157 — caravan 7's search started over on 1818 where the original
+    // resumed it) moved it again, 1818 → **1830**: ours 3218 draws against
+    // 3219 at index 2, ours `PathFinder::calc_road_cost+0x46`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+    count: 1830,
+    sequence: 1830,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -415,7 +422,8 @@ fn run681_s_word_frame_is_widened_whole() {
 
 /// run683, item 1561: the lobby's blocks 1577..1833 at the long's detail —
 /// the word 1582's block 1583 with six before it and 250 after, and the word
-/// 1818's block 1819 (item 1565) with 242 before it and fourteen after.
+/// 1818's block 1819 (item 1565) with 242 before it and fourteen after, and
+/// the word 1830's block 1831 (item 1576) with two after.
 pub(crate) const RUN683: &str = "gamelog-run683-greatsahara-persian-alltech-window-1577-1833.txt";
 
 /// The window: block 1577 through 1833; the word 1582's own block is 1583.
@@ -423,7 +431,8 @@ pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_1582: (i64, i64) = (1577, 1833);
 
 /// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
 /// `GreatSaharaPersianAllTech`): run683 walked from run675's start with the
-/// recorder on — the word 1582's block 1583 and the word 1818's block 1819.
+/// recorder on — the word 1582's block 1583, the word 1818's block 1819 and
+/// the word 1830's block 1831.
 pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
@@ -433,7 +442,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN683, WIDENING_SAHARA_COVERAGE_FRAME_1582.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_1582,
         1,
-        &[1583, 1819],
+        &[1583, 1819, 1831],
         true,
     )
 }
@@ -454,7 +463,11 @@ fn run683_s_word_frame_is_widened_whole() {
     // item 1565's build (an enhancer stays in the city it is bought for,
     // `docs/AI.md` §156): the 320 that went part downstream of the
     // Refinery's site and its four jitter draws (not itemised row by row).
-    pin_eq!(w.firsts.len(), 863, "initial run683 baseline");
+    // **845** after item 1576's build (a reset route's restart clears the
+    // reset, `docs/AI.md` §157): the eighteen that went part on 1818..1829
+    // downstream of caravan 7's search, which drew 3201 rolls where the
+    // original's resumed one drew 3204.
+    pin_eq!(w.firsts.len(), 845, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
         159,
@@ -495,8 +508,18 @@ fn run683_s_word_frame_is_widened_whole() {
     // stream's delta is three `PathFinder::calc_road_cost+0x46` draws of a
     // caravan road's A* the original spends and ours does not; the first
     // rows on the frame are the Persian soldiers' guard and path offsets
-    // (`1/39`, `1/71`) downstream of the army's re-targets since 1789 —
-    // landing 1576's to read.
+    // (`1/39`, `1/71`) downstream of the army's re-targets since 1789. The
+    // draw stream on 1818 is a road search's, and the dump prints no
+    // caravan slot: its value diff is the search's own first node, ours
+    // (40800, 17184) from (40800, 16992) — a fresh start at caravan 7's
+    // ends — against the original's (31008, 16800) from (31008, 16608), the
+    // parked open list's best; since item 1576's build the two agree node
+    // for node, 3204 each ([`run676_s_road_searches_hold_node_for_node`]).
+    // **The word 1830's block 1831**: the original's third draw is a
+    // guarding unit's stand (`Unit::do_guard+0x7f4`), and the rows on 1828
+    // and 1829 are the Persian soldiers' guard orders (`1/29`, `1/69`,
+    // `1/71` holding a second order the original does not) — landing
+    // 1577's to read.
     let first = w
         .firsts
         .values()
@@ -507,5 +530,82 @@ fn run683_s_word_frame_is_widened_whole() {
         first,
         Some(1583),
         "the first parting past the standing block"
+    );
+}
+
+/// The last frame [`run676_s_road_searches_hold_node_for_node`] walks: the
+/// frame before the word 1830, whose own road search prices its third node
+/// with a roll the original spent on `Unit::do_guard` (item 1576).
+pub(crate) const SAHARA_COVERAGE_ROAD_FRAME: i64 = 1829;
+
+/// **Every road search to the word 1830, node for node** (item 1576).
+/// run676's trace proxies `valid_roadcoord` and `calc_road_cost` over the
+/// whole game, so each search's priced nodes — the tile, its parent, the
+/// wheel index and the answer — are comparable with ours from frame 0.
+/// It parted on the word 1818 at node 0: caravan 0's road (`1/2000` to
+/// `1/2018`) was laid on 1817 and `reset_paths` told caravan 7's parked
+/// search (`1/2000` to `1/2028`) to start over — both sides did, on 1817 —
+/// but this crate left `reset_road` set, so caravan 7 started over again on
+/// 1818 where the original resumed (`Caravan::build_road`'s `0073dbfc`,
+/// `docs/AI.md` §157).
+#[test]
+fn run676_s_road_searches_hold_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let p = &SAHARA_COVERAGE;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        eprintln!("skipping: no run675/run676 (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_phases = true;
+    built.sim.trace_costs = true;
+    let mut searched = Vec::new();
+    let mut parted = Vec::new();
+    while built.sim.frame <= SAHARA_COVERAGE_ROAD_FRAME {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched.push((f, ours.len(), theirs.len()));
+        if let Some(i) = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i)) {
+            let line = format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            );
+            eprintln!("  road {line}");
+            if std::env::var("RON_ROADS").is_ok() {
+                for k in i.saturating_sub(12)..(i + 6).min(ours.len().max(theirs.len())) {
+                    eprintln!("    {k}: ours {:?} theirs {:?}", ours.get(k), theirs.get(k));
+                }
+            }
+            parted.push(line);
+        }
+    }
+    eprintln!("road frames {}: {:?}", searched.len(), searched.last());
+    pin!(parted.is_empty(), "a road search parted: {parted:?}");
+    pin_eq!(searched.len(), 181, "the road-search frames to 1829");
+    pin_eq!(
+        searched.iter().find(|s| s.0 == 1818).copied(),
+        Some((1818, 3204, 3204)),
+        "1818's search resumes caravan 7's parked plan"
     );
 }

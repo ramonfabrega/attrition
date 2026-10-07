@@ -17033,10 +17033,42 @@ first state rows are the Persian soldiers' guard offsets (`1/39`, `1/71`), downs
 
 **Coverage.** Diff-backed: the arm (the word moves 1582 → 1818 and `1/2045` agrees through block 1833). Reading-only: the `NEEDS_TOWN` arm for an enhancer.
 
-## 157. Reserved for the race on item 1565, its landing 2 (Great Sahara's coverage word 1582)
+## 157. A reset route restarts once, and the word at 1830 (2026-10-07, item 1576)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 63 (ii)); only the winner's chain merges, and it renames this.
+**Established by**: run676's own proxies of `valid_roadcoord` and `calc_road_cost` (`report.py … calls 1814..1819`), a new node-for-node walk of every road search
+to the word (`diff::sahara_coverage::run676_s_road_searches_hold_node_for_node`), and `Caravan::build_road@0073db10`'s head, listing `0073dbe9`–`0073dbfc`.
+
+**The word.** Frame 1818 (§156's): 3215 draws against 3218, index 3201 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs a 3202nd
+`PathFinder::calc_road_cost+0x46 < PathFinder::astar_caravan_road+0x52b`. Two caravan searches run budgeted, 3200 nodes a frame each, from 1810; the original's
+brackets name them: caravan 0's, `1/2000` to `1/2018`, and caravan 7's, `1/2000` to `1/2028`. On 1817 caravan 0's road is found (`= 1`, 1831 nodes) and caravan 7's
+parks (`= −1`); on 1818 caravan 7's alone runs, 3204 nodes, its last node (160, 118) costing five neighbours past the budget. The draw counts agreed through
+index 3200 by coincidence of the budget: the walk says the searches **part at node 0** — ours prices (40800, 17184) from (40800, 16992), the original
+(31008, 16800) from (31008, 16608). The dump prints no caravan slot; the search's first node is the value diff.
+
+**The cause.** Caravan 0's road calls `Caravans::reset_paths`, which sets `reset_road` on every live route mid-search — caravan 7's. On 1817 both sides
+restart caravan 7 (its 1817 nodes agree). `build_road`'s gate (`0073dbe9`: `cmp [esi+0x24], 0; jne 0073dbf5`, and `0073dbef` on the open list) sends a reset or
+an empty route to `LAB_0073dbf5`, which calls `clear_temp_road` (`0073dbf7`) **and writes `reset_road = 0`** (`0073dbfc`). This crate threw the parked
+search away and left the flag set, so caravan 7 restarted on every frame after until it found a road whole; the original resumed on 1818. Built: the
+restart arm clears `reset_road` (`crates/sim/src/caravan.rs`). `docs/CARAVAN.md` §5's gate is amended, and its open question on the `reset_road` path struck.
+
+**The move.** Every road search to 1829 agrees node for node with run676's — 181 frames, 1818's 3204 against 3204 — and run683's keys **863 → 845**. The
+word goes **1818 → 1830**: ours 3218 draws against 3219, index 2, ours `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_guard+0x7f4` (seed `2727bd85`), a guarding unit's stand the original rolls and ours does not; 1830's own road search then prices its third node with
+the shifted roll (cost 337 against 330). The full `sim` and `rondata` suites (`--no-fail-fast`) moved only the two partings' pins, run683's and the two queue
+lines; every closed word and floor held.
+
+**The new word, read.** Block 1831 is inside run683 (two blocks before its end). The rows on 1828..1830 are the Persian soldiers' guard orders: `1/29`'s
+`guard_x/y` ours (36840, 19080) theirs (36744, 19176), `1/71` and `1/69` holding two orders (`kind` 2) where the original holds one (`kind` 12) — the army
+that has parted since 1789 (`1/17`). No mechanism: whose `do_guard` stand it is, and what parted it, is the next item's first read.
+
+**What is not established.** The `reset_road` arm for a route whose parked search was resumed on the frame another road was laid **before** it in the
+leader's order (the reset lands on a search that already ran that frame) is the same code; no capture separates it.
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the clear dropped — held by `run676_s_road_searches_hold_node_for_node`,
+`sahara_coverage_first_parting` and `run683_s_word_frame_is_widened_whole`, and by the unit test `a_reset_route_s_fresh_search_is_resumed`
+(`crates/sim/src/cities_tests.rs`).
+
+**Coverage.** Diff-backed: the clear (every road search to 1829 node for node; the word moves 1818 → 1830).
 
 ## 158. Reserved for the race on item 1565, its landing 3 (Great Sahara's coverage word 1582)
 

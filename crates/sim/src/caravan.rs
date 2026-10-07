@@ -805,8 +805,15 @@ impl Sim {
                 .take()
                 .expect("the parked search")
         } else {
+            // `LAB_0073dbf5`: the parked search is thrown away **and the
+            // flag that asked for it is cleared** (`0073dbfc`, `mov
+            // [esi+0x24], 0`), so the search started here is resumed next
+            // frame. Left set, a route reset by another's road started
+            // over every frame until it found one: run676's caravan 7 on
+            // 1818, after caravan 0's road on 1817 (`docs/AI.md` §157).
             if self.caravans[w].slots[v].reset_road || self.caravans[w].slots[v].search.is_none() {
                 self.clear_temp_road(who, v);
+                self.caravans[w].slots[v].reset_road = false;
             }
             let Some(st) = self.start_road(ends.0, ends.1) else {
                 return -1;
