@@ -139,6 +139,15 @@ pub(crate) struct Pair {
     /// home, refused the plan and spent a second grid draw on 1696
     /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
     /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    /// **Item 1591 moved it from 1719 to 1960 (the sequence; the count
+    /// parts on 1982)**: `Object::do_launch`'s silo arm strikes for a
+    /// computer, so the ICBM `1/42` in the silo `1/2015` takes
+    /// `AIR_ATTACK_GROUND` at Napata's point on 1569 as the original does,
+    /// leaves on 1600 and lands on 1719; the blast's ring passes over the
+    /// animals (`find_units(…, 1)`), and a pasture's close takes its
+    /// chickens with it (`docs/AI.md` §164). At 1960, 36 game draws a side,
+    /// index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    /// Unit::move_step+0x389`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -156,8 +165,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1719,
-    sequence: 1719,
+    count: 1982,
+    sequence: 1960,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -963,13 +972,30 @@ fn run710_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **360** on the tree item 1589 landed (478 on item 1588's, 764 on
-    // item 1586's, 1034 on item 1563's); 151 stand from the window's first block (167 on
-    // 1563's), and army 1's
+    // **224** on the tree item 1591 landed (360 on item 1589's, 478 on
+    // item 1588's, 764 on item 1586's, 1034 on item 1563's); 151 stand
+    // from the window's first block (167 on 1563's), and army 1's
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 360, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 224, "initial run710 baseline");
+    // **The word 1719's value diff, item 1591** (`docs/AI.md` §164): the
+    // ICBM `1/42` (`TypeIndex` 316, `ICBM`, inside the silo `1/2015`)
+    // parted first on block 1570 — `order:length` 0 against 1,
+    // `orders.len` 0 against 1: on frame 1569 (`(1569 + 2015) % 128 ==
+    // 0`) the original's silo arm gave it `AIR_ATTACK_GROUND` (type 24) at
+    // Napata's point (6240, 7008), and ours had no silo arm. It leaves on
+    // 1600 (the silo's `visible` −1 on 1601) and its round lands on 1719,
+    // `0/2000`'s `damage` 1560 on 1720 in both. No key of `1/42` parts in
+    // the window now.
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), _)| *who == 1 && *o == 42)
+            .count(),
+        0,
+        "the word's ICBM 1/42 agrees in every compared field"
+    );
     // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
     // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
     // `1/40`) parted first on block 1686 — `path:length` 9 against 17,

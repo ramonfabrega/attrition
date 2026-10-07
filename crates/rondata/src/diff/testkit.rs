@@ -6933,6 +6933,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run551's ground: 32 reads (pinned at 31, it fails).
     ("chapter_forty_eight_holds_to_the_golden_word", 32),
     ("chapter_forty_eight_s_word_frame_is_widened_whole", 32),
+    // The coverage pair's ICBM (item 1591): `1/42`'s round's `ez` at
+    // Napata's point (6240, 7008) on 1600, launched by the computer's silo
+    // strike, and the walk past the blast to the word 1960 (pinned at one
+    // under each, it fails).
+    ("coverage_pair_first_parting", 4),
+    ("run710_s_word_frame_is_widened_whole", 3),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

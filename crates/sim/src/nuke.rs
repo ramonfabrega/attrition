@@ -197,7 +197,11 @@ impl Sim {
             };
             for u in 0..self.units.len() {
                 let o = Obj::Unit(u);
-                if !self.active(o)
+                // `Objects::find_units(…, 1)`: the last argument set walks
+                // the eight players' units alone (`who < 8` on both its
+                // arms, `0065a620`), so the ring never strikes an animal.
+                if self.units[u].owner >= 8
+                    || !self.active(o)
                     || !self.units[u].on_map
                     || self.nukes.blasts[i].struck.contains(&o)
                     || self.is_nuke(o)
@@ -385,6 +389,55 @@ mod tests {
         assert_eq!(first, [Some(3217), Some(3226), Some(3239), None]);
         assert_eq!(far_first, Some(3239));
         assert_eq!(s.nukes.blasts[0].struck.len(), 4, "each once");
+    }
+
+    /// **The ring never strikes an animal** (item 1591,
+    /// `Nuke::do_damage@0092bc80`'s `Objects::find_units(…, 1)`, whose
+    /// last argument keeps the walk to `who < 8` on both its arms): a
+    /// player's unit and an animal side by side at 518 from ground zero,
+    /// and only the unit is struck. run710's chicken `9/6`, beside Napata,
+    /// died in this crate on 1735 with a death draw the original never
+    /// spent. Made to fail with the owner gate dropped.
+    #[test]
+    fn the_ring_never_strikes_an_animal() {
+        let mut s = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(60, 60),
+            2,
+        );
+        let probe = s.add_unit_type(crate::UnitType {
+            hits: 130,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |s: &mut Sim, who: Player, p: Pos| {
+            let index = i16::try_from(s.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 130);
+            u.ty = Some(probe);
+            u.on_map = true;
+            s.add_unit(u)
+        };
+        let unit = put(&mut s, 0, Pos::new(23544, 34680));
+        let animal = put(&mut s, 9, Pos::new(23544, 34680));
+        let shooter = put(&mut s, 1, Pos::new(19200, 34560));
+        s.units[shooter].on_map = false;
+        s.nukes.blasts.push(Blast {
+            at: Pos::new(23040, 34560),
+            min: RING_MIN,
+            max: 10 * RING_PER_SPLASH,
+            start: 3200,
+            who: 1,
+            shooter: Obj::Unit(shooter),
+            struck: Vec::new(),
+        });
+        for f in 3201..3260 {
+            s.nuke_do_damage(f);
+        }
+        assert!(s.units[unit].health < 130, "the player's unit is struck");
+        assert_eq!(s.units[animal].health, 130, "the animal is not");
     }
 
     /// **The struck fraction is the emulated original's**: 256 at d 0, 243
