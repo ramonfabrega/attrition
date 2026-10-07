@@ -16879,8 +16879,10 @@ on 1408 the original's citizen `1/8` (`TypeIndex` 50) holds a cast (kind 14) ove
 `Build`, and on 1409 it is inside the barge `1/46`; ours holds two orders. `1/8` parts first on **1340**: the original's
 `ExploreTo` goes to (37416, 33864), ours' to (36168, 35976) — a hypothesis for the item after, beside §151's swarm.
 
-**Mutations** (`tools/mutate.py`, against `cargo test --release -p rondata diff::coverage_pair::`): see the journal
-(`docs/journal/2026-10-06-item-1558.md`).
+**Mutations** (`tools/mutate.py` on `bcc34203`, against `cargo test --release -p rondata diff::coverage_pair::`): the item
+gate's fall-through dropped — held by `coverage_pair_first_parting`, run678's and run679's widenings, and by the unit test;
+the territory arm dropped from `world_is_seen_fog` — held by the same three; **`world_sees` back on the bare `seen` read —
+failed nothing**: no walk holds the new arms on the fight side.
 
 **What is not established.** The item's half-cell is the cell's centre on run682's one box and assumed for every box. The
 Spanish arm stays a seam. Whether `world_sees`'s new arms move a walk that `target_is_seen` reaches with a leader holding
