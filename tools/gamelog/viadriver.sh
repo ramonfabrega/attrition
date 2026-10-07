@@ -40,7 +40,10 @@ script=$1; shift
 [ -f "$script" ] || { echo "no such script: $1" >&2; exit 66 }
 
 mkdir -p /tmp/ron-runs
-log=/tmp/ron-runs/viadriver-$(date +%Y%m%d-%H%M%S).log
+# The pid makes the name one launch's (item 1567): two launches in one
+# second — two capture lanes started together — shared a log by the
+# second alone, and each launch's waiter read the other's receipt.
+log=/tmp/ron-runs/viadriver-$(date +%Y%m%d-%H%M%S)-$$.log
 echo "log: $log"
 
 # --args goes to RonDriver as <cwd> <logfile> <program> [args...]; `open`
@@ -54,7 +57,16 @@ echo "log: $log"
 # instance carries its arguments, and the lock — keyed on the game's own pid
 # — is what refuses or waits, in this log, where the caller can read it.
 # `tools/explore/test_viadriver.py` launches a fixture bundle twice.
-open -n -a "$APP" --args "$W" "$log" /bin/zsh "$script" "$@"
+#
+# **The capture lane rides along in the arguments** (parked 1139, item
+# 1567): a LaunchServices launch inherits launchd's environment, not this
+# shell's, so `RON_CAPTURE_LANE=2` reached nothing. The program RonDriver
+# spawns is `env` with the lane as its first argument, so the lane is in
+# the log's `args` line and no launch path can drop it. Nothing else
+# rides: the lane is the one variable a caller sets.
+lane=()
+[ -n "${RON_CAPTURE_LANE:-}" ] && lane=(/usr/bin/env "RON_CAPTURE_LANE=$RON_CAPTURE_LANE")
+open -n -a "$APP" --args "$W" "$log" "${lane[@]}" /bin/zsh "$script" "$@"
 
-echo "launched through $APP"
+echo "launched through $APP${RON_CAPTURE_LANE:+ (capture lane $RON_CAPTURE_LANE)}"
 echo "tail -f $log"

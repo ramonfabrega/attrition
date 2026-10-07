@@ -72,10 +72,35 @@ def parse_commands(path, end):
     return lines
 
 
-def require_closed():
-    result = subprocess.run(['ps', '-axo', 'comm='], capture_output=True, text=True, check=True)
-    if 'riseofnations' in result.stdout.lower():
-        raise RuntimeError('close the original game before staging/restoring')
+def game_prefix(pid, prefixes):
+    """The lane prefix a running game belongs to, read off the files it maps
+    (`lsof`: DXVK's `d3d11.dll` and the rest of `syswow64` are the prefix's
+    own), or None when it maps nothing under any lane's prefix."""
+    names = subprocess.run(['lsof', '-p', str(pid), '-Fn'], capture_output=True, text=True).stdout
+    for prefix in sorted(prefixes, key=len, reverse=True):
+        root = str(prefix).rstrip('/') + '/'
+        if any(line[1:].startswith(root) for line in names.splitlines() if line.startswith('n')):
+            return str(prefix).rstrip('/')
+    return None
+
+
+def require_closed(prefix=None, prefixes=()):
+    """No game is running where this capture will stage or restore.
+
+    With `prefix` — the click-free lane's own, since the second lane
+    (parked 1139, item 1567) — a game running in **another** lane's prefix
+    is that lane's and is let be; one in this prefix, or one no lane's
+    prefix accounts for (a human's, or a read `lsof` could not make), still
+    refuses. With none, any game refuses, as it always did.
+    """
+    result = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True, text=True, check=True)
+    games = [line.split(None, 1)[0] for line in result.stdout.splitlines()
+             if 'riseofnations' in line.lower()]
+    for pid in games:
+        owner = None if prefix is None else game_prefix(pid, prefixes)
+        if owner is None or owner == str(prefix).rstrip('/'):
+            raise RuntimeError('close the original game before staging/restoring'
+                               + (f' (pid {pid}, lane prefix {owner})' if owner else ''))
 
 
 def key(text, name, value):

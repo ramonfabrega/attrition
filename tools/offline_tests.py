@@ -21,6 +21,7 @@ SUITES = (
     'test_rngcmp',
     'test_unattended_capture',
     'test_lane_lock',
+    'test_capture_lanes',
     'test_viadriver',
     'test_waitwin',
     'test_runqueue',
