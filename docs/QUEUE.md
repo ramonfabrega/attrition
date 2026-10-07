@@ -28,7 +28,7 @@ pair **1408**. The twenty-seventh tranche counts from the pass's commit.*
   first row is 1450's: the shared widening takes `ever_seen` (1558's cause).
 - **A lane that lands second takes `ccc update att-<n> --keep-conflicts`**
   on a stub and keeps both; a `--replace` spawn archives the row it stopped.
-- **Fable backlog: 23 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570).
+- **Fable backlog: 24 Loop items** (1119, 1138, 1316, 1421, 1450, 1462, 1464, 1467, 1475, 1478, 1485, 1490, 1507, 1516, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1572).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -61,10 +61,12 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 
 1565. **Great Sahara in the coverage lobby: frame 1582, 28 versus 29
     draws**, index 8: ours `Leader::make_stuff+0x63d`, theirs
-    `Leader::produce_building+0x1805`. Inside run683 (block 1583),
-    widened by `run683_s_word_frame_is_widened_whole`: the Persian
-    Refinery 1/2045's site, y 22176 against 19872, city 1 against 2.
-    No mechanism.
+    `Leader::produce_building+0x1805`. Inside run683 (block 1583), widened
+    by `run683_s_word_frame_is_widened_whole`: the Persian Refinery 1/2045's
+    site, y 22176 against 19872, city 1 against 2. No mechanism. **Run as a
+    race** (DECISIONS 63 (ii)): `att-1565-opus` and `att-1565-sonnet`, one
+    brief, five self-chained landings each, numbers and runs reserved per
+    racer, nothing merged until the end; the protocol is the pass's record.
 
 1571. **The suite lane: the index shared** (1569's successor; the pool
     landed: runs 687 and 688 with no lane named took lanes 1 and 2, lane 3
