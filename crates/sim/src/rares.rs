@@ -351,13 +351,32 @@ impl Sim {
     /// `World::compute_reg_territory@006b0bb0`'s per-cell goods scan, for
     /// one cell the pass has just given to `who`: when the first live good
     /// standing on it is an oil patch, it goes into that leader's
-    /// `oil_patches`. (The scan's other branch — a rare — is
-    /// [`Sim::new_rare`]'s, which this crate reaches through the fog.)
+    /// `oil_patches`; any other good is met as a rare once the cell is seen
+    /// (below).
     pub(crate) fn claim_cell_goods(&mut self, c: crate::world::Cell, who: Player) {
-        if let Some(gi) = self.first_live_good_at(c)
-            && self.world.goods()[gi].ty == crate::world::OIL
-        {
+        let Some(gi) = self.first_live_good_at(c) else {
+            return;
+        };
+        if self.world.goods()[gi].ty == crate::world::OIL {
             self.add_oil_patch(who, gi);
+            return;
+        }
+        // **The rare arm** (item 1555, `docs/AI.md` §152): a good the pass
+        // finds on a cell it gives `who` goes to `Leader::new_rare` when
+        // `who` or an ally has seen the cell's second half-cell each way
+        // (`seen2[2cy + 1][2cx + 1] & ally_mask`, [`Sim::was_really_seen`]
+        // exactly) — `reveal_fog`'s tile-mark gate does not stand in front
+        // of it, so a good whose footprint misses the revealed half-cell
+        // is met here — and the good's `ever_seen` takes the owner's bit.
+        if !self.was_really_seen(c, who) {
+            return;
+        }
+        self.new_rare(who, gi);
+        if self.good_seen_bits.len() <= gi {
+            self.good_seen_bits.resize(gi + 1, 0);
+        }
+        if who < 8 {
+            self.good_seen_bits[gi] |= 1 << who;
         }
     }
 
@@ -724,6 +743,35 @@ mod tests {
         s.world.set_tile_mask(mark, was & !tile::AS_BUILDING);
         s.reveal_fog(fx, fy, 1);
         assert!(s.ai[1].new_rares.is_empty(), "no mark, no look");
+    }
+
+    /// **The border pass meets a rare the reveal's tile gate missed** (item
+    /// 1555, `docs/AI.md` §152): `compute_reg_territory`'s per-cell goods
+    /// scan hands `Leader::new_rare` the first live good on a cell it gives
+    /// a leader, with no tile-mark test, once the cell's second half-cell
+    /// is seen by the leader or an ally — and sets the good's `ever_seen`
+    /// bit, which the Merchant's score reads.
+    #[test]
+    fn the_border_pass_meets_a_seen_rare_the_reveal_never_looked_for() {
+        let (mut s, u) = sea_sim();
+        let (w, h) = (s.world.width(), s.world.height());
+        assert!(s.world.set_fog(vec![0; (w * h * 4) as usize]));
+        let g = good_under(&mut s, u, 26);
+        let c = s.units[u].pos.cell();
+        s.claim_cell_goods(c, 1);
+        assert!(s.ai[1].new_rares.is_empty(), "an unseen cell is not met");
+        assert!(!s.good_seen_bit(g, 1));
+        // The odd half-cell is the one the scan reads: a seen even one is
+        // no reason to meet the good.
+        s.world.set_seen(2 * c.x, 2 * c.y, 1 << 1);
+        s.claim_cell_goods(c, 1);
+        assert!(s.ai[1].new_rares.is_empty(), "the even half-cell is not it");
+        s.world.set_seen(2 * c.x + 1, 2 * c.y + 1, 1 << 1);
+        s.claim_cell_goods(c, 1);
+        s.claim_cell_goods(c, 1);
+        assert_eq!(s.ai[1].new_rares, vec![g], "met once");
+        assert!(s.good_seen_bit(g, 1), "and seen by its owner");
+        assert!(!s.good_seen_bit(g, 0), "and by nobody else");
     }
 
     /// **The two numbers run59's census measured.** A level-0 fisherman

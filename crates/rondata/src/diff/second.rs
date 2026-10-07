@@ -2104,12 +2104,12 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12577, 90), (12601, 1)],
+            [(12577, 88), (12601, 1)],
             "the blocks keys first part on, to the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 1817.
         // Item 1458: 134 → 128; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 91, "every key parted on run508");
+        pin_eq!(w.firsts.len(), 89, "every key parted on run508");
     }
 
     /// **run523 — the second pair's East Indies word 13385, widened whole**
@@ -2180,7 +2180,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 13_386)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13380, 86), (13386, 2)],
+            [(13380, 84), (13386, 2)],
             "the blocks keys first part on, to the word 13385's"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
@@ -2189,7 +2189,7 @@ mod tests {
         // Item 1407: 138 → 137.
         // Item 1451, `largest_gather` (AI §115): 134 → 132, MAKE[3].val and MAKE[4].val.
         // Item 1458: 132 → 128; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 92, "every key parted on run523");
+        pin_eq!(w.firsts.len(), 90, "every key parted on run523");
     }
 
     /// **run535 — the second pair's East Indies word 14141, widened whole**
@@ -2252,7 +2252,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 14_142)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(14136, 88)],
+            [(14136, 86)],
             "the blocks keys first part on, to the word 14141's"
         );
         // Measured on the tree merged with 1330's (1818 before it); item
@@ -2260,7 +2260,7 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 160 → 159.
         // Item 1457: 159 → 149; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 149 → 141; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 93, "every key parted on run535");
+        pin_eq!(w.firsts.len(), 91, "every key parted on run535");
     }
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
@@ -2379,7 +2379,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 16_010)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15857, 91), (15859, 1), (15869, 47), (15924, 1), (16001, 1)],
+            [(15857, 89), (15859, 1), (15869, 47), (15924, 1), (16001, 1)],
             "the blocks keys first part on, to the word's"
         );
         // Item 1362, the escort: 1386 → 1380. Item 1370, the pack: 1380 → 982.
@@ -2387,7 +2387,7 @@ mod tests {
         // Item 1383, the re-plan's step past the pause: 662 → 243.
         // Item 1457: 242 → 237; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 237 → 233; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 145, "every key parted on run544");
+        pin_eq!(w.firsts.len(), 143, "every key parted on run544");
     }
 
     /// **run572 — the second pair's East Indies word 16179, widened whole**
@@ -2447,24 +2447,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (16155, 117),
-                (16161, 1),
-                (16171, 1),
-                (16172, 1),
-                (16176, 2),
-                (16184, 1),
-                (16200, 1),
-                (16201, 1),
-                (16210, 1),
-                (16270, 1),
-                (16273, 1),
-                (16288, 1),
-                (16315, 1),
-                (16367, 1),
-                (16369, 2),
-                (16381, 53)
-            ],
+            [(16155, 117), (16161, 1), (16171, 1), (16172, 1), (16176, 1), (16200, 1), (16201, 1), (16210, 1), (16270, 1), (16273, 1), (16288, 1), (16315, 1), (16367, 1), (16369, 2), (16381, 53)],
             "the blocks keys first part on, to the word's"
         );
         // **The word 16221** (item 1407, `docs/AI.md` §105): ours 12 draws
@@ -2491,7 +2474,7 @@ mod tests {
         // 263. The keys left part from 16270 on, the last 53 on 16381.
         // Item 1457: 263 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 186, "every key parted on run572");
+        pin_eq!(w.firsts.len(), 184, "every key parted on run572");
     }
 
     /// **run579 — the second pair's East Indies word 16482, widened whole**
@@ -2549,21 +2532,7 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (16476, 160),
-                (16571, 1),
-                (16601, 1),
-                (16609, 1),
-                (16625, 3),
-                (16635, 15),
-                (16637, 7),
-                (16649, 1),
-                (16674, 1),
-                (16679, 2),
-                (16681, 1),
-                (16685, 1),
-                (16706, 1)
-            ],
+            [(16476, 158), (16571, 1), (16601, 1), (16609, 1), (16625, 3), (16635, 15), (16637, 7), (16649, 1), (16674, 1), (16679, 2), (16681, 1), (16685, 1), (16706, 1)],
             "the blocks keys first part on, to the word's"
         );
         // Item 1427: the per-candidate coastal region restores both transport galleons'
@@ -2578,7 +2547,7 @@ mod tests {
         }
         // Item 1457: 267 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 195, "every key parted on run579");
+        pin_eq!(w.firsts.len(), 193, "every key parted on run579");
     }
 
     type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;
@@ -2756,7 +2725,7 @@ mod tests {
         // Item 1458: 258 → 254; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 254 → 244; who=1's Tikal `MAKE[1]`/`[8]` 342150 → 684301 takes its `WONDER_VAL` 2, and the Pyramids and Colossus slots and their food and wealth `bucket` rows leave (`docs/AI.md` §124).
         // Item 1502: 193 → 165 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 165, "run594 record baseline");
+        pin_eq!(w.firsts.len(), 163, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2937,7 +2906,7 @@ mod tests {
         // Item 1458: 223 → 212; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 212 → 209; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
         // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 134, "run588 record baseline");
+        pin_eq!(w.firsts.len(), 132, "run588 record baseline");
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3075,7 +3044,7 @@ mod tests {
         // Item 1457: 291 → 285; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 285 → 272; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1502: 221 → 197 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 197, "every key parted on run585");
+        pin_eq!(w.firsts.len(), 195, "every key parted on run585");
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -3158,7 +3127,7 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 286 → 285, MAKE[4].val.
         // Item 1457: 285 → 271; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 271 → 266; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 204, "every key parted on run583");
+        pin_eq!(w.firsts.len(), 202, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

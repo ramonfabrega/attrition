@@ -16768,7 +16768,61 @@ oil platform's arm (`go_inside`) are the original's other branches and unchanged
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 152. Reserved for item 1555 (Great Sahara's coverage word 1197)
+## 152. The border pass meets a rare the reveal's tile gate missed, and the word at 1250 (2026-10-06, item 1555)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run681's widening (`diff::sahara_coverage::run681_s_word_frame_is_widened_whole`, blocks 1191..1447, the word's block
+1198), the draw record on frame 1197 and `World::compute_reg_territory@006b0bb0:600–662`'s listing against `World::reveal_fog@006b3d30`.
+
+**The word.** Great Sahara in the coverage lobby parted on **1197** (item 1549's 1182, moved by 1546's second capital): ours 4 draws against 3, index 0, ours
+`Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The other three agree (two of `1/32`'s stand rolls and the farm's).
+`RON_DEBUG_SITES` names ours' extra draw: unit `1/38`.
+
+**The unit.** `1/38` is a Persian **Merchant** (`TypeIndex` 61, the dump's `GUY` `type`; this crate's own type slot is 11), born on 1195 at (39048, 17112). It is
+given its walk on 1197 — the draw is the grid draw of a first `do_move` the straight line does not verify (`SITE_MOVE_GRID`). Run681 (`rngcmp` 0 differing on 1456 frames) prints both sides' order on that frame: the move is to **(31032, 21048)** in ours — the Dye
+(`TypeIndex` 10) at (31008, 21024), 48-snapped — and to **(41016, 1848)** in theirs, the **Wool** (33) at (40992, 1824), 15,000 units north of
+its home; ours' path has 18 nodes and theirs 21, the angle, `dest_angle`, `orders_x/y` and `path[0..17]` parting with it, and from 1198 the
+facing, heading and the first step's position. No other record on the frame parts: `1/21` and `1/27`, the two earlier Merchants (to the Peacocks
+at (38688, 20256) and the Uranium at (33408, 6528)), agree through the window.
+
+**The list.** `think_merchant` scores `new_rares` in list order (`200 − 10·i`, `docs/MERCHANT.md` §2.2), so the pick is the list. Ours' leader 1 learns its
+four goods from the fog — [10 (f0), 22 (413), 12 (637), 13 (763)] — and rotates the winner to the back at each Merchant's think (915, 1053, 1196):
+head 12 at 1196. The original picks the Wool, which means its list holds it **before** the Dye, the Wine and the Peacocks' return — [10, 22, **20**, 12, 13]
+by the three rotations. The Wool is in no fog cell the reveal offers it from: it stands at tile (213, 9), the one tile ours' `0x200` mark covers, and `reveal_fog` reads the tile at `(2fx + 1, 2fy + 1)` of the revealed fog cell — the mark is fog cell (106, 4)'s
+odd tile, which player 1 has not seen (`seen2` 0 on 1196), while the half-cell it has seen is (107, 5), whose tile (215, 11) is unmarked
+(`seen2` of (107, 5) is 2 on 1196). So the reveal's rare arm never finds the good though the cell's second half-cell is seen.
+
+**The cause.** `World::compute_reg_territory@006b0bb0`'s per-cell goods scan (`:625–660`) is the second caller of `Leader::new_rare` and has no tile gate. For
+each cell it gives a leader it walks the goods list for the **first live good whose cell is this one** (`div_3_table[x >> 8]`, `[y >> 8]`) and
+stops there: an oil patch (`type == 5`) goes to `oil_patches` (this crate's `claim_cell_goods`, `docs/AI.md` §133, since 1538); **any other** good goes to
+`Leader::new_rare` when `leader >= 8`, `reveal_map == 3`, `leader_flags & 0x800`, `LeaderData +0x59e4 != 0`, or `seen2[2cy + 1][2cx + 1] &
+ally_mask` — [`Sim::was_really_seen`] exactly — and **the good's `ever_seen` takes the owner's bit** (`+0x20 |= 1 << leader`), which is the byte the
+Merchant's score tests. `claim_cell_goods` had only the oil branch ("the scan's other branch is `new_rare`'s, reached through the fog"). Built:
+the rare arm, and `Sim::good_seen_bits` (by goods-list index) read by `think_merchant` beside the fog read.
+
+**The move.** Persian territory covers the Wool's cell (53, 2) (`owner` Player 1 in ours' grid), so the first pass that visits it after player 1 has seen the half-cell
+now adds it: leader 1's list reads [10 (f0), 22 (413), **20 (439)**, 12 (637), 13 (763)], and the three rotations leave the head on 20 at 1196. `1/38`
+walks to (41016, 1848); every row it parted (order, path, angle, heading, the first step) agrees through block 1447. The word goes **1197 → 1250** (ours 10 draws against 9,
+index 0: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Animal::do_idle+0x83` — a gaia animal's idle roll ours does not make and a
+move step ours makes; `1/35`'s position parts a unit step on 1248, its order's `dest` too).
+Run681's keys: **1138** on the tree at the base, **885** after (140 standing on 1191, the control's set); the first past the standing block is leader 0's
+`production_step` on 1201. The word 1250's block, 1251, is inside the window.
+
+**What moved elsewhere** (every walk the arm reaches, `cargo test --release -p rondata -p sim`): eighteen widenings' pins fell — their counts by one or two
+keys, none rose. Great Sahara at Toughest's run488 loses `who=1`'s `known_rares` row (ours 3, theirs 4 on 7780: **agrees** now), and the second and third
+pairs' words (run508..run594, run634..run655) lose one or two of their parted keys each. The arm makes the AI's list, and the counts read from it, agree with the
+original's on every map it reaches; no closed word or open floor moved.
+
+**Standing fields this crate reads** (`tools/standing.py` on the widening's `RON_FIRSTS`, block 1191): `reg` (59 readers, `ai_build.rs:385`…), `bucket` (55),
+`val` (31), `land` (18), `gatherers` (17), `free` (13), `form` (11), `space` (7), `my_team_terr` (6) — the control's set again (§147, §150): ours 0 or −1
+against the original's positive counts from the start (`SITE[0].reg` ours 1 theirs 0; `leader:gatherers` ours 0 theirs 7; `city:land` ours 0 theirs 97).
+
+**What is not established.** The two leader exits of the pass's condition (`leader_flags & 0x800`, `+0x59e4`) are `was_really_seen`'s seams (no run sets
+either). The wholesale recompute at setup (`claim_oil_from_owners`) still makes the oil arm alone: the original's pass at setup would also meet a *seen*
+rare, and the harness's fog replay (`seed_new_rares_from_fog`) stands in for it in a different order — no capture has a lobby whose list order depends
+on it. `good_seen_bits` is written by this arm alone; `reveal_fog`'s own write of the bit is still answered by the fog read, which differs from it
+exactly where this word did (the tile gate). How the original's list reached the Wool on **439** (a pass after the cell was seen) is this crate's
+timing; the capture agrees on the Merchants' picks, not on the frame the Wool was added.
+
+**Mutations** (`tools/mutate.py` on the built tree): see the journal.
+
+**Coverage.** Diff-backed: the cause (the word moves 1197 → 1250 and `1/38` agrees through block 1447). Reading-only: the pass's flag exits.

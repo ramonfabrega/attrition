@@ -2359,7 +2359,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} #{} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
+        "  f{frame} {who}/{o} #{} TY {:?} TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
          danger {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
@@ -2370,6 +2370,10 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
             .position(|x| std::ptr::eq(x, u))
             .unwrap_or(usize::MAX),
         u.ty,
+        // The `TypeIndex` the dump's `GUY` block would write (item 1555).
+        u.ty
+            .and_then(|t| built.unit_tree.get(t))
+            .and_then(|id| built.type_index.get(*id)),
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         built
             .sim

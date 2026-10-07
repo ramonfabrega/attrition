@@ -556,7 +556,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // 16852..16863. The 173 stand from the window's first block, 16851.
     // Item 1493: 173 → 170 on the tree merged after 1500 (army 65's siege
     // copy-back and the wider group-slot compare).
-    pin_eq!(w.firsts.len(), 165, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 164, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -601,7 +601,7 @@ fn run649_s_decision_frame_is_widened_whole() {
     // standing on the first block 15086 (the human's census, the rows
     // run642 also stands on); nothing on 15087..15090, the decision's block
     // 15089 among them.
-    pin_eq!(w.firsts.len(), 80, "run649 whole");
+    pin_eq!(w.firsts.len(), 79, "run649 whole");
 }
 
 #[test]
@@ -620,7 +620,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 102, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 101, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -746,7 +746,7 @@ fn run635_s_word_frame_is_widened_whole() {
     // Item 1479: 119 → 118 — the `discovered` row was the French
     // Carpentry line, handed out free with Chemistry on 12958 (AI §123).
     // Item 1468: 118 → 88; the same two groups on the French pair's trained squads.
-    pin_eq!(w.firsts.len(), 79, "initial run635 baseline");
+    pin_eq!(w.firsts.len(), 78, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -774,7 +774,7 @@ fn run634_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1461: 206 → 119, the word's frame now 12952 (run634's 87 keys past its first block leave, none arrive); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 80, "initial run634 baseline");
+    pin_eq!(w.firsts.len(), 79, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
