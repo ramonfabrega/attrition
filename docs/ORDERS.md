@@ -2402,8 +2402,9 @@ times are the deploy's whole cost:
 | `0x28f` / `0x290` | Merchant | 148 |
 | `0x291` / **`0x292`** | Fishermen | **40** |
 
-`get_job_time` adjusts **nine** of the fifty-five and none of them is one
-this crate issues: `0x27d` Entrench takes the French tribe bonus and
+`get_job_time` adjusts **nine** of the fifty-five ~~and none of them is one
+this crate issues~~ — the siege pair's three type arms and the machine
+gun's one are built by item 1608 (`Sim::cast_job_time`, `docs/AI.md` §170): `0x27d` Entrench takes the French tribe bonus and
 Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
 `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c` take the Turkish bonus, Napoleon's, a
 half for two type masks and a quarter for a third; `0x28d`/`0x28e` halve
@@ -2603,10 +2604,11 @@ stand-in remains (`rondata::diff::order`, it does not score).
 **What is not established.**
 
 - **`get_job_time`'s `0x28b`/`0x28c` arms** (§6.9): the Turkish
-  `turk_pack` percentage, Napoleon's `napoleon_pack` behind a general,
-  a half for two lineages and a quarter for a third
-  (`get_job_time@00675800`). This crate reads the raw `JOB_TIME`, for the unpack
-  as before and for the pack now; run544's Bombard waits exactly 80.
+  `turk_pack` percentage and Napoleon's `napoleon_pack` behind a general
+  (`get_job_time@00675800`). ~~A half for two lineages and a quarter for a
+  third; this crate reads the raw `JOB_TIME`~~ — built by item 1608 with
+  the machine gun's half (`docs/AI.md` §170); run544's Bombard still waits
+  exactly 80.
 - **The order's `tolerance`** (`MoveOrder +0x14`), which arm 1 zeroes,
   is not a field this crate's move carries.
 - **The MOVE_TO re-add above it** (`0060d36a`, `unit_masks & 0x4000000`),
@@ -6194,7 +6196,8 @@ coins agree draw for draw.
   `QUEUE_FIRST` attack. The original's own guard range
   (`unit_guard_respond_range` of the post) is not read. Run133's wagon
   is always moving, so the arm is never reached.
-- **The packer's unpack** on the post.
+- ~~**The packer's unpack** on the post.~~ Built by item 1608: the coverage
+  pair's Advanced Machine Gun `1/74` casts on 2868 at `idle 30` (`docs/AI.md` §170).
 
 ### 24.8 Coverage
 
@@ -6274,9 +6277,10 @@ would raise. No captain fights in run133, so `attacking` is never
 non-zero here, and the `≥ near / 2` side is backed only by the unit test
 `an_unarmed_attack_mover_waits_on_its_phase_for_a_captain_at_its_heels`.
 `GroupData::member`'s flag test (`objects +0x8 & 1`) is taken as
-`alive()`. The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
+`alive()`. ~~The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
 `unit_masks & 0x80000` → `add_cast_order(0x28c)`, `5e63df`–`5e6449`) is
-read and not built. Hoplites never take it.
+read and not built. Hoplites never take it.~~ Built by item 1608
+(`docs/AI.md` §170).
 
 **Coverage.** Diff-backed by `chapter_four_s_word_frame_is_widened_whole`,
 which fails with the pause write reverted (`1416 1/10 order:move.pause`

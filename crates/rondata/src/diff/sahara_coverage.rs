@@ -646,7 +646,10 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 258, "initial run702 baseline");
+    // 259 since item 1608 compares `spell_time`: `1/38` 1 against 0 on
+    // 2207, the word 2206's own block — ours has a cast's first frame
+    // there that the original has not.
+    pin_eq!(w.firsts.len(), 259, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         95,

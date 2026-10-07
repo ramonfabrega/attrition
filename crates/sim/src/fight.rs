@@ -5473,6 +5473,152 @@ mod tests {
         assert_eq!(sim.pack_before_move(me), PackArm::Packing);
     }
 
+    /// A packed packer of lineage `tree` on its guard post, guarding a
+    /// standing unit of its own side from `(0, 372)` — the post the
+    /// guard's own arithmetic puts at (3768, 12072) for this target —
+    /// in `PACKER_AUTO` (stance 0), with the four pack and unpack rows in
+    /// the craft table at `craftrules.xml`'s own lengths.
+    fn packer_on_post(tree: Option<crate::tech::TypeId>) -> (Sim, usize) {
+        let (mut sim, ty) = at_war();
+        sim.spells = vec![crate::orders::SpellType::default(); 55];
+        for (spell, t) in [
+            (crate::orders::spell::PACK, 80),
+            (crate::orders::spell::UNPACK, 80),
+            (crate::orders::spell::PACK_MACHINEGUN, 50),
+            (crate::orders::spell::UNPACK_MACHINEGUN, 50),
+        ] {
+            let row = usize::try_from(spell - crate::orders::spell::FIRST).unwrap();
+            sim.spells[row].job_time = t;
+        }
+        let packer = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 8,
+                uber_size: 1,
+                packs: true,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        // Set after the type is added: `add_unit_type` reads a tree id
+        // against the player's research, and this table has none.
+        sim.unit_types[packer].tree = tree;
+        // `get_stance_type`'s column: a military type that packs is a
+        // `STANCE_PACKER`.
+        sim.unit_types[packer].cols.role |= crate::ai_load::role::MILITARY;
+        let post = Pos::new(3768, 12072);
+        let wagon = put(&mut sim, 1, ty, Pos::new(3456, 11904));
+        let guard = put(&mut sim, 1, packer, post);
+        sim.units[guard].combat.packed = true;
+        sim.units[guard].stance = 0;
+        sim.add_guard_order(guard, wagon, 0, 372, crate::orders::QueuePos::New);
+        if let crate::orders::Body::Guard(g) = &mut sim.units[guard].orders[0].body {
+            g.guard = post;
+        }
+        (sim, guard)
+    }
+
+    /// **A packed packer on its post unpacks** (`Unit::do_guard@005e5c70:
+    /// 298`–`:316`, item 1608, `docs/AI.md` §170): the frame the guard's
+    /// `idle` reaches `0x1e` for the machine gun's lineage (`is(0x7b, 0)`)
+    /// or `0x46` for any other, the unpack goes on at the head with the
+    /// guard under it — re-aimed at `0x28e` for the machine gun — and not a
+    /// frame before. Unpacked, or under any stance but `PACKER_AUTO`, it
+    /// never does. The coverage pair's Advanced Machine Gun `1/74` on 2868.
+    /// Made to fail with `guard_unpacks` answering false.
+    #[test]
+    fn a_packed_packer_on_its_post_unpacks_when_its_idle_runs_out() {
+        use crate::orders::{Body, spell};
+        let head = |sim: &Sim, u: usize| sim.units[u].orders.front().map(|o| o.body);
+        for (tree, threshold, want) in [
+            (Some(0x7b), 0x1e, spell::UNPACK_MACHINEGUN),
+            (None, 0x46, spell::UNPACK),
+        ] {
+            for (idle, casts) in [(threshold - 2, false), (threshold - 1, true)] {
+                let (mut sim, guard) = packer_on_post(tree);
+                if let Some(Body::Guard(g)) =
+                    sim.units[guard].orders.front_mut().map(|o| &mut o.body)
+                {
+                    g.idle = idle;
+                }
+                let f = off_phase(&sim, guard);
+                sim.work(guard, f);
+                let front = head(&sim, guard);
+                assert_eq!(
+                    matches!(front, Some(Body::Cast(c)) if c.spell == want),
+                    casts,
+                    "{tree:?} at idle {idle}: {:?}",
+                    sim.units[guard].orders
+                );
+                if casts {
+                    assert!(
+                        matches!(sim.units[guard].orders.get(1).map(|o| o.body),
+                            Some(Body::Guard(g)) if g.idle == threshold),
+                        "the guard stands under the cast, its idle counted"
+                    );
+                }
+            }
+        }
+        for (packed, stance) in [(false, 0), (true, 1)] {
+            let (mut sim, guard) = packer_on_post(Some(0x7b));
+            sim.units[guard].combat.packed = packed;
+            sim.units[guard].stance = stance;
+            if let Some(Body::Guard(g)) = sim.units[guard].orders.front_mut().map(|o| &mut o.body) {
+                g.idle = 0x40;
+            }
+            let f = off_phase(&sim, guard);
+            sim.work(guard, f);
+            assert!(
+                matches!(head(&sim, guard), Some(Body::Guard(_))),
+                "packed {packed} stance {stance}: {:?}",
+                sim.units[guard].orders
+            );
+        }
+    }
+
+    /// **`get_job_time`'s two type arms** (`00675a10`–`00675b16`, item
+    /// 1608): the siege pair's 80 halved for a Howitzer or a Katyusha and
+    /// quartered for an MLRS, each asked strictly; the machine gun's 50
+    /// halved for the Heavy Machine Gun's lineage. Every other caster, and
+    /// every other craft, takes the row. And the clock reads it: an MLRS's
+    /// unpack lands on its twentieth `do_cast` frame — the coverage pair's
+    /// `1/65`, cast on 2879 and unpacked on block 2900. Made to fail with
+    /// `do_cast` reading `spell_job_time`.
+    #[test]
+    fn get_job_time_shortens_the_pack_and_unpack_by_type() {
+        use crate::orders::spell;
+        for (tree, s, want) in [
+            (Some(0x111), spell::UNPACK, 20),
+            (Some(0x111), spell::PACK, 20),
+            (Some(0x10f), spell::UNPACK, 40),
+            (Some(0x116), spell::PACK, 40),
+            (Some(0x112), spell::UNPACK, 80),
+            (None, spell::UNPACK, 80),
+            (Some(0x7d), spell::UNPACK_MACHINEGUN, 25),
+            (Some(0x7d), spell::PACK_MACHINEGUN, 25),
+            (Some(0x7b), spell::UNPACK_MACHINEGUN, 50),
+            (Some(0x111), spell::UNPACK_MACHINEGUN, 50),
+            (Some(0x7d), spell::UNPACK, 80),
+        ] {
+            let (sim, u) = packer_on_post(tree);
+            assert_eq!(sim.cast_job_time(u, s), want, "{tree:?} casting {s:#x}");
+        }
+        let (mut sim, u) = packer_on_post(Some(0x111));
+        sim.units[u].orders.clear();
+        sim.add_cast_order(u, spell::UNPACK);
+        for n in 1..=20 {
+            assert!(sim.units[u].combat.packed, "unpacked before frame {n}");
+            let Some(crate::orders::Body::Cast(c)) = sim.units[u].orders.front().map(|o| o.body)
+            else {
+                panic!("the cast left on frame {n}");
+            };
+            sim.do_cast(u, c);
+        }
+        assert!(!sim.units[u].combat.packed, "the twentieth frame unpacks");
+    }
+
     /// **A packed packer in range of its attack unpacks first**
     /// (`Unit::fight@005fd4d0:512`–`543`, item 1182): a human's packed
     /// catapult holding an attack on a building in range is given the

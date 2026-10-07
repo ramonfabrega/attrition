@@ -3788,6 +3788,12 @@ is not tracked; (d) AI §158 and `ai_units.rs`'s `get_nukes` comment say the
 ICBM's `FROM` is none, where a probe reads `from(316) = Some(315)`,
 `is(316, 315)` true — the count there may need a re-read.
 
+(1615) **The guard's and the cast's unwalked arms** (1608, 2026-10-07):
+`cast_unpack`'s re-seat is held by no walk (mutation 4) — it wants a
+staging with a packer whose unpacked crew piece tracks; `get_job_time`'s
+Turkish and Napoleon arms on the siege pair (neither constant loaded) and
+its other five rows; `do_guard`'s `0x46` arm has no capture.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3914,6 +3920,13 @@ closing record carries the grep that tests each "disagree" row before it
 is booked; (b) a mutation whose arm no capture reaches fails nothing on
 the walk: `tools/mutate.py` could print which test names ran, so "failed
 nothing" reads at once as unwalked rather than untested. One reach each.
+
+(1616) **A seam built is checked against the field that would show it**
+(1608's Loop line, 2026-10-07): `spell_time`, the field 1608's arithmetic
+lives in, was printed on every block and pinned unread; the cast's end was
+all any walk saw. `seams.py --field` could list the unread pins
+(`coverage.rs`) of the struct a seam's function writes. A sibling of 1607
+and 1610; one reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
