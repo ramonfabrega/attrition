@@ -1041,7 +1041,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 134, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 109, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1170,7 +1170,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 124, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 108, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1231,7 +1231,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // item 1598).
     pin_eq!(
         first,
-        Some(1966),
+        Some(1971),
         "the first parting past the standing block"
     );
 }
@@ -1290,7 +1290,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 154, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1389,7 +1389,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // past 2863 is births' `form`, two pools' `held`, Napata's flags,
     // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
     // on 3069. The word 3142 lies past the window (run716's).
-    pin_eq!(w.firsts.len(), 154, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 150, "initial run715 baseline"); // Item 1620: 154 → 150 on the merged tree, `treaties` compared as the word (`docs/AI.md` §173).
     pin_eq!(
         w.firsts
             .iter()
@@ -1454,7 +1454,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // 1, three orders against two) and stands at (3342, 12584) on 3142
     // against ours' (3320, 12634): the attack roll ours spends at index
     // 3. The item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 2160, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 2156, "initial run716 baseline"); // Item 1620: 2160 → 2156 (`docs/AI.md` §173).
     let first = w
         .firsts
         .values()

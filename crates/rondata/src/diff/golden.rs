@@ -13149,8 +13149,6 @@ const WANT_CH49: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "625 0/-1 leader:treaties[1]",
-    "625 1/-1 leader:treaties[0]",
     "943 0/7 death:extra",
 ];
 
@@ -13305,8 +13303,6 @@ const WANT_CH51: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "698 0/-1 leader:treaties[1]",
-    "698 1/-1 leader:treaties[0]",
     "750 0/6 death:extra",
     "900 0/9 death:extra",
     "982 0/8 death:extra",
@@ -13344,8 +13340,6 @@ const WANT_CH50: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "700 0/-1 leader:treaties[1]",
-    "700 1/-1 leader:treaties[0]",
     "751 0/6 death:extra",
     "908 0/9 death:extra",
     "986 0/8 death:extra",
@@ -13623,8 +13617,6 @@ const WANT_CH44: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "671 0/-1 leader:treaties[1]",
-    "671 1/-1 leader:treaties[0]",
 ];
 
 /// **run496 whole, both directions** (item 1278, `docs/GOLDEN.md` §55):
@@ -13869,8 +13861,6 @@ const WANT_CH48: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "935 0/-1 leader:treaties[1]",
-    "935 1/-1 leader:treaties[0]",
 ];
 
 /// Chapter forty-eight's pool rows (item 1358): who=0's slots, the
@@ -13938,8 +13928,6 @@ const WANT_CH47: &[&str] = &[
     "614 0/6 order:group.id",
     "614 0/7 order:group.id",
     "614 0/8 order:group.id",
-    "706 0/-1 leader:treaties[1]",
-    "706 1/-1 leader:treaties[0]",
     "708 0/12 form",
 ];
 
@@ -14058,8 +14046,6 @@ const WANT_CH42: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "623 0/-1 leader:treaties[1]",
-    "623 1/-1 leader:treaties[0]",
 ];
 
 /// Chapter forty-one's widening rows (items 1182, 1200): run437 whole,

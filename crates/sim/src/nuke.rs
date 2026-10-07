@@ -128,9 +128,8 @@ impl Sim {
     /// laid (`Nuke::add_nuke@0092ba30`), and its first frame struck at once
     /// (`Nuke::do_damage`, `6785db`). No `hit_target`, no splash walk.
     ///
-    /// SEAM: the achievement, the sounds and the message, `World::set_seen2`
-    /// over the circle around the landing (the fog, which nothing here
-    /// reads), and `TerrainOut::terraform_for_nuke` (the crater's heights,
+    /// SEAM: the achievement, the sounds and the message, and
+    /// `TerrainOut::terraform_for_nuke` (the crater's heights,
     /// which no figure reads before the blast has killed it).
     pub(crate) fn nuke_land(&mut self, p: crate::combat::Projectile, frame: i64) {
         let who = usize::from(p.owner);
@@ -151,7 +150,42 @@ impl Sim {
             shooter: p.shooter,
             struck: Vec::new(),
         });
+        self.nuke_reveal(p.landing, self.profile(p.shooter).splash_area);
         self.nuke_do_damage(frame);
+    }
+
+    /// **The blast lights the ground it lands on for everyone**
+    /// (`Ammo::do_damage@00678060:268`–`:287`, after `Nuke::add_nuke` and
+    /// before `Nuke::do_damage`). The landing point is taken to its tile
+    /// (`div_3_table[x >> 6]`, 192 units), and the first
+    /// `circle_radius[splash_area + 1]` points of the `circle_x`/`circle_y`
+    /// spiral round it — offsets in tiles, the ring index clamped to
+    /// 0..=0x40 — that lie on the map (`0 ≤ t < field_0x18/0x1c`, the tile
+    /// counts) each call `World::set_seen2(t >> 1, t >> 1, 0xff, 0)`: all
+    /// eight players' bits, in **both** planes, so the destroyed city's
+    /// ground is seen to the shooter now and to its neighbours' next
+    /// `check_ever_seen` (`docs/VISION.md` §6).
+    ///
+    /// SEAM: the original's other two writes (`World +0x168` and the cell
+    /// record's `+0x14`) have no reader here, as in
+    /// [`crate::world::World::set_seen`].
+    fn nuke_reveal(&mut self, landing: Pos, splash: i32) {
+        if !self.world.has_fog() {
+            return;
+        }
+        let c = crate::ai_place::circle();
+        let n = c.radius[(splash + 1).clamp(0, 0x40) as usize];
+        let (tx, ty) = (landing.tile().x, landing.tile().y);
+        let (tw, th) = (
+            self.world.width() * crate::world::TILES_PER_CELL,
+            self.world.height() * crate::world::TILES_PER_CELL,
+        );
+        for i in 0..n {
+            let (x, y) = (c.x[i] + tx, c.y[i] + ty);
+            if x >= 0 && y >= 0 && x < tw && y < th {
+                self.world.set_seen(x >> 1, y >> 1, 0xff);
+            }
+        }
     }
 
     /// **`Nuke::do_damage@0092bc80`**, once a frame from the head of
@@ -441,6 +475,90 @@ mod tests {
         }
         assert!(s.units[unit].health < 130, "the player's unit is struck");
         assert_eq!(s.units[animal].health, 130, "the animal is not");
+    }
+
+    /// **A landing lights its circle for everyone, in both planes, and a
+    /// hit across players marks both leaders' treaties** (item 1620,
+    /// `Ammo::do_damage@00678060:268`–`:287`; `Object::do_damage:327`). A
+    /// nuke of `splash_area` 10 lands at tile (120, 180) of a fogged 60-cell
+    /// world: the fog cell under it, one five tiles out and one ten tiles
+    /// out carry `0xff` in `seen` and `seen2` the frame it lands; one thirty
+    /// tiles out does not; the struck player's `treaties` and the
+    /// shooter's carry bit 1 from the first ring. Made to fail with the
+    /// reveal dropped (the first three read 0) and with the treaty write
+    /// dropped (a hit leaves bit 1 clear).
+    #[test]
+    fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
+        let mut s = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(60, 60),
+            2,
+        );
+        assert!(s.world.set_fog(vec![0; 60 * 60 * 4]));
+        s.at_war[0][1] = true;
+        s.at_war[1][0] = true;
+        let nuke = s.add_unit_type(crate::UnitType {
+            hits: 2,
+            combat: crate::combat::Profile {
+                attack: 1200,
+                splash_area: 10,
+                uber_size: 1,
+                domain: crate::attrition::Domain::Air,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        s.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
+        let probe = s.add_unit_type(crate::UnitType {
+            hits: 130,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |s: &mut Sim, who: Player, ty: usize, p: Pos| {
+            let index = i16::try_from(s.units.len()).unwrap();
+            let hits = s.unit_types[ty].hits;
+            let mut u = crate::Unit::new(who, index, p, hits);
+            u.ty = Some(ty);
+            u.on_map = true;
+            u.kind = s.unit_types[ty].kind;
+            s.add_unit(u)
+        };
+        let n = put(&mut s, 1, nuke, Pos::new(19200, 34560));
+        s.units[n].on_map = false;
+        put(&mut s, 0, probe, Pos::new(23040, 34560));
+        assert_eq!(s.treaties[0][1], 0);
+        s.projectiles.push(crate::combat::Projectile {
+            shooter: Obj::Unit(n),
+            owner: 1,
+            target: None,
+            launch: Pos::new(19091, 34561),
+            landing: Pos::new(23040, 34560),
+            cur_time: 119,
+            total_time: 120,
+            accuracy: 0,
+            angle: crate::movement::Angle(0),
+            splash_area: 10,
+            num_guys: 1,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            air: false,
+            sz: 0,
+            ez: 0,
+            v1z: crate::single::Single::ZERO,
+            slot: 0,
+        });
+        s.process_projectiles(3200);
+        // Tile (120, 180) is fog cell (60, 90).
+        for (fx, fy, want) in [(60, 90, 0xff), (62, 90, 0xff), (65, 90, 0xff), (75, 90, 0)] {
+            assert_eq!(s.world.seen2(fx, fy), Some(want), "seen2 ({fx}, {fy})");
+            assert_eq!(s.world.seen(fx, fy), Some(want), "seen ({fx}, {fy})");
+        }
+        assert_eq!(s.treaties[0][1] & 2, 2, "the struck leader's slot");
+        assert_eq!(s.treaties[1][0] & 2, 2, "the shooter's slot");
     }
 
     /// **The struck fraction is the emulated original's**: 256 at d 0, 243

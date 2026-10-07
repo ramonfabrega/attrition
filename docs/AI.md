@@ -17882,10 +17882,21 @@ original reads the General's own `mylos` 14 on these blocks — the fog's — is
 and `run715_s_word_frame_is_widened_whole`. Export-backed and held by the unit test alone: 4's decoy terms and the
 march's length (run715's march outlives the window either way).
 
-## 173. Reserved for item 1620 (Great Sahara's coverage word 2273)
+## 173. A landing lights its ground for everyone, a hit across players ors treaty bit 1, and the word moves to 2323 (2026-10-07, item 1620)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run702's blocks 1979..2235 and run718's blocks 2267..2523 (`rondata::diff::sahara_coverage`), the listings `Ammo::do_damage@00678060:268`–`:287`, `Object::do_damage@0064a480:327`–`:332`, `Nuke::do_damage@0092bc80` (read for `Leader::action_declare`'s two arms), `World::set_seen2@006b4bb0`, `Unit::update_local_seen@0060e410` (for the fog's units), and a scratch print in `nuke_do_damage` (reverted).
+
+**The cause by value, §171's hypothesis made a mechanism.** Napata's strike on 2101 left three marks in the original: `treaties[1]` 3 on 2102 (ours 1), every human building's `ever_seen` 255 on 2105 (ours 1), and the human's units dead 2121..2139. Two of the three have writers the crate lacked.
+
+**1. The blast lights its circle.** `Ammo::do_damage`'s nuke arm, after `Nuke::add_nuke` and before the first `Nuke::do_damage`, takes the landing to its tile (`div_3_table[x >> 6]`, 192 units), and for the first `circle_radius[splash_area + 1]` points of the `circle_x`/`circle_y` spiral round it (offsets in tiles, the index clamped to 0..=0x40) that lie on the map calls `World::set_seen2(t.x >> 1, t.y >> 1, 0xff, 0)` — every player's bit, **both** planes. The fog cell is two tiles. So the Persians see Napata's ground the frame the bomb lands (`scout_cell`'s `was_really_seen` refuses the ring cells whose owner is the human, and ours had rolled their jitter), and the buildings' `check_ever_seen` finds every player's bit in `seen` within the frames to 2105: `ever_seen` and `ever_seen_completed` 255. Built: `Sim::nuke_reveal`. Unit test `a_landing_lights_its_circle_and_a_hit_marks_the_treaties`; with the call removed it fails and so does run718 (`ever_seen` parts again).
+
+**2. A hit across players ors treaty bit 1.** `Object::do_damage` ors 2 into `leaders[attacker].treaties[victim]` and the mirror when the two owners differ — after the scaling, before `take_damage`, whatever the hit then does. `Leader::treaty_on` has two callers (`meet`, the console) and `Unit::set_attacking` sets bit 0 the same way; bit 1 had no writer here. Built in `Sim::do_damage` (after the decoy return, which the original makes first). The harness had compared `treaties[i]` as the **met bit** only (`has_met`), which hid the value: `diff::leader` now compares the raw word, the leader's own slot reading 1 as before. With the write removed, run702 parts on `treaties[1]` at 2102.
+
+**The move.** 2273 → **2323** (count and sequence): ours 12 draws against 13, index 10, ours `Farms::inc_time+0x1ae`, theirs `Farms::inc_time+0x1de` — after two chance rolls the original's second farm of the walk sprouts and spends the `% empty` draw, where ours rolls a third chance. Inside run718 (block 2324). run718's keys 737 → 624, run702's 116 → 85; the coverage pair's run710/711/714/715 fell 134 → 109, 124 → 108, 154 → 139, 5842 → 5838 (the same Napata strike: `treaties[1]`), their words and the long captures hold.
+
+**What is not established.** The human's dead: **the original's units die at 2121..2139 and leave no death object; ours dies the same frames (the ring strikes them on 2120..2138, `Died`) but keeps them in `leader:control`/`active`/`num_units`/`peasants` (14 against 12 from 2121) and lays a corpse (`death:extra`, 14 units).** The first is parked 1092/1328 (`Unit::close`'s `track_unit_type(−1)` on the general death path); the second is a `dtype` the nuke's kills carry in the original (no `DEATH_OBJS` row) — neither is read, and whether the new word's farm (`empty` below the roll) turns on the human's dead farmers is not tested; no dumped farm field has parted before 2323. `Nuke::do_damage`'s `Leader::action_declare` arms (a struck player at peace declaring war on the shooter) are not built; this lobby is at war from frame 0. The nuke's other three writes (`World +0x168`, the cell's `+0x14`, `MessageWin::add_event`) have no reader.
+
+**Coverage.** Diff-backed: 1 (`ever_seen` 255 on 2105 and the Persian scout's fog, run718 and run702), 2 (`treaties[1]` 3 on 2102, run702).
 
 ## 174. Reserved for item 1625 (the coverage pair's word 3142)
 

@@ -351,7 +351,7 @@ fn run658_dates_the_gap_before_17171() {
     // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 142, "initial run658 baseline");
+    pin_eq!(w.firsts.len(), 140, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -422,7 +422,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // with no order (`0/1`..`0/5`) and moves leader 0's `leftover`, and the
     // harness replays no quit. The draws agree on every frame.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 201, "initial run667 baseline");
+    pin_eq!(w.firsts.len(), 199, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -452,7 +452,7 @@ fn run662_s_word_frame_is_widened_whole() {
     // against 121 and `damage_frac` 4 against 8 on 17330, leader 1's `caras`
     // 5 against 6 and `1/96`'s `form` −1 against 0 on 17331.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 116, "initial run662 baseline");
+    pin_eq!(w.firsts.len(), 114, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -495,7 +495,7 @@ fn run661_s_word_frame_is_widened_whole() {
     // `pause` reads 0 on 17244 on both sides and it walks on 17245, and the
     // 76 rows after go with it.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 113, "initial run661 baseline");
+    pin_eq!(w.firsts.len(), 111, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -542,7 +542,7 @@ fn run657_s_word_frame_is_widened_whole() {
     // walk on 17172, and `1/78`'s rows on 17174 and Napata's damage go with
     // them. Left past the first block: `group:66.role` on 17174.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 129, "initial run657 baseline");
+    pin_eq!(w.firsts.len(), 127, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -1511,7 +1511,7 @@ fn run609_s_closing_frame_is_widened_whole() {
     // `run598_french_great_lakes_closing_state` counts.
     pin_eq!(
         w.firsts.len(),
-        69,
+        67, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }
