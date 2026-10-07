@@ -30,7 +30,7 @@ use std::sync::OnceLock;
 
 use crate::build::{Ident, flags};
 use crate::orders::{Body, QueuePos, index};
-use crate::world::{Cell, TILES_PER_CELL, Terrain, UNITS_PER_TILE, tile, vector_dist};
+use crate::world::{Cell, TILES_PER_CELL, Terrain, UNITS_PER_TILE, cell, tile, vector_dist};
 use crate::{Player, Pos, Sim, cost};
 
 /// The two draw sites of `Leader::produce_building@006e1400`, under the
@@ -437,7 +437,7 @@ impl Sim {
             }
             let mut d = self.world.cell_data(c);
             let centre = Pos::new(c.x * UNITS_PER_CELL + 0x180, c.y * UNITS_PER_CELL + 0x180);
-            if d.flags & 2 == 0 {
+            if d.flags & cell::CLOSED == 0 {
                 if self.enemy_object_within(who, centre, 0x600) {
                     continue;
                 }
@@ -451,7 +451,7 @@ impl Sim {
                     ));
                 }
             } else if !self.enemy_object_within(who, centre, 0xf00) {
-                d.flags &= !2;
+                d.flags &= !cell::CLOSED;
                 self.world.set_cell_data(c, d);
             }
         }
@@ -809,6 +809,22 @@ impl Sim {
                 }
                 if score < best {
                     break 'cand;
+                }
+                // **A cell a building closed on** (`006e23f0`–`006e2484`,
+                // `docs/AI.md` §168): with [`cell::CLOSED`] set, an enemy
+                // object within `0xf00` of the cell's centre refuses the
+                // cell; with none the bit clears and the cell goes on.
+                let mut wd = self.world.cell_data(cell);
+                if wd.flags & cell::CLOSED != 0 {
+                    let centre = Pos::new(
+                        cell.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+                        cell.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+                    );
+                    if self.enemy_object_within(who, centre, 0xf00) {
+                        break 'cand;
+                    }
+                    wd.flags &= !cell::CLOSED;
+                    self.world.set_cell_data(cell, wd);
                 }
                 // `circle_radius[3] < local_2c` — the **current** index, not
                 // the loop's start: once a second candidate has improved on a
@@ -1501,6 +1517,42 @@ mod tests {
         sim.declare_war(0, 1);
         let (_, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
         assert_eq!(cand.map(|p| p.cell()), Some(Cell::new(10, 10)));
+    }
+
+    /// **A patch a building closed on is passed over once** (`Build::close
+    /// @00628980:183-187` sets [`cell::CLOSED`]; `006e1730`–`006e195f`
+    /// reads it, item 1602, `docs/AI.md` §168): with the bit set the arm
+    /// takes nothing from the patch, and clears the bit only with no enemy
+    /// object within `0xf00` of the cell's centre — so the next pass takes
+    /// it. A capture's close, reason 5, sets nothing. In the coverage pair
+    /// the disbanded Oil Platform site `1/2048` left (36, 40) flagged on
+    /// 2048, and leader 1's next platform went to (58, 31) on 2182.
+    #[test]
+    fn a_patch_a_building_closed_on_is_passed_over_once() {
+        let (mut sim, _) = oil_world(&[(5, 5), (10, 10)]);
+        let (near, far) = (Cell::new(5, 5), Cell::new(10, 10));
+        let anchor = Cell::new(6, 6);
+        let centre = Pos::new(5 * UNITS_PER_CELL + 0x180, 5 * UNITS_PER_CELL + 0x180);
+        let pick = |sim: &mut Sim| sim.pick_oil_patch(1, anchor, &well()).2.map(|p| p.cell());
+        let flagged = |sim: &Sim| sim.world.cell_data(near).flags & cell::CLOSED != 0;
+        assert_eq!(pick(&mut sim), Some(near), "unflagged, the nearer");
+        let site = sim.add_building(1, centre, 8);
+        sim.close_building(site, true);
+        assert!(!flagged(&sim), "reason 5 flags nothing");
+        let site = sim.add_building(1, centre, 8);
+        sim.close_building(site, false);
+        assert!(flagged(&sim), "any other close flags the cell");
+        // An enemy within `0xf00`: passed over, and the bit stays.
+        let enemy = sim.add_building(0, Pos::new(centre.x + 0xe00, centre.y), 8);
+        sim.declare_war(0, 1);
+        assert_eq!(pick(&mut sim), Some(far));
+        assert_eq!(pick(&mut sim), Some(far));
+        assert!(flagged(&sim));
+        // None: passed over once more, and the bit clears for the next.
+        sim.close_building(enemy, false);
+        assert_eq!(pick(&mut sim), Some(far), "the pass that clears it");
+        assert!(!flagged(&sim));
+        assert_eq!(pick(&mut sim), Some(near));
     }
 
     /// A patch on the sea is kept, not pruned, and not taken, by a leader

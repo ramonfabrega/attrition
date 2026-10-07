@@ -1532,6 +1532,9 @@ impl Sim {
         //
         // [`turn_speed`]: crate::movement::turn_speed
         let body = self.units[r].movement.body;
+        // Guy 0's retained point: where the passenger stood when it went
+        // aboard, which `coll_come_out` paints and moves away from.
+        let retained = body.pos;
         self.units[r].movement = crate::Movement {
             speed: self.units[r].movement.speed,
             turning: self.units[r].movement.turning,
@@ -1544,7 +1547,7 @@ impl Sim {
             ..crate::Movement::at(at)
         };
         self.units[r].on_map = true;
-        self.coll_add(r);
+        self.coll_come_out(r, retained);
         self.chain_add(r);
     }
 
@@ -2812,6 +2815,51 @@ mod tests {
             u.guys[1].follow.map(|g| g.des),
             "seated on its offset"
         );
+    }
+
+    /// **A passenger put ashore clears where it boarded** (item 1598,
+    /// `docs/COLLISION.md` §25): `Unit::come_out`'s `remove_from_inside`
+    /// paints the disc at guy 0's retained point and `set_new_location`'s
+    /// `move_unit` moves it to the spot, so every cell of the boarding disc
+    /// farther than `coll_size` from the spot ends clear — a bit another
+    /// unit painted there while the passenger was aboard included. East
+    /// Indies' `1/12`, ashore on tick 1113, clears cell (890, 771) of
+    /// Freighter `1/27`'s birth disc in run713's watch.
+    ///
+    /// Made to fail by painting the spot fresh (`coll_add`), the code this
+    /// replaced: the other unit's bit at the boarding point survives.
+    #[test]
+    fn a_passenger_put_ashore_clears_the_disc_it_boarded_from() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[f.scout].combat.uber_size = 1;
+        f.sim.unit_types[f.scout].combat.block_radius = 48;
+        let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
+        f.sim.units[rider].movement.speed = 34;
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.units[boat]
+            .movement
+            .set_facing(crate::movement::Angle::WEST);
+        let boarded = crate::collide::ucell(f.sim.units[rider].pos);
+        f.sim.board(rider, boat);
+        // Another unit's bit, inside the boarding disc and on its far side
+        // from the ring the boat lands it on.
+        let ghost = Pos::new(boarded.x - 1, boarded.y);
+        f.sim.coll.set(ghost.x, ghost.y, true);
+        assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+        assert_eq!(f.sim.units[rider].inside_unit, None, "ashore");
+        let spot = crate::collide::ucell(f.sim.units[rider].pos);
+        assert!(
+            (spot.x - ghost.x).abs() > 1,
+            "the ghost is outside the new disc"
+        );
+        assert!(
+            !f.sim.coll.get(ghost.x, ghost.y),
+            "the boarding disc is cleared, the other unit's bit with it"
+        );
+        assert!(f.sim.coll.get(spot.x, spot.y), "the spot's disc is set");
+        assert_eq!(f.sim.units[rider].coll_at, Some(f.sim.units[rider].pos));
     }
 
     /// §6.4's way in, and `docs/ORDERS.md` §4.4's region check (item 1143):

@@ -1649,6 +1649,8 @@ mod tests {
     /// 1: fourteen gone and `SITE[1].dist`/`.val` arriving, a site the
     /// slot order moved.
     const PARTS_ON_RUN115: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 32 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1660,19 +1662,7 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active_wars"),
-        (0, "active_wars_with"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
-        (0, "production_step"),
         (0, "scouts"),
-        (0, "wars"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
@@ -2327,6 +2317,8 @@ mod tests {
     /// leader 1 gone — `SITE[1]`–`[4]`, `[8]` and `[9]` whole — and nothing
     /// arriving.
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 15 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2338,18 +2330,7 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active_wars"),
-        (0, "active_wars_with"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
         (0, "scouts"),
-        (0, "wars"),
         (1, "SITE[0].reg"),
         (1, "SITE[2].reg"),
         (1, "scouts"),
@@ -2378,6 +2359,8 @@ mod tests {
     /// leader 1 gone — `SITE[1]`–`[4]`, `[8]` and `[9]` whole — and nothing
     /// arriving. `City::fix_world_vals` was the doubled site values.
     const PARTS_ON_RUN107: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 15 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2389,20 +2372,9 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active_wars"),
-        (0, "active_wars_with"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
         // `(0, "gather_stamp")` closed by item 1106: the border pass's
         // economy flag (`docs/AI.md` §84).
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
         (0, "scouts"),
-        (0, "wars"),
         (1, "scouts"),
     ];
 
@@ -2463,6 +2435,8 @@ mod tests {
     /// The site values were twice and four times the original's for want of
     /// `City::fix_world_vals`.
     const PARTS_ON_RUN19: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 25 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2474,18 +2448,7 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active_wars"),
-        (0, "active_wars_with"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
         (0, "scouts"),
-        (0, "wars"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),
@@ -2525,6 +2488,8 @@ mod tests {
     /// closes `MAKE[0]`, `[1]` and `[4]`'s `escrow` and the `t`, `val` and
     /// `cat` they drove in slots 1..4. None arrived.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 35 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2536,16 +2501,8 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
         // `(0, "gather_stamp")` closed by item 1106: the border pass's
         // economy flag (`docs/AI.md` §84).
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
         (0, "scouts"),
         (1, "SITE[0].reg"),
         (1, "scouts"),
@@ -2600,6 +2557,8 @@ mod tests {
     /// it between sweeps, and the sweep counts an unfinished site too
     /// (`docs/AI.md` §2, step 11). None arrived.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 40 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2611,15 +2570,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "ally_mask"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
-        (0, "production_step"),
         (0, "scouts"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
@@ -2768,6 +2718,8 @@ mod tests {
     /// **60 → 59 on item 904** (`docs/AI.md` §78): leader 1's `SITE[4].rank`,
     /// once the rock arm refuses a city site the original never listed.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
+        // Item 1605: the human's census rows and `production_step` agree; the human leader
+        // takes the sweep (`docs/AI.md` §169). None added.
         // Item 1444: 15 site fields now agree; none added.
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2779,22 +2731,8 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active_wars"),
-        (0, "active_wars_with"),
-        (0, "ally_mask"),
-        (0, "attacked"),
-        (0, "filled_gather_slots[0:food]"),
-        (0, "filled_gather_slots[1:timber]"),
-        (0, "free_peasants"),
-        (0, "gatherers"),
-        (0, "min_other_team_terr"),
-        (0, "my_team_terr"),
-        (0, "other_team_terr"),
-        (0, "peasant_high"),
-        (0, "production_step"),
         (0, "scouts"),
         (0, "treaties[1]"),
-        (0, "wars"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "scouts"),

@@ -6821,6 +6821,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // The coverage pair's run715 (item 1605): four reads in the replay's
+    // diverged tail past the word 2868 — `coverage_pair_first_parting`,
+    // which walks to the word, reads none.
+    ("run715_s_word_frame_is_widened_whole", 4),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the
@@ -6948,6 +6952,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("coverage_pair_first_parting", 4),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
+    // And run714's, which walks past it to the word 2288 (item 1598).
+    ("run714_s_word_frame_is_widened_whole", 4),
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
     // walk fails). Item 1583 (the third map's run702, whose nuke reads five
@@ -8753,12 +8759,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // value diff on the ICBM `1/42` from 1570. Item 1594 moved it to
     // **2166**, inside run711 (block 2167); run711's test keeps the move's
     // value diff on the gap's births and the platform's citizen on 1954.
+    // Item 1598 moved it to **2288**, past run711's last block (2210), and
+    // took run714 over 2283..2539 (block 2289); run710's and run711's tests
+    // keep the move's value diff on the landing `1/40` from 1703 and the
+    // chain to 2166. Item 1602 moved it to **2296**, inside run714 (block
+    // 2297); run711's and run714's tests keep the move's value diff on the
+    // Oil Platforms `1/2048`, `1/2049` and their builder `1/83` from 2183.
+    // Item 1605 moved it to **2868**, past run714's last block (2539), and
+    // took run715 over 2863..3119 (block 2869); run714's test keeps the
+    // move's value diff on the human leader and Napata from 2283.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run711_s_word_frame_is_widened_whole"),
-        1594,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_1960),
+        Some("run715_s_word_frame_is_widened_whole"),
+        1605,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_2868),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

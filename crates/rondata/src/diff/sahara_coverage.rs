@@ -246,7 +246,7 @@ fn run677_s_word_frame_is_widened_whole() {
     // slots' `reg`, the city fields, the pools, `scouts`), and what the
     // build left is leader 1's `known_rares` on block 8 and leader 0's
     // `production_step` on 201, the control's too. **69.**
-    pin_eq!(w.firsts.len(), 69, "initial run677 baseline");
+    pin_eq!(w.firsts.len(), 47, "initial run677 baseline");
     // **The word's value diff, block 12** (item 1538): the Oil Well `1/2013`
     // (`TypeIndex` 421, `OILWELL`) stood at (34944, 10368) in ours — the
     // patch at cell (45, 13) — and at (44928, 8832) in theirs, cell (58, 11):
@@ -321,7 +321,7 @@ fn run680_s_word_frame_is_widened_whole() {
     // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
     // Persians' `SITE` table on 776, the two queues' prices and leader 1's
     // two buckets on 783, leader 0's `production_step` on 801.
-    pin_eq!(w.firsts.len(), 74, "initial run680 baseline");
+    pin_eq!(w.firsts.len(), 52, "initial run680 baseline");
     // **The word's value diff, block 721** (item 1549): the dump prints no
     // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
     // value on the word's frame is the draw record — frame 720, ours 25
@@ -405,10 +405,10 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 128, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 109, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        96,
+        75,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -502,10 +502,10 @@ fn run683_s_word_frame_is_widened_whole() {
     // normalize puts its group's cap back to its leader's speed
     // (`docs/AI.md` §161); the merged tree's count is the union, measured:
     // **182**, 148 standing.
-    pin_eq!(w.firsts.len(), 121, "initial run683 baseline");
+    pin_eq!(w.firsts.len(), 99, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        107,
+        89,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
@@ -638,10 +638,10 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 281, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 294, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        116,
+        96,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
