@@ -1389,7 +1389,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // past 2863 is births' `form`, two pools' `held`, Napata's flags,
     // three `mirror` bits, `caras`, a `SITE` region and one group's `id`
     // on 3069. The word 3142 lies past the window (run716's).
-    pin_eq!(w.firsts.len(), 5838, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 150, "initial run715 baseline"); // Item 1620: 154 → 150 on the merged tree, `treaties` compared as the word (`docs/AI.md` §173).
     pin_eq!(
         w.firsts
             .iter()
@@ -1454,7 +1454,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // 1, three orders against two) and stands at (3342, 12584) on 3142
     // against ours' (3320, 12634): the attack roll ours spends at index
     // 3. The item after's hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 2160, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 2156, "initial run716 baseline"); // Item 1620: 2160 → 2156 (`docs/AI.md` §173).
     let first = w
         .firsts
         .values()
