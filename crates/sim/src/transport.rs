@@ -869,7 +869,7 @@ impl Sim {
             }
         }
         self.units[u].spell_time += 1;
-        if self.units[u].spell_time < self.spell_job_time(s) {
+        if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
         }
         self.units[u].spell_time = 0;
@@ -966,8 +966,9 @@ impl Sim {
     ///
     /// SEAMS: the arm's `MiscAccess::scene->recalc_builds = 1` and the
     /// head's `UnitData::announce_frame = −1` (`+0x14c`), which feed the
-    /// interface and no record here; and the `set_new_location` at the
-    /// tail, which re-seats the unit on its own position.
+    /// interface and no record here. ~~The `set_new_location` at the
+    /// tail, which re-seats the unit on its own position~~: built by item
+    /// 1608.
     pub(crate) fn cast_unpack(&mut self, u: usize) {
         if !self.units[u].alive() || !self.units[u].on_map {
             return;
@@ -989,6 +990,13 @@ impl Sim {
         self.update_los(u);
         self.update_seen(u, false);
         self.update_gpiece(u);
+        // The tail's `set_new_location(own x, own y, 1, 1)` (`:60`–`:63`),
+        // as `cast_pack`'s: the snap puts every tracked crew figure on its
+        // offset. The coverage pair's Advanced Machine Gun `1/74` unpacks
+        // on 2893 and its second figure stands on guy 0's point on block
+        // 2894 (`docs/AI.md` §170).
+        let at = self.units[u].pos;
+        self.set_new_location(u, at, true);
     }
 
     /// `SpellType::cast_pack(o, who)@00670be0` — `cast_unpack`'s mirror,

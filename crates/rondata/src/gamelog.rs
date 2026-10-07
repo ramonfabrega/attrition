@@ -2166,6 +2166,11 @@ pub struct UnitDump {
     /// `collide_frame` it is a permanent stamp, so a **change** dates a
     /// suspend and a value does not.
     pub start_dist: Option<i64>,
+    /// `UnitData::spell_time` — the cast clock `Unit::do_cast@005ebfe0`
+    /// steps and compares against `get_job_time`, zeroed when the craft
+    /// casts. Read since item 1608: an MLRS's unpack counts to 19 and casts
+    /// on its twentieth frame (`docs/AI.md` §170).
+    pub spell_time: Option<i64>,
     /// `ObjectData::uid` — the **identity** behind the per-player `o`,
     /// written on the `OBJECT` level beside the cell chain. `o` is a slot
     /// and is handed back out: a unit that dies frees its number, and the
@@ -3353,6 +3358,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         damage_who: b.int("damage_who"),
         safe: b.int("safe"),
         start_dist: b.int("start_dist"),
+        spell_time: b.int("spell_time"),
         uid: obj.and_then(|o| o.int("uid")),
         down: obj.and_then(|o| o.int("down")),
         down_who: obj.and_then(|o| o.int("down_who")),

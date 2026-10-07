@@ -17728,10 +17728,67 @@ Napata's `raid_stamp` — are other writers'.
 capture holds a human with computer assist, and no walk would hold the gate's removal but the unit test (the mutation
 below).
 
-## 170. Reserved for item 1608 (the coverage pair's word 2868)
+## 170. A packer on its post unpacks, and its cast is as long as its type says (2026-10-07, item 1608)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1605 left the coverage pair's word at **frame 2868, ours 17 game
+draws against 18, index 7**: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, inside run715 (block 2869), its hypothesis `1/74`'s order list and `1/94` blocked by `1/74`.
+Each claim is *diff-backed* unless marked.
+
+1. **The missing draw is the AA missile `1/94`'s blocked stand** (`move_step+0x823`, `anim::SITE_BLOCKED`): the
+   original's two `move_step` draws at indices 6 and 7 fall between `1/91` and `1/95`, and its `1/94` stands on block
+   2869 at (35112, 36840) with `collide_o 74`, `collide_frame 2868` and ten detour waypoints pushed. Both sides propose
+   the same step on 2868, (35091, 36863) to (35116, 36865), the original's `coll_x/coll_y` (a scratch print in
+   `unit_step`, reverted). Ours' probe answered nobody and `invalid_loc` refused the tile change, as it had on every
+   frame since 2864.
+2. **`1/74` is the reason, not the cause**: the Advanced Machine Gun (`TypeIndex` 127) guarding `1/72` carries a
+   `CASTORDER` 654 (`UNPACK2`, `paid 0`) over its `GUARDORDER` on block 2869, at `idle 30`. `detect_unit_collision`'s
+   land pusher refuses a packer that is unpacking (`collide.rs`, `5fac8b`–`5faccc`), so the cast turns `1/94`'s push into
+   a hard hit. Ours never cast: its guard had no unpack.
+3. **`Unit::do_guard@005e5c70:298`–`:316`**, past the idle increment: a type that packs (`+0x2b8 & 4`), packer stance
+   `PACKER_AUTO` (vslot `+0x100`), standing packed (`unit_masks & 0x80000`) and not `is_unpacking`, casts
+   `add_cast_order(0x28c, QUEUE_FIRST)` once the guard's `idle` reaches `0x1e` for `is(0x7b, 0)` (the machine gun's
+   lineage) and `0x46` otherwise, and returns before the stand's `set_anim`. *Export-backed*; the `0x1e` arm diff-backed
+   (`1/74` on 2868), the `0x46` arm by the unit test alone.
+4. **`SpellTypeData::get_job_time@00675800`'s two type arms**, read off the listing (`00675a10`–`00675b16`): the siege
+   pair `0x28b`/`0x28c` halves for `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)` (Katyusha) and quarters for `is(0x111, 1)`
+   (MLRS), `cltd`-rounded; the machine gun's `0x28d`/`0x28e` halves for `is(0x7d, 0)` (the Heavy Machine Gun's lineage).
+   `1/74` casts 50 / 2 = **25** frames (`spell_time` 1 on block 2870, 24 on 2893, 0 and unpacked on 2894) and the MLRS
+   `1/65`, cast on 2879 by `think_attack_packed`'s computer arm, 80 / 4 = **20** (unpacked on block 2900). Ours read the
+   raw 80 and 50.
+5. **The unpack re-seats its crew** (`SpellType::cast_unpack@006709c0:60`–`:63`, `set_new_location(own x, own y, 1,
+   1)`, as `cast_pack` does) **and `Guy::update_gpiece@005d8530:52`–`:68` re-reads the track from the new piece**, zero
+   when it has none. The machine gun's unpacked crew piece names no track, so `1/74`'s second figure stands on guy 0's
+   point on block 2894, (35208, 36984) where it had stood at (35275, 36884); run715's `1/89` likewise on 2928.
+
+**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
+(`crates/sim/src/lib.rs`), which `do_cast`'s clock reads; `cast_unpack`'s tail re-seat (`transport.rs`); and
+`Sim::update_gpiece` (`anim.rs`) re-reading a crew figure's track — a tracked figure whose new piece has none loses its
+`Follow`, and one that gains a track is given one on guy 0's point. `UnitData::spell_time` is now compared on every
+unit-frame (`harness.rs`, off `coverage.rs`'s unread list). Unit tests
+`fight::tests::a_packed_packer_on_its_post_unpacks_when_its_idle_runs_out`,
+`fight::tests::get_job_time_shortens_the_pack_and_unpack_by_type`,
+`anim::tests::an_unpack_puts_a_trackless_crew_figure_on_its_leader`; the fixture of
+`an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it` given the siege row's 80, without which its cast
+landed on its first frame.
+
+**What it moved.** The word **2868 → 2969**, count and sequence: ours 18 game draws against 19, index 0, ours
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, inside run715
+(block 2970). The value diff, block 2869: `1/74` `order:kind` 14 and `orders.len` 2, and `1/94` at (35112, 36840) with
+`collide_o` 74, on both sides (ours 12, 1, (35091, 36863) and −1 before); none of `1/65`, `1/74`, `1/94` parts to block
+2970. run715 6,299 → 5,842 keys; the first parting past its standing block is now `1/152`'s `form` on 2872 (−1 against
+0). On 2970 the original's `1/16` stands blocked by `1/9` (`collide_o 9`, `coll` (35374, 37865)) where ours walked on
+to (35375, 37892) under a half step — the item after's hypothesis.
+
+**Not established.** `get_job_time`'s other arms: the siege pair's Turkish `turk_pack` and Napoleon's `napoleon_pack`
+(neither constant is loaded), Entrench, the spies' crafts, Sabotage and Sniper. `do_guard`'s `0x46` arm has no capture.
+`update_gpiece`'s new-follow arm (a crew figure gaining a track on a pack) is seated on guy 0's point and snapped by
+`cast_pack`'s own re-seat; no capture packs a machine gun.
+
+**Coverage.** Diff-backed: claims 1, 2, the `0x1e` arm of 3, 4's machine-gun and MLRS arms, 5. Export- and
+listing-backed: 3's `0x46` arm, 4's Howitzer and Katyusha arms, and 5's re-seat — which no walk holds, since run715's
+unpacked crew has no track and stands on guy 0 either way — held by the unit tests
+(`anim::tests::an_unpack_puts_a_tracked_crew_figure_on_its_new_offset` for the re-seat).
 
 ## 171. Reserved for item 1611 (Great Sahara's coverage word 2206)
 

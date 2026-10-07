@@ -2019,6 +2019,9 @@ pub(crate) fn widen_block(
                 ("cavarch_o", built.sim.cavarch_o(u), them.cavarch_o),
                 ("cavarch_who", i64::from(un.cavarch_who), them.cavarch_who),
                 ("start_dist", i64::from(un.start_dist), them.start_dist),
+                // The cast clock (item 1608): `get_job_time`'s type arms
+                // are read on every frame of a cast, not at its end.
+                ("spell_time", i64::from(un.spell_time), them.spell_time),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
@@ -2186,6 +2189,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "cavarch_o" => ("UnitDump", "cavarch_o"),
         "cavarch_who" => ("UnitDump", "cavarch_who"),
         "start_dist" => ("UnitDump", "start_dist"),
+        "spell_time" => ("UnitDump", "spell_time"),
         "mylos" => ("UnitDump", "mylos"),
         "g.x" | "g.y" => ("Guy", "pos"),
         "g.angle" => ("Guy", "angle"),

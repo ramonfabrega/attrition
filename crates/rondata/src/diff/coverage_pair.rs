@@ -187,7 +187,18 @@ pub(crate) struct Pair {
     /// sweep, the human's census and city rows agree on every capture
     /// (`docs/AI.md` §169). At 2868, ours 17 game draws against 18, index
     /// 7: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
-    /// `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    /// `Guy::set_anim+0x97a < Unit::move_step+0x823`. **Item 1608 moved it
+    /// from 2868 to 2969**: the stand was the AA missile `1/94`'s, whose
+    /// step on 2868 met the Advanced Machine Gun `1/74` — in the original
+    /// unpacking, so the push refused it, and here still packed and
+    /// pushable, because this crate's guard never unpacked a packer on its
+    /// post (`do_guard:298`–`:316`). With the unpack, `get_job_time`'s type
+    /// arms (an MLRS's 80 is 20, the machine gun's 50 is 25) and the
+    /// unpack's re-seat of its trackless crew, `1/74`, `1/94` and the MLRS
+    /// `1/65` agree over run715 (`docs/AI.md` §170). At 2969, ours 18 game
+    /// draws against 19, index 0: ours `Guy::set_anim+0x97a <
+    /// Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x823`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -205,8 +216,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 2868,
-    sequence: 2868,
+    count: 2969,
+    sequence: 2969,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1316,7 +1327,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_2868: (i64, i64) = (2863, 3119);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run715 walked from run651's start with the recorder on. It holds the
-/// word 2868 (item 1605), block 2869.
+/// word 2868 (item 1605), block 2869, and the word 2969 (item 1608), block
+/// 2970.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1326,7 +1338,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN715, 2863)],
         WIDENING_COVERAGE_FRAME_2868,
         1,
-        &[2869],
+        &[2869, 2970],
         true,
     )
 }
@@ -1338,15 +1350,33 @@ fn run715_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // **6302** on item 1605's tree; 122 stand from the window's first
-    // block — the human leader's `control`, `num_units`, `treaties[1]` and
-    // `SITE` `reg`, its units' `death:extra`, Napata's `ever_seen` — and
-    // the first parting past them is **the word 2868's own block 2869**:
-    // `1/74`'s `order:kind` 12 against 14 and `orders.len` 1 against 2,
-    // and `1/94` blocked by `1/74` in the original alone (`collide_o` 74,
-    // `pos` (35091, 36863) against (35112, 36840)) — the item after's
-    // hypothesis, not a cause.
-    pin_eq!(w.firsts.len(), 6299, "initial run715 baseline");
+    // **5842** on item 1608's tree merged with item 1600's (6299 on that
+    // base, 6302 on item 1605's); 122 stand from the window's first block
+    // — the human leader's `control`, `num_units`, `treaties[1]` and
+    // `SITE` `reg`, its units' `death:extra`, Napata's `ever_seen`.
+    // **The word 2868's value diff, item 1608** (`docs/AI.md` §170): on
+    // block 2869 the original's Advanced Machine Gun `1/74`, guarding
+    // `1/72`, carries a `CASTORDER` 654 (`UNPACK2`) over its `GUARDORDER`
+    // at `idle` 30, and the AA missile `1/94` stands at (35112, 36840)
+    // with `collide_o` 74 and a pushed detour; ours had the guard alone and
+    // `1/94` at (35091, 36863), its step having pushed past a packed `1/74`.
+    // With the guard's unpack the two agree there, `1/74` unpacks on 2893
+    // (25 frames, block 2894) and the MLRS `1/65` on 2899 (20 frames,
+    // block 2900) in both, and none of the three parts in the window. The
+    // first parting past the standing block is `1/152`'s `form` on 2872
+    // (−1 against 0), which the base's 2869 hid. The word 2969's block
+    // 2970: the original's `1/16` blocked by `1/9` (`collide_o` 9, `coll`
+    // (35374, 37865)), ours walked on to (35375, 37892) under a half step
+    // — the item after's hypothesis, not a cause.
+    pin_eq!(w.firsts.len(), 5842, "initial run715 baseline");
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| *who == 1 && [65, 74, 94].contains(o) && *f <= 2970)
+            .count(),
+        0,
+        "the two packers and the missile they met agree to the word's block"
+    );
     let first = w
         .firsts
         .values()
@@ -1355,7 +1385,7 @@ fn run715_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(2869),
+        Some(2872),
         "the first parting past the standing block"
     );
 }

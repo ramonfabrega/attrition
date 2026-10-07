@@ -3906,8 +3906,7 @@ impl Sim {
     ///
     /// SEAM, none of them reached by a capture on file: the building-target
     /// arm (`action_guard`'s building arm
-    /// is itself a seam, so no building is ever a target here); the
-    /// packer's unpack after `0x1e`/`0x46` frames on the post; and the
+    /// is itself a seam, so no building is ever a target here); and the
     /// sixteen-frame engagement, which asks [`Self::find_melee_target`]'s
     /// idle radius rather than `find_melee_target(−1, 0, 0, 1, 0)`'s own
     /// guard arm.
@@ -4091,8 +4090,46 @@ impl Sim {
         }
         g.idle += 1;
         store(self, 0, g);
+        if self.guard_unpacks(u, g.idle) {
+            return;
+        }
         self.mark(SITE_GUARD_IDLE);
         self.set_anim(u, anim::DEFAULT, false, true);
+    }
+
+    /// **A packed packer on its post unpacks** (`do_guard@005e5c70:298`–
+    /// `:316`, `docs/AI.md` §170): past the idle increment, a type that
+    /// packs (`+0x2b8 & 4`) whose packer stance is `PACKER_AUTO` (vslot
+    /// `+0x100`), standing packed (`unit_masks & 0x80000`) and not already
+    /// unpacking, casts its unpack at `QUEUE_FIRST` once the guard's `idle`
+    /// reaches `0x1e` for the machine gun's lineage (`is(0x7b, 0)`) and
+    /// `0x46` for any other — and returns, so the stand's `set_anim` is not
+    /// asked. `add_cast_order` re-aims the machine gun's `0x28c` at `0x28e`.
+    /// The coverage pair's Advanced Machine Gun `1/74` guarding `1/72` casts
+    /// on 2868 at `idle 30`; its unpacking body is what the AA missile
+    /// `1/94`'s step meets that frame.
+    fn guard_unpacks(&mut self, u: usize, idle: i32) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs
+            || self.unit_stance_type(u) != crate::group::StanceType::Packer
+            || self.units[u].stance != PACKER_AUTO
+            || !self.units[u].combat.packed
+            || self.is_unpacking(u)
+        {
+            return false;
+        }
+        let threshold = if self.unit_line_is(u, MACHINEGUN) {
+            0x1e
+        } else {
+            0x46
+        };
+        if idle < threshold {
+            return false;
+        }
+        self.add_cast_order(u, spell::UNPACK);
+        true
     }
 
     /// `Unit::do_follow@005e65d0` (`docs/ORDERS.md` §28), with the

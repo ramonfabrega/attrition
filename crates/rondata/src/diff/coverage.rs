@@ -144,7 +144,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -262,7 +262,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_uid full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
@@ -2434,7 +2434,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // and run711's frame-1960 word (block 1961, item 1591) and frame-2166
     // word (block 2167, item 1594), and run714's frame-2288 word (block
     // 2289, item 1598) and frame-2296 word (block 2297, item 1602), and
-    // run715's frame-2868 word (block 2869, item 1605), each
+    // run715's frame-2868 word (block 2869, item 1605) and frame-2969
+    // word (block 2970, item 1608), each
     // with two either side; the third map's
     // lobby's run683 frame-1582 word (block 1583, item 1561), frame-1818
     // word (block 1819, item 1565) and frame-1830 word (block 1831, item
@@ -2459,6 +2460,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN714, 2289),
         (super::coverage_pair::RUN714, 2297),
         (super::coverage_pair::RUN715, 2869),
+        (super::coverage_pair::RUN715, 2970),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),

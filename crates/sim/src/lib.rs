@@ -135,6 +135,16 @@ pub const ATTRITION_REFRESH_FRAMES: i64 = 32;
 /// [`ATTRITION_REFRESH_FRAMES`]' is nested inside. `docs/COMBAT.md` §33.
 pub const TARGETED_DECAY_FRAMES: i64 = 16;
 
+/// `TypeIndex` `HVYMACHINEGUN` — the lineage `get_job_time` halves the
+/// machine gun's pack and unpack for (`is(0x7d, 0)`, [`Sim::cast_job_time`]).
+const HVYMACHINEGUN: tech::TypeId = 0x7d;
+/// `TypeIndex` `HOWITZER`, `KATYUSHA` and `MLRS` — the three types
+/// `get_job_time` shortens the siege pack and unpack for, each asked
+/// strictly (`is(x, 1)`, [`Sim::cast_job_time`]).
+const HOWITZER: tech::TypeId = 0x10f;
+const KATYUSHA: tech::TypeId = 0x116;
+const MLRS: tech::TypeId = 0x111;
+
 /// [`Unit::head_serial`]: the head order's identity, the original's
 /// `UnitOrder *`. **Identity, not state**: it compares equal to every other
 /// serial, so two units that differ only in which object heads their list
@@ -4952,19 +4962,53 @@ impl Sim {
     /// casts.
     ///
     /// SEAM, and it is a list rather than a shrug: the function adjusts
-    /// nine of the fifty-five rows and **none of them is one this crate
-    /// issues**. `0x27d` Entrench takes the French tribe bonus and
-    /// Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
-    /// `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c`, the siege pack pair, take
-    /// the Turkish bonus, Napoleon's, a half for two type masks and a
-    /// quarter for a third; `0x28d`/`0x28e`, the machine gun's, halve for
-    /// one; `0x280`/`0x281`, Sabotage and Sniper, halve under a tribe
-    /// bonus and flatten to 10 for one mask. The fishing boat's `0x292`
-    /// and the transport `0x28a` are named by no arm, so the record's
-    /// field is the number — run58's forty frames between the queue on
-    /// 4948 and the unpack on 4989 (`docs/ORDERS.md` §6.9).
+    /// nine of the fifty-five rows. `0x27d` Entrench takes the French
+    /// tribe bonus and Antipater's rate; `0x275` Bribe and `0x27f`
+    /// Informer halve under `SPIES_CRAFT_FASTER`; `0x280`/`0x281`,
+    /// Sabotage and Sniper, halve under a tribe bonus and flatten to 10 for
+    /// one mask; and the siege pair's Turkish `turk_pack` and Napoleon's
+    /// `napoleon_pack` — none of them reached, and neither constant loaded.
+    /// ~~The siege pair's three lineages and the machine gun's one~~:
+    /// [`Sim::cast_job_time`] (item 1608). The fishing boat's `0x292` and
+    /// the transport `0x28a` are named by no arm, so the record's field is
+    /// the number — run58's forty frames between the queue on 4948 and the
+    /// unpack on 4989 (`docs/ORDERS.md` §6.9).
     pub fn spell_job_time(&self, spell: i32) -> i16 {
         self.spell(spell).map_or(0, |s| s.job_time)
+    }
+
+    /// `get_job_time(o, who)@00675800` for caster `u`: [`Sim::spell_job_time`]
+    /// with the two type arms, read off the listing.
+    ///
+    /// - **The siege pair** `0x28b`/`0x28c` (`00675a10`–`00675ac1`): a
+    ///   caster whose type `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)`
+    ///   (Katyusha) takes the row's `JOB_TIME` halved; otherwise one that
+    ///   `is(0x111, 1)` (MLRS) takes it quartered (`cltd; and 3; sar 2`,
+    ///   toward zero). The Catapult's 80 is 20 for an MLRS: the coverage
+    ///   pair's `1/65` casts its unpack on 2879 and stands unpacked on
+    ///   block 2900.
+    /// - **The machine gun's** `0x28d`/`0x28e` (`00675ac3`–`00675b16`): a
+    ///   caster whose type `is(0x7d, 0)` — the Heavy Machine Gun's lineage,
+    ///   the Advanced Machine Gun in it — takes it halved. 50 is 25: the
+    ///   pair's Advanced Machine Gun `1/74` casts on 2868 and stands
+    ///   unpacked on block 2894 (`docs/AI.md` §170).
+    pub(crate) fn cast_job_time(&self, u: usize, spell: i32) -> i16 {
+        use orders::spell;
+        let t = self.spell_job_time(spell);
+        let exactly = |x: tech::TypeId| {
+            self.unit_tree(u)
+                .is_some_and(|ut| self.tech_tree.is(ut, x, true))
+        };
+        match spell {
+            spell::PACK | spell::UNPACK if exactly(HOWITZER) || exactly(KATYUSHA) => t / 2,
+            spell::PACK | spell::UNPACK if exactly(MLRS) => t / 4,
+            spell::PACK_MACHINEGUN | spell::UNPACK_MACHINEGUN
+                if self.unit_line_is(u, HVYMACHINEGUN) =>
+            {
+                t / 2
+            }
+            _ => t,
+        }
     }
 
     /// `GameAccess::rnd(n)@0043cca0` — `Random::get(game_random, 0, 0xffff)
