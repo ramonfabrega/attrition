@@ -1984,7 +1984,12 @@ mod tests {
         f.sim.board(rider, boat);
         f.sim
             .add_gather_order(boat, site, crate::orders::QueuePos::New, false);
-        assert!(f.sim.transport_into_platform(boat, site));
+        // Its own step: `Unit::process` → `do_gather`'s arrival.
+        assert!(
+            f.sim.adjacent_to(boat, site),
+            "the boat stands at the platform"
+        );
+        f.sim.work(boat, 0);
         assert!(!f.sim.units[boat].alive(), "the boat dies");
         assert_eq!(f.sim.units[boat].hold_frames, Sim::CLOSE_HOLD);
         assert!(f.sim.units[boat].orders.is_empty(), "its gather is killed");
