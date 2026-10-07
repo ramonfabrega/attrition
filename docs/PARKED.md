@@ -3794,6 +3794,23 @@ staging with a packer whose unpacked crew piece tracks; `get_job_time`'s
 Turkish and Napoleon arms on the siege pair (neither constant loaded) and
 its other five rows; `do_guard`'s `0x46` arm has no capture.
 
+(1617) **The sweep's first batch, what it parted** (1575, 2026-10-07): (a)
+`cosx`/`sinx` at distance `i32::MIN` — the port panics, the original's
+`neg` wraps; (b) `Farms::grow` on a cut cell decayed k ≥ 1 — the port's
+`201 − 2k` lands a few ulps below the original's float, and the port's one
+caller never grows a cut cell; (c) the class "the port panics where the
+original wraps": `WCoord` past 2²⁹, `corner_tile` past ±10⁷, `mana_left`'s
+overflow; (d) packets owed for `ObjectData::is_in_range` (`0x006486d6`)
+and `UnitData::get_speed`'s land arm and group cap (`div_3_table`); (e)
+`Sim::unit_speed` reads the domain from the type, `get_speed_at` from
+`unit.kind.domain`. No frame reaches any of them today.
+
+(1621) **The capital flag's other writer, and diplomacy** (1611,
+2026-10-07): (a) the Senate's capital move now projects the level's bonus,
+not the capital's, because it sets `0x10` alone (`Build::activate:274`,
+listing-backed) — no capture parts on it; (b) `Leader::diplomacy@006bc950`
+(3,282 lines) is not carried and holds the other `treaties` readers.
+
 ## Older backlog
 
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
@@ -3927,6 +3944,38 @@ lives in, was printed on every block and pinned unread; the cast's end was
 all any walk saw. `seams.py --field` could list the unread pins
 (`coverage.rs`) of the struct a seam's function writes. A sibling of 1607
 and 1610; one reach.
+
+(1618) **A trial that prices subagents wants their final usage row**
+(1575's Loop line, 2026-10-07): lore's spawn telemetry had no final usage
+row for any of the trial's twenty spawns, so output tokens — the dearest
+class — are an estimate in its table and every USD is a floor. A trial
+that prices per function wants that row, or the parent's notification's
+`subagent_tokens` split by class. One reach.
+
+(1622) **1611's Loop lines** (2026-10-07): (a) the brief's "grep each
+value the booking names" found nothing for a value diff between two
+destinations; reading both sides' printed state (`RON_DEBUG_UNIT` beside
+the dump) did, and the next word's cause parted 205 frames early with
+every draw agreeing — a checklist row "list the firsts of the unit the
+word's draws name, whatever the frame"; (b) the brief's whole-suite width
+(`tools/memcap.sh 20`) is another box's: 4 threads reach 12 GiB on this
+tree and 8 reach 14.5. One reach each.
+
+(1623) **A word lane's gate filters miss the coverage driver** (the
+commander, 2026-10-07): 1611's brief named `sahara_coverage:: floors::
+coverage_pair::`; its widening put run718's window in the coverage driver,
+and `diff::coverage`'s two pins (a sixth height read, the city `Babylon`)
+went red only on the booking gate — a second commit. Every widening adds
+a window to the driver, so every word lane's filters want `coverage::`;
+`tools/brief.py` could add it from the item's kind. One reach.
+
+(1624) **The constant guard counts a sweep test's row literal as built**
+(1619, 2026-10-07): `docs_guard::a_constant_a_document_names_is_built_or_pinned`
+reads every file under `crates/sim`, so the sweep's test rows (the
+original's own values, as inputs and outputs) bank twelve constants nobody
+built. 1619's fix — skip `sweep/`, or `#[cfg(test)]` as `no_float.rs` does —
+was refused by the classifier as audit tampering; the guard is the pass's,
+and 1619 waits on Ramon's word. One reach.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 

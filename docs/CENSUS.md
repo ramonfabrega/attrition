@@ -700,3 +700,11 @@ it; a document's diff claim outside a coverage section; and whether a
 diff checked a function's predicate or only passed through it. The
 traces' `entered` column (7,901) is the other bound: reached by a run,
 compared by nothing named.
+
+**Item 1575, the sweep's first batch** (same day): **simulation backed 57
+of 3,611 (1.6 %)** — 31 by a coverage section, 26 by a sweep; AI 2,
+engine 1. The ten `crates/sim/src/sweep/` tests run nine of the batch's
+functions and three more the port shares (`BuildData::gather_inside`,
+`UnitData::get_speed`'s vslot, `UnitData::mana`); `ObjectData::is_in_range`
+needs a packet. `docs/journal/2026-10-07-item-1575.md` has the batch, its
+findings and the Opus–Sonnet trial.

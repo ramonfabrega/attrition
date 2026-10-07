@@ -6830,9 +6830,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // that is not known to be the original's single, in the flight to the
     // strike. The strike's fall time reads the height as the bomb's does.
     ("run702_s_word_frame_is_widened_whole", 5),
+    // The same lobby's run718 window (item 1611): six reads of the corners
+    // the nuke's flight and the strike cross.
+    ("run718_s_word_frame_is_widened_whole", 6),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
-    ("sahara_coverage_first_parting", 5),
+    ("sahara_coverage_first_parting", 6),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -6957,10 +6960,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The coverage driver walks run710's and run711's windows: run710's
     // three reads, and run711's four (item 1591; pinned at 3, run711's
     // walk fails). Item 1583 (the third map's run702, whose nuke reads five
-    // corners of its own over 1979..2235): five, and the driver's.
+    // corners of its own over 1979..2235): five, and the driver's. Item
+    // 1611 put run718's window in the driver: six, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        5,
+        6,
     ),
 ];
 
@@ -8807,9 +8811,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run702_s_word_frame_is_widened_whole"),
+        Some("run718_s_word_frame_is_widened_whole"),
         1583,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_1985),
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_2273),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
