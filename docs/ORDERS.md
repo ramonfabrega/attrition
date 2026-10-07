@@ -2402,8 +2402,9 @@ times are the deploy's whole cost:
 | `0x28f` / `0x290` | Merchant | 148 |
 | `0x291` / **`0x292`** | Fishermen | **40** |
 
-`get_job_time` adjusts **nine** of the fifty-five and none of them is one
-this crate issues: `0x27d` Entrench takes the French tribe bonus and
+`get_job_time` adjusts **nine** of the fifty-five ~~and none of them is one
+this crate issues~~ — the siege pair's three type arms and the machine
+gun's one are built by item 1608 (`Sim::cast_job_time`, `docs/AI.md` §170): `0x27d` Entrench takes the French tribe bonus and
 Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
 `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c` take the Turkish bonus, Napoleon's, a
 half for two type masks and a quarter for a third; `0x28d`/`0x28e` halve
@@ -2603,10 +2604,11 @@ stand-in remains (`rondata::diff::order`, it does not score).
 **What is not established.**
 
 - **`get_job_time`'s `0x28b`/`0x28c` arms** (§6.9): the Turkish
-  `turk_pack` percentage, Napoleon's `napoleon_pack` behind a general,
-  a half for two lineages and a quarter for a third
-  (`get_job_time@00675800`). This crate reads the raw `JOB_TIME`, for the unpack
-  as before and for the pack now; run544's Bombard waits exactly 80.
+  `turk_pack` percentage and Napoleon's `napoleon_pack` behind a general
+  (`get_job_time@00675800`). ~~A half for two lineages and a quarter for a
+  third; this crate reads the raw `JOB_TIME`~~ — built by item 1608 with
+  the machine gun's half (`docs/AI.md` §170); run544's Bombard still waits
+  exactly 80.
 - **The order's `tolerance`** (`MoveOrder +0x14`), which arm 1 zeroes,
   is not a field this crate's move carries.
 - **The MOVE_TO re-add above it** (`0060d36a`, `unit_masks & 0x4000000`),
