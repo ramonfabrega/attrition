@@ -17167,7 +17167,7 @@ for the silo's `recharging` (30) as the human's does. Great Sahara's Persian sil
 bucket, the ring of damage and the cities' `num_queued` all followed from it. Built: `Sim::silo_sortie` and `friendly_within` (`air.rs`), held by `the_computer_s_silo_orders_its_nuke_on_an_enemy_city` (the arm dropped, and the
 friendly-object test dropped). **A nuke's ring strikes the animals around the city**, whose owner (gaia, index 9) is past the players' `mods`: `Sim::mods_of` answers the zero modifiers (`a_gaia_owner_has_no_modifiers`).
 
-**5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88, `0x303`;
+**5. A Spy costs a half under `SPIES_GENERALS_CHEAPER`** (`TypeData::get_cost@00664090:336`–`343`). A Spy (`0x3a`) or General (`0x36`) under the bonus whose prerequisite is **Strategy** (`TECHBONUSES` row 88;
 `Roles::spy_general_cheaper_preq`) takes `SPY_GENERAL_COST` (50) off the base, before the ramp: Great Sahara's Spy at `1/2030` queues at 25/25 and, a second, at 35/35 on 1983 (50/50 and 60/60 in ours before). Built in
 `Sim::nation_unit_discount`; held by `a_spy_costs_half_under_the_spies_and_generals_bonus`. The Russian spy arm before it is not modelled.
 

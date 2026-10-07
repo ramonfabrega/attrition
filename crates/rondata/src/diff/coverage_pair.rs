@@ -139,6 +139,10 @@ pub(crate) struct Pair {
     /// home, refused the plan and spent a second grid draw on 1696
     /// (`docs/AI.md` §163). At 1719, ours 15 game draws against 16, index
     /// 11: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    /// **Item 1583 moved it from 1719 to 1735 (count and sequence)**, as a
+    /// side effect of the third map's landing (`docs/AI.md` §158); the word
+    /// at 1735 is ours 6 game draws against 5, index 0: ours
+    /// `Unit::close+0xcb6`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -156,8 +160,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 1719,
-    sequence: 1719,
+    count: 1735,
+    sequence: 1735,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -850,7 +854,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 144, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 102, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -969,7 +973,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 360, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 213, "initial run710 baseline");
     // **The word 1696's value diff, item 1589** (`docs/AI.md` §163): the
     // Freighter `1/52` (`TypeIndex` 322, `TRANSPORTFREIGHTER`, carrying
     // `1/40`) parted first on block 1686 — `path:length` 9 against 17,

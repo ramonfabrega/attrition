@@ -6835,6 +6835,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         5,
     ),
     ("run710_s_word_frame_is_widened_whole", 3),
+    // East Indies' coverage pair (run652, item 1583): one read in the walk.
+    ("coverage_pair_first_parting", 1),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
