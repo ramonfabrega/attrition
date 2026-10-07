@@ -64,7 +64,7 @@ fn stand_up(
     build_sim(loaded, &init, Tuning::RON)
 }
 
-fn siblings(texts: &[String]) -> Vec<Log<'_>> {
+fn siblings(texts: &[std::sync::Arc<str>]) -> Vec<Log<'_>> {
     texts.iter().map(|t| Log::parse(t)).collect()
 }
 
@@ -4636,7 +4636,7 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
 /// Chapter two stood up and not ticked — the dump's path, its text, and
 /// the world the siblings' grid makes — for the tests that read the
 /// ground rather than the game.
-fn chapter_two_stood_up() -> Option<(String, String, Built)> {
+fn chapter_two_stood_up() -> Option<(String, std::sync::Arc<str>, Built)> {
     let inst = crate::testenv::install()?;
     let Some((dump, tracepath)) = golden("ch2") else {
         eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");

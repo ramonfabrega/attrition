@@ -87,6 +87,45 @@ class Seams(unittest.TestCase):
         rx = seams.matcher(['find_friends'])
         self.assertTrue(any(rx.fullmatch(fn) for _, fn, _ in found))
 
+    def test_each_spelling_of_a_gap_is_a_seam_without_the_word(self):
+        # Four landings of the twenty-sixth tranche and four of the
+        # twenty-fifth were held by a gap the scan did not print, each
+        # spelled another way (parked 1482, 1560, 1521, 1561).
+        spellings = {
+            'not loaded': 'The free-tech block (Carpentry) is not loaded here.',
+            'reads 1': 'The stub reads 1 for every nation.',
+            'reads empty': 'The list reads empty until the loader is written.',
+            'unreachable': 'The CHAR_DEFAULT snap is unreachable from here (so it is argued).',
+            'never asked': 'is_enemy(8) is never asked for: gaia has no treaties.',
+            'never reached': 'The ocean branch is never reached by a capture.',
+            'no capture reaches': 'The Oil Platform conversion: no capture reaches it.',
+            'only by': 'tech_frame is written only by Leader::init.',
+            'reached through': 'The other branch is reached through the fog alone.',
+        }
+        for key, sentence in spellings.items():
+            source = f'fn gap() {{\n    // {sentence}\n    let _ = 0;\n}}\n'
+            found = seams.left_out(source)
+            self.assertEqual([fn for _, fn, _ in found], ['gap'], key)
+            with tempfile.TemporaryDirectory() as tmp:
+                (Path(tmp) / 'X.md').write_text(f'# X\n\n## 1. A section\n\n{sentence} gap.\n')
+                saved = seams.ROOT
+                seams.ROOT = Path(tmp)
+                try:
+                    rows = seams.spec_rows(seams.matcher(['gap']), Path(tmp))
+                finally:
+                    seams.ROOT = saved
+            self.assertEqual([line for _, line, _, _ in rows], [5], key)
+
+    def test_an_item_gives_its_upper_case_names_too(self):
+        # 1552's cause was a paragraph naming the Oil Platform (`OILPLATFORM`)
+        # and not the field (parked 1560): an item's own type names go in.
+        queue = QUEUE.replace('No mechanism is named.',
+                              'The oil well stands on `CHAR_FARM`; the `OILPLATFORM` arm. No mechanism.')
+        names = seams.item_names(queue, 1214)
+        self.assertIn('CHAR_FARM', names)
+        self.assertIn('OILPLATFORM', names)
+        self.assertNotIn('No', names)
+
     def test_a_doc_comment_s_seam_is_the_function_s_under_it(self):
         line, fn, text, _ = seams.seams(SOURCE)[0]
         self.assertEqual(fn, 'soft_collision')

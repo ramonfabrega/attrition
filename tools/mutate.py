@@ -120,6 +120,12 @@ def main(argv=None):
     g.add_argument('--patch', help='a unified diff for `git apply`')
     ap.add_argument('command', nargs='+', help='the test command, after `--`')
     a = ap.parse_args(argv)
+    if len(a.command) == 1 and ' ' in a.command[0].strip():
+        # `-- $T` under zsh hands the whole command as one word (parked
+        # 1543): run as a program name it is a traceback, not a verdict.
+        print(f'mutate.py refuses: the command arrived as one string ({a.command[0]!r}); '
+              'pass it as words after `--`, or `${=T}` under zsh', file=sys.stderr)
+        return 2
     root = str(Path(a.root).resolve())
     if a.edit:
         path, old, new = a.edit

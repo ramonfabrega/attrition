@@ -548,7 +548,7 @@ mod tests {
             eprintln!("skipping: no gamelog-run10-world6-long.txt (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<String> = [
+        let texts: Vec<std::sync::Arc<str>> = [
             "gamelog-run11-checksum.txt",
             "gamelog-run3-fulldump-types.txt",
             "gamelog-run13-window-95-105.txt",

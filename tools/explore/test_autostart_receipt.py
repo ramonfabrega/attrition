@@ -53,6 +53,21 @@ class ReceiptTest(unittest.TestCase):
         rows = self.rows + [(5,14,0,0,0,0,0,0)]
         self.assertEqual(receipt(self.pack(rows),2,0), receipt(self.pack(self.rows),2,0))
 
+    def test_a_game_that_ended_itself_is_a_receipt_only_when_allowed(self):
+        # A coverage long ends itself before its endpoint (run676 at 4340 of
+        # 24000) and the lifecycle is whole; the receipt refuses by default
+        # and says `ended_early` with the flag (parked 1551, 1529).
+        with self.assertRaises(ValueError):
+            receipt(self.pack(self.rows),5,0)
+        result=receipt(self.pack(self.rows),5,0,allow_early_end=True)
+        self.assertTrue(result['lifecycle_verified'])
+        self.assertEqual((result['frames'],result['end_frame'],result['last_frame'],result['ended_early']),(3,5,2,True))
+        whole=receipt(self.pack(self.rows),2,0,allow_early_end=True)
+        self.assertEqual((whole['last_frame'],whole['ended_early']),(2,False))
+        # A frame past the endpoint is still refused, flag or no flag.
+        with self.assertRaises(ValueError):
+            receipt(self.pack(self.rows),1,0,allow_early_end=True)
+
     def test_every_missing_record_refuses(self):
         for i in range(len(self.rows)):
             with self.subTest(i=i), self.assertRaises(ValueError):

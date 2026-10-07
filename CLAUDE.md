@@ -615,7 +615,11 @@ written, its gate green and its lanes drained, ends by spawning the pass:
 `ccc spawn --name steer --replace --model claude-fable-5-1 --cwd <the
 worktree>`. `--replace` names the *other* session, never the caller's
 own; a session's arm of its own clear has been refused by the classifier
-and dropped by the pane, and a spawn has been neither. One of the two is
+and dropped by the pane, and a spawn has been neither. **The row
+`--replace` stopped is archived by the spawner in the same turn** —
+`ccc archive <ref>`, never `ccc rm`, which takes the worktree — so one
+row of each name stands on the integration worktree (parked 1541: two
+stale rows stood for a day, renamed by hand). One of the two is
 live at a time and only the live one edits the worktree; the `attrition`
 row is the user's, where a steer with the user happens, and it edits
 nothing there while a commander's lanes are out.

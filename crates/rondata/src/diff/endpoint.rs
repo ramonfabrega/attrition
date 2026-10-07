@@ -2343,7 +2343,7 @@ mod tests {
         // cells and no per-tile masks: every unit stands in a region-less
         // world, nothing can gather, and the walk scores noise (run28 read
         // 12 units of 71 that way).
-        let sib_texts: Vec<String> = row
+        let sib_texts: Vec<std::sync::Arc<str>> = row
             .setup
             .iter()
             .filter_map(|n| dump(n))
@@ -2790,7 +2790,7 @@ mod tests {
             let text = crate::capture::read(&path);
             let log = Log::parse(&text);
             let loaded = crate::load::load(&inst).unwrap();
-            let sib_texts: Vec<String> = row
+            let sib_texts: Vec<std::sync::Arc<str>> = row
                 .setup
                 .iter()
                 .filter_map(|n| dump(n))

@@ -134,11 +134,13 @@ def stall_verdict(report, seconds_since_launch, stall, stalled):
     return None
 
 
-def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None):
+def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None,
+                allow_early_end=False):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
     closing = False
+    closing_frame = None
     frame = None
     groupdata = 0
     group_frames = set()
@@ -150,8 +152,13 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
             if m: seeds.add(int(m[1]))
             m = re.fullmatch(r'\s*BEGIN FRAME (\d+)\s*', line)
             if m: frame = int(m[1])
-            if line.strip() == 'GameInfo closing' and frame == end + 1:
+            # The closing block follows the last frame; a lobby that ends
+            # itself before `end` closes early, accepted only when asked
+            # (parked 1551: run676 ended at 4340 of 24000).
+            if line.strip() == 'GameInfo closing' and frame is not None and (
+                    frame == end + 1 or (allow_early_end and frame <= end)):
                 closing = True
+                closing_frame = frame
             if line.strip() == 'BEGIN GROUPDATA':
                 groupdata += 1
                 if frame is not None and 1 <= frame <= end:
@@ -171,7 +178,7 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
     end_groups = live_session.parse_detail(detail or ()).get('[End Frame]', {}).get('GROUPS', 0)
     if end_groups and log_window:
         lo, hi = log_window
-        missing = set(range(max(1, lo), min(end + 1, hi))) - group_frames
+        missing = set(range(max(1, lo), min(end + 1, hi, closing_frame))) - group_frames
         if missing:
             raise ValueError(f'GROUPDATA missing in requested window: {sorted(missing)}')
     players = initial_players(path)
@@ -181,7 +188,8 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
                 or by_who[0].get('tribe') != 4 or by_who[1].get('tribe') != ai_tribe
                 or not by_who[0].get('flags', 0) & 4 or by_who[1].get('flags', 0) & 4):
             raise ValueError(f'player read-back mismatch: {players}')
-    return {'map_style': style, 'closing_frame': end+1, 'seed_observed': sorted(seeds),
+    return {'map_style': style, 'closing_frame': closing_frame, 'ended_early': closing_frame != end + 1,
+            'seed_observed': sorted(seeds),
             'groupdata_blocks': groupdata, 'groupdata_frames': sorted(group_frames), 'players': players}
 
 
@@ -321,11 +329,14 @@ def capture(args, output, style):
             if now >= deadline:
                 raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
-        report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code']))
+        early = getattr(args, 'allow_early_end', False)
+        report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code'],
+                                   allow_early_end=early))
         report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed,
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
                                   ai_tribe=report['ai_tribe_requested'],
-                                  log_window=getattr(args, 'log_window', None)))
+                                  log_window=getattr(args, 'log_window', None),
+                                  allow_early_end=early))
         report['map_verified'] = True
         report['seed_requested'] = args.seed
         report['success'] = True
@@ -435,6 +446,9 @@ def main():
     ap.add_argument('output',type=Path)
     ap.add_argument('profile',type=Path)
     ap.add_argument('--end-frame',type=int,default=36)
+    ap.add_argument('--allow-early-end',action='store_true',
+                    help='a game that ends itself before --end-frame is a success, with `ended_early` '
+                         'and `last_frame` in the receipt (a coverage long; parked 1551, 1529)')
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
     ap.add_argument('--stall-seconds',type=int,default=300,

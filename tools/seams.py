@@ -46,7 +46,16 @@ ABSENCES = ('no capture', 'no run', 'never entered', 'no dump', 'not on disk',
             'has not been captured', 'no trace')
 LEFT_OUT = re.compile(
     r'not (?:yet )?model+ed|not (?:yet )?built|unbuilt|simplif|not carried|does not carry'
-    r'|\bstub\b|left out|not wired|unwired|\ba seam\b', re.I)
+    r'|\bstub\b|left out|not wired|unwired|\ba seam\b'
+    # The spellings a gap took in the twenty-fifth and twenty-sixth
+    # tranches, each one a word the scan did not print (parked 1482, 1560,
+    # 1521, 1561): a block "not loaded", a stub that "reads 1" or "reads
+    # empty", an arm argued "unreachable", a function "never asked for",
+    # a branch "never reached" or that "no capture reaches", a field
+    # "written only by" one writer, a branch "reached through" the fog.
+    r'|not loaded|reads (?:0|1|empty|nothing|none)\b|unreachable|not reachable'
+    r'|never (?:asked|reached|entered|taken|runs?)\b|no (?:capture|run|trace) reaches'
+    r'|\bonly by\b|reached (?:only )?through', re.I)
 MISSING = re.compile(
     r'not (?:yet )?built|unbuilt|not carried|does not carry|is not here|until .{0,40}? is built'
     r'|has no\b|not (?:yet )?model+ed', re.I)
@@ -74,6 +83,11 @@ def item_names(queue, item):
     # `order` and `kind` are in every seam of the tree. A name that is one
     # common word (`think`) is left to be passed by hand.
     names = [n for n in chain_names(m.group(0)) if '_' in n or len(n) > 8]
+    # The original's own upper-case names — a type (`OILPLATFORM`), a
+    # character class (`CHAR_FARM`), a queue mode (`QUEUE_LAST`) — name
+    # the paragraph a field's name misses (parked 1560, 1552's cause).
+    names += [n for n in re.findall(r'(?<![A-Za-z0-9_])[A-Z][A-Z0-9_]{3,}(?![A-Za-z0-9_])', m.group(0))
+              if '_' in n or len(n) > 4]
     return list(dict.fromkeys(names))
 
 

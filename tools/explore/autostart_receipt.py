@@ -9,23 +9,23 @@ from pathlib import Path
 import struct
 
 
-def receipt(data, end_frame, exit_code):
+def receipt(data, end_frame, exit_code, allow_early_end=False):
     if len(data) < 32 or len(data) % 32:
         raise ValueError('missing or truncated trace')
-    return receipt_records(struct.iter_unpack('<8I', data), end_frame, exit_code)
+    return receipt_records(struct.iter_unpack('<8I', data), end_frame, exit_code, allow_early_end)
 
 
-def receipt_file(path, end_frame, exit_code):
+def receipt_file(path, end_frame, exit_code, allow_early_end=False):
     def records():
         with path.open('rb') as stream:
             while chunk := stream.read(65536):
                 if len(chunk) % 32:
                     raise ValueError('truncated trace')
                 yield from struct.iter_unpack('<8I', chunk)
-    return receipt_records(records(), end_frame, exit_code)
+    return receipt_records(records(), end_frame, exit_code, allow_early_end)
 
 
-def receipt_records(records, end_frame, exit_code):
+def receipt_records(records, end_frame, exit_code, allow_early_end=False):
     if not 0 <= end_frame <= 24000:
         raise ValueError('invalid endpoint')
     rows = iter(records)
@@ -59,9 +59,13 @@ def receipt_records(records, end_frame, exit_code):
     setup, start, returned = events[2:5]
     if not setup[2] or setup[3] != 0 or start[2] != setup[2] or returned[2] != setup[2]:
         raise ValueError('setup instance/mode mismatch')
-    if frame_count != end_frame + 1:
+    # A lobby that ends itself before the endpoint (run676 at 4340 of
+    # 24000) is a whole lifecycle short of frames; with `--allow-early-end`
+    # the receipt says so instead of refusing (parked 1551, 1529).
+    if frame_count != end_frame + 1 and not (allow_early_end and 0 < frame_count <= end_frame):
         raise ValueError('missing, repeated, or unexpected simulation frames')
     return {'lifecycle_verified': True, 'frames': frame_count, 'end_frame': end_frame,
+            'last_frame': frame_count - 1, 'ended_early': frame_count != end_frame + 1,
             'map_verified': False, 'fidelity_verified': False}
 
 

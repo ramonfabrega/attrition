@@ -210,7 +210,7 @@ fn diff_report(
                 what: "readable gamelog text".into(),
             });
         }
-        Ok(t)
+        Ok(t.to_string())
     };
     // The siblings' texts must outlive the initial state borrowed from them.
     let sibling_texts: Vec<String> = siblings.iter().map(|p| read(p)).collect::<Result<_, _>>()?;

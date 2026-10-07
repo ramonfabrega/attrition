@@ -509,6 +509,37 @@ and paid by condensing four rows' wording, no number struck.
   waiter sat on another lane's runner — `waitrun.sh` exits 2 on the
   traceback at once.
 
+## The brief checklist, from the twenty-sixth pass
+
+The twenty-sixth tranche (DECISIONS 62, 63): twenty landings on the mixed
+roster, two lanes. The pass added these six rows, each a lane's own Loop
+line, and paid by condensing some twenty-five rows' wording, no number
+struck (`tools/brief/frame.md` at 12,989 of 13,000).
+
+- **`ccc update` takes the lane's ref, never a SHA** (1557): a commander's
+  "take `ccc update` onto <sha>" is one word off what the verb takes; the
+  SHA is the base the update lands, and the brief says `att-<n>`.
+- **On a packet, run the unit's whole `process` first and read its call
+  trace** (1526): 1519 read three predicates both sides passed before the
+  one that parted, and the trace named it in one run.
+- **`--end-frame` is the game's last frame when the window reaches it,
+  and a lobby that ends itself takes `--allow-early-end`** (1529, 1551):
+  the receipt counts frames to `end + 1`, so run668's first take was lost
+  to an endpoint past the game's end, and every coverage long (run652,
+  run676) ended itself and read `success: false`; the runner's flag says
+  `ended_early` and `last_frame` instead.
+- **A detached suite is killed by its pid, never by `pkill -f` on its
+  name** (1527): every worktree builds `rondata`'s test binary under one
+  hashed name, and 1511's kill of its own suite matched 1524's.
+- **`timeout` is absent on macOS** (1537): a brief habit of `timeout 3000
+  cargo …` exits 127 with nothing useful.
+- **A one-string command is refused, the cap for the whole suite is 20,
+  one filter a `cargo test`** (1543, 1551): `tools/mutate.py -- $T` under
+  zsh hands the command as one word and printed a traceback — it refuses
+  now; `tools/memcap.sh 10` is breached by the full run (10.2 GiB) where
+  the gate caps at 20; `cargo test … run677 sahara_coverage` errors and
+  prints nothing.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

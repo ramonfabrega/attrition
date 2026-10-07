@@ -42,15 +42,119 @@
 //! report for equivalence
 //! checks, measured memory, and the supported input boundary.
 
-use std::path::Path;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, Weak};
+use std::time::SystemTime;
 
-/// Reads a capture into memory.
+/// The texts some test in this process holds right now, by path, so that
+/// two tests walking one capture at the same time read it once (parked
+/// 1138, the suite's second half). A `Weak` keeps nothing alive: the
+/// suite's peak memory is what the callers hold, as before, and a text
+/// nobody holds is read again. The stamp is the file's length and
+/// modification time, because a capture is renamed over an archive name
+/// while the suite runs (the module's header).
+#[allow(clippy::type_complexity)]
+static SHARED: Mutex<Option<HashMap<PathBuf, (u64, Option<SystemTime>, Weak<str>)>>> =
+    Mutex::new(None);
+
+/// Reads and shares, counted: `RON_READ_STATS=<file>` appends `reads
+/// shared` after each read, so a suite's sharing can be measured after it
+/// ran (the twenty-sixth pass's measure of parked 1138). Off, it costs two
+/// atomic adds.
+static READS: AtomicUsize = AtomicUsize::new(0);
+static SHARES: AtomicUsize = AtomicUsize::new(0);
+
+fn counted(shared: bool) {
+    let reads = READS.fetch_add(1, Ordering::Relaxed) + 1;
+    let shares = SHARES.fetch_add(usize::from(shared), Ordering::Relaxed) + usize::from(shared);
+    let Ok(stats) = std::env::var("RON_READ_STATS") else {
+        return;
+    };
+    if let Ok(mut f) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(stats)
+    {
+        use std::io::Write;
+        let _ = writeln!(f, "{reads} {shares}");
+    }
+}
+
+/// Reads a capture into memory, or shares the copy another caller holds.
 ///
 /// An unreadable path answers with the empty string — the shape every
 /// caller here already expects, having checked the file is there, and the
 /// same one `std::fs::read_to_string(..).unwrap_or_default()` has.
-pub fn read(path: impl AsRef<Path>) -> String {
-    std::fs::read_to_string(path).unwrap_or_default()
+pub fn read(path: impl AsRef<Path>) -> Arc<str> {
+    let path = path.as_ref();
+    let stamp = std::fs::metadata(path)
+        .ok()
+        .map(|m| (m.len(), m.modified().ok()));
+    if let Some((len, modified)) = stamp {
+        let mut shared = SHARED.lock().unwrap_or_else(|e| e.into_inner());
+        let map = shared.get_or_insert_with(HashMap::new);
+        let held = map
+            .get(path)
+            .filter(|(l, m, _)| *l == len && *m == modified)
+            .and_then(|(_, _, weak)| weak.upgrade());
+        if let Some(text) = held {
+            counted(true);
+            return text;
+        }
+        drop(shared);
+        counted(false);
+        let text: Arc<str> = Arc::from(std::fs::read_to_string(path).unwrap_or_default());
+        let mut shared = SHARED.lock().unwrap_or_else(|e| e.into_inner());
+        let map = shared.get_or_insert_with(HashMap::new);
+        map.retain(|_, (_, _, w)| w.strong_count() > 0);
+        map.insert(path.to_path_buf(), (len, modified, Arc::downgrade(&text)));
+        return text;
+    }
+    Arc::from(String::new())
+}
+
+/// How many of the texts this process holds are shared right now: a
+/// measure for the suite, not a rule.
+pub fn shared_now() -> usize {
+    let shared = SHARED.lock().unwrap_or_else(|e| e.into_inner());
+    shared.as_ref().map_or(0, |m| {
+        m.values().filter(|(_, _, w)| w.strong_count() > 0).count()
+    })
 }
 
 pub mod indexed;
+
+#[cfg(test)]
+mod tests {
+    use super::read;
+    use std::sync::Arc;
+
+    /// Two holders of one capture share one text; a capture rewritten
+    /// under the suite (a different length) is read afresh; a text nobody
+    /// holds is read again rather than kept (parked 1138).
+    #[test]
+    fn a_held_text_is_shared_and_a_rewritten_one_is_not() {
+        let dir = std::env::temp_dir().join(format!("capture-share-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("gamelog.txt");
+        std::fs::write(&path, "BEGIN FRAME 1\n").unwrap();
+        let first = read(&path);
+        let second = read(&path);
+        assert!(Arc::ptr_eq(&first, &second), "a held text is shared");
+        std::fs::write(&path, "BEGIN FRAME 1\nBEGIN FRAME 2\n").unwrap();
+        let third = read(&path);
+        assert!(
+            !Arc::ptr_eq(&first, &third),
+            "a rewritten capture is read afresh"
+        );
+        assert_eq!(&*third, "BEGIN FRAME 1\nBEGIN FRAME 2\n");
+        drop((first, second, third));
+        let later = read(&path);
+        assert_eq!(super::shared_now(), 1, "only what is held is counted");
+        drop(later);
+        assert_eq!(super::shared_now(), 0);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}

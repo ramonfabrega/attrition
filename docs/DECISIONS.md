@@ -74,6 +74,7 @@ is append-only and amended in place, as it always was.
 - 60 extended by 61 — Codex's direct tranche is accepted whole, and the model question becomes the architecture question
 - 61 extended by 62 — The loop returns with a mixed roster, the pass and the commander spawn each other, and a pair is chosen for what it covers
 - 62 standing — The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
+- 63 standing — The mixed roster's second tranche is scored, a third lane returns, and the replaced session is archived
 
 ## 1. Fidelity before divergence
 
@@ -4545,3 +4546,74 @@ against 77.5 and whether a third lane is earned back; `lanewait`'s exits
 by kind against 41 LANDED, 4 ENDED, 0 QUIET; merges backed out against
 seven; the battery against 576 / 6566 / 2974; the census's never against
 142 and the blind list against 142; the backlog against seventeen.
+
+## 63. The mixed roster's second tranche is scored, a third lane returns, and the replaced session is archived
+
+**Decided 2026-10-06**, the twenty-sixth pass
+(`docs/audit/2026-10-06-fable-pass-26.md`), unattended; the roster
+stays the user's and the pass recommends. Amends nothing; applies entry
+61's rules 2 and 5 a second time.
+
+**What was measured.** Twenty landings in 12 h 40 m on two lanes, from
+the opening commit (`d6bf2648`, 14:17Z) to the twentieth's booking
+(`8fcf7bb1`, 02:57Z), nobody typing; workers 202.55 USD list at the
+day's table, 10.13 a landing, the commander 15.21 over its two sessions
+(0.76 a landing). By lane, each model verified from its transcript: the
+newest pair's on Opus 5.5, ten landings — French East Indies 17244 →
+17379 and closed, the coverage pair 177 → 1408 — at 12.39 a landing, 45
+minutes waiting; the third map's on Sonnet 5.5 at `--effort high`, ten —
+Toughest 14512 → 15432 and closed with its closing state, Great Sahara
+stood up in the coverage lobby and walked to 1582 — at 7.86 a landing,
+51 waiting. A landing waited 48.1 minutes against 77.5: the suite 17.3,
+the gate 14.8, a capture 14.1, `other` 1.9; on another lane's capture
+under two. Neither kill rule tripped; 1538's booking-gate red was a pin
+1544's merge moved, re-pinned by the commander. The battery read 576 /
+6566 / 2974, unmoved for two tranches.
+
+**What it means.**
+
+1. **Sonnet at high is cheaper and no worse, on two tranches.** Entry
+   62's tranche read 14.10 a landing against Opus's 15.45; this one 7.86
+   against 12.39, with shallower contexts (590 k peak against 716 k) and
+   less waiting. Both lanes closed what they held — a pair and a map —
+   and stood a coverage lobby up. The frames-a-landing figure does not
+   compare across lobbies (an early-game coverage word moves by hundreds
+   where a late French word moved by tens), so the price and the kill
+   rules are the measure, and the kill rules stood untripped through
+   forty landings. **The roster is the user's**: the pass changes
+   nothing, the twenty-seventh runs the mix as entry 62 set it, and the
+   recommendation is at the top of the record — a one-tranche trial of
+   Sonnet on the newest pair's lane, the kill rules covering the
+   downside.
+2. **Three lanes, by rule 5.** The waiting fell by more than a fifth, so
+   a lane comes back: the newest pair's (1563, Opus), the third map's
+   (1565, Sonnet) and the rules track's (1497, chapter fifty-two,
+   Sonnet by the roster's "every other lane"). The sweep lane (parked
+   1464) does not take it: the queue holds what names a score, and the
+   census's backed column (1467) is not on the board.
+3. **A replaced session is archived, never removed.** `--replace` stops
+   the row it names and leaves it listed; `ccc rm` would take the
+   worktree. The spawner archives the stopped row in the same turn
+   (`CLAUDE.md`'s clause; parked 1541 closes), and this pass archived
+   the two that stood.
+4. **The suite's shared text is built and measured** (parked 1138's
+   second half, named by three passes): `capture::read` shares a text
+   between the callers that hold it at once, weakly, so the suite's peak
+   is what the callers hold. The measure — the release suite's seconds
+   and the share count — is in the record's gate paragraph, and 1138
+   closes or stays on it.
+
+**The estimate, written down to be wrong on record**: twenty landings on
+three lanes in under fourteen hours with nobody typing; the coverage
+pair's word passes 2,500 and Great Sahara's 3,000; chapter fifty-two
+closes; a landing waits under 60 minutes on three lanes; no lane waits
+more than ten minutes on another's capture; neither kill rule trips;
+every `--replace` leaves one row of its name.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 12.39 / 45 and 7.86 / 51, and the third lane's against entry
+58's three-lane 50; the suite's minutes a landing against 17.3 with the
+shared text in; `lanewait`'s exits by kind against 36 / 2 / 2 by the
+same grep; conflicted updates against seven; the battery against 576 /
+6566 / 2974; the census's never against 144; the backlog against
+twenty-three; the rows of the roster on `ccc list` for the worktree.

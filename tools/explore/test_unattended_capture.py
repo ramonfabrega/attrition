@@ -160,6 +160,19 @@ class RunnerTest(unittest.TestCase):
         report['stalled_twice_after_seconds']=300
         self.assertIsNone(runner.stall_verdict(report,900,300,True))
 
+    def test_a_closing_before_the_endpoint_is_accepted_only_when_allowed(self):
+        # run676's game ended itself at 4340 of 24000 (parked 1551): the
+        # closing block sits at the last frame plus one, not at the endpoint.
+        log=Path(self.root)/"gamelog.txt"
+        log.write_text(' MAP_STYLE 7\nBEGIN FRAME 4340\nBEGIN FRAME 4341\n GameInfo closing\n')
+        with self.assertRaises(ValueError):runner.verify_game(log,7,24000)
+        got=runner.verify_game(log,7,24000,allow_early_end=True)
+        self.assertEqual((got['closing_frame'],got['ended_early']),(4341,True))
+        # A closing past the endpoint is no early end.
+        log.write_text(' MAP_STYLE 7\nBEGIN FRAME 37\n GameInfo closing\n')
+        with self.assertRaises(ValueError):runner.verify_game(log,7,35,allow_early_end=True)
+        self.assertEqual(runner.verify_game(log,7,36,allow_early_end=True)['ended_early'],False)
+
     def test_a_groups_capture_must_print_groupdata(self):
         # Parked 735: run210, run215 and run223 asked for `GROUPS` and two
         # of them printed no `GROUPDATA` block, silently; the pool is what

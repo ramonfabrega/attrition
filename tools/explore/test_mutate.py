@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
@@ -37,6 +38,18 @@ def repo():
 
 
 class Mutate(unittest.TestCase):
+    def test_a_command_handed_as_one_string_is_refused(self):
+        # `-- $T` under zsh does not split, so a whole command arrived as
+        # one argument and the run printed a traceback, not a verdict
+        # (parked 1543, 1535's Loop line).
+        err = StringIO()
+        with patch('sys.stderr', err):
+            code = mutate.main(['--root', self.d, '--edit', 'src.rs', 'let x = 1;', 'let x = 2;',
+                                'python3 -c "import sys; sys.exit(1)"'])
+        self.assertEqual(code, 2)
+        self.assertIn('one string', err.getvalue())
+        self.assertIn('refuses', err.getvalue())
+
     def setUp(self):
         self.d = repo()
         self.out = StringIO()
