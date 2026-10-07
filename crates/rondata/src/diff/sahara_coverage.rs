@@ -69,8 +69,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // by the draw sequence and 2048 by the count: ours 16 draws against 16 at
     // index 4, ours `Leader::produce_building+0x1805`, theirs
     // `Leader::make_stuff+0x63d`.
+    //
+    // Landing 3 of the race on item 1565 (`docs/AI.md` §158): the mechanisms
+    // the merged tree's word 1985 stood on — a bomber's cap, a modern unit's
+    // level in an all-tech game, the nuke count, the silo's own launch, the
+    // Spy's discount and `reg_free_peasants` read unsigned — move it again,
+    // 1985 → **2048** by the count and the sequence alike: ours 44 draws
+    // against 45, index 29, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+    // theirs `Unit::do_move+0xe84`.
     count: 2048,
-    sequence: 1985,
+    sequence: 2048,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -294,7 +302,7 @@ fn run680_s_word_frame_is_widened_whole() {
     // and 28 part later — pools 66, 67 and 68 and their groups' `held`, the
     // Persians' `SITE` table on 776, the two queues' prices and leader 1's
     // two buckets on 783, leader 0's `production_step` on 801.
-    pin_eq!(w.firsts.len(), 111, "initial run680 baseline");
+    pin_eq!(w.firsts.len(), 74, "initial run680 baseline");
     // **The word's value diff, block 721** (item 1549): the dump prints no
     // animation (`GUYS=2`'s `GUY` record is type, position and angle), so the
     // value on the word's frame is the draw record — frame 720, ours 25
@@ -378,10 +386,10 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 185, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 128, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
-        140,
+        96,
         "the keys standing on the window's first block"
     );
     // **The word 1197's value diff, block 1198** (item 1555): the Persian
@@ -421,7 +429,7 @@ fn run681_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(1201),
+        Some(1192),
         "the first parting past the standing block"
     );
 }
@@ -475,10 +483,10 @@ fn run683_s_word_frame_is_widened_whole() {
     // normalize puts its group's cap back to its leader's speed
     // (`docs/AI.md` §161); the merged tree's count is the union, measured:
     // **182**, 148 standing.
-    pin_eq!(w.firsts.len(), 182, "initial run683 baseline");
+    pin_eq!(w.firsts.len(), 121, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        148,
+        107,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the
@@ -611,24 +619,26 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1398, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 1192, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        154,
+        117,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
-    // item 1586): the draws agree to index 3 on 1985 and the fifth is where
-    // the original rolls `Leader::make_stuff+0x63d` and ours the placement
-    // jitter `Leader::produce_building+0x1805` — a different make row first.
-    // What parts first past the standing block is Persian city `1/2018`'s
-    // `bordering` on **1980** (ours 0, theirs 3, the bit of each leader
-    // whose ground touches the city's) and then leader 1's make list on
-    // **1981**: row 1 is the Supply Wagon (`TypeIndex` 63, `num` 1) in the
-    // original and the MLRS (273, `num` 2) in ours, and row 2 the other way
-    // about, its `val` 9999999 in ours (the wagon) against 6384749 in the
-    // original (the MLRS). No mechanism: the
-    // successor item's first read.
+    // item 1586), and what it became (item 1583, `docs/AI.md` §158). The
+    // draws agreed to index 3 on 1985 and the fifth was where the original
+    // rolled `Leader::make_stuff+0x63d` and ours the placement jitter
+    // `Leader::produce_building+0x1805`; the make list's rows 1 and 2 had
+    // parted on 1981 (the Supply Wagon against the MLRS). With the landing's
+    // seven mechanisms the make list agrees to the end of the window but for
+    // the Persian army's march, and **the word is 2048**: unit `1/43`'s
+    // path parts on **2046** (its heading, `pos`, a path of four nodes
+    // against two) — the draw on 2048 is the move step it takes. What parts
+    // first past the standing block is Persian city `1/2018`'s `bordering` on
+    // **1980** (ours 0, theirs 3, the bit of each leader whose ground touches
+    // the city's), and then, of the compared leader keys, only
+    // `production_step` on 2001.
     pin_eq!(
         w.firsts
             .get(&(1, 2018, "city:bordering".to_string()))
@@ -637,11 +647,9 @@ fn run702_s_word_frame_is_widened_whole() {
         "Persian city 1/2018's bordering parts on 1980"
     );
     pin_eq!(
-        w.firsts
-            .get(&(1, -1, "leader:MAKE[1].t".to_string()))
-            .map(|(f, _)| *f),
-        Some(1981),
-        "leader 1's first make row parts on 1981"
+        w.firsts.get(&(1, 43, "pos".to_string())).map(|(f, _)| *f),
+        Some(2046),
+        "unit 1/43's position parts on 2046, the word 2048's move"
     );
     // **What parts first past the standing block.**
     let first = w

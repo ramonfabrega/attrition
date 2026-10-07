@@ -302,7 +302,15 @@ impl Sim {
         if base == 0 {
             return 0;
         }
-        base + self.mods[self.owner_of(o) as usize].attack
+        base + self.mods_of(self.owner_of(o) as usize).attack
+    }
+
+    /// The damage formula's modifiers of an owner: the player's, or none
+    /// for a gaia owner (animals, goods), which the leaders' list holds as
+    /// zeroes and `mods` — one a player — does not (a nuke's ring strikes
+    /// the animals around a city, `docs/AI.md` §158).
+    fn mods_of(&self, owner: usize) -> combat::Modifiers {
+        self.mods.get(owner).copied().unwrap_or_default()
     }
 
     /// `armor()` (§4.2). **A building that is not finished holds half its
@@ -319,7 +327,7 @@ impl Sim {
     /// `thesenator_build_armor` before the halving. Not modelled; scan:
     /// a building struck in a capture whose `GUY` blocks hold type 353.
     pub fn armor_of(&self, o: Obj) -> i32 {
-        let armor = self.profile(o).armor + self.mods[self.owner_of(o) as usize].armor;
+        let armor = self.profile(o).armor + self.mods_of(self.owner_of(o) as usize).armor;
         match o {
             Obj::Building(b) if !self.buildings[b].active => armor / 2,
             _ => armor,
@@ -332,7 +340,7 @@ impl Sim {
         if p.max_range == 0 {
             return 0;
         }
-        p.max_range + self.mods[self.owner_of(o) as usize].range + self.british_building_range(o)
+        p.max_range + self.mods_of(self.owner_of(o) as usize).range + self.british_building_range(o)
     }
 
     /// **`BuildTypeData::get_building_range@00639990`'s first block**
@@ -2151,7 +2159,7 @@ impl Sim {
             angle,
             splash,
             frame,
-            &self.mods[owner],
+            &self.mods_of(owner),
         );
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
@@ -3824,7 +3832,7 @@ impl Sim {
                 false,
                 false,
                 self.frame,
-                &self.mods[self.owner_of(attacker) as usize],
+                &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
         // **`0064ef4b`, both arms.** A human multiplies; a computer

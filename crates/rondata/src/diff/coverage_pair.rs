@@ -586,7 +586,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`).
-    pin_eq!(w.firsts.len(), 107, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 81, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -627,14 +627,14 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(581),
+        Some(601),
         "the first parting past the standing block"
     );
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:MAKE[2].num".to_string()))
             .map(|(f, _)| *f),
-        Some(581),
+        None,
         "leader 1's make list parts on block 581"
     );
     // **The move's value diff** (item 1539, `docs/AI.md` §146): on 668
@@ -720,7 +720,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 139, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 95, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -830,7 +830,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // **146** on the tree item 1586 landed (203 on item 1563's, 457 on
     // item 1558's, 608 on item 1552's); 127 stand from the window's first
     // block.
-    pin_eq!(w.firsts.len(), 146, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 104, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -938,7 +938,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161). On run679's 1420 ours still holds
     // the site `1/2037` alone, and on 1583 its `x/y_internal` part.
-    pin_eq!(w.firsts.len(), 764, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 639, "initial run710 baseline");
     let first = w
         .firsts
         .values()

@@ -359,6 +359,9 @@ pub struct Tuning {
     /// Percentage off a French leader's unit trained at the Siege Factory
     /// or Factory line (`TypeData::get_cost`'s nation tail).
     pub french_siege_cost: i32,
+    /// Percentage off a Spy or General while the leader holds
+    /// `SPIES_GENERALS_CHEAPER` (`TypeData::get_cost`'s nation tail).
+    pub spy_general_cost: i32,
     /// Percentage faster for the same units under Versailles.
     pub versailles_units_move: i32,
     /// Extra timber-worker capacity before the gather-access cap.
@@ -1041,6 +1044,7 @@ impl Tuning {
         french_timber_commerce: 10,
         french_siege_move: 20,
         french_siege_cost: 15,
+        spy_general_cost: 50,
         versailles_units_move: 25,
         french_woodies: 1,
         inca_wealth_cap: 33,
@@ -1292,7 +1296,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 355] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 356] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1462,6 +1466,7 @@ impl Tuning {
             ),
             ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
             ("FRENCH_SIEGE_COST", Slot::Value(T.french_siege_cost)),
+            ("SPY_GENERAL_COST", Slot::Value(T.spy_general_cost)),
             (
                 "VERSAILLES_UNITS_MOVE",
                 Slot::Value(T.versailles_units_move),

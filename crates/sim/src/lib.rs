@@ -2189,10 +2189,30 @@ impl Sim {
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
         let french = self.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
-            self.tuning.french_siege_cost
-        } else {
-            0
+            return self.tuning.french_siege_cost;
         }
+        // The tail's last arm (`get_cost:336`–`343`): a Spy or a General
+        // under `SPIES_GENERALS_CHEAPER`, a half in the shipped rules
+        // (Great Sahara's Spy at `1/2030` is 25/25 on 1983, 50/50 before
+        // item 1583). The Russian spy arm before it is not modelled.
+        let strict = |x: tech::TypeId| {
+            self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(x).is_some() && self.tech_tree.is(t, x, true)
+            })
+        };
+        if (strict(0x3a) || strict(0x36))
+            && self
+                .tech_tree
+                .roles
+                .spy_general_cheaper_preq
+                .is_some_and(|t| {
+                    self.tech_tree
+                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                })
+        {
+            return self.tuning.spy_general_cost;
+        }
+        0
     }
 
     /// A unit type's trainer as the raw `UnitTypeData +0x40`.
@@ -2273,7 +2293,7 @@ impl Sim {
         let mut discount = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
-                - self.tech_tree.military_level_of(t);
+                - self.tech_tree.military_level_in(&self.setup, t);
             if ahead > 0 {
                 discount = self.tuning.military_upgrade_discount * ahead;
                 let span = self.setup.ending - self.setup.starting_age + 1;
@@ -2313,7 +2333,7 @@ impl Sim {
         }
         let level = self.unit_types[ty]
             .tree
-            .map_or(0, |t| self.tech_tree.military_level_of(t))
+            .map_or(0, |t| self.tech_tree.military_level_in(&self.setup, t))
             .max(1);
         let ahead = self.tech[who as usize].epoch[tech::Line::Military.index()] - level;
         if ahead <= 0 {

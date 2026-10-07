@@ -6821,6 +6821,20 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Great Sahara in the coverage lobby (item 1583): the nuke the silo
+    // launches on 1983 flies over run702's ground; five reads of a corner
+    // that is not known to be the original's single, in the flight to the
+    // strike. The strike's fall time reads the height as the bomb's does.
+    ("run702_s_word_frame_is_widened_whole", 5),
+    // The coverage driver walks the same window (run702, 1979..2235) and
+    // the nuke's flight reads five corners of it, as in run702 itself; the
+    // newest pair's lobby (run710) launches from a silo of its own and reads
+    // three.
+    (
+        "every_parsed_field_is_compared_by_the_instrument_or_pinned",
+        5,
+    ),
+    ("run710_s_word_frame_is_widened_whole", 3),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),

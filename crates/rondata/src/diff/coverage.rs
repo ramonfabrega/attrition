@@ -2719,14 +2719,18 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Item 1443: run603 has paired cast orders; both fields leave the pin.
     // Item 1439: run594 carries a paired cast; both fields leave again.
     // Item 1440: 18089 has no paired cast; both return to the pin.
+    // Item 1583: run702's window carries the silo's missile order (the
+    // air attack on the ground, `docs/AI.md` §158): the air-order fields
+    // (`ag_*`, `air_*`, `cruising_alt`, `patrol_*`, `returning`,
+    // `sharp_turn`, `waypoint`) are compared and leave the pin (measured
+    // on the tree after `ccc update`'s base).
     (
         "OrderDump",
-        "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt \
+        "attempts build_type \
          garrison_search \
          metric non_flat_gather \
-         orig_x orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx \
-         strafe_yy tolerance uid waypoint ",
+         orig_x orig_y retry strafe_xx \
+         strafe_yy tolerance uid ",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

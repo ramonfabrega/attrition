@@ -1627,6 +1627,12 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `SPIES_GENERALS_CHEAPER` is the 88th (`0x303`), Strategy in the
+    // shipped file: the gate on `get_cost`'s Spy and General discount.
+    tree.roles.spy_general_cheaper_preq = match bonus_preqs.get(87) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `EXPLORE_MAP_BONUS` is the seventh (`0x2b2`) and `REVEAL_ENEMY_BONUS`
     // the ninth (`0x2b4`): the two prerequisites `gain_tech` turns into
     // `leader_flags & 0x1000` and `& 0x800`, the bits `WorldData::was_seen`

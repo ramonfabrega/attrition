@@ -308,6 +308,29 @@ impl Sim {
             .is_some_and(|bt| self.tech_tree.is(bt, wt, false))
     }
 
+    /// `LeaderData::get_nukes@006ebe50`: the leader's **Nuclear Missiles** —
+    /// type `0x13b`'s queued and held count and its line's, none when the
+    /// leader lacks the tech (`tech.ptr[0x27] & 8`), less the nukes in
+    /// flight. It is the missile the AI counts against its silos, not the
+    /// type it is offering: a queued ICBM (`0x13c`, whose `FROM` is none) is
+    /// not a nuke here, so `create_units` offers one while the silo's queue
+    /// holds one (`docs/AI.md` §158). The in-flight count is zero in this
+    /// crate: no capture launches one.
+    fn get_nukes(&self, who: Player) -> i32 {
+        let Some(n) = self.tech_tree.roles.nuclearmissile else {
+            return 0;
+        };
+        if !self.tech[who as usize]
+            .tech
+            .get(n)
+            .copied()
+            .unwrap_or(false)
+        {
+            return 0;
+        }
+        self.line_count(who, n, true) + self.line_count(who, n, false)
+    }
+
     /// `LeaderData::get_units(t, 0)` / `get_queued(t, …)`: the count of `t`
     /// plus every type whose grafted `from` chain reaches it — the line's
     /// count including the nation's variants and later upgrades.
@@ -820,7 +843,7 @@ impl Sim {
                         base,
                         r,
                         army_target,
-                        remaining,
+                        &mut remaining,
                         &mut escrow,
                         &mut num,
                         pop_cap,
@@ -1024,7 +1047,7 @@ impl Sim {
         base: i32,
         r: u16,
         army_target: i32,
-        _remaining: i32,
+        remaining: &mut i32,
         escrow: &mut i32,
         num: &mut i32,
         pop_cap: i32,
@@ -1049,6 +1072,11 @@ impl Sim {
         } else {
             16
         };
+        // `remaining = air_cap` is the loop's own variable (`create_units`
+        // 361–478): the tail's `num = min(num, remaining)` and the cap
+        // multiplier read it, not the step-5 default of 5 (`docs/AI.md`
+        // §158).
+        *remaining = air_cap;
         let remaining = air_cap;
         let n = self.line_count(who, t, true) + self.line_count(who, t, false);
         if n >= air_cap {
@@ -1135,7 +1163,7 @@ impl Sim {
         } else {
             200_000
         };
-        let mine = self.line_count(who, t, false) + self.line_count(who, t, true);
+        let mine = self.get_nukes(who);
         let mut max_enemy = 0;
         let mut vulnerable = false;
         for j in 0..self.players.len() {
@@ -1144,7 +1172,7 @@ impl Sim {
                 continue;
             }
             vulnerable = true;
-            let theirs = self.line_count(jw, t, false);
+            let theirs = self.get_nukes(jw);
             if theirs > max_enemy {
                 max_enemy = theirs;
             }
@@ -1640,7 +1668,7 @@ impl Sim {
         let mut b = wm(self.ai[w].infra_mod, base) / 256;
         let q = self.count_queue(city_o, None);
         let cn = &self.ai[w].census;
-        if Census::reg(&cn.reg_free_peasants, r) >= Census::reg(&cn.reg_cities, r) {
+        if Census::reg_u16(&cn.reg_free_peasants, r) >= Census::reg(&cn.reg_cities, r) {
             return None;
         }
         let ca = self.ai[w].city_ai.get(c).copied().unwrap_or_default();

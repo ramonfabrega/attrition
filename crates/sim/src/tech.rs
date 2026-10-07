@@ -332,6 +332,11 @@ pub struct Roles {
     /// (`docs/PRODUCTION.md`, "The missile's other arms"). `None` leaves
     /// the bonus unheld: a tree that does not know the shield raises none.
     pub missile_defense_preq: Option<TypeId>,
+    /// `SPIES_GENERALS_CHEAPER`'s one prerequisite (`0x303`, the 88th
+    /// `TECHBONUSES` row) — **Strategy** in the shipped file. Held, it takes
+    /// `SPY_GENERAL_COST` off a Spy or a General in `TypeData::get_cost`'s
+    /// nation tail. `None` leaves the discount unheld.
+    pub spy_general_cheaper_preq: Option<TypeId>,
     /// `EXPLORE_MAP_BONUS`'s one prerequisite, the seventh of `rules.xml`'s
     /// `TECHBONUSES` (`0x2b2`) and **Electronics** in the shipped file.
     /// `Leader::gain_tech@006dcb60` sets `leader_flags |= 0x1000` when the
@@ -898,6 +903,18 @@ impl TechTree {
     /// `0061d55b`); the line's first tech is `0x23c`, so level **1** is this
     /// crate's zero-based `level` plus one. Anything else is level 0.
     pub fn military_level_of(&self, t: TypeId) -> i32 {
+        self.military_level_in(&Setup::STANDARD, t)
+    }
+
+    /// [`Self::military_level_of`] in a lobby: the slot-1 prerequisite is
+    /// `get_preq(1, −1)`, which `starting_technology` remaps (`TypeData::get_preq
+    /// @00668700`) — in a game that starts in Information (`STARTING_TECHNOLOGY
+    /// 8`) the Military epoch a modern unit asks for is **removed** (its age
+    /// is below the start), so the unit stands at level 0, floored to 1 by
+    /// `get_cost`, and every unit is "six levels behind" the player's seven
+    /// (`docs/AI.md` §158). The scaled arm clamps into the line as the
+    /// ordinary `get_preq` does.
+    pub fn military_level_in(&self, setup: &Setup, t: TypeId) -> i32 {
         let military = |p: Preq| match p {
             Preq::Of(x) => match self.kind(x) {
                 Kind::Epoch {
@@ -910,7 +927,7 @@ impl TechTree {
         };
         let d = &self.types[t];
         military(d.preq[0])
-            .or_else(|| military(d.preq[1]))
+            .or_else(|| military(self.get_preq_1(setup, None, t)))
             .unwrap_or(0)
     }
 
