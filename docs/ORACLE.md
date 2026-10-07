@@ -2911,3 +2911,68 @@ because the packet at frame N is the state after tick N−1's decision, so
 tick N — the word's — is still ahead of it (item 597, the twelfth pass;
 the worked case is `docs/EMULATOR.md` §8). Costs and what a packet establishes are
 `docs/EMULATOR.md` §8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md`.
+
+## Two click-free lanes (2026-10-07, item 1568; parked 1139)
+
+The click-free lane is two now. Everything a capture writes is a singleton
+of its lane — the prefix's `.lane.lock` and wineserver, the profile's
+`rise.ini`, `rise2.ini`, `gamelog.ini` and `Player.dat`, the install a
+run's directory links its data from — so the second lane is a second of
+each and nothing more; a run's directory, its tracer build and its logs
+were per capture already. **`RON_CAPTURE_LANE=2` chooses it**; unset is
+lane 1, as it always was. `tools/gamelog/lanes.sh` is the table:
+
+| lane | prefix | install | profile |
+|---|---|---|---|
+| 1 | `~/wine-ron` | the repo's `game/` | `~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations` |
+| 2 | `~/wine-ron-2` | `~/ron-capture-lane-2/game` | `~/ron-capture-lane-2/AppData/Roaming/Microsoft Games/Rise of Nations` |
+
+    RON_CAPTURE_LANE=2 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh <out> …
+    RON_CAPTURE_LANE=2 zsh -c 'source tools/gamelog/winelaunch.sh; ron_lane_state'
+
+**Building it** is `zsh tools/gamelog/lane2.sh`, idempotent and needing no
+human: `wineboot -i` with Mono and Gecko declined, `prefix.sh` on the new
+prefix, the install cloned with `cp -c` (APFS shares the blocks: 2.8 GB of
+names, no disk), lane 1's profile copied while lane 1 is free, and the
+prefix's `AppData\Roaming\Microsoft Games` linked to it. Nothing enters the
+repo; nothing of lane 1 is written.
+
+**What had to change for two to run at once**, each with its test
+(`tools/explore/test_capture_lanes.py`, `test_viadriver.py`):
+
+- **`winelaunch.sh` takes the lane's prefix**, its lock beside it; a
+  hand-set `RON_WINEPREFIX` still wins.
+- **`live_session.require_closed` is scoped to the lane's prefix.** It
+  refused while *any* `riseofnations` process ran, so lane 1 could never
+  start beside lane 2. A game is now attributed by the files it maps
+  (`lsof`: DXVK's `syswow64/d3d11.dll` and `dxgi.dll` are the prefix's
+  own); another lane's game is let be, and one in this prefix — or one no
+  lane accounts for, a human's — still refuses. Measured on run684's live
+  game: lane 1's check passed, lane 2's refused.
+- **`viadriver.sh` carries the lane in the arguments**: LaunchServices
+  hands RonDriver launchd's environment, so the variable reached nothing;
+  the spawned program is `env RON_CAPTURE_LANE=2 zsh …`. And **its log is
+  named by the second and the pid**: by the second alone two launches made
+  together — run685 and run686, 00:26:35 — would have written one log, and
+  each waiter read both receipts.
+- **The runner refuses another lane's install or profile** when
+  `RON_CAPTURE_LANE` is set, before writing anything, and `golden_capture.sh`
+  prints the lane first. Lane 2 ignores `RON_INSTALL` and `RON_PROFILE`, so
+  a lane-1 environment cannot point it at lane 1's files.
+- **The receipt stamps `launched_at` and `exited_at`** by the wall clock;
+  run685 and run686's overlap was read off file times.
+
+**The proof**: run684 re-captured run676 on lane 2, `rngcmp` 4341 frames in
+common, 0 differing; run685 and run686 ran on the two lanes at once, each a
+`success` receipt, 301 frames, 0 differing from each other and from
+run676 (`docs/RUNS.md`).
+
+**What stays one.** The queue lane (`runqueue.sh`, `longtrace.sh`,
+`cliclick`) owns the cursor and finds the game's window by title, so it
+runs on lane 1 and **never beside a lane-2 game** — a second window with
+the same title is one it could click. `waitrun.sh` judges a click-free log
+once no runner of any lane is alive, so a lane's waiter may outlast its
+own run by the other lane's. And the two lanes share one GPU and one box:
+run686's 16.7 s launch-to-exit against run685's 19.8 s says a 300-frame
+pair did not slow each other measurably; a pair of long traces is not
+measured.

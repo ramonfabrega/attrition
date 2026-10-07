@@ -237,6 +237,10 @@ def staged_callwin(output):
     return None
 
 
+def wall():
+    return time.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+
 def capture(args, output, style):
     report = {'map_requested': style, 'success': False, 'settings_restored': False}
     staged = False
@@ -291,6 +295,9 @@ def capture(args, output, style):
         report['launch_args'] = LAUNCH_ARGS[:]
         report['wine_debug'] = os.environ.get('WINEDEBUG', '-all')
         launch = time.monotonic()
+        # Wall-clock stamps (item 1568): two lanes' runs overlap or not, and
+        # the receipt says which without a file's mtime.
+        report['launched_at'] = wall()
         def start():
             return subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
                                     str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
@@ -317,6 +324,7 @@ def capture(args, output, style):
                 (output/'wine.log').replace(output/'wine-stalled.log')
                 report['relaunched_after_seconds'] = now - launch
                 launch = time.monotonic()
+                report['launched_at'] = wall()
                 process = start()
                 continue
             if verdict == 'give_up':
@@ -329,6 +337,7 @@ def capture(args, output, style):
             if now >= deadline:
                 raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
+        report['exited_at'] = wall()
         early = getattr(args, 'allow_early_end', False)
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code'],
                                    allow_early_end=early))
