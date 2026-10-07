@@ -15823,3 +15823,17 @@ SHA-256 `40a9569e2538b1ec0361a8d5a4e66f4d50b2e1b06f2a12ae0bad5d15e8499372`.
 `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run714's, and the coverage driver reads its
 block 2869. `docs/AI.md` §169.
 
+## run718 — Great Sahara in the coverage pair's lobby: the word 2273's widening, blocks 2267..2523 (2026-10-07, item 1611, `att-1611`)
+
+**Disk gap**: run702 ends on block 2235, so no dump of this lobby held a unit, a building or a leader record at the word 2273's frame, which item 1611's builds (the merchant's quick collision, the founding capital's border bonus) moved the word to from 2206. Through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 2531 --timeout 3600 --log-window 2267 2524 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, the pool took lane 1, free at launch (12:55). Receipt `success`, 2532 frames, closing frame 2532, launch-to-exit 1,116.6 s, total 1,138.7 s, seed 12345 and map 7 verified, `settings_restored`. Output `~/ron-data/lab-captures/2026-10-07-run718`. `rngcmp.py rontrace-run676.log rontrace-run718.log`: **2532 frames in common, 0 differing**. 257 `FRAME` blocks, 2267..2523 (no closing block).
+Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run718-greatsahara-persian-alltech-window-2267-2524.txt`, 536,670,715 bytes,
+SHA-256 `4400f716c81b962f6072bc1a84199eb84a90713cfbfd02fe7138c271083faa67`.
+
+Archive `rontrace-run718.log`, 83,006,720 bytes,
+SHA-256 `a553afd1a02fbecbc543bed1f6c5d2b89d66eb7bdcd2e1892ca0f2fa2b67a425`.
+
+**What it holds**: `diff::sahara_coverage::run718_s_word_frame_is_widened_whole` — **737** keys parted on item 1611's tree, 66 standing on block 2267; the first parting past it is the Persian units' order lists on 2271 (`1/34`, kind 17 against 16). The word's block 2274 is inside it. The standing set holds the cause by value: the human's `treaties[1]` 3 against 1, Napata's buildings' `ever_seen` 255 against 1, `control` 0 against 14. It is the third map's `AI_WORDS` window (`sahara_coverage_word_window`), walked by the compared pin with run702's (`sahara_coverage_frame_1985_window` since), and the coverage driver reads its block 2274. `docs/AI.md` §171.
+
