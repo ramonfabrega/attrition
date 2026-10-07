@@ -17197,7 +17197,52 @@ admits a passenger is not read. A follow or a guard order names a unit in this c
 **Coverage.** Diff-backed: claims 1–3 and the disband on 1419 (run679, run710). Listing- and PE-backed: claim 4's filter arm
 and slot names, which the diff confirms on its one frame.
 
-## 163. Reserved for item 1589 (the coverage pair's word 1696)
+## 163. A transport keeps its tile goal across the regions, and the word at 1719 (2026-10-07, item 1589)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** Item 1588 left the coverage pair's word at **frame 1696, ours 41 game draws
+against 40, index 29**: ours `Unit::do_move+0xe84` (`1/52`), theirs `Objects::process_all+0x2df`. run710 (1527..1783) holds
+it whole. Each claim is *diff-backed* unless marked.
+
+1. **The draws, both sides** (run710's trace, `report.py draws 1696`; ours `RON_DEBUG_SITES`). Both sides spend the same 27
+   `Animal::think_bird`, two `Guy::move`, two bird `Objects::process_all`, five idle `Guy::inc_time` and four
+   `Farms::inc_time` draws in the same order; ours spends **one more**, `Unit::do_move+0xe84` — the grid draw a move pays when
+   `find_path` refuses its line — between the `Guy::move` pair and the birds. One parting, ours alone.
+2. **The unit** (run710's `GUY` block): `1/52` is `type` 322, **`TRANSPORTFREIGHTER`** — sea, born on 1529, carrying `1/40`
+   (`inside_down` 40), `unit_masks` 0x840008, under an `AttackTo` to (35256, 36936). Its first parted keys are on block 1686
+   (`run710_s_word_frame_is_widened_whole`, `RON_FIRSTS`): `path:length` 9 against 17, `path_recursion` 10 against 1,
+   `order:move.last_x/y` (42816, 37233) against −1, the heading; its position agrees through 1686 and parts on 1687.
+3. **The frame before** (run710's trace, frame 1685; block 1686). Both sides spend one grid draw `Unit::do_move+0xe84 <
+   do_attack_to` (seed `b30bf2d5`, 9775; `% 5` = 0, the 8-cell threshold), so the plan is the **near** arm and, with
+   `collide` 0, the tile grid. The original then runs `astar_path(step 192)` from tile (221, 191) to its top waypoint
+   (42168, 37704), tile (219, 196) — 63 proxied `calc_cost` calls — and takes the 7-entry plan: block 1686 holds the 17-entry
+   stack, `last` cleared. Ours made **no** `calc_cost` call for `1/52` on 1685 (`cost_marks` on a probe), popped the waypoint
+   and wandered west until the second grid draw on 1696.
+4. **Why** (a probe of ours' `find_tpath`; the listing). Ours' pull-back walk read `tregion_alt` 0 at the Freighter's own tile
+   and 12 at the goal's, stepped the goal home tile by tile, and returned the stack unchanged — a refusal. The original's walk
+   is gated (`PathFinder::find_tpath@006897d0`, listing `68994c`–`689960`): `cmp [type + 0x218], 2; jge 689aa6`, then `call
+   UnitData::can_transport@0046f960; test eax, eax; jne 689aa6` — the near test and the search. So the walk runs only for a
+   unit that is not an aircraft and **cannot transport**, the conjunction `find_upath`'s pre-walk has (`docs/PATHFINDER.md`
+   §18.1), not `find_wpath`'s. `can_transport` is `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, or the type's
+   `+0x2b4 & 0x10`; the Freighter's `unit_masks` carries 0x800000. *Listing-backed*; the diff confirms it on its one frame.
+
+**Built.** `Sim::find_tpath` (`crates/sim/src/path.rs`) runs its pull-back walk only when `unit_domain_of(u) != Air &&
+!unit_can_transport(u)` — `find_upath`'s own predicate. Unit test `path::tests::a_transport_keeps_a_tile_goal_in_another_region`:
+a goal two regions over is kept by a unit that can transport and walked toward its own region by one that cannot.
+
+**The value diff, and the word now.** run710 block 1686: `1/52`'s stack 17 entries in both, its top (42744, 36936) and
+`path_recursion` 1, `last` −1 in both; on 1685 ours' 63 `calc_cost` calls are the original's, call for call. No key of `1/52`
+parts in run710's window past its standing `form` on 1529 (pinned). **run710 478 keys → 360** (151 standing).
+`coverage_pair_first_parting`: **frame 1696 → 1719, count and sequence** — ours 15 game draws against 16, index 11: ours
+`Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. Inside run710 (block 1720). On the fixed tree the first unit to
+part past 1655 is `1/40`, the Freighter's passenger, on 1703 (`pos` (42648, 37176) against (42648, 37128): it comes ashore
+48 south of the original's spot), and on 1720 the original's `0/2000` holds `damage` 1560, `reduce_stamp` 1719 and
+`city_flags` 0xe that ours does not. Hypotheses for the item after, not a cause.
+
+**What else it moved.** Nothing measured: every other widening, floor and word holds (the suite below).
+
+**What is not established.** The gate's first half is read as this crate's `Domain::Air` — `+0x218 < 2` as `find_upath`'s
+reading has it; the helicopter test (`+0x2b4 & 0x20`) ahead of it is unchanged. Whether a land unit that can board (a citizen
+with a Dock on its side) now plans its tile leg differently across a region seam was not met in any walk the suite runs.
+
+**Coverage.** Diff-backed: claims 1–3 and the value diff (run710, run710's trace). Listing-backed: claim 4's gate, which the
+diff confirms on its one frame.
