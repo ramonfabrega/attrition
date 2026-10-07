@@ -442,6 +442,10 @@ pub struct Roles {
     pub troops_los_preq: [Option<TypeId>; 3],
     /// SUPPLY_WAGONS_1..3, bonus rows 79..81 (SUPPLY, "Upgrade speed").
     pub supply_upgrade_preq: [Option<TypeId>; 3],
+    /// `SPIES_UPGRADE_1..3`' prerequisites (rows 92–94, Tactics, Operations
+    /// and Strategy in the shipped file): `LeaderData::get_spy_upgrade`
+    /// counts the ones held.
+    pub spy_upgrade_preq: [Option<TypeId>; 3],
     /// The three ladders `ObjectData::train_time@006508c0`'s speed-upgrade
     /// step counts (`docs/PRODUCTION.md`, "The tail's first caller"):
     /// `SHIPS_FASTER_1..3`, `TROOPS_FASTER_1..3` and `VEHICLES_FASTER_1..3`,

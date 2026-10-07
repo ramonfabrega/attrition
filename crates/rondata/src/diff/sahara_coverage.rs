@@ -83,8 +83,13 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // time under Tactics — 2048 → **2077** → **2118** (count and sequence):
     // ours 22 draws against 20, index 5, ours `Guy::set_anim+0x97a <
     // Unit::do_move+0x11cf`, theirs `Object::take_damage+0xe1`.
-    count: 2118,
-    sequence: 2118,
+    //
+    // Landing 5 (`docs/AI.md` §160): a Spy's hit points, sight and speed
+    // climb with the Spy upgrades — 2118 → **2185** (count and sequence):
+    // ours 30 draws against 32, index 12, ours `Leader::make_stuff+0x63d`,
+    // theirs `Leader::produce_building+0x1805`.
+    count: 2185,
+    sequence: 2185,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -625,7 +630,7 @@ fn run702_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 487, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 317, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         117,
@@ -652,34 +657,50 @@ fn run702_s_word_frame_is_widened_whole() {
         Some(1980),
         "Persian city 1/2018's bordering parts on 1980"
     );
-    // Item 1584 (`docs/AI.md` §159): the unit `1/43` agrees past 2046 now
-    // (the danger map weighs an upgraded trainer at fifty, so its search is
-    // priced node for node); the word is **2118**.
-    pin_eq!(
-        w.firsts.get(&(1, 43, "pos".to_string())).map(|(f, _)| *f),
-        Some(2183),
-        "unit 1/43's position no longer parts on 2046, the word 2048's move"
-    );
-    // **The word 2118's value diff** (item 1584): the Spy `1/103` of Persian
-    // city `1/2030`, born on **2077** in both (a Spy trains in half the time
-    // under Tactics), parts on its first block, **2078**: `myhits` ours 15
-    // theirs 150, `mylos` 8 against 14, `myspeed` 21 against 36 (the Spy
-    // upgrades `SPY_UPGRADE_HP`/`_LOS` and the speed, not yet built); its
-    // path parts on **2104** (`order:move.dest`, 14 nodes against 13), and
-    // the draw on 2118 is the original's `Object::take_damage` where ours
-    // steps the Spy on (`Unit::do_move+0x11cf`).
-    for (key, frame) in [
-        ("myhits", 2078),
-        ("mylos", 2078),
-        ("myspeed", 2078),
-        ("order:move.dest", 2104),
+    // Items 1584 and 1585 (`docs/AI.md` §159, §160): the unit `1/43` agrees
+    // for the whole window now (the danger map weighs an upgraded trainer at
+    // fifty, so its search is priced node for node), and the Spy `1/103` of
+    // Persian city `1/2030`, born on 2077 (a Spy trains in half the time under
+    // Tactics), agrees in every compared field (its hit points, sight and
+    // speed climb with the Spy upgrades); the word is **2185**.
+    for (o, key) in [
+        (43, "pos"),
+        (103, "myhits"),
+        (103, "mylos"),
+        (103, "myspeed"),
     ] {
         pin_eq!(
-            w.firsts.get(&(1, 103, key.to_string())).map(|(f, _)| *f),
-            Some(frame),
-            "the Spy 1/103's first parting"
+            w.firsts.get(&(1, o, key.to_string())).map(|(f, _)| *f),
+            None,
+            "a unit the earlier words moved agrees in the window"
         );
     }
+    // **The word 2185's value diff** (item 1585): the draws agree to index 11
+    // and the twelfth is where the original places a building
+    // (`Leader::produce_building+0x1805`, 32 draws) where ours rolls
+    // `Leader::make_stuff+0x63d` (30). The dump parts first on **2183** at
+    // building `1/2034`'s queue (`queue[0].cost[0]` ours 816 theirs 927,
+    // `cost[1]` 965 against 1069: the same entry, priced 12 % dearer in the
+    // original), with the knowledge and oil buckets 111 and 104 apart; on
+    // **2185** the make list's row 8 (`t` 435 against 442, `val` 39981 against
+    // 80000 with `escrow` 1, `city` 5 against 1).
+    for (key, frame) in [
+        ("queue:queue[0].cost[0]", 2183),
+        ("queue:queue[0].cost[1]", 2183),
+    ] {
+        pin_eq!(
+            w.firsts.get(&(1, 2034, key.to_string())).map(|(f, _)| *f),
+            Some(frame),
+            "building 1/2034's queued entry is priced apart from 2183"
+        );
+    }
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[8].t".to_string()))
+            .map(|(f, _)| *f),
+        Some(2185),
+        "leader 1's make row 8 parts on 2185, the word"
+    );
     // **What parts first past the standing block.**
     let first = w
         .firsts

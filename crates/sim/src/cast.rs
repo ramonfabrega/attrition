@@ -201,6 +201,12 @@ impl Sim {
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
         let mut hits = self.type_hits(who, rec);
         let t = &self.unit_types[rec];
+        // A Spy's hit points are the upgrade table's entry, not the type's
+        // plus a term (`0060eb98`..`0060ebd8`, `docs/AI.md` §160).
+        if self.is_spy_type(rec) {
+            let level = self.spy_upgrade_level(who).clamp(0, 3) as usize;
+            hits = self.tuning.spy_upgrade_hp[level];
+        }
         let trader = matches!(t.type_index, 0x3d | 0x3e | 400)
             || t.cols.flag2(crate::ai_load::uflags2::CARAVAN);
         if trader

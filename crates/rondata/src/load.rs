@@ -1731,6 +1731,7 @@ pub fn load_tables(
     tree.roles.troops_speed_preq = [bonus_at(58), bonus_at(59), bonus_at(60)];
     tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
+    tree.roles.spy_upgrade_preq = [bonus_at(92), bonus_at(93), bonus_at(94)];
     // `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3`, rows 70–72 and
     // 73–75: the construction clock's and the hit points' levels
     // (`docs/AI.md` §121).

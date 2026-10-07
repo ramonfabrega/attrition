@@ -146,6 +146,12 @@ pub struct Tuning {
     /// Hit points a supply unit adds at supply-upgrade level 0..3
     /// (`Constants +0xcb4`, read by `Unit::update_hits`).
     pub supply_hp_upgrade: [i32; 4],
+    /// A Spy's hit points at spy-upgrade level 0..3 (`SPY_UPGRADE_HP`,
+    /// `Unit::update_hits@0060e930`: the table's entry **replaces** the
+    /// type's hits).
+    pub spy_upgrade_hp: [i32; 4],
+    /// Sight a Spy gains per spy-upgrade level (`SPY_UPGRADE_LOS`).
+    pub spy_upgrade_los: i32,
     /// Added to a supply or general radius by the Terra Cotta Army. Ships as
     /// zero: the wonder is wired in and contributes nothing.
     pub terra_cotta_range: i32,
@@ -970,6 +976,8 @@ impl Tuning {
         supply_radius: 14,
         supply_radius_upgrade: 2,
         supply_hp_upgrade: [0, 20, 40, 60],
+        spy_upgrade_hp: [15, 45, 90, 150],
+        spy_upgrade_los: 2,
         terra_cotta_range: 0,
         general_radius: 6,
         parmenio_radius_adjust: 384,
@@ -1296,7 +1304,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 356] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 358] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1365,6 +1373,8 @@ impl Tuning {
                 Slot::Value(T.supply_radius_upgrade),
             ),
             ("SUPPLY_HP_UPGRADE", Slot::Entries(&T.supply_hp_upgrade)),
+            ("SPY_UPGRADE_HP", Slot::Entries(&T.spy_upgrade_hp)),
+            ("SPY_UPGRADE_LOS", Slot::Value(T.spy_upgrade_los)),
             ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
             (

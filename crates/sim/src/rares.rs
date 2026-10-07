@@ -263,6 +263,11 @@ impl Sim {
                 speed = (self.tuning.versailles_units_move + 100) * speed / 100;
             }
         }
+        // The Spy's upgrades (`update_speed@006055c0:131`–`134`): a quarter
+        // of the speed per level, toward zero (`docs/AI.md` §160).
+        if self.is_spy_type(ty) {
+            speed += self.spy_upgrade_level(who) * speed / 4;
+        }
         if self.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
@@ -925,6 +930,57 @@ mod tests {
         assert_eq!(s.unit_hits(1, wagon), 90, "another leader");
         assert_eq!(s.unit_hits(0, general), 90, "a General is not a wagon");
         assert_eq!(s.unit_hits(0, other), 90);
+    }
+
+    /// **A Spy climbs with the spy upgrades** (`Unit::update_hits@0060e930`,
+    /// `update_los@0060e4d0` and `update_speed@006055c0`, item 1585,
+    /// `docs/AI.md` §160): at level 3 the Spy of Great Sahara's `1/103` is
+    /// 150 hit points (the `SPY_UPGRADE_HP` entry, not the type's plus a
+    /// term), sees two tiles more per level and walks a quarter faster per
+    /// level — 15, 8 and 21 at level 0 and 150, 14 and 36 at level 3 — and
+    /// a Citizen takes none of it. Made to fail with each term dropped.
+    #[test]
+    fn a_spy_climbs_with_the_spy_upgrades() {
+        let mut s = crate::Sim::new(Tuning::RON, World::new(20, 20), 2);
+        let mut tree = tech::TechTree::new();
+        let steps = [
+            tree.add(tech::TypeDef::plain("step one", 0)),
+            tree.add(tech::TypeDef::plain("step two", 0)),
+            tree.add(tech::TypeDef::plain("step three", 0)),
+        ];
+        while tree.types.len() < 0x3a {
+            tree.add(tech::TypeDef::building("pad"));
+        }
+        let spy_t = tree.add(tech::TypeDef::unit("Spy", tech::UnitTraits::default()));
+        let citizen_t = tree.add(tech::TypeDef::unit("Citizen", tech::UnitTraits::default()));
+        tree.roles.spy_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let ty = |t| crate::UnitType {
+            tree: Some(t),
+            hits: 15,
+            los: 8,
+            moves: 21,
+            ..crate::UnitType::default()
+        };
+        let spy = s.add_unit_type(ty(spy_t));
+        let citizen = s.add_unit_type(ty(citizen_t));
+        let mut unit = crate::Unit::new(0, 0, crate::Pos::new(1000, 1000), 40);
+        unit.ty = Some(spy);
+        let u = s.add_unit(unit);
+        assert_eq!(
+            (s.unit_hits(0, spy), s.unit_los(u), s.type_speed(0, spy)),
+            (15, 8, 21)
+        );
+        for step in steps {
+            s.gain_tech(0, step);
+        }
+        assert_eq!(
+            (s.unit_hits(0, spy), s.unit_los(u), s.type_speed(0, spy)),
+            (150, 14, 36)
+        );
+        assert_eq!(s.unit_hits(0, citizen), 15, "a Citizen takes none of it");
+        assert_eq!(s.type_speed(0, citizen), 21);
+        assert_eq!(s.unit_hits(1, spy), 15, "another leader");
     }
 
     /// **The walk, end to end.** One idle Fisherman on a fish: the rate is
