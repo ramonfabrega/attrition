@@ -1472,7 +1472,10 @@ impl Sim {
     /// SEAM: the non-nuke arm (a V2 or Cruise Missile at the head:
     /// `hits_left ≥ 500`, `damage + 1000`, a draw `% 10` for a city whose
     /// `city_flags & 2` is clear, and a third list of targets), which no
-    /// capture has reached; the forts' and wonders' loops (`650150`..
+    /// capture has reached (scan: `report.py <log> when Object::do_launch`
+    /// over the 351 `rontrace-*.log` on 2026-10-07: no draw from
+    /// `do_launch` in any — the arm's `% 10` roll is its only draw, so a
+    /// V2 at a silo's head over an unflagged city was never met); the forts' and wonders' loops (`650150`..
     /// `650544`), for which this crate keeps no list; the Armageddon
     /// counter (`Game +0x6e0`), which is not carried (`crate::nuke`), so
     /// the gate is read as open; and the friendly search's cell ring,

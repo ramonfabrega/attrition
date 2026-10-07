@@ -160,10 +160,13 @@ impl Sim {
     ///   before its start) is dropped, the last moved into its place;
     /// - on `t == NUKE_FRAMES` the original moves the Armageddon counter
     ///   (`Game +0x6e0`), which is not carried here: no dump prints it and
-    ///   nothing built reads it (the game's end at `get_armageddon` is not
-    ///   built; the no-reader ledger refuses a write nobody reads);
-    /// - while the ring lives ([`ring_radius`]), every unit that is active,
-    ///   on the map, not a nuke and not struck before by this effect, at
+    ///   nothing built reads it but the computer's silo strike, whose gate
+    ///   reads it as open (`Sim::silo_strike`'s SEAM; the game's end at
+    ///   `get_armageddon` is not built);
+    /// - while the ring lives ([`ring_radius`]), every unit of the eight
+    ///   players (`find_units`' last argument 1: `who < 8`, item 1591)
+    ///   that is active, on the map, not a nuke and not struck before by
+    ///   this effect, at
     ///   `vector_dist ≤ r` from the point, takes `Object::do_damage` of
     ///   [`struck_count`] when it is above 0 — `num_guys` 1, `ammo` −1,
     ///   `splash` 1, `quiet` 0 (`92c618`..`92c650`) — and every active
