@@ -700,6 +700,34 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **Who has ever seen it** (item 1563, parked 1450's ruling):
+        // `ever_seen` and `ever_seen_completed` (`Wall +0x62`/`+0x63`) are
+        // what first contact and a building's own reveal hang off
+        // (`docs/VISION.md` §6.1, §6.4), and the instrument left both
+        // uncompared until this — French East Indies parted on them for 236
+        // blocks before its word did, seen only by item 1446's own helper.
+        for (field, mine, theirs) in [
+            ("ever_seen", i64::from(ours.ever_seen), b.ever_seen),
+            (
+                "ever_seen_completed",
+                i64::from(ours.ever_seen_completed),
+                b.ever_seen_completed,
+            ),
+        ] {
+            let Some(theirs) = theirs else { continue };
+            r.build_compared += 1;
+            compared::note("BuildDump", &[field]);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         for (field, mine, theirs) in [
             ("x_internal", i64::from(ours.pos.x), b.pos.x),
             ("y_internal", i64::from(ours.pos.y), b.pos.y),
@@ -1492,6 +1520,27 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
                     format!("build {}/{} ({},{})", b.owner, b.index, b.pos.x, b.pos.y)
                 }
             });
+            // The group's cap, its accumulator, its pool slot and leader
+            // (item 1586): what `get_speed`'s last arm reads for a member.
+            let g = built.sim.army_group(w as u8, slot);
+            let leader = built
+                .sim
+                .group_find_leader(&g)
+                .map(|u| format!("{}/{}", built.sim.units[u].owner, built.sim.units[u].index));
+            let list: Vec<String> = g
+                .list
+                .iter()
+                .map(|&u| format!("{}", built.sim.units[u].index))
+                .collect();
+            eprintln!(
+                "  f{frame} army {w}/{slot} cap {}/{} pool {:?} march {} leader {:?} list [{}]",
+                a.group.speed,
+                a.group.new_speed,
+                a.group.pool,
+                a.group.march,
+                leader,
+                list.join(" ")
+            );
             eprintln!(
                 "  f{frame} army {w}/{slot} status {} target {:?} pos ({},{}) muster ({},{}) \
                  rally {} hurry {} units {} caps {} std {} [{}]",
@@ -3089,9 +3138,11 @@ pub(crate) mod tests {
         // **263,095 → 393,421 on item 661** — the `city` slot and the
         // `city_down` link, two more, none wrong (`docs/AI.md` §63).
         // **393,421 → 523,747 on item 763** — `damage` and `damage_frac`,
-        // two more, none wrong (parked 728).
+        // two more, none wrong (parked 728). **523,747 → 654,073 on item
+        // 1563** — `ever_seen` and `ever_seen_completed`, none wrong
+        // (parked 1450).
         assert_eq!(
-            builds, 523_747,
+            builds, 654_073,
             "the site and the clock on every linked building-frame"
         );
         assert!(
@@ -20834,7 +20885,9 @@ pub(crate) mod tests {
     /// is wrong on either, so every member chain agrees for 5,200 frames.
     /// **537,662 → 715,988 on item 763**, a building's `damage` and
     /// `damage_frac` (parked 728); nothing here is wrong on either.
-    const RUN58_BUILD_FIELDS: usize = 715_988;
+    /// **715,988 → 894,314 on item 1563**, `ever_seen` and
+    /// `ever_seen_completed` (parked 1450); nothing here is wrong on either.
+    const RUN58_BUILD_FIELDS: usize = 894_314;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

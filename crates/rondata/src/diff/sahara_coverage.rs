@@ -62,8 +62,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // **1830**: ours 3218 draws against 3219 at index 2, ours
     // `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a <
     // Unit::do_guard+0x7f4`.
-    count: 1830,
-    sequence: 1830,
+    //
+    // Merged with item 1586's build (an army's normalize puts its group's cap
+    // back to its leader's speed, `docs/AI.md` §161 — the writer of the cap
+    // reset item 1581 parked as 1582) the word moves again, 1830 → **1985**
+    // by the draw sequence and 2048 by the count: ours 16 draws against 16 at
+    // index 4, ours `Leader::produce_building+0x1805`, theirs
+    // `Leader::make_stuff+0x63d`.
+    count: 2048,
+    sequence: 1985,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -462,10 +469,15 @@ fn run683_s_word_frame_is_widened_whole() {
     // (`docs/AI.md` §157): the Persian supply wagon `1/67`'s `myhits` (150,
     // the type's 90 and `SUPPLY_HP_UPGRADE[3]`'s 60 — three standing keys:
     // `myhits`, `hits_left` and `hits:myhits`) and the caravan search that
-    // restarted each frame from 1817 (the other 18).
+    // restarted each frame from 1817 (the other 18). Item 1586 (on a tree
+    // without 1565's and 1581's): 1183 → 540, 159 → 151 standing — an army's
+    // normalize puts its group's cap back to its leader's speed
+    // (`docs/AI.md` §161); the merged tree's count is the union, measured:
+    // **182**, 148 standing.
+    pin_eq!(w.firsts.len(), 182, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
-        156,
+        148,
         "the keys standing on the window's first block"
     );
     // **The word 1582's value diff, block 1583** (items 1561 and 1565): the

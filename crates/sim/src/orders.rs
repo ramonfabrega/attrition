@@ -7345,11 +7345,10 @@ impl Sim {
     ///
     /// The filter itself is subsumed: a unit with a `BUILD_AT` action is
     /// one `FILTER_BUILDREPAIR` keeps. What is *not* subsumed is the
-    /// search's own reach, so the two paths are both here — and the list
-    /// path's region test is the searcher's cell region against the
-    /// candidate's, where the original indexes its cell grid with **tile**
-    /// coordinates (`div_3_table[pos >> 6]`, a `>> 8` everywhere else).
-    /// That arithmetic is not reproduced; it is a count that breaks ties.
+    /// search's own reach, so the two paths are both here — and on both
+    /// the region test is the candidate's own **tile** region against the
+    /// searcher's (`get_tregion` at `div_3_table[pos >> 6]`, a `>> 8`
+    /// everywhere else), read as [`crate::world::World::tregion_alt`].
     fn build_crowd(&self, u: usize, range: i32, sites: &[usize]) -> Vec<i32> {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
@@ -7374,17 +7373,27 @@ impl Sim {
             }
         };
         if circle.radius[ring] <= live {
+            // The circle walk (`find_units@0065a620`, the decompile's
+            // lines 50–125): every cell of the ring is walked, and the `0x200` region gate
+            // is **each unit's own tile region** against the searcher's
+            // (`get_tregion` at `div_3_table[pos >> 6]`), never the cell's.
+            // A builder carried at sea stands on the coastal cell's water
+            // and answers the sea region: run679's `1/24` on 1340, bound for
+            // the Mine `1/2028` as a barge, is not counted (`docs/AI.md` §155).
             let c0 = here.cell();
-            let region = self.world.region_of(c0);
+            let region = self.world.tregion_alt(here.tile());
             for i in 0..circle.radius[ring] {
                 let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
-                if !self.world.contains(c) || self.world.region_of(c) != region {
+                if !self.world.contains(c) {
                     continue;
                 }
                 let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
                 let mut next = self.chain_heads[slot];
                 while let Some(o) = next {
                     next = self.units[o].down;
+                    if self.world.tregion_alt(self.units[o].pos.tile()) != region {
+                        continue;
+                    }
                     tally(self, o, &mut counts);
                 }
             }

@@ -2441,6 +2441,12 @@ Four gates, and each is load-bearing.
 and it runs from `Group::add@00714350` (only when the group's `id` is not
 −1, which excludes every stack-local group), `Group::kill@00714110`,
 `Group::normalize@00711540` and `Group::clear@00713e80` (to zero).
+`normalize`'s is reached on every army's own phase too —
+`Army::process@006f93d0` normalizes the army every 128 frames, and
+`Army::normalize@006f9b50` normalizes each of its groups — which this
+crate's `army_normalize` did not apply until item 1586 (`docs/AI.md`
+§161): run679's army `1/0` walks at 25 to 1434 and at its leader's 47
+from it.
 
 That is not where a marching group's number comes from. Two more
 functions write the pair, and **both have zero callers in the
