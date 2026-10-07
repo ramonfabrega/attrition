@@ -187,7 +187,11 @@ fn run598_french_great_lakes_closing_state() {
     assert!(e.torn.is_empty());
     // Item 1477: `city_diverged` 8 → 4 (`1/2007`'s `filled` and `space[0..2]` agree once
     // the census circle starts at entry 1, `docs/AI.md` §122).
-    assert_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 4]);
+    // Item 1563: `build_diverged` 0 → 14, the shared instrument comparing
+    // `ever_seen` and `ever_seen_completed` (parked 1450): on the closing
+    // block the original's `1/2019`..`1/2025` carry player 0's bit too (3
+    // against ours' 2, and `1/2020`'s `ever_seen` 1) — a closing residue.
+    assert_eq!(e.counts(), [0, 0, 0, 0, 14, 0, 4]);
 }
 
 pub(super) fn incomplete_long(log: &Log<'_>) -> Vec<&'static str> {
@@ -1493,9 +1497,14 @@ fn run609_s_closing_frame_is_widened_whole() {
     // took 100 → 95). Fifteen `order:target` rows on 5633 (`1/9`..
     // `1/23`) were ours reading `None` for an attack on `0/2000`, a
     // building the link table lacks; named by `(owner, index)`, they agree.
+    // Item 1563: 80 → 94; the shared instrument compares `ever_seen` and
+    // `ever_seen_completed` (parked 1450), and on the closing block 5639
+    // the seven of player 1's buildings `1/2019`..`1/2025` read 3 in the
+    // original against 2 (`1/2020`'s `ever_seen` 1) — the closing residue
+    // `run598_french_great_lakes_closing_state` counts.
     pin_eq!(
         w.firsts.len(),
-        80,
+        94,
         "run609 closing residue, not whole-record parity"
     );
 }

@@ -2719,8 +2719,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
-    // `mining_size`, `construct_hits`, `ever_seen` and
-    // `ever_seen_completed` no site compares. `queue` registers here: a
+    // `mining_size` and `construct_hits` no site compares; `ever_seen`
+    // and `ever_seen_completed` are compared by the shared instrument
+    // since item 1563 (parked 1450's ruling). `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
     // site (`!active && flags & 4 == 0`, item 1086), and one stood on
     // 5974..5978; since item 1120 none does on run414's 6150..6154. **One
@@ -2743,8 +2744,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // merged with it `job_counter` is compared and off this pin again.
     (
         "BuildDump",
-        "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+        "cliff construct_hits flags max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),

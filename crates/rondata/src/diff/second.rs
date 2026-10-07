@@ -2755,7 +2755,8 @@ mod tests {
         // Item 1458: 258 → 254; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1481: 254 → 244; who=1's Tikal `MAKE[1]`/`[8]` 342150 → 684301 takes its `WONDER_VAL` 2, and the Pyramids and Colossus slots and their food and wealth `bucket` rows leave (`docs/AI.md` §124).
         // Item 1502: 193 → 165 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 163, "run594 record baseline");
+        // Item 1563: 163 → 177; the shared instrument compares `ever_seen` and `ever_seen_completed` (parked 1450), and on the closing block 18141 seven of player 1's buildings, `1/2056`..`1/2062`, read 3 in the original against 2 — the defeated human's bit, a closing residue.
+        pin_eq!(w.firsts.len(), 177, "run594 record baseline");
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
