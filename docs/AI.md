@@ -17786,7 +17786,9 @@ to (35375, 37892) under a half step — the item after's hypothesis.
 `cast_pack`'s own re-seat; no capture packs a machine gun.
 
 **Coverage.** Diff-backed: claims 1, 2, the `0x1e` arm of 3, 4's machine-gun and MLRS arms, 5. Export- and
-listing-backed: 3's `0x46` arm and 4's Howitzer and Katyusha arms, held by the unit tests.
+listing-backed: 3's `0x46` arm, 4's Howitzer and Katyusha arms, and 5's re-seat — which no walk holds, since run715's
+unpacked crew has no track and stands on guy 0 either way — held by the unit tests
+(`anim::tests::an_unpack_puts_a_tracked_crew_figure_on_its_new_offset` for the re-seat).
 
 ## 171. Reserved for item 1611 (Great Sahara's coverage word 2206)
 
