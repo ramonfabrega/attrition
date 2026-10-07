@@ -143,9 +143,15 @@ class ThePool(unittest.TestCase):
             self.assertEqual((a['lane'], b['lane'], c['lane'], built), ('1', '2', '3', [3]))
         shutil.rmtree(self.root / 'ron-capture-lane-3')
         failed = []
+        def fails(n):
+            failed.append(n)
+            # A loop is a failure here, not a hang.
+            if len(failed) > 3:
+                raise AssertionError(f'lane {n} rebuilt {len(failed)} times')
+            return False
         with patch.dict(os.environ, RON_LANES_MAX='3'), runner.pool_lane(0), runner.pool_lane(0):
             with self.assertRaises(BlockingIOError):
-                with runner.pool_lane(0, build=lambda n: failed.append(n) or False):
+                with runner.pool_lane(0, build=fails):
                     pass
         self.assertEqual(failed, [3])
 
