@@ -751,6 +751,17 @@ fn run678_s_word_frame_is_widened_whole() {
         0,
         "1/26 agrees in every compared field"
     );
+    // **Where the next word starts** (item 1552): the scout `1/0` walks to
+    // (24312, 26616) on both sides through block 1200; on 1201 the
+    // original's is bound for the goody cell (38, 34)'s centre, (29592,
+    // 26520), with a path of 3 — the box it takes on 1277.
+    pin_eq!(
+        w.firsts
+            .get(&(1, 0, "orders_x".to_string()))
+            .map(|(f, _)| *f),
+        Some(1201),
+        "the scout 1/0 turns for the goody on block 1201 in the original"
+    );
 }
 
 /// run679, item 1552: the lobby's blocks 1272..1528 at the long's detail —
@@ -784,5 +795,31 @@ fn run679_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    pin_eq!(w.firsts.len(), 0, "initial run679 baseline");
+    // **608** on the tree item 1552 landed; 136 stand from the window's
+    // first block.
+    pin_eq!(w.firsts.len(), 608, "initial run679 baseline");
+    // **The word, 1277** (`docs/AI.md` §151): the original spends five
+    // `Unit::explore_goody+0x27c` draws — the scout `1/0` (`TypeIndex` 77)
+    // stepping into cell (38, 34) — where ours spends none. `1/0` stands
+    // apart from the window's first block: (29065, 27134) in ours against
+    // (29060, 27038), its move bound for (24312, 26616) in ours and the
+    // goody cell's centre (29592, 26520) in the original since frame 1200
+    // (run678's block 1201). The first parting past the standing block is
+    // on the word's own block, `1/28`'s group id.
+    pin_eq!(
+        w.firsts.get(&(1, 0, "pos".to_string())).map(|(f, _)| *f),
+        Some(1272),
+        "the word's scout 1/0 stands apart from the first block"
+    );
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 1272)
+        .min();
+    pin_eq!(
+        first,
+        Some(1277),
+        "the first parting past the standing block"
+    );
 }

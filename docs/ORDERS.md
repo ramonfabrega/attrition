@@ -1508,14 +1508,7 @@ is pre-empted); then `add_build_order(o, who, QUEUE_LAST, action)` (or
 
 Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
 swarm is a **re-entry that halts the group first**; a barge or a carried unit
-has its footprint substituted — **the ring's seeker type**, read from the
-listing (`00710238`–`0071039e`, item 1552, `docs/AI.md` §151): a citizen
-(`is_peasant`) swarming a **water** building (`is_wallbuild`, `domain` 1, not
-`is(DOCK)`) under a leader at `can_transport ≥ 3` searches as
-`current_upgrade(TRANSPORTBARGE)`, so the ring takes water; a member carrying
-citizens swarming a **land** building searches as its `inside_down`
-passenger's type (a `SEAM` in `Sim::swarm_seeker_type`); every other member as
-its own; the scratch group closes with an
+has its footprint substituted (built: `docs/AI.md` §151); the scratch group closes with an
 `action_move_to`; and the members' spots deconflict **through
 `find_nearby_spot`'s own occupancy test**, not through any geometric
 spreading — which is why two builders never need a formation.
