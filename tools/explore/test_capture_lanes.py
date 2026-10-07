@@ -5,10 +5,9 @@ capture writes, so a second lane is a second of each, chosen by
 `RON_CAPTURE_LANE` (`tools/gamelog/lanes.sh`). What fails without the
 second lane: `winelaunch.sh` launched every game into `~/wine-ron`;
 `live_session.require_closed` refused while **any** game ran, so a lane-1
-capture could never start beside a lane-2 one; and `viadriver.sh`'s
-LaunchServices launch dropped the caller's environment, so the variable
-reached no runner. Never launches a game: the closed-game check reads a
-canned `ps` and `lsof`.
+capture could never start beside a lane-2 one; and the runner would
+stage a lane-2 capture into whatever profile it was handed. Never
+launches a game: the closed-game check reads a canned `ps` and `lsof`.
 """
 import os
 import subprocess

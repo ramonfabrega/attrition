@@ -59,11 +59,11 @@ echo "log: $log"
 # `tools/explore/test_viadriver.py` launches a fixture bundle twice.
 #
 # **The capture lane rides along in the arguments** (parked 1139, item
-# 1567): a LaunchServices launch inherits launchd's environment, not this
-# shell's, so `RON_CAPTURE_LANE=2` reached nothing. The program RonDriver
-# spawns is `env` with the lane as its first argument, so the lane is in
-# the log's `args` line and no launch path can drop it. Nothing else
-# rides: the lane is the one variable a caller sets.
+# 1568): the program RonDriver spawns is `env` with the lane as its first
+# argument. `open` on this macOS does hand the app the caller's
+# environment (measured, 2026-10-07), so this is not what makes the lane
+# arrive — it is what puts the lane in the launch's own argv, where `ps`
+# reads it, and keeps it from depending on that.
 lane=()
 [ -n "${RON_CAPTURE_LANE:-}" ] && lane=(/usr/bin/env "RON_CAPTURE_LANE=$RON_CAPTURE_LANE")
 open -n -a "$APP" --args "$W" "$log" "${lane[@]}" /bin/zsh "$script" "$@"

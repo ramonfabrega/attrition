@@ -2949,9 +2949,10 @@ repo; nothing of lane 1 is written.
   own); another lane's game is let be, and one in this prefix — or one no
   lane accounts for, a human's — still refuses. Measured on run684's live
   game: lane 1's check passed, lane 2's refused.
-- **`viadriver.sh` carries the lane in the arguments**: LaunchServices
-  hands RonDriver launchd's environment, so the variable reached nothing;
-  the spawned program is `env RON_CAPTURE_LANE=2 zsh …`. And **its log is
+- **`viadriver.sh` carries the lane in the arguments**: the spawned
+  program is `env RON_CAPTURE_LANE=2 zsh …`, so the lane is in the
+  launch's argv; `open` does pass the caller's environment on this macOS
+  (measured), so this records the lane rather than rescuing it. And **its log is
   named by the second and the pid**: by the second alone two launches made
   together — run685 and run686, 00:26:35 — would have written one log, and
   each waiter read both receipts.

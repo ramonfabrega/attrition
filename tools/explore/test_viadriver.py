@@ -96,20 +96,26 @@ class Viadriver(unittest.TestCase):
         self.assertIn(str(second), text)
 
     def test_two_launches_in_one_second_have_two_logs(self):
-        # Item 1567: the log was named by the second, so two capture lanes
+        # Item 1568: the log was named by the second, so two capture lanes
         # started together shared one, and each waiter read both receipts.
-        first, second = self.launch(), self.launch()
+        # `date` is pinned so the two launches share a second every time.
+        bin_ = self.root / 'bin'; bin_.mkdir()
+        (bin_ / 'date').write_text('#!/bin/sh\necho 20261007-002635\n'); (bin_ / 'date').chmod(0o755)
+        path = f"{bin_}:{os.environ['PATH']}"
+        first, second = self.launch(PATH=path), self.launch(PATH=path)
+        self.assertIn('20261007-002635', first.name)
         self.assertNotEqual(first, second)
 
     def test_the_capture_lane_reaches_the_runner(self):
-        # Parked 1139, item 1567: LaunchServices hands the bundle launchd's
-        # environment, so `RON_CAPTURE_LANE=2` reached no runner without
-        # `open --env`, and a lane-2 capture would have run on lane 1.
+        # Parked 1139, item 1568: the lane is in the launch's argv — the
+        # log's `args` line — and in the spawned program's environment.
         log = self.launch(RON_CAPTURE_LANE='2')
         deadline = time.time() + 10
         while time.time() < deadline and 'lane: ' not in (log.read_text() if log.exists() else ''):
             time.sleep(0.2)
-        self.assertIn('lane: 2', log.read_text() if log.exists() else '')
+        text = log.read_text() if log.exists() else ''
+        self.assertIn('lane: 2', text)
+        self.assertIn('/usr/bin/env RON_CAPTURE_LANE=2 /bin/zsh', text)
 
 
 if __name__ == '__main__':
