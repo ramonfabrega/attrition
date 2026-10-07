@@ -113,3 +113,12 @@ file; each one is a ten-minute read of the code the row names.
   Indies block 8369 (run98), and 870 built it on that chain. Its twelve
   floors are among 870's re-pins (`docs/GROUPS.md` §29,
   `docs/journal/2026-09-26-item-870.md`).
+
+## Re-booked under another number, 2026-10-07
+
+- **1631** dropped, re-booked as 1639: Great Sahara's coverage word at
+  frame 2323, booked by the
+  commander in the drain (`b1d12c5e`). The twenty-seventh pass, with
+  Ramon, re-booked the same word as **1639**, the re-race: three racers
+  on one brief, one session a landing, the roster decided on its score
+  (`docs/DECISIONS.md` entry 64, amended). Nothing landed under 1631.

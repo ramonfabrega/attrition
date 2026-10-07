@@ -4735,8 +4735,15 @@ that `ccc rm` on a row launched with `--cwd` drops the row alone — a
 tree goes only when the job file names one (a `--worktree` spawn) or
 the branch carries `ccc-cut` — so the four archived rows on this
 worktree were removed by the pass, the tree, branch and target intact,
-and a `ccc forget` that enforces the rule is on ccc's side; the lore
-session has the spawn-telemetry gap (1618). The lane count is five
+and `ccc forget <ref>` (ccc 0.1.39, cut the same evening) enforces
+the rule — it refuses a live row and any tree the harness or ccc cut.
+The lore session verified the spawn-telemetry gap (1618) and found its
+cause upstream: harness 2.1.285 writes no completion record for a
+subagent's tool-using requests, so a swarm's price cannot be read from
+its files at all on this version — the sweep trial's 3.68 and 5.23 are
+floors that do not close — and the parent's `subagent_tokens` is the
+last request's context size, not a bill. The re-race (1639) runs in
+main-thread sessions and is priced soundly. The lane count is five
 sessions plus the sweep for the race's length, Ramon's call past rule 5.
 
 **The estimate, written down to be wrong on record**: twenty landings on

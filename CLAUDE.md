@@ -621,10 +621,11 @@ measured it, 2026-10-07, `docs/DECISIONS.md` entry 64 (iv)) when the
 target's tree is committed at the arm and at the fire, the target is at
 `tempo=idle`, and ccc.app or a headless attach is serving; the session
 uuid changes and the name, model and bridge id stay. A stray row is
-dropped with `ccc rm <ref>`, which takes a worktree only from a
-`--worktree` spawn — a `--cwd` row loses the row alone (parked 1541:
-four stale rows stood for a day and the twenty-seventh pass removed
-them that way). One of the two is
+dropped with `ccc forget <ref>` (ccc 0.1.39), which keeps the worktree
+and branch and refuses a row that still has a process (`ccc stop`
+first) or a tree the harness or ccc cut — those are `ccc rm`'s (parked
+1541: four stale rows stood for a day and the twenty-seventh pass
+removed them). One of the two is
 live at a time and only the live one edits the worktree; the `attrition`
 row is the user's, where a steer with the user happens, and it edits
 nothing there while a commander's lanes are out.
