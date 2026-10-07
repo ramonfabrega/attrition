@@ -17599,10 +17599,28 @@ spot fresh, and no capture has been read for it. The rival end — clearing the 
 farther than `coll_size` from the spot — differs only for a landing within `2·coll_size + 1` cells of the boarding point,
 which no capture here has.
 
-## 167. Reserved for item 1600 (Great Sahara's coverage word 2185)
+## 167. A rival's border marks a city `bordering`, a spent nuke and Uranium price the ICBM, and the word at 2206 (2026-10-07, item 1600)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run702's blocks 1979..2235 (the word 2185's block 2186 is inside), a scratch probe of ours' price and offer terms on 2180–2185, and the listings `TypeData::get_cost@00664090` (`:416`–`420`, `:546`), `LeaderData::get_support_count@006da110`, `World::compute_reg_territory@006b0bb0` (`:92`, `:595`–`607`) and `Leader::create_buildings@006c1be0` (`:324`, `:821`–`841`). No new capture.
+
+**The race's re-check (1578).** The Opus racer's rule — a lobby starting at technology 8 caches a Military `preq[1]` unit's `military_level` as 0 — **is already in this tree**: item 1583 built it independently (`TechTree::military_level_in`, §158 mechanism 2), the same rescale (`age < start` drops the epoch; otherwise `0x23b + ((0x1c / (end − start + 1)) · (age − start + 1) + 3) / 4`, clamped), and the race's "not in the Sonnet chain" was a misreading of §158. The dump agrees: ours' 1 % is on every military price, and the first parting was a price 12 % dearer, not 1 %. Nothing was carried from `e0169bd9`.
+
+**The word 2185's first parting, 2183.** Building `1/2034`'s queue holds a second ICBM (`TypeIndex` 316; the first stands at `1/2017` at 742/891, 99 % of 750/900): the original 927/1069, ours 816/965. Two terms, solved from the pair — 927/0.99 = 937 = 750 · 95 % + 225 and 1069/0.99 = 1080 = 900 · 95 % + 225 — and each read:
+
+- **The ramp counts spent nukes twice.** `get_support_count` adds `nukes_used` for `0x13b` and `0x13c` by index, and `get_cost:546` adds the field again for any type `is(0x13b)` (the ICBM's `FROM` is the Nuclear Missile, `0x13b`; probed). One queued ICBM and one spent nuke make count 3, 225 on each support slot (`Oil 75`, `Knowledge 75`), where ours counted 1. Built: `Sim::nuke_ramp_extra` (`lib.rs`), in `price_with`'s count. The matching `missiles_used` (the two missile types below the nuke) is not tracked.
+- **Uranium takes `URANIUM_NUKE_COST` (5 %) off the scaled base** of a type of the nuke's line, in the pre-ramp tail (`get_cost:416`–`420`; `rare` bit `35 − 6 = 29`, byte 3 bit 5). The Persians hold it from between 1985 and 2182 (`rares_collected[29]`). Built: `Modifiers::uranium`, `Sim::uranium_discount`, `Tuning::uranium_nuke_cost` (`rules.xml` `5%`), `economy::URANIUM`.
+
+**The word 2185 itself, 2185.** With the price agreed the make list's row 8 still parted: the original lists a **Bunker** (`TypeIndex` 442, `val` 80000, `escrow` 1, city 1) where ours listed the Library (435, 39981, city 5). Ours' Bunker for the city was 8000 — ten times less. `create_buildings:821`–`841`: for a Tower- or Fort-line type, `CityData.bordering == 0` leaves a tower as it is (a fort `/ 100`) and **any `bordering` ≠ 0 multiplies by 10**; the Temple arm multiplies by 100 (`:324`). The dump's `bordering` of Persian city `1/2018` is 3 (bits 1 and 0) from 1980 and ours read 0 — §76.4's `compute_reg_territory` clears it, and this is its other half. **`compute_reg_territory` sets it** per cell it writes: the winner `local_14` and the runner-up `local_24` (both players, the winner's claim a *city* — `local_1c` ≥ 0, a fort's win clears it) and `leaders[a].diplos[b] == 0 || leaders[b].diplos[a] == 0` (at war either side): the winner's city takes `1 << a | 1 << b`. Every land region's first call (resume index 0) clears every city's `bordering` before its budget test, so the last region started keeps it. Built: `territory::compute_all_territory_won` (the winning city per cell), `Sim::territory_won`, `BorderPass::won`, `Sim::mark_bordering`, `clear_bordering` and `wholesale_bordering` (`border_pass.rs`); read by `building_value`'s tower, fort and temple arms.
+
+**The move.** The word **2185 → 2206** (count and sequence): ours 14 draws against 16, index 3 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Run702's keys 317 → 258 on the merged tree (with 1605's human sweep); the coverage pair's windows lose keys (run710 138 → 134, run711 130 → 124, run714 162 → 154, run715 6302 → 6299; its word does not move) and chapter forty-eight's pin loses `656 1/2000 city:bordering`.
+
+**The value diff beside the word 2206.** Persian unit `1/38` parts first on **2205**: its move order's destination `x` 40920 against 40728, `y` 1944 against 1752 (the offsets `off_x` 216 against 24, `off_y` 408 against 216); on 2206 its order kind (14 against 1), its order count (1 against 2), its path (0 nodes against 1) and its heading; on 2207 `pos` (41016, 2040) against (41016, 2016). No mechanism claimed.
+
+**What is not established.** The `0x1000` flag the same cell write sets (a cell within four cells of the city, `:608`–`:613`) and its readers (the tower arm ×2 or ×10, the temple arm) are not modelled — no city in the window carries it (`city_flags` 145, 1, 129). `produce_building`'s placement scoring multiplies a site's score by 10 in a bordered city inside `circle_radius[3]` (`:570`–`:576`) and is **not built**: ours does not read `bordering` there. Whether the ICBM's `FROM` is the Nuclear Missile in the data — probed `true` here — agrees with `get_nukes`' count (§158 says the ICBM's `FROM` is none; the probe says it is `0x13b`).
+
+**Mutations** (`tools/mutate.py`, scored by cargo's exit): the nuke line's term, held by `run702_s_word_frame_is_widened_whole` and `a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off`; Uranium's 5 %, held by the widening; the tower arm's ×10, held by the widening; the war test, **held by the unit test alone** (both players are at war throughout the capture, so the peace arm is unreached); the region clear, held by the unit test; the temple arm's ×100, **no walk holds it** (the first mutation failed nothing) — held now by `a_temple_in_a_bordered_city_is_worth_a_hundred_times`.
+
+**Coverage.** Diff-backed: the ICBM's two terms (927/1069 on 2183, the buckets 111 and 104 apart), `bordering` on `1/2018` and the Nubian city, the Bunker's offer. Reading-only: the temple arm, the war test's peace branch, the fort arm's `/100`.
 
 ## 168. A building's close flags its cell for the placement AI, and the word at 2296 (2026-10-07, item 1602)
 
@@ -17711,6 +17729,11 @@ capture holds a human with computer assist, and no walk would hold the gate's re
 below).
 
 ## 170. Reserved for item 1608 (the coverage pair's word 2868)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
+
+## 171. Reserved for item 1611 (Great Sahara's coverage word 2206)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.

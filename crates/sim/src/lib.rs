@@ -1262,6 +1262,11 @@ pub struct Sim {
     /// [`border_pass`]): the owners a fix computed and every region's resume
     /// index. `None` once every land region is done.
     pub border_pass: Option<border_pass::BorderPass>,
+    /// Per cell (row-major), the city whose claim [`Sim::recompute_territory`]
+    /// last found winning it, `−1` for none or a fort's — `compute_reg_territory`'s
+    /// `local_1c`, which names the city a runner-up marks `bordering`
+    /// (`docs/AI.md` §167).
+    pub territory_won: Vec<i32>,
     /// `GoodData::ever_seen` (`+0x20`), the bits `World::compute_reg_territory`'s
     /// per-cell goods scan sets beside `Leader::new_rare` (item 1555,
     /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
@@ -1705,6 +1710,7 @@ impl Sim {
             wonders_built: 0,
             borders_fixed: false,
             border_pass: None,
+            territory_won: Vec::new(),
             good_seen_bits: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
@@ -2124,17 +2130,20 @@ impl Sim {
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
+        let uranium = self.uranium_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 discount,
                 stable_rares,
+                uranium,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
                 discount,
                 stable_rares,
+                uranium,
                 ..cost::Modifiers::default()
             },
         };
@@ -2152,6 +2161,52 @@ impl Sim {
             .and_then(|d| d.where_)
             .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
             .map(|b| b.ident)
+    }
+
+    /// `TypeData::get_cost@00664090:416`–`420`: a type of the Nuclear Missile
+    /// line (`is(0x13b, 0)`) takes `URANIUM_NUKE_COST` off the scaled base
+    /// when the player holds Uranium — one more arm of the pre-ramp tail,
+    /// on the train and the research arm alike. Great Sahara's Persians
+    /// collect it between frames 1985 and 2182; their second queued ICBM
+    /// (`1/2034` on 2183) is priced 927/1069 for it (`docs/AI.md` §167).
+    pub fn uranium_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM) {
+            self.tuning.uranium_nuke_cost
+        } else {
+            0
+        }
+    }
+
+    /// `is(0x13b, 0)` on a unit record's type: the Nuclear Missile's line.
+    fn is_nuke_line_type(&self, ty: usize) -> bool {
+        self.unit_types[ty].tree.is_some_and(|t| {
+            t == airbase::NUCLEARMISSILE
+                || (t < self.tech_tree.types.len()
+                    && self.tech_tree.is(t, airbase::NUCLEARMISSILE, false))
+        })
+    }
+
+    /// What `get_cost`'s ramp counts beyond `num_units + num_queued`
+    /// (`LeaderData::get_support_count@006da110` and `get_cost:546`): the
+    /// leader's **`nukes_used`**, once for the two types the support count
+    /// names by index (`0x13b`, `0x13c`) and once more for any type of the
+    /// Nuclear Missile's line — so a spent nuke makes the next missile
+    /// dearer forever, and an ICBM twice over (`docs/AI.md` §167). The
+    /// matching `missiles_used` term (`0x139`, `0x13a`) is not modelled: no
+    /// capture prices one after a launch.
+    fn nuke_ramp_extra(&self, who: Player, ty: usize) -> i32 {
+        let Some(t) = self.unit_types[ty].tree else {
+            return 0;
+        };
+        let used = self.nukes.used_of(who);
+        let mut extra = 0;
+        if t == 0x13b || t == 0x13c {
+            extra += used;
+        }
+        if self.is_nuke_line_type(ty) {
+            extra += used;
+        }
+        extra
     }
 
     /// `TypeData::get_cost@00664090`'s Horses and Rubber arm, in the
@@ -2437,7 +2492,10 @@ impl Sim {
         // ramp reads only the first of the two arrays; see
         // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
-            of_type: muster.by_type[ty] + muster.queued_by_type[ty] + self.worker_support(who, ty),
+            of_type: muster.by_type[ty]
+                + muster.queued_by_type[ty]
+                + self.worker_support(who, ty)
+                + self.nuke_ramp_extra(who, ty),
             of_group: unit
                 .group
                 .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
@@ -4859,7 +4917,22 @@ impl Sim {
     /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.players.len()).expect("too many players");
-        territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);
+        let by_source = territory::compute_all_territory_won(
+            &mut self.world,
+            &self.tuning,
+            &self.sources,
+            players,
+        );
+        let mut city_of = vec![-1; self.sources.len()];
+        for (c, city) in self.cities.iter().enumerate() {
+            if let Some(si) = city.source.filter(|&si| si < city_of.len()) {
+                city_of[si] = c as i32;
+            }
+        }
+        self.territory_won = by_source
+            .into_iter()
+            .map(|si| usize::try_from(si).map_or(-1, |si| city_of[si]))
+            .collect();
     }
 
     /// Records the stream's word *before* the phase named runs, so the

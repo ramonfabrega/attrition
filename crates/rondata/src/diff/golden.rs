@@ -13869,7 +13869,6 @@ const WANT_CH48: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "656 1/2000 city:bordering",
     "935 0/-1 leader:treaties[1]",
     "935 1/-1 leader:treaties[0]",
 ];

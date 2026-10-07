@@ -462,9 +462,11 @@ pub struct CityAi {
     pub dock_tile: i32,
     pub space: [i32; 3],
     pub ter: [i32; RESOURCES],
-    /// `CityData::ocean_filled` (+0x66) and `bordering` (+0x65): zeroed
-    /// by the sweep, read by the site score and the dock family; no
-    /// writer is modelled yet.
+    /// `CityData::ocean_filled` (+0x66): zeroed by the sweep, read by the
+    /// dock family; no writer is modelled yet. `bordering` (+0x65) is
+    /// written by the border pass ([`crate::Sim::advance_border_pass`], item
+    /// 1600): the winner's and the runner-up's player bits, on the winning
+    /// city of a cell whose runner-up is at war with its owner.
     pub ocean_filled: i32,
     pub bordering: i32,
 }
