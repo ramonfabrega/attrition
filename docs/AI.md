@@ -17114,17 +17114,21 @@ keys **863 → 842**.
 all one cause, the supply wagon `1/67`'s heading, which parted before the window opened. Its steps agree with ours to 1562 and **1563's is the original's, 43.6 long, against
 ours' 40.8** (run700, `1/67`'s positions every frame from its birth on 1541): the wagon walks at the group's cap, and the cap — `GROUPDATA` id 66's `speed`/`new_speed`, which run701
 prints for 1550..1606 — is `(47, 40)` at the end of 1563 in the original and `(40, 40)` in ours. It is the one frame; the pair before and after agrees with ours' on every
-frame of the window but that one. **A reset to the leader's own speed ran before the group's leader (`1/60`) reported on 1563**: `Groups::process`' slot cursor at `f + 39` mod 64 would
-be one reading (it fixes the 276 keys, `RON_CURSOR_K=39` in a scratch tree, and the word stays 1818), a writer this crate does not model (`equals_group`'s `normalize` on a push,
-`find_nearby_target`'s on a find) another; run120's reading (`docs/GROUPS.md` §19) put the cursor at `f mod 64`, which the dump's other resets cannot yet date here. It moves no draw until
-1823 and is **parked** in the journal (1582). What did land from it: the wagon's hit points.
+frame of the window but that one. **A reset to the leader's own speed ran before the group's leader (`1/60`) reported on 1563** — and 1563 is `1562 + 1`: `Army::process@006f93d0`'s periodic `normalize` for player 1's army 0
+(`frame ≡ 26 mod 128`, 1562, §161), which item 1586 built on the integration branch the same hour and which this lane met at its `ccc update`. **With it merged the 276 keys are gone** (run683's keys 842 → 182 on the
+union) and the word on the merged tree is no longer 1830. (A scratch `Groups::process` cursor at `f + 39` also fixed the 276 keys and the wagon, and was **wrong**: the same wagon steps, a different writer. It moved no draw
+either way until 1823.) What this lane's own capture added: the wagon is the cap's only witness in this lobby (a unit with an action order is not capped), and `GROUPDATA` id 66's pair on every frame of 1550..1606 (run701)
+— `(47, 40)` at the end of 1563 — is the dump that dates the writer. What did land from the walk back: the wagon's hit points.
 
 **Supply upgrade hit points.** `Unit::update_hits@0060e930`'s last term: a supply unit adds `supply_hp_upgrade[get_supply_upgrade]` (`Constants +0xcb4`, `[0, 20, 40, 60]` in `rules.xml`),
 the count of the three upgrade prerequisites its leader holds. The wagon is 90 + 60 = **150** at All Technologies; ours was 90 on every wagon — three keys parted on every window with a
 wagon, run683's and the Toughest and French East Indies' (twelve pins re-pinned, −3 each). Built: `Sim::unit_hits`' tail and `Tuning::supply_hp_upgrade`.
 
+**The merged tree's word.** Item 1586's build and this one together: the word is **1985** by the draw sequence (count 2048): ours 16 draws against 16, index 4, ours `Leader::produce_building+0x1805`, theirs
+`Leader::make_stuff+0x63d` — past run683's last block (1833), widened on run702 (§158's item).
+
 **What is not established.** A supply upgrade gained mid-game does not re-read the wagons already out (`update_hits` runs on a tech gain in the original; this crate's refresh is the
-Citizen's only). The reset's mechanism on 1563 (above).
+Citizen's only).
 
 **Mutations** (`tools/mutate.py`): the flag left set — held by `a_restart_consumes_the_reset_flag` and `run683_s_road_searches_hold_node_for_node`; the wagon's term dropped — held by
 `a_supply_unit_adds_the_supply_hp_upgrade` and `run683_s_word_frame_is_widened_whole`.
