@@ -2808,23 +2808,6 @@ tests that share a window is the second half, with the memory cap's
 headroom measured first. And the commander's booking gate is still the
 whole gate where the merge added nothing the lane's had not seen. **The twenty-first pass**: by `tools/tranche.py` the suite's wait went 12.9 → 15.2 minutes a landing and the gate's 16 → 40 — a landing gates twice (parked 1316); the second half is not built. **The twenty-second pass**: the suite 15.5 minutes a landing and the largest class, 102 of 1330's a re-pin by scratch scripts (1349); not built. **The twenty-third pass**: the suite 12.4 minutes a landing without 1398's sleep, still the largest class; not built. **The twenty-fourth pass**: on the sequential arm the suite waited 8.1 minutes a landing, the gate 10.6 and a capture 11.1 (`tools/tranche.py --session 3be1ab53`); not built. By DECISIONS 61 §5 the waiting is what bounds a lane, so the second half — and a lane gate that replays its own word and a sample of the rest — is the next pass's first build. **The twenty-fifth pass, measured** (`tools/tranche.py`, twenty workers): the suite waited **22.1 minutes a landing**, the largest class, the gate 18.0, a capture 19.0 and `other` 18.3; a landing waited 77.5 against 50 on the last three-lane Opus tranche, and rule 5 took a lane away on it. Not built, and the shape of the build is now read: `gamelog::Log::parse` borrows its text, so a parse kept between tests needs an owned text first, and `capture::read` — one function, 332 callers — is where a shared text would go; the next pass measures that half on one release suite before the parse half is designed. **The twenty-sixth pass**, the second half built: `capture::read` returns `Arc<str>` and shares a text between the callers that hold it at once, keyed by path, length and modification time, held weakly so the suite's peak is what the callers hold; `RON_READ_STATS` counts the shares. **Measured** (`docs/audit/2026-10-06-fable-pass-26.md`, "What the gate said"): 653 s → 641 s on the rondata suite at four threads with two thirds of its 2,127 reads shared, and memcap's peak 16,166 → 11,973 MiB once the handle stopped copying — the read is no longer where the seconds go, and the peak now has headroom for a thread. Stays, for the parse and the compare, which the next measure samples.
 
-(1139) **The capture lane is one prefix, one install and one profile**
-(the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
-`game/`'s `rontrace.cfg`, `.cmd` and INIs, and `Player.dat` are each
-written per capture, and the queue lane also owns the cursor. The
-click-free lane needs no mouse, so a second one is a second prefix, a
-second copy of the install and its own user-data directory;
-`~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
-else. Not built: the lane was not what the tranche waited on. Returns
-when three lanes' journals say they waited on it, with the minutes.
-**The twentieth pass, measured**: five journals of twenty-two said they
-waited on another lane's capture — 530 s, 15, 9, 6 and 15 minutes, some
-fifty-four minutes in all, two and a half a landing — and eleven said
-they did not. Captures were taken on eighteen landings against nine,
-which is where the lane's share of a landing's waiting rose (23 minutes
-against 13, by the last instruction before each wait). Not built; it
-returns at ten minutes a landing waited on another lane. **The twenty-first pass, measured**: five journals waited on another lane's capture, some 205 minutes, 9.3 a landing — under the ten it returns at by 0.7, from 2.5. Not built. **The twenty-second pass, measured**: two journals, some 50 minutes on one capture, 2.3 a landing. Not built. **The twenty-third pass, measured**: 0 minutes on another lane's capture in four journals, seven silent. Not built. **The twenty-fourth pass**: not measured — no tranche ran three lanes. Stays the user's (DECISIONS 61, "not decided"). **The twenty-fifth pass, measured**: five journals waited on another lane's capture — 1423 51 minutes, 1465 18, 1477 7, 1481 1 — some 77 minutes over twenty landings, **3.9 a landing**, under the ten it returns at (1429's 48 were a permission stall, 1469, not the lane). The user's word today, in conversation: not now; and his reading that captures are the real concurrency bottleneck is answered by the split above — the suite and the gate are more than half of a landing's waiting, the capture a quarter. Stays the user's. **The twenty-sixth pass**, measured: two journals waited on another lane's capture — 1555 twenty minutes, 1511 until 12:52 — some 30 minutes over twenty landings, under two a landing; stays the user's.
-
 ## Loop, filed 2026-09-29 — the twentieth tranche's
 
 The nineteenth pass's section reached its ceiling at 1193; this
@@ -3786,6 +3769,19 @@ them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
+
+(1570) **Retire the queue lane** (the twenty-sixth pass, with Ramon,
+2026-10-07, at 1568's landing): the click-free lane is pooled now
+(1569) and the mouse lane is the one lane that cannot join it — it owns
+the cursor and finds its window by title, so it must not run beside a
+pool game (1568's finding, documented and not guarded until 1569's
+exclusion). Two things keep it alive: `cover=1` never runs on the
+click-free build (1047), and the autostart cannot start every lobby.
+Whether that is a timing problem at the autostart or two tracer builds
+that do not combine is not known. Score: a `cover=1` capture and a
+lobby the autostart could not start, both on a pool lane with no
+cursor; then the queue lane goes and the pool is the only lane. One
+reach; the suite lane's after 1569.
 
 (1566) **Two debug-print gaps from 1561** (its journal's Loop lines,
 2026-10-06): `RON_DEBUG_UNIT=8/*@…` prints only *moving* units, so
