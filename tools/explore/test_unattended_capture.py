@@ -227,6 +227,32 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(receipt['staged']['log_window'],[1900,2000])
         self.assertEqual(receipt['staged']['rontrace.cmd'],['0 !ai off','2000 !quit'])
 
+    def test_the_receipt_stamps_the_launch_and_the_exit_by_the_wall_clock(self):
+        # Item 1568: runs 685 and 686 ran on two lanes at once, and their
+        # overlap was read off file mtimes — the receipt had seconds and no
+        # instant. The verification after the exit fails here, on purpose.
+        output=self.root/'stamped';output.mkdir()
+        args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36,seed=12345,timeout=60)
+        class Game:
+            pid=0
+            def wait(self,timeout=None):return 0
+            def poll(self):return 0
+        with patch.object(runner.live_session,'require_closed'), \
+             patch.object(runner.live_session,'stage'), \
+             patch.object(runner,'set_map'),patch.object(runner,'mute'), \
+             patch.object(runner,'set_lobby'),patch.object(runner,'set_ai_tribe'), \
+             patch.object(runner.live_session,'key',return_value=''), \
+             patch.object(runner,'sha',return_value=''), \
+             patch.object(runner.subprocess,'run'), \
+             patch.object(runner.subprocess,'Popen',return_value=Game()), \
+             patch.object(runner.live_session,'restore'), \
+             patch.object(runner,'verify_restored',return_value=5):
+            (self.root/'rise.ini').write_text('Seed (0 for random)=1\n')
+            with self.assertRaises(Exception):runner.capture(args,output,7)
+        receipt=json.loads((output/'receipt.json').read_text())
+        self.assertRegex(receipt['launched_at'],r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$')
+        self.assertLessEqual(receipt['launched_at'],receipt['exited_at'])
+
     def test_failure_after_stage_still_restores_and_records(self):
         output=self.root/'output';output.mkdir()
         args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36)

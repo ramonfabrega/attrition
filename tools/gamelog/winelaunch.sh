@@ -27,7 +27,11 @@
 #   echo "launched pid $RON_WINE_PID"
 
 RON_WINE_BIN=${RON_WINE_BIN:-/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine}
-RON_WINEPREFIX=${RON_WINEPREFIX:-$HOME/wine-ron}
+# **The prefix is the lane's** (parked 1139, item 1567): `RON_CAPTURE_LANE=2`
+# is `~/wine-ron-2`, its own lock beside it; unset is lane 1, `~/wine-ron`.
+# `lanes.sh` has the table.
+source "${${(%):-%x}:A:h}/lanes.sh" || return 64
+RON_WINEPREFIX=${RON_WINEPREFIX:-$RON_LANE_PREFIX}
 
 # **The lane lock** (parked 446, the eighth pass, 2026-09-21). The prefix,
 # the window and `Logs/` are singletons, and until now nothing stopped one

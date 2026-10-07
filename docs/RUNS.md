@@ -15525,3 +15525,59 @@ SHA-256 `35ff0978ad26f0278b3e27c510d402afb82d5e1cbcbf3058893774b36393d4de`.
 
 **What it holds**: `diff::sahara_coverage::run683_s_word_frame_is_widened_whole` — **1183** keys parted on the tree at item 1561's build (159 standing on block 1577). The word 1582's
 block is 1583, and the first state past the standing block is on it: the Persians' `REFINERY` `1/2045`'s `y_internal` and `city`. `docs/AI.md` §154.
+
+## run684 — run676 re-captured on the second click-free lane, `~/wine-ron-2` (2026-10-07, item 1568)
+
+The proof the second lane is the same oracle (parked 1139). run676's recipe, unchanged, on lane 2: `RON_CAPTURE_LANE=2 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-10-07-run684 --map 7 --end-frame 24000 --timeout 2400 --log-window 0 24001 --ffwd-minute 27
+--cover cover=0 --callwin 0 24000 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --detail end:MISC
+--detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --allow-early-end`, on tree `214d6034`. The log's first line `lane: 2
+(/Users/rf-studio/wine-ron-2)`, install `~/ron-capture-lane-2/game`, profile `~/ron-capture-lane-2/AppData/Roaming/Microsoft Games/Rise of Nations`; lane 2
+free at launch (00:24), lane 1 untouched. Receipt `success`, `ended_early`, last frame 4340, closing frame 4341 — where run676's game ended itself —
+4341 frames, launch-to-exit 73.4 s, total 83.9 s, five files restored; seed 12345, `MAP_STYLE 7`, tribes 4 and 23 read back.
+
+**`rngcmp.py rontrace-run676.log rontrace-run684.log`: 4341 frames in common, 0 differing.** The gamelog is run676's byte count (18,637,566) and differs from
+it on 47 lines only: the `Rules` stamp on each of 45 `CHECKSUM` blocks (1730099273 against 3887609432) and two `SYNCPOINT` wall times. `Rules` is no lane
+effect: run675, the same lobby on lane 1, printed 2505061439. While the game ran, `live_session.require_closed` attributed it by `lsof` to
+`~/wine-ron-2` (its `syswow64/d3d11.dll` and `dxgi.dll`): lane 1's check let it be, lane 2's refused.
+
+Archive `gamelog-run684-greatsahara-persian-alltech-24k-trace-lane2.txt`, 18,637,566 bytes,
+SHA-256 `f5f6789f28c3a6da6595af7fa462b4d87d731afdac1e1914e77a220aa06cbea9`.
+
+Archive `rontrace-run684.log`, 198,295,232 bytes,
+SHA-256 `cd3946559d6c87c1649f5de92238774d83c38d5e4dc97e1c88dfde58faae647b`.
+
+**What it holds**: run676's game again, from the second lane; nothing a test reads.
+
+## run685 — two lanes at once: lane 1's half, Great Sahara to frame 300 (2026-10-07, item 1568)
+
+Launched in the same second as run686 (00:26:35), on lane 1: `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-data/lab-captures/2026-10-07-run685 --map 7 --end-frame 300 --timeout 900 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5 --allow-early-end`, the default window and detail, tree `214d6034`. Receipt `success`, 301 frames, last frame 300, launch-to-exit
+19.8 s, total 28.3 s, five files restored, seed 12345, `MAP_STYLE 7`. **The overlap**, by the files (the receipt carried no wall clock until this
+item's second commit): `wine.log` born 00:26:44 in both runs, the gamelog written 00:26:52–00:27:04 here and 00:26:52–00:27:00 in run686, the receipts
+00:27:04 and 00:27:01 — the two games ran side by side for their whole length, each lane's lock held by its own runner. `rngcmp.py rontrace-run676.log
+rontrace-run685.log`: 301 frames in common, 0 differing.
+
+Archive `gamelog-run685-greatsahara-persian-alltech-300-lane1.txt`, 1,205,407 bytes,
+SHA-256 `dcf476e88072f68dc99770185a506cc67cfbc033f05b2222b46e0ef97f81ef9e`.
+
+Archive `rontrace-run685.log`, 9,234,080 bytes,
+SHA-256 `53b318872a975d4d27061ea2941d1c3d843dc345de3223b97990d6a057f51c54`.
+
+**What it holds**: the concurrency proof's lane-1 half; nothing a test reads.
+
+## run686 — two lanes at once: lane 2's half, Great Sahara to frame 300 (2026-10-07, item 1568)
+
+run685's command with `RON_CAPTURE_LANE=2` and its own output, launched in the same second; the log's first line `lane: 2 (/Users/rf-studio/wine-ron-2)`.
+Receipt `success`, 301 frames, last frame 300, launch-to-exit 16.7 s, total 25.1 s, five files restored to lane 2's profile, seed 12345, `MAP_STYLE 7`.
+`rngcmp.py rontrace-run685.log rontrace-run686.log`: **301 frames in common, 0 differing** — two lanes, one game.
+
+Archive `gamelog-run686-greatsahara-persian-alltech-300-lane2.txt`, 1,205,408 bytes,
+SHA-256 `8264e64414922005bcbacf2c03c910e8cd377f41ab2613d578e9bc8cf17cdf01`.
+
+Archive `rontrace-run686.log`, 9,393,472 bytes,
+SHA-256 `ce1528fc5a8fdea58cba7e9b2ccc63b39298f710df4ad465d02ff9d00dfedfb0`.
+
+**What it holds**: the concurrency proof's lane-2 half; nothing a test reads.

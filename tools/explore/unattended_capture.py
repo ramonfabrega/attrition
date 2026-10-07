@@ -237,13 +237,17 @@ def staged_callwin(output):
     return None
 
 
+def wall():
+    return time.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+
 def capture(args, output, style):
     report = {'map_requested': style, 'success': False, 'settings_restored': False}
     staged = False
     process = None
     started = time.monotonic()
     try:
-        live_session.require_closed()
+        require_closed()
         minute = getattr(args, 'ffwd_minute', None)
         live_session.stage(SimpleNamespace(install=args.install, output=output, profile=args.profile,
                                            end_frame=args.end_frame,
@@ -291,6 +295,9 @@ def capture(args, output, style):
         report['launch_args'] = LAUNCH_ARGS[:]
         report['wine_debug'] = os.environ.get('WINEDEBUG', '-all')
         launch = time.monotonic()
+        # Wall-clock stamps (item 1568): two lanes' runs overlap or not, and
+        # the receipt says which without a file's mtime.
+        report['launched_at'] = wall()
         def start():
             return subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
                                     str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
@@ -317,6 +324,7 @@ def capture(args, output, style):
                 (output/'wine.log').replace(output/'wine-stalled.log')
                 report['relaunched_after_seconds'] = now - launch
                 launch = time.monotonic()
+                report['launched_at'] = wall()
                 process = start()
                 continue
             if verdict == 'give_up':
@@ -329,6 +337,7 @@ def capture(args, output, style):
             if now >= deadline:
                 raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
+        report['exited_at'] = wall()
         early = getattr(args, 'allow_early_end', False)
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code'],
                                    allow_early_end=early))
@@ -358,7 +367,7 @@ def capture(args, output, style):
                     os.killpg(process.pid, signal.SIGKILL)
                     process.wait(timeout=10)
             if staged:
-                live_session.require_closed()
+                require_closed()
                 live_session.restore(output)
                 report['restored_files'] = verify_restored(output,args.profile)
                 report['settings_restored'] = True
@@ -374,6 +383,30 @@ def capture(args, output, style):
 
 
 LANE = ROOT / 'tools/gamelog/winelaunch.sh'
+LANES = ROOT / 'tools/gamelog/lanes.sh'
+# The lane's prefix and every lane's (parked 1139, item 1567), set by
+# `main` from `lanes.sh`: the closed-game check lets another lane's game be.
+SCOPE = {}
+
+
+def require_closed():
+    live_session.require_closed(**SCOPE)
+
+
+def lane_paths(env=None):
+    """This shell's capture lane as `lanes.sh` reads it: the lane, its
+    prefix (a hand-set `RON_WINEPREFIX` wins, as in `winelaunch.sh`), its
+    install, its profile and every lane's prefix."""
+    out = subprocess.run(
+        ['zsh', '-c', f'source {LANES} || exit $?; print -r -- $RON_CAPTURE_LANE; '
+                      'print -r -- ${RON_WINEPREFIX:-$RON_LANE_PREFIX}; print -r -- $RON_LANE_INSTALL; '
+                      'print -r -- $RON_LANE_PROFILE; print -r -- ${(j:\t:)RON_LANE_PREFIXES}'],
+        capture_output=True, text=True, env=env)
+    if out.returncode:
+        raise ValueError(out.stderr.strip() or f'lanes.sh refused (rc {out.returncode})')
+    lane, prefix, install, profile, prefixes = out.stdout.rstrip('\n').split('\n')
+    return {'lane': lane, 'prefix': prefix, 'install': Path(install), 'profile': Path(profile),
+            'prefixes': prefixes.split('\t')}
 
 
 def lane(verb):
@@ -487,9 +520,23 @@ def main():
         args.cmd_file=args.cmd_file.resolve()
         if not args.cmd_file.is_file():
             ap.error(f'no such command file: {args.cmd_file}')
+    # **Two click-free lanes** (parked 1139, item 1567): a lane named by
+    # `RON_CAPTURE_LANE` runs only on its own install and profile — a lane-2
+    # game staged into lane 1's profile would write under a running lane-1
+    # game — and the closed-game check is scoped to the lane's prefix.
+    try:
+        paths=lane_paths()
+    except ValueError as exc:
+        ap.error(str(exc))
+    if os.environ.get('RON_CAPTURE_LANE'):
+        for name in ('install','profile'):
+            if getattr(args,name)!=paths[name].resolve():
+                ap.error(f'capture lane {paths["lane"]} runs on its own {name}, {paths[name]}; '
+                         f'got {getattr(args,name)}')
+    SCOPE.update(prefix=paths['prefix'], prefixes=paths['prefixes'])
     # Cooperative lock: protects runners using this tool, not arbitrary GUI use.
     with capture_lane(args.profile):
-        live_session.require_closed()
+        require_closed()
         capture_all(args)
 
 

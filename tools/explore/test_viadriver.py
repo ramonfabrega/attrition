@@ -9,8 +9,9 @@ waits (`test_lane_lock.py`). This launches a fixture bundle twice, a second
 apart, and reads both logs; before `-n`, the second was empty.
 
 The fixture is a bundle whose executable is a shell script that appends its
-argv to the log it is handed and sleeps long enough to still be running when
-the second launch arrives. `LSBackgroundOnly` keeps it off the Dock.
+argv to the log it is handed, runs the program it is handed as RonDriver
+does, and sleeps long enough to still be running when the second launch
+arrives. `LSBackgroundOnly` keeps it off the Dock.
 """
 import os
 import plistlib
@@ -27,6 +28,8 @@ SCRIPT = ROOT / 'tools/gamelog/viadriver.sh'
 EXECUTABLE = '''#!/bin/sh
 log=$2
 echo "args: $*" >> "$log"
+shift 2
+"$@" >> "$log" 2>&1
 sleep 6
 '''
 
@@ -52,16 +55,25 @@ class Viadriver(unittest.TestCase):
             }, f)
         self.app = app
         self.noop = self.root / 'noop.sh'
-        self.noop.write_text('#!/bin/sh\nexit 0\n')
+        # What RonDriver spawns: here it says which lane it was handed.
+        self.noop.write_text('#!/bin/sh\necho "lane: ${RON_CAPTURE_LANE:-unset}"\n')
         self.noop.chmod(0o755)
 
     def tearDown(self):
         subprocess.run(['pkill', '-f', str(self.app / 'Contents/MacOS/RonDriver')],
                        capture_output=True)
+        # Wait for the killed instances to be gone, so a test's log holds
+        # only its own launches.
+        deadline = time.time() + 10
+        while time.time() < deadline and subprocess.run(
+                ['pgrep', '-f', str(self.app / 'Contents/MacOS/RonDriver')],
+                capture_output=True).returncode == 0:
+            time.sleep(0.2)
         self.tmp.cleanup()
 
-    def launch(self):
-        env = dict(os.environ, RONDRIVER_APP=str(self.app))
+    def launch(self, **extra):
+        env = dict(os.environ, RONDRIVER_APP=str(self.app), **extra)
+        env.pop('RON_CAPTURE_LANE', None) if 'RON_CAPTURE_LANE' not in extra else None
         done = subprocess.run(['zsh', str(SCRIPT), str(self.noop)],
                               capture_output=True, text=True, env=env)
         self.assertEqual(done.returncode, 0, done.stderr)
@@ -82,6 +94,28 @@ class Viadriver(unittest.TestCase):
                       'the second launch wrote no log: `open` without `-n` activated the '
                       'running instance and dropped the arguments (parked 810)')
         self.assertIn(str(second), text)
+
+    def test_two_launches_in_one_second_have_two_logs(self):
+        # Item 1568: the log was named by the second, so two capture lanes
+        # started together shared one, and each waiter read both receipts.
+        # `date` is pinned so the two launches share a second every time.
+        bin_ = self.root / 'bin'; bin_.mkdir()
+        (bin_ / 'date').write_text('#!/bin/sh\necho 20261007-002635\n'); (bin_ / 'date').chmod(0o755)
+        path = f"{bin_}:{os.environ['PATH']}"
+        first, second = self.launch(PATH=path), self.launch(PATH=path)
+        self.assertIn('20261007-002635', first.name)
+        self.assertNotEqual(first, second)
+
+    def test_the_capture_lane_reaches_the_runner(self):
+        # Parked 1139, item 1568: the lane is in the launch's argv — the
+        # log's `args` line — and in the spawned program's environment.
+        log = self.launch(RON_CAPTURE_LANE='2')
+        deadline = time.time() + 10
+        while time.time() < deadline and 'lane: ' not in (log.read_text() if log.exists() else ''):
+            time.sleep(0.2)
+        text = log.read_text() if log.exists() else ''
+        self.assertIn('lane: 2', text)
+        self.assertIn('/usr/bin/env RON_CAPTURE_LANE=2 /bin/zsh', text)
 
 
 if __name__ == '__main__':

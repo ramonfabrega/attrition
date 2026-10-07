@@ -124,11 +124,11 @@ Before any reading of the original, in this order:
 - **Wait on a capture with `tools/gamelog/waitrun.sh <viadriver
   log>`**, backgrounded: its exit wakes you, so end your turn; read the
   log before acting on the exit; minutes waited on another lane's
-  capture go in your journal.
-- **The lane says its own state** (1180): `source
-  tools/gamelog/winelaunch.sh; ron_lane_state` prints `free`, `stale`
-  or `held by`; wait for `free` or `stale` — a stale lock is the next
-  launch's, never a hand's; the click-free runner holds the lane through
+  capture go in the journal.
+- **The lane says its own state** (1180): `RON_CAPTURE_LANE=<n>`
+  (1568) `zsh -c 'source tools/gamelog/winelaunch.sh;
+  ron_lane_state'` prints `free`, `stale` or `held by`; a stale lock is
+  the next launch's, never a hand's; the runner holds the lane through
   its restore (1234). **A first take that dies before frame 0 is taken again once**
   (1150); a traceback with no receipt is that death, and `waitrun.sh`
   says so (1503). **No `mkdir -p` before a

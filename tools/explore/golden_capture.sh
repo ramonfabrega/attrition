@@ -15,10 +15,16 @@
 set -e
 W=${0:A:h:h:h}
 # The lane's own default, as longtrace.sh has it: a worktree has no `game`.
-INSTALL=${RON_INSTALL:-/Users/rf-studio/code/fun/attrition/game}
-PROFILE=${RON_PROFILE:-$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations}
+# **Which lane is `RON_CAPTURE_LANE`'s** (parked 1139, item 1567): 2 is
+# `~/wine-ron-2` with its own install copy and profile, `lanes.sh` has the
+# table, and `viadriver.sh` carries the variable through LaunchServices.
+source "$W/tools/gamelog/lanes.sh"
+INSTALL=$RON_LANE_INSTALL
+PROFILE=$RON_LANE_PROFILE
+export RON_CAPTURE_LANE
 [ $# -ge 1 ] || { echo "usage: golden_capture.sh <output> [unattended_capture.py options...]" >&2; exit 64 }
 OUT=$1; shift
+echo "lane:    $RON_CAPTURE_LANE ($RON_LANE_PREFIX)"
 echo "install: $INSTALL"
 echo "profile: $PROFILE"
 echo "output:  $OUT"
