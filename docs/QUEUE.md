@@ -44,9 +44,9 @@ after every landing; merge, book, refill; score the race at its end
 
 ## Branch checkpoint — commander remains paused
 
-2026-10-09: checkpoint (1640) on `codex/core-loop-investigation` shares four Great Lakes
-walks, then trials opt-in compression. Scores and floors unchanged; batch gate
-pending. See `docs/journal/2026-10-09-item-1640.md`. Not merged into commander.
+2026-10-09: (1640) on `codex/core-loop-investigation` shares four Great Lakes
+walks and trials opt-in compression. Scores/floors unchanged; full required-fixture
+gate passed (six steps). See `docs/journal/2026-10-09-item-1640.md`; not merged into commander.
 
 ## The queue
 

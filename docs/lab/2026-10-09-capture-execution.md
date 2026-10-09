@@ -192,4 +192,42 @@ Simulation behavior, draw scores and value floors are unchanged. This is
 single-agent executable evidence; independent review remains owed. The frame
 reuse patch in the earlier report is still unapplied. Recapturing, replacing
 or deleting evidence, and broad test-family migration are separate follow-ups.
-Full required-fixture gate remains pending on the final committed tree.
+## Final batch validation
+
+Implementation commit **`bac3983e`** was frozen for:
+
+```sh
+python3 tools/release_gate.py /Users/rf-studio/code/fun/attrition/game --test-threads 4 --require-fixtures
+```
+
+**Exit 0; all six steps ran** (offline tooling tests, clippy, formatting, install
+survey, full release suite, guards). Offline tooling: 277 passed. Release:
+fixed 13 passed; rondata **781 passed, 0 failed, 5 pre-existing ignored probes**,
+**590.90 s**; sim **1476 passed**, 7.43 s; rondata doc tests 3 passed. No new
+ignore was introduced. Peak process tree **11628 MiB**, largest process
+**11596 MiB**, below the 20 GiB cap. This is the complete suite's observed
+runtime, not a controlled before/after measurement of the full suite.
+
+Required-fixture audit: **2963 requests**, **386 unique requested fixtures**,
+**0 missing**. This covers observed requests and is not a claim that every
+file in the corpus was used. The full gate used raw fixtures; the compressed
+path's evidence is the separate byte equivalence, corruption checks and run721
+replays above. All scores and value floors held without re-pinning.
+
+The complete console log is
+`target/core-loop-investigation/item1640-release-gate.log`. The gate's report
+bundle was preserved in `target/core-loop-investigation/item1640-gate-report/`
+(`gate-policy.json`, `release-tests.log`, `test-summary.json`, fixture audit
+and request files), copied from its generated temporary report directory.
+The documentation-only verdict commit follows this implementation gate;
+`tools/guard.sh` and diff checks validate its paperwork separately.
+
+Exact-name test invocations must now use
+`diff::harness::tests::great_lakes_run202_through_run226_are_widened_whole`.
+The old four names identify assertion helpers, not separately registered tests.
+The combined test always runs all four groups. Historical journals and old
+timing inventories are preserved; no lane gate policy was changed.
+
+At completion roughly 78 GiB remains free. Original captures, shared logger
+configuration and game installation are unchanged. The branch remains separate from the paused commander; independent review
+is still owed.
