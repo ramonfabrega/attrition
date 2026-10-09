@@ -21,7 +21,7 @@ third tranche.*
 - **No lane live.** The next commander spawns 1634 (Opus 5.5 high), 1630
   and 1497 (Sonnet 5.5 high; 1497 is the lane rule 5 earns back) and
   **1639's three racers**; every brief with `--tests`; every lane clears
-  itself at 300 k (frame row 1637). Next number 1640, run 722, §177.
+  itself at 300 k (frame row 1637). Next number 1641, run 722, §177.
 - **The first race is scored** (`docs/audit/2026-10-07-race-1565.md`) and
   re-run as 1639 shaped like workers; the roster is Ramon's, on its score.
 - **Fable backlog: 23 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638).
@@ -41,6 +41,12 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 (`coverage::` rides along), a racer respawned off its own chain tip
 after every landing; merge, book, refill; score the race at its end
 (DECISIONS 64); stop at twenty landings and hand off to `steer`.**
+
+## Branch checkpoint — commander remains paused
+
+2026-10-09: checkpoint (1640) on `codex/core-loop-investigation` shares four Great Lakes
+walks, then trials opt-in compression. Scores and floors unchanged; batch gate
+pending. See `docs/journal/2026-10-09-item-1640.md`. Not merged into commander.
 
 ## The queue
 

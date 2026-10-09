@@ -177,3 +177,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
+
+/// Experimental opt-in archive writer; indexed reads accept explicit `.rcap` paths.
+pub mod archive;
+mod source;

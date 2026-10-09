@@ -5,9 +5,11 @@
 //! borrowed accessors can be used unchanged. Drop that String/Log before reading
 //! the next frame to keep memory proportional to the largest requested frame.
 //! Setup is separate; `read_shutdown` retains the last frame and its siblings.
+//! Explicit `.rcap` inputs add a per-reader two-chunk (8 MiB) decoded cache.
 mod observations;
 
-use std::fs::{File, Metadata};
+use super::source::Source;
+use std::fs::Metadata;
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -21,9 +23,10 @@ pub struct FrameRange {
 }
 
 pub struct IndexedCapture {
-    file: File,
+    file: Source,
     path: PathBuf,
     length: u64,
+    stored_length: u64,
     modified: SystemTime,
     frames: Arc<[FrameRange]>,
     setup: Arc<[(u64, u64)]>,
@@ -138,9 +141,33 @@ impl IndexedCapture {
     /// Scan using one reusable line buffer. Requires a single conventional
     /// root GAME and its space-indented FRAME children; rejects ambiguous
     /// trailing-field shapes rather than returning a guessed frame boundary.
+    /// A `.rcap` path explicitly selects the experimental seekable archive;
+    /// offsets and `source_bytes` still refer to the original logical text.
     pub fn open(path: impl AsRef<Path>) -> io::Result<Self> {
-        let path = path.as_ref().canonicalize()?;
-        let file = File::open(&path)?;
+        let mut path = path.as_ref().canonicalize()?;
+        // Trial-only override of one indexed source. Whole-text readers and
+        // fixture discovery are deliberately unchanged; both paths are explicit.
+        match (
+            std::env::var_os("RON_INDEXED_ARCHIVE_SOURCE"),
+            std::env::var_os("RON_INDEXED_ARCHIVE_PATH"),
+        ) {
+            (Some(source), Some(archive)) => {
+                if path == Path::new(&source).canonicalize()? {
+                    path = Path::new(&archive).canonicalize()?;
+                    if path.extension().is_none_or(|s| s != "rcap") {
+                        return Err(invalid("archive override must name a .rcap file"));
+                    }
+                }
+            }
+            (None, None) => {}
+            _ => {
+                return Err(invalid(
+                    "both indexed archive override variables are required",
+                ));
+            }
+        }
+        let file = Source::open(&path)?;
+        let length = file.length()?;
         let meta = file.metadata()?;
         let modified = meta.modified()?;
         let cache = INDEX_CACHE.get_or_init(|| Mutex::new(Vec::new()));
@@ -153,7 +180,8 @@ impl IndexedCapture {
             return Ok(Self {
                 file,
                 path: path.clone(),
-                length: meta.len(),
+                length,
+                stored_length: meta.len(),
                 modified,
                 frames: Arc::clone(&entry.frames),
                 setup: Arc::clone(&entry.setup),
@@ -235,7 +263,8 @@ impl IndexedCapture {
         let capture = Self {
             file: reader.into_inner(),
             path: path.clone(),
-            length: meta.len(),
+            length,
+            stored_length: meta.len(),
             modified,
             frames: frames.into(),
             setup: setup.ranges.into(),
@@ -246,7 +275,7 @@ impl IndexedCapture {
         index_stat("build", built.elapsed().as_secs_f64(), &path, bytes);
         let entry = Cached {
             path,
-            length: capture.length,
+            length: capture.stored_length,
             modified,
             frames: Arc::clone(&capture.frames),
             setup: Arc::clone(&capture.setup),
@@ -264,7 +293,7 @@ impl IndexedCapture {
     }
 
     fn check_metadata(&self, meta: Metadata) -> io::Result<()> {
-        if meta.len() != self.length || meta.modified()? != self.modified {
+        if meta.len() != self.stored_length || meta.modified()? != self.modified {
             return Err(invalid("capture changed since indexing"));
         }
         Ok(())

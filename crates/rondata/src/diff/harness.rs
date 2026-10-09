@@ -11087,7 +11087,7 @@ pub(crate) mod tests {
     pub(crate) fn widen_on_siblings(
         siblings: &[&str],
         gaia: bool,
-        (base, base_trace): (&str, &str),
+        base: (&str, &str),
         name: &str,
         chain: &[(&str, i64)],
         window: (i64, i64),
@@ -11095,6 +11095,44 @@ pub(crate) mod tests {
         near: &[i64],
         records: bool,
     ) -> Option<Widened> {
+        widen_on_siblings_with_checkpoints(
+            siblings,
+            gaia,
+            base,
+            name,
+            chain,
+            window,
+            pools,
+            near,
+            records,
+            &[],
+        )
+        .map(|(whole, _)| whole)
+    }
+
+    /// Snapshot cumulative results at the original tests' endpoints. The sim,
+    /// source selection, and comparisons still execute once per block.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the existing walk plus checkpoint requests"
+    )]
+    fn widen_on_siblings_with_checkpoints(
+        siblings: &[&str],
+        gaia: bool,
+        (base, base_trace): (&str, &str),
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+        records: bool,
+        checkpoints: &[(i64, &[i64])],
+    ) -> Option<(Widened, Vec<Widened>)> {
+        assert!(checkpoints.windows(2).all(|w| w[0].0 < w[1].0));
+        assert!(checkpoints.iter().all(|(tail, points)| {
+            (window.0..=window.1).contains(tail) && points.iter().all(|p| near.contains(p))
+        }));
+        let mut snapshots = Vec::with_capacity(checkpoints.len());
         let inst = install()?;
         let Some(path) = dump(base) else {
             eprintln!("skipping: no {base} capture (set RON_GAMELOG_DIR)");
@@ -11349,7 +11387,35 @@ pub(crate) mod tests {
                 );
                 changed.push((n, t.who, t.o, pt != ta, po != oa));
             }
+            if let Some((end, points)) = checkpoints.get(snapshots.len())
+                && n == *end
+            {
+                let selected = |n: i64| points.iter().any(|b| (b - 2..=b + 2).contains(&n));
+                snapshots.push(Widened {
+                    firsts: firsts.clone(),
+                    missing: missing.clone(),
+                    blocks,
+                    leader_rows,
+                    changed: changed
+                        .iter()
+                        .filter(|row| selected(row.0))
+                        .copied()
+                        .collect(),
+                    housed,
+                    standing: standing
+                        .iter()
+                        .filter(|(n, _)| selected(**n))
+                        .map(|(n, rows)| (*n, rows.clone()))
+                        .collect(),
+                    army_lists: ArmyLists::new(),
+                });
+            }
         }
+        assert_eq!(
+            snapshots.len(),
+            checkpoints.len(),
+            "a checkpoint block was absent"
+        );
         eprintln!(
             "{name} widening: {blocks} blocks [{first_block}, {tail}], {compared} record rows, \
              {leader_rows} leader rows, {pool_lists} pool lists, {} keys parted, {} keys unprinted",
@@ -11378,16 +11444,19 @@ pub(crate) mod tests {
         for (n, rows) in &standing {
             eprintln!("  near {n}: {} rows", rows.len());
         }
-        Some(Widened {
-            firsts,
-            missing,
-            blocks,
-            leader_rows,
-            changed,
-            housed,
-            standing,
-            army_lists: ArmyLists::new(),
-        })
+        Some((
+            Widened {
+                firsts,
+                missing,
+                blocks,
+                leader_rows,
+                changed,
+                housed,
+                standing,
+                army_lists: ArmyLists::new(),
+            },
+            snapshots,
+        ))
     }
 
     /// **run163 — Great Lakes' word 12038, widened whole, both directions**
@@ -12343,6 +12412,109 @@ pub(crate) mod tests {
         );
     }
 
+    /// Four historical windows of the same replay. Keep their original pins
+    /// and per-window observations; share only execution of their common prefix.
+    #[test]
+    fn great_lakes_run202_through_run226_are_widened_whole() {
+        let requests: [(i64, &[i64]); 4] = [
+            (
+                WIDENING_GREAT_LAKES_MIRROR.1,
+                &[GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_RECRUIT_BLOCK],
+            ),
+            (
+                WIDENING_GREAT_LAKES_WONDER.1,
+                &[GREAT_LAKES_WONDER_BLOCK, GREAT_LAKES_ATTACKED_BLOCK],
+            ),
+            (WIDENING_GREAT_LAKES_ESCORT.1, &[GREAT_LAKES_ESCORT_BLOCK]),
+            (
+                WIDENING_GREAT_LAKES_GIVEUP.1,
+                &[
+                    GREAT_LAKES_GIVEUP_BLOCK,
+                    GREAT_LAKES_PYRAMIDS_BLOCK,
+                    GREAT_LAKES_FOREST_CELL_BLOCK,
+                ],
+            ),
+        ];
+        let near: Vec<i64> = requests
+            .iter()
+            .flat_map(|(_, points)| points.iter().copied())
+            .collect();
+        let Some((_, results)) = widen_on_siblings_with_checkpoints(
+            SIBLING_DUMPS,
+            false,
+            (
+                "gamelog-run53-greatlakes-24k-trace.txt",
+                "rontrace-run53.log",
+            ),
+            "run202-through-run226",
+            &great_lakes_word_chain(),
+            WIDENING_GREAT_LAKES_GIVEUP,
+            11_800,
+            &near,
+            false,
+            &requests,
+        ) else {
+            return;
+        };
+        let checks: [fn(Widened); 4] = [
+            run202_s_word_frame_is_widened_whole,
+            run211_s_word_frame_is_widened_whole,
+            run218_s_word_frame_is_widened_whole,
+            run226_s_word_frame_is_widened_whole,
+        ];
+        let names = ["run202", "run211", "run218", "run226"];
+        // Opt-in migration audit: independently replay each original window and
+        // compare every result field, including those not pinned by its test.
+        let verify = std::env::var_os("RON_VERIFY_SHARED_WIDENING").is_some();
+        let mut failed = Vec::new();
+        for (((end, points), result), (name, check)) in requests
+            .iter()
+            .zip(results)
+            .zip(names.into_iter().zip(checks))
+        {
+            eprintln!("{name}: checking original widening pins");
+            if verify {
+                let independent = widen_great_lakes(
+                    name,
+                    &great_lakes_word_chain(),
+                    (WIDENING_GREAT_LAKES_GIVEUP.0, *end),
+                    11_800,
+                    points,
+                )
+                .unwrap();
+                assert_eq!(
+                    result, independent,
+                    "{name}: shared and independent walk differ"
+                );
+                // Prove the original assertions still reject missing evidence,
+                // shortened walks, and changed value rows after consolidation.
+                let mut missing = result.clone();
+                missing.missing.insert("injected absent field".into());
+                assert!(std::panic::catch_unwind(|| check(missing)).is_err());
+                let mut short = result.clone();
+                short.blocks -= 1;
+                assert!(std::panic::catch_unwind(|| check(short)).is_err());
+                let mut changed = result.clone();
+                changed
+                    .standing
+                    .get_mut(&points[points.len() - 1])
+                    .unwrap()
+                    .insert(
+                        (-1, -1, "injected value difference".into()),
+                        "ours != theirs".into(),
+                    );
+                assert!(std::panic::catch_unwind(|| check(changed)).is_err());
+            }
+            if std::panic::catch_unwind(|| check(result)).is_err() {
+                failed.push(name);
+            }
+        }
+        assert!(
+            failed.is_empty(),
+            "original widening pins failed: {failed:?}"
+        );
+    }
+
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
     /// (item 711, and item 715's move inside it). run196's line past its last block, over
     /// [`WIDENING_GREAT_LAKES_MIRROR`]: six blocks shared with run196, the
@@ -12355,8 +12527,7 @@ pub(crate) mod tests {
     /// **Item 722 moved the word past run202, to 15608** (`docs/AI.md` §70),
     /// and its value diff is kept here too: nothing first-parts on
     /// 15385..15440. The new word's block is `run211_s_word_frame_is_widened_whole`'s.
-    #[test]
-    fn run202_s_word_frame_is_widened_whole() {
+    fn run202_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_RECRUIT_BLOCK;
@@ -12364,22 +12535,13 @@ pub(crate) mod tests {
         const OLD_BLOCK: i64 = GREAT_LAKES_MIRROR_BLOCK;
         /// run196's last block: everything above it is run202's.
         const RUN196_TAIL: i64 = WIDENING_GREAT_LAKES_PATRIOT.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run202",
-            &great_lakes_word_chain(),
-            WIDENING_GREAT_LAKES_MIRROR,
-            11_800,
-            &[OLD_BLOCK, WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -12515,8 +12677,7 @@ pub(crate) mod tests {
     /// the word to 15619** (`docs/AI.md` §71), inside run211: its frame
     /// writes block **15620**, which this test pins, and the move's value
     /// diff on 15608 and 15609 stays here.
-    #[test]
-    fn run211_s_word_frame_is_widened_whole() {
+    fn run211_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_ATTACKED_BLOCK;
@@ -12524,22 +12685,13 @@ pub(crate) mod tests {
         const OLD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
         /// run202's last block: everything above it is run211's.
         const RUN202_TAIL: i64 = WIDENING_GREAT_LAKES_MIRROR.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run211",
-            &great_lakes_word_chain(),
-            WIDENING_GREAT_LAKES_WONDER,
-            11_800,
-            &[OLD_BLOCK, WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -12677,29 +12829,19 @@ pub(crate) mod tests {
     /// pool list from run135's first block.
     ///
     /// The word's frame, 16460, writes block **16461**.
-    #[test]
-    fn run218_s_word_frame_is_widened_whole() {
+    fn run218_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_ESCORT_BLOCK;
         /// run211's last block: everything above it is run218's.
         const RUN211_TAIL: i64 = WIDENING_GREAT_LAKES_WONDER.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run218",
-            &great_lakes_word_chain(),
-            WIDENING_GREAT_LAKES_ESCORT,
-            11_800,
-            &[WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -12811,33 +12953,19 @@ pub(crate) mod tests {
     /// pool list from run135's first block.
     ///
     /// The word's frame, 17099, writes block **17100**.
-    #[test]
-    fn run226_s_word_frame_is_widened_whole() {
+    fn run226_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_GIVEUP_BLOCK;
         /// run218's last block: everything above it is run226's.
         const RUN218_TAIL: i64 = WIDENING_GREAT_LAKES_ESCORT.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run226",
-            &great_lakes_word_chain(),
-            WIDENING_GREAT_LAKES_GIVEUP,
-            11_800,
-            &[
-                WORD_BLOCK,
-                GREAT_LAKES_PYRAMIDS_BLOCK,
-                GREAT_LAKES_FOREST_CELL_BLOCK,
-            ],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -19131,6 +19259,7 @@ pub(crate) mod tests {
     }
 
     /// What [`widen_east_indies`] found.
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub(crate) struct Widened {
         pub(crate) firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
         pub(crate) missing: std::collections::BTreeSet<String>,
