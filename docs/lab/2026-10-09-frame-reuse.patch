@@ -1,0 +1,87 @@
+diff --git a/crates/rondata/src/diff/harness.rs b/crates/rondata/src/diff/harness.rs
+index 97ce00b0..fae3bb2f 100644
+--- a/crates/rondata/src/diff/harness.rs
++++ b/crates/rondata/src/diff/harness.rs
+@@ -11095,6 +11095,12 @@ pub(crate) mod tests {
+         near: &[i64],
+         records: bool,
+     ) -> Option<Widened> {
++        let probe_start = std::time::Instant::now();
++        let reuse = std::env::var_os("RON_PROBE_REUSE_FRAME").is_some();
++        let mut tick_time = std::time::Duration::ZERO;
++        let mut decode_time = std::time::Duration::ZERO;
++        let mut compare_time = std::time::Duration::ZERO;
++        let mut aux_time = std::time::Duration::ZERO;
+         let inst = install()?;
+         let Some(path) = dump(base) else {
+             eprintln!("skipping: no {base} capture (set RON_GAMELOG_DIR)");
+@@ -11162,13 +11168,16 @@ pub(crate) mod tests {
+         // Frame `f` writes block `f + 1`, so the window's last block is
+         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
+         // chain held until run211 followed run202 (item 722).
++        let setup_time = probe_start.elapsed();
+         for f in 0..tail {
+             if let Some((sf, w, o)) = sweep
+                 && sf == f
+             {
+                 built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+             }
++            let tick_start = std::time::Instant::now();
+             built.tick();
++            tick_time += tick_start.elapsed();
+             if let Some((sf, _, _)) = sweep
+                 && sf == f
+                 && let Some(w) = built.sim.sweep_watch.take()
+@@ -11187,18 +11196,33 @@ pub(crate) mod tests {
+             let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                 continue;
+             };
+-            let frame = ix.frame_state(at).unwrap();
++            let decode_start = std::time::Instant::now();
++            let reused_text = reuse.then(|| ix.read_frame(at).unwrap());
++            let reused_log = reused_text.as_ref().map(|text| Log::parse_eager(text));
++            let frame = if let Some(log) = &reused_log {
++                let mut states = log.frame_states();
++                assert_eq!(states.len(), 1);
++                assert_eq!(states[0].n, ix.frames()[at].number);
++                states.pop().unwrap()
++            } else {
++                ix.frame_state(at).unwrap()
++            };
++            decode_time += decode_start.elapsed();
+             blocks += 1;
+             debug_watch(&built, n);
+             debug_armies(&built, n);
+             debug_leader(&built, n);
+             debug_ammo(&built, n);
+             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
++            let compare_start = std::time::Instant::now();
+             let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
++            compare_time += compare_start.elapsed();
+             compared += rows;
+             housed += fr.inside_housed;
+-            let raw = ix.read_frame(at).unwrap();
+-            let flog = Log::parse(&raw);
++            let aux_start = std::time::Instant::now();
++            let raw = if reuse { String::new() } else { ix.read_frame(at).unwrap() };
++            let fresh_log = (!reuse).then(|| Log::parse(&raw));
++            let flog = reused_log.as_ref().or(fresh_log.as_ref()).unwrap();
+             // **The group record and the attack order's row** (item 1061),
+             // on the windows that ask for them: `second::widen_records`.
+             if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
+@@ -11349,6 +11373,7 @@ pub(crate) mod tests {
+                 );
+                 changed.push((n, t.who, t.o, pt != ta, po != oa));
+             }
++            aux_time += aux_start.elapsed();
+         }
+         eprintln!(
+             "{name} widening: {blocks} blocks [{first_block}, {tail}], {compared} record rows, \
+@@ -11378,6 +11403,7 @@ pub(crate) mod tests {
+         for (n, rows) in &standing {
+             eprintln!("  near {n}: {} rows", rows.len());
+         }
++        eprintln!("PHASE name={name} reuse={reuse} blocks={blocks} ticks={tail} setup={setup_time:?} tick={tick_time:?} decode={decode_time:?} compare={compare_time:?} aux={aux_time:?} total={:?}", probe_start.elapsed());
+         Some(Widened {
+             firsts,
+             missing,
