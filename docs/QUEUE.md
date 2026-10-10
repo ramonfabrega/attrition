@@ -52,7 +52,7 @@ Follow-up (1642) shares nine Great Lakes windows: 154.44 → 54.39 s (−64.8%).
 Full gate passed (566.31 s rondata); nine reports equal, 27 faults caught;
 see `docs/journal/2026-10-09-item-1642.md`. Scores/floors unchanged.
 2026-10-10: (1643) reuses parsed frames: median 53.03 → 39.655 s (−25.2%).
-40 reports/checkpoints equal; raw/gzip/LZ4 passed. Full gate pending.
+40 reports/checkpoints equal; raw/gzip/LZ4 passed. Full gate passed (552.05 s).
 See `docs/journal/2026-10-10-item-1643.md`. Commander remains paused.
 
 ## The queue

@@ -85,9 +85,10 @@ run721 additionally passed through **raw, gzip and LZ4** inputs with the legacy
 audit enabled in each: complete reports match, as do **5028 diagnostic rows**
 across all three modes. Original files remain intact.
 
-Normal-path coverage and the full committed-tree gate remain pending. They
-must run without `RON_VERIFY_FRAME_REUSE`; the audited coverage test observes
-both paths and is not used as proof of optimized-only comparison coverage.
+Normal-path coverage and the full committed-tree gate **passed** without
+`RON_VERIFY_FRAME_REUSE`; the audited coverage test observes both paths and
+is not used as proof of optimized-only comparison coverage. The full release
+log contains no legacy-audit marker.
 
 Artifacts: `rondata-before`, `harness.before.rs`, `build.log`,
 `before-{0,1}.log`, `after-{0,1}.log`, `measure.py`, `analyze.py`, `timings.json`,
@@ -111,3 +112,37 @@ RON_INSTALL=/Users/rf-studio/code/fun/attrition/game RON_VERIFY_FRAME_REUSE=1 \
 
 The normal path has no feature flag: omit `RON_VERIFY_FRAME_REUSE`. The old
 prototype patch remains a historical experiment and is not applied wholesale.
+
+
+## Full release verdict and handoff
+
+Implementation **`46a31162`** was committed before the full required-fixture
+gate and the tracked tree stayed frozen. Gate **exit 0**, all six steps ran:
+offline (277), clippy, formatting, survey, release and guard. Release fixed
+13; rondata **778 passed**, five existing ignored; sim **1476 passed**; three
+doc tests. The added test covers malformed frame cardinality/number; no
+assertion was removed or re-pinned. Both broad coverage checks passed with
+only the reused path executing.
+
+Rondata elapsed **552.05 s**, versus **566.31 s** at the preceding landing:
+**14.26 s / 2.5% shorter** in these two four-thread runs. This is an observed
+pair, not a controlled repeated whole-suite benchmark. The focused 25.2%
+saving does not generalize to the whole suite. Sim elapsed 2.23 s. Peak tree
+RSS **12666 MiB**, largest process **12634 MiB**, below 20 GiB; prior gate
+12885/12852 MiB. Memory remains similar; no broad memory improvement claimed.
+
+Required-fixture audit: **2893 requests, 386 unique fixtures, zero missing**.
+The request count and fixture-name set exactly match the preceding gate.
+This is observed-request coverage, not a claim that every corpus file was
+exercised. Evidence: `release-gate.log`, `gate-report/`,
+`fixture-set-comparison.json` under `target/frame-reuse-1643/`.
+
+No captures, archive defaults or shared configuration changed; about 72 GiB
+remains free. Independent review remains owed. The investigation branch is
+not merged into the commander's checkout, and the commander stays paused.
+
+A read-only follow-up inventory found similar double reads in the golden
+scenario readers (including chapters one and four) and separate East Indies
+widenings. They are candidates for measurement, not included in this landing;
+some nearby read pairs are different frames or sibling sources and cannot be
+collapsed mechanically. Measure the next candidate before extending reuse.
