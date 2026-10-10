@@ -56,7 +56,7 @@ see `docs/journal/2026-10-09-item-1642.md`. Scores/floors unchanged.
 See `docs/journal/2026-10-10-item-1643.md`. Commander remains paused.
 Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); full gate passed.
 50 complete reports equal. See `docs/journal/2026-10-10-item-1644.md`. Floors unchanged.
-Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); gate pending.
+Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate passed.
 64 complete reports equal. See `docs/journal/2026-10-10-item-1645.md`. Loop paused.
 
 ## The queue

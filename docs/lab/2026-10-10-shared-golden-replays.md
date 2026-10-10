@@ -57,7 +57,7 @@ after **4520 / 4358 MiB**: essentially flat across these small samples.
 No build or second replay overlapped timings. The complete audit **passed:
 32 tests, 64 complete reports equal**, **285.46 s**, peak **6019 MiB** with
 two test threads. All-target clippy and repository guards passed; full gate
-on the implementation commit pending.
+on the implementation commit passed below.
 
 The existing 32 window constants imply **32 repeated setups and 56,588
 repeated simulation ticks removed** from normal execution. This is a count
@@ -89,3 +89,33 @@ normal gate with that flag unset and `--require-fixtures --test-threads 4`.
 
 Scores remain East Indies coverage 3395 and Great Sahara coverage 2323;
 no value-floor or draw-pin movement. Original captures remain intact.
+
+
+## Full release verdict
+
+The full required-fixture gate on **`e7eb12f3` passed, exit 0**, all six
+steps; the tracked tree remained frozen. Offline 277, fixed 13, rondata
+**778 passed / five existing ignored**, sim **1476 passed**, three doc tests.
+All 32 consolidated tests and parsed-field coverage passed with legacy audit
+flags disabled.
+
+Rondata **520.22 s**, preceding gate **542.66 s** (−22.44 s / 4.1%). This
+single four-thread pair is an observation, not a repeated suite benchmark.
+Sim 2.22 s. Peak tree/largest process **13526 / 13495 MiB**, preceding
+**14175 / 14143 MiB**, under the 20 GiB cap. Focused memory stayed roughly
+flat; no causal suite-memory improvement is established.
+
+Fixture audit: **2765 requests, 386 unique, zero missing**. Compared with
+2893 before, exactly one request for each of four sibling dumps is removed
+from each of the 32 consolidated tests: **128 duplicates**, with identical
+fixture/test-pair coverage. The separate **64 golden dump/trace files remain
+nonempty with unchanged sizes and mtimes**. This does not claim completeness
+of unrequested corpus files. Evidence: `release-gate.log`, `gate-report/`,
+`fixture-set-comparison.json`, and `golden-fixtures-{before,after}.json` in
+`target/golden-shared-1645/`. About 72 GiB remains free.
+
+Next experiment: bounded initial-state loading in `stage_script`, reusing
+the established indexed reader. Verify complete Initial fields and cold/warm
+behavior; prior road/leader migrations show memory benefits can trade against
+cold time. No such gain is claimed for golden setup yet. Independent review
+remains owed; commander remains paused.
