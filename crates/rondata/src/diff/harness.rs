@@ -11469,8 +11469,7 @@ pub(crate) mod tests {
     /// The word's frame, 12038, writes block **12039**. The words item 571
     /// and item 657 moved it to, 12135 and 12184, write blocks 12136 and
     /// **12185**, and both are in the window.
-    #[test]
-    fn run163_s_word_frame_is_widened_whole() {
+    fn run163_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         const FIRST: i64 = WIDENING_GREAT_LAKES_UPGRADE.0;
         const TAIL: i64 = WIDENING_GREAT_LAKES_UPGRADE.1;
@@ -11481,30 +11480,14 @@ pub(crate) mod tests {
         const NEXT_BLOCK: i64 = 12_136;
         /// The block of the word item 657's fix moved to, 12184's.
         const MAKE_BLOCK: i64 = GREAT_LAKES_MAKE_BLOCK;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             changed,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run163",
-            &[
-                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-            ],
-            WIDENING_GREAT_LAKES_UPGRADE,
-            11_800,
-            &[WORD_BLOCK, NEXT_BLOCK, MAKE_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -11671,8 +11654,7 @@ pub(crate) mod tests {
     /// captures, with every player-1 pool list from run135's first block.
     ///
     /// The word's frame, 12429, writes block **12430**.
-    #[test]
-    fn run174_s_word_frame_is_widened_whole() {
+    fn run174_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         const FIRST: i64 = WIDENING_GREAT_LAKES_CIVIC.0;
         const TAIL: i64 = WIDENING_GREAT_LAKES_CIVIC.1;
@@ -11685,31 +11667,14 @@ pub(crate) mod tests {
         const NEXT_BLOCK: i64 = 12_537;
         /// The block of the word item 673's fix moved to, 12897's.
         const RETRY_BLOCK: i64 = GREAT_LAKES_RETRY_BLOCK;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             changed,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run174",
-            &[
-                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-                ("gamelog-run174-greatlakes-civicword.txt", RUN163_TAIL + 1),
-            ],
-            WIDENING_GREAT_LAKES_CIVIC,
-            11_800,
-            &[WORD_BLOCK, NEXT_BLOCK, RETRY_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -11908,8 +11873,7 @@ pub(crate) mod tests {
     /// (`docs/COLLISION.md` §15): a gatherer whose search is suspended
     /// gives its walk up six frames after it collides. The test keeps the
     /// move's value diff on 14651; the new word is run192's.
-    #[test]
-    fn run178_s_word_frame_is_widened_whole() {
+    fn run178_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const FIRST: i64 = WIDENING_GREAT_LAKES_COPY.0;
@@ -11923,31 +11887,13 @@ pub(crate) mod tests {
         const VALS_BLOCK: i64 = GREAT_LAKES_VALS_BLOCK;
         /// run174's last block: everything above it is run178's.
         const RUN174_TAIL: i64 = WIDENING_GREAT_LAKES_CIVIC.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run178",
-            &[
-                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
-                ("gamelog-run178-greatlakes-copyword.txt", RUN174_TAIL + 1),
-            ],
-            WIDENING_GREAT_LAKES_COPY,
-            11_800,
-            &[OLD_BLOCK, VALS_BLOCK, WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -12127,45 +12073,19 @@ pub(crate) mod tests {
     /// The word's frame, 14982, writes block **14983**. Item 706 moved
     /// the word past run192 to 15175; this keeps the move's value diff on
     /// 14946 and 14983.
-    #[test]
-    fn run192_s_word_frame_is_widened_whole() {
+    fn run192_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_BIRTH_BLOCK;
         /// run178's last block: everything above it is run192's.
         const RUN178_TAIL: i64 = WIDENING_GREAT_LAKES_COPY.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run192",
-            &[
-                (
-                    "gamelog-run123-greatlakes-marketword.txt",
-                    WIDENING_GREAT_LAKES_BIRTH.0,
-                ),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
-                (
-                    "gamelog-run178-greatlakes-copyword.txt",
-                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
-                ),
-                ("gamelog-run192-greatlakes-birthword.txt", RUN178_TAIL + 1),
-            ],
-            WIDENING_GREAT_LAKES_BIRTH,
-            11_800,
-            &[WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -12279,49 +12199,19 @@ pub(crate) mod tests {
     /// list from run135's first block.
     ///
     /// The word's frame, 15175, writes block **15176**.
-    #[test]
-    fn run196_s_word_frame_is_widened_whole() {
+    fn run196_s_word_frame_is_widened_whole(result: Widened) {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
         const WORD_BLOCK: i64 = GREAT_LAKES_PATRIOT_BLOCK;
         /// run192's last block: everything above it is run196's.
         const RUN192_TAIL: i64 = WIDENING_GREAT_LAKES_BIRTH.1;
-        let Some(Widened {
+        let Widened {
             firsts,
             missing,
             blocks,
             standing,
             ..
-        }) = widen_great_lakes(
-            "run196",
-            &[
-                (
-                    "gamelog-run123-greatlakes-marketword.txt",
-                    WIDENING_GREAT_LAKES_PATRIOT.0,
-                ),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
-                (
-                    "gamelog-run178-greatlakes-copyword.txt",
-                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
-                ),
-                (
-                    "gamelog-run192-greatlakes-birthword.txt",
-                    WIDENING_GREAT_LAKES_COPY.1 + 1,
-                ),
-                ("gamelog-run196-greatlakes-patriotword.txt", RUN192_TAIL + 1),
-            ],
-            WIDENING_GREAT_LAKES_PATRIOT,
-            11_800,
-            &[WORD_BLOCK],
-        )
-        else {
-            return;
-        };
+        } = result;
         pin!(missing.is_empty(), "the record does not carry {missing:?}");
         pin_eq!(
             blocks,
@@ -12412,11 +12302,29 @@ pub(crate) mod tests {
         );
     }
 
-    /// Four historical windows of the same replay. Keep their original pins
+    /// Nine historical windows of the same replay. Keep their original pins
     /// and per-window observations; share only execution of their common prefix.
     #[test]
-    fn great_lakes_run202_through_run226_are_widened_whole() {
-        let requests: [(i64, &[i64]); 4] = [
+    fn great_lakes_run163_through_run226_are_widened_whole() {
+        let requests: [(i64, &[i64]); 9] = [
+            (
+                WIDENING_GREAT_LAKES_UPGRADE.1,
+                &[GREAT_LAKES_UPGRADE_BLOCK, 12_136, GREAT_LAKES_MAKE_BLOCK],
+            ),
+            (
+                WIDENING_GREAT_LAKES_CIVIC.1,
+                &[GREAT_LAKES_CIVIC_BLOCK, 12_537, GREAT_LAKES_RETRY_BLOCK],
+            ),
+            (
+                WIDENING_GREAT_LAKES_COPY.1,
+                &[
+                    GREAT_LAKES_COPY_BLOCK,
+                    GREAT_LAKES_VALS_BLOCK,
+                    GREAT_LAKES_ROAD_BLOCK,
+                ],
+            ),
+            (WIDENING_GREAT_LAKES_BIRTH.1, &[GREAT_LAKES_BIRTH_BLOCK]),
+            (WIDENING_GREAT_LAKES_PATRIOT.1, &[GREAT_LAKES_PATRIOT_BLOCK]),
             (
                 WIDENING_GREAT_LAKES_MIRROR.1,
                 &[GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_RECRUIT_BLOCK],
@@ -12439,6 +12347,20 @@ pub(crate) mod tests {
             .iter()
             .flat_map(|(_, points)| points.iter().copied())
             .collect();
+        let chain = great_lakes_word_chain();
+        // The first five tests used these shorter prefixes. Preserve their
+        // source choices in the independent migration audit, including seams.
+        let chain_lengths = [
+            6,
+            7,
+            8,
+            9,
+            10,
+            chain.len(),
+            chain.len(),
+            chain.len(),
+            chain.len(),
+        ];
         let Some((_, results)) = widen_on_siblings_with_checkpoints(
             SIBLING_DUMPS,
             false,
@@ -12446,8 +12368,8 @@ pub(crate) mod tests {
                 "gamelog-run53-greatlakes-24k-trace.txt",
                 "rontrace-run53.log",
             ),
-            "run202-through-run226",
-            &great_lakes_word_chain(),
+            "run163-through-run226",
+            &chain,
             WIDENING_GREAT_LAKES_GIVEUP,
             11_800,
             &near,
@@ -12456,27 +12378,44 @@ pub(crate) mod tests {
         ) else {
             return;
         };
-        let checks: [fn(Widened); 4] = [
+        let checks: [fn(Widened); 9] = [
+            run163_s_word_frame_is_widened_whole,
+            run174_s_word_frame_is_widened_whole,
+            run178_s_word_frame_is_widened_whole,
+            run192_s_word_frame_is_widened_whole,
+            run196_s_word_frame_is_widened_whole,
             run202_s_word_frame_is_widened_whole,
             run211_s_word_frame_is_widened_whole,
             run218_s_word_frame_is_widened_whole,
             run226_s_word_frame_is_widened_whole,
         ];
-        let names = ["run202", "run211", "run218", "run226"];
+        let names = [
+            "run163", "run174", "run178", "run192", "run196", "run202", "run211", "run218",
+            "run226",
+        ];
         // Opt-in migration audit: independently replay each original window and
         // compare every result field, including those not pinned by its test.
         let verify = std::env::var_os("RON_VERIFY_SHARED_WIDENING").is_some();
         let mut failed = Vec::new();
-        for (((end, points), result), (name, check)) in requests
+        for ((((end, points), result), (name, check)), chain_len) in requests
             .iter()
             .zip(results)
             .zip(names.into_iter().zip(checks))
+            .zip(chain_lengths)
         {
             eprintln!("{name}: checking original widening pins");
             if verify {
+                let original_chain = &chain[..chain_len];
+                for block in WIDENING_GREAT_LAKES_GIVEUP.0..=*end {
+                    assert_eq!(
+                        chain.iter().rfind(|(_, lo)| block >= *lo),
+                        original_chain.iter().rfind(|(_, lo)| block >= *lo),
+                        "{name}: source selection changed at block {block}"
+                    );
+                }
                 let independent = widen_great_lakes(
                     name,
-                    &great_lakes_word_chain(),
+                    original_chain,
                     (WIDENING_GREAT_LAKES_GIVEUP.0, *end),
                     11_800,
                     points,
@@ -12495,15 +12434,35 @@ pub(crate) mod tests {
                 short.blocks -= 1;
                 assert!(std::panic::catch_unwind(|| check(short)).is_err());
                 let mut changed = result.clone();
-                changed
-                    .standing
-                    .get_mut(&points[points.len() - 1])
-                    .unwrap()
-                    .insert(
-                        (-1, -1, "injected value difference".into()),
-                        "ours != theirs".into(),
-                    );
+                match name {
+                    // These tests pin concrete first-parting values, rather
+                    // than the total standing-row count at their last point.
+                    "run163" | "run174" | "run178" => {
+                        let (o, field) = match name {
+                            "run163" => (41, "g.cur_anim[0]"),
+                            "run174" => (61, "order:group.id"),
+                            _ => (74, "g.angle[0]"),
+                        };
+                        changed
+                            .firsts
+                            .get_mut(&(1, o, field.into()))
+                            .unwrap()
+                            .1
+                            .push_str(" injected wrong value");
+                    }
+                    _ => {
+                        changed
+                            .standing
+                            .get_mut(&points[points.len() - 1])
+                            .unwrap()
+                            .insert(
+                                (-1, -1, "injected value difference".into()),
+                                "ours != theirs".into(),
+                            );
+                    }
+                }
                 assert!(std::panic::catch_unwind(|| check(changed)).is_err());
+                eprintln!("{name}: complete report equal; all three injected faults rejected");
             }
             if std::panic::catch_unwind(|| check(result)).is_err() {
                 failed.push(name);
