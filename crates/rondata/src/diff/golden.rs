@@ -6486,6 +6486,7 @@ fn widen_civilians(
             ammo,
             leader_keys,
             reuse,
+            None,
         )
     };
     let report = walk(true)?;
@@ -6498,6 +6499,73 @@ fn widen_civilians(
         eprintln!("{run}: frame reuse matches the complete legacy golden report");
     }
     Some(report.firsts)
+}
+
+/// One staged simulation produces both reports for the same run, window and
+/// player. The opt-in audit still executes the two independent walks.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn widen_civilians_and_pool(
+    run: &str,
+    stem: &str,
+    window: (i64, i64),
+    no_block: i64,
+    who: i64,
+    print: (i64, i64),
+    ammo: bool,
+    leader_keys: usize,
+) -> Option<(
+    std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    std::collections::BTreeMap<(i64, String), (i64, String)>,
+)> {
+    let mut pool = PoolWidening {
+        who,
+        ..Default::default()
+    };
+    let report = widen_civilians_walk(
+        run,
+        stem,
+        window,
+        no_block,
+        who,
+        print,
+        ammo,
+        leader_keys,
+        true,
+        Some(&mut pool),
+    )?;
+    pool.finish(run);
+    if std::env::var_os("RON_VERIFY_SHARED_GOLDEN").is_some()
+        || std::env::var_os("RON_VERIFY_GOLDEN_FRAME_REUSE").is_some()
+    {
+        let legacy = widen_civilians_walk(
+            run,
+            stem,
+            window,
+            no_block,
+            who,
+            print,
+            ammo,
+            leader_keys,
+            false,
+            None,
+        )
+        .expect("the same golden fixtures remain available");
+        let legacy_pool = widen_pool(run, stem, window, who)
+            .expect("the same golden pool fixture remains available");
+        assert_eq!(
+            report, legacy,
+            "{run}: shared execution changed the complete civilian report"
+        );
+        assert_eq!(
+            pool, legacy_pool,
+            "{run}: shared execution changed the complete pool report"
+        );
+        eprintln!("{run}: shared execution matches both complete independent golden reports");
+        if std::env::var_os("RON_VERIFY_GOLDEN_FRAME_REUSE").is_some() {
+            eprintln!("{run}: frame reuse matches the complete legacy golden report");
+        }
+    }
+    Some((report.firsts, pool.firsts))
 }
 
 /// All widening results, including counts that the callers do not return.
@@ -6521,6 +6589,7 @@ fn widen_civilians_walk(
     ammo: bool,
     leader_keys: usize,
     reuse: bool,
+    mut pool: Option<&mut PoolWidening>,
 ) -> Option<CivilianWidening> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
@@ -6614,6 +6683,13 @@ fn widen_civilians_walk(
         }
         let legacy_log = (!reuse).then(|| Log::parse(raw));
         let flog = reused_log.as_ref().or(legacy_log.as_ref()).unwrap();
+        if let Some(pool) = pool.as_deref_mut() {
+            assert_eq!(
+                n, s.built.sim.frame,
+                "{run}: the pool and civilian clocks differ"
+            );
+            pool.observe(run, &s.built, flog, n);
+        }
         // **An anti-air building's cycle, both directions** (item 1112,
         // `docs/COMBAT.md` §84): `recharging` and `attack_ox/attack_whom`
         // on every building whose type carries the `Wall::inc_time`
@@ -7515,52 +7591,40 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
 /// list, the scalars this crate carries (`num`, `form`, `order_num`,
 /// `ox`/`oy`, `o_dist`, `o_angle`, `facing`, `form_num`, `speed`,
 /// `new_speed`, `stamp`) and each member's `off`, `curr` and `angle`.
-/// A slot one side holds alone is a `held` row. Returns each parted key's
-/// first block and row, keyed `(slot, key)`; `None` when the capture is
-/// not on disk. `id` is not compared: this crate numbers a pushed group
+/// A slot one side holds alone is a `held` row. The report retains each
+/// parted key's first block and row, keyed `(slot, key)`, and all counters.
+/// `id` is not compared: this crate numbers a pushed group
 /// by its seat (parked 689). `army`, `ox`'s AI fields `priority`, `role`,
 /// `think_frame`, `buildings` and `disband` are the AI's and a player's
 /// group writes none of them.
-#[allow(clippy::type_complexity)]
-fn widen_pool(
-    run: &str,
-    stem: &str,
-    (first, last): (i64, i64),
+#[derive(Debug, Default, PartialEq, Eq)]
+struct PoolWidening {
     who: i64,
-) -> Option<std::collections::BTreeMap<(i64, String), (i64, String)>> {
-    use std::collections::BTreeMap;
-    let mut s = stage_script(run, stem)?;
-    let mut firsts: BTreeMap<(i64, String), (i64, String)> = BTreeMap::new();
-    let (mut blocks, mut records, mut rows) = (0usize, 0usize, 0usize);
-    for _ in 0..last - 1 {
-        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
-        s.built.tick();
-        let n = s.built.sim.frame;
-        if n < first {
-            continue;
-        }
-        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
-            continue;
-        };
-        let raw = s.ix.read_frame(at).unwrap();
-        let flog = Log::parse(&raw);
+    firsts: std::collections::BTreeMap<(i64, String), (i64, String)>,
+    blocks: usize,
+    records: usize,
+    rows: usize,
+}
+
+impl PoolWidening {
+    fn observe(&mut self, run: &str, built: &Built, flog: &Log<'_>, n: i64) {
         let Some((_, block)) = flog.frames().into_iter().find(|(f, _)| *f == n) else {
-            continue;
+            return;
         };
         let pool = crate::gamelog::groups(block);
         assert_eq!(pool.len(), 512, "{run} block {n}: the pool is 512 records");
-        blocks += 1;
-        let w = sim::Player::try_from(who).unwrap();
+        self.blocks += 1;
+        let w = sim::Player::try_from(self.who).unwrap();
         for slot in 0..64u8 {
-            let id = who * 64 + i64::from(slot);
+            let id = self.who * 64 + i64::from(slot);
             let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
-            let mut list = s.built.sim.pool_list(w, slot);
-            let mut ours = s.built.sim.pool_state(w, slot);
+            let mut list = built.sim.pool_list(w, slot);
+            let mut ours = built.sim.pool_state(w, slot);
             // A building group (`process_group`'s push at a command on a
             // building, item 882): its buildings are the list.
             if list.is_empty()
                 && ours.is_none()
-                && let Some((st, b)) = s.built.sim.pool_building_group(w, slot)
+                && let Some((st, b)) = built.sim.pool_building_group(w, slot)
             {
                 list = b;
                 ours = Some(st);
@@ -7568,12 +7632,12 @@ fn widen_pool(
             if theirs.is_none() && list.is_empty() {
                 continue;
             }
-            records += 1;
+            self.records += 1;
             let slot = i64::from(slot);
             let mut row = |key: String, o: String, t: String| {
-                rows += 1;
+                self.rows += 1;
                 if o != t {
-                    firsts
+                    self.firsts
                         .entry((slot, key))
                         .or_insert((n, format!("ours {o} theirs {t}")));
                 }
@@ -7630,13 +7694,44 @@ fn widen_pool(
             }
         }
     }
-    assert!(blocks > 0, "{run}: no block of the pool window was read");
-    eprintln!(
-        "{run} pool: {blocks} block(s), {records} slot record(s), {rows} row(s), \
-         {} key(s) part",
-        firsts.len()
-    );
-    Some(firsts)
+
+    fn finish(&self, run: &str) {
+        assert!(
+            self.blocks > 0,
+            "{run}: no block of the pool window was read"
+        );
+        eprintln!(
+            "{run} pool: {} block(s), {} slot record(s), {} row(s), {} key(s) part",
+            self.blocks,
+            self.records,
+            self.rows,
+            self.firsts.len()
+        );
+    }
+}
+
+fn widen_pool(run: &str, stem: &str, (first, last): (i64, i64), who: i64) -> Option<PoolWidening> {
+    let mut s = stage_script(run, stem)?;
+    let mut report = PoolWidening {
+        who,
+        ..Default::default()
+    };
+    for _ in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = s.built.sim.frame;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        report.observe(run, &s.built, &flog, n);
+    }
+    report.finish(run);
+    Some(report)
 }
 
 /// **Chapter fifteen's word, widened whole, both directions** (item
@@ -7650,7 +7745,7 @@ fn widen_pool(
 #[test]
 fn chapter_fifteen_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch15",
         "chapter15",
         WIDENING_CHAPTER_FIFTEEN,
@@ -7684,8 +7779,6 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch15", "chapter15", WIDENING_CHAPTER_FIFTEEN, 0)
-        .expect("run215 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch15 pool f{f} slot {slot} {key}: {row}");
     }
@@ -7746,7 +7839,7 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_sixteen_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch16",
         "chapter16",
         WIDENING_CHAPTER_SIXTEEN,
@@ -7780,8 +7873,6 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch16", "chapter16", WIDENING_CHAPTER_SIXTEEN, 0)
-        .expect("run219 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch16 pool f{f} slot {slot} {key}: {row}");
     }
@@ -7851,7 +7942,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_nineteen_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch19",
         "chapter19",
         WIDENING_CHAPTER_NINETEEN,
@@ -7888,8 +7979,6 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch19", "chapter19", WIDENING_CHAPTER_NINETEEN, 0)
-        .expect("run245 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch19 pool f{f} slot {slot} {key}: {row}");
     }
@@ -7918,7 +8007,7 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_twenty_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch20",
         "chapter20",
         WIDENING_CHAPTER_TWENTY,
@@ -7955,8 +8044,6 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch20", "chapter20", WIDENING_CHAPTER_TWENTY, 0)
-        .expect("run249 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch20 pool f{f} slot {slot} {key}: {row}");
     }
@@ -7985,7 +8072,7 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_twenty_one_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch21",
         "chapter21",
         WIDENING_CHAPTER_TWENTY_ONE,
@@ -8022,8 +8109,6 @@ fn chapter_twenty_one_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch21", "chapter21", WIDENING_CHAPTER_TWENTY_ONE, 0)
-        .expect("run255 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch21 pool f{f} slot {slot} {key}: {row}");
     }
@@ -8642,7 +8727,7 @@ const WANT_CH19_POOL: &[&str] = &[];
 #[test]
 fn chapter_eighteen_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch18",
         "chapter18",
         WIDENING_CHAPTER_EIGHTEEN,
@@ -8679,8 +8764,6 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch18", "chapter18", WIDENING_CHAPTER_EIGHTEEN, 0)
-        .expect("run241 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch18 pool f{f} slot {slot} {key}: {row}");
     }
@@ -8735,7 +8818,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_twenty_two_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch22",
         "chapter22",
         WIDENING_CHAPTER_TWENTY_TWO,
@@ -8772,8 +8855,6 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch22", "chapter22", WIDENING_CHAPTER_TWENTY_TWO, 0)
-        .expect("run265 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch22 pool f{f} slot {slot} {key}: {row}");
     }
@@ -8834,7 +8915,7 @@ const WANT_CH22_POOL: &[&str] = &[];
 #[test]
 fn chapter_twenty_three_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch23",
         "chapter23",
         WIDENING_CHAPTER_TWENTY_THREE,
@@ -8872,8 +8953,6 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch23", "chapter23", WIDENING_CHAPTER_TWENTY_THREE, 0)
-        .expect("run281 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch23 pool f{f} slot {slot} {key}: {row}");
     }
@@ -8917,7 +8996,7 @@ const WANT_CH23_POOL: &[&str] = &[];
 #[test]
 fn chapter_twenty_four_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch24",
         "chapter24",
         WIDENING_CHAPTER_TWENTY_FOUR,
@@ -8955,8 +9034,6 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch24", "chapter24", WIDENING_CHAPTER_TWENTY_FOUR, 0)
-        .expect("run285 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch24 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9021,7 +9098,7 @@ const WANT_CH24_POOL: &[&str] = &[];
 #[test]
 fn chapter_twenty_five_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch25",
         "chapter25",
         WIDENING_CHAPTER_TWENTY_FIVE,
@@ -9059,8 +9136,6 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch25", "chapter25", WIDENING_CHAPTER_TWENTY_FIVE, 0)
-        .expect("run292 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch25 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9117,7 +9192,7 @@ const WANT_CH25_POOL: &[&str] = &[];
 #[test]
 fn chapter_twenty_six_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch26",
         "chapter26",
         WIDENING_CHAPTER_TWENTY_SIX,
@@ -9155,8 +9230,6 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch26", "chapter26", WIDENING_CHAPTER_TWENTY_SIX, 0)
-        .expect("run296 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch26 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9206,7 +9279,7 @@ const WANT_CH26_POOL: &[&str] = &[];
 #[test]
 fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch27",
         "chapter27",
         WIDENING_CHAPTER_TWENTY_SEVEN,
@@ -9244,8 +9317,6 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch27", "chapter27", WIDENING_CHAPTER_TWENTY_SEVEN, 0)
-        .expect("run300 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch27 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9314,7 +9385,7 @@ fn chapter_twenty_eight_holds_to_the_golden_word() {
 #[test]
 fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch28",
         "chapter28",
         WIDENING_CHAPTER_TWENTY_EIGHT,
@@ -9352,8 +9423,6 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch28", "chapter28", WIDENING_CHAPTER_TWENTY_EIGHT, 0)
-        .expect("run304 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch28 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9417,7 +9486,7 @@ fn chapter_twenty_nine_holds_to_the_golden_word() {
 #[test]
 fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch29",
         "chapter29",
         WIDENING_CHAPTER_TWENTY_NINE,
@@ -9455,8 +9524,6 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch29", "chapter29", WIDENING_CHAPTER_TWENTY_NINE, 0)
-        .expect("run308 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch29 pool f{f} slot {slot} {key}: {row}");
     }
@@ -9494,7 +9561,7 @@ const WANT_CH29_POOL: &[&str] = &[];
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch17",
         "chapter17",
         WIDENING_CHAPTER_SEVENTEEN,
@@ -9534,8 +9601,6 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch17", "chapter17", WIDENING_CHAPTER_SEVENTEEN, 0)
-        .expect("run223 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch17 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12120,7 +12185,7 @@ fn chapter_thirty_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch30",
         "chapter30",
         WIDENING_CHAPTER_THIRTY,
@@ -12158,8 +12223,6 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch30", "chapter30", WIDENING_CHAPTER_THIRTY, 0)
-        .expect("run312 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch30 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12243,7 +12306,7 @@ fn chapter_thirty_one_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_one_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch31",
         "chapter31",
         WIDENING_CHAPTER_THIRTY_ONE,
@@ -12282,8 +12345,6 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch31", "chapter31", WIDENING_CHAPTER_THIRTY_ONE, 0)
-        .expect("run338 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch31 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12363,7 +12424,7 @@ fn chapter_thirty_two_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_two_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch32",
         "chapter32",
         WIDENING_CHAPTER_THIRTY_TWO,
@@ -12401,8 +12462,6 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch32", "chapter32", WIDENING_CHAPTER_THIRTY_TWO, 0)
-        .expect("run344 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch32 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12475,7 +12534,7 @@ fn chapter_thirty_three_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_three_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch33",
         "chapter33",
         WIDENING_CHAPTER_THIRTY_THREE,
@@ -12513,8 +12572,6 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch33", "chapter33", WIDENING_CHAPTER_THIRTY_THREE, 0)
-        .expect("run358 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch33 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12615,7 +12672,7 @@ fn chapter_thirty_five_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_five_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch35",
         "chapter35",
         WIDENING_CHAPTER_THIRTY_FIVE,
@@ -12653,8 +12710,6 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch35", "chapter35", WIDENING_CHAPTER_THIRTY_FIVE, 0)
-        .expect("run371 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch35 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12703,7 +12758,7 @@ fn chapter_thirty_six_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_six_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch36",
         "chapter36",
         WIDENING_CHAPTER_THIRTY_SIX,
@@ -12741,8 +12796,6 @@ fn chapter_thirty_six_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch36", "chapter36", WIDENING_CHAPTER_THIRTY_SIX, 0)
-        .expect("run390 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch36 pool f{f} slot {slot} {key}: {row}");
     }
@@ -12789,7 +12842,7 @@ fn chapter_thirty_seven_holds_to_the_golden_word() {
 #[test]
 fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch37",
         "chapter37",
         WIDENING_CHAPTER_THIRTY_SEVEN,
@@ -12826,8 +12879,6 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch37", "chapter37", WIDENING_CHAPTER_THIRTY_SEVEN, 0)
-        .expect("run397 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch37 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13166,7 +13217,7 @@ fn chapter_forty_nine_holds_to_the_golden_word() {
 #[test]
 fn chapter_forty_nine_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch49",
         "chapter49",
         WIDENING_CHAPTER_FORTY_NINE,
@@ -13187,8 +13238,6 @@ fn chapter_forty_nine_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch49: {} rows", got.len());
-    let pool = widen_pool("ch49", "chapter49", WIDENING_CHAPTER_FORTY_NINE, 0)
-        .expect("run576 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch49 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13250,7 +13299,7 @@ fn chapter_fifty_holds_to_the_golden_word() {
 #[test]
 fn chapter_fifty_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch50",
         "chapter50",
         WIDENING_CHAPTER_FIFTY,
@@ -13271,8 +13320,6 @@ fn chapter_fifty_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch50: {} rows", got.len());
-    let pool = widen_pool("ch50", "chapter50", WIDENING_CHAPTER_FIFTY, 0)
-        .expect("run577 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch50 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13316,7 +13363,7 @@ fn chapter_fifty_one_holds_to_the_golden_word() {
 #[test]
 fn chapter_fifty_one_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch51",
         "chapter51",
         WIDENING_CHAPTER_FIFTY_ONE,
@@ -13337,8 +13384,6 @@ fn chapter_fifty_one_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch51: {} rows", got.len());
-    let pool = widen_pool("ch51", "chapter51", WIDENING_CHAPTER_FIFTY_ONE, 0)
-        .expect("run582 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch51 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13694,7 +13739,7 @@ const WANT_CH44: &[&str] = &[
 #[test]
 fn chapter_forty_six_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch46",
         "chapter46",
         WIDENING_CHAPTER_FORTY_SIX,
@@ -13715,8 +13760,6 @@ fn chapter_forty_six_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch46: {} rows", got.len());
-    let pool = widen_pool("ch46", "chapter46", WIDENING_CHAPTER_FORTY_SIX, 0)
-        .expect("run496 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch46 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13785,7 +13828,7 @@ const WANT_CH46_POOL: &[&str] = &[];
 #[test]
 fn chapter_forty_seven_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch47",
         "chapter47",
         WIDENING_CHAPTER_FORTY_SEVEN,
@@ -13806,8 +13849,6 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch47: {} rows", got.len());
-    let pool = widen_pool("ch47", "chapter47", WIDENING_CHAPTER_FORTY_SEVEN, 0)
-        .expect("run514 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch47 pool f{f} slot {slot} {key}: {row}");
     }
@@ -13831,7 +13872,7 @@ fn chapter_forty_seven_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_forty_eight_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch48",
         "chapter48",
         WIDENING_CHAPTER_FORTY_EIGHT,
@@ -13852,8 +13893,6 @@ fn chapter_forty_eight_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch48: {} rows", got.len());
-    let pool = widen_pool("ch48", "chapter48", WIDENING_CHAPTER_FORTY_EIGHT, 0)
-        .expect("run551 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch48 pool f{f} slot {slot} {key}: {row}");
     }
@@ -14011,7 +14050,7 @@ const WANT_CH47_POOL: &[&str] = &[];
 #[test]
 fn chapter_forty_three_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch43",
         "chapter43",
         WIDENING_CHAPTER_FORTY_THREE,
@@ -14032,8 +14071,6 @@ fn chapter_forty_three_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch43: {} rows", got.len());
-    let pool = widen_pool("ch43", "chapter43", WIDENING_CHAPTER_FORTY_THREE, 0)
-        .expect("run466 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch43 pool f{f} slot {slot} {key}: {row}");
     }
@@ -14167,7 +14204,7 @@ const WANT_CH41: &[&str] = &[
 #[test]
 fn chapter_forty_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch40",
         "chapter40",
         WIDENING_CHAPTER_FORTY,
@@ -14187,8 +14224,6 @@ fn chapter_forty_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch40", "chapter40", WIDENING_CHAPTER_FORTY, 0)
-        .expect("run430 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch40 pool f{f} slot {slot} {key}: {row}");
     }
@@ -14251,7 +14286,7 @@ const WANT_CH40_POOL: &[&str] = &[
 #[test]
 fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch39",
         "chapter39",
         WIDENING_CHAPTER_THIRTY_NINE,
@@ -14288,8 +14323,6 @@ fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch39", "chapter39", WIDENING_CHAPTER_THIRTY_NINE, 0)
-        .expect("run422 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch39 pool f{f} slot {slot} {key}: {row}");
     }
@@ -15506,7 +15539,7 @@ const WANT_CH35_POOL: &[&str] = &[];
 #[test]
 fn chapter_thirty_four_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(firsts) = widen_civilians(
+    let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch34",
         "chapter34",
         WIDENING_CHAPTER_THIRTY_FOUR,
@@ -15544,8 +15577,6 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let pool = widen_pool("ch34", "chapter34", WIDENING_CHAPTER_THIRTY_FOUR, 0)
-        .expect("run362 is on disk when its units were");
     for ((slot, key), (f, row)) in &pool {
         eprintln!("  ch34 pool f{f} slot {slot} {key}: {row}");
     }
