@@ -61,7 +61,7 @@ Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate
 Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate passed.
 See `docs/journal/2026-10-10-item-1646.md`. Floors unchanged; loop paused.
 Follow-up (1634): activation flags roads before city growth; word 3395 → 3397.
-Four newly attached buildings' road flags agree; full gate pending.
+Four newly attached buildings' road flags agree; combined validation passed.
 See `docs/journal/2026-10-10-item-1634.md`. Commander remains paused.
 
 ## The queue
@@ -75,9 +75,10 @@ The backlog is `docs/PARKED.md`, back only when a score names it.
 1647. **The coverage pair's word: frame 3397, 312 versus 300 draws**,
     index 8: ours `PathFinder::calc_road_cost+0x46`, theirs
     `Guy::init_real+0x52`. Inside run721 (block 3398), widened whole:
-    2,359 keys, 151 standing. Terra Cotta `1/2043` completes on 3394;
-    original soldier `1/207` is present on 3398, absent here. The missing
-    wonder production rule is the hypothesis. Runs 722–723, AI §177.
+    2,359 keys, 147 standing. Original caravan `1/207` is present on
+    3398, absent here; `leader:caras` already stands at 8 versus 6 on
+    3389. Follow the census feeding the Persian market's birth gate.
+    Terra Cotta's timer kills that guess. Runs 722–723, AI §177.
 
 1639. **The re-race on Great Sahara's word: frame 2323, 12 versus 13
     draws**, index 10: ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside

@@ -2452,7 +2452,6 @@ mod tests {
                 (16210, 1),
                 (16270, 1),
                 (16273, 1),
-                (16288, 1),
                 (16315, 1),
                 (16367, 1),
                 (16369, 2),
@@ -2484,7 +2483,8 @@ mod tests {
         // 263. The keys left part from 16270 on, the last 53 on 16381.
         // Item 1457: 263 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 143, "every key parted on run572");
+        // Item 1634 removes 1/2046's false road flag from block 16288.
+        pin_eq!(w.firsts.len(), 142, "every key parted on run572");
     }
 
     /// **run579 — the second pair's East Indies word 16482, widened whole**
@@ -2543,7 +2543,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (16476, 118),
+                (16476, 117),
                 (16571, 1),
                 (16609, 1),
                 (16625, 3),
@@ -2570,7 +2570,8 @@ mod tests {
         }
         // Item 1457: 267 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 152, "every key parted on run579");
+        // Item 1634 removes 1/2046's standing false road flag.
+        pin_eq!(w.firsts.len(), 151, "every key parted on run579");
     }
 
     type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;

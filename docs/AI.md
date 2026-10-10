@@ -18003,11 +18003,14 @@ capture, no transcription, and no road-search changes.
 
 **Limits and score.** run672 also loses the false road flags on `1/2007`
 and `1/2016` at block 658: 57 → 55 keys. run721's entire diverged tail has
-**2326 → 2359** keys, not a global value improvement; its 151 initial
+**2326 → 2359** keys, not a global value improvement; its 147 measured initial
 standing keys remain. At the new word 3397, 312 versus 300 draws, index 8,
 ours enters road cost while the original initializes a guy. Original
-`1/207` is present on block 3398 and absent here; the completed Terra Cotta's
-production rule is not implemented. The same whole window holds the new
+`1/207` (CARA, type 59) is present on block 3398 and absent here. The
+initial Terra Cotta birth hypothesis is killed: its original timer reads
+449 on 3395 and 446 on 3398, not due. `leader:caras` stands at 8 here
+versus 6 there from block 3389, an input to the Persian market's birth gate.
+The same whole window holds the new
 word (block 3398); its coverage driver moves there too. No other headline
 is intentionally changed. The longer prefix reads two more uncertain ground
 heights: 17 through 3395, 18 through 3396, 19 through 3397. Its bound is
@@ -18021,5 +18024,9 @@ A later steer must review the ordering and that remaining scope.
 
 ## 177. Reserved for item 1647 (the coverage pair's word 3397)
 
-Terra Cotta's first soldier is the hypothesis, not a measured implementation.
+The new birth is a caravan, not Terra Cotta's soldier. Its timer remains
+446 on block 3398; that kills the initial wonder hypothesis. The Persian
+market `1/2018` is due on frame 3397, and its `caras` gate reads 8 here
+versus 6 there (standing since run721's first block 3389; run716 starts
+with 6 versus 7 on 3137). Trace the count before changing production.
 run721 already holds the word; runs 722–723 remain unused and reserved.
