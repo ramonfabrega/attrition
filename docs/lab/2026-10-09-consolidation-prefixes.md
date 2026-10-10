@@ -14,6 +14,11 @@ and disable the additional group-record mode. Their endpoints are 12399,
 12899, 14899, 15039 and 15232. Their six-, seven-, eight-, nine- and ten-entry
 capture chains are exact prefixes of `great_lakes_word_chain()`.
 
+Across these six old executions, the loop bounds imply **87818 sim ticks**
+and **19424 compared blocks**; the shared execution uses **17350 ticks** and
+**5951 compared blocks**. These are counts from the validated window bounds,
+not profiler estimates. The reports still cover all nine original windows.
+
 The combined test is now
 `diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole`.
 It takes five more cumulative snapshots during the existing walk and passes
@@ -91,5 +96,29 @@ RON_INSTALL=/Users/rf-studio/code/fun/attrition/game \
 
 Draw scores remain East Indies coverage 3395 and Great Sahara coverage 2323;
 value floors are unchanged. Single-agent executable evidence does not settle
-independent review debt. Full required-fixture gate remains required on the
-committed implementation; its actual verdict will be recorded separately.
+independent review debt.
+
+## Full release verdict
+
+Committed **`6443a80e`**, tracked tree frozen: required-fixture gate **exit 0**,
+all six steps ran. Offline 277; fixed 13; rondata **777 passed**, five existing
+ignored; sim **1476 passed**; three doc tests. Broad key/field coverage and the
+new shared test passed. Registered test count falls by five because those
+assertion groups now execute inside the combined test; none was dropped.
+
+Rondata suite elapsed **566.31 s**, compared with the previous gate's
+**592.85 s** (26.54 s / 4.5% shorter). These are two observed four-thread runs,
+not a controlled repeated suite benchmark. Peak tree/largest-process RSS
+**12885/12852 MiB**, versus **12935/12902 MiB** previously: no material
+whole-suite memory reduction established. Sim elapsed 2.25 s.
+
+Fixture audit: **2893 requests across 386 unique fixtures, zero missing**.
+The fixture-name set exactly matches the previous landing's 386; repeated
+requests fell from 2963 by 70. This covers observed requests, not every corpus
+file. Evidence: `target/consolidation-1642/release-gate.log`, `gate-report/`,
+`fixture-set-comparison.json`. No archive overrides were used.
+
+The next candidate is read/parse reuse within the remaining walks. Later
+Great Lakes windows have different comparison starts and deliberate gaps;
+sharing them requires separate window accumulators and its own equivalence
+proof. Neither change is included here.

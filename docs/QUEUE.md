@@ -49,7 +49,7 @@ passed. Follow-up (1641) adds opt-in LZ4: 18.51× smaller, run721 median 4.22 s
 raw / 4.28 s LZ4. Scores/floors unchanged; full gate passed. Investigation branch
 only; see `docs/journal/2026-10-09-item-1641.md`. Commander remains paused.
 Follow-up (1642) shares nine Great Lakes windows: 154.44 → 54.39 s (−64.8%).
-Full gate pending; all nine reports equal independent replays, 27 faults caught;
+Full gate passed (566.31 s rondata); nine reports equal, 27 faults caught;
 see `docs/journal/2026-10-09-item-1642.md`. Scores/floors unchanged.
 
 ## The queue
