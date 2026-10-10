@@ -58,7 +58,7 @@ Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); full gate p
 50 complete reports equal. See `docs/journal/2026-10-10-item-1644.md`. Floors unchanged.
 Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate passed.
 64 complete reports equal. See `docs/journal/2026-10-10-item-1645.md`. Loop paused.
-Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate pending.
+Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate passed.
 See `docs/journal/2026-10-10-item-1646.md`. Floors unchanged; loop paused.
 
 ## The queue

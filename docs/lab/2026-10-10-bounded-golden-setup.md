@@ -80,7 +80,7 @@ evidence covers **130 distinct consumers**, **136 Initial comparisons**,
 checked by all 56 word tests plus the three staged samples and sibling
 regression; the first audit covers the staged constructor before its
 mechanical extraction. Every subsequent replay check is preserved. All-target
-clippy passed on the final constructor. Full required-fixture gate pending.
+clippy passed on the final constructor. Full required-fixture gate passed below.
 
 ## Evidence and reproduction
 
@@ -110,3 +110,38 @@ unrequested golden files. Independent review remains owed.
 
 Scores: East Indies coverage 3395, Great Sahara coverage 2323, unchanged.
 No value floor, draw pin, original capture or shared install is changed.
+
+
+## Full release verdict
+
+The complete required-fixture gate on **`5e32b45e` passed, exit 0**, all six
+steps. The tracked tree remained frozen. Offline 277, fixed 13, rondata
+**778 passed / five existing ignored**, sim **1476 passed**, three doc tests.
+All **130 affected consumers**, parsed-field coverage and printed-key coverage
+passed with every legacy audit flag disabled.
+
+Rondata **477.04 s**, preceding consolidation gate **520.22 s** (−43.18 s /
+8.3%). The two completed items take the observed gate from **542.66 to
+477.04 s** (−65.62 s / 12.1%). These single four-thread suite measurements
+are observational; the controlled isolated comparisons are above. Sim
+2.20 s. Peak tree/largest process **12552 / 12521 MiB**, preceding
+**13526 / 13495 MiB**. Other replay work still raises the suite peak well
+above the converted golden tests; the **71–74%** reduction belongs to the
+isolated golden groups, not the suite. All peaks remain under the 20 GiB cap.
+
+Fixture audit: **2765 requests, 386 unique, zero missing**. Every archived
+fixture/test pair and its request count matches the preceding gate exactly.
+All **118 used golden dump/trace files** remain nonempty and unchanged by
+size/mtime. No unrequested-corpus completeness claim. Evidence:
+`release-gate.log`, `gate-report/`, `fixture-set-comparison.json`,
+`all-used-fixtures.json`, `golden-fixtures-after.json` under
+`target/golden-setup-1646/`. About **71 GiB** remains free; original captures
+are intact.
+
+This completes the sequential consolidation/setup batch. Before another
+broad optimization, profile the remaining full-suite time and memory peaks;
+neighboring test names in a concurrent log are not reliable attribution.
+Some remaining whole-text readers are independent oracles or consume bodies,
+so they must not be mechanically migrated. Independent review remains owed;
+East Indies coverage **3395 → 3395**, Great Sahara **2323 → 2323**, no value
+floor or draw-pin change. Commander remains paused.
