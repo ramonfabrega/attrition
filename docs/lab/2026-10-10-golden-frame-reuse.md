@@ -72,7 +72,24 @@ per version are evidence of a modest local gain, not a precise suite forecast.
 The complete audit **passed: 48 tests, 50 complete reports equal**, including
 both control pairs; **343.53 s**, peak **6606 MiB** with two test threads.
 All-target clippy, formatting, diff checks and repository guards passed.
-The final required-fixture gate on the committed tree is pending.
+The final required-fixture gate on **`9bd7f5c8` passed, exit 0**, all six
+steps. Offline 277; fixed 13; rondata **778 passed / five existing ignored**;
+sim **1476 passed**; three doc tests. All 48 affected tests and normal
+parsed-field coverage passed with the legacy audit disabled.
+
+Rondata **542.66 s**, preceding gate **552.05 s** (−9.39 s / 1.7%). This
+single four-thread comparison is observational, not a repeated suite
+benchmark. Sim 2.21 s. Peak tree/largest process **14175 / 14143 MiB**,
+versus preceding **12666 / 12634 MiB**: higher suite peak despite essentially
+flat focused memory. Concurrent test overlap may contribute, but its cause
+was not isolated. No suite memory improvement is claimed; both are under
+the 20 GiB cap.
+
+Fixture audit: **2893 requests, 386 unique, zero missing**, with identical
+request count and fixture-name set to the preceding gate. This proves the
+requested set, not unrequested corpus completeness. Evidence:
+`release-gate.log`, `gate-report/`, `fixture-set-comparison.json` in the
+artifact directory. The tracked tree stayed frozen until the gate exited.
 No score, value floor,
 draw pin or coverage requirement changes: East Indies coverage 3395,
 Great Sahara coverage 2323. The commander remains paused.

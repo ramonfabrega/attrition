@@ -54,7 +54,7 @@ see `docs/journal/2026-10-09-item-1642.md`. Scores/floors unchanged.
 2026-10-10: (1643) reuses parsed frames: median 53.03 → 39.655 s (−25.2%).
 40 reports/checkpoints equal; raw/gzip/LZ4 passed. Full gate passed (552.05 s).
 See `docs/journal/2026-10-10-item-1643.md`. Commander remains paused.
-Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); gate pending.
+Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); full gate passed.
 50 complete reports equal. See `docs/journal/2026-10-10-item-1644.md`. Floors unchanged.
 
 ## The queue
