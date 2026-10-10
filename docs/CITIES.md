@@ -869,6 +869,11 @@ gameplay ("G") rather than message/sound/AI:
 | **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund**; the per-wonder one-offs — Terra Cotta's free-unit timer, the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
 | tail | **`update_hits(0)`** — full health now; `update_los`; **a non-city in a city → `City::check_upgrade`** (§5.3); `update_seen` |
 
+**The ordering matters** (item 1634, `docs/AI.md` §176): the road request
+precedes the tail's city upgrade and enlarged-radius sweep. Buildings newly
+attached by that sweep are not retroactively flagged. run721's four new
+members prove this at blocks 3395/3396; the old members still get the request.
+
 So activation touches the economy only through the listed bonuses, recomputes
 territory only for a city, a temple, a senate-moved capital and three
 wonders, and moves the population cap only for a city and the Colossus.

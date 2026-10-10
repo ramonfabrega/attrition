@@ -2024,12 +2024,6 @@ impl Sim {
             }
         }
         self.update_hits(b);
-        if !self.building_is_city(b)
-            && let Some(c) = self.buildings[b].city
-            && self.cities[c].alive
-        {
-            self.check_upgrade(c);
-        }
         // `Build::activate` line 1978: a finished dock may grant the
         // transport level (`docs/TRANSPORT.md` §4).
         if dock {
@@ -2057,6 +2051,14 @@ impl Sim {
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
+        // Activation flags the old city's roads before its final upgrade
+        // sweep can attach buildings inside the enlarged radius (AI §176).
+        if !self.building_is_city(b)
+            && let Some(c) = self.buildings[b].city
+            && self.cities[c].alive
+        {
+            self.check_upgrade(c);
+        }
         // The function's **last** statement, vtable `+0x174` with `ring =
         // 0`: the finished building lights its whole fog disc
         // (`docs/VISION.md` §2.1, §6).

@@ -217,7 +217,9 @@ pub(crate) struct Pair {
     /// straight line here and 13 along the original's spline (run717,
     /// `docs/AI.md` §174). At 3395, ours 1310 game draws against 636, index
     /// 628: ours `PathFinder::calc_road_cost+0x46`, theirs
-    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Item 1634 moves it to
+    /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
+    /// `Guy::init_real+0x52` (the Terra Cotta soldier absent here).
     pub count: i64,
     pub sequence: i64,
 }
@@ -235,8 +237,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3395,
-    sequence: 3395,
+    count: 3397,
+    sequence: 3397,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -680,8 +682,9 @@ fn run672_s_word_frame_is_widened_whole() {
     // from its founding on 612, agrees since item 1546. Block
     // 577's stand from the window's first block (the control's set, as on
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
-    // `scouts`).
-    pin_eq!(w.firsts.len(), 57, "initial run672 baseline");
+    // `scouts`). Item 1634 removes the false regeneration flags on
+    // 1/2007 and 1/2016 at 658: 57 -> 55.
+    pin_eq!(w.firsts.len(), 55, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -1507,7 +1510,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3395 (item 1625), block 3396.
+/// word 3397 (item 1634), block 3398; the old word's values remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1517,7 +1520,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3396],
+        &[3395, 3396, 3398],
         true,
     )
 }
@@ -1536,10 +1539,66 @@ fn run721_s_word_frame_is_widened_whole() {
     // `form`. **The word 3395's own block, 3396**, and the block before:
     // on 3395 four of the computer's buildings (`1/2028`, `1/2035`,
     // `1/2042`, `1/2045`) carry `regen_roads` 1 in ours against 0 — beside
-    // ours' `PathFinder::calc_road_cost` draws on 3395. The item after's
-    // hypothesis, not a cause.
-    // 2330 before item 1620's landing; **2326** on the merged tree.
-    pin_eq!(w.firsts.len(), 2326, "initial run721 baseline");
+    // ours' `PathFinder::calc_road_cost` draws on 3395. Item 1634 resolves
+    // those four flags by ordering regeneration before the city upgrade.
+    // 2330 before item 1620, 2326 after it; now 2359 over the diverged
+    // tail, with a longer agreeing draw prefix through 3396. The new word
+    // is 3397, block 3398: the original's Terra Cotta soldier is absent.
+    pin_eq!(
+        w.firsts.len(),
+        2359,
+        "run721 after activation order correction"
+    );
+    let path = dump(RUN721).expect("the replay just read run721");
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    for block in [3394, 3395, 3396] {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        for (o, next) in [(2028, 2035), (2035, 2042), (2042, 2045), (2045, -1)] {
+            let b = frame
+                .builds
+                .iter()
+                .find(|b| (b.who, b.o) == (1, o))
+                .unwrap();
+            assert_eq!(b.city, Some(if block == 3394 { -1 } else { 1 }));
+            assert_eq!(b.city_down, Some(if block == 3394 { -1 } else { next }));
+            assert_eq!(
+                b.build_masks.unwrap() & 0x100,
+                0,
+                "new member {o}, block {block}"
+            );
+        }
+        if block == 3395 {
+            let old = frame
+                .builds
+                .iter()
+                .find(|b| (b.who, b.o) == (1, 2025))
+                .unwrap();
+            assert_eq!(
+                old.build_masks.unwrap() & 0x100,
+                0x100,
+                "old member was flagged"
+            );
+        }
+    }
+    // Complete records are compared above; hold the specific value repair
+    // at the original divergence, independently of the moving tail count.
+    for block in [3395, 3396] {
+        let rows = w
+            .standing
+            .get(&block)
+            .expect("the move's block was compared");
+        for o in [2028, 2035, 2042, 2045] {
+            for field in ["build:city", "build:city_down", "build:regen_roads"] {
+                assert!(
+                    !rows.contains_key(&(1, o, field.to_string())),
+                    "block {block}, 1/{o}, {field}: {:?}",
+                    rows.get(&(1, o, field.to_string()))
+                );
+            }
+        }
+    }
+
     let first = w
         .firsts
         .values()

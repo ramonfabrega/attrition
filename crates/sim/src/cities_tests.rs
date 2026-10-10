@@ -1413,6 +1413,49 @@ fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
 // Cities
 // ----------------------------------------------------------------------
 
+/// A completion's road request precedes the radius sweep it triggers.
+/// run721 holds the same transition on four newly attached buildings (AI §176).
+#[test]
+fn a_city_growth_does_not_retroactively_flag_its_new_members_roads() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (center, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let outside = sim.place_building(0, t.barracks, tile_pos(54, 32)).unwrap();
+    finish(&mut sim, outside);
+    assert_eq!(sim.buildings[outside].city, None);
+    let mut sites = Vec::new();
+    for (ty, pos) in [
+        (t.barracks, tile_pos(40, 40)),
+        (t.library, tile_pos(24, 40)),
+        (t.market, tile_pos(40, 24)),
+        (t.temple, tile_pos(24, 24)),
+        (t.farm, tile_pos(44, 32)),
+    ] {
+        sites.push(sim.place_building(0, ty, pos).unwrap());
+    }
+    for &b in &sites[..4] {
+        finish(&mut sim, b);
+    }
+    assert_eq!(sim.city_level_of(c), 1);
+    for b in &mut sim.buildings {
+        b.regen_roads = false;
+    }
+    finish(&mut sim, sites[4]);
+    assert_eq!(sim.city_level_of(c), 2);
+    assert_eq!(sim.buildings[outside].city, Some(c));
+    assert!(sim.cities[c].members.contains(&outside));
+    assert!(
+        !sim.buildings[outside].regen_roads,
+        "joined after the road request"
+    );
+    for b in std::iter::once(center).chain(sites) {
+        assert!(
+            sim.buildings[b].regen_roads,
+            "old member keeps its road request"
+        );
+    }
+}
+
 #[test]
 fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     let mut sim = world_sim();

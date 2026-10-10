@@ -17981,7 +17981,45 @@ records (`run717_s_missiles_fly_their_spline_s_count`). Export-backed and held b
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 176. Reserved for item 1634 (the coverage pair's word 3395)
+## 176. Completion flags roads before the city grows (item 1634)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Measured 2026-10-10, Codex (GPT-6).** East Indies coverage word **3395 →
+3397**, count and sequence. The mechanism is activation ordering, not road
+search arithmetic. `Build::activate@00623e20` flags the city's roads before
+its tail's `City::check_upgrade@00738b20`; that check's enlarged-radius
+sweep can attach previously cityless buildings. This crate performed the
+upgrade before regeneration. It now checks at the tail, before visibility.
+
+**Evidence and killers.** run721 blocks 3394/3395 show `1/2043` (Terra
+Cotta) finishing on sim-frame 3394. The four buildings `1/2028`, `1/2035`,
+`1/2042`, `1/2045` change `city -1 → 1`, forming the appended chain
+`2028 → 2035 → 2042 → 2045 → -1`. Their `build_masks & 0x100` stays zero,
+while old member `1/2025` is flagged. The original record values are asserted,
+including field presence, alongside the existing whole-cast replay. On
+blocks 3395 and 3396 this crate's four `regen_roads` values change **1 → 0**,
+matching the original's zero; city and chain comparisons still agree.
+The synthetic growth test fails when the old order is restored. No new
+capture, no transcription, and no road-search changes.
+
+**Limits and score.** run672 also loses the false road flags on `1/2007`
+and `1/2016` at block 658: 57 → 55 keys. run721's entire diverged tail has
+**2326 → 2359** keys, not a global value improvement; its 151 initial
+standing keys remain. At the new word 3397, 312 versus 300 draws, index 8,
+ours enters road cost while the original initializes a guy. Original
+`1/207` is present on block 3398 and absent here; the completed Terra Cotta's
+production rule is not implemented. The same whole window holds the new
+word (block 3398); its coverage driver moves there too. No other headline
+is intentionally changed. The longer prefix reads two more uncertain ground
+heights: 17 through 3395, 18 through 3396, 19 through 3397. Its bound is
+re-pinned to this measured extent, not disabled; height exactness remains debt.
+
+**Review debt.** The road/membership claim has executable differential and
+mutation evidence. The placement relative to other activation side effects
+is export-backed, not independently reviewed. Capture, wonder, and free-unit
+arms beyond the observed growth transition are not established by this item.
+A later steer must review the ordering and that remaining scope.
+
+## 177. Reserved for item 1647 (the coverage pair's word 3397)
+
+Terra Cotta's first soldier is the hypothesis, not a measured implementation.
+run721 already holds the word; runs 722–723 remain unused and reserved.

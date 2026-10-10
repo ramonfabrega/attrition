@@ -43,6 +43,10 @@ arm sets it too, but nothing in a traced game reaches that arm, and it would
 never reach a farm or a city, which is how we know `regen_roads` is the
 writer that matters.
 
+Activation requests regeneration before its final city upgrade, so a
+building attached by that upgrade's radius sweep misses this request
+(`docs/AI.md` §176, item 1634; run721 blocks 3395/3396).
+
 **But the flag is not how a road first appears.** `Wall::start@0063e810`
 calls `Wall::mask_me(this, 1, REGEN_FORCE)`, and the tail of
 `BuildType::mask_me@006312a0` is `place_roads(this, x, y, o, who, 1,

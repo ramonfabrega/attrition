@@ -18,10 +18,10 @@ pair **1408 → 3395**, Great Sahara's coverage word **1582 → 2323**, the
 census's backed column **45 → 68**; the battery 576 / 6566 / 2974 for a
 third tranche.*
 
-- **No lane live.** The next commander spawns 1634 (Opus 5.5 high), 1630
+- **No lane live.** The next commander spawns 1647 (Opus 5.5 high), 1630
   and 1497 (Sonnet 5.5 high; 1497 is the lane rule 5 earns back) and
   **1639's three racers**; every brief with `--tests`; every lane clears
-  itself at 300 k (frame row 1637). Next number 1647, run 722, §177.
+  itself at 300 k (frame row 1637). Next number 1648, run 722, §178.
 - **The first race is scored** (`docs/audit/2026-10-07-race-1565.md`) and
   re-run as 1639 shaped like workers; the roster is Ramon's, on its score.
 - **Fable backlog: 23 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638).
@@ -30,14 +30,14 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w3395 of 4,730
+Coverage pair: EastIndiesPersianAllTech w3397 of 4,730
 Census: simulation backed 68 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2323 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-eighth tranche — `commander` (Opus 5.5): spawn
-1634, 1630, 1497 and 1639's three racers, each brief with `--tests`
+1647, 1630, 1497 and 1639's three racers, each brief with `--tests`
 (`coverage::` rides along), a racer respawned off its own chain tip
 after every landing; merge, book, refill; score the race at its end
 (DECISIONS 64); stop at twenty landings and hand off to `steer`.**
@@ -60,21 +60,24 @@ Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate
 64 complete reports equal. See `docs/journal/2026-10-10-item-1645.md`. Loop paused.
 Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate passed.
 See `docs/journal/2026-10-10-item-1646.md`. Floors unchanged; loop paused.
+Follow-up (1634): activation flags roads before city growth; word 3395 → 3397.
+Four newly attached buildings' road flags agree; full gate pending.
+See `docs/journal/2026-10-10-item-1634.md`. Commander remains paused.
 
 ## The queue
 
 In dependency order, headline-nearest first. **Four lanes**: the newest
-pair's (1634), the third map's (1639, the re-race), the sweep (1630) and
+pair's (1647), the third map's (1639, the re-race), the sweep (1630) and
 the rules track's (1497); lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1634. **The coverage pair's word: frame 3395, 1310 versus 636 draws**,
-    index 628: ours `PathFinder::calc_road_cost+0x46`, theirs
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run721 (block
-    3396), widened by `run721_s_word_frame_is_widened_whole` (2,326 keys,
-    151 standing): on 3395 four of the computer's buildings carry
-    `regen_roads` 1 in ours — 1625's hypothesis. Runs 722–723, AI §176.
+1647. **The coverage pair's word: frame 3397, 312 versus 300 draws**,
+    index 8: ours `PathFinder::calc_road_cost+0x46`, theirs
+    `Guy::init_real+0x52`. Inside run721 (block 3398), widened whole:
+    2,359 keys, 151 standing. Terra Cotta `1/2043` completes on 3394;
+    original soldier `1/207` is present on 3398, absent here. The missing
+    wonder production rule is the hypothesis. Runs 722–723, AI §177.
 
 1639. **The re-race on Great Sahara's word: frame 2323, 12 versus 13
     draws**, index 10: ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside
