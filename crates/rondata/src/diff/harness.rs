@@ -11119,6 +11119,51 @@ pub(crate) mod tests {
     fn widen_on_siblings_with_checkpoints(
         siblings: &[&str],
         gaia: bool,
+        base: (&str, &str),
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+        records: bool,
+        checkpoints: &[(i64, &[i64])],
+    ) -> Option<(Widened, Vec<Widened>)> {
+        let walk = |reuse| {
+            widen_walk(
+                siblings,
+                gaia,
+                base,
+                name,
+                chain,
+                window,
+                pools,
+                near,
+                records,
+                checkpoints,
+                reuse,
+            )
+        };
+        let result = walk(true)?;
+        // Explicit migration audit only: normal gates must exercise the reused
+        // reader alone, so legacy reads cannot fill gaps in coverage recording.
+        if std::env::var_os("RON_VERIFY_FRAME_REUSE").is_some() {
+            assert_eq!(
+                result,
+                walk(false).expect("legacy audit needs the same fixtures"),
+                "{name}: reused and legacy frame reads differ"
+            );
+            eprintln!("{name}: frame reuse matches the complete legacy report and checkpoints");
+        }
+        Some(result)
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the existing walk plus a legacy audit mode"
+    )]
+    fn widen_walk(
+        siblings: &[&str],
+        gaia: bool,
         (base, base_trace): (&str, &str),
         name: &str,
         chain: &[(&str, i64)],
@@ -11127,6 +11172,7 @@ pub(crate) mod tests {
         near: &[i64],
         records: bool,
         checkpoints: &[(i64, &[i64])],
+        reuse: bool,
     ) -> Option<(Widened, Vec<Widened>)> {
         assert!(checkpoints.windows(2).all(|w| w[0].0 < w[1].0));
         assert!(checkpoints.iter().all(|(tail, points)| {
@@ -11225,7 +11271,16 @@ pub(crate) mod tests {
             let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
                 continue;
             };
-            let frame = ix.frame_state(at).unwrap();
+            // Decode once, then keep the same tree for leader/group records.
+            // The second read/parse below exists only for the migration audit.
+            let reused_text = reuse.then(|| ix.read_frame(at).unwrap());
+            let reused_log = reused_text.as_deref().map(Log::parse_eager);
+            let frame = if let Some(log) = &reused_log {
+                crate::capture::indexed::IndexedCapture::frame_from_log(log, ix.frames()[at].number)
+                    .unwrap()
+            } else {
+                ix.frame_state(at).unwrap()
+            };
             blocks += 1;
             debug_watch(&built, n);
             debug_armies(&built, n);
@@ -11235,8 +11290,9 @@ pub(crate) mod tests {
             let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
             housed += fr.inside_housed;
-            let raw = ix.read_frame(at).unwrap();
-            let flog = Log::parse(&raw);
+            let legacy_text = (!reuse).then(|| ix.read_frame(at).unwrap());
+            let legacy_log = legacy_text.as_deref().map(Log::parse);
+            let flog = reused_log.as_ref().or(legacy_log.as_ref()).unwrap();
             // **The group record and the attack order's row** (item 1061),
             // on the windows that ask for them: `second::widen_records`.
             if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {

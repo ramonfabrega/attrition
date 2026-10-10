@@ -318,8 +318,20 @@ impl IndexedCapture {
     pub fn frame_state(&mut self, index: usize) -> io::Result<crate::gamelog::Frame> {
         let text = self.read_frame(index)?;
         // This is one indexed frame, and decoding visits its whole body.
-        let mut states = crate::gamelog::Log::parse_eager(&text).frame_states();
-        if states.len() != 1 || states[0].n != self.frames[index].number {
+        Self::frame_from_log(
+            &crate::gamelog::Log::parse_eager(&text),
+            self.frames[index].number,
+        )
+    }
+
+    /// Decode an already parsed indexed slice so callers can reuse its tree
+    /// for auxiliary records. Keep the same cardinality/label checks as I/O.
+    pub(crate) fn frame_from_log(
+        log: &crate::gamelog::Log<'_>,
+        expected_number: i64,
+    ) -> io::Result<crate::gamelog::Frame> {
+        let mut states = log.frame_states();
+        if states.len() != 1 || states[0].n != expected_number {
             return Err(invalid("indexed frame did not parse as one matching FRAME"));
         }
         Ok(states.pop().expect("one frame"))
@@ -542,6 +554,31 @@ mod tests {
         assert_eq!(got.len(), 2);
         assert_eq!(got[0].units[0].pos.x, 234);
         assert_eq!(got[1].units[0].pos.x, 999);
+        for (index, expected) in expected.iter().enumerate() {
+            let slice = source.read_frame(index).unwrap();
+            let log = crate::gamelog::Log::parse_eager(&slice);
+            let reused =
+                IndexedCapture::frame_from_log(&log, source.frames()[index].number).unwrap();
+            assert_eq!(&reused, expected);
+        }
+    }
+
+    #[test]
+    fn reused_frame_tree_still_requires_one_matching_frame() {
+        for text in [
+            "BEGIN GAME\n",
+            "BEGIN GAME\n BEGIN FRAME 2\n",
+            "BEGIN GAME\n BEGIN FRAME 3\n BEGIN FRAME 3\n",
+            "BEGIN GAME\n BEGIN FRAME 3\n BEGIN FRAME 4\n",
+        ] {
+            let log = crate::gamelog::Log::parse_eager(text);
+            assert_eq!(
+                IndexedCapture::frame_from_log(&log, 3).unwrap_err().kind(),
+                io::ErrorKind::InvalidData
+            );
+        }
+        let log = crate::gamelog::Log::parse_eager("BEGIN GAME\n BEGIN FRAME 3\n");
+        assert_eq!(IndexedCapture::frame_from_log(&log, 3).unwrap().n, 3);
     }
 
     #[test]
