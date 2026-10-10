@@ -46,7 +46,7 @@ after every landing; merge, book, refill; score the race at its end
 
 2026-10-09: (1640) shared four Great Lakes walks; its full required-fixture gate
 passed. Follow-up (1641) adds opt-in LZ4: 18.51× smaller, run721 median 4.22 s
-raw / 4.28 s LZ4. Scores/floors unchanged; gate pending. Investigation branch
+raw / 4.28 s LZ4. Scores/floors unchanged; full gate passed. Investigation branch
 only; see `docs/journal/2026-10-09-item-1641.md`. Commander remains paused.
 
 ## The queue

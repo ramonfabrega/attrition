@@ -180,5 +180,14 @@ End-to-end measurements used fresh processes, one test thread, no concurrent
 builds, warm filesystem caches and `tools/memcap.sh 20`.
 
 Single-agent executable evidence; independent review remains owed. Draw scores
-and value floors are unchanged. Full required-fixture release gate is pending
-on the implementation commit; no corpus migration is claimed.
+and value floors are unchanged. Full required-fixture release gate on committed
+`906d77de` **passed, exit 0**, all six steps: offline (277 tests), clippy,
+formatting, survey, release and guard. Release: fixed 13, rondata 782 passed
+(five existing ignored, 592.85 s), sim 1476 passed (2.23 s), three doc tests.
+The fixture audit observed 2963 requests across 386 unique fixtures, zero
+missing; it does not claim every corpus file was exercised. Peak tree RSS
+12935 MiB, largest process 12902 MiB. The full gate used raw-default fixtures;
+compressed-reader evidence is the separate trials above. No corpus migration
+is claimed. Gate logs and JSON reports are retained under
+`target/compression-followup/{release-gate.log,gate-report/}`. See the
+[item journal](../journal/2026-10-09-item-1641.md) for the landing handoff.
