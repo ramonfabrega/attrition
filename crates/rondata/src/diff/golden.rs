@@ -6475,6 +6475,53 @@ fn widen_civilians(
     ammo: bool,
     leader_keys: usize,
 ) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
+    let walk = |reuse| {
+        widen_civilians_walk(
+            run,
+            stem,
+            (first, last),
+            no_block,
+            who,
+            print,
+            ammo,
+            leader_keys,
+            reuse,
+        )
+    };
+    let report = walk(true)?;
+    if std::env::var_os("RON_VERIFY_GOLDEN_FRAME_REUSE").is_some() {
+        let legacy = walk(false).expect("the same golden fixtures remain available");
+        assert_eq!(
+            report, legacy,
+            "{run}: frame reuse changed the complete golden report"
+        );
+        eprintln!("{run}: frame reuse matches the complete legacy golden report");
+    }
+    Some(report.firsts)
+}
+
+/// All widening results, including counts that the callers do not return.
+/// The opt-in legacy audit compares these before returning the original map.
+#[derive(Debug, PartialEq, Eq)]
+struct CivilianWidening {
+    firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    missing: std::collections::BTreeSet<String>,
+    // blocks, record rows, leader rows, goods, unread goods, ammo, no-goods blocks
+    counts: [usize; 7],
+}
+
+#[allow(clippy::too_many_arguments)]
+fn widen_civilians_walk(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    no_block: i64,
+    who: i64,
+    print: (i64, i64),
+    ammo: bool,
+    leader_keys: usize,
+    reuse: bool,
+) -> Option<CivilianWidening> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
     let players = s.built.sim.players.len();
@@ -6498,7 +6545,15 @@ fn widen_civilians(
         let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
             continue;
         };
-        let frame = s.ix.frame_state(at).unwrap();
+        // One slice and eager tree serve both typed and auxiliary readers.
+        // The legacy branch exists only for the opt-in differential audit.
+        let reused_raw = reuse.then(|| s.ix.read_frame(at).unwrap());
+        let reused_log = reused_raw.as_deref().map(Log::parse_eager);
+        let frame = if let Some(log) = &reused_log {
+            crate::capture::indexed::IndexedCapture::frame_from_log(log, n).unwrap()
+        } else {
+            s.ix.frame_state(at).unwrap()
+        };
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
@@ -6517,7 +6572,8 @@ fn widen_civilians(
                 }
             }
         }
-        let raw = s.ix.read_frame(at).unwrap();
+        let legacy_raw = (!reuse).then(|| s.ix.read_frame(at).unwrap());
+        let raw = reused_raw.as_ref().or(legacy_raw.as_ref()).unwrap();
         // **`near_o`/`near_who`, every unit, both directions** (item
         // 707): the last search's footprint (`sim::Unit::near`,
         // `docs/COMBAT.md` §37.1), which no parser carries, so the
@@ -6525,7 +6581,7 @@ fn widen_civilians(
         // eleven's guard is the witness: its `near_o` goes 6 → −1 on
         // the block its attack ends, the one record that says a search
         // ran there and saw nothing.
-        let near = raw_near(&raw);
+        let near = raw_near(raw);
         for them in &frame.units {
             if !(0..players as i64).contains(&them.who) {
                 continue;
@@ -6556,7 +6612,8 @@ fn widen_civilians(
                     .or_insert((n, format!("ours {ours:?} theirs {:?}", (no, nw))));
             }
         }
-        let flog = Log::parse(&raw);
+        let legacy_log = (!reuse).then(|| Log::parse(raw));
+        let flog = reused_log.as_ref().or(legacy_log.as_ref()).unwrap();
         // **An anti-air building's cycle, both directions** (item 1112,
         // `docs/COMBAT.md` §84): `recharging` and `attack_ox/attack_whom`
         // on every building whose type carries the `Wall::inc_time`
@@ -6662,7 +6719,7 @@ fn widen_civilians(
         // prints no list at all, and a block of that kind is counted, not
         // compared: this crate's goods would be rows against nothing.
         let theirs: BTreeMap<i64, FrameGood> =
-            frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
+            frame_goods(raw).into_iter().map(|g| (g.o, g)).collect();
         let ours = s.built.sim.world.goods();
         if theirs.is_empty() {
             no_goods += 1;
@@ -6721,7 +6778,7 @@ fn widen_civilians(
             // short, and this walk said the two rounds agreed on every
             // block to the word because it compared which rounds were
             // held and nothing else.
-            let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
+            let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(raw)
                 .into_iter()
                 .filter(|(a, _)| a.flags & 2 != 0)
                 .map(|(a, _)| ((a.who, a.o, a.index), a))
@@ -6819,7 +6876,19 @@ fn widen_civilians(
         good_rows > 0 || no_goods == blocks,
         "{run}: the GOOD list is printed and not read"
     );
-    Some(firsts)
+    Some(CivilianWidening {
+        firsts,
+        missing,
+        counts: [
+            blocks,
+            rows,
+            leader_rows,
+            good_rows,
+            unread_goods,
+            ammo_rows,
+            no_goods,
+        ],
+    })
 }
 
 /// **Chapter seven's word, widened whole, both directions, on both
