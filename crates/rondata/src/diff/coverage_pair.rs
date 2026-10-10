@@ -219,7 +219,9 @@ pub(crate) struct Pair {
     /// 628: ours `PathFinder::calc_road_cost+0x46`, theirs
     /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Item 1634 moves it to
     /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
-    /// `Guy::init_real+0x52` (a caravan absent here).
+    /// `Guy::init_real+0x52` (a caravan absent here). Item 1647 counts
+    /// Merchant Fleet live updates: **3439**, 23 versus 25 draws, index
+    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -237,8 +239,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3397,
-    sequence: 3397,
+    count: 3439,
+    sequence: 3439,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1364,6 +1366,29 @@ pub(crate) fn coverage_frame_2868_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// Original live-count transitions, plus the whole-window differential.
+/// Item 1647 keeps the census/fleet asymmetry observable on both writers.
+fn pin_caravan_counts(w: &harness::tests::Widened, name: &str, samples: &[(i64, i64)]) {
+    let path = dump(name).expect("the widening just read this capture");
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    for &(block, count) in samples {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let text = ix.read_frame(at).unwrap();
+        let log = crate::gamelog::Log::parse_eager(&text);
+        let leader = log.leader_block(block, 1).expect("original leader record");
+        pin_eq!(
+            leader.int("caras"),
+            Some(count),
+            "original caras on {block}"
+        );
+    }
+    pin_eq!(
+        w.firsts.get(&(1, -1, "leader:caras".to_string())),
+        None,
+        "caras agrees over every compared block of {name}"
+    );
+}
+
 #[test]
 fn run715_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
@@ -1371,6 +1396,18 @@ fn run715_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
+    pin_caravan_counts(
+        &w,
+        RUN715,
+        &[
+            (2949, 6),
+            (2950, 7),
+            (2975, 7),
+            (2976, 6),
+            (2989, 6),
+            (2990, 7),
+        ],
+    );
     // **154** on item 1614's tree (5842 on item 1608's merged with item
     // 1600's, 6299 on that base, 6302 on item 1605's); 119 stand from the
     // window's first block — 122 before item 1614
@@ -1406,7 +1443,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
-    pin_eq!(w.firsts.len(), 147, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 146, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1458,6 +1495,11 @@ fn run716_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
+    pin_caravan_counts(
+        &w,
+        RUN716,
+        &[(3376, 8), (3385, 8), (3386, 7), (3388, 7), (3389, 6)],
+    );
     // **2160** on item 1614's tree; 131 stand from the window's first
     // block, the human leader's and its units' among them. The first
     // parting past it is Napata's `reduce_stamp` on 3138 (ours 2383, the
@@ -1487,7 +1529,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 190, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1510,7 +1552,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3397 (item 1634), block 3398; the old word's values remain checked.
+/// word 3439 (item 1647), block 3440; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1520,7 +1562,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398],
+        &[3395, 3396, 3398, 3440],
         true,
     )
 }
@@ -1532,6 +1574,18 @@ fn run721_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
+    pin_caravan_counts(
+        &w,
+        RUN721,
+        &[
+            (3389, 6),
+            (3397, 6),
+            (3398, 7),
+            (3412, 7),
+            (3413, 8),
+            (3425, 9),
+        ],
+    );
     // **2326** on item 1625's tree; 147 stand on this branch at the first
     // block — the human leader's and its units' rows, the pools, Napata,
     // `1/84` and `1/203` (whose position parts on 3387, run716). The first
@@ -1544,13 +1598,31 @@ fn run721_s_word_frame_is_widened_whole() {
     // 2330 before item 1620, 2326 after it; now 2359 over the diverged
     // tail, with a longer agreeing draw prefix through 3396. The new word
     // is 3397, block 3398: the original's new caravan is absent.
+    // Item 1647 repairs live fleet counts: 2359 -> 951; caras agrees
+    // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        2359,
-        "run721 after activation order correction"
+        951,
+        "run721 after live fleet count correction"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let at = ix.frames().iter().position(|f| f.number == 3398).unwrap();
+    let frame = ix.frame_state(at).unwrap();
+    let born = frame
+        .units
+        .iter()
+        .find(|u| (u.who, u.o) == (1, 207))
+        .unwrap();
+    pin_eq!(born.uid, Some(325), "the newly born caravan's identity");
+    pin_eq!((born.pos.x, born.pos.y), (37560, 40008));
+    pin_eq!(born.guys.first().and_then(|g| g.kind), Some(59));
+    pin!(
+        w.firsts
+            .iter()
+            .all(|((who, o, _), (block, _))| (*who, *o) != (1, 207) || *block > 3440),
+        "the new caravan's entire compared record agrees through the new word"
+    );
     for block in [3394, 3395, 3396] {
         let at = ix.frames().iter().position(|f| f.number == block).unwrap();
         let frame = ix.frame_state(at).unwrap();

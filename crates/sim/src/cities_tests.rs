@@ -4494,6 +4494,7 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
             .add(tech::TypeDef::unit("Caravan", tech::UnitTraits::default()));
     }
     sim.unit_types[caravan].tree = Some(crate::nations::ty::CARA);
+    sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
     sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let _ = city_at(&mut sim, &t, 0, 57, 32);

@@ -4612,11 +4612,13 @@ impl Sim {
     /// The sweep zeroes and recounts them, as the original's does.
     fn track_civilian_type(&mut self, who: Player, ty: usize, delta: i32) {
         let worker = self.unit_types[ty].worker;
-        let caravan = worker == crate::orders::Worker::None
-            && self.unit_types[ty].tree.is_some_and(|t| {
-                !ai_census::ty::MERCHANTS.contains(&t)
-                    && self.tech_tree.is(t, ai_census::ty::CARAVAN, false)
-            });
+        // The live writer uses is_caravan (including Merchant Fleets),
+        // while the periodic census counts the land CARA lineage alone.
+        // A sweep can drop a fleet from caras before its close subtracts
+        // one. docs/AI.md §177 holds this observed asymmetry.
+        let caravan = self.unit_types[ty]
+            .cols
+            .flag2(crate::ai_load::uflags2::CARAVAN);
         let census = &mut self.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,

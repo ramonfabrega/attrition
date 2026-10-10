@@ -13364,9 +13364,9 @@ puts a Citizen born on frame 11345 and a caravan on 11372.
    alone, so a unit born between sweeps was missing from `create_units`'
    `civilians` (parked 1122's newborn lag). `Sim::track_unit_type` now
    calls `track_civilian_type`; the sweep still zeroes and recounts.
-   **Not built**: the military-flag count beside them, and the decompile's reading of
-   `set_type`'s caravan predicate, taken here as the census's own
-   (`CARAVAN` line, not a Merchant).
+   **Not built**: the military-flag count beside them. The original assumption
+   that `set_type` uses the census's caravan predicate is superseded by
+   §177: its live predicate also includes Merchant Fleets.
 2. **The economy's dirty flag (`leader_flags & 0x2000000`) is not raised by
    `Build::queue_up`, by its tech twin, by `cancel`, or by an ordinary
    trained unit's birth.** The grep over the export names the setters:
@@ -18022,11 +18022,65 @@ is export-backed, not independently reviewed. Capture, wonder, and free-unit
 arms beyond the observed growth transition are not established by this item.
 A later steer must review the ordering and that remaining scope.
 
-## 177. Reserved for item 1647 (the coverage pair's word 3397)
+## 177. Merchant Fleets update the live caravan count (2026-10-10, item 1647)
 
-The new birth is a caravan, not Terra Cotta's soldier. Its timer remains
-446 on block 3398; that kills the initial wonder hypothesis. The Persian
-market `1/2018` is due on frame 3397, and its `caras` gate reads 8 here
-versus 6 there (standing since run721's first block 3389; run716 starts
-with 6 versus 7 on 3137). Trace the count before changing production.
-run721 already holds the word; runs 722–723 remain unused and reserved.
+**Baseline.** Coverage word 3397, 312 versus 300 draws, index 8: our
+road cost versus the original's guy initialization. run721 holds the whole
+window (2359 keys, 147 standing); leader 1's `caras` is 8 versus 6 on 3389.
+The original's new caravan `1/207` appears on block 3398. Terra Cotta's
+timer (446 on 3398) kills the initial wonder hypothesis.
+
+**Hypothesis and killer.** The live count uses a broader predicate than the
+periodic census. `UnitTypeData::is_caravan@00470420` reads `unit_flags2 & 8`;
+`UnitType::init_final_flags@0061dc70` sets it for CARA and Merchant Fleet
+lineages. `Unit::set_type@00612fa0` and `Unit::close@0060ee50` change `caras`
+under that predicate; `Leader::plan_strategy@006b9620` recounts only CARA.
+This crate's loader already derives the flag correctly, but the live count
+used the census's land-only predicate. Kill this explanation if the original
+count does not change at fleet births/closes, if the sweep counts fleets,
+or if correcting the predicate fails to repair the birth's input.
+
+**Measured baseline.** Replay instrumentation sees fleet type 319 (flags 8)
+born on 2949 and 2989; our live predicate rejects both. Original blocks
+2950 and 2990 increment `caras` 6 → 7. The sweep on 2975 resets it to 6.
+After the 3375 sweep both counts are 8. Fleets close on 3385 and 3388;
+ours rejects both decrements while the original drops 8 → 7 → 6 on
+3386 and 3389. This is an asymmetric counter; do not replace it with
+the number of currently living land caravans.
+
+**Implementation and value diff.** Use the already loaded flag for live
+updates; retain the census lineage test. Fleets `1/157` (uid 258) and
+`1/134` (uid 263), both type 319, appear on original blocks 2950 and
+2990 and disappear on 3386 and 3389. Their live updates now agree.
+`leader:caras` agrees over all of runs 715, 716 and 721; run721's starting
+value is **8 → 6**, original **6**. On 3398 the formerly missing caravan
+`1/207`, uid 325, type 59 is present at **(37560,40008)** in both.
+Every compared field of that unit agrees through block 3440.
+
+**Score and coverage.** The word moves **3397 → 3439**, 23 versus 25 draws,
+index 14: ours guy animation, theirs `Ammo::init+0xcd9`. The whole run721
+window remains compared: **2359 → 951** keys, **147 → 146** standing;
+run715 **147 → 146**, run716 **190 → 189** (only `caras` leaves those
+windows). Tests pin original count samples across fleet birth, census and
+close, the whole-window counter comparison, and the caravan's identity,
+position and whole record through the new word. The transport unit test
+covers fleet birth/close with and without an intervening census, plus a
+non-counted transport barge. Production logic itself is unchanged.
+
+**Limits.** Live updates still share the existing muster call sites; this
+item establishes the normal population-bearing caravan/fleet path, not
+zero-population, decoy, squad-follower or unusual ownership transitions.
+The new matching prefix touches 48 uncertain terrain-height reads versus
+19 before; the guard remains enabled at the measured extent. Ground-height
+exactness remains debt. Full release validation is recorded in the journal.
+No new capture; runs 722–723 transfer unused to the next item. Independent
+review of unexercised lifecycle gates is owed.
+
+## 178. Reserved for item 1648 (the coverage pair's word 3439)
+
+run721 already widens block 3440, the new word's own block, whole-record
+and whole-cast. The original spends two draws in `Ammo::init` through
+`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
+a guy's animation instead. No mechanism established: identify the shot and
+its firing decision from the window before changing combat. Runs 722–723
+remain unused and reserved.

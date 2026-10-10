@@ -2253,6 +2253,7 @@ mod tests {
         fleet_t.combat.domain = Domain::Sea;
         fleet_t.combat.block_radius = 48;
         fleet_t.price.pop = 1;
+        fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
         let fleet = f.sim.add_unit_type(fleet_t);
         f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
         f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
@@ -2261,12 +2262,19 @@ mod tests {
             ..UnitType::default()
         });
         f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
+        f.sim.unit_types[caravan].price.pop = 1;
+        f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
 
-        for (walker_t, boat_t, counted) in [(caravan, fleet, 1), (f.citizen, b, 0)] {
+        for (walker_t, boat_t, counted, sweep) in [
+            (caravan, fleet, 1, false),
+            (caravan, fleet, 1, true),
+            (f.citizen, b, 0, false),
+        ] {
             let u = unit(&mut f.sim, 1, walker_t, tile_pos(30, 14));
             f.sim.init_guys(u, Some(walker_t));
             f.sim.units[u].auto_transport = true;
             let control = f.sim.muster[1].control;
+            let caras = f.sim.ai[1].census.caras;
             assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
             let boat = f.sim.units.len();
             f.sim.work(u, 1);
@@ -2276,6 +2284,20 @@ mod tests {
                 "`set_type`'s `+1`, for a type with population"
             );
             assert_eq!(f.sim.muster[1].control, control + counted);
+            assert_eq!(f.sim.ai[1].census.caras, caras + counted);
+            // Item 1647: a census drops fleets from caras, but closing
+            // one afterward still subtracts. Preserve that asymmetry.
+            if sweep {
+                f.sim.census(1);
+                let land_caravans = f
+                    .sim
+                    .units
+                    .iter()
+                    .filter(|u| u.alive() && u.owner == 1 && u.ty == Some(caravan))
+                    .count() as i32;
+                assert_eq!(f.sim.ai[1].census.caras, land_caravans);
+            }
+            let before_close = f.sim.ai[1].census.caras;
             // Ashore again: the boat puts its passenger out and closes.
             assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
             assert!(!f.sim.units[boat].alive());
@@ -2284,6 +2306,7 @@ mod tests {
                 "`Unit::close`'s `−1` at `0060f3db`"
             );
             assert_eq!(f.sim.muster[1].control, control);
+            assert_eq!(f.sim.ai[1].census.caras, before_close - counted);
         }
     }
 
