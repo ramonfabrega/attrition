@@ -54,7 +54,16 @@ fn stand_up(
     refs: &[&Initial<'_>],
     trace: &crate::trace::Trace,
 ) -> Built {
-    let mut init = log.initial().expect("the golden dump has a BEGIN GAME");
+    let init = log.initial().expect("the golden dump has a BEGIN GAME");
+    stand_up_initial(loaded, init, refs, trace)
+}
+
+fn stand_up_initial<'a>(
+    loaded: &crate::load::Loaded,
+    mut init: Initial<'a>,
+    refs: &[&Initial<'a>],
+    trace: &crate::trace::Trace,
+) -> Built {
     let own_seeds = init.frame_seeds.clone();
     let own_guys = init.frame_guys.clone();
     borrow_from_siblings(&mut init, refs);
@@ -123,39 +132,7 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         .expect("a finalized golden trace")
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
-    let text = crate::capture::read(&dump);
-    let log = Log::parse(&text);
-    let texts = sibling_texts();
-    let logs = siblings(&texts);
-    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-    let refs: Vec<&Initial> = inits.iter().collect();
-    if refs.is_empty() {
-        eprintln!("skipping: no sibling dumps");
-        return None;
-    }
-    // **A chapter captured without its `[Start Game]` set is not a
-    // measurement** (item 415). `borrow_from_siblings` lends a capture the
-    // map it could not print, so a dump whose start block is only the
-    // world's seventeen scalars still stands *something* up — a simulation
-    // with no leaders and no units, which walks and scores and reports a
-    // word of 0 that looks exactly like a real one. run112's first attempt
-    // was that: `end:` and `misc:` given, `start:` forgotten, 0 LEADERDATA
-    // and 0 UNITDATA where run105 has 4 and 52, and the harness spent 80
-    // draws at frame 0 against the trace's 120. The same shape as the
-    // endpoint module's run28 note, and as item 364's borrowed frame
-    // stream: a number that is the setup's, not the simulation's.
-    let own = log.initial().expect("a start block");
-    assert!(
-        !own.leaders.is_empty() && !own.units.is_empty(),
-        "golden capture {run} has {} leader(s) and {} unit(s) in its \
-         `[Start Game]` block: the capture was taken without a `--detail \
-         start:…` line and there is nothing to stand up. Re-take it with \
-         run105's set — `--detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,\
-         UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`",
-        own.leaders.len(),
-        own.units.len()
-    );
-    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let (mut built, _) = build_golden(run, &dump, &loaded, &trace, true)?;
     built.sim.trace_phases = true;
     let mut script = script_named(stem);
     assert_eq!(
@@ -5246,24 +5223,79 @@ fn stage_script(run: &str, stem: &str) -> Option<Staged4> {
         .expect("a finalized golden trace")
         .expect("missing RONT header");
     let loaded = crate::load::load(&inst).unwrap();
-    let text = crate::capture::read(&dump);
-    let log = Log::parse(&text);
-    let texts = sibling_texts();
-    let logs = siblings(&texts);
-    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-    let refs: Vec<&Initial> = inits.iter().collect();
-    if refs.is_empty() {
-        eprintln!("skipping: no sibling dumps");
-        return None;
-    }
-    let built = stand_up(&loaded, &log, &refs, &trace);
-    let ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let (built, ix) = build_golden(run, &dump, &loaded, &trace, false)?;
     Some(Staged4 {
         loaded,
         built,
         ix,
         script: script_named(stem),
     })
+}
+
+/// Shared bounded construction; draw-word walks require a complete own start
+/// block before sibling borrowing, just as their whole-text path did.
+fn build_golden(
+    run: &str,
+    dump: &str,
+    loaded: &crate::load::Loaded,
+    trace: &crate::trace::Trace,
+    require_start: bool,
+) -> Option<(Built, crate::capture::indexed::IndexedCapture)> {
+    let mut ix = crate::capture::indexed::IndexedCapture::open(dump).unwrap();
+    let built = with_sibling_initials(|refs| {
+        if refs.is_empty() {
+            eprintln!("skipping: no sibling dumps");
+            return None;
+        }
+        ix.with_replay_initial(|init| {
+            if require_start {
+                require_golden_start(run, &init);
+            }
+            if std::env::var_os("RON_VERIFY_GOLDEN_SETUP").is_some() {
+                let text = crate::capture::read(dump);
+                let log = Log::parse(&text);
+                let mut expected = log.initial().expect("the golden dump has a BEGIN GAME");
+                // Audit bodies are not consumed by build_sim; the bounded
+                // replay reader intentionally retains every other field.
+                expected.frame_bodies.clear();
+                assert!(
+                    init == expected,
+                    "{run}: bounded setup changed an Initial field"
+                );
+                eprintln!(
+                    "{run}: bounded setup matches every retained Initial field; test={}",
+                    std::thread::current().name().unwrap_or("unnamed")
+                );
+            }
+            Some(stand_up_initial(loaded, init, refs, trace))
+        })
+        .unwrap()
+    })?;
+    Some((built, ix))
+}
+
+fn require_golden_start(run: &str, init: &Initial<'_>) {
+    // **A chapter captured without its `[Start Game]` set is not a
+    // measurement** (item 415). `borrow_from_siblings` lends a capture the
+    // map it could not print, so a dump whose start block is only the
+    // world's seventeen scalars still stands *something* up — a simulation
+    // with no leaders and no units, which walks and scores and reports a
+    // word of 0 that looks exactly like a real one. run112's first attempt
+    // was that: `end:` and `misc:` given, `start:` forgotten, 0 LEADERDATA
+    // and 0 UNITDATA where run105 has 4 and 52, and the harness spent 80
+    // draws at frame 0 against the trace's 120. The same shape as the
+    // endpoint module's run28 note, and as item 364's borrowed frame
+    // stream: a number that is the setup's, not the simulation's.
+    assert!(
+        !init.leaders.is_empty() && !init.units.is_empty(),
+        "golden capture {run} has {} leader(s) and {} unit(s) in its \
+         `[Start Game]` block: the capture was taken without a `--detail \
+         start:…` line and there is nothing to stand up. Re-take it with \
+         run105's set — `--detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,\
+         UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`",
+        init.leaders.len(),
+        init.units.len()
+    );
 }
 
 /// **Chapter four's two captures are one game** (item 552). run132 and

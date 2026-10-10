@@ -21,7 +21,7 @@ third tranche.*
 - **No lane live.** The next commander spawns 1634 (Opus 5.5 high), 1630
   and 1497 (Sonnet 5.5 high; 1497 is the lane rule 5 earns back) and
   **1639's three racers**; every brief with `--tests`; every lane clears
-  itself at 300 k (frame row 1637). Next number 1646, run 722, §177.
+  itself at 300 k (frame row 1637). Next number 1647, run 722, §177.
 - **The first race is scored** (`docs/audit/2026-10-07-race-1565.md`) and
   re-run as 1639 shaped like workers; the roster is Ramon's, on its score.
 - **Fable backlog: 23 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638).
@@ -58,6 +58,8 @@ Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); full gate p
 50 complete reports equal. See `docs/journal/2026-10-10-item-1644.md`. Floors unchanged.
 Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate passed.
 64 complete reports equal. See `docs/journal/2026-10-10-item-1645.md`. Loop paused.
+Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate pending.
+See `docs/journal/2026-10-10-item-1646.md`. Floors unchanged; loop paused.
 
 ## The queue
 
