@@ -18065,7 +18065,10 @@ windows). Tests pin original count samples across fleet birth, census and
 close, the whole-window counter comparison, and the caravan's identity,
 position and whole record through the new word. The transport unit test
 covers fleet birth/close with and without an intervening census, plus a
-non-counted transport barge. Production logic itself is unchanged.
+non-counted transport barge. Production logic itself is unchanged. The complete release suite found
+37 older second/French-pair windows each lose one `leader:caras` key;
+a counterfactual replay removes no other reported field and adds none.
+Their expected counts and histograms are tightened; headline floors hold.
 
 **Limits.** Live updates still share the existing muster call sites; this
 item establishes the normal population-bearing caravan/fleet path, not

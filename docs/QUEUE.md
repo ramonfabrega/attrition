@@ -64,7 +64,7 @@ Follow-up (1634): activation flags roads before city growth; word 3395 → 3397.
 Four newly attached buildings' road flags agree; combined validation passed.
 See `docs/journal/2026-10-10-item-1634.md`. Commander remains paused.
 Follow-up (1647): live fleet counts; word 3397 → 3439, caras 8 → 6 (original 6).
-run721 2359 → 951 keys. Validation pending; no new capture.
+run721 2359 → 951 keys; combined validation passed. No new capture.
 See `docs/journal/2026-10-10-item-1647.md`. Commander remains paused.
 
 ## The queue
