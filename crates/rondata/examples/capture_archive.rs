@@ -1,4 +1,4 @@
-//! Explicit local trial driver: pack SOURCE DEST.rcap | compare SOURCE ARCHIVE.rcap
+//! Local trial driver: pack|pack-lz4 SOURCE DEST.rcap | compare SOURCE ARCHIVE.rcap
 use rondata::capture::{archive, indexed::IndexedCapture};
 use std::io;
 use std::time::Instant;
@@ -6,13 +6,18 @@ fn main() -> io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 4 {
         return Err(io::Error::other(
-            "usage: capture_archive pack|compare SOURCE ARCHIVE.rcap",
+            "usage: capture_archive pack|pack-lz4|compare SOURCE ARCHIVE.rcap",
         ));
     }
     let started = Instant::now();
     match args[1].as_str() {
-        "pack" => {
-            archive::pack(&args[2], &args[3])?;
+        "pack" | "pack-lz4" => {
+            let codec = if args[1] == "pack-lz4" {
+                archive::Codec::Lz4
+            } else {
+                archive::Codec::Gzip
+            };
+            archive::pack_with_codec(&args[2], &args[3], codec)?;
             println!(
                 "pack_verified_seconds={:.6} raw_bytes={} archive_bytes={}",
                 started.elapsed().as_secs_f64(),
