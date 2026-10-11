@@ -68,6 +68,20 @@ prints its output:
 With the export in place these are mostly for things the export cannot hold
 still: a data dump after a retype, a fresh vtable walk, an address sweep.
 
+## A value that pseudocode does not explain
+
+For a difficult value origin, a high-p-code slice can be a reading aid: select
+an exact instruction and opcode before bounding the dependency walk. Report
+missing seeds, truncation and unresolved memory/call effects explicitly; an
+`INDIRECT` node is not proof that a value passed through unchanged. Check branch
+polarity and calling conventions against assembly, then test behavior with the
+existing emulator or capture. Static data flow cannot identify a live actor.
+
+The [bounded trial](../../docs/audit/2026-10-11-rea-value-flow-trial.md) records
+an example and an ignored prototype, not a supported CLI. Ordinary questions
+still use the exports. Before opening the shared project, preserve its index
+metadata: even `-noanalysis -readOnly` rotates project index/backup files.
+
 ## Traps, each of which cost a wrong conclusion once
 
 - **`SymbolTable.getGlobalSymbols(name)` never matches a C++ method.** It
