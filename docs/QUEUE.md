@@ -12,19 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-12, the Codex settlement (`docs/audit/2026-10-12-codex-settlement.md`,
-DECISIONS 60's rule applied again): Astra's second direct tranche — 1634 and
-1647 on the coverage pair's word, **3395 → 3439**, 1640–1646 the harness's
-speedups — fast-forwarded whole, gated here (exit 0, rondata 778 in 492 s
-against 619 before, memcap 12,174 MiB), pushed. Great Sahara's coverage word
-**2323**, the census's backed column **68**, the battery 576 / 6566 / 2974.*
+*2026-10-12, the twenty-eighth tranche opened (`commander`, Opus 5.5,
+from `69569abc`): the race on the coverage pair's word **3439**. Great
+Sahara's coverage word **2323**, the census's backed column **68**, the
+battery 576 / 6566 / 2974. No word has moved this tranche yet.*
 
-- **No lane live; the tranche is the race.** The commander spawns 1648's
-  four racers and nothing else (DECISIONS 64, amended 2026-10-12); every
-  brief with `--tests`; every lane clears itself at 300 k (frame row
-  1637). Next number 1651, run 722, §179 — the racers' reserved from there.
-- **The disk**: the archive APFS-compressed in place (205 GB → 22 GiB,
-  the gate green on it); 258 GiB free. Astra's review debt is 1649.
+- **Four racers on 1648, nothing else out** (DECISIONS 64, amended
+  2026-10-12), one brief, one session a landing, respawned off its own
+  tip: `att-1648-oh` (Opus 5.5 high) numbers 1651–1655, runs 722–731;
+  `att-1648-om` (Opus 5.5 medium) 1656–1660, runs 732–741; `att-1648-sh`
+  (Sonnet 5.5 high) 1661–1665, runs 742–751; `att-1648-sm` (Sonnet 5.5
+  medium) 1666–1670, runs 752–761. AI §178–§182, one set: only the winner
+  merges, at twenty. Next number 1671, run 762, §183; filters
+  `coverage_pair:: floors::`.
+- **The disk**: 258 GiB free, the archive compressed. Astra's debt is 1649.
 - **Fable backlog: 25 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,11 +38,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-eighth tranche is the race on the headline word —
-`commander` (Opus 5.5): spawn 1648's four racers off this tip on one
-brief, nothing else out; one session a landing, respawned off its own
-tip; nothing merges until the end; at twenty score the race as 1565 was,
-merge the winner, hand off to `steer`, which holds the commander for Ramon.**
+**Opener: the twenty-eighth tranche, live — `commander` (Opus 5.5):
+respawn each racer off its own tip at each landing; nothing merges until
+twenty; then score the race as 1565 was, merge the winner, hand off to
+`steer`, which holds the commander for Ramon.**
 
 ## The queue
 

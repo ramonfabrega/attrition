@@ -18087,3 +18087,23 @@ and whole-cast. The original spends two draws in `Ammo::init` through
 a guy's animation instead. No mechanism established: identify the shot and
 its firing decision from the window before changing combat. Runs 722–723
 remain unused and reserved.
+
+## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+
+## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+
+## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+
+## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+
+A stub the booking lands so the race's winner writes its landings at their own anchors
+(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
