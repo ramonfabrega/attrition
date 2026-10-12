@@ -23,10 +23,10 @@ battery 576 / 6566 / 2974. No word has moved this tranche yet.*
   `att-1648-om` (Opus 5.5 medium) 1656–1660, runs 732–741; `att-1648-sh`
   (Sonnet 5.5 high) 1661–1665, runs 742–751; `att-1648-sm` (Sonnet 5.5
   medium) 1666–1670, runs 752–761. AI §178–§182, one set: only the winner
-  merges, at twenty. Next number 1671, run 762, §183; filters
+  merges, at twenty. Next number 1672, run 762, §183; filters
   `coverage_pair:: floors::`.
 - **The disk**: 258 GiB free, the archive compressed. Astra's debt is 1649.
-- **Fable backlog: 25 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650).
+- **Fable backlog: 26 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650, 1671).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,7 +39,7 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-eighth tranche, live — `commander` (Opus 5.5):
-respawn each racer off its own tip at each landing; nothing merges until
+`ccc clear` each racer's own row at each landing; nothing merges until
 twenty; then score the race as 1565 was, merge the winner, hand off to
 `steer`, which holds the commander for Ramon.**
 
