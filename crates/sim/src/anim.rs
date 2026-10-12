@@ -1748,9 +1748,18 @@ impl Sim {
     ///
     /// SEAM: the launch point is the unit's own position here, where the
     /// original adds the event node's offset through
-    /// `GraphicPieces::get_position` — a float, and a graphic one. SEAM:
-    /// the original also refuses the event when the target's `uid` has
-    /// changed under it; this crate tests that the target is still active.
+    /// `GraphicPieces::get_position` — a float, and a graphic one.
+    ///
+    /// **The target test is the slot's, not the search's** (item 1648,
+    /// `docs/AI.md` §178): `Guy::execute_events@005d99c0`'s attack tail
+    /// refuses the event only when the target slot's `flags & 1` is clear
+    /// or its `uid` (`+0x30`) is not the order's — nothing about hit
+    /// points. A city building at its ceiling still takes the rest of the
+    /// volley: run652's Advanced Battleship `1/49` releases on 3439 and
+    /// 3440 at Napata (`0/2000`), whose damage reached 1560 of 1560 on
+    /// 3438. So the test is [`Sim::struck`], not [`Sim::active`]. SEAM:
+    /// the `uid` half is not carried (a slot reused under the order), and
+    /// `struck` also asks a unit target `on_map`, which the tail does not.
     fn guy_release_events(&mut self, u: usize) {
         if self.art.releases.is_empty() {
             return;
@@ -1780,7 +1789,7 @@ impl Sim {
                 let Some(target) = ordered else {
                     return;
                 };
-                if !self.active(target) {
+                if !self.struck(target) {
                     return;
                 }
                 Some(target)
@@ -3551,5 +3560,75 @@ mod survivor_tests {
         let other = s.add_unit(crate::Unit::new(0, 8, crate::Pos::new(500, 500), 10));
         s.init_guys(other, None);
         assert_eq!(s.units[other].guys[0].aim, None, "a fresh slot is clear");
+    }
+
+    /// **A volley's rounds release at a building at its ceiling** (item
+    /// 1648, `docs/AI.md` §178): `Guy::execute_events@005d99c0`'s attack
+    /// tail asks the target slot's `flags & 1` and its `uid`, never its hit
+    /// points, so run652's Advanced Battleship `1/49` releases on 3439 and
+    /// 3440 at Napata, whose damage reached its 1560 on 3438.
+    ///
+    /// Made to fail first: with the gate on [`crate::Sim::active`] again,
+    /// the ceiling case fires nothing.
+    #[test]
+    fn a_volley_releases_at_a_building_at_its_ceiling() {
+        use crate::anim::{ATTACK2, Guy};
+        use crate::combat::Obj;
+        use crate::world::{Pos, World};
+        const PIECE: i32 = 12_346;
+        let fire = |health: i32, alive: bool| -> usize {
+            let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+            sim.at_war[0][1] = true;
+            sim.at_war[1][0] = true;
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                type_index: 300,
+                combat: crate::combat::Profile {
+                    attack: 15,
+                    max_range: 26,
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            sim.art.lengths.insert((PIECE, ATTACK2), 40);
+            sim.art.releases.insert(
+                PIECE,
+                [(ATTACK2, vec![(4, 0, false, false)])]
+                    .into_iter()
+                    .collect(),
+            );
+            let mut u = crate::Unit::new(1, 0, Pos::new(21384, 17256), 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let me = sim.add_unit(u);
+            let b = sim.add_building(0, Pos::new(21384, 16872), 1);
+            sim.buildings[b].combat = Some(crate::combat::Profile::default());
+            sim.buildings[b].hits = 1560;
+            sim.buildings[b].health = health;
+            sim.buildings[b].alive = alive;
+            sim.order_attack(me, Obj::Building(b));
+            sim.units[me].combat.target = Some(Obj::Building(b));
+            let mut g = Guy::fresh(PIECE);
+            g.anim = ATTACK2;
+            g.end_time = 40;
+            g.cur_time = 3;
+            g.last_time = 2;
+            g.stopped = false;
+            sim.units[me].guys = vec![g];
+            sim.guys_inc_time();
+            assert_eq!(
+                sim.units[me].guys[0].cur_time, 4,
+                "the clock reached the event"
+            );
+            sim.projectiles.len()
+        };
+        assert_eq!(fire(10, true), 1, "a building with hits left");
+        assert_eq!(
+            fire(0, true),
+            1,
+            "a city at its ceiling (run652's Napata, 3439)"
+        );
+        assert_eq!(fire(0, false), 0, "a slot no longer active");
     }
 }

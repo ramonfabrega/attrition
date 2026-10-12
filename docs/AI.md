@@ -18079,14 +18079,58 @@ exactness remains debt. Full release validation is recorded in the journal.
 No new capture; runs 722–723 transfer unused to the next item. Independent
 review of unexercised lifecycle gates is owed.
 
-## 178. Reserved for item 1648 (the coverage pair's word 3439)
+## 178. A volley releases at a city at its ceiling (2026-10-12, item 1648)
 
-run721 already widens block 3440, the new word's own block, whole-record
-and whole-cast. The original spends two draws in `Ammo::init` through
-`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
-a guy's animation instead. No mechanism established: identify the shot and
-its firing decision from the window before changing combat. Runs 722–723
-remain unused and reserved.
+**Baseline.** Coverage word 3439, 23 versus 25 draws, index 14: ours
+`Guy::set_anim < Guy::inc_time`, theirs `Ammo::init+0xcd9` and `+0xd0b`
+through `Objects::add_ammo < GraphicEvents::execute_game_events` (seeds
+`24974653` and `3c3d9796`, 38805 and 27132), after the firing sound. The
+shot sits between the units whose clocks draw 10–13 (`1/15`, `1/29`) and
+the next (`1/99`) — the slot `1/49`'s releases took on 3436–3438
+(`RON_DEBUG_SITES`). run721 prints no `AMMO`, so the shooter is read from
+the attributed sites and the trace, not a record.
+
+**The shot.** The Advanced Battleship `1/49` (type 300) on its `Attack` of
+Napata (`0/2000`), at (1992, 5208), releases one round a frame from its
+volley: ours 3435–3438, the original 3435–3440 (the trace's
+`add_ammo` pairs on 3439 and 3440, then none to 3457). Napata's `damage`
+reaches its `myhits` 1560 on 3438 in both (blocks 3438 and 3439: 1550 →
+1560). From 3439 ours' `is_in_range_at_margin` answers false with
+`attack_dist` 3336 and range 26 unchanged: `Sim::active` asks a building
+for health left, and the release gate asked `active`.
+
+**The gate, read.** `Guy::execute_events@005d99c0`'s tail, for the attack
+category: the order's `(ox, whom, uid)`, then the target slot's `flags & 1`
+(`+0x8`) and its `uid` (`+0x30`) against the order's — no hit points. So a
+city at its ceiling takes the rest of the volley, as §142.3's
+`Sim::struck` already lets a round in the air strike it. Killer: if the
+original read hit points here, it would not release on 3439. It does.
+
+**Built.** `guy_release_events` (`anim.rs`) asks `Sim::struck`, not
+`Sim::active`. The unit test `a_volley_releases_at_a_building_at_its_ceiling`
+fires at a building with hits left, at its ceiling, and not at a slot no
+longer active; with the gate on `active` its ceiling case fires nothing.
+SEAM, unchanged: the `uid` half is not carried, and `struck` also asks a
+unit target `on_map`, which the tail does not.
+
+**Value diff.** `RON_DEBUG_AMMO`: ours now launches `1/49`'s rounds on 3439
+(land (5855, 6841)) and 3440 (land (5873, 6883)), `t1/13`, at `0/2000`,
+spending the original's two scatter draws. No `AMMO` is dumped; the first
+dumped rows the shot moved are on 3446: the air units `1/115` and `1/139`'s
+`order:air.cruising_alt`, ours 1300 against 1700 and 1500, which now agree,
+and `1/139`'s `g.z[0]` 1791 against 1796, and its position on 3447
+((6384, 7205) against (6381, 7201)), which agree too.
+
+**Score.** The word moves **3439 → 3585**, 24 versus 27 draws, index 6:
+ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805
+< Leader::make_this+0x328 < Leader::make_stuff+0x45a`. run721 widens
+block 3586 whole: **951 → 482** keys. On block 3585 the leader's
+`MAKE[2].city` (1 against 0), `MAKE[2].escrow` (0 against 1),
+`MAKE[3].cat` (4 against 6) and `MAKE[3].num` (1 against 10) already part,
+and `1/218`'s `form` (−1 against 0). Rows that stood before this item and
+still do: `1/184`'s `mirror` and pool 80 on 3468, `1/139`'s order kind on
+3478. The ground guard reads 97 non-exact corners on the walk to the word
+(pinned at 48, it fails).
 
 ## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
 
