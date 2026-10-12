@@ -3826,6 +3826,32 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-12 — the Codex settlement's
+
+(1649) **Astra's second direct tranche's review debt** (DECISIONS 60's
+rule, 2026-10-12): 1634 (a finished building flags the old city's roads
+before the upgrade sweep attaches the enlarged ring — CITIES §4, AI §176)
+and 1647 (the live caravan writer counts Merchant Fleets, the periodic
+census the land lineage alone, and a sweep's drop does not cancel the
+close's decrement — AI §177) landed on diffs and one GPT-6 reading each,
+no blind second reading; both journals say "independent review is owed".
+The ratification set is those two code-changing claims; brief the readers
+from each journal's review paragraph, never from this line. 1640–1646
+changed the harness and no mechanic: their check is the gate (778 of 778,
+every window's report equal to its predecessor's by the journals), not a
+reading. The twenty-eighth pass's.
+
+(1650) **The lane gate's timings file predates the harness's speedups**
+(the settlement, 2026-10-12): `suite_timings.py`'s file was written at the
+twenty-seventh pass, and 1642–1646 cut the nine-window walk 154 → 40 s
+and the golden pairs 65 → 49 s; a test the file still names as over
+budget is skipped by a lane gate that could now afford it. Re-time at the
+twenty-eighth pass; a stale list is conservative, never wrong. Beside it,
+`crates/rondata` now reads a `.lz4` capture when one is beside the dump
+(1641, opt-in, 18.5× smaller at the same speed) and the archive is 191
+GiB: whether the long captures are re-archived that way is Ramon's,
+with the disk at 61 GiB free.
+
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 
 (1638) **The reading-heavy half of an item runs in a subagent** (Ramon

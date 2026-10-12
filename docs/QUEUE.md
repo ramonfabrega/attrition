@@ -12,19 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-07, the twenty-seventh pass done (`docs/audit/2026-10-07-fable-pass-27.md`,
-DECISIONS 64), the commander held for a talk with Ramon: the coverage
-pair **1408 → 3395**, Great Sahara's coverage word **1582 → 2323**, the
-census's backed column **45 → 68**; the battery 576 / 6566 / 2974 for a
-third tranche.*
+*2026-10-12, the Codex settlement (`docs/audit/2026-10-12-codex-settlement.md`,
+DECISIONS 60's rule applied again): Astra's second direct tranche — 1634 and
+1647 on the coverage pair's word, **3395 → 3439**, 1640–1646 the harness's
+speedups — fast-forwarded whole, gated here (exit 0, rondata 778 in 492 s
+against 619 before, memcap 12,174 MiB), pushed. Great Sahara's coverage word
+**2323**, the census's backed column **68**, the battery 576 / 6566 / 2974.*
 
 - **No lane live.** The next commander spawns 1648 (Opus 5.5 high), 1630
   and 1497 (Sonnet 5.5 high; 1497 is the lane rule 5 earns back) and
   **1639's three racers**; every brief with `--tests`; every lane clears
-  itself at 300 k (frame row 1637). Next number 1649, run 722, §179.
+  itself at 300 k (frame row 1637). Next number 1651, run 722, §179.
 - **The first race is scored** (`docs/audit/2026-10-07-race-1565.md`) and
   re-run as 1639 shaped like workers; the roster is Ramon's, on its score.
-- **Fable backlog: 23 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638).
+- **Fable backlog: 25 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -41,31 +42,6 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 (`coverage::` rides along), a racer respawned off its own chain tip
 after every landing; merge, book, refill; score the race at its end
 (DECISIONS 64); stop at twenty landings and hand off to `steer`.**
-
-## Branch checkpoint — commander remains paused
-
-2026-10-09: (1640) shared four Great Lakes walks; its full required-fixture gate
-passed. Follow-up (1641) adds opt-in LZ4: 18.51× smaller, run721 median 4.22 s
-raw / 4.28 s LZ4. Scores/floors unchanged; full gate passed. Investigation branch
-only; see `docs/journal/2026-10-09-item-1641.md`. Commander remains paused.
-Follow-up (1642) shares nine Great Lakes windows: 154.44 → 54.39 s (−64.8%).
-Full gate passed (566.31 s rondata); nine reports equal, 27 faults caught;
-see `docs/journal/2026-10-09-item-1642.md`. Scores/floors unchanged.
-2026-10-10: (1643) reuses parsed frames: median 53.03 → 39.655 s (−25.2%).
-40 reports/checkpoints equal; raw/gzip/LZ4 passed. Full gate passed (552.05 s).
-See `docs/journal/2026-10-10-item-1643.md`. Commander remains paused.
-Follow-up (1644) reuses golden frames: 68.94 → 65.295 s (−5.3%); full gate passed.
-50 complete reports equal. See `docs/journal/2026-10-10-item-1644.md`. Floors unchanged.
-Follow-up (1645) shares 32 golden pairs: 64.53 → 48.57 s (−24.7%); full gate passed.
-64 complete reports equal. See `docs/journal/2026-10-10-item-1645.md`. Loop paused.
-Follow-up (1646) bounds golden setup: median peak 4440 → 1302.5 MiB; gate passed.
-See `docs/journal/2026-10-10-item-1646.md`. Floors unchanged; loop paused.
-Follow-up (1634): activation flags roads before city growth; word 3395 → 3397.
-Four newly attached buildings' road flags agree; combined validation passed.
-See `docs/journal/2026-10-10-item-1634.md`. Commander remains paused.
-Follow-up (1647): live fleet counts; word 3397 → 3439, caras 8 → 6 (original 6).
-run721 2359 → 951 keys; combined validation passed. No new capture.
-See `docs/journal/2026-10-10-item-1647.md`. Commander remains paused.
 
 ## The queue
 

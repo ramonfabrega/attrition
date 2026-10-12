@@ -21098,3 +21098,17 @@ nineteen Loop items closed, the backlog twenty-two; the `sweep/` skip
 ratified. Four lanes next by rule 5, chapter fifty-two the fourth; the
 commander held for a talk with Ramon. **DECISIONS 64.**
 `docs/audit/2026-10-07-fable-pass-27.md`.
+
+**2026-10-12 — the Codex settlement: Astra's second direct tranche
+taken whole.** Between the twenty-seventh pass and this steer nothing
+landed on the loop's branch; Astra (Codex, GPT-6, under `AGENTS.md`)
+worked `codex/core-loop-investigation` off the pass's tip for three days:
+1634 and 1647 moved the coverage pair's word 3395 → 3439 with a value
+diff each (four buildings' `regen_roads`, `leader:caras` 8 → 6), 1640–1646
+cut the nine-window walk 154 → 40 s and the golden pairs' peak 4.4 → 1.3
+GiB, two REA trials adopted an exact-instruction value slice and no
+engine. Fast-forwarded by DECISIONS 60's rule, gated here green (rondata
+778 in 492 s, memcap 12,174 MiB), pushed; the review debt filed (1649),
+the stale lane timings (1650). No pass: nine landings since the last and
+the headline moved. The commander's opener stands, 1648 its word.
+`docs/audit/2026-10-12-codex-settlement.md`.
