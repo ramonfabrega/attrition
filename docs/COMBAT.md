@@ -1259,9 +1259,9 @@ whatever its draw count says.
   the table it comes from, measures what it has to be worth on four shots,
   and names the capture that closes it. It is the only thing between this
   crate and Great Lakes 9451.
-- **`Guy::execute_events`' `uid` test.** This crate tests that the target
-  is still active; the original also requires the stored `uid`. A target
-  that died and had its slot reused inside one animation would part them.
+- **`Guy::execute_events`' `uid` test.** This crate tests the target is
+  struck, no hit points read (AI §178); the original also wants the
+  `uid`. A slot reused inside one animation would part them.
 - **Melee.** `Unit::fight`'s `do_damage` arm is untouched, and no capture
   here has a melee unit in a fight: run53's first `Object::do_damage` is
   9451, and it is an arrow landing.

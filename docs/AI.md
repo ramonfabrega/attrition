@@ -18079,14 +18079,55 @@ exactness remains debt. Full release validation is recorded in the journal.
 No new capture; runs 722–723 transfer unused to the next item. Independent
 review of unexercised lifecycle gates is owed.
 
-## 178. Reserved for item 1648 (the coverage pair's word 3439)
+## 178. A salvo finishes at a city on its ceiling (2026-10-12, item 1648)
 
-run721 already widens block 3440, the new word's own block, whole-record
-and whole-cast. The original spends two draws in `Ammo::init` through
-`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
-a guy's animation instead. No mechanism established: identify the shot and
-its firing decision from the window before changing combat. Runs 722–723
-remain unused and reserved.
+**What was established, how, how confident.** Item 1647 left the coverage pair's word at **frame 3439, ours 23 game
+draws against 25, index 14**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9 <
+Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d`, inside run721 (block 3440). Each claim is
+*diff-backed* unless marked.
+
+1. **The original's two draws are one round's scatter**, `+0xcd9` and `+0xd0b` (38805, 27132 on run652), between
+   `1/29`'s and `1/99`'s clocks in the walk. `report.py when Ammo::init` dates every round of the window: 2 draws on
+   each of 3426..3429, 4 on 3430 (`1/51`'s six), 2 on 3431, 3435, 4 on 3436, 2 on 3437..3440. Ours agreed through
+   3438 and spent none on 3439 (`RON_DEBUG_AMMO`): every round in the window is a cruise missile, and they roll.
+2. **The round is the Advanced Battleship `1/49`'s fifth** (`TypeIndex` 350, sea). Its `CHAR_ATTACK1` slot (anim
+   12, piece 300) releases at 26, 27, 28, 29, 30 and 31 on nodes 0, 3, 1, 8, 2, 9 — six frames, where `1/51`'s anim
+   11 releases twice on 23 — and ours fired the first four on 3435..3438 (clock 26..29, a scratch print in
+   `guy_release_events`, reverted). On 3439 ours never reached the event loop.
+3. **The parting is Napata's ceiling, read by the gate.** Napata (`0/2000`) reached `damage` 1560 of `myhits` 1560
+   on 3438 on both sides (run721 block 3439; ours' `RON_DEBUG_AMMO` print), `1/51`'s first missile landing.
+   `guy_release_events` refused a target that `Sim::active` calls dead, and `active` asks a building for
+   `health > 0`. `Guy::execute_events@005d99c0`'s tail refuses a `CHAR_ATTACK2` event on a negative `ox`/`whom`, a
+   clear `flags & 1` or a changed `uid`, and `GraphicEvents::execute_game_events@008e48e0` on `whom == -1 ||
+   ox == -1` — nothing reads hit points. *Export-backed* for the gate's shape; diff-backed for this arm.
+
+**Built.** `guy_release_events` gates on `Sim::struck` (the slot alive and a combat object, as item 1528's landing
+reads it). Unit test `cities_tests::a_release_at_a_city_on_its_ceiling_still_fires`: below the ceiling fired, at
+it fired, a dead building refused. `docs/COMBAT.md` §9.0's `uid` paragraph amended.
+
+**What it moved.** The word **3439 → 3585**, count and sequence: **ours 24 game draws against 27, index 6**, ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805 < Leader::make_this+0x328 <
+Leader::make_stuff+0x45a` — the original's make list builds two more buildings before the third `make_stuff`
+roll. Inside run721 (block 3586). The value diff on the word's frame: ours now fires `1/49`'s round on 3439 (slot
+0, landing (5855, 6841)) and its sixth on 3440 (slot 1), each landing 13 frames on, the draws agreeing on both
+frames. run721 **951 → 482** keys (146 standing): the Jet Fighters' `cruising_alt` that parted on 3446 (`1/115`
+ours 1300 against 1700, `1/139` 1300 against 1500) and `1/139`'s position on 3447 agree now; the first parting
+past the standing block is still `1/203`'s figure angle on 3390. The window's first new rows are the computer's
+`MAKE` list on 3581 (`MAKE[1]`: ours `cat` 4, `t` 317, `num` 1 against `cat` 6, `t` 295, `num` 10) — the item
+after's place to start. The coverage walk's inexact height reads 48 → 97 (the longer prefix).
+
+**Mutations** (`tools/mutate.py` on `dac26703`): M1, the gate on `Sim::active` again, **held** by the walk
+(`cargo test --release -p rondata coverage_pair::`, exit 101: `coverage_pair_first_parting`,
+`run721_s_word_frame_is_widened_whole`) and by the unit test. M2, no liveness test at all, **failed nothing** in
+the walk (exit 0) and fails the unit test's dead-building case: no walk here releases at a destroyed target.
+
+**Not established.** The `uid` arm (a slot reused inside one animation) and the `CHAR_ATTACK2`-only scope of the
+`flags & 1` test (a `CHAR_ATTACK1` event is gated by `execute_game_events`' `ox`/`whom` alone); a unit target's
+`is_on_map`, which `struck` still asks of a unit. `wall_anti_air`'s SEAM (`air.rs`) mirrors the old wording and
+shoots only units, which this does not change.
+
+**Coverage.** Diff-backed: 1–3 (run652's draws, run721's Napata and `1/49`, the walk). Export-backed and held by
+the unit test alone: the dead-target refusal (M2).
 
 ## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
 
