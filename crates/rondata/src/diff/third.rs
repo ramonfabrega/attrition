@@ -217,8 +217,8 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             for (i, l) in ours.iter().enumerate() {
                 eprintln!("    ours  {i}: {l}");
             }
-            for (i, l) in theirs.iter().enumerate() {
-                eprintln!("    thrs  {i}: {l}");
+            for (i, (l, d)) in theirs.iter().zip(tr.frame_draws(*f)).enumerate() {
+                eprintln!("    thrs  {i}: {l} (seed {:08x})", d.seed);
             }
         }
     }

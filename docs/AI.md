@@ -18119,10 +18119,52 @@ still the old `struck` test. No dedicated unit test: the pins
 `coverage_pair_first_parting` (3585) and `run721_s_word_frame_is_widened_whole`
 fail without the change. No new capture; runs 752–761 are unused.
 
-## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+## 179. A packed fisherman is idle, and the word moves to 3587 (2026-10-12, item 1666)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Word 3585, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. The
+original's 27 hold five `+0x1805` and four `+0x63d`; ours three and three
+(rolls from the trace's seeds: the four expiry rolls read 1, 0, 1, 1
+mod 3).
+
+**The make list parted four blocks earlier.** The dump holds the leader's
+`MAKEOBJECT` rows (`gamelog-run721…window-3389-3645`, `1/-1 leader:MAKE`).
+At block 3581 (the list after `create_units`' frame 3580) the original's
+slots 1..3 are `t295`, `t305`, `t311` (Jet Fighter, Strategic Bomber,
+Transport Helicopter; `val` 60720, 58080, 41485, cat 6, num 10) and slot 4
+is empty; ours had `t317` Fishermen at `val` 88000 in slot 1 and again in
+slot 4 (and a cleared duplicate in slot 2), pushing 305 and 311 off the
+ranked four. The offers' values are the original's own — ours prints 58080
+and 41485 for 305 and 311 — so the only difference is that the original
+offers **no** Fishermen at 3580 (it did at 3380, `val` 120000).
+
+**Cause.** `Sim::sea_value`'s Fishermen arm refuses on
+`cn.idle_fishermen != 0`, and the census never counted one: the seam
+table in `ai_census.rs` said "no fisherman is idle", and
+`census_zero_scalars` was the only writer of the field. §2.3's sweep
+(line 189 above) adds `idle_fishermen++` to a fisherman whose
+`unit_masks & 0x80000` is set — *packed*. A fisherman is born packed
+(`Unit::init`, `lib.rs` `combat.packed`) and unpacks only to fish, so a boat
+that has not found its fish is idle. Counted from `combat.packed`, the
+offers at 3580 vanish and the list agrees from block 3581 through the
+widening's MAKE rows, `t`, `val`, `city`, `escrow`, `cat` and `num`.
+
+**Value diff and score.** The state first parted at block 3581:
+`leader:MAKE[1].t` ours 317 theirs 295, `[1].val` 88000 against 60720,
+`[2].t` −1 against 305, `[3].t` 295 against 311, `[4].t` 317 against −1.
+After the change the only MAKE row left is `[6].val` (Rocket Artillery,
+ours 333185, theirs 347364 — `check_income`'s `fac` 235 against 245, a
+ledger residue standing since 3389). Word **3585 → 3587**, 15 versus 16
+draws, index 1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Unit::do_move+0xe84` (the move-grid draw of a new move order; first part
+past it is `1/133` on 3588, `move.dest`/`path:length` 14 against 26).
+run721's widening **482 → 394** keys; run714's baseline **139 → 121**
+(the shared census); ground-height reads on the prefix 97 → 99.
+
+**Not established.** Merchants' `reg_unpack_merch` should skip a packed
+merchant by the same sweep arm (line 191 above); left as it was — no diff
+reaches it. Which unit spends the 3587 `do_move` draw is not named. The
+`fac` 235/245 residue is not chased. No new capture; runs 752–761 unused.
 
 ## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
 

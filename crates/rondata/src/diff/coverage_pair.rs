@@ -225,7 +225,9 @@ pub(crate) struct Pair {
     /// salvo fire on a city at its ceiling (the release event asks only that
     /// the order name an object): **3585**, 24 versus 27 draws, index 6:
     /// ours `Leader::make_stuff+0x63d`, theirs
-    /// `Leader::produce_building+0x1805`.
+    /// `Leader::produce_building+0x1805`. Item 1666 counts a packed
+    /// fisherman as idle in the census: **3587**, 15 versus 16 draws,
+    /// index 1: ours guy animation, theirs `Unit::do_move+0xe84`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -243,8 +245,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3585,
-    sequence: 3585,
+    count: 3587,
+    sequence: 3587,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1307,7 +1309,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 121, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1606,8 +1608,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        482,
-        "run721 after the salvo fires on a city at its ceiling"
+        394,
+        "run721 after a packed fisherman counts as idle (item 1666: 482 -> 394)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
