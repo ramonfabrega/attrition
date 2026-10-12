@@ -1757,9 +1757,11 @@ impl Sim {
     /// points. A city building at its ceiling still takes the rest of the
     /// volley: run652's Advanced Battleship `1/49` releases on 3439 and
     /// 3440 at Napata (`0/2000`), whose damage reached 1560 of 1560 on
-    /// 3438. So the test is [`Sim::struck`], not [`Sim::active`]. SEAM:
-    /// the `uid` half is not carried (a slot reused under the order), and
-    /// `struck` also asks a unit target `on_map`, which the tail does not.
+    /// 3438. So the test is [`Sim::struck`], not [`Sim::active`].
+    ///
+    /// SEAM: the `uid` half is not carried (a slot reused under the
+    /// order), and a unit target is also asked whether it is on the map,
+    /// which the tail does not ask.
     fn guy_release_events(&mut self, u: usize) {
         if self.art.releases.is_empty() {
             return;
