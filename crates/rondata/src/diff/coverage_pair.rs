@@ -1643,7 +1643,11 @@ fn run721_s_word_frame_is_widened_whole() {
             .iter()
             .find(|b| (b.who, b.o) == (0, 2000))
             .unwrap();
-        pin_eq!(capital.damage, Some(damage), "the capital's damage on {block}");
+        pin_eq!(
+            capital.damage,
+            Some(damage),
+            "the capital's damage on {block}"
+        );
     }
     pin!(
         w.firsts.iter().all(|((who, o, _), (block, _))| {
