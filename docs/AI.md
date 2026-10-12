@@ -18079,14 +18079,45 @@ exactness remains debt. Full release validation is recorded in the journal.
 No new capture; runs 722–723 transfer unused to the next item. Independent
 review of unexercised lifecycle gates is owed.
 
-## 178. Reserved for item 1648 (the coverage pair's word 3439)
+## 178. A salvo fires on a city at its ceiling, and the word moves to 3585 (2026-10-12, item 1648)
 
-run721 already widens block 3440, the new word's own block, whole-record
-and whole-cast. The original spends two draws in `Ammo::init` through
-`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
-a guy's animation instead. No mechanism established: identify the shot and
-its firing decision from the window before changing combat. Runs 722–723
-remain unused and reserved.
+**Baseline.** Coverage word 3439, 23 versus 25 draws, index 14: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`
+(run721, block 3440). The original's draws 14–17 on 3439 are a sound, two
+`Ammo::init` rolls and a sound, between `Unit::inc_time` of `1/29` and `1/99`
+(ours' attribution of the same frame's draws by `RON_DEBUG_SITES`), so the
+shooter has an index in 30..98.
+
+**Who fires.** The dump holds ten `ATTACKORDER` rows on 3439; three are
+`in_range 1` on Napata (`0/2000`): `1/49`, `1/51`, `1/59`, guys of type 350
+(the Advanced Battleships' cruise missiles; ours' unit type 300, `TypeIndex`
+350). Ours fires `1/51` on 3426–3430 and `1/49` on 3435–3438; the original
+fires `1/49` on 3435–3440. The guy's animation 12 holds six release events at
+26..31 (`RON_DEBUG` print of `art.releases` for `(gp300, 12)`); `1/49`'s clock
+reads 30 on 3439, so its fifth event is due and ours does not run it.
+
+**Cause.** `guy_release_events` returned before the walk because
+`Sim::active(Building(0))` is false: Napata took its last ten points on 3439
+(`damage` 1550 → 1560 of `myhits` 1560, both sides; dump records 1560 and
+`damage_frac` 13 on 3439), and `active` asks a building for `health > 0`.
+`GraphicEvents::execute_game_events@008e48e0` (`Guy::execute_events@005d99c0`
+fills `ox`/`whom` from the order) tests only that the order names an object,
+`whom != -1 && ox != -1`; a building's hit points are never read. The gate
+now uses `Sim::struck` (alive, has a combat record) — the question the
+landing round already asks. For a unit target it is the old `active`.
+
+**Value diff and score.** Napata's `damage` agrees at 1560 from 3439 on,
+and `1/49`'s release at 3439 now spends the original's two `Ammo::init`
+draws. The word moves **3439 → 3585**, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`
+(run721, block 3586; not in the compared window, which ends the diverged
+tail). run721's widening: **951 → 482** keys. Ground-height reads on the
+longer prefix: **48 → 97**.
+
+**Not established.** The `uid` refusal (a target replaced under the order) is
+still the old `struck` test. No dedicated unit test: the pins
+`coverage_pair_first_parting` (3585) and `run721_s_word_frame_is_widened_whole`
+fail without the change. No new capture; runs 752–761 are unused.
 
 ## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
 

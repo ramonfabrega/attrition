@@ -221,7 +221,11 @@ pub(crate) struct Pair {
     /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
     /// `Guy::init_real+0x52` (a caravan absent here). Item 1647 counts
     /// Merchant Fleet live updates: **3439**, 23 versus 25 draws, index
-    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`.
+    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`. Item 1648 lets a
+    /// salvo fire on a city at its ceiling (the release event asks only that
+    /// the order name an object): **3585**, 24 versus 27 draws, index 6:
+    /// ours `Leader::make_stuff+0x63d`, theirs
+    /// `Leader::produce_building+0x1805`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -239,8 +243,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3439,
-    sequence: 3439,
+    count: 3585,
+    sequence: 3585,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1602,8 +1606,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        951,
-        "run721 after live fleet count correction"
+        482,
+        "run721 after the salvo fires on a city at its ceiling"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
