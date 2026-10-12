@@ -221,7 +221,12 @@ pub(crate) struct Pair {
     /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
     /// `Guy::init_real+0x52` (a caravan absent here). Item 1647 counts
     /// Merchant Fleet live updates: **3439**, 23 versus 25 draws, index
-    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`.
+    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`. Item 1648 lets
+    /// a release fire at a building at its ceiling: Napata reached 1560
+    /// on 3438 on both sides, and the original's `1/49` still fires its
+    /// fifth and sixth cruise missiles on 3439 and 3440 (`docs/AI.md`
+    /// §178). **3585**, 24 versus 27 draws, index 6: ours
+    /// `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -239,8 +244,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3439,
-    sequence: 3439,
+    count: 3585,
+    sequence: 3585,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1552,7 +1557,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3439 (item 1647), block 3440; the old words remain checked.
+/// word 3585 (item 1648), block 3586; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1562,7 +1567,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440],
+        &[3395, 3396, 3398, 3440, 3586],
         true,
     )
 }
@@ -1600,11 +1605,11 @@ fn run721_s_word_frame_is_widened_whole() {
     // is 3397, block 3398: the original's new caravan is absent.
     // Item 1647 repairs live fleet counts: 2359 -> 951; caras agrees
     // throughout and the caravan agrees through the new word 3439.
-    pin_eq!(
-        w.firsts.len(),
-        951,
-        "run721 after live fleet count correction"
-    );
+    // Item 1648 lets `1/49`'s salvo finish at Napata on its ceiling:
+    // 951 -> 482. The jets' `cruising_alt` (1/115, 1/139) that parted on
+    // 3446 and `1/139`'s position on 3447 agree now; the new word 3585's
+    // block, 3586, follows the computer's make list parting on 3581.
+    pin_eq!(w.firsts.len(), 482, "run721 after the ceiling salvo");
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
     let at = ix.frames().iter().position(|f| f.number == 3398).unwrap();

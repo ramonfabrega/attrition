@@ -6965,7 +6965,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // frames 3396 and 3397; measured before the bound changed.
     // Item 1647 extends the prefix to 3439: 48 reads, measured while
     // the old bound was still 19. Ground-height exactness remains debt.
-    ("coverage_pair_first_parting", 48),
+    // Item 1648 extends it to 3585: 97 reads, measured against the bound
+    // of 48.
+    ("coverage_pair_first_parting", 97),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8801,11 +8803,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // road flags on four newly attached city members at blocks 3395/3396.
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
+    // Item 1648 moves it to **3585** (block 3586), still in run721: a
+    // release at a building on its ceiling is fired; run721's test holds
+    // the jets that agree past 3446.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run721_s_word_frame_is_widened_whole"),
-        1647,
+        1648,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

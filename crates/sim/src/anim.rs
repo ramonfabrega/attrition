@@ -1746,11 +1746,21 @@ impl Sim {
     /// both are non-negative. A unit with no attack order in front does
     /// not shoot, however far into an attack animation it is.
     ///
+    /// **The target's liveness is its slot's, not its health** (item
+    /// 1648, `docs/AI.md` §178): `Guy::execute_events@005d99c0`'s tail
+    /// refuses a `CHAR_ATTACK2` event only on a negative `ox`/`whom`, a
+    /// clear `flags & 1` or a changed `uid`, and `execute_game_events`
+    /// asks only `whom != -1 && ox != -1` — nothing reads hit points. A
+    /// city building at its ceiling (`health` 0 here) still takes the
+    /// rest of a salvo: run652's 1/49 fires its fifth and sixth cruise
+    /// missiles at Napata on 3439 and 3440, the frames after it reached
+    /// 1560. So the gate is [`Sim::struck`], the landing's own question.
+    ///
     /// SEAM: the launch point is the unit's own position here, where the
     /// original adds the event node's offset through
     /// `GraphicPieces::get_position` — a float, and a graphic one. SEAM:
     /// the original also refuses the event when the target's `uid` has
-    /// changed under it; this crate tests that the target is still active.
+    /// changed under it; this crate tests that the target is still struck.
     fn guy_release_events(&mut self, u: usize) {
         if self.art.releases.is_empty() {
             return;
@@ -1780,7 +1790,7 @@ impl Sim {
                 let Some(target) = ordered else {
                     return;
                 };
-                if !self.active(target) {
+                if !self.struck(target) {
                     return;
                 }
                 Some(target)

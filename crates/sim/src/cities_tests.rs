@@ -6889,3 +6889,54 @@ fn a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near() {
     assert_eq!(place(&mut sim), at, "no enemy: the cell is the spiral's");
     assert!(!flagged(&sim), "and the bit is gone");
 }
+
+/// **A salvo finishes at a city on its ceiling** (item 1648, `docs/AI.md`
+/// §178): `Guy::execute_events@005d99c0` refuses a release only on the
+/// target's slot (`ox`/`whom` negative, `flags & 1` clear, `uid` changed)
+/// and `GraphicEvents::execute_game_events@008e48e0` only on `whom` or
+/// `ox` of −1 — neither reads hit points. run652's Advanced Battleship
+/// `1/49` fires its fifth and sixth cruise missiles at Napata on 3439 and
+/// 3440, after the city reached 1560 of 1560 on 3438. A dead building is
+/// still refused.
+///
+/// Made to fail first: with the gate on `Sim::active` again, the ceiling
+/// case fires nothing (ours' 3439, the word).
+#[test]
+fn a_release_at_a_city_on_its_ceiling_still_fires() {
+    const PIECE: i32 = 12_346;
+    let fire = |at_ceiling: bool, alive: bool| -> usize {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+        let ty = sim.add_unit_type(hoplite_type(t.barracks));
+        let me = spawn(&mut sim, 1, ty, tile_pos(36, 32));
+        sim.units[me].on_map = true;
+        sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
+        sim.art.releases.insert(
+            PIECE,
+            [(crate::anim::ATTACK2, vec![(4, 0, false, true)])]
+                .into_iter()
+                .collect(),
+        );
+        sim.order_attack(me, Obj::Building(b));
+        sim.units[me].combat.target = Some(Obj::Building(b));
+        let bd = &mut sim.buildings[b];
+        bd.damage = if at_ceiling { bd.hits_now() } else { 0 };
+        bd.sync_health();
+        bd.alive = alive;
+        assert_eq!(sim.buildings[b].health == 0, at_ceiling, "the fixture");
+        let mut g = crate::anim::Guy::fresh(PIECE);
+        g.anim = crate::anim::ATTACK2;
+        g.end_time = 20;
+        g.cur_time = 3;
+        g.last_time = 2;
+        g.stopped = false;
+        sim.units[me].guys = vec![g];
+        sim.guys_inc_time();
+        assert_eq!(sim.units[me].guys[0].cur_time, 4, "the clock reached it");
+        sim.projectiles.len()
+    };
+    assert_eq!(fire(false, true), 1, "below the ceiling: fired");
+    assert_eq!(fire(true, true), 1, "at the ceiling: fired (run652's 3439)");
+    assert_eq!(fire(true, false), 0, "a dead building: refused");
+}
