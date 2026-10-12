@@ -108,3 +108,37 @@ Fermion", 2026-09, is a script-bytecode translation, not a decomp).
 The Loop ledger is unruled (twenty-five items after 1649 and 1650); the
 twenty-eighth pass takes it at the tranche's end. No hard-constraint, no
 roster, no phase and no finish line was touched. `CLAUDE.md` unchanged.
+
+## The disk, after the talk
+
+Ramon's word on the cleanups and the archive, the same afternoon.
+
+| step | freed |
+|---|---|
+| `cargo clean --profile dev` in the integration worktree | 43 GiB |
+| ten `agent-*` worktrees of 1619's sweep, every patch in HEAD, removed with their branches | in the above |
+| `cargo clean` in the four Codex worktrees | 32 GiB |
+| the archive, APFS-compressed in place with `afsctool -c -f -T LZFSE -J8 ~/ron-data` | 205 GB → 22 GiB, 13,248 files |
+| **free** | **258 GiB**, from 61 |
+
+Why APFS and not Astra's `.rcap`: the harness opens a `.rcap` only
+where a path names one, and 58 Python probes under `tools/` read the
+dumps raw, so that route is a migration; filesystem compression is
+invisible to every reader. Measured before the word was given: a 1.41
+GB dump to 36 MB (39×), an 822 MB packet payload to 196 MB (4.2×),
+both byte-identical; the consolidated Great Lakes widening 46 s and
+1,433 MiB raw against 46 s and 1,426 MiB compressed, twice each. The
+proof after: the full booking gate on the compressed archive, exit
+0. A new capture lands raw; the Loop line (1650) says who compresses it.
+
+## Decided with Ramon, after the settlement
+
+- **The twenty-eighth tranche is the race, on the headline word** —
+  four arms (Opus 5.5 high and medium, Sonnet 5.5 high and medium) on
+  1648, five landings each, one session a landing, nothing else out;
+  DECISIONS 64 amended, the queue and opener rewritten. The commander
+  was attached by Ramon and the clear armed with the opener from this
+  session.
+- **After the race, a talk**: the pass scores the 2×2 and holds the
+  commander; the roster is decided then, and the twenty-ninth tranche
+  runs the four lanes on it.

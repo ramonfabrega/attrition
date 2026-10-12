@@ -3846,11 +3846,16 @@ reading. The twenty-eighth pass's.
 twenty-seventh pass, and 1642–1646 cut the nine-window walk 154 → 40 s
 and the golden pairs 65 → 49 s; a test the file still names as over
 budget is skipped by a lane gate that could now afford it. Re-time at the
-twenty-eighth pass; a stale list is conservative, never wrong. Beside it,
-`crates/rondata` now reads a `.lz4` capture when one is beside the dump
-(1641, opt-in, 18.5× smaller at the same speed) and the archive is 191
-GiB: whether the long captures are re-archived that way is Ramon's,
-with the disk at 61 GiB free.
+twenty-eighth pass; a stale list is conservative, never wrong. **The
+archive question beside it is answered** (2026-10-12, with Ramon): the
+`.rcap` route would have been a migration (58 Python probes read dumps
+raw), so the archive was APFS-compressed in place instead — `afsctool
+-c -f -T LZFSE -J8 ~/ron-data`, 205 GB → 22 GiB, every file verified,
+a dump 39× and a packet payload 4.2×, the consolidated Great Lakes
+widening 46 s raw and 46 s compressed, the booking gate green on it
+(exit 0). What is left for the Loop: **a new capture lands raw**, so a
+steer compresses the archive again (the same line; already-compressed
+files are skipped), or the capture scripts do it at a run's end.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 

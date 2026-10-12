@@ -4760,3 +4760,18 @@ fourth lane's against 50; the suite's ageing by `--stale`; the waiter's
 exits against 22 / 2 / 0 / 14; conflicted updates against 23 mentions;
 the battery against 576 / 6566 / 2974; never against 148 and backed
 against 68; the backlog against twenty-two; the disk against 91 GiB.
+
+**Amended 2026-10-12, with Ramon** (`docs/audit/2026-10-12-codex-settlement.md`):
+the re-race is **four arms on the headline word**, not three on Great
+Sahara's — Opus 5.5 high and medium, Sonnet 5.5 high and medium, on
+1648 (East Indies, All Technologies, frame 3439), five landings each,
+one session a landing — **and the race is the whole tranche**: nothing
+else out, so the four arms see one box, one capture pool and one brief
+and their prices compare, twenty landings is the race's end, and the
+headline moves by the winning chain, verified four times over. Opus
+high is re-run on purpose: it is the control the context confound
+poisoned. The pass that follows scores the 2×2 and **holds the
+commander** for a talk; the roster is Ramon's on that score. 1639,
+1630 and 1497 wait a tranche. The estimate above is replaced for this
+tranche: four chains each past 3,600; the price near 300 USD list;
+the race done in under ten hours.

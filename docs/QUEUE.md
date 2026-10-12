@@ -19,12 +19,12 @@ speedups — fast-forwarded whole, gated here (exit 0, rondata 778 in 492 s
 against 619 before, memcap 12,174 MiB), pushed. Great Sahara's coverage word
 **2323**, the census's backed column **68**, the battery 576 / 6566 / 2974.*
 
-- **No lane live.** The next commander spawns 1648 (Opus 5.5 high), 1630
-  and 1497 (Sonnet 5.5 high; 1497 is the lane rule 5 earns back) and
-  **1639's three racers**; every brief with `--tests`; every lane clears
-  itself at 300 k (frame row 1637). Next number 1651, run 722, §179.
-- **The first race is scored** (`docs/audit/2026-10-07-race-1565.md`) and
-  re-run as 1639 shaped like workers; the roster is Ramon's, on its score.
+- **No lane live; the tranche is the race.** The commander spawns 1648's
+  four racers and nothing else (DECISIONS 64, amended 2026-10-12); every
+  brief with `--tests`; every lane clears itself at 300 k (frame row
+  1637). Next number 1651, run 722, §179 — the racers' reserved from there.
+- **The disk**: the archive APFS-compressed in place (205 GB → 22 GiB,
+  the gate green on it); 258 GiB free. Astra's review debt is 1649.
 - **Fable backlog: 25 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,36 +37,35 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-eighth tranche — `commander` (Opus 5.5): spawn
-1648, 1630, 1497 and 1639's three racers, each brief with `--tests`
-(`coverage::` rides along), a racer respawned off its own chain tip
-after every landing; merge, book, refill; score the race at its end
-(DECISIONS 64); stop at twenty landings and hand off to `steer`.**
+**Opener: the twenty-eighth tranche is the race on the headline word —
+`commander` (Opus 5.5): spawn 1648's four racers off this tip on one
+brief, nothing else out; one session a landing, respawned off its own
+tip; nothing merges until the end; at twenty score the race as 1565 was,
+merge the winner, hand off to `steer`, which holds the commander for Ramon.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **Four lanes**: the newest
-pair's (1648), the third map's (1639, the re-race), the sweep (1630) and
-the rules track's (1497); lower map first — East Indies (All Technologies).
-Take the first unstarted item unless a better order is clear, and state why.
+In dependency order, headline-nearest first. **This tranche is one word
+on four arms**: 1648's racers; 1639, 1630 and 1497 wait for the
+twenty-ninth — lower map first — East Indies (All Technologies). Take
+the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
 1648. **The coverage pair's word: frame 3439, 23 versus 25 draws**,
     index 14: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    `Ammo::init+0xcd9`. Inside run721 (block 3440), widened whole:
-    951 keys, 146 standing. Original two ammo draws come through
-    `Objects::add_ammo < GraphicEvents::execute_game_events`.
-    Identify the shot and firing decision; no cause established.
-    Runs 722–723 remain unused and reserved; AI §178.
+    `Ammo::init+0xcd9`; inside run721 (block 3440), widened whole (951
+    keys, 146 standing); the original's two ammo draws come through
+    `Objects::add_ammo < GraphicEvents::execute_game_events`; no cause
+    established. **The race** (DECISIONS 64, amended): four racers on one
+    brief, Opus 5.5 and Sonnet 5.5 at high and medium, five landings each,
+    one session a landing, scored as 1565 was; runs from 722; AI §178.
 
-1639. **The re-race on Great Sahara's word: frame 2323, 12 versus 13
-    draws**, index 10: ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside
-    run718 (block 2324), widened by `run718_s_word_frame_is_widened_whole`
-    (624 keys, 62 standing); 1620's hypothesis the second farm's `empty`
-    (parked 1092/1328, 1632). Three racers, one brief — Opus 5.5 high,
-    Sonnet 5.5 high, Sonnet 5.5 medium — five landings each, **one session
-    a landing**: a racer lands on its chain branch, reports, is respawned
-    off that tip; nothing merges until the end; scored as 1565 was. AI §175.
+1639. **Great Sahara's word: frame 2323, 12 versus 13 draws**, index 10:
+    ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside run718 (block
+    2324), widened by `run718_s_word_frame_is_widened_whole` (624 keys, 62
+    standing); 1620's hypothesis the second farm's `empty` (parked
+    1092/1328, 1632). The race moved to 1648 on 2026-10-12; this is the
+    third map's lane's first item of the twenty-ninth tranche. AI §175.
 
 1630. **The sweep's third batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 68 of 3611): 1575's and 1619's

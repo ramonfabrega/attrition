@@ -21112,3 +21112,10 @@ engine. Fast-forwarded by DECISIONS 60's rule, gated here green (rondata
 the stale lane timings (1650). No pass: nine landings since the last and
 the headline moved. The commander's opener stands, 1648 its word.
 `docs/audit/2026-10-12-codex-settlement.md`.
+
+**2026-10-12, later — the disk and the race.** With Ramon: the build
+output and the sweep's worktrees cleaned (75 GiB), the archive
+APFS-compressed in place (205 GB → 22 GiB, the gate green on it), 258
+GiB free; the re-race moved onto the headline word as four arms, Opus
+and Sonnet at high and medium, the whole tranche, the commander held
+for a talk after. **DECISIONS 64, amended.**
