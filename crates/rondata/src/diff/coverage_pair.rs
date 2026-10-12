@@ -221,7 +221,10 @@ pub(crate) struct Pair {
     /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
     /// `Guy::init_real+0x52` (a caravan absent here). Item 1647 counts
     /// Merchant Fleet live updates: **3439**, 23 versus 25 draws, index
-    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`.
+    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`. Item 1648 lets
+    /// a volley already under way shoot at a building at its ceiling
+    /// (`docs/AI.md` §178): **3585**, 24 versus 27 draws, index 6: ours
+    /// `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -239,8 +242,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3439,
-    sequence: 3439,
+    count: 3585,
+    sequence: 3585,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1552,7 +1555,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3439 (item 1647), block 3440; the old words remain checked.
+/// word 3439 (item 1647), block 3440, and the word 3585 (item 1648),
+/// block 3586; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1562,7 +1566,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440],
+        &[3395, 3396, 3398, 3440, 3586],
         true,
     )
 }
@@ -1600,10 +1604,12 @@ fn run721_s_word_frame_is_widened_whole() {
     // is 3397, block 3398: the original's new caravan is absent.
     // Item 1647 repairs live fleet counts: 2359 -> 951; caras agrees
     // throughout and the caravan agrees through the new word 3439.
+    // Item 1648: 951 -> 482 keys once the Advanced Battleship `1/49`'s
+    // fifth and sixth missiles fly at the capital on 3439 and 3440.
     pin_eq!(
         w.firsts.len(),
-        951,
-        "run721 after live fleet count correction"
+        482,
+        "run721 after a volley fires at a building at its ceiling"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -1622,6 +1628,30 @@ fn run721_s_word_frame_is_widened_whole() {
             .iter()
             .all(|((who, o, _), (block, _))| (*who, *o) != (1, 207) || *block > 3440),
         "the new caravan's entire compared record agrees through the new word"
+    );
+    // **Item 1648's value diff** (`docs/AI.md` §178): the capital `0/2000`
+    // reaches its ceiling in the original's own record on block 3439 (1550
+    // on 3438, 1560 of 1560 after), and the Advanced Battleship `1/49`'s
+    // volley keeps firing at it: the fifth and sixth missiles are the
+    // original's `Ammo::init` draws on 3439 and 3440. The capital's damage
+    // and the three Battleships agree through the old word.
+    for (block, damage) in [(3438, 1550), (3439, 1560), (3440, 1560)] {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        let capital = frame
+            .builds
+            .iter()
+            .find(|b| (b.who, b.o) == (0, 2000))
+            .unwrap();
+        pin_eq!(capital.damage, Some(damage), "the capital's damage on {block}");
+    }
+    pin!(
+        w.firsts.iter().all(|((who, o, _), (block, _))| {
+            !matches!((*who, *o), (0, 2000) | (1, 49) | (1, 51) | (1, 59))
+                || *block == 3389
+                || *block > 3441
+        }),
+        "the capital and the three Battleships agree through the old word"
     );
     for block in [3394, 3395, 3396] {
         let at = ix.frames().iter().position(|f| f.number == block).unwrap();

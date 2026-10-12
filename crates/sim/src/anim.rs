@@ -1780,7 +1780,14 @@ impl Sim {
                 let Some(target) = ordered else {
                     return;
                 };
-                if !self.active(target) {
+                // **The gate asks for a target, not for hit points left**
+                // (`execute_game_events@008e48e0`: `whom != -1 && ox != -1`
+                // and nothing else of the object). A city building at its
+                // ceiling has `health` 0 and is still shot at by a volley
+                // already under way: item 1648's Advanced Battleship `1/49`
+                // fires its fifth and sixth missiles at `0/2000` on 3439 and
+                // 3440, after the capital reached its ceiling on 3438.
+                if !self.struck(target) {
                     return;
                 }
                 Some(target)
@@ -3551,5 +3558,65 @@ mod survivor_tests {
         let other = s.add_unit(crate::Unit::new(0, 8, crate::Pos::new(500, 500), 10));
         s.init_guys(other, None);
         assert_eq!(s.units[other].guys[0].aim, None, "a fresh slot is clear");
+    }
+
+    /// **A volley already under way shoots at a building at its ceiling**
+    /// (`GraphicEvents::execute_game_events@008e48e0`'s release gate asks
+    /// for an ordered target, `whom != −1 && ox != −1`, and never for
+    /// hit points; item 1648, `docs/AI.md` §178). The coverage pair's
+    /// Advanced Battleship `1/49` fires its fifth and sixth cruise missiles
+    /// at the capital `0/2000` on 3439 and 3440, after the capital's
+    /// `damage` reached its `hits` on 3438 and [`Sim::active`] began to
+    /// answer no for a building with `health` 0. A building that is gone
+    /// (`alive` false) is still refused. Made to fail with `active` back in
+    /// the gate: the ceiling case fires nothing.
+    #[test]
+    fn a_volley_fires_at_a_building_at_its_ceiling_but_not_a_gone_one() {
+        use crate::combat::Obj;
+        const PIECE: i32 = 12_345;
+        let fire = |health: i32, alive: bool| -> usize {
+            let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, crate::world::World::new(60, 60), 2);
+            sim.at_war[0][1] = true;
+            sim.at_war[1][0] = true;
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: crate::combat::Profile {
+                    attack: 15,
+                    max_range: 8,
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 40);
+            sim.art.releases.insert(
+                PIECE,
+                [(crate::anim::ATTACK2, vec![(30, 2, false, true)])].into_iter().collect(),
+            );
+            let b = sim.add_building(0, crate::Pos::new(21384, 16872), 1);
+            sim.buildings[b].combat = Some(crate::combat::Profile::default());
+            sim.buildings[b].health = health;
+            sim.buildings[b].alive = alive;
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(1, index, crate::Pos::new(21384, 17256), 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let me = sim.add_unit(u);
+            sim.order_attack(me, Obj::Building(b));
+            sim.units[me].combat.target = Some(Obj::Building(b));
+            let mut g = crate::anim::Guy::fresh(PIECE);
+            g.anim = crate::anim::ATTACK2;
+            g.end_time = 40;
+            g.cur_time = 29;
+            g.last_time = 28;
+            g.stopped = false;
+            sim.units[me].guys = vec![g];
+            sim.guys_inc_time();
+            assert_eq!(sim.units[me].guys[0].cur_time, 30, "the clock reached it");
+            sim.projectiles.len()
+        };
+        assert_eq!(fire(10, true), 1, "a building with health left");
+        assert_eq!(fire(0, true), 1, "a building at its ceiling");
+        assert_eq!(fire(0, false), 0, "a building that is gone");
     }
 }

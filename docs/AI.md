@@ -18079,14 +18079,72 @@ exactness remains debt. Full release validation is recorded in the journal.
 No new capture; runs 722–723 transfer unused to the next item. Independent
 review of unexercised lifecycle gates is owed.
 
-## 178. Reserved for item 1648 (the coverage pair's word 3439)
+## 178. A volley under way shoots at a building at its ceiling, and the word at 3585 (2026-10-12, item 1648)
 
-run721 already widens block 3440, the new word's own block, whole-record
-and whole-cast. The original spends two draws in `Ammo::init` through
-`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
-a guy's animation instead. No mechanism established: identify the shot and
-its firing decision from the window before changing combat. Runs 722–723
-remain unused and reserved.
+**Baseline.** Coverage word 3439, 23 versus 25 draws, index 14: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`, two
+draws (`+0xcd9`, `+0xd0b`, the landing scatter) through `Objects::add_ammo <
+GraphicEvents::execute_game_events+0x40d`. Run721's block 3440 is widened
+whole (951 keys, 146 standing) and no `AMMO` record is dumped.
+
+**Who shot.** The GUY blocks of 3439 name three units of type
+`ADVANCEDBATTLESHIP` (TypeIndex 350, gpiece 300, Sea) on `Attack` orders at
+the capital `0/2000`: `1/49` (animation `CHAR_ATTACK2`, `cur_time` 29→30),
+`1/51` (`ATTACK1`, 31→32) and `1/59` (`ATTACK2`, 7→8). The install's
+`unit_graphics.xml` gives the piece six `RELEASEEVENT`s a swing, missiles
+`Cruisemissile0/1` — `starttime / 67` makes them frames 19, 20, 21, 22, 23, 23
+on `ATTACK1` and **26, 27, 28, 29, 30, 31** on `ATTACK2`. Of the three,
+only `1/49` crosses an event at 3439 (30) — one `Ammo`, two draws. The
+original's `Ammo::init` draws agree with that clock frame for frame: pairs
+on 3435, 3436 (two shooters), 3437, 3438, **3439**, **3440**, none on 3441
+(trace frames; ours' block is the frame + 1).
+
+**Cause.** Ours fired the first four of `1/49`'s six (26–29) and stopped:
+`Sim::guy_release_events` returns before the event walk unless
+`Sim::active(target)`, and `active` asks a building for `health > 0`. The
+capital `0/2000` reaches its ceiling in this volley — the dump's `damage` is
+1550 on block 3438 and **1560 of 1560** on 3439 and 3440 — so `health` is 0
+from 3438 and the fifth and sixth missiles never left. The original's gate
+(`GraphicEvents::execute_game_events@008e48e0`, the type-1 arm; the order's
+`ox`/`whom` filled by `Guy::execute_events@005d99c0`) asks for **an ordered
+target** — `whom != -1 && ox != -1` — or an attack-ground order, and reads
+nothing of the object's hit points. `Sim::struck` is item 1528's name for
+exactly that question (a round already in the air still strikes a ceiling
+building); the release gate now uses it. A building that is gone (`alive`
+false) is still refused.
+
+**Killer.** The reading would die if `1/49`'s fifth and sixth events did not
+fire in the original (they do: draw pairs on trace 3439 and 3440), if the
+gate read `health` (it does not), or if firing them moved nothing. It moves
+the word.
+
+**Value diff.** Block 3438 → 3439 → 3440, `BUILDDATA` `0/2000`: damage
+**1550 → 1560 → 1560** of `myhits` 1560 in the dump; ours agrees on all three
+(run721 pins it). The game's draw stream gains the two `Ammo::init` pairs on
+3439 and 3440, and the word moves **3439 → 3585**, 24 versus 27 draws, index
+6: ours `Leader::make_stuff+0x63d < Leader::production_ai+0x236`, theirs
+`Leader::produce_building+0x1805 < Leader::make_this+0x328 < Leader::make_stuff
++0x45a`. Run721's keys fall **951 → 482**; the capital and the three
+Battleships carry no parted key but the capital's two standing ones
+(`damage_frac`, `raid_stamp`, from the window's first block). Run721's widening
+now compares block 3586 whole and the coverage driver walks it.
+
+**The next word, 3585** (block 3586, inside run721): the computer's make
+list is the first parted record, on 3581 — `leader:MAKE[1].cat` ours 4 theirs
+6, `.num` 1 versus 10, `.t` 317 versus 295, `.val` 88000 versus 60720, and
+`MAKE[2]`, `MAKE[3]`, `MAKE[4]` after it; the groups' `id` (3580007 versus
+3586507) on `1/57` and `1/105` the same frame. Nothing here has read
+that cause.
+
+**Limits.** The ground-height guard rises **48 → 97** reads: the walk now
+passes the Battleships' missiles and the builders' frames to 3585, and
+the guard stays on at the measured extent. The air release path
+(`air.rs`, a strafer's) keeps its own `active` test — its target is a
+unit or a building the same way, and no capture here reaches it at a ceiling.
+`execute_game_events` also appears to leave the uid to `Ammo::init`; this
+crate tests `struck` and not the uid (the SEAM above it stands). No capture
+was taken: the disk answered everything (run721's blocks 3438–3440, the
+run652 trace's frames 3435–3441, `unit_graphics.xml`).
 
 ## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
 
