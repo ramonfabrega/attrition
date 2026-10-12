@@ -6967,7 +6967,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends it to 3585 (the battleship's last two rounds of
     // its volley at Napata): 97 reads, measured while the bound was 48.
-    ("coverage_pair_first_parting", 97),
+    // Item 1656 extends it to 3587 (an idle fisherman holds the boat): 99
+    // reads, measured while the bound was 97.
+    ("coverage_pair_first_parting", 99),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).

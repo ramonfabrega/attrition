@@ -226,7 +226,10 @@ pub(crate) struct Pair {
     /// rounds on 3439 and 3440, the city at its ceiling — the release
     /// asks the slot, not the hit points — **3585**, 24 versus 27 draws,
     /// index 6: ours `Leader::make_stuff+0x63d`, theirs
-    /// `Leader::produce_building+0x1805`.
+    /// `Leader::produce_building+0x1805`. Item 1656: a fisherman still
+    /// packed is an idle one, and the leader offers no boat while one is —
+    /// the make list agrees on 3581 — **3587**, 15 versus 16 draws, index
+    /// 1: ours guy animation, theirs `Unit::do_move+0xe84`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -244,8 +247,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3585,
-    sequence: 3585,
+    count: 3587,
+    sequence: 3587,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1557,7 +1560,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3585 (item 1648), block 3586; the old words remain checked.
+/// word 3587 (item 1656), block 3588; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1567,7 +1570,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586],
+        &[3395, 3396, 3398, 3440, 3586, 3588],
         true,
     )
 }
@@ -1610,10 +1613,14 @@ fn run721_s_word_frame_is_widened_whole() {
     // since 3438): 951 -> 482, the air units `1/115` and `1/139`'s
     // `cruising_alt` on 3446 (1300 against 1700 and 1500) the first rows
     // to leave; the word moves to 3585, block 3586.
+    // Item 1656 counts a packed fisherman idle, and the Units step of 3580
+    // offers no Fishermen: 482 -> 394, the leader's make list on 3581,
+    // 3585 and 3586 and `1/143`'s route on 3586 the rows to leave; the
+    // word moves to 3587, block 3588.
     pin_eq!(
         w.firsts.len(),
-        482,
-        "run721 after the volley at a city at its ceiling"
+        394,
+        "run721 after an idle fisherman holds the boat"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();

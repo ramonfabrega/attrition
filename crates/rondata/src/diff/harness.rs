@@ -1637,6 +1637,27 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             built.sim.tech[w].epoch[sim::tech::Line::Commerce.index()],
             slots.join(" ")
         );
+        // The last `create_units`' offers, before `make_me` sorts them in
+        // (item 1656): an offer the list does not keep is read here.
+        if l.unit_offers_frame == frame {
+            let offers: Vec<String> = l
+                .unit_offers
+                .iter()
+                .map(|m| {
+                    format!(
+                        "t{}({}) v{} c{} cat{} n{} e{}",
+                        m.t,
+                        name(m.t),
+                        m.val,
+                        m.city,
+                        m.cat,
+                        m.num,
+                        m.escrow
+                    )
+                })
+                .collect();
+            eprintln!("  f{frame} L{w} offers {}", offers.join(" "));
+        }
     }
 }
 
