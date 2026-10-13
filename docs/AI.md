@@ -18594,11 +18594,7 @@ condition is approximated as "uncaptured". No capture holds a second spy (the ga
 second slot is 450 frames on, 5032); the death re-arm is reading-only. `MAKE[2,3].val` 1294
 against 1353 on 4585 (1714's second row) is still in run762's 250 keys: a value, with no draw behind it.
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
-
 ## 189. Reserved for item 1726 (Great Sahara's word 2934)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
->>>>>>> refs/heads/worktree-replan-pdb
