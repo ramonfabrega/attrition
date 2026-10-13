@@ -1121,11 +1121,10 @@ impl Sim {
                             if self.needs_transport(Pos::new(best.x, best.y).tile(), goal.tile())
                                 != 0
                                 && self.unit_can_transport(u)
+                                && let Some(mut top) = self.units[u].path.pop()
                             {
-                                if let Some(mut top) = self.units[u].path.pop() {
-                                    top.flags |= path_flag::TRANSPORT;
-                                    self.units[u].path.push(top);
-                                }
+                                top.flags |= path_flag::TRANSPORT;
+                                self.units[u].path.push(top);
                             }
                         }
                     }
