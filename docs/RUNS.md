@@ -16413,3 +16413,25 @@ SHA-256 `4baa49b677b64e428a6669e8eee5c7a326d9aaf51dbd097d1de761f32022f7c0`.
 
 **What it holds**: `step4.py --entry 610bc0 --this 15e52afc` (the Aegis Cruiser `1/113`): `compare_target(0/2000)` returns 0 at `64e7e5`
 and `find_nearby_target` takes nothing. No test reads it.
+
+## run818 — chapter sixty-two: two guarding squads, who=1's squads walked past, a third added inside the leash (2026-10-13, item 2066)
+
+`docs/GOLDEN.md` §75, `tools/gamelog/golden/chapter62.cmd` (13 staged lines). **What the disk could not answer**:
+run814 reaches a follower's guard refusal only past its word, where the squad head and the headless search both answer
+nothing; no dump holds a follower refused while a target the search would take stands inside the leash. Census rows
+the lobby reaches: §75 names them. run819 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch62 \
+    --map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter62.cmd
+```
+
+Pool lane 1, first take held: `success: true`, 1,001 frames, seed 12345, map 14, 776 s launch to exit;
+`issuesmatch.py --none-refused … 4`: four issue records, none refused. Dump 190,867,305 bytes, SHA-256
+`f79b6fc788e7e224843a7700e2783ee27dd04ddd13f2a7a8173b55410be4ea54`; trace 11,171,520 bytes, SHA-256
+`3c22c953f8060be2ed09620682a1b4665ea4f953875253d91f5fad719c177799`; kept in `~/ron-golden/ch62/map-14`. Waited on
+another lane's capture: none. **What it holds**: `golden::chapter_sixty_two_holds_to_the_golden_word` (**900**, the
+third squad's newborn men) and `chapter_sixty_two_s_word_frame_is_widened_whole` (605..901, 21 rows, no pool row).

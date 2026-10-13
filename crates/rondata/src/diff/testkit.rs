@@ -6354,6 +6354,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_ONE: i64 = 780;
 /// its first block through the word's.
 pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 781);
 
+/// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
+/// guarding Hoplite squads, who=1's squads walked past them and a third added
+/// inside the leash, 605 to 1000. Open at **900**, 13 draws against 11: the
+/// third squad's men `1/13` and `1/14` spend `Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d` here, where the original's join who=1's group 64 and
+/// take its `ATTACK_TO` (this crate seats them in a new group 65).
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_TWO: i64 = 900;
+
+/// `chapter_sixty_two_s_word_frame_is_widened_whole`'s window: run818 from
+/// its first block through the word's.
+pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 901);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8631,6 +8643,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_one_s_word_frame_is_widened_whole"),
         2032,
         Some(WIDENING_CHAPTER_SIXTY_ONE),
+    ),
+    // Item 2066: run818, chapter sixty-two; open at 900. The widening is
+    // run818 from its first block through the word's.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_TWO",
+        GOLDEN_WORD_CHAPTER_SIXTY_TWO,
+        Some("chapter_sixty_two_s_word_frame_is_widened_whole"),
+        2066,
+        Some(WIDENING_CHAPTER_SIXTY_TWO),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
