@@ -192,3 +192,13 @@ pub(crate) fn row(line: &str) -> (Vec<i64>, i64) {
 fn a_row_is_its_arguments_and_its_result() {
     assert_eq!(row("3 -4 0 -> -7"), (vec![3, -4, 0], -7));
 }
+mod city_data_pop_growth;
+mod follow_order_get_follow_order;
+mod form_order_get_form_order;
+mod guard_order_get_guard_order;
+mod item_out_draw_overlays;
+mod patrol_order_get_patrol_order;
+mod setup_init_wild_life;
+mod strafe_order_get_air_order;
+mod strafe_order_get_attack_order;
+mod window_on_focus;
