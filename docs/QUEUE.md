@@ -24,7 +24,7 @@ took the census 188 → 278. Great Sahara 3182 open (1738). No kill rule tripped
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
 - **Lanes live**: `att-1738`, `att-1768`, `att-1829`, `att-1834`; 15 of 20 landed (word
-  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 278). Next 1840, run 787, AI §195, GOLDEN §69. **The disk**: 233 GiB free.
+  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 278). Next 1840, run 788, AI §195, GOLDEN §69. **The disk**: 233 GiB free.
 - **Fable backlog: 16 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
