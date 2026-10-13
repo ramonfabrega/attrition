@@ -3840,6 +3840,8 @@ one 150-line throwaway generator that saved an hour — worth graduating.
 1840 a twelfth: a third shape in the same throwaway (an
 argument-carrying stub, `v + 1000*arg0 + arg1`, to verify what a virtual
 call is passed) — graduate the generator.
+1851 a thirteenth: the same header, `stub`/`argstub` and `setup()`
+thrown away again, with the out-pointer shape still missing.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
@@ -3847,6 +3849,18 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
+
+(1861) **`census.py --unbacked`'s shortest-first list is dead weight at
+the top** (1851's Loop line): destructors, `close`/`init`/`clear`,
+loggers, `dynamic_initializer`s and operators fill it, and every sweep
+lane skips them by hand, ~300 bytes deep. Candidate: a `--skip` for
+those name classes, on by default for `--kind sweep`. One reach.
+
+(1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
+(1851's gate): passes alone, red once under the full gate. A flaky
+guard of the capture lane's lock is a guard nobody trusts. Candidate:
+reproduce under the gate's parallelism, then pin the pid it picks. One
+reach.
 
 (1846) **`RON_DEBUG_UNIT`'s `TI` is the type index, `TY` the record
 number** (1768's Loop line): a brief that names a unit by its `TY`

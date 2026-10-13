@@ -12,20 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirtieth tranche at eighteen landings of twenty** (`commander`,
+*2026-10-13, **the thirtieth tranche at nineteen landings of twenty** (`commander`,
 Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65): **the successor pair's
 word moved twice** — 11 → 1354 (1737, `calc_gather`'s Mongol food term) → 2207
 (1744, `train_time`'s Mongol stable arm), widened whole at 2207 on run780 (1768); chapters fifty-three (1740) and
-fifty-five (1798, 1010) closed, fifty-four's rows settled (1776); eleven sweeps
-took the census 188 → 299. Great Sahara 3182 open (1738). No kill rule tripped.*
+fifty-five (1798, 1010) closed, fifty-four's rows settled (1776); twelve sweeps
+took the census 188 → 309. Great Sahara 3182 open (1738). No kill rule tripped.*
 
 - **The pass built**: the stub pool (AI §193–§198, GOLDEN §66–§69),
   `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **Lanes live**: `att-1738`, `att-1845`, `att-1829`, `att-1851`; 18 of 20 landed (word
-  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 299). Next 1856, run 788, AI §196, GOLDEN §69. **The disk**: 233 GiB free.
-- **Fable backlog: 17 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846).
+- **Lanes live**: `att-1738`, `att-1845`, `att-1829`, `att-1856`; 19 of 20 landed (word
+  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 309). Next 1863, run 788, AI §196, GOLDEN §69. **The disk**: 233 GiB free.
+- **Fable backlog: 19 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,20 +33,20 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w2207 of 5,056
-Census: simulation backed 299 of 3611
+Census: simulation backed 309 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3182 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirtieth tranche continues at ten landings, on `commander` — four
-lanes live on Sonnet 5.5 medium (`att-1738`, `att-1845`, `att-1829`, `att-1851`):
+lanes live on Sonnet 5.5 medium (`att-1738`, `att-1845`, `att-1829`, `att-1856`):
 re-arm `lanewait.py` on them; count landings from 5d6f28ef, stop at twenty, handoff
 written, `ccc clear steer --then` the thirtieth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1845 the headline's word, 1738, 1851 and 1829 the other three lanes —
+1845 the headline's word, 1738, 1856 and 1829 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -68,9 +68,9 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     since 2782 (`1/2018` `level` 2, `bordering` 3); dropping `base`'s ×3
     reached 3767 as a probe, not a build. AI §192.
 
-1851. **The sweep's twenty-sixth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 299 of 3611): 1840's shape,
-    merged by SHA; past the 250 swept, shortest decompile first; an
+1856. **The sweep's twenty-seventh batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 309 of 3611): 1851's shape,
+    merged by SHA; past the 260 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
