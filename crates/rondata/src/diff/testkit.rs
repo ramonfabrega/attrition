@@ -6902,7 +6902,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1870: the walk reaches the word 3767 (the nuke embargo and the
     // fort escalation moved it 3182 → 3767): 433 reads, 352 more.
     // Item 1937: the walk reaches the word 3825 (3805 → 3825): 514 reads, 40 more.
-    ("sahara_coverage_first_parting", 514),
+    // Item 1999: a bordering city's Fort is scored ten times over, and the
+    // walk's count reaches 4267 (sequence 3985): 975 reads, 461 more.
+    ("sahara_coverage_first_parting", 975),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
