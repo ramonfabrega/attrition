@@ -18692,10 +18692,35 @@ cause. The pair's closing state (5056) is not scored: a closing-window capture a
 `floors::the_handoff_s_successor_pair_is_the_pinned_word`, with `AI_WORDS`' row `Successor pair` (`NEWEST_PAIR`) and the
 queue's `lower map first — East Indies (Mongols)`.
 
-## 191. Reserved for item 1737 (the successor pair's word 11)
+## 191. The Mongols' food: a nation term in `calc_gather`, and the successor pair's word at 1354 (2026-10-13, item 1737)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 11, 556 draws ours against 629, index 3 (ours `Leader::make_stuff+0x63d`, theirs
+`Leader::produce_building+0x1805`; run776 block 12). §190's value diff: leader 1's `MAKE[1..3]` order on 11, with frame 3's
+`econ[0:food]` 7/5, `econ[1:timber]` 5/3, `rate[0:food]` 10/27 parting before it, no draw behind.
+
+**Walked back to the first parted field.** Frame 1, not 3: `leader:income[0:food]`, `leftover[0:food]` and `resources[0:food]`
+read **435 theirs, 160 ours** on leader 1's block 1 (the human's food is 160, so 160 is what thirteen citizens' farms pay);
+timber and metal agree. `rate[food]` is `min(cap, income)/16` (§2.5), 27 against 10, and the threshold pass's bits (`econ`)
+follow it; the make list's order follows `econ`. `production_ai_setup` runs on 3 and so shows it there.
+
+**Cause.** `Leader::calc_gather@006ceee0` (decompile lines 380–385, after the territory tax and before
+`calc_resource_bonuses`): `has_tribe_bonus(0x11)` — **the Mongols** — and `MONGOL_NOMADIC_FOOD != 0` (`rules.xml`: 1) add
+**`(num_nations × territory × 800 / land_size) / MONGOL_NOMADIC_FOOD`** straight onto the food rate, in sixteenths, no `×16`
+(the tax beside it has one). It is `docs/ECONOMY.md` §4's "Mongol food term ... still not built"; no capture held a Mongol
+until run774. Built: `economy::mongol_nomadic_food`, called from the rate's assembly after the tax; `Tuning::mongol_nomadic_food`,
+`Nation::mongols` (`on[17]`), `Holdings::{mongols, num_nations}` (`nations.rs`, `holdings.rs`, `city.rs`, `tuning.rs`).
+`num_nations` is the sim's player count (2 in every lobby so far). Test
+`the_mongols_take_food_from_their_land_and_nobody_else_does` (`economy`).
+
+**Value diff and score.** run776's widening 128 → 46 keys: the food `income`/`leftover`/`resources` rows, frame 3's `econ`/`rate`
+and frame 11–12's `MAKE[1..3,5,8]` all close; what stands is the control's start set (`form`, the leaders' `SITE[n].reg`,
+`scouts`, the lobby's stockpile). **The word moves 11 → 1354, 5 draws against 7, index 1**: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` — a figure's birth in theirs, an idle in ours — outside
+run776's window (blocks 1..33), so its value diff needs a window around 1354 (the next item's capture).
+
+**Not established.** `num_nations` is a player count here, not `Game::num_nations`'s own writer; with the Mongols' territory
+the term grows through the game and only 1354 frames of it are checked (the equality is exact on 160 → 435 at frame 1 and on every
+rate row to 33). A mutation run of the term was not made (the unit test and the widening both fail without the call).
 
 ## 192. Reserved for item 1738 (Great Sahara's word 3182)
 
