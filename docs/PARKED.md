@@ -3822,7 +3822,10 @@ second lane in a row to; 1766 hand-wrote it a third time, and wants a
 "flag byte over 256 values" shape too; 1782 a fourth (a "byte cell" too);
 1787 a fifth (a "game-pointer byte"); 1793 a sixth: `field`'s `TYPE` still
 at `0x10010000`, and `and imm` returns the masked word where the shape
-assumes a bool (a `--mask` shape).
+assumes a bool (a `--mask` shape); 1799 a seventh: it moved the
+`range`/all shapes' `TYPE` base to `0x10100000` in the generator (the base
+half closed for generated shapes), and still wants `--mask` and a
+virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
