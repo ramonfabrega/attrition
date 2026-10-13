@@ -1618,14 +1618,14 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// `rondata::load` (`docs/AI.md` §123).
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 26),
-    ("ANIM.md", 4),
+    ("ANIM.md", 3),
     ("ARMY.md", 7),
     ("ATTRITION.md", 1),
     ("CITIES.md", 6),
     ("COLLISION.md", 1),
-    ("COMBAT.md", 7),
+    ("COMBAT.md", 6),
     ("COSTS.md", 1),
-    ("ECONOMY.md", 17),
+    ("ECONOMY.md", 16),
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 4),
