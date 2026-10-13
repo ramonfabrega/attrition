@@ -4033,13 +4033,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot I — reserved
+## Parked by item 1932, 2026-10-13 — the sweep's thirty-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot I renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**1933.** (Loop) **`sweep_gen.py` has no `store` shape.** Four of 1932's ten (`Guy::set_bank`, `Guy::set_pitch`, `Group::report_speed`,
+`Group::leader_report_speed`) were hand scripts that read a few words of the object, store a few, and check every other byte is
+untouched; the sources are `p0`, `xmm1`, `[this+OFF]`, a constant, and one of them gates on a signed compare. The fourth reach
+for a shape (CLAUDE.md, "a probe shape reached for a third time graduates"). Names no score; the census is the sweep's.
+**Also**: `fwd` printed `ecx` signed for `p0` (fixed in 1932).
 
 ## Parked by the next landing, slot J — reserved
 
