@@ -47,7 +47,7 @@ Three shapes, each a `__thiscall` on `ecx`:
 
   walk    the function hands the walker it was given (`[esp+4]`) two pointers
           into `this` through the walker's first vtable slot: `walk_data`
-          (`--a0`, `--a1`, each `this` or `this+0xNN`); the callback is hooked.
+          (`--a0`, `--a1`, each `this`, `this+0xNN` or an absolute address); the callback is hooked.
 
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port.
@@ -386,7 +386,11 @@ fn the_emulated_original_agrees_on_every_row() {{
 
 def _walk_expr(tok):
     tok = tok.strip()
-    return 'this' if tok == 'this' else f'this + {int(tok[5:], 0):#x}'
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    return f'{int(tok, 0):#x}'  # an absolute address: PathFinder::walk_data hands two globals (item 1916)
 
 
 def generate_walk(spec, *, item, a0, a1):
