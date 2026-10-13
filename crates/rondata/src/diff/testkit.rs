@@ -6974,6 +6974,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1700 extends the prefix to 4425: 411 reads.
     ("coverage_pair_first_parting", 512),
     ("run652_coverage_pair_closing_state", 513),
+    ("run763_s_closing_frame_is_widened_whole", 514),
     ("run762_s_word_frame_is_widened_whole", 456),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
@@ -8817,13 +8818,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // cast is laid on 3864.
     // Item 1700 moves to 4425 (block 4426), past run754's last block
     // (4094): run762 over 4420..4676. Item 1714 moves to 4582 (block 4583),
-    // inside the same window.
+    // inside the same window. Item 1719 moves to 4730, the trace's end, its
+    // closing state scored by `run652_coverage_pair_closing_state` and the
+    // last blocks widened on run763 (4677..4731).
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run762_s_word_frame_is_widened_whole"),
-        1714,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_4425),
+        Some("run763_s_closing_frame_is_widened_whole"),
+        1719,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_CLOSING),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

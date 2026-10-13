@@ -1704,6 +1704,45 @@ pub(crate) fn coverage_frame_4582_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// run763's blocks: the last running blocks 4677..4730 and the closing state
+/// (4731).
+pub(crate) const RUN763: &str =
+    "gamelog-run763-eastindies-persian-alltech-closing-window-4677-4731.txt";
+
+/// The window: block 4677 through the closing block 4731.
+pub(crate) const WIDENING_COVERAGE_CLOSING: (i64, i64) = (4677, 4732);
+
+/// **The closed word's window** (item 1719): the coverage pair's last
+/// running blocks and its closing state, walked from run651's start with the
+/// recorder on.
+pub(crate) fn coverage_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run763",
+        &[(RUN763, 4677)],
+        WIDENING_COVERAGE_CLOSING,
+        1,
+        &[4731],
+        true,
+    )
+}
+
+#[test]
+fn run763_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 54, "every captured running block, 4677..4730");
+    // Item 1719: 230 keys, the standing families of run762's tail (`form`
+    // -1 against 0, `mirror`, `attrition` 6 against 24 and its one-point
+    // `hits` rows) and, on 4677 and 4702, two Move orders ours reads as one
+    // (`1/240`, `1/259`: `order:kind` 17 against 16). No draw parts.
+    pin_eq!(w.firsts.len(), 230, "run763 keys that part (item 1719)");
+}
+
 #[test]
 fn run762_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();

@@ -2906,6 +2906,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1700: and run754's, where it stood before run762.
     let coverage_3963 = super::coverage_pair::coverage_frame_3963_window();
     let coverage = super::coverage_pair::coverage_frame_4582_window();
+    // Item 1719 closed the pair at its trace's end, 4730: run763's last
+    // blocks and closing state are walked beside it.
+    let coverage_closing = super::coverage_pair::coverage_closing_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
     let sahara_12 = super::sahara_coverage::sahara_coverage_frame_12_window();
@@ -2923,6 +2926,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -3000,6 +3004,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_3395,
         coverage_3963,
         coverage,
+        coverage_closing,
         sahara_12,
         sahara_720,
         sahara_1197,
