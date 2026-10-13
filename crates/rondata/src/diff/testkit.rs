@@ -6312,6 +6312,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 1120;
 /// `chapter_fifty_three_s_word_frame_is_widened_whole`'s window: run771 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 1121);
 
+/// **Chapter fifty-five** (item 1798, `docs/GOLDEN.md` §67, run783): a
+/// captain Dragoon past a Citizen (parked 1777's M6) and a second Dragoon's
+/// stationary rounds at a Stockade (the anim-12 `RELEASES` row).
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_FIVE: i64 = 1010;
+
+/// `chapter_fifty_five_s_word_frame_is_widened_whole`'s window: run783 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_FIVE: (i64, i64) = (605, 1011);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8537,6 +8545,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_three_s_word_frame_is_widened_whole"),
         1707,
         Some(WIDENING_CHAPTER_FIFTY_THREE),
+    ),
+    // Item 1798: run783, chapter fifty-five. The widening is run783 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_FIVE",
+        GOLDEN_WORD_CHAPTER_FIFTY_FIVE,
+        Some("chapter_fifty_five_s_word_frame_is_widened_whole"),
+        1798,
+        Some(WIDENING_CHAPTER_FIFTY_FIVE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
