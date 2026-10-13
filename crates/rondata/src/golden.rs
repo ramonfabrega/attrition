@@ -2023,6 +2023,10 @@ mod tests {
         // `docs/GOLDEN.md` §59).
         ("chapter50.cmd", &[]),
         ("chapter51.cmd", &[]),
+        // Chapter fifty-three: a Scout walked through a Stockade's reach past
+        // an idle group, and a Dragoon past a Scout and two Hoplite squads
+        // (item 1707, `docs/GOLDEN.md` §63).
+        ("chapter53.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),

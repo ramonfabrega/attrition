@@ -6299,6 +6299,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_ONE: i64 = 1100;
 /// `chapter_fifty_one_s_word_frame_is_widened_whole`'s window: run582 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_ONE: (i64, i64) = (605, 1101);
 
+/// **Chapter fifty-three** (item 1707, `docs/GOLDEN.md` §63, run771): the
+/// member `find_melee_target` arm of `Group::target_opportunity` and the
+/// cavalry archer's M5 and M6. The walk's word is 962: the original's Dragoon
+/// `0/31`, added on 942, has an `ATTACK` on the enemy Scout `1/6` that this
+/// crate's idle Dragoon does not take.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 962;
+
+/// `chapter_fifty_three_s_word_frame_is_widened_whole`'s window: run771 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 967);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8512,6 +8522,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_one_s_word_frame_is_widened_whole"),
         1423,
         Some(WIDENING_CHAPTER_FIFTY_ONE),
+    ),
+    // Item 1707: run771, chapter fifty-three. The widening is run771 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_THREE",
+        GOLDEN_WORD_CHAPTER_FIFTY_THREE,
+        Some("chapter_fifty_three_s_word_frame_is_widened_whole"),
+        1707,
+        Some(WIDENING_CHAPTER_FIFTY_THREE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

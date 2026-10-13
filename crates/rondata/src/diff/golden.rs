@@ -13465,6 +13465,126 @@ fn chapter_fifty_one_s_word_frame_is_widened_whole() {
     pin_eq!(got_pool, want_pool, "ch51: what parts in the pool moved");
 }
 
+/// **Chapter fifty-three** (item 1707, `docs/GOLDEN.md` §63, run771): the
+/// member `find_melee_target` arm, and the cavalry archer's M5 and M6.
+#[test]
+fn chapter_fifty_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch53", "chapter53", 53, 10, 1119) else {
+        return;
+    };
+    eprintln!(
+        "chapter fifty-three: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIFTY_THREE,
+        "chapter fifty-three's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIFTY_THREE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIFTY_THREE,
+        "chapter fifty-three's golden word moved; re-pin it here and say so in docs/GOLDEN.md §63"
+    );
+}
+
+/// **run771 whole, both directions** (item 1707, `docs/GOLDEN.md` §63).
+#[test]
+fn chapter_fifty_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch53",
+        "chapter53",
+        WIDENING_CHAPTER_FIFTY_THREE,
+        1119,
+        0,
+        (962, 965),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch53 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch53: {} rows", got.len());
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch53 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH53.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch53: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH53_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch53: what parts in the pool moved");
+}
+
+const WANT_CH53: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "641 0/7 order:group.id",
+    "641 0/8 order:group.id",
+    "641 0/9 order:group.id",
+    "943 0/6 death:extra",
+    "962 0/31 near",
+    "962 0/31 order:length",
+    "962 0/31 orders.len",
+    "963 0/31 angle:Facing",
+    "963 0/31 angle:Heading",
+    "963 0/31 g.angle[0]",
+    "963 0/31 g.des_angle[0]",
+    "963 0/31 g.des_node_flags[0]",
+    "963 0/31 g.des_turret0[0]",
+    "963 0/31 g.hold_attack[0]",
+    "963 0/31 g.node_flags[0]",
+    "963 0/31 g.stopped[0]",
+    "963 0/31 g.turret0[0]",
+    "963 0/31 heading",
+    "963 0/31 idle",
+    "963 0/31 recharging",
+    "964 0/31 dest_angle",
+    "964 0/31 g.cur_anim[0]",
+    "964 0/31 g.cur_time[0]",
+    "964 0/31 g.end_time[0]",
+    "964 0/31 g.last_time[0]",
+];
+
+const WANT_CH53_POOL: &[&str] = &[
+    "962 slot 1 angle[6]",
+    "962 slot 1 curr[0]",
+    "962 slot 1 curr[1]",
+    "962 slot 1 curr[2]",
+    "962 slot 1 curr[3]",
+    "962 slot 1 curr[4]",
+    "962 slot 1 curr[5]",
+    "962 slot 1 curr[6]",
+    "962 slot 1 off[0]",
+    "962 slot 1 off[1]",
+    "962 slot 1 off[2]",
+    "962 slot 1 off[3]",
+    "962 slot 1 off[4]",
+    "962 slot 1 off[5]",
+    "962 slot 1 off[6]",
+];
+
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.
