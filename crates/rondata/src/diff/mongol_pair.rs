@@ -225,7 +225,11 @@ fn run788_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 163, "run788 after item 1868's sea break test");
+    pin_eq!(
+        w.firsts.len(),
+        163,
+        "run788 after item 1868's sea break test"
+    );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
     // is the Fishermen `1/122`'s arrival, whose final path point theirs planned

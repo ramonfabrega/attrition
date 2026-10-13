@@ -3380,7 +3380,7 @@ mod tests {
                 }
             }
         }
-        let goal = Pos::new(1 * 0x300 + 0x18, 6 * 0x300 + 0x18);
+        let goal = Pos::new(0x300 + 0x18, 6 * 0x300 + 0x18);
         let shore = goal.tile();
         sim.world
             .set_tile_mask(shore, tile::SURFACE_OCEAN | tile::BLOCKED);
