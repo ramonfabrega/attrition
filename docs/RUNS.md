@@ -15942,3 +15942,23 @@ SHA-256 `2857f18ca4cb99a43732341c876bf496c5a9d685a3e95483b249c047877a8d32`.
 **What it holds**: `diff::coverage_pair::run754_s_word_frame_is_widened_whole` — 2,460 keys on item 1668's tree; the
 coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), with 111 inexact height reads (`GROUND_INEXACT`).
 run721's window stays in the coverage driver as `coverage_frame_3395_window`. `docs/AI.md` §181.
+
+
+## run770 — chapter fifty-one's script with the fog plane printed, blocks 690..714 (2026-10-13, item 1497)
+
+`docs/GOLDEN.md` §62, `tools/gamelog/golden/chapter51.cmd` unchanged. **What the disk could not answer**: no
+golden capture printed `WORLD=6` per frame, so `update_local_seen_build`'s `visible` term (the Stockade's first
+round on 698) was held by a unit test alone.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch52fog \
+    --map 14 --end-frame 720 --log-window 690 715 --timeout 3000 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5,WORLD=6 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter51.cmd
+```
+
+Click-free lane 1, free at launch; `success: true`, 721 frames, seed 12345, map 14 verified, exit 0, 813 s
+launch to exit. Dump 102,196,977 bytes (sha256 `db9d6ad60b61…`), trace 9,226,496 (`7f5228a2fd17…`), kept in
+`~/ron-golden/ch52fog/map-14`. **What it holds**:
+`golden::chapter_fifty_two_s_fog_plane_agrees_through_the_first_round` — 25 blocks, every fog cell compared.
