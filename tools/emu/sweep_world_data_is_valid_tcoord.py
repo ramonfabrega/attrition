@@ -3,7 +3,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["unicorn==2.1.4"]
 # ///
-"""sweep_world_data_is_valid_tcoord.py — `WorldData::is_valid(TCoord,TCoord)@0046f760` under unicorn (item 1834).
+"""sweep_world_data_is_valid_tcoord.py — `WorldData::is_valid@0046f760` under unicorn (item 1834).
 
     uv run tools/emu/sweep_world_data_is_valid_tcoord.py <install>/riseofnations.exe
 
