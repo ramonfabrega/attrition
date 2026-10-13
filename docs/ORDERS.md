@@ -4810,8 +4810,9 @@ leader's own trailing move order gives 897122304, `1/27`'s 910229504,
 
 ### 17.3 `get_final_loc`, and what it walks
 
-`get_final_loc` walks the order list **from the head** and stops at the
-first order that names a point — not the last, and not the deepest:
+~~`get_final_loc` walks the order list **from the head**~~ (item 2055,
+`docs/AI.md` §206): it climbs from the ring's **bottom**, `orderlist
++0x14`, and stops at the first order that names a point — the deepest:
 
 - a **move** order (vslot `+0x14`) hands back `+0xb8`'s `(+4, +8)`, the
   order's own `x`/`y` and not its live waypoint;
