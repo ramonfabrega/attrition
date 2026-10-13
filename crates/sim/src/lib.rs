@@ -5153,6 +5153,13 @@ impl Sim {
         self.in_play = true;
         let frame = self.frame;
         collide::PROBE_FRAME.store(frame, std::sync::atomic::Ordering::Relaxed);
+        if std::env::var_os("RON_PROBE_UPATH").is_some() && (4200..=4212).contains(&frame) {
+            for (i, x) in self.units.iter().enumerate() {
+                if x.owner == 1 && x.index == 191 {
+                    eprintln!("PROBE u191 f{frame} slot {i} alive {} on_map {} pos {:?} coll_at {:?} inside {:?} ty {:?}", x.alive(), x.on_map, x.pos, x.coll_at, x.inside, x.ty);
+                }
+            }
+        }
         if std::env::var_os("RON_PROBE_UPATH").is_some() && frame == 4238 {
             let (cx, cy) = (391, 625);
             for y in (cy - 30)..=(cy + 8) {
