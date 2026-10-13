@@ -3751,7 +3751,9 @@ unit by `TypeIndex` meant reading `decomp/enums/TypeIndex.txt` by hand,
 and the order kind and `GUY` `type` share a field name in a UNITDATA
 block; the lane wrote ten scratch parses (`blk.py`, `ord.py`). Candidate:
 `tools/gamelog/unitat.py <dump> <frame> <who/o>` printing one unit's
-kinds by name, path ends and inside/up links. One reach.
+kinds by name, path ends and inside/up links. One reach. **1982** wrote
+`units.py`/`th.py` again, and `RON_DEBUG_UNIT` has no theirs side: the
+printer should read our probe too. Two reaches.
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
