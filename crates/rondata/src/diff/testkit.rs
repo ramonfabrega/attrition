@@ -6344,15 +6344,18 @@ pub(crate) const WIDENING_CHAPTER_FIFTY_NINE: (i64, i64) = (605, 761);
 
 /// **Chapter sixty-one** (item 2032, `docs/GOLDEN.md` §74, run814): two
 /// guarding Hoplite squads, a follower's refused chase on a Stockade and a
-/// follower's refused target, 605 to 1000. Open at **780**, 6 draws against
-/// 5: ours `Guy::set_anim+0x97a < Unit::move_step+0x823` for scene two's
-/// captain `0/10`, whose attack on who=1's Citizen `1/6` the original drops
-/// on 779 (`near` −1, its Guard alone) and this crate keeps.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_ONE: i64 = 780;
+/// follower's refused target, 605 to 1000. Item 2032's word was **780**, 6
+/// draws against 5: ours `Guy::set_anim+0x97a < Unit::move_step+0x823` for
+/// scene two's captain `0/10`, whose attack on who=1's Citizen `1/6` the
+/// original drops on 779 (`near` −1, its Guard alone) and this crate kept.
+/// Item 2099 (`docs/GOLDEN.md` §76) built `fight`'s `poor_target` arm, the
+/// re-search a latched chase of a futile target still runs: 780 → **1000**,
+/// the trace's end, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_ONE: i64 = 1000;
 
-/// `chapter_sixty_one_s_word_frame_is_widened_whole`'s window: run814 from
-/// its first block through the word's.
-pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 781);
+/// `chapter_sixty_one_s_word_frame_is_widened_whole`'s window: run814 whole
+/// (item 2099; item 2032's ended at the word, 781).
+pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 1001);
 
 /// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
 /// guarding Hoplite squads, who=1's squads walked past them and a third added
@@ -8636,7 +8639,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1960,
         Some(WIDENING_CHAPTER_FIFTY_NINE),
     ),
-    // Item 2032: run814, chapter sixty-one. The widening is run814 whole.
+    // Item 2032: run814, chapter sixty-one; closed at 1000 by item 2099. The
+    // widening is run814 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIXTY_ONE",
         GOLDEN_WORD_CHAPTER_SIXTY_ONE,

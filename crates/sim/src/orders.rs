@@ -8940,21 +8940,31 @@ impl Sim {
         // original's head attack reads `in_range 0, new_ord 1` for one
         // block after every retarget (parked 1073, §71.6).
         //
+        // **A suppressed re-search still runs when the chase is futile**
+        // (`005fded5`, `fight@005fd4d0:466`–`469`; item 2099, `docs/GOLDEN.md`
+        // §76): on a unit target whose search the role, the roll or the
+        // latch turned off, `Object::poor_target(this, target)` is asked,
+        // and a yes jumps to the same `find_new_target`. Its own
+        // `check_target` asks `poor_target` of every candidate, so the
+        // target that sent it there is never re-found: run814's captain
+        // `0/10`, latched on its chase of who=1's Citizen `1/6` on 778,
+        // drops the attack and stands on its `GUARD` (`near` −1).
+        //
         // SEAM: the retarget arm's early return when the search names
         // `fight`'s own entry arguments (`local_20`/`local_24`) after the
         // target was changed above; nothing here changes it in between.
-        // SEAM: the `poor_target` arm (`005fded5`), which runs the same
-        // search for a unit target the roll suppressed, and the cavalry
-        // archer's `find_melee_target` in place of `find_new_target`.
+        // SEAM: the cavalry archer's `find_melee_target` in place of
+        // `find_new_target`.
         if !state.mandatory && state.captain == i32::from(self.units[u].index) {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {
                     self.mark(crate::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
-                    !self.profile(Obj::Unit(t)).combat_role
+                    (!self.profile(Obj::Unit(t)).combat_role
                         && roll % 5 != 0
-                        && flags & flag::FIGHT_REENTRY == 0
+                        && flags & flag::FIGHT_REENTRY == 0)
+                        || self.poor_target(me, target)
                 }
             };
             if research {
