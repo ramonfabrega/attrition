@@ -16386,3 +16386,30 @@ Pool lane 1, first take held: `success: true`, 1,001 frames, seed 12345, map 14,
 Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixty_one_holds_to_the_golden_word`
 (**780**, scene two's captain `0/10`) and `chapter_sixty_one_s_word_frame_is_widened_whole` (605..781, 30 rows and 1
 pool row).
+## run809 — the successor pair: the word 3632's widening, blocks 3626..3883 (2026-10-13, item 2001, `att-2001`)
+
+`docs/AI.md` §203. **Disk gap** (parked 1983): item 1982 moved the word 3188 → 3632, past run799's last block (3382). run799's recipe with
+the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 3889 --timeout 3600 --log-window 3626 3883
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool; `success`, 3890 frames, 1850 s launch to exit. `rngcmp.py
+rontrace-run775.log rontrace-run809.log`: **0 differing**. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run809-eastindies-mongol-alltech-window-3626-3884.txt`, 657,151,150 bytes,
+SHA-256 `5bd89297dd3ecd411750dca77668e024a78ae51eb1cb8791514d8fc59459284a`.
+
+Archive `rontrace-run809.log`, 136,730,304 bytes,
+SHA-256 `2bbfcfab844ce6eadb6565729e52a838c35ef15d5a470d7c30beade24ab59835`.
+
+**What it holds**: `diff::mongol_pair::run809_s_word_frame_is_widened_whole` (blocks 3626..3883), the coverage driver's `mongol_3632`
+window, and `mongol_pair_first_parting`'s walk to 3834 (`docs/AI.md` §203).
+
+## run810 — the successor pair's packet at logger frame 3631 (2026-10-13, item 2001, `att-2001`)
+
+`docs/AI.md` §203. run809's recipe with `--end-frame 3638 --log-window 3627 3635 --tracer-def RON_STATE_FRAME=3631 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, lane 1, 79 s; 3639 frames, `rngcmp` against
+run775 **0 differing**. Take 1 died in the tracer build: a `RON_STATE_FRAME` without `RON_STATE_PLAN` does not compile (parked under slot U).
+Kept in `~/ron-golden/run810/map-18/frame-snapshot.bin`, 967,598,604 bytes,
+SHA-256 `4baa49b677b64e428a6669e8eee5c7a326d9aaf51dbd097d1de761f32022f7c0`.
+
+**What it holds**: `step4.py --entry 610bc0 --this 15e52afc` (the Aegis Cruiser `1/113`): `compare_target(0/2000)` returns 0 at `64e7e5`
+and `find_nearby_target` takes nothing. No test reads it.

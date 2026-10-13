@@ -542,6 +542,8 @@ pub mod wonder {
     /// 0x216`).
     pub const RED_FORT: usize = 0x216 - BASE;
     pub const VERSAILLES: usize = 0x218 - BASE;
+    /// `STATUEOFLIBERTY`: `get_cost`'s bomber and missile arm.
+    pub const STATUE_OF_LIBERTY: usize = 0x219 - BASE;
     pub const ANGKOR_WAT: usize = 0x217 - BASE;
     pub const KREMLIN: usize = 0x21a - BASE;
     pub const TAJ_MAHAL: usize = 0x21b - BASE;

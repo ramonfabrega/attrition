@@ -514,6 +514,13 @@ pub struct Tuning {
     /// holds Uranium — `get_cost`'s pre-ramp tail (`:416`–`420`;
     /// `docs/AI.md` §167). Ships as `5%`.
     pub uranium_nuke_cost: i32,
+    /// Percentage off a Bomber-line type's price while the player holds
+    /// the Statue of Liberty — `get_cost`'s pre-ramp tail (`00664dfc`;
+    /// `docs/AI.md` §204). Ships as `33% cheaper`.
+    pub liberty_bombers: i32,
+    /// The same arm's percentage for a missile type (`00664dd2`). Ships as
+    /// `0% cheaper`.
+    pub liberty_missiles: i32,
     /// Percent faster Nuclear Missile-line creation with the Uranium rare —
     /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
     pub uranium_nuke_speed: i32,
@@ -1148,6 +1155,8 @@ impl Tuning {
         rubber_autoplant_cost: 15,
         wine_unit_upgrades: 20,
         uranium_nuke_cost: 5,
+        liberty_bombers: 33,
+        liberty_missiles: 0,
         uranium_nuke_speed: 10,
 
         accel_train: 100,
@@ -1353,7 +1362,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 370] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 372] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1699,6 +1708,8 @@ impl Tuning {
             ),
             ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
+            ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),
+            ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
             ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),

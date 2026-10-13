@@ -898,7 +898,7 @@ fn the_emulated_original_agrees_on_every_row() {{
             assert_eq!(w, &want[1 + i], "{short} — window c[{{i}}], row `{{line}}`");
         }}
         for (i, w) in p.iter().enumerate() {{
-            assert_eq!(w, &want[1 + {nc} + i], "{short} — window p[{{i}}], row `{{line}}`");
+            assert_eq!(w, &want[{pbase} + i], "{short} — window p[{{i}}], row `{{line}}`");
         }}
         n += 1;
     }}
@@ -966,7 +966,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
-                               ret=retcode, nc=len(pcells) + len(pat))
+                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat))
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 

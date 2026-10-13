@@ -3751,7 +3751,11 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if best.is_none_or(|(b, _)| score > b) {
+                        // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
+                        // `jle` (`64987d`): a score of 0 — a candidate
+                        // `compare_target` answered 0 for — is never the
+                        // winner, even the first (item 2001).
+                        if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
                         if is_unit {
@@ -3870,6 +3874,29 @@ impl Sim {
             }
             _ => (false, false),
         };
+        // **A computer's raiding ship leaves a building alone**
+        // (`0064e7a5`–`0064e81f`, item 2001, `docs/AI.md` §203). Under
+        // `iVar5 && iVar4` — a finished (`WallData::is_active`, `flags &
+        // 4`) Build-proper target (vslot `+0x20`; a wall answers 0) —
+        // `bVar3 && bVar16`, the raid stance on an AI-driven unit
+        // (`unit_masks & 0x40000`) of the sea domain, returns 0 when the
+        // ship fires on the move (`unit_flags & 0x200000`, `v`), and
+        // otherwise when the target's type `is_build_type` (every
+        // building's, `0x19e..0x21e`) and the ship lacks SIEGE. A zero
+        // is never taken (`find_nearby_target`'s `local_70 < score`, from
+        // 0), though `near_o` is already written. run810's packet: the
+        // Aegis Cruiser `1/113` returns 0 at `64e7e5` for `0/2000`.
+        if let Obj::Unit(i) = attacker
+            && let Obj::Building(b) = target
+            && self.units[i].combat.stance == Stance::Raid
+            && self.unit_ai_bit(self.units[i].owner)
+            && matches!(ap.domain, Domain::Sea)
+            && self.buildings[b].index < crate::WALL_BASE
+            && self.buildings[b].active
+            && (self.fires_on_move(i) || !ap.has(mask::SIEGE))
+        {
+            return 0;
+        }
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
         if t_attack != 0 && left != 0 && !aa {
@@ -5387,6 +5414,51 @@ mod tests {
     /// **Made to fail on purpose**: with the arm's call taken out of
     /// `think`, the human's catapult takes the attack order on its first
     /// idle frame, which is 587's word.
+    /// **A computer's raiding ship leaves a building alone** (item 2001,
+    /// `compare_target`'s `0064e7a5`..`0064e81f`, `docs/AI.md` §203):
+    /// run810's packet has the Aegis Cruiser `1/113` answer 0 for the
+    /// finished `0/2000`. A human's ship, a ship not raiding, a SIEGE
+    /// ship and an unfinished building each weigh something; a SIEGE
+    /// ship that fires on the move does not.
+    #[test]
+    fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
+        let weigh = |human: bool, raid: bool, siege: bool, on_move: bool, active: bool| {
+            let (mut sim, ty) = at_war();
+            sim.nation[0].human = human;
+            let mut at = sim.unit_types[ty].clone();
+            at.combat.domain = Domain::Sea;
+            at.kind.domain = Domain::Sea;
+            if siege {
+                at.combat.obj_masks |= crate::combat::mask::SIEGE;
+            }
+            if on_move {
+                at.cols.unit_flags |= crate::ai_load::uflags::FIRES_ON_MOVE;
+            }
+            let at = sim.add_unit_type(at);
+            let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = active;
+            sim.buildings[b].health = 1200;
+            sim.buildings[b].combat = Some(Profile {
+                cost: 200,
+                x_size: 2,
+                y_size: 2,
+                ..Profile::default()
+            });
+            let me = put(&mut sim, 0, at, Pos::new(3600, 3000));
+            if raid {
+                sim.units[me].combat.stance = Stance::Raid;
+            }
+            sim.compare_target(Obj::Unit(me), Obj::Building(b), true, false)
+        };
+        assert_eq!(weigh(false, true, false, false, true), 0, "the cruiser");
+        assert_eq!(weigh(false, true, true, true, true), 0, "fires on the move");
+        assert!(weigh(true, true, false, false, true) > 0, "a human's ship");
+        assert!(weigh(false, false, false, false, true) > 0, "not raiding");
+        assert!(weigh(false, true, true, false, true) > 0, "a SIEGE ship");
+        assert!(weigh(false, true, false, false, false) > 0, "unfinished");
+    }
+
     /// **A hit on a building spills onto the enemy hands repairing it**
     /// (`Object::do_damage@0064a480`'s tail, item 1182, `docs/GOLDEN.md`
     /// §50): an eighth for a sea attacker that is not siege and a land one,
