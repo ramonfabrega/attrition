@@ -20,7 +20,7 @@ estimated. **Ramon's word: four lanes on Sonnet 5.5 medium, the whole
 tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
 - **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
-  2026-10-12): `att-1673` (items 1675–1678, runs 762–765, AI §183),
+  2026-10-12): `att-1673` (parks 1675–1678, runs 762–765, AI §183),
   `att-1639` (1679–1682, 766–769, AI §175), `att-1691` (1683–1686),
   `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
   1693, run 774, AI §184. Landed: 1630 (census 78). **The disk**: 248 GiB free.
