@@ -1445,9 +1445,6 @@ impl Sim {
                 deg >= lo || deg <= hi
             };
             can &= inside;
-            if std::env::var("RON_P1829").is_ok() && self.units[i].owner == 0 && self.units[i].index == 6 {
-                eprintln!("P1829 pivots node {node} lo/hi {lo}/{hi} deg {deg} inside {inside} bearing {} facing {} vx,vy {vx},{vy} from {from:?} to {to:?}", bearing.0, facing.0);
-            }
             if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
                 let t = &mut self.units[i].guys[g].turret;
                 t.des[k] = bearing.0.wrapping_sub(facing.0);
@@ -3287,13 +3284,10 @@ impl Sim {
     /// `LAB_005ffbb2`, past the squad mirror), so the radius and the
     /// `flags` word are the same here.
     ///
-    /// **A fire-on-the-move type's search that finds nothing resets every
-    /// figure's pivots** (`Guy::reset_pivots(0)`, `:245`–`262`, for every
-    /// caller): each turret's `des` goes to its rest angle
-    /// ([`Sim::reset_pivots`]). The Dragoon's rest is 0, which its figures
-    /// already held on run657's `1/80` (17165); item 1829's run783 is the
-    /// first with a turret aimed away from it when a search fails (`0/6`
-    /// on 793, `des` 0 on the next block).
+    /// SEAM: a fire-on-the-move type's search that finds nothing resets
+    /// every figure's pivots (`Guy::reset_pivots(0)`, `:245`–`262`, for
+    /// every caller), the turrets' rest angles. The Dragoon's rest is 0,
+    /// which its figures already hold (run657, `1/80` on 17165).
     pub(crate) fn find_melee_target_as(
         &mut self,
         i: usize,
@@ -3349,47 +3343,7 @@ impl Sim {
             range
         };
         let flags = self.melee_search_flags_with(i, word);
-        let found = self.find_nearby_target_as(me, radius, flags, cavarch);
-        if found.is_none() && self.fires_on_move(i) {
-            let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
-            for g in 0..n {
-                self.reset_pivots(i, g);
-            }
-        }
-        found
-    }
-
-    /// **`Guy::reset_pivots@005d8a80(0)`**: every node's `des` angle is
-    /// the middle of its restriction, `degrees_to_angle((lo + hi) / 2)`
-    /// (the signed halving, `cltd; sub; sar`), plus half a turn when
-    /// `hi < lo` — the wrapped arc. `param_1 == 0` leaves the turret's own
-    /// angle and both node-flag words alone; the turret walks back by
-    /// [`crate::anim::Turret::step`].
-    pub(crate) fn reset_pivots(&mut self, i: usize, g: usize) {
-        let Some(ty) = self.units[i].ty else {
-            return;
-        };
-        let Some(nodes) = self
-            .art
-            .pivots
-            .get(&self.unit_types[ty].type_index)
-            .cloned()
-        else {
-            return;
-        };
-        if g >= self.units[i].guys.len() {
-            return;
-        }
-        for node in 4..4 + nodes.len() as i32 {
-            let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
-            let mut a = crate::movement::degrees_to_angle((lo + hi) / 2).0;
-            if hi < lo {
-                a = a.wrapping_add(i32::MIN);
-            }
-            if let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
-                self.units[i].guys[g].turret.des[k] = a;
-            }
-        }
+        self.find_nearby_target_as(me, radius, flags, cavarch)
     }
 
     /// **The search's `flags` word, which `find_melee_target` derives from
