@@ -559,6 +559,11 @@ library and everything else.
   redirected slot that is itself done and refused does nothing further, by the
   "any slot but 0" rule.
 
+**Built for the Airbase's arm** (item 1905, `docs/AI.md` §198, run790's `1/2011` on
+3767): `Advanced::Limited` is the negative answer, and `Sim::process_queue`
+runs the first Helicopter behind a head the pad refuses. The non-Airbase
+`get_next_non_caravan` is not modelled.
+
 (An earlier draft said zero means "nothing happens" and that "a pop cap blocks
 the whole queue". It blocks every *train* entry behind it; a research entry
 behind it advances, one frame per frame, and completes. The negative case's

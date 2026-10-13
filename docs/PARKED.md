@@ -3973,13 +3973,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot E — reserved
+## Parked by item 1905, 2026-10-13 — Great Sahara's word 3767: a helicopter trains behind a refused plane
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot E renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1906) **Great Sahara's word 3805, unwidened** (1905; `docs/AI.md` §198): 17 draws ours against 32, index 1, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d < Unit::fight+0x115e` — a search's fifteen draws. run790 holds it (ends 4018): every record on 3805 both ways, no capture needed; the word's frame is inside the window.
+
+(1907) **`1/214`'s group and `mirror` on 3768**: ours holds the born Transport Helicopter in `group:65` and `mirror` 0, theirs `group 68`/`mirror` 1 in the dump (run790, `births.py` 3761 3800). Names no draw yet; read when 3805's widening reaches it.
+
+(1908) **`1/172` `order:kind` 17 against 16 on 3765 and `1/161`'s path on 3766–3767** (tolerance 384 against 0, `collide_o` −1 against 16): rows before the word's frame that no draw reads on 3767; the 3805 widening decides whether they are its cause.
 
 ## Parked by item 1911, 2026-10-13 — the sweep's thirty-first batch
 
