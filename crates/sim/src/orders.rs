@@ -3483,6 +3483,9 @@ impl Sim {
         // this is what gives a computer's raiding ship the finished
         // building its `compare_target` weighed at 0 (run809's `1/113` on
         // 3647).
+        if std::env::var_os("RON_PROBE_NEAR").is_some() && unit.owner == 1 && unit.index == 113 && (3640..3650).contains(&frame) {
+            eprintln!("PROBE f{frame} idle {} phase {} near {:?} stance {:?} inr {:?} cr {}", unit.idle, phase & 0x1f, unit.near, unit.combat.stance, unit.near.map(|t| self.is_in_range(me, t)), unit.cant_reach);
+        }
         if unit.idle != 1
             && phase & 0x1f != 0
             && let Some(t) = unit.near
