@@ -3774,7 +3774,10 @@ a field of `this` still needs a `field` token (parked 1896). Three reaches. **19
 function) and `fwd`'s `p1`/`p2` tokens; 1896's `field` token still owed. **1916** took nine
 of ten with one line each; the walk family's rest (`Hero`, `Special`,
 `Herds`, `Tribes`, `Lands`, `SpecialAnimOrder`) wants a `fwd` that mixes
-a call with an `Array::walk_data` callback, in order. Five reaches.
+a call with an `Array::walk_data` callback, in order. Five reaches. **1921**
+built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
+return, as the original's `extraout_ECX` consumers read it, would take
+`Tribes`, `Lands`, `Herds` (parked 1922). Six reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4036,6 +4039,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot J renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot K — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot K renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot L — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot L renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot M — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot M renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot N — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot N renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
