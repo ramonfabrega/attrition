@@ -286,7 +286,8 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
     if ret == 'none':
         retcode = '        let _ = eax;'
     elif ret == 'last':
-        retcode = (f'        let want_eax = (ans + {len(calls) - 1}) as i32;\n'
+        last = f'(ans + {len(calls) - 1})' if len(calls) > 1 else 'ans'
+        retcode = (f'        let want_eax = {last} as i32;\n'
                    f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), i64::from(want_eax), "{short} — eax, row `{{line}}`");')
     else:
         retcode = (f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), {int(ret, 0)}, '
