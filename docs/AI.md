@@ -18335,8 +18335,8 @@ the dump prints 12, 10, 8, ... 0 on 3838..3844, **two a frame**; ours took
 one. `Unit::process@00610bc0:610f2d`'s rate `r` is doubled by
 `has_preq(SPIES_GENERALS_RECOVER_CRAFT)` for a General or a Spy (§119). The
 crate read the bonus as absent ("no row for it"); it is the 86th
-`TECHBONUSES` row (`0x301`, one below `0x302`/`0x303`, which §158 and §159
-read as rows 87 and 88): `Roles::spy_general_recover_preq`, loaded from
+`TECHBONUSES` row (`0x301`, the one before the rows §158 and §159 read as
+87 and 88): `Roles::spy_general_recover_preq`, loaded from
 `bonus_preqs[85]` and tested with `has_tech` as the two beside it are. Under
 All Technologies every leader holds it. Built: `Sim::craft_rate`
 (`cast.rs`). `the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate`
