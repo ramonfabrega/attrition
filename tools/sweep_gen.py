@@ -77,7 +77,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import Image, Machine, signed  # noqa: E402
 
 ENTRY = 0x{va:08x}
-OBJ, TYPE = 0x10000000, 0x10010000
+OBJ, TYPE = 0x10000000, 0x10100000
 INT_EDGES = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 15, 16, 255)
 '''
 
