@@ -19,7 +19,7 @@ meeting, each a second commit (Loops 1910, 1959); 1870's red tip pushed once on 
 `echo`-wrapped exit (574) — gates run unwrapped now.*
 
 - **Lanes draining, none refilled at twenty**: `att-1982` (R, run 803; landed,
-  merged next), `att-1988` (S, runs 804–805). Next 2001, run 806, AI §203,
+  its merge conflicted in `mongol_pair.rs`, sent back), `att-1988` (S, runs 804–805). Next 2001, run 806, AI §203,
   GOLDEN §73, slot U. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
 - **Fable backlog: 17 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965, 1981, 1987, 2000).
 
