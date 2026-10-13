@@ -1394,7 +1394,6 @@ mod infinite_tests {
     /// clears the bit *and* removes; −5 removes five from the end; −10
     /// empties; an empty queue keeps its bit. Made to fail with the bit's
     /// early return dropped, and with a negative `p` read as slot 0.
-
     #[test]
     fn the_player_s_cancel_reads_its_selector() {
         let (mut s, b, rec) = barracks(true);
