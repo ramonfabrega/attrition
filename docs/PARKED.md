@@ -3820,12 +3820,27 @@ shape, with a test made to fail first. Two reaches: 1760 needed a
 "global cell" / "global address" shape for the `get_scary_*` family, the
 second lane in a row to; 1766 hand-wrote it a third time, and wants a
 "flag byte over 256 values" shape too; 1782 a fourth (a "byte cell" too);
-1787 a fifth (a "game-pointer byte").
+1787 a fifth (a "game-pointer byte"); 1793 a sixth: `field`'s `TYPE` still
+at `0x10010000`, and `and imm` returns the masked word where the shape
+assumes a bool (a `--mask` shape).
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
 re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
-`Pair` shape. One reach.
+`Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
+the word's window function touched the coverage driver's tuple twice —
+a pair's windows want a list.
+
+(1812) **Parked rows appended at one tail conflict** (the commander, at
+1744's merge): 1744 added 1768/1769 after 1731 while the base's booking
+added 1756/1757 there; the merge backed out and the lane re-gated for a
+docs-only conflict (~25 min). The stub pool's shape (parked 1741), one
+file down. Candidate: a lane files its parks under its own `## Parked by
+item N` heading, never at another section's tail. One reach.
+
+(1813) **`get_position.py`'s pivot table reads `d₁ i t x y z`** (1776's
+Loop line), where the Chariot tests read a slot column first; the
+script's docstring should say which. One reach.
 
 (1792) **`census.py` cannot find the PDB from a worktree** (1782's Loop
 line): its default path is `../game`, absent under `.claude/worktrees/`,
@@ -4028,19 +4043,25 @@ chapter's first take, superseded by run772.
 (1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
 and 1062–1064, past the word 962; both mutations exit 0. Backed once
 1711 moves the word past them, on the same capture. 1740 walked run772
-to its end (1119): both now lie in the walked range, unbacked.
+to its end (1119): both now lie in the walked range, unbacked. **M5
+closed by 1776** (GOLDEN §66, its mutation held); M6 is not reached — 1777.
 
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
+**Closed by 1776** (GOLDEN §66): the pushed group's prune did not shift
+`off`/`curr`/`angles`.
+
+(1777) **M6 is reached by no walk** (1776): a probe at `if research {`
+exits 0 on run772. Candidate staging: a captain Dragoon holding a
+non-combat-role unit (a Villager) in a golden chapter. Chapter fifty-five.
+
+(1778) **A pushed group's dead member leaves early** (1776): the
+original drops it from the list on 932/996 (ch50) and 907/1003 (ch51), not
+at the slot's reset; the rows are re-pinned in `WANT_CH50_POOL` and
+`WANT_CH51_POOL`. Chapter fifty-five.
 
 ## Parked by item 1744, 2026-10-13 — the successor pair's word 2207
-
-(1768) **The successor pair's word: frame 2207, 9 versus 8 draws**, index 8:
-ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none; past run779's
-last block (1605), so unwidened — a window capture around 2207 (six blocks
-before, 250 after) and its widening; `MONGOL_PAIR_WORD` names 1768 until then.
-1744 moved 1354 → 2207 with the Mongol stable arm of `train_time`.
 
 (1769) **run779's quiet rows after 1354** (1744): on 1583 `1/2020` and
 `1/2028`'s `queue[3].cost[0..1]` 99/90 and 106/97 ours against 144/134 and
@@ -4050,8 +4071,11 @@ no draw behind them. `MONGOL_STABLE_COST` is the suspect to read first.
 (1756) **The turret's return runs ahead** (1740): on 1068 `0/31
 g.node_flags[0]` reads 15 against 14, the turret's return 4 718 592
 ahead; seeded on 963/965 (the turret angles). Pinned in `WANT_CH53`.
+**Closed by 1776** (GOLDEN §66): piece 491's missing node-4 row.
 
 (1757) **The stationary Dragoon's round lands a frame late** (1740): no
 bay for piece 491 anim 12 start 13, so `1/8` damage and `0/31 ammo[0]`
 part on 1100. 1740 measured the anim-10 bay once (start 12); the anim-12
 bay is unmeasured — a packet at 1099 and `get_position`. Pinned in `WANT_CH53`.
+**Closed by 1776** (GOLDEN §66): the same node row as 1756 — `node_flags`
+gates the release; "no bay" was the wrong mechanism.
