@@ -4133,7 +4133,7 @@ before any reading; killers in `docs/AI.md` §194. Not built.
 
 ## Parked by item 1798, 2026-10-13 — chapter fifty-five
 
-(1804) **Dragoon A's target drops a frame early in the original** (1798): on 794
+(1804) **Closed by 1829** (GOLDEN §68: `Guy::reset_pivots(0)` on a `v` type's empty search, built; the rows left ch43, ch46 and ch55). **Dragoon A's target drops a frame early in the original** (1798): on 794
 `0/6` `g.des_turret0[0]` ours −821 952 512 against 0 and `g.turret0[0]` ours
 −821 952 512 against −642 995 542 (run783, pinned in `WANT_CH55`); the Citizen
 `1/6` stands 1 949 units north of a Dragoon heading east-northeast, past M6's
@@ -4143,6 +4143,13 @@ second re-search on 793. No draw parts. Widen the GUY and unit rows on 793 first
 and a General on a cell centre sent 1–3 or 2000 units either way never spend a
 `SITE_SNAP_STAND`; the arm needs the unit on its waypoint, turning, with one order.
 
-(1806) **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
+(1806) **Closed by 1829** (run786, GOLDEN §68: a Hoplite squad on 763). **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
 (`research` true), but `research && false` exits 0 — it needs `found` to be a
 different, in-reach unit than the held non-combat-role one.
+
+## Parked by item 1829, 2026-10-13 — chapter fifty-six
+
+(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
+theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `death:extra` on 874, 900 and 961
+(ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
+`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.
