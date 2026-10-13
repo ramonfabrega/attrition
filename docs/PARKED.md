@@ -3832,6 +3832,9 @@ virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
 1819 a ninth: the global cell three times more (`avail_ctw`,
 `get_radius`), and a stack-args-array shape (a count, a pointer, a
 stride: `get_queue`, `get_job_counter`, `get_farm_type`).
+1824 a tenth: a virtual-dispatch shape (a laid vtable at a real function
+or `mov eax, imm; ret` stubs, a fresh stub per row) for five `is_*` and
+`is_map_unit`, and the global cell again (`get_gpiece`).
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
@@ -3839,6 +3842,13 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list.
+
+(1839) **`stage_walk`'s script reader accepts what the capture refuses**
+(1798's Loop line): `live_session.parse_commands` refuses descending
+frames, `stage_walk` does not and walks file order — so a staging passes
+a script the capture then refuses (run783's first launch died on 640
+below 712), and an out-of-order line is delayed in the walk. Candidate:
+one reader for both. One reach.
 
 (1812) **Parked rows appended at one tail conflict** (the commander, at
 1744's merge): 1744 added 1768/1769 after 1731 while the base's booking
