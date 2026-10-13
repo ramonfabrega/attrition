@@ -169,8 +169,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // the Citizen `1/161` sent to it no longer meets the TOW `1/16` on 3825
     // — 3825 → **3985** (sequence; count 4267): 29 draws each, index 1,
     // ours `Leader::make_stuff+0x63d`, theirs `Leader::make_stuff+0x221`.
+    // Landing 18 (`docs/AI.md` §204, item 2026): the Statue of Liberty
+    // takes `LIBERTY_BOMBERS` (33%) off a Bomber-line type's base
+    // (`get_cost`'s `00664da7`–`00664e1e`), so the Strategic Bombers queued
+    // at `1/2047` and `1/2053` on 3982 cost 136 and 141, not 173 and 178;
+    // the 74 wealth and oil stay, no Jet Fighter heads 3984's make list, and
+    // 3985's `make_stuff` walks the head's two slots — 3985 → **4266**
+    // (sequence; count 4267): 67 draws each, index 18, ours
+    // `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
     count: 4267,
-    sequence: 3985,
+    sequence: 4266,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -1100,5 +1108,12 @@ fn run790_s_word_frame_is_widened_whole() {
     // path, its 3767 `collide_o` and its 3826 `collide` rows are gone).
     // The word moves 3825 → 3985; its rows open on 3983 (leader 1's
     // buckets, the queue's costs) and 3984 (`MAKE[0..3]`).
-    pin_eq!(w.firsts.len(), 133, "initial run790 baseline");
+    // Item 2026: **119** (133 before): the Statue of Liberty's bomber
+    // discount — `1/2047`'s and `1/2053`'s `queue[3].cost` 173/178 against
+    // 136/141 on 3983, leader 1's wealth and oil buckets, 3984's
+    // `MAKE[0..3]`, `num_queued[91]` and three Barracks' `queued` on 3986
+    // are gone. 3983's timber and metal buckets (73 short) and 3986's TOW
+    // `queue[k].cost[0]` 178 against 160 now first there; the word moves 3985 → 4266,
+    // past the window.
+    pin_eq!(w.firsts.len(), 119, "initial run790 baseline");
 }
