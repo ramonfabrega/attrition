@@ -52,6 +52,16 @@ pub mod craft {
     pub const BEST_MANA: u32 = 0x1000;
 }
 
+/// `UnitData::decoy_time@00609d70` — what a decoy has left to live:
+/// `(general_upgrade + 2) × DECOY_TIME / 2 − mana_burn`, the halving
+/// truncated toward zero (`cdq; sub; sar`) and a negative floored at 0
+/// (`cmovs`). `Unit::process` closes the decoy at 0 (item 2072).
+#[must_use]
+pub(crate) const fn decoy_time_left(general_upgrade: i32, decoy_time: i32, mana_burn: i16) -> i32 {
+    let left = (general_upgrade + 2) * decoy_time / 2 - mana_burn as i32;
+    if left < 0 { 0 } else { left }
+}
+
 impl Sim {
     /// `UnitData::mana@00609a50` — the type's `MANA`, and a French
     /// General's `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100` (`609ad7`..
@@ -820,9 +830,12 @@ impl Sim {
         // takes every seventh frame on another's ground.
         if self.units[u].decoy {
             self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
-            let life =
-                (self.general_upgrade_level(self.units[u].owner) + 2) * self.tuning.decoy_time / 2;
-            if life <= i32::from(self.units[u].mana_burn) {
+            let left = decoy_time_left(
+                self.general_upgrade_level(self.units[u].owner),
+                self.tuning.decoy_time,
+                self.units[u].mana_burn,
+            );
+            if left == 0 {
                 self.close_decoy(u);
             }
             return;
