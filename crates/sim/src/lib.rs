@@ -1638,6 +1638,10 @@ enum Advanced {
     /// Done, offered, refused — zero or negative from `finished`. The entry
     /// stays at full progress. At slot 0 this is what triggers the redirect.
     Blocked,
+    /// Done, offered, refused with a **negative** answer — an aircraft or
+    /// caravan limit (`Build::finished` < 0). The same as [`Self::Blocked`],
+    /// and `do_queue`'s second fallback besides.
+    Limited,
 }
 
 impl Sim {
@@ -3306,19 +3310,39 @@ impl Sim {
             }
             match self.advance_slot(at, 0) {
                 Advanced::Trained(p) => out.push(p),
-                Advanced::Blocked => {
+                blocked @ (Advanced::Blocked | Advanced::Limited) => {
                     // The head is done and refused. `do_queue` then asks
                     // `get_next_non_unit` for the first research entry
                     // behind it and advances that one this frame instead. A
                     // train entry behind the head stays put: the cap blocks
                     // every train job, and only train jobs.
                     //
-                    // The original's second fallback — on a *negative*
-                    // answer only, a non-caravan or helicopter entry — is not
-                    // modelled, because nothing here can be refused with a
-                    // negative answer yet (no caravans, no aircraft).
+                    //
+                    // **The second fallback** (`do_queue@0061e410:442`–`447`,
+                    // `docs/PRODUCTION.md`): on a *negative* answer only —
+                    // the aircraft limit, a full Airbase's pad — with two or
+                    // more entries and no research behind the head, an
+                    // Airbase runs `get_next_helicopter`'s slot, the first
+                    // behind the head whose type `is(HELICOPTER)`
+                    // (`0x136`), so a Transport Helicopter queued behind a
+                    // Bomber the pad refuses still trains (run790's `1/2011`
+                    // on 3767). Another building's `get_next_non_caravan` is
+                    // not modelled: no caravan limit is.
                     let researched = &self.muster[who as usize].researched;
-                    let next = self.buildings[at].queue.next_research(|ty| !researched[ty]);
+                    let mut next = self.buildings[at].queue.next_research(|ty| !researched[ty]);
+                    if next.is_none()
+                        && matches!(blocked, Advanced::Limited)
+                        && self.buildings[at].queue.items.len() >= 2
+                        && self.building_ident(at) == build::Ident::Airbase
+                    {
+                        next = (1..self.buildings[at].queue.items.len()).find(|&i| {
+                            let it = &self.buildings[at].queue.items[i];
+                            it.tech.is_none()
+                                && self.unit_types[it.ty].cols.unit_flags
+                                    & ai_load::uflags::HELICOPTER
+                                    != 0
+                        });
+                    }
                     if let Some(slot) = next
                         && let Advanced::Trained(p) = self.advance_slot(at, slot)
                     {
@@ -3374,7 +3398,8 @@ impl Sim {
         let muster = &self.muster[who as usize];
         let pop = self.unit_types[ty].price.pop;
         match production::finished(researched, muster.cap, muster.control, pop, pad_full) {
-            production::Handover::Population | production::Handover::Limit => Advanced::Blocked,
+            production::Handover::Population => Advanced::Blocked,
+            production::Handover::Limit => Advanced::Limited,
             production::Handover::Researched => {
                 // `gain_tech`: the bit, and nothing else. No refund, no
                 // skip-forward, no unit, no population.

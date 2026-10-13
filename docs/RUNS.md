@@ -16233,3 +16233,14 @@ for and no GROUPDATA block was printed", deterministic, so the third take drops 
 1011 frames, seed 12345, map 14, 377 s. Dump 123,310,965 bytes (sha256 `34c137e653e1…`), kept in `~/ron-golden/ch57/map-14`.
 **What it holds**: `golden::chapter_fifty_seven_holds_to_the_golden_word` (**1010**, the trace's end) and
 `chapter_fifty_seven_s_word_frame_is_widened_whole` (605..1011, 11 rows — the `form` rows alone; no pool, the dump has none).
+## run790 — Great Sahara in the coverage pair's lobby: the word 3767's widening, blocks 3761..4017 (2026-10-13, item 1905, `att-1905`)
+
+**Disk gap**: item 1870 moved the word 3182 → 3767 (33 versus 37 draws, index 7), past run767's last block (3185); no dump of this lobby held a unit, a building or a leader record there. run767's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 4023 --timeout 3600 --log-window 3761 4018 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`, the click-free lane, the pool took lane 2. First take: `success: true`, `settings_restored: true`, 4024 frames, seed 12345, map 7 verified, 1907 s launch to exit; output `~/ron-data/lab-captures/2026-10-13-run790`. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run790-greatsahara-persian-alltech-window-3761-4018.txt`, 823,660,285 bytes,
+SHA-256 `12eeaa6e3014e8c046c0e64e81fab380d04468a8eea91a504c1b3126f429a096`.
+
+Archive `rontrace-run790.log`, 178,819,520 bytes,
+SHA-256 `f938373f9676790bb48654cb4158b040a050e84e45472c05d3f00d72470768a3`.
+
+**What it holds**: `diff::sahara_coverage::run790_s_word_frame_is_widened_whole` — 257 blocks (3761..4017), 12,582 parted keys on item 1905's tree (the replay is diverged past the word 3805); the third map's `AI_WORDS` window (`sahara_coverage_word_window`); the coverage driver reads its block 3768. run767's window stays as `sahara_coverage_frame_3183_window` (112 keys). `docs/AI.md` §198.

@@ -2487,6 +2487,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN766, 2852),
         (super::sahara_coverage::RUN767, 2935),
         (super::sahara_coverage::RUN767, 3183),
+        (super::sahara_coverage::RUN790, 3768),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2926,7 +2927,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1697: and run766's blocks around the word 2640.
     let sahara_2640 = super::sahara_coverage::sahara_coverage_frame_2640_window();
     // Items 1716, 1726: and run767's blocks around the words 2934 and 3182.
-    let sahara_2934 = super::sahara_coverage::sahara_coverage_word_window();
+    let sahara_2934 = super::sahara_coverage::sahara_coverage_frame_3183_window();
+    // Item 1905: and run790's blocks around the word 3767.
+    let sahara_3767 = super::sahara_coverage::sahara_coverage_word_window();
     // Item 1728: the successor pair's word 11, run776's blocks 1..33.
     let mongol_11 = super::mongol_pair::mongol_frame_11_window();
     // Item 1744: and run779's blocks around the word 1354.
@@ -2936,6 +2939,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -3027,6 +3031,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         sahara_2273,
         sahara_2640,
         sahara_2934,
+        sahara_3767,
         mongol_11,
         mongol_1354,
         mongol_2207,

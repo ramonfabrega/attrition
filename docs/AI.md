@@ -18960,12 +18960,70 @@ val 4078/3481 → equal; `bucket[1:timber]` 5639/5739 → equal.
 building support term. The embargo's `armageddon` term. The new word 3767 is
 unwidened (run767 ends at 3186).
 
-## 198. Reserved for the next item on the AI track
+## 198. A refused head lets the Helicopter behind it train (2026-10-13, item 1905)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame and the capture.** Great Sahara in the coverage pair's lobby,
+word 3767 (33 draws ours against 37, index 7). run767 ends at 3186, so
+**run790** was taken over `--log-window 3761 4018` (run767's recipe, pool lane
+2, `success: true`, 4024 frames, seed 12345, 1907 s) and widened whole
+(`diff::sahara_coverage::run790_s_word_frame_is_widened_whole`, 257 blocks, its
+window the third map's `AI_WORDS` window and a block of the coverage driver).
+
+**The draw delta, both sides** (`report.py rontrace-run790.log draws 3767`):
+the original's index 7 is `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`, then two `Unit::do_spec_anim` rolls under
+`Unit::come_out+0x24a6 < Build::train+0x54a` — a unit comes out of a building
+— and ours spends `Guy::inc_time`'s wraps there instead. `births.py` names it:
+block 3768 holds `1/214` (uid 294, group 68, flags 73) at (44065, 19488),
+beside `1/2011`, an Airbase (`TypeIndex` 447). The widening's first row on
+3768 is `1/2011 queue:queued` ours 4, theirs 3 and `leader:num_units[261]`.
+
+**The value diff.** `1/2011`'s queue on 3767 holds four entries: `[0]` a
+Strategic Bomber (305), job_counter 30750 (done, stuck), `[1]` a Transport
+Helicopter (311) at 24150 and 24100 a frame before. On 3768 the original's
+`[1]` is gone and a unit stands; ours kept all four. The job counters agree
+on both sides all window, so the target is not the question: the head is
+the bomber, refused, and the helicopter behind it completes.
+
+**The mechanism.** `Build::do_queue@0061e410:417`–`:447`. When slot 0's
+`Build::finished` answers non-positive: `get_next_non_unit` first (the first
+research entry behind the head); and **only if there is none, the queue holds
+at least two and the answer was negative** (the aircraft or caravan limit —
+`airbase_pad_full`, ten homed aircraft), an Airbase runs the slot
+`BuildQueueData::get_next_helicopter@00630bb0` returns — the first slot from
+1 whose type answers `is(0x136)` — and any other building
+`get_next_non_caravan`. `docs/PRODUCTION.md` had this fallback written down
+and the crate had it as a stated seam ("nothing here can be refused with a
+negative answer yet"); `airbase_pad_full` (item 1714) made one reachable.
+Built: `Advanced::Limited` (the negative answer) beside `Blocked`, the
+helicopter search in `Sim::process_queue` for an Airbase. A zero (the
+population cap) never reaches it. Unit test
+`a_full_airbase_trains_the_helicopter_behind_a_refused_plane`, which fails
+(`mutate.py`, the arm dropped) without the search and fails nothing on a
+population refusal.
+
+**What moved.** The word 3767 → **3805** (38 frames): 17 draws against 32,
+index 1, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+`Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d <
+Unit::fight+0x115e` (fifteen consecutive draws in the search). `1/2011`'s
+`queue:queued` and `leader:num_units[261]` agree on 3768. Height reads that
+touch an inexact corner: `sahara_coverage_first_parting` 433 → 474,
+`run790_s_word_frame_is_widened_whole` 756 (the replay past 3805).
+run767's widening is unmoved (112 keys). run790's 12582 keys are the diverged
+tail past 3805, not the word.
+
+**Rows the widening leaves** (parked 1906–1908): `1/214` `mirror` ours 0
+theirs 1 and `group:65.held` ours `[214]` theirs none on 3768 — a helicopter
+born inside an Airbase joins a group in ours that the original does not
+hold (it has `group 68` in the dump at birth, a different group); and the
+rows before the word's frame: `1/172` `order:kind` 17/16 on 3765 and
+`1/161`'s `order:move.dest`/path on 3766–3767 (a tolerance 384 against 0),
+which no draw reads yet.
+
+**Not established.** `get_next_non_caravan` (a non-Airbase building) is not
+modelled. The first-block rows (122 at 3761: `SITE.reg`, `form`, `pool`,
+`death:extra`) are the window's start, the same shape run767 shows at 2928
+(77 rows), and are quiet by construction. The new word 3805 is unwidened.
 
 ## 199. Reserved for the next item on the AI track
 

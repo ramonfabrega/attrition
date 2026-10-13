@@ -146,8 +146,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // priced as three: 175/525, check_income 122) — 3182 → **3767** (count and
     // sequence): ours 33 draws against 37, index 7, ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
-    count: 3767,
-    sequence: 3767,
+    // Landing 15 (`docs/AI.md` §198, item 1905): `Build::do_queue`'s second
+    // fallback — a head the aircraft limit refuses (a Bomber at a full
+    // Airbase) lets the first Helicopter behind it train, so run790's
+    // Transport Helicopter at `1/2011` comes out on 3767 — 3767 → **3805**
+    // (count and sequence): ours 17 draws against 32, index 1, ours
+    // `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    // `Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d <
+    // Unit::fight+0x115e`.
+    count: 3805,
+    sequence: 3805,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -983,10 +991,10 @@ pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-wind
 /// The window: block 2928 through 3185; the word 3182's own block is 3183 (2934's was 2935).
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2934: (i64, i64) = (2928, 3185);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run767 walked from run675's start with the
-/// recorder on — the word 3182's block 3183.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run767 walked from run675's start with the recorder on — the word 3182's
+/// block 3183. It was the `AI_WORDS` window until the word moved past it, to
+/// run790's (item 1905).
+pub(crate) fn sahara_coverage_frame_3183_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -1003,7 +1011,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run767_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_3183_window() else {
         return;
     };
     pin_eq!(w.blocks, 258, "every captured block");
@@ -1020,4 +1028,55 @@ fn run767_s_word_frame_is_widened_whole() {
         }
     }
     pin_eq!(w.firsts.len(), 112, "initial run767 baseline");
+}
+
+/// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
+/// the word 3767's block 3768 with six before it and 249 after.
+pub(crate) const RUN790: &str = "gamelog-run790-greatsahara-persian-alltech-window-3761-4018.txt";
+
+/// The window: block 3761 through 4017; the word 3767's own block is 3768.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_3767: (i64, i64) = (3761, 4017);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run790 walked from run675's start with the
+/// recorder on — the word 3767's block 3768.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run790",
+        &[(RUN790, WIDENING_SAHARA_COVERAGE_FRAME_3767.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_3767,
+        1,
+        &[3768],
+        true,
+    )
+}
+
+#[test]
+fn run790_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 1905: **12582** keys on the tree that lets a helicopter train
+    // past a refused head (3767 → 3805, `docs/AI.md` §198; 13468 before it):
+    // the replay is diverged for 212 of the window's blocks, so the count
+    // is the tail's, not the word's. The word 3767's own rows were
+    // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
+    pin_eq!(w.firsts.len(), 12582, "initial run790 baseline");
 }
