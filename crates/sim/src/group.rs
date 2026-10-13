@@ -1878,8 +1878,17 @@ impl Sim {
     /// `UnitData::get_final_loc@00608040` — where this unit's order list
     /// leaves it.
     ///
-    /// The walk is over the list from the head and it stops at the **first**
-    /// order that names a point, not the last: a move order hands back its
+    /// **The walk starts at the bottom of the ring** — the order issued
+    /// last at `QUEUE_LAST`, the one that runs last — and climbs toward the
+    /// current order, stopping at the first that names a point: the
+    /// *final* location is the deepest point on the list (item 2055,
+    /// `docs/AI.md` §206). The ring's anchor (`orderlist +0x14`) is where
+    /// `get_final_loc` starts and `OrderList::log_data` prints first, and
+    /// the current order is the node before it (`kill_current_order` reads
+    /// `+0x14 → +4`), so the dump prints the bottom first and the current
+    /// order last. ~~From the head~~ until item 2055: a re-issued charge
+    /// read the charge's own point, (6216, 29784), where the original reads
+    /// the copy beneath it, (6072, 29832). A move order hands back its
     /// destination (vslot `+0x14`, then `+0xb8`'s `(+4, +8)` — the order's
     /// `x`/`y`, not its live waypoint), and an order carrying a
     /// `TargetOrder` hands back its target **object's** position, provided
