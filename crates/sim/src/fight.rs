@@ -3313,9 +3313,6 @@ impl Sim {
                 range,
                 cavarch
             );
-            if !self.units[i].captain {
-                eprintln!("BT1887 {}", std::backtrace::Backtrace::force_capture());
-            }
         }
         if st.stance == Stance::HoldFire {
             return None;
