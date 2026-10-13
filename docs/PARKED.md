@@ -4200,13 +4200,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot T — reserved
+## Parked by item 1993, 2026-10-13 — the sweep's fortieth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot T renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1994) **`tools/sweep_gen.py vcall --via VIA --own N` built; the global-cell world shape is still by hand** (Loop; names no score).
+Two of the ten (`UnitData::has_stance_type`, `get_stance_type`) were a forwarder through the object at `this+0x18`: `vcall` gained `--via`
+(callee `ecx` held to the inner object) and `--own` (stack arguments passed through). Four more — `WorldData::buildings_allowed`,
+`get_coll_block`, `Borders::get_who` and `WorldData::get_land` — read a world record through a global cell with WCoord *pointer* arguments
+(1977's shape, plus pointers): a `cell --ptrargs` option would take them. Not run to a parting; all ten agree.
 
 ## Parked by the next landing, slot U — reserved
 

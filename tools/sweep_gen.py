@@ -31,6 +31,10 @@ Three shapes, each a `__thiscall` on `ecx`:
           after pushing them, as `is_city` does) and answers from it; the rows vary
           the slot's answer through `tools/emu/hooks.py`'s Harness, which
           records what the call was handed, and `--port` is over `v: i32`.
+          `--via VIA` calls the slot of the object at `this+VIA` instead (the
+          callee's `ecx` is held to it), with `--own N` stack arguments of the
+          function's own that a `--tail` slot is handed unchanged (item 1993).
+
   outptr  the function stores its answer through the out-pointer it is
           handed on the stack (`[esp+4]`), reading one integer at
           `this+OFF`; the rows are the field shape's, `--port` over `v`.
@@ -157,6 +161,40 @@ def main(argv):
         r = h.call(ENTRY, (), ecx=obj)
         handed = ",".join(str(a) for name, ecx, args, _ in h.calls for a in args)
         print(" ".join(str(x) for x in row) + f" -> {{r}}" + (f"  # slot handed {{handed}}" if handed else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+VCALL_VIA_TAIL = '''
+
+OWN = {own}
+
+
+def rows():
+    rng = random.Random({item})
+    vs = list(INT_EDGES) + [rng.randint(-0x80000000, 0x7FFFFFFF) for _ in range(200)]
+    return [(v, *(rng.randint(-0x80000000, 0x7FFFFFFF) for _ in range(OWN))) for v in vs]
+
+
+def main(argv):
+    from hooks import Harness
+    from callfn import STACK_BASE, STACK_SIZE
+    h = Harness(argv[1], {{}})
+    for row in rows():
+        h.calls.clear()
+        vt = h.vtable({{0x{slot:x}: ("slot", {nargs}, row[0], {tail})}})
+        inner = h.alloc(0x400)
+        h.w32(inner, vt)
+        obj = h.alloc(0x400)
+        h.w32(obj + 0x{via:x}, inner)
+        r = h.call(ENTRY, row[1:], ecx=obj)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        assert [(c[1], c[2]) for c in h.calls] == [(inner, list(row[1:{nargs_or_zero}]))], (row, h.calls)
+        print(" ".join(str(x) for x in row) + f" -> {{r}}")
     return 0
 
 
@@ -691,7 +729,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
-def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
+def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False, own=0):
     """`(script path, script text, test path, test text, mod line)`."""
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
@@ -747,12 +785,17 @@ def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slo
         doc = f'every index -2..=0x33f and the edges, against `{port}`.'
     else:
         raise ValueError(f'no such shape: {shape}; one of const, field, range, cell, vcall, outptr')
-    if shape == 'vcall':
+    if shape == 'vcall' and via is not None:
+        tail = VCALL_VIA_TAIL.format(slot=slot, nargs=nargs, tail=tail, via=via, own=own, item=item,
+                                     nargs_or_zero=1 + nargs)
+        what = what.replace('the object;', f'the object, whose callee object is at this+0x{via:x};')
+    elif shape == 'vcall':
         tail = VCALL_TAIL.format(slot=slot, nargs=nargs, tail=tail)
     else:
         tail = SCRIPT_TAIL.format(write=write, call=call.format(ecx=ecx))
+    rows_src = '' if (shape == 'vcall' and via is not None) else ROWS[shape].format(item=item)
     script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item, what=what) + head
-              + ROWS[shape].format(item=item) + tail)
+              + rows_src + tail)
     body, least = BODIES[shape]
     test = TEST.format(name=name, va=va, item=item, shape=shape, snake=sn, doc=doc,
                        body=body.format(port=port, short=short), least=least)
@@ -785,7 +828,7 @@ def main(argv=None):
     ap.add_argument('--item', type=int, required=True)
     ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
     ap.add_argument('--off', type=lambda s: int(s, 0), help='the field offset (field; range: default 0x4)')
-    ap.add_argument('--via', type=lambda s: int(s, 0), help='field: the pointer at this+VIA holds the record')
+    ap.add_argument('--via', type=lambda s: int(s, 0), help='field: the pointer at this+VIA holds the record; vcall: the object whose vtable is called')
     ap.add_argument('--cell', type=lambda s: int(s, 0), help='cell: the global cell that holds the record pointer')
     ap.add_argument('--slot', type=lambda s: int(s, 0), help='vcall: the vtable slot the function calls')
     ap.add_argument('--nargs', type=int, default=0, help='vcall: stack arguments the slot takes')
@@ -809,7 +852,7 @@ def main(argv=None):
         else:
             sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
                                                  port=args.port, off=args.off, via=args.via,
-                                                 cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
+                                                 cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail, own=args.own)
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2
