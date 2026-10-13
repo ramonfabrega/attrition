@@ -102,6 +102,9 @@ impl Sim {
             self.market.flux[i] += self.market.delta_flux[i];
         }
         self.market.tick += 1;
+        if std::env::var_os("RON_PROBE_SELL").is_some() && (3170..3183).contains(&frame) {
+            eprintln!("PROBE mkt f{} tick{} price{:?} flux{:?}", frame, self.market.tick, self.market.price, self.market.flux);
+        }
     }
 
     /// `GameDaemon::calc_market(i)`: three draws — two for the next flux,
