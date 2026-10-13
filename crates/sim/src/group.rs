@@ -1918,19 +1918,23 @@ impl Sim {
     /// listing as one and still walks past.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
-        let found = self.units[u].orders.iter().rev().find_map(|o| match o.body {
-            Body::Move(m) => Some(m.dest),
-            Body::Attack(_) => self.units[u]
-                .combat
-                .target
-                .and_then(|t| self.obj_alive_pos(t)),
-            Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
-                self.obj_alive_pos(crate::combat::Obj::Building(b))
-            }
-            Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
-            Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
-            _ => None,
-        });
+        let found = self.units[u]
+            .orders
+            .iter()
+            .rev()
+            .find_map(|o| match o.body {
+                Body::Move(m) => Some(m.dest),
+                Body::Attack(_) => self.units[u]
+                    .combat
+                    .target
+                    .and_then(|t| self.obj_alive_pos(t)),
+                Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
+                    self.obj_alive_pos(crate::combat::Obj::Building(b))
+                }
+                Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
+                Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
+                _ => None,
+            });
         let Some(p) = found else { return here };
         if self.invalid_loc(u, p.tile(), true, false, false, false, false) != 0 {
             return here;

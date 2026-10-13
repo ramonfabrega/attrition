@@ -6908,7 +6908,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1937: the walk reaches the word 3825 (3805 → 3825): 514 reads, 40 more.
     // Item 1999: a bordering city's Fort is scored ten times over, and the
     // walk's count reaches 4267 (sequence 3985): 975 reads, 461 more.
-    ("sahara_coverage_first_parting", 975),
+    // Item 2055: `get_final_loc` from the ring's bottom, and the walk reaches
+    // the game's last frame, 4340: 1012 reads, 37 more.
+    ("sahara_coverage_first_parting", 1012),
+    // And its closing state, walked to block 4341 (item 2055).
+    ("run676_sahara_coverage_closing_state", 1013),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -7049,10 +7053,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1614 put run716's window in the compared pin: fourteen, as
     // that window's own. Item 1625 put run721's: 149, as that window's own.
     // Item 1700 put run762's: 456, as that window's own. Item 1719's run763
-    // closing window: 514, as that window's own.
+    // closing window: 514, as that window's own. Item 2055's run817 window,
+    // once the formation's reverse is built: 1013, as run817's own walk.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        756,
+        1013,
     ),
 ];
 
@@ -8980,9 +8985,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // Item 1870 built the nuke embargo and the Fort's count escalation
         // and the word moved 3182 -> 3767, past run767 (its test keeps
         // 3182's value diff: 142 -> 112 keys); parked 1877 owes 3767's widening.
-        None,
-        1877,
-        None,
+        // Item 2055 widened 4266 on run817 over 4260..4341 (block 4267) and
+        // moved it to **4340**, the game's last frame: `get_final_loc` from
+        // the ring's bottom. run817 runs to the closing block 4341, so the
+        // last blocks are widened on it, and the closing state is scored by
+        // `run676_sahara_coverage_closing_state`.
+        Some("run817_s_word_frame_is_widened_whole"),
+        2055,
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_4266),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
@@ -9328,7 +9338,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (All Technologies)",
         word: crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
         length: 4_340,
-        endpoint: None,
-        window: Some("sahara_coverage_word_window"),
+        // Item 2055: closed at the game's last frame.
+        endpoint: Some("run676_sahara_coverage_closing_state"),
+        window: None,
     },
 ];

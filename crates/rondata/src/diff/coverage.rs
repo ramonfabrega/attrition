@@ -2931,8 +2931,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let sahara_2934 = super::sahara_coverage::sahara_coverage_frame_3183_window();
     // Item 1905: and run790's blocks around the word 3767.
     let sahara_3767 = super::sahara_coverage::sahara_coverage_frame_3767_window();
-    // Item 2055: and run817's blocks around the word 4266.
-    let sahara_4266 = super::sahara_coverage::sahara_coverage_word_window();
+    // Item 2055: and run817's blocks around the word 4266, to the game's
+    // closing block 4341 — the word closed at 4340 on it.
+    let sahara_4266 = super::sahara_coverage::sahara_coverage_frame_4266_window();
     // Item 1728: the successor pair's word 11, run776's blocks 1..33.
     let mongol_11 = super::mongol_pair::mongol_frame_11_window();
     // Item 1744: and run779's blocks around the word 1354.
