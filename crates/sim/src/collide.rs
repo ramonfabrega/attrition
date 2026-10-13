@@ -958,6 +958,14 @@ impl Sim {
         }
         let disc = spiral(size);
         let ra = self.world.tregion_alt(from.tile());
+        if std::env::var_os("RON_PROBE_UPATH").is_some() && (4170..=4238).contains(&self.frame) {
+            for (dx, dy) in &disc {
+                let p = Pos::new(a.x + dx, a.y + dy);
+                if p.y == 624 && (384..=388).contains(&p.x) && ((p.x - b.x).abs() > size || (p.y - b.y).abs() > size) && self.coll.get(p.x, p.y) {
+                    eprintln!("PROBE clr f{} {}/{} size {} a {:?} b {:?} p {:?}", self.frame, self.units[u].owner, self.units[u].index, size, a, b, p);
+                }
+            }
+        }
         if std::env::var_os("RON_PROBE_UPATH").is_some() && self.units[u].owner == 1 && self.units[u].index == 191 && (4180..=4205).contains(&self.frame) {
             eprintln!("PROBE mv191 f{} a {:?} b {:?} ra {:?} rb {:?} r(24,38) {:?} r(24,39) {:?} r(23,39) {:?}", self.frame, a, b, ra, self.world.tregion_alt(to.tile()), self.world.region_of(Cell::new(24,38)), self.world.region_of(Cell::new(24,39)), self.world.region_of(Cell::new(23,39)));
         }
