@@ -18454,10 +18454,42 @@ halving (ours has `ever_attacked`, unwired there). The flag's clearing (none fou
 `compute_reg_territory`; other writers not grepped). No capture holds the tower arm's
 `0x1000` term; reading-only. The temple term is diff-backed by the make list on 3982.
 
-## 186. Reserved for item 1714 (the coverage pair's word 4425)
+## 186. An Airbase holds a trained jet at ten homed aircraft, and the word moves to 4582 (2026-10-13, item 1714)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 4425, 23 versus 22 draws, index 9: ours `Guy::init_real+0x52` (a
+birth), theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271` (run762, block 4426).
+
+**Value diff** (4426, leader 1): `num_queued[245]` 1 against 0, `num_units[245]` 13
+against 14, `control` 194 against 195, `active` 175 against 176, `1/178` held by this
+crate alone, `1/2010`'s `queue:queued` 2 against 1. The dump's own `1/2010` is the
+Airbase (`orig_type` 447): its queue is `JETFIGHTER` (295) with `job_counter` **30150**
+from 4425 and unchanged to 4458 (the last block read), three Strategic Bombers (305)
+behind it, `queued` 2 the whole way — the front entry done and refused every frame.
+Population is not the refusal (`pop_cap` 200, `control` 194).
+
+**Cause.** `Build::finished@00628490`, `6285c0`..: after the population test, an
+Airbase (`is(0x1bf)`) training a type whose `+0x2b4 & 0x20` is clear (not a
+helicopter) answers **-1** when `ObjectData::num_aircraft_here(0) >=
+num_aircraft_limit` (`max_aircraft_per_airbase`, 10 at an Airbase); the entry keeps
+its full progress and the attempt repeats. `num_aircraft_here(0)` is not the garrison:
+it walks the owner's units, alive, domain 2, whose `UnitData::home_base` is this
+building. The crate passed `at_limit` false always, so the Jet Fighter was handed over
+on 4425. Built: `Sim::aircraft_homed`, `Sim::airbase_pad_full` (`airbase.rs`), read by
+`advance_slot` (`lib.rs`) into `production::finished`'s `at_limit`. Test
+`an_airbase_with_ten_homed_aircraft_refuses_another`.
+
+**Score.** The word moves **4425 -> 4582** (count and sequence), 549 versus 551 draws,
+index 542: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52` (a birth), inside run762 (block 4583). run762's keys 2322 ->
+1167. On 4583 the original's leader 1 has `num_units[8]` 5 against 4, `active` 179
+against 178 and `1/169` (dump alone); 4585 `MAKE[2,3].val` 1294 against 1353.
+
+**Not established.** The caravan limit (`get_caravan_limit`, -1) is still passed as no
+limit. A -1 answer at slot 0 is treated as the population answer (the entry blocks; the
+redirect to `get_next_helicopter`, PRODUCTION.md "Completion", is not told apart from
+0): the three Bombers behind the Jet did not advance in the dump either (counters 0),
+so this capture holds no redirect. `home_base` on a flying plane reads the crate's
+current air order's home; no capture holds a ten-aircraft base with planes in flight.
 
 ## 187. Reserved for item 1716 (Great Sahara's word 2851)
 

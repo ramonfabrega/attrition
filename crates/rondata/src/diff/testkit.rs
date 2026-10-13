@@ -8815,12 +8815,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // General `1/150`'s craft recovers two a frame, so its Create Decoys
     // cast is laid on 3864.
     // Item 1700 moves to 4425 (block 4426), past run754's last block
-    // (4094): run762 over 4420..4676.
+    // (4094): run762 over 4420..4676. Item 1714 moves to 4582 (block 4583),
+    // inside the same window.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run762_s_word_frame_is_widened_whole"),
-        1700,
+        1714,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_4425),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
