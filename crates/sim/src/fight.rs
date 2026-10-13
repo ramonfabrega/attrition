@@ -522,15 +522,25 @@ impl Sim {
     /// edge of reach, an opportunistic one three quarters of a tile
     /// inside it.
     pub fn is_in_range_at_margin(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
-        // **The head asks the slot, never the health** (`006486b0`'s
-        // first lines; `docs/AI.md` §205): `flags & 1`, and for a unit
-        // `is_on_map` — [`Self::struck`]. A building at health 0 that
-        // still stands is in range: run809's `0/2000` on 3647, which
-        // `think`'s `near_o` arm hands the raiding `1/113`. This asked
-        // [`Self::active`] from the first combat landing.
-        if !self.struck(target) {
-            return false;
-        }
+        self.active(target) && self.in_range_past_head(attacker, at, target, margin)
+    }
+
+    /// `is_in_range@00648d70` as `006486b0`'s head has it: **the slot,
+    /// never the health** — `flags & 1`, and for a unit `is_on_map`
+    /// ([`Self::struck`]). A city building at its ceiling (health 0) that
+    /// still stands is in range: run809's `0/2000` on 3647, which
+    /// `think`'s `near_o` arm hands the raiding `1/113` (`docs/AI.md`
+    /// §205). SEAM: [`Self::is_in_range_at_margin`] still asks
+    /// [`Self::active`] for every other caller — made `struck` there, the
+    /// coverage pair parts at 3142 (`1/59`), so some reader leans on the
+    /// health term (parked under item 2049).
+    pub(crate) fn is_in_range_struck(&self, attacker: Obj, target: Obj) -> bool {
+        self.struck(target)
+            && self.in_range_past_head(attacker, self.pos_of(attacker), target, false)
+    }
+
+    /// `006486b0` past its slot test: the world cell, then the distance.
+    fn in_range_past_head(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
         // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
         // tile under the point asked from — `div_3_table[x >> 6]`, the
         // tile, of the eight-argument overload's own `x/y` — answers no
@@ -5463,6 +5473,63 @@ mod tests {
         assert!(weigh(false, false, false, false, true) > 0, "not raiding");
         assert!(weigh(false, true, true, false, true) > 0, "a SIEGE ship");
         assert!(weigh(false, true, false, false, false) > 0, "unfinished");
+    }
+
+    /// **An idle captain off the search's phase takes its cached nearest**
+    /// (`think@005f6e40:104`–`135`, `docs/AI.md` §205): `near_o` a city
+    /// building at its ceiling (health 0, still standing), in range, idle
+    /// 6, on a frame that passes the one-in-sixteen gate and is not the
+    /// search's one in thirty-two — the attack is added, the
+    /// could-not-reach bit cleared. Not on the search's own frame, not at
+    /// `HOLD_FIRE`, not out of range, and not when the slot is gone.
+    #[test]
+    fn an_idle_captain_off_phase_takes_its_cached_nearest() {
+        let think = |frame: i64, stance: Stance, far: bool, gone: bool| {
+            let (mut sim, ty) = at_war();
+            let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].health = 0;
+            sim.buildings[b].alive = !gone;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 2,
+                y_size: 2,
+                ..Profile::default()
+            });
+            let at = if far { 9000 } else { 3300 };
+            let me = put(&mut sim, 0, ty, Pos::new(at, 3000));
+            sim.units[me].captain = true;
+            sim.units[me].idle = 6;
+            sim.units[me].cant_reach = false;
+            sim.units[me].combat.stance = stance;
+            sim.units[me].near = Some(Obj::Building(b));
+            sim.think(me, frame - i64::from(sim.units[me].index));
+            (sim.order_type(me), sim.units[me].combat.target)
+        };
+        let attack = crate::orders::index::ATTACK;
+        let (ty, t) = think(16, Stance::Aggressive, false, false);
+        assert_eq!(ty, attack, "off phase, in range: the cached nearest");
+        assert!(t.is_some());
+        assert_ne!(
+            think(32, Stance::HoldFire, false, false).0,
+            attack,
+            "the search's frame, holding fire"
+        );
+        assert_ne!(
+            think(16, Stance::HoldFire, false, false).0,
+            attack,
+            "holding fire"
+        );
+        assert_ne!(
+            think(16, Stance::Aggressive, true, false).0,
+            attack,
+            "out of range"
+        );
+        assert_ne!(
+            think(16, Stance::Aggressive, false, true).0,
+            attack,
+            "the slot is gone"
+        );
     }
 
     /// **A hit on a building spills onto the enemy hands repairing it**

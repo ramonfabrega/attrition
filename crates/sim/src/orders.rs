@@ -3422,7 +3422,7 @@ impl Sim {
 
     /// `Unit::think` (§2.4): the auto-attack on the first idle frame and
     /// every 32 after, phased by `o`; a worker's `think_peasant(0)`.
-    fn think(&mut self, u: usize, frame: i64) {
+    pub(crate) fn think(&mut self, u: usize, frame: i64) {
         // **A non-captain's whole think is the captain mirror**, and it is
         // `Unit::think@005f6e40`'s *first* statement — above the citizen
         // mask-clear, above both cadence gates, above everything
@@ -3474,7 +3474,8 @@ impl Sim {
         // past an idle of 1, a captain whose cached nearest (`near_o`) is
         // still standing, whose combat stance is under 5 (vslot `+0xf4` is
         // `get_combat_stance`: anything but `HOLD_FIRE`) and which is
-        // `is_in_range@00648d70` of it (margin 0) takes it —
+        // `is_in_range@00648d70` of it (margin 0, the slot and never the
+        // health: [`Sim::is_in_range_struck`]) takes it —
         // `add_attack_order(near_o, QUEUE_NEW, 0, 0)` — clears its
         // could-not-reach bit, and returns; a packed packer whose packer
         // stance is not `PACKER_AUTO` (vslot `+0x100`) returns without it.
@@ -3487,11 +3488,13 @@ impl Sim {
             && phase & 0x1f != 0
             && let Some(t) = unit.near
             && unit.combat.stance != combat::Stance::HoldFire
-            && self.is_in_range(me, t)
+            && self.is_in_range_struck(me, t)
         {
             let packer_auto = self.unit_stance_type(u) == crate::group::StanceType::Packer
                 && self.units[u].stance == PACKER_AUTO;
-            if self.units[u].ty.is_some_and(|ty| self.unit_types[ty].combat.packs)
+            if self.units[u]
+                .ty
+                .is_some_and(|ty| self.unit_types[ty].combat.packs)
                 && self.units[u].combat.packed
                 && !packer_auto
             {
