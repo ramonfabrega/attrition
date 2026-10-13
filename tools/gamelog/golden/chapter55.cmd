@@ -8,4 +8,4 @@
 604 add dragoon who=0 225,176
 606 add stockade who=1 218,176
 712 add citizen who=1 243,151
-640 @move 0 46800 29288 6
+712 @move 0 46800 29288 6
