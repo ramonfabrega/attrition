@@ -14,8 +14,8 @@
 //! the gull's angle, on the sync stream, in the order the original takes it
 //! (§5.2).
 
-use crate::attrition::Domain;
 use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::attrition::Domain;
 use crate::build;
 use crate::orders::Worker;
 use crate::tech::TypeId;
@@ -844,7 +844,10 @@ impl Sim {
         let (width, height) = (self.world.width(), self.world.height());
         let beside = (0..9).find_map(|k| {
             let c = Cell::new(my_cell.x + MOVE_X[k], my_cell.y + MOVE_Y[k]);
-            (c.x >= 0 && c.y >= 0 && c.x < width && c.y < height
+            (c.x >= 0
+                && c.y >= 0
+                && c.x < width
+                && c.y < height
                 && self.world.region_of(c) == Some(best_region))
             .then_some(c)
         });
@@ -3189,7 +3192,10 @@ mod tests {
         f.sim.world.set_region_flags(f.land, 8);
         let boat = unit(&mut f.sim, 1, f.ship, tile_pos(36, 12));
         f.sim.units[boat].on_map = true;
-        assert!(!f.sim.think_carry(boat), "nothing aboard: the seam answers no");
+        assert!(
+            !f.sim.think_carry(boat),
+            "nothing aboard: the seam answers no"
+        );
         assert!(f.sim.units[boat].orders.is_empty());
         let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(36, 12));
         f.sim.units[rider].type_index = 0x32;
@@ -3202,6 +3208,39 @@ mod tests {
             .and_then(|o| o.move_dest())
             .expect("a move order");
         assert!(dest.cell().x >= 7, "the land's own shore column: {dest:?}");
+    }
+
+    /// The shore arm of `think_carry_civilian` (§195): a boat beside the land
+    /// scores its own cell's sixteen quarter-cells against the first
+    /// neighbour in the region (`MOVE[1]`, cell (7, 2)) and walks to the
+    /// nearest — quarter (32, 12), centre (6240, 2400) before the snap.
+    #[test]
+    fn a_boat_beside_the_land_walks_to_its_nearest_quarter_cell() {
+        let mut f = fix();
+        f.sim.world.set_region_flags(f.land, 8);
+        let boat = unit(
+            &mut f.sim,
+            1,
+            f.ship,
+            Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180),
+        );
+        f.sim.units[boat].on_map = true;
+        let rider = unit(
+            &mut f.sim,
+            1,
+            f.citizen,
+            Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180),
+        );
+        f.sim.units[rider].type_index = 0x32;
+        f.sim.units[rider].inside_unit = Some(boat);
+        f.sim.units[rider].on_map = false;
+        assert!(f.sim.think_carry(boat));
+        let dest = f.sim.units[boat]
+            .orders
+            .front()
+            .and_then(|o| o.move_dest())
+            .expect("a move order");
+        assert_eq!((dest.x, dest.y), (6264, 2424));
     }
 
     #[test]
