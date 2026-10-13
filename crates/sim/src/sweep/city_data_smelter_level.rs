@@ -33,7 +33,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 },
             )
         };
-        assert_eq!(tail[0], calls.join(";"), "smelter_level — the asks, row `{line}`");
+        assert_eq!(
+            tail[0],
+            calls.join(";"),
+            "smelter_level — the asks, row `{line}`"
+        );
         assert_eq!(i64::from(got), want, "smelter_level — eax, row `{line}`");
         n += 1;
     }

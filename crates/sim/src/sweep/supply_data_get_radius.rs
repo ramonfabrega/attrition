@@ -1,7 +1,7 @@
 //! `SupplyData::get_radius@0073b560` under the emulator against the port (item 2112; hand-written on tools/emu/hooks.py).
 
-use crate::supply::supply_radius;
 use crate::Tuning;
+use crate::supply::supply_radius;
 
 /// `SupplyData::get_radius@0073b560`, run by `tools/emu/sweep_supply_data_get_radius.py` under unicorn
 /// (tools/emu): `supply_radius + supply_radius_upgrade · get_supply_upgrade`, plus `terra_cotta_range` when the
