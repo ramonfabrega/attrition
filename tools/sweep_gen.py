@@ -473,6 +473,7 @@ MIX_TEST = """//! `{name}@{va:08x}` under the emulator against the port (item {i
 /// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
 /// (tools/emu) with every callee and the walker's callbacks hooked: {doc}
 #[test]
+#[allow(clippy::vec_init_then_push)]
 fn the_emulated_original_agrees_on_every_row() {{
     let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
         return;

@@ -3,6 +3,7 @@
 /// `Special::walk_data@00740030`, run by `tools/emu/sweep_special_walk_data.py` under unicorn
 /// (tools/emu) with every callee and the walker's callbacks hooked: 2 step(s) in order, `ecx` and arguments held to the spec.
 #[test]
+#[allow(clippy::vec_init_then_push)]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_special_walk_data.py") else {
         return;
