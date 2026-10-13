@@ -8777,6 +8777,17 @@ impl Sim {
             self.kill_current_order(u);
             return;
         };
+        if std::env::var("RON_PROBE_2066").is_ok() && (770..=782).contains(&frame) {
+            let seen = self.target_is_seen(me, target);
+            let w = self.world_sees(self.pos_of(target), self.units[u].owner);
+            eprintln!(
+                "PROBE2066 f{frame} u{u} {}/{} tgt {:?} seen {seen} world {w} vis {}",
+                self.units[u].owner,
+                self.units[u].index,
+                target,
+                self.visible_of(target)
+            );
+        }
         if !self.valid_target(me, target) {
             // `find_new_target`: the order dropped, then
             // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
