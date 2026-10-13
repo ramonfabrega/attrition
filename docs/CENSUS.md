@@ -894,13 +894,8 @@ original's, new `flag_reads` constants, no live port consumer.
 `docs/journal/2026-10-13-item-1735.md`.
 
 **Item 1760, the sweep's fifteenth batch** (2026-10-13): **simulation backed 198
-of 3,611 (5.5 %)** — 31 by a coverage section, 167 by a sweep. Ten more
-packet-free `crates/sim/src/sweep/` tests, **all ten agree on every row**, no
-parting: the address getters `GameAccessConst::get_scary_fog@005833b0`
-(`0x00e8a790`), `get_scary_cliffs@00583370` (`0x00e88eb0`) and
-`get_scary_doobers@00583420` (`0x00eafda0`); the cell readers
-`get_scary_camera@005833a0`, `get_scary_console@005833c0`,
-`get_scary_terrain@00583400`, `get_scary_scene@00583470`,
-`Signposts::get_num@00897bc0`, `cur_x@00897a60` and `cur_y@00897a50`, each the
-word of one global cell, seeded and asked. New `flag_reads` constants and
-`global_cell`; no live port consumer. `docs/journal/2026-10-13-item-1760.md`.
+of 3,611 (5.5 %)** — 31 by a coverage section, 167 by a sweep. Ten packet-free
+`sweep/` tests, all agree, no parting: `GameAccessConst::get_scary_{fog,cliffs,doobers}`
+(global addresses), `get_scary_{camera,console,terrain,scene}` and
+`Signposts::{get_num,cur_x,cur_y}` (one global cell's word); no live port
+consumer. `docs/journal/2026-10-13-item-1760.md`.
