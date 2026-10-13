@@ -2941,58 +2941,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1948: and run799's blocks around the word 3131.
     let mongol_3131 = super::mongol_pair::mongol_word_window();
     let seen = compared::stop();
-    let (
-        Some(w),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-        Some(_),
-    ) = (
+    // **A window is one line** (parked 1959, the thirty-first pass): 1905
+    // and 1868 each added a binding and a slot to a 49-tuple pattern, both
+    // merged clean, and the destructuring came out one `Some(_)` short — a
+    // compile red no lane gate could see (`a0bcf9f9`). The windows are
+    // walked as a slice now; a new one is pushed here and nowhere else.
+    let windows = [
         walked,
         toughest,
         french_east,
@@ -3043,11 +2997,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_2207,
         mongol_2838,
         mongol_3131,
-    )
-    else {
+    ];
+    if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
-    };
+    }
+    let w = windows[0].as_ref().expect("every window is on disk");
     assert!(w.blocks >= 4, "the closing window is {} blocks", w.blocks);
     assert!(
         !seen.is_empty(),

@@ -117,6 +117,30 @@ def stalled_before_frame_zero(gamelog):
         return True
 
 
+def refused_detail(detail):
+    """Why a `--detail` is refused before anything is staged, or None:
+    `GROUPS` beside `DEATHS` at one section prints no GROUPDATA at all
+    (parked 1885: run791's first two takes died in `verify_game`, and the
+    third dropped the pool by hand). A chapter that needs both has no
+    capture shape until 1885 is understood; the refusal says so up front."""
+    for section, cats in live_session.parse_detail(detail or ()).items():
+        if cats.get('GROUPS', 0) > 0 and cats.get('DEATHS', 0) > 0:
+            return (f'{section}: GROUPS with DEATHS at one section prints no GROUPDATA (parked 1885, 1931); '
+                    'drop one of them, or capture the pool and the death list in two takes')
+    return None
+
+
+def exit_verdict(report, stalled):
+    """What a launch that exited with no gamelog gets: `'retake'` once —
+    run801's first take died on a Wine page fault before frame 0 with no
+    `gamelog.txt`, and the retake was by hand (parked 1987) — and nothing
+    the second time, so the receipt carries the failure. A game that wrote
+    frames and exited is the verifier's."""
+    if not stalled or 'retaken_after_exit_seconds' in report:
+        return None
+    return 'retake'
+
+
 def stall_verdict(report, seconds_since_launch, stall, stalled):
     """What a launch that has written no gamelog gets: `None` while it is
     within `stall` seconds or `stall` is off; `'relaunch'` the first time;
@@ -315,6 +339,19 @@ def capture(args, output, style):
         while True:
             try:
                 report['exit_code'] = process.wait(timeout=5)
+                # A take that died before frame 0 (no gamelog at all) is
+                # taken once more (parked 1987), the first take's log kept.
+                if exit_verdict(report, stalled_before_frame_zero(output/'gamelog.txt')) == 'retake':
+                    now = time.monotonic()
+                    if (output/'wine.log').exists():
+                        (output/'wine.log').replace(output/'wine-died.log')
+                    report['retaken_after_exit_seconds'] = now - launch
+                    report['first_take_exit_code'] = report.pop('exit_code')
+                    launch = time.monotonic()
+                    deadline = launch + args.timeout
+                    report['launched_at'] = wall()
+                    process = start()
+                    continue
                 break
             except subprocess.TimeoutExpired:
                 pass
@@ -670,6 +707,16 @@ def main():
         args.cmd_file=args.cmd_file.resolve()
         if not args.cmd_file.is_file():
             ap.error(f'no such command file: {args.cmd_file}')
+        # A staged line the capture would refuse is refused here, in one
+        # line (parked 1987): 1988 lost a take to a traceback on an
+        # `--end-frame` below a staged `@` line's frame.
+        try:
+            live_session.parse_commands(args.cmd_file, args.end_frame)
+        except ValueError as exc:
+            ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
+    why = refused_detail(args.detail)
+    if why:
+        ap.error(why)
     # **The pool** (parked 1139; items 1568, 1569): `-` for the install and
     # the profile takes the first free lane, and the lane chooses both. A
     # lane named by `RON_CAPTURE_LANE` runs only on its own install and

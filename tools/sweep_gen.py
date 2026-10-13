@@ -69,8 +69,27 @@ Three shapes, each a `__thiscall` on `ecx`:
           value is eax) the same bytes and holds both the answer and every
           byte after to the original's. `--ret none` ignores eax.
 
+  obj, with windows (the thirty-first pass, Loop 1890's ninth to
+          thirteenth reaches): `--cell VA[:SIZE]` (repeatable) points the
+          global cell at VA at a fresh record of random bytes a row; `--at
+          VA:SIZE` writes a table of random bytes at VA itself (the image's
+          data); `--ptrarg IDX[:SIZE]` hands argument IDX a buffer of random
+          bytes; `--stub slot:OFF:NARGS` answers `this`'s vtable slot and
+          `--stub ADDR:NARGS` a direct callee, each with a value drawn per
+          row and printed after the arguments. A row is then `<args…
+          stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` and the
+          port's block sees `c: &mut [Vec<u8>]` (cells, then tables, in
+          order) and `p: &mut [Vec<u8>]` beside `a` and `m`; every byte
+          of every window is held.
+
+  void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
+          byte of the object held and `esp` checked after the return
+          (parked 1889).
+
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
-a `--mask` is `field` with the mask in the port.
+a `--mask` is `field` with the mask in the port. `vcall --own N` hands the
+function N stack arguments of its own, which the port reads as `p[..]`
+(1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
 the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
@@ -150,6 +169,9 @@ if __name__ == "__main__":
 
 VCALL_TAIL = '''
 
+OWN = {own}
+
+
 def main(argv):
     from hooks import Harness
     h = Harness(argv[1], {{}})
@@ -158,7 +180,7 @@ def main(argv):
         vt = h.vtable({{0x{slot:x}: ("slot", {nargs}, row[0], {tail})}})
         obj = h.alloc(0x400)
         h.w32(obj, vt)
-        r = h.call(ENTRY, (), ecx=obj)
+        r = h.call(ENTRY, row[1:], ecx=obj)
         handed = ",".join(str(a) for name, ecx, args, _ in h.calls for a in args)
         print(" ".join(str(x) for x in row) + f" -> {{r}}" + (f"  # slot handed {{handed}}" if handed else ""))
     return 0
@@ -288,6 +310,20 @@ def rows():
 }
 ROWS['cell'] = ROWS['outptr'] = ROWS['vcall'] = ROWS['field']
 
+# `vcall --own N`: the slot's answer, then N arguments of the function's own
+# (half drawn from the slot's answer, so an equality arm is reached).
+VCALL_OWN_ROWS = '''
+
+def rows():
+    rng = random.Random({item})
+    vs = list(INT_EDGES) + [rng.randint(-0x80000000, 0x7FFFFFFF) for _ in range(200)]
+    out = []
+    for v in vs:
+        own = [v if rng.random() < 0.4 else rng.randint(-0x80000000, 0x7FFFFFFF) for _ in range({own})]
+        out.append((v, *own))
+    return out
+'''
+
 TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, {shape}).
 
 /// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
@@ -319,7 +355,12 @@ BODIES = {
         let got: bool = {port};
         assert_eq!(got, want != 0, "{short} — row `{{line}}`");''', 800),
 }
-BODIES['cell'] = BODIES['outptr'] = BODIES['vcall'] = BODIES['field']
+BODIES['cell'] = BODIES['outptr'] = BODIES['field']
+BODIES['vcall'] = ('''        let v = i32::try_from(a[0]).expect("a 32-bit integer");
+        #[allow(unused_variables)]
+        let p: &[i64] = &a[1..];
+        let got: i64 = {port};
+        assert_eq!(got, want, "{short} — row `{{line}}`");''', 200)
 
 
 def _fwd_expr(tok):
@@ -616,7 +657,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from callfn import STACK_BASE, STACK_SIZE, signed  # noqa: E402
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 
 ENTRY = 0x{va:08x}
@@ -646,7 +687,7 @@ def main(argv):
                 args[idx] = int.from_bytes(mem[off:off + size], "little", signed=True)
         h.m.uc.mem_write(this, bytes(mem))
         guard = bytes(h.m.uc.mem_read(this + WIN, 0x20))
-        r = signed(h.call(ENTRY, tuple(args), ecx=this))
+        r = h.call(ENTRY, tuple(args), ecx=this)  # Harness.call signs eax; signed() again would double a negative
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
         assert bytes(h.m.uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
@@ -707,7 +748,182 @@ fn the_emulated_original_agrees_on_every_row() {{
 '''
 
 
-def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=()):
+OBJ_WIN_SCRIPT = '''#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+"""sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, obj with windows).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = a {win}-byte object of random bytes ({biasdoc}), {own} stack argument(s);
+{windoc}.
+One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
+answers follow the arguments, and the test holds every byte of every window.
+"""
+import os
+import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+WIN = {win}
+OWN = {own}
+BIAS = {bias!r}
+ARGSET = {argset!r}
+ARGFROM = {argfrom!r}
+CELLS = {cells!r}
+AT = {at!r}
+PTRARGS = {ptrargs!r}
+STUBS = {stubs!r}
+I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
+
+
+def rand32(rng):
+    return rng.choice(I32) if rng.random() < 0.5 else rng.randint(-0x80000000, 0x7FFFFFFF)
+
+
+def main(argv):
+    from hooks import Harness
+    rng = random.Random({item})
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for k, a, n in STUBS if k == "call"}})
+    uc = h.m.uc
+    slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
+    vt = h.vtable(slots) if slots else None
+    names = [f"slot{{a:x}}" if k == "slot" else f"{{a:x}}" for k, a, _ in STUBS]
+    base = h.brk
+    for i in range(220):
+        h.brk = base  # the bump heap is reused a row; 220 rows of windows outgrow it
+        this = h.alloc(WIN + 0x20)
+        mem = bytearray(rng.randrange(256) for _ in range(WIN))
+        for off, vals in BIAS:
+            v = rng.choice(vals) if rng.random() < 0.9 else rng.randint(-0x80000000, 0x7FFFFFFF)
+            mem[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
+        if vt is not None:
+            mem[0:4] = vt.to_bytes(4, "little")
+        args = [rand32(rng) for _ in range(OWN)]
+        for idx, vals in ARGSET:
+            args[idx] = rng.choice(vals) if rng.random() < 0.9 else args[idx]
+        for idx, off, size in ARGFROM:
+            if rng.random() < 0.45:
+                args[idx] = int.from_bytes(mem[off:off + size], "little", signed=True)
+        wins = []
+        for va, size in CELLS:
+            rec = h.alloc(size + 0x20)
+            buf = bytearray(rng.randrange(256) for _ in range(size))
+            uc.mem_write(rec, bytes(buf))
+            uc.mem_write(va, rec.to_bytes(4, "little"))
+            wins.append((rec, buf))
+        for va, size in AT:
+            buf = bytearray(rng.randrange(256) for _ in range(size))
+            uc.mem_write(va, bytes(buf))
+            wins.append((va, buf))
+        for idx, size in PTRARGS:
+            buf = h.alloc(size + 0x20)
+            b = bytearray(rng.randrange(256) for _ in range(size))
+            uc.mem_write(buf, bytes(b))
+            args[idx] = buf
+            wins.append((buf, b))
+        answers = [rand32(rng) for _ in STUBS]
+        for name, v in zip(names, answers):
+            h.answers[name] = v & 0xFFFFFFFF
+        uc.mem_write(this, bytes(mem))
+        guard = bytes(uc.mem_read(this + WIN, 0x20))
+        h.calls.clear()
+        r = h.call(ENTRY, tuple(args), ecx=this)  # Harness.call signs eax; signed() again would double a negative
+        esp = uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
+        before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
+        after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
+                         + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
+        shown = [str(a) for a in args] + [str(v) for v in answers]
+        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+OBJ_WIN_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, obj with windows).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {{
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}}
+
+#[allow(dead_code)]
+fn wr(m: &mut [u8], off: usize, v: i32) {{
+    m[off..off + 4].copy_from_slice(&v.to_le_bytes());
+}}
+
+fn unhex(s: &str) -> Vec<u8> {{
+    (0..s.len() / 2)
+        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
+        .collect()
+}}
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu): {doc}
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
+        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
+        let mut m = wins.remove(0);
+        let mut p: Vec<Vec<u8>> = wins.split_off({nc});
+        let mut c: Vec<Vec<u8>> = wins;
+        let want_eax: i64 = eax.trim().parse().expect("an integer");
+        let got: i64 = {{
+            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
+            let _ = (&a, &m, &c, &p);
+            {port}
+        }};
+{ret}
+        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
+        assert_eq!(m, want[0], "{short} — this's bytes, row `{{line}}`");
+        for (i, w) in c.iter().enumerate() {{
+            assert_eq!(w, &want[1 + i], "{short} — window c[{{i}}], row `{{line}}`");
+        }}
+        for (i, w) in p.iter().enumerate() {{
+            assert_eq!(w, &want[1 + {nc} + i], "{short} — window p[{{i}}], row `{{line}}`");
+        }}
+        n += 1;
+    }}
+    assert!(n >= 200, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+'''
+
+
+def _window(spec, default):
+    va, _, size = spec.partition(':')
+    return int(va, 0), int(size, 0) if size else default
+
+
+def _stub(spec):
+    parts = spec.split(':')
+    if parts[0] == 'slot' and len(parts) == 3:
+        return ('slot', int(parts[1], 0), int(parts[2]))
+    if len(parts) == 2:
+        return ('call', int(parts[0], 0), int(parts[1]))
+    raise ValueError(f'a stub is slot:OFF:NARGS or ADDR:NARGS, not {spec!r}')
+
+
+def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
+                 cells=(), at=(), ptrargs=(), stubs=(), doc=None):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = snake(name)
@@ -719,14 +935,46 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pfrom = [tuple(int(x, 0) for x in a.split(':')) for a in argfrom]
     port = port or f'todo!("the port of {name}")'
     biasdoc = ', '.join(f'+{o:#x} in {v}' for o, v in parsed) or 'no bias'
-    script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed, biasdoc=biasdoc, argset=pset, argfrom=pfrom)
     if ret == 'none':
         retcode = '        let _ = (got, want_eax);'
     else:
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
-    doc = f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
-    test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
+    pcells = [_window(c, 0x400) for c in cells]
+    pat = [_window(t, None) for t in at]
+    if any(size is None for _, size in pat):
+        raise ValueError('--at VA:SIZE names the table\'s size')
+    pptr = [_window(p, 0x100) for p in ptrargs]
+    if any(idx >= own for idx, _ in pptr):
+        raise ValueError('--ptrarg IDX names one of the --own arguments')
+    pstubs = [_stub(s) for s in stubs]
+    if not (pcells or pat or pptr or pstubs):
+        script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
+                                   biasdoc=biasdoc, argset=pset, argfrom=pfrom)
+        doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
+        test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
+        return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+    windoc = '; '.join(
+        [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
+        + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
+        + [f'argument {idx} names {size} random bytes' for idx, size in pptr]
+        + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
+           for k, a, n in pstubs]) or 'no windows'
+    script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
+                                   biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
+                                   cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs)
+    doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
+                  f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
+                  f'the stubs\' answers after the arguments).')
+    test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
+                               ret=retcode, nc=len(pcells) + len(pat))
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
+def generate_void(spec, *, item, own=0, win=0x40):
+    """An empty body (parked 1889): `obj` with no answer and every byte held."""
+    return generate_obj(spec, item=item, win=win, bias=[], own=own, ret='none', port='0',
+                        doc=f'an empty body: {win} random bytes of object and {own} argument(s), every byte held '
+                            f'after the return and `esp` checked (parked 1889).')
 
 
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False, own=0):
@@ -790,10 +1038,15 @@ def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slo
                                      nargs_or_zero=1 + nargs)
         what = what.replace('the object;', f'the object, whose callee object is at this+0x{via:x};')
     elif shape == 'vcall':
-        tail = VCALL_TAIL.format(slot=slot, nargs=nargs, tail=tail)
+        tail = VCALL_TAIL.format(slot=slot, nargs=nargs, tail=tail, own=own)
     else:
         tail = SCRIPT_TAIL.format(write=write, call=call.format(ecx=ecx))
-    rows_src = '' if (shape == 'vcall' and via is not None) else ROWS[shape].format(item=item)
+    if shape == 'vcall' and via is not None:
+        rows_src = ''
+    elif shape == 'vcall' and own:
+        rows_src = VCALL_OWN_ROWS.format(item=item, own=own)
+    else:
+        rows_src = ROWS[shape].format(item=item)
     script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item, what=what) + head
               + rows_src + tail)
     body, least = BODIES[shape]
@@ -811,7 +1064,15 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj', 'void'))
+    ap.add_argument('--cell-win', action='append', default=[], dest='cells', metavar='VA[:SIZE]',
+                    help='obj: the global cell at VA points at SIZE (default 0x400) random bytes a row')
+    ap.add_argument('--at', action='append', default=[], metavar='VA:SIZE',
+                    help='obj: SIZE random bytes written at VA itself (a table in the image\'s data)')
+    ap.add_argument('--ptrarg', action='append', default=[], metavar='IDX[:SIZE]',
+                    help='obj: argument IDX names SIZE (default 0x100) random bytes')
+    ap.add_argument('--stub', action='append', default=[], metavar='slot:OFF:NARGS|ADDR:NARGS',
+                    help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
@@ -845,7 +1106,10 @@ def main(argv=None):
         elif args.shape == 'obj':
             sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
                                                     own=args.own, ret='none' if args.ret == 'none' else 'eax', port=args.port,
-                                                    argset=args.argset, argfrom=args.argfrom)
+                                                    argset=args.argset, argfrom=args.argfrom, cells=args.cells,
+                                                    at=args.at, ptrargs=args.ptrarg, stubs=args.stub)
+        elif args.shape == 'void':
+            sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
                                                      own=args.own, ret=args.ret)

@@ -208,7 +208,9 @@ booking is a frame, never a promise to build a name.
   command, under the memory cap, with the fixture audit and the paperwork
   guards; that is the gate a landing names. **A worker's is the same
   line with `--lane --tests <the word's filters>`** — the brief names
-  the filters; the lane gate runs those, the fast tests and the guards,
+  the filters and adds every lobby's `first_parting` (parked 1910, 2000:
+  a fix on one map broke another lobby's floor and took a capture to
+  read); the lane gate runs those, the fast tests and the guards,
   and leaves the timed ones to the booking gate (item 1567: 703 s → 74
   s) — red only on the queue's lines — the commander's to write at the
   merge — it goes on to the guards and exits 0, and red on anything

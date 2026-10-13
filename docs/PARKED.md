@@ -3733,123 +3733,28 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2000) **The three lobbies' first partings in one line** (1937's Loop
-line): 1937's fix moved Great Sahara and broke the coverage pair 4730 →
-4206, which took a capture to read; the other lobbies' `first_parting`
-tests together run in about a dozen seconds. Candidate: a `tools/` line,
-or the lane gate's default filters, that runs every floor's
-`first_parting` beside the word's. One reach.
-
-(1987) **`golden_capture.sh` does not retake a take that died before
-frame 0** (1960's Loop line): run801's first take died on a Wine page
-fault with no `gamelog.txt`, and the retake was by hand under parked
-1150's rule. Candidate: one automatic retake when the take exits with no
-dump, the retake's receipt naming the first. One reach. **1988**: it
-refuses an `--end-frame` below a staged `@` line's frame with a traceback
-where a one-line hint would save a take. Two reaches.
-
-(1981) **A one-unit printer for a dump** (1948's Loop line): naming a
-unit by `TypeIndex` meant reading `decomp/enums/TypeIndex.txt` by hand,
-and the order kind and `GUY` `type` share a field name in a UNITDATA
-block; the lane wrote ten scratch parses (`blk.py`, `ord.py`). Candidate:
-`tools/gamelog/unitat.py <dump> <frame> <who/o>` printing one unit's
-kinds by name, path ends and inside/up links. One reach. **1982** wrote
-`units.py`/`th.py` again, and `RON_DEBUG_UNIT` has no theirs side: the
-printer should read our probe too. Two reaches.
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here.
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
 golden `order:group.id`/`order:patrol.id` rows came out of `want` lists
 by hand, and a `[]` want needs a type. Candidate: a `--drop-rows` mode
-that removes named rows from a `Vec<String>` want. One reach.
-
-(1959) **The coverage driver is a 49-slot tuple** (the commander, at
-1868's booking gate): 1905 and 1868 each added a window binding and its
-tuple member, both merged clean, and the destructuring pattern came out
-one `Some(_)` short — a compile red no lane gate could see (`a0bcf9f9`).
-Candidate: the driver walks a `Vec` of `Option` windows, so a window is
-one line. One reach.
-
-(1953) **A packet's unit address is a scratch scan** (1868's Loop line;
-1845 read `units.lists` by hand too): `step4.py` on a unit needs its
-address, found by scanning for `(x ^ 0x63637, y ^ 0x63637)` at `+0x10`.
-Candidate: `tools/recomp/unitaddr.py <packet> <x> <y>` (or a player and
-index). Third reach, so it graduates.
+that removes named rows from a `Vec<String>` want. One reach. **The thirty-first pass**: one reach; stays — a worker's on its next reach, the `Vec` want's type read off the const.
 
 (1947) **A widening past its word reports the tail's thousands** (1905's
 Loop line): run790's baseline is 12,582 keys because the replay diverges
 at 3805 and the window runs 212 blocks past it, so the pin reads "the
 tail" until the word nears the window's end. Candidate: a `firsts` print
-(and a pin) bounded at the word's frame plus five. One reach.
-
-(1931) **`unattended_capture.py` refuses `GROUPS` with `DEATHS` at one
-detail and says nothing of the pairing** (1863's Loop line; parked 1885):
-run791's first two takes died in `verify_game` before the lane dropped
-`GROUPS=1`. Candidate: the capture refuses the pairing up front with the
-reason, and the brief checklist says a chapter needing the death list
-drops the pool until 1885 is understood. One reach.
-
-(1910) **A lane gate's filters miss a word's other pairs** (the
-commander, at 1870's booking gate): 1870's lane gate ran
-`sahara_coverage:: floors::`; its change to `get_cost` and the market
-moved four widenings of the coverage pair (`coverage_pair.rs`, run715,
-716, 721, 754 — all closer), which no filter named, and the booking gate
-went red for a re-pin. Not counted as a kill-rule trip: the lane gate
-never ran them, the filters were the commander's, and every pin moved
-toward the original. Candidate: `brief.py --tests` adds every pair
-suite whose capture reads the module the word sits in, or the lane gate
-runs every `*_s_word_frame_is_widened_whole`. One reach.
+(and a pin) bounded at the word's frame plus five. One reach. **The thirty-first pass**: one reach; stays — the pin is the word's widening and a bound at the word plus five is a re-pin the lane whose word it is makes, not the pass blind.
 
 (1900) **`step4.py` has no "print each call's return" mode** (1870's
 Loop line): `--hook` on a gate's three call sites (`6c8124`, `6c8143`,
 `6c8152`) found `get_nuke_embargo`'s 719 — a SEAM that read as zero — in
 minutes, but each hook was an address picked by hand from the listing.
 Candidate: `--calls`, hooking every `call` in the entered function and
-printing callee and `eax` on return. One reach.
-
-(1890) **`sweep_gen.py` has no field-write or global-compare shape**
-(1866's Loop line): ten functions of one batch were `mov [ecx+N], imm;
-ret` or a compare against a global cell, and the lane hand-wrote a
-script head that also checks `esp` after `ret N` and that nothing else
-in the 4 KB around the object changed. Candidate: both shapes, and the
-`esp` and untouched-bytes checks in every generated script. Two reaches:
-1889 took ten empty-body voids (bare `ret N`) by a throwaway substitution
-of 1866's script, and asks for a `void` shape (a cdecl body relaxes the
-`esp` check by `4 * NARGS`). (`timeout` is still not on this machine,
-1856's and 1866's journals.) **1895** built a `fwd` shape (callees
-hooked, `ecx` and arguments held in order); a forwarder whose argument is
-a field of `this` still needs a `field` token (parked 1896). Three reaches. **1911** built a `walk` shape
-(a `walk_data`'s callback through the walker's slot 0, one line a
-function) and `fwd`'s `p1`/`p2` tokens; 1896's `field` token still owed. **1916** took nine
-of ten with one line each; the walk family's rest (`Hero`, `Special`,
-`Herds`, `Tribes`, `Lands`, `SpecialAnimOrder`) wants a `fwd` that mixes
-a call with an `Array::walk_data` callback, in order. Five reaches. **1921**
-built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
-return, as the original's `extraout_ECX` consumers read it, would take
-`Tribes`, `Lands`, `Herds` (parked 1922). Six reaches. **1932**: four
-of ten were hand scripts that store through fixed offsets of `this` —
-a `store` shape (parked 1933). Seven reaches. **1942**: nine of
-ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
-reaches — the shape the pass should build before the next sweep. **1954**
-built it as `obj` (parked 1955; nine of ten); a global cell's record, an
-out-pointer into the object and a `this` chain are still unshaped. Nine
-reaches. **1966**: five of ten would be one line under `obj` with hooked
-callees and global cells, and `fwd` still lacks its `field` token
-(parked 1967). Ten reaches. **1971**: three of ten are `vcall` through the
-object at `this+0x18`, a `--via` away from one line each, and a pointer
-field wants a second `obj` window (parked 1972). Eleven reaches. **1976**: six of ten read a record through a
-global cell — `--cell VA:OFF=field` repeated — and every script re-carries
-one header that belongs in `sweeplib` (parked 1977). Twelve reaches. **1993** built `vcall --via`/`--own`; four
-more read a world record through a global cell with `WCoord` pointer
-arguments — a `cell --ptrargs` (parked 1994). Thirteen reaches.
+printing callee and `eax` on return. One reach. **The thirty-first pass**: one reach; stays — `--calls` needs the function's own `call` sites off the listing (`retimm` has the shape), a worker's on its next reach.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
-
-(1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
-(1851's gate): passes alone, red once under the full gate. A flaky
-guard of the capture lane's lock is a guard nobody trusts. Candidate:
-reproduce under the gate's parallelism, then pin the pid it picks. One
-reach. **The thirtieth pass**: the test's lock carries the `stamp <pid> <lstart>` line now, so a pid the kernel hands out again under a full gate's spawning reads as stale, not as held — the one way a dead holder reads alive; hardened, not reproduced. Stays one tranche; closes on a tranche with no red.
 
 ## Loop, filed 2026-10-12 — the twenty-ninth tranche's
 
@@ -3861,16 +3766,9 @@ line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
 with a port consumer. Two reaches: 1724's ten had no port consumer at
 all, and its journal reads the small functions with one as nearly dry;
-1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach.
-
-(1739) **The dump prints a unit's orders as a stack** (1726's Loop
-line): last order first, so "the first order" read off it is reversed,
-and it cost the lane its first hour. Candidate: a `tools/` printer of a
-unit's orders in list order from the dump. One reach. **The twenty-ninth pass**: one reach; stays — a `tools/` printer of a unit's orders in list order, the lane's on the next reach. **The thirtieth pass**: no reach in twenty-three; one more tranche, then entry 54 closes it.
+1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach. **The thirty-first pass**: to Ramon a third time, with 1889's empty bodies as the sharpest case; the census's `size` is the decompile's, so an empty body is not detectable there without the listing.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
-
-(1601) **The race's Loop lines, (d) alone** (1565, 1581, the Sonnet racer's journals, 2026-10-07): a per-unit history of a key across a window, not its first parting only — reached by `att-1648-oh`'s 1653 (the twenty-eighth pass) and 1714's `queue:queued` extraction by hand (the twenty-ninth); it graduates into `tools/` on its third reach. (a) and (e) were frame rows; (b) closed into the births probe; (c), (f) and (g) closed at the thirtieth pass by entry 54, their text in `docs/audit/2026-10-13-fable-pass-30.md`. **The thirtieth pass**: no reach; stays one more.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
@@ -3885,7 +3783,7 @@ Whether that is a timing problem at the autostart or two tracer builds
 that do not combine is not known. Score: a `cover=1` capture and a
 lobby the autostart could not start, both on a pool lane with no
 cursor; then the queue lane goes and the pool is the only lane. One
-reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it.
+reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it.
 
 ## Loop, filed 2026-10-05 — the twenty-fourth pass's own
 
@@ -3906,7 +3804,7 @@ dated a 140-frame gap in one grep. And 1503's: `construct_hits` and
 `myhits` still uncompared — the second landing they would have dated
 sooner (The President's clock on 14363). And 1508's: a dumped field
 the crate carries under another name (`cast_target` for `cavarch_o`)
-read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119. **The twenty-eighth pass**: reached by 1651 (above, in 1119) and by `att-1648-sh`'s 1664 (`spell_time` carried unread again). Not built as a check; stays with 1119. **The twenty-ninth pass**: 1119 (ten passes, never built: the rules lane's compared pin under one recording) and 1702 (1673's `mana_burn`, 1497's `myhits`, the tell twice in one tranche) close into this row; the three were one claim, and 1616 (a seam built is checked against the field that would show it: `spell_time`, unread) closes in too. Not built as a check; the frame's row 6 stands. Stays, the one row for an unread key. **The thirtieth pass**: three journals of nine (1744, 1768, 1738) read `coverage.rs`'s list as the frame's row 6 asks; no landing's cause sat on it. Stays, the one row.
+read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119. **The twenty-eighth pass**: reached by 1651 (above, in 1119) and by `att-1648-sh`'s 1664 (`spell_time` carried unread again). Not built as a check; stays with 1119. **The twenty-ninth pass**: 1119 (ten passes, never built: the rules lane's compared pin under one recording) and 1702 (1673's `mana_burn`, 1497's `myhits`, the tell twice in one tranche) close into this row; the three were one claim, and 1616 (a seam built is checked against the field that would show it: `spell_time`, unread) closes in too. Not built as a check; the frame's row 6 stands. Stays, the one row for an unread key. **The thirtieth pass**: three journals of nine (1744, 1768, 1738) read `coverage.rs`'s list as the frame's row 6 asks; no landing's cause sat on it. Stays, the one row. **The thirty-first pass**: five of ten word lanes grepped `coverage.rs`'s list (transcripts), four journals name it; no landing's cause sat on it. Stays, the one row.
 
 ## Parked by item 1497, 2026-10-13 — the Temple's term
 

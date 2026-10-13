@@ -67,6 +67,18 @@ def cell(uc, va, ptr):
     uc.mem_write(va, struct.pack("<I", ptr))
 
 
+def answer_regs(answer, ecx, args):
+    """`(eax, ecx_out)` for a hooked callee's answer: a value, or a
+    function of `ecx` and the arguments, either of which may be a pair
+    `(eax, ecx)` — `Tribes`, `Lands` and `Herds` read a callee's `ecx` on
+    return, the decompiler's `extraout_ECX` (parked 1922, Loop 1890's sixth
+    reach), which an answer that sets `eax` alone cannot feed."""
+    out = answer(ecx, args) if callable(answer) else answer
+    if isinstance(out, tuple):
+        return out[0], out[1]
+    return out, None
+
+
 def xmm_bits(value, raw=False):
     """The low lane of an xmm register for a float argument (parked 1867:
     `Guy::set_bank`/`set_pitch` take a float in `xmm1`): a Python float's

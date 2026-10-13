@@ -70,6 +70,62 @@ class Shapes(unittest.TestCase):
         self.assertIn('from sweeplib import', script)
         self.assertIn('let got: i64 = i64::from(v);', test)
 
+    def test_a_void_is_an_object_held_to_its_bytes(self):
+        # Parked 1889 (Loop 1890's second reach): ten empty bodies were a
+        # throwaway substitution of 1866's script; a void is `obj` with no
+        # answer, every byte of the object held, `esp` checked after `ret N`.
+        sp, script, tp, test, mod = sweep_gen.generate_void('Foo::bar@00401000', item=1889, own=2)
+        compile(script, str(sp), 'exec')
+        self.assertIn('OWN = 2', script)
+        self.assertIn('wrote past the window', script)
+        self.assertIn('wrong pop', script)
+        self.assertIn('let _ = (got, want_eax);', test)
+        self.assertIn('an empty body', test)
+
+    def test_an_object_with_a_cell_a_table_a_pointer_argument_and_a_stub(self):
+        # Parked 1955, 1967, 1972, 1977 and 1994 (Loop 1890's ninth to
+        # thirteenth reaches): a record through a global cell, a table at a
+        # fixed address, a buffer a pointer argument names, and a callee
+        # stubbed per row, each hand-written again by the sweep lanes.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=1994, win=0x40, bias=[], own=2,
+            cells=['0xc061d0:0x200'], at=['0xc06afc:0x100'], ptrargs=['1:0x20'],
+            stubs=['slot:0x138:0', '0x00401234:2'], port='rd(&c[0], 4) + rd(&p[0], 0) + i64::from(a[2])')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CELLS = [(12607952, 512)]', script)
+        self.assertIn('AT = [(12610300, 256)]', script)
+        self.assertIn('PTRARGS = [(1, 32)]', script)
+        self.assertIn("STUBS = [('slot', 312, 0), ('call', 4198964, 2)]", script)
+        self.assertIn('from hooks import Harness', script)
+        self.assertIn('wrote past the window', script)
+        self.assertIn('let mut c: Vec<Vec<u8>>', test)
+        self.assertIn('let mut p: Vec<Vec<u8>>', test)
+        self.assertIn('rd(&c[0], 4) + rd(&p[0], 0) + i64::from(a[2])', test)
+        self.assertIn('window c[{i}]', test)
+        # The plain `obj` keeps its row format: one window, no `;`.
+        sp, script, tp, test, mod = sweep_gen.generate_obj('Foo::bar@00401000', item=1994, win=0x40, bias=[], own=1)
+        self.assertNotIn('CELLS', script)
+        self.assertNotIn('Vec<Vec<u8>>', test)
+
+    def test_a_vcall_may_take_the_function_s_own_arguments(self):
+        # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
+        # with its own `p0`; the plain `vcall` had no `--own`.
+        script, test = self.check('vcall', 'BuildTypeData::has_stance_type@00639770',
+                                  slot=0x138, nargs=0, own=1, port='i64::from(v == p[0] as i32)')
+        self.assertIn('OWN = 1', script)
+        self.assertIn('row[1:]', script)
+        self.assertIn('let p: &[i64] = &a[1..];', test)
+
+    def test_an_answer_may_set_ecx_on_return(self):
+        # Parked 1922 (Loop 1890's sixth reach): `Tribes`, `Lands` and
+        # `Herds` read a hooked callee's `ecx` on return (the decompiler's
+        # `extraout_ECX`); an answer that is a pair sets both registers.
+        import sweeplib
+        self.assertEqual(sweeplib.answer_regs(7, 1, []), (7, None))
+        self.assertEqual(sweeplib.answer_regs((7, 0x1234), 1, []), (7, 0x1234))
+        self.assertEqual(sweeplib.answer_regs(lambda ecx, args: ecx + args[0], 5, [2]), (7, None))
+        self.assertEqual(sweeplib.answer_regs(lambda ecx, args: (ecx, args[0]), 5, [2]), (5, 2))
+
     def test_a_virtual_call_shape(self):
         # Five lanes laid a fake vtable whose slot answers the row's value;
         # the generated script uses `tools/emu/hooks.py`'s Harness.

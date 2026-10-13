@@ -709,6 +709,36 @@ struck; the chapter kind stands at 12,979 of 13,000.
 - **A `Pair`'s word is a const field `repin.py` rewrites** (1767): three
   re-pins of the successor pair's word were hand edits.
 
+## The brief checklist, from the thirty-first pass
+
+The thirty-first tranche (DECISIONS 68): twenty-three landings on four
+Sonnet 5.5 medium lanes in 4 h 33 min, 3.56 USD and 24.9 minutes waiting
+a landing, seven captures. The pass added these rows, each from the
+tranche's own journals.
+
+- **The lane gate carries every lobby's `first_parting`** (1910, 2000):
+  1937's fix moved Great Sahara and broke the coverage pair's first
+  parting 4730 → 4206, read by a capture; 1870's moved four coverage-pair
+  widenings no filter named. `brief.py` adds the filter to a word's.
+- **One unit out of a dump is `unitat.py`** (1981, 1739, 1601): four
+  lanes wrote the parser; the type by name, the path's ends, the orders
+  first issued first where the dump prints the top first, and a window's
+  changes.
+- **A unit's packet address is `unitaddr.py`** (1953): three lanes
+  scanned for the masked pair by hand.
+- **The runner retakes a take that died before frame 0 once, refuses a
+  staged line past `--end-frame` in one line, and refuses `GROUPS`
+  beside `DEATHS` before staging** (1987, 1885, 1931): run801's first
+  take, 1988's lost take, run791's two takes.
+- **`sweep_gen.py` has `obj` with windows, `void`, `vcall --own` and an
+  answer that sets `ecx`** (1890, 1922): thirteen reaches of one Loop
+  item, every batch of the tranche a hand-written script of one of
+  these shapes; three generated scripts ran against the executable in
+  the pass, 220 rows each, agreeing.
+- **The coverage driver's windows are a slice** (1959): two lanes each
+  added a tuple slot and the merged pattern was one short, a compile red
+  no lane gate saw.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

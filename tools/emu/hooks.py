@@ -27,6 +27,7 @@ import struct
 import subprocess
 
 from callfn import Image, Machine
+from sweeplib import answer_regs
 from unicorn import UC_HOOK_CODE
 from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_ESP
 
@@ -104,10 +105,13 @@ class Harness:
             ret = struct.unpack("<I", uc.mem_read(esp, 4))[0]
             args = list(struct.unpack(f"<{nargs}i", uc.mem_read(esp + 4, 4 * nargs))) if nargs else []
         ecx = uc.reg_read(UC_X86_REG_ECX)
-        ans = self.answers.get(name, 0)
-        eax = ans(ecx, args) if callable(ans) else ans
+        eax, ecx_out = answer_regs(self.answers.get(name, 0), ecx, args)
         self.calls.append((name, ecx, args, eax))
         uc.reg_write(UC_X86_REG_EAX, eax & 0xFFFF_FFFF)
+        if ecx_out is not None:
+            # An answer `(eax, ecx)` leaves `ecx` as a real callee would
+            # (parked 1922); the register is otherwise the callee's own.
+            uc.reg_write(UC_X86_REG_ECX, ecx_out & 0xFFFF_FFFF)
         uc.reg_write(UC_X86_REG_ESP, esp + 4 + 4 * nargs)
         uc.reg_write(UC_X86_REG_EIP, ret)
 

@@ -51,7 +51,12 @@ KINDS = {
 TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track'}
 # The lane gate's filters every word lane runs (parked 1623): a widening
 # puts its window in the coverage driver, so `coverage::` is a word's own.
-ALWAYS_TESTS = {'residue': ('coverage::',), 'chapter': ('coverage::',), 'sweep': ('sweep::',)}
+# And every lobby's `first_parting` (parked 1910, 2000, the thirty-first
+# pass): 1937's fix moved Great Sahara and broke the coverage pair's first
+# parting 4730 -> 4206, which took a capture to read; the three run in a
+# dozen seconds together. A sweep moves no word and runs neither.
+ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting'), 'chapter': ('coverage::', 'first_parting'),
+                'sweep': ('sweep::',)}
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()

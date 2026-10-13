@@ -12,18 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirty-first tranche closed at twenty-three landings** (`45cf8c6b`..
-here; every lane Sonnet 5.5 medium). **The headline moved**: successor pair 2838 → 3632
-(1868, 1948, 1982); Great Sahara 3182 → 3825 (1870, 1905, 1937); ch57, ch59 closed, ch58
-on the disk, ch60's 1961–1962 closed (1988); census 319 → 449. No kill rule. Three booking
-gates red on merges meeting, each a second commit (Loops 1910, 1959); 1937 and 1982
-conflicted in `mongol_pair.rs` (one word's run re-pinned twice), went back through `ccc
-update --keep-conflicts`; 1937 and 1988 cleared at 301 k; 1960's re-filed 1887 caught.*
+*2026-10-13, **the thirty-first pass closed the thirty-first tranche** (`45cf8c6b`..
+`aed28f3c`, twenty-three landings, every lane Sonnet 5.5 medium): 3.56 USD and 24.9
+minutes waiting a landing, seven captures; both words moved (successor pair 2838 → 3632,
+Great Sahara 3182 → 3825), chapters 57 and 59 closed, census 319 → 449; the battery
+576 / 6566 / 2974 unmoved a seventh tranche. The pass built ten Loop items — the sweep
+generator's windows and `void`, `unitat.py`, `unitaddr.py`, the runner's retake and
+refusals, every lobby's `first_parting` in a word's lane gate, the coverage driver's
+slice — closed one, filed 2003; `docs/audit/2026-10-13-fable-pass-31.md`, DECISIONS 68.*
 
-- **No lanes live**: the tranche drained. Next 2003, run 809, AI §204, GOLDEN §74,
-  slot U. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
-  The AI stub pool is down to §204 and the park pool to U–Z: refill both.
-- **Fable backlog: 17 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965, 1981, 1987, 2000).
+- **No lanes live**: the thirty-second tranche opens here. Next 2004, run 809, AI §204,
+  GOLDEN §74, park slot U (pools: U–Z, AI §205–§209, GOLDEN §75–§79). Notes:
+  `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+- **Fable backlog: 7 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,11 +37,11 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-first pass, on `steer` — measure the thirty-first
-tranche (`45cf8c6b`.. this commit, twenty-three landings, `tools/tranche.py`),
-ratify the marked rows, rule the seventeen Loop items (1890 at thirteen
-reaches: the sweep generator's shapes), refill the stub pools, rewrite this
-file and the loop's clauses, then `ccc clear commander`.**
+**Opener: the thirty-second tranche, on `commander` — spawn the four lanes
+on 2001, 1999, 1998 and 2002, one each, Sonnet 5.5 medium (`ccc spawn
+--model 'claude-sonnet-5-5[1m]' --effort medium`), park slots U, V, W, X
+in that order; the next number is 2004, the next run 809; count landings from this commit
+and stop at twenty with the handoff written, then `ccc clear steer`.**
 
 ## The queue
 

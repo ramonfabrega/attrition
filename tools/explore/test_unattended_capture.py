@@ -7,6 +7,7 @@ from unittest.mock import patch
 import json
 import os
 import subprocess
+import sys
 import unattended_capture as runner
 
 
@@ -188,6 +189,42 @@ class RunnerTest(unittest.TestCase):
         # A level of zero asks for nothing.
         log.write_text(' MAP_STYLE 18\nBEGIN FRAME 37\n GameInfo closing\n')
         self.assertEqual(runner.verify_game(log,18,36,detail=['end:GROUPS=0'])['groupdata_blocks'],0)
+
+    def test_groups_with_deaths_at_one_detail_is_refused_before_the_launch(self):
+        # Parked 1885 and 1931: run791's first two takes died in the
+        # verifier because `GROUPS=1` beside `DEATHS=1` at one section
+        # prints no GROUPDATA; the pairing is refused before anything is
+        # staged, and the refusal names the parked row.
+        self.assertIsNone(runner.refused_detail(None))
+        self.assertIsNone(runner.refused_detail(['end:GUYS=4,GROUPS=1']))
+        self.assertIsNone(runner.refused_detail(['end:GROUPS=1','start:DEATHS=1']))
+        self.assertIsNone(runner.refused_detail(['end:GROUPS=0,DEATHS=1']))
+        why=runner.refused_detail(['end:GUYS=4,GROUPS=1,DEATHS=1'])
+        self.assertIn('1885',why)
+        self.assertIn('GROUPS',why)
+        self.assertIn('DEATHS',why)
+
+    def test_a_take_that_exits_with_no_gamelog_is_retaken_once(self):
+        # Parked 1987: run801's first take died on a Wine page fault before
+        # frame 0, with no gamelog.txt, and the retake was by hand under
+        # parked 1150's rule. One retake, never a second.
+        report={}
+        self.assertIsNone(runner.exit_verdict(report,False))
+        self.assertEqual(runner.exit_verdict(report,True),'retake')
+        report['retaken_after_exit_seconds']=12.0
+        self.assertIsNone(runner.exit_verdict(report,True))
+
+    def test_a_staged_line_past_the_end_frame_is_one_line_not_a_traceback(self):
+        # Parked 1987 (1988's reach): `--end-frame` below a staged line's
+        # frame died with a traceback where a one-line hint saves a take.
+        cmd=self.root/'chapter.cmd'
+        cmd.write_text('100 !quit\n640 @walk 1\n')
+        r=subprocess.run([sys.executable,runner.__file__,'-',str(self.root/'out'),'-',
+                          '--end-frame','100','--cmd-file',str(cmd)],capture_output=True,text=True)
+        self.assertEqual(r.returncode,2,r.stderr)
+        self.assertNotIn('Traceback',r.stderr)
+        self.assertIn('640',r.stderr)
+        self.assertIn('--end-frame',r.stderr)
 
     def test_starting_groups_do_not_satisfy_a_later_window(self):
         log=self.root/'game.log'
