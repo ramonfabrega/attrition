@@ -360,19 +360,6 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
-    // The Dragoon's `CHAR_ATTACKWALK` release (`docs/GOLDEN.md` §65, run772's
-    // round on 1004: the figure at (44708, 29828) turned 68°, the round at
-    // (44857, 29798) and 205 over the figure).
-    (
-        491,
-        10,
-        12,
-        Bay {
-            right: 27720,
-            fwd: 150040,
-            dz: 205,
-        },
-    ),
     // King's Yeomanry: run586 get_position sweep, checked against
     // run587's actual arrows (COMBAT §87, item 1436).
     (

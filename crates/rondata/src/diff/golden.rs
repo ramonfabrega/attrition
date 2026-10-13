@@ -13544,13 +13544,6 @@ const WANT_CH53: &[&str] = &[
     "641 0/8 order:group.id",
     "641 0/9 order:group.id",
     "943 0/6 death:extra",
-    "963 0/31 g.des_turret0[0]",
-    "965 0/31 g.turret0[0]",
-    "1068 0/31 g.node_flags[0]",
-    "1100 0/31 ammo[0]",
-    "1100 1/8 damage_frame",
-    "1100 1/8 hits:damage",
-    "1100 1/8 hits_left",
 ];
 
 const WANT_CH53_POOL: &[&str] = &[
