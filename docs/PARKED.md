@@ -3818,7 +3818,8 @@ in four scripts. And the generator has no `this - K` shape, which four
 lanes have hand-copied. Candidate: fix the `TYPE` base and add the
 shape, with a test made to fail first. Two reaches: 1760 needed a
 "global cell" / "global address" shape for the `get_scary_*` family, the
-second lane in a row to.
+second lane in a row to; 1766 hand-wrote it a third time, and wants a
+"flag byte over 256 values" shape too.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
