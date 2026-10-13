@@ -4283,6 +4283,22 @@ impl Sim {
         // SEAM: the `ATTACK` retarget (`find_new_target` every 4 frames)
         // is the arm above this one and is dormant; no capture has reached
         // it.
+        if std::env::var_os("RON_PROBE_2066").is_some()
+            && self.units[u].search.is_some()
+            && let Some(k) = self.action_of(u)
+            && matches!(self.units[u].orders[k].body, Body::Attack(_))
+        {
+            let elapsed = frame - self.units[u].collide_frame;
+            let who = self.units[u].owner as usize;
+            let cap = self.squad_captain(u);
+            eprintln!(
+                "PROBE2066 C f{frame} {}/{} captain={} elapsed={elapsed} fires={} repaths={} mandatory={} tgt={:?} cap_tgt={:?}",
+                self.units[u].owner, self.units[u].index, self.units[u].captain,
+                elapsed > 0 && elapsed % 4 == 0 && self.repaths[who] != 0 && !self.units[u].combat.mandatory,
+                self.repaths[who], self.units[u].combat.mandatory, self.units[u].combat.target,
+                self.units[cap].combat.target
+            );
+        }
         if self.units[u].search.is_some() {
             let elapsed = frame - self.units[u].collide_frame;
             // **The `GATHER` park** (`docs/COLLISION.md` §15, item 698):
@@ -8757,6 +8773,23 @@ impl Sim {
         // order. This one runs on the attack step of a unit that already
         // has an order, and it is why a squad does not lose a frame each
         // time its captain retargets.
+        if std::env::var_os("RON_PROBE_2066").is_some()
+            && !self.units[u].captain
+            && self.units[u].collide_frame >= frame - 1
+        {
+            let cap = self.squad_captain(u);
+            if cap != u
+                && let Some(k) = self.action_of(cap)
+                && matches!(self.units[cap].orders[k].body, Body::Attack(_))
+                && self.units[cap].combat.target != self.units[u].combat.target
+            {
+                eprintln!(
+                    "PROBE2066 B f{frame} {}/{} mine={:?} cap_tgt={:?} collide={}",
+                    self.units[u].owner, self.units[u].index, self.units[u].combat.target,
+                    self.units[cap].combat.target, self.units[u].collide_frame
+                );
+            }
+        }
         if !self.units[u].captain && self.units[u].collide_frame < frame - 1 {
             let cap = self.squad_captain(u);
             if cap != u
@@ -8859,6 +8892,17 @@ impl Sim {
                 drop = self.rng.roll() & 1 != 0;
             }
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
+                if std::env::var_os("RON_PROBE_2066").is_some() {
+                    let cap = self.squad_captain(u);
+                    let ct = self.units[cap].combat.target;
+                    let ck = self.action_of(cap).map(|k| self.units[cap].orders[k].index());
+                    let head = self.melee_squad_head(u);
+                    eprintln!(
+                        "PROBE2066 A f{frame} {}/{} captain={} tgt={target:?} cap={}/{} cap_action={ck:?} cap_tgt={ct:?} head={head:?} collide={}",
+                        self.units[u].owner, self.units[u].index, self.units[u].captain,
+                        self.units[cap].owner, self.units[cap].index, self.units[u].collide_frame
+                    );
+                }
                 self.kill_current_order(u);
                 // The squad head first (item 2032, `docs/GOLDEN.md` §74).
                 self.find_melee_target_headed(u);
