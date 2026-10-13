@@ -9138,6 +9138,17 @@ impl Sim {
             return false;
         }
         self.store_attack(u, a);
+        if std::env::var("RON_PROBE1937").is_ok() {
+            eprintln!(
+                "PROBE1937 u{u} ai {} siege {} atk {} tr {} mr {} inr {}",
+                self.unit_ai_bit(self.units[u].owner),
+                self.profile(Obj::Unit(u)).siege,
+                self.profile(target).attack,
+                self.max_range_of(target),
+                self.max_range_of(Obj::Unit(u)),
+                self.is_in_range(target, Obj::Unit(u))
+            );
+        }
         if self.unit_ai_bit(self.units[u].owner)
             && self.profile(Obj::Unit(u)).siege
             && let Obj::Building(_) = target
