@@ -4147,7 +4147,7 @@ gates the release; "no bay" was the wrong mechanism.
 index 8): `TypeIndex` 322, ours stands it idle from 2178, after `Unit::work`'s `building_slot_reused` kills `[ExploreTo, Build(50)]` on
 2177 (`buildings[50]` is the closed `1/2043`; a new `1/2043` is born that frame at (26208, 24672)); theirs holds a nine-step walk to
 (35736, 24984) by 2201. Brief: a packet at 2178 and `step4.py` on the unit's `think` (run785 is reserved), or a window around 2170,
-before any reading; killers in `docs/AI.md` §194. Not built.
+before any reading; killers in `docs/AI.md` §194. ~~Not built.~~ **Answered by item 1845** (`docs/AI.md` §195): `think_carry`'s worker arm.
 
 ## Parked by item 1798, 2026-10-13 — chapter fifty-five
 
@@ -4164,6 +4164,18 @@ and a General on a cell centre sent 1–3 or 2000 units either way never spend a
 (1806) **Closed by 1829** (run786, GOLDEN §68: a Hoplite squad on 763). **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
 (`research` true), but `research && false` exits 0 — it needs `found` to be a
 different, in-reach unit than the held non-combat-role one.
+
+## Parked by item 1845, 2026-10-13 — the Freighter's walk
+
+(1847) **`Unit::think_carry`'s unmodelled arms** (1845; `docs/AI.md` §195): `think_carry_idle@005f2f30` (a transport with nothing of
+either kind aboard), the attack-carrier arm, `think_carry_military@005f3260` (the `(0)` call's fall-through), and
+`Group::action_eject_all` on a one-boat group (the shore arm's last step) all answer no / keep the cargo. The successor pair's
+word moved to 2838, ours 101 draws against 16 on index 1 (`Guy::set_anim < Unit::do_idle` against `Guy::do_turn < Unit::move_step`) —
+a frame and a delta; whether the eject is on it is the next item's widening to say. Not built.
+
+(1848) **The successor pair's word 2838, widened whole** (1845): ours 101 draws against 16, index 1 — run780 ends at 2457, so a capture over
+`--log-window 2832 3089` at the long's detail (the lobby of run774..776) is the widening, and the first item on the word compares every dumped
+record on 2838 both directions before any mechanism is named (`docs/AI.md` §195's hypothesis, the boat's arrival, is a hypothesis).
 
 ## Parked by item 1829, 2026-10-13 — chapter fifty-six
 

@@ -16169,6 +16169,20 @@ before frame 0 on the script (`live_session.parse_commands`: frame 640 below 712
 kept in `~/ron-golden/ch55/map-14`. **What it holds**: `golden::chapter_fifty_five_holds_to_the_golden_word` (**1010**, the trace's end)
 and `chapter_fifty_five_s_word_frame_is_widened_whole` (605..1011, 14 rows, no pool row).
 
+## run785 — the successor pair: a packet at logger frame 2178, the idle Freighter's walk (2026-10-13, item 1845, `att-1845`)
+
+`docs/AI.md` §195. **What the disk could not answer**: what gives the Freighter `1/72` its walk to (35736, 24984) — run780 starts at 2201 and
+no dump before it held the unit (parked 1800); run788 unused. run780's recipe through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 2185 --timeout 3600 --log-window 2174 2182 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0 --tracer-def RON_STATE_FRAME=2178 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, pool lane 2, `success: true`, 2186 frames, 54.8 s launch to exit, seed 12345, map 18,
+five files restored. `rngcmp.py rontrace-run775.log` against its trace: **2186 in common, 0 differing**. Minutes waited on another lane's
+capture: none.
+
+Packet `~/ron-golden/run785/map-18/frame-snapshot.bin`, 948,454,012 bytes, SHA-256 `8ad5774f82720a345418b831a33282096e2a6c3afe10164ea44dde2863a89aaf`;
+the window's dump `gamelog.txt` beside it (blocks 2174..2181 hold `1/72`: still on 2178 and 2179, turning on 2180). On the packet
+(`step4.py --entry 5f6e40 --this 13e3947c`, `idle` byte 1): `Unit::think` enters `think_carry` → `think_carry_civilian(1)` and writes
+(35736, 24984). **What it holds**: no widening test (the window is five blocks); the diagnosis of §195.
 ## run786 — chapter fifty-six: M6's other arm, a Hoplite squad on 763 (2026-10-13, item 1829)
 
 `docs/GOLDEN.md` §68, `tools/gamelog/golden/chapter56.cmd` (7 staged lines). **What the disk could not answer**: run783 holds M6 only

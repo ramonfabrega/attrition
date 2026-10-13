@@ -18803,12 +18803,51 @@ say, and no dump on disk does.
 **Not established.** Everything about what theirs does to `1/72` between 2172 and 2201; the first-block rows of the window are the
 control's start set and are read, not diffed, against anything else; no mutation was run (no mechanism was built).
 
-## 195. Reserved for the next item on the AI track
+## 195. The Freighter's walk: `Unit::think_carry`'s worker arm, and the successor pair's word moves 2207 → 2838 (2026-10-13, item 1845)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 2207, 9 draws ours against 8, index 8: the idle anim draw of the Freighter `1/72` (§194, parked 1800).
+
+**What the disk could not answer, and the packet that did (run785).** No dump before 2201 printed `1/72` in theirs. run785 is run780's lobby with
+`--tracer-def RON_STATE_FRAME=2178` and item 597's plan (`docs/RUNS.md`): a packet at logger frame 2178 (the state after tick 2177) **and**
+a `--log-window 2174 2182` that prints the unit on the five blocks before 2201 — theirs holds the unit still on 2178 and 2179 at
+(29639, 32249) and turns it on **2180** (angle `-768278528` → `390856704`), moving from there. So the walk begins on **tick 2179**, the frame after
+the unit's first idle frame (`idle == 1` on 2178), not on a 32-phase think.
+
+**On the packet** (`tools/recomp/step4.py` entered at `Unit::think@005f6e40` with `this` = `units.lists[1][72]`, `fs:` from the capturing
+thread; a scratch copy of step4 pokes `game->frame` and the idle byte): with the unit's `idle` byte 1 the think runs 26,456 instructions and enters
+`Unit::think_carry@005f2ee0` → `think_carry_civilian(1)@005f37c0` → `find_angle`, `update_action`, a `MOVE_TO` add, and **writes the unit's
+destination (35736, 24984)** — exactly §194's `MOVEORDER`. With `idle` 0 it returns in 172 instructions on every frame 2178..2201 but 2200. `think_carry_civilian`'s argument is 1: the Freighter carries a unit of `is_worker` (`unit.inside_down` 37 on the packet).
+
+**The mechanism.** `Unit::think`'s tail, after `think_merchant` and the `leader_flags & 8` exit (never set here), asks `think_carry` for a type
+whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRCRAFTCARRIER`; a `1` ends the think. This crate had no
+`think_carry`, so every transport fell through to the tail's army join. `think_carry` itself:
+
+- `count_inside(COUNT_WORKERS)` non-zero → `think_carry_civilian(1)`; `count_inside(COUNT_TYPE, 0x45)` non-zero → `(0)`;
+  otherwise `count_inside(COUNT_ATTACK) == 0` → `think_carry_idle@005f2f30`, else the attack-carrier arm. **Not modelled** (SEAM; answers
+  no, as before): `think_carry_idle`, the attack arm, and `think_carry_military@005f3260`, the `(0)` call's fall-through.
+- `think_carry_civilian`: every land region of size, `go_here` (bit 1 only for workers), `Region::is_coast(r, the boat's own tregion)`
+  (a `(0)` call also skips a region its leader has scouted); the region's cells strided `max(16, size/50)` and phased by `o + frame` as
+  `think_civilian_transport` (§7); a cell is any `coast_here(r, my region)` ≠ 0 — **no water-half test**; the score is `vector_dist ×
+  max(1, danger)` (`/3` for bit 1, `/2` for bit 2 on a `(0)` call). Then: no region → no; **no cell of the boat's nine (its own and its
+  eight neighbours) in the region** → `MOVE_TO` the chosen cell **plus `MOVE[d]`** with `d` the **last** `coast_here` answer of the whole
+  search, whichever region produced it (`move_x[local_48]`; nothing resets it) — the merchant's inlined `add_move_order(…, QUEUE_NEW)`;
+  **a neighbour in the region** → the sixteen quarter-cells of the boat's cell scored against that neighbour's centre, the nearest walked to,
+  or, when the boat stands in it, `Group::action_eject_all` (**SEAM**: the boat answers yes and keeps its cargo).
+- The listing settles two things the export hides: `find_angle`'s arguments are `(x − ux, y − uy)` to the **unsnapped** centre (§4.3), and
+  the two direction tables (`0xadc400`, `0xadcaf0`) are `MOVE_Y`, `MOVE_X` (`ai_place`), read off the packet.
+
+**Value diff beside the word.** Frame 2201's rows for `1/72` (`pos`, `orders_x`, `orders_y`, the order) now agree with theirs; the one
+remaining `1/72` row is the `form` standing row (ours −1, theirs 0, in the widening's own list). `run780_s_word_frame_is_widened_whole`: **897 → 136
+keys** on blocks 2201..2457. **The word moves 2207 → 2838**, ours 101 draws against 16 on 2838, index 1: ours `Guy::set_anim <
+Unit::do_idle+0x7d`, theirs `Guy::set_anim < Guy::do_turn+0x4a < Unit::move_step+0x389` (the one hypothesis the numbers allow: the
+boat's arrival, 637 frames after the walk's start, which is the unmodelled eject above — a frame and a delta, not a booking of it).
+
+**Killers, each a mutation** (`tools/mutate.py`): the worker arm returned `false` — held by `a_boat_with_a_worker_aboard_walks_to_a_free_shore`;
+`last_dir = 0` (the last-answer offset) — held by `mongol_pair::` (the word falls back); the quarter-cell origin shifted by one — held by
+`a_boat_beside_the_land_walks_to_its_nearest_quarter_cell` (first run: **failed nothing**, which is why that test exists).
+
+**Not established.** The cadence against theirs beyond the one boat; the `(0)` call, the idle and attack arms, the eject; the region *slot*
+order (dense here, as §7's seam); `danger` has no writer here, so the score's second factor is 1; no eject was reached by any capture.
 
 ## 196. Reserved for the next item on the AI track
 
