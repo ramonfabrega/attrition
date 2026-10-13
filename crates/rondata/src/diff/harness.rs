@@ -678,6 +678,33 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **The Terra Cotta Army's clock** (item 1664, `docs/AI.md` §182):
+        // `BuildData::recharging`, `FREE x 15` from activation, counted down a
+        // frame at a time and reset to 450 plus a share per Barracks-line
+        // unit when a soldier is trained. Compared on the finished wonder
+        // alone (`orig_type` 529 = `0x211`, `flags & 4`): a tower's or a
+        // silo's reload is this crate's too, and no capture has diffed it,
+        // and a site under construction counts the same field *up* with its
+        // `job_counter` (Great Sahara's `1/2055` on run718, 1 on 2358, 5 on
+        // 2362: a writer this crate does not carry).
+        if b.orig_type == Some(529)
+            && b.flags & 4 != 0
+            && ours.active
+            && let Some(theirs) = b.recharging
+        {
+            r.build_compared += 1;
+            compared::note("BuildDump", &["recharging"]);
+            if i64::from(ours.recharging) != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "recharging",
+                    ours: i64::from(ours.recharging),
+                    theirs,
+                });
+            }
+        }
         // **Its hit points** (item 763, parked 728): `damage` and
         // `damage_frac` were parsed and compared by no site, so a building
         // taking a bomb was quiet on every window — run223's Barracks goes

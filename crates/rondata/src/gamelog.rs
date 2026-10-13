@@ -2304,6 +2304,12 @@ pub struct BuildDump {
     /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
     /// live. Written from **`BUILDS=1`**; `None` below it.
     pub queued: Option<i64>,
+    /// `BuildData::recharging` (`+0x7a`), at `BUILDDATA`'s own indent: the
+    /// Terra Cotta Army's free-soldier clock (and a tower's or silo's
+    /// reload). Parsed for item 1664; compared on the Terra Cotta Army only
+    /// (`orig_type` 529), because this crate writes the others' from the
+    /// fight and the launch and nothing diffs those yet.
+    pub recharging: Option<i64>,
     /// `BuildData::city` and `city_down` — the slot, **in the owner's own
     /// city array**, of the city this building belongs to (`−1` for none),
     /// and the next building down that city's member chain by object
@@ -3437,6 +3443,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         ever_seen: wall.and_then(|w| w.int("ever_seen")),
         ever_seen_completed: wall.and_then(|w| w.int("ever_seen_completed")),
         queued: b.int("queued"),
+        recharging: b.int("recharging"),
         city: b.int("city"),
         city_down: b.int("city_down"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
