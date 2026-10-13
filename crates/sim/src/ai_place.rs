@@ -769,12 +769,12 @@ impl Sim {
                         }
                     }
                 } else {
-                    // SEAM: the fort arm's first term, `score += danger[who]
-                    // [cell / 2] / 4` (`006e2131`–`006e216b`), is not added,
-                    // though `World::danger_half` now carries the grid; nor
-                    // is the team-style arm's `×16` for the leader's own
-                    // target (`006e2206`–`006e2225`). No walk reaches a Fort
-                    // placement on a cell with danger (`docs/AI.md` §100).
+                    // The fort arm's first term, `score += danger[who][cell /
+                    // 2] / 4` (`006e2131`–`006e216b`), ahead of the owner
+                    // test and so inside its `/ 2`, `× 8` or `× 4`
+                    // (`docs/AI.md` §187). SEAM: the team-style arm's `×16`
+                    // for the leader's own target (`006e2206`–`006e2225`).
+                    score += self.world.danger_half(who, cell) / 4;
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {

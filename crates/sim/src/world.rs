@@ -1696,6 +1696,13 @@ impl World {
         })
     }
 
+    /// `WorldData::is_tocean@0046fb10`: the tile's surface field is ocean
+    /// (`(mask & 0x30) == 0x20`). Off the map the mask reads zero, so false;
+    /// the original reads past its array.
+    pub fn is_tocean(&self, t: Pos) -> bool {
+        self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN
+    }
+
     /// The mask of a tile coordinate (see [`tile`]); zero off the map.
     pub fn tile_mask(&self, t: Pos) -> u16 {
         self.tile_index(t).map_or(0, |i| self.tiles[i])

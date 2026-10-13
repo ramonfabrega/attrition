@@ -458,7 +458,7 @@ impl Sim {
             Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
-                captain: i32::from(self.buildings[b].index),
+                captain: crate::flag_reads::object_get_captain(self.buildings[b].index),
                 z: self.world.object_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },

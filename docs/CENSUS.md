@@ -813,3 +813,39 @@ and `& 0x1000` (`UnitData::is_blown`), and `UnitTypeData::num_preq`
 the masked word itself. Mutation check: widening `is_item_type` by one fails
 at row `544`, restored. No parting; none is wired into a reader.
 `docs/journal/2026-10-13-item-1705.md`.
+
+**Item 1708, the sweep's ninth batch** (2026-10-13): **simulation backed 138
+of 3,611 (3.8 %)** — 31 by a coverage section, 107 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, **all ten agree on every row**:
+`WorldData::is_tocean@0046fb10` (`(mask & 0x30) == 0x20` over a mapped `TData`
+array, 400+ rows with a decoy mask in every other tile, against the new
+`World::is_tocean`, which `shore_flagged` now reads),
+`ObjectData::get_captain@00472400` (the signed short at `+0xa`, against
+`flag_reads::object_get_captain`, now what `fight`'s attacker side reads for a
+building's `o`), `TCoord::operator<` (`tcoord::operator@00472b30`, signed compare,
+against `flag_reads::tcoord_less`), `UnitData::supplies_left@00609a20`
+(constant 1) and six `get_type` constants — `AttackOrder` 10, `RepairOrder` 13,
+`BuildOrder` 6, `ThinkOrder` 27, `FollowOrder` 11, `AttackGroundOrder` 23 —
+each against `Order::index` of a fresh body. Mutation check: widening
+`is_tocean`'s mask by the road bit fails. No parting. The census's citation
+pattern cannot spell `operator<` (its name class stops at `<`), so that
+test's doc cites the export's `tcoord::operator@` name.
+`docs/journal/2026-10-13-item-1708.md`.
+
+**Item 1721, the sweep's tenth batch** (2026-10-13): **simulation backed 148
+of 3,611 (4.1 %)** — 31 by a coverage section, 117 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests over a `WData` array (stride `0x1c`)
+laid out in mapped memory, a decoy in every other cell, **all ten agree on
+every row**: five flag readers — `WorldData::is_coast@006b3020` (`flags & 4`),
+`is_forest@006b5560` (`& 0x20`), `is_mountains@006b5590` (`& 0x10`),
+`is_dead_build@006b2390` (`& 2`; the raw masked word, not a boolean) and
+`is_impassable@006b4880` (`(flags & 0x70) != 0`) — four field readers —
+`get_region@006b5680` and `get_region2@006b3960` (signed shorts at `+4`,
+`+6`; −1 against `region_of`/`CellData::region2` `None`), `get_who@006b4700`
+and `get_who2@006b2510` (signed chars at `+0xf`, `+0x10`; −1 `None`, −2
+`Ambiguous` against `World::owner`/`second`) — and
+`GatherOrder::get_type@00487310` (7, against `Order::index`). No port function
+exists for the flag readers (the bit is inline at its readers), so each drives
+`cell_data(c).flags & cell::…`. No parting, no port change; not taken:
+`get_whose@006b4d80` (the same read as `get_who`, a second pass is a
+one-liner). `docs/journal/2026-10-13-item-1721.md`.

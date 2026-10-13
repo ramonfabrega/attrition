@@ -2485,6 +2485,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN718, 2405),
         (super::sahara_coverage::RUN766, 2641),
         (super::sahara_coverage::RUN766, 2852),
+        (super::sahara_coverage::RUN767, 2935),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2922,7 +2923,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1611: and run718's blocks around the word 2273.
     let sahara_2273 = super::sahara_coverage::sahara_coverage_frame_2273_window();
     // Item 1697: and run766's blocks around the word 2640.
-    let sahara_2640 = super::sahara_coverage::sahara_coverage_word_window();
+    let sahara_2640 = super::sahara_coverage::sahara_coverage_frame_2640_window();
+    // Item 1716: and run767's block around the word 2934.
+    let sahara_2934 = super::sahara_coverage::sahara_coverage_word_window();
     let seen = compared::stop();
     let (
         Some(w),
@@ -3012,6 +3015,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         sahara_1985,
         sahara_2273,
         sahara_2640,
+        sahara_2934,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

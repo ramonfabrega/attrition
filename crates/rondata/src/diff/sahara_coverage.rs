@@ -128,8 +128,13 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // in the original — 2640 → **2851** (count and sequence): ours 18 draws
     // against 17, index 0, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
     // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
-    count: 2851,
-    sequence: 2851,
+    // Landing 12 (`docs/AI.md` §187): a Fort's site is scored with
+    // `danger / 4` — the Persians' Redoubt of 2782 stands at (36576, 26784)
+    // as in the original — 2851 → **2934** (count and sequence): ours 191
+    // draws against 205, index 0, ours `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
+    count: 2934,
+    sequence: 2934,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -916,10 +921,10 @@ pub(crate) const RUN766: &str = "gamelog-run766-greatsahara-persian-alltech-wind
 /// The window: block 2634 through 2890; the word 2640's own block is 2641.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2640: (i64, i64) = (2634, 2890);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run766 walked from run675's start with the
-/// recorder on — the word 2640's block 2641 and the word 2851's block 2852.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run766 walked from run675's start with the recorder on — the word 2640's
+/// block 2641 and the word 2851's block 2852. It was the `AI_WORDS` window
+/// until the word moved past it, to run767's (item 1716).
+pub(crate) fn sahara_coverage_frame_2640_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -936,7 +941,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run766_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_2640_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -945,11 +950,51 @@ fn run766_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 1716: **97** keys with the Fort arm's danger term (253 before it:
+    // the site `1/2067` placed on 2782 and everything the builder `1/8`
+    // does from it, `docs/AI.md` §187).
     // Item 1697: 252 keys (253 with item 1497's building keys) on the tree that builds the Wool and Uranium
     // arms of `train_time` (`docs/AI.md` §184). The word 2851's first row is
     // `1/8`'s `order:move` on 2850 — destination (36792,21528) against
     // (36024,26568) — and block 2852's `1/51` `collide` 1 against 0; the
     // word 2640's value diff was `1/2017`'s `queue[0].job_counter` 65500
     // against 65454 on 2640 and block 2641's `queued` 1 against 0.
-    pin_eq!(w.firsts.len(), 253, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 97, "initial run766 baseline");
+}
+
+pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
+
+/// The window: block 2928 through 3185; the word 2934's own block is 2935.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2934: (i64, i64) = (2928, 3185);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run767 walked from run675's start with the
+/// recorder on — the word 2934's block 2935.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run767",
+        &[(RUN767, WIDENING_SAHARA_COVERAGE_FRAME_2934.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_2934,
+        1,
+        &[2935],
+        true,
+    )
+}
+
+#[test]
+fn run767_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 2856, "initial run767 baseline");
 }

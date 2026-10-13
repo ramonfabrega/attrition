@@ -4003,6 +4003,20 @@ per-block extraction of `1/2010`'s queue, most of the session's wall
 clock; a `tools/` slicer for one building's queue across a window
 would have saved it. Graduates on a third reach. One reach.
 
+(1722) **The census cannot count an operator** (1708's Loop line): its
+citation pattern cannot spell `operator<` or `operator[]`, so every
+operator function is uncountable as backed; 1708 cited
+`tcoord::operator@00472b30` as a workaround. Candidate: the pattern
+takes an operator's symbol, or cites by address alone. One reach.
+
+(1725) **The census counts an offset identity as simulation backed**
+(the commander, at 1723's merge): five of 1723's ten sweeps have no
+port function (its journal: "their tests assert the raw word (offset
+identity)") — they back the layout, not a port consumer, and the `Census:`
+line moves the same as for a ported reader. Candidate: the census splits
+"layout backed" from "port backed", or the sweep takes only functions
+with a port consumer. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
