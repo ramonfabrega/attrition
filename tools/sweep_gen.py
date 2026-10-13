@@ -35,6 +35,25 @@ Three shapes, each a `__thiscall` on `ecx`:
           handed on the stack (`[esp+4]`), reading one integer at
           `this+OFF`; the rows are the field shape's, `--port` over `v`.
 
+  fwd     the function hands its work to one or two direct callees and
+          answers a constant or the last callee's answer
+          (`--call ADDR:NARGS:ECX:ARGS`, repeatable; ECX is `this` or
+          `this+0xNN`, ARGS a comma list of `this`, `p0` or an integer;
+          `--own N` stack arguments of its own, `--ret` one of `none`, an
+          integer or `last`). The callees are hooked
+          (`tools/emu/hooks.py`); a row is `<this> <p0> <answer> -> <eax> |
+          <ecx,args…>;…` and the test holds the calls — which callee, with
+          what `ecx` and arguments, in what order — to the spec.
+
+  mix     the function makes several of those in order: `--step` repeated,
+          `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
+          `walk4:OFF` (slot 4, handed `**--glob`'s +0x10 word plus OFF); a `gated/`
+          step runs only when `[walker+--gate] == 0` (item 1921, Loop 1890).
+
+  walk    the function hands the walker it was given (`[esp+4]`) two pointers
+          into `this` through the walker's first vtable slot: `walk_data`
+          (`--a0`, `--a1`, each `this`, `this+0xNN` or an absolute address); the callback is hooked.
+
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port.
 
@@ -91,6 +110,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import Image, Machine, signed  # noqa: E402
 from sweeplib import OBJ, TYPE, REC, OUT, cell, setup  # noqa: E402,F401
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402,F401
 
 ENTRY = 0x{va:08x}
 INT_EDGES = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 15, 16, 255)
@@ -131,6 +151,70 @@ def main(argv):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
+'''
+
+FWD_TAIL = '''
+
+CALLS = {calls}
+OWN = {own}
+
+
+def rows():
+    rng = random.Random({item})
+    return [(rng.randrange(0x1000, 0x7FFF0000) & ~3, rng.randint(-0x80000000, 0x7FFFFFFF),
+             rng.randint(-0x80000000, 0x7FFFFFFF), rng.randint(-0x80000000, 0x7FFFFFFF),
+             rng.randint(-0x80000000, 0x7FFFFFFF)) for _ in range(140)]
+
+
+def main(argv):
+    from hooks import Harness
+    from callfn import STACK_BASE, STACK_SIZE
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
+    for this, p0, ans, p1, p2 in rows():
+        h.calls.clear()
+        for i, (a, n, _, _) in enumerate(CALLS):
+            h.answers[f"{{a:x}}"] = (ans + i) & 0xFFFFFFFF
+        r = h.call(ENTRY, (p0, p1, p2)[:OWN], ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+FWD_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, fwd).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with its callees hooked: {doc}
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, _p0, ans, _p1, _p2) = (a[0], a[1], a[2], a[3], a[4]);
+        let _ = (this, _p0, ans, _p1, _p2);
+        let calls: Vec<Vec<i64>> = {calls};
+        let want: String = calls
+            .iter()
+            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .collect::<Vec<_>>()
+            .join(";");
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+{ret}
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
 '''
 
 ROWS = {
@@ -187,6 +271,281 @@ BODIES = {
         assert_eq!(got, want != 0, "{short} — row `{{line}}`");''', 800),
 }
 BODIES['cell'] = BODIES['outptr'] = BODIES['vcall'] = BODIES['field']
+
+
+def _fwd_expr(tok):
+    tok = tok.strip()
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    if tok == 'p0':
+        return '_p0'
+    if tok in ('p1', 'p2'):
+        return '_' + tok
+    return str(int(tok, 0))
+
+
+def generate_fwd(spec, *, item, calls, own=0, ret='none'):
+    name, va = parse(spec)
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    parsed, exprs = [], []
+    for c in calls:
+        addr, nargs, ecx, args = c.split(':', 3)
+        parsed.append((int(addr, 16), int(nargs), ecx, args))
+        exprs.append('vec![' + ', '.join([_fwd_expr(ecx)] + [_fwd_expr(t) for t in args.split(',') if t.strip()]) + ']')
+    if ret == 'none':
+        retcode = '        let _ = eax;'
+    elif ret == 'last':
+        last = f'(ans + {len(calls) - 1})' if len(calls) > 1 else 'ans'
+        retcode = (f'        let want_eax = {last} as i32;\n'
+                   f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), i64::from(want_eax), "{short} — eax, row `{{line}}`");')
+    else:
+        retcode = (f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), {int(ret, 0)}, '
+                   f'"{short} — eax, row `{{line}}`");')
+    cs = [(a, n, e, g) for a, n, e, g in parsed]
+    script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item,
+                                 what=f'the object; calls {len(calls)} direct callee(s) and returns {ret}')
+              + ROWS['const'].split('def rows')[0]
+              + FWD_TAIL.format(calls=repr(cs), own=own, item=item)).replace('\n\n\n\ndef main', '\n\n\ndef main')
+    doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
+    test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
+WALK_SCRIPT = '''#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+"""sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, walk).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = the object, one stack argument: the walker. The function calls
+the walker's callback (the first word of the walker's vtable) with `ecx` = the walker
+and two stack arguments, `{a0}` and `{a1}` of the object. One row per input,
+`<this> <walker> -> <result> | <ecx,arg0,arg1>`.
+"""
+import os
+import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{}})
+    rng = random.Random({item})
+    for _ in range(140):
+        this = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        ans = rng.randint(-0x80000000, 0x7FFFFFFF)
+        vt = h.vtable({{0: ("walk", 2, ans & 0xFFFFFFFF)}})
+        walker = h.alloc(16)
+        h.w32(walker, vt)
+        h.calls.clear()
+        r = h.call(ENTRY, (walker,), ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{walker}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+WALK_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, walk).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with the walker's callback hooked: it is entered once, `ecx` the walker,
+/// with `{a0}` and `{a1}` of the object, in that order.
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, walker) = (a[0], a[1]);
+        let _ = this;
+        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+'''
+
+
+def _walk_expr(tok):
+    tok = tok.strip()
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    return f'{int(tok, 0):#x}'  # an absolute address: PathFinder::walk_data hands two globals (item 1916)
+
+
+def generate_walk(spec, *, item, a0, a1):
+    name, va = parse(spec)
+    sn = snake(name)
+    short = name.rsplit('::', 1)[-1]
+    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1)
+    test = WALK_TEST.format(snake=sn, name=name, va=va, item=item, short=short, a0=a0, a1=a1,
+                            e0=_walk_expr(a0), e1=_walk_expr(a1))
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
+MIX_SCRIPT = """#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+\"\"\"sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, mix).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = the object, one stack argument: the walker. The function makes
+{nsteps} step(s) in order — direct callees (hooked), the walker's callback (slot 0, two
+arguments) and its slot 4 (one argument{glob}){gate}.
+One row per input, `<this> <walker> <g> <gate> -> <result> | <ecx,args…>;…`.
+\"\"\"
+import os
+import random
+import struct
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+CALLS = {calls}
+GLOBAL = {glob_cell}
+GATE = {gate_off}
+
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
+    rng = random.Random({item})
+    vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
+    for i in range(140):
+        this = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        g = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
+        walker = h.alloc(32)
+        h.w32(walker, vt)
+        if GATE is not None:
+            h.w32(walker + GATE, gv)
+        if GLOBAL is not None:
+            rec = h.alloc(0x40)
+            h.w32(rec + 0x10, g)
+            h.m.uc.mem_write(GLOBAL, struct.pack("<I", rec))
+        h.calls.clear()
+        r = h.call(ENTRY, (walker,), ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{walker}} {{g}} {{gv}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+"""
+
+MIX_TEST = """//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, mix).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with every callee and the walker's callbacks hooked: {doc}
+#[test]
+#[allow(clippy::vec_init_then_push)]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
+        let _ = (this, g, gate);
+        let mut calls: Vec<Vec<i64>> = Vec::new();
+{steps}
+        let want: String = calls
+            .iter()
+            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .collect::<Vec<_>>()
+            .join(";");
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+"""
+
+
+def _mix_expr(tok):
+    tok = tok.strip()
+    if tok in ('p0', 'walker'):
+        return 'walker'
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    return str(int(tok, 0))
+
+
+def generate_mix(spec, *, item, steps, glob=None, gate=None):
+    """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
+    `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
+    each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
+    name, va = parse(spec)
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    calls, code = [], []
+    for st in steps:
+        gated = st.startswith('gated/')
+        st = st.removeprefix('gated/')
+        kind, rest = st.split(':', 1)
+        if kind == 'call':
+            addr, nargs, ecx, args = rest.split(':', 3)
+            calls.append((int(addr, 16), int(nargs), ecx, args))
+            vec = ', '.join([_mix_expr(ecx)] + [_mix_expr(t) for t in args.split(',') if t.strip()])
+        elif kind == 'walk':
+            a0, a1 = rest.split(':')
+            vec = ', '.join(['walker', _mix_expr(a0), _mix_expr(a1)])
+        elif kind == 'walk4':
+            vec = f'walker, g + {int(rest, 0):#x}'
+        else:
+            raise ValueError(f'a step is call:, walk: or walk4:, not `{st}`')
+        push = f'calls.push(vec![{vec}]);'
+        code.append(('        if gate == 0 { ' + push + ' }') if gated else ('        ' + push))
+    script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
+                               glob=', from the global cell' if glob else '',
+                               gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
+                               calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
+                               gate_off=hex(gate) if gate is not None else 'None')
+    doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
+    test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           steps='\n'.join(code))
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
@@ -266,7 +625,15 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix'))
+    ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
+    ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
+    ap.add_argument('--a1', default='this', help='walk: the second callback argument')
+    ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
+    ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
+    ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
+    ap.add_argument('--own', type=int, default=0, help='fwd: stack arguments the function itself takes')
+    ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
     ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
@@ -280,9 +647,18 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
     try:
-        sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
-                                             port=args.port, off=args.off, via=args.via,
-                                             cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
+        if args.shape == 'walk':
+            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+        elif args.shape == 'mix':
+            sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
+                                                    glob=args.glob, gate=args.gate)
+        elif args.shape == 'fwd':
+            sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
+                                                     own=args.own, ret=args.ret)
+        else:
+            sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
+                                                 port=args.port, off=args.off, via=args.via,
+                                                 cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2

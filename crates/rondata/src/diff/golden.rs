@@ -5950,15 +5950,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         })
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
-    let mut want: Vec<String> = [
-        "1021 1/6 order:group.id",
-        "1021 1/7 order:group.id",
-        "1021 1/8 order:group.id",
-        // Item 1461: `1/9`'s second figure's 1172/1173 rows leave; it steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect();
+    // Item 1461: `1/9`'s second figure's 1172/1173 rows left; it steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed"). Item 1863's pool id took the last row.
+    let mut want: Vec<String> = Vec::new();
     let mut under_sorted = under.clone();
     under_sorted.sort();
     want.sort();
@@ -8210,9 +8203,6 @@ const WANT_CH21: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 635 1/6 order:target, 635 1/7
     // order:target, 635 1/8 order:target.
-    "1021 1/6 order:group.id",
-    "1021 1/7 order:group.id",
-    "1021 1/8 order:group.id",
 ];
 // **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
@@ -13704,17 +13694,78 @@ const WANT_CH56: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "765 1/7 order:group.id",
-    "765 1/8 order:group.id",
-    "765 1/9 order:group.id",
-    "774 1/8 near",
-    "774 1/9 near",
     "874 1/8 death:extra",
     "900 1/9 death:extra",
     "961 1/7 death:extra",
 ];
 
 const WANT_CH56_POOL: &[&str] = &[];
+
+/// **Chapter fifty-seven** (item 1863, `docs/GOLDEN.md` §69, run791): a captain
+/// Dragoon past a Citizen and a Hoplite squad added on 763 (M6's other arm).
+#[test]
+fn chapter_fifty_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch57", "chapter57", 57, 7, 1010) else {
+        return;
+    };
+    eprintln!(
+        "chapter fifty-seven: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIFTY_SEVEN,
+        "chapter fifty-seven's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIFTY_SEVEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIFTY_SEVEN,
+        "chapter fifty-seven's golden word moved; re-pin it here and say so in docs/GOLDEN.md §69"
+    );
+}
+
+/// **run791 whole, both directions** (item 1863, `docs/GOLDEN.md` §69).
+#[test]
+fn chapter_fifty_seven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch57",
+        "chapter57",
+        WIDENING_CHAPTER_FIFTY_SEVEN,
+        1010,
+        0,
+        (990, 992),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch57 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch57: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH57.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch57: what parts under the word moved");
+}
+
+const WANT_CH57: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
@@ -14363,9 +14414,6 @@ const WANT_CH47: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 682 1/6 order:target, 682 1/7
     // order:target, 682 1/8 order:target.
-    "1021 1/6 order:group.id",
-    "1021 1/7 order:group.id",
-    "1021 1/8 order:group.id",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
@@ -15170,7 +15218,6 @@ const WANT_CH38: &[&str] = &[
     "1036 1/2006 build:damage_frac",
     "1036 1/2007 build:damage",
     "1036 1/2007 build:damage_frac",
-    "1277 1/9 order:group.id",
     // **The rounds' fields, compared from item 1257**, no draw from any:
     // the Bombers' `accuracy` (0 here, `launch.rs`'s SEAM); the flak
     // Battery `1/9`'s rounds leaving from its own square (754: `sx, sy,

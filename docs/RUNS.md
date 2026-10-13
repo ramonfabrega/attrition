@@ -16213,3 +16213,23 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch56
 Pool lane 1 (free, no wait), `success: true`, 1011 frames, seed 12345, map 14, exit 0, 588 s. Dump 180,758,411 bytes (sha256 `7bb968434a11…`),
 trace 10,223,200 (`92dd79ecaf67…`), kept in `~/ron-golden/ch56/map-14`. **What it holds**: `golden::chapter_fifty_six_holds_to_the_golden_word`
 (**1010**, the trace's end) and `chapter_fifty_six_s_word_frame_is_widened_whole` (605..1011, 19 rows, no pool row).
+
+## run791 — chapter fifty-seven: chapter fifty-six's script with the death list printed (2026-10-13, item 1863)
+
+`docs/GOLDEN.md` §69, `tools/gamelog/golden/chapter57.cmd` (7 staged lines, chapter56's). **What the disk could not answer**: run786's
+`end:` detail printed no `DEATHS`, so `death:extra` on 874, 900 and 961 (ours 1, theirs 0) was this crate's corpses against a record nobody asked
+for; the `group.id` and `near` rows the disk did answer (§69). Census rows the lobby reaches: none new. run792 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch57 \
+    --map 14 --end-frame 1010 --log-window 605 1010 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter57.cmd
+```
+
+Pool lane 2, then 1 (first two takes died in the verifier: **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`**, "GROUPS was asked
+for and no GROUPDATA block was printed", deterministic, so the third take drops `GROUPS=1`). Third take: lane 1, no wait, `success: true`,
+1011 frames, seed 12345, map 14, 377 s. Dump 123,310,965 bytes (sha256 `34c137e653e1…`), kept in `~/ron-golden/ch57/map-14`.
+**What it holds**: `golden::chapter_fifty_seven_holds_to_the_golden_word` (**1010**, the trace's end) and
+`chapter_fifty_seven_s_word_frame_is_widened_whole` (605..1011, 11 rows — the `form` rows alone; no pool, the dump has none).

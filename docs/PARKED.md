@@ -3731,6 +3731,54 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-13 — the thirty-first tranche's
+
+(1931) **`unattended_capture.py` refuses `GROUPS` with `DEATHS` at one
+detail and says nothing of the pairing** (1863's Loop line; parked 1885):
+run791's first two takes died in `verify_game` before the lane dropped
+`GROUPS=1`. Candidate: the capture refuses the pairing up front with the
+reason, and the brief checklist says a chapter needing the death list
+drops the pool until 1885 is understood. One reach.
+
+(1910) **A lane gate's filters miss a word's other pairs** (the
+commander, at 1870's booking gate): 1870's lane gate ran
+`sahara_coverage:: floors::`; its change to `get_cost` and the market
+moved four widenings of the coverage pair (`coverage_pair.rs`, run715,
+716, 721, 754 — all closer), which no filter named, and the booking gate
+went red for a re-pin. Not counted as a kill-rule trip: the lane gate
+never ran them, the filters were the commander's, and every pin moved
+toward the original. Candidate: `brief.py --tests` adds every pair
+suite whose capture reads the module the word sits in, or the lane gate
+runs every `*_s_word_frame_is_widened_whole`. One reach.
+
+(1900) **`step4.py` has no "print each call's return" mode** (1870's
+Loop line): `--hook` on a gate's three call sites (`6c8124`, `6c8143`,
+`6c8152`) found `get_nuke_embargo`'s 719 — a SEAM that read as zero — in
+minutes, but each hook was an address picked by hand from the listing.
+Candidate: `--calls`, hooking every `call` in the entered function and
+printing callee and `eax` on return. One reach.
+
+(1890) **`sweep_gen.py` has no field-write or global-compare shape**
+(1866's Loop line): ten functions of one batch were `mov [ecx+N], imm;
+ret` or a compare against a global cell, and the lane hand-wrote a
+script head that also checks `esp` after `ret N` and that nothing else
+in the 4 KB around the object changed. Candidate: both shapes, and the
+`esp` and untouched-bytes checks in every generated script. Two reaches:
+1889 took ten empty-body voids (bare `ret N`) by a throwaway substitution
+of 1866's script, and asks for a `void` shape (a cdecl body relaxes the
+`esp` check by `4 * NARGS`). (`timeout` is still not on this machine,
+1856's and 1866's journals.) **1895** built a `fwd` shape (callees
+hooked, `ecx` and arguments held in order); a forwarder whose argument is
+a field of `this` still needs a `field` token (parked 1896). Three reaches. **1911** built a `walk` shape
+(a `walk_data`'s callback through the walker's slot 0, one line a
+function) and `fwd`'s `p1`/`p2` tokens; 1896's `field` token still owed. **1916** took nine
+of ten with one line each; the walk family's rest (`Hero`, `Special`,
+`Herds`, `Tribes`, `Lands`, `SpecialAnimOrder`) wants a `fwd` that mixes
+a call with an `Array::walk_data` callback, in order. Five reaches. **1921**
+built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
+return, as the original's `extraout_ECX` consumers read it, would take
+`Tribes`, `Lands`, `Herds` (parked 1922). Six reaches.
+
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
 (1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
@@ -3749,7 +3797,7 @@ line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
 with a port consumer. Two reaches: 1724's ten had no port consumer at
 all, and its journal reads the small functions with one as nearly dry;
-1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list.
+1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach.
 
 (1739) **The dump prints a unit's orders as a stack** (1726's Loop
 line): last order first, so "the first order" read off it is reversed,
@@ -3899,10 +3947,10 @@ record on 2838 both directions before any mechanism is named (`docs/AI.md` §195
 
 ## Parked by item 1829, 2026-10-13 — chapter fifty-six
 
-(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
+~~(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
 theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `death:extra` on 874, 900 and 961
 (ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
-`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.
+`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.~~ **Closed by item 1863** (`docs/GOLDEN.md` §69): the pool id, the squad head, and an instrument gap.
 
 ## Parked by the next landing, slot A — reserved
 
@@ -3912,29 +3960,36 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot B — reserved
+## Parked by item 1870, 2026-10-13 — the embargo and the Fort's count
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot B renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1877) **Great Sahara's word 3767, widened whole** (1870; `docs/AI.md` §197): ours 33 draws against 37, index 7, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`; run767 ends at 3186, so a capture over `--log-window 3761 4018` (run790 reserved) and every record on 3767 both ways before a mechanism.
 
-## Parked by the next landing, slot C — reserved
+(1878) **The queue cost on 3183**: `1/2032` `queue[0].cost[0]` ours 67, theirs 64 — a ramp count on the queue's price (the other queued costs agree); names no frame the word reaches yet, parks until 3767's widening reads it.
+(1879) **Oil platform / oil well building counts** (`get_cost`: two `u16` arrays' oil entries added to `n` for the Oil Platform and the Oil Well): no capture prices one.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot C renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 1895, 2026-10-13 — the sweep's forwarder shape
 
-## Parked by the next landing, slot D — reserved
+(1896) **`tools/sweep_gen.py` had no shape for a function that hands its
+work to direct callees** (`think_hero`, `do_flee_to`, `NukeOut::update`: a
+call or two and a constant). Item 1895 added `fwd` (`--call ADDR:NARGS:ECX:ARGS`,
+`--own`, `--ret`), hooking the callees through `tools/emu/hooks.py` and
+holding the calls' `ecx` and arguments, in order, to the spec. A callee that
+is entered by a `jmp` after the function pops its frame (`Type::set_*_name`
+into `String::operator=`) hooks as an ordinary call. Left: forwarders whose
+arguments are fields (`this->x`) need a `field` argument token.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot D renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 1863, 2026-10-13 — chapter fifty-seven
+
+(1885) **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`** (1863): run791's first two takes died in the verifier;
+the third dropped `GROUPS=1`. A chapter that needs both the pool and the death list has no capture shape.
+
+(1886) **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
+slot — `17410401` against `17410801`, `14336530` against `14336430`, one to four slots, no draw.
+
+(1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
+out-of-range search of a non-captain call `find_melee_target_as` with no head. No capture shows a part.
+
+(1830) **closed by 1863** (§69): `group.id`, `near`, and `death:extra` (the instrument).
 
 ## Parked by the next landing, slot E — reserved
 
@@ -3944,10 +3999,78 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot F — reserved
+## Parked by item 1911, 2026-10-13 — the sweep's thirty-first batch
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot F renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by item 1921, 2026-10-13 — the sweep's thirty-third batch
+
+(1922) **A hooked callee leaves `ecx` as the hook defines it; the original's
+`extraout_ECX` consumers read it.** `Tribes::walk_data@006efb20`,
+`Lands::walk_data@0067e700` and `Herds::walk_data@00741d50` each call the walker's
+slot 4, then hand `Array::walk_data@0047e230`/`@004786f0`/`@0048d610` the walker and
+whatever `ecx` the slot-4 callee left; a stub that does not touch `ecx` pins the
+harness's choice, not the original's. Name: a `Harness.stub` variant that sets `ecx`
+on return to a chosen word (the way a real callee leaves it), then
+`tools/sweep_gen.py mix` gains a `walk4:OFF:ecx` step. Names no score: the Loop's
+(sweep tooling, Loop 1890's sixth reach); 1921's journal has the shapes.
+
+## Parked by the next landing, slot H — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot H renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot I — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot I renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot J — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot J renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot K — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot K renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot L — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot L renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot M — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot M renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot N — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot N renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

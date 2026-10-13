@@ -481,13 +481,50 @@ impl Sim {
     /// old gate opened on 6383 and the original's first market draw is on
     /// 8582. `docs/AI.md` §40.
     ///
-    /// SEAM: `get_nuke_embargo` is not modelled and is taken as zero.
+    /// And **no nuke embargo** ([`Sim::nuke_embargo`]) — `get_nuke_embargo`
+    /// is the gate's last clause in `use_market` and `market_speculation`
+    /// both (item 1870: Great Sahara's leader 1 holds one from its first
+    /// nuke at 2101 to frame 4001, and sold no timber on 3176).
     fn market_gate(&self, who: Player) -> bool {
         let w = who as usize;
         let bonus = self
             .tech_tree
             .has_tribe_bonus(&self.setup, &self.tech[w], 4);
-        (bonus || self.can_buy_sell(who)) && self.has_market(who)
+        (bonus || self.can_buy_sell(who)) && self.has_market(who) && self.nuke_embargo(who) == 0
+    }
+
+    /// `LeaderData::get_my_nuke_embargo@006d5350` — the frames a nation's own
+    /// nukes keep it out of the market: `0` unless `nuke_stamp` is set or the
+    /// nation holds the Space Program, else `NUKE_EMBARGO_WORLD ×
+    /// armageddon + NUKE_EMBARGO_NATION × nukes_used − frame +
+    /// NUKE_EMBARGO_BASE + nuke_stamp`, floored at zero.
+    ///
+    /// SEAM: `Game::armageddon` (`+0x6e0`) is not carried; the shipped
+    /// `NUKE_EMBARGO_WORLD` is `0 frames`, which makes the term vanish.
+    fn my_nuke_embargo(&self, who: Player) -> i32 {
+        let stamp = self.nukes.stamp_of(who);
+        if stamp == 0 || self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
+            return 0;
+        }
+        let t = &self.tuning;
+        let v = i64::from(t.nuke_embargo_nation) * i64::from(self.nukes.used_of(who)) - self.frame
+            + i64::from(t.nuke_embargo_base)
+            + stamp;
+        v.max(0) as i32
+    }
+
+    /// `LeaderData::get_nuke_embargo@006d52c0` — the longest embargo among
+    /// the nation and its allies, unless the nation holds the Space Program.
+    pub fn nuke_embargo(&self, who: Player) -> i32 {
+        if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
+            return 0;
+        }
+        (0..self.players.len())
+            .map(|p| p as Player)
+            .filter(|&p| !self.defeated[p as usize] && (p == who || self.is_ally(who, p)))
+            .map(|p| self.my_nuke_embargo(p))
+            .max()
+            .unwrap_or(0)
     }
 
     /// `LeaderData::has_preq(BUY_SELL)` — the bonus type's own prerequisite,

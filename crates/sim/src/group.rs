@@ -3474,12 +3474,11 @@ impl Sim {
                 // all eighteen members take it through `+0xc44`, not one
                 // `find_melee_target` between (`docs/COMBAT.md` §68.2).
                 //
-                // SEAM: `find_melee_target`'s squad head (a follower takes
-                // its captain's attack without a search) is on the
-                // decompile's path for a unit or wall target, and no
-                // capture reaches one. Item 1012's kill of it (the city's
-                // `targeted` twelve bumps short) was a city target, which
-                // never reaches the search (`docs/COMBAT.md` §68.2).
+                // The squad head (a follower takes its captain's attack
+                // without a search) is read below; run786's `1/8` and `1/9`
+                // reach it (`docs/GOLDEN.md` §69). Item 1012's kill of it (the
+                // city's `targeted` twelve bumps short) was a city target,
+                // which never reaches the search (`docs/COMBAT.md` §68.2).
                 let build = matches!(target,
                     Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
                 let t = if mandatory || build {
@@ -3493,8 +3492,22 @@ impl Sim {
                         Obj::Unit(_) => crate::fight::search::UNITS,
                         Obj::Building(_) => crate::fight::search::BUILDINGS,
                     };
-                    self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
-                        .unwrap_or(target)
+                    // **A follower's retarget is its captain's target, and
+                    // no search** (`find_melee_target@005ff9c0:32`–`91`, item
+                    // 1863): the squad head answers before
+                    // `find_nearby_target` runs, so it writes no `near` — run786's
+                    // `1/8` and `1/9` on 774 (`param_4 == 0`, the order is
+                    // added below). A captain or a follower whose captain's
+                    // target is gone searches, and a follower whose captain is
+                    // not attacking finds nothing.
+                    let found = match self.melee_squad_head(u) {
+                        crate::orders::SquadHead::Nothing => None,
+                        crate::orders::SquadHead::Captain(t, _) => Some(t),
+                        crate::orders::SquadHead::Search => {
+                            self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
+                        }
+                    };
+                    found.unwrap_or(target)
                 };
                 self.add_attack_order(u, t, queue, mandatory, true);
             }
@@ -3552,16 +3565,14 @@ impl Sim {
         self.gstate(g).map_or(Angle(0), |st| st.o_angle)
     }
 
-    /// The group's own id (`GroupData +0x4`). The seat stands in for the
-    /// pool index the original keeps: an army group's is its army slot and
-    /// a [`Pushed`] group's is `64 +` its slot, which is all
-    /// [`group_move_id`] needs of it — distinct per owner, and stable for
-    /// as long as the group lives. The numbers are **not** the dump's own
-    /// (Great Lakes' probe is `group 65` there and this crate's armies do
-    /// not sit in the same pool), so nothing compares them.
+    /// The group's own id (`GroupData +0x4`), the pool index: 64 slots a
+    /// player, so an army group's is `who × 64 +` its army slot (item 1863;
+    /// run786's who=1 army 0 is 64) and a [`Pushed`] group's is `64 +` its
+    /// slot. The slot stands in for the pool's own `get_open_slot` answer, which
+    /// parts once an AI script has pushed a building group (parked 689).
     fn group_id(&self, g: &Group) -> i32 {
         match (g.army, g.pushed) {
-            (Some(s), _) => s as i32,
+            (Some(s), _) => i32::from(g.who) * 64 + s as i32,
             (None, Some(i)) => 64 + i as i32,
             (None, None) => -1,
         }
@@ -5463,7 +5474,8 @@ mod tests {
             let m = s.current_move(u).expect("a move order");
             let gm = m.group.expect("a group order");
             assert_eq!(gm.leader, leader, "every member names one leader");
-            assert_eq!(gm.id, group_move_id(slot as i32, s.frame, 0));
+            // who 1's pool starts at 64 (item 1863).
+            assert_eq!(gm.id, group_move_id(64 + slot as i32, s.frame, 0));
             assert!(!gm.in_group, "`GroupMoveOrder::clear` leaves it 0");
         }
         assert_eq!(

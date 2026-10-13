@@ -878,7 +878,7 @@ mod tests {
         );
         pin_eq!(
             row(1, 52, "order:group.id").as_deref(),
-            Some(r#"14582: Group { field: "id", ours: 14330130, theirs: 14336430 }"#),
+            Some("14582: Group { field: \"id\", ours: 14336530, theirs: 14336430 }"),
             "the army group's id"
         );
         // **The block before the old word's, 14587** (item 1171, the
@@ -978,7 +978,7 @@ mod tests {
         // against 208, and its five wealth rows (run418's block 14661).
         pin_eq!(
             row(1, 52, "order:group.id").as_deref(),
-            Some(r#"15581: Group { field: "id", ours: 15354136, theirs: 15360436 }"#),
+            Some("15581: Group { field: \"id\", ours: 15360536, theirs: 15360436 }"),
             "the army group's id"
         );
         // **15582: who=1's make list**, the values of two offers.
@@ -1156,7 +1156,7 @@ mod tests {
         // stands 56700 against 48600.
         pin_eq!(
             row(1, 52, "order:group.id").as_deref(),
-            Some(r#"16676: Group { field: "id", ours: 16634146, theirs: 16640446 }"#),
+            Some("16676: Group { field: \"id\", ours: 16640546, theirs: 16640446 }"),
             "the army group's id"
         );
         pin_eq!(

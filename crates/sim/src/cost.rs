@@ -333,6 +333,58 @@ pub const fn ramp_steps(count: i32, p: Progression) -> i32 {
     }
 }
 
+/// `get_cost`'s building branch's **per-family escalation** of the count a
+/// building's support term is multiplied by (`00665951`..`00665aa5`, item
+/// 1870), keyed on the type's `TypeIndex` and applied to `num_buildings +
+/// num_queued` (`n`).
+///
+/// - **Production buildings** (`0x1ab..=0x1af`, `0x1bf`, `0x208`: Barracks,
+///   Stable, Autoplant, Siege Factory, Factory, Air Base, Missile Silo):
+///   `n ≤ 2` is itself, past two `2n − 2`, then `+ 2n − 10` past five,
+///   `+ 3n − 24` past eight and `+ 4n − 48` past twelve.
+/// - **The Fort line** (`0x1bb..=0x1be`: Fort, Castle, Fortress, Redoubt):
+///   past one `2n − 1`, then `+ n − 3` past three, `+ n − 5` past five and
+///   `+ n − 7` past seven. Two Redoubts count three, which is what the
+///   original prices the third at: 175 wealth and 525 metal on a 100/300
+///   base with a 25/75 support.
+///
+/// Every comparison reads the original `n`, never the running value.
+pub const fn building_family_count(tree: usize, n: i32) -> i32 {
+    let mut v = n;
+    match tree {
+        0x1ab..=0x1af | 0x1bf | 0x208 => {
+            if n > 2 {
+                v = 2 * n - 2;
+            }
+            if n > 5 {
+                v += 2 * n - 10;
+            }
+            if n > 8 {
+                v += 3 * n - 24;
+            }
+            if n > 12 {
+                v += 4 * n - 48;
+            }
+        }
+        0x1bb..=0x1be => {
+            if n > 1 {
+                v = 2 * n - 1;
+            }
+            if n > 3 {
+                v += n - 3;
+            }
+            if n > 5 {
+                v += n - 5;
+            }
+            if n > 7 {
+                v += n - 7;
+            }
+        }
+        _ => {}
+    }
+    v
+}
+
 /// Whether a Supercollider or Space Program is already a site of mine or of
 /// a teammate's — `get_cost`'s last wonder test, asked only when the type
 /// priced is one of the two (`0x21d`, `0x21e`).
@@ -1010,6 +1062,19 @@ mod tests {
     /// Measured, not inferred: run40 and run41 (`rondata::diff`) put the AI
     /// at 69 food / 59 timber on the frame it cannot buy and 83 / 73 on the
     /// frame it can, and its buckets fall by sixty of each when it does.
+    #[test]
+    fn a_fort_and_a_barracks_escalate_their_count() {
+        // The Fort line: 0, 1, then 2n−1 — the Redoubt's third is priced as
+        // three (run767's 175 / 525 on block 3182).
+        let fort: Vec<i32> = (0..9).map(|n| building_family_count(0x1be, n)).collect();
+        assert_eq!(fort, [0, 1, 3, 5, 8, 11, 15, 19, 24]);
+        // Production: free to two, then 2n−2 …
+        let rax: Vec<i32> = (0..14).map(|n| building_family_count(0x1ab, n)).collect();
+        assert_eq!(rax, [0, 1, 2, 4, 6, 8, 12, 16, 20, 27, 34, 41, 48, 59]);
+        // Anything else is linear.
+        assert_eq!(building_family_count(0x1b0, 9), 9);
+    }
+
     #[test]
     fn a_building_s_ramp_is_not_capped() {
         let city = small_city();
