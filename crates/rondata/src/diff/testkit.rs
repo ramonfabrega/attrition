@@ -6301,13 +6301,14 @@ pub(crate) const WIDENING_CHAPTER_FIFTY_ONE: (i64, i64) = (605, 1101);
 
 /// **Chapter fifty-three** (item 1707, `docs/GOLDEN.md` §63, run771): the
 /// member `find_melee_target` arm of `Group::target_opportunity` and the
-/// cavalry archer's M5 and M6. The walk's word is 962: the original's Dragoon
-/// `0/31`, added on 942, has an `ATTACK` on the enemy Scout `1/6` that this
-/// crate's idle Dragoon does not take.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 962;
+/// cavalry archer's M5 and M6. The walk's word was 962 (item 1707): the
+/// original's idle Dragoon `0/31` takes an `ATTACK` on the enemy Scout `1/6`,
+/// which `poor_target`'s distance floor (a ranged type's own reach, not the
+/// tile) let through — item 1711 moved it to 1004.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 1004;
 
 /// `chapter_fifty_three_s_word_frame_is_widened_whole`'s window: run771 whole.
-pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 967);
+pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 1009);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).

@@ -173,7 +173,8 @@ def main(argv):
     args = argv[1:]
     max_insns, out_dir = 20_000_000, os.path.join(HERE, "..", "..", "target", "recomp")
     entry, this, dump, watch, find = DO_FRAME, None, [], [], set()
-    for flag in ("--max-insns", "--out", "--entry", "--this", "--dump", "--watch", "--find"):
+    call_args = []
+    for flag in ("--max-insns", "--out", "--entry", "--this", "--dump", "--watch", "--find", "--args"):
         while flag in args:
             k = args.index(flag)
             v = args[k + 1]
@@ -185,6 +186,8 @@ def main(argv):
                 entry = int(v, 16)
             elif flag == "--this":
                 this = int(v, 16)
+            elif flag == "--args":
+                call_args = [int(a, 0) for a in v.split(",")]
             elif flag == "--find":
                 find.add(int(v, 0) & 0xFFFFFFFF)
             else:
@@ -196,7 +199,7 @@ def main(argv):
         return 2
     exe, snap_path = args
     from unicorn import UC_HOOK_BLOCK, UC_HOOK_CODE, UcError
-    from unicorn.x86_const import UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_ESP
+    from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_ESP
 
     pe = Image(exe)
     image = callfn.Image(exe)
@@ -277,7 +280,7 @@ def main(argv):
             uc.hook_add(UC_HOOK_MEM_WRITE, on_write, begin=va, end=va + n - 1)
 
     esp = FRAME_STACK + FRAME_STACK_SIZE - 0x100
-    uc.mem_write(esp, struct.pack("<I", SENTINEL))
+    uc.mem_write(esp, struct.pack("<I", SENTINEL) + b"".join(struct.pack("<I", a & 0xFFFFFFFF) for a in call_args))
     uc.reg_write(UC_X86_REG_ESP, esp)
     uc.reg_write(UC_X86_REG_ECX, snap.game if this is None else this)
     before = [(va, n, bytes(uc.mem_read(va, n))) for va, n in dump]
@@ -295,7 +298,10 @@ def main(argv):
 
     entered = sorted(e for e in state["entries"] if text_lo <= e < text_hi)
     print(f"stopped: {state['stop']}")
+    print(f"eax at the stop: {uc.reg_read(UC_X86_REG_EAX):#x} ({uc.reg_read(UC_X86_REG_EAX)})")
     print(f"ran: {state['insns']} instructions, {len(state['blocks'])} blocks, {len(entered)} functions entered, {t1 - t0:.2f}s")
+    if os.environ.get("STEP4_ENTERED"):
+        print("entered: " + ", ".join(f"{funcs.name(e)}" for e in entered))
     for v, (eip, name, i) in found.items():
         fn = funcs.sorted[bisect.bisect_right(funcs.sorted, eip) - 1]
         print(f"found {v} ({v:#x}) first in {name} after instruction #{i} at {eip:08x} {funcs.name(fn)}+{eip - fn:#x}")

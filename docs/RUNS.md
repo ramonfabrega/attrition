@@ -16102,3 +16102,12 @@ SHA-256 `b75b27b088190ffaa8ec41ba98d494d806654845ff42d8d9cad8c5aa667b2abc`.
 
 Archive `rontrace-run776.log`, 9,948,352 bytes,
 SHA-256 `6cc12cfd7072634ad61ea1d79b3b54b51764d0a6c66bdaaa7dbc5a7bfa85c8ad`.
+## run773 — chapter fifty-three: a packet at logger frame 961, the idle Dragoon's search (2026-10-13, item 1711)
+
+`docs/GOLDEN.md` §64. **What the disk could not answer**: the value `Object::poor_target` returns for the Dragoon
+`0/31` and the Scout `1/6` on the word's tick, and the type record's role word; no dump prints either. run772's recipe
+with `--end-frame 970 --log-window 955 970` and `--tracer-def RON_STATE_FRAME=961 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, the click-free lane, free at launch; `success: true`, five files
+restored. Packet `~/ron-data/lab-captures/2026-10-13-run773/map-14/frame-snapshot.bin`, 801,594,156 bytes. On it
+(`tools/recomp/step4.py --entry 64a270 --this 1566f344 --args 6,1,0`): `poor_target` returns 0; `get_speed` 34 (Scout
+`14ad85a4`) and 30 (Dragoon); the Dragoon's type record `+0x2c8` `0x5040c`, `+0x1fc` 9, `+0x2b4` `0x201201`.
