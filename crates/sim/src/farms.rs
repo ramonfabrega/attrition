@@ -1457,9 +1457,10 @@ mod tests {
         assert_eq!(s.buildings[f4].farm.farm_type, 0);
         assert!(s.phase_marks.is_empty(), "one emitter a city");
 
-        // And the list is joined at placement, in placement order — these
-        // four have never been activated.
-        assert_eq!(s.farm_order, vec![lone, lone2, f1, f2, f3, f4]);
+        // And the list is joined at placement — these four have never been
+        // activated — in placement order, the first two into the slots the
+        // dead `lone` pair left (`Farms::add`'s first free record).
+        assert_eq!(s.farm_order, vec![f1, f2, f3, f4]);
     }
 
     /// **A freed slot is refilled** (item 1639, `docs/AI.md` §175):
