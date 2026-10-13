@@ -924,7 +924,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 147.
         // Item 1377: 103 → 102, who=1's `defense` (`Build::init`'s `+1`).
         // Item 1457: 98 → 88; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-        pin_eq!(w.firsts.len(), 40, "every key parted on run476");
+        pin_eq!(w.firsts.len(), 37, "every key parted on run476");
     }
 
     /// **The third map's word at Toughest, 7070, widened whole** (item
@@ -1096,7 +1096,7 @@ mod tests {
         // Item 1451, `largest_gather` (AI §115): 82 → 80, MAKE[0].val and MAKE[4].val.
         pin_eq!(
             w.firsts.len(),
-            30,
+            29,
             "every key parted on run488 (146 before item 1281, 150 after item 1264, 876 before)"
         );
     }
@@ -1244,7 +1244,7 @@ mod tests {
         // and a dozen of its units' `orders_x`/`orders_y`, 24 apart.
         pin_eq!(
             row(1, 73, "order:group.id").as_deref(),
-            Some("8781: Group { field: \"id\", ours: 8698116, theirs: 8704516 }"),
+            None,
             "who=1's group order, standing"
         );
         // The id is the pool's: `(group + frame · 10) · 100 + order_num`
@@ -1287,14 +1287,14 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             // Item 1377: 8781 81 → 80, who=1's `defense` standing no more.
-            [(8781, 31)],
+            [(8781, 28)],
             "the blocks keys first part on, to three past the word's"
         );
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was 149.
         // Item 1451, `largest_gather` (AI §115): 91 → 80, the make list from 8782.
         pin_eq!(
             w.firsts.len(),
-            31,
+            28,
             "every key parted on run500 (737 before item 1305, 1,808 before item 1293, \
              1,816 before item 1281)"
         );
@@ -1606,12 +1606,12 @@ mod tests {
                 .len(),
             // 33 on 1429's own tree, 32 with 1461's crew `get_speed` beside it
             // (the booking gate on 8f83972e); 13 since item 1472; 9 since item 1477.
-            8,
+            7,
             "the blocks keys first part on, to one past the word's"
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear; 142 since item 1477's census walk.
-        pin_eq!(w.firsts.len(), 73, "every key parted on run584");
+        pin_eq!(w.firsts.len(), 72, "every key parted on run584");
     }
 
     /// **The word 12816, widened whole** (item 1477):
@@ -1669,11 +1669,11 @@ mod tests {
         pin_eq!(row(1, -3, "group:65.off[0]"), None, "and its offset");
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(12811, 65)],
+            [(12811, 63)],
             "the blocks keys first part on, the first three"
         );
         // Item 1586: 88 → 87 (12825's 1 goes); an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        pin_eq!(w.firsts.len(), 65, "every key parted on run640");
+        pin_eq!(w.firsts.len(), 63, "every key parted on run640");
     }
 
     /// **The word 14363, widened whole** (item 1493):
@@ -1745,10 +1745,10 @@ mod tests {
         );
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(14357, 66)],
+            [(14357, 57)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 66, "every key parted on run653");
+        pin_eq!(w.firsts.len(), 57, "every key parted on run653");
     }
 
     /// **The word 15101, widened whole** (item 1510):
@@ -1784,11 +1784,11 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-            [(15095, 69), (15098, 4)],
+            [(15095, 63), (15098, 4)],
             "the blocks keys first part on, the first three"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        pin_eq!(w.firsts.len(), 73, "every key parted on run663");
+        pin_eq!(w.firsts.len(), 67, "every key parted on run663");
         // **The word 15101's block, 15102** (item 1510, `docs/AI.md` §136):
         // ours 19 draws against 17, parting at index 7, and block 15102
         // parted on 27 keys of `1/96`, a Bombard (`cur_anim` 24 theirs
@@ -1931,11 +1931,11 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-            [(15207, 64)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(15207, 63)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        pin_eq!(w.firsts.len(), 64, "every key parted on run664"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 63, "every key parted on run664"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15213's block, 15214** (item 1517, `docs/AI.md` §137):
         // ours 8 draws against 7, parting at index 4 — ours
         // `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. Item
@@ -2090,11 +2090,11 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(5).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-            [(15230, 64), (15266, 1), (15268, 1), (15326, 1), (15366, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(15230, 63), (15266, 1), (15268, 1), (15326, 1), (15366, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first five"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-        pin_eq!(w.firsts.len(), 142, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 69, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
         // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -2133,7 +2133,7 @@ mod tests {
         // `new_speed` 0 against 35 on 15421.
         pin_eq!(
             by.get(&15_378).copied().unwrap_or(0),
-            72,
+            0,
             "the word 15378's block (frame 15377): the group number's 72"
         );
         pin_eq!(
@@ -2190,10 +2190,10 @@ mod tests {
         // being re-seated from the dump on every traced frame.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(3).collect::<Vec<_>>(),
-            [(14506, 61)],
+            [(14506, 57)],
             "the blocks keys first part on, the first three"
         );
-        pin_eq!(w.firsts.len(), 61, "every key parted on run659");
+        pin_eq!(w.firsts.len(), 57, "every key parted on run659");
     }
 
     /// **The word 11182, widened whole** (item 1379):

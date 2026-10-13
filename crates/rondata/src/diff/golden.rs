@@ -5950,15 +5950,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         })
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
-    let mut want: Vec<String> = [
-        "1021 1/6 order:group.id",
-        "1021 1/7 order:group.id",
-        "1021 1/8 order:group.id",
-        // Item 1461: `1/9`'s second figure's 1172/1173 rows leave; it steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    ]
-    .iter()
-    .map(|s| s.to_string())
-    .collect();
+    // Item 1461: `1/9`'s second figure's 1172/1173 rows left; it steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed"). Item 1863's pool id took the last row.
+    let mut want: Vec<String> = Vec::new();
     let mut under_sorted = under.clone();
     under_sorted.sort();
     want.sort();
@@ -8210,9 +8203,6 @@ const WANT_CH21: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 635 1/6 order:target, 635 1/7
     // order:target, 635 1/8 order:target.
-    "1021 1/6 order:group.id",
-    "1021 1/7 order:group.id",
-    "1021 1/8 order:group.id",
 ];
 // **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
 // 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
@@ -13704,9 +13694,6 @@ const WANT_CH56: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "765 1/7 order:group.id",
-    "765 1/8 order:group.id",
-    "765 1/9 order:group.id",
     "774 1/8 near",
     "774 1/9 near",
     "874 1/8 death:extra",
@@ -14363,9 +14350,6 @@ const WANT_CH47: &[&str] = &[
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
     // §131.4); these rows agree and leave: 682 1/6 order:target, 682 1/7
     // order:target, 682 1/8 order:target.
-    "1021 1/6 order:group.id",
-    "1021 1/7 order:group.id",
-    "1021 1/8 order:group.id",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
@@ -15170,7 +15154,6 @@ const WANT_CH38: &[&str] = &[
     "1036 1/2006 build:damage_frac",
     "1036 1/2007 build:damage",
     "1036 1/2007 build:damage_frac",
-    "1277 1/9 order:group.id",
     // **The rounds' fields, compared from item 1257**, no draw from any:
     // the Bombers' `accuracy` (0 here, `launch.rs`'s SEAM); the flak
     // Battery `1/9`'s rounds leaving from its own square (754: `sx, sy,

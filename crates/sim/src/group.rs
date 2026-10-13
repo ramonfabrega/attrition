@@ -3561,7 +3561,7 @@ impl Sim {
     /// not sit in the same pool), so nothing compares them.
     fn group_id(&self, g: &Group) -> i32 {
         match (g.army, g.pushed) {
-            (Some(s), _) => s as i32,
+            (Some(s), _) => i32::from(g.who) * 64 + s as i32,
             (None, Some(i)) => 64 + i as i32,
             (None, None) => -1,
         }
