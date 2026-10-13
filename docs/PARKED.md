@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1987) **`golden_capture.sh` does not retake a take that died before
+frame 0** (1960's Loop line): run801's first take died on a Wine page
+fault with no `gamelog.txt`, and the retake was by hand under parked
+1150's rule. Candidate: one automatic retake when the take exits with no
+dump, the retake's receipt naming the first. One reach.
+
 (1981) **A one-unit printer for a dump** (1948's Loop line): naming a
 unit by `TypeIndex` meant reading `decomp/enums/TypeIndex.txt` by hand,
 and the order kind and `GUY` `type` share a field name in a UNITDATA
@@ -4043,6 +4049,8 @@ slot — `17410401` against `17410801`, `14336530` against `14336430`, one to fo
 
 (1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
 out-of-range search of a non-captain call `find_melee_target_as` with no head. No capture shows a part.
+**Partly closed by 1960** (GOLDEN §71): a Guard's idle look (`do_guard`) takes the head. Still headless for a follower: `fight`'s
+guard-failure search (`guard_check_target`), `chase_refused` and the defensive-post review; none staged.
 
 (1830) **closed by 1863** (§69): `group.id`, `near`, and `death:extra` (the instrument).
 
@@ -4143,8 +4151,6 @@ the three `walk_data`s and `OrderList::get_new_data` (1944) are still left.
 (1962) **A Stockade arrow's first wound on `0/7`, 655** (1960, run801): `hits:damage` ours 13 theirs 10, `hits_left` 107 against 110. No draw. Pinned in `WANT_CH59`.
 
 (1963) **The captain's guard walk, pool slot 1 `speed`/`new_speed` on 625** (1960, run801): ours 0, theirs 25. Pinned in `WANT_CH59_POOL`.
-
-(1887) **Partly closed by 1960** (GOLDEN §71): the guard's idle look takes the head. Still headless for a follower: `fight`'s guard-failure search (`guard_check_target`), `chase_refused` and the defensive-post review; none staged.
 
 ## Parked by item 1966, 2026-10-13 — the sweep's thirty-seventh batch
 
