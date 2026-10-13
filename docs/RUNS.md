@@ -16148,3 +16148,23 @@ with `--end-frame 970 --log-window 955 970` and `--tracer-def RON_STATE_FRAME=96
 restored. Packet `~/ron-data/lab-captures/2026-10-13-run773/map-14/frame-snapshot.bin`, 801,594,156 bytes. On it
 (`tools/recomp/step4.py --entry 64a270 --this 1566f344 --args 6,1,0`): `poor_target` returns 0; `get_speed` 34 (Scout
 `14ad85a4`) and 30 (Dragoon); the Dragoon's type record `+0x2c8` `0x5040c`, `+0x1fc` 9, `+0x2b4` `0x201201`.
+
+## run783 — chapter fifty-five: M6's arm past a Citizen and a second Dragoon's stationary rounds (2026-10-13, item 1798)
+
+`docs/GOLDEN.md` §67, `tools/gamelog/golden/chapter55.cmd` (6 staged lines). **What the disk could not answer**: no capture holds a captain
+Dragoon past a non-combat-role unit (run772's Scout is combat-role: `research` was false every time), nor a Dragoon's stationary round
+(anim 12, start 13) beside a walk that distinguishes the row; run784 unused. Staging walked by `stage_walk` on `ch53`'s start first.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch55 \
+    --map 14 --end-frame 1010 --log-window 605 1010 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter55.cmd
+```
+
+Pool lane 2 (lane 1 held by att-1768's capture; no wait), `success: true`, 1011 frames, seed 12345, map 14, exit 0; the first launch died
+before frame 0 on the script (`live_session.parse_commands`: frame 640 below 712 — a script's frames are ascending); `issuesmatch.py
+--none-refused`: 1 issue record (712), 0 refused. Dump 177,431,422 bytes (sha256 `a771a82845fd…`), trace 10,150,688 (`8ff2ddbc090b…`),
+kept in `~/ron-golden/ch55/map-14`. **What it holds**: `golden::chapter_fifty_five_holds_to_the_golden_word` (**1010**, the trace's end)
+and `chapter_fifty_five_s_word_frame_is_widened_whole` (605..1011, 14 rows, no pool row).

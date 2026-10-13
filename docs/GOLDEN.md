@@ -10929,12 +10929,59 @@ pivot node's own anim-10..13 entries are read, but only the `(4, 0, 0)` row feed
 `set_all_pivots`); whether another unit of the Dragoon's line carries a node row this crate lacks; the stationary round's flight time (no `AMMO` print holds it;
 the walk now agrees on its landing frame, nothing more).
 
-## 67. Reserved for the next item on the rules track
+## 67. Chapter fifty-five — M6's arm past a Citizen, and the stationary round's row held (item 1798)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Four arms chapter fifty-four left unwalked: parked 1777 (M6,
+`cavarch_fight_body`'s captain re-search, never reached: run772's held Scout is
+combat-role), 1709 (the two-order snap), 1776's anim-12 `RELEASES` row (held by
+no walk) and 1778 (a pushed group's early drop). **Whether one staging reaches
+each was established on `stage_walk` before any capture**, with env-guarded
+probes in one commit reverted whole.
+
+**The staging** (`chapter55.cmd`, run783, `ch53`'s start, six lines): Dragoon A
+`0/6` at (225, 152) sent east on 712 with a Player-1 Citizen added on 712 across
+its path; Dragoon B `0/7` at (225, 176) beside a Player-1 Stockade at (218, 176).
+- **M6 is reached**: A holds the Citizen (`combat_role` false), and on 763 and 793
+  `research` is true — the first re-search finds nothing (`found == None`, the
+  target cleared and no round), the second finds the Citizen again. Variants that
+  put the Citizen in the Dragoon's path a few frames earlier or later reach
+  `research` true with `found == target` only, or false (the `% 5` roll), so the
+  frame of the Citizen's add is part of the staging.
+- **The anim-12 row is reached and held**: B stands and fires its stationary
+  rounds (647, 677, 917, 947); the row `(491, ATTACK2, 13)` is the release
+  at those. **The mutations are held**: its `at` vector sent to 2·10⁷ and its
+  key moved to 14 each fail the word test and the widening (exit 101) —
+  closing 1776's "held by no walk". (A single Dragoon standing before a
+  Stockade held it too, in the walk; 1776's staging had no standing round.)
+- **The two-order snap (1709) is not reached.** A Dragoon, a Catapult and a General,
+  standing on a cell centre, were sent 1–3 units either way and 2000 units each
+  way: none spent a `SITE_SNAP_STAND` (a probe at the snap's stand arm). The
+  arm needs a unit on its own waypoint, facing away, still turning when the
+  step reaches the snap, with one order; every order tried turned and stepped
+  or arrived. Parked 1805.
+- **1778 (the early drop) is not staged**: it needs a pushed group; parked as it was.
+
+**What run783 says.** The word **1010** — the trace's last frame; the draw
+stream agrees through every round, M6's two and the stationary rounds. The
+widening (605..1011) is 14 rows: the eleven `form` rows of the start (as
+chapter fifty-three's), `1/2000` `raid_stamp` on 777 (ours 0, theirs 776; parked
+1204's family), and **a value diff on 794, both on Dragoon A `0/6`**:
+`g.des_turret0[0]` ours −821 952 512, theirs 0, and `g.turret0[0]` ours
+−821 952 512, theirs −642 995 542 — the original dropped A's target (M5's
+`des_turret = 0`) a frame before ours does, with the Citizen 1 949 units north
+of a Dragoon heading east-northeast. No draw parts on it. Parked 1804.
+
+**M6's mutation is held by no walk.** `research && false` exits 0: the first
+re-search's `found == None` and the cleared target is the same as holding it,
+since the Citizen is out of the strike's reach, and the second finds the same
+unit. The arm needs a staging where `found` is a different, in-reach unit while
+the held one is a non-combat-role unit. Parked 1806.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved (no
+simulation change).
+
+**Not established.** What the original reads on 793 that ours does not (the
+turret row); the snap's real shape (1805); M6's observable arm (1806).
 
 ## 68. Reserved for the next item on the rules track
 
@@ -10944,6 +10991,20 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 69. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 70. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 71. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

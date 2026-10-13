@@ -3822,7 +3822,19 @@ second lane in a row to; 1766 hand-wrote it a third time, and wants a
 "flag byte over 256 values" shape too; 1782 a fourth (a "byte cell" too);
 1787 a fifth (a "game-pointer byte"); 1793 a sixth: `field`'s `TYPE` still
 at `0x10010000`, and `and imm` returns the masked word where the shape
-assumes a bool (a `--mask` shape).
+assumes a bool (a `--mask` shape); 1799 a seventh: it moved the
+`range`/all shapes' `TYPE` base to `0x10100000` in the generator (the base
+half closed for generated shapes), and still wants `--mask` and a
+virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
+1814 an eighth: a "global cell" shape (`Game::is_infinite` reads the
+`GameAccess::game` cell `0xc061ec`) and a stack-out-pointer shape
+(`WCoord::get_tcorner`), both hand-written again.
+1819 a ninth: the global cell three times more (`avail_ctw`,
+`get_radius`), and a stack-args-array shape (a count, a pointer, a
+stride: `get_queue`, `get_job_counter`, `get_farm_type`).
+1824 a tenth: a virtual-dispatch shape (a laid vtable at a real function
+or `mov eax, imm; ret` stubs, a fresh stub per row) for five `is_*` and
+`is_map_unit`, and the global cell again (`get_gpiece`).
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
@@ -3830,6 +3842,13 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list.
+
+(1839) **`stage_walk`'s script reader accepts what the capture refuses**
+(1798's Loop line): `live_session.parse_commands` refuses descending
+frames, `stage_walk` does not and walks file order — so a staging passes
+a script the capture then refuses (run783's first launch died on 640
+below 712), and an out-of-order line is delayed in the walk. Candidate:
+one reader for both. One reach.
 
 (1812) **Parked rows appended at one tail conflict** (the commander, at
 1744's merge): 1744 added 1768/1769 after 1731 while the base's booking
@@ -4087,3 +4106,19 @@ index 8): `TypeIndex` 322, ours stands it idle from 2178, after `Unit::work`'s `
 2177 (`buildings[50]` is the closed `1/2043`; a new `1/2043` is born that frame at (26208, 24672)); theirs holds a nine-step walk to
 (35736, 24984) by 2201. Brief: a packet at 2178 and `step4.py` on the unit's `think` (run785 is reserved), or a window around 2170,
 before any reading; killers in `docs/AI.md` §194. Not built.
+
+## Parked by item 1798, 2026-10-13 — chapter fifty-five
+
+(1804) **Dragoon A's target drops a frame early in the original** (1798): on 794
+`0/6` `g.des_turret0[0]` ours −821 952 512 against 0 and `g.turret0[0]` ours
+−821 952 512 against −642 995 542 (run783, pinned in `WANT_CH55`); the Citizen
+`1/6` stands 1 949 units north of a Dragoon heading east-northeast, past M6's
+second re-search on 793. No draw parts. Widen the GUY and unit rows on 793 first.
+
+(1805) **The two-order snap (1709) is still unreached** (1798): a Dragoon, a Catapult
+and a General on a cell centre sent 1–3 or 2000 units either way never spend a
+`SITE_SNAP_STAND`; the arm needs the unit on its waypoint, turning, with one order.
+
+(1806) **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
+(`research` true), but `research && false` exits 0 — it needs `found` to be a
+different, in-reach unit than the held non-combat-role one.
