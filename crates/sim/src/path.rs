@@ -1897,10 +1897,16 @@ impl Sim {
     }
 
     /// `find_upath`'s tail: `anti_unit` around the search, then the
-    /// failure teardown and the success compaction. A **resume** skips the
-    /// failure teardown entirely — `00683380`'s pop-and-kill block is
-    /// inside the same `saving == 0` guard as the prologue, so a resumed
-    /// search that gives up leaves the order alone.
+    /// failure teardown and the success compaction. The teardown's guard is
+    /// `pathfinder +0x84` (`find_upath@00682f30`'s `_132_4_`), **the
+    /// suspended flag, not a resume flag**: `astar_path` writes 1 on its
+    /// suspend and 0 on every failure tail before it returns (`:535`,
+    /// `:908`), `find_upath_restore` merely starts it at 1. So a resumed
+    /// search that gives up pops its non-final top and kills the order
+    /// unless the retry roll spared it, exactly as a fresh one does (item
+    /// 1982: the AA missile `1/107` on 3180 — the pop was the 61 against 60
+    /// stack — read "a resume skips the teardown" off the prologue's guard,
+    /// which tests the same word for another reason).
     fn upath_search(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
         let modes = Modes {
             anti_unit: true,
@@ -1911,7 +1917,7 @@ impl Sim {
         let r = self.astar_path(u, &modes, STEP_UNIT, i32::from(anti), resume);
         self.kill_lists();
         if r < 1 {
-            if r == 0 && !resume {
+            if r == 0 {
                 if self.units[u]
                     .path
                     .last()
