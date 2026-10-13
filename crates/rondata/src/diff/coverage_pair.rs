@@ -227,6 +227,12 @@ pub(crate) struct Pair {
     /// fifth and sixth cruise missiles on 3439 and 3440 (`docs/AI.md`
     /// §178). **3585**, 24 versus 27 draws, index 6: ours
     /// `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
+    /// Item 1651 counts a packed fisherman idle: run721's `1/211` stands
+    /// packed on 3580, and the original's sea branch offers no Fisherman,
+    /// so leader 1's make list keeps its Strategic Bomber and Transport
+    /// Helicopter on block 3581 (`docs/AI.md` §179). **3587**, 15 versus
+    /// 16 draws, index 1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    /// theirs `Unit::do_move+0xe84`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -244,8 +250,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3585,
-    sequence: 3585,
+    count: 3587,
+    sequence: 3587,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1308,7 +1314,12 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
+    // Item 1651 counts a packed fisherman idle: 139 -> 121. Leader 1's
+    // make list parted on 2381 and 2384 exactly as run721's does on 3581
+    // — ours' Fishermen (`t` 317, `cat` 4, `val` 127602) against the
+    // original's aircraft (`t` 311, 295, 305, `num` 10) and an empty
+    // `MAKE[4]` — and those 18 rows agree now (`docs/AI.md` §179).
+    pin_eq!(w.firsts.len(), 121, "run714 after the idle fisherman");
     pin_eq!(
         w.firsts
             .iter()
@@ -1557,7 +1568,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3585 (item 1648), block 3586; the old words remain checked.
+/// word 3587 (item 1651), block 3588; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1567,7 +1578,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586],
+        &[3395, 3396, 3398, 3440, 3586, 3588],
         true,
     )
 }
@@ -1609,7 +1620,11 @@ fn run721_s_word_frame_is_widened_whole() {
     // 951 -> 482. The jets' `cruising_alt` (1/115, 1/139) that parted on
     // 3446 and `1/139`'s position on 3447 agree now; the new word 3585's
     // block, 3586, follows the computer's make list parting on 3581.
-    pin_eq!(w.firsts.len(), 482, "run721 after the ceiling salvo");
+    // Item 1651 counts `1/211`, packed, as an idle fisherman: 482 -> 394.
+    // Leader 1's `MAKE[1..4]` agree on 3581 (the Fishermen at 88000 are
+    // gone); the new word 3587's block, 3588, is `1/133`'s move — its
+    // path 14 slots against 26 and `move.last_x` 40549 against -1.
+    pin_eq!(w.firsts.len(), 394, "run721 after the idle fisherman");
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
     let at = ix.frames().iter().position(|f| f.number == 3398).unwrap();

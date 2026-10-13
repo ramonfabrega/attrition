@@ -78,7 +78,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
-/// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`, no fisherman is idle. |
+/// | `unit_masks & 0x80000` | merchants: clear | every merchant counts in `reg_unpack_merch`; a fisherman reads [`crate::combat::State::packed`] (`idle_fishermen`, item 1651). |
 /// | order kinds 8 / 0xe | never | build-and-repair-through-a-transport is unmodelled. |
 ///
 /// Two seams closed 2026-08-25 with `docs/TRANSPORT.md`: `Region::num_coasts`
@@ -570,6 +570,9 @@ impl Sim {
             let fisherman = unit
                 .ty
                 .is_some_and(|t| self.unit_types[t].cols.unit_flags2 & 4 != 0);
+            // `unit_masks & 0x80000`, the packed bit: a fisherman standing
+            // packed is not on its fish (`docs/ORDERS.md` §6.8).
+            let packed = unit.combat.packed;
             // `attack() / 10`, or a flat 10 off the ground.
             let strength = if domain == Domain::Land {
                 self.attack_of(Obj::Unit(u)) / 10
@@ -598,8 +601,16 @@ impl Sim {
                     if carry {
                         cs.transports += 1;
                     }
+                    // `plan_strategy@006b9620:545–548`: `fishermen++` on
+                    // `type +0x2b8 & 4`, and inside it `idle_fishermen++`
+                    // on `unit_masks & 0x80000` — the packed boat, which
+                    // `create_units`' sea branch refuses a new one for
+                    // (`docs/AI.md` §179).
                     if fisherman {
                         cs.fishermen += 1;
+                        if packed {
+                            cs.idle_fishermen += 1;
+                        }
                     }
                 }
                 Domain::Air => {
@@ -2141,6 +2152,34 @@ mod tests {
         f.sim.census(1);
         let c = &f.sim.ai[1].census;
         assert_eq!((c.active, c.combat, c.non_siege), (1, 1, 1));
+    }
+
+    /// A packed fisherman is an idle one (`plan_strategy@006b9620:545–548`,
+    /// `docs/AI.md` §179): two boats at sea count two `fishermen`, and the
+    /// one standing packed — `unit_masks & 0x80000`, off its fish — one
+    /// `idle_fishermen`, which `create_units`' sea branch refuses a new
+    /// Fisherman on. run721's `1/211` is that boat on 3580.
+    #[test]
+    fn a_packed_fisherman_is_an_idle_one() {
+        let mut f = fix();
+        build(&mut f.sim, 1, f.village, 20, 20);
+        f.sim.ai[1].census.resize(f.sim.world.region_count(), 2);
+        let boat = f.sim.unit_types[f.scout].clone();
+        let boat = f.sim.add_unit_type(boat);
+        f.sim.unit_types[boat].cols.unit_flags2 = 4;
+        f.sim.unit_types[boat].combat.domain = Domain::Sea;
+        f.sim.unit_types[boat].kind.domain = Domain::Sea;
+        let at = 13 * TILES_PER_CELL;
+        let fishing = spawn(&mut f.sim, 1, boat, at, 4 * TILES_PER_CELL);
+        let idle = spawn(&mut f.sim, 1, boat, at, 6 * TILES_PER_CELL);
+        for u in [fishing, idle] {
+            f.sim.units[u].kind.domain = Domain::Sea;
+        }
+        f.sim.units[fishing].combat.packed = false;
+        f.sim.units[idle].combat.packed = true;
+        f.sim.census(1);
+        let c = &f.sim.ai[1].census;
+        assert_eq!((c.fishermen, c.idle_fishermen), (2, 1));
     }
 
     /// A military unit of mine standing on another leader's land shows up

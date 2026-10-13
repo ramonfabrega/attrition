@@ -18129,10 +18129,59 @@ shoots only units, which this does not change.
 **Coverage.** Diff-backed: 1–3 (run652's draws, run721's Napata and `1/49`, the walk). Export-backed and held by
 the unit test alone: the dead-target refusal (M2).
 
-## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+## 179. A packed fisherman is an idle one (2026-10-12, item 1651)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**What was established, how, how confident.** Item 1648 left the coverage pair's word at **frame 3585, ours 24 game
+draws against 27, index 6**: ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805 <
+Leader::make_this+0x328 < Leader::make_stuff+0x45a`, inside run721 (block 3586). Each claim is *diff-backed* unless
+marked.
+
+1. **The draws.** run652 on 3585: `produce_building` (from `make_stuff+0xf6`), two `make_stuff+0x221`, two
+   `produce_building` (`+0x45a`), one `make_stuff+0x63d`, **two more `produce_building`** (seeds `40770dee`,
+   `4e457c75`), then three `+0x63d`. Ours (`RON_DEBUG_SITES=3581-3585`) is the same less those two: the original
+   builds one more entry off its make list.
+2. **The make list parts on block 3581** (frame 3580, the step machine's `Units` and `Buildings` steps; ours'
+   `RON_DEBUG_LEADER`), and nowhere else on the leader before it. Theirs: `MAKE[1..3]` the Jet Fighter, Strategic
+   Bomber and Transport Helicopter (`t` 295, 305, 311, `num` 10, `cat` 6, city 0, `val` 60720, 58080, 41485) and
+   **`MAKE[4]`, the `cat` 4 slot, empty**. Ours: `MAKE[1]` and `MAKE[4]` Fishermen (`t` 317, `cat` 4, cities 1 and
+   0, `val` 88000), the Jet Fighter pushed to `MAKE[3]`, the Bomber and the Helicopter evicted. The original made
+   no `cat` 4 offer at all on this sweep; the rest of block 3581's list agrees. Ours keeps a Fisherman in the list
+   through 3584, where the original's Granary (`t` 423, `val` 64800) takes `MAKE[2]` — the two extra draws.
+3. **The refusal is `idle_fishermen`.** `create_units@006c40a0:737`'s Fisherman arm asks
+   `LeaderData::idle_fishermen` (`+0x974`) to be 0, and `plan_strategy@006b9620:545–548` counts it: in the sea arm,
+   `fishermen++` on `type +0x2b8 & 4`, and inside that `idle_fishermen++` on `unit_masks & 0x80000` — the packed
+   bit. Ours zeroed the field and never counted it (`ai_census.rs`' seam table: "no fisherman is idle"), though
+   the bit is carried as `combat::State::packed` since `Unit::init`'s born-packed clause (`docs/ORDERS.md` §6.8).
+   run721 block 3581: leader 1's Fishermen are `1/93` (`unit_masks 0x4000a`), `1/123` (`0x40008`) and **`1/211`
+   (`0xc0008`, packed)**; ours' scratch print (reverted) on 3580 has the same three, `1/211` packed, census
+   `fishermen` 3 and `idle_fishermen` 0, every other input of the arm passing (`reg_combat` 13, Military 7, `n` 3
+   below Commerce 7, the docks not attacked). `idle_fishermen` is **not dumped** — `LEADERDATA` prints `transports`
+   then `peasants` (`docs/TRANSPORT.md`'s list amended) — so the field is read off its writer and the units'
+   `unit_masks`, whose `packed` the widening compares (`1/211`'s agrees). *Export-backed* for the predicate,
+   diff-backed for its inputs and its effect.
+
+**Built.** `census_units`' sea arm counts `idle_fishermen` on a packed fisherman. Unit test
+`ai_census::tests::a_packed_fisherman_is_an_idle_one`. The census seam table's `0x80000` row now says merchants
+only.
+
+**What it moved.** The word **3585 → 3587**, count and sequence: **ours 15 game draws against 16, index 1**, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84`. Inside run721 (block 3588). The value
+diff on the parted frame: block 3581's `MAKE[1]` (ours `cat` 4, `city` 1, `num` 1, `t` 317, `val` 88000 against
+`cat` 6, `city` 0, `num` 10, `t` 295, `val` 60720), `MAKE[2..4]` likewise, agree now; 3585's draws agree. run721
+**482 → 394** keys. What remains on the list is `MAKE[6].val` on 3581 (Rocket Artillery, ours 333185 against
+347364, standing before this item). The new word's block 3588 parts on `1/133`'s move: path 14 slots against 26,
+`move.dest` (40644, 36756) against (40680, 37320), `move.last_x` 40549 against −1, `path_recursion` 2 against 1 —
+the item after's place to start. The coverage walk's inexact height reads 97 → 99. **run714's window parts the same
+way, earlier**: leader 1's `MAKE[1..4]` on block 2381 (ours Fishermen `t` 317, `cat` 4, `val` 127602 at cities 1
+and 0 against the original's `t` 311, 295, 305, `num` 10, `cat` 6, and an empty `MAKE[4]`) and three rows on 2384 —
+18 rows, all agreeing now; run714 **139 → 121**.
+
+**Not established.** The merchants' half of the same bit (`reg_unpack_merch`, `census_trader`'s seam) — a merchant
+counts unpacked whatever its `packed`; no row here parts on it. `idle_fishermen`'s value on any frame is inferred
+from `unit_masks`, never read.
+
+**Coverage.** Diff-backed: 1, 2, 3's inputs (run652's draws, run721's make list and `unit_masks`, the walk).
+Export-backed: the `+0x974` predicate and its writer's arm, held by the unit test and the walk.
 
 ## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
 

@@ -1049,7 +1049,9 @@ Under `DUMP_ALL` (run20, every frame block; `docs/ORACLE.md`):
   army: `status 1, reg 11, city 0, navy 0, x 39264 y 40800, muster 51,53`
   — `Armies::init_army` from the census's step 16.
 - **`LEADERDATA`** (`LEADERS=9`): `naval`, `sea_combat`, `transports`,
-  `fishermen`, `idle_fishermen`, `xport_peasants`, `reg_naval[scan]`,
+  ~~`fishermen`, `idle_fishermen`,~~ (not printed: run721's block runs
+  `transports` → `peasants`; the packed bit they count is `UNITDATA`'s
+  `unit_masks`, `docs/AI.md` §179) `xport_peasants`, `reg_naval[scan]`,
   `reg_transports[scan]`, `reg_xport_peasants[scan]`. **`reg_docks` is not
   dumped**; the `DOCK` records' `reg` are, and `reg_docks[r]` is their
   count by region and owner — which is the assertion §12 names.
