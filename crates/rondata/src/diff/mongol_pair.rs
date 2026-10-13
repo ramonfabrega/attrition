@@ -315,8 +315,8 @@ pub(crate) const RUN809: &str = "gamelog-run809-eastindies-mongol-alltech-window
 /// The window: block 3626 through 3883; the word 3632's own block is 3633.
 pub(crate) const WIDENING_MONGOL_FRAME_3632: (i64, i64) = (3626, 3884);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run809's window, the word 3632's (item 2001).
+pub(crate) fn mongol_frame_3632_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -333,7 +333,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run809_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_3632_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -358,4 +358,43 @@ fn run809_s_word_frame_is_widened_whole() {
     // original's frames, the scout `1/101`'s goal and `1/167`'s nine with
     // them (section 207).
     pin_eq!(w.firsts.len(), 180, "run809 baseline");
+}
+
+/// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
+pub(crate) const RUN820: &str = "gamelog-run820-eastindies-mongol-alltech-window-4232-4490.txt";
+
+/// The window: block 4232 through 4488; the word 4238's own block is 4239.
+pub(crate) const WIDENING_MONGOL_FRAME_4238: (i64, i64) = (4232, 4490);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run820",
+        &[(RUN820, WIDENING_MONGOL_FRAME_4238.0)],
+        WIDENING_MONGOL_FRAME_4238,
+        1,
+        &[4239],
+        true,
+    )
+}
+
+#[test]
+fn run820_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The word 4238's block is 4239.
+    pin_eq!(w.firsts.len(), 0, "run820 baseline");
 }
