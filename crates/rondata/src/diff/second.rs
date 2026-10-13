@@ -3073,7 +3073,8 @@ mod tests {
         // Item 1457: 291 → 285; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 285 → 272; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1502: 221 → 197 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-        pin_eq!(w.firsts.len(), 105, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 2002: 105 → 103; `group:71.speed` 17527 and `new_speed` 17530, ours 26 theirs 25, agree: a member's search normalizes its group (`docs/GOLDEN.md` §73).
+        pin_eq!(w.firsts.len(), 103, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
