@@ -190,7 +190,7 @@ const UNREAD: &[(&str, &str)] = &[
     // run371 (item 1019, `docs/GOLDEN.md` §44).
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] mylos near_o near_who size uid up up_who",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     // **Item 989 added `Newcastle`**: a city's name is the record's one
@@ -2767,7 +2767,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
-    // `mining_size` and `construct_hits` no site compares; `ever_seen`
+    // `mining_size` no site compares (`myhits` and `construct_hits` are compared by the shared instrument since item 1497); `ever_seen`
     // and `ever_seen_completed` are compared by the shared instrument
     // since item 1563 (parked 1450's ruling). `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
@@ -2790,10 +2790,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 8377..8380 neither held an unfinished site: `job_counter` returned.
     // Item 1286's Toughest window on 8785..8788 holds one, so on the tree
     // merged with it `job_counter` is compared and off this pin again.
-    (
-        "BuildDump",
-        "cliff construct_hits flags max_age mining_size mtn orig_type",
-    ),
+    ("BuildDump", "cliff flags max_age mining_size mtn orig_type"),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
     // The group record is compared whole since item 1061

@@ -713,7 +713,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 55, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 56, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -1649,9 +1649,10 @@ fn run762_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 257, "every captured block");
     // The word 4425 (block 4426): the original's `1/2010` queues a second
     // `1/245` where ours has already produced it (`num_queued[245]` 1
-    // against 0, `num_units[245]` 13 against 14); 2320 keys over the
+    // against 0, `num_units[245]` 13 against 14); 2322 keys (2320 before item
+    // 1497's two) over the
     // window, most of them the first block's standing rows.
-    pin_eq!(w.firsts.len(), 2320, "run762 keys that part (item 1700)");
+    pin_eq!(w.firsts.len(), 2322, "run762 keys that part (item 1700)");
 }
 
 #[test]
@@ -1677,6 +1678,8 @@ fn run754_s_word_frame_is_widened_whole() {
     // Temple at the head of the Persian make list on 3982 as the
     // original's; the MAKE rows agree, 409 -> 204 keys, and the word is
     // **4425**, past this window's last block (4094).
+    // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
+    // on the tree before item 1700 (411); measured on the merged tree: 204.
     pin_eq!(w.firsts.len(), 204, "run754 keys that part (item 1669)");
 }
 
@@ -1715,7 +1718,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        186,
+        187,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

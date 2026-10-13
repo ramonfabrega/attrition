@@ -2290,6 +2290,10 @@ pub struct BuildDump {
     /// `WallData::construct_hits` — the hit points the site has been
     /// raised to, logged as `(int)construct_hits`.
     pub construct_hits: Option<i64>,
+    /// `ObjectData::myhits` of a building — `BuildData::hits(1)`, the full
+    /// figure `Wall::update_hits` bakes, `BUILDING_HP_UPGRADE` included
+    /// (item 1497, parked 1476's hp arm).
+    pub myhits: Option<i64>,
     /// `WallData::ever_seen` (`Wall +0x62`) and `ever_seen_completed`
     /// (`+0x63`) — one bit per player: who has ever had this building's
     /// footprint in **current** line of sight, and who has had it there
@@ -3434,6 +3438,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         job_counter: wall.and_then(|w| w.int("job_counter")),
         constr_time: wall.and_then(|w| w.int("constr_time")),
         construct_hits: wall.and_then(|w| w.int("(int)construct_hits")),
+        myhits: obj.and_then(|o| o.int("myhits")),
         ever_seen: wall.and_then(|w| w.int("ever_seen")),
         ever_seen_completed: wall.and_then(|w| w.int("ever_seen_completed")),
         queued: b.int("queued"),

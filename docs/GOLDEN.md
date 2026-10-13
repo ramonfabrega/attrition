@@ -10590,7 +10590,62 @@ shooting; the march's `+0x4b` arm. The think tail's order is this crate's
 `add_attack_order(…, QUEUE_NEW)`, not `find_melee_target`'s own add
 (`docs/GROUPS.md` §12's second divergence).
 
-## 62. Reserved for item 1497 (chapter fifty-two)
+## 62. Chapter fifty-two — the hit-point ladder compared, the Temple's term written, the fog arm walked; the member arm parked again (item 1497)
+
+**Premise.** DECISIONS 56 §3's fifty-second chapter, three arms of the five
+parked: `Wall::update_hits`' hit-point arm (1476), `update_local_seen_build`'s
+`visible` term (1473/1423), and — asked, not walked — the member
+`find_melee_target` arm. Two-order snap and M5/M6 (1500, 1508) are left: a
+chapter is three arms.
+
+**The hit-point arm: compared, and the compare found a second.** `myhits`
+(`ObjectData +0x20`, a building's `hits(1)`) and `construct_hits` were on
+`coverage.rs`'s unread list, which is why 1476's mutation of the
+`BUILDING_HP_UPGRADE` term left every walk green. `BuildDump::myhits` is
+parsed now and `harness::widen`'s building rows compare `hits` against it on
+every building and `construct_hits` against `construct_hits` while both call
+the site unfinished (the compared-field counts moved: run56 464,682 →
+512,547, run57 654,073 → 721,679, run58 894,314 → 986,161; nothing wrong on
+either). **Mutation** (the ladder's term replaced by 0, `tools/mutate.py`):
+`run636_s_word_frame_is_widened_whole` fails, exit 101. First run, the compare
+parted on run683: City `1/2000` `myhits` 6500 ours, 16250 theirs from 1673,
+a ratio 2.5 — `TEMPLE_UPGRADE_HP[3]` 150. **`Nation::temple_level`, which
+`Wall::update_hits` was read through here, had no writer**: the City-with-a-
+Temple term (`update_hits@0063f0d0`: `has_preq(TEMPLEHP4)` is level 4, else
+`LeaderData::get_temple_hp@006db470` — `TEMPLEHP3` 3, else 1 plus `TEMPLEHP2`)
+never fired outside its unit test. Built: `tech::Roles::temple_hp_preq`
+(`TECHBONUSES` rows 31–33), `Sim::temple_hp_level`; the dead field is gone.
+Unit test `cities_tests::the_temple_s_hit_point_level_follows_templehp_from_the_top`.
+run683's `1/2000` and `1/2027` agree after it.
+
+**What the compare left standing** (none moves a draw): the French East
+Indies cities `1/2000`, `1/2018`, `1/2023` read `myhits` 7500 from 17025 in
+the original against 6000 here, and `1/2064` 3600 against 2880 from 17238 —
+ratio 1.25, a Temple's level-1 term, on the frame the dirty bit of parked
+1509 lands: the original recomputes the hits at 17025 with the Temple in the
+city and this crate's `update_hits` is not re-run or sees no Temple. Parked
+(1687). Run718/run754's 1/2018 `myhits` and 1/2055 `construct_hits` sit in
+the diverged tail past the word.
+
+**The fog arm: walked.** run770 (`docs/RUNS.md`) is chapter fifty-one's script
+with `WORLD=6` per frame over 690..714, which holds the Stockade's first
+round on 698. The golden widening now compares every fog cell
+(`seen2`) on any frame that prints one (`world:seen2`); on run770 none parts
+over 25 blocks (389,709 record rows), and
+`chapter_fifty_two_s_fog_plane_agrees_through_the_first_round` pins that.
+**Mutation** (`visible` dropped from the mask in `update_local_seen_build`):
+fails, exit 101 — the arm is held by a walk now.
+
+**The member arm: parked again.** §61's reason stands (a formation wider
+than a Stockade's reach band needs an `@form` staging) and no capture reaches
+it; nothing was built or probed here.
+
+**What is not established.** The member arm's effect in the original; why the
+original recomputes the hits at 17025; the two-order snap and M5/M6; the
+temple level when `has_wonder(0x214)` (Tikal) holds — built from the
+listing, no capture holds it; the CTW missionaries term after it.
+
+## 63. Reserved for item 1707 (chapter fifty-three)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.

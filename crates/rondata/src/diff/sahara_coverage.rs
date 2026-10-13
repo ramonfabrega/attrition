@@ -826,7 +826,10 @@ fn run718_s_word_frame_is_widened_whole() {
     // 2404 (`docs/AI.md` §175). Value diff on the word: block 2404's
     // `1/2031` `queue:queue[0].job_counter` 9500 against 9473; 2405's `1/126`
     // is born in the original alone (`leader:control` 103 against 104).
-    pin_eq!(w.firsts.len(), 364, "initial run718 baseline");
+    // Item 1497: `myhits` and `construct_hits` are compared on buildings;
+    // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
+    // 1/2055's `construct_hits` part in the already diverged tail, 364 -> 366.
+    pin_eq!(w.firsts.len(), 366, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,

@@ -1744,6 +1744,8 @@ pub fn load_tables(
     // (`docs/AI.md` §121).
     tree.roles.buildings_speed_preq = [bonus_at(70), bonus_at(71), bonus_at(72)];
     tree.roles.buildings_hp_preq = [bonus_at(73), bonus_at(74), bonus_at(75)];
+    // `TEMPLEHP2..4` (`0x2cb`): the temple's hit-point ladder (item 1497).
+    tree.roles.temple_hp_preq = [bonus_at(31), bonus_at(32), bonus_at(33)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,
