@@ -6076,6 +6076,19 @@ impl Sim {
         // (`docs/COLLISION.md` §7). `move_step` spends it and says so;
         // the bit is the unit's, so the clearing is here.
         let half = self.units[u].half_step;
+        // `005fb0fa`: a type that flies like a helicopter, owing no more
+        // than 90°, steps along a second turn at the body's rate
+        // (`GuyData::turn_speed(guy, 1)`) and never turns in place
+        // (item 1653).
+        let heli_rate = self.is_helicopter(u).then(|| {
+            movement::turn_speed(
+                &self.tuning,
+                &turning,
+                m.body.last_speed,
+                m.body.avg_speed,
+                movement::TurnMode::Body,
+            )
+        });
         let step = movement::move_step(
             from,
             m.facing,
@@ -6085,6 +6098,7 @@ impl Sim {
             rate,
             turn_first,
             half,
+            heli_rate,
         );
         if step.half_step_used {
             self.units[u].half_step = false;

@@ -238,7 +238,15 @@ pub(crate) struct Pair {
     /// on 3587, set one point over and pays the grid draw (`docs/AI.md`
     /// §180). **3614** (sequence; the count parts on 3615), 30 draws each,
     /// index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
-    /// `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+    /// `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Item 1653 gives a
+    /// helicopter `move_step`'s own arm: owing no more than 90° it steps
+    /// its whole speed along a second turn at the body's rate and never
+    /// turns in place, so the Transport Helicopter `1/212` steps on 3608
+    /// to (37455, 42905), arrives on 3614 and pays `do_guard`'s anim draw
+    /// (`docs/AI.md` §181). **3843**, 23 versus 28 draws, index 5: ours
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+    /// three times — a birth ours does not make; past run721's window.
     pub count: i64,
     pub sequence: i64,
 }
@@ -256,8 +264,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3615,
-    sequence: 3614,
+    count: 3843,
+    sequence: 3843,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1551,7 +1559,9 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
+    // Item 1653's helicopter step: 189 -> 184, the Transport Helicopter
+    // `1/203`'s first step on 3387 agreeing; its `mirror` on 3386 stands.
+    pin_eq!(w.firsts.len(), 184, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1573,8 +1583,9 @@ pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-windo
 pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run721 walked from run651's start with the recorder on. It holds the
-/// word 3614 (item 1652), block 3615; the old words remain checked.
+/// run721 walked from run651's start with the recorder on. It held the
+/// word 3614 (item 1652), block 3615; item 1653 moved the word to 3843,
+/// past the window, and the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1635,7 +1646,12 @@ fn run721_s_word_frame_is_widened_whole() {
     // the 26-slot path, `move.dest` (40680, 37320), `last_x` -1); the new
     // word 3614's block, 3615, follows `1/212`'s order kind parting on
     // 3614 (ours 2, theirs 12), as `1/184`'s on 3589 and `1/203`'s on 3598.
-    pin_eq!(w.firsts.len(), 326, "run721 after the refused own tile");
+    // Item 1653 builds `move_step`'s helicopter arm: 326 -> 186. `1/212`
+    // agrees from 3507 to the window's end save `mirror` on 3506 (block
+    // 3608 (37455, 42905), guy angle 1612330860; 3614 (37464, 42840) on
+    // its guard), and `1/184`'s and `1/203`'s order kinds with it; the
+    // new word 3843 lies past the window.
+    pin_eq!(w.firsts.len(), 186, "run721 after the helicopter's step");
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
     let at = ix.frames().iter().position(|f| f.number == 3398).unwrap();
@@ -1710,7 +1726,7 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3390),
+        Some(3391),
         "the first parting past the standing block"
     );
 }

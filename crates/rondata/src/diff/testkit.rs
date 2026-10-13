@@ -8810,13 +8810,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 3588): a packed fisherman is idle, and leader 1's make list
     // agrees on 3581. Item 1652 moves it to **3614** (block 3615): a unit
     // whose own tile refuses it is moved off at `find_path`'s head, and
-    // `1/133`'s block-3588 move agrees.
+    // `1/133`'s block-3588 move agrees. **Item 1653 moved it 3614 → 3843,
+    // past run721's last block (3645)**: a helicopter steps along its
+    // second turn, and the Transport Helicopter `1/212` arrives on 3614.
+    // The widening is owed a capture again and this row names the item
+    // that owes it (1654) and no test; run721's test keeps the move's
+    // value diff on `1/212`, `1/184` and `1/203`.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run721_s_word_frame_is_widened_whole"),
-        1652,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
+        None,
+        1654,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

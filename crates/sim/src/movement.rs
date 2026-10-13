@@ -553,6 +553,18 @@ pub enum TurnArm {
 /// straight at its destination and the near-distance arm covers the last
 /// tile anyway.
 ///
+/// `heli_rate` is `Some(GuyData::turn_speed(guy, 1))` — the body's rate,
+/// [`TurnMode::Body`] — for a type that **flies like a helicopter**
+/// (`+0x2b4 & 0x20`), and `None` for every other. Such a type, owing no
+/// more than 90° after this frame's turn (`0x40000000 < local_10` is the
+/// other test of `005fb0fa`'s `||`), takes neither turn-in-place arm nor
+/// the half step: it steps its whole speed **along a second turn** — the
+/// new facing turned on toward the heading by the body's rate, snapping
+/// within it or within 3° (`005fb16a`..`005fb1a3`) — and the facing it
+/// keeps is the first turn's (`Guy::do_turn(…, 0, 0)` writes only that).
+/// The half-step bit is neither read nor spent there. A helicopter owing
+/// more than 90° takes the ordinary arms below (item 1653).
+///
 /// `half_step` is `unit_masks & 0x100000` — the one-shot the **soft**
 /// collision arm sets when a unit's proposed point is occupied by someone it
 /// is allowed to squeeze past rather than stop for, a squadmate above all
@@ -571,11 +583,17 @@ pub fn move_step(
     turn_rate: u32,
     turn_first: bool,
     half_step: bool,
+    heli_rate: Option<u32>,
 ) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
     let heading = find_angle(dx, dy);
     let (facing, owed) = turn_towards(facing, heading, turn_rate);
     let manh = dx.abs() + dy.abs();
+    if let Some(rate) = heli_rate
+        && owed <= NINETY
+    {
+        return straight_step(from, dest, facing, heading, owed, step, rate);
+    }
     let slow: i32 = if turning.type_turn_speed < SLOW_TURN_BELOW {
         2
     } else {
@@ -668,6 +686,57 @@ pub fn move_step(
         snapped: false,
         turned_in_place: None,
         half_step_used,
+    }
+}
+
+/// A quarter turn, the helicopter arm's limit in [`move_step`].
+const NINETY: u32 = 0x4000_0000;
+
+/// [`move_step`]'s helicopter arm: the whole step, along the facing turned
+/// on by the body's `rate`, snapping onto `dest` within the step.
+fn straight_step(
+    from: Pos,
+    dest: Pos,
+    facing: Angle,
+    heading: Angle,
+    owed: u32,
+    step: i32,
+    rate: u32,
+) -> Step {
+    let (dx, dy) = (dest.x - from.x, dest.y - from.y);
+    if arrives(dx, dy, step) {
+        return Step {
+            pos: dest,
+            facing,
+            heading,
+            owed,
+            arrived: true,
+            snapped: true,
+            turned_in_place: None,
+            half_step_used: false,
+        };
+    }
+    let (along, _) = turn_towards(facing, heading, rate);
+    let mut sx = sin_component(along, step);
+    let mut cy = cos_component(along, step);
+    if dx.abs() + dy.abs() < 2 * step {
+        if sx.abs() > dx.abs() {
+            sx = dx;
+        }
+        if cy.abs() > dy.abs() {
+            cy = -dy;
+        }
+    }
+    let pos = Pos::new(from.x + sx, from.y - cy);
+    Step {
+        pos,
+        facing,
+        heading,
+        owed,
+        arrived: pos == dest,
+        snapped: false,
+        turned_in_place: None,
+        half_step_used: false,
     }
 }
 
@@ -926,6 +995,82 @@ mod tests {
         instant_from_stop: false,
         wide_limit: false,
     };
+
+    /// **A helicopter owing no more than 90° steps along a second turn**
+    /// (`move_step@005faf30`'s `+0x2b4 & 0x20` arm, item 1653). run721's
+    /// Transport Helicopter `1/212` is handed a guard move on 3608 owing
+    /// 93° before its turn: the original steps its whole speed at once
+    /// where the ordinary far arm (80°, two tiles out) stands it still.
+    /// The facing it keeps is the first turn's; the step is along the
+    /// body's rate turned on from there.
+    #[test]
+    fn a_helicopter_owing_ninety_or_less_steps_along_a_second_turn() {
+        const HELI: Turning = Turning {
+            type_turn_speed: degrees_to_angle(65).0,
+            packed: false,
+            instant_from_stop: false,
+            wide_limit: true,
+        };
+        let unit = turn_speed(&T, &HELI, 92, 72, TurnMode::Unit);
+        let body = turn_speed(&T, &HELI, 92, 72, TurnMode::Body);
+        let (from, dest) = (Pos::new(37368, 42936), Pos::new(37464, 42840));
+        let facing = Angle(1_653_145_600);
+        let flown = move_step(
+            from,
+            facing,
+            dest,
+            92,
+            &HELI,
+            unit,
+            false,
+            false,
+            Some(body),
+        );
+        let heading = find_angle(96, -96);
+        let (turned, owed) = turn_towards(facing, heading, unit);
+        assert!(owed > EIGHTY && owed <= NINETY, "{owed:#x}");
+        assert_eq!(flown.facing, turned, "the facing is the first turn's");
+        assert_eq!(flown.turned_in_place, None);
+        let (along, _) = turn_towards(turned, heading, body);
+        assert_ne!(along, turned);
+        let to = Pos::new(
+            from.x + sin_component(along, 92),
+            from.y - cos_component(along, 92),
+        );
+        assert_eq!(flown.pos, to, "the whole step, along the second turn");
+        // The same frame for any other type is the far arm's stand.
+        let walked = move_step(from, facing, dest, 92, &HELI, unit, false, false, None);
+        assert_eq!(walked.turned_in_place, Some(TurnArm::Far));
+        assert_eq!(walked.pos, from);
+        // And a helicopter owing more than 90° takes the ordinary arms.
+        let behind = Angle(heading.0.wrapping_add(0x7000_0000));
+        let held = move_step(
+            from,
+            behind,
+            dest,
+            92,
+            &HELI,
+            unit,
+            false,
+            false,
+            Some(body),
+        );
+        assert_eq!(held.turned_in_place, Some(TurnArm::Far));
+        // Within the step it snaps onto the point, turning as it goes.
+        let near = Pos::new(37455, 42905);
+        let landed = move_step(
+            near,
+            Angle(1_070_082_303),
+            dest,
+            92,
+            &HELI,
+            unit,
+            false,
+            false,
+            Some(body),
+        );
+        assert!(landed.arrived && landed.snapped);
+    }
 
     /// **The original on a real frame, three ways.** `tools/recomp/difftest.py
     /// frame` calls `GuyData::turn_speed@005de340` on every guy of every
@@ -1206,7 +1351,7 @@ mod tests {
         let mut frames = 0;
         loop {
             let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit);
-            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate, false, false);
+            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate, false, false, None);
             pos = step.pos;
             facing = step.facing;
             frames += 1;
@@ -1239,6 +1384,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         assert_eq!(s.facing, Angle::WEST);
         assert_eq!(s.owed, 0);
@@ -1260,7 +1406,7 @@ mod tests {
         let mut stood = 0;
         let s = loop {
             let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
-            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, false);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, false, None);
             facing = s.facing;
             if s.pos != pos {
                 break s;
@@ -1298,6 +1444,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         assert_eq!(plain.owed, 0);
         assert_eq!(plain.pos, Pos::new(0, -26));
@@ -1311,6 +1458,7 @@ mod tests {
             rate,
             false,
             true,
+            None,
         );
         assert_eq!(soft.pos, Pos::new(0, -13), "the one-shot half step");
         assert!(soft.half_step_used, "and the frame spends it");
@@ -1324,7 +1472,7 @@ mod tests {
         let mut facing = Angle::EAST;
         let turning = loop {
             let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
-            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, true);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, true, None);
             facing = s.facing;
             if s.pos != pos {
                 break s;
@@ -1356,6 +1504,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         assert!(near.owed != 0 && near.owed < FORTY_FIVE);
         assert_eq!(near.pos, Pos::new(0, 0));
@@ -1369,6 +1518,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         assert_eq!(far.owed, near.owed);
         assert_ne!(far.pos, Pos::new(0, 0));
@@ -1389,6 +1539,7 @@ mod tests {
             rate,
             true,
             false,
+            None,
         );
         assert_eq!(told.owed, near.owed);
         assert_eq!(told.pos, Pos::new(0, 0), "the flag costs the whole frame");
@@ -1403,6 +1554,7 @@ mod tests {
             rate,
             true,
             false,
+            None,
         );
         assert_eq!(facing.owed, 0);
         assert_ne!(facing.pos, Pos::new(0, 0));
@@ -1427,6 +1579,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         // Both clamps fire, so it lands exactly on the destination — and with
         // a zero tolerance that is arrival, even though the snap never said so.
@@ -1448,6 +1601,7 @@ mod tests {
             rate,
             false,
             false,
+            None,
         );
         assert_eq!(s.pos, near);
         assert!(s.arrived && s.snapped);
