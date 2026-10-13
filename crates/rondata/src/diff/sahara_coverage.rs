@@ -275,11 +275,6 @@ fn run676_sahara_coverage_closing_state() {
         "Closing city fields: {:?}",
         harness::compare(&built, &fin, 8).city_diverged
     );
-    if std::env::var_os("RON_CLOSE_PROBE").is_some() {
-        for d in harness::compare(&built, &fin, 8).build_diverged {
-            eprintln!("BUILD {d:?}");
-        }
-    }
     pin_eq!(e.frame, 4341, "the closing block");
     // Item 2055: 252 units compared; one off (`1/95`, ours (342, 159) from
     // the dump's), eight building field-rows and five city field-rows apart.
