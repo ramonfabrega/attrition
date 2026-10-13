@@ -18458,3 +18458,8 @@ halving (ours has `ever_attacked`, unwired there). The flag's clearing (none fou
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 187. Reserved for item 1716 (Great Sahara's word 2851)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
