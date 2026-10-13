@@ -317,7 +317,7 @@ pub(crate) enum PackArm {
 
 /// What `find_melee_target`'s squad head answers ([`Sim::melee_squad_head`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum SquadHead {
+pub(crate) enum SquadHead {
     /// A captain, or a follower whose captain's target has gone: search.
     Search,
     /// A follower whose captain is not attacking: `−1`, nothing.
@@ -2803,7 +2803,7 @@ impl Sim {
         Some(target)
     }
 
-    fn melee_squad_head(&mut self, u: usize) -> SquadHead {
+    pub(crate) fn melee_squad_head(&mut self, u: usize) -> SquadHead {
         if self.units[u].captain {
             return SquadHead::Search;
         }

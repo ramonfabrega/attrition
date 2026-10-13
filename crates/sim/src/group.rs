@@ -3493,8 +3493,22 @@ impl Sim {
                         Obj::Unit(_) => crate::fight::search::UNITS,
                         Obj::Building(_) => crate::fight::search::BUILDINGS,
                     };
-                    self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
-                        .unwrap_or(target)
+                    // **A follower's retarget is its captain's target, and
+                    // no search** (`find_melee_target@005ff9c0:32`–`91`, item
+                    // 1863): the squad head answers before
+                    // `find_nearby_target` runs, so it writes no `near` — run786's
+                    // `1/8` and `1/9` on 774 (`param_4 == 0`, the order is
+                    // added below). A captain or a follower whose captain's
+                    // target is gone searches, and a follower whose captain is
+                    // not attacking finds nothing.
+                    let found = match self.melee_squad_head(u) {
+                        crate::orders::SquadHead::Nothing => None,
+                        crate::orders::SquadHead::Captain(t, _) => Some(t),
+                        crate::orders::SquadHead::Search => {
+                            self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
+                        }
+                    };
+                    found.unwrap_or(target)
                 };
                 self.add_attack_order(u, t, queue, mandatory, true);
             }
