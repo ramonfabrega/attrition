@@ -945,6 +945,46 @@ mod tests {
         assert!(!s.airbase_pad_full(b, ty), "a helicopter's type is exempt");
     }
 
+    /// **`Build::do_queue`'s second fallback** (item 1905, `docs/AI.md`
+    /// §198, run790's `1/2011` on 3767): a head the aircraft limit refuses
+    /// (a plane at ten homed) lets the first Helicopter behind it train;
+    /// a head the population cap refuses (zero, not negative) does not.
+    #[test]
+    fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
+        let build = |cap: i32| {
+            let (mut s, b, planes) = hangar([0, 0, 0, 0]);
+            for _ in 0..6 {
+                plane(&mut s, b, BIPLANE);
+            }
+            let plane_ty = s.units[planes[2]].ty.unwrap();
+            let h = plane(&mut s, b, HELICOPTER);
+            let heli_ty = s.units[h].ty.unwrap();
+            s.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+            // No technology tree in this fixture: the lines are ids a
+            // tree would index.
+            s.unit_types[heli_ty].tree = None;
+            s.unit_types[plane_ty].tree = None;
+            assert!(s.airbase_pad_full(b, plane_ty));
+            s.muster[0].researched[plane_ty] = true;
+            s.muster[0].researched[heli_ty] = true;
+            s.muster[0].cap = cap;
+            let c = [0; crate::economy::RESOURCES];
+            for ty in [plane_ty, heli_ty] {
+                s.buildings[b].queue.items.push(crate::production::Item::queued(ty, &c));
+                s.buildings[b].queue.items.last_mut().unwrap().job_counter = 1_000_000;
+            }
+            (s, b, heli_ty)
+        };
+        let (mut s, b, heli_ty) = build(1000);
+        let out = s.process_queues();
+        assert_eq!(out.len(), 1, "the helicopter trains behind the refused head");
+        assert_eq!(s.buildings[b].queue.items.len(), 1, "the plane stays");
+        assert_ne!(s.buildings[b].queue.items[0].ty, heli_ty);
+        let (mut s, b, _) = build(-1000);
+        assert!(s.process_queues().is_empty(), "a population refusal is zero");
+        assert_eq!(s.buildings[b].queue.items.len(), 2);
+    }
+
     /// **`MOVE_TO` onto another base** (item 1009, §43): the first fuelled
     /// plane of equals — the farthest, strict — flies home to it; a
     /// refuelling plane is passed over; shift sends every one; a base
