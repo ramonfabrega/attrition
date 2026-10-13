@@ -3331,9 +3331,10 @@ impl Sim {
             return Advanced::Pending;
         }
 
+        let pad_full = researched && self.airbase_pad_full(at, ty);
         let muster = &self.muster[who as usize];
         let pop = self.unit_types[ty].price.pop;
-        match production::finished(researched, muster.cap, muster.control, pop, false) {
+        match production::finished(researched, muster.cap, muster.control, pop, pad_full) {
             production::Handover::Population | production::Handover::Limit => Advanced::Blocked,
             production::Handover::Researched => {
                 // `gain_tech`: the bit, and nothing else. No refund, no

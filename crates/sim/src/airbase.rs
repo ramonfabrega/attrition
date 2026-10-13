@@ -292,6 +292,34 @@ impl Sim {
         })
     }
 
+    /// `ObjectData::num_aircraft_here@00645330` with its argument 0, on a
+    /// base that is no carrier: every live aircraft of the base's owner whose
+    /// `UnitData::home_base` is the base, standing in it or flying (item
+    /// 1714). [`Self::aircraft_here`] counts the garrison alone.
+    pub(crate) fn aircraft_homed(&self, base: usize) -> usize {
+        let who = self.buildings[base].owner;
+        (0..self.units.len())
+            .filter(|&u| {
+                self.units[u].alive()
+                    && self.units[u].owner == who
+                    && self.is_air_unit(u)
+                    && self.home_base(u) == Some(base)
+            })
+            .count()
+    }
+
+    /// `Build::finished@00628490`'s aircraft arm (`6285c0`..): an Airbase
+    /// training a type that does not fly like a helicopter
+    /// (`+0x2b4 & 0x20` clear) answers -1 while
+    /// `num_aircraft_here(0) >= num_aircraft_limit`, which at an Airbase is
+    /// `MAX_AIRCRAFT_PER_AIRBASE` (10); the entry stays full and the handover
+    /// repeats (item 1714).
+    pub(crate) fn airbase_pad_full(&self, at: usize, ty: usize) -> bool {
+        self.building_ident(at) == crate::build::Ident::Airbase
+            && self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER == 0
+            && self.aircraft_homed(at) >= 10
+    }
+
     /// `ObjectData::num_aircraft_here(0)`: the aircraft standing in a base.
     fn aircraft_here(&self, base: usize) -> usize {
         self.buildings[base]
@@ -895,6 +923,26 @@ mod tests {
         s.buildings[b].started = true;
         s.buildings[b].active = true;
         b
+    }
+
+    /// **`Build::finished`'s aircraft arm** (item 1714, `docs/AI.md` §186):
+    /// an Airbase training a plane answers -1 at ten aircraft homed to it,
+    /// and not at nine, not for a type that flies like a helicopter, not at
+    /// another building type.
+    #[test]
+    fn an_airbase_with_ten_homed_aircraft_refuses_another() {
+        let (mut s, b, planes) = hangar([0, 0, 0, 0]);
+        let ty = s.units[planes[0]].ty.unwrap();
+        for _ in 0..5 {
+            plane(&mut s, b, BIPLANE);
+        }
+        assert_eq!(s.aircraft_homed(b), 9);
+        assert!(!s.airbase_pad_full(b, ty), "nine homed: room");
+        plane(&mut s, b, BIPLANE);
+        assert_eq!(s.aircraft_homed(b), 10);
+        assert!(s.airbase_pad_full(b, ty), "ten homed: full");
+        s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+        assert!(!s.airbase_pad_full(b, ty), "a helicopter's type is exempt");
     }
 
     /// **`MOVE_TO` onto another base** (item 1009, §43): the first fuelled

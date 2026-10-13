@@ -248,7 +248,11 @@ pub(crate) struct Pair {
     /// temple and tower arms, so the Persian temple is listed at ten times
     /// the value: **4425**, 23 versus 22 draws, index 9: ours
     /// `Guy::init_real+0x52` (a birth), theirs `Guy::set_anim+0x97a <
-    /// Guy::inc_time+0x271`.
+    /// Guy::inc_time+0x271`. Item 1714 holds an Airbase's trained jet at
+    /// `num_aircraft_here(0) >= 10` (`Build::finished`'s -1), so `1/2010`
+    /// keeps it queued as the original does: **4582**, 549 versus 551 draws,
+    /// index 542: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    /// `Guy::init_real+0x52` (a birth).
     pub count: i64,
     pub sequence: i64,
 }
@@ -266,8 +270,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 4425,
-    sequence: 4425,
+    count: 4582,
+    sequence: 4582,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1625,7 +1629,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_4425: (i64, i64) = (4420, 4677);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run762 walked from run651's start with the recorder on. It holds the
-/// word 4425 (item 1700), block 4426; run754's window stays checked.
+/// word 4425 (item 1700), block 4426, and 4582 (item 1714), block 4583;
+/// run754's window stays checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1635,7 +1640,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN762, 4420)],
         WIDENING_COVERAGE_FRAME_4425,
         1,
-        &[4425, 4426],
+        &[4582, 4583],
         true,
     )
 }
@@ -1652,7 +1657,11 @@ fn run762_s_word_frame_is_widened_whole() {
     // against 0, `num_units[245]` 13 against 14); 2322 keys (2320 before item
     // 1497's two) over the
     // window, most of them the first block's standing rows.
-    pin_eq!(w.firsts.len(), 2322, "run762 keys that part (item 1700)");
+    // Item 1714: the Airbase `1/2010`'s jet stays queued (`Build::finished`
+    // -1 at ten homed aircraft), 4426 agrees; the word is **4582** (block
+    // 4583): the original births `1/169` (`num_units[8]` 5 against 4,
+    // `active` 179 against 178). 2322 -> 1167 keys.
+    pin_eq!(w.firsts.len(), 1167, "run762 keys that part (item 1714)");
 }
 
 #[test]
