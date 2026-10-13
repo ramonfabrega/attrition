@@ -11,7 +11,11 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, want) = super::row(line);
         let v = i8::try_from(a[0]).expect("a signed char");
-        assert_eq!(want, i64::from(i32::from(v)), "WallData::los — row `{line}`");
+        assert_eq!(
+            want,
+            i64::from(i32::from(v)),
+            "WallData::los — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 256, "only {n} rows");
