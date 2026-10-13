@@ -3731,6 +3731,16 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-13 — the thirty-first tranche's
+
+(1890) **`sweep_gen.py` has no field-write or global-compare shape**
+(1866's Loop line): ten functions of one batch were `mov [ecx+N], imm;
+ret` or a compare against a global cell, and the lane hand-wrote a
+script head that also checks `esp` after `ret N` and that nothing else
+in the 4 KB around the object changed. Candidate: both shapes, and the
+`esp` and untouched-bytes checks in every generated script. One reach.
+(`timeout` is still not on this machine, 1856's and 1866's journals.)
+
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
 (1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
