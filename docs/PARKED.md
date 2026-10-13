@@ -3748,7 +3748,9 @@ pinned to end at the word, while run814 and run818 run to 1000. So
 2032's "chapter sixty-one closed" was booked open, and the rules
 headline has read "every chapter closed" since. Candidate: the trace's
 end as its own pinned column, a test that fails when a window's end is
-short of its trace's frames; 2099 re-pins the two by hand.
+short of its trace's frames; 2099 re-pins the two by hand. **Item 2099 built the test**
+(`floors::a_golden_widening_s_window_reaches_its_trace_s_end`, made to fail on `ch61` and `ch62`) and a
+trace column for a row whose widening stops at its word (`TRACE_CHAPTER_SIXTY_TWO`).
 
 (2104) **`stage_walk` has no "what if" seam** (2066's Loop line, filed at
 its merge): to ask the head beside the headless search, 2066's probe
@@ -4386,7 +4388,7 @@ a negative pool would name the frame. Parked rather than fixed: no score reads i
 
 ## Parked by item 2066, 2026-10-13 — chapter sixty-two
 
-(2067) **Chapter sixty-one's 780 is the captain's re-search finding nothing there** (2066, measured on run814 while
+(2067) **Answered by item 2099 (`docs/GOLDEN.md` §76): neither fog nor search, but `fight`'s `poor_target` arm ahead of both; chapter sixty-one closed at 1000.** **Chapter sixty-one's 780 is the captain's re-search finding nothing there** (2066, measured on run814 while
 staging): on 778 `0/10`'s attack on who=1's Citizen `1/6` takes `fight`'s captain arm — the one-in-five draw, a
 non-combat target, `find_new_target` — and the original's search writes `near` −1 and adds nothing, where this crate's
 finds `1/6` again and chases. `target_is_seen` answers true here: four of who=0's discs lit `1/6`'s half-cell (104, 79)
@@ -4461,13 +4463,13 @@ layout and the test's model of the reset, the answer left to `--port`.
 (`has_preq`) three times; both by hand, the asks' order the finding. 2084's candidate would serve both with its
 `--stub-via` optional.
 
-## Parked by the next landing, slot AL — reserved
+## Parked by item 2099, 2026-10-13 — chapter sixty-one closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2100) **`fight`'s re-search predicate for a unit whose `unit_masks2 & 4` is set is not carried** (2099,
+`docs/GOLDEN.md` §76). `Unit::fight@005fd4d0:396`–`400` uses another test for `local_14` there: the
+target's role `0x10000` set and its type's `+0x2b4 & 0x2000` clear. This crate reads only "not combat role",
+which is the arm for a unit with the bit clear. No walk is known to set the bit on a captain that reaches the arm.
+Names no frame.
 
 ## Parked by the next landing, slot AM — reserved
 

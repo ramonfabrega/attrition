@@ -11296,6 +11296,7 @@ and `chase_refused` killed it; its tails on 771, 778 (`order:guard.idle` 103 aga
 whole capture). **No draw moves**: the word stays 780.
 
 **Pins.** `GOLDEN_WORD_CHAPTER_SIXTY_ONE` 780; the widening's window is 605..781, the word's frame its last.
+**Superseded by item 2099 (§76):** the word is 1000 and the chapter is closed; the window is run814 whole.
 `WANT_CH61` is the eleven `form` rows, `0/7`'s `death:extra` on 774 (the instrument, parked 1830's family) and
 `0/10`'s eighteen word rows on 779–780; `WANT_CH61_POOL` the word's slot 0 `facing` on 780.
 
@@ -11404,12 +11405,63 @@ between them through `Unit::find_attack_pos@00602e60`.
 head's captain arm under a refusal, `Unit::do_move@005f7b30`'s `ATTACK` retarget, and `Object::valid_target@00648ba0`,
 which every `fight` calls and no arm here isolates.
 
-## 76. Reserved for the next item on the rules track
+## 76. Chapter sixty-one closes: a futile chase is searched past its latch (item 2099)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2105 and 2067. Chapters sixty-one and sixty-two read closed and were open: the `Golden:`
+floor (`crate::diff::floors`' `golden_line_verdict`) calls a chapter closed when its word is its window's last
+block, and both widenings ended at their words — (605, 781) and (605, 901) — where run814 and run818 run to 1000.
+Then chapter sixty-one's word, 780.
+
+**The re-pin.** A guard first, made to fail on exactly `ch61` and `ch62`:
+`a_golden_widening_s_window_reaches_its_trace_s_end` holds every `GOLDEN_WORDS` row's window to the `length` its
+chapter's `walk_script` call gives (`hi − 1 >= length`). Widening both windows to their traces was tried and
+withdrawn: past its word chapter sixty-two parts on 532 keys (sixty-one on some 300), a tail every later move
+would re-pin. So `GOLDEN_WORDS` names chapter sixty-two's trace beside its widening (`TRACE_CHAPTER_SIXTY_TWO`,
+605..1001), and its widening stays at the word. Chapter sixty-one closed in this same item, so its widening is
+run814 whole.
+
+**The frame, before any reading.** Block 780: ours 6 draws, theirs 5. Ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` for scene two's captain `0/10` (`TypeIndex` 132, `HOPLITES`, land), then the five
+`Farms::inc_time+0x1ae`; theirs spends only the five Farms draws. The seeds agree through 779. On 778 both sides spend
+`Unit::fight+0x9b0` for `0/10` (seed `a19cd1cc`, 58042: `58042 % 5 = 2`). **Both sides' unit state**
+(`unitat.py`): on block 778 the original's `0/10` holds `[ATTACK 1/6, GUARD]` at (40296, 30960); on block 779 it
+holds the `GUARD` alone, with `near` −1/−1. This crate's `0/10` kept the attack (`near` (6, 1), three orders). who=1's
+Citizen `1/6` (`TypeIndex` 50, `PEASANTS`) is walking east at (40268, 30546), 415 units off.
+
+**Neither fog nor the search** (parked 2067's two readings): the arm before the search. `Unit::fight@005fd4d0`,
+`LAB_005fddf7` (the export's lines 389–469): on a unit target `local_14` is "not combat role", and the roll
+(`% 5 == 0`) or the chase latch (`update_order()->flags & 0x10`) clears it. With `local_14` clear, the arm does not
+fall through to the chase. It asks **`Object::poor_target@0064a270(this, target)`**, and a yes jumps to the same
+`find_new_target` (`005fded5` → `LAB_005fdee2`). This crate carried that arm as a `SEAM`. A probe (committed and
+reverted whole) printed this crate's state on 778: `latch=true` and `poor_target=true`. So the original searches
+there. Its search's `check_target(…, param_6 1, param_7 0)` asks `poor_target` of every candidate, and `1/6` is
+refused before `near` is written. Nothing is found: `local_4c` stays above `0xf00`, `near` goes to −1/−1, and the
+attack is gone with the `GUARD` in front. That is the original's block 779.
+
+**Built** (`crates/sim/src/orders.rs`, `fight`'s captain arm): `research` is the old predicate **or**
+`poor_target(me, target)` on a unit target. **The value diff on block 779**: `0/10`'s `near` was (6, 1) here
+against (−1, −1) there, and is (−1, −1) both sides; `orders.len` was 3 against 1, and is 1 both sides (the `GUARD`).
+All eighteen of the word's rows on 779–780 leave, and the pool's 780 `facing` with them.
+
+**The word moves 780 → 1000, the trace's end: chapter sixty-one is closed.** The widening over run814 whole
+(605..1001) leaves 13 rows: the eleven standing `form` rows on 605, and the `death:extra` instrument on `0/7` (774) and
+on `0/6` (931), parked 1830's family. The pool parts nothing.
+
+**Mutation** (`tools/mutate.py`, the `|| poor_target` term removed): held. Both chapter-sixty-one tests fail and
+cargo exits 101. The whole release suite is green apart from the commander's `Golden:` line. The battery stays at
+576 / 6566 / 2974.
+
+**Not established.** The other predicate for `local_14`, for a unit whose `unit_masks2 & 4` is set (target role
+`0x10000` and not type `+0x2b4 & 0x2000`), is not carried (parked 2100). The cavalry archer's
+`find_melee_target` in place of `find_new_target` is still a `SEAM`. Chapter sixty-two's 900 is untouched by this
+item, and is the rules track's next word.
+
+### 76.1 Coverage
+
+**Diff-backed** by run814's widening whole, with the mutation failing it: `Unit::fight@005fd4d0`'s `poor_target`
+arm (`005fded5`) and, through it, `Unit::find_new_target@005ff6a0` → `Object::find_nearby_target@00648da0` with
+`Object::check_target@00649e00`'s `poor_target` refusal (its tail), on `0/10` at 778. No function enters
+the census for the first time here: census 536 of 3611 (`census.py --layers`), unchanged.
 
 ## 77. Reserved for the next item on the rules track
 
