@@ -133,8 +133,14 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // as in the original — 2851 → **2934** (count and sequence): ours 191
     // draws against 205, index 0, ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
-    count: 2934,
-    sequence: 2934,
+    // Landing 13 (`docs/AI.md` §189): `Unit::do_build`'s re-entry goes
+    // through the group's insert dance, so a Build queued behind the
+    // re-swarmed one is swarmed afresh from where the builder stands (`1/12`
+    // on 2877) — 2934 → **3182** (count and sequence): ours 46 draws against
+    // 43, index 7, ours `Leader::produce_building+0x1805`, theirs
+    // `Leader::make_stuff+0x63d`.
+    count: 3182,
+    sequence: 3182,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -959,17 +965,17 @@ fn run766_s_word_frame_is_widened_whole() {
     // (36024,26568) — and block 2852's `1/51` `collide` 1 against 0; the
     // word 2640's value diff was `1/2017`'s `queue[0].job_counter` 65500
     // against 65454 on 2640 and block 2641's `queued` 1 against 0.
-    pin_eq!(w.firsts.len(), 97, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 94, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
 
-/// The window: block 2928 through 3185; the word 2934's own block is 2935.
+/// The window: block 2928 through 3185; the word 3182's own block is 3183 (2934's was 2935).
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2934: (i64, i64) = (2928, 3185);
 
 /// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
 /// `GreatSaharaPersianAllTech`): run767 walked from run675's start with the
-/// recorder on — the word 2934's block 2935.
+/// recorder on — the word 3182's block 3183.
 pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
@@ -979,7 +985,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN767, WIDENING_SAHARA_COVERAGE_FRAME_2934.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_2934,
         1,
-        &[2935],
+        &[3183],
         true,
     )
 }
@@ -996,5 +1002,12 @@ fn run767_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 2856, "initial run767 baseline");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 142, "initial run767 baseline");
 }

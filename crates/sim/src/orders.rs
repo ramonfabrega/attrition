@@ -7098,7 +7098,20 @@ impl Sim {
             self.covers_tile(b, self.units[u].pos.tile()) && self.building_ident(b) != Ident::Farm;
         if !self.adjacent_to(u, b) || inside {
             self.kill_current_order(u);
+            // `Unit::do_build@005eebf0` re-enters through a one-member
+            // `Group` at `QUEUE_FIRST` (`005ef165`–`005ef1a0`): the group
+            // insert dance (`Group::action_swarm_around@0070fbe0`,
+            // `docs/GROUPS.md` §17) — the unit's action-flagged orders
+            // copied aside, the member halted, this swarm at `QUEUE_NEW`,
+            // and each copy re-issued at `QUEUE_LAST`, so a build queued
+            // behind this one is swarmed afresh from where the unit now
+            // stands (run767's `1/12` on 2877, `docs/AI.md` §189).
+            let mut g = crate::group::Group::stack(who);
+            self.group_add(&mut g, u);
+            let insert = self.group_set_up_insert(&g);
+            self.group_action_halt(&g, 0);
             self.swarm_around(u, b, Body::Build(b), action);
+            self.group_finish_insert(&g, insert);
             return;
         }
         // §5.2 step 4's first half, and it is a draw the arrival stand

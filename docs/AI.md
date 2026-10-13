@@ -18594,10 +18594,65 @@ condition is approximated as "uncaptured". No capture holds a second spy (the ga
 second slot is 450 frames on, 5032); the death re-arm is reading-only. `MAKE[2,3].val` 1294
 against 1353 on 4585 (1714's second row) is still in run762's 250 keys: a value, with no draw behind it.
 
-## 189. Reserved for item 1726 (Great Sahara's word 2934)
+## 189. A builder's re-entry is the group's insert dance, and the word at 3182 (2026-10-13, item 1726)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 2934, 191 versus 205 draws, index 0: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`
+(run767, block 2935). 1716's first row: `1/12` `orders_y` 16680 against 16440
+on 2934, `path:length` 5 against 4 on 2935.
+
+**Walked back to the first parted field.** `1/12` is a Persian Citizen
+(`TypeIndex` 50) holding `[Build(56), Move(33144, 16680), Build(68)]`.
+`orders_y` is the head move's destination, so the field is the *Move to the
+second site's ring*; the dump's own order list is printed reversed (a stack)
+and carries the full list. In run766 the original's list reads
+(33144, 16680) through 2877 and **(33144, 16440) from 2878**, the frame the
+builder's first Build re-enters (`do_build`: not adjacent → `kill_current_order`
+→ swarm). Ours laid the approach to site 68 on 2382 and left it standing.
+A probe (`swarm_spot(u, 68)` evaluated on 2877 from the builder's position
+then, (30318, 17038)) returned **(33144, 16440), angle 1230766080** — the
+original's destination and `dest_angle` to the digit.
+
+**Cause.** `Unit::do_build@005eebf0` (`005ef165`–`005ef1a0`) re-enters through a
+one-member `Group` and `Group::action_swarm_around(…, QUEUE_FIRST, BUILD_AT)`,
+which is the insert dance (`GROUPS.md` §17): `set_up_insert` copies the
+action-flagged orders aside, `action_halt` clears the member, the swarm is laid
+at `QUEUE_NEW`, and `finish_insert` re-issues each copy at `QUEUE_LAST` — a
+Build copy through `action_swarm_around(QUEUE_LAST)`, i.e. a *fresh* approach
+from where the unit stands. This crate took the re-entry as a plain
+`swarm_around`, which left the queued second site's old approach. Built in
+`Sim::do_build` (`crates/sim/src/orders.rs`) with the existing
+`group_set_up_insert` / `group_action_halt` / `group_finish_insert`;
+`a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh` (`cities_tests`)
+fails without it (made to fail once, the dance replaced by the plain swarm).
+`group_action_swarm_around` takes a *builder* (`worker_of == Citizen`) and a
+captain, so the test sets the worker.
+
+**Value diff and score.** run767's widening falls **2856 → 142** keys, run766's
+97 → 94; the whole suite moves nothing else. The word leaves the window's
+first block: count and sequence part together at **3182**, ours 46 draws
+against 43, index 7, ours `Leader::produce_building+0x1805`, theirs
+`Leader::make_stuff+0x63d` (block 3183, still inside run767, 3185 its last).
+The dump's own coordinates on 3182: `leader:MAKE[8]` — ours `t` 446 (Redoubt),
+`city` 1, `val` 5711; theirs `t` 526 (Pyramids), `city` 3, `val` 3481. The
+original lists a Redoubt too, at a third of ours' (`MAKE[8]` is the best cat-8
+entry): the same `MAKE[8].val` residue as 2782 (17767 against 5922, 1/2018's
+Redoubt, `city` 1 in the dump's numbering).
+
+**Not established.** *Why the Redoubt's value is a third.* Measured on ours'
+`create_buildings` fort arm (`ai_build.rs` §3.7) for the Town `1/2018`
+(`level` 2, `bordering` 3, `peasant_dist` 100, `nb` 12–14, `have` 0): `v` 95
+→ `x` 2850 → `base` 8550 → ×`reach` 5 → ×4/5 = 34200, `check_income` 133 →
+17767; the original's 5922 is **exactly** a third (11400 · 133 / 256). The
+listing (`6c3762`–`6c39a3`) has the same chain operation for operation — the
+`×3` at `6c3940` is there — so an *input* is a third. Killed on the way:
+`reach` (5 does not divide by 3), `k` (nb is 14 in the dump), `level` (the
+dump's city type agrees), `peasant_dist`, the `founder` ×3 (it would make the
+original larger), `defense_mod` (no writer but the taunts). A probe that drops
+the `×3` from `base` moves the lobby's word **3182 → 3767** (ours 33 draws
+against 37, a birth) — so the factor is real and constant over 585 frames,
+and **not built** (the listing keeps the `×3`). The team-style arm's `×16`
+(`produce_building`) stays a SEAM.
 
 ## 190. The successor pair: East Indies, the Mongols, Difficulty 3 — and its first word at frame 11 (2026-10-13, item 1728)
 
