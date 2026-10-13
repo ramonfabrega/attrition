@@ -1188,9 +1188,10 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // that the original never writes one either on the captures on
         // disk — a claim a capture can falsify, which is the point of
         // leaving it in.
-        for (name, theirs) in [("raid_stamp", c.raid_stamp), ("scouted", c.scouted)] {
-            fields.push((name.into(), 0, theirs));
-        }
+        // Item 2106: `raid_stamp` is this crate's on a transfer
+        // (`City::init`, `City::capture`), and still zero for a raid.
+        fields.push(("raid_stamp".into(), ours.raid_stamp, c.raid_stamp));
+        fields.push(("scouted".into(), 0, c.scouted));
         // `reduce_stamp` is `Object::do_damage`'s tail since item 1528.
         fields.push(("reduce_stamp".into(), ours.reduce_stamp, c.reduce_stamp));
         // **`trade_val` and `vans` are this crate's own since

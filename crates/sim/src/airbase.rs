@@ -1613,6 +1613,7 @@ mod tests {
                 assimilation_timer: 0,
                 attack_stamp: 0,
                 reduce_stamp: 0,
+                raid_stamp: 0,
                 capture_strength: 0,
                 pop: 1,
                 has_citizen: false,

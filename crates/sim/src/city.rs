@@ -172,8 +172,14 @@ pub struct City {
     /// `CityData::reduce_stamp` (`+0x1c`): the frame a city building last
     /// took a hit at its hit-point ceiling from another player's object —
     /// `Object::do_damage@0064a480`'s tail, the one writer (`docs/AI.md`
-    /// §142). Zero until then.
+    /// §142). Zero until then — and the frame on a transfer, which
+    /// `City::init@00737050` stamps with the other four (item 2106).
     pub reduce_stamp: i64,
+    /// `CityData::raid_stamp` (`+0x18`): stamped with the frame by
+    /// `City::init` on a transfer and by `City::capture@00736c40` (item
+    /// 2106). `Leader::raid`'s own stamp is not carried — a raided city
+    /// reads zero here until it changes hands.
+    pub raid_stamp: i64,
     pub capture_strength: i32,
     /// `CityData::pop` (+0x5d): 1 at init, copied on capture, not the pop
     /// value (`get_pop_value` is computed from the level) and not touched by
@@ -430,7 +436,8 @@ impl Sim {
             capture_stamp: stamp,
             assimilation_timer: stamp,
             attack_stamp: stamp,
-            reduce_stamp: 0,
+            reduce_stamp: stamp,
+            raid_stamp: stamp,
             capture_strength: 0,
             pop: 0,
             has_citizen: false,
@@ -456,6 +463,23 @@ impl Sim {
         self.cities[c].pop = 1;
         self.sync_has_city(self.cities[c].owner);
         self.buildings[b].city = Some(c);
+        // **The AI half of the record, as `City::init` leaves it** (item
+        // 2106): `free`, `busy`, `gatherers`, `peasant_dist`, `in_port`,
+        // `bordering`, `ocean_filled`, `dock_tile`, `space` and `ter`
+        // zeroed, and `*(this + 0x61) = 0x01090000` — `plundered` and
+        // `ocean` 0, **`land` 9 and `filled` 1** — until the owner's next
+        // sweep walks the circle. A reused slot kept the dead city's
+        // picture here, and a captured city read 0/0 where Great Sahara's
+        // Napata `1/2086` reads 9/1 on its capture frame.
+        let rec = &mut self.ai[who as usize].city_ai;
+        if rec.len() <= c {
+            rec.resize(c + 1, crate::ai::CityAi::default());
+        }
+        rec[c] = crate::ai::CityAi {
+            land: 9,
+            filled: 1,
+            ..crate::ai::CityAi::default()
+        };
         // `LeaderData::home_reg`: the capital's region, which the AI's
         // sweep reads (`docs/AI.md` §2.3 step 15) and nothing else wrote.
         if capital && let Some(r) = reg {
@@ -1478,16 +1502,24 @@ impl Sim {
             }
             _ => (0, false),
         };
+        // `Wall::update_hits@0063f0d0` asks `LeaderData::has_wonder` for
+        // the Taj Mahal (`0x21b`), the Red Fort (`0x216`) and Tikal
+        // (`0x214`) on every call. `Nation`'s three flags had no writer,
+        // so a held Tikal never took its temple bonus (item 2106: Great
+        // Sahara's six templed cities `myhits` 16250/3900 here against
+        // 21125/5070 from the frame `1/2048` finished).
+        let held = self.wonders_held(bd.owner);
+        let has = |w: usize| held & (1 << w) != 0;
         let m = build::HitsMods {
             maya: n.maya,
             romans: n.romans,
             // `get_building_hp_upgrade` (item 1476): run636's Smelter
             // `1/2047` holds `myhits` 1100 on 14085, Construction's +10 %.
             hp_upgrade: self.speed_upgrade_level(bd.owner, &self.tech_tree.roles.buildings_hp_preq),
-            taj_mahal: n.taj_mahal,
-            red_fort: n.red_fort,
+            taj_mahal: has(crate::tech::wonder::TAJ_MAHAL),
+            red_fort: has(crate::tech::wonder::RED_FORT),
             nubians: n.nubians,
-            tikal: n.tikal,
+            tikal: has(crate::tech::wonder::TIKAL),
             temple_level: self.temple_hp_level(bd.owner),
         };
         let full = build::full_hits(
@@ -2930,6 +2962,7 @@ impl Sim {
         nc.owner = a;
         nc.building = n;
         nc.attack_stamp = self.frame;
+        nc.raid_stamp = self.frame;
         nc.reg = oldc.reg;
         nc.founder = oldc.founder;
         nc.race = if assimilate_now { Some(a) } else { oldc.race };
@@ -2997,6 +3030,11 @@ impl Sim {
         bd.founder = old.founder;
         bd.recharging = old.recharging;
         bd.clock = old.clock;
+        // `Wall::swap_team@00640c00` copies `+0x62`/`+0x63` across: who has
+        // ever seen it stays who had (item 2106: Napata `1/2086` reads 255
+        // in the original on its capture frame, 2 here).
+        bd.ever_seen = old.ever_seen;
+        bd.ever_seen_completed = old.ever_seen_completed;
         self.update_hits(n);
         Some(n)
     }
