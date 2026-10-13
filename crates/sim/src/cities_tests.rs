@@ -1517,7 +1517,9 @@ fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     // The Senate bonus arrives with the wall stats, on the next frame.
     sim.tick();
     // The city gained the new type's hits and kept its damage.
-    assert_eq!(sim.buildings[b].hits, 2500);
+    // 2500 plus the Temple's level-1 25 % (item 1497: `TEMPLE_UPGRADE_HP[0]`,
+    // which no level written here ever applied).
+    assert_eq!(sim.buildings[b].hits, 3125);
     // Members got the senate bonus: a market in a Large City has 35 % more.
     let market = placed[2];
     assert_eq!(sim.buildings[market].hits, 1620);
