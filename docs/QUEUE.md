@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, the twenty-ninth tranche at twenty landings of twenty
+*2026-10-13, the twenty-ninth tranche at twenty landings of twenty, draining (1728)
 (`commander`, Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65):
 **the coverage pair closed** at its trace's end — 3963 → 4730 (1673,
-1700, 1714, 1719) — Great Sahara 2323 → 2934 (1639,
+1700, 1714, 1719) and the successor pair stood up (East Indies, Mongols, 1728) — Great Sahara 2323 → 2934 (1639,
 1697, 1716) — the census 68 → 178, chapter fifty-two landed and fifty-three opened at 962. No kill rule.*
 
-- **Out**: `att-1728` (parks 1675–1678, runs 774–776, AI §190), `att-1726`
+- **Out**: `att-1726`
   (1679–1682, 768–769, AI §189), `att-1711`
   (1731–1734, 773, 777–778, GOLDEN §64); stubs in the base; the sweep
-  lane drained at twenty (1736 unspawned). Next 1737, run
-  779, AI §191, GOLDEN §65. **The disk**: 248 GiB free.
+  lane drained at twenty (1736 unspawned). Next 1738, run
+  779, AI §192, GOLDEN §65. **The disk**: 248 GiB free.
 - **Fable backlog: 33 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720, 1722, 1725, 1727, 1729, 1730).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -30,6 +30,7 @@ Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
+Successor pair: EastIndiesMongolAllTech w11 of 5,056
 Census: simulation backed 178 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2934 of 4,340
 Golden: ch53 w962 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
@@ -44,10 +45,17 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1726 the headline's word, 1728, 1736 and 1711 the other three lanes —
-lower map first — closed, the coverage pair's; 1728's capture moves it.
+1737 the headline's word, 1726, 1736 and 1711 the other three lanes —
+lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
+
+1737. **The successor pair's word: frame 11, 556 versus 629 draws**, index
+    3: ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`;
+    inside run776 (block 12), `run776_s_word_frame_is_widened_whole` (128
+    keys). 1728's value diff: leader 1's `MAKE[1..3]` order; frame 0 agrees,
+    and the leader economy parts on 3 (§129's Oil Well shape). East Indies,
+    Mongols, `DIFFICULTY 3`, All Technologies (run774, run775). AI §191.
 
 1726. **Great Sahara's word: frame 2934, 191 versus 205 draws**, index 0:
     ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -56,15 +64,6 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     `1/12` `orders_y` 16680 against 16440 on 2934, `path:length` 5
     against 4 on 2935 — a first row, not a cause; `MAKE[8].val` 17767
     against 5922 (the Redoubt's, ×3) unexplained since 2782. AI §189.
-
-1728. **The successor pair** (DECISIONS 53 §2, 61 §6; 1466's shape): the
-    coverage pair closed at its trace's end, 4730 (1719). Choose the lobby
-    whose rows no trace has entered (`tools/census.py --pin --never`), name
-    them before its capture is booked, capture its start and long game
-    (East Indies unless the rows name another map), pin its first word with its
-    widening; its scoreboard line and parser come with it. Closing residue:
-    `1/84` off (-96, -720), a building and a city unlinked; 4677 `order:kind`
-    17 vs 16. AI §190.
 
 1736. **The sweep's fourteenth batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 178 of 3611): 1735's shape,

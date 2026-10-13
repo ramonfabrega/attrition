@@ -18636,3 +18636,8 @@ cause. The pair's closing state (5056) is not scored: a closing-window capture a
 **Scoreboard line proposed** (the commander's to write): `Successor pair: EastIndiesMongolAllTech w11 of 5,056`, parsed by
 `floors::the_handoff_s_successor_pair_is_the_pinned_word`, with `AI_WORDS`' row `Successor pair` (`NEWEST_PAIR`) and the
 queue's `lower map first — East Indies (Mongols)`.
+
+## 191. Reserved for item 1737 (the successor pair's word 11)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

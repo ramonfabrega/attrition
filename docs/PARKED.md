@@ -4033,7 +4033,9 @@ widening of parked 1217 took a reading where a `tools/` printer of the
 checklist would do — 1674 (g)'s helper, reached again; and a lane's
 `ccc update` that adds a driver window beside another lane's breaks the
 coverage driver's tuple pattern (43 against 44 at 1719's merge, fixed in
-its booking), so a lane that updates re-gates. Two reaches.
+its booking), so a lane that updates re-gates. Three reaches: 1728's
+Loop line asks the same printer for a new pair's six edits (module,
+`AI_WORDS`, `NEWEST_PAIR`, `WIDENINGS`, the floors test, the driver tuple).
 
 (1730) **The walker's `add N <type>` makes N squads** (1707's Loop
 line): `add 4 hoplites` made units `0/7`..`0/29`, so ids are not what
