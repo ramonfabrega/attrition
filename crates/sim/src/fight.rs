@@ -3751,9 +3751,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if std::env::var("RON_PROBE_2001").is_ok() && attacker == Obj::Unit(254) && (3628..=3634).contains(&self.frame) {
-                            eprintln!("PROBE2001 cand f{} {:?} dist {} targeted {} value {} score {} in_range {} halve {} best {:?}", self.frame, o, dist, targeted, value, score, in_range, halve, best);
-                        }
                         if best.is_none_or(|(b, _)| score > b) {
                             best = Some((score, o));
                         }
