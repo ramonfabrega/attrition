@@ -4003,6 +4003,12 @@ per-block extraction of `1/2010`'s queue, most of the session's wall
 clock; a `tools/` slicer for one building's queue across a window
 would have saved it. Graduates on a third reach. One reach.
 
+(1722) **The census cannot count an operator** (1708's Loop line): its
+citation pattern cannot spell `operator<` or `operator[]`, so every
+operator function is uncountable as backed; 1708 cited
+`tcoord::operator@00472b30` as a workaround. Candidate: the pattern
+takes an operator's symbol, or cites by address alone. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
