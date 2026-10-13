@@ -3779,9 +3779,6 @@ impl Sim {
         // `Build::process` reads it ([`Sim::process_building_combat`],
         // item 1415).
         let near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
-        if std::env::var_os("PROBE1863").is_some() && self.frame >= 772 && self.frame <= 776 {
-            if let Obj::Unit(me) = attacker { eprintln!("PROBE1863 f{} unit {} idx {} owner {} near {:?} best {:?}\n{}", self.frame, me, self.units[me].index, self.units[me].owner, near, best.map(|b| b.1), std::backtrace::Backtrace::force_capture()); }
-        }
         match attacker {
             Obj::Unit(me) => self.units[me].near = near,
             Obj::Building(b) => self.buildings[b].near = near,
