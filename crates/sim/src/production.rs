@@ -451,7 +451,25 @@ pub const MIN_TIME: i32 = 1;
 /// tail, then the floor. The ramp sits inside the availability branch in the
 /// original, so the *first* of a type is priced in time with no ramp at all.
 pub fn train_time(t: &Tuning, times: &Times, researched: bool, owned: i32, tail: &[Adjust]) -> i32 {
-    let base = base_time(t, times, researched);
+    train_time_from(t, times, researched, owned, 0, tail)
+}
+
+/// [`train_time`] with the base shortened `base_faster` percent before the
+/// ramp (`t = t * 100 / (pct + 100)`; zero is no arm) — the Uranium arm of
+/// `ObjectData::train_time@006508c0:79`–`85`, which runs on the type's own
+/// time ahead of everything else.
+pub fn train_time_from(
+    t: &Tuning,
+    times: &Times,
+    researched: bool,
+    owned: i32,
+    base_faster: i32,
+    tail: &[Adjust],
+) -> i32 {
+    let mut base = base_time(t, times, researched);
+    if base_faster != 0 {
+        base = base * 100 / (base_faster + 100);
+    }
     let time = if researched {
         ramped(t, base, owned, times.job_extra_time)
     } else {
@@ -923,6 +941,21 @@ mod tests {
     }
 
     #[test]
+    fn a_base_shortened_before_the_ramp_scales_through_it() {
+        // The Uranium arm (`train_time@006508c0:79`–`85`): an ICBM's 600 frames
+        // of base become 54545 hundredths, then the ramp's 120 percent — the
+        // original's 65454 on Great Sahara's `1/2017` (item 1697, AI §184).
+        let t = tuning();
+        let times = Times {
+            job_time: 600,
+            research_premium_time: 512,
+            job_extra_time: 0,
+        };
+        assert_eq!(train_time_from(&t, &times, true, 0, 0, &[]), 72000);
+        assert_eq!(train_time_from(&t, &times, true, 0, 10, &[]), 65454);
+    }
+
+    #[test]
     fn each_citizen_already_owned_adds_half_a_second() {
         let t = tuning();
         let times = Times {
@@ -1361,6 +1394,7 @@ mod infinite_tests {
     /// clears the bit *and* removes; −5 removes five from the end; −10
     /// empties; an empty queue keeps its bit. Made to fail with the bit's
     /// early return dropped, and with a negative `p` read as slot 0.
+
     #[test]
     fn the_player_s_cancel_reads_its_selector() {
         let (mut s, b, rec) = barracks(true);

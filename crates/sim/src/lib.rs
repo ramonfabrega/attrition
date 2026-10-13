@@ -3096,11 +3096,22 @@ impl Sim {
                 .into_iter()
                 .collect()
         };
-        production::train_time(
+        // `train_time@006508c0:79`–`85`, before the ramp: a type of the
+        // Nuclear Missile line (`is(0x13b, 0)`) of a player holding Uranium
+        // divides its base by `(URANIUM_NUKE_SPEED + 100) / 100`
+        // (`docs/AI.md` §184).
+        let base_faster = if self.is_nuke_line_type(item.ty) && self.has_rare(who, economy::URANIUM)
+        {
+            self.tuning.uranium_nuke_speed
+        } else {
+            0
+        };
+        production::train_time_from(
             &self.tuning,
             &self.unit_types[item.ty].times,
             researched,
             muster.by_type[item.ty],
+            base_faster,
             &tail,
         )
     }
@@ -3179,6 +3190,14 @@ impl Sim {
                 })
         {
             tail.push(production::Adjust::Ratio(1, 2));
+        }
+        // The wool arm, after the spy/general one: a Citizen (`TypeIndex`
+        // 0x32 or 0x33, unit types 0 and 1) of a player holding Wool takes
+        // `WOOL_CITIZENS_SPEED` percent off (`train_time@006508c0`,
+        // `0x6da7 & 8` or `0x6dcf & 8`, the same mask `has_rare` unions;
+        // `docs/AI.md` §184).
+        if matches!(ty, 0 | 1) && self.has_rare(who, economy::WOOL) {
+            tail.push(production::Adjust::Faster(self.tuning.wool_citizens_speed));
         }
         tail
     }

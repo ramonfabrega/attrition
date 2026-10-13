@@ -15942,3 +15942,15 @@ SHA-256 `2857f18ca4cb99a43732341c876bf496c5a9d685a3e95483b249c047877a8d32`.
 **What it holds**: `diff::coverage_pair::run754_s_word_frame_is_widened_whole` — 2,460 keys on item 1668's tree; the
 coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), with 111 inexact height reads (`GROUND_INEXACT`).
 run721's window stays in the coverage driver as `coverage_frame_3395_window`. `docs/AI.md` §181.
+
+## run766 — Great Sahara in the coverage pair's lobby: the word 2640's widening, blocks 2634..2890 (2026-10-13, item 1697, `att-1697`)
+
+**Disk gap**: item 1697's Wool arm of `train_time` moved the word 2404 → 2640 (170 versus 171 draws, index 155, theirs `Guy::init_real+0x52`), past run718's last block (2523); no dump of this lobby held a unit, a building or a leader record there. run718's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 2897 --timeout 3600 --log-window 2634 2891 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, the pool took lane 1. First take: `success: true`, `settings_restored: true`, launched 23:58, 2898 frames, launch-to-exit 1,627.7 s; output `~/ron-data/lab-captures/2026-10-12-run766`. `rngcmp.py rontrace-run676.log rontrace-run766.log`: **2898 frames in common, 0 differing**. 258 `BEGIN FRAME`s: 2634..2890 and a 2898 closing block. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run766-greatsahara-persian-alltech-window-2634-2891.txt`, 548,191,493 bytes,
+SHA-256 `fae83dd7c5acef4085ff8cfad65475e7234b9e3c749336b292b26b3bd71906e3`.
+
+Archive `rontrace-run766.log`, 98,005,216 bytes,
+SHA-256 `2c21625e3e4c00d9da1f3ec837eb0aa9fe41bf9848c3fd75e999f602172a2cbe`.
+
+**What it holds**: `diff::sahara_coverage::run766_s_word_frame_is_widened_whole` — **252** keys on item 1697's tree; the third map's `AI_WORDS` window (`sahara_coverage_word_window`), walked by the compared pin; the coverage driver reads its blocks 2641 and 2852. run718's window stays as `sahara_coverage_frame_2273_window`. `docs/AI.md` §184.
