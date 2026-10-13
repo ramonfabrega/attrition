@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(2000) **The three lobbies' first partings in one line** (1937's Loop
+line): 1937's fix moved Great Sahara and broke the coverage pair 4730 →
+4206, which took a capture to read; the other lobbies' `first_parting`
+tests together run in about a dozen seconds. Candidate: a `tools/` line,
+or the lane gate's default filters, that runs every floor's
+`first_parting` beside the word's. One reach.
+
 (1987) **`golden_capture.sh` does not retake a take that died before
 frame 0** (1960's Loop line): run801's first take died on a Wine page
 fault with no `gamelog.txt`, and the retake was by hand under parked
