@@ -9596,3 +9596,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
 # `rngcmp.py rontrace-run775.log rontrace-run785.log` -> 0 differing in 2186 frames.
 # ==== TAKEN 2026-10-13, one take, 06:56-06:57 (lane 2) ====
+
+# ==== item 1868: the successor pair's word 2838 (`docs/AI.md` §196; `docs/RUNS.md` run788, run789, run794, run795) ====
+#
+#   run788  --map 18 --end-frame 3094 --log-window 2832 3089 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 (the lobby of run774..776)
+#   run789  --map 18 --end-frame 2804 --log-window 2796 2803 (same detail) --tracer-def RON_STATE_FRAME=2799
+#   run794  --map 18 --end-frame 2804 --log-window 2674 2800 (same detail)
+#   run795  --map 18 --end-frame 2686 --log-window 2678 2685 (same detail) --tracer-def RON_STATE_FRAME=2681
+# Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
+# `rngcmp.py rontrace-run775.log rontrace-run78{8,9}.log rontrace-run794.log` -> 0 differing in 3095, 2805 and 2805 frames.
+# ==== TAKEN 2026-10-13, one take each (run794 twice: take 1 held the window 2674 2700) ====

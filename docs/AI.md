@@ -18900,12 +18900,55 @@ boat's arrival, 637 frames after the walk's start, which is the unmodelled eject
 **Not established.** The cadence against theirs beyond the one boat; the `(0)` call, the idle and attack arms, the eject; the region *slot*
 order (dense here, as §7's seam); `danger` has no writer here, so the score's second factor is 1; no eject was reached by any capture.
 
-## 196. Reserved for the next item on the AI track
+## 196. The Fishermen's sea goal: `find_wpath`'s pull-back asks the tile grid, and the successor pair's word moves 2838 → 3131 (2026-10-13, item 1868)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 2838, 101 draws ours against 16, index 1: ours `Guy::set_anim < Unit::do_idle`, theirs `Guy::set_anim < Guy::do_turn < Unit::move_step+0x389`.
+The booking's hypothesis (§195: the boat's arrival, the unmodelled eject) was half right — the unit is the boat's arrival — and the cause was
+upstream of it.
+
+**The widening (run788, `--log-window 2832 3089`, 257 blocks).** 833 keys part, 128 on the window's first block. The unit the draws name is
+**`1/122`, `TypeIndex` 317, the Fishermen (a Fishing Boat, `TY` 267 here)**: ours kills its move order on the frame it reaches the path's
+last point, theirs keeps the order for two frames more (it still turns toward the order's own angle); `1/122`'s first rows are on the window's first
+block, so it parted **before** 2832: `pos` ours (32482, 44966) against theirs (32559, 45008), `path[0].to` ours (32276, 44952) against
+(32277, 44997), `order:move.dest_x/y` the same pair.
+
+**Walked back (run794, window 2674..2800; `RON_DEBUG_UNIT=1/122@2600-2832` ours).** Ours and theirs agree frame for frame to 2732 (the order is
+given on 2680, the first waypoint is (37272, 45720), then 36504, 35736, all at y 45720); on 2733 ours takes (34968, 45720) and theirs
+(34968, 44952), and from there the two boats walk different lines. Ours' stack on 2682 ends in `(31896, 44952)`, the order's goal, with
+`(33432, 44952)` beneath it; theirs' does not hold either.
+
+**The value, on a packet (run795, `RON_STATE_FRAME=2681`).** `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on
+the boat; `14bd0eac` found by scanning the packet for `(38040 ^ 0x63637, 45720 ^ 0x63637)` at `+0x10`) plans the move in 52,845 instructions and
+leaves six entries on the path stack (`list` at `unit + 0xb8`, entries `x, y, tolerance:u16, flags:u16`): **`(32277, 44997)` flags 1 (the
+final), then `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)`**. The final point is the goal
+**stepped back once**: the order's goal (31896, 44952) plus one 0x180 step toward the boat (the pull-back's `far` step, bearing from the
+goal to the start, `(+381, +45)`).
+
+**The mechanism.** `PathFinder::find_wpath@00688fc0`'s pull-back loop (`00689375`–`00689331`) breaks when the goal's tile region is the start's
+**and**, for a type whose `+0x218` (domain) is 1, `UnitData::invalid_loc(unit, goal_x>>6, goal_y>>6, 0,1,1,1,0)` answers 0 (read off the
+export; the loop's break test is `region == region && (domain != 1 || invalid_loc == 0)`). This crate's loop broke on the region test alone (its
+`SEAM`, the clause for a sea unit). The goal (31896, 44952) is a shore tile of the boat's own sea: the region matches, the tile refuses, so the
+original steps it back one 0x180 before the A* runs and plans to the stepped-back point; this crate planned to the goal itself, which put the
+A*'s diagonal one cell further west (the tie's other side) and the final waypoint 380 units short in a different row. **Built**: the loop's
+condition now carries the second clause for a sea unit (`crates/sim/src/path.rs`, `find_wpath_from`).
+
+**Value diff beside the word.** `run788_s_word_frame_is_widened_whole` (blocks 2832..3088): **833 → 163 keys**; every `1/122` row
+(`pos`, `path[0].to`, `order:length`, `orders_x`, `idle`, `order:move.*`, `path_recursion`, `last_x/y`) agrees; run780's window is unmoved (136).
+**The word moves 2838 → 3131**, ours 62 draws against 65, index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`
+(unit `1/87`), theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_cast+0xc89`, then a `Guy::init_real < Unit::init <
+Objects::init_unit` draw (a unit is **born** on 3131 in theirs and not in ours). It is past run788's last block (3088): the next item's widening.
+
+**Killers.** The clause made false (`false && sea && …`): held by `a_sea_goal_whose_tile_refuses_the_boat_is_stepped_back_over_water` (a sea
+region whose goal tile is `SURFACE_OCEAN | BLOCKED`: the region matches, `invalid_loc` refuses; the final entry must differ from the goal and
+be a tile the boat may stand on) and by `mongol_pair::` (the word falls back to 2838).
+
+**Not established.** The shore goal's cause (why the fishing spot's tile refuses a boat, which this crate answers the same way here); the same
+clause for the human arm of the loop (`leaders & 4`, the other variant above, which the original takes with its own region/was-seen walk); a
+sea unit's other `find_wpath` callers; whether the 163 remaining keys on the window are all one unit's tail.
+
+**Coverage.** *Diff-backed*: the final path point, the walk's line and the order's life on `1/122` (run788, run794, run795's stack). *Reading
+only*: the clause's argument order (the export prints the five flags as `0,1,1,1,0`, this crate's `invalid_loc(u, tile, a..e)` is the same call
+the tile grid's own validity test makes).
 
 ## 197. A nuke embargo closes the market, a Fort's count escalates, and Great Sahara's word moves 3182 → 3767 (2026-10-13, item 1870)
 
