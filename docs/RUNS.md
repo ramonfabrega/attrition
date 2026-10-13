@@ -16244,3 +16244,59 @@ Archive `rontrace-run790.log`, 178,819,520 bytes,
 SHA-256 `f938373f9676790bb48654cb4158b040a050e84e45472c05d3f00d72470768a3`.
 
 **What it holds**: `diff::sahara_coverage::run790_s_word_frame_is_widened_whole` — 257 blocks (3761..4017), 12,582 parted keys on item 1905's tree (the replay is diverged past the word 3805); the third map's `AI_WORDS` window (`sahara_coverage_word_window`); the coverage driver reads its block 3768. run767's window stays as `sahara_coverage_frame_3183_window` (112 keys). `docs/AI.md` §198.
+
+## run788 — the successor pair: the word 2838's widening, blocks 2832..3088 (2026-10-13, item 1868, `att-1868`)
+
+`docs/AI.md` §196. **Disk gap**: item 1845 moved the word 2207 → 2838, past run780's last block (2457); no dump of this lobby held a unit, a
+building or a leader record there. run780's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 3094 --timeout 3600 --log-window 2832 3089 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool, free at launch;
+`success`, 3095 frames, 1571 s launch to exit. `rngcmp.py rontrace-run775.log rontrace-run788.log`: **3095 in common, 0 differing**.
+257 `BEGIN FRAME`s 2832..3088. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run788-eastindies-mongol-alltech-window-2832-3090.txt`, 576,583,710 bytes,
+SHA-256 `ae4b25991f8640bc90d6e04332d771289cb90db8276ac759ed2626e1b59a02de`.
+
+Archive `rontrace-run788.log`, 109,048,480 bytes,
+SHA-256 `c8c857de9a41e0a675b311450d62cd59816cdc3988aee58955c656841844609b`.
+
+**What it holds**: `diff::mongol_pair::run788_s_word_frame_is_widened_whole` — 833 keys on blocks 2832..3088 before item 1868's build,
+**163** after it; the unit is `1/122`, the Fishermen (`docs/AI.md` §196).
+
+## run789 — the successor pair: a packet at logger frame 2799, the Fishermen's path (2026-10-13, item 1868, `att-1868`)
+
+`docs/AI.md` §196. **What the disk could not answer**: whether `1/122`'s final path point was already (32277, 44997) at 2796 — it was
+(`moveorder.dest_x/y` on every block of the window), so the part is upstream of 2796. run785's recipe with `--end-frame 2804 --log-window 2796 2803
+--tracer-def RON_STATE_FRAME=2799`; pool lane 2, `success: true`, 2805 frames, 59 s. `rngcmp.py rontrace-run775.log rontrace-run789.log`:
+**2805 in common, 0 differing**. Minutes waited on another lane's capture: none.
+
+Packet `~/ron-golden/run789/map-18/frame-snapshot.bin`, 947,937,724 bytes, SHA-256 `426e5a2db477c45ff76954c49cdbbda4cd9c8685c61aae7c67bd20ac99987d48`;
+its window's dump beside it. **What it holds**: no test; it narrowed the part to before 2796.
+
+## run794 — the successor pair: the Fishermen's walk, blocks 2674..2800 (2026-10-13, item 1868, `att-1868`)
+
+`docs/AI.md` §196. **What the disk could not answer**: where `1/122`'s walk first parts from ours (run788 starts at 2832; run789 shows it already
+parted at 2796). The commander assigned the number (790 was reserved to att-1905); the first take of this window (`2674 2700`) was
+taken under the directory name `run790` and is kept as `~/ron-golden/run794.take1-window-2674-2700`. run780's recipe with `--end-frame 2804
+--log-window 2674 2800`; pool lane 1, `success: true`, 2805 frames, 806 s. `rngcmp.py rontrace-run775.log rontrace-run794.log`: **2805 in common,
+0 differing**. 127 `BEGIN FRAME`s. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run794-eastindies-mongol-alltech-window-2674-2801.txt`, 275,505,581 bytes,
+SHA-256 `c42126003cb5cf99a262e98abc2ed642a6ad231529aad9b3cb0f58ef87eabf6f`.
+
+Archive `rontrace-run794.log`, 99,369,472 bytes,
+SHA-256 `231b813efa70016af82a1f63d6c28130cb4791f670729cbb8a1d80c1a62acf03`.
+
+**What it holds**: no widening test (a walk-back window); ours and theirs agree on `1/122`'s position frame for frame to 2732, and part on 2733
+(the waypoint (34968, 44952) against (34968, 45720)).
+
+## run795 — the successor pair: a packet at logger frame 2681, the Fishermen's plan (2026-10-13, item 1868, `att-1868`)
+
+`docs/AI.md` §196. **What the disk could not answer**: the path stack the original plans for `1/122` on 2681 (run794 shows the waypoints it walks, not
+the plan). run785's recipe with `--end-frame 2686 --log-window 2678 2685 --tracer-def RON_STATE_FRAME=2681`; pool lane 1, `success: true`, 2687
+frames, 55 s. Minutes waited on another lane's capture: none.
+
+Packet `~/ron-golden/run795/map-18/frame-snapshot.bin`, 948,716,116 bytes, SHA-256 `a08cc4e132b5a9bb95c526c680d9f9d5bc1052fcce06f02725c8a1442a55ab71`.
+**What it holds**: on it, `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on the boat) plans the move in 52,845
+instructions and leaves `(32277, 44997)`, `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)` on the path
+stack; the diagnosis of §196.
