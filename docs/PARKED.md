@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1931) **`unattended_capture.py` refuses `GROUPS` with `DEATHS` at one
+detail and says nothing of the pairing** (1863's Loop line; parked 1885):
+run791's first two takes died in `verify_game` before the lane dropped
+`GROUPS=1`. Candidate: the capture refuses the pairing up front with the
+reason, and the brief checklist says a chapter needing the death list
+drops the pool until 1885 is understood. One reach.
+
 (1910) **A lane gate's filters miss a word's other pairs** (the
 commander, at 1870's booking gate): 1870's lane gate ran
 `sahara_coverage:: floors::`; its change to `get_cost` and the market

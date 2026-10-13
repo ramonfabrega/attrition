@@ -19,11 +19,11 @@ unmoved, chapters fifty-three, fifty-five, fifty-six closed, the census 178 → 
 the battery unmoved a sixth tranche. Seventeen Loop items out, six stay.*
 
 - **Four lanes live** (`commander`, Opus 5.5; lanes Sonnet 5.5 medium): `att-1868`
-  (A, runs 788–789, 794–795), `att-1905` (E, runs 790, 793), `att-1921` (G), `att-1863` (D, runs
-  791–792). 1866, 1889, 1870, 1895, 1911, 1916 landed: census 319 → 369, Great Sahara 3182 → 3767. Next 1926, run 796, AI §199, GOLDEN §70.
+  (A, runs 788–789, 794–795), `att-1905` (E, runs 790, 793), `att-1921` (G), `att-1926` (H, runs
+  796–797). 1866, 1889, 1870, 1895, 1911, 1916, 1863 landed: census 319 → 369, Great Sahara 3182 → 3767, chapter fifty-seven closed. Next 1932, run 798, AI §199, GOLDEN §71.
 - **`lanewait.py` exits `STALLED <lane> <min>` too**: one line to the lane (its
   gate or capture exited; read the log, land). Landings count from this pass's commit.
-- **Fable backlog: 9 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910).
+- **Fable backlog: 10 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,7 +33,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w2838 of 5,056
 Census: simulation backed 369 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3767 of 4,340
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-first tranche, the commander — spawn 1868, 1870,
@@ -44,7 +44,7 @@ their turn; at twenty landings the handoff, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1868 the headline's word, 1905, 1921 and 1863 the other three lanes —
+1868 the headline's word, 1905, 1921 and 1926 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -73,14 +73,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1863. **Chapter fifty-seven: the rows chapter fifty-six left** (DECISIONS
-    56 §3; GOLDEN §68; run786 agrees to its end, 1010): parked 1830's
-    added squad (`1/7`..`1/9` `order:group.id` on 765, ours 764 000 against
-    770 400; `near` on 774; `death:extra` on 874, 900, 961), perhaps one
-    family with chapter fifty-three's staged Hoplites on 1302; 1805's
-    two-order snap and 1778's pushed group's dead member, never staged.
-    Whether run786 settles 1830 or a staging is owed is the item's to
-    establish first; a run is minted from 788. GOLDEN §69.
+1926. **Chapter fifty-eight: the rows chapter fifty-seven left** (DECISIONS
+    56 §3; GOLDEN §69; run791 agrees to its end, 1010): parked 1886's pool
+    slot past an AI script's push (`17410401` against `17410801`, one to
+    four slots, no draw) and 1887's squad head for `find_melee_target`'s
+    other callers; 1805's two-order snap and 1778's pushed group's dead
+    member, never staged. A chapter needing the death list drops the pool
+    (parked 1885). Whether a capture on disk settles a row is the item's to
+    establish first; runs 796–797. GOLDEN §70.
 
 ## How to maintain this file
 
