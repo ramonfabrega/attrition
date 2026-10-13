@@ -3876,7 +3876,13 @@ successor is `ccc clear <its row> --then`; a second row on one tree is
 never spawned" — for every row; the word *respawn* struck from the
 opener's template and the frame; a guard in `tools/lanewait.py` (or the
 roster reader) that fails when two live or stopped rows stand on one
-worktree. The rest of the race clears its racers' rows. The
+worktree. The rest of the race clears its racers' rows. **A sibling, the same
+evening**: `att-1648-oh` ended landing 1 with its row at `tempo=blocked`
+("2 commander test lines await your write"), and an armed `ccc clear`
+fires only on `idle` — the lane's done line, read as needing the
+commander's lines, parks the row out of the clear's reach; one message
+("nothing is owed, end your turn") unblocked it, and the race's header
+now says so. The frame's done-line row could say it for every lane. The
 twenty-eighth pass's.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
