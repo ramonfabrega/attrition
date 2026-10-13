@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2082) **The brief says "under `tools/memcap.sh`" without its ceiling
+argument** (2049's Loop line, filed at its merge): `memcap.sh` takes the
+ceiling first (`memcap.sh 12 cargo …`), and one refused run came of the
+bare form. Candidate: the frame's line carries the ceiling, held by the
+brief test against the script's usage line.
+
 (2071) **`repin.py --write` cannot rewrite a golden widening's `const` want
 arrays** (2032's Loop line, filed at its merge): "the want is not a
 literal", so a new chapter's first pin is always by hand. Candidate:

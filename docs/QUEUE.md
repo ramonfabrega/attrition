@@ -20,17 +20,17 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2049, 2055, 2072, 2066; landings
-  since `dca6a873`: 10 (1998, 1999, 2002, 2020, 2038, 2001, 2026, 2044, 2032, 2061). Next 2077, run 820, AI §207,
-  GOLDEN §76, park slot AH (pools: AH–AL, AI §207–§209, GOLDEN §76–§79); run 816 is 2049's packet. Notes: `n-<item>.md`.
-- **Fable backlog: 14 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071).
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2077, 2055, 2072, 2066; landings
+  since `dca6a873`: 11 (1998, 1999, 2002, 2020, 2038, 2001, 2026, 2044, 2032, 2061, 2049). Next 2083, run 821, AI §208,
+  GOLDEN §76, park slot AI (pools: AI–AL, AI §208–§215, GOLDEN §76–§79); run 820 is 2077's packet. Notes: `n-<item>.md`.
+- **Fable backlog: 15 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071, 2082).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w3834 of 5,056
+Successor pair: EastIndiesMongolAllTech w3835 of 5,056
 Census: simulation backed 511 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4266 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed
@@ -46,19 +46,19 @@ handoff written, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2049 the headline's word, 2055, 2072 and 2066 the other three lanes —
+2077 the headline's word, 2055, 2072 and 2066 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-2049. **The successor pair's word: frame 3834, 169 versus 167 draws**,
-    index 9: ours `Unit::think_fish+0x27a`, theirs `Guy::set_anim+0x97a <
-    Unit::do_idle+0x7d`; 2001 moved 3632 → 3834 (`compare_target`'s
-    raid-ship arm; a score of 0 never wins). Inside run809's window: the
-    Aegis Cruiser `1/113`'s `orders.len` parts on 3648 (ours 0, theirs 1:
-    `think`'s off-phase `near_o` arm, parked 2004) — a row before the word,
-    a hypothesis. Every record on 3834 both ways first; a packet at 3647
-    if a value question follows. East Indies, Mongols. AI §205.
+2077. **The successor pair's word: frame 3835, 46 versus 40 draws**,
+    index 0: ours `Guy::init_real+0x52` (`1/24`, then `1/36`), theirs
+    `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/34`); 2049 moved
+    3834 → 3835 (`think`'s off-phase `near_o` arm). Ours re-inits one body
+    more at the frame's head; the rows round it (`1/23`..`1/25` `inside`
+    229 against −1 on 3836, the scout `1/101`'s goal) are a hypothesis
+    (parked 2050). Inside run809 (to 3883): every record on 3835 both ways
+    first. East Indies, Mongols. AI §207.
 
 2055. **Great Sahara's word: frame 4266, 67 versus 67 draws**, index 18:
     ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::move+
