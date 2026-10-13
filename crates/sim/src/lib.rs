@@ -2142,11 +2142,13 @@ impl Sim {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
+        let liberty = self.liberty_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 discount,
                 stable_rares,
+                liberty,
                 uranium,
                 ..cost::Modifiers::default()
             },
@@ -2154,6 +2156,7 @@ impl Sim {
                 late_discount: self.military_unit_discount(who, ty),
                 discount,
                 stable_rares,
+                liberty,
                 uranium,
                 ..cost::Modifiers::default()
             },
@@ -2186,6 +2189,33 @@ impl Sim {
         } else {
             0
         }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Statue of Liberty** arm (listing
+    /// `00664da7`..`00664e1e`, the pre-ramp tail after Despotism and before
+    /// Uranium, on the train and the research arm alike): with
+    /// `has_wonder(0x219)` held ([`Sim::wonders_held`]'s rule), a missile
+    /// type (`is_missile`, the `obj_masks` bit) takes `LIBERTY_MISSILES` and
+    /// any other type of the Bomber's line (`is(0x130, 0)`)
+    /// `LIBERTY_BOMBERS`. Great Sahara's Persians finish the Statue
+    /// before 3981 and queue their next Strategic Bomber at `1/2047` on
+    /// 3982 for 136, not 173 (`docs/AI.md` §204).
+    pub fn liberty_discount(&self, who: Player, ty: usize) -> i32 {
+        let missile = self.unit_types[ty].combat.obj_masks & combat::mask::MISSILE != 0;
+        let pct = if missile {
+            self.tuning.liberty_missiles
+        } else if self.unit_types[ty].tree.is_some_and(|t| {
+            t == air::BOMBER
+                || (t < self.tech_tree.types.len() && self.tech_tree.is(t, air::BOMBER, false))
+        }) {
+            self.tuning.liberty_bombers
+        } else {
+            return 0;
+        };
+        if pct == 0 || self.wonders_held(who) & (1 << tech::wonder::STATUE_OF_LIBERTY) == 0 {
+            return 0;
+        }
+        pct
     }
 
     /// `is(0x13b, 0)` on a unit record's type: the Nuclear Missile's line.

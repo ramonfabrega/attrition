@@ -4221,13 +4221,11 @@ and the generator's `vcall` shape build one a row and stay under the limit only 
 vtable built before the loop, its answer moved through `h.answers`, is the cure in a script; the harness could map
 a larger page or refuse the 257th stub by name.
 
-## Parked by the next landing, slot Z — reserved
+## Parked by item 2026, 2026-10-13 — the Statue of Liberty's bombers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot Z renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2027) **`get_cost`'s other air arm and the Salt arm are not modelled** (`docs/AI.md` §204): the pre-ramp tail (`TypeData::get_cost@00664090`, after the Sulphur arm) takes `ALUMINUM_AIR_COST` (15%) with the Aluminum rare and then `SPACE_AIR_COST` (50%) with `has_wonder(0x21e)` off a type whose `UnitTypeData +0x218` is 2, and `× 9 / 10` off a Barracks (`0x1ab`) unit when the leader holds the rare at `0x6da4 & 0x80` (Salt, rare 13; `SALT_BARRACKS_COST` ships 15% and the arm does not read it). Great Sahara's coverage leader holds no Aluminum (its 3982 bombers are priced without it), and no walk is known to reach the others. Names no frame.
+
+(2028) **Rows standing in run790 before the moved word 4266** (§204), each naming no draw: leader 1's `bucket[1:timber]` and `bucket[4:metal]` 73 short on 3983 (5169 against 5242, 7531 against 7604) — frame 3982 spends them on something both sides queue at the same count; `1/2000`'s Citizen `queue[3..8].cost[0]` 11 dear (78 against 67 on 3983, standing from 3761's 72 against 69); and the TOWs queued at `1/2023`, `1/2026`, `1/2038` on 3985 at **178** food against **160**, the earlier TOWs in the same queues 178 on both sides. A tenth off the whole price, not the base (the Salt arm of 2027 is on the base). The word 4266 is past the window, so its own records take a capture first.
 
 ## Parked by item 2038, 2026-10-13 — the sweep's forty-third batch
 

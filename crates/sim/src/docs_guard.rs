@@ -1664,7 +1664,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("SCOUT.md", 1),
     ("TECH.md", 7),
     ("TRANSPORT.md", 3),
-    ("VISION.md", 2),
+    ("VISION.md", 1),
 ];
 
 /// Which documents the constant check reads: the specifications, not the
