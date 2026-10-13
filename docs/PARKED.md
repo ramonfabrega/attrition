@@ -3983,6 +3983,32 @@ brief listing three filters on a `cargo test` line is a trap: `cargo
 test` takes one; the lane gate's `--tests a:: b::` is the multi-filter
 form. One reach each.
 
+(1718) **The commander's own stub makes the lane's merge conflict**
+(2026-10-13): five of the tranche's first twelve merges backed out —
+two on a shared widening count (`coverage_pair.rs`, `sahara_coverage.rs`),
+one on a driver tuple that merged clean and failed to compile
+(`coverage.rs`, two lanes each adding a window), and three on
+`docs/AI.md`, where the lane rewrites its stub at the file's end and the
+booking of the lane beside it appends the next stub on the line after —
+adjacent hunks, a conflict every time. Each cost the lane a round trip
+(update, resolve, re-gate). Parked 1491's shape, measured again.
+Candidates: the tranche's opening booking lands every stub it will need
+(a dozen ahead, numbered), so no later booking edits the file's end; a
+sentinel line after the last stub; the driver tuple turned into a list a
+merge can append to. One reach.
+
+(1720) **One building's queue across blocks is walked by hand** (1714's
+Loop line): the first read of a `queue:queued` value diff took a
+per-block extraction of `1/2010`'s queue, most of the session's wall
+clock; a `tools/` slicer for one building's queue across a window
+would have saved it. Graduates on a third reach. One reach.
+
+(1722) **The census cannot count an operator** (1708's Loop line): its
+citation pattern cannot spell `operator<` or `operator[]`, so every
+operator function is uncountable as backed; 1708 cited
+`tcoord::operator@00472b30` as a workaround. Candidate: the pattern
+takes an operator's symbol, or cites by address alone. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
