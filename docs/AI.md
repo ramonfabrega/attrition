@@ -19463,85 +19463,97 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 206. Great Sahara's word 4266: a formation laid out reversed after an army's charge (2026-10-13, item 2055)
+## 206. Great Sahara's word 4266 → 4340: `get_final_loc` climbs from the bottom of the order ring (2026-10-13, item 2055)
 
-**Status: widened, cause narrowed, not built.** The word stands at 4266.
+**Status: built, diff-backed; the word closes at the game's last frame.**
 
 **The capture.** No dump of this lobby held a record past run790's last
 block (4017). run817 is run790's recipe over `--log-window 4260 4341`, to
-the game's own end (`--end-frame 4340 --allow-early-end`). It came back
-`success` on the third launch: the first was refused before staging, the
-window one past `quit + 1`; the second died before frame 0 on the
-`wow64cpu+0x1139` fault (`docs/ORACLE.md`). It holds 82 blocks, and
-`rngcmp.py` against run676 reads 4341 frames, 0 differing.
+the game's own end (`--end-frame 4340 --allow-early-end`), `success` on
+the third launch (`docs/RUNS.md` run817). `rngcmp.py` against run676 reads
+4341 frames, 0 differing.
 
 **The frame, both sides.** 67 draws each on 4266. The original spends 18
 `Unit::do_move+0xe84` (the attack-to retarget roll of group 66's walkers),
-then a `Guy::set_anim+0x97a < Guy::move+0x19f`. The walk's sites
-(`RON_DEBUG_SITES=4266-4266`) spend 24 `do_move` draws, `1/22` … `1/89`,
-before `1/91`'s walk. Further down, the original walks more units between
-`1/77` and `1/82` and between `1/107` and `1/113`, and fewer after `1/115`.
-So the walking set parts, not the rolls.
+then a `Guy::set_anim+0x97a < Guy::move+0x19f`. Ours
+(`RON_DEBUG_SITES=4266-4266`) spends 24 `do_move` draws before `1/91`'s
+walk: the walking set parts, not the rolls.
 
-**Every record on 4266.** `run817_s_word_frame_is_widened_whole`
-(`RON_FIRSTS=1`) parts 10740 keys over the window. 264 stand from 4260, the
-window's first block: `attrition` ours 6 against 0 on group 66's members,
-`sheltered`, `hits_left`, the pools and `GROUPDATA` the capture does not
-print, and parked 2028's queue costs. Blocks 4261–4265 part nine keys, none
-a position. **Block 4266 parts 509 keys on 104 units.** Every member of
-group 66 carries a `GUARDORDER` on the MLRS `1/144` (TypeIndex 273, land,
-`uid 211`), and its `guard_x/guard_y` is the MLRS's position: ours (14721,
-25632), theirs (14700, 25638). Forty-one members' `pos` part by a few units
-the same block.
+**Every record on 4266.** `run817_s_word_frame_is_widened_whole` parted
+10740 keys on the base tree. 264 stand from 4260, the window's first block
+(attrition and `sheltered` on group 66's members, the pools, parked 2028's
+queue costs). Blocks 4261–4265 part nine keys, none a position. **Block
+4266 parts 509 keys on 104 units**: every member of group 66 carries a
+`GUARDORDER` on the MLRS `1/144` (TypeIndex 273, land, `uid 211`), and its
+guard point is the MLRS's position, ours (14721, 25632) against theirs
+(14700, 25638). That is the value diff.
 
-**The parted unit walked back.** The MLRS steps 17 a frame to 4264 on both
-sides (14794 → 14777 → 14760 → 14743). On frame 4265 it walks 44 in the
-original, to (14700, 25638), and 22 here; it is 44 against ~22 every frame
-after. On 4264 `Army::charge` (`006f9a90`) gives group 66 a `QUEUE_FIRST`
-`GROUP_ATTACK_TO`: `set_up_insert`, the recursion at `QUEUE_NEW`, and
-`finish_insert`'s thirty re-issues at `QUEUE_LAST`. The 31 orders it
-leaves agree field for field on block 4265: `form_id` 80, `off_x/off_y`,
-`group_angle`, the leader `1/17`'s `oxx`. A probe (one commit, reverted
-whole) put the MLRS in `do_group_move`'s follower arm on the straight
-branch, `v = 35 + 9 = 44`, toward the slot (13182, 29047). Its heading was
-nearly reversed from that point, so the turn cost half the step.
+**Walked back.** The MLRS steps 17 a frame to 4264 on both sides. On 4265
+it walks 44 in the original and about 22 here. On 4264 `Army::charge`
+(`006f9a90`) gives group 66 a `QUEUE_FIRST` `GROUP_ATTACK_TO`:
+`set_up_insert`, the halt, the move at `QUEUE_NEW`, then `finish_insert`'s
+thirty re-issues at `QUEUE_LAST` and the guard behind them. The orders it
+leaves agree field for field. Ours's follower arm turned toward slot 80,
+and the turn halved the step. **The slot was rotated 180°**: the original's
+push on 4267 is the leader plus (−1833, 188), and ours's is the leader plus
+(1831, −188).
 
-**The slot is rotated 180°.** The original's next push (block 4267,
-`path[33]`) is (9471, 29417), and only the straight arm fits it: the
-leader's position after its own step on 4266, (11304, 29229), plus
-**(−1833, 188)**. Ours pushes (13135, 29041), the leader plus **(1831,
-−188)**. Slot 80's `curr` is negated exactly. On ours, `off[80]` is
-`(10, −37)`, `flipped false`, rotated by the leader's bearing to its
-waypoint (10056, 29016), −963837952.
+**The packet** (run821, logger frame 4265, `docs/RUNS.md`). Group 66's
+record (`groups` `0xe85f10`, list `+0x10`, index 66): slot 80's `off` is
+**(−10, 37)** where ours's is (10, −37), and every slot is negated alike.
+So `compute_form`'s tail (`bVar8`, `707e09`) fired on the charge's last
+re-issue in the original and not here. The listing (`707de0`–`707e1a`)
+measures `find_angle(to − from)` against the caller's angle. `to` (6240,
+30048) and the angle −1523843072 agree on both sides, so `from` parts.
+`from` is `get_loc_to`, which for a far leader is `get_final_loc`.
 
-**What kills each reading.**
-- `has_general(0, 0x162)` doubling a siege type's speed
-  (`UnitData::get_speed@00608720`, the `SEAM` at `orders.rs` "doubles a
-  siege type's speed"): **dead.** It wants a `THEMONARCH` (TypeIndex 354),
-  and block 4266 carries none; the General `1/145` is type 54.
-- The step's speed or the group cap: **dead.** Ours steps at 44 too. The
-  cap (24, then 22, from the follower `1/119`, type 127) does not enter
-  the straight arm.
-- The straight predicate: **dead.** The listing `5e8111`–`5e816d` is ours,
-  `find_angle(slot − me)` against `find_angle(goal − me)` with `0x55555555`.
-- `compute_form`'s reverse (`bVar8`, `707e09`) on the last re-issue:
-  **not settled.** Ours's inputs are `from` (6216, 29784) (`get_loc_to`,
-  the leader's final location; item 1528 read the window off the
-  listing), `to` (6240, 30048) and the copy's angle −1523843072, which
-  are 57° apart. No candidate `from` puts them 90° or more apart: the
-  leader's point (29°), the group's `(ox, oy)` (`find_angle(0, 0)` =
-  `0x80000000`, 52°) and the centroid all fail.
-- A 180° `theta` in `update_positions`: **not settled.** The leader's
-  heading and its bearing to the waypoint agree (−80.8°) on both sides.
+**The ring.** `OrderList` is a ring anchored at `+0x14`. `kill_current_order`
+reads the current order at `+0x14 → +4`, the node before the anchor.
+`OrderList::log_data` and `get_final_loc@00608040` both start **at the
+anchor** and follow `+0`. So the dump prints the bottom of the list first
+and the current order last: run817's block 4265 prints the leader's guard
+first and the charge (6216, 29784, angle −1174274048) last. And
+`get_final_loc`'s walk climbs from the **bottom**: the final location is
+the deepest order naming a point. ~~From the head~~ (`docs/ORDERS.md`
+§17.3, struck). At the last re-issue the bottom copy's own `x/y` is (6072,
+29832), and ours read the charge's (6216, 29784). With (6072, 29832) the
+reverse fires, slot 80's `off` is the packet's, and the MLRS walks 44.
 
-**What is owed.** The original's slot table: `GroupData +0x24c`
-(`off`), `+0x44c/+0x64c` (`curr`) at slot 80, and `+0x48`, before and
-after the 4264 charge. No dump on disk prints `GROUPDATA` for this
-lobby (run817's `groupdata_blocks` is 0). A packet at logger frame 4265
-answers it (`docs/EMULATOR.md` §8); it was asked of the commander.
+**A guard is a `TargetOrder`.** `get_final_loc`'s target arm reads the
+object's own `+0x10/+0x14`. `get_loc_to` entered on the packet's record
+(`step4.py --entry 70c5d0 --this 113488c8`) answers **(14743, 25626)**,
+the MLRS's point under the leader's bottom guard. Ours walked past a
+`Guard`.
 
-**Coverage.** Diff-backed: the window's 10740 keys, the MLRS's steps and
-pushes, and the guard points. Reading-backed: the predicate rows above.
+**Built.** `Sim::unit_final_loc` walks `orders.iter().rev()` (ours keeps the
+current order at the front), and its `Guard` arm answers the escorted
+unit's position. `Follow` is not read off the listing as one, and is left
+as a `SEAM`.
+
+**Measured.** The word moves **4266 → 4340**, count and sequence: the
+game's last frame, so the draw stream agrees to the end. run817: **10740 →
+344** keys. Block 4266 parts one (`1/91 sheltered`). The 264 standing rows
+remain, with the attrition and shelter residue of group 66's members, and
+from 4285 a `path[k].to` residue (`1/105`, `1/107`, `1/168`: ours 768
+south of theirs). **The closing state**
+(`run676_sahara_coverage_closing_state`, block 4341): 252 units, one off
+(`1/95`, by (342, 159)), counts `[1, 0, 0, 0, 8, 0, 5]`. The five city
+rows are `1/2031 gatherers` (−1 against 255) and `1/2086`'s `land`,
+`filled`, `raid_stamp` and `reduce_stamp` (stamps 4340 in the original).
+No other lobby's first parting moved.
+
+**Mutations** (`tools/mutate.py`). The walk without `rev()` fails
+`sahara_coverage_first_parting`, `run817_s_word_frame_is_widened_whole`,
+`run676_sahara_coverage_closing_state` and the unit test
+`get_final_loc_climbs_from_the_bottom_of_the_ring`. The guard arm removed
+fails only `get_final_loc_reads_a_guard_s_target`. No decision in this
+lobby's walk reads a guard at the bottom, so that arm rests on the packet
+and the decompile.
+
+**Coverage.** Diff-backed: the walk direction (the word, run817's keys,
+the closing state). Packet-backed: the slot table and `get_loc_to`'s
+answer. Reading-backed: the ring's orientation (`kill_current_order`,
+`log_data`, `get_final_loc`), confirmed by the dump's print order.
 
 ## 207. Reserved for the next item on the AI track
 
