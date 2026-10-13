@@ -3999,3 +3999,9 @@ and 1062–1064, past the word 962; both mutations exit 0. Backed once
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
+
+(1744) **The successor pair's word 1354, unwidened** (1737): 5 draws ours
+against 7, index 1, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52` (a figure born in theirs); past run776's last block
+(33). The next item takes a window capture around 1354 and the widening
+(`MONGOL_PAIR_WORD`'s row names this item until then).
