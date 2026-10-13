@@ -6796,6 +6796,39 @@ fn widen_civilians_walk(
                 }
             }
         }
+        // **The fog plane, every cell** (item 1497, `docs/GOLDEN.md` §62):
+        // `update_local_seen_build`'s mask — `ever_seen | visible | owner`
+        // — is held by a unit test alone until a window prints `WORLD=6`
+        // per frame (run770); the other chapters print none and skip.
+        for (_, fb) in flog.frames() {
+            let Some(world) = fb.find("WORLD") else {
+                continue;
+            };
+            let theirs = crate::gamelog::world_fog(&world.fields().to_vec());
+            if theirs.is_empty() {
+                continue;
+            }
+            let w = &s.built.sim.world;
+            let fw = w.fog_xs();
+            let mut bad = 0usize;
+            let mut first = String::new();
+            for (i, &t) in theirs.iter().enumerate() {
+                rows += 1;
+                let (x, y) = (i as i32 % fw, i as i32 / fw);
+                let ours = w.seen2(x, y).unwrap_or(0);
+                if ours != t {
+                    if bad == 0 {
+                        first = format!("cell ({x}, {y}) ours {ours} theirs {t}");
+                    }
+                    bad += 1;
+                }
+            }
+            if bad > 0 {
+                firsts
+                    .entry((0, -1, "world:seen2".into()))
+                    .or_insert((n, format!("{bad} cells, first {first}")));
+            }
+        }
         for who in 0..2usize {
             let Some(block) = flog.leader_block(n, who as i64) else {
                 continue;
@@ -13430,6 +13463,42 @@ fn chapter_fifty_one_s_word_frame_is_widened_whole() {
     let mut want_pool: Vec<String> = WANT_CH51_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
     pin_eq!(got_pool, want_pool, "ch51: what parts in the pool moved");
+}
+
+/// **run770: chapter fifty-one's script with the fog printed** (item 1497,
+/// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
+/// Stockade's first round on 698. The walk compares every fog cell.
+#[test]
+fn chapter_fifty_two_s_fog_plane_agrees_through_the_first_round() {
+    let _pins = Pins::hold();
+    let Some((firsts, _pool)) = widen_civilians_and_pool(
+        "ch52fog",
+        "chapter51",
+        (690, 714),
+        714,
+        0,
+        (697, 700),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch52fog f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // The eleven rows are the units' `form`, standing on the window's first
+    // block (every chapter's); no fog cell parts on any of 25 frames.
+    pin_eq!(got.len(), 11, "ch52fog: keys that part");
+    pin_eq!(
+        got.iter().filter(|r| r.contains("seen2")).count(),
+        0,
+        "ch52fog: fog cells that part"
+    );
 }
 
 const WANT_CH51: &[&str] = &[

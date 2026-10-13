@@ -4089,3 +4089,17 @@ sooner (The President's clock on 14363). And 1508's: a dumped field
 the crate carries under another name (`cast_target` for `cavarch_o`)
 read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119. **The twenty-eighth pass**: reached by 1651 (above, in 1119) and by `att-1648-sh`'s 1664 (`spell_time` carried unread again). Not built as a check; stays with 1119.
 
+
+## Parked by item 1497, 2026-10-13 — the Temple's term
+
+(1687) **The Temple's hit points on French East Indies 17025**: `1/2000`,
+`1/2018`, `1/2023` `myhits` 7500 against 6000 from 17025 and `1/2064` 3600
+against 2880 from 17238 (run657..run667); ratio 1.25, the level-1 Temple
+term. The original recomputes `update_hits` on the frame of parked 1509's
+dirty bit; ours does not. No draw parts on it.
+
+(1688) **The member `find_melee_target` arm** (1473), still unwalked: needs
+an `@form` formation wider than a Stockade's reach band.
+
+(1689) **Two-order snap (1500) and M5/M6 (1508: the drop, the captain's
+re-search)**: not reached by this chapter (three arms).

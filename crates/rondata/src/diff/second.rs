@@ -2456,6 +2456,7 @@ mod tests {
                 (16210, 1),
                 (16270, 1),
                 (16273, 1),
+                (16288, 1),
                 (16315, 1),
                 (16367, 1),
                 (16369, 1),
@@ -2488,7 +2489,7 @@ mod tests {
         // Item 1457: 263 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1634 removes 1/2046's false road flag from block 16288.
-        pin_eq!(w.firsts.len(), 141, "every key parted on run572");
+        pin_eq!(w.firsts.len(), 142, "every key parted on run572");
     }
 
     /// **run579 — the second pair's East Indies word 16482, widened whole**
