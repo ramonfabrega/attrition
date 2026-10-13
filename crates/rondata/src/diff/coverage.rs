@@ -215,9 +215,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1565: Khomein, the Persians' fifth, named on run683's block 1819.
     // Item 1581: Rigan, the Persians' sixth, named on run702's block 1986.
     // Item 1611: Babylon, named in run718's window (block 2274).
+    // Item 1697: Meshed, named in run766's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz York flags increment length size",
+        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Meshed Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -2482,6 +2483,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN718, 2274),
         (super::sahara_coverage::RUN718, 2324),
         (super::sahara_coverage::RUN718, 2405),
+        (super::sahara_coverage::RUN766, 2641),
+        (super::sahara_coverage::RUN766, 2852),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);
@@ -2914,7 +2917,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 1581: and run702's blocks around the word 1985.
     let sahara_1985 = super::sahara_coverage::sahara_coverage_frame_1985_window();
     // Item 1611: and run718's blocks around the word 2273.
-    let sahara_2273 = super::sahara_coverage::sahara_coverage_word_window();
+    let sahara_2273 = super::sahara_coverage::sahara_coverage_frame_2273_window();
+    // Item 1697: and run766's blocks around the word 2640.
+    let sahara_2640 = super::sahara_coverage::sahara_coverage_word_window();
     let seen = compared::stop();
     let (
         Some(w),
@@ -3000,6 +3005,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         sahara_1582,
         sahara_1985,
         sahara_2273,
+        sahara_2640,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

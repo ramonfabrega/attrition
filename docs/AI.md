@@ -18366,10 +18366,58 @@ sibling rows and this walk (the Persian General's rate is two on 3838..3844).
 Other lobbies that hold the preq (All Technologies) now recover at the
 doubled rate; the full suite is the check on them.
 
-## 184. Reserved for item 1697 (Great Sahara's word 2404)
+## 184. Two arms of `train_time` — Wool for a Citizen, Uranium for a missile — and the word at 2851 (2026-10-13, item 1697)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 2404, 18 versus 20 draws, index 6: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` (run718, block 2405).
+
+**Who.** The value diff named the building: `1/2031` (`orig_type` 414), whose
+`queue[0]` is `TypeIndex` 50 (unit type 0, a Persian Citizen) reads 9473 on
+2404 where ours read 9500, and its queue is empty on 2405 (the birth `1/126`).
+The dump's counter steps 100 a frame (9100, 9200, 9300, 9400) and ends on
+9473: the item's *target* is 9473 (`advance` caps the counter at the target).
+Every Citizen on the window agrees — a scan of all off-a-hundred queue
+counters finds 9473 on 2404, 2477 and 2479 — against ours' 12600 (base 5000,
+ramp capped at 18000, `Ratio(7, 10)` for the three speed upgrades).
+
+**Cause.** `ObjectData::train_time@006508c0`'s tail has an arm this crate did
+not carry: for a type whose `TypeIndex` is 0x32 or 0x33 and a player whose
+`rare | rare_conquest` mask holds Wool (byte 3 bit 3 of either mask, good `33`), `t = t * 100 / (WOOL_CITIZENS_SPEED + 100)`, after the
+spy/general arm. `WOOL_CITIZENS_SPEED` ships as 33: 12600 × 100 / 133 = 9473.
+The Persians hold Wool (`rares_collected[4]`). Built: `Sim::train_tail`
+(`crates/sim/src/lib.rs`), `economy::WOOL`, `Tuning::wool_citizens_speed`.
+`a_citizen_trains_faster_for_a_player_holding_wool` (`harness_tests`) fails
+without it.
+
+**Value diff and score.** Run718's widening falls **364 → 68** keys and the
+word leaves its window: the count and the sequence part together at **2640**,
+170 versus 171 draws, index 155: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. run766 (blocks
+2634..2890, `docs/RUNS.md`) holds it: the first row is `1/2017`
+`queue[0].job_counter` 65500 against 65454 on 2640, and block 2641's `queued`
+1 against 0 and `num_units[266]` 0 against 1. `1/2017` is an ICBM
+(`TypeIndex` 316) at an Airbase (`orig_type` 520); ours' target was 72000
+(base 60000 × 120/100, `jet` 0, empty tail), 72000 × 100 / 110 = 65454: the
+original's first arm, before the unit branch — `if is(0x13b, 0)` and
+`rare & URANIUM`, `t = t * 100 / (URANIUM_NUKE_SPEED + 100)` (10), on the
+**base**, so ahead of the ramp. Built as `production::train_time_from`'s
+`base_faster` (`Sim::queue_target`); the cost arm of the same rare was
+already here (`uranium_discount`). `a_base_shortened_before_the_ramp_scales_through_it`
+(`production`) fails without it. The count and the sequence now part at
+**2851**, 18 versus 17 draws, index 0: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`,
+inside run766 (block 2852). Its first row is `1/8`'s `order:move` on 2850:
+destination (36792,21528) against (36024,26568), then `path:length` 5 against
+4 on 2851; block 2852's first row is `1/51` `collide` 1 against 0. run766's
+widening holds **252** keys; ground-height reads 10 in its window, 9 on the
+walk to the word.
+
+**Not established.** The Uranium arm is built for the Nuclear Missile line
+only as `is_nuke_line_type` reads it; the research arm of the same function
+(a Uranium holder researching a missile type) is not checked by a run. The
+wool arm's second mask (`rare_conquest`) is the union `has_rare` keeps. The other national
+arms of the head of `train_time` stay unbuilt (no capture holds them). The
+word 2851's cause is unread: `1/8` is the first row, not a cause.
 
 ## 185. A marked border cell near a city scales its temple and tower, and the word moves to 4425 (2026-10-13, item 1700)
 
