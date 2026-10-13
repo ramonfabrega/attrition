@@ -22,7 +22,11 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         let _ = (&a, &res, seen);
         let (ptr, p0) = (a[0] as i32, a[1] as i32);
-        let want = format!("{},{}", u32::from_ne_bytes(p0.to_ne_bytes()), ptr.wrapping_add(0x74));
+        let want = format!(
+            "{},{}",
+            u32::from_ne_bytes(p0.to_ne_bytes()),
+            ptr.wrapping_add(0x74)
+        );
         assert_eq!(seen.trim(), want, "say_name — calls, row `{line}`");
         n += 1;
     }

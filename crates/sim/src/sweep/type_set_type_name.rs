@@ -23,7 +23,11 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &res, seen);
         let (ln, rel) = (a[0], a[1]);
         let arg = if ln & 0xffff == 0 { 0x60 } else { rel };
-        assert_eq!(seen.trim(), format!("{},{}", 0xb0, arg), "set_type_name — calls, row `{line}`");
+        assert_eq!(
+            seen.trim(),
+            format!("{},{}", 0xb0, arg),
+            "set_type_name — calls, row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 150, "only {n} rows");

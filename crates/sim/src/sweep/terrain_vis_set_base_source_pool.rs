@@ -21,7 +21,11 @@ fn the_emulated_original_agrees_on_every_row() {
             .map(|s| s.parse().expect("an integer"))
             .collect();
         let _ = (&a, &res, seen);
-        assert_eq!((res[0], res[1]), (a[0], a[1]), "set_base_source_pool — row `{line}`");
+        assert_eq!(
+            (res[0], res[1]),
+            (a[0], a[1]),
+            "set_base_source_pool — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 150, "only {n} rows");

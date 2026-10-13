@@ -23,7 +23,11 @@ fn the_emulated_original_agrees_on_every_row() {
         let _ = (&a, &res, seen);
         let (xs, x, y) = (a[0], a[1], a[2]);
         let i = (y + 1) * (xs + 2) + x + 1;
-        assert_eq!(res[0], (i * 37 + 11) & 0xff, "get_fog_lookup — row `{line}`");
+        assert_eq!(
+            res[0],
+            (i * 37 + 11) & 0xff,
+            "get_fog_lookup — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 150, "only {n} rows");

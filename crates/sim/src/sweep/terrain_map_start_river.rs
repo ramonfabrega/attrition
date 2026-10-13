@@ -22,7 +22,11 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         let _ = (&a, &res, seen);
         let ans = a[0] as i32;
-        assert_eq!(res[0], i64::from(ans), "start_river — stored word, row `{line}`");
+        assert_eq!(
+            res[0],
+            i64::from(ans),
+            "start_river — stored word, row `{line}`"
+        );
         assert_eq!(seen.trim(), "0", "start_river — calls, row `{line}`");
         n += 1;
     }

@@ -22,7 +22,11 @@ fn the_emulated_original_agrees_on_every_row() {
             .collect();
         let _ = (&a, &res, seen);
         let (g, e) = (a[0], a[2]);
-        assert_eq!(res[0], if g >= 3 { 9 } else { e }, "get_verts_per_bucket — row `{line}`");
+        assert_eq!(
+            res[0],
+            if g >= 3 { 9 } else { e },
+            "get_verts_per_bucket — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 150, "only {n} rows");
