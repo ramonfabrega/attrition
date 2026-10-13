@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1900) **`step4.py` has no "print each call's return" mode** (1870's
+Loop line): `--hook` on a gate's three call sites (`6c8124`, `6c8143`,
+`6c8152`) found `get_nuke_embargo`'s 719 — a SEAM that read as zero — in
+minutes, but each hook was an address picked by hand from the listing.
+Candidate: `--calls`, hooking every `call` in the entered function and
+printing callee and `eax` on return. One reach.
+
 (1890) **`sweep_gen.py` has no field-write or global-compare shape**
 (1866's Loop line): ten functions of one batch were `mov [ecx+N], imm;
 ret` or a compare against a global cell, and the lane hand-wrote a
