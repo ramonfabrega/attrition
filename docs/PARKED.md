@@ -3842,6 +3842,8 @@ argument-carrying stub, `v + 1000*arg0 + arg1`, to verify what a virtual
 call is passed) — graduate the generator.
 1851 a thirteenth: the same header, `stub`/`argstub` and `setup()`
 thrown away again, with the out-pointer shape still missing.
+1856 a fourteenth: a "fixed-offset lea" and a "vtable-displacement"
+shape, the third batch's identical throwaway.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
@@ -3849,6 +3851,12 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
+
+(1867) **`callfn` has no xmm-argument seam** (1856's Loop line):
+`Guy::set_bank`/`set_pitch` take a float in an xmm register, and the
+emulator call cannot pass one, so the sweep leaves them. Candidate: an
+xmm argument in `tools/emu/callfn.py`. And `timeout` is absent on this
+machine, so a gate's wrapper cannot use it. One reach.
 
 (1864) **A probe's revert took an uncommitted build with it** (1829's
 Loop line): a `commit -a` after the build's edit swallowed it into the
@@ -3885,7 +3893,11 @@ one reader for both. One reach.
 added 1756/1757 there; the merge backed out and the lane re-gated for a
 docs-only conflict (~25 min). The stub pool's shape (parked 1741), one
 file down. Candidate: a lane files its parks under its own `## Parked by
-item N` heading, never at another section's tail. One reach.
+item N` heading, never at another section's tail. Two more reaches,
+with that candidate in force: 1768 and 1845 each backed out under their
+own heading, because every lane appends its heading at the same file
+end — the tail is the conflict, not the section. A pool of park
+headings, as with the stubs.
 
 (1813) **`get_position.py`'s pivot table reads `d₁ i t x y z`** (1776's
 Loop line), where the Chariot tests read a slot column first; the
