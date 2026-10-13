@@ -71,6 +71,7 @@ pub mod economy;
 pub mod farms;
 pub mod fight;
 pub mod fish;
+pub mod flag_reads;
 pub mod flock;
 pub mod form;
 pub mod gaia;

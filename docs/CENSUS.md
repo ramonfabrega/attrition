@@ -797,3 +797,19 @@ without `is_entrenched`'s `unit_masks2 & 0x20000` exclusion — the port keeps
 entrenchment as one flag, not the mask. `is_wonder_type`, `is_gaia_type`,
 `is_item_type`, `is_good_type` and `assault_benefit` remain. No parting.
 `docs/journal/2026-10-13-item-1704.md`.
+
+**Item 1705, the sweep's eighth batch** (2026-10-13): **simulation backed 128
+of 3,611 (3.5 %)** — 31 by a coverage section, 97 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, **all ten agree on every row**:
+the last four `TypeData` range predicates (`is_item_type` `0x21f`,
+`is_wonder_type` `0x20e..=0x21e`, `is_gaia_type` `0x192..=0x19d`,
+`is_good_type` signed `< 0x32`; 838 rows each, `type` −2..=`0x33f` and the
+signed edges, added to `type_index.rs`) and six flag readers — flags byte
+`+0x8` `& 1/4/2` (`SubObjectData::is_active`, `WallData::is_active`,
+`WallData::is_started`), `unit_masks & 0x200000` (`UnitData::has_repeat_air`)
+and `& 0x1000` (`UnitData::is_blown`), and `UnitTypeData::num_preq`
+(constant 2) — in the new `crates/sim/src/flag_reads.rs`, the masks as
+`const fn`s naming their readers; each row also asserts the original returns
+the masked word itself. Mutation check: widening `is_item_type` by one fails
+at row `544`, restored. No parting; none is wired into a reader.
+`docs/journal/2026-10-13-item-1705.md`.
