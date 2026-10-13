@@ -3351,9 +3351,6 @@ impl Sim {
             range
         };
         let flags = self.melee_search_flags_with(i, word);
-        if std::env::var("RON_PROBE_2001").is_ok() && i == 254 {
-            eprintln!("PROBE2001 melee f{} r {} radius {} stance {:?} respond {} flags {}", self.frame, r, radius, st.stance, self.tuning.unit_respond_range, flags);
-        }
         let found = self.find_nearby_target_as(me, radius, flags, cavarch);
         if found.is_none() && self.fires_on_move(i) {
             let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
@@ -3675,9 +3672,6 @@ impl Sim {
                             continue;
                         }
                         let mut dist = self.attack_dist(attacker, o);
-                        if std::env::var("RON_PROBE_2001").is_ok() && attacker == Obj::Unit(254) {
-                            eprintln!("PROBE2001 raw f{} {:?} dist {} max {}", self.frame, o, dist, max_dist);
-                        }
                         let is_unit = matches!(o, Obj::Unit(_));
                         // `00649527`'s conjunct: one of the two ends has
                         // to be a unit, so a building's search of another
