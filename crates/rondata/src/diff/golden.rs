@@ -14158,8 +14158,6 @@ const WANT_CH46: &[&str] = &[
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
-    "1479 0/6 g.des_turret0[0]",
-    "1479 0/6 g.turret0[0]",
     "1487 1/7 death:extra",
 ];
 
@@ -14463,8 +14461,6 @@ const WANT_CH43: &[&str] = &[
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
-    "1479 0/6 g.des_turret0[0]",
-    "1479 0/6 g.turret0[0]",
     "1488 1/6 death:extra",
 ];
 
