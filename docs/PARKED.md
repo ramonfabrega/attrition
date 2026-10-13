@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2071) **`repin.py --write` cannot rewrite a golden widening's `const` want
+arrays** (2032's Loop line, filed at its merge): "the want is not a
+literal", so a new chapter's first pin is always by hand. Candidate:
+`repin.py` rewriting a `const NAME: &[…] = &[…];` array in place, with a
+test that fails on a chapter's const first.
+
 (2060) **A parted `queue[k].cost` has no price print with its inputs**
 (2026's Loop line, filed at its merge): `RON_PRICE` lives in one older walk
 (`harness.rs`) and prints the price, not its inputs; 2026 priced the entry
