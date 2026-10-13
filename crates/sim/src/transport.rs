@@ -929,15 +929,18 @@ impl Sim {
     ///    `cast_transport` has already moved the whole list onto the boat,
     ///    and the boat kills this order there.
     ///
-    /// SEAMS, all stated: the captain check between 4 and 5 — for `0x28a`
-    /// alone, a figure that is not a captain and whose `get_captain`'s
-    /// current order is `CAST_SPELL` takes `spell_time − 1` and returns
-    /// (`005ebfe0`, after the clock) — is not modelled. The captain's cast
-    /// boards its whole squad ([`Sim::cast_transport`]'s `board`), so only
-    /// a member holding a transport cast of its own and stepped **before**
-    /// its captain reaches it; no staging has one (item 1235). Nor is the
-    /// general's `has_general(0, 0x162)` extra `spell_time` step; and nor
-    /// is the whole non-spell-type arm, which is
+    /// The captain check between 4 and 5 is in as of item 2077: for
+    /// `0x28a` alone, a figure that is not a captain and whose
+    /// `get_captain`'s current order is `CAST_SPELL` takes `spell_time − 1`
+    /// and returns (`005ebfe0`, after the clock). The captain's cast boards
+    /// its whole squad ([`Sim::cast_transport`]'s `board`), so it is a
+    /// member holding a transport cast of its own, stepped **after** a
+    /// captain that took one, that reaches it (East Indies' `1/24` on
+    /// 3835, `docs/AI.md` §207).
+    ///
+    /// SEAMS, all stated: the general's `has_general(0, 0x162)` extra
+    /// `spell_time` step is not modelled; and nor is the whole
+    /// non-spell-type arm, which is
     /// `LeaderData::current_upgrade` + `set_type` and reaches no craft
     /// index at all. `is_rare_collector`'s re-seat is **in** as of item
     /// 210 — step 2's second half.
@@ -1058,6 +1061,20 @@ impl Sim {
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
+        }
+        // **The member waits on its captain's cast** (`005ecd9c`–`005ecdf0`,
+        // item 2077, `docs/AI.md` §207): for `0x28a` alone, a figure that is
+        // not a captain whose `get_captain`'s current order is
+        // `CAST_SPELL` takes its clock back one and returns, paid. The
+        // captain's cast boards the squad a frame later. East Indies'
+        // `1/24` on 3835: its captain `1/23` took its transport on its own
+        // step, ahead of it.
+        if s == spell::TRANSPORT && !self.units[u].captain {
+            let c = self.squad_captain(u);
+            if c != u && self.order_type(c) == crate::orders::index::CAST_SPELL {
+                self.units[u].spell_time -= 1;
+                return;
+            }
         }
         self.units[u].spell_time = 0;
         // `SpellType::cast@00676ce0` — the switch, behind an `is_castable`
@@ -2373,6 +2390,67 @@ mod tests {
         // And the walker is cargo: off the map, its clock stopped.
         assert_eq!(f.sim.units[u].inside_unit, Some(boat));
         assert!(!f.sim.units[u].on_map);
+    }
+
+    /// **A member waits a frame on its captain's transport**
+    /// (`do_cast@005ebfe0`, `005ecd9c`–`005ecdf0`; `docs/AI.md` §207): a
+    /// figure that is not a captain, holding a transport cast whose clock
+    /// is due, returns paid with the clock back where it was while its
+    /// captain's own head order is a cast. East Indies' `1/24` on 3835,
+    /// behind `1/23`, which took its transport on its own step.
+    ///
+    /// Made to fail by dropping the check: the member builds the boat at
+    /// once.
+    #[test]
+    fn a_squad_member_waits_on_its_captain_s_transport_cast() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let captain = unit(&mut f.sim, 1, f.citizen, tile_pos(29, 14));
+        let member = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        for &m in &[captain, member] {
+            f.sim.init_guys(m, Some(f.citizen));
+            f.sim.units[m].auto_transport = true;
+        }
+        f.sim.units[captain].o_down = Some(member);
+        f.sim.units[member].o_up = Some(captain);
+        f.sim.units[member].captain = false;
+        f.sim.add_cast_order_at(
+            member,
+            crate::orders::spell::TRANSPORT,
+            crate::orders::QueuePos::New,
+        );
+        f.sim.add_cast_order_at(
+            captain,
+            crate::orders::spell::TRANSPORT,
+            crate::orders::QueuePos::New,
+        );
+
+        let units_before = f.sim.units.len();
+        f.sim.work(member, 1);
+        assert_eq!(
+            f.sim.units.len(),
+            units_before,
+            "no boat while the captain casts"
+        );
+        assert_eq!(
+            f.sim.units[member].spell_time, 0,
+            "the clock is handed back"
+        );
+        assert!(
+            matches!(
+                f.sim.units[member].orders.front().map(|o| o.body),
+                Some(crate::orders::Body::Cast(c)) if c.paid
+            ),
+            "the cast stays at the head, paid"
+        );
+        assert_eq!(f.sim.units[member].inside_unit, None);
+
+        // The captain's order is no longer a cast: the member casts.
+        f.sim.units[captain].orders.clear();
+        f.sim.work(member, 1);
+        assert_eq!(f.sim.units.len(), units_before + 1, "a boat");
+        assert_eq!(f.sim.units[units_before].ty, Some(b));
+        assert_eq!(f.sim.units[member].inside_unit, Some(units_before));
     }
 
     /// §6.2 line 3 and `docs/VISION.md` §11: the boat is born on the

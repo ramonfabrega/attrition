@@ -799,9 +799,10 @@ walk** (1248's mutation D).
 forty-six holds the prune itself (1049, `1/2001`'s `gather_down` 6 → 2,
 both sides); the off-map arm no staging reached.
 
-(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
+~~(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
 cause): a member with its own cast stepped before its captain. Transport
-only; no staging has one.
+only; no staging has one.~~ **Closed by item 2077** (`docs/AI.md` §207):
+built; the successor pair's `1/24` reaches it on 3835.
 
 (1239) **A refused passenger (`num_inside != 0`)**: the original's boat
 lives; no staging crowds a shore.
@@ -3733,6 +3734,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2089) **`tools/gamelog/unitat.py` prints the `OBJECT` block's `up`/`down`,
+never the dump's `o_up`/`o_down`** (2077's Loop line, filed at its merge):
+the squad chain lives in the latter, so 2077 read its two `TOW` squads'
+captains with a scratch parser. Candidate: the squad chain on the header
+line, held by a test on a run809 block whose captain it names.
+
 (2082) **The brief says "under `tools/memcap.sh`" without its ceiling
 argument** (2049's Loop line, filed at its merge): `memcap.sh` takes the
 ceiling first (`memcap.sh 12 cargo …`), and one refused run came of the
@@ -4296,11 +4303,12 @@ coordinates drawn inside a pinned width.
 
 ## Parked by item 2049, 2026-10-13 — an idle captain takes its cached nearest off the search's phase
 
-(2050) **The successor pair's word 3835: 46 draws against 40, index 0** (2049; `docs/AI.md` §205.5): ours `Guy::init_real+0x52` (`1/24`,
+~~(2050) **The successor pair's word 3835: 46 draws against 40, index 0** (2049; `docs/AI.md` §205.5): ours `Guy::init_real+0x52` (`1/24`,
 then `1/36`), theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/34`) and then one `init_real`. Ours re-inits one body more, at the
 frame's head; the scout `1/101`'s `think_scout+0xaba` spends more in ours. Rows before and after it, a hypothesis: on 3836 `1/23`..`1/25`
 `inside` ours 229 (the transport `1/229`) theirs −1, and `1/101`'s move goal. Inside run809's window (to 3883); every record on 3835 both
-ways first.
+ways first.~~ **Closed by item 2077** (`docs/AI.md` §207): `do_cast`'s member check; `1/24` waits on its captain `1/23`'s
+cast. No packet.
 
 (2051) **`is_in_range`'s head asks health for every caller but the `near_o` arm** (2049): `006486b0` asks the slot (`flags & 1`, and
 `is_on_map` for a unit), never the health; [`Sim::is_in_range_at_margin`] asks `active` (a building's `health > 0`) from the first combat
@@ -4356,13 +4364,13 @@ original's own recursion runs). `connects_to_roads` (parked 2040) and every `Bui
 the same table. Candidate: `obj --who-table` (2039) and an `obj --buildtypes N` window over `buildtypes.py`,
 each with a test made to fail first.
 
-## Parked by the next landing, slot AH — reserved
+## Parked by item 2077, 2026-10-13 — a squad member's transport waits on its captain's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2078) **The successor pair's word 4238: 158 draws against 159, index 145** (2077; `docs/AI.md` §207.5): ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/188`), theirs `PathFinder::astar_path+0x1697` (seed `8ce6ff4e`), between `1/170`'s
+`move_step` roll and `1/188`'s. Theirs spends a path search's draw that ours does not; whose search is a hypothesis. Past run809's
+window (to 3883), so no dump holds it: a capture over a `--log-window` round 4238 (run809's recipe) and its widening, every record on
+4238 both ways before a mechanism.
 
 ## Parked by item 2083, 2026-10-13 — the sweep's forty-seventh batch
 
@@ -4396,6 +4404,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot AL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

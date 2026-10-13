@@ -19531,12 +19531,71 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 207. Reserved for the next item on the AI track
+## 207. A squad member's transport waits on its captain's, and the successor pair's word moves 3835 → 4238 (2026-10-13, item 2077)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Opus 5.5 (medium) lane att-2077, base `27cfc898`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech. No capture: run809 (blocks
+3626..3883) holds the word; run 820 was not needed.*
+
+### 207.1 The frame, both sides
+
+Frame 3835 (`RON_DEBUG_SITES=3835-3835` on `mongol_pair_first_parting`): ours 46 draws, theirs 40. Ours opens `Guy::init_real+0x52` on
+`1/24`, then `1/34`'s `set_anim < Unit::move_step+0x823`, then `init_real` on `1/36`; theirs opens `1/34`'s `move_step` roll (seed
+`b23fc7a8`) and one `init_real` (seed `32a106e7`). Further down ours spends 20 `Unit::think_scout+0xaba` on the scout `1/101` against
+14, and 11 `Guy::inc_time+0x271` against 12. `init_real` is the boat's birth: `cast_transport` re-inits the figures it takes aboard.
+
+### 207.2 Every record on 3835, both ways
+
+`RON_FIRSTS=1` on `run809_s_word_frame_is_widened_whole`: **nothing parts on block 3835**; block 3836 (the frame's product) parts
+`1/23`..`1/25` (`inside` ours 229, theirs −1; `orders.len` ours 0, theirs 2 and 2 and 1; `path:length` 0 against 52), `1/34`..`1/36`
+(`inside` ours 230, theirs 229), the freighter `1/229` (its order, path and point: ours carries `1/24`'s move, theirs `1/36`'s), and
+`1/101`'s move goal ((42744, 25080) against (23544, 45048)). The six are `TOW` (`TypeIndex` 141; this crate's record 91, the Anti-Tank
+Missile), two squads by the dump's `o_up`/`o_down`: **`1/23` captains `1/24`, `1/25`; `1/34` captains `1/35`, `1/36`**.
+
+`tools/gamelog/unitat.py` on run809, theirs:
+
+- **Block 3835**: `1/24` and `1/36` each hold `CASTORDER spell=650 paid=0` (the transport, `0x28a`) over an `ATTACKTOORDER`;
+  `1/23`, `1/25`, `1/34` and `1/35` hold the `ATTACKTOORDER` alone. Ours agrees here (`RON_DEBUG_UNIT`: the same paths).
+- **Block 3836**: `1/34`..`1/36` aboard `1/229` (`inside_up` 229, 34, 35); `1/24`'s cast **`paid=1`**, still at the head; `1/23` holds a
+  new `CASTORDER spell=650 paid=0` over its attack; `spell_time` 0 on all six.
+- **Block 3837**: `1/23`..`1/25` aboard `1/230`, born that frame.
+
+So on 3835 theirs: `1/23` (the captain, stepped first) takes a transport cast of its own on its step; `1/24` pays its cast and builds
+nothing; `1/36` casts and boards its squad into `1/229`. On 3836 the captain `1/23` casts and boards its squad into `1/230`. Ours on 3835
+built `1/229` from `1/24` (its squad aboard) and `1/230` from `1/36`.
+
+### 207.3 The mechanism
+
+`Unit::do_cast@005ebfe0`, past the clock (`spell_time += 1` against `get_job_time`; the transport's is 0): for **`0x28a` alone**, a unit
+whose `is_captain` (vslot `+0xe8`, `+0x8e`'s sign bit) is 0 asks `get_captain` (vslot `+0xe4`, `UnitData::get_captain@00610ab0`: up the
+`o_up` chain to its head) and that unit's `UnitData::order_type`; **`CAST_SPELL` takes `spell_time − 1` and returns** (decompile lines
+293–310). `paid` was set at the head, so the member waits paid with its clock at 0, and its captain's cast takes it aboard with the squad.
+
+This crate stated the check as a seam (`transport.rs`, parked 1249, `docs/TRANSPORT.md`) on the reading that only a member stepped
+**before** its captain could reach it. `1/24` is stepped **after** `1/23`, whose own step queued its cast that same frame — the order
+the frame's two sides make plain. Built in `Sim::do_cast` (`transport.rs`), on [`Sim::squad_captain`] and [`Sim::order_type`].
+
+Test: `transport::tests::a_squad_member_waits_on_its_captain_s_transport_cast` (the member waits, paid, clock 0, no boat, while its
+captain's head is a cast; casts once it is not). Mutations through `tools/mutate.py`, each held: the check dropped (the test, and
+`mongol_pair_first_parting` back at 3835); the captain's order type not asked (the test).
+
+### 207.4 What moved
+
+**The word 3835 → 4238** (`mongol_pair_first_parting`, `MONGOL.count`/`.sequence`). The value diff on 3836: `1/24` `inside` −1 and
+`orders.len` 2 both sides (ours was 229 and 0); `1/34`..`1/36` `inside` 229 both sides (ours 230); `1/229`'s order (6936, 5064) both
+sides (ours (7608, 5304)). run809's keys **353 → 180**: every row from block 3836 on leaves but the four freighters' `form` (−1 against
+0 on `1/229`..`1/232`, 3836..3882, each a birth). The scout's `think_scout` count and `1/167`'s nine rows on 3851 leave with them. The
+pair's `GROUND_INEXACT` pin 113 → 516, the walk 400 frames longer. **No other lobby's floor moved** (the lane's filters, every
+lobby's `first_parting`, 63 passed).
+
+### 207.5 The next word, and what is not established
+
+Frame **4238: ours 158 draws, theirs 159, index 145** — ours `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/188`), theirs
+`PathFinder::astar_path+0x1697` (seed `8ce6ff4e`) between `1/170`'s `move_step` roll and that same `1/188` one. Past run809 (to 3883):
+no dump holds it. Parked 2078.
+
+Not established: the member check's arm when the captain is dead (the original's `get_captain` walks `o_up` with no liveness test;
+`squad_captain` stops at a dead link, and no capture has one); the `has_general(0, 0x162)` step beside it (still a seam).
+
 
 ## 208. Reserved for the next item on the AI track
 
