@@ -908,12 +908,6 @@ impl Sim {
     }
 
     fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
-        if std::env::var_os("RON_PROBE_UPATH").is_some() && (4175..=4238).contains(&self.frame) {
-            let c = ucell(self.units[u].pos);
-            if (380..=392).contains(&c.x) && (616..=630).contains(&c.y) {
-                eprintln!("PROBE who f{} {}/{} {} pos {:?} ty {:?}", self.frame, self.units[u].owner, self.units[u].index, stringify!(paint), self.units[u].pos, self.units[u].ty);
-            }
-        }
         let size = self.coll_size(u);
         if size == 0 || self.is_air(u) {
             return;
@@ -942,12 +936,6 @@ impl Sim {
     /// `to` that are further than `size` from `from`. Each pass uses its
     /// own end's tile region.
     fn coll_move(&mut self, u: usize, from: Pos, to: Pos) {
-        if std::env::var_os("RON_PROBE_UPATH").is_some() && (4175..=4238).contains(&self.frame) {
-            let c = ucell(self.units[u].pos);
-            if (380..=392).contains(&c.x) && (616..=630).contains(&c.y) {
-                eprintln!("PROBE who f{} {}/{} {} pos {:?} ty {:?}", self.frame, self.units[u].owner, self.units[u].index, stringify!(move), self.units[u].pos, self.units[u].ty);
-            }
-        }
         let size = self.coll_size(u);
         if size == 0 || self.is_air(u) {
             return;
