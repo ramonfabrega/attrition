@@ -229,7 +229,12 @@ pub(crate) struct Pair {
     /// `Leader::produce_building+0x1805`. Item 1656: a fisherman still
     /// packed is an idle one, and the leader offers no boat while one is —
     /// the make list agrees on 3581 — **3587**, 15 versus 16 draws, index
-    /// 1: ours guy animation, theirs `Unit::do_move+0xe84`.
+    /// 1: ours guy animation, theirs `Unit::do_move+0xe84`. Item 1657: a
+    /// woodcutter on a forest cell, a boarding node on its path's top, is
+    /// re-seated off its own tile and re-plans — `1/133` agrees on 3588 —
+    /// **3614** (the sequence; the count parts on 3615), 30 versus 30
+    /// draws, index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    /// theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -247,8 +252,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3587,
-    sequence: 3587,
+    count: 3615,
+    sequence: 3614,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1577,7 +1582,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586, 3588],
+        &[3395, 3396, 3398, 3440, 3586, 3588, 3615],
         true,
     )
 }
@@ -1624,10 +1629,14 @@ fn run721_s_word_frame_is_widened_whole() {
     // offers no Fishermen: 482 -> 394, the leader's make list on 3581,
     // 3585 and 3586 and `1/143`'s route on 3586 the rows to leave; the
     // word moves to 3587, block 3588.
+    // Item 1657 re-seats the woodcutter `1/133` off its forest cell on
+    // 3587 (the own-tile test, with its path top's boarding bit) and it
+    // re-plans: 394 -> 326, `1/133`'s move on 3588 and its route on 3621
+    // the rows to leave; the word moves to 3614, block 3615.
     pin_eq!(
         w.firsts.len(),
-        394,
-        "run721 after an idle fisherman holds the boat"
+        326,
+        "run721 after a woodcutter is re-seated off its forest cell"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();

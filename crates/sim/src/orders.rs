@@ -5587,6 +5587,24 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
+        // **Off a bad tile first** (`5fb983`..`5fb9e6`, item 1657): the
+        // unit's own tile, asked with `ignore_buildings` and nothing else,
+        // refuses — so through the path top's transport bit, which turns
+        // on the land arm's cell test, a forest *cell* — and the unit is
+        // re-seated by `find_nearby_spot(0, -1, 0, 0x55555555,
+        // FILTER_NOT_ME)` and `set_new_location(·, ·, 1, 0)`, and the
+        // answer is 1, before the goal is looked at and before
+        // `path_recursion` counts. The coverage pair's woodcutter `1/133`,
+        // on a forest cell's edge with a boarding node on its path's top,
+        // re-plans on 3587 rather than verifying a detour
+        // (`docs/AI.md` §180).
+        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
+            if let Some(spot) = self.find_nearby_spot(u, here, 0, -1, 0, Angle(0x5555_5555), None) {
+                self.set_new_location(u, spot, true);
+                self.moved_to(u, here, true);
+            }
+            return 1;
+        }
         let mut goal = goal;
         if goal == here {
             return 0;
@@ -9352,6 +9370,63 @@ impl Sim {
             .wrapping_sub(self.units[u].movement.heading.0 as u32)
             .wrapping_sub(0x8000_0000);
         e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu)
+    }
+}
+
+#[cfg(test)]
+mod find_path_tests {
+    use super::*;
+    use crate::world::{World, cell};
+
+    /// **A unit whose own tile refuses is re-seated, and the answer is 1**
+    /// (`Unit::find_path@005fb910`, its first `invalid_loc` with
+    /// `ignore_buildings` alone; `docs/AI.md` §180). The coverage pair's
+    /// woodcutter `1/133` on 3587: a forest cell, and a boarding node on
+    /// its path's top, whose bit turns the land arm's cell test on. The
+    /// original re-seats it on its quarter-tile and re-plans; without the
+    /// arm this crate verified a detour on the spot.
+    ///
+    /// Two arms: the same unit with a plain top walks straight (0) and
+    /// stays where it is. Made to fail by taking the arm out: the boarding
+    /// arm answers 0 and does not move.
+    #[test]
+    fn a_unit_on_a_tile_it_refuses_is_re_seated_and_re_plans() {
+        for boarding in [false, true] {
+            let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+            let c = crate::world::Cell::new(10, 10);
+            let mut d = sim.world.cell_data(c);
+            d.flags = cell::FOREST;
+            sim.world.set_cell_data(c, d);
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                ..crate::UnitType::default()
+            });
+            // Off its quarter-tile centre (48k + 24), inside cell (10, 10).
+            let here = Pos::new(10 * 0x300 + 0x100 + 13, 10 * 0x300 + 0x100 - 21);
+            let mut un = crate::Unit::new(1, 0, here, 100);
+            un.ty = Some(ty);
+            un.on_map = true;
+            let u = sim.add_unit(un);
+            let goal = Pos::new(here.x + 0x60, here.y);
+            sim.add_move_order(u, goal, MoveKind::MoveTo, QueuePos::New, true);
+            sim.units[u].path.push(PathData {
+                to: goal,
+                tolerance: 0,
+                flags: if boarding { path_flag::TRANSPORT } else { 0 },
+            });
+            let mut mo = sim.current_move(u).unwrap();
+            let r = sim.find_path(u, &mut mo, goal);
+            let at = sim.units[u].pos;
+            if boarding {
+                assert_eq!(r, 1, "re-seated, so the pathfinder's");
+                assert_ne!(at, here, "the unit was re-seated");
+                assert_eq!((at.x % 48, at.y % 48), (24, 24), "on a quarter-tile centre");
+                assert_eq!(sim.units[u].path_recursion, 0, "before the count");
+            } else {
+                assert_eq!(r, 0, "a plain top: the cell test is off");
+                assert_eq!(at, here);
+            }
+        }
     }
 }
 
