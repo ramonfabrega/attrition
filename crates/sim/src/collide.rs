@@ -958,6 +958,9 @@ impl Sim {
         }
         let disc = spiral(size);
         let ra = self.world.tregion_alt(from.tile());
+        if std::env::var_os("RON_PROBE_UPATH").is_some() && self.units[u].owner == 1 && self.units[u].index == 191 && (4180..=4205).contains(&self.frame) {
+            eprintln!("PROBE mv191 f{} a {:?} b {:?} ra {:?} rb {:?} r(24,38) {:?} r(24,39) {:?} r(23,39) {:?}", self.frame, a, b, ra, self.world.tregion_alt(to.tile()), self.world.region_of(Cell::new(24,38)), self.world.region_of(Cell::new(24,39)), self.world.region_of(Cell::new(23,39)));
+        }
         // **The one-block form** (`CollCheck::move_unit@00682ad0`, its
         // head, `docs/COLLISION.md` §2.4): when both discs lie inside one
         // world cell — `|Δ| + 2·size < 16` on both axes and the box's
