@@ -18491,10 +18491,53 @@ redirect to `get_next_helicopter`, PRODUCTION.md "Completion", is not told apart
 so this capture holds no redirect. `home_base` on a flying plane reads the crate's
 current air order's home; no capture holds a ten-aircraft base with planes in flight.
 
-## 187. Reserved for item 1716 (Great Sahara's word 2851)
+## 187. A Fort's site is scored with its cell's danger, and the word at 2934 (2026-10-13, item 1716)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 2851, 18 versus 17 draws, index 0: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`
+(run766, block 2852). 1697's first row was `1/8`'s `order:move` on 2850,
+destination (36792, 21528) against (36024, 26568).
+
+**Walked back to its first parted field** (run766, `RON_FIRSTS`,
+`RON_DEBUG_UNIT=1/8@2836-2851`). `1/8` is a Persian Citizen (`TypeIndex` 50)
+that finishes `Build(66)` and is sent to `Build(74)` through
+`swarm_around`'s approach (an `EXPLORE_TO` to the site's ring). The ring spot
+is the same function of the site on both sides, so the *site* parts: the
+dump's building `1/2067` reads `x_internal` 37344 / `y_internal` 21408 in
+ours against 36576 / 26784 in the original on **2783**, the block after the
+placement; the make list's entry `MAKE[8]` (`TypeIndex` 446, a Redoubt) is
+the one first row on 2782 (`val` 17767 against 5922, a residue that stays).
+A probe in `produce_building` on frame 2782 listed every candidate: ours
+takes cell (48, 27) at score 3753; the original's cell is (47, 34), spiral
+index 177.
+
+**Cause.** The Redoubt is a Fort-line type, so the spiral takes the Fort arm
+(`produce_building@006e1400`, `006e2131`–`006e216b`): the candidate's score
+gets `danger[who][(cx >> 1, cy >> 1)] / 4` (truncating) added **before** the
+owner-of-the-second-border test, so the test's `/ 2`, `× 8` or `× 4` scales
+it too. This crate carried the arm without the term (a SEAM: "no walk reaches
+a Fort placement on a cell with danger", §100). The Persians' danger map is
+non-zero around the second city. Built in `Sim::produce_building`
+(`crates/sim/src/ai_place.rs`); `a_fort_is_placed_where_the_danger_is`
+(`cities_tests`) fails without it (made to fail once, the term × 0).
+Hypotheses the floor killed on the way: a stride phase one candidate off
+(`idx >= circle_radius[3]`: run766 parts on 5620 keys from the first
+placement), the `city_flags & 2` arm's 36-cell enemy scan (the city's flags
+are 145 on the dump: bit 2 clear).
+
+**Value diff and score.** run766's widening falls **253 → 97** keys; the
+site, the builder's order and path agree on 2783..2850. The word leaves the
+window: count and sequence part together at **2934**, ours 191 draws against
+205, index 0, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+`Guy::set_anim+0x97a < Guy::move+0x19f`; run767 (blocks 2928..3185,
+`docs/RUNS.md`) holds it, **2856** keys. Its first row is `1/12` on 2934:
+`dest_angle` 1044054016 against 1230766080 and `orders_y` 16680 against
+16440 (a destination 240 apart), then 2935's `path:length` 5 against 4.
+
+**Not established.** The team-style arm's `×16` for the leader's own target
+(`006e2206`–`006e2225`) stays a SEAM. `MAKE[8].val` (a factor of three on
+the Redoubt's make value) is not explained and does not part the site. Which
+of the window's 2856 keys beyond the first row are one cause is not read.
 
 ## 188. Reserved for item 1719 (the coverage pair's word 4582)
 

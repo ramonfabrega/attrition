@@ -7009,3 +7009,39 @@ fn a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near() {
     assert_eq!(place(&mut sim), at, "no enemy: the cell is the spiral's");
     assert!(!flagged(&sim), "and the bit is gone");
 }
+
+/// **A Fort's site is scored with the danger of its cell** (item 1716,
+/// `docs/AI.md` §187). `Leader::produce_building`'s Fort arm adds
+/// `danger[who][cell / 2] / 4` (`006e2131`–`006e216b`) ahead of the
+/// owner-of-the-border test, so a leader's Redoubt goes where the danger
+/// map is high: Great Sahara's Persians placed theirs on 2782 at
+/// (36576, 26784) in the original and at (37344, 21408) in ours, where the
+/// term was missing.
+///
+/// Made to fail once with the term removed: the danger a cell carries
+/// changes nothing and the Fort stands where it did without it.
+#[test]
+fn a_fort_is_placed_where_the_danger_is() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let place = |sim: &mut Sim| {
+        assert!(sim.produce_building(0, t.fort, b0, Some(c0), false));
+        let g = sim
+            .buildings
+            .iter()
+            .position(|b| b.alive && b.ty == Some(t.fort))
+            .expect("a Fort");
+        sim.buildings[g].pos
+    };
+    let plain = place(&mut sim.clone());
+    let moved = [(2, 2), (3, 0), (0, 3), (4, 4), (-2, 2), (2, -2)]
+        .iter()
+        .any(|&(dx, dy)| {
+            let mut hot = sim.clone();
+            let at = Cell::new(plain.cell().x + dx, plain.cell().y + dy);
+            hot.world.set_danger_at(0, at, 400_000);
+            place(&mut hot).cell() != plain.cell()
+        });
+    assert!(moved, "the danger a cell carries draws the Fort to it");
+}
