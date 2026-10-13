@@ -8999,7 +8999,7 @@ impl Sim {
         // position, which is what this crate did for all of them until
         // item 328.
         let here = self.units[u].pos;
-        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_SIEGE)
+        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
         {
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
