@@ -3734,6 +3734,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2089) **`tools/gamelog/unitat.py` prints the `OBJECT` block's `up`/`down`,
+never the dump's `o_up`/`o_down`** (2077's Loop line, filed at its merge):
+the squad chain lives in the latter, so 2077 read its two `TOW` squads'
+captains with a scratch parser. Candidate: the squad chain on the header
+line, held by a test on a run809 block whose captain it names.
+
 (2082) **The brief says "under `tools/memcap.sh`" without its ceiling
 argument** (2049's Loop line, filed at its merge): `memcap.sh` takes the
 ceiling first (`memcap.sh 12 cargo …`), and one refused run came of the
@@ -4394,6 +4400,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot AL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
