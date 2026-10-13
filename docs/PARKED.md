@@ -3850,6 +3850,12 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
 
+(1864) **A probe's revert took an uncommitted build with it** (1829's
+Loop line): a `commit -a` after the build's edit swallowed it into the
+probe commit, and reverting the probe reverted the build. Candidate: the
+frame says a probe is committed before anything else is edited, or the
+build lives in a second tree. One reach.
+
 (1861) **`census.py --unbacked`'s shortest-first list is dead weight at
 the top** (1851's Loop line): destructors, `close`/`init`/`clear`,
 loggers, `dynamic_initializer`s and operators fill it, and every sweep
