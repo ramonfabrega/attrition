@@ -3936,19 +3936,23 @@ was quiet on the cause and the lane found it by printing the hero arm's
 inputs; reading it would have named the cause on 3838. Frame row 6
 already says "quiet is blind" for an unread key; the candidate is a
 reader for `mana_burn` (and the hero record's other unread keys) in the
-compared pin, or a widening that prints the unread keys that part. One reach.
+compared pin, or a widening that prints the unread keys that part. **1497 the same day**:
+comparing `myhits`, another unread key, found a missing writer
+(`Nation::temple_level`) in minutes — 1475's tell twice in one tranche. One reach.
 
 (1703) **The sweep's candidate list is a scratch script** (1694's Loop
 line): `tools/census.py --layers` needs `--pdb` pointed at the main
 checkout's `game/` from a worktree, and the candidates were a scratch
 script over `source_of`/`sweep_backed` — the third batch to write one;
 a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
-the same script and said so too. One reach.
+the same script and said so too, and 1705 asks for `tools/census.py
+--unbacked`, shortest decompile first, which found its batch in one call. One reach.
 
 (1706) **The sweep's generator is a scratch script** (1704's Loop
 line): one template → ten emulator scripts and ten tests was the second
 batch to write it; a `tools/sweep_gen.py` for index-range predicates
-makes the rest a one-liner. A sibling of 1703; with it. One reach.
+makes the rest a one-liner; 1705 used it a third time (a probe shape
+reached three times graduates). A sibling of 1703; with it. One reach.
 
 ## Loop, filed 2026-10-12 — the Codex settlement's
 

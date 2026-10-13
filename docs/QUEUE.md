@@ -12,19 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, the twenty-eighth pass (`steer`, Fable 5.1): **the race on
-1648 is scored** — four arms tied at 3963 by the same five causes, so it
-ranked price and pace: Sonnet 5.5 medium 23.23 USD list, Opus medium
-32.40, Opus high 37.20, Sonnet high 40.47; 141 in all against 300
-estimated. **Ramon's word: four lanes on Sonnet 5.5 medium, the whole
-tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
+*2026-10-13, the twenty-ninth tranche at nine landings of twenty
+(`commander`, Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65):
+**both AI words moved** — the coverage pair 3963 → 3982 (1673), Great
+Sahara 2323 → 2404 (1639) — the census 68 → 128 (six sweeps), chapter
+fifty-two landed (1497, the Temple's hit-point term). No kill rule tripped.*
 
-- **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
-  2026-10-12): `att-1700` (parks 1675–1678, runs 762–765, AI §185),
-  `att-1697` (parks 1679–1682, runs 766–769, AI §184), `att-1705` (parks 1683–1686),
-  `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
-  1707, run 774, AI §186. Landed: 1630, 1691, 1694, 1701, 1704 (census 118), 1639
-  (Sahara 2323 → 2404), 1673 (coverage 3963 → 3982). **The disk**: 248 GiB free.
+- **Out**: `att-1700` (parks 1675–1678, runs 762–765, AI §185), `att-1697`
+  (1679–1682, 766–769, AI §184), `att-1708` (1683–1686), `att-1707`
+  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1713, run
+  774, AI §186. **The disk**: 248 GiB free.
 - **Fable backlog: 23 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,7 +29,7 @@ Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w3982 of 4,730
-Census: simulation backed 118 of 3611
+Census: simulation backed 128 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2404 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +43,7 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1700 the headline's word, 1697, 1705 and 1497 the
+roster is Ramon's**: 1700 the headline's word, 1697, 1708 and 1707 the
 other three lanes — lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -67,19 +64,17 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     that finishes a frame earlier in the original; `1/2031` is unread.
     AI §184.
 
-1705. **The sweep's eighth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 118 of 3611): 1704's shape,
-    merged by SHA; its pointer first — `TypeData::is_wonder_type`,
-    `is_gaia_type`, `is_item_type`, `is_good_type` (one template, 1704's
-    generator, parked 1706) — then past the seventy swept. 1630's
-    `get_tregion` parting stands. `--kind sweep`.
+1708. **The sweep's ninth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 128 of 3611): 1705's shape,
+    merged by SHA; past the eighty swept, shortest decompile first (1705's
+    lister, parked 1703); 1630's `get_tregion` parting stands. `--kind sweep`.
 
-1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
-    (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
-    `update_local_seen_build`'s fog arm, 1476's Construction hp arm
-    (`myhits`, `construct_hits` unread), and 1500's two-order snap and 1508's
-    M5 and M6 (the drop, the captain's re-search). Whether one
-    staging reaches each is the item's to establish first. run654.
+1707. **Chapter fifty-three: the arms chapter fifty-two did not reach**
+    (DECISIONS 56 §3; GOLDEN §62): parked 1688's member
+    `find_melee_target` arm (an `@form` formation wider than a Stockade's
+    reach band) and parked 1689's two-order snap (1500) and M5/M6 (1508:
+    the drop, the captain's re-search). Whether one staging reaches each
+    is the item's to establish first; a run is minted from 771. GOLDEN §63.
 
 ## How to maintain this file
 

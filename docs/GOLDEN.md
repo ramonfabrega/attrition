@@ -10644,3 +10644,8 @@ it; nothing was built or probed here.
 original recomputes the hits at 17025; the two-order snap and M5/M6; the
 temple level when `has_wonder(0x214)` (Tikal) holds — built from the
 listing, no capture holds it; the CTW missionaries term after it.
+
+## 63. Reserved for item 1707 (chapter fifty-three)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
