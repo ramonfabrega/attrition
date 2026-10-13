@@ -64,6 +64,16 @@ class PinnedTraces(unittest.TestCase):
             census.pinned_logs(tmp)
         self.assertIn('rontrace-run29.log', str(stop.exception))
 
+    def test_an_operator_s_citation_is_counted(self):
+        # Parked 1722: the pattern could not spell `operator<` or
+        # `operator[]`, so 1708 cited `tcoord::operator@00472b30` as a
+        # workaround and every operator was uncountable as backed.
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, 'X.md').write_text(
+                '`TCoord::operator<@00472b30` and `Objects::operator[]@00512340` '
+                'and `Unit::operator=@00612340`, and `plain@00401000`.\n')
+            self.assertEqual(census.cited_in(tmp), {0x472b30, 0x512340, 0x612340, 0x401000})
+
     def test_the_census_document_gives_the_flag_as_its_recipe(self):
         text = (ROOT / 'docs/CENSUS.md').read_text()
         self.assertIn('tools/census.py --top 30 --never --pin', text)

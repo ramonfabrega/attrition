@@ -2290,3 +2290,32 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
+
+/// **A track's stub pool holds two unassigned sections** (parked 1718 and
+/// 1741, the twenty-ninth pass). A booking that appends the next stub at
+/// a document's end lands it on the line after the stub a live lane is
+/// rewriting, and git reads two adjacent hunks as one conflict: seven of
+/// the twenty-ninth tranche's twenty-four merges backed out, three on
+/// `docs/AI.md` alone, each a round trip for the lane. So the pool is
+/// landed ahead — `## N. Reserved for the next item on the <track>
+/// track` — and a booking assigns the lowest one by number in the
+/// queue's own words, editing the document not at all; the lane renames
+/// it. A refill lands when two remain, so it appends past two stubs no
+/// lane holds. Failed first on 2026-10-13 with every stub assigned.
+#[test]
+fn a_track_s_stub_pool_holds_two_unassigned_sections() {
+    for (name, track) in [("AI.md", "AI"), ("GOLDEN.md", "rules")] {
+        let text = read(name);
+        let mark = format!("Reserved for the next item on the {track} track");
+        let free: Vec<&str> = text
+            .lines()
+            .filter(|l| l.starts_with("## ") && l.contains(&mark))
+            .collect();
+        assert!(
+            free.len() >= 2,
+            "docs/{name} holds {} unassigned stub(s), fewer than two; append `## N. {mark}` \
+             sections past the last stub a live lane holds (parked 1741)",
+            free.len()
+        );
+    }
+}

@@ -21136,3 +21136,23 @@ ask; the births probe names the building beside a birth; the suite
 re-timed, the archive compressed. **DECISIONS 65.**
 `docs/audit/2026-10-13-fable-pass-28.md`.
 
+
+**2026-10-13 — the twenty-ninth Fable pass: the first Sonnet tranche
+scored whole.** Twenty-three landings on four Sonnet 5.5 medium lanes in
+4 h 11 min: 3.93 USD and 22.9 minutes waiting a landing against the
+race's 4.65 / 24.2 and the twenty-seventh's 15.62 / 44.6 on Opus; the
+coverage pair closed at 4730, the successor pair stood up at 11, Great
+Sahara 3182, chapter fifty-three 1004, the census 178; one blocked
+ending, no kill rule, the battery unmoved. Every one of the waiter's
+sixteen `LANDED` exits followed the lane's own done line, so a done line
+stops the wait now; the two sessions over 300 k could not clear
+themselves, so the waiter reads lore's context column and names a deep
+lane for the commander to clear; seven merges backed out on an appended
+stub or a shared count, so each track carries a stub pool the guard holds
+at two. The lane count holds at four for a measured reason (the captures
+starving under the suites), with `nice` on every guarded suite as the
+next pass's measure. Twenty-eight Loop items out, 1743 in; fourteen
+built — the unbacked lister, the sweep generator, the dated absences, the
+run-wiring printer, the lane gate's journal check, the gate's pid, the
+operator citation. **DECISIONS 66.**
+`docs/audit/2026-10-13-fable-pass-29.md`.

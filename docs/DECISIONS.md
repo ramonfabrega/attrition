@@ -77,6 +77,7 @@ is append-only and amended in place, as it always was.
 - 63 standing — The mixed roster's second tranche is scored, a third lane returns, and the replaced session is archived
 - 64 standing — The race is scored, the sweep is a lane, the loop's debt is paid down, and a fourth lane returns by rule
 - 65 standing — The race on 1648 is scored, the price was the context, and the roster waits on Ramon
+- 66 standing — The first Sonnet tranche is scored whole, the stub pool replaces the appended stub, the waiter names a deep lane, and the lane count holds for a measured reason
 
 ## 1. Fidelity before divergence
 
@@ -4887,3 +4888,85 @@ endings against five of twenty; the waiter's exits against 18 / 2 / 0 /
 1258; the backlog against fourteen; `tools/suite_timings.py --stale`
 against the new file; the disk against 242 GiB.
 
+## 66. The first Sonnet tranche is scored whole, the stub pool replaces the appended stub, the waiter names a deep lane, and the lane count holds for a measured reason
+
+**Decided 2026-10-13**, the twenty-ninth pass
+(`docs/audit/2026-10-13-fable-pass-29.md`), unattended. Amends `CLAUDE.md`'s
+chain in four clauses (the push verb, the stub pool, the done line, the
+`DEEP` answer); applies entry 54's two-tranche closure, entry 61's rules
+2, 4 and 5, and declines entry 61's one-lane-a-tranche addition for a
+reason it measures.
+
+**What was measured.** Twenty-three landings on four lanes, every
+session Sonnet 5.5 at medium, one session a landing, in 4 h 11 min:
+90.42 USD list for the workers (3.93 a landing; the race's Sonnet medium
+arm 4.65, the twenty-seventh's Opus 15.62) and 20.82 for the commander;
+22.9 minutes waiting a landing (24.2, 44.6), of which the capture lane
+8.1; the coverage pair closed at 4,730, the successor pair stood up at
+11 of 5,056, Great Sahara 2323 → 3182, chapter fifty-three 962 → 1004,
+the census backed 68 → 178, cited 1337, never 191; peak context 341 k
+twice and neither cleared; one blocked ending of twenty-three; no kill
+rule; sixteen of sixteen `LANDED` exits after the lane's own done line;
+seven of twenty-four merges backed out, five on an appended stub or a
+shared count; the battery 576 / 6566 / 2974, unmoved for a fifth
+tranche; the backlog 36.
+
+**What it means.**
+
+1. **Sonnet 5.5 medium on every lane is the roster, scored whole and
+   not only raced.** The price and the pace held at the race's figures
+   on real items — three words moved, one pair closed, one stood up —
+   and the two defects the race put on Opus (blocked endings, five of
+   twenty) came once in twenty-three. The judgement question is still
+   the battery's, which the rules lane alone reaches and did not move.
+   The pass changes no lane's model; the kill rules stand.
+2. **The lane count holds at four, and the rule that would add a fifth
+   is declined with its reason.** Entry 61 adds a lane while the
+   waiting holds, and it held; but 1693 measured the captures starving
+   under four suites (load 130 on sixteen cores, the game at 2 % CPU),
+   the pass's `nice` under `memcap.sh` is untested, and the only fifth
+   item is a second sweep batch whose gate's suite is exactly what
+   starves a capture. The thirtieth pass adds the fifth if the capture
+   minutes a landing fall from 8.1; the count past that is the user's.
+3. **A reserved section is one of a stub pool, never an appended stub**
+   (parked 1491, 1718, 1741). Git reads a lane's rewrite of the last
+   stub and a booking's append after it as adjacent hunks, so every
+   such booking backed a merge out; the pool is landed six deep at a
+   tranche's opening, assigned by number in the queue's words, refilled
+   when two remain, and `docs_guard` holds the two.
+4. **The waiter names a deep lane, and the commander arms the clear.**
+   The frame's 300 k row asked the lane to read its own context and arm
+   its own clear; five sessions over 300 k in two tranches took none,
+   and entry 61 had already measured that a session's own arm is
+   refused. `lanewait.py --deep` reads lore's `ctx` and exits `DEEP`; the
+   commander sends the lane one line and arms `ccc clear <lane> --then`.
+5. **A done line stops the wait.** Every `LANDED` exit of the tranche
+   came after the lane's own line — a second whole-context turn that
+   learned nothing, sixteen times. The waiter stays the backstop for a
+   line that never comes (parked 1412); a line that came ends the wait.
+6. **The chain's push is `git push origin worktree-replan-pdb`, read
+   back** (parked 1742): `ccc push <ref> --base` pushes the row's base,
+   and the integration row's base is `main`.
+7. **Twenty-eight Loop items leave the backlog**: four by the
+   two-tranche rule (1593, 1604, 1613, 1607), fourteen built, six frame
+   rows, four merged; 1743 is filed; thirty-six become nine. The
+   paragraphs are kept in the pass's record.
+
+**The estimate, written down to be wrong on record**: twenty landings on
+four Sonnet 5.5 medium lanes in under five hours; the successor pair's
+word past 500; Great Sahara's past 3,600; chapter fifty-three closes
+and fifty-four opens; the backed column past 230; under 4.50 USD and
+under 23 minutes waiting a landing, the capture's share under 8.1
+minutes; no blocked ending; every session over 300 k named by `DEEP`
+and cleared; second wakes under four of twenty; merges backed out under
+three of twenty; the battery moves on at least one lobby.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 3.93 / 22.9, the word lanes alone against 5.9; capture minutes
+against 8.1; second wakes against 16 of 23; `DEEP` exits against the
+sessions over 300 k, each cleared; blocked against 1 of 23; merges
+backed out against 7 of 24; conflicted updates against 2; the battery
+against 576 / 6566 / 2974; the census's never against 191, backed
+against 178, cited against 1337; the backlog against nine; the timings
+file's `--stale` against 5 untimed; the disk against 242 GiB; and
+1743's count of the before-reading rows the lanes ran.

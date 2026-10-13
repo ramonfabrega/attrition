@@ -320,6 +320,26 @@ class GateTests(unittest.TestCase):
                 gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
             self.assertEqual(gate.step_name(calls[-1][0]), 'release')
 
+    def test_a_lane_gate_refuses_a_tree_with_no_journal(self):
+        # Parked 1699: 1639's chain died on a `sed`, the journal was never
+        # written, and the gate ran green without it.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, item=999999)
+            self.assertIn('item-999999.md', str(refused.exception))
+            self.assertEqual(calls, [])
+            # An item whose journal is in the tree gates (1735's is).
+            self.assertTrue(gate.journal_of(1735))
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report2', run=run, lane=True, tests=WORD, item=1735)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertIn('Gate pid: ', said)
+            self.assertEqual(len(calls), 6)
+            with self.assertRaises(ValueError):
+                gate.gate(path, report_dir=path/'report3', run=run, item=1735)
+
     def test_the_commander_s_gate_forgives_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()

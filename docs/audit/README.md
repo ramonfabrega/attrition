@@ -625,6 +625,48 @@ number struck; the chapter kind stays under its ceiling.
   owner's nearest building, with its `orig_type` and the distance, on
   every `+` line.
 
+## The brief checklist, from the twenty-ninth pass
+
+The twenty-ninth tranche (DECISIONS 65, 66): twenty-three landings on
+four Sonnet 5.5 medium lanes in 4 h 11 min. The pass added these rows,
+each from the tranche's own journals, and paid by condensing eleven
+rows' wording, no number struck; the chapter kind stands at 12,990 of
+13,000.
+
+- **A probe goes in behind one env guard, in one commit reverted
+  whole** (1727, 1717): 1716's regex that stripped its probes ate real
+  code, and 1697's `git checkout <file>` to drop a print took the
+  uncommitted work beside it — the rule was in `CLAUDE.md` and was
+  broken anyway.
+- **A gate prints `Gate pid:` first; kill it by that pid** (1713): two
+  lanes `pkill -f`'d `release_gate.py` to stop their own suite and
+  killed every gate on the box, the booking gate twice (exit 144).
+- **A new window names its `GROUND_INEXACT` row first** (1715): the
+  table's default is 0, and 1700's new window panicked on the height
+  pin before the pins reported the count a worker re-pins.
+- **A staging that names ids reads them off `RON_STAGE_ALL`'s print**
+  (1730): 1707's `add 4 hoplites` made four squads, `0/7`..`0/29`.
+- **A subagent's report is taken by its SHA** (1692): 1630's reported a
+  commit on a branch it never committed on.
+- **The sweep's batch is `tools/census.py --unbacked`'s, and
+  `tools/sweep_gen.py` writes a shape's two files** (1703, 1725, 1706):
+  four batches wrote the lister and three the generator as scratch
+  scripts; the lister marks a port consumer, since 1724's ten had none.
+- **The lane gate takes `--item N` and refuses a tree with no journal**
+  (1699): 1639's chain died on a `sed` and its done line went out
+  without the journal.
+- **At 300 k the waiter tells the commander, and the commander arms the
+  clear** (1637, 1638): five sessions over 300 k in two tranches took
+  the frame's self-arm none — a lane cannot read its own context, and
+  the classifier refuses a session's arm of its own clear.
+- **`tools/runwiring.py runNNN` prints where a run is wired** (1729):
+  1719's five closing things and 1728's six pair edits were read off a
+  diff by hand, the third reach.
+- **A seam that says no capture holds its arm is dated by `seams.py
+  --dated`** (1590): 1639 broke SYNC §3.8's "nothing on any capture has
+  demolished a farm" silently; 624 such sentences stand, each with its
+  blame day and the runs captured since.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

@@ -193,11 +193,28 @@ def lane_verdict(failed_tests):
                    + (', '.join(own) or 'no failed test named; the suite did not finish'))
 
 
+def journal_of(item, root=ROOT):
+    """The journal files of an item in the tree, `docs/journal/<date>-item-N.md`."""
+    return sorted(Path(root, 'docs/journal').glob(f'*-item-{int(item)}.md'))
+
+
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None):
+         lane=False, tests=None, item=None):
+    # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
+    # box to stop their own; a gate names its pid first so it can be killed
+    # by it.
+    print(f"Gate pid: {os.getpid()} — kill this gate by its pid, never by `pkill -f` on a "
+          'name every lane shares (parked 1713)', flush=True)
     if type(test_threads) is not int or test_threads not in (2, 3, 4):
         raise ValueError('test threads must be 2, 3, or 4')
     tests = list(tests or [])
+    if item is not None and not lane:
+        raise ValueError('--item is a lane gate\'s: the booking gate reads the queue, not a journal')
+    if lane and item is not None and not journal_of(item):
+        # Parked 1699: a landing's chain died before its journal and the
+        # gate ran and the done line went out without it.
+        raise ValueError(f'no docs/journal/<date>-item-{item}.md in the tree: a landing writes '
+                         'its journal before it gates (parked 1699)')
     if lane and not tests:
         raise ValueError("a lane gate names its word's tests: --tests FILTER [FILTER ...] "
                          '(the widening, the pinned walk); the full suite is the booking gate\'s')
@@ -362,10 +379,13 @@ def main():
     parser.add_argument('--tests', nargs='+', metavar='FILTER',
                         help="with --lane, required: the word's own tests, kept however slow; "
                              'each must match a test that ran')
+    parser.add_argument('--item', type=int, metavar='N',
+                        help='with --lane: the item; the gate refuses a tree with no '
+                             'docs/journal/*-item-N.md (parked 1699)')
     args = parser.parse_args()
     try:
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
-             test_threads=args.test_threads, lane=args.lane, tests=args.tests)
+             test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item)
     except ValueError as exc:
         parser.error(str(exc))
 

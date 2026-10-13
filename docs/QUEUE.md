@@ -12,19 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the twenty-ninth pass is due**: twenty-three landings
-(twenty and three drained) in 4 h 11 min, every lane Sonnet 5.5 medium.
-The coverage pair closed at 4730 (1719) and the successor pair stood up,
-East Indies, Mongols, Difficulty 3 (1728); Great Sahara 2323 → 3182;
-chapter fifty-three 962 → 1004; the census 68 → 178. No kill rule.*
+*2026-10-13, **the thirtieth tranche opens**: the twenty-ninth pass scored its
+tranche whole (`docs/audit/2026-10-13-fable-pass-29.md`, DECISIONS 66): twenty-three
+landings in 4 h 11 min, **3.93 USD and 22.9 min waiting a landing**, all Sonnet 5.5
+medium, no kill rule; the coverage pair closed at 4730, the successor pair stood up
+at 11, Great Sahara 3182, chapter fifty-three 1004, the census 178. **The roster
+holds: four lanes on Sonnet 5.5 at `--effort medium`**, kill rules standing.*
 
-- **Measured** (`tools/tranche.py`): 90.42 USD list, **3.93 a landing**,
-  **22.9 min waiting** a landing (capture 8.1, suite 5.0, gate 4.8);
-  peak 341 k twice, uncleared; one `blocked` (1707); two merges backed
-  out on stubs (1741), one did not compile (1729); battery unmoved.
+- **The pass built**: the stub pool (AI §193–§198, GOLDEN §66–§69),
+  `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
+  `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
+  `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
 - **No lanes live**: 1737, 1738, 1736, 1740 wait, stubs in the base.
-  Next 1743, run 779, AI §193, GOLDEN §66. **The disk**: 240 GiB free.
-- **Fable backlog: 36 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720, 1722, 1725, 1727, 1729, 1730, 1739, 1741, 1742).
+  Next 1744, run 779, AI §193, GOLDEN §66. **The disk**: 242 GiB free.
+- **Fable backlog: 9 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,10 +38,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch53 w1004 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-ninth steering pass, on Fable — score the
-twenty-ninth tranche whole against DECISIONS 65's measure, rule the
-thirty-six Loop items, then clear `commander` into the thirtieth
-tranche with 1737, 1738, 1736 and 1740, one to a lane.**
+**Opener: the thirtieth tranche, on `commander` — four lanes on Sonnet 5.5 at
+`--effort medium`: spawn 1737, 1738, 1736 and 1740 off this commit, one to a lane,
+briefs by `tools/brief.py`; a done line stops the wait, a `DEEP` line arms the lane's
+clear; stop at twenty landings from this commit, handoff written, `ccc clear steer --then` the thirtieth pass.**
 
 ## The queue
 

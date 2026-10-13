@@ -66,7 +66,9 @@ descendants() {
 
 # Mark only the monitored child and its descendants, using this wrapper's
 # actual cap rather than any inherited marker. This is a cooperative contract.
-RON_TEST_MEMCAP_GIB="$cap_gib" "$@" &
+# `nice`: a capture starved under four lanes' suites (parked 1693, load 130
+# on 16 cores with the game at 2 % CPU), so a guarded suite yields to it.
+RON_TEST_MEMCAP_GIB="$cap_gib" nice -n 10 "$@" &
 pid=$!
 
 peak_kb=0

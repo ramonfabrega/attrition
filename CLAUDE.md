@@ -502,9 +502,12 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
-that commit**, the gate to a file, `ccc push <ref> --base` **read back
-by `git rev-parse HEAD origin/worktree-replan-pdb`** — it answered
-"nothing to push" with origin two commits behind once (parked 1492) —
+that commit**, the gate to a file, **`git push origin
+worktree-replan-pdb`, read back by `git rev-parse HEAD
+origin/worktree-replan-pdb`** — `ccc push <ref> --base` pushes the
+row's *base*, which for the integration row is `main` (parked 1742),
+and the bare verb once answered "nothing to push" with origin two
+commits behind (parked 1492) —
 `ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
 worker pushes its branch, `ccc rm` deletes only the worktree and the local
 branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
@@ -517,9 +520,13 @@ looks exactly like one that never started, so a handoff never says a lane
 produced nothing until `git status` in that lane has said so. **A brief
 reserves what two lanes could take in silence** — the run number and
 the section number when another lane is in the same document, **and a
-reserved section's heading stub lands in the booking commit**, so two
-lanes append at their own anchors (parked 1491: seven of twenty merges
-backed out on an appended section or a pin) — **and
+reserved section is one of the document's stub pool** — `## N. Reserved
+for the next item on the <track> track`, landed six deep at a tranche's
+opening and refilled when two remain, assigned by number in the queue's
+words and never by an edit to the document, because a stub appended
+beside the one a lane is rewriting is an adjacent hunk and a conflict
+every time (parked 1491, 1718, 1741: seven of twenty-four merges backed
+out; `docs_guard` holds the pool at two) — **and
 code is not fenced**: two lanes in one
 module merge, or conflict out loud at `ccc update` or at the gate; the
 lane that lands second takes the update before its gate; a brief says
@@ -553,7 +560,15 @@ idle notice built against that fires at every backgrounded wait —
 three notices for one idle, none a landing
 (`docs/audit/2026-10-04-sequential-arm.md`). A done line is the
 lane's, and the wait is what wakes a commander when the line does not
-come. A red booking gate is a second commit and one line to every
+come — **so a done line that arrives while a wait runs stops the wait
+(`TaskStop`) and re-arms it without that lane in the same turn**: all
+sixteen of the twenty-ninth tranche's `LANDED` exits came after the
+lane's own line, each a whole-context turn that learned nothing (parked
+1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
+line to the lane — journal as a draft, commit, end the turn — and `ccc
+clear <lane> --then "continue item <N> from the journal"`, armed by the
+commander, since a lane's own arm is refused (DECISIONS 61) and five
+sessions over 300 k took none (parked 1637, 1638). A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to

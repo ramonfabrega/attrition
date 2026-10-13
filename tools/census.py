@@ -88,7 +88,9 @@ REPORT = os.path.join(HERE, "trace", "report.py")
 # A citation broken after its `@` — `name@` ending a line, the address
 # opening the next — is joined (parked 835): 49 stood across `docs/` and
 # each counted as two functions.
-CITE = re.compile(r"[A-Za-z_][A-Za-z0-9_:~]*@(?:\n[ \t]*)?(00[0-9a-f]{6})")
+# An operator's symbol may stand between the name and the `@` (parked
+# 1722: `TCoord::operator<@00472b30`, `Objects::operator[]@…`).
+CITE = re.compile(r"[A-Za-z_][A-Za-z0-9_:~]*[<>=!\[\]+\-*/%&|^]{0,3}@(?:\n[ \t]*)?(00[0-9a-f]{6})")
 ENTERED = re.compile(r"^([0-9a-f]{8})\s")
 NOISE = ("LinkList", "Recycler", "Array", "Stack", "SimpleArray", "Tree_", "allocator", "_dynamic")
 
@@ -380,6 +382,78 @@ def layers(index, docs, sim_src, pdb):
     return rows, sim_files, unknown
 
 
+PORT_FN = re.compile(r"\bfn ([a-z0-9_]+)\s*[(<]")
+
+
+def port_names(sim_src):
+    """Every function name `crates/sim` defines outside `sweep/`: the names a
+    port consumer of an original function would be spelled by (snake case
+    of the export's method name)."""
+    out = set()
+    for p in glob.glob(os.path.join(sim_src, "**", "*.rs"), recursive=True):
+        if os.sep + "sweep" + os.sep in p:
+            continue
+        with open(p, errors="replace") as f:
+            out |= set(PORT_FN.findall(f.read()))
+    return out
+
+
+def snake(name):
+    return re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", name).lower()
+
+
+def rank_unbacked(entries, backed, port):
+    """`(size, va, name, mark, file)` for every simulation function not yet
+    backed, shortest decompile first (parked 1703: four batches wrote this
+    lister as a scratch script). `entries` is `(va, name, source path,
+    decompile size)`; `backed` the by-doc and by-sweep union; `port` the
+    names `crates/sim` defines. The mark says what the sweep lane wants to
+    know before it reads a function: `port` when this crate defines the
+    method's snake-case name (a consumer the sweep can run against — parked
+    1725), `operator` for a name the citation pattern spells with a symbol,
+    `-` otherwise."""
+    rows = []
+    for va, name, path, size in entries:
+        if layer_of(path) != "simulation" or va in backed:
+            continue
+        short = name.rsplit("::", 1)[-1]
+        if "operator" in short:
+            mark = "operator"
+        elif snake(short) in port:
+            mark = "port"
+        else:
+            mark = "-"
+        rows.append((size, va, name, mark, (path or "").rsplit("\\", 1)[-1]))
+    rows.sort(key=lambda r: (r[0], r[1]))
+    return rows
+
+
+def unbacked(index, docs, sim_src, pdb, top):
+    """The never-backed simulation functions, shortest decompile first."""
+    root = os.path.dirname(index)
+    entries, by_name = [], {}
+    with open(index) as f:
+        for line in f:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            va, name, rel = int(parts[0], 16), parts[1], parts[2]
+            by_name.setdefault(name, []).append(va)
+            full = os.path.join(root, rel)
+            entries.append((va, name, None, os.path.getsize(full) if os.path.isfile(full) else 0))
+    source = source_of(source_ranges(pdb), [e[0] for e in entries])
+    entries = [(va, name, source.get(va), size) for va, name, _, size in entries]
+    backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name))
+    rows = rank_unbacked(entries, backed, port_names(sim_src))
+    print(f"{'bytes':>6} {'function':52} {'mark':8} file")
+    for size, va, name, mark, fname in rows[:top]:
+        print(f"{size:6} {name + '@' + format(va, '08x'):52} {mark:8} {fname}")
+    marks = Counter(r[3] for r in rows)
+    print(f"\n{len(rows)} never-backed simulation functions: {marks.get('port', 0)} with a port "
+          f"consumer by name, {marks.get('operator', 0)} operators; the {min(top, len(rows))} "
+          f"shortest shown (--top)")
+
+
 def print_layers(rows, sim_files, unknown, as_json):
     import json
     sim = rows.get("simulation", {"functions": 0, "backed": 0})
@@ -414,12 +488,18 @@ def main():
     ap.add_argument("--layers", action="store_true",
                     help="the census by layer with the backed column, and the board's number (item 1467)")
     ap.add_argument("--json", action="store_true", help="with --layers: the same as JSON")
+    ap.add_argument("--unbacked", action="store_true",
+                    help="the never-backed simulation functions, shortest decompile first, "
+                         "with a port-consumer mark (parked 1703, 1725); --top rows")
     ap.add_argument("--pdb", default=os.path.join(
         os.environ.get("RON_INSTALL", os.path.join(HERE, "..", "game")), "sbl", "rise.pdb"))
     ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
     a = ap.parse_args()
     if a.layers:
         print_layers(*layers(a.index, a.docs, a.sim_src, a.pdb), a.json)
+        return
+    if a.unbacked:
+        unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top)
         return
     if a.pin:
         a.logs = pinned_logs() + a.logs

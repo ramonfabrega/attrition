@@ -12,6 +12,8 @@ session. A lane is named as `ccc list` names it. The exits:
     3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
+    5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
+                                             tokens or more (lore's `ctx`), once a lane
     2  usage, a lane the roster does not hold when the wait starts, or a
        lane whose tree holds a second row (parked 1671: a lane's next session
        is `ccc clear <its row> --then`, never a spawn onto its tree)
@@ -32,6 +34,17 @@ landed; a row that left `working` with nothing pushed is the silent landing
 of parked 1412 or a lane that needs a hand, and either is the commander's to
 read. The local tip is not watched: a worker commits before it gates, and a
 wake on that commit is a turn that learns nothing.
+
+The DEEP exit (the twenty-ninth pass, parked 1637 and 1638): the frame
+asked a lane to arm its own clear at 300 k, and five sessions over 300 k
+in two tranches took none — a lane cannot read its own context, and the
+classifier refuses a session's arm of its own clear (DECISIONS 61). So
+the waiter reads `lore agents --json`'s `ctx` (the context the lane's
+next turn carries) every --deep-every polls and exits once per lane that
+crosses --deep; the commander answers with one line to the lane (write
+the journal as a draft, commit, end the turn) and arms `ccc clear <lane>
+--then "continue item <N> from the journal"`, which fires at the lane's
+next idle on a committed tree. `--deep 0` turns it off.
 """
 import argparse
 import json
@@ -89,6 +102,33 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None):
     if minutes >= quiet_after:
         return 4, f"QUIET {' '.join(watch)} {int(minutes)}"
     return None
+
+
+def deep(ctxs, k_tokens, reported):
+    """The first watched lane whose next turn carries `k_tokens` or more
+    and is not in `reported`, as (exit code, line), or None. `ctxs` maps a
+    lane to lore's `ctx` (None when lore has no transcript for it)."""
+    if not k_tokens:
+        return None
+    for lane, ctx in ctxs.items():
+        if ctx is not None and ctx >= k_tokens and lane not in reported:
+            reported.add(lane)
+            return 5, f"DEEP {lane} {ctx // 1000}k"
+    return None
+
+
+def contexts(lanes):
+    """Each lane's `ctx` from `lore agents --json`; None for a lane lore
+    does not list, and {} when lore did not answer."""
+    out = subprocess.run(['lore', 'agents', '--json'], capture_output=True, text=True,
+                         check=False).stdout
+    try:
+        rows = json.loads(out)
+    except ValueError:
+        return {}
+    rows = rows if isinstance(rows, list) else rows.get('agents') or rows.get('rows') or []
+    by_name = {r.get('name'): r.get('ctx') for r in rows if isinstance(r, dict)}
+    return {lane: by_name.get(lane) for lane in lanes}
 
 
 def state_of(session, job=None):
@@ -156,6 +196,10 @@ def main(argv=None):
     parser.add_argument('lanes', nargs='+')
     parser.add_argument('--quiet-after', type=float, default=100, metavar='MIN')
     parser.add_argument('--interval', type=float, default=30, metavar='S')
+    parser.add_argument('--deep', type=int, default=300, metavar='K',
+                        help='exit DEEP once per lane whose next turn carries K k tokens or more; 0 off')
+    parser.add_argument('--deep-every', type=int, default=10, metavar='POLLS',
+                        help='read lore agents every this many polls')
     args = parser.parse_args(argv)
 
     rows = roster()
@@ -180,8 +224,16 @@ def main(argv=None):
         watch[lane] = {'branch': branch, 'tip': origin_tip(cwd, branch), 'still': 0}
 
     started = time.monotonic()
+    polls = 0
+    reported = set()
     while True:
         time.sleep(args.interval)
+        polls += 1
+        if args.deep and polls % max(args.deep_every, 1) == 0:
+            found = deep(contexts(list(watch)), args.deep * 1000, reported)
+            if found:
+                print(found[1], flush=True)
+                return found[0]
         rows = roster()
         if rows is None:
             continue

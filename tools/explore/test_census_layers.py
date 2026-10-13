@@ -99,5 +99,31 @@ fn a_plain_test() {
         self.assertEqual(got, {0x610000, 0x710000})
 
 
+class TheUnbackedList(unittest.TestCase):
+    # Parked 1703 (four scratch listers) and 1725 (offset identities
+    # counted as backed): the lister ranks the never-backed simulation
+    # functions shortest first and marks a port consumer and an operator.
+    def test_shortest_first_with_the_marks(self):
+        sim = M + 'game\\unit.cpp'
+        entries = [
+            (0x10, 'Unit::is_tank', sim, 300),
+            (0x20, 'Unit::get_captain', sim, 120),
+            (0x30, 'TCoord::operator<', M + 'game\\coord.h', 90),
+            (0x40, 'Unit::move_step', sim, 5000),
+            (0x50, 'Render::draw', M + 'game\\rendersystem.cpp', 10),
+            (0x60, 'Unit::hits', sim, 80),
+        ]
+        rows = census.rank_unbacked(entries, backed={0x40}, port={'is_tank', 'hits'})
+        self.assertEqual([(r[2], r[3]) for r in rows],
+                         [('Unit::hits', 'port'), ('TCoord::operator<', 'operator'),
+                          ('Unit::get_captain', '-'), ('Unit::is_tank', 'port')])
+        self.assertEqual(rows[0][0], 80)
+        self.assertEqual(rows[1][4], 'coord.h')
+
+    def test_a_camel_case_method_is_its_snake_case_port(self):
+        self.assertEqual(census.snake('getCaptain'), 'get_captain')
+        self.assertEqual(census.snake('is_tank'), 'is_tank')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -34,6 +34,8 @@ word, case-blind, with `Class::` stripped: `Unit::think_scout` is
 import argparse
 import os
 import re
+import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -346,6 +348,81 @@ def spec_rows(rx, docs=DOCS):
     return out
 
 
+# **A dated absence** (parked 1590, three reaches; 1698 the same shape in
+# prose): a seam or a specification paragraph that says no capture holds
+# something was true the day it was written, and nobody re-reads it when
+# the next capture lands — 1588's cause sat in a `SEAM` whose "no capture
+# on file" run679 had broken; 1639's in SYNC §3.8's "nothing on any
+# capture has demolished a farm", true until Great Sahara. `--dated`
+# lists every such sentence with the day its line was last changed
+# (`git blame`) and the runs `docs/RUNS.md` has captured since.
+ABSENCE = re.compile(
+    r'(?:\bno|nothing on any|not one|never a) (?:capture|run|dump|trace)s?\b(?! needed)'
+    r'|has not been captured', re.I)
+RUN_HEAD = re.compile(r'^## run(\d+)\b.*?\((\d{4}-\d{2}-\d{2})', re.M)
+
+
+def absences(text):
+    """`(line, sentence)` for every comment or paragraph sentence of `text`
+    that cites the disk for an absence."""
+    out = []
+    for n, line in enumerate(text.split('\n'), 1):
+        live = re.sub(r'~~.*?~~', '', line)
+        if ABSENCE.search(live):
+            out.append((n, live.strip().lstrip('/!').strip()))
+    return out
+
+
+def runs_after(runs_text, day):
+    """The run numbers `docs/RUNS.md` dates after `day` (`YYYY-MM-DD`)."""
+    return sorted({int(n) for n, d in RUN_HEAD.findall(runs_text) if d > day})
+
+
+def blamed_days(path, root=ROOT):
+    """Each line's last-changed day, `{line: 'YYYY-MM-DD'}`, from one
+    porcelain blame of the file (641 sentences one at a time took 155 s)."""
+    out = subprocess.run(['git', 'blame', '--porcelain', str(path)],
+                         cwd=root, capture_output=True, text=True, check=False).stdout
+    days, when, sha, line = {}, {}, None, None
+    for row in out.split('\n'):
+        m = re.match(r'^([0-9a-f]{40}) \d+ (\d+)', row)
+        if m:
+            sha, line = m.group(1), int(m.group(2))
+            if sha in when:
+                days[line] = when[sha]
+            continue
+        m = re.match(r'^author-time (\d+)', row)
+        if m and line is not None:
+            when[sha] = time.strftime('%Y-%m-%d', time.gmtime(int(m.group(1))))
+            days[line] = when[sha]
+    return days
+
+
+def dated(root=ROOT, width=200):
+    """Print every absence sentence under `crates/sim` and `docs/` with its
+    blame day and the runs captured since; return the count."""
+    runs = (root / 'docs/RUNS.md').read_text()
+    files = sorted((root / 'crates/sim/src').rglob('*.rs'))
+    files += sorted(f for f in (root / 'docs').glob('*.md') if f.name not in NOT_A_SPEC)
+    rows = []
+    for f in files:
+        found = absences(f.read_text())
+        if not found:
+            continue
+        days = blamed_days(f.relative_to(root), root)
+        for line, sentence in found:
+            day = days.get(line, '0000-00-00')
+            since = runs_after(runs, day)
+            rows.append((len(since), day, f.relative_to(root), line, sentence, since))
+    rows.sort(key=lambda r: (str(r[2]), r[3]))
+    for n, day, f, line, sentence, since in rows:
+        span = f'run{since[0]}..run{since[-1]}' if since else 'none'
+        print(f'{f}:{line}  blamed {day}  {n} runs since ({span})')
+        print(f'    {clip(sentence, width)}')
+    print(f'\n{len(rows)} sentences cite the disk for an absence; each is a claim the runs since could break')
+    return len(rows)
+
+
 EXPORT = Path(os.path.expanduser('~/ghidra-projects/decomp'))
 CALL = re.compile(r'\b([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_]*)*)\s*\(')
 
@@ -406,8 +483,14 @@ def main():
                     help="an export name (`Wall::process`): its callees' names are scanned too (parked 1560)")
     ap.add_argument('--callers', action='append', default=[], metavar='FN',
                     help="an export name: its callers' names are scanned too")
+    ap.add_argument('--dated', action='store_true',
+                    help='every "no capture" sentence in the tree with its blame day and the runs since (1590)')
     ap.add_argument('--width', type=int, default=260)
     args = ap.parse_args()
+
+    if args.dated:
+        dated(width=args.width)
+        return 0
 
     if args.doors:
         rows = doors()

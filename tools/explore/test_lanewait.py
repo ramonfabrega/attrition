@@ -123,6 +123,18 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
     # `tempo=blocked` asking for the commander's queue lines, and an armed
     # clear fires only on idle. The exit line carries the row's own detail
     # so the one unblocking message is written in the turn that reads it.
+    def test_a_deep_lane_is_named_once(self):
+        # The twenty-ninth pass: 1707 and 1726 ran to 341 k and neither
+        # could arm its own clear; the waiter names a lane once when its
+        # next turn would carry 300 k or more, and never one lore cannot see.
+        reported = set()
+        ctxs = {'a': 120_000, 'b': 341_000, 'c': None}
+        self.assertEqual(lanewait.deep(ctxs, 300_000, reported), (5, 'DEEP b 341k'))
+        self.assertIsNone(lanewait.deep(ctxs, 300_000, reported))
+        ctxs['a'] = 305_500
+        self.assertEqual(lanewait.deep(ctxs, 300_000, reported), (5, 'DEEP a 305k'))
+        self.assertIsNone(lanewait.deep({'b': 400_000}, 0, set()), 'off at 0')
+
     def test_an_ended_row_s_detail_is_on_the_line(self):
         watch = watching(a='1' * 40)
         states, tips = {'a': 'blocked'}, {'a': '1' * 40}

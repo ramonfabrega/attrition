@@ -321,6 +321,28 @@ class TheLiveTree(unittest.TestCase):
         self.assertGreater(n, 150)
 
 
+class ADatedAbsence(unittest.TestCase):
+    """Parked 1590 and 1698: a sentence that cites the disk for an absence
+    is dated by its line's blame, and the runs captured since are the
+    captures that could have broken it."""
+
+    def test_the_sentences_that_cite_the_disk(self):
+        text = ('// SEAM: the oil-platform arm; no capture on file holds one.\n'
+                'plain code;\n'
+                '// ~~no capture reaches the river~~ run33 does.\n'
+                '**Nothing on any capture has demolished a farm.**\n'
+                'A tower has not been captured firing.\n')
+        self.assertEqual([n for n, _ in seams.absences(text)], [1, 4, 5])
+        self.assertIn('no capture on file', seams.absences(text)[0][1])
+
+    def test_the_runs_since_a_day(self):
+        runs = ('## run679 — the Wall (2026-10-05, item 1588)\n'
+                '## run718 — Great Sahara (2026-10-10, item 1611)\n'
+                '## run766 — Wool (2026-10-13, item 1697)\n')
+        self.assertEqual(seams.runs_after(runs, '2026-10-05'), [718, 766])
+        self.assertEqual(seams.runs_after(runs, '2026-10-13'), [])
+
+
 class TheExportsCallGraph(unittest.TestCase):
     """Parked 1560: a seam about a gate the parted field's writer calls is
     out of `--field`'s reach (`find_goody_box` → `goody_item_is_seen`),
