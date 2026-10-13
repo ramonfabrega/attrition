@@ -1909,7 +1909,7 @@ impl Sim {
     /// listing as one and still walks past.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
-        let found = self.units[u].orders.iter().find_map(|o| match o.body {
+        let found = self.units[u].orders.iter().rev().find_map(|o| match o.body {
             Body::Move(m) => Some(m.dest),
             Body::Attack(_) => self.units[u]
                 .combat
