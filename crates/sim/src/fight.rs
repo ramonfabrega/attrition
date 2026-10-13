@@ -533,7 +533,7 @@ impl Sim {
     /// §205). SEAM: [`Self::is_in_range_at_margin`] still asks
     /// [`Self::active`] for every other caller — made `struck` there, the
     /// coverage pair parts at 3142 (`1/59`), so some reader leans on the
-    /// health term (parked under item 2049).
+    /// health term (parked 2051).
     pub(crate) fn is_in_range_struck(&self, attacker: Obj, target: Obj) -> bool {
         self.struck(target)
             && self.in_range_past_head(attacker, self.pos_of(attacker), target, false)
