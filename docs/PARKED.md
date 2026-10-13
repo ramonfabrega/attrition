@@ -3829,6 +3829,9 @@ virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
 1814 an eighth: a "global cell" shape (`Game::is_infinite` reads the
 `GameAccess::game` cell `0xc061ec`) and a stack-out-pointer shape
 (`WCoord::get_tcorner`), both hand-written again.
+1819 a ninth: the global cell three times more (`avail_ctw`,
+`get_radius`), and a stack-args-array shape (a count, a pointer, a
+stride: `get_queue`, `get_job_counter`, `get_farm_type`).
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
