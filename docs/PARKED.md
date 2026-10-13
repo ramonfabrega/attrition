@@ -3974,6 +3974,15 @@ widening (run762) panics on the inexact-height pin before printing the
 count a worker needs to re-pin. Candidate: report the keys first, or a
 frame row for a new window. One reach.
 
+(1717) **1697's two Loop lines**: (a) a `git checkout <file>` to drop a
+debug print reverted the same file's uncommitted work — the rule is in
+`CLAUDE.md` (never chain a checkout onto an edit), and it was broken
+anyway; the lane caught it and re-applied; the candidate is commit
+before a probe, or a debug print behind a committed env guard. (b) a
+brief listing three filters on a `cargo test` line is a trap: `cargo
+test` takes one; the lane gate's `--tests a:: b::` is the multi-filter
+form. One reach each.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

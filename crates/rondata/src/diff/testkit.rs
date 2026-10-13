@@ -6843,9 +6843,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // The same lobby's run718 window (item 1611): six reads of the corners
     // the nuke's flight and the strike cross.
     ("run718_s_word_frame_is_widened_whole", 6),
+    // And run766's (item 1697): ten reads in the word 2640's window.
+    ("run766_s_word_frame_is_widened_whole", 10),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
-    ("sahara_coverage_first_parting", 6),
+    ("sahara_coverage_first_parting", 9),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -8851,9 +8853,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run718_s_word_frame_is_widened_whole"),
+        Some("run766_s_word_frame_is_widened_whole"),
         1583,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_2273),
+        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_2640),
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

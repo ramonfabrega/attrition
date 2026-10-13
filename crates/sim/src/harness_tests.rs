@@ -2300,6 +2300,35 @@ fn a_spy_trains_in_half_the_time_under_the_created_faster_bonus() {
 }
 
 #[test]
+fn a_citizen_trains_faster_for_a_player_holding_wool() {
+    // `ObjectData::train_time@006508c0`'s wool arm: a Citizen (unit type 0
+    // or 1) of a player whose `rare` mask holds Wool takes
+    // `WOOL_CITIZENS_SPEED` percent off, after the speed-upgrade step.
+    // Great Sahara's Persian peasant at `1/2031` ends at 9473 in the
+    // original where ours ended at 12600 (item 1697, `docs/AI.md` §184).
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    assert!(citizen < 2, "the Citizen's own slot");
+    let wool = |s: &Sim| {
+        s.train_tail(0, citizen)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Faster(33)))
+    };
+    assert!(!wool(&sim), "no Wool yet");
+    sim.ledgers[0].rare |= 1 << (economy::WOOL - economy::BASE_RARE);
+    assert!(wool(&sim), "Wool: a third faster");
+    let _second = sim.add_unit_type(citizen_type());
+    let other = sim.add_unit_type(citizen_type());
+    assert!(other >= 2);
+    assert!(
+        !sim.train_tail(0, other)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Faster(33))),
+        "only a Citizen"
+    );
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per

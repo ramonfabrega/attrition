@@ -116,8 +116,20 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // before it — 2323 → **2404** (count and sequence): ours 18 draws
     // against 20, index 6, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
     // theirs `Guy::init_real+0x52`.
-    count: 2404,
-    sequence: 2404,
+    // Landing 10 (`docs/AI.md` §184): a Citizen of a player holding Wool
+    // trains 33 percent faster (`ObjectData::train_time`'s wool arm), so the
+    // Persian peasant `1/2031` ends at 9473 as in the original — 2404 →
+    // **2640** (count and sequence): ours 170 draws against 171, index 155,
+    // ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::init_real+0x52`.
+    // Landing 11 (`docs/AI.md` §184): the Uranium arm of `train_time` (a
+    // missile of the Nuclear Missile line takes `URANIUM_NUKE_SPEED` percent
+    // off its base, ahead of the ramp) ends the ICBM `1/2017` at 65454 as
+    // in the original — 2640 → **2851** (count and sequence): ours 18 draws
+    // against 17, index 0, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+    // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
+    count: 2851,
+    sequence: 2851,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -783,11 +795,11 @@ pub(crate) const RUN718: &str = "gamelog-run718-greatsahara-persian-alltech-wind
 /// and the word 2323's is 2324.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2273: (i64, i64) = (2267, 2523);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run718 walked from run675's start with the
-/// recorder on — the word 2323's block 2324 (2273's, 2274, until item
-/// 1620).
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run718 walked from run675's start with the recorder on — the word
+/// 2323's block 2324 (2273's, 2274, until item 1620) and the word 2404's
+/// block 2405. It was the `AI_WORDS` window until the word moved past it,
+/// to run766's (item 1697).
+pub(crate) fn sahara_coverage_frame_2273_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -804,7 +816,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run718_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_2273_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -826,10 +838,15 @@ fn run718_s_word_frame_is_widened_whole() {
     // 2404 (`docs/AI.md` §175). Value diff on the word: block 2404's
     // `1/2031` `queue:queue[0].job_counter` 9500 against 9473; 2405's `1/126`
     // is born in the original alone (`leader:control` 103 against 104).
+    // Item 1697: the Persians' Wool shortens a Citizen's training by 33
+    // percent (`ObjectData::train_time`'s wool arm, `docs/AI.md` §184), so
+    // `1/2031` finishes at 9473 as in the original; the keys drop 364 -> 68
+    // and the word leaves this window, to run766's.
     // Item 1497: `myhits` and `construct_hits` are compared on buildings;
     // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
-    // 1/2055's `construct_hits` part in the already diverged tail, 364 -> 366.
-    pin_eq!(w.firsts.len(), 366, "initial run718 baseline");
+    // 1/2055's `construct_hits` part in the already diverged tail: on the
+    // merged tree with item 1697's arms, 68 -> 69.
+    pin_eq!(w.firsts.len(), 69, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,
@@ -890,4 +907,49 @@ fn run718_s_word_frame_is_widened_whole() {
         Some(2274),
         "the first parting past the standing block"
     );
+}
+
+/// run766, item 1697: the lobby's blocks 2634..2890 at the long's detail —
+/// the word 2640's block 2641 with six before it and 249 after.
+pub(crate) const RUN766: &str = "gamelog-run766-greatsahara-persian-alltech-window-2634-2891.txt";
+
+/// The window: block 2634 through 2890; the word 2640's own block is 2641.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2640: (i64, i64) = (2634, 2890);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run766 walked from run675's start with the
+/// recorder on — the word 2640's block 2641 and the word 2851's block 2852.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run766",
+        &[(RUN766, WIDENING_SAHARA_COVERAGE_FRAME_2640.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_2640,
+        1,
+        &[2852],
+        true,
+    )
+}
+
+#[test]
+fn run766_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 1697: 252 keys (253 with item 1497's building keys) on the tree that builds the Wool and Uranium
+    // arms of `train_time` (`docs/AI.md` §184). The word 2851's first row is
+    // `1/8`'s `order:move` on 2850 — destination (36792,21528) against
+    // (36024,26568) — and block 2852's `1/51` `collide` 1 against 0; the
+    // word 2640's value diff was `1/2017`'s `queue[0].job_counter` 65500
+    // against 65454 on 2640 and block 2641's `queued` 1 against 0.
+    pin_eq!(w.firsts.len(), 253, "initial run766 baseline");
 }

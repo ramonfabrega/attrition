@@ -497,6 +497,9 @@ pub struct Tuning {
     /// holds Uranium — `get_cost`'s pre-ramp tail (`:416`–`420`;
     /// `docs/AI.md` §167). Ships as `5%`.
     pub uranium_nuke_cost: i32,
+    /// Percent faster Nuclear Missile-line creation with the Uranium rare —
+    /// `ObjectData::train_time@006508c0:79`–`85`. Ships as 10.
+    pub uranium_nuke_speed: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -809,6 +812,10 @@ pub struct Tuning {
     /// `ObjectData::train_time` and the tower in `Wall::update_construct_time`
     /// read the same constant.
     pub british_aa_speed: i32,
+    /// Percent faster Citizen creation with the Wool rare —
+    /// `ObjectData::train_time@006508c0`'s tail, on a type whose `TypeIndex`
+    /// is a Citizen (0x32, 0x33). Ships as 33 (`docs/AI.md` §184).
+    pub wool_citizens_speed: i32,
     /// Percent faster Dutch fort construction. Ships as zero.
     pub dutch_fort_speed: i32,
     /// Percent faster Roman fort construction.
@@ -1118,6 +1125,7 @@ impl Tuning {
         rubber_autoplant_cost: 15,
         wine_unit_upgrades: 20,
         uranium_nuke_cost: 5,
+        uranium_nuke_speed: 10,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1259,6 +1267,7 @@ impl Tuning {
         british_tower_range: 2,
         british_archer_speed: 0,
         british_aa_speed: 33,
+        wool_citizens_speed: 33,
         dutch_fort_speed: 0,
         roman_fort_speed: 50,
         hanging_gardens_build_time: 0,
@@ -1321,7 +1330,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 362] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 364] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1661,6 +1670,7 @@ impl Tuning {
             ),
             ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
+            ("URANIUM_NUKE_SPEED", Slot::Value(T.uranium_nuke_speed)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
@@ -1938,6 +1948,7 @@ impl Tuning {
             ("BRITISH_TOWER_RANGE", Slot::Value(T.british_tower_range)),
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
+            ("WOOL_CITIZENS_SPEED", Slot::Value(T.wool_citizens_speed)),
             ("DUTCH_FORT_SPEED", Slot::Value(T.dutch_fort_speed)),
             ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
             (
