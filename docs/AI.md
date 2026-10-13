@@ -18187,10 +18187,75 @@ against 202). The ground guard reads 99 (pinned at 97). run714's window
 parts on the same Units step at 2381 (two Fishermen at 127602 against
 the air units) and agrees now: **139 → 121** keys, nothing added.
 
-## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+## 180. A woodcutter on a forest cell is re-seated off its own tile (2026-10-12, item 1657)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3587, 15 versus 16 draws, index 1: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84
+< Unit::do_explore_to+0xe < Unit::do_job+0x59` (seed `1ba0ba8f`, 26273)
+— the grid roll of a move `find_path` refuses. Every other draw on the
+frame agrees in kind and order.
+
+**The unit.** `1/133`, `GUY` type 50, `PEASANTS`, land: a woodcutter at
+lumber building `8`'s tile (211, 196) until 3585, then `Build(81)` on the
+foundation `1/2070` (36576, 33504) under an `ExploreTo` (36840, 34056).
+Its world plan runs north-east round water: thirteen nodes, two of them
+boarding nodes (`flags 4`, tolerance 0), (42984, 37128) and (42216,
+35592). The record agrees whole through block 3587: at (40549, 37539),
+`dest 0`, `dest_x/y` (40698, 37310), the stack's top the boarding node
+(42216, 35592), `path_recursion` 1, `unit_masks` 0x84040A (bit
+`0x800000`, the auto-transport bit, set).
+
+**The value diff, block 3588.** Theirs: (40548, 37539), angle 369426432,
+`dest 1`, `dest_x/y` (40680, 37320), tolerance 0, the stack 26 — the
+thirteen kept and thirteen tile-grid nodes from (42024, 35592) down to
+(40680, 37320) — `last_x/y` −1, `path_recursion` 1. Ours: (40553,
+37515), a detour (40644, 36756) pushed on the old thirteen (14), `last`
+(40549, 37539), `path_recursion` 2.
+
+**The gate.** A print in `find_path` on 3587: the unit's own tile (211,
+195) lies in a cell whose flags carry forest (`0x20`), and with the
+boarding node on the top `invalid_loc(tile, ignore_buildings)` answers
+2; on 3586, the top a plain node, it answers 0. This crate asked
+nothing of the unit's own tile.
+
+**The reading.** `Unit::find_path@005fb910`, before the goal is looked
+at: `invalid_loc(my tile, 1, 0, 0, 0, 0)` (the call at `5fb9ac`), and
+when it refuses, `UnitType::find_nearby_spot(x, y, 0, −1, 0,
+0x55555555, FILTER_NOT_ME, o, who)` (`5fb9f4`), `set_new_location(·, ·,
+1, 0)` (`5fba05`), return 1 — before `path_recursion` counts.
+`UnitData::invalid_loc@00607c30` raises its transport flag from the
+path's top (`flags & 4`), and the land arm's cell test (`WData.flags &
+0x70` under `ignore_buildings` and that flag) refuses a forest cell.
+`docs/ORDERS.md` §4.6's pseudo-code has the line; the crate did not.
+Killer: had the original verified the detour, its 3588 would hold
+(40644, 36756) and `path_recursion` 2. It holds neither, and its 1 is
+the second `find_path` on the planned top, whose plain bit leaves the
+cell test off.
+
+**Built.** `find_path` re-seats a unit whose own tile refuses on
+`find_nearby_spot` and `set_new_location(·, ·, true)` with the fog
+step after it, as the collision snap does, and answers 1. Ours now
+re-seats `1/133` on (40536, 37560), re-plans, and steps to (40548,
+37539) at 369426432, the original's. Unit test
+`a_unit_on_a_tile_it_refuses_is_re_seated_and_re_plans`; the arm made
+`false &&` (`tools/mutate.py`) fails it, and fails
+`coverage_pair_first_parting` and the run721 widening (exit 101).
+
+**Score.** The word moves **3587 → 3614** (the sequence; the count
+parts on 3615), 30 versus 30 draws, index 6: ours `Guy::set_anim+0x97a
+< Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`
+— theirs spends two `do_guard` draws round a `Guy::move` one. run721
+widens block 3615 whole: **394 → 326** keys; `1/133` leaves every row
+(3588's move and 3621's route). Block 3614 parts `1/212`'s order —
+ours an `AttackTo` (2) in front of its guard, a one-node path, theirs
+the `Guard` (12) alone, no path. The rows before it inside the window are the item before's:
+`1/184` on 3589–3591 (`AttackTo` against `Guard`, then its guard point
+38232, 41592 against 38184, 41544), `1/212`'s `dest_angle` on 3597,
+`1/203` on 3598–3599 (`AttackTo` against `Guard`, guard point 37512, 41976
+against 37944, 42408), and the older 3468–3585 rows §178 and §179 list.
+Three units, one shape: theirs holds the `Guard` alone where ours
+still walks an `AttackTo` in front of it; the frame says which went first, and
+none of the three is named a cause here. The ground guard reads 110 (pinned at 99).
 
 ## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
 

@@ -5587,7 +5587,7 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
-        // **Off a bad tile first** (`5fb983`..`5fb9e6`, item 1657): the
+        // **Off a bad tile first** (`5fb9ac`..`5fba05`, item 1657): the
         // unit's own tile, asked with `ignore_buildings` and nothing else,
         // refuses — so through the path top's transport bit, which turns
         // on the land arm's cell test, a forest *cell* — and the unit is
