@@ -457,7 +457,10 @@ mod tests {
     /// 1000, and the `Golden:` line called both closed. The trace's end is
     /// the `length` its `walk_script` call gives; every chapter whose
     /// widening and walk both name a run is held to `hi - 1 >= length`.
-    /// Made to fail first on `ch61` and `ch62`.
+    /// Made to fail first on `ch61` and `ch62`; their widenings stay cut at
+    /// their words (the tail past a word is some three hundred rows that
+    /// every later move re-pins), and the list names their traces,
+    /// [`TRACE_CHAPTER_SIXTY_ONE`] and [`TRACE_CHAPTER_SIXTY_TWO`].
     #[test]
     fn a_golden_widening_s_window_reaches_its_trace_s_end() {
         let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/");
@@ -473,6 +476,14 @@ mod tests {
              reads its open word closed; widen it to the trace: {short:?}"
         );
     }
+
+    /// run814 whole (`docs/RUNS.md`): chapter sixty-one's trace, whose
+    /// widening ([`WIDENING_CHAPTER_SIXTY_ONE`]) ends at the word.
+    const TRACE_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 1001);
+
+    /// run818 whole: chapter sixty-two's trace, whose widening
+    /// ([`WIDENING_CHAPTER_SIXTY_TWO`]) ends at the word.
+    const TRACE_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 1001);
 
     /// Each `(name, window, trace length)` whose window ends before the
     /// trace's last block: the name's `walk_script("<name>", …, <length>)`
@@ -517,8 +528,11 @@ mod tests {
         assert!(short_golden_windows(golden, &[("ch61", (605, 1001))]).is_empty());
     }
 
-    /// `(name on the line, word, widening window)` — closed when the word
-    /// is the window's last block.
+    /// `(name on the line, word, the trace's window)` — closed when the
+    /// word is the window's last block. The window is the chapter's
+    /// widening's wherever that widening is its trace whole; a widening cut
+    /// at its word names its trace here instead
+    /// ([`a_golden_widening_s_window_reaches_its_trace_s_end`]).
     const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 62] = [
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
@@ -740,12 +754,12 @@ mod tests {
         (
             "ch61",
             GOLDEN_WORD_CHAPTER_SIXTY_ONE,
-            WIDENING_CHAPTER_SIXTY_ONE,
+            TRACE_CHAPTER_SIXTY_ONE,
         ),
         (
             "ch62",
             GOLDEN_WORD_CHAPTER_SIXTY_TWO,
-            WIDENING_CHAPTER_SIXTY_TWO,
+            TRACE_CHAPTER_SIXTY_TWO,
         ),
         (
             "restage",

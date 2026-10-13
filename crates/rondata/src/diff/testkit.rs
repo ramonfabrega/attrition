@@ -6350,10 +6350,9 @@ pub(crate) const WIDENING_CHAPTER_FIFTY_NINE: (i64, i64) = (605, 761);
 /// on 779 (`near` −1, its Guard alone) and this crate keeps.
 pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_ONE: i64 = 780;
 
-/// `chapter_sixty_one_s_word_frame_is_widened_whole`'s window: run814 whole
-/// (item 2099: it ended at the word, `(605, 781)`, and the `Golden:` line
-/// read the open chapter closed — parked 2105).
-pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 1001);
+/// `chapter_sixty_one_s_word_frame_is_widened_whole`'s window: run814 from
+/// its first block through the word's.
+pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 781);
 
 /// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
 /// guarding Hoplite squads, who=1's squads walked past them and a third added
@@ -6363,9 +6362,9 @@ pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 1001);
 /// take its `ATTACK_TO` (this crate seats them in a new group 65).
 pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_TWO: i64 = 900;
 
-/// `chapter_sixty_two_s_word_frame_is_widened_whole`'s window: run818 whole
-/// (item 2099: it ended at the word, `(605, 901)` — parked 2105).
-pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 1001);
+/// `chapter_sixty_two_s_word_frame_is_widened_whole`'s window: run818 from
+/// its first block through the word's.
+pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 901);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
@@ -8646,7 +8645,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIXTY_ONE),
     ),
     // Item 2066: run818, chapter sixty-two; open at 900. The widening is
-    // run818 whole (item 2099).
+    // run818 from its first block through the word's.
     (
         "GOLDEN_WORD_CHAPTER_SIXTY_TWO",
         GOLDEN_WORD_CHAPTER_SIXTY_TWO,
