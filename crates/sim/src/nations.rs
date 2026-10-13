@@ -241,9 +241,6 @@ impl Sim {
     }
 }
 
-/// `TERRA_COTTA_FREE`, as `Constants::init` loads `30 seconds`.
-const TERRA_COTTA_FREE: i32 = 30;
-
 impl Sim {
     /// **`Build::activate@00623e20:603–1150` — the high-water mark, and the
     /// nation's free units.**
@@ -478,7 +475,7 @@ impl Sim {
     /// (3395) and its first soldier is born on 3843, 450 frames on.
     pub(crate) fn terra_cotta_activate(&mut self, b: usize) {
         if self.is_terra_cotta(b) {
-            self.buildings[b].recharging = TERRA_COTTA_FREE * 15;
+            self.buildings[b].recharging = self.tuning.terra_cotta_free * 15;
         }
     }
 
@@ -524,7 +521,14 @@ impl Sim {
             })
             .map(|t| self.muster[w].by_type[t])
             .sum();
-        self.buildings[b].recharging = TERRA_COTTA_FREE * 15 + barracks_units * 15 / 2;
+        // The file's `7` is half a second; any other value is frames.
+        let delay = self.tuning.terra_cotta_delay;
+        let added = if delay == 7 {
+            barracks_units * 15 / 2
+        } else {
+            barracks_units * delay
+        };
+        self.buildings[b].recharging = self.tuning.terra_cotta_free * 15 + added;
         let Some(rec) = self.free_unit_record(who, TERRA_COTTA_BASE, true) else {
             return;
         };

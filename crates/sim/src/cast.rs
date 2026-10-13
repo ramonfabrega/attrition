@@ -26,8 +26,6 @@ const PARTISAN: i32 = 0x44;
 const GENERAL: crate::tech::TypeId = 0x36;
 const SPY: crate::tech::TypeId = 0x3a;
 const MEMNON: crate::tech::TypeId = 0x16c;
-/// A Conquer the World bonus, which no staged leader holds.
-const SPIES_GENERALS_RECOVER_CRAFT: crate::tech::TypeId = 0x301;
 
 /// `SpellTypeData::spell_flags` letters the cast reads, as bits `a`..`m`.
 pub mod craft {
@@ -875,12 +873,9 @@ impl Sim {
         }
         if self
             .tech_tree
-            .types
-            .get(SPIES_GENERALS_RECOVER_CRAFT)
-            .is_some()
-            && self
-                .tech_tree
-                .has_preq(&self.setup, &self.tech[who], SPIES_GENERALS_RECOVER_CRAFT)
+            .roles
+            .spy_general_recover_preq
+            .is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[who], t))
             && (general || is(SPY, true))
         {
             r *= 2;
@@ -1159,6 +1154,27 @@ mod tests {
             s.recover_mana(u, frame);
             100 - s.units[u].mana_burn
         })
+    }
+
+    /// **`SPIES_GENERALS_RECOVER_CRAFT` doubles a General's and a Spy's
+    /// rate** (`Unit::process@00610bc0:610f2d`, item 1673): the Persian
+    /// General `1/150` of the coverage pair runs `mana_burn` 12, 10, ... 0
+    /// on 3838..3844 under All Technologies, two a frame, and so ours' 480
+    /// on 3864 kept it from the Create Decoys cast the original laid. The
+    /// gate is the bonus's prerequisite tech held; the doubling is `r *=
+    /// 2` on a General or a Spy, not on any other caster.
+    ///
+    /// Made to fail with the arm dropped and with the gate read as held.
+    #[test]
+    fn the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate() {
+        let (mut s, [general, spy, _, filler]) = casters(Tuning::RON);
+        s.tech_tree.roles.spy_general_recover_preq = Some(0x40);
+        s.tech[1].tech.resize(0x41, false);
+        assert_eq!(steps(&mut s, general), [1, 1], "the prerequisite not held");
+        s.tech[1].tech[0x40] = true;
+        assert_eq!(steps(&mut s, general), [2, 2], "held: the General");
+        assert_eq!(steps(&mut s, spy), [2, 2], "held: the Spy");
+        assert_eq!(steps(&mut s, filler), [1, 1], "held: a caster of no line");
     }
 
     /// **A French General takes back two a frame** (`docs/AI.md` §119,

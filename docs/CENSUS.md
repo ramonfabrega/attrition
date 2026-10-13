@@ -745,3 +745,37 @@ rule and prove the sign test and the id sets, not the loader. `is_supply` is
 checked against the raw `unit_flags2 & 0x40` that `path::army_mode` reads, not
 `Sim::is_supply_unit`, which adds a general exclusion the original's
 predicate does not have. `docs/journal/2026-10-12-item-1691.md`.
+
+**Item 1694, the sweep's fifth batch** (2026-10-13): **simulation backed 98
+of 3,611 (2.7 %)** — 31 by a coverage section, 67 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, again flag-word and field readers:
+`UnitTypeData::is_caravan`, `is_siege`, `is_spellcaster`, `needs_packing`,
+`blocks_while_dead`, `UnitData::is_hero`, `is_gov_hero`, `min_range`,
+`uber_size` and `is_on_map`. **All ten agree on every row** (266 each for the
+seven flag words, 212 for the two integer reads, 211 for `is_on_map`). Where the
+port has a named bit (`uflags::SIEGE`, `uflags2::CARAVAN`/`CASTER`/`PACKS`/
+`GENERAL`) the row drives it; `blocks_while_dead` (`0x80_0000`) and
+`is_gov_hero` (`0x400_0000`) have no named constant in the port and are checked
+against the raw `UnitCols::flag` bit. `min_range`/`uber_size` go through the
+type's combat `Profile`, and `is_on_map` proves only the sign-bit test against
+`Unit::on_map`. `docs/journal/2026-10-13-item-1694.md`.
+
+**Item 1701, the sweep's sixth batch** (2026-10-13): **simulation backed 108
+of 3,611 (3.0 %)** — 31 by a coverage section, 77 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests: `ObjectData::max_range`,
+`has_range`, `min_range`, `recharge`, `is_worker`, `WallData::is_under_attack`,
+`has_repeat_air`, `construct_time`, `UnitData::can_transport` and
+`control_cost`. **All ten agree on every row** (212 for the four type-column
+reads and `construct_time`, 249 for the two `build_masks` bits, 515 for
+`is_worker`, 296 and 320 for the two multi-argument ones). The four range and
+recharge reads are checked against the type's combat `Profile`; `has_range`
+returns the raw `max_range` word, not a bool, and its truth is checked against
+`Profile::is_ranged`. `is_under_attack` maps `build_masks` bit `0x20` onto the
+port's two-stage `under_attack` latch (bit `0x2`); `has_repeat_air` and
+`construct_time` prove the bit's identity and the raw read against
+`Building::repeat_air` and `constr_time` (not `build::construct_time`, which is
+`BuildData`'s override). `can_transport` drives `Sim::unit_can_transport` from
+the three words; **`control_cost` has no function in the port** (`ai_units`
+reads `price.pop` inline), so its row asserts the rule — 0 for a decoy at
+argument 0, else `POP` — from `Unit::decoy` and `price.pop`. No parting.
+`docs/journal/2026-10-13-item-1701.md`.

@@ -1629,6 +1629,10 @@ pub fn load_tables(
     };
     // `SPIES_GENERALS_CHEAPER` is the 88th (`0x303`), Strategy in the
     // shipped file: the gate on `get_cost`'s Spy and General discount.
+    tree.roles.spy_general_recover_preq = match bonus_preqs.get(85) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     tree.roles.spy_general_faster_preq = match bonus_preqs.get(86) {
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
