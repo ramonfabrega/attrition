@@ -6987,10 +6987,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // 1611 put run718's window in the driver: six, as that window's own.
     // Item 1614 put run716's window in the compared pin: fourteen, as
     // that window's own. Item 1625 put run721's: 149, as that window's own.
-    // Item 1700 put run762's: 456, as that window's own.
+    // Item 1700 put run762's: 456, as that window's own. Item 1719's run763
+    // closing window: 514, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        456,
+        514,
     ),
 ];
 
