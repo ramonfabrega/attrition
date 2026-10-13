@@ -1967,6 +1967,18 @@ impl Sim {
             bd.job_counter = 0;
             bd.job_counter_2 = 0;
         }
+        // `Build::activate@00623e20:132` zeroes `recharging` (`+0x7a`) on
+        // every building, and `:1367–1371` starts a Terra Cotta Army's
+        // clock at `TERRA_COTTA_FREE × 15` (`is(0x211)`) —
+        // [`Sim::terra_cotta_soldier`] counts it down. The Kremlin's
+        // `:1380` writes the same field and is not modelled.
+        self.buildings[b].recharging = 0;
+        if self.build_types[ty]
+            .tree
+            .is_some_and(|t| self.tech_tree.is(t, crate::nations::ty::TERRACOTTA, false))
+        {
+            self.buildings[b].recharging = self.tuning.terra_cotta_free * 15;
+        }
         // `Wall::activate@0063e4b0` line 62, immediately after the active
         // flag: an active military trainer joins the leader's own list
         // (`docs/AI.md` §29). The guard the original spells at the call site

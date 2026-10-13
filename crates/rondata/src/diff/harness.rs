@@ -682,9 +682,28 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `damage_frac` were parsed and compared by no site, so a building
         // taking a bomb was quiet on every window — run223's Barracks goes
         // to 45 on block 822 (`docs/GOLDEN.md` §25).
+        // **And `recharging` on a Terra Cotta Army** (item 1659): its clock
+        // to the next soldier, which counted down unread on the coverage
+        // pair until three Mechanized Infantry stood up at 3843. Only
+        // there, and only once both sides call it finished: the field's
+        // other writers — a city's, a gatherer's bump, the Kremlin's, and
+        // whatever writes it on a wonder's site (run721's `1/2043` reads
+        // 1549 on 3389, before `Build::activate` sets 450) — are not this
+        // crate's, and run732 holds thirteen of leader 1's buildings
+        // parted on it from its first block.
+        let terracotta = ours.active
+            && b.flags & 4 != 0
+            && ours.ty.is_some_and(|t| {
+                built.sim.build_types[t].tree == Some(sim::nations::ty::TERRACOTTA)
+            });
         for (field, mine, theirs) in [
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
+            (
+                "recharging",
+                i64::from(ours.recharging),
+                b.recharging.filter(|_| terracotta),
+            ),
         ] {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;

@@ -2442,7 +2442,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // (block 3440, item 1647), frame-3585 word (block 3586, item 1648)
     // frame-3587 word (block 3588, item 1656) and frame-3614 word (block
     // 3615, item 1657), and run732's frame-3843 word (block 3844, item
-    // 1658), each
+    // 1658) and frame-3963 word (block 3964, item 1659), each
     // with two either side; the third map's
     // lobby's run683 frame-1582 word (block 1583, item 1561), frame-1818
     // word (block 1819, item 1565) and frame-1830 word (block 1831, item
@@ -2478,6 +2478,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN721, 3588),
         (super::coverage_pair::RUN721, 3615),
         (super::coverage_pair::RUN732, 3844),
+        (super::coverage_pair::RUN732, 3964),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),

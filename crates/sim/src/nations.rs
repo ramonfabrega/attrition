@@ -83,6 +83,9 @@ pub mod ty {
     pub const MARKET: TypeId = 0x1b4;
     /// `AIRBASE`.
     pub const AIRBASE: TypeId = 0x1bf;
+    /// `TERRACOTTA`, the Terra Cotta Army — `Build::process`'s, not
+    /// `Build::activate`'s free-unit block: its soldier is a timer's.
+    pub const TERRACOTTA: TypeId = 0x211;
 }
 
 /// The roster indices `Build::activate`'s free-unit block passes
@@ -460,6 +463,86 @@ impl Sim {
             return;
         }
         self.build_train(b, rec);
+    }
+
+    /// **`Build::process@0061edf0:384–416` — the Terra Cotta Army's
+    /// soldier** (`docs/AI.md` §182). A building whose type is `0x211`
+    /// itself (`*(type + 4)`, not the lineage) counts its `recharging`
+    /// (`BuildData +0x7a`, a `short`) down one a frame; below 1 it is set
+    /// again —
+    ///
+    /// ```text
+    /// recharging = TERRA_COTTA_FREE × 15
+    ///            + (TERRA_COTTA_DELAY == 7 ? barracks_units × 15 / 2
+    ///                                      : barracks_units × TERRA_COTTA_DELAY)
+    /// ```
+    ///
+    /// — and the wonder trains `current_upgrade` of the Slingers' graft
+    /// (`tribe_can_type(SLINGERS)` or the type's vslot `+0x68`, the same
+    /// idiom `Build::activate`'s free units use) straight through
+    /// `Build::train`, no queue and no price, while `control < pop_cap`
+    /// (`LeaderData +0x940`, `+0x7e4`) — not `check_population`. The
+    /// stretch follows the Persians' Market and sits under the same
+    /// `is_active` gate. `Game::terra_cotta_total` is bumped and read by
+    /// nothing here.
+    ///
+    /// The coverage pair's word 3843: the wonder `1/2043` reads
+    /// `recharging` 1 on block 3843 and **607** on 3844, `barracks_units`
+    /// 21 (`450 + 21 × 15 / 2`), and a squad of three Mechanized Infantry
+    /// `1/235`..`1/237` stands south of it.
+    pub(crate) fn terra_cotta_soldier(&mut self, b: usize) {
+        let terracotta = self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].tree == Some(ty::TERRACOTTA));
+        if !terracotta {
+            return;
+        }
+        let left = (self.buildings[b].recharging as i16).wrapping_sub(1);
+        self.buildings[b].recharging = i32::from(left);
+        if left >= 1 {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let barracks = self.barracks_units(who);
+        let free = (self.tuning.terra_cotta_free * 15) as i16;
+        let extra = if self.tuning.terra_cotta_delay == 7 {
+            (barracks * 15 / 2) as i16
+        } else {
+            (barracks as i16).wrapping_mul(self.tuning.terra_cotta_delay as i16)
+        };
+        self.buildings[b].recharging = i32::from(free.wrapping_add(extra));
+        let Some(rec) = self.free_unit_record(who, ty::SLINGERS, true) else {
+            return;
+        };
+        let m = &self.muster[who as usize];
+        if m.control < m.cap {
+            self.build_train(b, rec);
+        }
+    }
+
+    /// `LeaderData::barracks_units` (`+0x9f8`): what
+    /// `Leader::track_unit_type@006e0dd0` adds its count to for a type with
+    /// an `attack` (`+0x1e8`) whose `where` (`+0x40`) is `BARRACKS` itself.
+    /// The same calls keep `num_units`, so this is that sum over the
+    /// predicate rather than a fifth counter kept beside it. Not
+    /// [`crate::Muster::by_group`]: the loader files a group only for a
+    /// by-group `PROGRESSION`.
+    pub(crate) fn barracks_units(&self, who: Player) -> i32 {
+        let Some(m) = self.muster.get(who as usize) else {
+            return 0;
+        };
+        m.by_type
+            .iter()
+            .enumerate()
+            .filter(|&(r, &n)| {
+                n != 0
+                    && self.unit_types[r].combat.attack != 0
+                    && self.unit_types[r]
+                        .tree
+                        .is_some_and(|t| self.tech_tree.types[t].where_ == Some(ty::BARRACKS))
+            })
+            .map(|(_, &n)| n)
+            .sum()
     }
 
     /// One arm: `n` copies of `base`'s line, each under `check_population`.

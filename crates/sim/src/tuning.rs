@@ -157,6 +157,14 @@ pub struct Tuning {
     /// Added to a supply or general radius by the Terra Cotta Army. Ships as
     /// zero: the wonder is wired in and contributes nothing.
     pub terra_cotta_range: i32,
+    /// `TERRA_COTTA_FREE`, seconds: the Terra Cotta Army's soldier comes
+    /// every this × 15 frames, plus the delay below
+    /// (`Build::process@0061edf0`, [`crate::Sim::terra_cotta_soldier`]).
+    pub terra_cotta_free: i32,
+    /// `TERRA_COTTA_DELAY`: the frames added per Barracks soldier the owner
+    /// fields — 7 is the file's own special case, "half a second", read as
+    /// `barracks_units × 15 / 2`.
+    pub terra_cotta_delay: i32,
     /// Base of a general's aura radius, in tiles.
     pub general_radius: i32,
     /// Parmenio's scale on that radius, as 8.8 fixed point. The shipped file
@@ -986,6 +994,8 @@ impl Tuning {
         spy_upgrade_los: 2,
         general_upgrade_los: 2,
         terra_cotta_range: 0,
+        terra_cotta_free: 30,
+        terra_cotta_delay: 7,
         general_radius: 6,
         parmenio_radius_adjust: 384,
         wellington_radius: 200,
@@ -1312,7 +1322,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 360] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 362] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1385,6 +1395,8 @@ impl Tuning {
             ("SPY_UPGRADE_LOS", Slot::Value(T.spy_upgrade_los)),
             ("GENERAL_UPGRADE_LOS", Slot::Value(T.general_upgrade_los)),
             ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
+            ("TERRA_COTTA_FREE", Slot::Value(T.terra_cotta_free)),
+            ("TERRA_COTTA_DELAY", Slot::Value(T.terra_cotta_delay)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
             (
                 "PARMENIO_RADIUS_ADJUST",

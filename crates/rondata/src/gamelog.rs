@@ -2229,6 +2229,10 @@ pub struct BuildDump {
     /// widening, and it is a modelling item rather than a parsing one.
     pub damage: Option<i64>,
     pub damage_frac: Option<i64>,
+    /// `BuildData::recharging` (`+0x7a`, a `short`): a silo's reload and the
+    /// Terra Cotta Army's clock to its next soldier (item 1659,
+    /// `docs/AI.md` §182). `BUILDDATA`'s own indent.
+    pub recharging: Option<i64>,
     /// `orig_type` — the `TypeIndex` the building was created as. Written at
     /// **`BUILDS=6`** and above, and the only type the dump ever carries.
     pub orig_type: Option<i64>,
@@ -3398,6 +3402,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         damage_frac: obj.and_then(|o| o.int("damage_frac")),
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
+        recharging: b.int("recharging"),
         // **`WALLDATA`'s, not `BUILDDATA`'s** (item 478). The name says
         // `WallData::build_masks` and the record writes it at the wall's
         // own indent, between `ever_seen_completed` and `helpers`; read

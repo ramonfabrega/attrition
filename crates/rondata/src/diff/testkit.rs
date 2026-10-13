@@ -8814,12 +8814,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // and the original 3397 birth, whole-record, through that new word.
     // Item 1658 moved it to **3843**, past run721's last block (3645), and
     // took run732 over 3837..4093 (block 3844); run721's test keeps the
-    // Helicopters' value diff from 3389.
+    // Helicopters' value diff from 3389. Item 1659 moves it to **3963**
+    // (block 3964), still in run732; its test holds the Terra Cotta
+    // Army's clock and squad, whole-record, through the new word.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run732_s_word_frame_is_widened_whole"),
-        1658,
+        1659,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

@@ -239,7 +239,12 @@ pub(crate) struct Pair {
     /// snaps onto a point within its step — `1/184` reaches its guard
     /// point on 3589, not 3590 — **3843**, 23 versus 28 draws, index 5:
     /// ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    /// `Guy::init_real+0x52`, past run721's window.
+    /// `Guy::init_real+0x52`, past run721's window. Item 1659: the Terra
+    /// Cotta Army's clock runs out and the wonder `1/2043` trains a squad
+    /// of three Mechanized Infantry — its `recharging` 1 on 3843 and 607
+    /// on 3844 in both — **3963**, 18 versus 32 draws, index 3: ours
+    /// `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    /// `Guy::init_real+0x52`, seven births in the General `1/150`'s group.
     pub count: i64,
     pub sequence: i64,
 }
@@ -257,8 +262,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3843,
-    sequence: 3843,
+    count: 3963,
+    sequence: 3963,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1800,7 +1805,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3837, 4093);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run732 walked from run651's start with the recorder on. It holds the
-/// word 3843 (item 1658), block 3844.
+/// word 3843 (item 1658), block 3844, and the word 3963 (item 1659),
+/// block 3964.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1810,13 +1816,14 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN732, 3837)],
         WIDENING_COVERAGE_FRAME_3843,
         1,
-        &[3844],
+        &[3844, 3964],
         true,
     )
 }
 
 /// **The word 3843's block, widened whole** (item 1658): every dumped
-/// record on run732's 257 blocks, both directions.
+/// record on run732's 257 blocks, both directions — and the word 3963's
+/// (item 1659, block 3964), in the same window.
 #[test]
 fn run732_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
@@ -1831,7 +1838,15 @@ fn run732_s_word_frame_is_widened_whole() {
     // 38856), (34728, 38808)) alone — theirs' three `Guy::init_real`
     // draws on 3843 — and the leader's `active`, `control` and
     // `num_units[54]` count them (159, 174, 5 against 158, 173, 4).
-    pin_eq!(w.firsts.len(), 2087, "run732 at the word 3843");
+    // **1205** on item 1659's tree, nothing added: the Terra Cotta Army
+    // `1/2043` trains them when its `recharging` runs out (1 on 3843, 607
+    // on 3844 in both, compared on the wonder alone), and the squad's own
+    // rows, the leader's three and the later rows they reached go (2087 →
+    // 1205). The word moves to 3963 (block 3964), inside this window: the
+    // original's seven births in group 69 beside the General `1/150`,
+    // whose order parts on 3865 (`ATTACK_TO` 12 against 14, `spell_time`
+    // 0 against 1).
+    pin_eq!(w.firsts.len(), 1205, "run732 at the word 3963");
     let first = w
         .firsts
         .values()
