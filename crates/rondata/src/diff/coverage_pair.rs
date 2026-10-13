@@ -1392,7 +1392,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 115, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 112, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1532,7 +1532,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // of 2933 and 2938 are missiles, and land on 2945 and 2950 along their
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
-    pin_eq!(w.firsts.len(), 131, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 114, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1618,7 +1618,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 169, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 156, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1741,7 +1741,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // `hits` rows) and, on 4677 and 4702, two Move orders ours reads as one
     // (`1/240`, `1/259`: `order:kind` 17 against 16). No draw parts.
     // Item 1870 (the nuke embargo, the Fort's count): 230 -> 228.
-    pin_eq!(w.firsts.len(), 201, "run763 keys that part (item 1719)");
+    pin_eq!(w.firsts.len(), 192, "run763 keys that part (item 1719)");
 }
 
 #[test]
@@ -1765,7 +1765,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // % 15 == 0`), so 4583 agrees on `num_units[8]`, `active` and the unit
     // itself, and the draw stream agrees to the trace's end, 4730: 1167 ->
     // 250 keys.
-    pin_eq!(w.firsts.len(), 218, "run762 keys that part (item 1719)");
+    pin_eq!(w.firsts.len(), 199, "run762 keys that part (item 1719)");
 }
 
 #[test]
@@ -1793,7 +1793,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // **4425**, past this window's last block (4094).
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
-    pin_eq!(w.firsts.len(), 187, "run754 keys that part (item 1669)");
+    pin_eq!(w.firsts.len(), 179, "run754 keys that part (item 1669)");
 }
 
 #[test]
@@ -1831,7 +1831,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        182,
+        180,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

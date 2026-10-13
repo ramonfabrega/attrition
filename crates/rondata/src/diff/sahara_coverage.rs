@@ -991,7 +991,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 1738: **93** keys with the Redoubt read as a training building
     // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
     // the 94 of item 1726 is gone.
-    pin_eq!(w.firsts.len(), 87, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 82, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1035,7 +1035,7 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 91, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 82, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1086,5 +1086,5 @@ fn run790_s_word_frame_is_widened_whole() {
     // the replay is diverged for 212 of the window's blocks, so the count
     // is the tail's, not the word's. The word 3767's own rows were
     // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
-    pin_eq!(w.firsts.len(), 1296, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 1229, "initial run790 baseline");
 }
