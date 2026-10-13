@@ -5587,6 +5587,15 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
+        // `5fb96f`..: a unit standing on a tile that now refuses it is moved
+        // to the nearest spot that does not, and the call answers "plan".
+        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
+            let spot = self
+                .find_nearby_spot(u, here, 0, -1, 0, Angle(0x5555_5555), None)
+                .unwrap_or(here);
+            self.set_new_location(u, spot, true);
+            return 1;
+        }
         let mut goal = goal;
         if goal == here {
             return 0;

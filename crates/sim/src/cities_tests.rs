@@ -3725,6 +3725,36 @@ fn a_line_that_clips_a_building_detours_instead_of_re_planning() {
     );
 }
 
+/// `Unit::find_path@005fb910`'s first test (item 1667): a unit whose own
+/// tile has become one it may not stand on is moved to the nearest spot that
+/// does and the call answers "plan" — the grid draw follows.
+#[test]
+fn a_unit_on_a_refusing_tile_is_moved_off_it_and_replans() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    let from = sim.units[u].pos;
+    // A pond: water refuses a walker, and the nearest dry spot is a tile away.
+    sim.world.set_tile_bits(from.tile(), tile::SURFACE_OCEAN);
+    sim.trace_phases = true;
+    sim.order_move(u, tile_pos(24, 20));
+    let mut grid = false;
+    for _ in 0..8 {
+        sim.tick();
+        grid |= sim
+            .phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID);
+    }
+    assert_ne!(
+        sim.units[u].pos.tile(),
+        from.tile(),
+        "the unit is moved off the tile that refuses it"
+    );
+    assert!(grid, "and the call answers plan: the grid draw is spent");
+}
+
 /// The other half of the same mechanic: an obstacle the edge walk cannot
 /// get past **gives up**, and giving up is what spends the draw.
 ///

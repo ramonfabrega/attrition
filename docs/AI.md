@@ -18166,10 +18166,51 @@ merchant by the same sweep arm (line 191 above); left as it was — no diff
 reaches it. Which unit spends the 3587 `do_move` draw is not named. The
 `fac` 235/245 residue is not chased. No new capture; runs 752–761 unused.
 
-## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+## 180. `find_path` moves a unit off a tile that refuses it, and the word moves to 3614 (2026-10-12, item 1667)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Word 3587, 15 versus 16 draws, index 1: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84`
+(seed `1ba0ba8f`), between the animal's `do_idle` draw and the first guy's.
+
+**Who.** `RON_DEBUG_SITES=3587-3587` gives the original's one extra draw;
+the units that reach `find_path` on that frame in ours (a temporary print on
+the straight-line check, sim frame 3586) are `1/7`, `1/11` and `1/133`,
+each answering 0. The draw is a grid draw, so some unit's `find_path`
+answered 1 in the original and 0 here. The dump's first part past the word
+is `1/133` on 3588: `g.x` ours 40553 theirs 40548, `g.y` 37515 against
+37539, `path:length` 14 against 26, `order:move.last_x` ours 40549 theirs
+−1, `path_recursion` 2 against 1 — a unit relocated and re-planned in the
+original, not detoured. The draw's own unit is not named: the loop's order is
+not `o` order (`1/147` precedes `1/99` in ours' own listing), so the
+extra draw's index 1 does not say.
+
+**Cause.** `Unit::find_path@005fb910` opens, past the helicopter gate, with
+`invalid_loc(own tile, 1,0,0,0,0)`: a unit standing on a tile that now
+refuses it gets `UnitType::find_nearby_spot` (`bearing 0x55555555`,
+`FILTER_NOT_ME`) and `set_new_location(spot, 1, 0)`, and the call answers 1
+(plan). ORDERS.md §4.6 already listed the line; `Sim::find_path` did not
+carry it. A temporary print on the same test showed `1/133`'s own tile
+refusing at sim frame 3587 (and three units on 3068, which agree there and
+are not touched). Adding the branch: word **3587 → 3614** (sequence; the
+count parts at **3615**), 30 versus 30 draws, index 6: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+
+**Value diff and score.** run721's widening: `1/133`'s keys on 3588 are
+gone; the first part is now `1/184` on 3589 — `order:kind` 2 against 12,
+`order:length` 2 against 1, `path:length` 1 against 0, `pos` (37898,41213)
+against (37896,41208). run721's widening **394 → 326** keys; run714's
+baseline and the floors are unmoved. Ground-height reads on the longer
+prefix 99 → 110. `a_unit_on_a_refusing_tile_is_moved_off_it_and_replans`
+(`cities_tests`) fails without the branch.
+
+**Not established.** Which tile property refused `1/133`'s own tile (the
+test uses water; the capture's unit stood on land) is not named, nor
+whether the draw at 3587 is `1/133`'s — the branch is the one reading that
+moves the word, not a proof of the unit. `find_nearby_spot` is called with
+the sim's default collision half; the original's `FILTER_NOT_ME` is taken as
+that. The 3589 `1/184` order parting and the 3614 `do_guard` retry are the
+next words. No new capture; runs 752–761 unused beyond 752–753.
 
 ## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
 

@@ -227,7 +227,10 @@ pub(crate) struct Pair {
     /// ours `Leader::make_stuff+0x63d`, theirs
     /// `Leader::produce_building+0x1805`. Item 1666 counts a packed
     /// fisherman as idle in the census: **3587**, 15 versus 16 draws,
-    /// index 1: ours guy animation, theirs `Unit::do_move+0xe84`.
+    /// index 1: ours guy animation, theirs `Unit::do_move+0xe84`. Item 1667
+    /// gives `find_path` its own-tile relocation: the sequence parts at
+    /// **3614** (30 versus 30 draws, index 6: ours `Guy::move+0x19f`,
+    /// theirs `Unit::do_guard+0x7f4`) and the count at **3615**.
     pub count: i64,
     pub sequence: i64,
 }
@@ -245,8 +248,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3587,
-    sequence: 3587,
+    count: 3615,
+    sequence: 3614,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1608,8 +1611,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        394,
-        "run721 after a packed fisherman counts as idle (item 1666: 482 -> 394)"
+        326,
+        "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
