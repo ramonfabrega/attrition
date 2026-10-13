@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-13, **the thirtieth tranche at twenty landings of twenty, draining**
 (`commander`, Opus 5.5; every lane Sonnet 5.5 medium): the successor pair's word
-11 → 2207 (1737, 1744), widened whole on run780 (1768: the idle Freighter `1/72`);
+11 → 2838 (1737, 1744, 1845 — the Freighter `1/72`'s carry arm, on run785's packet);
 chapters fifty-three, fifty-five and fifty-six closed (1740, 1798, 1829 — the
 last built `reset_pivots` on a `v` type's empty search); thirteen sweeps took the
 census 188 → 319. Great Sahara 3182 open (1738). No kill rule tripped.*
@@ -23,42 +23,41 @@ census 188 → 319. Great Sahara 3182 open (1738). No kill rule tripped.*
   `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **Draining**: `att-1738`, `att-1845` (1856 merged); no spawn past twenty; 1863 and
-  1866 wait, stubs in the base. Next 1868, run 788, AI §196, GOLDEN §70. **The disk**: 233 GiB free.
-- **Fable backlog: 21 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867).
+- **Draining**: `att-1738` (1845 and 1856 merged); no spawn past twenty; 1868, 1863
+  and 1866 wait, stubs in the base. Next 1870, run 788, AI §197, GOLDEN §70. **The disk**: 233 GiB free.
+- **Fable backlog: 22 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867, 1869).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w2207 of 5,056
+Successor pair: EastIndiesMongolAllTech w2838 of 5,056
 Census: simulation backed 319 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3182 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirtieth tranche drains on `commander` — three lanes live
-(`att-1738`, `att-1845`): re-arm `lanewait.py` on them, merge and
+(`att-1738`): re-arm `lanewait.py` on them, merge and
 book each with no spawn, write the handoff measured by `tools/tranche.py`, then
 `ccc clear steer --then` the thirtieth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1845 the headline's word, 1738, 1866 and 1863 the other three lanes —
+1868 the headline's word, 1738, 1866 and 1863 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1845. **The successor pair's word: frame 2207, 9 versus 8 draws**, index
-    8: the idle draw of the Freighter `1/72` (parked 1800); run780 widened
-    whole (897 keys, `run780_s_word_frame_is_widened_whole`). Ours idles it
-    from 2178 after `building_slot_reused` kills `[ExploreTo, Build(50)]`
-    on 2177; theirs walks it to (35736, 24984) by 2201, nothing before
-    2201 dumped. A packet at 2178 and `step4.py` on its `think` first
-    (run 785), killers in AI §194. East Indies, Mongols, `DIFFICULTY 3`,
-    All Tech. AI §195.
+1868. **The successor pair's word: frame 2838, 101 versus 16 draws**,
+    index 1: ours `Guy::set_anim < Unit::do_idle`, theirs `Guy::do_turn <
+    Unit::move_step`; past run780's last block (2457), so unwidened: a
+    capture over `--log-window 2832 3089` (parked 1848) and its widening,
+    every record on 2838 both ways before a mechanism. 1845 moved 2207 →
+    2838 with `think_carry`'s civilian arm; its other arms are parked 1847.
+    East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §196.
 
 1738. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
     ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;

@@ -3852,6 +3852,11 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
 
+(1869) **`step4.py` cannot poke memory or hook a call** (1845's Loop
+line): two scratch edits — a `game->frame` poke and an entry hook that
+prints a call's arguments — answered the whole item. Candidate:
+`--poke ADDR=BYTE` and `--hook ADDR`. One reach.
+
 (1867) **`callfn` has no xmm-argument seam** (1856's Loop line):
 `Guy::set_bank`/`set_pitch` take a float in an xmm register, and the
 emulator call cannot pass one, so the sweep leaves them. Candidate: an
