@@ -778,9 +778,6 @@ impl Sim {
                 continue;
             }
             let (_, sell) = self.calc_market_prices(who, g);
-            if std::env::var_os("RON_PROBE_SELL").is_some() {
-                eprintln!("PROBE spec f{} who{} g{} tier{} sell{} price{} flux{}", self.frame, who, g, tier, sell, self.market.price[g], self.market.flux[g]);
-            }
             if sell < 75 / (tier + 1) {
                 continue;
             }
