@@ -3762,7 +3762,9 @@ of 1866's script, and asks for a `void` shape (a cdecl body relaxes the
 `esp` check by `4 * NARGS`). (`timeout` is still not on this machine,
 1856's and 1866's journals.) **1895** built a `fwd` shape (callees
 hooked, `ecx` and arguments held in order); a forwarder whose argument is
-a field of `this` still needs a `field` token (parked 1896). Three reaches.
+a field of `this` still needs a `field` token (parked 1896). Three reaches. **1911** built a `walk` shape
+(a `walk_data`'s callback through the walker's slot 0, one line a
+function) and `fwd`'s `p1`/`p2` tokens; 1896's `field` token still owed.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
