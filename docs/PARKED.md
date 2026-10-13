@@ -4015,7 +4015,8 @@ port function (its journal: "their tests assert the raw word (offset
 identity)") — they back the layout, not a port consumer, and the `Census:`
 line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
-with a port consumer. One reach.
+with a port consumer. Two reaches: 1724's ten had no port consumer at
+all, and its journal reads the small functions with one as nearly dry.
 
 (1727) **A regex that strips debug probes ate real code** (1716's Loop
 line): a non-greedy `.*?` across blocks removed working lines with the
