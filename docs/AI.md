@@ -18900,12 +18900,55 @@ boat's arrival, 637 frames after the walk's start, which is the unmodelled eject
 **Not established.** The cadence against theirs beyond the one boat; the `(0)` call, the idle and attack arms, the eject; the region *slot*
 order (dense here, as §7's seam); `danger` has no writer here, so the score's second factor is 1; no eject was reached by any capture.
 
-## 196. Reserved for the next item on the AI track
+## 196. The Fishermen's sea goal: `find_wpath`'s pull-back asks the tile grid, and the successor pair's word moves 2838 → 3131 (2026-10-13, item 1868)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 2838, 101 draws ours against 16, index 1: ours `Guy::set_anim < Unit::do_idle`, theirs `Guy::set_anim < Guy::do_turn < Unit::move_step+0x389`.
+The booking's hypothesis (§195: the boat's arrival, the unmodelled eject) was half right — the unit is the boat's arrival — and the cause was
+upstream of it.
+
+**The widening (run788, `--log-window 2832 3089`, 257 blocks).** 833 keys part, 128 on the window's first block. The unit the draws name is
+**`1/122`, `TypeIndex` 317, the Fishermen (a Fishing Boat, `TY` 267 here)**: ours kills its move order on the frame it reaches the path's
+last point, theirs keeps the order for two frames more (it still turns toward the order's own angle); `1/122`'s first rows are on the window's first
+block, so it parted **before** 2832: `pos` ours (32482, 44966) against theirs (32559, 45008), `path[0].to` ours (32276, 44952) against
+(32277, 44997), `order:move.dest_x/y` the same pair.
+
+**Walked back (run794, window 2674..2800; `RON_DEBUG_UNIT=1/122@2600-2832` ours).** Ours and theirs agree frame for frame to 2732 (the order is
+given on 2680, the first waypoint is (37272, 45720), then 36504, 35736, all at y 45720); on 2733 ours takes (34968, 45720) and theirs
+(34968, 44952), and from there the two boats walk different lines. Ours' stack on 2682 ends in `(31896, 44952)`, the order's goal, with
+`(33432, 44952)` beneath it; theirs' does not hold either.
+
+**The value, on a packet (run795, `RON_STATE_FRAME=2681`).** `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on
+the boat; `14bd0eac` found by scanning the packet for `(38040 ^ 0x63637, 45720 ^ 0x63637)` at `+0x10`) plans the move in 52,845 instructions and
+leaves six entries on the path stack (`list` at `unit + 0xb8`, entries `x, y, tolerance:u16, flags:u16`): **`(32277, 44997)` flags 1 (the
+final), then `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)`**. The final point is the goal
+**stepped back once**: the order's goal (31896, 44952) plus one 0x180 step toward the boat (the pull-back's `far` step, bearing from the
+goal to the start, `(+381, +45)`).
+
+**The mechanism.** `PathFinder::find_wpath@00688fc0`'s pull-back loop (`00689375`–`00689331`) breaks when the goal's tile region is the start's
+**and**, for a type whose `+0x218` (domain) is 1, `UnitData::invalid_loc(unit, goal_x>>6, goal_y>>6, 0,1,1,1,0)` answers 0 (read off the
+export; the loop's break test is `region == region && (domain != 1 || invalid_loc == 0)`). This crate's loop broke on the region test alone (its
+`SEAM`, the clause for a sea unit). The goal (31896, 44952) is a shore tile of the boat's own sea: the region matches, the tile refuses, so the
+original steps it back one 0x180 before the A* runs and plans to the stepped-back point; this crate planned to the goal itself, which put the
+A*'s diagonal one cell further west (the tie's other side) and the final waypoint 380 units short in a different row. **Built**: the loop's
+condition now carries the second clause for a sea unit (`crates/sim/src/path.rs`, `find_wpath_from`).
+
+**Value diff beside the word.** `run788_s_word_frame_is_widened_whole` (blocks 2832..3088): **833 → 163 keys**; every `1/122` row
+(`pos`, `path[0].to`, `order:length`, `orders_x`, `idle`, `order:move.*`, `path_recursion`, `last_x/y`) agrees; run780's window is unmoved (136).
+**The word moves 2838 → 3131**, ours 62 draws against 65, index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`
+(unit `1/87`), theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_cast+0xc89`, then a `Guy::init_real < Unit::init <
+Objects::init_unit` draw (a unit is **born** on 3131 in theirs and not in ours). It is past run788's last block (3088): the next item's widening.
+
+**Killers.** The clause made false (`false && sea && …`): held by `a_sea_goal_whose_tile_refuses_the_boat_is_stepped_back_over_water` (a sea
+region whose goal tile is `SURFACE_OCEAN | BLOCKED`: the region matches, `invalid_loc` refuses; the final entry must differ from the goal and
+be a tile the boat may stand on) and by `mongol_pair::` (the word falls back to 2838).
+
+**Not established.** The shore goal's cause (why the fishing spot's tile refuses a boat, which this crate answers the same way here); the same
+clause for the human arm of the loop (`leaders & 4`, the other variant above, which the original takes with its own region/was-seen walk); a
+sea unit's other `find_wpath` callers; whether the 163 remaining keys on the window are all one unit's tail.
+
+**Coverage.** *Diff-backed*: the final path point, the walk's line and the order's life on `1/122` (run788, run794, run795's stack). *Reading
+only*: the clause's argument order (the export prints the five flags as `0,1,1,1,0`, this crate's `invalid_loc(u, tile, a..e)` is the same call
+the tile grid's own validity test makes).
 
 ## 197. A nuke embargo closes the market, a Fort's count escalates, and Great Sahara's word moves 3182 → 3767 (2026-10-13, item 1870)
 
@@ -18960,12 +19003,70 @@ val 4078/3481 → equal; `bucket[1:timber]` 5639/5739 → equal.
 building support term. The embargo's `armageddon` term. The new word 3767 is
 unwidened (run767 ends at 3186).
 
-## 198. Reserved for the next item on the AI track
+## 198. A refused head lets the Helicopter behind it train (2026-10-13, item 1905)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame and the capture.** Great Sahara in the coverage pair's lobby,
+word 3767 (33 draws ours against 37, index 7). run767 ends at 3186, so
+**run790** was taken over `--log-window 3761 4018` (run767's recipe, pool lane
+2, `success: true`, 4024 frames, seed 12345, 1907 s) and widened whole
+(`diff::sahara_coverage::run790_s_word_frame_is_widened_whole`, 257 blocks, its
+window the third map's `AI_WORDS` window and a block of the coverage driver).
+
+**The draw delta, both sides** (`report.py rontrace-run790.log draws 3767`):
+the original's index 7 is `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`, then two `Unit::do_spec_anim` rolls under
+`Unit::come_out+0x24a6 < Build::train+0x54a` — a unit comes out of a building
+— and ours spends `Guy::inc_time`'s wraps there instead. `births.py` names it:
+block 3768 holds `1/214` (uid 294, group 68, flags 73) at (44065, 19488),
+beside `1/2011`, an Airbase (`TypeIndex` 447). The widening's first row on
+3768 is `1/2011 queue:queued` ours 4, theirs 3 and `leader:num_units[261]`.
+
+**The value diff.** `1/2011`'s queue on 3767 holds four entries: `[0]` a
+Strategic Bomber (305), job_counter 30750 (done, stuck), `[1]` a Transport
+Helicopter (311) at 24150 and 24100 a frame before. On 3768 the original's
+`[1]` is gone and a unit stands; ours kept all four. The job counters agree
+on both sides all window, so the target is not the question: the head is
+the bomber, refused, and the helicopter behind it completes.
+
+**The mechanism.** `Build::do_queue@0061e410:417`–`:447`. When slot 0's
+`Build::finished` answers non-positive: `get_next_non_unit` first (the first
+research entry behind the head); and **only if there is none, the queue holds
+at least two and the answer was negative** (the aircraft or caravan limit —
+`airbase_pad_full`, ten homed aircraft), an Airbase runs the slot
+`BuildQueueData::get_next_helicopter@00630bb0` returns — the first slot from
+1 whose type answers `is(0x136)` — and any other building
+`get_next_non_caravan`. `docs/PRODUCTION.md` had this fallback written down
+and the crate had it as a stated seam ("nothing here can be refused with a
+negative answer yet"); `airbase_pad_full` (item 1714) made one reachable.
+Built: `Advanced::Limited` (the negative answer) beside `Blocked`, the
+helicopter search in `Sim::process_queue` for an Airbase. A zero (the
+population cap) never reaches it. Unit test
+`a_full_airbase_trains_the_helicopter_behind_a_refused_plane`, which fails
+(`mutate.py`, the arm dropped) without the search and fails nothing on a
+population refusal.
+
+**What moved.** The word 3767 → **3805** (38 frames): 17 draws against 32,
+index 1, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+`Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d <
+Unit::fight+0x115e` (fifteen consecutive draws in the search). `1/2011`'s
+`queue:queued` and `leader:num_units[261]` agree on 3768. Height reads that
+touch an inexact corner: `sahara_coverage_first_parting` 433 → 474,
+`run790_s_word_frame_is_widened_whole` 756 (the replay past 3805).
+run767's widening is unmoved (112 keys). run790's 12582 keys are the diverged
+tail past 3805, not the word.
+
+**Rows the widening leaves** (parked 1906–1908): `1/214` `mirror` ours 0
+theirs 1 and `group:65.held` ours `[214]` theirs none on 3768 — a helicopter
+born inside an Airbase joins a group in ours that the original does not
+hold (it has `group 68` in the dump at birth, a different group); and the
+rows before the word's frame: `1/172` `order:kind` 17/16 on 3765 and
+`1/161`'s `order:move.dest`/path on 3766–3767 (a tolerance 384 against 0),
+which no draw reads yet.
+
+**Not established.** `get_next_non_caravan` (a non-Airbase building) is not
+modelled. The first-block rows (122 at 3761: `SITE.reg`, `form`, `pool`,
+`death:extra`) are the window's start, the same shape run767 shows at 2928
+(77 rows), and are quiet by construction. The new word 3805 is unwidened.
 
 ## 199. Reserved for the next item on the AI track
 

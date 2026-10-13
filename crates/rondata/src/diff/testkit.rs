@@ -6882,16 +6882,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run766's (item 1697): ten reads in the word 2640's window.
     ("run766_s_word_frame_is_widened_whole", 10),
     ("run767_s_word_frame_is_widened_whole", 81),
+    ("run790_s_word_frame_is_widened_whole", 756),
     // The successor pair walked to its word 2207 (item 1744): four reads.
     ("mongol_pair_first_parting", 4),
     ("run780_s_word_frame_is_widened_whole", 4),
+    ("run788_s_word_frame_is_widened_whole", 4),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
     // flight (10 reads) into the tail the replay keeps running.
     // Item 1870: the walk reaches the word 3767 (the nuke embargo and the
     // fort escalation moved it 3182 → 3767): 433 reads, 352 more.
-    ("sahara_coverage_first_parting", 433),
+    ("sahara_coverage_first_parting", 474),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -7035,7 +7037,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // closing window: 514, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        514,
+        756,
     ),
 ];
 
