@@ -16300,3 +16300,15 @@ Packet `~/ron-golden/run795/map-18/frame-snapshot.bin`, 948,716,116 bytes, SHA-2
 **What it holds**: on it, `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on the boat) plans the move in 52,845
 instructions and leaves `(32277, 44997)`, `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)` on the path
 stack; the diagnosis of §196.
+
+## run798 — the coverage pair: East Indies, Persians, All Technologies, blocks 4199..4455 (2026-10-13, item 1937, `att-1937`)
+
+**Disk gap**: item 1937's patrol-look fix moved the coverage pair's word 4730 → 4206 until the strike's release was gated on the order's `returning` read after the flight; no dump on disk held a unit on 4204–4209 (run754 ends 4094, run762 starts 4420). run762's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4465 --timeout 3600 --log-window 4199 4456 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`, the pool (lane 2). First take: `success: true`, `settings_restored: true`, launched 11:37:41, exited 12:06:28, 4,466 frames; output `~/ron-golden/run798`. No wait for the lane. `rngcmp.py rontrace-run652.log rontrace-run798.log`: **4,466 frames in common, 0 differing**.
+
+Archive `gamelog-run798-eastindies-persian-alltech-window-4199-4456.txt`, 681,593,382 bytes,
+SHA-256 `9a878e13c9e9e056695eecd7dbd63042c2087e27e190ce5459d7446084fa8f0f`.
+
+Archive `rontrace-run798.log`, 246,013,248 bytes,
+SHA-256 `05a28e29ece43c2bc2bf2b3a1d42ef143dc0fc2e27b04718a0b81249dc0ee704`.
+
+**What it holds**: read by hand (`tools/gamelog/one.py UNITDATA 1 115`), not wired into a widening: the Jet Fighter `1/115`'s strike on `0/2000` on block 4206 (`mandatory 1`, pushed by the patrol's look while `returning 1`) and no release on 4207–4209. `docs/AI.md` §199.

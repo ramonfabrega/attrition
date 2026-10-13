@@ -154,8 +154,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
     // `Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d <
     // Unit::fight+0x115e`.
-    count: 3805,
-    sequence: 3805,
+    // Landing 16 (`docs/AI.md` §199, item 1937): a patrol going home still
+    // looks (`do_air_patrol`'s `& 31` look runs with `returning` set), and a
+    // computer's siege engine against a building asks `find_attack_pos` with
+    // the bombard flag (the in-range first return skipped) and, from the
+    // packed arm, moves to the spot it answers instead of unpacking — run790's
+    // Rocket Artillery `1/96` on 3805 — 3805 → **3825** (count and sequence):
+    // ours 29 draws against 28, index 5, ours `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_move+0x11cf`.
+    count: 3825,
+    sequence: 3825,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -983,7 +991,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 1738: **93** keys with the Redoubt read as a training building
     // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
     // the 94 of item 1726 is gone.
-    pin_eq!(w.firsts.len(), 93, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 87, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1027,7 +1035,7 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 112, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 91, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1078,5 +1086,5 @@ fn run790_s_word_frame_is_widened_whole() {
     // the replay is diverged for 212 of the window's blocks, so the count
     // is the tail's, not the word's. The word 3767's own rows were
     // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
-    pin_eq!(w.firsts.len(), 12582, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 1296, "initial run790 baseline");
 }

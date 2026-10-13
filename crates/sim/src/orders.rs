@@ -2062,7 +2062,17 @@ impl Sim {
             }
         }
         let off = self.strafe_off_line(u, t);
-        if !self.is_in_range(crate::combat::Obj::Unit(u), t) {
+        // **`+0x3c` is read again after the flight** (`do_strafe@005eab00`,
+        // `5eb0f4`, item 1937): `check_fuel` sets it on an empty tank inside
+        // `do_air_physics`, and a strike flying home does not release.
+        let now_returning = matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(Body::Strafe(StrafeOrder {
+                returning: true,
+                ..
+            }))
+        );
+        if now_returning || !self.is_in_range(crate::combat::Obj::Unit(u), t) {
             return true;
         }
         if off >= 0x0aaa_aaaa && (!self.is_fighter_line(u) || off > 0x2aaa_aaaa) {
