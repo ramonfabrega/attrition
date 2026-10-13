@@ -2070,8 +2070,9 @@ mod tests {
         );
         sim.cities[c].no_heal = true;
         let hurt = value(&mut sim, 0, c, t.temple).expect("still listed");
+        // A `no_heal` city is also worth a hundredth outside the arm.
         assert!(
-            (hurt.val - plain.val * 2).abs() <= 10,
+            (hurt.val * 100 - plain.val * 2).abs() <= 200,
             "{} / {}",
             hurt.val,
             plain.val
