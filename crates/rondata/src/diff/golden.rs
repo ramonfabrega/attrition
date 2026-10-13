@@ -13546,23 +13546,7 @@ const WANT_CH53: &[&str] = &[
     "943 0/6 death:extra",
 ];
 
-const WANT_CH53_POOL: &[&str] = &[
-    "962 slot 1 angle[6]",
-    "962 slot 1 curr[0]",
-    "962 slot 1 curr[1]",
-    "962 slot 1 curr[2]",
-    "962 slot 1 curr[3]",
-    "962 slot 1 curr[4]",
-    "962 slot 1 curr[5]",
-    "962 slot 1 curr[6]",
-    "962 slot 1 off[0]",
-    "962 slot 1 off[1]",
-    "962 slot 1 off[2]",
-    "962 slot 1 off[3]",
-    "962 slot 1 off[4]",
-    "962 slot 1 off[5]",
-    "962 slot 1 off[6]",
-];
+const WANT_CH53_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
