@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1953) **A packet's unit address is a scratch scan** (1868's Loop line;
+1845 read `units.lists` by hand too): `step4.py` on a unit needs its
+address, found by scanning for `(x ^ 0x63637, y ^ 0x63637)` at `+0x10`.
+Candidate: `tools/recomp/unitaddr.py <packet> <x> <y>` (or a player and
+index). Third reach, so it graduates.
+
 (1947) **A widening past its word reports the tail's thousands** (1905's
 Loop line): run790's baseline is 12,582 keys because the replay diverges
 at 3805 and the window runs 212 blocks past it, so the pin reads "the
