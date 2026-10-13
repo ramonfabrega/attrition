@@ -717,7 +717,7 @@ impl Sim {
     /// SEAMS: the arm with nothing of either aboard — `think_carry_idle`
     /// (`005f2f30`) when `count_inside(COUNT_ATTACK)` is zero, the
     /// attack-carrier's own arm (the group's city and army search, then
-    /// `eject_contents`) otherwise — is not modelled, and answers `false`:
+    /// the eject) otherwise — is not modelled, and answers `false`:
     /// the think goes on to the tail, as it did before this arm existed.
     pub(crate) fn think_carry(&mut self, u: usize) -> bool {
         if !self.units[u].on_map {
