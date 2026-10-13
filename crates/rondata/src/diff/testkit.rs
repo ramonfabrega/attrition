@@ -6320,6 +6320,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_FIVE: i64 = 1010;
 /// `chapter_fifty_five_s_word_frame_is_widened_whole`'s window: run783 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_FIVE: (i64, i64) = (605, 1011);
 
+/// **Chapter fifty-six** (item 1829, `docs/GOLDEN.md` §68, run786): chapter
+/// fifty-five's staging and a Hoplite squad on 763 — M6's re-search finds a
+/// different, in-reach unit.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_SIX: i64 = 1010;
+
+/// `chapter_fifty_six_s_word_frame_is_widened_whole`'s window: run786 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_SIX: (i64, i64) = (605, 1011);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8553,6 +8561,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_five_s_word_frame_is_widened_whole"),
         1798,
         Some(WIDENING_CHAPTER_FIFTY_FIVE),
+    ),
+    // Item 1829: run786, chapter fifty-six. The widening is run786 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_SIX",
+        GOLDEN_WORD_CHAPTER_FIFTY_SIX,
+        Some("chapter_fifty_six_s_word_frame_is_widened_whole"),
+        1829,
+        Some(WIDENING_CHAPTER_FIFTY_SIX),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
