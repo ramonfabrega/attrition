@@ -1632,7 +1632,8 @@ fn run754_s_word_frame_is_widened_whole() {
     // needs; its order kind 12 against 14 and `spell_time` on 3865 part no
     // more, `1/246`..`1/252` are linked. 1583 -> 409 keys; the new word is
     // 3982 (block 3983): the leader's MAKE rows.
-    pin_eq!(w.firsts.len(), 409, "run754 keys that part (item 1669)");
+    // Item 1497: `myhits` and `construct_hits` compared on buildings, +2.
+    pin_eq!(w.firsts.len(), 411, "run754 keys that part (item 1669)");
 }
 
 #[test]
