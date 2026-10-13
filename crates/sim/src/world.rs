@@ -868,11 +868,6 @@ impl World {
     /// (gated on a flag nothing here sets), `World +0x168` and `WData
     /// +0x14` — have no reader in this simulation; §7.
     pub fn set_seen(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
-        if let Ok(v) = std::env::var("RON_PROBE_2066_CELL")
-            && v == format!("{fx},{fy}")
-        {
-            PROBE_2066_WHO.with(|w| eprintln!("PROBE2066 LIT ({fx},{fy}) mask {mask} by {}", w.borrow()));
-        }
         let Some(i) = self.fog_index(fx, fy) else {
             return false;
         };
@@ -2187,9 +2182,4 @@ mod tests {
         // (5, 5) is the far corner: three of its nine are off the map.
         assert_eq!(w.gather_at(Cell::new(5, 5), false)[Timber as usize], 0);
     }
-}
-
-thread_local! {
-    /// Probe 2066: who is lighting the fog.
-    pub static PROBE_2066_WHO: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) };
 }

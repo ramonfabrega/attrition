@@ -436,7 +436,6 @@ impl Sim {
     /// where the original, which could see them, went round
     /// (`docs/PATHFINDER.md` §5, `docs/SCOUT.md`).
     pub fn update_seen_build(&mut self, b: usize) -> usize {
-        crate::world::PROBE_2066_WHO.with(|w| *w.borrow_mut() = format!("f{} build {}/{}", self.frame, self.buildings[b].owner, self.buildings[b].index));
         if !self.world.has_fog() || !self.buildings[b].alive {
             return 0;
         }
@@ -482,7 +481,6 @@ impl Sim {
     /// is the count of `reveal_fog` calls the original would make; nothing
     /// reads it but the tests.
     pub fn update_seen(&mut self, u: usize, ring_pass: bool) -> usize {
-        crate::world::PROBE_2066_WHO.with(|w| *w.borrow_mut() = format!("f{} unit {}/{} pos {:?} ring {ring_pass} hdg {:?}", self.frame, self.units[u].owner, self.units[u].index, self.units[u].pos, self.units[u].movement.heading));
         if !self.world.has_fog() || !self.units[u].on_map || !self.units[u].alive() {
             return 0;
         }
@@ -759,7 +757,6 @@ impl Sim {
     /// the cell's `WData +0x14` — have no reader here, the same two
     /// [`World::set_seen`](crate::world::World::set_seen) already skips.
     pub(crate) fn update_local_seen_unit(&mut self, u: usize) -> usize {
-        crate::world::PROBE_2066_WHO.with(|w| *w.borrow_mut() = format!("f{} local unit {}/{}", self.frame, self.units[u].owner, self.units[u].index));
         if !self.world.has_fog() {
             return 0;
         }
