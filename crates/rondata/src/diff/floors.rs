@@ -220,6 +220,12 @@ mod tests {
         the_handoff_carries("Coverage pair");
     }
 
+    /// **The successor pair's line is its pinned word** (item 1728).
+    #[test]
+    fn the_handoff_s_successor_pair_is_the_pinned_word() {
+        the_handoff_carries("Successor pair");
+    }
+
     /// **The third map's line is its pinned word** (parked 1080, the
     /// nineteenth pass): item 1066 pinned `LONG_WORD_GREAT_SAHARA` and the
     /// commander wrote a `Third map:` line that no guard read. Made to

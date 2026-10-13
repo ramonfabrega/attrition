@@ -18599,7 +18599,40 @@ against 1353 on 4585 (1714's second row) is still in run762's 250 keys: a value,
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 190. Reserved for item 1728 (the successor pair)
+## 190. The successor pair: East Indies, the Mongols, Difficulty 3 — and its first word at frame 11 (2026-10-13, item 1728)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**What was established, how, how confident.** The coverage pair closed at its trace's end (§188); DECISIONS 53 §2 and 61 §6 owe
+the next pair, chosen by the census rows no trace has entered.
+
+1. **The rows, named before the capture** (journal `2026-10-13-item-1728.md`): `tools/census.py --pin --never` read 48,233
+   functions, 7,901 entered, **183 cited and never entered**. The lobby aims at the naval and transport arms (`Unit::do_board`,
+   `do_await_board`, `check_meet_ship`, `go_to_city`, `Armies::send_navy`), `Army::use_spies`/`use_scouts`, late content
+   (`Wonders::close_wonder`, `Wonder::init`, `LeaderData::get_nukes`, `get_vehicle_speed_upgrade`, `ObjectData::is_in_range`,
+   `Build::finished`, `add_attack_order`) and a nation no long trace holds. **These are predictions**: the click-free lane runs
+   `cover=0` (parked 1490), so the census cannot say it entered any of them.
+2. **The lobby**: East Indies (`MAP_STYLE 18`), human Nubians (4) against **Mongols (17)** at **`DIFFICULTY 3`**,
+   `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, seed 12345. It keeps the coverage pair's map, age and resources and varies two
+   settings: the AI's nation (23 → 17) and the difficulty (5 → 3), so a parting here is the nation's or the difficulty's against
+   run651's own start. *Diff-backed*: read-back in each dump's `GAME INFO` (tribes 4 and 17, difficulty 3, `STARTING_TECHNOLOGY 8`,
+   `STARTING_RESOURCES 7`, `(int)seed 12345`).
+3. **Captures**: run774 (`DUMP_ALL` start, 37 frames), run775 (draw stream, `cover=0`; **the game ended itself at 5056**, closing
+   block 5057 — the Mongols defeated the idle human; `--allow-early-end`), run776 (blocks 1..33 at the long's detail). `rngcmp.py`
+   run774 vs run775 and run775 vs run776: 0 differing frames in 37 and 41.
+4. **The first word: frame 11, 556 draws ours against 629 theirs, index 3** — ours `Leader::make_stuff+0x63d`, theirs
+   `Leader::produce_building+0x1805`, count and sequence both (`diff::mongol_pair::mongol_pair_first_parting`; the pair's frame 0
+   agrees, which the Persian pair's did not). The same call sites as the coverage pair's frame 8 (§129, the Oil Well on the AI's make
+   list), at a 73-draw delta. **Value diff on the word's frame** (run776, `RON_FIRSTS=1`, leader 1): `leader:MAKE[1].cat` ours 4 /
+   theirs 8, `MAKE[1].t` 424/525, `MAKE[1].val` 160000/80000, `MAKE[2].cat` 8/4, `MAKE[2].t` 525/418, `MAKE[2].val` 80000/66400,
+   `MAKE[3].t` 418/417 — the make list's order differs; on 12: `MAKE[5].t`/`MAKE[8].t`, the city foundations `1/2011`/`1/2012`
+   (`constr_time` 70000/28000, `myhits` 1300/364) and the first builder's move order. Frame 3 parts earlier on the leader's
+   economy (`econ[0:food]` 7/5, `rate[0:food]` 10/27) without a draw behind it. **No mechanism is named.**
+   Widening: `diff::mongol_pair::run776_s_word_frame_is_widened_whole`, 128 keys over 33 blocks (the control's start set stands in it:
+   `form`, the leaders' `SITE[n].reg`, the lobby's stockpile).
+5. **Standing fields** (`tools/standing.py`, block 1): `reg` 59 readers, `form` 11, `income` 11, `leftover` 3; `65`, `held`,
+   `resources`, `scouts` unread by name.
+
+**What is not established.** Any predicted row's entry; which of the nation and the difficulty moves the draws; the make list's
+cause. The pair's closing state (5056) is not scored: a closing-window capture and `Endpoint` row are owed when the word reaches it.
+**Scoreboard line proposed** (the commander's to write): `Successor pair: EastIndiesMongolAllTech w11 of 5,056`, parsed by
+`floors::the_handoff_s_successor_pair_is_the_pinned_word`, with `AI_WORDS`' row `Successor pair` (`NEWEST_PAIR`) and the
+queue's `lower map first — East Indies (Mongols)`.
