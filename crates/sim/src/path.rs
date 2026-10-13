@@ -1474,9 +1474,11 @@ impl Sim {
         // the shore — which is what this crate did on the day `go_here`
         // first pointed a scout at another one (`docs/TRANSPORT.md` §7).
         //
-        // SEAM: the walk's own break test has a second clause for a **sea**
-        // unit — the matched region must also pass `invalid_loc(t, 0, 1, 1,
-        // 1, 0)` — that this crate does not make.
+        // **A sea unit's break test has a second clause** (`00689375`–
+        // `00689331`, item 1868): the matched region must also pass
+        // `invalid_loc(t, 0, 1, 1, 1, 0)`, the tile grid's own question, so
+        // a goal on the shore (a fishing spot's tile, a dock's) is stepped
+        // back over water even when its region reads as the boat's.
         let mut goal_e = goal_e;
         let mut goal = goal_e.to;
         let boardless = !self.units[u].on_map || !self.unit_can_transport(u);
@@ -1529,7 +1531,10 @@ impl Sim {
             ai_walk = seen(self, goal.cell()) || sea;
         }
         let walks = ai_walk && self.unit_domain_of(u) != crate::attrition::Domain::Air && boardless;
-        while walks && self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile()) {
+        while walks
+            && (self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile())
+                || (sea && self.invalid_loc(u, goal.tile(), false, true, true, true, false) != 0))
+        {
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
             let s = if far { 0x180 } else { 0x30 };
@@ -3348,6 +3353,57 @@ mod tests {
         assert!(
             open.iter().all(|&c| c == 32 || c == 40),
             "open water is free to a boat that is crossing regions: {open:?}"
+        );
+    }
+
+    /// **A sea unit's goal that its region accepts but its tile refuses is
+    /// stepped back** (`find_wpath@00688fc0:00689375`, item 1868): East
+    /// Indies' Fishermen `1/122` was sent at (31896, 44952), a shore tile of
+    /// its own sea, and the original planned to (32277, 44997) — one 0x180
+    /// step back toward the boat — where this crate planned to the goal.
+    #[test]
+    fn a_sea_goal_whose_tile_refuses_the_boat_is_stepped_back_over_water() {
+        let mut sim = flat_sim(12);
+        let sea = sim.world.add_region(Terrain::Sea);
+        for x in 0..12 {
+            for y in 0..12 {
+                let c = Cell::new(x, y);
+                sim.world.set_region(c, sea);
+                let mut d = sim.world.cell_data(c);
+                d.land = 1;
+                sim.world.set_cell_data(c, d);
+                for ty in 0..TILES_PER_CELL {
+                    for tx in 0..TILES_PER_CELL {
+                        let t = Pos::new(x * TILES_PER_CELL + tx, y * TILES_PER_CELL + ty);
+                        sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
+                    }
+                }
+            }
+        }
+        let goal = Pos::new(1 * 0x300 + 0x18, 6 * 0x300 + 0x18);
+        let shore = goal.tile();
+        sim.world
+            .set_tile_mask(shore, tile::SURFACE_OCEAN | tile::BLOCKED);
+        let u = walker(&mut sim, Pos::new(10 * 0x300 + 0x180, 6 * 0x300 + 0x180));
+        sim.units[u].kind.domain = crate::attrition::Domain::Sea;
+        assert_ne!(
+            sim.invalid_loc(u, shore, false, true, true, true, false),
+            0,
+            "the shore tile refuses the boat"
+        );
+        assert_eq!(
+            sim.world.tregion_alt(shore),
+            sim.world.tregion_alt(sim.units[u].pos.tile()),
+            "and its region is the boat's, so the region test alone would stop"
+        );
+        push_goal(&mut sim, u, goal);
+        assert!(sim.find_wpath(u) >= 1);
+        let end = sim.units[u].path[0].to;
+        assert_ne!(end, goal, "the goal was stepped back");
+        assert_eq!(
+            sim.invalid_loc(u, end.tile(), false, true, true, true, false),
+            0,
+            "to a tile the boat may stand on: {end:?}"
         );
     }
 

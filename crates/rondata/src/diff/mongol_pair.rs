@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 2838,
-    sequence: 2838,
+    count: 3131,
+    sequence: 3131,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -168,7 +168,7 @@ pub(crate) fn mongol_frame_2207_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run780_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_2207_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -217,7 +217,7 @@ fn run788_s_word_frame_is_widened_whole() {
     let Some(w) = mongol_word_window() else {
         return;
     };
-    pin_eq!(w.blocks, 258, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -225,5 +225,9 @@ fn run788_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run788 baseline");
+    pin_eq!(w.firsts.len(), 163, "run788 after item 1868's sea break test");
+    // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
+    // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
+    // is the Fishermen `1/122`'s arrival, whose final path point theirs planned
+    // (32277, 44997) against ours (32276, 44952) (`docs/AI.md` section 196).
 }
