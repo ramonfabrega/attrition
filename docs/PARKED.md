@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1959) **The coverage driver is a 49-slot tuple** (the commander, at
+1868's booking gate): 1905 and 1868 each added a window binding and its
+tuple member, both merged clean, and the destructuring pattern came out
+one `Some(_)` short — a compile red no lane gate could see (`a0bcf9f9`).
+Candidate: the driver walks a `Vec` of `Option` windows, so a window is
+one line. One reach.
+
 (1953) **A packet's unit address is a scratch scan** (1868's Loop line;
 1845 read `units.lists` by hand too): `step4.py` on a unit needs its
 address, found by scanning for `(x ^ 0x63637, y ^ 0x63637)` at `+0x10`.
@@ -3791,7 +3798,9 @@ built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
 return, as the original's `extraout_ECX` consumers read it, would take
 `Tribes`, `Lands`, `Herds` (parked 1922). Six reaches. **1932**: four
 of ten were hand scripts that store through fixed offsets of `this` —
-a `store` shape (parked 1933). Seven reaches.
+a `store` shape (parked 1933). Seven reaches. **1942**: nine of
+ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
+reaches — the shape the pass should build before the next sweep.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4071,12 +4080,12 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 1942, 2026-10-13 — the sweep's thirty-fifth batch
 
-**1943. The `deref` and `store` shapes, still hand-written** (Loop; 1933's sequel). Nine of 1942's ten were hand scripts and eight
+(1943) **The `deref` and `store` shapes, still hand-written** (Loop 1890; 1933's sequel). Nine of 1942's ten were hand scripts and eight
 of them one of two shapes: a forwarder whose argument or `ecx` is `[this+OFF]` plus a constant (`ObjectData::say_name`,
 `TerrainMap::river_point`), and a store through fixed offsets of `this` or a global cell (`set_base_source_pool`, `start_river`,
 `cast_supplies`, `set_orig_coast`). `fwd` takes no dereference token; `store` is still unbuilt. Names no score but the census's.
 
-**1944. `OrderList::get_new_data@0046ed60` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
+(1944) **`OrderList::get_new_data@0046ed60` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
 of it needs a chosen `ebp`, which `callfn` does not set. `MapScript::run_map_script` and `SurfWaveSection::load_old_bh3` are empty bodies
 (parked 1725's question), `Terrain::build_beach_data` and the three `walk_data`s are left.
 
