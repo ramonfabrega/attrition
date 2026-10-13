@@ -63,8 +63,6 @@ pub struct Nation {
     pub global_government: bool,
     /// `get_heal_level`, 0..3.
     pub heal_level: i32,
-    /// The temple border tech level 1..4 for a city with a temple; 0 none.
-    pub temple_level: i32,
     /// `FORTGARRISON2..4`: 1..4.
     pub fort_garrison_level: i32,
     /// `disable_building_attrition`.
@@ -103,7 +101,6 @@ impl Default for Nation {
             created_faster: false,
             global_government: false,
             heal_level: 0,
-            temple_level: 0,
             fort_garrison_level: 1,
             disable_building_attrition: false,
             plunder_hero: false,
@@ -1428,6 +1425,26 @@ impl Sim {
         }
     }
 
+    /// The temple's hit-point level, 1..4: `has_preq(TEMPLEHP4)` is 4, else
+    /// `get_temple_hp@006db470` — `TEMPLEHP3` 3, else 1 plus `TEMPLEHP2`.
+    /// `Nation::temple_level` held this and nothing wrote it, so a City with
+    /// a Temple never took its bonus (item 1497: run683's City `1/2000`
+    /// holds `myhits` 16250 from 1673, ours 6500).
+    pub(crate) fn temple_hp_level(&self, who: Player) -> i32 {
+        let p = &self.tech[who as usize];
+        let [l2, l3, l4] = self.tech_tree.roles.temple_hp_preq;
+        let has = |t: Option<crate::tech::TypeId>| {
+            t.is_some_and(|t| self.tech_tree.has_tech(&self.setup, p, t))
+        };
+        if has(l4) {
+            4
+        } else if has(l3) {
+            3
+        } else {
+            1 + i32::from(has(l2))
+        }
+    }
+
     /// `Wall::update_hits`: the full figure and the site's growing one.
     pub fn update_hits(&mut self, b: usize) {
         let Some(ty) = self.buildings[b].ty else {
@@ -1452,7 +1469,7 @@ impl Sim {
             red_fort: n.red_fort,
             nubians: n.nubians,
             tikal: n.tikal,
-            temple_level: n.temple_level,
+            temple_level: self.temple_hp_level(bd.owner),
         };
         let full = build::full_hits(
             &self.tuning,

@@ -700,6 +700,33 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **Its hit-point figures** (item 1497, parked 1476): `myhits` is
+        // `Wall::update_hits`' full figure with `BUILDING_HP_UPGRADE` in it
+        // — the arm 1476 found no walk holding — and `construct_hits` the
+        // site's growing one, compared only while both call it unfinished.
+        for (field, mine, theirs) in [
+            ("myhits", i64::from(ours.hits), b.myhits),
+            (
+                "construct_hits",
+                i64::from(ours.construct_hits),
+                b.construct_hits
+                    .filter(|_| !ours.active && b.flags & 4 == 0),
+            ),
+        ] {
+            let Some(theirs) = theirs else { continue };
+            r.build_compared += 1;
+            compared::note("BuildDump", &[field]);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         // **Who has ever seen it** (item 1563, parked 1450's ruling):
         // `ever_seen` and `ever_seen_completed` (`Wall +0x62`/`+0x63`) are
         // what first contact and a building's own reveal hang off
@@ -3144,9 +3171,10 @@ pub(crate) mod tests {
         // **393,421 → 523,747 on item 763** — `damage` and `damage_frac`,
         // two more, none wrong (parked 728). **523,747 → 654,073 on item
         // 1563** — `ever_seen` and `ever_seen_completed`, none wrong
-        // (parked 1450).
+        // (parked 1450). **654,073 → 721,679 on item 1497** — `myhits`
+        // and an unfinished site's `construct_hits`, none wrong.
         assert_eq!(
-            builds, 654_073,
+            builds, 721_679,
             "the site and the clock on every linked building-frame"
         );
         assert!(
@@ -21010,7 +21038,8 @@ pub(crate) mod tests {
     /// `damage_frac` (parked 728); nothing here is wrong on either.
     /// **715,988 → 894,314 on item 1563**, `ever_seen` and
     /// `ever_seen_completed` (parked 1450); nothing here is wrong on either.
-    const RUN58_BUILD_FIELDS: usize = 894_314;
+    /// **894,314 → 986,161 on item 1497**, `myhits` and `construct_hits`.
+    const RUN58_BUILD_FIELDS: usize = 986_161;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

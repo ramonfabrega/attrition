@@ -1629,6 +1629,10 @@ pub fn load_tables(
     };
     // `SPIES_GENERALS_CHEAPER` is the 88th (`0x303`), Strategy in the
     // shipped file: the gate on `get_cost`'s Spy and General discount.
+    tree.roles.spy_general_recover_preq = match bonus_preqs.get(85) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     tree.roles.spy_general_faster_preq = match bonus_preqs.get(86) {
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
@@ -1740,6 +1744,8 @@ pub fn load_tables(
     // (`docs/AI.md` §121).
     tree.roles.buildings_speed_preq = [bonus_at(70), bonus_at(71), bonus_at(72)];
     tree.roles.buildings_hp_preq = [bonus_at(73), bonus_at(74), bonus_at(75)];
+    // `TEMPLEHP2..4` (`0x2cb`): the temple's hit-point ladder (item 1497).
+    tree.roles.temple_hp_preq = [bonus_at(31), bonus_at(32), bonus_at(33)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

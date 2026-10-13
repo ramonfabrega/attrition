@@ -239,7 +239,11 @@ pub(crate) struct Pair {
     /// `0x211` arm; `Build::activate` starts its clock at
     /// `TERRA_COTTA_FREE * 15`): **3963**, 18 versus 32 draws, index 3:
     /// ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
-    /// `Guy::init_real+0x52` (a birth).
+    /// `Guy::init_real+0x52` (a birth). Item 1673 doubles a General's
+    /// craft recovery under `SPIES_GENERALS_RECOVER_CRAFT`, so `1/150`
+    /// casts Create Decoys on 3864 as the original does: **3982**, 23
+    /// versus 25 draws, index 2: ours `Leader::make_stuff+0x221`, theirs
+    /// `Leader::produce_building+0x1805`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -257,8 +261,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3963,
-    sequence: 3963,
+    count: 3982,
+    sequence: 3982,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -704,7 +708,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 55, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 56, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -1604,7 +1608,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN754, 3838)],
         WIDENING_COVERAGE_FRAME_3843,
         1,
-        &[3843, 3844, 3963, 3964],
+        &[3843, 3844, 3963, 3964, 3982, 3983],
         true,
     )
 }
@@ -1623,7 +1627,13 @@ fn run754_s_word_frame_is_widened_whole() {
     // does not print and `1/233`'s `form`, on 3843. The word is **3963**
     // (block 3964): the dump alone holds `1/246`..`1/252`, and `1/165`
     // reads two orders against one. 2460 -> 1583 keys over the tail.
-    pin_eq!(w.firsts.len(), 1583, "run754 keys that part (item 1669)");
+    // Item 1673: the General `1/150`'s `mana_burn` ran down at one a frame
+    // (480 on 3864 against the original's 0), short of the 1000 the cast
+    // needs; its order kind 12 against 14 and `spell_time` on 3865 part no
+    // more, `1/246`..`1/252` are linked. 1583 -> 409 keys; the new word is
+    // 3982 (block 3983): the leader's MAKE rows.
+    // Item 1497: `myhits` and `construct_hits` compared on buildings, +2.
+    pin_eq!(w.firsts.len(), 411, "run754 keys that part (item 1669)");
 }
 
 #[test]
@@ -1661,7 +1671,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        186,
+        187,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

@@ -8808,11 +8808,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
     // Item 1669 moves to 3963 (block 3964), inside run754 (item 1668's).
+    // Item 1673 moves to 3982 (block 3983), still inside run754: the
+    // General `1/150`'s craft recovers two a frame, so its Create Decoys
+    // cast is laid on 3864.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run754_s_word_frame_is_widened_whole"),
-        1669,
+        1673,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

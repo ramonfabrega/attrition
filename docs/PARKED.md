@@ -3929,6 +3929,44 @@ merge. Candidate: the lane gate (`--lane`) fails when no
 `docs/journal/*-item-<N>.md` is in the branch's diff, with N from the
 brief's `--tests`/item. One reach.
 
+(1702) **A part the widening could not see sat in `coverage.rs`'s
+unread list** (1673's Loop line): General `1/150`'s `mana_burn`, 480
+against 0 on 3864, is printed and never compared, so run754's widening
+was quiet on the cause and the lane found it by printing the hero arm's
+inputs; reading it would have named the cause on 3838. Frame row 6
+already says "quiet is blind" for an unread key; the candidate is a
+reader for `mana_burn` (and the hero record's other unread keys) in the
+compared pin, or a widening that prints the unread keys that part. **1497 the same day**:
+comparing `myhits`, another unread key, found a missing writer
+(`Nation::temple_level`) in minutes — 1475's tell twice in one tranche. One reach.
+
+(1703) **The sweep's candidate list is a scratch script** (1694's Loop
+line): `tools/census.py --layers` needs `--pdb` pointed at the main
+checkout's `game/` from a worktree, and the candidates were a scratch
+script over `source_of`/`sweep_backed` — the third batch to write one;
+a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
+the same script and said so too, and 1705 asks for `tools/census.py
+--unbacked`, shortest decompile first, which found its batch in one call. One reach.
+
+(1706) **The sweep's generator is a scratch script** (1704's Loop
+line): one template → ten emulator scripts and ten tests was the second
+batch to write it; a `tools/sweep_gen.py` for index-range predicates
+makes the rest a one-liner; 1705 used it a third time (a probe shape
+reached three times graduates). A sibling of 1703; with it. One reach.
+
+(1713) **Two Sonnet lanes `pkill -f release_gate.py`'d every gate on the
+box** (2026-10-13, 05:45:23–05:46:06Z): `att-1700` three times
+(`pkill -f "release_gate.py"`, `"tools/release_gate.py"`) and `att-1708`
+once, each to stop its own suite; the commander's booking gate on
+`0283d82d` died twice (exit 144, no test failed), and any other lane's
+gate running then with it. The frame already says "kill a detached suite
+by its pid, never `pkill -f` on a name every lane shares" (1527); the
+row did not hold on Sonnet medium. Found by grepping the lanes'
+transcripts for `pkill`. Candidates: `release_gate.py` writes its own
+pid to the job tmp and prints the line that kills it; a guard that
+refuses a gate's death by a signal without naming who sent it; the
+frame's row moved up to the build section's first bullet. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
@@ -4068,3 +4106,17 @@ sooner (The President's clock on 14363). And 1508's: a dumped field
 the crate carries under another name (`cast_target` for `cavarch_o`)
 read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119. **The twenty-eighth pass**: reached by 1651 (above, in 1119) and by `att-1648-sh`'s 1664 (`spell_time` carried unread again). Not built as a check; stays with 1119.
 
+
+## Parked by item 1497, 2026-10-13 — the Temple's term
+
+(1687) **The Temple's hit points on French East Indies 17025**: `1/2000`,
+`1/2018`, `1/2023` `myhits` 7500 against 6000 from 17025 and `1/2064` 3600
+against 2880 from 17238 (run657..run667); ratio 1.25, the level-1 Temple
+term. The original recomputes `update_hits` on the frame of parked 1509's
+dirty bit; ours does not. No draw parts on it.
+
+(1688) **The member `find_melee_target` arm** (1473), still unwalked: needs
+an `@form` formation wider than a Stockade's reach band.
+
+(1689) **Two-order snap (1500) and M5/M6 (1508: the drop, the captain's
+re-search)**: not reached by this chapter (three arms).

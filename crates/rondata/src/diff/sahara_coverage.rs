@@ -842,7 +842,11 @@ fn run718_s_word_frame_is_widened_whole() {
     // percent (`ObjectData::train_time`'s wool arm, `docs/AI.md` §184), so
     // `1/2031` finishes at 9473 as in the original; the keys drop 364 -> 68
     // and the word leaves this window, to run766's.
-    pin_eq!(w.firsts.len(), 68, "initial run718 baseline");
+    // Item 1497: `myhits` and `construct_hits` are compared on buildings;
+    // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
+    // 1/2055's `construct_hits` part in the already diverged tail: on the
+    // merged tree with item 1697's arms, 68 -> 69.
+    pin_eq!(w.firsts.len(), 69, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,
@@ -941,11 +945,11 @@ fn run766_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 1697: 252 keys on the tree that builds the Wool and Uranium
+    // Item 1697: 252 keys (253 with item 1497's building keys) on the tree that builds the Wool and Uranium
     // arms of `train_time` (`docs/AI.md` §184). The word 2851's first row is
     // `1/8`'s `order:move` on 2850 — destination (36792,21528) against
     // (36024,26568) — and block 2852's `1/51` `collide` 1 against 0; the
     // word 2640's value diff was `1/2017`'s `queue[0].job_counter` 65500
     // against 65454 on 2640 and block 2641's `queued` 1 against 0.
-    pin_eq!(w.firsts.len(), 252, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 253, "initial run766 baseline");
 }
