@@ -163,3 +163,48 @@ pub const fn group_move_order_is_pathed(flags: i8) -> bool {
 pub const fn move_order_is_fleeing(flags: i8) -> bool {
     flags & 2 != 0
 }
+/// `GroupMoveOrder::is_fleeing@00485a40`: bit 1 of the order's flag byte
+/// (item 1787).
+pub const fn group_move_order_is_fleeing(flags: i8) -> bool {
+    flags & 2 != 0
+}
+/// `Game::is_recording@0043ec50`: bit 3 of the game's flag byte at `+0x820`.
+pub const fn game_is_recording(flags: u8) -> bool {
+    flags >> 3 & 1 != 0
+}
+/// `Game::is_nomad@00594650`: the byte at `+0x2c` is zero.
+pub const fn game_is_nomad(b: u8) -> bool {
+    b == 0
+}
+/// `Game::is_no_rush@005946c0`: the byte at `+0x32` is non-zero.
+pub const fn game_is_no_rush(b: u8) -> bool {
+    b != 0
+}
+/// `Game::is_never_war@00594660`: the byte at `+0x32` is 8.
+pub const fn game_is_never_war(b: u8) -> bool {
+    b == 8
+}
+/// `Game::is_deathmatch@00594630`: the byte at `+0x2d` is 7.
+pub const fn game_is_deathmatch(b: u8) -> bool {
+    b == 7
+}
+/// `get_type_count@00669130`: the byte at `0x00ed89ce + row * 0x1ed + col`;
+/// `table` is that array.
+pub fn type_count(table: &[u8], row: usize, col: usize) -> u8 {
+    table[row * 0x1ed + col]
+}
+/// `GameAccessConst::get_scary_my_player@00583430`: `0x00e37f04 + 0x8c *` the
+/// console player's word at `+0x2a0` (`rec` is the record as words).
+pub fn my_player(rec: &[i32]) -> i32 {
+    rec[0x2a0 / 4].wrapping_mul(0x8c).wrapping_add(0x00e3_7f04)
+}
+/// `GameAccessConst::get_scary_select_group@00583450`: the word at
+/// `0x00e8d444` (`base`) plus `0x9f0 *` the same word at `+0x2a0`.
+pub fn select_group(rec: &[i32], base: i32) -> i32 {
+    rec[0x2a0 / 4].wrapping_mul(0x9f0).wrapping_add(base)
+}
+/// `Player::is_active@0047e0e0`: the flags word at `+0x30` has bit 0 set and
+/// neither `0x100` nor any of `0xd0`.
+pub const fn player_is_active(flags: u16) -> bool {
+    flags & 1 != 0 && flags & 0x100 == 0 && flags & 0xd0 == 0
+}
