@@ -25,22 +25,27 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <before> -> <eax> | <after>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <before> -> <eax> | <after>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut m = unhex(before.trim());
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
             let _ = (&a, &m);
             wr(m, 0x28, 0);
-        if a[3] == 2 || a[3] == 1 {
-            wr(m, 0x24, a[2]);
-            wr(m, 0x18, a[0]);
-            wr(m, 0x1c, a[1]);
-        }
-        0
+            if a[3] == 2 || a[3] == 1 {
+                wr(m, 0x24, a[2]);
+                wr(m, 0x18, a[0]);
+                wr(m, 0x1c, a[1]);
+            }
+            0
         };
         let _ = (got, want_eax);
         assert_eq!(m, unhex(after.trim()), "set_ordered — bytes, row `{line}`");

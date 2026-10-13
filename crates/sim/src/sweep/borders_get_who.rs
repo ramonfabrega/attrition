@@ -17,11 +17,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let rhs = rhs.trim();
         let b = a[3] as u8 as i8;
         let got = if b >= 0 { i64::from(b) } else { -1 };
-        assert_eq!(
-            got,
-            rhs.parse::<i64>().unwrap(),
-            "get_who — row `{line}`"
-        );
+        assert_eq!(got, rhs.parse::<i64>().unwrap(), "get_who — row `{line}`");
         n += 1;
     }
     assert!(n >= 300, "only {n} rows");
