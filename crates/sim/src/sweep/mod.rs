@@ -12,9 +12,12 @@
 //! as `path::tests::the_emulated_original_agrees_on_every_row` does.
 
 mod air_order_get_air_order;
+mod airattackgroundorder_get_air_order;
+mod airpatrolorder_get_air_patrol_order;
 mod animal_update_los;
 mod attack_ground_order_get_type;
 mod attack_order_get_type;
+mod attacktoorder_get_attack_to_order;
 mod build_order_get_type;
 mod build_queue_get_size;
 mod build_type_corner_tile;
@@ -29,16 +32,23 @@ mod find_angle;
 mod flanking;
 mod follow_order_get_type;
 mod game_is_raining;
+mod garrisonorder_get_garrison_order;
 mod gather_order_get_type;
 mod gather_point_is_inside;
+mod get_type_count2;
+mod get_unique_types;
+mod get_unique_types2;
 mod good_inc_time;
 mod good_type_avail_drop;
 mod good_type_compute_largest_gather;
+mod graphicwinxml_get_graphicwinxml;
 mod group_action_begin;
 mod group_get_speed;
+mod groupmoveorder_is_pathed;
 mod is_air;
 mod is_move;
 mod mining_list_clear;
+mod moveorder_is_fleeing;
 mod object_assault_benefit;
 mod object_get_captain;
 mod object_has_range;
