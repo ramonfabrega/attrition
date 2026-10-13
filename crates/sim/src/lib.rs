@@ -108,6 +108,7 @@ pub mod terrain;
 pub mod territory;
 pub mod transport;
 pub mod tuning;
+pub mod type_index;
 pub mod victory;
 pub mod vision;
 pub mod world;
