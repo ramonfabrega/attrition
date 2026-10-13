@@ -6889,7 +6889,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
     // flight (10 reads) into the tail the replay keeps running.
-    ("sahara_coverage_first_parting", 81),
+    // Item 1870: the walk reaches the word 3767 (the nuke embargo and the
+    // fort escalation moved it 3182 → 3767): 433 reads, 352 more.
+    ("sahara_coverage_first_parting", 433),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -8950,9 +8952,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SAHARA_COVERAGE_WORD",
         crate::diff::sahara_coverage::SAHARA_COVERAGE_WORD,
-        Some("run767_s_word_frame_is_widened_whole"),
-        1583,
-        Some(crate::diff::sahara_coverage::WIDENING_SAHARA_COVERAGE_FRAME_2934),
+        // Item 1870 built the nuke embargo and the Fort's count escalation
+        // and the word moved 3182 -> 3767, past run767 (its test keeps
+        // 3182's value diff: 142 -> 112 keys); parked 1877 owes 3767's widening.
+        None,
+        1877,
+        None,
     ),
     (
         "THIRD_WORD_GREAT_SAHARA_TOUGHEST",

@@ -1069,10 +1069,14 @@ impl Sim {
                 .filter(|b| b.alive && b.owner == who && b.ty.is_some_and(line))
                 .count() as i32
         } else {
-            self.buildings
+            let n = self
+                .buildings
                 .iter()
                 .filter(|b| b.alive && b.owner == who && b.ty == Some(ty))
-                .count() as i32
+                .count() as i32;
+            self.build_types[ty]
+                .tree
+                .map_or(n, |t| cost::building_family_count(t, n))
         };
         let holdings = &self.holdings[who as usize];
         cost::charges(

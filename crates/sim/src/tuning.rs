@@ -302,6 +302,12 @@ pub struct Tuning {
     pub market_min_trend: i32,
     pub market_trend_range: i32,
     pub market_cycle_rate: i32,
+    /// `NUKE_EMBARGO_BASE`, `_NATION` and `_WORLD` (frames, `900 900 0`): what
+    /// `LeaderData::get_my_nuke_embargo` adds to a nuke's stamp, per nuke the
+    /// nation has used, and per nuke the world has (`Game::armageddon`).
+    pub nuke_embargo_base: i32,
+    pub nuke_embargo_nation: i32,
+    pub nuke_embargo_world: i32,
     /// Wealth for a city with a temple. Ships as zero.
     pub temple_taxes: i32,
     /// Knowledge per city, unconditionally. Ships as zero.
@@ -1062,6 +1068,9 @@ impl Tuning {
         market_min_trend: 8,
         market_trend_range: 16,
         market_cycle_rate: 1,
+        nuke_embargo_base: 900,
+        nuke_embargo_nation: 900,
+        nuke_embargo_world: 0,
         temple_taxes: 0,
         village_literacy: 0,
         university_literacy: 10,
@@ -1344,7 +1353,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 367] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 370] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1597,6 +1606,9 @@ impl Tuning {
             ("MARKET_MIN_TREND", Slot::Value(T.market_min_trend)),
             ("MARKET_TREND_RANGE", Slot::Value(T.market_trend_range)),
             ("MARKET_CYCLE_RATE", Slot::Value(T.market_cycle_rate)),
+            ("NUKE_EMBARGO_BASE", Slot::Value(T.nuke_embargo_base)),
+            ("NUKE_EMBARGO_NATION", Slot::Value(T.nuke_embargo_nation)),
+            ("NUKE_EMBARGO_WORLD", Slot::Value(T.nuke_embargo_world)),
             ("TEMPLE_TAXES", Slot::Value(T.temple_taxes)),
             ("VILLAGE_LITERACY", Slot::Value(T.village_literacy)),
             ("UNIVERSITY_LITERACY", Slot::Value(T.university_literacy)),
