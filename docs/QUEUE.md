@@ -36,12 +36,11 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-second tranche, on `commander` — spawn the four lanes
-on 2001, 1999, 1998 and 2002, one each, **Opus 5.5 medium** (`ccc spawn
---model 'claude-opus-5-5[1m]' --effort medium`; Ramon's trial, DECISIONS
-68), park slots U, V, W, X in that order; the next number is 2004, the next
-run 809; count landings from this commit and stop at twenty with the
-handoff written, then `ccc clear steer`.**
+**Opener: continue the thirty-second tranche, on `commander` — four lanes
+live (`att-2055`, `att-2066`, `att-2072`, `att-2077`, Opus 5.5 medium): re-arm
+`tools/lanewait.py` on them and merge, book, spawn, gate, push and reap each
+landing; eleven landed since `dca6a873`; at twenty write the handoff and
+`ccc clear steer`.**
 
 ## The queue
 
