@@ -3952,10 +3952,22 @@ theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `dea
 (ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
 `group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.~~ **Closed by item 1863** (`docs/GOLDEN.md` §69): the pool id, the squad head, and an instrument gap.
 
-## Parked by the next landing, slot A — reserved
+## Parked by item 1868, 2026-10-13 — the Fishermen's sea goal
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot A renames this heading `## Parked by item N, <date> — <title>`
+(1873) **The successor pair's word 3131, widened whole** (1868; `docs/AI.md` §196): ours 62 draws against 65, index 0, ours `Guy::set_anim+0x97a <
+Guy::do_turn+0x4a < Unit::move_step+0x3b6` (unit `1/87`), theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_cast+0xc89` followed by a
+`Guy::init_real+0x52 < Unit::init < Objects::init_unit` draw — a unit born on 3131 in theirs. run788 ends at 3088: a capture over `--log-window
+3125 3382` at the long's detail (the lobby of run774..776) and every record on 3131 both ways before a mechanism.
+
+(1874) **`find_wpath`'s human arm and the other callers of the sea clause** (1868): the loop built in 1868 is the AI arm's (`leaders & 4` clear);
+the human arm (`00689109`–`006892e4`) walks its own variant before it falls into it, and a sea unit's `ai_walk` is forced on, so the clause is
+reached through both; no capture has a human boat with a shore goal. Not built, not read past the loop's break test.
+
+(1875) **run794's walk-back window has no widening test** (1868): blocks 2674..2800 agree on `1/122` frame for frame to 2732 and part on 2733 under
+the old planner; with the clause built `1/122` agrees on run788's window (2832..3088; not measured on 2674..2800), but no `#[test]` pins this window's keys. Cheap to add when a
+second boat's walk is read.
+
+## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
