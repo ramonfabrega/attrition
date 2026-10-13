@@ -4372,13 +4372,17 @@ each with a test made to fail first.
 window (to 3883), so no dump holds it: a capture over a `--log-window` round 4238 (run809's recipe) and its widening, every record on
 4238 both ways before a mechanism.
 
-## Parked by the next landing, slot AI — reserved
+## Parked by item 2083, 2026-10-13 — the sweep's forty-seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2084) **A stub answered per argument, on the object at `this+VIA`, by hand** (Loop 2003's seventh reach; names
+no score). Three of item 2083's ten were written on `tools/emu/hooks.py` because the generator's `obj --stub`
+answers one word a row on `this`'s own vtable: `BuildTypeData::is_defensive` (0x473600) asks its slot `+0x60`
+three times with different type indices and the order is the finding, so the answer has to be a function of the
+argument; `WallData::is_defensive` (0x473650) is the same body on the record at the wall's `+0x18` (item 2083
+shares one `run(entry, via)` between the two scripts); and `UnitData::get_capture_value` (0x610a70) asks the
+type record's slot `+0x10c` through `+0x18`. `vcall --via` reaches the record but not the fields beside the call.
+Candidate: `obj --stub slot:OFF:NARGS --stub-via VIA --answer-by-arg IDX` (a per-row dict keyed by one argument),
+the row printing the answers in the order asked, with a test made to fail first.
 
 ## Parked by the next landing, slot AJ — reserved
 
