@@ -12,15 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **thirty-first tranche, twenty-two landings** (from `45cf8c6b`; lanes Sonnet
-5.5 medium): successor pair 2838 → 3632 (1868, 1948, 1982); Great Sahara 3182 → 3825 (1870, 1905, 1937);
-ch57 closed (1863), ch58 on the disk (1926), ch59 closed (1960); census 319 → 449. No kill rule: three booking gates red on merges
-meeting, each a second commit (Loops 1910, 1959); 1870's red tip pushed once on an
-`echo`-wrapped exit (574) — gates run unwrapped now.*
+*2026-10-13, **the thirty-first tranche closed at twenty-three landings** (`45cf8c6b`..
+here; every lane Sonnet 5.5 medium). **The headline moved**: successor pair 2838 → 3632
+(1868, 1948, 1982); Great Sahara 3182 → 3825 (1870, 1905, 1937); ch57, ch59 closed, ch58
+on the disk, ch60's 1961–1962 closed (1988); census 319 → 449. No kill rule. Three booking
+gates red on merges meeting, each a second commit (Loops 1910, 1959); 1937 and 1982
+conflicted in `mongol_pair.rs` (one word's run re-pinned twice), went back through `ccc
+update --keep-conflicts`; 1937 and 1988 cleared at 301 k; 1960's re-filed 1887 caught.*
 
-- **One lane draining, none refilled at twenty**: `att-1988` (S, runs 804–805;
-  cleared at 301 k, continuing from its draft). Next 2002, run 807, AI §204,
-  GOLDEN §73, slot U. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+- **No lanes live**: the tranche drained. Next 2003, run 809, AI §204, GOLDEN §74,
+  slot U. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+  The AI stub pool is down to §204 and the park pool to U–Z: refill both.
 - **Fable backlog: 17 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965, 1981, 1987, 2000).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -34,14 +36,16 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-first tranche is at twenty landings on `commander` —
-drain the three lanes (merge and book each as it lands, refill none), then
-the handoff, the gate green, and `ccc clear steer`.**
+**Opener: the thirty-first pass, on `steer` — measure the thirty-first
+tranche (`45cf8c6b`.. this commit, twenty-three landings, `tools/tranche.py`),
+ratify the marked rows, rule the seventeen Loop items (1890 at thirteen
+reaches: the sweep generator's shapes), refill the stub pools, rewrite this
+file and the loop's clauses, then `ccc clear commander`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2001 the headline's word, 1999, 1998 and 1988 the other three lanes —
+2001 the headline's word, 1999, 1998 and 2002 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -71,13 +75,11 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1988. **Chapter sixty: run801's three pinned rows, on the disk**
-    (DECISIONS 56 §3; GOLDEN §71; 1960 closed ch59 at word 760, draws
-    whole): parked 1961 (`leader:treaties` and `build:ever_seen` on 607,
-    the earliest), 1963 (the guard walk's pool `speed` on 625) and 1962
-    (a Stockade arrow's first wound on 655), each pinned in `WANT_CH59`
-    — read on run801, no capture; then 1887's follower arms if a staging
-    reaches them (runs 804–805). GOLDEN §72.
+2002. **Chapter sixty's last row: the guard walk's pool `speed` on 625**
+    (DECISIONS 56 §3; GOLDEN §72; 1988 closed 1961 and 1962 on run801):
+    parked 1963, ours 0 against 25 in `WANT_CH59_POOL` — `RON_DEBUG_UNIT=
+    0/6@620-626` first, no capture; then 1887's follower arms if a
+    staging reaches them (runs 807–808). GOLDEN §73.
 
 ## How to maintain this file
 

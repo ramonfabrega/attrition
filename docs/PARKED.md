@@ -3744,7 +3744,9 @@ or the lane gate's default filters, that runs every floor's
 frame 0** (1960's Loop line): run801's first take died on a Wine page
 fault with no `gamelog.txt`, and the retake was by hand under parked
 1150's rule. Candidate: one automatic retake when the take exits with no
-dump, the retake's receipt naming the first. One reach.
+dump, the retake's receipt naming the first. One reach. **1988**: it
+refuses an `--end-frame` below a staged `@` line's frame with a traceback
+where a one-line hint would save a take. Two reaches.
 
 (1981) **A one-unit printer for a dump** (1948's Loop line): naming a
 unit by `TypeIndex` meant reading `decomp/enums/TypeIndex.txt` by hand,
@@ -4159,9 +4161,9 @@ the three `walk_data`s and `OrderList::get_new_data` (1944) are still left.
 
 ## Parked by item 1960, 2026-10-13 — chapter fifty-nine
 
-(1961) **`leader:treaties` and `1/2006` `build:ever_seen` on 607** (1960, run801): treaties[1] on 0 and treaties[0] on 1 ours 0, theirs 1; `ever_seen` 0 against 1 on 607, `ever_seen_completed` 2 against 3 on 610. A who=1 Stockade added on 606 is seen and the pair meets in the original at once. Pinned in `WANT_CH59`; no draw.
+(1961) closed 2026-10-13 by item 1988 (GOLDEN §72): **`leader:treaties` and `1/2006` `build:ever_seen` on 607** (1960, run801): treaties[1] on 0 and treaties[0] on 1 ours 0, theirs 1; `ever_seen` 0 against 1 on 607, `ever_seen_completed` 2 against 3 on 610. A who=1 Stockade added on 606 is seen and the pair meets in the original at once. Pinned in `WANT_CH59`; no draw.
 
-(1962) **A Stockade arrow's first wound on `0/7`, 655** (1960, run801): `hits:damage` ours 13 theirs 10, `hits_left` 107 against 110. No draw. Pinned in `WANT_CH59`.
+(1962) closed 2026-10-13 by item 1988 (GOLDEN §72): **A Stockade arrow's first wound on `0/7`, 655** (1960, run801): `hits:damage` ours 13 theirs 10, `hits_left` 107 against 110. No draw. Pinned in `WANT_CH59`.
 
 (1963) **The captain's guard walk, pool slot 1 `speed`/`new_speed` on 625** (1960, run801): ours 0, theirs 25. Pinned in `WANT_CH59_POOL`.
 
@@ -4206,9 +4208,10 @@ retry roll spared it (an order that is not a move, or `attempts` ≥ 13); no cap
 
 ## Parked by item 1988, 2026-10-13 — chapter sixty: 1961 and 1962 closed
 
-- **1961 and 1962 closed by builds** (GOLDEN §72): the cell-change `update_seen` (`collide.rs`) and `target_side`'s `is_moving`. 1963 (pool slot 1 `speed`/`new_speed`, 625) stands in `WANT_CH59_POOL`; `RON_DEBUG_UNIT=0/6@620-626` first.
-
-- **For the Loop**: `golden_capture.sh` refuses an `--end-frame` below a staged `@` line's frame with a traceback; a one-line hint would save a take. `WORLD=6` prints `seen2`/`was_seen` only, not `seen`, so a `seen` question needs a packet.
+1961 and 1962 closed by builds (GOLDEN §72: the cell-change `update_seen`
+in `init_unit`'s squad seating, and `target_side`'s `is_moving`), at their
+rows; 1963 stands at its row (`RON_DEBUG_UNIT=0/6@620-626` first). The
+Loop line went to 1987.
 
 ## Parked by item 1993, 2026-10-13 — the sweep's fortieth batch
 
