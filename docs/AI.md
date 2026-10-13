@@ -18132,10 +18132,58 @@ still do: `1/184`'s `mirror` and pool 80 on 3468, `1/139`'s order kind on
 3478. The ground guard reads 97 non-exact corners on the walk to the word
 (pinned at 48, it fails).
 
-## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+## 179. A packed fisherman is an idle one (2026-10-12, item 1656)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3585, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
+Theirs spends one more `produce_building` pair and one more
+`make_stuff+0x63d` inside the leader's walk. The make list had parted
+four frames earlier: block 3581, after the Units step (6) of frame 3580,
+is the first block any `MAKE` field parts on in run721.
+
+**The value diff.** Block 3581, leader `1`'s list, theirs: `[1]` Jet
+Fighter (295) 60720 `num 10`, `[2]` Strategic Bomber (305) 58080, `[3]`
+Attack Helicopter (311) 41485, `[4]` empty. Ours: `[1]` Fishermen (317)
+88000 `cat 4` city 1, `[2]` an 88000 slot, `[3]` the Jet Fighter, `[4]`
+Fishermen 88000 city 0. `debug_leader` now prints the offers of the
+frame's `create_units`: ours offered both air units and two Fishermen,
+one per city, at 88000, and the Fishermen outbid the air. The original's
+list holds one Fishermen through block 3576 and none from 3577.
+
+**The gate.** `sea_value`'s civilian arm, on 3580, for both cities: dock
+not attacked, `reg_combat` 13, `n` 3 Fishermen (two at the 3380 cycle),
+Commerce 7 — every term passes, and `idle_fishermen` reads 0. This crate
+zeroed `idle_fishermen` and never counted it.
+
+**The reading.** `Leader::plan_strategy@006b9620:543`-`548`, the sea arm
+of the unit census: `unit_flags2 & 4` (type `+0x2b8`) → `fishermen++`,
+and then, inside the same test, `unit+0x68 & 0x80000` → `idle_fishermen
+++` (`+0x974`). `+0x68` is `unit_masks`; `0x80000` is the packed bit
+`Unit::init` gives every type that packs, and that a Fisherman keeps
+until it unpacks at its fish (`docs/ORDERS.md` §6.8). This crate has
+carried that bit as `combat.packed` since the packers were built, and
+the census's table still called it unmodelled. The third Fishermen,
+born packed, makes `idle_fishermen` 1 and `create_units@006c40a0:737`
+offers no boat. Killer: had the original counted the packed boat as
+working, its list would hold Fishermen on 3581. It holds none.
+
+**Built.** `census` counts a packed fisherman in `idle_fishermen`; the
+unit test `a_packed_fisherman_is_an_idle_one` fails with the packed test
+dropped, and so do `coverage_pair_first_parting` and the run721 widening
+(`tools/mutate.py`, exit 101). SEAM, unchanged: `reg_unpack_merch` still
+counts every merchant, packed or not.
+
+**Score.** The make list agrees on blocks 3581, 3585 and 3586, and so
+does `1/143`'s route on 3586. The word moves **3585 → 3587**, 15 versus
+16 draws, index 1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+theirs `Unit::do_move+0xe84`. run721 widens block 3588 whole: **482 →
+394** keys; block 3588 parts `1/133`'s move — `dest` (40644, 36756)
+against (40680, 37320), `last_x/y` (40549, 37539) against (−1, −1), path
+length 14 against 26, position (40553, 37515) against (40548, 37539).
+Rows that stand from earlier blocks: Rocket Artillery's `MAKE[6].val`
+333185 against 347364 on 3581, `1/57` and `1/105`'s `group.id` on 3581,
+and the queue costs of `1/2023`, `1/2032` and `1/2035` on 3583 (222
+against 202). The ground guard reads 99 (pinned at 97).
 
 ## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
 
