@@ -108,7 +108,11 @@ impl crate::Sim {
         if self.units[u].cavarch_idle && (i64::from(self.units[u].index) + frame) % 32 != 0 {
             return;
         }
+        let pre = self.units[u].cast_target;
         self.cavarch_fight(u, frame);
+        if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
+            eprintln!("P1829 f{frame} head pre {pre:?} post {:?} rech {} idle {}", self.units[u].cast_target, self.units[u].combat.recharging, self.units[u].cavarch_idle);
+        }
     }
 
     /// **`Unit::cavarch_fight@005ff4b0`**: the fight, and then the
@@ -180,12 +184,24 @@ impl crate::Sim {
                     let reentry = self
                         .current_order(u)
                         .is_some_and(|o| o.flags & flag::FIGHT_REENTRY != 0);
+                    if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
+                        eprintln!("P1829 f{frame} roll {roll} reentry {reentry}");
+                    }
                     !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 && !reentry
                 }
             };
+            if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
+                eprintln!("P1829 f{frame} research {research} inrange {}", self.is_in_range(me, target));
+            }
             if research {
                 let found = self.find_melee_target_as(u, -1, 0, true);
+                if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
+                    eprintln!("P1829 f{frame} found {found:?}");
+                }
                 if found != Some(target) {
+                    if std::env::var("RON_P1829B").is_ok() && found.is_none() {
+                        return;
+                    }
                     self.cavarch_take(u, found);
                     return;
                 }
@@ -210,6 +226,9 @@ impl crate::Sim {
     /// already within 15°), and the walk is `CHAR_WALK`; non-zero walks
     /// `CHAR_ATTACKWALK`.
     pub(crate) fn cavarch_step_anim(&mut self, u: usize) -> i8 {
+        if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
+            eprintln!("P1829 stepanim tgt {:?} des {:?} ang {:?} flags {}/{}", self.units[u].cast_target, self.units[u].guys.first().map(|g| g.turret.des), self.units[u].guys.first().map(|g| g.turret.angles), self.units[u].guys.first().map_or(0, |g| g.turret.node_flags), self.units[u].guys.first().map_or(0, |g| g.turret.des_flags));
+        }
         let Some(target) = self.units[u].cast_target else {
             return crate::anim::WALK;
         };

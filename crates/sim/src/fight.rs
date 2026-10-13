@@ -1445,6 +1445,9 @@ impl Sim {
                 deg >= lo || deg <= hi
             };
             can &= inside;
+            if std::env::var("RON_P1829").is_ok() && self.units[i].owner == 0 && self.units[i].index == 6 {
+                eprintln!("P1829 pivots node {node} lo/hi {lo}/{hi} deg {deg} inside {inside} bearing {} facing {} vx,vy {vx},{vy} from {from:?} to {to:?}", bearing.0, facing.0);
+            }
             if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
                 let t = &mut self.units[i].guys[g].turret;
                 t.des[k] = bearing.0.wrapping_sub(facing.0);
