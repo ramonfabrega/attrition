@@ -18482,10 +18482,15 @@ the squad was absent (`1/235`–`1/237` "unlinked: the dump holds it alone",
 (its new `rc` column) prints 7, 6, … 1, 607, 606 for `1/2043` on every block
 of the window, the squad is at the dump's three positions on 3844 and in
 group 78 with the dump's move on 3845, and **no key of the leader or of the
-squad parts**. `run742_s_word_frame_is_widened_whole` pins the clock's three
-readings off the dump's text (the parser carries no building `recharging`:
-the field this crate now writes and **no widening compares**, see Limits),
-the leader key's absence, the squad's presence and the keys, 2460 → 1583.
+squad parts**. The widening now **compares the finished wonder's
+`recharging`** (`BuildDump::recharging`, parsed for this landing, compared on
+`orig_type` 529 with `flags & 4` and ours active — a tower's or silo's reload
+is not diffed anywhere, and a *site* counts the same field up with its
+`job_counter`: Great Sahara's `1/2055` on run718 reads 1 on 2358 and 5 on
+2362 with `frame_started` 2357, a writer this crate does not carry).
+`run742_s_word_frame_is_widened_whole` also pins the clock's three readings
+off the dump's text, the leader key's absence, the squad's presence and the
+keys, 2460 → 1583.
 
 **Killers.** The reading would die if the squad were not at the wonder's exit
 ring (it is: 1080 from the wonder, as the General is 792 from its building),
@@ -18496,7 +18501,11 @@ the reset did not follow the Barracks count (21 units: 607; with 20 it is
 `cities_tests::a_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out`
 (seed 450, tick countdown, reset with one unit 457, birth, and the cap
 refusing the soldier while the clock resets; fails without the tick's call
-and without the soldier — mutated, below).
+and without the soldier). **Mutated** (`tools/mutate.py`, on the committed
+tree): dropping the tick's call fails the unit test; dropping the Barracks
+share from the reset (607 → 450) moves run742 from 1583 to 1584 keys; flipping
+the cap test births nothing and moves it to 2460 with the squad unlinked again
+and `num_units[54]` back on 3844.
 
 **Built.** `Sim::terra_cotta_soldier` and `terra_cotta_activate`
 (`crates/sim/src/nations.rs`; the tick calls the first after the Persians'
@@ -18523,9 +18532,9 @@ standing order) and does not make these copies; the first reading is why
 and mana against the original's), before the copies themselves. Fourteen
 extra draws: seven `Guy::init_real` and seven figures' `inc_time`.
 
-**Limits.** The wonder's `recharging` is a `BuildData` field the dump prints
-and no widening compares; this landing read it by hand from the text. The
-leader's group-id keys (`group:81.held`, `pool:81`) now part on the squad's
+**Limits.** The compare covers the finished Terra Cotta Army only, in every
+window that holds one (run742 here; run718's `1/2055` is a site); a
+construction counter in the same field is unmodelled. The leader's group-id keys (`group:81.held`, `pool:81`) now part on the squad's
 own block (ours files the three in pool 81 on birth, the dump's `group` field
 is 81 and its pool table does not list them) and are the old unexplained
 family. The `terra_cotta_total` counter and the Kremlin's spy, which share
