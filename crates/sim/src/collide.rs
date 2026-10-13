@@ -735,9 +735,6 @@ impl Sim {
             return;
         }
         let to = self.units[u].pos;
-        if std::env::var_os("RON_PROBE_UPATH").is_some() && (4170..=4238).contains(&self.frame) {
-            eprintln!("PROBE comeout f{} {}/{} size {} from {:?} {:?} to {:?} {:?}", self.frame, self.units[u].owner, self.units[u].index, self.coll_size(u), from, ucell(from), to, ucell(to));
-        }
         self.coll_paint(u, from, true);
         self.coll_move(u, from, to);
         self.units[u].coll_at = Some(to);
