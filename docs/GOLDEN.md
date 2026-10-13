@@ -11132,14 +11132,51 @@ parked.
 **Not established.** `find_melee_target`'s head for its other callers; the two-order snap; a pushed group's dead member.
 A chapter needing both the pool and the death list has no capture shape (parked 1885).
 
-## 71. Reserved for the next item on the rules track
+## 71. Chapter fifty-nine — a guarding follower's search takes the squad head (item 1960)
+
+**The booking.** Parked 1887 (`find_melee_target`'s squad head for the callers that are not the group's retarget or
+the add path), 1805 and 1778. **What the disk could not answer**: no dump holds a squad *member* in a search outside
+those two. The reading first: `Unit::think@005f6e40`'s first statement keeps a non-captain out of the idle search (the
+captain mirror, `crate::orders`' `think`), and `fight`'s re-search is captain-only (`state.captain == index`), so
+**the idle search is unreachable for a follower**. What a follower does reach is a **Guard**: `do_guard`'s look, one
+frame in sixteen, runs `find_melee_target(−1)` for every member. The staging was walked before the capture
+(`RON_STAGE`, a probe printing each search's head: committed and reverted whole): `602 add hoplite who=0 225,152`
+is a squad `0/6` (captain) with `0/7`, `0/8`; the Citizen `0/9` is its charge, guarded by the captain from 620
+(`@guard 0 9 0 6`); two Stockades of who=1 east and west. From 672 the members' look reaches the search every
+sixteen frames, with the head `Nothing` (captain not attacking) and then `Captain(Building)`.
+
+**run801** (`tools/gamelog/golden/chapter59.cmd`, 605..760): word **760**, the trace's end; the draws agree whole.
+**The value diff on 673/674, before the build**: `0/8` on 673 and `0/7` on 674 `near` ours (2006, 1) against (−1, −1),
+`order:kind` 10 against 12 (an Attack against the Guard alone), `orders.len` 2 against 1, and `0/8`/`0/7`'s
+`order:guard.idle` one behind on the next frame. The original's member **adds nothing**: its head answers −1 while
+the captain is not attacking, and this crate searched and attacked the Stockade.
+**Built**: `do_guard`'s idle look calls `Sim::find_melee_target_added` (the head, then the search). The six rows
+leave; **no draw moves**, and run667's closing window loses three keys (202 → 199, toward the dump). The battery
+reads 576 / 6566 / 2974, unmoved.
+
+**What stands, pinned in `WANT_CH59`/`WANT_CH59_POOL` (17 + 2 rows), parked 1961–1963**: the standing `form` rows
+(605); `leader:treaties` on 607 (ours 0, theirs 1 on both sides: a Stockade of who=1 appearing); `1/2006`
+`build:ever_seen` 0 against 1 on 607 and `ever_seen_completed` 2 against 3 on 610; `0/7`'s `hits:damage` 13 against
+10 and `hits_left` 107 against 110 on 655 (a Stockade arrow's first wound, no draw); the pool's slot-1 `speed` and
+`new_speed` 0 against 25 on 625 (the captain's walk to the guard point).
+
+**Mutation (by reasoning, run before the build).** `do_guard`'s look back to `find_melee_target` returns the six
+rows on 673/674 and fails `chapter_fifty_nine_s_word_frame_is_widened_whole`.
+
+**Not established.** The head for the other headless callers a follower can reach: `fight`'s guard-failure search
+and `chase_refused` (a follower on a Guard order with an attack that fails) and the defensive-post arm of the
+review; each takes the same fix and none is staged. **1805 and 1778 not staged**: neither is reached by a script
+this staging could carry (1805 needs a unit on its waypoint, turning, with one order; 1778 an AI-pushed group's
+member dying); they stay at their rows.
+
+## 72. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 72. Reserved for the next item on the rules track
+## 73. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

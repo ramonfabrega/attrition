@@ -16312,3 +16312,39 @@ Archive `rontrace-run798.log`, 246,013,248 bytes,
 SHA-256 `05a28e29ece43c2bc2bf2b3a1d42ef143dc0fc2e27b04718a0b81249dc0ee704`.
 
 **What it holds**: read by hand (`tools/gamelog/one.py UNITDATA 1 115`), not wired into a widening: the Jet Fighter `1/115`'s strike on `0/2000` on block 4206 (`mandatory 1`, pushed by the patrol's look while `returning 1`) and no release on 4207–4209. `docs/AI.md` §199.
+## run799 — the successor pair: the word 3131's widening, blocks 3125..3382 (2026-10-13, item 1948, `att-1948`)
+
+`docs/AI.md` §200. **Disk gap**: item 1868 moved the word 2838 → 3131, past run788's last block (3088); no dump of this lobby held a unit, a
+building or a leader record there. run788's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 3388 --timeout 3600 --log-window 3125 3382 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool, free at launch;
+`success`, 3389 frames, 1798 s launch to exit. `rngcmp.py rontrace-run775.log rontrace-run799.log`: **3389 in common, 0 differing**.
+258 `BEGIN FRAME`s 3125..3382. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run799-eastindies-mongol-alltech-window-3125-3383.txt`, 659,893,866 bytes,
+SHA-256 `087dbaf285205d51bf45b5d4a0f18a54bca1e7f46924b9d08bc7aefb7052f8d0`.
+
+Archive `rontrace-run799.log`, 123,494,112 bytes,
+SHA-256 `1cf1cea1307ed006a423510f0afba87a30e676aa24114453ae7ddb1fbc0bb89a`.
+
+**What it holds**: `diff::mongol_pair::run799_s_word_frame_is_widened_whole` — 5,308 keys on blocks 3125..3382 before item 1948's build,
+**2,210** after it; the unit is the BMP `1/27` and the Freighter `1/165` born in it on 3132 (`docs/AI.md` §200).
+## run801 — chapter fifty-nine: a squad that guards between two Stockades (2026-10-13, item 1960)
+
+`docs/GOLDEN.md` §71, `tools/gamelog/golden/chapter59.cmd` (6 staged lines). **What the disk could not answer**: no dump
+holds a squad member searching outside the group's retarget and the add path (parked 1887). Census rows the lobby
+reaches: none new. run802 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch59 \
+    --map 14 --end-frame 760 --log-window 605 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter59.cmd
+```
+
+Pool lane 1. The first take died before frame 0 (`wine: Unhandled page fault` in startup, no `gamelog.txt`, the
+receipt's `success: false`); the second, taken again once, held: `success: true`, 761 frames, seed 12345, map 14,
+260 s. Dump 75,626,055 bytes, kept in `~/ron-golden/ch59/map-14` (the failed take in `ch59_failed`). Waited on another
+lane's capture: none. **What it holds**: `golden::chapter_fifty_nine_holds_to_the_golden_word` (**760**, the
+trace's end) and `chapter_fifty_nine_s_word_frame_is_widened_whole` (605..761, 17 rows and 2 pool rows).

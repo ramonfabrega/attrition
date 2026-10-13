@@ -4005,9 +4005,12 @@ impl Sim {
         if !moving {
             let ph = self.units[u].phase(frame);
             if (ph + 8).rem_euclid(16) == 0 {
-                if let Some(v) = self.find_melee_target(u, -1) {
-                    self.add_attack_order(u, v, QueuePos::First, false, false);
-                }
+                // `find_melee_target@005ff9c0`'s head answers a follower
+                // first (item 1960, `docs/GOLDEN.md` §71, run801): nothing
+                // when its captain is not attacking, the captain's target
+                // when it is. Only a captain, or a follower whose
+                // captain's target has gone, searches.
+                self.find_melee_target_added(u);
                 return;
             }
             if ph.rem_euclid(16) == 0 {
@@ -4940,6 +4943,19 @@ impl Sim {
                     let top = self.units[u].path.last().copied().expect("non-empty");
                     if top.flags & path_flag::FINAL == 0 {
                         self.units[u].path.pop();
+                        // **A refused transport waypoint hands its bit
+                        // down** (`do_move@005f7b30`, `005f8b89`–`005f8bb5`,
+                        // item 1948): the popped top's `flags & 4`, with the
+                        // stack not empty, pops the next entry and pushes it
+                        // back with `flags |= 4`, tolerance kept — the walk
+                        // to a shore the first plan marked still ends in a
+                        // cast.
+                        if top.flags & path_flag::TRANSPORT != 0
+                            && let Some(mut next) = self.units[u].path.pop()
+                        {
+                            next.flags |= path_flag::TRANSPORT;
+                            self.units[u].path.push(next);
+                        }
                         mo.has_waypoint = false;
                         self.store_move(u, mo, flags);
                         return Did::Something;
