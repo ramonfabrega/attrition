@@ -183,6 +183,9 @@ impl crate::Sim {
                     !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 && !reentry
                 }
             };
+            if std::env::var_os("RON_PROBE_1798").is_some() {
+                eprintln!("PROBE1798 f{frame} u{u} research={research}");
+            }
             if research {
                 let found = self.find_melee_target_as(u, -1, 0, true);
                 if found != Some(target) {
