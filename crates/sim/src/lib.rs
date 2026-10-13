@@ -2523,7 +2523,7 @@ impl Sim {
             bumped = p;
             &bumped
         };
-        cost::charges(
+        let out = cost::charges(
             &self.tuning,
             price,
             counts,
@@ -2531,7 +2531,19 @@ impl Sim {
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
-        )
+        );
+        if std::env::var("RON_PROBE_PRICE").is_ok()
+            && who == 1
+            && (3978..=3984).contains(&self.frame)
+            && matches!(unit.type_index, 295 | 305)
+        {
+            eprintln!(
+                "  probe price f{} ti {} counts {:?} bump {:?} m {:?} base {:?} out {:?} by_type {} q {}",
+                self.frame, unit.type_index, counts, bump, m, unit.price.base, out,
+                muster.by_type[ty], muster.queued_by_type[ty]
+            );
+        }
+        out
     }
 
     /// The worker lines' extra term in `LeaderData::get_support_count`'s
