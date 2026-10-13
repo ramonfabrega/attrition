@@ -2051,6 +2051,10 @@ mod tests {
         // Chapter fifty-seven: chapter fifty-six's staging with the death list
         // printed at the end detail (item 1863, `docs/GOLDEN.md` §69).
         ("chapter57.cmd", &[]),
+        // Chapter fifty-nine: a Hoplite squad guarding a Citizen between two
+        // Stockades; its members' guard search through the squad head (item
+        // 1960, `docs/GOLDEN.md` §71).
+        ("chapter59.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),
