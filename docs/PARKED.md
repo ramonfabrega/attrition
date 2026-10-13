@@ -3734,6 +3734,22 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2105) **The golden floor reads a widening's window as the trace's end**
+(found at 2066's booking): `golden_line_verdict` calls a chapter closed
+when its word is its window's `hi - 1`, and the window it is handed is
+the widening's, which 2032 (ch61, (605, 781)) and 2066 (ch62, (605, 901))
+pinned to end at the word, while run814 and run818 run to 1000. So
+2032's "chapter sixty-one closed" was booked open, and the rules
+headline has read "every chapter closed" since. Candidate: the trace's
+end as its own pinned column, a test that fails when a window's end is
+short of its trace's frames; 2099 re-pins the two by hand.
+
+(2104) **`stage_walk` has no "what if" seam** (2066's Loop line, filed at
+its merge): to ask the head beside the headless search, 2066's probe
+cloned the whole `Sim` at every refusal, as 2032's did. Candidate: a
+`--what-if` closure the walk runs on a clone at a named call, held by a
+test that fails when the clone's answer leaks into the walk.
+
 (2089) **`tools/gamelog/unitat.py` prints the `OBJECT` block's `up`/`down`,
 never the dump's `o_up`/`o_down`** (2077's Loop line, filed at its merge):
 the squad chain lives in the latter, so 2077 read its two `TOW` squads'
