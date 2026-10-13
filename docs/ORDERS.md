@@ -4810,15 +4810,9 @@ leader's own trailing move order gives 897122304, `1/27`'s 910229504,
 
 ### 17.3 `get_final_loc`, and what it walks
 
-~~`get_final_loc` walks the order list **from the head** and stops at the
-first order that names a point — not the last, and not the deepest~~ —
-**overturned by item 2055 (`docs/AI.md` §206)**: the walk starts at the
-ring's anchor (`orderlist +0x14`), which is the **bottom** of the list —
-the order that runs last, and the one `OrderList::log_data` prints first —
-and climbs toward the current order (`+0x14 → +4`, `kill_current_order`).
-It stops at the first order that names a point, so the answer is the
-**deepest** point on the list. run821's packet answers the MLRS's point for
-Great Sahara's leader, whose bottom order is a guard on it. The arms:
+~~`get_final_loc` walks the order list **from the head**~~ (item 2055,
+`docs/AI.md` §206): it climbs from the ring's **bottom**, `orderlist
++0x14`, and stops at the first order that names a point — the deepest:
 
 - a **move** order (vslot `+0x14`) hands back `+0xb8`'s `(+4, +8)`, the
   order's own `x`/`y` and not its live waypoint;
