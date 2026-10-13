@@ -70,7 +70,7 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
 1704. **The sweep's seventh batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 108 of 3611): 1701's shape,
     merged by SHA; past the sixty swept, 1701's pointer first — the
-    `TypeData::is_*_type` range predicates, `is_entrenched` and
+    `TypeData` range predicates (`is_age_type`, `is_gather_type` and kin), `is_entrenched` and
     `assault_benefit`, none with a port function yet, so each names the
     reader it drives. 1630's `get_tregion` parting stands. `--kind sweep`.
 
