@@ -5696,13 +5696,28 @@ impl Sim {
             // SEAM: a unit killed in its own work with a death animation
             // (`Unit::close`'s `param_1 != 0`) has its figures handed to
             // `Objects::kill_guy` first, and this crate kills none that way
-            // there. `coll_follow` skips the dead boat, and needs to: its
-            // figure is on its `des`, because the sea arm returns before
-            // the unit's point is written, so `Guy::set_new_location` never
-            // moves the disc. `coll_repaint` takes it (item 1223): the
+            // there. `coll_repaint` takes the boat too (item 1223): the
             // sixty-fourth-frame repaint re-marks the disc the close cleared.
+            //
+            // **And the figure's step moves the disc after the close has
+            // cleared it** (item 2088, `docs/AI.md` §208). `coll_follow`
+            // skips a dead unit, and the reading here was that it could:
+            // the figure on its `des`, `Guy::set_new_location` never
+            // reached. run825's packet says otherwise. On East Indies'
+            // tick 4204 the Freighter `1/191` disembarks; `Object::close`
+            // → `remove_from_world@00647970` clears its radius-3 disc round
+            // the figure at unit cell (384, 620), and then the boat's own
+            // `Guy::move+0x4a5` → `Guy::set_new_location` →
+            // `CollCheck::move_unit` steps the figure to (384, 621), whose
+            // set pass paints the disc's new row (624) on no unit at all.
+            // Those four bits walled `1/183` in thirty-four frames later.
+            // `move_unit` has no gate on the unit, so the disc moves with
+            // the body here as it would on a live one.
             if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
+                let from = self.units[i].movement.body.pos;
                 self.process_movement(i);
+                let to = self.units[i].movement.body.pos;
+                self.coll_move(i, from, to);
             }
             return;
         }

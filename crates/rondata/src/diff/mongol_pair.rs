@@ -29,12 +29,15 @@ pub(crate) const MONGOL: Pair = Pair {
     // off-phase `near_o` arm hands it the ceiling city `0/2000` on 3647
     // (`docs/AI.md` section 205).
     // Item 2077: 3835 -> 4238 (ours 158 draws, theirs 159, index 145).
+    // Item 2088: 4238 -> 4246 (ours 156 draws, theirs 157, index 147): the
+    // dead Freighter `1/191`'s figure step on 4204 paints its disc's new
+    // row after the close cleared it (`docs/AI.md` section 208).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4238,
-    sequence: 4238,
+    count: 4246,
+    sequence: 4246,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -395,6 +398,13 @@ fn run820_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    // The word 4238's block is 4239.
-    pin_eq!(w.firsts.len(), 0, "run820 baseline");
+    // The word 4238's block is 4239. Item 2088: 2,316 keys before the
+    // build, 295 on the first block (the leaders' counts, the swapped
+    // Citizens `1/186`/`1/208`, the freighters' `form`); the first past
+    // them was the Freighter `1/183` on 4239, `path:length` 44 against 33
+    // and `safe` 0 against 30 — its 48-grid search walled in by four bits
+    // of row 624 the dead `1/191`'s figure painted on 4204. 2,316 -> 2,079
+    // with the paint: both rows agree, and the new word 4246's block 4247
+    // opens on `1/186` (`docs/AI.md` section 208).
+    pin_eq!(w.firsts.len(), 2079, "run820 baseline");
 }
