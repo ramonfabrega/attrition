@@ -572,9 +572,75 @@ pub fn move_step(
     turn_first: bool,
     half_step: bool,
 ) -> Step {
+    move_step_as(
+        from, facing, dest, step, turning, turn_rate, turn_first, half_step, None,
+    )
+}
+
+/// [`move_step`] for a type that may fly like a helicopter. `heli_rate` is
+/// `Some(GuyData::turn_speed(guy, 1))` for one (`unit_flags & 0x20`).
+///
+/// **The helicopter's arm** (`Unit::move_step@005faf30`, `5fb0d3`-ish: the
+/// test is `!(unit_flags & 0x20) || owed > 0x40000000`, with `owed` the
+/// turn still owed after this frame's `turn_speed(0)`): a helicopter owing
+/// no more than a quarter turn skips the turn-in-place tests and the half
+/// step altogether. The guy takes the frame's ordinary turn, then the
+/// *step* is aimed along a second turn from there at the mode-1 rate — the
+/// body's base, not divided by the average speed.
+#[allow(clippy::too_many_arguments)]
+pub fn move_step_as(
+    from: Pos,
+    facing: Angle,
+    dest: Pos,
+    step: i32,
+    turning: &Turning,
+    turn_rate: u32,
+    turn_first: bool,
+    half_step: bool,
+    heli_rate: Option<u32>,
+) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
     let heading = find_angle(dx, dy);
     let (facing, owed) = turn_towards(facing, heading, turn_rate);
+    if let Some(rate1) = heli_rate
+        && owed <= 0x4000_0000
+    {
+        let (aim, _) = turn_towards(facing, heading, rate1);
+        if arrives(dx, dy, step) {
+            return Step {
+                pos: dest,
+                facing,
+                heading,
+                owed,
+                arrived: true,
+                snapped: true,
+                turned_in_place: None,
+                half_step_used: false,
+            };
+        }
+        let manh = dx.abs() + dy.abs();
+        let mut sx = sin_component(aim, step);
+        let mut cy = cos_component(aim, step);
+        if manh < 2 * step {
+            if sx.abs() > dx.abs() {
+                sx = dx;
+            }
+            if cy.abs() > dy.abs() {
+                cy = -dy;
+            }
+        }
+        let pos = Pos::new(from.x + sx, from.y - cy);
+        return Step {
+            pos,
+            facing,
+            heading,
+            owed,
+            arrived: pos == dest,
+            snapped: false,
+            turned_in_place: None,
+            half_step_used: false,
+        };
+    }
     let manh = dx.abs() + dy.abs();
     let slow: i32 = if turning.type_turn_speed < SLOW_TURN_BELOW {
         2
@@ -1243,6 +1309,55 @@ mod tests {
         assert_eq!(s.facing, Angle::WEST);
         assert_eq!(s.owed, 0);
         assert_eq!(s.pos, Pos::new(-25, 0));
+    }
+
+    #[test]
+    fn a_helicopter_owing_a_quarter_turn_or_less_steps_while_it_turns() {
+        // Item 1668: `Unit::move_step`'s `unit_flags & 0x20` arm. A
+        // helicopter facing east and told to go north owes 90°, less its
+        // frame's turn: inside the quarter it takes the whole step at once,
+        // aimed along a second, faster turn; any other type with the same
+        // numbers stands and turns, and so does a helicopter owing more.
+        let dest = Pos::new(0, -10_000);
+        let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
+        let fast = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Body);
+        let heli = move_step_as(
+            Pos::new(0, 0),
+            Angle::EAST,
+            dest,
+            25,
+            &SIEGE,
+            rate,
+            false,
+            false,
+            Some(fast),
+        );
+        assert_ne!(heli.pos, Pos::new(0, 0), "it moved");
+        let plain = move_step(
+            Pos::new(0, 0),
+            Angle::EAST,
+            dest,
+            25,
+            &SIEGE,
+            rate,
+            false,
+            false,
+        );
+        assert_eq!(plain.pos, Pos::new(0, 0), "a siege piece stands to turn");
+        assert_eq!(heli.facing, plain.facing, "the guy's own turn is the same");
+        // Owing past a quarter turn the arm is not taken.
+        let behind = move_step_as(
+            Pos::new(0, 0),
+            Angle::WEST,
+            Pos::new(10_000, 0),
+            25,
+            &SIEGE,
+            0x1000_0000,
+            false,
+            false,
+            Some(fast),
+        );
+        assert!(behind.turned_in_place.is_some());
     }
 
     #[test]

@@ -5587,6 +5587,15 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
+        // `5fb96f`..: a unit standing on a tile that now refuses it is moved
+        // to the nearest spot that does not, and the call answers "plan".
+        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
+            let spot = self
+                .find_nearby_spot(u, here, 0, -1, 0, Angle(0x5555_5555), None)
+                .unwrap_or(here);
+            self.set_new_location(u, spot, true);
+            return 1;
+        }
         let mut goal = goal;
         if goal == here {
             return 0;
@@ -6056,7 +6065,18 @@ impl Sim {
         // (`docs/COLLISION.md` §7). `move_step` spends it and says so;
         // the bit is the unit's, so the clearing is here.
         let half = self.units[u].half_step;
-        let step = movement::move_step(
+        // `GuyData::turn_speed(guy, 1)`, the second turn a helicopter's
+        // step is aimed along (`movement::move_step_as`).
+        let heli_rate = self.is_helicopter(u).then(|| {
+            movement::turn_speed(
+                &self.tuning,
+                &turning,
+                m.body.last_speed,
+                m.body.avg_speed,
+                movement::TurnMode::Body,
+            )
+        });
+        let step = movement::move_step_as(
             from,
             m.facing,
             mo.waypoint,
@@ -6065,6 +6085,7 @@ impl Sim {
             rate,
             turn_first,
             half,
+            heli_rate,
         );
         if step.half_step_used {
             self.units[u].half_step = false;

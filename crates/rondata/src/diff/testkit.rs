@@ -6832,6 +6832,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run721 (item 1625): 149 reads in its window, the replay past
     // the word 3395 (pinned at 148, it fails).
     ("run721_s_word_frame_is_widened_whole", 149),
+    // And run754 (item 1668): 111 reads in its window, the replay past the
+    // word 3843 (pinned at 110, it fails).
+    ("run754_s_word_frame_is_widened_whole", 111),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the
@@ -6965,7 +6968,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // frames 3396 and 3397; measured before the bound changed.
     // Item 1647 extends the prefix to 3439: 48 reads, measured while
     // the old bound was still 19. Ground-height exactness remains debt.
-    ("coverage_pair_first_parting", 48),
+    // Item 1648 extends the prefix to 3585: 97 reads; item 1666 to 3587: 99; item 1667 to 3614: 110.
+    ("coverage_pair_first_parting", 110),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8801,12 +8805,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // road flags on four newly attached city members at blocks 3395/3396.
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
+    // Item 1669 moves to 3963 (block 3964), inside run754 (item 1668's).
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run721_s_word_frame_is_widened_whole"),
-        1647,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
+        Some("run754_s_word_frame_is_widened_whole"),
+        1669,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

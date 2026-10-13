@@ -221,7 +221,25 @@ pub(crate) struct Pair {
     /// **3397**, 312 versus 300 draws, index 8: ours road cost, theirs
     /// `Guy::init_real+0x52` (a caravan absent here). Item 1647 counts
     /// Merchant Fleet live updates: **3439**, 23 versus 25 draws, index
-    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`.
+    /// 14: ours guy animation, theirs `Ammo::init+0xcd9`. Item 1648 lets a
+    /// salvo fire on a city at its ceiling (the release event asks only that
+    /// the order name an object): **3585**, 24 versus 27 draws, index 6:
+    /// ours `Leader::make_stuff+0x63d`, theirs
+    /// `Leader::produce_building+0x1805`. Item 1666 counts a packed
+    /// fisherman as idle in the census: **3587**, 15 versus 16 draws,
+    /// index 1: ours guy animation, theirs `Unit::do_move+0xe84`. Item 1667
+    /// gives `find_path` its own-tile relocation: the sequence parts at
+    /// **3614** (30 versus 30 draws, index 6: ours `Guy::move+0x19f`,
+    /// theirs `Unit::do_guard+0x7f4`) and the count at **3615**. Item
+    /// 1668 gives a helicopter its own step arm (`move_step`'s `0x20` test,
+    /// the step aimed along a second, faster turn): both part at **3843**,
+    /// 23 versus 28 draws, index 5: ours guy animation
+    /// (`Guy::inc_time+0x271`), theirs `Guy::init_real+0x52` (a birth). Item
+    /// 1669 gives the Terra Cotta Army its soldier (`Build::process`'s
+    /// `0x211` arm; `Build::activate` starts its clock at
+    /// `TERRA_COTTA_FREE * 15`): **3963**, 18 versus 32 draws, index 3:
+    /// ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    /// `Guy::init_real+0x52` (a birth).
     pub count: i64,
     pub sequence: i64,
 }
@@ -239,8 +257,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3439,
-    sequence: 3439,
+    count: 3963,
+    sequence: 3963,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1303,7 +1321,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 121, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1529,7 +1547,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 184, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1550,10 +1568,9 @@ pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-windo
 /// The window: block 3389 through 3645; the word 3395's own block is 3396.
 pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run721 walked from run651's start with the recorder on. It holds the
-/// word 3439 (item 1647), block 3440; the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run721's window as it stood while the word was inside it (items 1625
+/// to 1667); the word left it for run754's on item 1668.
+pub(crate) fn coverage_frame_3395_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1567,10 +1584,52 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// run754, item 1668: the lobby's blocks 3838..4094 at the long's detail —
+/// the word 3843's block 3844 with six before it and 250 after.
+pub(crate) const RUN754: &str = "gamelog-run754-eastindies-persian-alltech-window-3838-4095.txt";
+
+/// The window: block 3838 through 4094 (and a closing 4104).
+pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3838, 4095);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run754 walked from run651's start with the recorder on. It holds the
+/// word 3963 (item 1669), block 3964, inside the window item 1668 took for
+/// 3843 (block 3844); the old words remain checked.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run754",
+        &[(RUN754, 3838)],
+        WIDENING_COVERAGE_FRAME_3843,
+        1,
+        &[3843, 3844, 3963, 3964],
+        true,
+    )
+}
+
+#[test]
+fn run754_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // The word 3843's block 3844 (item 1668): the original's Terra Cotta
+    // Army `1/2042` births a squad of the Mech Infantry (`1/235`..`1/237`)
+    // and the leader's `num_units[54]` reads 5 against ours' 4. Item 1669
+    // builds the arm and that block agrees but for the group lists the dump
+    // does not print and `1/233`'s `form`, on 3843. The word is **3963**
+    // (block 3964): the dump alone holds `1/246`..`1/252`, and `1/165`
+    // reads two orders against one. 2460 -> 1583 keys over the tail.
+    pin_eq!(w.firsts.len(), 1583, "run754 keys that part (item 1669)");
+}
+
 #[test]
 fn run721_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3395_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1602,8 +1661,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        951,
-        "run721 after live fleet count correction"
+        186,
+        "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -1679,7 +1738,7 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3390),
+        Some(3391),
         "the first parting past the standing block"
     );
 }

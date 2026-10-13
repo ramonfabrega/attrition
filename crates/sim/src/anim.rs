@@ -1780,7 +1780,11 @@ impl Sim {
                 let Some(target) = ordered else {
                     return;
                 };
-                if !self.active(target) {
+                // `execute_game_events` tests only that the order names
+                // an object (`whom`/`ox` not −1), never its hit points: a
+                // building at its ceiling (`health` 0) is still fired on
+                // (item 1648, 3439).
+                if !self.struck(target) {
                     return;
                 }
                 Some(target)

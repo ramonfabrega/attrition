@@ -1967,6 +1967,7 @@ impl Sim {
             bd.job_counter = 0;
             bd.job_counter_2 = 0;
         }
+        self.terra_cotta_activate(b);
         // `Wall::activate@0063e4b0` line 62, immediately after the active
         // flag: an active military trainer joins the leader's own list
         // (`docs/AI.md` §29). The guard the original spells at the call site

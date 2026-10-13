@@ -3725,6 +3725,36 @@ fn a_line_that_clips_a_building_detours_instead_of_re_planning() {
     );
 }
 
+/// `Unit::find_path@005fb910`'s first test (item 1667): a unit whose own
+/// tile has become one it may not stand on is moved to the nearest spot that
+/// does and the call answers "plan" — the grid draw follows.
+#[test]
+fn a_unit_on_a_refusing_tile_is_moved_off_it_and_replans() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    let from = sim.units[u].pos;
+    // A pond: water refuses a walker, and the nearest dry spot is a tile away.
+    sim.world.set_tile_bits(from.tile(), tile::SURFACE_OCEAN);
+    sim.trace_phases = true;
+    sim.order_move(u, tile_pos(24, 20));
+    let mut grid = false;
+    for _ in 0..8 {
+        sim.tick();
+        grid |= sim
+            .phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID);
+    }
+    assert_ne!(
+        sim.units[u].pos.tile(),
+        from.tile(),
+        "the unit is moved off the tile that refuses it"
+    );
+    assert!(grid, "and the call answers plan: the grid draw is spent");
+}
+
 /// The other half of the same mechanic: an obstacle the edge walk cannot
 /// get past **gives up**, and giving up is what spends the draw.
 ///
@@ -4536,6 +4566,66 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
         1,
         "at the limit, the next slots train nothing"
     );
+}
+
+/// **The Terra Cotta Army counts a clock and trains a soldier**
+/// (`Build::activate@00623e20:1370`, `Build::process@0061edf0:384`,
+/// `docs/AI.md` §182): the finished wonder starts at `TERRA_COTTA_FREE *
+/// 15` = 450 and counts down a frame; at zero it resets to 450 plus
+/// `barracks_units * 15 / 2` and, with room (`control < cap`), trains the
+/// newest type of the Slingers' line at itself. The coverage pair's
+/// Persians: `1/2042` holds 449 on 3395, 6 on 3838, and on 3843 births a
+/// squad of the Mech Infantry and reads 607 (21 Barracks units).
+///
+/// Made to fail by dropping the tick's call: the clock never moves.
+#[test]
+fn a_terra_cotta_army_counts_its_clock_and_trains_a_soldier() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let soldier = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 50)
+        },
+        hits: 40,
+        ..UnitType::default()
+    });
+    while sim.tech_tree.types.len() <= 0x52 {
+        sim.tech_tree
+            .add(tech::TypeDef::unit("Slingers", tech::UnitTraits::default()));
+    }
+    sim.unit_types[soldier].tree = Some(0x52);
+    while sim.tech_tree.types.len() <= 0x211 {
+        sim.tech_tree.add(tech::TypeDef::building("Filler"));
+    }
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut wonder = sim.build_types[t.market].clone();
+    wonder.tree = Some(0x211);
+    let wonder = sim.add_build_type(wonder);
+    let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
+    finish(&mut sim, w);
+    let soldiers = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(soldier))
+            .count()
+    };
+    assert_eq!(sim.buildings[w].recharging, 450, "activation starts it");
+    sim.tick();
+    assert_eq!(sim.buildings[w].recharging, 449, "and it counts down");
+    assert_eq!(soldiers(&sim), 0);
+    sim.buildings[w].recharging = 1;
+    sim.tick();
+    assert_eq!(soldiers(&sim), 1, "at zero it trains a soldier");
+    assert_eq!(
+        sim.buildings[w].recharging, 450,
+        "and starts the clock again"
+    );
+    // A player at the cap is not trained for, but the clock still resets.
+    sim.muster[0].cap = sim.muster[0].control;
+    sim.buildings[w].recharging = 1;
+    sim.tick();
+    assert_eq!(soldiers(&sim), 1, "no room, no soldier");
+    assert_eq!(sim.buildings[w].recharging, 450);
 }
 
 /// **A Senate that finishes a government trains its patriot, once**

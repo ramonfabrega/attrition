@@ -78,7 +78,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
-/// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`, no fisherman is idle. |
+/// | `unit_masks & 0x80000` | merchants only | a packed fisherman is idle (`idle_fishermen`, item 1666); every merchant still counts in `reg_unpack_merch`. |
 /// | order kinds 8 / 0xe | never | build-and-repair-through-a-transport is unmodelled. |
 ///
 /// Two seams closed 2026-08-25 with `docs/TRANSPORT.md`: `Region::num_coasts`
@@ -600,6 +600,11 @@ impl Sim {
                     }
                     if fisherman {
                         cs.fishermen += 1;
+                        // `unit_masks & 0x80000` (packed): a fisherman that
+                        // has not unpacked to fish is idle (`docs/AI.md` §179).
+                        if self.units[u].combat.packed {
+                            cs.idle_fishermen += 1;
+                        }
                     }
                 }
                 Domain::Air => {

@@ -15920,3 +15920,25 @@ SHA-256 `ee0b37a38c936e949a9a0f4fa535b78b8c4d96d5ed9ec591e3a6cd16ad3ed2fc`.
 0, beside ours' `calc_road_cost` draws. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`),
 walked by the compared pin with run716's, and the coverage driver reads its block 3396. 149 inexact height reads in
 its window (`GROUND_INEXACT`). `docs/AI.md` §174.
+
+## run754 — the coverage pair: East Indies, Persians, All Technologies, blocks 3838..4094 at the long's detail (2026-10-12, item 1668, `att-1648-sm`)
+
+**Disk gap**: item 1668 moved the word to 3843 (23 versus 28 draws, index 5: ours `Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`), past run721's last block 3645; no dump held this lobby's records there. run721's recipe with
+the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4103 --timeout 3600
+--log-window 3838 4095 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the pool (lane 1, `~/wine-ron`). First
+take: `success: true`, `settings_restored: true`, launched 19:40:52, finished 20:17, 4,104 frames; output
+`~/ron-data/lab-captures/2026-10-12-run754`. Blocks `3838`..`4094` whole and a `4104` closing block (258 `BEGIN
+FRAME`s). `rngcmp.py rontrace-run652.log rontrace-run754.log`: **4,104 frames in common, 0 differing**. No wait for the
+lane.
+
+Archive `gamelog-run754-eastindies-persian-alltech-window-3838-4095.txt`, 661,200,808 bytes,
+SHA-256 `871703768afb0d2ae0842f0e339756d4d0f286c861a1496ecb5d4809a26d6e6a`.
+
+Archive `rontrace-run754.log`, 196,205,728 bytes,
+SHA-256 `2857f18ca4cb99a43732341c876bf496c5a9d685a3e95483b249c047877a8d32`.
+
+**What it holds**: `diff::coverage_pair::run754_s_word_frame_is_widened_whole` — 2,460 keys on item 1668's tree; the
+coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), with 111 inexact height reads (`GROUND_INEXACT`).
+run721's window stays in the coverage driver as `coverage_frame_3395_window`. `docs/AI.md` §181.

@@ -241,6 +241,9 @@ impl Sim {
     }
 }
 
+/// `TERRA_COTTA_FREE`, as `Constants::init` loads `30 seconds`.
+const TERRA_COTTA_FREE: i32 = 30;
+
 impl Sim {
     /// **`Build::activate@00623e20:603–1150` — the high-water mark, and the
     /// nation's free units.**
@@ -460,6 +463,75 @@ impl Sim {
             return;
         }
         self.build_train(b, rec);
+    }
+
+    /// Whether a building is the `TERRACOTTA` wonder (`TypeIndex` `0x211`).
+    fn is_terra_cotta(&self, b: usize) -> bool {
+        self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].tree == Some(0x211))
+    }
+
+    /// `Build::activate@00623e20:1370`: the wonder finishes with its clock
+    /// at `TERRA_COTTA_FREE * 15` — the thirty seconds before its first
+    /// soldier. Run721's `1/2042` reads 449 on the block after it finishes
+    /// (3395) and its first soldier is born on 3843, 450 frames on.
+    pub(crate) fn terra_cotta_activate(&mut self, b: usize) {
+        if self.is_terra_cotta(b) {
+            self.buildings[b].recharging = TERRA_COTTA_FREE * 15;
+        }
+    }
+
+    /// **The Terra Cotta Army's soldier** — `Build::process@0061edf0:384`..
+    /// `0061f733`, the arm after the Persian caravan. A building whose type
+    /// is `TERRACOTTA` (`0x211`) counts its `recharging` (`BuildData +0x7a`)
+    /// down by one every frame it is processed; on reaching zero it resets
+    /// the clock to
+    ///
+    /// ```text
+    /// TERRA_COTTA_FREE * 15 + barracks_units * 15 / 2      # TERRA_COTTA_DELAY == 7
+    /// ```
+    ///
+    /// and, when the owner has room (`control < cap`, the strict form —
+    /// not `check_population`'s), trains the newest type of the Slingers'
+    /// line (the Aztec arm's `get_graft` then `current_upgrade`) at the
+    /// wonder. `barracks_units` is `Leader +0x9f8`, which
+    /// `Leader::track_unit_type@006e0dd0` moves for every armed type whose
+    /// trainer (`UnitTypeData +0x40`) is the Barracks — the sum of
+    /// `num_units` over them. The shipped file writes `TERRA_COTTA_FREE`
+    /// `30 seconds`, which loads as 30; the delay's `7 == "half a second"`.
+    ///
+    /// Diff-backed on the coverage pair's Persians: `1/2042` (orig_type
+    /// 529) holds `recharging` 449 on its first block (3395) and 6 on 3838,
+    /// then 607 on 3844 — 450 and 30·15 + 21·15/2 — and births a squad of
+    /// the Mech Infantry on 3843 (run754).
+    pub(crate) fn terra_cotta_army(&mut self, b: usize) {
+        /// The base of the Slingers' line the arm trains from.
+        const TERRA_COTTA_BASE: TypeId = 0x52;
+        if !self.is_terra_cotta(b) {
+            return;
+        }
+        self.buildings[b].recharging -= 1;
+        if self.buildings[b].recharging >= 1 {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let w = who as usize;
+        let barracks_units: i32 = (0..self.unit_types.len())
+            .filter(|&t| {
+                self.unit_types[t].combat.attack != 0
+                    && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
+            })
+            .map(|t| self.muster[w].by_type[t])
+            .sum();
+        self.buildings[b].recharging = TERRA_COTTA_FREE * 15 + barracks_units * 15 / 2;
+        let Some(rec) = self.free_unit_record(who, TERRA_COTTA_BASE, true) else {
+            return;
+        };
+        let m = &self.muster[w];
+        if m.control < m.cap {
+            self.build_train(b, rec);
+        }
     }
 
     /// One arm: `n` copies of `base`'s line, each under `check_population`.

@@ -18079,31 +18079,240 @@ exactness remains debt. Full release validation is recorded in the journal.
 No new capture; runs 722–723 transfer unused to the next item. Independent
 review of unexercised lifecycle gates is owed.
 
-## 178. Reserved for item 1648 (the coverage pair's word 3439)
+## 178. A salvo fires on a city at its ceiling, and the word moves to 3585 (2026-10-12, item 1648)
 
-run721 already widens block 3440, the new word's own block, whole-record
-and whole-cast. The original spends two draws in `Ammo::init` through
-`Objects::add_ammo` and `GraphicEvents::execute_game_events`; ours reaches
-a guy's animation instead. No mechanism established: identify the shot and
-its firing decision from the window before changing combat. Runs 722–723
-remain unused and reserved.
+**Baseline.** Coverage word 3439, 23 versus 25 draws, index 14: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`
+(run721, block 3440). The original's draws 14–17 on 3439 are a sound, two
+`Ammo::init` rolls and a sound, between `Unit::inc_time` of `1/29` and `1/99`
+(ours' attribution of the same frame's draws by `RON_DEBUG_SITES`), so the
+shooter has an index in 30..98.
 
-## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+**Who fires.** The dump holds ten `ATTACKORDER` rows on 3439; three are
+`in_range 1` on Napata (`0/2000`): `1/49`, `1/51`, `1/59`, guys of type 350
+(the Advanced Battleships' cruise missiles; ours' unit type 300, `TypeIndex`
+350). Ours fires `1/51` on 3426–3430 and `1/49` on 3435–3438; the original
+fires `1/49` on 3435–3440. The guy's animation 12 holds six release events at
+26..31 (`RON_DEBUG` print of `art.releases` for `(gp300, 12)`); `1/49`'s clock
+reads 30 on 3439, so its fifth event is due and ours does not run it.
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Cause.** `guy_release_events` returned before the walk because
+`Sim::active(Building(0))` is false: Napata took its last ten points on 3439
+(`damage` 1550 → 1560 of `myhits` 1560, both sides; dump records 1560 and
+`damage_frac` 13 on 3439), and `active` asks a building for `health > 0`.
+`GraphicEvents::execute_game_events@008e48e0` (`Guy::execute_events@005d99c0`
+fills `ox`/`whom` from the order) tests only that the order names an object,
+`whom != -1 && ox != -1`; a building's hit points are never read. The gate
+now uses `Sim::struck` (alive, has a combat record) — the question the
+landing round already asks. For a unit target it is the old `active`.
 
-## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+**Value diff and score.** Napata's `damage` agrees at 1560 from 3439 on,
+and `1/49`'s release at 3439 now spends the original's two `Ammo::init`
+draws. The word moves **3439 → 3585**, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`
+(run721, block 3586; not in the compared window, which ends the diverged
+tail). run721's widening: **951 → 482** keys. Ground-height reads on the
+longer prefix: **48 → 97**.
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Not established.** The `uid` refusal (a target replaced under the order) is
+still the old `struck` test. No dedicated unit test: the pins
+`coverage_pair_first_parting` (3585) and `run721_s_word_frame_is_widened_whole`
+fail without the change. No new capture; runs 752–761 are unused.
 
-## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+## 179. A packed fisherman is idle, and the word moves to 3587 (2026-10-12, item 1666)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Word 3585, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`. The
+original's 27 hold five `+0x1805` and four `+0x63d`; ours three and three
+(rolls from the trace's seeds: the four expiry rolls read 1, 0, 1, 1
+mod 3).
 
-## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+**The make list parted four blocks earlier.** The dump holds the leader's
+`MAKEOBJECT` rows (`gamelog-run721…window-3389-3645`, `1/-1 leader:MAKE`).
+At block 3581 (the list after `create_units`' frame 3580) the original's
+slots 1..3 are `t295`, `t305`, `t311` (Jet Fighter, Strategic Bomber,
+Transport Helicopter; `val` 60720, 58080, 41485, cat 6, num 10) and slot 4
+is empty; ours had `t317` Fishermen at `val` 88000 in slot 1 and again in
+slot 4 (and a cleared duplicate in slot 2), pushing 305 and 311 off the
+ranked four. The offers' values are the original's own — ours prints 58080
+and 41485 for 305 and 311 — so the only difference is that the original
+offers **no** Fishermen at 3580 (it did at 3380, `val` 120000).
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Cause.** `Sim::sea_value`'s Fishermen arm refuses on
+`cn.idle_fishermen != 0`, and the census never counted one: the seam
+table in `ai_census.rs` said "no fisherman is idle", and
+`census_zero_scalars` was the only writer of the field. §2.3's sweep
+(line 189 above) adds `idle_fishermen++` to a fisherman whose
+`unit_masks & 0x80000` is set — *packed*. A fisherman is born packed
+(`Unit::init`, `lib.rs` `combat.packed`) and unpacks only to fish, so a boat
+that has not found its fish is idle. Counted from `combat.packed`, the
+offers at 3580 vanish and the list agrees from block 3581 through the
+widening's MAKE rows, `t`, `val`, `city`, `escrow`, `cat` and `num`.
+
+**Value diff and score.** The state first parted at block 3581:
+`leader:MAKE[1].t` ours 317 theirs 295, `[1].val` 88000 against 60720,
+`[2].t` −1 against 305, `[3].t` 295 against 311, `[4].t` 317 against −1.
+After the change the only MAKE row left is `[6].val` (Rocket Artillery,
+ours 333185, theirs 347364 — `check_income`'s `fac` 235 against 245, a
+ledger residue standing since 3389). Word **3585 → 3587**, 15 versus 16
+draws, index 1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Unit::do_move+0xe84` (the move-grid draw of a new move order; first part
+past it is `1/133` on 3588, `move.dest`/`path:length` 14 against 26).
+run721's widening **482 → 394** keys; run714's baseline **139 → 121**
+(the shared census); ground-height reads on the prefix 97 → 99.
+
+**Not established.** Merchants' `reg_unpack_merch` should skip a packed
+merchant by the same sweep arm (line 191 above); left as it was — no diff
+reaches it. Which unit spends the 3587 `do_move` draw is not named. The
+`fac` 235/245 residue is not chased. No new capture; runs 752–761 unused.
+
+## 180. `find_path` moves a unit off a tile that refuses it, and the word moves to 3614 (2026-10-12, item 1667)
+
+**Baseline.** Word 3587, 15 versus 16 draws, index 1: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84`
+(seed `1ba0ba8f`), between the animal's `do_idle` draw and the first guy's.
+
+**Who.** `RON_DEBUG_SITES=3587-3587` gives the original's one extra draw;
+the units that reach `find_path` on that frame in ours (a temporary print on
+the straight-line check, sim frame 3586) are `1/7`, `1/11` and `1/133`,
+each answering 0. The draw is a grid draw, so some unit's `find_path`
+answered 1 in the original and 0 here. The dump's first part past the word
+is `1/133` on 3588: `g.x` ours 40553 theirs 40548, `g.y` 37515 against
+37539, `path:length` 14 against 26, `order:move.last_x` ours 40549 theirs
+−1, `path_recursion` 2 against 1 — a unit relocated and re-planned in the
+original, not detoured. The draw's own unit is not named: the loop's order is
+not `o` order (`1/147` precedes `1/99` in ours' own listing), so the
+extra draw's index 1 does not say.
+
+**Cause.** `Unit::find_path@005fb910` opens, past the helicopter gate, with
+`invalid_loc(own tile, 1,0,0,0,0)`: a unit standing on a tile that now
+refuses it gets `UnitType::find_nearby_spot` (`bearing 0x55555555`,
+`FILTER_NOT_ME`) and `set_new_location(spot, 1, 0)`, and the call answers 1
+(plan). ORDERS.md §4.6 already listed the line; `Sim::find_path` did not
+carry it. A temporary print on the same test showed `1/133`'s own tile
+refusing at sim frame 3587 (and three units on 3068, which agree there and
+are not touched). Adding the branch: word **3587 → 3614** (sequence; the
+count parts at **3615**), 30 versus 30 draws, index 6: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+
+**Value diff and score.** run721's widening: `1/133`'s keys on 3588 are
+gone; the first part is now `1/184` on 3589 — `order:kind` 2 against 12,
+`order:length` 2 against 1, `path:length` 1 against 0, `pos` (37898,41213)
+against (37896,41208). run721's widening **394 → 326** keys; run714's
+baseline and the floors are unmoved. Ground-height reads on the longer
+prefix 99 → 110. `a_unit_on_a_refusing_tile_is_moved_off_it_and_replans`
+(`cities_tests`) fails without the branch.
+
+**Not established.** Which tile property refused `1/133`'s own tile (the
+test uses water; the capture's unit stood on land) is not named, nor
+whether the draw at 3587 is `1/133`'s — the branch is the one reading that
+moves the word, not a proof of the unit. `find_nearby_spot` is called with
+the sim's default collision half; the original's `FILTER_NOT_ME` is taken as
+that. The 3589 `1/184` order parting and the 3614 `do_guard` retry are the
+next words. No new capture; runs 752–761 unused beyond 752–753.
+
+## 181. A helicopter's step has its own arm, and the word moves to 3843 (2026-10-12, item 1668)
+
+**Baseline.** Word 3614, 30 versus 30 draws, index 6: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (run721, block 3614).
+
+**Who.** The first part is `1/212` on 3614 (`order:kind` 2 against 12,
+`orders.len` 2 against 1). `1/212` is `TypeIndex` 311, a Transport
+Helicopter, on a `Guard` of `1/326`. On 3608 the guard post moves and
+`do_guard` adds an `AttackTo` and calls `do_move`: the dump's unit
+(`x_internal`/`y_internal`) steps 92 at once — (37368,42936) to
+(37455,42905) — and stands there, its figure turning, until 3614, when the
+rest of the leg is one short step to (37464,42840) and the order is done.
+Ours stood from 3608 to 3613 turning in place and stepped on 3614.
+
+**Cause.** `Unit::move_step@005faf30`'s turn test is
+`!(unit_flags & 0x20) || owed > 0x40000000`: a helicopter owing a quarter
+turn or less (after the frame's `turn_speed(0)`) skips both turn-in-place
+arms and the half step, `Guy::do_turn`s as usual, and aims the step along a
+second turn from the guy's new angle at `GuyData::turn_speed(guy, 1)` — the
+body's base, not divided by the average speed. This crate had no such arm
+(`movement::move_step`); `movement::move_step_as` takes `Some(mode-1 rate)`
+for a helicopter, `Sim::unit_step` passes it for `is_helicopter`. The
+dump's figure angle on 3607 (1653145600) put `1/212` just inside the
+quarter turn (owed 1070.4M after the turn against 1073.7M); ours' figure
+angle stood 53M ahead since 3597 (`angle:Facing` on `1/212`) — a
+helicopter's figure turns at the mode-1 rate when it is moved, and the
+standing offset goes with the arm.
+
+**Value diff and score.** `1/212`'s `order:kind`/`length`/`path` parting on
+3614 is gone and the run721 widening falls **326 → 186** keys; the first
+part is `1/219`'s birth `form` on 3632. The count and the sequence part
+together at **3843**, 23 versus 28 draws, index 5: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` —
+a birth. The word left run721's window, so **run754** (blocks 3838..4094)
+was captured (`docs/RUNS.md`); its widening
+`run754_s_word_frame_is_widened_whole` holds 2460 keys. On block 3844
+`1/235`, `1/236` and `1/237` (a squad, group 81, near (34584,38712)) exist in
+the dump alone, the leader's `num_units[54]` (`GENERAL`) reads 5 against
+ours' 4, and `1/233`'s `form` (ours −1) is the first row on 3843. run716's
+baseline 189 → 184; ground-height reads in run754's window 111.
+`a_helicopter_owing_a_quarter_turn_or_less_steps_while_it_turns`
+(`movement`) fails without the arm.
+
+**Not established.** Whether ours' pre-3607 figure offset is wholly the
+mode-1 turn (it moves with the arm; a rate other than `turn_speed(1)` was
+not tried). The helicopter's collision and landing arms past the step are
+unchanged. The 3843 birth's author (`Guy::init_real` from a production or
+a create) is the next word; no reading of it yet.
+
+## 182. The Terra Cotta Army trains its soldier, and the word moves to 3963 (2026-10-12, item 1669)
+
+**Baseline.** Word 3843, 23 versus 28 draws, index 5: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`
+(run754, block 3844).
+
+**Who.** Three `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd` draws at indices 5..7 are one squad of three
+(`uber_size`), `1/235`..`1/237`, group 81, `TypeIndex` 104 `MECHINFANTRY`;
+the leader's `num_units[54]` (the array starts at type 50, so 54 here is the
+slot of type 104) goes 4 to 5, `active` and `control` one up. No queue
+popped on the frame (a block diff of every `BUILDQUEUE` finds only the
+Airbase `1/2010`'s jet, a frame earlier). The one building record that moved
+beyond the counters is `1/2042`, `orig_type` 529 = `TERRACOTTA`: its
+`recharging` (`BuildData +0x7a`) counts 6, 5, ... 1 across blocks 3838..3843
+and reads **607** on 3844, counting down again.
+
+**Cause.** `Build::process@0061edf0:384`..: for a `0x211` building,
+`recharging -= 1` every frame it is processed; below 1 it resets to
+`TERRA_COTTA_FREE * 15 + barracks_units * 15 / 2` (the delay constant is 7,
+which the file writes `7 == "half a second"`) and, when `control < cap`,
+`train`s `current_upgrade(get_graft(Slingers 0x52))` at the wonder.
+`TERRA_COTTA_FREE` loads `30 seconds` as 30, so 607 = 450 + 157 with
+`barracks_units` 21. `barracks_units` is `Leader +0x9f8`, moved only by
+`Leader::track_unit_type@006e0dd0` for armed types whose trainer is the
+Barracks (`0x1ab`) and zeroed by `Leader::init`; the sum of `num_units` over
+those types. `Build::activate@00623e20:1370` starts the clock at
+`TERRA_COTTA_FREE * 15` = 450: run721 reads `1/2042` at 449 on 3395, 6 on
+3838 (443 frames on), so the first soldier is the 3843 one. Built:
+`Sim::terra_cotta_army` and `terra_cotta_activate`
+(`crates/sim/src/nations.rs`), called after the Persian caravan in the
+tick's building walk and from `activate`.
+`a_terra_cotta_army_counts_its_clock_and_trains_a_soldier`
+(`cities_tests`) fails without the call.
+
+**Value diff and score.** Block 3844 now agrees but for `1/233`'s `form`
+(first row, on 3843) and the group lists the dump does not print. The first
+attempt reset the clock from `barracks_units` at activation and fired on
+3394 (ours 260 draws against 254): the 449 on 3395 says the wonder starts
+at 450, not at the formula. The count and the sequence part together at
+**3963**, 18 versus 32 draws, index 3: ours `Guy::set_anim+0x97a <
+Unit::do_move+0x11cf`, theirs `Guy::init_real+0x52`; the dump alone holds
+`1/246`..`1/252` (seven objects, more than one squad) on block 3964, and
+`1/165` reads two orders against ours' one. run754's widening
+`run754_s_word_frame_is_widened_whole` falls 2460 to **1583** keys; its
+window already holds the new word, so no capture was taken.
+
+**Not established.** The Kremlin's arm beside it (`0x21a`,
+`kremlin_spy`) writes `recharging` too and is not built. `Build::activate`
+zeroes `recharging` on every building (line 132); only the wonder's start is
+written here. `terra_cotta_total` (the game counter) is not carried. A
+second, third... firing is checked only through 3844 (one reset); the
+formula's `barracks_units` is the live sum, read on the reset frame.
+
