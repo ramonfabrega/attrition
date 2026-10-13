@@ -13790,12 +13790,6 @@ const WANT_CH59: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "607 0/-1 leader:treaties[1]",
-    "607 1/-1 leader:treaties[0]",
-    "607 1/2006 build:ever_seen",
-    "610 1/2006 build:ever_seen_completed",
-    "655 0/7 hits:damage",
-    "655 0/7 hits_left",
 ];
 
 const WANT_CH59_POOL: &[&str] = &["625 slot 1 new_speed", "625 slot 1 speed"];
@@ -13857,6 +13851,13 @@ fn chapter_sixty_s_fog_plane() {
     for ((w, o, what), (f, row)) in &firsts {
         eprintln!("  ch60fog f{f} {w}/{o} {what}: {row}");
     }
+    // Before the build 7 `seen2` cells parted on 605 (first (117,75)); the
+    // eleven `form` rows are every chapter's first block.
+    pin_eq!(
+        firsts.iter().filter(|((_, _, w), _)| w.contains("seen2")).count(),
+        0,
+        "ch60fog: fog cells that part"
+    );
 }
 
 const WANT_CH51: &[&str] = &[
