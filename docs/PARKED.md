@@ -4079,3 +4079,19 @@ part on 1100. 1740 measured the anim-10 bay once (start 12); the anim-12
 bay is unmeasured — a packet at 1099 and `get_position`. Pinned in `WANT_CH53`.
 **Closed by 1776** (GOLDEN §66): the same node row as 1756 — `node_flags`
 gates the release; "no bay" was the wrong mechanism.
+
+## Parked by item 1798, 2026-10-13 — chapter fifty-five
+
+(1804) **Dragoon A's target drops a frame early in the original** (1798): on 794
+`0/6` `g.des_turret0[0]` ours −821 952 512 against 0 and `g.turret0[0]` ours
+−821 952 512 against −642 995 542 (run783, pinned in `WANT_CH55`); the Citizen
+`1/6` stands 1 949 units north of a Dragoon heading east-northeast, past M6's
+second re-search on 793. No draw parts. Widen the GUY and unit rows on 793 first.
+
+(1805) **The two-order snap (1709) is still unreached** (1798): a Dragoon, a Catapult
+and a General on a cell centre sent 1–3 or 2000 units either way never spend a
+`SITE_SNAP_STAND`; the arm needs the unit on its waypoint, turning, with one order.
+
+(1806) **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
+(`research` true), but `research && false` exits 0 — it needs `found` to be a
+different, in-reach unit than the held non-combat-role one.
