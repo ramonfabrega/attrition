@@ -3857,6 +3857,34 @@ widening 46 s raw and 46 s compressed, the booking gate green on it
 steer compresses the archive again (the same line; already-compressed
 files are skipped), or the capture scripts do it at a run's end.
 
+(1671) **A lane's next session is a clear of its own row, and the loop
+spawned a second row again** (Ramon, 2026-10-12, the race's first
+landing): `commander` gave `att-1648-sm` its landing 2 with `ccc spawn
+--cwd <the racer's tree> --name att-1648-sm-2` instead of `ccc clear
+att-1648-sm --then "<landing 2>"`, so one tree carried two rows, the
+first stopped and unforgettable (`ccc forget` refuses a ccc-cut tree,
+`ccc rm` would take it; it was archived, to reap at the end). The same
+shape as parked 1541 and DECISIONS 64 (iv) — `steer` and `commander`
+each `spawn --replace`d a new self for a week before the cross-session
+clear replaced it — and Ramon asks why it was not caught twice. A
+reading, to be checked: the fix was written for the two permanent rows
+("`spawn --replace` is not used"), never as the general rule; DECISIONS
+64's amendment, the queue's opener and the race brief all say
+**respawned**, which reads as a spawn; and the memory index's ccc hook
+still names `--replace` handoffs. Candidates: one clause — "a session's
+successor is `ccc clear <its row> --then`; a second row on one tree is
+never spawned" — for every row; the word *respawn* struck from the
+opener's template and the frame; a guard in `tools/lanewait.py` (or the
+roster reader) that fails when two live or stopped rows stand on one
+worktree. The rest of the race clears its racers' rows. **A sibling, the same
+evening**: `att-1648-oh` ended landing 1 with its row at `tempo=blocked`
+("2 commander test lines await your write"), and an armed `ccc clear`
+fires only on `idle` — the lane's done line, read as needing the
+commander's lines, parks the row out of the clear's reach; one message
+("nothing is owed, end your turn") unblocked it, and the race's header
+now says so. The frame's done-line row could say it for every lane. The
+twenty-eighth pass's.
+
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 
 (1638) **The reading-heavy half of an item runs in a subagent** (Ramon
