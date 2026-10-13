@@ -228,7 +228,11 @@ pub(crate) struct Pair {
     /// Item 1661 counts a packed fisherman as idle in the census
     /// (`docs/AI.md` §179): **3587**, 15 versus 16 draws, index 1: ours
     /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    /// `Unit::do_move+0xe84`.
+    /// `Unit::do_move+0xe84`. Item 1662 lifts a unit off a tile that
+    /// refuses it before `find_path` marches (`docs/AI.md` §180): the count
+    /// **3615**, the sequence **3614** — 30 versus 30 draws, index 6: ours
+    /// `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
+    /// < Unit::do_guard+0x7f4`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -246,8 +250,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3587,
-    sequence: 3587,
+    count: 3615,
+    sequence: 3614,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1562,8 +1566,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
 /// word 3439 (item 1647), block 3440, and the word 3585 (item 1648),
-/// block 3586, and the word 3587 (item 1661), block 3588; the old words
-/// remain checked.
+/// block 3586, the word 3587 (item 1661), block 3588, and the word 3614
+/// (item 1662), block 3615; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1573,7 +1577,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586, 3588],
+        &[3395, 3396, 3398, 3440, 3586, 3588, 3615],
         true,
     )
 }
@@ -1615,10 +1619,12 @@ fn run721_s_word_frame_is_widened_whole() {
     // fifth and sixth missiles fly at the capital on 3439 and 3440.
     // Item 1661: 482 -> 394 keys once a packed fisherman counts as idle and
     // the computer's make list on 3581 agrees with the original's.
+    // Item 1662: 394 -> 326 keys once `find_path` lifts a unit off a tile
+    // that refuses it (`docs/AI.md` §180); the window now holds block 3615.
     pin_eq!(
         w.firsts.len(),
-        394,
-        "run721 after a packed fisherman is an idle one"
+        326,
+        "run721 after find_path lifts a unit off a refusing tile"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -1690,6 +1696,24 @@ fn run721_s_word_frame_is_widened_whole() {
         Some(3581),
         "the one make-list key left parts on 3581"
     );
+    // **Item 1662's value diff** (`docs/AI.md` §180): on block 3588 the
+    // Citizen `1/133` stands at (40548, 37539) in the original — one unit
+    // from the (40549, 37539) it held on 3587 — with a 26-leg path and
+    // `path_recursion` 1: `find_path` lifted it off its refusing tile and
+    // answered 1, and `do_move` paid its grid draw. Ours marched a verified
+    // detour (pos (40553, 37515), 14 legs). The whole record agrees now.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 133)),
+        "the Citizen 1/133 carries no parted key in the window"
+    );
+    let at = ix.frames().iter().position(|f| f.number == 3588).unwrap();
+    let frame = ix.frame_state(at).unwrap();
+    let walker = frame
+        .units
+        .iter()
+        .find(|u| (u.who, u.o) == (1, 133))
+        .unwrap();
+    pin_eq!((walker.pos.x, walker.pos.y), (40548, 37539));
     for block in [3394, 3395, 3396] {
         let at = ix.frames().iter().position(|f| f.number == block).unwrap();
         let frame = ix.frame_state(at).unwrap();

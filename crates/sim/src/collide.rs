@@ -3517,6 +3517,52 @@ mod tests {
         );
     }
 
+    /// **`find_path` lifts a unit off a tile that refuses it** (item 1662,
+    /// `docs/AI.md` §180; `find_path@005fb910`'s opening block). `x` stands
+    /// on a forest tile, which its terrain class refuses, with open ground
+    /// all round and a goal across it. The original answers `1`, not a
+    /// straight line: the unit is re-seated by `find_nearby_spot` and
+    /// `do_move` pays the `% 5` grid draw, where this crate marched a clear
+    /// line and spent nothing. Made to fail by dropping the block: the walk
+    /// is a straight line and no draw is marked.
+    #[test]
+    fn find_path_lifts_a_unit_off_a_tile_that_refuses_it() {
+        use crate::world::tile;
+        let a = Pos::new(30 * 0x30 + 0x20, 30 * 0x30 + 0x14);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, _y) = pair(a, Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18));
+        sim.world
+            .set_tile_field(a.tile(), tile::SURFACE, tile::SURFACE_FOREST);
+        assert_ne!(
+            sim.invalid_loc(x, a.tile(), true, false, false, false, false),
+            0,
+            "the unit's own tile refuses it"
+        );
+        sim.order_move(x, goal);
+        sim.trace_phases = true;
+        let mut rolled = false;
+        for _ in 0..3 {
+            sim.phase_marks.clear();
+            sim.tick();
+            rolled |= sim
+                .phase_marks
+                .iter()
+                .any(|(l, _)| l == crate::orders::SITE_MOVE_GRID);
+            if rolled {
+                break;
+            }
+        }
+        assert!(
+            rolled,
+            "the lift answers 1 and the frame pays the grid draw"
+        );
+        assert_ne!(
+            sim.units[x].pos, a,
+            "the unit was re-seated on the sweep's first spot (its own ring \
+             of radius 0, snapped), not left to march from where it stood"
+        );
+    }
+
     /// §6 step 6's last store is **`dest = 0`, and nothing else** — and
     /// what that buys is a frame the original does not spend.
     ///

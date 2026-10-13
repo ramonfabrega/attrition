@@ -5587,6 +5587,30 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
+        // **A unit on a tile that refuses it is lifted off first**
+        // (`find_path@005fb910`, the block that opens the non-flying arm,
+        // `docs/AI.md` §180): `invalid_loc(own tile, 1, 0, 0, 0, 0)` — the
+        // buildings ignored, and `invalid_loc`'s own `path.top.flags & 4`
+        // turning its sixth argument on — and a refusal is `UnitType::
+        // find_nearby_spot(x, y, 0, -1, 0, 0x55555555, FILTER_NOT_ME)`,
+        // `set_new_location(spot, 1, 0)` and **1**: not a straight line,
+        // not a step. `do_move` then pays its `% 5` grid draw
+        // ([`SITE_MOVE_GRID`]) and plans on whichever grid the roll
+        // chooses. The coverage pair's Citizen `1/133` stands in a cell
+        // flagged forest or mountain on 3587 with a transport-flagged
+        // leg on top of its path; the original lifts it one unit and
+        // draws, this crate marched a straight line to a detour.
+        //
+        // `find_nearby_spot` leaves its out-pair at the input point when
+        // it finds nothing (`docs/ORDERS.md` §10), so a failed sweep
+        // re-seats the unit where it stands.
+        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
+            let spot = self
+                .find_nearby_spot(u, here, 0, -1, 0, Angle::INITIAL, None)
+                .unwrap_or(here);
+            self.set_new_location(u, spot, true);
+            return 1;
+        }
         let mut goal = goal;
         if goal == here {
             return 0;

@@ -18215,10 +18215,105 @@ still parted and unexplained; none touches a draw. No capture was taken;
 the disk answered everything (run721's blocks 3580–3581, the run652
 trace).
 
-## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+## 180. A unit on a tile that refuses it is lifted off before `find_path` marches, and the word at 3614 (2026-10-12, item 1662)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3587, 15 versus 16 draws, index 1: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84`.
+The first parted record is the Citizen **`1/133`** on block 3588 (§179):
+`pos` (40553, 37515) against (40548, 37539), `path:length` 14 against 26,
+`order:move.dest` (40644, 36756) against (40680, 37320), `path_recursion` 2
+against 1.
+
+**The draw** (run652's trace, frame 3587, index 1): `Unit::do_move+0xe84 <
+Unit::do_explore_to+0xe < Unit::do_job+0x59`, seed `1ba0ba8f`, value 26273.
+`26273 % 5 = 3`, so the roll takes the middle arm of `do_move`'s grid choice
+(`0xf00`, the near plan, `find_tpath`/`find_upath`). The unit is `1/133`, a
+`TypeIndex` 50 Citizen on an `ExploreTo` to (36840, 34056), standing at
+(40549, 37539) with its world plan of fourteen legs in hand
+(`RON_DEBUG_UNIT`); `do_move+0xe84` is the only `Random::get` in
+`do_move@005f7b30` and sits behind `find_path` having answered non-zero.
+
+**What ours did.** `find_path` marched the straight line from (40549, 37539)
+to the leg's end (42216, 35592) and was blocked at tile (212, 194) — the
+footprint of the computer's building `1/2021` — walked `go_around_building`
+north along the one open column (211) to (40644, 36756) and verified it with
+a recursive `find_path`: **0, a straight line** — no roll. Printed on the
+frame (temporary probes, reverted): the tile masks round the unit are a
+corridor, column 210 forest, column 211 open road (the unit's own, with
+`BAD_PATH` and the city radius set), columns 212 and up a building
+footprint (`BLOCKED`, `BAD_PATH`, object field 3), and the tiles close in again to the north (ours' masks;
+no dump prints them).
+The experiment that named the block: forcing `find_path` to answer 1 on that
+frame (a probe, reverted) made `path:length`, `order:move.dest`,
+`order:move.last` and `path_recursion` agree with the dump at once, and left
+only `pos` and the angle parted — so the answer was 1 and the original's
+unit moved by one unit.
+
+**The reading** (`find_path@005fb910`, read, not transcribed). The
+non-flying arm opens with a block this crate never had: `invalid_loc(own
+tile, 1, 0, 0, 0, 0)` — buildings ignored — and a refusal does
+`UnitType::find_nearby_spot(type, x, y, &ox, &oy, 0, -1, 0, 0x55555555,
+FILTER_NOT_ME, …)`, `set_new_location(ox, oy, 1, 0)` and **returns 1**, before
+the pull-back and before the march. `invalid_loc@00607c30` sets its sixth
+argument itself when the path's top carries `flags & 4` (the transport/turn
+bit, which §4.4's region check writes onto a leg whose tile is in another
+region), and the land arm then refuses a unit whose own *cell* carries
+`0x70` (forest, mountain, `0x40`) when `param_3` and `param_6` are both set.
+`1/133`'s top on 3587 is (42216, 35592) with flags 4 and its cell is
+flagged, so its own tile refuses (code 2, printed with the same call:
+`own-ignore 2` on 3587, `0` on 3586 when the top had no bit). The sweep's
+first ring is radius 0, the unit's own point snapped: x 40549 → **40548**,
+which is the original's `pos` on 3588 and why it moved by one unit.
+`do_move` takes the 1 as a refusal, pays its `% 5` roll and plans the near
+grid; the unit does not step that frame (the dump's 3588 position is the
+lifted point, and ours agrees with it once the block is in), which is what
+the replan arm's own second `find_path` (`5f8bd4`) answering non-zero again
+would give — read, not separately shown.
+
+**The change.** `crates/sim/src/orders.rs` `find_path`: the opening block,
+after the helicopter return and before `goal == here`. `Sim::
+find_nearby_spot(u, here, 0, -1, 0, Angle::INITIAL, None)`, falling back to
+`here` when the sweep finds nothing (`docs/ORDERS.md` §10: the out-pair is the
+input), `set_new_location(spot, true)`, return 1. Unit test
+`collide::tests::find_path_lifts_a_unit_off_a_tile_that_refuses_it` (a unit
+on a forest tile; the lift pays `SITE_MOVE_GRID` and re-seats; fails with the
+block disabled — run).
+
+**Killers.** The reading would die if the dump's position on 3588 were
+ours' unlifted step ((40561, 37518) in the forced-1 run), if `path:length`
+or `move.dest` still parted, or if `1/133` parted anywhere in the window. It
+does not: the unit's whole compared record agrees from 3588 to the end of the
+window, and the extra draw is gone. Not killed, not proven: whether the
+lift's `FILTER_NOT_ME` sweep (collision half) matches for a crowded spot;
+no capture reaches one.
+
+**The word moves 3587 → 3614 (sequence) / 3615 (count)**, 30 versus 30 draws,
+index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
+< Unit::do_guard+0x7f4`. Run721 keys 394 → 326 (the window now also holds
+block 3615); run714's baseline moves with the lift (`coverage_pair.rs`); the
+ground-height guard on `coverage_pair_first_parting` 99 → 110. Great
+Sahara's word is untouched.
+
+**The next word, 3614** (blocks 3614–3615, inside run721). The first parted
+record on the frame is **`1/212`**, a `TypeIndex` 311 unit of the computer's
+army 1 on a `Guard` of uid 326 (offset (1170, −780)): `order:kind` 2 against
+12, `orders.len` 2 against 1, `path:length` 1 against 0 — in the original its
+`AttackTo` leg to the guard point (37464, 42840) has ended and the unit
+stands on it (37464, 42840) on 3614, `do_guard` running; ours is still at
+(37459, 42922) with the leg open. Walked back: the dump has the unit step 92
+at once on 3608 ((37368, 42936) → (37455, 42905), unit `angle` already the
+new bearing) and then stand five frames turning, arriving by the snap on
+3614; ours turns in place on 3608–3613 (`sp0/54`, turn rate ~3.4° a frame
+at `avg_speed` 72) and steps on 3614. The same shape parts two other
+followers of the same guard target earlier — `1/184` (`order:kind` 2 against
+12 on 3589) and `1/203` (3598) — so it is a rule, not a residue. The family's
+oldest parted fields are `mirror` ours 0 theirs 1 (`1/184` on 3468, `1/212`
+on 3506) and `1/203`/`1/212` `g.x`/`pos` from 3483/3507; none touches a draw.
+Nothing here has read the cause.
+
+**Limits.** The queue costs on 3583, `pool:81`, the group-id keys and the
+guard followers above are parted and unexplained. No capture was taken; the
+disk answered everything (run721 blocks 3586–3616, the run652 trace).
 
 ## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
 
