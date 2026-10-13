@@ -150,8 +150,8 @@ pub(crate) const RUN780: &str = "gamelog-run780-eastindies-mongol-alltech-window
 /// The window: block 2201 through 2458; the word 2207's own block is 2208.
 pub(crate) const WIDENING_MONGOL_FRAME_2207: (i64, i64) = (2201, 2458);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run780's blocks around the word 2207 (item 1768), the window the word left.
+pub(crate) fn mongol_frame_2207_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -188,4 +188,42 @@ fn run780_s_word_frame_is_widened_whole() {
     // `Unit::think_carry`'s worker arm (`docs/AI.md` §195): the Freighter
     // now walks there too, the word moved 2207 -> 2838, and the window's
     // keys fell 897 -> 136 (the word's delta; the 897 keys stand in §194).
+}
+
+/// run788: the word 2838's window, blocks 2832..3089 at the long's detail (item 1868).
+pub(crate) const RUN788: &str = "gamelog-run788-eastindies-mongol-alltech-window-2832-3090.txt";
+
+/// The window: block 2832 through 3089; the word 2838's own block is 2839.
+pub(crate) const WIDENING_MONGOL_FRAME_2838: (i64, i64) = (2832, 3090);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run788",
+        &[(RUN788, WIDENING_MONGOL_FRAME_2838.0)],
+        WIDENING_MONGOL_FRAME_2838,
+        1,
+        &[2839],
+        true,
+    )
+}
+
+#[test]
+fn run788_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run788 baseline");
 }
