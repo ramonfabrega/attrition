@@ -3933,13 +3933,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot C — reserved
+## Parked by item 1895, 2026-10-13 — the sweep's forwarder shape
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot C renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**1896.** `tools/sweep_gen.py` had no shape for a function that hands its
+work to direct callees (`think_hero`, `do_flee_to`, `NukeOut::update`: a
+call or two and a constant). Item 1895 added `fwd` (`--call ADDR:NARGS:ECX:ARGS`,
+`--own`, `--ret`), hooking the callees through `tools/emu/hooks.py` and
+holding the calls' `ecx` and arguments, in order, to the spec. A callee that
+is entered by a `jmp` after the function pops its frame (`Type::set_*_name`
+into `String::operator=`) hooks as an ordinary call. Left: forwarders whose
+arguments are fields (`this->x`) need a `field` argument token.
 
 ## Parked by the next landing, slot D — reserved
 
