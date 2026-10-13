@@ -10856,12 +10856,69 @@ to it for every body that is not an attack, a ground attack or a strafe); the
 `cavarch_uid` gate (`+0x30 != local_c`), which the original applies only under
 `CHAR_ATTACK2` — this crate tests that the target is struck.
 
-## 66. Reserved for the next item on the rules track
+## 66. Chapter fifty-four — the Dragoon's node and release rows, and a pushed group's prune (item 1776)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Chapter fifty-three's five standing value rows (§65: parked
+1731, 1756, 1757) and the M5/M6 mutations (1712), run772 agreeing to its
+end (1119). **No capture was owed**: run773's packet (frame 961, the game that
+fields the Dragoon) already holds piece 491's nine `AttachPos` entries, and
+`tools/recomp/get_position.py … entries 491` reads them.
+
+**What settled the rows.**
+
+1. **`g.des_turret0[0]` on 963, `g.turret0[0]` on 965, `g.node_flags[0]` on
+   1068** (1756) were one cause: the Dragoon bore from the unit's own point
+   (`pivot::NODES` had no row for piece 491), and the original bears from the
+   point **plus the node's vector** (`set_all_pivots@005d8bc0`, COMBAT §54).
+   The packet reads the `(4, 0, 0)` entry as `(0.0, −1.48, 31.05)`
+   (`0xbfbd70a3`), `RData +0x88` 1.0: `Node { px: 0, py: −148 }`. A quarter
+   of a degree off the bearing (3 080 192 in the turret's 2³² turn) was the
+   whole lead on the turret's return.
+2. **`1100 1/8 damage_frame`, `hits:damage`, `hits_left` and `0/31 ammo[0]`**
+   (1757) were the **same cause**. §65 read "no bay for piece 491 anim 12
+   start 13"; with the node row the release gate (`node_flags` bit, §55) opens
+   a frame earlier and the stationary round lands on the frame it is released.
+   **The booked mechanism, a missing bay, was the previous item's hypothesis
+   and was wrong** (DECISIONS 42). Rows for the four animations the packet
+   holds are still built (`pivot::RELEASES`, 491 on anims 10, 11, 12 and 13:
+   starts 12, 12, 13, 18), replacing `launch::BAYS`' fitted anim-10 row, whose
+   `dz` 205 is the packet's `4.8·(31.034 + 11.694)`.
+3. **Pool slot 1's off/curr/angle rows on 962** (1731): `Groups::process`
+   resets slot `f mod 64`'s group on frame 961, and `Group::normalize@00711540`
+   shifts **all of** `list`, the flag byte and the three parallel arrays over a
+   member it drops. This crate's pushed-group branch dropped the member from
+   `list` and left `off`, `curr` and `angles` a slot long (the army branch
+   already shifts them, `army_keep_units`, item 1493); it now goes through
+   `seat_remove_at`.
+
+**Backed by.** The original's own `get_position` on every reachable cell of the
+four release rows: 369 664 cells (`d₁ 0..=360 × 256` turret steps × 4 anims),
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_the_dragoon`
+(`$RON_RELEASE_TABLE_491`, outside git), with `float_lands` on four cells of
+anim 10 and three of anim 11. Mutations, each scored by exit: the node row
+removed (the widening fails: 1068 and 963/965 return); the pool shift replaced
+by `list.remove` (the widening fails: 962's pool rows return); M5, the drop
+removed in `cavarch_step_anim` (the golden word fails) and its `node_flags |= 1`
+removed (fails). **Held by no walk**: the anim-12 row's values — its key moved
+one frame, its `at` z zeroed, its `at` x/y sent to 2·10⁷, each exit 0 — the
+stationary round's landing reads the turret gate and the unit's square, not
+the row; the oracle table holds the values, and only the packet and that table.
+
+**M6** (the captain's re-search, 1712) is **not reached**: a probe at
+`if research {` exits 0 while one at the captain gate fails, so run772's
+captain Dragoon is always holding a combat-role target (the Scout), and `research`
+is false. Parked 1777: a captain holding a non-combat-role unit.
+
+**The word.** Unchanged at 1120 (the trace's end): `WANT_CH53` falls from 22
+to 15 rows (the forms, `group.id` and `death:extra` rows stand), `WANT_CH53_POOL`
+to empty.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved.
+
+**Not established.** The Dragoon's node-4 entries at the other animations (the
+pivot node's own anim-10..13 entries are read, but only the `(4, 0, 0)` row feeds
+`set_all_pivots`); whether another unit of the Dragoon's line carries a node row this crate lacks; the stationary round's flight time (no `AMMO` print holds it;
+the walk now agrees on its landing frame, nothing more).
 
 ## 67. Reserved for the next item on the rules track
 
