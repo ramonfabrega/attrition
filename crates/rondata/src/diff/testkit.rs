@@ -6890,6 +6890,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run766_s_word_frame_is_widened_whole", 10),
     ("run767_s_word_frame_is_widened_whole", 81),
     ("run790_s_word_frame_is_widened_whole", 756),
+    // run817 (item 2055): the word 4266's window to the game's end.
+    ("run817_s_word_frame_is_widened_whole", 1013),
     // The successor pair walked to its word 2207 (item 1744): four reads.
     ("mongol_pair_first_parting", 113),
     ("run780_s_word_frame_is_widened_whole", 4),

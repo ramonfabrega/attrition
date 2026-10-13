@@ -1060,10 +1060,10 @@ pub(crate) const RUN790: &str = "gamelog-run790-greatsahara-persian-alltech-wind
 /// The window: block 3761 through 4017; the word 3767's own block is 3768.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_3767: (i64, i64) = (3761, 4017);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run790 walked from run675's start with the
-/// recorder on — the word 3767's block 3768.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run790 walked from run675's start with the recorder on — the word 3767's
+/// block 3768. It was the `AI_WORDS` window until the word moved past it, to
+/// run817's (item 2055).
+pub(crate) fn sahara_coverage_frame_3767_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -1080,7 +1080,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run790_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_3767_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1116,4 +1116,58 @@ fn run790_s_word_frame_is_widened_whole() {
     // `queue[k].cost[0]` 178 against 160 now first there; the word moves 3985 → 4266,
     // past the window.
     pin_eq!(w.firsts.len(), 119, "initial run790 baseline");
+}
+
+/// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
+/// the word 4266's block 4267 with six before it, to the game's closing
+/// block (the human is defeated at 4340).
+pub(crate) const RUN817: &str = "gamelog-run817-greatsahara-persian-alltech-window-4260-4341.txt";
+
+/// The window: block 4260 through 4341; the word 4266's own block is 4267.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_4266: (i64, i64) = (4260, 4341);
+
+/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
+/// `GreatSaharaPersianAllTech`): run817 walked from run675's start with the
+/// recorder on — the word 4266's block 4267.
+pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run817",
+        &[(RUN817, WIDENING_SAHARA_COVERAGE_FRAME_4266.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_4266,
+        1,
+        &[4267],
+        true,
+    )
+}
+
+#[test]
+fn run817_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 81, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2055: **10740** keys on the base tree (`37e269fb`). 264 stand
+    // from 4260, the window's first block (the attrition of group 66's
+    // members inside the human's border, ours 6 against 0, is among them);
+    // the word's own rows open on block 4266 — the MLRS `1/144`, group 66's
+    // leader under its new `GROUPATTACKTOORDER`, steps 22 where the
+    // original steps 44 (`pos` (14721, 25632) against (14700, 25638)), and
+    // every member guarding it takes the parted guard point.
+    pin_eq!(w.firsts.len(), 10740, "initial run817 baseline");
 }
