@@ -522,7 +522,13 @@ impl Sim {
     /// edge of reach, an opportunistic one three quarters of a tile
     /// inside it.
     pub fn is_in_range_at_margin(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
-        if !self.active(target) {
+        // **The head asks the slot, never the health** (`006486b0`'s
+        // first lines; `docs/AI.md` §205): `flags & 1`, and for a unit
+        // `is_on_map` — [`Self::struck`]. A building at health 0 that
+        // still stands is in range: run809's `0/2000` on 3647, which
+        // `think`'s `near_o` arm hands the raiding `1/113`. This asked
+        // [`Self::active`] from the first combat landing.
+        if !self.struck(target) {
             return false;
         }
         // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
