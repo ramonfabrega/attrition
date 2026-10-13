@@ -18697,10 +18697,61 @@ queue's `lower map first — East Indies (Mongols)`.
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 192. Reserved for item 1738 (Great Sahara's word 3182)
+## 192. A Redoubt is a training building through its Fort, and the word at 3182 still stands (2026-10-13, item 1738)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 3182, 46 versus 43 draws, index 7: ours
+`Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d` (run767,
+block 3183). §189's value diff: `leader:MAKE[8]` t 446 (Redoubt, `1/2018`)
+against 526 (Pyramids), val 5711 against 3481 — the Redoubt's value a third
+of ours since 2782, the `base` `×3` dropped as a probe and not built.
+
+**How it was established.** A packet, run781 (`RON_STATE_FRAME=3182`, the
+click-free lane, 73 s, 946 MB), with `tools/recomp/step4.py --entry 6c1be0
+--this e4127c` (leader 1, `leaders.list + 0x6eec`) running the original's
+`Leader::create_buildings` whole on it (2.7 M instructions) with a hook at
+each stage of the value. For the Redoubt (type 446) in city index 1 the
+original's chain is **identical to this crate's** through `x = 4260`,
+`base = 12780`, `reach × base = 63900` and `× 4/5 = 51120` — every number
+this crate printed on the same frame. The parting is the divisor: the
+original's `idiv` at `006c3f6c` takes **7**, this crate's was 5 (`51120 / 5 =
+10224`, against `51120 / 7 = 7302`; the multiplier `check_income` then
+returns 122 and the value is 3479, the dump's 3481 less the tick's own
+income). The branches the hooks entered are `006c3dc4` (`is(…0x1b0…)`
+false), `006c3e0d` (`is_military_trainer` false), **`006c3e57`
+(`is_training_building` true)** and `006c3e7e`:
+`(reg_buildings + (queued + 2·have)·2)·2 + 1` — here `(1 + (1 + 0)·2)·2 + 1 =
+7`, not the fort arm's `(queued + 2·have)·4 + 1 = 5`.
+
+**Cause.** `BuildTypeData::is_training_building@00639de0` reads
+`build_flags & 0x80000000` on the **root** of the `FROM` chain (`this+0x3c`,
+then vslot `+0xe4`; the record's own `+0x2c0` for Redoubt, `0xc002015`, has no
+such bit); the Fort at the root of Castle, Fortress and Redoubt trains units
+(`WHERE`), so the whole line is one. `build::is_training_building` already read
+the root (production, rally, stance); `create_buildings`' own copy
+(`Sim::is_training_building`, `ai_build.rs`) scanned the unit tables for a
+`WHERE` equal to the record's *own* tree, so it read false for every Fort
+descendant and sent the Redoubt down the fort arm's divisor. It now calls the
+shared one; `a_redoubt_is_a_training_building_through_the_fort_it_comes_from`
+(`ai_build::tests`) fails without it (made to fail once).
+
+**Score.** The Redoubt's listed value on 3181 is now 7302 on both sides.
+The word does **not** move: count and sequence still part at 3182, 46 against
+43, index 7. The value diff beside it: `leader:MAKE[8]` on 3182 — ours t 446,
+city 1, val **4078**; theirs t 526, city 3, val 3481. The Redoubt's `7302` is
+the original's; ours multiplies it by `check_income`'s 143 where the original
+got 122 (`4078 · 256 / 7302 = 143`), and the Redoubt still outbids the
+Pyramids by 600. The 143 against 122 rides the leader's state, which parts
+on **3177** — `leader:bucket[1:timber]` 5639 against 5739, `bucket[2:wealth]`
+12256 against 12181 and `escrow[1:timber]` 0 against 32 (a hundred timber sold
+for seventy-five wealth here that the original has not sold, and an escrow of
+32 timber the original holds) — five frames before the word and untouched by
+this item. run766's widening falls 94 → 93 keys; run767's holds at 142.
+
+**Not established.** What takes the 100 timber on 3177 on this side and what
+the original's 32 timber escrow is (the `use_market` SEAM of `ai_make.rs` is
+the nearest writer of both); `check_income`'s own inputs for a 446 at 3182
+(the packet runs it: 122 on the original). No reading of `check_income` was
+needed.
 
 ## 193. Reserved for the next item on the AI track
 
