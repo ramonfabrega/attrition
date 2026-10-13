@@ -4043,6 +4043,11 @@ the count says; a staging that names ids reads them off
 `RON_STAGE_ALL`'s print first. Candidate: the walker prints the ids it
 made. One reach.
 
+(1739) **The dump prints a unit's orders as a stack** (1726's Loop
+line): last order first, so "the first order" read off it is reversed,
+and it cost the lane its first hour. Candidate: a `tools/` printer of a
+unit's orders in list order from the dump. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

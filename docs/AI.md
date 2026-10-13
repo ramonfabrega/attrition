@@ -18696,3 +18696,8 @@ queue's `lower map first — East Indies (Mongols)`.
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 192. Reserved for item 1738 (Great Sahara's word 3182)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
