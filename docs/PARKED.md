@@ -3825,6 +3825,14 @@ Loop line): `Pair`'s count and sequence are literals in the const, so a
 re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. One reach.
 
+(1781) **A chapter's close is written nowhere a lane reads** (1740's
+Loop line): a golden word reaching its trace end closes with `word == hi
+− 1` in the widening and the `Golden:` line reading `chN closed`; the
+`ENDPOINTS`/`AI_WORDS` rows are the long captures' and not owed. The lane
+found it by its gate. Candidate: the frame's `chapter` section says it.
+And a backgrounded `a && b && (gate) &` chain lost its heredoc once:
+write the journal with the file tool, then gate. One reach.
+
 ## Loop, filed 2026-10-13 — the twenty-ninth pass's
 
 (1743) **The before-reading rows name tools no lane ran** (the
@@ -4010,8 +4018,18 @@ chapter's first take, superseded by run772.
 
 (1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
 and 1062–1064, past the word 962; both mutations exit 0. Backed once
-1711 moves the word past them, on the same capture.
+1711 moves the word past them, on the same capture. 1740 walked run772
+to its end (1119): both now lie in the walked range, unbacked.
 
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
+
+(1756) **The turret's return runs ahead** (1740): on 1068 `0/31
+g.node_flags[0]` reads 15 against 14, the turret's return 4 718 592
+ahead; seeded on 963/965 (the turret angles). Pinned in `WANT_CH53`.
+
+(1757) **The stationary Dragoon's round lands a frame late** (1740): no
+bay for piece 491 anim 12 start 13, so `1/8` damage and `0/31 ammo[0]`
+part on 1100. 1740 measured the anim-10 bay once (start 12); the anim-12
+bay is unmeasured — a packet at 1099 and `get_position`. Pinned in `WANT_CH53`.
