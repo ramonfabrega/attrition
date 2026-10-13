@@ -60,12 +60,18 @@ pub struct Node {
 /// −29.45, 18.78)` (`0xc1eb9999`). The pivot sits behind the hull's
 /// centre, where the Chariot's sits ahead of it.
 ///
+/// **Piece 491, the Dragoon** (item 1776): run773's packet (frame 961, the
+/// game that fields it) reads its `(4, 0, 0)` entry as `(0.0, −1.48,
+/// 31.05)` (`0xbfbd70a3`), `RData +0x88` 1.0. The bow-side pivot sits a
+/// hair behind the figure's centre.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
 const NODES: &[(i32, i32, Node)] = &[
     (145, 4, Node { px: 0, py: 2464 }),
     (296, 4, Node { px: 0, py: -2945 }),
+    (491, 4, Node { px: 0, py: -148 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -306,6 +312,61 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [0, -29_576_756, 18_779_999],
             at: [0, -11_213_131, 16_269_558],
+            float_lands: &[],
+        },
+    ),
+    // **The Dragoon** (item 1776): run773's packet, piece 491's nine entries
+    // — anims 10 (`CHAR_ATTACKWALK`), 11, 12 (the stationary round) and 13.
+    (
+        491,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 491,
+            node: 0,
+            pivot: [58111, -1380116, 31034378],
+            at: [-12961245, -27570284, 11694054],
+            float_lands: &[
+                (92, 28, -90, -120),
+                (45, 342, -120, 94),
+                (135, 342, -94, -120),
+                (225, 342, 120, -94),
+            ],
+        },
+    ),
+    (
+        491,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 491,
+            node: 0,
+            pivot: [4308261, -1638021, 31049999],
+            at: [-3027300, -29267675, 15569523],
+            float_lands: &[(87, 138, 102, -68), (52, 221, 146, 43), (337, 295, 162, 18)],
+        },
+    ),
+    (
+        491,
+        crate::anim::ATTACK2,
+        13,
+        Release {
+            piece: 491,
+            node: 0,
+            pivot: [0, 6483696, 34750904],
+            at: [-8452114, -17947832, 20006462],
+            float_lands: &[],
+        },
+    ),
+    (
+        491,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 491,
+            node: 0,
+            pivot: [0, -1480000, 31049999],
+            at: [-4867605, -28791185, 12283539],
             float_lands: &[],
         },
     ),
@@ -577,6 +638,46 @@ mod tests {
             off.len(),
             &off[..off.len().min(20)]
         );
+        eprintln!("{rows} cells agree");
+    }
+
+    /// **The original's pivot branch on every reachable cell, for the
+    /// Dragoon** (item 1776): `tools/recomp/get_position.py … pivot 491 0
+    /// <anim> <time> 1` on run773's packet for its four rows, `d₁ = 0..=360`
+    /// and each of the 256 turret steps. `$RON_RELEASE_TABLE_491` is the
+    /// directory holding `release-oracle-491-a<anim>.txt`, `d₁ i t x y z`
+    /// a line, outside git (`~/ron-data/lab-experiments/2026-10-13-item-1776/`).
+    /// Every cell agrees, `float_lands` aside.
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_the_dragoon() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_491") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_491 (item 1776's oracle, run773)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 12),
+            (crate::anim::ATTACK1, 12),
+            (crate::anim::ATTACK2, 13),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let path = format!("{dir}/release-oracle-491-a{slot}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_491");
+            let r = release(491, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
         eprintln!("{rows} cells agree");
     }
 

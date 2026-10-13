@@ -13544,32 +13544,9 @@ const WANT_CH53: &[&str] = &[
     "641 0/8 order:group.id",
     "641 0/9 order:group.id",
     "943 0/6 death:extra",
-    "963 0/31 g.des_turret0[0]",
-    "965 0/31 g.turret0[0]",
-    "1068 0/31 g.node_flags[0]",
-    "1100 0/31 ammo[0]",
-    "1100 1/8 damage_frame",
-    "1100 1/8 hits:damage",
-    "1100 1/8 hits_left",
 ];
 
-const WANT_CH53_POOL: &[&str] = &[
-    "962 slot 1 angle[6]",
-    "962 slot 1 curr[0]",
-    "962 slot 1 curr[1]",
-    "962 slot 1 curr[2]",
-    "962 slot 1 curr[3]",
-    "962 slot 1 curr[4]",
-    "962 slot 1 curr[5]",
-    "962 slot 1 curr[6]",
-    "962 slot 1 off[0]",
-    "962 slot 1 off[1]",
-    "962 slot 1 off[2]",
-    "962 slot 1 off[3]",
-    "962 slot 1 off[4]",
-    "962 slot 1 off[5]",
-    "962 slot 1 off[6]",
-];
+const WANT_CH53_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
@@ -13629,20 +13606,18 @@ const WANT_CH51: &[&str] = &[
     "982 0/8 death:extra",
 ];
 
+// Item 1776: a pushed group's prune shifts the arrays with the list, so the
+// 770 slot 1 rows agree and leave; the dead member's other rows (907, 1003)
+// part with the list, where the original drops it at its death.
 const WANT_CH51_POOL: &[&str] = &[
     "1003 slot 1 angle[1]",
-    "770 slot 1 angle[3]",
-    "770 slot 1 curr[0]",
-    "770 slot 1 curr[1]",
-    "770 slot 1 curr[2]",
-    "770 slot 1 curr[3]",
-    "770 slot 1 off[0]",
-    "770 slot 1 off[1]",
-    "770 slot 1 off[2]",
-    "770 slot 1 off[3]",
+    "1003 slot 1 curr[1]",
+    "1003 slot 1 off[1]",
     "907 slot 1 angle[2]",
+    "907 slot 1 curr[2]",
     "907 slot 1 list",
     "907 slot 1 num",
+    "907 slot 1 off[2]",
 ];
 
 const WANT_CH50: &[&str] = &[
@@ -13667,20 +13642,16 @@ const WANT_CH50: &[&str] = &[
     "1063 0/7 death:extra",
 ];
 
+// Item 1776: as chapter fifty-one's pool (770 slot 1 agrees and leaves).
 const WANT_CH50_POOL: &[&str] = &[
-    "770 slot 1 angle[3]",
-    "770 slot 1 curr[0]",
-    "770 slot 1 curr[1]",
-    "770 slot 1 curr[2]",
-    "770 slot 1 curr[3]",
-    "770 slot 1 off[0]",
-    "770 slot 1 off[1]",
-    "770 slot 1 off[2]",
-    "770 slot 1 off[3]",
     "932 slot 1 angle[2]",
+    "932 slot 1 curr[2]",
     "932 slot 1 list",
     "932 slot 1 num",
+    "932 slot 1 off[2]",
     "996 slot 1 angle[1]",
+    "996 slot 1 curr[1]",
+    "996 slot 1 off[1]",
 ];
 
 /// **run436: a command for another seat is dropped at the pump** (item
