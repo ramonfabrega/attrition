@@ -775,7 +775,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 56, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 54, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -816,7 +816,7 @@ fn run672_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(612),
+        Some(658),
         "the first parting past the standing block"
     );
     pin_eq!(
@@ -909,7 +909,7 @@ fn run678_s_word_frame_is_widened_whole() {
     // **139** on the tree item 1558 landed (160 on item 1552's, 307 on item
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
-    pin_eq!(w.firsts.len(), 71, "initial run678 baseline");
+    pin_eq!(w.firsts.len(), 68, "initial run678 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): leader 1's
     // make list on 982 holds the Mine (419, 6,300,000) in `MAKE[3]`/`[4]`
     // in both — ours held the Farm (417, 2,520,000) — and the site
@@ -1392,7 +1392,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 112, "initial run714 baseline");
+    pin_eq!(w.firsts.len(), 110, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1618,7 +1618,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 156, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 154, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1793,7 +1793,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // **4425**, past this window's last block (4094).
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
-    pin_eq!(w.firsts.len(), 179, "run754 keys that part (item 1669)");
+    pin_eq!(w.firsts.len(), 177, "run754 keys that part (item 1669)");
 }
 
 #[test]

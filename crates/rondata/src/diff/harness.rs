@@ -3327,9 +3327,12 @@ pub(crate) mod tests {
         //    its phase frame but for step 16's army (`plan_strategy:1642`).
         //    The human's `peasant_dist` moves on frame 401, leader 0's
         //    phase, in both.
-        // 2. **The AI's second city, `1/2007`** — `land`, `filled` and the
+        // 2. ~~**The AI's second city, `1/2007`** — `land`, `filled` and the
         //    three `space` counts, one apart, from the frame its circle is
-        //    first swept.
+        //    first swept.~~ **Closed by item 2106** (`docs/AI.md` §209): the
+        //    157 frames from 1819 were the city's founding to its owner's
+        //    first sweep, and `City::init@00737050` writes `land` 9 and
+        //    `filled` 1 there (`*(this + 0x61) = 0x01090000`).
         // 3. ~~**A gatherer filed under the wrong city** from 2576 — the
         //    totals agree, the attribution does not.~~ **Closed by item
         //    752**: `plan_strategy` counts a gatherer in its building's
@@ -3338,12 +3341,10 @@ pub(crate) mod tests {
         //    citizen parted beside it from 4176 for 200 frames: a citizen
         //    riding a transport barge, which the original's census counts
         //    through its container and never free (`docs/AI.md` §58).
-        let city_want = vec![
-            "1/2007 land f1819 x157",
-            // Item 1477: `filled` x3383 → x157 and the three `space` rows (x3226) are gone:
-            // the census walks the circle from entry 1, `docs/AI.md` §122.
-            "1/2007 filled f1819 x157",
-        ];
+        // Item 1477: `filled` x3383 → x157 and the three `space` rows (x3226)
+        // went (the census walks the circle from entry 1, `docs/AI.md` §122);
+        // item 2106 took the last two, `land` and `filled` x157.
+        let city_want: Vec<String> = Vec::new();
         assert_eq!(
             city_said, city_want,
             "the `CITY` record's open rows moved; every other field of every \
