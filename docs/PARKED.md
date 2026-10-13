@@ -4069,13 +4069,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot K — reserved
+## Parked by item 1942, 2026-10-13 — the sweep's thirty-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot K renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**1943. The `deref` and `store` shapes, still hand-written** (Loop; 1933's sequel). Nine of 1942's ten were hand scripts and eight
+of them one of two shapes: a forwarder whose argument or `ecx` is `[this+OFF]` plus a constant (`ObjectData::say_name`,
+`TerrainMap::river_point`), and a store through fixed offsets of `this` or a global cell (`set_base_source_pool`, `start_river`,
+`cast_supplies`, `set_orig_coast`). `fwd` takes no dereference token; `store` is still unbuilt. Names no score but the census's.
+
+**1944. `OrderList::get_new_data@0046ed60` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
+of it needs a chosen `ebp`, which `callfn` does not set. `MapScript::run_map_script` and `SurfWaveSection::load_old_bh3` are empty bodies
+(parked 1725's question), `Terrain::build_beach_data` and the three `walk_data`s are left.
 
 ## Parked by the next landing, slot L — reserved
 
