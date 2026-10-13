@@ -1,5 +1,6 @@
 //! `ObjectData::is_infiltrated@00653750` under the emulator against the port (item 1954; tools/sweep_gen.py, obj).
 
+#[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
     i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
 }
@@ -37,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
-            let _ = &a;
+            let _ = (&a, &m);
             let who = i32::from(m[9]);
             let inf = i32::from(m[0x3a] as i8);
             let p = a[0];

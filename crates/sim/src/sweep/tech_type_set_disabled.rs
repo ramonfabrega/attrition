@@ -1,5 +1,6 @@
 //! `TechType::set_disabled@0066c310` under the emulator against the port (item 1954; tools/sweep_gen.py, obj).
 
+#[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
     i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
 }
@@ -37,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
-            let _ = &a;
+            let _ = (&a, &m);
             if (a[0] as u32) < 8 {
                 let b = 1u8 << (a[0] as u32 & 7);
                 if a[1] != 0 {

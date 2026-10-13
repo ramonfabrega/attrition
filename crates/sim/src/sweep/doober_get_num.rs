@@ -1,5 +1,6 @@
 //! `Doober::get_num@00846450` under the emulator against the port (item 1954; tools/sweep_gen.py, obj).
 
+#[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
     i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
 }
@@ -37,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
-            let _ = &a;
+            let _ = (&a, &m);
             let d = a[3].wrapping_sub(a[2]);
             let n = d.wrapping_abs().wrapping_add(1);
             i64::from(

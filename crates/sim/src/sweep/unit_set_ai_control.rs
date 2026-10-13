@@ -1,5 +1,6 @@
 //! `Unit::set_ai_control@00605200` under the emulator against the port (item 1954; tools/sweep_gen.py, obj).
 
+#[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {
     i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
 }
@@ -37,7 +38,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
-            let _ = &a;
+            let _ = (&a, &m);
             let v = rd(m, 0x68);
             wr(m, 0x68, if a[0] != 0 { v | 0x40000 } else { v & !0x40000 });
             0

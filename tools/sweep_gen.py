@@ -623,6 +623,7 @@ if __name__ == "__main__":
 
 OBJ_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, obj).
 
+#[allow(dead_code)]
 fn rd(m: &[u8], off: usize) -> i32 {{
     i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
 }}
@@ -655,7 +656,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {{
             let (a, m) = (&a[..], &mut m[..]);
-            let _ = &a;
+            let _ = (&a, &m);
             {port}
         }};
 {ret}
