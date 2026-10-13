@@ -3809,7 +3809,9 @@ ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
 reaches — the shape the pass should build before the next sweep. **1954**
 built it as `obj` (parked 1955; nine of ten); a global cell's record, an
 out-pointer into the object and a `this` chain are still unshaped. Nine
-reaches.
+reaches. **1966**: five of ten would be one line under `obj` with hooked
+callees and global cells, and `fwd` still lacks its `field` token
+(parked 1967). Ten reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
