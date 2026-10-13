@@ -10,8 +10,15 @@ fn the_emulated_original_agrees_on_every_row() {
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, want) = super::row(line);
-        let (n8, nc) = (i32::try_from(a[0]).expect("a 32-bit integer"), i32::try_from(a[1]).expect("a 32-bit integer"));
-        assert_eq!(want, i64::from(if nc != 0 { n8 } else { 0 }), "BuildData::num_gather — row `{line}`");
+        let (n8, nc) = (
+            i32::try_from(a[0]).expect("a 32-bit integer"),
+            i32::try_from(a[1]).expect("a 32-bit integer"),
+        );
+        assert_eq!(
+            want,
+            i64::from(if nc != 0 { n8 } else { 0 }),
+            "BuildData::num_gather — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 200, "only {n} rows");

@@ -11,7 +11,11 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, want) = super::row(line);
         let g = i32::try_from(a[0]).expect("a 32-bit integer");
-        assert_eq!(want, i64::from(g >= 0), "TurnControl::is_cannon_time — row `{line}`");
+        assert_eq!(
+            want,
+            i64::from(g >= 0),
+            "TurnControl::is_cannon_time — row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 200, "only {n} rows");
