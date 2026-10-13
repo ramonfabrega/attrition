@@ -5500,16 +5500,16 @@ mod tests {
             let me = put(&mut sim, 0, ty, Pos::new(at, 3000));
             sim.units[me].captain = true;
             sim.units[me].idle = 6;
-            sim.units[me].cant_reach = false;
+            sim.units[me].cant_reach = true;
             sim.units[me].combat.stance = stance;
             sim.units[me].near = Some(Obj::Building(b));
             sim.think(me, frame - i64::from(sim.units[me].index));
-            (sim.order_type(me), sim.units[me].combat.target)
+            (sim.order_type(me), sim.units[me].cant_reach)
         };
         let attack = crate::orders::index::ATTACK;
-        let (ty, t) = think(16, Stance::Aggressive, false, false);
+        let (ty, cant_reach) = think(16, Stance::Aggressive, false, false);
         assert_eq!(ty, attack, "off phase, in range: the cached nearest");
-        assert!(t.is_some());
+        assert!(!cant_reach, "the could-not-reach bit is cleared");
         assert_ne!(
             think(32, Stance::HoldFire, false, false).0,
             attack,
