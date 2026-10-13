@@ -213,6 +213,16 @@ fn a_row_is_its_arguments_and_its_result() {
     assert_eq!(row("3 -4 0 -> -7"), (vec![3, -4, 0], -7));
 }
 mod angle_diff;
+mod object_data_is_active_build;
+mod object_data_is_dock;
+mod object_data_is_siege;
+mod object_data_is_visible_wonder;
+mod unit_data_is_caravan;
+mod unit_data_is_rare_collector;
+mod world_data_get_goods;
+mod world_data_is_valid_coord;
+mod world_data_is_valid_int;
+mod world_data_is_valid_tcoord;
 mod build_data_is_infinite;
 mod build_data_max_gatherers;
 mod build_data_most_shots;
