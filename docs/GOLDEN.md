@@ -10645,7 +10645,101 @@ original recomputes the hits at 17025; the two-order snap and M5/M6; the
 temple level when `has_wonder(0x214)` (Tikal) holds — built from the
 listing, no capture holds it; the CTW missionaries term after it.
 
-## 63. Reserved for item 1707 (chapter fifty-three)
+## 63. Chapter fifty-three — the member arm walked and held; the cavalry archer's arms staged past a parting at 962 (item 1707)
+
+**Premise.** DECISIONS 56 §3's fifty-third chapter: parked 1688's member
+`find_melee_target` arm and parked 1689's two-order snap (1500) and M5/M6
+(1508). A chapter is three arms, and the two-order snap was **not reached by
+any staging** (below), so the three are the member arm, M5 and M6.
+
+**The member arm is reached, and the staging is not the one §61 reasoned
+about.** §61 put the hit on a Scout beside idle Hoplites inside a Stockade's
+reach band, and found the Stockade ranking a Hoplite first. The walk shows two
+facts it missed. (1) `Group::target_opportunity`'s group arm is taken only for
+a **non-combat** victim (`Sim::target_opportunity`'s captain walk), so the
+hit must be on the Scout; (2) a Stockade does **not** shoot a Scout that
+stands still: `do_attack`'s `(o + frame + 14) & 0x1f` re-find drops a target
+that is a non-moving non-combat unit, and a standing unit is a poor target
+besides. So the hit has to land on a Scout that is **walking** while the
+group's captains are **idle**. `chapter53.cmd`: a Stockade `1/2006` at (215,
+128); a Scout and two Hoplite squads (captains `0/7`, `0/10`) added 24 tiles
+east, one `@move` of all three to (45000, 24600) — the Hoplites stop in 20
+frames, the Scout, which started 40 tiles west, walks east *through* the reach
+and is wounded on 818, 844, 872, 906 and 942. Each wound reaches
+`Group::target_opportunity` with both captains' action absent and `order_type`
+NONE: arm 2. (A Hoplite squad hit instead never reaches the group arm.) The
+walk was found by a temporary probe on `group_target_opportunity` (not
+kept); the Hoplites stand 21 tiles from the Stockade, outside its reach of 13.
+
+**run772 agrees on the arm.** `chapter_fifty_three_s_word_frame_is_widened_whole`
+(605..966) shows no row on 818..942 beyond the standing ones: no captain
+`orders`, `near` or `cavarch` row parts where `find_melee_target` adds its
+order for a frame. **Mutation** (`if no_action && …` → `if false && no_action
+&& …`, `tools/mutate.py`): the widening fails, exit 101 — the arm is held by a
+walk, which §61 could not say. The five wounds' draws agree to the word.
+
+**M5 and M6 are reached in the walk, past a parting.** A Dragoon (`FIRES_ON_MOVE`)
+on a plain `@move` (an `ATTACK_TO` stops the fire on the move: do_move's
+`attacking` test) past an enemy Scout and two Hoplite squads: the Scout is held
+first, `cavarch_fight` re-searches it (the Scout is not combat-role, roll
+`% 5 != 0`) and a Hoplite is found as it comes into reach — M6, on 1002 in
+the walk; `cavarch_step_anim` drops the held target when guy 0's
+`des_node_flags` is 0 — M5, on 1062 and 1064. The tuning of the layout is
+RNG-dependent (M6 needs the Scout nearer than the Hoplites by about six
+tiles, and `(index + frame) % 32` moves the search phase with every unit
+added before the Dragoon); the walk's M6 was lost by moving the pair 330
+frames later until the Hoplites' x was swept.
+**Both are held by no walk**: the word is **962**, 6 draws against 5 on that
+frame, and M5 and M6 come after it (1002, 1062). **Mutations** (`des_flags == 0`
+→ `false &&`; `if research` → `if false && research`): both exit 0 on
+`chapter_fifty_three*`, as parked 1689 said they would.
+
+**The word, run772 962** (the Dragoon `0/31` added on 942, the enemy Scout `1/6`
+on 944): theirs spends `Unit::fight+0x9b0 < Unit::do_attack+0x6ba <
+Unit::do_job+0x3d` at index 0 where ours spends `Guy::set_anim+0x104b`
+(`Unit::inc_time+0x3e`): 6 draws against 5, the extra one the original's. **Value
+diff on the frame**: `0/31` `near` (6, 1) there against (−1, −1) here,
+`orders.len` 1 against 0 — an idle Dragoon, 7 tiles from an enemy Scout, takes an
+`ATTACK` 20 frames after it is added, on the original's side, and this crate's
+idle search does not; walked back, nothing on `0/31` parts on 943..961. The
+pool's slot 1 (the Scout's group) lists 6 members on 962 there against 7 here
+(`curr[0..6]`, `off[0..6]`, `angle[6]`): the likely
+difference is the dead Scout `0/6` (`death:extra` on 943, chapter fifty's
+family), unread: no member list was compared against the dump's `GROUPDATA` by
+unit here. The Dragoon's own `angle`,
+`heading`, `idle`, `recharging` and turret rows follow on 963–964. Pinned with
+its widening: `GOLDEN_WORD_CHAPTER_FIFTY_THREE` 962 and
+`WIDENING_CHAPTER_FIFTY_THREE` (605, 967), 36 rows and 15 pool rows, the
+standing ones `form` on 605, the group's `order:group.id` on 641 (an id this
+crate's pushed group reads as `64 + index`, chapter nine's) and `death:extra`
+on 943 (a dump-alone 0). **Not built here**: the word is the next item's.
+
+**run771's word, 652** — the first take, the Dragoon's pair added on 612 and
+moved on 640: the original's Dragoon struck `1/6` on 643 and its round left on
+652 (`Ammo::init+0xcd9`, index 0 of 8 draws against 6), the scout's `hits_left`
+24 against 50 on 654. `docs/AI.md` §134 says a fire-on-the-move type's round
+goes on its `CHAR_ATTACKWALK` release event and that run657 showed none in
+`17170..17178`; run771 shows one, nine frames after the strike. This crate puts
+nothing in the air on that event. The word is parked (1710) with its value diff
+(`ammo[0]` the dump holds alone on 653, `1/6` `hits:damage` 26).
+
+**The two-order snap is not reached.** `move_step`'s snap arm
+(`step.snapped && mo.waypoint == from`) printed **no frame at all** across
+every chapter script walked and four group `@amove`/`@move` stagings of
+12 to 30 units; it needs a unit standing on its top waypoint while it owes a
+turn, which only a long `ATTACK_TO` whose path lays its first waypoint on the
+unit has done (French East Indies 16857). `do_move`'s own "already there" test
+drops an order to the unit's own spot before any step, so `@amove` to a point the
+unit stands on takes no turn. Parked (1709). The converse (two orders: no
+draw) stays held by `collide.rs`'s unit test alone.
+
+**What is not established.** Whether the original takes arm 2 at **each** of
+the five wounds the same way (all five lie before the word and none parts; the
+fifth, on 942, kills the Scout and its row is the `death:extra` family); M5 and M6 in the original (past 962);
+what makes the original's idle Dragoon take an `ATTACK` on 962, and whether
+it is the same event as the pool's list losing a member there; the two-order snap.
+
+## 64. Reserved for item 1711 (chapter fifty-three's word 962)
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.

@@ -12,26 +12,27 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, the twenty-ninth tranche at sixteen landings of twenty
+*2026-10-13, the twenty-ninth tranche at twenty landings of twenty
 (`commander`, Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65):
-**both AI words moved twice** — the coverage pair 3963 → 4582 (1673,
-1700, 1714), Great Sahara 2323 → 2934 (1639,
-1697, 1716) — the census 68 → 158, chapter fifty-two landed. No kill rule.*
+**the coverage pair closed** at its trace's end — 3963 → 4730 (1673,
+1700, 1714, 1719) — Great Sahara 2323 → 2934 (1639,
+1697, 1716) — the census 68 → 178, chapter fifty-two landed and fifty-three opened at 962. No kill rule.*
 
-- **Out**: `att-1719` (parks 1675–1678, runs 763–765, AI §188), `att-1726`
-  (1679–1682, 768–769, AI §189), `att-1724` (1683–1686), `att-1707`
-  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1728, run
-  774, AI §190. **The disk**: 248 GiB free.
-- **Fable backlog: 31 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720, 1722, 1725, 1727).
+- **Out**: `att-1728` (parks 1675–1678, runs 774–776, AI §190), `att-1726`
+  (1679–1682, 768–769, AI §189), `att-1711`
+  (1731–1734, 773, 777–778, GOLDEN §64); stubs in the base; the sweep
+  lane drained at twenty (1736 unspawned). Next 1737, run
+  779, AI §191, GOLDEN §65. **The disk**: 248 GiB free.
+- **Fable backlog: 33 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720, 1722, 1725, 1727, 1729, 1730).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w4582 of 4,730
-Census: simulation backed 158 of 3611
+Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
+Census: simulation backed 178 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2934 of 4,340
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
+Golden: ch53 w962 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-ninth tranche — `commander` (Opus 5.5): four lanes
@@ -42,18 +43,11 @@ the tranche scored whole.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1719 the headline's word, 1726, 1724 and 1707 the
-other three lanes — lower map first — East Indies (All Technologies).
+In dependency order, headline-nearest first. **The roster is Ramon's**:
+1726 the headline's word, 1728, 1736 and 1711 the other three lanes —
+lower map first — closed, the coverage pair's; 1728's capture moves it.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
-
-1719. **The coverage pair's word: frame 4582, 549 versus 551 draws**,
-    index 542: ours `Guy::set_anim+0x97a`, theirs `Guy::init_real+0x52`
-    (a birth); inside run762 (block 4583), `run762_s_word_frame_is_widened_whole`
-    (1167 keys). 1714's value diff: on 4583 leader 1's `num_units[8]` 5
-    against 4, `active` 179 against 178, `1/169` in the dump alone; 4585
-    `MAKE[2,3].val` 1294 against 1353. AI §188.
 
 1726. **Great Sahara's word: frame 2934, 191 versus 205 draws**, index 0:
     ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -63,19 +57,29 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     against 4 on 2935 — a first row, not a cause; `MAKE[8].val` 17767
     against 5922 (the Redoubt's, ×3) unexplained since 2782. AI §189.
 
-1724. **The sweep's twelfth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 158 of 3611): 1723's shape,
-    merged by SHA; past the 110 swept, shortest decompile first; an
+1728. **The successor pair** (DECISIONS 53 §2, 61 §6; 1466's shape): the
+    coverage pair closed at its trace's end, 4730 (1719). Choose the lobby
+    whose rows no trace has entered (`tools/census.py --pin --never`), name
+    them before its capture is booked, capture its start and long game
+    (East Indies unless the rows name another map), pin its first word with its
+    widening; its scoreboard line and parser come with it. Closing residue:
+    `1/84` off (-96, -720), a building and a city unlinked; 4677 `order:kind`
+    17 vs 16. AI §190.
+
+1736. **The sweep's fourteenth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 178 of 3611): 1735's shape,
+    merged by SHA; past the 130 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1707. **Chapter fifty-three: the arms chapter fifty-two did not reach**
-    (DECISIONS 56 §3; GOLDEN §62): parked 1688's member
-    `find_melee_target` arm (an `@form` formation wider than a Stockade's
-    reach band) and parked 1689's two-order snap (1500) and M5/M6 (1508:
-    the drop, the captain's re-search). Whether one staging reaches each
-    is the item's to establish first; a run is minted from 771. GOLDEN §63.
+1711. **Chapter fifty-three's word: frame 962, 5 versus 6 draws**, index
+    0: theirs `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`, ours
+    `Guy::set_anim+0x104b`; inside run772, `chapter_fifty_three_s_word_frame_is_widened_whole`
+    (605..966). 1707's value diff: the idle Dragoon `0/31` `near` (6,1)
+    against (-1,-1), `orders.len` 1 against 0 (an `ATTACK` on the enemy
+    Scout 7 tiles off), pool slot 1's members 6 against 7. M5/M6 lie past
+    it (1002, 1062; parked 1712). GOLDEN §64.
 
 ## How to maintain this file
 

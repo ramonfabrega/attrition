@@ -16005,3 +16005,100 @@ Click-free lane 1, free at launch; `success: true`, 721 frames, seed 12345, map 
 launch to exit. Dump 102,196,977 bytes (sha256 `db9d6ad60b61…`), trace 9,226,496 (`7f5228a2fd17…`), kept in
 `~/ron-golden/ch52fog/map-14`. **What it holds**:
 `golden::chapter_fifty_two_s_fog_plane_agrees_through_the_first_round` — 25 blocks, every fog cell compared.
+
+## run763 — the coverage pair: East Indies, Persians, All Technologies, the last blocks 4677..4730 and the closing block (2026-10-13, item 1719, `att-1719`)
+
+**Disk gap**: item 1719's Kremlin arm moved the word 4582 -> 4730, the trace's end; run762 ends at block 4676, so no dump
+printed the last running blocks or a closing block with the detail the widening needs (run652's closing state is
+whole-map only). run762's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 4730 --timeout 3600 --log-window 4677 4731 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free
+lane, the pool took lane 1 (`~/wine-ron`). First take: `success: true`, `settings_restored: true`, launched 01:48:44, exit 0,
+launch-to-exit 454.9 s, 4,731 frames (last 4730, closing 4731), seed 12345, five settings files restored; output
+`~/ron-data/lab-captures/2026-10-13-run763`. 54 `BEGIN FRAME` blocks 4677..4730 and the closing state.
+`rngcmp.py rontrace-run652.log rontrace-run763.log`: **4,731 frames in common, 0 differing**. No wait for the lane.
+
+Archive `gamelog-run763-eastindies-persian-alltech-closing-window-4677-4731.txt`, 141,726,657 bytes,
+SHA-256 `ec17d344498edd4dcddb6921addcb8e0f85f2e869369477411ed8fba5f39cd0c`.
+
+Archive `rontrace-run763.log`, 261,786,112 bytes,
+SHA-256 `98c451a0fb71b775db449d567cbe5cdaee3f8561126a44c5b2aeaa9531be6994`.
+
+**What it holds**: `diff::coverage_pair::run763_s_closing_frame_is_widened_whole` — 230 keys over 54 blocks (514 inexact height
+reads); the coverage pair's closed-word widening (`WIDENINGS`), walked by the compared pin and the coverage driver. `docs/AI.md` §188.
+## run771 — chapter fifty-three's first take, the Dragoon's pair added on 612 (2026-10-13, item 1707)
+
+`docs/GOLDEN.md` §63. The script of run772 with `612 add dragoon who=0 225,152`, `614 add scout who=1 234,148`,
+`616 add 2 hoplites who=1 242,148` and `640 @move 0 46800 29288 31`. **What the disk could not answer**: whether the
+original takes the member `find_melee_target` arm (parked 1688) and the cavalry archer's M5 and M6 (parked 1689); no
+capture staged a group with an idle combat captain and a wounded Scout, or a Dragoon with a held target.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch53a \
+    --map 14 --end-frame 960 --log-window 605 960 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file <the script above>
+```
+
+The first take died before frame 0 (`extra lifecycle or fault records`, a 960-byte trace; kept as `ch53.dead-take1`) and
+was taken again once. Click-free lane 1, `success: true`, 961 frames, seed 12345, map 14, exit 0. Dump 193,012,690 bytes
+(sha256 `a34ad3773679…`), trace 10,408,224 (`c5c1cc66be7b…`), kept in `~/ron-golden/ch53a/map-14`. **What it holds**: no
+test. Its word is **652**, 6 draws against 8: the original's Dragoon `0/31` struck `1/6` on 643 and its round leaves on
+652 (`Ammo::init+0xcd9 < Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d`, index 0; ours
+`Farms::inc_time+0x1ae`), landing on 653 (`1/6` `hits_left` 24 against 50, `damage_frame` 653). §63's tail.
+
+## run772 — chapter fifty-three: the member arm, a Dragoon past a Scout (2026-10-13, item 1707)
+
+`docs/GOLDEN.md` §63, `tools/gamelog/golden/chapter53.cmd` (10 staged lines). **What the disk could not answer**: as
+run771's, and the Dragoon's pair moved to 942, after the last wound the member arm is read on.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch53 \
+    --map 14 --end-frame 1120 --log-window 605 1120 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter53.cmd
+```
+
+Click-free lane 1, free at launch; `success: true`, 1121 frames, seed 12345, map 14, exit 0; `issuesmatch.py
+--none-refused`: 2 issue records, 0 refused (on run771's trace, the same lines; run772's `@move`s are 639 and 970).
+Dump 268,096,624 bytes (sha256 `f9a0e826be76…`), trace 10,725,344 (`11ef1d315da3…`), kept in `~/ron-golden/ch53/map-14`.
+**What it holds**: `golden::chapter_fifty_three_s_word_frame_is_widened_whole` (605..966, 36 rows and 15 pool rows) and
+`chapter_fifty_three_holds_to_the_golden_word` (**962**). The member arm's four wounds (818, 844, 872, 906) agree.
+
+## run774 — the successor pair: East Indies, Mongols, Difficulty 3, All Technologies, the `DUMP_ALL` start (2026-10-13, item 1728, `att-1728`)
+
+`--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`, click-free lane 1, `cover=0`; `success`, 37 frames, 452.6 s launch-to-exit, five settings files restored,
+tribes 4 and 17, seed 12345. The lobby's own start (`docs/AI.md` §190). No wait for the lane.
+
+Archive `gamelog-run774-eastindies-mongol-alltech-start.txt`, 153,483,537 bytes,
+SHA-256 `dea03fb5230d3a254a44c71c0b23d2950b9a95aece853103fac727857226476f`.
+
+Archive `rontrace-run774.log`, 10,185,984 bytes,
+SHA-256 `53794755721e1777b15a9799883c6a49fa2ad0efb8b31f11d8c8f931a249a180`.
+
+## run775 — the successor pair: East Indies, Mongols, Difficulty 3, the draw stream to the game's end (2026-10-13, item 1728)
+
+Run600's recipe with `--allow-early-end`: `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001 --ffwd-minute 27 --cover cover=0
+--callwin 0 24000 --ai-tribe 17`, the lobby of run774. **The game ended itself at frame 5056** (5,057 frames, closing block 5057;
+`ended_early`), 81.3 s launch-to-exit. `rngcmp.py rontrace-run774.log rontrace-run775.log`: 37 in common, 0 differing.
+
+Archive `gamelog-run775-eastindies-mongol-alltech-trace.txt`, 14,174,550 bytes,
+SHA-256 `e7fec5e7a494f63e10d12e7c4d4baff3a094e5c7d63807fa9092a97f3c5c7309`.
+
+Archive `rontrace-run775.log`, 171,917,472 bytes,
+SHA-256 `f37b8a9f775b632bb08d36135495504b8f0d0abddbb763d2b2a3e0a2f5793a42`.
+
+## run776 — the successor pair: blocks 1..33 at the long's detail, the word 11's widening (2026-10-13, item 1728)
+
+`--map 18 --end-frame 40 --timeout 1800 --log-window 1 34 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17`
+and the lobby's profile; `success`, 41 frames, 118.2 s; 34 blocks. `rngcmp.py rontrace-run775.log rontrace-run776.log`: 41 frames, 0
+differing. `diff::mongol_pair::run776_s_word_frame_is_widened_whole`.
+
+Archive `gamelog-run776-eastindies-mongol-alltech-window-1-34.txt`, 58,104,421 bytes,
+SHA-256 `b75b27b088190ffaa8ec41ba98d494d806654845ff42d8d9cad8c5aa667b2abc`.
+
+Archive `rontrace-run776.log`, 9,948,352 bytes,
+SHA-256 `6cc12cfd7072634ad61ea1d79b3b54b51764d0a6c66bdaaa7dbc5a7bfa85c8ad`.

@@ -6299,6 +6299,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_ONE: i64 = 1100;
 /// `chapter_fifty_one_s_word_frame_is_widened_whole`'s window: run582 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_ONE: (i64, i64) = (605, 1101);
 
+/// **Chapter fifty-three** (item 1707, `docs/GOLDEN.md` §63, run771): the
+/// member `find_melee_target` arm of `Group::target_opportunity` and the
+/// cavalry archer's M5 and M6. The walk's word is 962: the original's Dragoon
+/// `0/31`, added on 942, has an `ATTACK` on the enemy Scout `1/6` that this
+/// crate's idle Dragoon does not take.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 962;
+
+/// `chapter_fifty_three_s_word_frame_is_widened_whole`'s window: run771 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 967);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6975,7 +6985,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends the prefix to 3585: 97 reads; item 1666 to 3587: 99; item 1667 to 3614: 110.
     // Item 1700 extends the prefix to 4425: 411 reads.
-    ("coverage_pair_first_parting", 411),
+    ("coverage_pair_first_parting", 512),
+    ("run652_coverage_pair_closing_state", 513),
+    ("run763_s_closing_frame_is_widened_whole", 514),
     ("run762_s_word_frame_is_widened_whole", 456),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
@@ -6988,10 +7000,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // 1611 put run718's window in the driver: six, as that window's own.
     // Item 1614 put run716's window in the compared pin: fourteen, as
     // that window's own. Item 1625 put run721's: 149, as that window's own.
-    // Item 1700 put run762's: 456, as that window's own.
+    // Item 1700 put run762's: 456, as that window's own. Item 1719's run763
+    // closing window: 514, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        456,
+        514,
     ),
 ];
 
@@ -8512,6 +8525,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1423,
         Some(WIDENING_CHAPTER_FIFTY_ONE),
     ),
+    // Item 1707: run771, chapter fifty-three. The widening is run771 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_THREE",
+        GOLDEN_WORD_CHAPTER_FIFTY_THREE,
+        Some("chapter_fifty_three_s_word_frame_is_widened_whole"),
+        1707,
+        Some(WIDENING_CHAPTER_FIFTY_THREE),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -8819,13 +8840,24 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // cast is laid on 3864.
     // Item 1700 moves to 4425 (block 4426), past run754's last block
     // (4094): run762 over 4420..4676. Item 1714 moves to 4582 (block 4583),
-    // inside the same window.
+    // inside the same window. Item 1719 moves to 4730, the trace's end, its
+    // closing state scored by `run652_coverage_pair_closing_state` and the
+    // last blocks widened on run763 (4677..4731).
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run762_s_word_frame_is_widened_whole"),
-        1714,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_4425),
+        Some("run763_s_closing_frame_is_widened_whole"),
+        1719,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_CLOSING),
+    ),
+    // **The successor pair's first word** (item 1728): frame 11, widened on
+    // run776 over 1..33 (block 12).
+    (
+        "MONGOL_PAIR_WORD",
+        crate::diff::mongol_pair::MONGOL_PAIR_WORD,
+        Some("run776_s_word_frame_is_widened_whole"),
+        1728,
+        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_11),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
@@ -9112,9 +9144,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// **The coverage pair since item 1511** (DECISIONS 62 §3): the French
 /// pair closed at its end on item 1519, and the coverage pair's row is
 /// the newest.
-pub(crate) const NEWEST_PAIR: &str = "Coverage pair";
+pub(crate) const NEWEST_PAIR: &str = "Successor pair";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
+    // Indies, the Mongols at Difficulty 3 and All Technologies.
+    AiWord {
+        line: "Successor pair",
+        map: "EastIndiesMongolAllTech",
+        named: "East Indies (Mongols)",
+        word: crate::diff::mongol_pair::MONGOL_PAIR_WORD,
+        length: 5_056,
+        endpoint: None,
+        window: Some("mongol_word_window"),
+    },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
     // the idle human is defeated at 4730.
@@ -9124,8 +9167,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (All Technologies)",
         word: crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         length: 4_730,
-        endpoint: None,
-        window: Some("coverage_pair_word_window"),
+        endpoint: Some("run652_coverage_pair_closing_state"),
+        window: None,
     },
     AiWord {
         line: "Third pair",

@@ -220,6 +220,12 @@ mod tests {
         the_handoff_carries("Coverage pair");
     }
 
+    /// **The successor pair's line is its pinned word** (item 1728).
+    #[test]
+    fn the_handoff_s_successor_pair_is_the_pinned_word() {
+        the_handoff_carries("Successor pair");
+    }
+
     /// **The third map's line is its pinned word** (parked 1080, the
     /// nineteenth pass): item 1066 pinned `LONG_WORD_GREAT_SAHARA` and the
     /// commander wrote a `Third map:` line that no guard read. Made to
@@ -445,7 +451,7 @@ mod tests {
 
     /// `(name on the line, word, widening window)` — closed when the word
     /// is the window's last block.
-    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 55] = [
+    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 56] = [
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
         ("ch3", GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),
@@ -637,6 +643,11 @@ mod tests {
             "ch51",
             GOLDEN_WORD_CHAPTER_FIFTY_ONE,
             WIDENING_CHAPTER_FIFTY_ONE,
+        ),
+        (
+            "ch53",
+            GOLDEN_WORD_CHAPTER_FIFTY_THREE,
+            WIDENING_CHAPTER_FIFTY_THREE,
         ),
         (
             "restage",

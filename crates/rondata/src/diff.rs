@@ -43,6 +43,8 @@ mod golden;
 mod harness;
 #[cfg(test)]
 mod leader;
+#[cfg(test)]
+mod mongol_pair;
 mod order;
 mod report;
 #[cfg(test)]

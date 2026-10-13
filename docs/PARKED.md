@@ -3946,7 +3946,9 @@ checkout's `game/` from a worktree, and the candidates were a scratch
 script over `source_of`/`sweep_backed` — the third batch to write one;
 a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
 the same script and said so too, and 1705 asks for `tools/census.py
---unbacked`, shortest decompile first, which found its batch in one call. One reach.
+--unbacked`, shortest decompile first, which found its batch in one call; 1721
+1724 and 1735 wrote it again. One reach — and the probe-shape rule's third reach
+long past (CLAUDE.md, Conventions).
 
 (1706) **The sweep's generator is a scratch script** (1704's Loop
 line): one template → ten emulator scripts and ten tests was the second
@@ -4015,13 +4017,29 @@ port function (its journal: "their tests assert the raw word (offset
 identity)") — they back the layout, not a port consumer, and the `Census:`
 line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
-with a port consumer. One reach.
+with a port consumer. Two reaches: 1724's ten had no port consumer at
+all, and its journal reads the small functions with one as nearly dry;
+1735 found one port consumer in ten by looking past the shortest (three).
 
 (1727) **A regex that strips debug probes ate real code** (1716's Loop
 line): a non-greedy `.*?` across blocks removed working lines with the
 probes, restored from git. Candidate: the brief's probe row says a probe
 goes in behind one env guard in a single commit reverted whole, never
 stripped by a pattern. One reach.
+
+(1729) **A closing word's five things are mechanical** (1719's Loop
+line): the rename, the window, the `AI_WORDS` row, the pin and the
+widening of parked 1217 took a reading where a `tools/` printer of the
+checklist would do — 1674 (g)'s helper, reached again; and a lane's
+`ccc update` that adds a driver window beside another lane's breaks the
+coverage driver's tuple pattern (43 against 44 at 1719's merge, fixed in
+its booking), so a lane that updates re-gates. Two reaches.
+
+(1730) **The walker's `add N <type>` makes N squads** (1707's Loop
+line): `add 4 hoplites` made units `0/7`..`0/29`, so ids are not what
+the count says; a staging that names ids reads them off
+`RON_STAGE_ALL`'s print first. Candidate: the walker prints the ids it
+made. One reach.
 
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
@@ -4172,7 +4190,22 @@ term. The original recomputes `update_hits` on the frame of parked 1509's
 dirty bit; ours does not. No draw parts on it.
 
 (1688) **The member `find_melee_target` arm** (1473), still unwalked: needs
-an `@form` formation wider than a Stockade's reach band.
+an `@form` formation wider than a Stockade's reach band. **Walked and
+held by 1707** (GOLDEN §63: a walking Scout hit while the captains idle).
 
 (1689) **Two-order snap (1500) and M5/M6 (1508: the drop, the captain's
-re-search)**: not reached by this chapter (three arms).
+re-search)**: not reached by this chapter (three arms). 1707 reached
+M5/M6 past its word (1712) and no walk the snap (1709).
+
+## Parked by item 1707, 2026-10-13 — chapter fifty-three
+
+(1709) **The two-order snap (1500)**: no walk reaches the snap arm;
+what stages a unit on its own waypoint with a turn owed is unknown.
+
+(1710) **run771's word 652**: the Dragoon's round on the strike's
+release, 6 draws against 8 (`Ammo::init+0xcd9`); run771 is the
+chapter's first take, superseded by run772.
+
+(1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
+and 1062–1064, past the word 962; both mutations exit 0. Backed once
+1711 moves the word past them, on the same capture.

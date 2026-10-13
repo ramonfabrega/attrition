@@ -164,6 +164,10 @@ pub struct Tuning {
     /// `TERRA_COTTA_DELAY`, frames a Barracks soldier adds to that rewind;
     /// the file's own `7` means half a second (`× 15 / 2`).
     pub terra_cotta_delay: i32,
+    /// `KREMLIN_SPY`: the Kremlin's spy clock, in fifteen-frame steps
+    /// (`Build::process@0061edf0:306`); the file's `30 (0 = disable; ...)`
+    /// loads as 30.
+    pub kremlin_spy: i32,
     /// Base of a general's aura radius, in tiles.
     pub general_radius: i32,
     /// Parmenio's scale on that radius, as 8.8 fixed point. The shipped file
@@ -1002,6 +1006,7 @@ impl Tuning {
         terra_cotta_range: 0,
         terra_cotta_free: 30,
         terra_cotta_delay: 7,
+        kremlin_spy: 30,
         general_radius: 6,
         parmenio_radius_adjust: 384,
         wellington_radius: 200,
@@ -1330,7 +1335,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 364] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 365] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1405,6 +1410,7 @@ impl Tuning {
             ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
             ("TERRA_COTTA_FREE", Slot::Value(T.terra_cotta_free)),
             ("TERRA_COTTA_DELAY", Slot::Value(T.terra_cotta_delay)),
+            ("KREMLIN_SPY", Slot::Value(T.kremlin_spy)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
             (
                 "PARMENIO_RADIUS_ADJUST",
