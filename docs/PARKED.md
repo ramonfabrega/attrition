@@ -3738,8 +3738,11 @@ for: it cost one run rather than an item.
 ret` or a compare against a global cell, and the lane hand-wrote a
 script head that also checks `esp` after `ret N` and that nothing else
 in the 4 KB around the object changed. Candidate: both shapes, and the
-`esp` and untouched-bytes checks in every generated script. One reach.
-(`timeout` is still not on this machine, 1856's and 1866's journals.)
+`esp` and untouched-bytes checks in every generated script. Two reaches:
+1889 took ten empty-body voids (bare `ret N`) by a throwaway substitution
+of 1866's script, and asks for a `void` shape (a cdecl body relaxes the
+`esp` check by `4 * NARGS`). (`timeout` is still not on this machine,
+1856's and 1866's journals.)
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -3759,7 +3762,7 @@ line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
 with a port consumer. Two reaches: 1724's ten had no port consumer at
 all, and its journal reads the small functions with one as nearly dry;
-1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list.
+1735 found one port consumer in ten by looking past the shortest (three). **The twenty-ninth pass**: `tools/census.py --unbacked` marks `port` where this crate defines the method's snake-case name (605 of 3,433 never-backed simulation functions), so a batch is picked with its consumers first; whether the `Census:` score should split layout-backed from port-backed is the finish line's and goes to Ramon (DECISIONS 66). Stays. **The thirtieth pass**: to Ramon again, unchanged; `--unbacked` hides the dead weight now (1861), so the port-marked rows lead the list. **The thirty-first tranche, 1889**: ten empty-body voids (bare `ret N`, one `port`-marked) moved the census 329 → 339 — a function with no body backs nothing a port reads, and the shortest-first rule now reaches them in bulk; a fourth reach.
 
 (1739) **The dump prints a unit's orders as a stack** (1726's Loop
 line): last order first, so "the first order" read off it is reversed,
