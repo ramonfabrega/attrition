@@ -16005,3 +16005,24 @@ Click-free lane 1, free at launch; `success: true`, 721 frames, seed 12345, map 
 launch to exit. Dump 102,196,977 bytes (sha256 `db9d6ad60b61…`), trace 9,226,496 (`7f5228a2fd17…`), kept in
 `~/ron-golden/ch52fog/map-14`. **What it holds**:
 `golden::chapter_fifty_two_s_fog_plane_agrees_through_the_first_round` — 25 blocks, every fog cell compared.
+
+## run763 — the coverage pair: East Indies, Persians, All Technologies, the last blocks 4677..4730 and the closing block (2026-10-13, item 1719, `att-1719`)
+
+**Disk gap**: item 1719's Kremlin arm moved the word 4582 -> 4730, the trace's end; run762 ends at block 4676, so no dump
+printed the last running blocks or a closing block with the detail the widening needs (run652's closing state is
+whole-map only). run762's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 4730 --timeout 3600 --log-window 4677 4731 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free
+lane, the pool took lane 1 (`~/wine-ron`). First take: `success: true`, `settings_restored: true`, launched 01:48:44, exit 0,
+launch-to-exit 454.9 s, 4,731 frames (last 4730, closing 4731), seed 12345, five settings files restored; output
+`~/ron-data/lab-captures/2026-10-13-run763`. 54 `BEGIN FRAME` blocks 4677..4730 and the closing state.
+`rngcmp.py rontrace-run652.log rontrace-run763.log`: **4,731 frames in common, 0 differing**. No wait for the lane.
+
+Archive `gamelog-run763-eastindies-persian-alltech-closing-window-4677-4731.txt`, 141,726,657 bytes,
+SHA-256 `ec17d344498edd4dcddb6921addcb8e0f85f2e869369477411ed8fba5f39cd0c`.
+
+Archive `rontrace-run763.log`, 261,786,112 bytes,
+SHA-256 `98c451a0fb71b775db449d567cbe5cdaee3f8561126a44c5b2aeaa9531be6994`.
+
+**What it holds**: `diff::coverage_pair::run763_s_closing_frame_is_widened_whole` — 230 keys over 54 blocks (514 inexact height
+reads); the coverage pair's closed-word widening (`WIDENINGS`), walked by the compared pin and the coverage driver. `docs/AI.md` §188.

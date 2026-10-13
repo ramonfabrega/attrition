@@ -18318,8 +18318,8 @@ Unit::do_move+0x11cf`, theirs `Guy::init_real+0x52`; the dump alone holds
 `run754_s_word_frame_is_widened_whole` falls 2460 to **1583** keys; its
 window already holds the new word, so no capture was taken.
 
-**Not established.** The Kremlin's arm beside it (`0x21a`,
-`kremlin_spy`) writes `recharging` too and is not built. `Build::activate`
+**Not established.** ~~The Kremlin's arm beside it (`0x21a`,
+`kremlin_spy`) writes `recharging` too and is not built.~~ Built by item 1719 (§188). `Build::activate`
 zeroes `recharging` on every building (line 132); only the wonder's start is
 written here. `terra_cotta_total` (the game counter) is not carried. A
 second, third... firing is checked only through 3844 (one reset); the
@@ -18539,10 +18539,60 @@ window: count and sequence part together at **2934**, ours 191 draws against
 the Redoubt's make value) is not explained and does not part the site. Which
 of the window's 2856 keys beyond the first row are one cause is not read.
 
-## 188. Reserved for item 1719 (the coverage pair's word 4582)
+## 188. The Kremlin trains its spy, and the coverage pair runs to the trace's end (2026-10-13, item 1719)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 4582, 549 versus 551 draws, index 542: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` (a birth), run762 block 4583.
+
+**What was born.** `births.py` on run762 over 4578..4586: one unit on 4583, **`1/169`**, uid 436,
+`guy` 58 (`TypeIndex` 58, `SPY`, land), 150 hits at (37560, 43128), group 78, beside the building
+`1/2033` (`orig_type` **538**, `0x21a`, the Kremlin; `up_who` 1, `wonder` 1) at (37536, 42144). The
+two buildings the dump also counts that block (`1/2079`, `1/2080`) are ours too. Leader 1's
+`num_units[8]` 4 -> 5 and `active` 178 -> 179: the whole of 1714's value diff, and no `control` row
+(the spy stands outside it, below).
+
+**`1/2033`'s history** (a stream of its `SUBOBJECT` over 4420..4676): under construction to 4572
+(`recharging` read 3099 and rising a frame beside `job_counter` on 4420; a site's own clock, not the
+wonder's), **finished on 4573** (`myhits` 33150, `recharging` **1**), and on **4583** `recharging` **30**.
+`(o + frame) % 15 == 0` with `o` 2033 holds at frame 4582 and is the wonder's first slot as an active
+building; the dump's 4583 block is that frame's end state.
+
+**The reading** (`Build::process@0061edf0:306`..`333`, `Build::activate@00623e20:617`,
+`:1376`..`1400`, `Unit::close@0060ee50:80`..`90`; a reading, ratified by the diff below):
+
+1. `Build::activate` — for a building of type `0x21a`: `recharging` = 1 when the call is not a capture
+   (`param_1 == 0`), `KREMLIN_SPY` otherwise, and `leader_flags |= 0x10000000` ("the spy is due")
+   unless one of the owner's live spies already carries the Kremlin's tag, `unit_flags & 0x400`. The
+   earlier arm at `:617` also sets the bit, for an uncaptured wonder whose per-type maximum rises.
+2. `Build::process` — a building of type `0x21a`, on `(o + frame) % 15 == 0` and with the owner's
+   bit set, takes one off `recharging`; under 1 the bit clears, `recharging` is `KREMLIN_SPY` (the
+   file's `30 (0 = disable; ...)` loads as 30) and `Build::train(this, SPY)` runs — no queue, no
+   price, no population test, the type itself and not its upgrade. A unit born takes `0x400` and the
+   owner's `control` (`LeaderData +0x940`) loses the type's `control_cost` (`+0x2f0`) again.
+3. `Unit::close` — a spy that dies with `0x400` set, for an owner holding the wonder
+   (`LeaderData::has_wonder`), sets the bit again; the next slot trains the next.
+
+**Built.** `Sim::kremlin_activate` (`city.rs`'s activate), `Sim::kremlin_spy` (the tick's building
+walk, ahead of the Persian caravan, as the original's order has it), `Sim::kremlin_spy_closed`
+(`fight.rs`'s death arm), `Tuning::kremlin_spy`, `Unit::kremlin_spy`, `PlayerTech::kremlin_spy_due`
+(`nations.rs`, `lib.rs`, `tuning.rs`, `tech.rs`). Test
+`a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies` (`cities_tests`); dropping the
+tick's call fails it and `run762_s_word_frame_is_widened_whole`.
+
+**Score.** The word moves **4582 -> 4730**, the trace's end: the coverage pair runs in lockstep,
+count and sequence, for its whole length, and **the pair closes**. run762's keys 1167 -> 250.
+`coverage_pair_first_parting` now walks 4730 frames (512 inexact height reads, was 411).
+`run652_coverage_pair_closing_state` scores the closing whole-map block (4731): 261 units compared,
+**one off** (`1/84`, ours (-96, -720) from the dump's), one building and one city the dump holds and
+ours does not link — a residue of the closing, not a parity claim. `run763_s_closing_frame_is_widened_whole`
+widens the last blocks (4677..4730 and the closing block).
+
+**Not established.** `control`: the spy's offset is modelled on the birth; this crate's deaths move
+no `control`, so the `+= control_cost` of a tagged spy's close is not written (a SEAM, `nations.rs`),
+and a `set_type` of the tagged spy is not either. `Build::activate:617`'s "first of its type"
+condition is approximated as "uncaptured". No capture holds a second spy (the game ends at 4730, the
+second slot is 450 frames on, 5032); the death re-arm is reading-only. `MAKE[2,3].val` 1294
+against 1353 on 4585 (1714's second row) is still in run762's 250 keys: a value, with no draw behind it.
 
 ## 189. Reserved for item 1726 (Great Sahara's word 2934)
 

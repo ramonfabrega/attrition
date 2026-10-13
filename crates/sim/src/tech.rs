@@ -689,6 +689,11 @@ pub struct PlayerTech {
     /// is born (`Unit::init` stamps the frame), 1 for a government held
     /// at frame 0. `docs/TECH.md` §"The government patriot".
     pub gov_hero_frame: i64,
+    /// `leader_flags & 0x10000000`: the Kremlin's spy is due. `Build::activate`
+    /// sets it when the wonder finishes with no tagged spy alive, a tagged
+    /// spy's `Unit::close` sets it again, and `Build::process`'s Kremlin arm
+    /// clears it as it trains the next (`docs/AI.md` §188).
+    pub kremlin_spy_due: bool,
 }
 
 impl PlayerTech {
@@ -713,6 +718,7 @@ impl PlayerTech {
             no_governments: false,
             gov: None,
             gov_hero_frame: -1,
+            kremlin_spy_due: false,
         }
     }
 
