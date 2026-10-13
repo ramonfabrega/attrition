@@ -4172,13 +4172,15 @@ Also written by hand on `hooks.py`: two objects-table gates (`SpellType::cast_lo
 cell → record → array → object → slot answer chain) and `World::set_down` (a pointer at `this+0x134` that `obj`'s
 random window cannot hold); `obj` with a `--ptr OFF:SIZE` field that maps a second window would take the last.
 
-## Parked by the next landing, slot Q — reserved
+## Parked by item 1976, 2026-10-13 — the sweep's thirty-ninth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot Q renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**1977. `sweep_gen.py` has no global-cell record shape** (Loop 1890's twelfth reach). Six of 1976's ten read a record
+through a global cell and an integer in it, then do arithmetic or a bit test: `WorldData::is_passable` (world at
+`0xc06188`, cell of 0x1c bytes), `World::scale_by_axis`/`scale_by_area` (`map_sizes` at `0xe7fca8`, `+0x144`),
+`UnitData::turn_speed` (constants at `0xc061e4`), `DeathObjData::blocking` (the units table at `0xc0aec0`) and
+`Balance::return_modifier` (a 16-bit table at `0xc06afc`). `cell` covers one pointer and one field; these want
+`--cell VA:OFF=field` repeated and a port block over the named fields. Every script of the batch also re-carries the
+same `I32`/`rand32`/`pop_ok` header — it belongs in `sweeplib`.
 
 ## Parked by the next landing, slot R — reserved
 
