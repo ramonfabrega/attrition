@@ -5207,9 +5207,6 @@ impl Sim {
             // `has_general(0x8000, -1)` sets it — from then on only a
             // follower near a marching hero reports its speed.
             let mine = self.get_speed(u, 1);
-            if std::env::var_os("RON_PROBE_GSPEED").is_some() && (4262..=4268).contains(&frame) {
-                eprintln!("PROBE f{frame} leader {}/{} mine {mine} before {:?}", self.units[u].owner, self.units[u].index, self.gstate(g).map(|st| (st.speed, st.new_speed)));
-            }
             self.group_leader_report_speed(g, mine);
             if self.leader_marching(u) && self.near_marching_hero(u) {
                 self.group_set_march(g);
@@ -5407,9 +5404,6 @@ impl Sim {
             // stragglers do not hold the army back.
             if !self.gstate(g).is_some_and(|st| st.march) || self.near_marching_hero(u) {
                 let own = self.unit_speed(u);
-                if std::env::var_os("RON_PROBE_GSPEED").is_some() && (4262..=4268).contains(&frame) {
-                    eprintln!("PROBE f{frame} report {}/{} ty {:?} own {own} before {:?}", self.units[u].owner, self.units[u].index, self.units[u].type_index, self.gstate(g).map(|st| (st.speed, st.new_speed)));
-                }
                 self.group_report_speed(g, own);
             }
             // `5e8355`: flag **1**. A follower keeping formation is
