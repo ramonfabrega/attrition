@@ -8883,10 +8883,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // closed it with the Mongol stable arm of `train_time`; the word
         // moved 1354 -> 2207, past run779 (`run779_s_word_frame_is_widened_whole`
         // keeps 1354's value diff); item 1768 widened 2207 on run780 over
-        // 2201..2457 (block 2208).
-        Some("run780_s_word_frame_is_widened_whole"),
-        1768,
-        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_2207),
+        // 2201..2457 (block 2208); item 1845 built `think_carry`'s worker arm
+        // and the word moved 2207 -> 2838, past run780 (its test keeps
+        // 2207's value diff: 897 -> 136 keys); item 1848 owes 2838's widening.
+        None,
+        1848,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

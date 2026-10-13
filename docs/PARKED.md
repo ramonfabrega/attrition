@@ -4140,3 +4140,7 @@ either kind aboard), the attack-carrier arm, `think_carry_military@005f3260` (th
 `Group::action_eject_all` on a one-boat group (the shore arm's last step) all answer no / keep the cargo. The successor pair's
 word moved to 2838, ours 101 draws against 16 on index 1 (`Guy::set_anim < Unit::do_idle` against `Guy::do_turn < Unit::move_step`) —
 a frame and a delta; whether the eject is on it is the next item's widening to say. Not built.
+
+(1848) **The successor pair's word 2838, widened whole** (1845): ours 101 draws against 16, index 1 — run780 ends at 2457, so a capture over
+`--log-window 2832 3089` at the long's detail (the lobby of run774..776) is the widening, and the first item on the word compares every dumped
+record on 2838 both directions before any mechanism is named (`docs/AI.md` §195's hypothesis, the boat's arrival, is a hypothesis).
