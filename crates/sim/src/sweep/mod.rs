@@ -561,3 +561,6 @@ mod world_scale_by_axis;
 mod world_set_down;
 mod world_set_orig_coast;
 mod world_set_tocean;
+mod city_data_smelter_level;
+mod supply_data_get_radius;
+mod city_data_num_kinds_needed;

@@ -176,6 +176,31 @@ pub fn lumber_level_by(city_flags: i32, has_preq: impl FnMut(usize) -> bool) -> 
     1 + crate::rares::top_held(3, has_preq) as i32
 }
 
+/// `CityData::smelter_level@007367a0`: the enhancer of the fifth good type's kind (`goodtypes.list[4] + 4`, the
+/// metal good, kind 4) — 0 `GRANARY`, 1 `LUMBERMILL`, 4 `SMELTER`, 5 `REFINERY` (`0x1a7..=0x1aa`), any other kind 0
+/// — asked of the city's `count_buildings(t, 0, 1)`; none answers 0, one or more `LeaderData::get_smelter`. Item
+/// 2112's sweep holds the table, the gate and the order; [`Sim::city_holdings`] asks it for the metal kind.
+pub fn smelter_level_by(
+    kind: i32,
+    count_buildings: impl FnOnce(i32) -> bool,
+    get_smelter: impl FnOnce() -> i32,
+) -> i32 {
+    let t = match kind {
+        0 => 0x1a7,
+        1 => 0x1a8,
+        4 => 0x1a9,
+        5 => 0x1aa,
+        _ => return 0,
+    };
+    if !count_buildings(t) {
+        return 0;
+    }
+    get_smelter()
+}
+
+/// The metal good's kind, which `smelter_level` reads off the good-type list (`GoodTypeData`'s `+0x4`).
+const METAL_KIND: i32 = 4;
+
 impl Default for Levels {
     fn default() -> Levels {
         Levels::BASE
@@ -276,12 +301,13 @@ impl Sim {
                 levels.lumber_mill.max(1) as usize,
             );
         }
-        if any(Ident::Smelter) {
-            out.set_enhancer(
-                &self.tuning,
-                Resource::Metal,
-                levels.smelter.max(1) as usize,
-            );
+        let smelter = smelter_level_by(
+            METAL_KIND,
+            |_| any(Ident::Smelter),
+            || levels.smelter.max(1),
+        );
+        if smelter != 0 {
+            out.set_enhancer(&self.tuning, Resource::Metal, smelter as usize);
         }
 
         for &b in &chain {
