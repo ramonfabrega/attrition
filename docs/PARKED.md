@@ -4103,13 +4103,19 @@ of them one of two shapes: a forwarder whose argument or `ecx` is `[this+OFF]` p
 of it needs a chosen `ebp`, which `callfn` does not set. `MapScript::run_map_script` and `SurfWaveSection::load_old_bh3` are empty bodies
 (parked 1725's question), `Terrain::build_beach_data` and the three `walk_data`s are left.
 
-## Parked by the next landing, slot L — reserved
+## Parked by item 1948, 2026-10-13 — the BMP's transport leg
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot L renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1949) **The successor pair's word 3188: 152 draws against 153, index 1** (1948; `docs/AI.md` §200.4): ours `Unit::think_fish+0x27a`, theirs
+`Unit::do_move+0xe84`; inside run799 (block 3189) `1/107` parts on `order:move.dest` (36756, 43140) against (36936, 43176), `path[60]`
+(35400, 42408) against (36168, 42408), `tolerance` 0 against 384, `last_x` 37752 against −1. Widened already: run799's window holds 3188 and 3189
+(2,210 keys); every record on 3188 both ways before a mechanism.
+
+(1950) **The can-transport goal re-push is built and unwalked** (1948): `astar_path@00683770:586`–`613`'s `flags |= 4` re-push on the work-cap
+drain arm (`path.rs`) has no capture that reaches it — the BMP's search arrives at 1,176 probes against a cap of 3,200. A test needs a goal across
+water beyond 3,200 probes for a unit that `can_transport`; until then it is the listing's.
+
+(1951) **`1/165`'s `form`** (1948): on 3132 ours −1, theirs 0, a freighter's first frame after `Objects::init_unit` from a transport cast;
+the only residue of the word 3131's block after the build. Unpinned.
 
 ## Parked by item 1954, 2026-10-13 — the sweep's thirty-sixth batch
 

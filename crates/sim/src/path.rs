@@ -1108,8 +1108,24 @@ impl Sim {
                                 }
                             }
                             partial = true;
-                            // SEAM: the can-transport goal re-push
-                            // (flags |= 4) is dormant.
+                            // **The can-transport goal re-push**
+                            // (`astar_path@00683770:586`-`613`, item 1948):
+                            // when the node nearest the goal is still on the
+                            // other side of the shore from it
+                            // (`needs_transport`, tile coordinates) and the
+                            // unit can take a transport, the stack's top —
+                            // the goal the search was asked for — is popped
+                            // and pushed back with `flags |= 4`, so the unit
+                            // walks the partial path to it and casts there.
+                            let best = nodes[end_id as usize];
+                            if self.needs_transport(Pos::new(best.x, best.y).tile(), goal.tile())
+                                != 0
+                                && self.unit_can_transport(u)
+                                && let Some(mut top) = self.units[u].path.pop()
+                            {
+                                top.flags |= path_flag::TRANSPORT;
+                                self.units[u].path.push(top);
+                            }
                         }
                     }
                 }
