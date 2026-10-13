@@ -3826,7 +3826,9 @@ reaches. **1966**: five of ten would be one line under `obj` with hooked
 callees and global cells, and `fwd` still lacks its `field` token
 (parked 1967). Ten reaches. **1971**: three of ten are `vcall` through the
 object at `this+0x18`, a `--via` away from one line each, and a pointer
-field wants a second `obj` window (parked 1972). Eleven reaches.
+field wants a second `obj` window (parked 1972). Eleven reaches. **1976**: six of ten read a record through a
+global cell — `--cell VA:OFF=field` repeated — and every script re-carries
+one header that belongs in `sweeplib` (parked 1977). Twelve reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4218,6 +4220,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot V renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot W — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot W renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot X — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot X renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot Y — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot Y renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot Z — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot Z renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
