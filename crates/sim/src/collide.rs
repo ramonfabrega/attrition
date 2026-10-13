@@ -101,6 +101,7 @@ impl ProbeSlots {
 
 /// A unit cell, `0x30` position units — the grid the index is keyed on.
 pub const UNITS_PER_UCELL: i32 = 0x30;
+pub static PROBE_FRAME: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
 /// Unit cells to a world cell, each way.
 pub const UCELLS_PER_CELL: i32 = UNITS_PER_CELL / UNITS_PER_UCELL;
 /// `Constants::unit_block_radius` — the scale `BLOCK_RADIUS` is loaded at.
@@ -338,6 +339,23 @@ impl CollGrid {
     }
 
     pub(crate) fn set(&mut self, x: i32, y: i32, on: bool) {
+        if y == 624
+            && (384..=388).contains(&x)
+            && self.get(x, y) != on
+            && std::env::var_os("RON_PROBE_UPATH").is_some()
+        {
+            let f = PROBE_FRAME.load(std::sync::atomic::Ordering::Relaxed);
+            if f > 3800 {
+                let bt = std::backtrace::Backtrace::force_capture().to_string();
+                let names: Vec<&str> = bt
+                    .lines()
+                    .filter(|l| l.contains("sim::") && !l.contains("CollGrid::set"))
+                    .take(6)
+                    .map(str::trim)
+                    .collect();
+                eprintln!("PROBE bit f{f} ({x},{y}) -> {on} {names:?}");
+            }
+        }
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);

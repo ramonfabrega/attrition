@@ -5152,6 +5152,7 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
+        collide::PROBE_FRAME.store(frame, std::sync::atomic::Ordering::Relaxed);
         if std::env::var_os("RON_PROBE_UPATH").is_some() && frame == 4238 {
             let (cx, cy) = (391, 625);
             for y in (cy - 30)..=(cy + 8) {
