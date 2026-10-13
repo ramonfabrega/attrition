@@ -3740,7 +3740,7 @@ reverses it into "first issued first". So its `[0]` is the current order and `<t
 That cost item 2055's draft a misreading (a leader's bottom guard read as its top). The label could read
 `current first … <bottom>`.
 
-(2105) **The golden floor reads a widening's window as the trace's end**
+~~(2105) **The golden floor reads a widening's window as the trace's end**
 (found at 2066's booking): `golden_line_verdict` calls a chapter closed
 when its word is its window's `hi - 1`, and the window it is handed is
 the widening's, which 2032 (ch61, (605, 781)) and 2066 (ch62, (605, 901))
@@ -3750,7 +3750,7 @@ headline has read "every chapter closed" since. Candidate: the trace's
 end as its own pinned column, a test that fails when a window's end is
 short of its trace's frames; 2099 re-pins the two by hand. **Item 2099 built the test**
 (`floors::a_golden_widening_s_window_reaches_its_trace_s_end`, made to fail on `ch61` and `ch62`) and a
-trace column for a row whose widening stops at its word (`TRACE_CHAPTER_SIXTY_TWO`).
+trace column for a row whose widening stops at its word (`TRACE_CHAPTER_SIXTY_TWO`).~~ **Closed by item 2099.**
 
 (2104) **`stage_walk` has no "what if" seam** (2066's Loop line, filed at
 its merge): to ask the head beside the headless search, 2066's probe

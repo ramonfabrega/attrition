@@ -20,10 +20,10 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2088, 2106, 2112, 2099; landings since `dca6a873`: 17
-  (1998, 1999, 2002, 2020, 2038, 2001, 2026, 2044, 2032, 2061, 2049, 2072, 2077, 2083, 2066, 2055, 2090). Next 2117, run 824,
-  AI §210, GOLDEN §77, park slot AO (pools: AO–AT, AI §210–§215, GOLDEN §77–§79); runs 820 and 823 are 2088's, 822 2106's.
-- **Fable backlog: 19 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071, 2082, 2059, 2089, 2104, 2105).
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2088, 2106, 2112, 2117; landings since `dca6a873`: 18
+  (1998, 1999, 2002, 2020, 2038, 2001, 2026, 2044, 2032, 2061, 2049, 2072, 2077, 2083, 2066, 2055, 2090, 2099). Next 2122, run 827,
+  AI §210, GOLDEN §78, park slot AP (pools: AP–AT, AI §210–§215, GOLDEN §78–§79); runs 820, 823–825 are 2088's, 822 2106's, 826 2117's.
+- **Fable backlog: 18 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071, 2082, 2059, 2089, 2104).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -33,19 +33,19 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4238 of 5,056
 Census: simulation backed 546 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed
+Golden: ch62 w900 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the thirty-second tranche, on `commander` — four lanes
-live (`att-2088`, `att-2099`, `att-2106`, `att-2112`, Opus 5.5 medium): re-arm
+live (`att-2088`, `att-2106`, `att-2112`, `att-2117`, Opus 5.5 medium): re-arm
 `tools/lanewait.py` on them and merge, book, spawn, gate, push and reap each
-landing; seventeen landed since `dca6a873`; at twenty write the handoff and
+landing; eighteen landed since `dca6a873`; at twenty write the handoff and
 `ccc clear steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2088 the headline's word, 2106, 2112 and 2099 the other three lanes —
+2088 the headline's word, 2106, 2112 and 2117 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -81,14 +81,13 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     (parked 2012); the generator's owed shapes are Loop 2003's (parked
     2039, 2040, 2045, 2046, 2062, 2073, 2084, 2095, 2096). `--kind sweep`.
 
-2099. **Chapters sixty-one and sixty-two read closed and are open**:
-    `GOLDEN_WORDS` takes a widening's window for the trace, and 2032's
-    (605, 781) and 2066's (605, 901) end at their words, where run814 and
-    run818 run to 1000 (parked 2105). Re-pin both to their traces, so the
-    line opens at `ch61 w780 · ch62 w900`; then the lowest open word:
-    ch61's 780, the captain's re-search finding nothing (parked 2067; a
-    packet at 778, run 819). Ch62's 900 (newborn squad joins group 64,
-    `ATTACK_TO`) is the next. GOLDEN §76.
+2117. **Chapter sixty-two's word: frame 900, 13 versus 11 draws** (2066
+    pinned it on run818, GOLDEN §75; 2099 opened it, closing ch61 at 1000):
+    the third squad's newborn men each `do_idle` in ours; in theirs they
+    join who=1's group 64 (ours a new 65), `form_mod` 50, and take its
+    `ATTACK_TO`. Value diff, block 901: `1/12 group` 65 / 64, `1/13
+    order:kind` `ATTACK` / `ATTACK_TO`; 702's `1/9` row is a hypothesis of
+    the same family. Inside run818 (to 1000). GOLDEN §77.
 
 ## How to maintain this file
 
