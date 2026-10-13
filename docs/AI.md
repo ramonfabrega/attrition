@@ -18347,8 +18347,7 @@ ramp capped at 18000, `Ratio(7, 10)` for the three speed upgrades).
 
 **Cause.** `ObjectData::train_time@006508c0`'s tail has an arm this crate did
 not carry: for a type whose `TypeIndex` is 0x32 or 0x33 and a player whose
-`rare | rare_conquest` mask holds Wool (`0x6da7 & 8`, `0x6dcf & 8`: byte 3
-bit 3, good `33`), `t = t * 100 / (WOOL_CITIZENS_SPEED + 100)`, after the
+`rare | rare_conquest` mask holds Wool (byte 3 bit 3 of either mask, good `33`), `t = t * 100 / (WOOL_CITIZENS_SPEED + 100)`, after the
 spy/general arm. `WOOL_CITIZENS_SPEED` ships as 33: 12600 × 100 / 133 = 9473.
 The Persians hold Wool (`rares_collected[4]`). Built: `Sim::train_tail`
 (`crates/sim/src/lib.rs`), `economy::WOOL`, `Tuning::wool_citizens_speed`.
@@ -18381,6 +18380,6 @@ walk to the word.
 **Not established.** The Uranium arm is built for the Nuclear Missile line
 only as `is_nuke_line_type` reads it; the research arm of the same function
 (a Uranium holder researching a missile type) is not checked by a run. The
-wool arm's `0x6dcf` copy is the union `has_rare` keeps. The other national
+wool arm's second mask (`rare_conquest`) is the union `has_rare` keeps. The other national
 arms of the head of `train_time` stay unbuilt (no capture holds them). The
 word 2851's cause is unread: `1/8` is the first row, not a cause.
