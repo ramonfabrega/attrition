@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-12, the race at ten landings of twenty (`commander`, Opus 5.5):
-nothing merged, so the board's word stays **3439** until the winner does;
-every cause two arms have both reached, they named alike.*
+*2026-10-13, the race at twenty landings of twenty (`commander`, Opus
+5.5): **all four arms reached 3963 by the same five causes in the same
+order**; Sonnet 5.5 medium merged on price and wall clock (`70bfc21e`),
+scored in `docs/audit/2026-10-12-race-1648.md`. The commander is held
+for Ramon (DECISIONS 64, amended).*
 
-- **Four racers on 1648, nothing else out** (DECISIONS 64, amended), a
-  `ccc clear` of the racer's own row a landing (`respawn.sh <racer> <k>`,
-  `rows.tsv` and the ledger in the commander's job tmp). Landings, frame,
-  tip: `att-1648-oh` (Opus high) 2, 3587, `de391554`, numbers 1651–1655,
-  runs 722–731; `att-1648-om` (Opus medium) 3, 3614, `d7bdf503`, 1656–1660,
-  732–741; `att-1648-sh` (Sonnet high) 2, 3587, `974ccf7a`, 1661–1665,
-  742–751; `att-1648-sm` (Sonnet medium) 3, 3614, `ebf4db21`, 1666–1670,
-  752–761. AI §178–§182 the winner's. Next 1673, run 762, §183.
+- **The race is over and nothing is out**: four rows stand idle, their
+  branches kept on origin as the record (`att-1648-oh` `6ba1339c`,
+  `-om` `a22bdbef`, `-sh` `2f96e269`; the merged `-sm` `33a48652`); the
+  reap is the pass's, after the talk. Losers' captures run722, run732,
+  run742 are on disk, their RUNS sections on their own branches only.
+  Next 1674, run 762, §183.
 - **The disk**: 258 GiB free, the archive compressed. Astra's debt is 1649.
 - **Fable backlog: 27 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650, 1671, 1672).
 
@@ -31,33 +31,32 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w3439 of 4,730
+Coverage pair: EastIndiesPersianAllTech w3963 of 4,730
 Census: simulation backed 68 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2323 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-eighth tranche, live — `commander` (Opus 5.5):
-`ccc clear` each racer's own row at each landing; nothing merges until
-twenty; then score the race as 1565 was, merge the winner, hand off to
-`steer`, which holds the commander for Ramon.**
+**Opener: the twenty-eighth pass — `steer` (Fable 5.1): score the
+race's 2×2 from `docs/audit/2026-10-12-race-1648.md`, rule the Loop,
+and hold the commander for Ramon; the roster is his on that score.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **This tranche is one word
-on four arms**: 1648's racers; 1639, 1630 and 1497 wait for the
+In dependency order, headline-nearest first. **The race is scored**: 1673 is
+the winner's next word; 1639, 1630 and 1497 wait for the
 twenty-ninth — lower map first — East Indies (All Technologies). Take
 the first unstarted item unless a better order is clear, and state why.
 The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1648. **The coverage pair's word: frame 3439, 23 versus 25 draws**,
-    index 14: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    `Ammo::init+0xcd9`; inside run721 (block 3440), widened whole (951
-    keys, 146 standing); the original's two ammo draws come through
-    `Objects::add_ammo < GraphicEvents::execute_game_events`; no cause
-    established. **The race** (DECISIONS 64, amended): four racers on one
-    brief, Opus 5.5 and Sonnet 5.5 at high and medium, five landings each,
-    one session a landing, scored as 1565 was; runs from 722; AI §178.
+1673. **The coverage pair's word: frame 3963, 18 versus 32 draws**,
+    index 3: theirs seven `Guy::init_real` — General `1/150`'s
+    create-decoys cast, copies `1/246`..`1/252` in group 69 — ours none;
+    inside run754 (block 3964), `run754_s_word_frame_is_widened_whole`
+    (1583 keys); `1/165` reads two orders against one, and `1/150`'s order
+    parts on 3865 (run732) — walk back from there first. First row:
+    `TERRA_COTTA_FREE`/`_DELAY` into `Tuning`, as the other three arms
+    built them (`6ba1339c` the reference). AI §183.
 
 1639. **Great Sahara's word: frame 2323, 12 versus 13 draws**, index 10:
     ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside run718 (block

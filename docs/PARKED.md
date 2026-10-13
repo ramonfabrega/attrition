@@ -3884,8 +3884,9 @@ commander's lines, parks the row out of the clear's reach; one message
 ("nothing is owed, end your turn") unblocked it, and the race's header
 now says so. **The header did not hold it**: `att-1648-om` (landing 3,
 "reply `go` to land Coverage pair") and `att-1648-oh` (landing 3) ended
-blocked the same way after it, each one message from its clear — three
-of the race's first fourteen landings, both on Opus 5.5. The frame's
+blocked the same way after it, each one message from its clear — and
+both again on their fifth: five of the race's twenty landings, every
+one on Opus 5.5, none on Sonnet (`docs/audit/2026-10-12-race-1648.md`). The frame's
 done-line row could say it for every lane, or `lanewait.py` could name
 `ENDED … blocked` with an armed clear as the case it is. The
 twenty-eighth pass's.
