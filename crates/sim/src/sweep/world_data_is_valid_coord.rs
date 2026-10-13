@@ -10,7 +10,12 @@ fn the_emulated_original_agrees_on_every_row() {
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (a, want) = super::row(line);
-        let got: i64 = i64::from(a[2] >= 0 && a[3] >= 0 && a[2] < (a[0] as i32).wrapping_mul(0xc0) as i64 && a[3] < (a[1] as i32).wrapping_mul(0xc0) as i64);
+        let got: i64 = i64::from(
+            a[2] >= 0
+                && a[3] >= 0
+                && a[2] < (a[0] as i32).wrapping_mul(0xc0) as i64
+                && a[3] < (a[1] as i32).wrapping_mul(0xc0) as i64,
+        );
         assert_eq!(got, want, "WorldData::is_valid — row `{line}`");
         n += 1;
     }
