@@ -602,6 +602,29 @@ ceiling is each kind's own sections now (the chapter kind at 12,988 of
   cache reads priced the same on Opus and Sonnet — so the context, not
   the model, is the cost. The commander's clear at ten is the same move.
 
+## The brief checklist, from the twenty-eighth pass
+
+The race on 1648 (DECISIONS 64, amended; 65): twenty landings on four
+arms, one word, no other lane. The pass added these rows, each from the
+race's own journals, and paid by condensing four rows' wording, no
+number struck; the chapter kind stays under its ceiling.
+
+- **A capture's wait is backgrounded with a `timeout` past its length**
+  (1672): the harness kills a background command at thirty minutes by
+  default, and `att-1648-sm`'s fourth landing lost that half hour to a
+  `waitrun.sh` wait that died before the banner.
+- **A landing ends the turn as done, never as needing input** (1671):
+  five of the race's twenty landings — every one on Opus 5.5 — ended
+  `tempo=blocked` asking for the commander's queue lines, and an armed
+  clear fires only on idle; each cost a message and the minutes until
+  it was read. The waiter prints the row's own detail on its `ENDED`
+  line now, so the unblocking message is written in the turn that reads it.
+- **A birth no queue holds is read off the building beside it** (1674):
+  two of the four arms found the Terra Cotta Army's free soldier by a
+  hand-written radius scan over `BUILDDATA`; `births.py` prints the
+  owner's nearest building, with its `orig_type` and the distance, on
+  every `+` line.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

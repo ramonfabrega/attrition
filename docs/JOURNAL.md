@@ -21119,3 +21119,20 @@ APFS-compressed in place (205 GB → 22 GiB, the gate green on it), 258
 GiB free; the re-race moved onto the headline word as four arms, Opus
 and Sonnet at high and medium, the whole tranche, the commander held
 for a talk after. **DECISIONS 64, amended.**
+
+**2026-10-13 — the twenty-eighth Fable pass: the race on 1648 scored.**
+Four arms, one word, twenty landings in 3 h 39 min: every arm reached
+3963 by the same five causes, so the race ranked price and pace —
+Sonnet 5.5 medium 23.23 USD list, Opus medium 32.40, Opus high 37.20,
+Sonnet high 40.47; 141 USD in all against an estimate near 300. The
+price was the transcript's length, not the model's rate: Sonnet high
+ran the deepest contexts and cost the most on the cheapest model. Five
+landings ended `blocked`, all Opus; three sessions crossed 300 k and
+none cleared. The pass recommends Sonnet 5.5 medium on every lane under
+the kill rules and holds the commander for Ramon's word. The two Codex
+claims read blind and ratified; thirteen Loop items out, 1674 in; the
+waiter refuses a second row on a lane's tree and names a blocked row's
+ask; the births probe names the building beside a birth; the suite
+re-timed, the archive compressed. **DECISIONS 65.**
+`docs/audit/2026-10-13-fable-pass-28.md`.
+

@@ -2777,7 +2777,7 @@ name, or a recorder that outlives its thread; the AI track's pin walks
 both open words now and no round is printed on either. **The twentieth
 pass**: not built; sixteen journals of twenty-two met a comparison that
 compared nothing, against nineteen of twenty, and the rules lane's six
-were among them. **The twenty-first pass**: not built; twelve journals of twenty-two met a comparison that compared nothing, from sixteen, and `coverage.rs` was the tranche's merge conflict four times (1225). Stays. **The twenty-second pass**: not built; three journals met one, from twelve, and 1331 — a Tower's own cycle keyed to anti-air types, unread on every golden widening — is this item's reach. Stays. **The twenty-third pass**: not built; one journal of eleven met a comparison that compared nothing (1383's `cast_paid`/`cast_spell`), none on the rules lane. Stays. **The twenty-fourth pass**: not built. Its reach is 1450's: a field the instrument pins uncompared parted 236 blocks before the word did. Stays, with 1450 beside it. **The twenty-fifth pass**: not built; its reach is 1475's seven journals of twenty — `construct_hits` and `myhits` twice, `leader_flags`, a General's craft, a field carried under another name. Stays, 1475 beside it. **The twenty-sixth pass**: not built; stays, 1475 beside it. **The twenty-seventh pass**: not built; its reach this tranche is 1616's `spell_time`, printed on every block and pinned unread, and 1633 (b)'s `has_met` reduction. Stays, 1475 beside it.
+were among them. **The twenty-first pass**: not built; twelve journals of twenty-two met a comparison that compared nothing, from sixteen, and `coverage.rs` was the tranche's merge conflict four times (1225). Stays. **The twenty-second pass**: not built; three journals met one, from twelve, and 1331 — a Tower's own cycle keyed to anti-air types, unread on every golden widening — is this item's reach. Stays. **The twenty-third pass**: not built; one journal of eleven met a comparison that compared nothing (1383's `cast_paid`/`cast_spell`), none on the rules lane. Stays. **The twenty-fourth pass**: not built. Its reach is 1450's: a field the instrument pins uncompared parted 236 blocks before the word did. Stays, with 1450 beside it. **The twenty-fifth pass**: not built; its reach is 1475's seven journals of twenty — `construct_hits` and `myhits` twice, `leader_flags`, a General's craft, a field carried under another name. Stays, 1475 beside it. **The twenty-sixth pass**: not built; stays, 1475 beside it. **The twenty-seventh pass**: not built; its reach this tranche is 1616's `spell_time`, printed on every block and pinned unread, and 1633 (b)'s `has_met` reduction. Stays, 1475 beside it. **The twenty-eighth pass**: not built; its reach this tranche is `att-1648-oh`'s 1651 — `idle_fishermen` is a census field this crate carries that no `LEADERDATA` line prints, and a document said it did; a compared pin cannot catch a field the dump never holds, so that one is read off its writer's inputs on the block. Stays, 1475 beside it.
 
 ## Loop, filed 2026-09-30 — the twenty-first tranche's
 
@@ -3826,79 +3826,50 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-13 — the twenty-eighth pass's
+
+(1674) **The race's Loop lines** (the twenty journals of 1648's four arms,
+2026-10-12; fifteen of them on the losers' branches only — `6ba1339c`,
+`a22bdbef`, `2f96e269` — which the commander did not file at the merge
+because they were never merged; the pass read them off the branches).
+One reach each unless said: (a) **built** — a birth no queue holds is read
+off the owner's nearest building (`oh` 1654, `om` 1659: two arms found the
+Terra Cotta Army by a hand-written radius scan over `BUILDDATA`);
+`births.py` prints `near=<who>/<o> otype=<orig_type> d=<tiles>` on every
+`+` line now, a frame row (1674) and `tools/explore/test_births.py`, made
+to fail first. (b) `seams.py --unwritten` lists a field no non-test line
+writes; the refinement asked for twice is a field whose only writers zero
+it, or a counter the original bumps (`om` 1656 `combat.packed`, `sh` 1661
+`idle_fishermen`) — with 1590. (c) a specification's pseudo-code line the
+crate never built: `seams.py` could list the calls a spec's pseudo-code
+block names that the cited function's body never makes (`om` 1657) —
+with 1560. (d) `RON_DEBUG_UNIT`'s line prints `TI` and not the type's
+`unit_flags`, so a flag-gated arm of a shared function (`move_step`'s
+`+0x2b4 & 0x20`) was a line later than it had to be (`om` 1658). (e)
+`RON_DEBUG_SITES=<lo>-<hi>` on the pair's first-parting test named the
+shooter's slot in one three-second run; the brief's step 2 could say it
+for any "theirs has an `Ammo::init` ours lacks" word, since run721-class
+windows print no `AMMO` (`om` 1648). (f) `invalid_loc`'s result depends on
+the path top's flags, a hidden sixth argument, and is read wrong from the
+call site alone (`sh` 1662) — with 1560. (g) a landing that moves the word
+past its widening's window owes a capture in the same session; a helper
+printing a new run's coverage wiring (`RUN`, the window constant, the
+`AI_WORDS` window, the driver block, the compared pin's window,
+`GROUND_INEXACT`, `WIDENINGS`) would replace reading 1625's diff by hand
+(`sh` 1663). (h) a leader `num_units[]` key printed as its `TypeIndex`
+name: type 54 is a queue head and 104 a leader key, and the booked text
+conflated them for an hour (`sh` 1664). (i) `report.py when <function>`
+dated every round of the window in one call and named the shooter by its
+rhythm before any reading (`oh` 1648). (j) a field the parted predicate
+reads that the dump does not print is read off its writer's inputs on the
+same block (`oh` 1651, `idle_fishermen`) — with 1119. (k) a planner that
+parts on a unit that did not move: print its own-tile predicate on both
+frames (`oh` 1652, `invalid_loc` on the path top's transport bit). (l) the
+`RON_DEBUG_SITES` print in `third.rs` had no seeds; `sm` 1666 added them
+(done). The twenty-ninth pass's: (d), (e), (h) and (i) are a worker's on
+its next reach; (g) graduates the next time a word leaves its window.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
-
-(1649) **Astra's second direct tranche's review debt** (DECISIONS 60's
-rule, 2026-10-12): 1634 (a finished building flags the old city's roads
-before the upgrade sweep attaches the enlarged ring — CITIES §4, AI §176)
-and 1647 (the live caravan writer counts Merchant Fleets, the periodic
-census the land lineage alone, and a sweep's drop does not cancel the
-close's decrement — AI §177) landed on diffs and one GPT-6 reading each,
-no blind second reading; both journals say "independent review is owed".
-The ratification set is those two code-changing claims; brief the readers
-from each journal's review paragraph, never from this line. 1640–1646
-changed the harness and no mechanic: their check is the gate (778 of 778,
-every window's report equal to its predecessor's by the journals), not a
-reading. The twenty-eighth pass's.
-
-(1650) **The lane gate's timings file predates the harness's speedups**
-(the settlement, 2026-10-12): `suite_timings.py`'s file was written at the
-twenty-seventh pass, and 1642–1646 cut the nine-window walk 154 → 40 s
-and the golden pairs 65 → 49 s; a test the file still names as over
-budget is skipped by a lane gate that could now afford it. Re-time at the
-twenty-eighth pass; a stale list is conservative, never wrong. **The
-archive question beside it is answered** (2026-10-12, with Ramon): the
-`.rcap` route would have been a migration (58 Python probes read dumps
-raw), so the archive was APFS-compressed in place instead — `afsctool
--c -f -T LZFSE -J8 ~/ron-data`, 205 GB → 22 GiB, every file verified,
-a dump 39× and a packet payload 4.2×, the consolidated Great Lakes
-widening 46 s raw and 46 s compressed, the booking gate green on it
-(exit 0). What is left for the Loop: **a new capture lands raw**, so a
-steer compresses the archive again (the same line; already-compressed
-files are skipped), or the capture scripts do it at a run's end.
-
-(1671) **A lane's next session is a clear of its own row, and the loop
-spawned a second row again** (Ramon, 2026-10-12, the race's first
-landing): `commander` gave `att-1648-sm` its landing 2 with `ccc spawn
---cwd <the racer's tree> --name att-1648-sm-2` instead of `ccc clear
-att-1648-sm --then "<landing 2>"`, so one tree carried two rows, the
-first stopped and unforgettable (`ccc forget` refuses a ccc-cut tree,
-`ccc rm` would take it; it was archived, to reap at the end). The same
-shape as parked 1541 and DECISIONS 64 (iv) — `steer` and `commander`
-each `spawn --replace`d a new self for a week before the cross-session
-clear replaced it — and Ramon asks why it was not caught twice. A
-reading, to be checked: the fix was written for the two permanent rows
-("`spawn --replace` is not used"), never as the general rule; DECISIONS
-64's amendment, the queue's opener and the race brief all say
-**respawned**, which reads as a spawn; and the memory index's ccc hook
-still names `--replace` handoffs. Candidates: one clause — "a session's
-successor is `ccc clear <its row> --then`; a second row on one tree is
-never spawned" — for every row; the word *respawn* struck from the
-opener's template and the frame; a guard in `tools/lanewait.py` (or the
-roster reader) that fails when two live or stopped rows stand on one
-worktree. The rest of the race clears its racers' rows. **A sibling, the same
-evening**: `att-1648-oh` ended landing 1 with its row at `tempo=blocked`
-("2 commander test lines await your write"), and an armed `ccc clear`
-fires only on `idle` — the lane's done line, read as needing the
-commander's lines, parks the row out of the clear's reach; one message
-("nothing is owed, end your turn") unblocked it, and the race's header
-now says so. **The header did not hold it**: `att-1648-om` (landing 3,
-"reply `go` to land Coverage pair") and `att-1648-oh` (landing 3) ended
-blocked the same way after it, each one message from its clear — and
-both again on their fifth: five of the race's twenty landings, every
-one on Opus 5.5, none on Sonnet (`docs/audit/2026-10-12-race-1648.md`). The frame's
-done-line row could say it for every lane, or `lanewait.py` could name
-`ENDED … blocked` with an armed clear as the case it is. The
-twenty-eighth pass's.
-
-(1672) **A capture's wait dies at the background default** (`att-1648-sm`'s
-Loop line, its landing 4, 2026-10-12): `tools/gamelog/waitrun.sh` backgrounded
-without a `timeout` is killed at the harness's 30-minute default, before
-a long capture's exit; the lane lost about thirty minutes to a wait that
-had ended without its banner. CLAUDE.md's waiting clause and the brief's
-frame name `waitrun.sh` but no timeout; candidates — `timeout 3600000` in
-the frame's capture row, or `waitrun.sh` re-armed by its own exit code
-on a kill. The twenty-eighth pass's.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 
@@ -3908,7 +3879,7 @@ agent type boots at 46 k, so a lane that hands the widening's greps, the
 standing probe and a packet's reads to a subagent and keeps only the
 conclusions in its own thread stays shallow, on either model. The bigger
 change to the brief than the 300 k clear (1637), and harder to measure;
-after 1637 has a tranche's peak and deep-share numbers. One reach.
+after 1637 has a tranche's peak and deep-share numbers. One reach. **The twenty-eighth pass, measured**: with one session a landing the race's twenty sessions peaked at 169–404 k (means: Opus high 265 k, Opus medium 230 k, Sonnet high 315 k, Sonnet medium 228 k) and seventeen of twenty had a deep share of zero; three crossed 300 k (`oh` landing 4 at 321 k, `sh` landings 3 and 5 at 347 and 404 k) and none took the frame's clear (1637). The session shape, not a subagent, took the context out of the price; the gain left for this row is bounded by three sessions in twenty. Stays one more tranche, for the 300 k clear to be seen firing; closes after if the peaks hold.
 
 (1590) **A seam's "no capture on file" is a dated claim nobody re-runs**
 (1588's Loop line, 2026-10-07): 1588's cause was a `SEAM` in
@@ -3916,7 +3887,7 @@ after 1637 has a tranche's peak and deep-share numbers. One reach.
 arm (checklist row 1132), and nobody re-ran it when run679 was captured.
 A seam that says "no capture on file" could carry the `scan:` that
 notices the first capture that does — a guard, or a `seams.py` pass over
-every such seam against `docs/RUNS.md`'s runs. One reach. **The twenty-seventh pass**: not built; stays. The shape is `seams.py` over every seam that says "no capture (on file|reaches)" against `docs/RUNS.md`'s runs captured since the seam's blame date.
+every such seam against `docs/RUNS.md`'s runs. One reach. **The twenty-seventh pass**: not built; stays. The shape is `seams.py` over every seam that says "no capture (on file|reaches)" against `docs/RUNS.md`'s runs captured since the seam's blame date. **The twenty-eighth pass**: reached by two arms on one cause — `att-1648-om`'s 1656 and `att-1648-sh`'s 1661, a seam table's "unmodelled" row gone stale when the bit was built elsewhere (`combat.packed`, `idle_fishermen`); `seams.py --unwritten` exists and lists fields no non-test line writes, and the asked-for refinement is a field whose only writers zero it (1674 (b)). Not built; stays.
 
 (1593) **A cost-grid probe against the trace's proxied `calc_cost`, as a
 tool** (1589's Loop line, 2026-10-07): the draw that parted was ten
@@ -3924,7 +3895,7 @@ frames late; the cause sat on the frame before the position parted, where
 both sides spent the same grid draw, and a scratch test of `cost_marks`
 against the proxied `calc_cost` answered it in one run. The third reach
 (7070's road search, `world.rs`'s 4803, this): it graduates into a
-`RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach. **The twenty-seventh pass**: not built; stays — the third reach graduates on the lane whose word next reads a cost grid (`RON_COSTS=<frame>:<who>/<o>` on `third::walk_from`).
+`RON_COSTS=<frame>:<who>/<o>` print on `third::walk_from`. One reach. **The twenty-seventh pass**: not built; stays — the third reach graduates on the lane whose word next reads a cost grid (`RON_COSTS=<frame>:<who>/<o>` on `third::walk_from`). **The twenty-eighth pass**: no reach this tranche; stays one more.
 
 (1601) **The race's Loop lines** (1565, 1581, 1583–1585, the Sonnet
 racer's journals, 2026-10-07): (a) a lane greps the integration branch,
@@ -3940,29 +3911,21 @@ appear in a window runs the `coverage` tests too", a checklist row (1583);
 mapped 65534 to −2 silently (1583); (g) a `WORLD` category in the coverage
 lobby's capture for the danger map, and a guard listing each consumer of a
 derived `build_flags` bit beside whether it reads `basic_type()` (1584).
-One reach each. **The twenty-seventh pass**: (a) and (e) are frame rows (the `lanes` and `build` sections); (b), (c), (d), (f) and (g) stay, each a worker's on its next reach — (f), a `ushort` read above 32767 mapped to −2, is a loader fix the next word that reads one makes.
+One reach each. **The twenty-seventh pass**: (a) and (e) are frame rows (the `lanes` and `build` sections); (b), (c), (d), (f) and (g) stay, each a worker's on its next reach — (f), a `ushort` read above 32767 mapped to −2, is a loader fix the next word that reads one makes. **The twenty-eighth pass**: (d) reached — `att-1648-oh`'s 1653, a unit's position from its birth on both sides; (b) reached by the births probe's `near=` line (1674 (a), built). (b) closes into that build; (c), (d), (f) and (g) stay.
 
 (1604) **A byte watch as a tracer define** (1598's Loop line,
 2026-10-07): what found 1598's writer was a packet compared cell for cell
 against ours over a rectangle, then a per-frame watch of one byte (43 s a
 run) — a scratch `#ifdef` per item (1438's run592, now 1598's run713). A
 `RON_WATCH_BYTE=<va expr>@<lo>-<hi>` define in the tracer is the third
-reach of the shape; it graduates into `tools/`. **The twenty-seventh pass**: not built; stays — a tracer define the lane that next watches a byte graduates.
+reach of the shape; it graduates into `tools/`. **The twenty-seventh pass**: not built; stays — a tracer define the lane that next watches a byte graduates. **The twenty-eighth pass**: no reach this tranche; stays one more.
 
 (1607) **A pin that names a residue bit by value is a seam in disguise**
 (1602's Loop line, 2026-10-07): 1602's writer was a world-cell bit no dump
 prints, found by grepping the export for `| 2` on a `0x1c`-stride pointer;
 the full suite then found run240's older pin (776's "a bit the searches do
 not read") recording the same bit as residue. `seams.py` could list the
-pins whose comments say "a bit … not read". One reach. **The twenty-seventh pass**: not built; stays. A `seams.py` listing of the pins whose comment says "a bit … not read" is a grep over `coverage.rs` and the floors; a sibling of 1616 and 1633 (b), the three one listing.
-
-(1610) **A standing row a reader starts reading on the word's frame**
-(1605's Loop line, 2026-10-07): 1605's cause was a row every widening had
-printed as standing for weeks, and a walk back by first partings is blind
-to a reader that starts reading a standing value on the word's frame.
-When a draw is a per-candidate score, list the candidates' standing rows:
-`standing.py` could take a frame and print the standing keys of every
-object the frame's function reads. One reach. **The twenty-seventh pass**: not built; stays with 1554 (the standing crossing).
+pins whose comments say "a bit … not read". One reach. **The twenty-seventh pass**: not built; stays. A `seams.py` listing of the pins whose comment says "a bit … not read" is a grep over `coverage.rs` and the floors; a sibling of 1616 and 1633 (b), the three one listing. **The twenty-eighth pass**: no reach this tranche; stays one more, with 1616.
 
 (1613) **1600's Loop lines** (2026-10-07): (a) the race's re-check as
 written ("1578 is not in the Sonnet chain") cost the lane its first hour;
@@ -3970,28 +3933,14 @@ written ("1578 is not in the Sonnet chain") cost the lane its first hour;
 closing record carries the grep that tests each "disagree" row before it
 is booked; (b) a mutation whose arm no capture reaches fails nothing on
 the walk: `tools/mutate.py` could print which test names ran, so "failed
-nothing" reads at once as unwalked rather than untested. One reach each. **The twenty-seventh pass**: (a) is the race's, over; (b) — `tools/mutate.py` printing which tests ran — stays, one reach.
+nothing" reads at once as unwalked rather than untested. One reach each. **The twenty-seventh pass**: (a) is the race's, over; (b) — `tools/mutate.py` printing which tests ran — stays, one reach. **The twenty-eighth pass**: no reach this tranche; stays one more.
 
 (1616) **A seam built is checked against the field that would show it**
 (1608's Loop line, 2026-10-07): `spell_time`, the field 1608's arithmetic
 lives in, was printed on every block and pinned unread; the cast's end was
 all any walk saw. `seams.py --field` could list the unread pins
 (`coverage.rs`) of the struct a seam's function writes. A sibling of 1607
-and 1610; one reach. **The twenty-seventh pass**: not built; stays with 1607.
-
-(1627) **A hero's born-parted row is an aura's input** (1614's Loop line,
-2026-10-07): 1614's cause had stood in the widening as a born-parted
-`myhits`/`myspeed`/`mylos` row on a unit the brief never named, sixty
-frames before the word; `standing.py` could flag a row parting at birth on
-a unit whose type answers `is_hero`, since its radius reaches every unit
-near it. A sibling of 1610; one reach. **The twenty-seventh pass**: not built; stays with 1554.
-
-(1636) **A building's damage series across a capture gap** (1625's Loop
-line, 2026-10-07): the cause stood on a unit the booking never named and in
-a gap (3120–3136) between two windows; a widening that pins a building's
-`damage` as standing at its window's first block could print that
-building's damage series on both sides across the gap's ends — found by
-hand here. A sibling of 1610 and 1627; one reach. **The twenty-seventh pass**: not built; stays with 1554.
+and 1610; one reach. **The twenty-seventh pass**: not built; stays with 1607. **The twenty-eighth pass**: reached by `att-1648-sh`'s 1664 (`spell_time` unread, again, on the Terra Cotta Army's clock). Not built; stays with 1607.
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
@@ -4006,14 +3955,7 @@ Whether that is a timing problem at the autostart or two tracer builds
 that do not combine is not known. Score: a `cover=1` capture and a
 lobby the autostart could not start, both on a pool lane with no
 cursor; then the queue lane goes and the pool is the only lane. One
-reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche.
-
-(1566) **Two debug-print gaps from 1561** (its journal's Loop lines,
-2026-10-06): `RON_DEBUG_UNIT=8/*@…` prints only *moving* units, so
-`8/2` vanished at the frame it stalled — an "every unit within N of X"
-form would show a stall in one run; and `RON_DEBUG_SITES` is read by
-`sahara_coverage_first_parting` and not by the widening test, so a
-first read needs both runs. One reach. **The twenty-sixth pass**: one reach; stays — the Sahara lane's to build when its word next stalls a unit. **The twenty-seventh pass**: no reach this tranche; stays, the Sahara lane's.
+reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms.
 
 (1560) **`seams.py` finds a field, not an object type** (1552's Loop
 line, 2026-10-06): the cause was an arm §133 had written down as
@@ -4036,51 +3978,14 @@ landings of one tranche, one tool. **And 1561's**: `docs/ANIM.md`
 §6.1 said `is_enemy(8)` "is never asked for", a wrong closure for its
 word — `seams.py` reads no "never asked/never reached" sentence, the
 same shape as 1555's "reached through the fog". Four landings. One
-reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings. **And 1586's**: the writer `Group::normalize` was named in `GROUPS.md` §18.1's own list and its callers nobody counted — the callers-of-the-writer half of the same mode; six. **The twenty-seventh pass**, built: `seams.py --callees <Fn>` and `--callers <Fn>` read the export's `INDEX.tsv` and scan the callees' or callers' names through the seams and the gap paragraphs (1558's and 1586's halves; `test_seams.py`'s fixture export). The frame's row 7 names `--field`; the next brief that names a writer names `--callees` beside it. Closes on its next reach if the mode found it.
+reach. **The twenty-sixth pass**, built in part: `seams.py` reads "never asked", "never reached", "no capture reaches" and "reached through" as gaps now, with a fixture each, and `--item` takes the item's own upper-case names (`OILPLATFORM`, `CHAR_FARM`) — 1552's and 1561's shapes. **Not built**: 1558's callee mode, a search over the callees of the parted field's writer; that half stays, one reach. **And 1563's** (2026-10-07): the cause sat in `build_crowd`'s own doc paragraph ("That arithmetic is not reproduced"), beside the parted field's writer's callee, where `--field orders_x` cannot reach — the callee mode again; five landings. **And 1586's**: the writer `Group::normalize` was named in `GROUPS.md` §18.1's own list and its callers nobody counted — the callers-of-the-writer half of the same mode; six. **The twenty-seventh pass**, built: `seams.py --callees <Fn>` and `--callers <Fn>` read the export's `INDEX.tsv` and scan the callees' or callers' names through the seams and the gap paragraphs (1558's and 1586's halves; `test_seams.py`'s fixture export). The frame's row 7 names `--field`; the next brief that names a writer names `--callees` beside it. Closes on its next reach if the mode found it. **The twenty-eighth pass**: reached twice by the race — `att-1648-om`'s 1657 (a specification's pseudo-code line the crate never built: `seams.py` could list the calls a spec's pseudo-code names that the cited function's Rust body never makes) and `att-1648-sh`'s 1662 (`invalid_loc`'s hidden register argument, read wrong from the call site alone) — neither through `--callees`. Stays; both shapes are filed under 1674 (c) and (f).
 
 (1554) **A standing row the word's readers read is ranked nowhere**
 (1546's Loop line, 2026-10-06): the cause was a standing row on a new
 window's first block — `1/2006`'s capital bit, standing 370 blocks
 before the word — which `tools/standing.py` printed among 198 keys.
 Crossing the standing keys with the readers of the word's own parted
-record would have named it first. One reach. **The twenty-sixth pass**: not built; stays. `tools/standing.py` beside `seams.py --field` on the parted record's readers is the crossing, and a worker who does it by hand a second time graduates it. **The twenty-seventh pass**: reached by its three siblings 1610, 1627 and 1636 — a standing row the word's reader read, a born-parted row on a hero, a building's damage series across a gap. Not built; the four are one tool, `standing.py` crossed with the readers of the word's parted record, and the pass names it the next build on that tool. Stays.
-
-(1548) **The cell chains no widening reads** (1544's Loop line,
-2026-10-06): `up`/`down`/`down_who`/`up_who` sit in `coverage.rs`'s
-unread list, and they are the original's cell chains — the order
-every circle walk visits — so a chain-order parting is invisible to
-every widening. A reader that rebuilds each chain from its links and
-compares it as a sequence (1544 did it by hand) would make it a row.
-One reach. **The twenty-sixth pass**: not built; stays, the Opus lane's to build when a circle walk next parts. **The twenty-seventh pass**: no reach this tranche; stays.
-
-(1537) **Two tool gaps from 1528** (its journal's Loop lines,
-2026-10-06): a decompile's `unaff_` operands hid a distance test's
-argument and a comment on `group_loc_to` asserted the wrong reading as
-"the listing's" (`0070c634`) — a tool printing each cited address
-range's listing beside the comment would re-read them mechanically; and
-`timeout` is absent on macOS, so a brief habit of `timeout 3000 cargo …`
-exits 127 with nothing useful. One reach. **The twenty-sixth pass**: the `timeout` half is a frame row (`build`); the listing-beside-comment tool is not built and stays, one reach. **The twenty-seventh pass**: no reach this tranche; stays, the listing-beside-comment tool.
-
-(1534) **A name the original spells once, defined twice in `sim`**
-(1530's Loop line, 2026-10-06): §129 replaced a five-ident
-`is_military_trainer` list in one module and left its twin in
-`ai_place.rs` for twenty items. A guard that greps `crates/sim` for a
-second `fn <name>` of a name the export defines once would have named
-it. One reach. **The twenty-sixth pass**: not built; stays. A guard over `crates/sim` for a second `fn <name>` of a name the export defines once is a `docs_guard`-shaped test and a pass's build. **The twenty-seventh pass**: no reach this tranche; stays. The guard is a `docs_guard` test over `crates/sim` for a second `fn <name>` of a name `~/ghidra-projects/decomp/INDEX.tsv` defines once, and `seams.export_index` (built this pass) reads that index now.
-
-(1521) **A stand-in that names no `SEAM` is invisible to `seams.py`**
-(1514's Loop line, 2026-10-06): a booking's "the head is still this
-order", written as a kind-and-point test, was an object identity in the
-original (`Unit::head_serial`); §24.9 had said "this order" in prose
-since item 569, and no tool flags a comparison by value where the
-original compares by identity. One reach. **The twenty-sixth pass**: stays; no tool flags a comparison by value where the original compares by identity, and none is designed yet. **The twenty-seventh pass**: no reach this tranche; stays.
-
-(1518) **A draw-order word whose clocks the harness re-seats is
-invisible to every widening** (1510's Loop line, 2026-10-06): both
-14512 and 14363's draw halves parted on the stream alone, every dumped
-record agreeing; a compare of the dump's per-figure `end_time` against
-the roll the trace's seed gives for the figure's slot would date such a
-word without a capture. One reach. **The twenty-sixth pass**: stays; a compare of per-figure `end_time` against the trace's seeded roll is a tool a draw-order word's lane builds. **The twenty-seventh pass**: no reach this tranche (one tranche since its filing); stays.
+record would have named it first. One reach. **The twenty-sixth pass**: not built; stays. `tools/standing.py` beside `seams.py --field` on the parted record's readers is the crossing, and a worker who does it by hand a second time graduates it. **The twenty-seventh pass**: reached by its three siblings 1610, 1627 and 1636 — a standing row the word's reader read, a born-parted row on a hero, a building's damage series across a gap. Not built; the four are one tool, `standing.py` crossed with the readers of the word's parted record, and the pass names it the next build on that tool. Stays. **The twenty-eighth pass**: 1610, 1627 and 1636 close into this row by the two-tranche rule, their paragraphs kept in `docs/audit/2026-10-13-fable-pass-28.md`; the four shapes are one tool — `standing.py` crossed with the readers of the word's parted record, a born-parted row on a hero flagged, a building's `damage` series printed across a gap's ends — and the race reached it once more (`att-1648-oh`'s 1653: a unit whose order parts wants both sides' position from its birth, not from the word). Stays, the next build on `standing.py`.
 
 ## Loop, filed 2026-10-05 — the twenty-fourth pass's own
 
@@ -4101,10 +4006,5 @@ dated a 140-frame gap in one grep. And 1503's: `construct_hits` and
 `myhits` still uncompared — the second landing they would have dated
 sooner (The President's clock on 14363). And 1508's: a dumped field
 the crate carries under another name (`cast_target` for `cavarch_o`)
-read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119.
-
-(1507) **`unattended_capture.py` exits like a failure after a good
-short window** (1496's Loop line, 2026-10-06): it raises `GROUPS was
-asked for and no GROUPDATA block was printed` (parked 735) when the
-window ends before any group exists; the check could skip there. **The twenty-fifth pass**: one reach; stays. **Reached again by 1532** (2026-10-06, run672): a whole dump with no group standing read `success: false`; a missing optional record could be a receipt warning. **The twenty-sixth pass**: stays, two reaches. `--allow-early-end` (1551's build) does not cover it: a `GROUPS` ask with no `GROUPDATA` printed is still a failed receipt, by design (735). **The twenty-seventh pass**: no reach this tranche; stays one more.
+read as "no writers, no readers" in `seams.py` and unread on the pin. **The twenty-fifth pass**: seven journals of twenty named a pinned-uncompared key on the cause. Not built as a check; the frame's `before-reading` row 6 now says to grep `coverage.rs`'s unread list for the parted field, and the compared rows themselves — `construct_hits`, `myhits`, `leader_flags`, `mana_burn`, `spell_time`, `unit_masks`' bits, `start_list` — are a worker's on the lane whose word next names one (1450's rule). Stays. **The twenty-sixth pass**: not measured against the journals this pass; stays with 1119. **The twenty-seventh pass**: reached again — 1616 (`spell_time` unread, the cast's end all any walk saw) and 1633 (b) (a key compared as a one-bit reduction). Not built as a check; stays with 1119. **The twenty-eighth pass**: reached by 1651 (above, in 1119) and by `att-1648-sh`'s 1664 (`spell_time` carried unread again). Not built as a check; stays with 1119.
 

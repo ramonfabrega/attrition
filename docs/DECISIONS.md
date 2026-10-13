@@ -76,6 +76,7 @@ is append-only and amended in place, as it always was.
 - 62 standing — The mixed roster runs once more on two lanes, and the coverage pair is the French pair's successor
 - 63 standing — The mixed roster's second tranche is scored, a third lane returns, and the replaced session is archived
 - 64 standing — The race is scored, the sweep is a lane, the loop's debt is paid down, and a fourth lane returns by rule
+- 65 standing — The race on 1648 is scored, the price was the context, and the roster waits on Ramon
 
 ## 1. Fidelity before divergence
 
@@ -4714,8 +4715,11 @@ Sonnet's half-price tokens bought nothing and the model question was
 half a context question — the racers chained five items in one session
 and peaked at 865 k, and a single item on a regular lane runs to half a
 million. So: **(i) the race is re-run as 1639 with the racers shaped
-like workers** — one session a landing, respawned by the commander off
-the racer's own chain tip, nothing merged until the end — in three
+like workers** — one session a landing, ~~respawned~~ **cleared** by
+the commander off the racer's own chain tip (`ccc clear <its row>
+--then`, never a spawn onto its tree; *respawned* here was read as a
+spawn once, parked 1671, the twenty-eighth pass), nothing merged until
+the end — in three
 arms, Opus 5.5 high, Sonnet 5.5 high and Sonnet 5.5 medium, since
 Sonnet 5.5's effort levels are recalibrated and medium is the next
 thing to test; **(ii) every lane clears itself at 300 k of context**
@@ -4775,3 +4779,95 @@ commander** for a talk; the roster is Ramon's on that score. 1639,
 1630 and 1497 wait a tranche. The estimate above is replaced for this
 tranche: four chains each past 3,600; the price near 300 USD list;
 the race done in under ten hours.
+
+## 65. The race on 1648 is scored, the price was the context, and the roster waits on Ramon
+
+**Decided 2026-10-13**, the twenty-eighth pass
+(`docs/audit/2026-10-13-fable-pass-28.md`), unattended; the commander
+held for Ramon's word on the roster, as entry 64's amendment says.
+Amends nothing; applies entry 54's two-tranche closure and entry 61's
+rules 2, 4 and 5.
+
+**What was measured.** Four arms on one word (East Indies, All
+Technologies, frame 3439), five landings each, one session a landing,
+one base, no other lane: `oh` Opus 5.5 high, `om` Opus 5.5 medium, `sh`
+Sonnet 5.5 high, `sm` Sonnet 5.5 medium, every request's model and
+effort read from the transcripts. **All four reached 3963 by the same
+five causes in the same order.** List price over five sessions: `sm`
+23.23, `om` 32.40, `oh` 37.20, `sh` 40.47 (4.65, 6.48, 7.44 and 8.09 a
+landing); the four arms 133.30 and the commander's two race sessions
+8.16, against an estimate near 300. Wall clock spawn to fifth landing
+3 h 18 min to 3 h 39 min, `sm` first. Peak context a session: `sm`
+169–297 k (mean 228), `om` 197–266 (230), `oh` 226–321 (265), `sh`
+244–404 (315); seventeen of twenty sessions had no spend above 300 k,
+and the three that did — `oh` once, `sh` twice — took no clear. Five
+landings ended `tempo=blocked` asking for the commander's lines, every
+one Opus. The waiter exited 18 LANDED, 2 ENDED, 0 QUIET, 10 PUSHED; no
+conflicted update in twenty journals. The battery 576 / 6566 / 2974,
+unmoved for a fourth tranche; the census cited 1258, never 148, backed
+68. The two Codex claims (1649) were read blind on Opus and ratified
+on the diff and the readings together (the pass's record, "What was
+ratified").
+
+**What it means.**
+
+1. **The race measured price and pace, not judgement.** Twenty landings
+   on one word whose five causes every arm found alike cannot rank the
+   arms on what they found; they rank on what it cost, and there the
+   order is clean: Sonnet medium, Opus medium, Opus high, Sonnet high.
+   Sonnet high was dearest on the same model as the cheapest arm, and
+   its transcripts say why — 733 requests against 520 and the deepest
+   contexts of the four — so **effort moves the price through the
+   length of the transcript, and the session shape (one a landing) is
+   what took the context out of it**: the chained racers of entry 64
+   peaked at 865 k, these at 404 k at worst.
+2. **The recommendation, for Ramon**: Sonnet 5.5 at medium on every
+   lane, the two kill rules standing — a booking gate red on what a lane
+   gate passed, or three attempts on one word without a landing, returns
+   that lane to Opus 5.5 high. The judgement question is open and the
+   held-out battery is its instrument, which only the rules track
+   reaches; a tranche with a Sonnet medium rules lane either moves the
+   battery or trips a kill rule, and both are measurements. **The pass
+   changes no lane's model**; the roster is the user's (entry 61 rule 2).
+3. **A lane's next session is a clear of its own row, and the waiter
+   enforces it** (parked 1671): `tools/lanewait.py` refuses to start on a
+   lane whose tree holds a second row, prints the row's own detail on
+   its `ENDED` line, and the frame's done-line row says the turn ends as
+   done; entry 64's "respawned" is amended in place to "cleared".
+4. **A capture's wait carries a `timeout`** (parked 1672): the frame's
+   capture row and `CLAUDE.md`'s waiting clause say 3600000, because
+   the harness's background default killed a `waitrun.sh` wait at thirty
+   minutes and a landing lost the half hour.
+5. **A birth no queue holds is read off the building beside it** (1674
+   (a)): `births.py` prints the owner's nearest building on every `+`
+   line, since two of four arms wrote that scan by hand for one cause.
+6. **Thirteen Loop items leave the backlog**: seven by the two-tranche
+   rule (1507, 1518, 1521, 1534, 1537, 1548, 1566), three merged into
+   1554 (1610, 1627, 1636), three built (1650, 1671, 1672); 1649 closes
+   on its ratification, 1674 is filed; twenty-seven become fourteen.
+   The suite is re-timed (`docs/audit/2026-10-13-suite-timings.txt`) and
+   the archive compressed again (`docs/ORACLE.md`, its new section).
+7. **The reap is the commander's first act after Ramon's word**: the
+   four racer rows and `att-1648-sm`'s archived twin stand on the
+   roster with clean trees, their branches on origin as the record
+   until the next pass; `ccc rm` on each and the four remote branches.
+
+**The estimate, written down to be wrong on record** (the roster as
+recommended; the mixed roster adds about a fifth to the price): twenty
+landings on four lanes in under fourteen hours with nobody typing; the
+coverage pair's word past 4,500 (its trace ends at 4,730); Great
+Sahara's past 3,000; chapter fifty-two closes and the battery moves on
+at least one lobby; the backed column passes 80; a landing waits under
+50 minutes; under 150 USD list for the workers; neither kill rule
+trips; no landing ends `blocked`; every session past 300 k takes its
+clear.
+
+**The measure for the next pass**: each lane's USD and waiting a
+landing against the race's 4.65 / 24.2 (Sonnet medium) and 7.44 / 26.0
+(Opus high); the 300 k clear's firings against zero of three; blocked
+endings against five of twenty; the waiter's exits against 18 / 2 / 0 /
+10; conflicted updates against zero; the battery against 576 / 6566 /
+2974; the census's never against 148, backed against 68, cited against
+1258; the backlog against fourteen; `tools/suite_timings.py --stale`
+against the new file; the disk against 242 GiB.
+

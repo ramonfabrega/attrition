@@ -37,6 +37,13 @@ Prints, per frame that moved: the per-kind counts, then one line per object
 gained (`+`) or lost (`-`) with the fields a birth is read from — position in
 internal units and in tiles, `uid`, the guy types, `group`, `angle`, and for
 a building its `orig_type`.
+
+**A born unit names the nearest building of its owner** (`near=<who>/<o>
+otype=<orig_type> d=<tiles>`), from the frame it appears on: two of the
+race on 1648's four arms found the Terra Cotta Army's free soldier by a
+hand-written radius scan over `BUILDDATA` (the twenty-eighth pass, from
+their Loop lines, oh 1654 and om 1659). A birth no queue holds is read
+off the building beside it.
 """
 import sys
 
@@ -59,6 +66,24 @@ def fmt(key, r):
                 r.get("myhits", "-"), len(r.get("guys", [])), guy,
                 r.get("group", "-"), r.get("angle", "-"),
                 r.get("orig_type", "-"), r.get("flags", "-")))
+
+
+def nearest_building(key, r, cur):
+    """The owner's nearest BUILDDATA to a born unit, as a `near=` field."""
+    kind, who, o, uid = key
+    x, y = int(r.get("x_internal", 0)), int(r.get("y_internal", 0))
+    best = None
+    for k, b in cur.items():
+        if k[0] != "BUILDDATA" or k[1] != who:
+            continue
+        bx, by = int(b.get("x_internal", 0)), int(b.get("y_internal", 0))
+        d2 = (bx - x) ** 2 + (by - y) ** 2
+        if best is None or d2 < best[0]:
+            best = (d2, k, b)
+    if best is None:
+        return ""
+    d2, k, b = best
+    return " near=%s/%s otype=%s d=%.1f" % (k[1], k[2], b.get("orig_type", "-"), (d2 ** 0.5) / 192.0)
 
 
 def census(recs):
@@ -86,7 +111,8 @@ def report(frame, prev, cur):
                       if before.get(n, 0) != counts.get(n, 0))
     print("FRAME %s  %s" % (frame, moved or "slot reuse, no count change"))
     for k in sorted(gained):
-        print("  + " + fmt(k, cur[k]))
+        near = nearest_building(k, cur[k], cur) if k[0] == "UNITDATA" else ""
+        print("  + " + fmt(k, cur[k]) + near)
     for k in sorted(lost):
         print("  - " + fmt(k, prev[k]))
     sys.stdout.flush()

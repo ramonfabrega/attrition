@@ -2912,6 +2912,17 @@ tick N — the word's — is still ahead of it (item 597, the twelfth pass;
 the worked case is `docs/EMULATOR.md` §8). Costs and what a packet establishes are
 `docs/EMULATOR.md` §8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md`.
 
+## The archive is compressed in place, and a new capture lands raw (2026-10-13, the twenty-eighth pass; parked 1650)
+
+`~/ron-data` is APFS-compressed in place (`afsctool -c -f -T LZFSE -J8
+~/ron-data`; 2026-10-12, with Ramon: 205 GB → 22 GiB, every file
+verified, a dump 39×, the widenings as fast compressed as raw, the gate
+green on it). A capture writes raw, so each steering pass runs the same
+line again — already-compressed files are skipped — and `df -g ~`
+before and after goes in the pass's record. The race on 1648 left four
+raw windows of 630 MB and four traces of 188 MB; this pass compressed
+them.
+
 ## The click-free lanes are a pool (2026-10-07, items 1568 and 1569; parked 1139)
 
 The click-free lane is a pool of lanes. Everything a capture writes is a

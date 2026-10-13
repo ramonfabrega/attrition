@@ -101,3 +101,33 @@ class StateOf(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SecondRowOnATree(unittest.TestCase):
+    # Parked 1671: the commander gave a racer its second landing with
+    # `ccc spawn --cwd <its tree> --name att-1648-sm-2`, so one tree carried
+    # two rows for a day. A lane's next session is `ccc clear <its row>
+    # --then`; the waiter refuses to start on a lane whose tree holds a
+    # second row, whatever that row's state.
+    def test_a_second_row_on_a_watched_lane_s_tree_is_refused(self):
+        trees = {'att-1': '/w/att-1', 'att-1-2': '/w/att-1', 'commander': '/w/replan', 'steer': '/w/replan'}
+        self.assertEqual(lanewait.second_rows(trees, ['att-1-2']), [('att-1-2', 'att-1', '/w/att-1')])
+
+    def test_the_two_permanent_rows_share_the_integration_tree_by_design(self):
+        trees = {'att-1': '/w/att-1', 'commander': '/w/replan', 'steer': '/w/replan'}
+        self.assertEqual(lanewait.second_rows(trees, ['att-1']), [])
+
+
+class EndedCarriesTheRowsDetail(unittest.TestCase):
+    # Parked 1671's sibling: five of the race's twenty landings ended at
+    # `tempo=blocked` asking for the commander's queue lines, and an armed
+    # clear fires only on idle. The exit line carries the row's own detail
+    # so the one unblocking message is written in the turn that reads it.
+    def test_an_ended_row_s_detail_is_on_the_line(self):
+        watch = watching(a='1' * 40)
+        states, tips = {'a': 'blocked'}, {'a': '1' * 40}
+        details = {'a': 'reply `go` to merge tip a22bdbef'}
+        self.assertIsNone(lanewait.event(watch, states, tips, 5, 100, details=details))
+        self.assertEqual(lanewait.event(watch, states, tips, 6, 100, details=details),
+                         (3, 'ENDED a blocked — reply `go` to merge tip a22bdbef'))
+

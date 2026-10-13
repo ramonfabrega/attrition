@@ -677,7 +677,10 @@ and makes the eventual diff mechanical rather than a translation exercise.
   `tools/gamelog/waitrun.sh <viadriver log>`** in that background lane —
   it keys on the runner's own banner and exit on the queue lane and on
   the receipt lines on the click-free lane, and a wait keyed on any
-  other file has sat for two hours on a finished capture (parked 656).
+  other file has sat for two hours on a finished capture (parked 656)
+  — **and with a `timeout` past the capture's length** (3600000): the
+  background default is thirty minutes, and a wait died at it before
+  the banner (parked 1672).
   **The ban is on any command whose purpose
   is to yield the turn**, never on a list of spellings — `true`, `:`,
   `echo waiting` and `echo .` have all been used here, and enumerating them

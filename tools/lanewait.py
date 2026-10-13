@@ -9,9 +9,12 @@ session. A lane is named as `ccc list` names it. The exits:
 
     0  LANDED <lane> <branch> <old>..<new>   origin's ref of the lane's branch moved
                                              and the row is out of `working`
-    3  ENDED <lane> <state>                  the row left `working` and stayed out
+    3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
+                                             the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
-    2  usage, or a lane the roster does not hold when the wait starts
+    2  usage, a lane the roster does not hold when the wait starts, or a
+       lane whose tree holds a second row (parked 1671: a lane's next session
+       is `ccc clear <its row> --then`, never a spawn onto its tree)
 
 A push while the row still works is printed as `PUSHED <lane> <branch>
 <old>..<new>` and watched on (the twenty-fifth pass): the twenty-fifth
@@ -43,7 +46,7 @@ WORKING = 'working'
 STILL = 2
 
 
-def event(watch, states, tips, minutes, quiet_after, notes=None):
+def event(watch, states, tips, minutes, quiet_after, notes=None, details=None):
     """The first event among the lanes, as (exit code, line), or None.
 
     `watch` maps a lane to {'branch', 'tip', 'still'} and is updated in
@@ -53,7 +56,11 @@ def event(watch, states, tips, minutes, quiet_after, notes=None):
     has none yet. A push outranks an ended row: a lane that pushed and
     stopped has landed. A push while the row works is noted in `notes`
     (when given) and the tip remembered, so the landing is the later
-    stop, not the push.
+    stop, not the push. `details` maps a lane to the row's own status
+    line; an ended row's goes on the exit line, because five of the race
+    on 1648's twenty landings ended `blocked` asking for the commander's
+    queue lines (parked 1671), and the one message that unblocks such a
+    row is written in the turn that reads the line.
     """
     for lane, seen in watch.items():
         tip = tips.get(lane)
@@ -76,7 +83,9 @@ def event(watch, states, tips, minutes, quiet_after, notes=None):
         if seen['still'] >= STILL:
             if seen.get('pushed'):
                 return 0, f"LANDED {seen['pushed']}"
-            return 3, f"ENDED {lane} {state or 'gone'}"
+            detail = (details or {}).get(lane)
+            tail = f" — {detail}" if detail else ''
+            return 3, f"ENDED {lane} {state or 'gone'}{tail}"
     if minutes >= quiet_after:
         return 4, f"QUIET {' '.join(watch)} {int(minutes)}"
     return None
@@ -97,21 +106,42 @@ def state_of(session, job=None):
         return WORKING
     return state
 
+def second_rows(trees, lanes):
+    """Each watched lane whose tree another row stands on, as (lane, other,
+    tree). `trees` maps every roster name to its cwd, archived and stopped
+    rows included — the race on 1648 put `att-1648-sm-2` beside a stopped
+    `att-1648-sm` on one tree (parked 1671). The two permanent rows share
+    the integration tree by design and are never a lane."""
+    found = []
+    for lane in lanes:
+        tree = trees.get(lane)
+        for other, cwd in sorted(trees.items()):
+            if other != lane and tree and cwd == tree:
+                found.append((lane, other, tree))
+    return found
+
+
 def roster():
-    """Each named session's (state, cwd, branch), by name; None when ccc did not answer."""
+    """Each named session's (state, cwd, branch, startedAt, detail), by name,
+    and every row's tree under `roster.trees`; None when ccc did not answer."""
     out = subprocess.run(['ccc', 'list', '--json'], capture_output=True, text=True, check=False).stdout
     try:
         rows = json.loads(out)
     except ValueError:
         return None
-    found = {}
+    found, trees = {}, {}
     for row in rows:
         session = row.get('session') or {}
         name = session.get('name')
+        if not name:
+            continue
+        trees[name] = session.get('cwd')
         # A name's newest row wins: `--replace` leaves the stopped one listed.
-        if name and (name not in found or session.get('startedAt', '') > found[name][3]):
+        if name not in found or session.get('startedAt', '') > found[name][3]:
             found[name] = (state_of(session, row.get('job')), session.get('cwd'),
-                           (row.get('worktree') or {}).get('branch'), session.get('startedAt', ''))
+                           (row.get('worktree') or {}).get('branch'), session.get('startedAt', ''),
+                           session.get('detail') or (row.get('job') or {}).get('detail'))
+    roster.trees = trees
     return found
 
 
@@ -136,9 +166,16 @@ def main(argv=None):
     if missing:
         print(f"lanewait: no roster row with a worktree branch for {', '.join(missing)}", file=sys.stderr)
         return 2
+    doubled = second_rows(roster.trees, args.lanes)
+    if doubled:
+        for lane, other, tree in doubled:
+            print(f"lanewait: a second row on {lane}'s tree: {other} ({tree}); a lane's next "
+                  f"session is `ccc clear {lane} --then`, never a spawn onto its tree (parked 1671)",
+                  file=sys.stderr)
+        return 2
     watch, where = {}, {}
     for lane in args.lanes:
-        _, cwd, branch, _ = rows[lane]
+        _, cwd, branch, _, _ = rows[lane]
         where[lane] = cwd
         watch[lane] = {'branch': branch, 'tip': origin_tip(cwd, branch), 'still': 0}
 
@@ -149,9 +186,11 @@ def main(argv=None):
         if rows is None:
             continue
         states = {lane: (rows[lane][0] if lane in rows else None) for lane in watch}
+        details = {lane: (rows[lane][4] if lane in rows else None) for lane in watch}
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
         notes = []
-        found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes)
+        found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,
+                      details)
         for note in notes:
             print(note, flush=True)
         if found:
