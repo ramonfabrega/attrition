@@ -807,6 +807,22 @@ impl Sim {
                     }
                     score = (score + plenty) * w1;
                 }
+                if std::env::var("RON_DEBUG_PLACE").ok().and_then(|v| v.parse::<i64>().ok())
+                    == Some(frame)
+                {
+                    eprintln!(
+                        "  place f{frame} who{who} {:?} idx{idx} cell({},{}) cand({},{}) sp{sp} d{d} score{score} best{best} danger{} o2{:?} val{} cr{} nocity{nocity} fortlike{fortlike} fort{is_fort}",
+                        ident,
+                        cell.x,
+                        cell.y,
+                        cand.x,
+                        cand.y,
+                        self.world.danger_half(who, cell),
+                        self.world.second(cell).player(),
+                        self.world.cell_data(cell).val,
+                        self.world.tile_mask(cand.tile()) & tile::CITY_RADIUS != 0,
+                    );
+                }
                 if score < best {
                     break 'cand;
                 }
