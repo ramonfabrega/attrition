@@ -3852,10 +3852,20 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
 
+(1871) **A lane whose gate's exit notice is lost sits `working` and
+`idle`, and `lanewait.py` never fires** (the commander, at 1738's
+landing): 1738's lane gate (pid 47308) exited and the notice never
+reached the session; the row read "lane gate running" at `tempo=idle`
+for 178 minutes until a message told it. The waiter exits on a row that
+left `working`, which this one never did. Candidate: the waiter reads a
+`Gate pid:` it can see in the lane's detail and exits when that pid is
+gone. One reach.
+
 (1869) **`step4.py` cannot poke memory or hook a call** (1845's Loop
 line): two scratch edits — a `game->frame` poke and an entry hook that
 prints a call's arguments — answered the whole item. Candidate:
-`--poke ADDR=BYTE` and `--hook ADDR`. One reach.
+`--poke ADDR=BYTE` and `--hook ADDR`. Two reaches: 1738 hand-wrote a
+hook script (`s4h.py`) that prints registers at chosen addresses.
 
 (1867) **`callfn` has no xmm-argument seam** (1856's Loop line):
 `Guy::set_bank`/`set_pitch` take a float in an xmm register, and the

@@ -12,20 +12,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirtieth tranche at twenty landings of twenty, draining**
-(`commander`, Opus 5.5; every lane Sonnet 5.5 medium): the successor pair's word
-11 → 2838 (1737, 1744, 1845 — the Freighter `1/72`'s carry arm, on run785's packet);
-chapters fifty-three, fifty-five and fifty-six closed (1740, 1798, 1829 — the
-last built `reset_pivots` on a `v` type's empty search); thirteen sweeps took the
-census 188 → 319. Great Sahara 3182 open (1738). No kill rule tripped.*
+*2026-10-13, **the thirtieth pass is due**: twenty-three landings (twenty and
+three drained) in 3 h 40 min, every lane Sonnet 5.5 medium. The successor pair's
+word 11 → 2838 (1737, 1744, 1845 — the Freighter's carry arm, on run785's packet);
+chapters fifty-three, fifty-five and fifty-six closed (1740, 1798, 1829); thirteen
+sweeps took the census 188 → 319. Great Sahara 3182 unmoved (1738: the Redoubt's
+divisor built, the state parts on 3177). No kill rule tripped.*
 
-- **The pass built**: the stub pool (AI §193–§198, GOLDEN §66–§69),
-  `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
-  `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
-  `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **Draining**: `att-1738` (1845 and 1856 merged); no spawn past twenty; 1868, 1863
-  and 1866 wait, stubs in the base. Next 1870, run 788, AI §197, GOLDEN §70. **The disk**: 233 GiB free.
-- **Fable backlog: 22 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867, 1869).
+- **Measured** (`tools/tranche.py`): 63.83 USD list, **2.78 a landing**, **20.9
+  min waiting** a landing — 13.8 without 1738's 178 min on a lost gate notice
+  (parked 1871); peak 303 k (1845); one `blocked` (1829); two merges backed out on
+  `PARKED.md`'s tail (1812); booking gates all green; battery 576/6566/2974 unmoved.
+- **No lanes live**: 1868, 1870, 1866, 1863 wait, stubs in the base. Next 1872,
+  run 788, AI §198, GOLDEN §70. **The disk**: 232 GiB free.
+- **Fable backlog: 23 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867, 1869, 1871).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,15 +38,15 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirtieth tranche drains on `commander` — three lanes live
-(`att-1738`): re-arm `lanewait.py` on them, merge and
-book each with no spawn, write the handoff measured by `tools/tranche.py`, then
-`ccc clear steer --then` the thirtieth pass.**
+**Opener: the thirtieth steering pass, on Fable — score the thirtieth
+tranche whole, rule the twenty-three Loop items (1761's fourteen reaches
+first), then clear `commander` into the thirty-first tranche with 1868,
+1870, 1866 and 1863, one to a lane.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1868 the headline's word, 1738, 1866 and 1863 the other three lanes —
+1868 the headline's word, 1870, 1866 and 1863 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,13 +59,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     2838 with `think_carry`'s civilian arm; its other arms are parked 1847.
     East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §196.
 
-1738. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
+1870. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
     ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
-    inside run767 (block 3183), `run767_s_word_frame_is_widened_whole` (142
-    keys). 1726's value diff: `leader:MAKE[8]` t 446 against 526, city 1
-    against 3, val 5711 against 3481 — the Redoubt's value a third of ours
-    since 2782 (`1/2018` `level` 2, `bordering` 3); dropping `base`'s ×3
-    reached 3767 as a probe, not a build. AI §192.
+    1738's value diff: `MAKE[8]` t 446/526, val 4078/3481, `check_income`
+    143/122. The state parts first on 3177: `bucket[1:timber]` 5639/5739,
+    `bucket[2:wealth]` 12256/12181, `escrow[1:timber]` 0/32 — ours sold
+    100 timber for 75 wealth, theirs holds a 32-timber escrow. Widen the
+    leader's market and escrow writers on 3176–3177 (`use_market`'s SEAM
+    the nearest). Inside run767. AI §197.
 
 1866. **The sweep's twenty-eighth batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 319 of 3611): 1856's shape,
