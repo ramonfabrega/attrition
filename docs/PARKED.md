@@ -4420,13 +4420,29 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AK — reserved
+## Parked by item 2090, 2026-10-13 — the sweep's forty-eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2095) **A slot against its base whose base arm is inline, by hand four times** (Loop 2003's eighth reach; names
+no score). `BuildData::is_wonder` (0x472320), `TypeData::time` (0x663f20), `TypeData::research_time` (0x6639a0)
+and `UnitData::is_flying_high` (0x60a310) each compare a vtable slot with a base's address and, when equal, run the
+base's body **inline** (a range test, a bit of a word) rather than call through another object — so 2072's `vcall
+--base`, whose base arm is a call, does not fit. Item 2090's four scripts write the base's own address into a
+page of their own (or, for `is_wonder`, the record's vtable *is* the image's `BuildType::vftable`) on half the rows
+and a stub vtable on the other half. Candidate: `obj --vbase OFF:ADDR[:via]` alternating the two vtables a row,
+the stub's answer and the base flag printed, with a test made to fail first.
+
+(2096) **The order-list iterator, by hand three times** (Loop 2003's ninth reach; names no score).
+`UnitData::is_idle` (0x46fa40), `UnitData::is_fleeing` (0x46efa0) and `BuildData::get_first_gather` (0x46f140)
+reset a list iterator on the way to their answer — head at `list+0x14` (through a sentinel's `+4` for the order
+list, the head itself for the gather list), the node, its data `+8` and byte `+0xc` written to `list+0xc`,
+`+0x4` and `+0x8` — and the bytes are part of the answer. Item 2090 laid out head, sentinel, node and data by hand
+and printed before, after and node bytes. Candidate: `iter --list OFF [--sentinel] [--count]` writing that
+layout and the test's model of the reset, the answer left to `--port`.
+
+**Loop 2003's seventh reach (2084), twice more and not through `this+VIA`**: `BuildTypeData::is_gather_enhancer`
+(0x472b50) asks its own slot `+0x60` four times by argument, `CityData::lumber_level` (0x736820) a direct callee
+(`has_preq`) three times; both by hand, the asks' order the finding. 2084's candidate would serve both with its
+`--stub-via` optional.
 
 ## Parked by the next landing, slot AL — reserved
 

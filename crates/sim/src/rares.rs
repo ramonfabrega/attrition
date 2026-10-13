@@ -550,6 +550,13 @@ impl Sim {
     }
 }
 
+/// A ladder of `n` rows asked from the top (`held(n − 1)` first) — `LeaderData::get_granary@006db340` and its
+/// siblings, `CityData::lumber_level@00736820` — answering `i + 1` at the first row held and 0 past the last;
+/// no row under the first held is asked (item 2090's sweep holds the asks).
+pub fn top_held(n: usize, mut held: impl FnMut(usize) -> bool) -> usize {
+    (0..n).rev().find(|&i| held(i)).map_or(0, |i| i + 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1425,11 +1432,4 @@ mod tests {
             "a spawn site sets `movement.speed` from the type's raw `MOVES`;              use `Sim::type_speed`, which is `Unit::update_speed`: {bad:#?}"
         );
     }
-}
-
-/// A ladder of `n` rows asked from the top (`held(n − 1)` first) — `LeaderData::get_granary@006db340` and its
-/// siblings, `CityData::lumber_level@00736820` — answering `i + 1` at the first row held and 0 past the last;
-/// no row under the first held is asked (item 2090's sweep holds the asks).
-pub fn top_held(n: usize, mut held: impl FnMut(usize) -> bool) -> usize {
-    (0..n).rev().find(|&i| held(i)).map_or(0, |i| i + 1)
 }
