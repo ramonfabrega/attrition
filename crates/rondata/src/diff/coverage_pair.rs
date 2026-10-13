@@ -247,6 +247,12 @@ pub(crate) struct Pair {
     /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
     /// three times — a birth ours does not make; past run721's window.
+    /// Item 1654 gives the Terra Cotta Army its soldier clock: `1/2043`
+    /// runs out on 3843 and trains the Mech Infantry squad `1/235`
+    /// (`docs/AI.md` §182). **3963**, 18 versus 32 draws, index 3: ours
+    /// `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+    /// seven times, inside run722 (block 3964).
     pub count: i64,
     pub sequence: i64,
 }
@@ -264,8 +270,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3843,
-    sequence: 3843,
+    count: 3963,
+    sequence: 3963,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1731,7 +1737,8 @@ fn run721_s_word_frame_is_widened_whole() {
 }
 
 /// run722, item 1653: the lobby's blocks 3837..4093 at the long's detail —
-/// the word 3843's block 3844 with seven before it and 249 after.
+/// the word 3843's block 3844 with seven before it and 249 after; item
+/// 1654's word 3963, block 3964, lies inside it too.
 pub(crate) const RUN722: &str = "gamelog-run722-eastindies-persian-alltech-window-3837-4093.txt";
 
 /// The window: block 3837 through 4093; the word 3843's own block is 3844.
@@ -1739,7 +1746,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3837, 4093);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run722 walked from run651's start with the recorder on. It holds the
-/// word 3843 (item 1653), block 3844.
+/// word 3963 (item 1654), block 3964, as it held 3843's (item 1653).
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1749,7 +1756,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN722, 3837)],
         WIDENING_COVERAGE_FRAME_3843,
         1,
-        &[3844],
+        &[3844, 3964],
         true,
     )
 }
@@ -1762,14 +1769,16 @@ fn run722_s_word_frame_is_widened_whole() {
     };
     pin_eq!(w.blocks, 257, "every captured block");
     // **2087** on item 1653's tree; 171 stand on the first block. The first
-    // parting past it is a birth's `form` (`1/233`, block 3843), then **the
-    // word 3843's own block, 3844**: the original holds a Mech Infantry
-    // squad (`TypeIndex` 104) ours never makes — `1/235` over `1/236` over
-    // `1/237`, uids 370..372, one figure each, the three
-    // `Guy::init_real+0x52` draws — and leader 1's `active`, `control`
-    // and `num_units[54]` are each one short in ours. Ours' own `1/235`
-    // and `1/236` are other units born later in those slots.
-    pin_eq!(w.firsts.len(), 2087, "run722 on item 1653's tree");
+    // parting past it is a birth's `form` (`1/233`, block 3843), then the
+    // word 3843's own block, 3844: the original held a Mech Infantry squad
+    // (`TypeIndex` 104) ours never made — `1/235` over `1/236` over
+    // `1/237`, uids 370..372. **1205** on item 1654's tree (2087 → 1205):
+    // the Terra Cotta Army `1/2043`'s clock runs out on 3843 (`recharging`
+    // 1 → 607, `450 + 21 × 15 / 2`) and ours trains the squad, which agrees
+    // to 4051 (`docs/AI.md` §182). The word is 3963 now, block 3964: the
+    // dump holds `1/246`..`1/252` alone, uids 383..389, seven
+    // `Guy::init_real+0x52` draws ours does not spend.
+    pin_eq!(w.firsts.len(), 1205, "run722 on item 1654's tree");
     let first = w
         .firsts
         .values()
@@ -1786,17 +1795,26 @@ fn run722_s_word_frame_is_widened_whole() {
             w.firsts
                 .get(&(1, o, "unlinked".to_string()))
                 .map(|(f, _)| *f),
-            Some(3844),
-            "1/{o}, the original's squad, born on the word's block"
+            None,
+            "1/{o}, the Terra Cotta's squad, born on both sides"
         );
     }
     pin_eq!(
         w.firsts
             .get(&(1, -1, "leader:num_units[54]".to_string()))
             .map(|(f, _)| *f),
-        Some(3844),
-        "the computer's count one short on the word's block"
+        None,
+        "the computer's count agrees on the old word's block"
     );
+    for o in 246..=252 {
+        pin_eq!(
+            w.firsts
+                .get(&(1, o, "unlinked".to_string()))
+                .map(|(f, _)| *f),
+            Some(3964),
+            "1/{o}, the original's alone on the word 3963's block"
+        );
+    }
 }
 
 /// run717, item 1625: blocks 3104..3141 with `GUYS=4` and `AMMO=5` — the

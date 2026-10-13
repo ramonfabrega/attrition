@@ -1983,6 +1983,12 @@ impl Sim {
         // (`docs/VISION.md` §2).
         if self.is_wonder_building(ty) {
             self.unit_stats_dirty[who as usize] = true;
+            // `Build::activate@00623e20:1367–1371`, the wonder arm after
+            // `init_wonder`: the Terra Cotta Army's soldier clock starts at
+            // `TERRA_COTTA_FREE × 15` (`Sim::terra_cotta_soldier`).
+            if self.build_types[ty].tree == Some(crate::nations::ty::TERRACOTTA) {
+                self.buildings[b].recharging = self.tuning.terra_cotta_free * 15;
+            }
         }
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`

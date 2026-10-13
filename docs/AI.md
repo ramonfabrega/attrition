@@ -18282,7 +18282,50 @@ orders go through `do_air_physics`, not `move_step`, and were not touched.
 `1/203`, the walk), and the new word's block (run722). Export-backed: the branch's gate and its second turn's rate, held by the unit test, the two
 widenings and the walk.
 
-## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+## 182. The Terra Cotta Army trains a soldier when its clock runs out (2026-10-12, item 1654)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**What was established, how, how confident.** Item 1653 left the coverage pair's word at **frame 3843, ours 23 game
+draws against 28, index 5**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 <
+Unit::init+0xb97 < Objects::init_unit+0xbd` three times, inside run722 (block 3844). Each claim is *diff-backed* unless
+marked.
+
+1. **The draws.** run652 on 3843 spends the three births' `init_real` draws at indices 5–7 (seeds `34dcc269`,
+   `dd5ba8b4`, `78e23c83`), between the units' `do_idle` anim draws and the `inc_time` walk, and two more `inc_time`
+   anim draws later; ours spends neither.
+2. **What was born, and where.** run722's block 3844 holds the Mech Infantry squad `1/235` over `1/236` over `1/237`
+   (`TypeIndex` 104), uids 370..372, at (34584, 38712). No building of leader 1 holds a 104 in its queue on 3843 or 3844
+   (every `BUILDQUEUE`). The nearest buildings are an Auto Plant and, at (34560, 37632), **`1/2043`, the Terra Cotta
+   Army** (`orig_type` 529, `0x211`), whose `recharging` (`BuildData +0x7a`) reads **1 on block 3843 and 607 on 3844**.
+3. **The cause is `Build::process@0061edf0:384–416`.** After the Persian caravan (§146), on every pass of an active
+   building whose type is exactly `0x211`: `recharging` is counted down, and when it falls under 1 it is rewound to
+   `TERRA_COTTA_FREE × 15` plus `LeaderData::barracks_units` (`+0x9f8`) times `TERRA_COTTA_DELAY` — `× 15 / 2` when the
+   delay is the file's `7` (`rules.xml`: "7 == half a second"), tested by value. The soldier is the Aztec arm's line:
+   `SLINGERS`, or the nation's graft when `tribe_can_type` refuses it, through `current_upgrade`. It is trained through
+   `Build::train` when the upgrade is a type and `control (+0x940) < pop_cap (+0x7e4)`, and `Game::terra_cotta_total` is
+   counted. `Build::activate@00623e20:1367–1371`, in the wonder arm after `init_wonder`, starts the clock at
+   `TERRA_COTTA_FREE × 15`. `barracks_units` is `Leader::track_unit_type@006e0dd0`'s: the live units whose type has an
+   attack (`UnitTypeData +0x1e8`) and is made at exactly the Barracks (`+0x40 == 0x1ab`). This crate had none of it.
+   *Export-backed* for the branch; diff-backed for its effect: the dump's `barracks_units` is 21 on block 3843, and
+   450 + 21 × 15 / 2 = 607.
+4. **Why 3843 and not before.** The wonder activates on 3393 (450 frames earlier; item 1647's "449 on 3395 and 446 on
+   3398" is the same clock), and 3843 is its first run-out.
+
+**Built.** `Sim::terra_cotta_soldier` and `Sim::barracks_units` (`crates/sim/src/nations.rs`), called by the tick's
+building walk after `persian_market_caravan` for an active building; `Sim::activate`'s wonder arm starts the clock;
+`Tuning::terra_cotta_free` (30) and `terra_cotta_delay` (7), checked against `rules.xml`. Unit test
+`cities_tests::the_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out`.
+
+**What it moved.** Ours on 3843 rewinds `1/2043` to 607 with `barracks_units` 21, `control` 173 and `pop_cap` 200 —
+the dump's three — and trains `1/235` over `1/236` over `1/237`; the squad agrees with run722 on every block from its
+birth to 4051. run722 (`RON_FIRSTS=1`, widened whole): **2,087 → 1,205** keys, 171 standing on 3837. The word **3843 →
+3963**, count and sequence: **ours 18 game draws against 32, index 3**, ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`,
+theirs `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` seven times (seeds `8bbb4463` … `63e6e011`),
+inside run722 (block 3964): the dump holds `1/246`..`1/252` alone, uids 383..389, between (39288, 42264) and (40008,
+42648). Which event made them is not established.
+
+**Not established.** A nation that cannot make Slingers (the graft arm) and a non-`7` delay: neither reaches a
+capture. `Build::activate`'s own `recharging = 0` for every building (`:132`) is not carried; no building this crate
+counts down `recharging` except the Terra Cotta and the attack and launch arms, which set it before reading it.
+
+**Coverage.** Diff-backed: 1, 2, 3's effect (the clock's value, the squad's birth and its first 208 blocks), 4.
+Export-backed: the branch's arms not taken here, held by the unit test.

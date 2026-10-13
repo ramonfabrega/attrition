@@ -8819,11 +8819,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // second turn, and the Transport Helicopter `1/212` arrives on 3614.
     // The same item took run722 over 3837..4093 (block 3844); run721's
     // test keeps the move's value diff on `1/212`, `1/184` and `1/203`.
+    // **Item 1654 moved it 3843 → 3963** (block 3964), still in run722: the
+    // Terra Cotta Army's clock runs out on 3843 and trains the Mech
+    // Infantry squad `1/235`; run722's test holds the squad agreeing and
+    // the seven units the dump holds alone on 3964.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run722_s_word_frame_is_widened_whole"),
-        1653,
+        1654,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

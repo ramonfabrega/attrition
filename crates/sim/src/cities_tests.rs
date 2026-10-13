@@ -4573,6 +4573,93 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
     );
 }
 
+/// **The Terra Cotta Army trains a soldier when its clock runs out**
+/// (`Build::process@0061edf0:384–416`, `docs/AI.md` §182). Activation sets
+/// `recharging` to `TERRA_COTTA_FREE × 15` (450); every pass counts it down,
+/// and the pass that takes it under 1 rewinds it by the owner's
+/// `barracks_units` — armed units made at a Barracks — `× 15 / 2` for the
+/// shipped delay of 7, and trains the Slingers' line through
+/// `current_upgrade`. At `control == pop_cap` the clock still rewinds and
+/// nothing is born. The coverage pair's Terra Cotta `1/2043`: 607 on 3844,
+/// 21 Barracks units, the Mech Infantry squad `1/235`.
+///
+/// Made to fail by dropping the tick's call (no soldier) and by the
+/// rewind without the Barracks term (465 → 450).
+#[test]
+fn the_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out() {
+    use crate::nations::ty::{BARRACKS, SLINGERS, TERRACOTTA};
+    use crate::tech::{Kind, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    while sim.tech_tree.types.len() <= TERRACOTTA {
+        sim.tech_tree
+            .add(TypeDef::unit("Filler", Traits::default()));
+    }
+    sim.tech_tree.types[SLINGERS] = TypeDef::unit("Slingers", Traits::default());
+    let mut army = TypeDef::building("Terra Cotta Army");
+    army.kind = Kind::Building {
+        auto: false,
+        wonder: true,
+    };
+    sim.tech_tree.types[TERRACOTTA] = army;
+    // A Barracks soldier: armed, `WHERE` the Barracks.
+    let mut pike = TypeDef::unit("Pikemen", Traits::default());
+    pike.where_ = Some(BARRACKS);
+    let pike_t = sim.tech_tree.add(pike);
+    let unit = |attack: i32| UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 50)
+        },
+        hits: 40,
+        combat: combat::Profile {
+            attack,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    };
+    let slingers = sim.add_unit_type(unit(30));
+    sim.unit_types[slingers].tree = Some(SLINGERS);
+    let pikemen = sim.add_unit_type(unit(40));
+    sim.unit_types[pikemen].tree = Some(pike_t);
+    sim.set_tribe(0, 11);
+    for x in [40, 41] {
+        let _ = sim.init_unit(0, pikemen, tile_pos(x, 40));
+    }
+    assert_eq!(sim.barracks_units(0), 2, "two armed Barracks units");
+    let mut wonder = bt(Ident::Market, None, "jam", 4, 4, 420, 1200, 0);
+    wonder.tree = Some(TERRACOTTA);
+    let wonder = sim.add_build_type(wonder);
+    let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
+    finish(&mut sim, w);
+    assert_eq!(sim.buildings[w].recharging, 450, "TERRA_COTTA_FREE × 15");
+    let soldiers = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(slingers))
+            .count()
+    };
+    for _ in 0..449 {
+        sim.tick();
+    }
+    assert_eq!(soldiers(&sim), 0, "not before the clock runs out");
+    assert_eq!(sim.buildings[w].recharging, 1);
+    sim.tick();
+    assert_eq!(soldiers(&sim), 1, "the 450th pass trains one");
+    assert_eq!(
+        sim.buildings[w].recharging,
+        450 + 2 * 15 / 2,
+        "rewound by the Barracks units, half a second each"
+    );
+    // At the cap: the clock rewinds and nothing is born.
+    sim.muster[0].cap = sim.muster[0].control;
+    for _ in 0..465 {
+        sim.tick();
+    }
+    assert_eq!(soldiers(&sim), 1, "control == pop_cap trains nothing");
+    assert_eq!(sim.buildings[w].recharging, 465, "and the clock rewinds");
+}
+
 /// **A Senate that finishes a government trains its patriot, once**
 /// (`Build::finished@00628490`'s tail, `docs/TECH.md` §"The government
 /// patriot"). `get_gov` reads the government bonus's prerequisite,
