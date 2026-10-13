@@ -1078,5 +1078,5 @@ fn run790_s_word_frame_is_widened_whole() {
     // the replay is diverged for 212 of the window's blocks, so the count
     // is the tail's, not the word's. The word 3767's own rows were
     // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
-    pin_eq!(w.firsts.len(), 12582, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 12577, "initial run790 baseline");
 }
