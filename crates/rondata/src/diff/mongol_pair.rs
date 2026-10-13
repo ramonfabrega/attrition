@@ -171,7 +171,7 @@ fn run780_s_word_frame_is_widened_whole() {
     let Some(w) = mongol_word_window() else {
         return;
     };
-    pin_eq!(w.blocks, 258, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -179,5 +179,10 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "initial run780 baseline");
+    pin_eq!(w.firsts.len(), 897, "initial run780 baseline");
+    // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
+    // window's first block (nothing dumped parts on the word's own block
+    // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
+    // anim draw of the citizen `1/72`, which ours stands idle from 2178 and
+    // theirs walks to (35736, 24984) (`docs/AI.md` §194).
 }

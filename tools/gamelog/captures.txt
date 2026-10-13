@@ -9582,3 +9582,10 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # `rngcmp.py rontrace-run775.log rontrace-run779.log` -> 0 differing in 1612 frames.
 # ==== TAKEN 2026-10-13, one take, 04:45-05:03 ====
 
+
+# ==== item 1768: the successor pair's word 2207 (`docs/AI.md` §194; `docs/RUNS.md` run780) ====
+#
+#   run780  --map 18 --end-frame 2463 --log-window 2201 2458 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 (the lobby of run774..776)
+# Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
+# `rngcmp.py rontrace-run775.log rontrace-run780.log` -> 0 differing in 2464 frames.
+# ==== TAKEN 2026-10-13, one take, 05:44-06:04 (lane 1) ====
