@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 3632,
-    sequence: 3632,
+    count: 3834,
+    sequence: 3834,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -292,7 +292,12 @@ fn run799_s_word_frame_is_widened_whole() {
     // by the suspended flag, which every failure tail of `astar_path` clears,
     // not by "resumed" (`docs/AI.md` section 201). 147 of the 165 stand on
     // the window's first block (the leaders' counts), the rest are the
-    // freighters' `form` and the births (3126, 3132, 3134, 3180, 3183).
+    // freighters' `form` and the births (3126, 3132, 3134, 3180, 3183).    // Item 2001: the word 3632 -> 3834 (ours 169 draws, theirs 167, index
+    // 9). The Aegis Cruiser `1/113`, a computer's ship on the raid stance,
+    // took the finished `0/2000` at score 1 and fired on 3632; the
+    // original's `compare_target` answers 0 for it (`0064e7a5`..`0064e81f`,
+    // run810's packet) and `find_nearby_target` never takes a zero
+    // (`docs/AI.md` section 203).
 }
 
 /// run809: the word 3632's window, blocks 3626..3883 at the long's detail (item 2001).
@@ -330,5 +335,9 @@ fn run809_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run809 baseline");
+    // The word 3632's block is 3633. Item 2001: 357 keys after the build
+    // (957 before it), 160 on the first block (the leaders' counts); the
+    // first of `1/113` is now `orders.len` on 3648, theirs 1 (`docs/AI.md`
+    // section 203.5).
+    pin_eq!(w.firsts.len(), 357, "run809 baseline");
 }

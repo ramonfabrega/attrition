@@ -6895,6 +6895,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),
+    // run809 (item 2001): the word 3632's window, 181 reads.
     ("run809_s_word_frame_is_widened_whole", 181),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
