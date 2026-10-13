@@ -5152,6 +5152,23 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
+        if std::env::var_os("RON_PROBE_UPATH").is_some() && frame == 4238 {
+            let (cx, cy) = (391, 625);
+            for y in (cy - 30)..=(cy + 8) {
+                let row: String = ((cx - 90)..=(cx + 10))
+                    .map(|x| {
+                        if x == cx && y == cy {
+                            '@'
+                        } else if self.coll.get(x, y) {
+                            '#'
+                        } else {
+                            '.'
+                        }
+                    })
+                    .collect();
+                eprintln!("PROBE head y{y:4} x{} {row}", cx - 90);
+            }
+        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
