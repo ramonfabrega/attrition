@@ -2225,6 +2225,16 @@ impl Sim {
     }
 }
 
+/// `UnitData::is_flying_high@0060a310`'s order: a fixed-wing plane ([`Sim::is_fixed_wing`]'s three type tests)
+/// asks whether it is on the map, and only on the map whether it flies low, answering not low; anything else is
+/// not high and asks nothing (item 2090's sweep holds the asks).
+pub(crate) fn flying_high_by(
+    fixed_wing: bool,
+    on_map: impl FnOnce() -> bool,
+    low: impl FnOnce() -> bool,
+) -> bool {
+    fixed_wing && on_map() && !low()
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3776,7 +3786,11 @@ impl Sim {
     #[allow(dead_code)]
     pub(crate) fn is_flying_high(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        self.is_fixed_wing(u) && unit.alive() && unit.inside.is_none() && !self.is_flying_low(u)
+        flying_high_by(
+            self.is_fixed_wing(u),
+            || unit.alive() && unit.inside.is_none(),
+            || self.is_flying_low(u),
+        )
     }
 
     /// **`Ammo::init@0067bbf0`'s air arm** (item 1102, `docs/COMBAT.md`
