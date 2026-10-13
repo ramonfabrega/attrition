@@ -45,6 +45,11 @@ Three shapes, each a `__thiscall` on `ecx`:
           <ecx,args…>;…` and the test holds the calls — which callee, with
           what `ecx` and arguments, in what order — to the spec.
 
+  mix     the function makes several of those in order: `--step` repeated,
+          `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
+          `walk4:OFF` (slot 4, handed `**--glob`'s +0x10 word plus OFF); a `gated/`
+          step runs only when `[walker+--gate] == 0` (item 1921, Loop 1890).
+
   walk    the function hands the walker it was given (`[esp+4]`) two pointers
           into `this` through the walker's first vtable slot: `walk_data`
           (`--a0`, `--a1`, each `this`, `this+0xNN` or an absolute address); the callback is hooked.
@@ -404,6 +409,145 @@ def generate_walk(spec, *, item, a0, a1):
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
+MIX_SCRIPT = """#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+\"\"\"sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, mix).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = the object, one stack argument: the walker. The function makes
+{nsteps} step(s) in order — direct callees (hooked), the walker's callback (slot 0, two
+arguments) and its slot 4 (one argument{glob}){gate}.
+One row per input, `<this> <walker> <g> <gate> -> <result> | <ecx,args…>;…`.
+\"\"\"
+import os
+import random
+import struct
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+CALLS = {calls}
+GLOBAL = {glob_cell}
+GATE = {gate_off}
+
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
+    rng = random.Random({item})
+    vt = h.vtable({{0: ("walk", 2, 7), 4: ("walk4", 1, 9)}})
+    for i in range(140):
+        this = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        g = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        gv = 0 if i % 2 == 0 else rng.randint(1, 0x7FFFFFFF)
+        walker = h.alloc(32)
+        h.w32(walker, vt)
+        if GATE is not None:
+            h.w32(walker + GATE, gv)
+        if GLOBAL is not None:
+            rec = h.alloc(0x40)
+            h.w32(rec + 0x10, g)
+            h.m.uc.mem_write(GLOBAL, struct.pack("<I", rec))
+        h.calls.clear()
+        r = h.call(ENTRY, (walker,), ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{walker}} {{g}} {{gv}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+"""
+
+MIX_TEST = """//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, mix).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with every callee and the walker's callbacks hooked: {doc}
+#[test]
+#[allow(clippy::vec_init_then_push)]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, walker, g, gate) = (a[0], a[1], a[2], a[3]);
+        let _ = (this, g, gate);
+        let mut calls: Vec<Vec<i64>> = Vec::new();
+{steps}
+        let want: String = calls
+            .iter()
+            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .collect::<Vec<_>>()
+            .join(";");
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+"""
+
+
+def _mix_expr(tok):
+    tok = tok.strip()
+    if tok in ('p0', 'walker'):
+        return 'walker'
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    return str(int(tok, 0))
+
+
+def generate_mix(spec, *, item, steps, glob=None, gate=None):
+    """`steps`: `call:ADDR:NARGS:ECX:ARGS`, `walk:A0:A1` (the walker's slot 0),
+    `walk4:OFF` (its slot 4, handed `**glob + 0x10` pointer's word + OFF),
+    each optionally prefixed `gated/` — run only when `[walker+gate] == 0`."""
+    name, va = parse(spec)
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    calls, code = [], []
+    for st in steps:
+        gated = st.startswith('gated/')
+        st = st.removeprefix('gated/')
+        kind, rest = st.split(':', 1)
+        if kind == 'call':
+            addr, nargs, ecx, args = rest.split(':', 3)
+            calls.append((int(addr, 16), int(nargs), ecx, args))
+            vec = ', '.join([_mix_expr(ecx)] + [_mix_expr(t) for t in args.split(',') if t.strip()])
+        elif kind == 'walk':
+            a0, a1 = rest.split(':')
+            vec = ', '.join(['walker', _mix_expr(a0), _mix_expr(a1)])
+        elif kind == 'walk4':
+            vec = f'walker, g + {int(rest, 0):#x}'
+        else:
+            raise ValueError(f'a step is call:, walk: or walk4:, not `{st}`')
+        push = f'calls.push(vec![{vec}]);'
+        code.append(('        if gate == 0 { ' + push + ' }') if gated else ('        ' + push))
+    script = MIX_SCRIPT.format(snake=sn, name=name, va=va, item=item, nsteps=len(steps),
+                               glob=', from the global cell' if glob else '',
+                               gate=f', the last gated on [walker+{gate:#x}] == 0' if gate is not None else '',
+                               calls=repr(calls), glob_cell=hex(glob) if glob else 'None',
+                               gate_off=hex(gate) if gate is not None else 'None')
+    doc = f'{len(steps)} step(s) in order, `ecx` and arguments held to the spec.'
+    test = MIX_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           steps='\n'.join(code))
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
     """`(script path, script text, test path, test text, mod line)`."""
     name, va = parse(spec)
@@ -481,10 +625,13 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix'))
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
+    ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
+    ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
+    ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
     ap.add_argument('--own', type=int, default=0, help='fwd: stack arguments the function itself takes')
     ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
@@ -502,6 +649,9 @@ def main(argv=None):
     try:
         if args.shape == 'walk':
             sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+        elif args.shape == 'mix':
+            sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
+                                                    glob=args.glob, gate=args.gate)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
                                                      own=args.own, ret=args.ret)

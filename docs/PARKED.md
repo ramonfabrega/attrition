@@ -4004,13 +4004,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot G — reserved
+## Parked by item 1921, 2026-10-13 — the sweep's thirty-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot G renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1922) **A hooked callee leaves `ecx` as the hook defines it; the original's
+`extraout_ECX` consumers read it.** `Tribes::walk_data@006efb20`,
+`Lands::walk_data@0067e700` and `Herds::walk_data@00741d50` each call the walker's
+slot 4, then hand `Array::walk_data@0047e230`/`@004786f0`/`@0048d610` the walker and
+whatever `ecx` the slot-4 callee left; a stub that does not touch `ecx` pins the
+harness's choice, not the original's. Name: a `Harness.stub` variant that sets `ecx`
+on return to a chosen word (the way a real callee leaves it), then
+`tools/sweep_gen.py mix` gains a `walk4:OFF:ecx` step. Names no score: the Loop's
+(sweep tooling, Loop 1890's sixth reach); 1921's journal has the shapes.
 
 ## Parked by the next landing, slot H — reserved
 
