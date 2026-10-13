@@ -1312,6 +1312,55 @@ mod tests {
     }
 
     #[test]
+    fn a_helicopter_owing_a_quarter_turn_or_less_steps_while_it_turns() {
+        // Item 1668: `Unit::move_step`'s `unit_flags & 0x20` arm. A
+        // helicopter facing east and told to go north owes 90°, less its
+        // frame's turn: inside the quarter it takes the whole step at once,
+        // aimed along a second, faster turn; any other type with the same
+        // numbers stands and turns, and so does a helicopter owing more.
+        let dest = Pos::new(0, -10_000);
+        let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
+        let fast = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Body);
+        let heli = move_step_as(
+            Pos::new(0, 0),
+            Angle::EAST,
+            dest,
+            25,
+            &SIEGE,
+            rate,
+            false,
+            false,
+            Some(fast),
+        );
+        assert_ne!(heli.pos, Pos::new(0, 0), "it moved");
+        let plain = move_step(
+            Pos::new(0, 0),
+            Angle::EAST,
+            dest,
+            25,
+            &SIEGE,
+            rate,
+            false,
+            false,
+        );
+        assert_eq!(plain.pos, Pos::new(0, 0), "a siege piece stands to turn");
+        assert_eq!(heli.facing, plain.facing, "the guy's own turn is the same");
+        // Owing past a quarter turn the arm is not taken.
+        let behind = move_step_as(
+            Pos::new(0, 0),
+            Angle::WEST,
+            Pos::new(10_000, 0),
+            25,
+            &SIEGE,
+            0x1000_0000,
+            false,
+            false,
+            Some(fast),
+        );
+        assert!(behind.turned_in_place.is_some());
+    }
+
+    #[test]
     fn a_siege_piece_turns_in_place_and_then_walks_where_it_points() {
         // A 10° type, stopped, facing east and told to go north, with the
         // destination well over two tiles away. Its rate from a standstill is

@@ -6832,6 +6832,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run721 (item 1625): 149 reads in its window, the replay past
     // the word 3395 (pinned at 148, it fails).
     ("run721_s_word_frame_is_widened_whole", 149),
+    // And run754 (item 1668): 111 reads in its window, the replay past the
+    // word 3843 (pinned at 110, it fails).
+    ("run754_s_word_frame_is_widened_whole", 111),
     // Great Sahara in the coverage lobby (item 1583): the nuke the silo
     // launches on 1983 flies over run702's ground; five reads of a corner
     // that is not known to be the original's single, in the flight to the
@@ -8805,9 +8808,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run721_s_word_frame_is_widened_whole"),
-        1647,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
+        Some("run754_s_word_frame_is_widened_whole"),
+        1668,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

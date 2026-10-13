@@ -1563,10 +1563,9 @@ pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-windo
 /// The window: block 3389 through 3645; the word 3395's own block is 3396.
 pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run721 walked from run651's start with the recorder on. It holds the
-/// word 3439 (item 1647), block 3440; the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run721's window as it stood while the word was inside it (items 1625
+/// to 1667); the word left it for run754's on item 1668.
+pub(crate) fn coverage_frame_3395_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1580,10 +1579,48 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// run754, item 1668: the lobby's blocks 3838..4094 at the long's detail —
+/// the word 3843's block 3844 with six before it and 250 after.
+pub(crate) const RUN754: &str = "gamelog-run754-eastindies-persian-alltech-window-3838-4095.txt";
+
+/// The window: block 3838 through 4094 (and a closing 4104).
+pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3838, 4095);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run754 walked from run651's start with the recorder on. It holds the
+/// word 3843 (item 1668), block 3844; the old words remain checked.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run754",
+        &[(RUN754, 3838)],
+        WIDENING_COVERAGE_FRAME_3843,
+        1,
+        &[3843, 3844],
+        true,
+    )
+}
+
+#[test]
+fn run754_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // The word 3843's block 3844: the original's `Guy::init_real` births a
+    // squad (`1/235`..`1/237`, dump alone) and the leader's `GENERAL`
+    // count (`num_units[54]`) reads 5 against ours' 4; `1/233`'s `form` is
+    // the first row, on 3843. Then 2460 keys over the diverged tail.
+    pin_eq!(w.firsts.len(), 2460, "run754 keys that part (item 1668)");
+}
+
 #[test]
 fn run721_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3395_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");

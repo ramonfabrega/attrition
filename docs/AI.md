@@ -18212,10 +18212,55 @@ the sim's default collision half; the original's `FILTER_NOT_ME` is taken as
 that. The 3589 `1/184` order parting and the 3614 `do_guard` retry are the
 next words. No new capture; runs 752–761 unused beyond 752–753.
 
-## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+## 181. A helicopter's step has its own arm, and the word moves to 3843 (2026-10-12, item 1668)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Word 3614, 30 versus 30 draws, index 6: ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (run721, block 3614).
+
+**Who.** The first part is `1/212` on 3614 (`order:kind` 2 against 12,
+`orders.len` 2 against 1). `1/212` is `TypeIndex` 311, a Transport
+Helicopter, on a `Guard` of `1/326`. On 3608 the guard post moves and
+`do_guard` adds an `AttackTo` and calls `do_move`: the dump's unit
+(`x_internal`/`y_internal`) steps 92 at once — (37368,42936) to
+(37455,42905) — and stands there, its figure turning, until 3614, when the
+rest of the leg is one short step to (37464,42840) and the order is done.
+Ours stood from 3608 to 3613 turning in place and stepped on 3614.
+
+**Cause.** `Unit::move_step@005faf30`'s turn test is
+`!(unit_flags & 0x20) || owed > 0x40000000`: a helicopter owing a quarter
+turn or less (after the frame's `turn_speed(0)`) skips both turn-in-place
+arms and the half step, `Guy::do_turn`s as usual, and aims the step along a
+second turn from the guy's new angle at `GuyData::turn_speed(guy, 1)` — the
+body's base, not divided by the average speed. This crate had no such arm
+(`movement::move_step`); `movement::move_step_as` takes `Some(mode-1 rate)`
+for a helicopter, `Sim::unit_step` passes it for `is_helicopter`. The
+dump's figure angle on 3607 (1653145600) put `1/212` just inside the
+quarter turn (owed 1070.4M after the turn against 1073.7M); ours' figure
+angle stood 53M ahead since 3597 (`angle:Facing` on `1/212`) — a
+helicopter's figure turns at the mode-1 rate when it is moved, and the
+standing offset goes with the arm.
+
+**Value diff and score.** `1/212`'s `order:kind`/`length`/`path` parting on
+3614 is gone and the run721 widening falls **326 → 186** keys; the first
+part is `1/219`'s birth `form` on 3632. The count and the sequence part
+together at **3843**, 23 versus 28 draws, index 5: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` —
+a birth. The word left run721's window, so **run754** (blocks 3838..4094)
+was captured (`docs/RUNS.md`); its widening
+`run754_s_word_frame_is_widened_whole` holds 2460 keys. On block 3844
+`1/235`, `1/236` and `1/237` (a squad, group 81, near (34584,38712)) exist in
+the dump alone, the leader's `num_units[54]` (`GENERAL`) reads 5 against
+ours' 4, and `1/233`'s `form` (ours −1) is the first row on 3843. run716's
+baseline 189 → 184; ground-height reads in run754's window 111.
+`a_helicopter_owing_a_quarter_turn_or_less_steps_while_it_turns`
+(`movement`) fails without the arm.
+
+**Not established.** Whether ours' pre-3607 figure offset is wholly the
+mode-1 turn (it moves with the arm; a rate other than `turn_speed(1)` was
+not tried). The helicopter's collision and landing arms past the step are
+unchanged. The 3843 birth's author (`Guy::init_real` from a production or
+a create) is the next word; no reading of it yet.
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
 
