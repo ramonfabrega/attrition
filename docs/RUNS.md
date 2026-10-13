@@ -15946,4 +15946,5 @@ SHA-256 `47ec2f13e1c494a89edf8061736842305afa6f41eec92181d557936e0ffc7d7f`.
 **What it holds**: `diff::coverage_pair::run732_s_word_frame_is_widened_whole` — **2,087** keys on item 1658's tree,
 171 standing on 3837; the first parting past it is `1/233`'s `form` on 3843. On the word's block 3844 the dump holds
 three Mechanized Infantry (`1/235`, `1/236`, `1/237`, uids 370..372) that this crate has not born. It is the coverage
-pair's `AI_WORDS` window (`coverage_pair_word_window`), and the coverage driver reads its block 3844.
+pair's `AI_WORDS` window (`coverage_pair_word_window`), and the coverage driver reads its block 3844. Item 1659: **1,205** keys once the Terra Cotta Army `1/2043` trains its squad on 3843 (its `recharging` 1 on 3843, 607
+on 3844, now compared on the wonder); it holds the next word, 3963 (block 3964), too, and the driver reads that block.

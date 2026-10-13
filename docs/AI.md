@@ -18323,7 +18323,77 @@ standing block is `1/204`'s `form` on 3391. run716 **189 → 184**:
 `1/203`'s position on 3387, its heading on 3388 and figure angle on
 3390. The ground guard reads 105 (pinned at 110).
 
-## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+## 182. The Terra Cotta Army's soldier (2026-10-12, item 1659)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3843, 23 versus 28 draws, index 5: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs three
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+(seeds `34dcc269`, `dd5ba8b4`, `78e23c83`), between the units' order
+draws and `inc_time` — the building pass. run732 widens it whole.
+
+**What was born.** `tools/gamelog/births.py` on run732, 3837..3846:
+block 3844 gains `1/235`..`1/237`, `TypeIndex` 104 (`MECHINFANTRY`),
+uids 370..372, at (34584, 38712), (34584, 38856), (34728, 38808), group
+81 — one squad of three (`Objects::init_unit` births `uber_size`), and
+nothing dies. No queue holds a 104 on any block 3837..3844, and no
+General stands near enough to copy one (`cast_create_decoy`). The
+building beside them is `1/2043`, `orig_type` 529, `TERRACOTTA`, at
+(34560, 37632).
+
+**The value diff.** `BuildData::recharging` (`+0x7a`) on `1/2043`:
+**1** on block 3843, **607** on 3844 (theirs); this crate carried no
+clock on the wonder and the harness compared the field nowhere —
+`golden`'s anti-air rows read it, the coverage pair's widenings did not.
+AI §177 had already read the clock as 449 on 3395 and 446 on 3398 and
+called it not due, which is the same clock 448 frames earlier. Leader
+1's `barracks_units` (`+0x9f8`) is 21 on 3843.
+
+**The reading.** `Build::process@0061edf0:384–416`, after the Persians'
+Market and under the same `is_active` gate: a building whose type is
+`0x211` itself counts `recharging` (a `short`) down one; below 1 it sets
+it to `TERRA_COTTA_FREE × 15` plus, `TERRA_COTTA_DELAY` being the
+file's 7, `barracks_units × 15 / 2` (any other delay, `barracks_units ×
+delay`) — 450 + 157 = 607 — then takes `SLINGERS`, or the type's vslot
+`+0x68` for a nation that cannot have it (the free-unit block's
+graft), runs it through `current_upgrade`, and while `control <
+pop_cap` (`+0x940`, `+0x7e4`; not `check_population`) calls
+`Build::train` and bumps `Game::terra_cotta_total`.
+`Build::activate@00623e20:132` zeroes `+0x7a` on every building, and
+`:1367–1371` starts a `is(0x211)` building at `TERRA_COTTA_FREE × 15`.
+`barracks_units` is `Leader::track_unit_type@006e0dd0`'s: the count of
+a type with an `attack` (`+0x1e8`) whose `where` (`+0x40`) is
+`BARRACKS`. Killer: had the squad been a queue's, a building would hold
+the 104 or the leader's `num_queued` would move; neither does.
+
+**Built.** `Sim::terra_cotta_soldier` and `Sim::barracks_units`
+(`crates/sim/src/nations.rs`) — the count derived from `num_units` over
+the predicate, since `Muster::by_group` files a group only for a
+by-group `PROGRESSION` — called beside `persian_market_caravan`; the
+start in `Sim::activate`; `TERRA_COTTA_FREE` and `TERRA_COTTA_DELAY` in
+`Tuning`. The harness parses `BUILDDATA`'s `recharging` and compares it
+on a Terra Cotta Army once both sides call it finished. Unit test
+`the_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out`.
+Mutations (`tools/mutate.py`, each exit 101): the tick's call dropped
+fails the walk, run721's and run732's widenings; the Barracks term
+dropped fails run732's (450 against 607); every armed type counted, not
+the Barracks', fails run732's.
+
+**Not established.** The Kremlin's write of `+0x7a` (`:1380`) and the
+field's other writers — a city's, a gatherer's bump, the clock on a
+wonder's site (run721's `1/2043` reads 1549 on 3389, before it
+finishes) — are not modelled; run732 holds thirteen of leader 1's
+buildings parted on `recharging` from its first block, which is why the
+comparison is the wonder's alone. `Game::terra_cotta_total` has no
+reader here. The nation arm (`tribe_can_type` false) is the free-unit
+block's graft and no capture holds it.
+
+**Score.** The word moves **3843 → 3963** (count and sequence), 18
+versus 32 draws, index 3: ours `Guy::set_anim+0x97a <
+Unit::do_move+0x11cf`, theirs seven `Guy::init_real+0x52`. Block 3964
+gains `1/246`..`1/252` in group 69 — three Mechanized Infantry, two
+`TypeIndex` 273, a 131 and a 251 — round (39672, 42264), beside the
+General `1/150`, whose order parts on **3865** (`ATTACK_TO` 12 against
+14 on top, `orders.len` 1 against 2, `spell_time` 0 against 1). run732
+**2,087 → 1,205** keys, nothing added, and still holds the new word
+(`coverage_pair_word_window` reads blocks 3844 and 3964; the coverage
+driver both). Every other widening holds its count.
