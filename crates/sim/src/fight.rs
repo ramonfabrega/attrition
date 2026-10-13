@@ -776,7 +776,17 @@ impl Sim {
         if e < 0x2aaa_aaaa || combat::flanking(e) <= 1 {
             return false;
         }
-        self.attack_dist(me, cand) > 0xc0
+        // The distance floor: `type +0x2c8 & 0x400` — `determine_roles`'s
+        // ranged bit, `+0x1fc max_range != 0` — takes the searcher's own
+        // reach, anything else the tile (`64a42c`; item 1711: the packet of
+        // run773 reads a Dragoon's role as 0x5040c with max_range 9, and
+        // `poor_target` answers 0 on a Scout 1162 away).
+        let floor = if self.profile(me).max_range != 0 {
+            self.max_range_of(me) * 0xc0
+        } else {
+            0xc0
+        };
+        self.attack_dist(me, cand) > floor
     }
 
     /// **`Object::valid_target@00648ba0`** (`docs/COMBAT.md` §12.1,

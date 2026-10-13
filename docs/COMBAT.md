@@ -5817,9 +5817,10 @@ accepts every chase the original refuses.
 (`has_objmask(0x80000000)` and then the reach floor), and this crate
 has no such guy flag~~ **built by item 650, §61.3**: the flag marks a
 plane, and the arm refuses one to a searcher without `ANTI_AIR` or out
-of its reach; `role & 0x400` is unloaded, this crate's
+of its reach; ~~`role & 0x400` is unloaded, this crate's
 `combat::role` word being its own synthesis, so the floor is always the
-tile.
+tile~~ **built by item 1711** (`docs/GOLDEN.md` §64): the bit is `+0x1fc
+max_range != 0`, and a ranged searcher's floor is `max_range * 0xc0`.
 
 ### 37.4 `change_target` is one decision written down the squad in place
 

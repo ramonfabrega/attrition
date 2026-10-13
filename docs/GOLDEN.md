@@ -10739,7 +10739,53 @@ fifth, on 942, kills the Scout and its row is the `death:extra` family); M5 and 
 what makes the original's idle Dragoon take an `ATTACK` on 962, and whether
 it is the same event as the pool's list losing a member there; the two-order snap.
 
-## 64. Reserved for item 1711 (chapter fifty-three's word 962)
+## 64. Chapter fifty-three's word 962 — `poor_target`'s floor is the searcher's own reach for a ranged type (item 1711)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**The booking.** Frame 962 of run772, 5 versus 6 draws at index 0: the
+original's idle Dragoon `0/31` (type 189, added on 942) takes an `ATTACK` on the
+enemy Scout `1/6` (type 69, added on 944, walking away on an explore leg, 1162
+units off) and rolls `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`; this crate's
+Dragoon finds nothing.
+
+**How it was found.** Probes on the walk (reverted): the Dragoon's think does
+run on sim frame 961 (`phase & 31 == 0`, idle 4), `find_melee_target(-1)`
+radius 2304 reaches the Scout, and `valid_target`, the flags filter and
+`check_target_reaches` pass; **`poor_target(Dragoon, Scout)` answers true**
+(Scout order 3, speeds 34 against 30, `e = 0xcbdc0000`, flanking 2,
+`attack_dist` 1162 > the 0xc0 floor). Forcing it false for the pair moves the
+word to 1004 with the Dragoon's whole frame-962 row agreeing — the only
+cause. The original's four conjuncts were read against the listing
+(`64a2f0`–`64a470`) and agree with this crate's, so the packet settled the
+rest: **run773** (`RON_STATE_FRAME=961`) and `step4.py` entering
+`Object::poor_target@0064a270` on the Dragoon (`--args 6,1,0`) returns **0**;
+`get_speed` on both units returns 34 and 30, as here. The function entered
+`UnitData::max_range` — the **floor's second arm** (`64a42c`: `test
+[ptype+0x2c8], 0x400`) — and the packet's type record reads the Dragoon's role
+`0x5040c`, `+0x1fc` 9, `+0x2b4` `0x201201` (no `0x400`: the Dragoon is not a
+cavalry archer in `unit_flags`' sense, it is a plain ranged type that fires on
+the move).
+
+**The rule.** `role & 0x400` is `determine_roles`'s ranged bit (`+0x1fc
+max_range != 0`); a ranged searcher's floor is `max_range() * 0xc0`, every other
+type's the tile. The old SEAM (COMBAT §37.3, "`role & 0x400` is unloaded, the
+floor is always the tile") is closed: the floor reads the type's `max_range`
+column. **Built**: `Sim::poor_target`'s tail. Mutation: restoring the 0xc0
+floor returns the word to 962 (the walk holds it).
+
+**The word is now 1004** (`GOLDEN_WORD_CHAPTER_FIFTY_THREE`, window
+(605, 1009), 23 rows and 15 pool rows): the Dragoon `0/31`'s first round —
+`ammo[0]` the dump holds alone on 1005, `1/11` `hits:damage` 37 and
+`hits_left` 83 against 120 on 1006, and `0/12`'s `g.cur_anim`/`g.end_time` on
+1007. Not built here: the next item's. The Dragoon's `g.des_turret0[0]` on 963
+and `g.turret0[0]` on 965 (a few thousandths of a turn) are standing rows now,
+and the pool's slot 1 list on 962 still keeps the dead `0/6` where the original
+drops it (parked).
+
+**Held out.** The battery (`battery_measure`) reads **576 / 6566 / 2974** on this
+tip, unmoved; the whole rondata suite moved no other pin (poor_target's new floor
+is reached by no other capture's frame to the word).
+
+**Not established.** Whether the original's `max_range()` in the floor is the
+searcher's modified range (this crate uses `max_range_of`, the techs included);
+whether a cavalry archer (`unit_flags & 0x400`, `+0x1fc` zero) takes the tile
+floor — read from `determine_roles` only, no capture holds one in this arm.
