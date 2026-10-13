@@ -5474,7 +5474,8 @@ mod tests {
             let m = s.current_move(u).expect("a move order");
             let gm = m.group.expect("a group order");
             assert_eq!(gm.leader, leader, "every member names one leader");
-            assert_eq!(gm.id, group_move_id(slot as i32, s.frame, 0));
+            // who 1's pool starts at 64 (item 1863).
+            assert_eq!(gm.id, group_move_id(64 + slot as i32, s.frame, 0));
             assert!(!gm.in_group, "`GroupMoveOrder::clear` leaves it 0");
         }
         assert_eq!(
