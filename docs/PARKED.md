@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2031) **`unitat.py` has no "when did ours place this building" mode**
+(1999's Loop line, filed at its merge): the fastest step of 1999 was
+`RON_DEBUG_BUILDS` over the gap to date a building whose row had already
+parted on a window's first block. Candidate: a `--building <who/id>` mode
+(or a `births.py`-like line) printing our placement frame and tile beside
+the dump's, so a parted building row dates itself in one command.
+
 (2025) **The census counts a callee a sweep script hooks as backed** (parked
 2012, filed at 1998's merge): `tools/census.py`'s `sweep_backed` reads every
 address and unique `Class::method` in a sweep test's chunk, doc comment
@@ -4183,6 +4190,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot Z renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
