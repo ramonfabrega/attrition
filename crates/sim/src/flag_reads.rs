@@ -63,6 +63,18 @@ pub const fn wall_data_hits(arg: i32, at_0x20: i32, at_0x54: i32) -> i32 {
 pub const TARGET_ORDER_BASE: i32 = 0x18;
 /// `AirOrder::get_air_order@0047ff70`: `this - 0x20`.
 pub const AIR_ORDER_BASE: i32 = 0x20;
+/// `StrafeOrder::get_air_order@0047ff60`: `this - 0x28`.
+pub const STRAFE_AIR_ORDER_BASE: i32 = 0x28;
+/// `StrafeOrder::get_attack_order@0047ff50`: `this - 0x4c`.
+pub const STRAFE_ATTACK_ORDER_BASE: i32 = 0x4c;
+/// `FormOrder::get_form_order@00482dc0`: `this - 0x5c`.
+pub const FORM_ORDER_BASE: i32 = 0x5c;
+/// `GuardOrder::get_guard_order@00486920`: `this - 0x30`.
+pub const GUARD_ORDER_BASE: i32 = 0x30;
+/// `FollowOrder::get_follow_order@00486c60`: `this - 0x24`.
+pub const FOLLOW_ORDER_BASE: i32 = 0x24;
+/// `PatrolOrder::get_patrol_order@004843e0`: `this - 0x44`.
+pub const PATROL_ORDER_BASE: i32 = 0x44;
 /// `ObjectData::get_captain@00472400`: the signed short at `+0xa` (`o`),
 /// sign-extended. For a building it is the building's own number, which
 /// `fight`'s attacker side reads.

@@ -878,4 +878,17 @@ zero argument), `Good::inc_time@0066d850` and `Supply::deplete@0073b5d0` (no
 write), `TargetOrder::get_target_order@0047ff40` (`this - 0x18`) and
 `AirOrder::get_air_order@0047ff70` (`this - 0x20`). Port functions added to
 `flag_reads` for the readers; only `num_preq` has a live consumer.
+
+**Item 1736, the sweep's fourteenth batch** (2026-10-13): **simulation backed 188
+of 3,611 (5.2 %)** — 31 by a coverage section, 157 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests (no subagents; `tools/sweep_gen.py`'s
+`const` shape for four, the 1735 `this - K` shape for six), **all ten agree on
+every row**, no parting: constants `Window::on_focus@0041dbe0` (1),
+`ItemOut::draw_overlays@00677590` (1), `Setup::init_wild_life@005aac70` (0),
+`CityData::pop_growth@00738180` (0); enclosing-order casts `StrafeOrder::get_air_order@0047ff60`
+(`this - 0x28`), `StrafeOrder::get_attack_order@0047ff50` (`- 0x4c`),
+`FormOrder::get_form_order@00482dc0` (`- 0x5c`), `GuardOrder::get_guard_order@00486920`
+(`- 0x30`), `FollowOrder::get_follow_order@00486c60` (`- 0x24`),
+`PatrolOrder::get_patrol_order@004843e0` (`- 0x44`); offsets are the emulated
+original's, new `flag_reads` constants, no live port consumer.
 `docs/journal/2026-10-13-item-1735.md`.
