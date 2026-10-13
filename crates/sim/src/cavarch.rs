@@ -187,7 +187,10 @@ impl crate::Sim {
                     if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
                         eprintln!("P1829 f{frame} roll {roll} reentry {reentry}");
                     }
-                    !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 && !reentry
+                    !self.profile(Obj::Unit(t)).combat_role
+                        && roll % 5 != 0
+                        && !reentry
+                        && std::env::var("RON_P1829M").is_err()
                 }
             };
             if std::env::var("RON_P1829").is_ok() && self.units[u].owner == 0 && self.units[u].index == 6 {
