@@ -3945,6 +3945,11 @@ script over `source_of`/`sweep_backed` — the third batch to write one;
 a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
 the same script and said so too. One reach.
 
+(1706) **The sweep's generator is a scratch script** (1704's Loop
+line): one template → ten emulator scripts and ten tests was the second
+batch to write it; a `tools/sweep_gen.py` for index-range predicates
+makes the rest a one-liner. A sibling of 1703; with it. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

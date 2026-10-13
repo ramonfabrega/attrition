@@ -21,18 +21,18 @@ tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
 - **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
   2026-10-12): `att-1700` (parks 1675–1678, runs 762–765, AI §185),
-  `att-1697` (parks 1679–1682, runs 766–769, AI §184), `att-1704` (parks 1683–1686),
+  `att-1697` (parks 1679–1682, runs 766–769, AI §184), `att-1705` (parks 1683–1686),
   `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
-  1705, run 774, AI §186. Landed: 1630, 1691, 1694, 1701 (census 108), 1639
+  1707, run 774, AI §186. Landed: 1630, 1691, 1694, 1701, 1704 (census 118), 1639
   (Sahara 2323 → 2404), 1673 (coverage 3963 → 3982). **The disk**: 248 GiB free.
-- **Fable backlog: 22 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703).
+- **Fable backlog: 23 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w3982 of 4,730
-Census: simulation backed 108 of 3611
+Census: simulation backed 118 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2404 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1700 the headline's word, 1697, 1704 and 1497 the
+roster is Ramon's**: 1700 the headline's word, 1697, 1705 and 1497 the
 other three lanes — lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -67,12 +67,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     that finishes a frame earlier in the original; `1/2031` is unread.
     AI §184.
 
-1704. **The sweep's seventh batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 108 of 3611): 1701's shape,
-    merged by SHA; past the sixty swept, 1701's pointer first — the
-    `TypeData` range predicates (`is_age_type`, `is_gather_type` and kin), `is_entrenched` and
-    `assault_benefit`, none with a port function yet, so each names the
-    reader it drives. 1630's `get_tregion` parting stands. `--kind sweep`.
+1705. **The sweep's eighth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 118 of 3611): 1704's shape,
+    merged by SHA; its pointer first — `TypeData::is_wonder_type`,
+    `is_gaia_type`, `is_item_type`, `is_good_type` (one template, 1704's
+    generator, parked 1706) — then past the seventy swept. 1630's
+    `get_tregion` parting stands. `--kind sweep`.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and
