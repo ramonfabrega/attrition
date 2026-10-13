@@ -24,8 +24,12 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 3834,
-    sequence: 3834,
+    // Item 2049: 3834 -> 3835 (ours 46 draws, theirs 40, index 0). The
+    // extra idle roll on 3834 was the raiding `1/113`'s: `think`'s
+    // off-phase `near_o` arm hands it the ceiling city `0/2000` on 3647
+    // (`docs/AI.md` section 205).
+    count: 3835,
+    sequence: 3835,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -339,5 +343,8 @@ fn run809_s_word_frame_is_widened_whole() {
     // (957 before it), 160 on the first block (the leaders' counts); the
     // first of `1/113` is now `orders.len` on 3648, theirs 1 (`docs/AI.md`
     // section 203.5).
-    pin_eq!(w.firsts.len(), 357, "run809 baseline");
+    // Item 2049: 357 -> 353 — `1/113`'s four first rows (`orders.len` on
+    // 3648, `pos` on 3649, `heading` on 3833, `angle` on 3834) leave the
+    // window whole; the word 3834's block is 3835 (section 205).
+    pin_eq!(w.firsts.len(), 353, "run809 baseline");
 }
