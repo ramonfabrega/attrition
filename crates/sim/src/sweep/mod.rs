@@ -490,6 +490,8 @@ mod unit_data_get_worker_stance;
 mod unit_data_has_stance_type;
 mod unit_data_is_caravan;
 mod unit_data_is_casting;
+mod unit_data_is_fleeing;
+mod unit_data_is_idle;
 mod unit_data_is_moving;
 mod unit_data_is_packing;
 mod unit_data_is_rare_collector;
