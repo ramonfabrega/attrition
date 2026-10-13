@@ -692,6 +692,17 @@ impl Sim {
             self.buildings[b].ever_seen_completed = ec;
         }
         let now = self.buildings[b].ever_seen;
+        if std::env::var("RON_PROBE_1988").is_ok() {
+            let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+            let corner = self.tile_corner(ty, self.buildings[b].pos);
+            let mut cells = Vec::new();
+            for v in 0..ys {
+                for u in 0..xs {
+                    cells.push(self.world.seen((corner.x + u) >> 1, (corner.y + v) >> 1).unwrap_or(0));
+                }
+            }
+            eprintln!("P1988 f{} b{} who{} started{} old{} now{} corner{:?} {}x{} cells{:?}", self.frame, b, who, started, old, now, (corner.x, corner.y), xs, ys, cells);
+        }
         if old == now && !force {
             return;
         }
