@@ -15942,3 +15942,24 @@ SHA-256 `2857f18ca4cb99a43732341c876bf496c5a9d685a3e95483b249c047877a8d32`.
 **What it holds**: `diff::coverage_pair::run754_s_word_frame_is_widened_whole` — 2,460 keys on item 1668's tree; the
 coverage pair's `AI_WORDS` window (`coverage_pair_word_window`), with 111 inexact height reads (`GROUND_INEXACT`).
 run721's window stays in the coverage driver as `coverage_frame_3395_window`. `docs/AI.md` §181.
+
+## run762 — the coverage pair: East Indies, Persians, All Technologies, blocks 4420..4676 at the long's detail (2026-10-13, item 1700, `att-1700`)
+
+**Disk gap**: item 1700 moved the word to 4425 (23 versus 22 draws, index 9: ours `Guy::init_real+0x52`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`), past run754's last block 4094. run754's recipe with the window moved,
+through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4685 --timeout 3600 --log-window 4420
+4677 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, the pool (lane 2, `~/wine-ron-2`). First take: `success: true`,
+`settings_restored: true`, launched 00:12:17, exited 00:41:42, 4,686 frames; output
+`~/ron-data/lab-captures/2026-10-13-run762`. Blocks 4420..4676 (257 `BEGIN FRAME`s) and a closing 4686.
+`rngcmp.py rontrace-run652.log rontrace-run762.log`: **4,686 frames in common, 0 differing**. No wait for the lane.
+
+Archive `gamelog-run762-eastindies-persian-alltech-window-4420-4677.txt`, 677,422,821 bytes,
+SHA-256 `1bbfafb02b5d747f0432d9a0cabebc7eda7e3853a3ced70ee28f95d4e92e1ea8`.
+
+Archive `rontrace-run762.log`, 260,739,200 bytes,
+SHA-256 `5c6e2fc759b615be6324d9120233beeeef18532ff2b96c43a5cbd35cf0b1ab65`.
+
+**What it holds**: `diff::coverage_pair::run762_s_word_frame_is_widened_whole` — 2,320 keys on item 1700's tree, 456
+inexact height reads (`GROUND_INEXACT`); the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`). run754's
+window stays in the coverage driver as `coverage_frame_3963_window`. `docs/AI.md` §185.

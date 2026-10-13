@@ -2050,6 +2050,34 @@ mod tests {
         );
     }
 
+    /// **A city a marked cell lies within four cells of** (`city_flags &
+    /// 0x1000`, `compute_reg_territory@006b0bb0:612`) wants its temple ten
+    /// times more, twice while `no_heal` (`create_buildings:328`).
+    #[test]
+    fn a_temple_near_a_marked_border_cell_is_worth_ten_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        sim.ai[0].wonder_mod = 1;
+        let plain = value(&mut sim, 0, c, t.temple).expect("a temple is listed");
+        sim.ai[0].city_ai[c].near_border = true;
+        let near = value(&mut sim, 0, c, t.temple).expect("still listed");
+        assert!(
+            (near.val - plain.val * 10).abs() <= 10,
+            "{} / {}",
+            near.val,
+            plain.val
+        );
+        sim.cities[c].no_heal = true;
+        let hurt = value(&mut sim, 0, c, t.temple).expect("still listed");
+        assert!(
+            (hurt.val - plain.val * 2).abs() <= 10,
+            "{} / {}",
+            hurt.val,
+            plain.val
+        );
+    }
+
     #[test]
     fn the_gather_multiplier_saturates_at_one() {
         // `cmpl %esi, -0x14(%ebp); cmovll` at 0x6c2762 is a minimum against

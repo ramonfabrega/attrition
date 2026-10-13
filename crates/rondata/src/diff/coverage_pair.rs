@@ -1600,11 +1600,9 @@ pub(crate) const RUN754: &str = "gamelog-run754-eastindies-persian-alltech-windo
 /// The window: block 3838 through 4094 (and a closing 4104).
 pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3838, 4095);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run754 walked from run651's start with the recorder on. It holds the
-/// word 3963 (item 1669), block 3964, inside the window item 1668 took for
-/// 3843 (block 3844); the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run754's window as it stood while the word was inside it (items 1668
+/// to 1673); the word left it for run762's on item 1700.
+pub(crate) fn coverage_frame_3963_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1618,10 +1616,48 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// run762, item 1700: the lobby's blocks 4420..4676 at the long's detail —
+/// the word 4425's block 4426 with six before it and 250 after.
+pub(crate) const RUN762: &str = "gamelog-run762-eastindies-persian-alltech-window-4420-4677.txt";
+
+/// The window: block 4420 through 4676 (and a closing 4686).
+pub(crate) const WIDENING_COVERAGE_FRAME_4425: (i64, i64) = (4420, 4677);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run762 walked from run651's start with the recorder on. It holds the
+/// word 4425 (item 1700), block 4426; run754's window stays checked.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run762",
+        &[(RUN762, 4420)],
+        WIDENING_COVERAGE_FRAME_4425,
+        1,
+        &[4425, 4426],
+        true,
+    )
+}
+
+#[test]
+fn run762_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // The word 4425 (block 4426): the original's `1/2010` queues a second
+    // `1/245` where ours has already produced it (`num_queued[245]` 1
+    // against 0, `num_units[245]` 13 against 14); 2320 keys over the
+    // window, most of them the first block's standing rows.
+    pin_eq!(w.firsts.len(), 2320, "run762 keys that part (item 1700)");
+}
+
 #[test]
 fn run754_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3963_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");

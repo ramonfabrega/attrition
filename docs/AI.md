@@ -18371,7 +18371,37 @@ doubled rate; the full suite is the check on them.
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 185. Reserved for item 1700 (the coverage pair's word 3982)
+## 185. A marked border cell near a city scales its temple and tower, and the word moves to 4425 (2026-10-13, item 1700)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 3982, 23 versus 25 draws, index 2: ours `Leader::make_stuff+0x221`,
+theirs `Leader::produce_building+0x1805` (run754, block 3983).
+
+**Value diff.** On 3982 the Persian leader's make list parts: the original's head is
+`TypeIndex` 437 (TEMPLE), `val` 2,647,058, `escrow` 1, `cat` 8, city 5, ours' is the
+Tikal (532, 679,748), so ours lacks one row at the front (`MAKE[0..3,8]`'s `t`, `val`,
+`escrow`, `cat`, `city`). `create_buildings` listed the temple for the same city at 264,705
+(`RON_PROBE` print of the `building_value` result and `check_income`'s 256): exactly
+ten times less, down to the digits.
+
+**Cause.** `create_buildings@006c1be0:328` (the temple) and `:847` (tower and fort) read
+`city_flags & 0x1000`: ×2, or ×10 when `city_flags & 2` (`no_heal`) is clear. The
+flag is set by `compute_reg_territory@006b0bb0:612` on the winning city of a
+bordering cell (the same write as `bordering`) when the cell lies within Manhattan
+distance four of the city's cell; nothing in the pass clears it. The crate read it as 0
+(§167's "not modelled"). Built: `CityAi::near_border`, set in
+`Sim::mark_bordering` (`border_pass.rs`), read in `building_value`'s temple and tower
+arms (`ai_build.rs`). `a_temple_near_a_marked_border_cell_is_worth_ten_times` fails
+without it.
+
+**Score.** The word moves **3982 -> 4425** (count and sequence), 23 versus 22 draws,
+index 9: ours `Guy::init_real+0x52` (a birth), theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. run754's keys 409 -> 204. The word left run754's window (last block
+4094), so run762 (blocks 4420..4676, 2320 keys, 456 inexact height reads) is the
+window; run754's stays in the coverage driver. On 4426 the original's `1/2010` queues
+a second `1/245` where ours has already produced it (`num_queued[245]` 1 against 0,
+`num_units[245]` 13 against 14).
+
+**Not established.** The tower arm's `city_flags & 8` halving still reads as always
+halving (ours has `ever_attacked`, unwired there). The flag's clearing (none found in
+`compute_reg_territory`; other writers not grepped). No capture holds the tower arm's
+`0x1000` term; reading-only. The temple term is diff-backed by the make list on 3982.
