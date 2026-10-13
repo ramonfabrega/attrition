@@ -23,17 +23,17 @@ holds: four lanes on Sonnet 5.5 at `--effort medium`**, kill rules standing.*
   `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **Lanes live**: `att-1737`, `att-1738`, `att-1740`, `att-1760`; 1 of 20 landed
-  (1736, census 178 → 188). Next 1762, run 785, AI §193, GOLDEN §66. **The disk**: 242 GiB free.
-- **Fable backlog: 10 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761).
+- **Lanes live**: `att-1738`, `att-1740`, `att-1744`, `att-1766`; 3 of 20 landed
+  (1736, 1737 word 11 → 1354, 1760; census 198). Next 1776, run 785, AI §194, GOLDEN §66. **The disk**: 242 GiB free.
+- **Fable backlog: 11 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w11 of 5,056
-Census: simulation backed 188 of 3611
+Successor pair: EastIndiesMongolAllTech w1354 of 5,056
+Census: simulation backed 198 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3182 of 4,340
 Golden: ch53 w1004 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,17 +46,18 @@ clear; stop at twenty landings from this commit, handoff written, `ccc clear ste
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1737 the headline's word, 1738, 1760 and 1740 the other three lanes —
+1744 the headline's word, 1738, 1766 and 1740 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1737. **The successor pair's word: frame 11, 556 versus 629 draws**, index
-    3: ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`;
-    inside run776 (block 12), `run776_s_word_frame_is_widened_whole` (128
-    keys). 1728's value diff: leader 1's `MAKE[1..3]` order; frame 0 agrees,
-    and the leader economy parts on 3 (§129's Oil Well shape). East Indies,
-    Mongols, `DIFFICULTY 3`, All Technologies (run774, run775). AI §191.
+1744. **The successor pair's word: frame 1354, 5 versus 7 draws**, index
+    1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `Guy::init_real+0x52` (a figure born in theirs); past run776's last
+    block (33), so unwidened: the item takes a window capture around 1354
+    and its widening (`MONGOL_PAIR_WORD` names 1744 until then). 1737 moved
+    11 → 1354 with the Mongol food term of `calc_gather` (435 against 160
+    from frame 1). East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §193.
 
 1738. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
     ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
@@ -66,9 +67,9 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     since 2782 (`1/2018` `level` 2, `bordering` 3); dropping `base`'s ×3
     reached 3767 as a probe, not a build. AI §192.
 
-1760. **The sweep's fifteenth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 188 of 3611): 1736's shape,
-    merged by SHA; past the 140 swept, shortest decompile first; an
+1766. **The sweep's sixteenth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 198 of 3611): 1760's shape,
+    merged by SHA; past the 150 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.

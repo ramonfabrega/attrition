@@ -3816,7 +3816,14 @@ line): the generated `TYPE = 0x10010000` overlaps `OBJ`'s 0x20000 map and
 the script dies with `UC_ERR_MAP`; 1736 moved it to `0x10100000` by hand
 in four scripts. And the generator has no `this - K` shape, which four
 lanes have hand-copied. Candidate: fix the `TYPE` base and add the
-shape, with a test made to fail first. One reach.
+shape, with a test made to fail first. Two reaches: 1760 needed a
+"global cell" / "global address" shape for the `get_scary_*` family, the
+second lane in a row to.
+
+(1767) **A pair's word is a literal `repin.py` cannot move** (1737's
+Loop line): `Pair`'s count and sequence are literals in the const, so a
+re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
+`Pair` shape. One reach.
 
 ## Loop, filed 2026-10-13 — the twenty-ninth pass's
 
@@ -4008,9 +4015,3 @@ and 1062–1064, past the word 962; both mutations exit 0. Backed once
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
-
-(1744) **The successor pair's word 1354, unwidened** (1737): 5 draws ours
-against 7, index 1, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-`Guy::init_real+0x52` (a figure born in theirs); past run776's last block
-(33). The next item takes a window capture around 1354 and the widening
-(`MONGOL_PAIR_WORD`'s row names this item until then).
