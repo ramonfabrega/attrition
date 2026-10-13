@@ -4237,13 +4237,25 @@ test: the first goes on to ask slot `+0x60` of `0x1a4` on either arm, the second
 2021's `vcall --base ADDR` with a field arm would not have taken them; `--base` as a mode column on `mix` (the
 inline arm's steps, the overridden arm one `slot:OFF:NARGS` call) would take these two and the six 2021 names.
 
-## Parked by the next landing, slot AB — reserved
+## Parked by item 2044, 2026-10-13 — the sweep's forty-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2045) **`sweep_gen.py obj` cannot bound an argument, nor name a module** (Loop; names no score). Item 2044 took
+three of its ten by `obj` with windows, and two needed a hand line each. `CollBlock::get` (0x681e30) indexes its
+bit block by the C remainder `x % 16`, so a negative argument reads before `this+0xc`, outside the window: one
+line of the generated script keeps a negative argument only as a multiple of 16. And the two
+`WorldData::restrict`s (0x6b53a0 on Coord, 0x6b50a0 on WCoord) snake to one module name: each pair was generated,
+then renamed by hand (`_coord`, `_wcoord`). Candidate: `--argrange IDX:LO:HI` beside `--argset`, and `--name
+SNAKE`; each with a test made to fail first.
+
+(2046) **The global-cell world shape is `obj` with windows, but for the cell array behind the record** (Loop,
+parked 1994's next reach; names no score). `WorldData::restrict@006b50a0` — the world record through the cell
+`0xc06188` and two WCoord pointer arguments, 1994's `cell --ptrargs` — landed in 2044 by `obj --cell-win
+0xc06188:8 --ptrarg 0:4 --ptrarg 1:4`: that option already exists. What the generator cannot lay is the cell
+array the record's `+0x134` names (`0x1c`-byte cells, `width` at `+0`): `WorldData::is_flat` (0x6b3120) and
+`Region::release` (0x680560) were by hand for it, and `Armies::find_aggressive_army` (0x6f2e10, with 2039's
+per-player table besides) waits on it. It is 2003's second-window token (1972) for a cell's record rather than
+`this`: `--cell-win VA:SIZE --via OFF:SIZE`, the pointer at the record's `OFF` naming SIZE random bytes, with the
+coordinates drawn inside a pinned width.
 
 ## Parked by the next landing, slot AC — reserved
 
