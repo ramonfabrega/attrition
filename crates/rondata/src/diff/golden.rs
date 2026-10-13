@@ -7738,18 +7738,6 @@ impl PoolWidening {
             ] {
                 row(k.into(), ov.to_string(), tv.to_string());
             }
-            if std::env::var("RON_P1776").is_ok() && (990..1000).contains(&n) {
-                eprintln!(
-                    "P1776 f{n} slot {slot} ours list {ol:?} off {:?} curr {} ang {:?} form_num {} | theirs num {} members {} form_num {}",
-                    o.off,
-                    o.curr.len(),
-                    o.angles,
-                    o.form_num,
-                    t.num,
-                    t.members.len(),
-                    t.form_num
-                );
-            }
             let slots = (o.form_num.max(0) as usize).max(t.form_num.max(0) as usize);
             for i in 0..slots {
                 let tm = t.members.get(i);
