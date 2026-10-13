@@ -895,8 +895,8 @@ impl TechTree {
     /// tech.
     pub fn num_preq(&self, t: TypeId) -> usize {
         match self.kind(t) {
-            Kind::Unit(_) | Kind::Good => 2,
-            _ => 3,
+            Kind::Unit(_) | Kind::Good => crate::flag_reads::NUM_PREQ as usize,
+            _ => crate::flag_reads::BUILD_NUM_PREQ as usize,
         }
     }
 
