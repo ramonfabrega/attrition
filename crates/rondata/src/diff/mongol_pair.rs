@@ -28,8 +28,13 @@ pub(crate) const MONGOL: Pair = Pair {
     // extra idle roll on 3834 was the raiding `1/113`'s: `think`'s
     // off-phase `near_o` arm hands it the ceiling city `0/2000` on 3647
     // (`docs/AI.md` section 205).
-    count: 3835,
-    sequence: 3835,
+    // Item 2077: 3835 -> 4238 (ours 158 draws, theirs 159, index 145).
+    // `1/24` re-inited a transport on 3835 that the original holds a
+    // frame: its captain `1/23` had taken its own transport cast on its
+    // step, and `do_cast`'s member check hands the clock back
+    // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
+    count: 4238,
+    sequence: 4238,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -347,5 +352,10 @@ fn run809_s_word_frame_is_widened_whole() {
     // 3648, `pos` on 3649, `heading` on 3833, `angle` on 3834) leave the
     // window whole; nine of `1/167` open on 3851, past the new word 3835
     // (section 205).
-    pin_eq!(w.firsts.len(), 353, "run809 baseline");
+    // Item 2077: 353 -> 180 — every row from block 3836 on leaves but the
+    // four freighters' `form` (3836, 3837, 3868, 3882): the squads
+    // `1/23`..`1/25` and `1/34`..`1/36` board `1/230` and `1/229` on the
+    // original's frames, the scout `1/101`'s goal and `1/167`'s nine with
+    // them (section 207).
+    pin_eq!(w.firsts.len(), 180, "run809 baseline");
 }
