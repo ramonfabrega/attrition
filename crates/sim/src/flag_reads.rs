@@ -63,6 +63,18 @@ pub const fn wall_data_hits(arg: i32, at_0x20: i32, at_0x54: i32) -> i32 {
 pub const TARGET_ORDER_BASE: i32 = 0x18;
 /// `AirOrder::get_air_order@0047ff70`: `this - 0x20`.
 pub const AIR_ORDER_BASE: i32 = 0x20;
+/// `StrafeOrder::get_air_order@0047ff60`: `this - 0x28`.
+pub const STRAFE_AIR_ORDER_BASE: i32 = 0x28;
+/// `StrafeOrder::get_attack_order@0047ff50`: `this - 0x4c`.
+pub const STRAFE_ATTACK_ORDER_BASE: i32 = 0x4c;
+/// `FormOrder::get_form_order@00482dc0`: `this - 0x5c`.
+pub const FORM_ORDER_BASE: i32 = 0x5c;
+/// `GuardOrder::get_guard_order@00486920`: `this - 0x30`.
+pub const GUARD_ORDER_BASE: i32 = 0x30;
+/// `FollowOrder::get_follow_order@00486c60`: `this - 0x24`.
+pub const FOLLOW_ORDER_BASE: i32 = 0x24;
+/// `PatrolOrder::get_patrol_order@004843e0`: `this - 0x44`.
+pub const PATROL_ORDER_BASE: i32 = 0x44;
 /// `ObjectData::get_captain@00472400`: the signed short at `+0xa` (`o`),
 /// sign-extended. For a building it is the building's own number, which
 /// `fight`'s attacker side reads.
@@ -75,3 +87,124 @@ pub const fn tcoord_less(a: i32, b: i32) -> bool {
 }
 /// `UnitData::supplies_left@00609a20`: always 1.
 pub const SUPPLIES_LEFT: i64 = 1;
+/// `GameAccessConst::get_scary_fog@005833b0`: the address of the global `fog`.
+pub const FOG_ADDR: u32 = 0x00e8_a790;
+/// `GameAccessConst::get_scary_cliffs@00583370`: the address of the global `cliffs`.
+pub const CLIFFS_ADDR: u32 = 0x00e8_8eb0;
+/// `GameAccessConst::get_scary_doobers@00583420`: the address of the global `doobers`.
+pub const DOOBERS_ADDR: u32 = 0x00ea_fda0;
+/// The getters that return a global cell's word as it stands:
+/// `GameAccessConst::get_scary_camera@005833a0`, `get_scary_console@005833c0`,
+/// `get_scary_terrain@00583400`, `get_scary_scene@00583470`,
+/// `Signposts::get_num@00897bc0`, `cur_x@00897a60`, `cur_y@00897a50`.
+pub const fn global_cell(word: i32) -> i32 {
+    word
+}
+
+/// The getters that return a global cell's word are [`global_cell`] too:
+/// `GameAccessConst::get_scary_iface_main@00583390` (`0x00e37b9c`),
+/// `get_scary_message_win@00583480` (`0x00c06208`), `get_scary_iface_current@005833d0`
+/// (`0x00e39964`), `get_scary_graphic_pieces@00583490` (`0x00c06214`) and
+/// `get_scary_scenario_editor@00583380` (`0x00e7f8dc`) (item 1766).
+///
+/// `GameAccessConst::get_scary_console_who@005834a0`: the console player's
+/// record is the pointer in the cell `0x00c06210`; `who` is its word at `+0x298`.
+/// `rec` is that record as words.
+pub fn console_who(rec: &[i32]) -> i32 {
+    rec[0x298 / 4]
+}
+/// `GameAccessConst::get_scary_console_leader@005833e0`: `0x00e3a390 + who *
+/// 0x6eec` (a 32-bit multiply), the address of that player's leader record.
+pub fn console_leader(rec: &[i32]) -> i32 {
+    console_who(rec)
+        .wrapping_mul(0x6eec)
+        .wrapping_add(0x00e3_a390)
+}
+/// `Game::is_solo@0043ec40`: bit 2 of the game's flag byte at `+0x820` clear.
+pub const fn game_is_solo(flags: u8) -> bool {
+    flags & 4 == 0
+}
+/// `Game::is_team_game@00593f70`: bit 7 of the same byte.
+pub const fn game_is_team_game(flags: u8) -> bool {
+    flags >> 7 != 0
+}
+/// `MoveOrder::is_pathed@00488980`: bit 0 of the order's flag byte (a signed
+/// byte, widened, then masked).
+pub const fn move_order_is_pathed(flags: i8) -> bool {
+    flags & 1 != 0
+}
+/// `GarrisonOrder::get_garrison_order@00482dd0`: `this - 0x1c` (item 1782).
+pub const GARRISON_ORDER_BASE: i32 = 0x1c;
+/// `AttackToOrder::get_attack_to_order@00482f60`: `this - 0x54`.
+pub const ATTACK_TO_ORDER_BASE: i32 = 0x54;
+/// `AirPatrolOrder::get_air_patrol_order@004843d0`: `this - 0x60`.
+pub const AIR_PATROL_ORDER_BASE: i32 = 0x60;
+/// `AirAttackGroundOrder::get_air_order@004835b0`: `this - 0x2c`.
+pub const AIR_ATTACK_GROUND_ORDER_BASE: i32 = 0x2c;
+/// `GraphicWinXML::get_graphicwinxml@0041c000`: `this`, unchanged.
+pub const fn graphic_win_xml(this: i32) -> i32 {
+    this
+}
+/// `get_unique_types@00669120` and `get_unique_types2@00669100`: the byte
+/// held in a global cell (`0x00ed88cb`, `0x00ed88cc`), in `al`.
+pub const fn global_byte(b: u8) -> u8 {
+    b
+}
+/// `get_type_count2@00669110`: the byte at `0x00ed9936 + i`; `table` is that
+/// array.
+pub fn type_count_at(table: &[u8], i: usize) -> u8 {
+    table[i]
+}
+/// `GroupMoveOrder::is_pathed@00485a20`: bit 0 of the order's flag byte.
+pub const fn group_move_order_is_pathed(flags: i8) -> bool {
+    flags & 1 != 0
+}
+/// `MoveOrder::is_fleeing@004889a0`: bit 1 of the order's flag byte.
+pub const fn move_order_is_fleeing(flags: i8) -> bool {
+    flags & 2 != 0
+}
+/// `GroupMoveOrder::is_fleeing@00485a40`: bit 1 of the order's flag byte
+/// (item 1787).
+pub const fn group_move_order_is_fleeing(flags: i8) -> bool {
+    flags & 2 != 0
+}
+/// `Game::is_recording@0043ec50`: bit 3 of the game's flag byte at `+0x820`.
+pub const fn game_is_recording(flags: u8) -> bool {
+    flags >> 3 & 1 != 0
+}
+/// `Game::is_nomad@00594650`: the byte at `+0x2c` is zero.
+pub const fn game_is_nomad(b: u8) -> bool {
+    b == 0
+}
+/// `Game::is_no_rush@005946c0`: the byte at `+0x32` is non-zero.
+pub const fn game_is_no_rush(b: u8) -> bool {
+    b != 0
+}
+/// `Game::is_never_war@00594660`: the byte at `+0x32` is 8.
+pub const fn game_is_never_war(b: u8) -> bool {
+    b == 8
+}
+/// `Game::is_deathmatch@00594630`: the byte at `+0x2d` is 7.
+pub const fn game_is_deathmatch(b: u8) -> bool {
+    b == 7
+}
+/// `get_type_count@00669130`: the byte at `0x00ed89ce + row * 0x1ed + col`;
+/// `table` is that array.
+pub fn type_count(table: &[u8], row: usize, col: usize) -> u8 {
+    table[row * 0x1ed + col]
+}
+/// `GameAccessConst::get_scary_my_player@00583430`: `0x00e37f04 + 0x8c *` the
+/// console player's word at `+0x2a0` (`rec` is the record as words).
+pub fn my_player(rec: &[i32]) -> i32 {
+    rec[0x2a0 / 4].wrapping_mul(0x8c).wrapping_add(0x00e3_7f04)
+}
+/// `GameAccessConst::get_scary_select_group@00583450`: the word at
+/// `0x00e8d444` (`base`) plus `0x9f0 *` the same word at `+0x2a0`.
+pub fn select_group(rec: &[i32], base: i32) -> i32 {
+    rec[0x2a0 / 4].wrapping_mul(0x9f0).wrapping_add(base)
+}
+/// `Player::is_active@0047e0e0`: the flags word at `+0x30` has bit 0 set and
+/// neither `0x100` nor any of `0xd0`.
+pub const fn player_is_active(flags: u16) -> bool {
+    flags & 1 != 0 && flags & 0x100 == 0 && flags & 0xd0 == 0
+}

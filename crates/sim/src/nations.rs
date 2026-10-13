@@ -231,6 +231,7 @@ impl Sim {
         n.turks = on[8];
         n.french = on[10];
         n.british = on[11];
+        n.mongols = on[17];
         n.germans = on[12];
         n.russians = on[13];
         n.chinese = on[14];

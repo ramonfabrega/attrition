@@ -10790,33 +10790,279 @@ searcher's modified range (this crate uses `max_range_of`, the techs included);
 whether a cavalry archer (`unit_flags & 0x400`, `+0x1fc` zero) takes the tile
 floor — read from `determine_roles` only, no capture holds one in this arm.
 
-## 65. Reserved for item 1740 (chapter fifty-three's word 1004)
+## 65. Chapter fifty-three's word 1004 — a fire-on-the-move round leaves at the cavarch pair, and `set_anim(ATTACKWALK)` asks the reload (item 1740)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**The booking.** Frame 1004 of run772, 4 versus 6 draws at index 0: the
+original's Dragoon `0/31` (type 189, walking a `MOVETO` to (46056, 29304) with
+`cavarch_o` 11, `cavarch_who` 1 — the Scout `1/11`) spends `Ammo::init+0xcd9`
+and `+0xd0b`, the landing scatter's two draws; `ammo[0]` stands in the dump on
+1005 and `1/11` takes 37 on 1006. This crate's Dragoon spent nothing.
 
-## 66. Reserved for the next item on the rules track
+**How it was found.** The strike agrees (`recharging` 21 on 1004 in both, the
+reload 30 minus nine frames), and the guy's anim is `CHAR_ATTACKWALK` (10) at
+`cur_time` 11 with the event at 12 — the release is what is missing.
+`Guy::release_events` here returned for any current order that was not an
+attack, a ground attack or a strafe. The original's `Guy::execute_events@005d99c0`
+takes the *order's* object when the order is attack-like and, **everywhere
+else** — no order list, no current order, or one that is neither attack-like nor
+kind `0x17`..`0x19` — falls to `LAB_005d9c14`, which reads `UnitData +0xa2/
++0xa8/+0xa6` (`cavarch_o`, `cavarch_who`, `cavarch_uid`) when `cavarch_o ≥ 0`.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The rules built.**
 
-## 67. Reserved for the next item on the rules track
+1. `guy_release_events`' default arm is the cavarch pair (`units[u].cast_target`)
+   rather than a return.
+2. **The Dragoon's `CHAR_ATTACKWALK` bay** (`launch::BAYS`, piece 491, anim 10,
+   start 12): the round on 1004 left (44857, 29798) 205 over a figure at
+   (44708, 29828) turned 68° (`whole_degrees`); the row's `right` 27 720 and
+   `fwd` 150 040 (thousandths) are the **centre of the region** the one
+   measurement allows — one round, one facing, so both are a point in a
+   rectangle, not a measured vector.
+3. **`Guy::set_anim@005da300`'s head**: a request for `CHAR_ATTACKWALK` from
+   any other animation asks `UnitData +0xae` (`recharging`) — below six it is
+   **cleared to 0** and the animation plays; six and over the request becomes
+   `CHAR_WALK`. Found on the word it opened: on 1021 the Dragoon stopped (anim 0)
+   at `recharging` 4 and on 1022 the original's block reads 0 where ours kept 3,
+   and the next draw was `Unit::fight+0x9b0`, the fight's re-search roll
+   `cavarch_fight_body` spends once the reload is gone.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The word is now the trace's end: 1120** (`GOLDEN_WORD_CHAPTER_FIFTY_THREE`,
+window (605, 1121), 20 rows and 15 pool rows): the draw stream agrees through
+1119. Mutations, each failing the walk: rule 1 restored to a return — word 1004;
+rule 3's clear removed — 1022; rule 3's `< 6` made unconditional — 1026. The bay
+holds on the widening (`fwd` 0 moves the `ammo` rows).
 
-## 68. Reserved for the next item on the rules track
+**Values that part, and are the next items** (parked 1756, 1757):
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+- `0/31 g.node_flags[0]` on 1068, ours 15 against 14: the turret's return to the
+  bow runs a constant 4 718 592 (`0x480000`) ahead of the original's from before
+  1066 (ours 177 930 246 against 182 648 838 on 1067), so ours clears the arc a
+  frame early. The seed is the standing `g.des_turret0[0]` on 963 and
+  `g.turret0[0]` on 965.
+- `1100 1/8 damage_frame`/`hits:damage`/`hits_left` and `0/31 ammo[0]`: the
+  Dragoon's stationary round (anim 12, start 13, piece 491) lands **in the frame
+  it is released** in the original (`damage_frame` 1099, 37 taken) and a frame
+  later here. Its launch point is the unit's own square — no bay row — and the
+  flight time reads the distance; the original's ammo is gone by the end of the
+  frame, so no `AMMO` print holds its `sx/sy/sz`: a packet at 1099 and
+  `get_position`, not a capture of the dump.
+
+**Held out.** The battery (`battery_measure`) reads **576 / 6566 / 2974** on this
+tip, unmoved.
+
+**Not established.** The bay's two components (above); that kind `0x19` and the
+other attack-like vslot-`0x18` orders do not read the pair (this crate falls back
+to it for every body that is not an attack, a ground attack or a strafe); the
+`cavarch_uid` gate (`+0x30 != local_c`), which the original applies only under
+`CHAR_ATTACK2` — this crate tests that the target is struck.
+
+## 66. Chapter fifty-four — the Dragoon's node and release rows, and a pushed group's prune (item 1776)
+
+**The booking.** Chapter fifty-three's five standing value rows (§65: parked
+1731, 1756, 1757) and the M5/M6 mutations (1712), run772 agreeing to its
+end (1119). **No capture was owed**: run773's packet (frame 961, the game that
+fields the Dragoon) already holds piece 491's nine `AttachPos` entries, and
+`tools/recomp/get_position.py … entries 491` reads them.
+
+**What settled the rows.**
+
+1. **`g.des_turret0[0]` on 963, `g.turret0[0]` on 965, `g.node_flags[0]` on
+   1068** (1756) were one cause: the Dragoon bore from the unit's own point
+   (`pivot::NODES` had no row for piece 491), and the original bears from the
+   point **plus the node's vector** (`set_all_pivots@005d8bc0`, COMBAT §54).
+   The packet reads the `(4, 0, 0)` entry as `(0.0, −1.48, 31.05)`
+   (`0xbfbd70a3`), `RData +0x88` 1.0: `Node { px: 0, py: −148 }`. A quarter
+   of a degree off the bearing (3 080 192 in the turret's 2³² turn) was the
+   whole lead on the turret's return.
+2. **`1100 1/8 damage_frame`, `hits:damage`, `hits_left` and `0/31 ammo[0]`**
+   (1757) were the **same cause**. §65 read "no bay for piece 491 anim 12
+   start 13"; with the node row the release gate (`node_flags` bit, §55) opens
+   a frame earlier and the stationary round lands on the frame it is released.
+   **The booked mechanism, a missing bay, was the previous item's hypothesis
+   and was wrong** (DECISIONS 42). Rows for the four animations the packet
+   holds are still built (`pivot::RELEASES`, 491 on anims 10, 11, 12 and 13:
+   starts 12, 12, 13, 18), replacing `launch::BAYS`' fitted anim-10 row, whose
+   `dz` 205 is the packet's `4.8·(31.034 + 11.694)`.
+3. **Pool slot 1's off/curr/angle rows on 962** (1731): `Groups::process`
+   resets slot `f mod 64`'s group on frame 961, and `Group::normalize@00711540`
+   shifts **all of** `list`, the flag byte and the three parallel arrays over a
+   member it drops. This crate's pushed-group branch dropped the member from
+   `list` and left `off`, `curr` and `angles` a slot long (the army branch
+   already shifts them, `army_keep_units`, item 1493); it now goes through
+   `seat_remove_at`.
+
+**What it moved elsewhere.** The same prune is in chapters fifty and fifty-one's
+pool pins: `770 slot 1` (`off`/`curr` 0..3, `angle[3]`) agrees and leaves both, and
+the dead member's other rows now part together at their first frame (ch50: 932,
+`curr[2]`/`off[2]`, and 996 `curr[1]`/`off[1]`; ch51: 907 `curr[2]`/`off[2]` and
+1003 `curr[1]`/`off[1]`) rather than `angle` alone. These are the list's own
+parting made visible, not a new one: ours keeps a pushed group's dead member
+until the slot's reset (`f mod 64`), and the original dropped it on 932 and 996,
+frames that are not slot 1's. Parked 1778.
+
+**Backed by.** The original's own `get_position` on every reachable cell of the
+four release rows: 369 664 cells (`d₁ 0..=360 × 256` turret steps × 4 anims),
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_the_dragoon`
+(`$RON_RELEASE_TABLE_491`, outside git), with `float_lands` on four cells of
+anim 10 and three of anim 11. Mutations, each scored by exit: the node row
+removed (the widening fails: 1068 and 963/965 return); the pool shift replaced
+by `list.remove` (the widening fails: 962's pool rows return); M5, the drop
+removed in `cavarch_step_anim` (the golden word fails) and its `node_flags |= 1`
+removed (fails). **Held by no walk**: the anim-12 row's values — its key moved
+one frame, its `at` z zeroed, its `at` x/y sent to 2·10⁷, each exit 0 — the
+stationary round's landing reads the turret gate and the unit's square, not
+the row; the oracle table holds the values, and only the packet and that table.
+
+**M6** (the captain's re-search, 1712) is **not reached**: a probe at
+`if research {` exits 0 while one at the captain gate fails, so run772's
+captain Dragoon is always holding a combat-role target (the Scout), and `research`
+is false. Parked 1777: a captain holding a non-combat-role unit.
+
+**The word.** Unchanged at 1120 (the trace's end): `WANT_CH53` falls from 22
+to 15 rows (the forms, `group.id` and `death:extra` rows stand), `WANT_CH53_POOL`
+to empty.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved.
+
+**Not established.** The Dragoon's node-4 entries at the other animations (the
+pivot node's own anim-10..13 entries are read, but only the `(4, 0, 0)` row feeds
+`set_all_pivots`); whether another unit of the Dragoon's line carries a node row this crate lacks; the stationary round's flight time (no `AMMO` print holds it;
+the walk now agrees on its landing frame, nothing more).
+
+## 67. Chapter fifty-five — M6's arm past a Citizen, and the stationary round's row held (item 1798)
+
+**The booking.** Four arms chapter fifty-four left unwalked: parked 1777 (M6,
+`cavarch_fight_body`'s captain re-search, never reached: run772's held Scout is
+combat-role), 1709 (the two-order snap), 1776's anim-12 `RELEASES` row (held by
+no walk) and 1778 (a pushed group's early drop). **Whether one staging reaches
+each was established on `stage_walk` before any capture**, with env-guarded
+probes in one commit reverted whole.
+
+**The staging** (`chapter55.cmd`, run783, `ch53`'s start, six lines): Dragoon A
+`0/6` at (225, 152) sent east on 712 with a Player-1 Citizen added on 712 across
+its path; Dragoon B `0/7` at (225, 176) beside a Player-1 Stockade at (218, 176).
+- **M6 is reached**: A holds the Citizen (`combat_role` false), and on 763 and 793
+  `research` is true — the first re-search finds nothing (`found == None`, the
+  target cleared and no round), the second finds the Citizen again. Variants that
+  put the Citizen in the Dragoon's path a few frames earlier or later reach
+  `research` true with `found == target` only, or false (the `% 5` roll), so the
+  frame of the Citizen's add is part of the staging.
+- **The anim-12 row is reached and held**: B stands and fires its stationary
+  rounds (647, 677, 917, 947); the row `(491, ATTACK2, 13)` is the release
+  at those. **The mutations are held**: its `at` vector sent to 2·10⁷ and its
+  key moved to 14 each fail the word test and the widening (exit 101) —
+  closing 1776's "held by no walk". (A single Dragoon standing before a
+  Stockade held it too, in the walk; 1776's staging had no standing round.)
+- **The two-order snap (1709) is not reached.** A Dragoon, a Catapult and a General,
+  standing on a cell centre, were sent 1–3 units either way and 2000 units each
+  way: none spent a `SITE_SNAP_STAND` (a probe at the snap's stand arm). The
+  arm needs a unit on its own waypoint, facing away, still turning when the
+  step reaches the snap, with one order; every order tried turned and stepped
+  or arrived. Parked 1805.
+- **1778 (the early drop) is not staged**: it needs a pushed group; parked as it was.
+
+**What run783 says.** The word **1010** — the trace's last frame; the draw
+stream agrees through every round, M6's two and the stationary rounds. The
+widening (605..1011) is 14 rows: the eleven `form` rows of the start (as
+chapter fifty-three's), `1/2000` `raid_stamp` on 777 (ours 0, theirs 776; parked
+1204's family), and **a value diff on 794, both on Dragoon A `0/6`**:
+`g.des_turret0[0]` ours −821 952 512, theirs 0, and `g.turret0[0]` ours
+−821 952 512, theirs −642 995 542 — the original dropped A's target (M5's
+`des_turret = 0`) a frame before ours does, with the Citizen 1 949 units north
+of a Dragoon heading east-northeast. No draw parts on it. Parked 1804.
+
+**M6's mutation is held by no walk.** `research && false` exits 0: the first
+re-search's `found == None` and the cleared target is the same as holding it,
+since the Citizen is out of the strike's reach, and the second finds the same
+unit. The arm needs a staging where `found` is a different, in-reach unit while
+the held one is a non-combat-role unit. Parked 1806.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved (no
+simulation change).
+
+**Not established.** What the original reads on 793 that ours does not (the
+turret row); the snap's real shape (1805); M6's observable arm (1806).
+
+## 68. Chapter fifty-six — a failed search resets the turret, and M6's other arm held (item 1829)
+
+**The booking.** The rows chapter fifty-five left: parked 1804 (the early target
+drop on 794), 1806 (M6's mutation held by no walk), 1805 (the two-order snap) and
+1778 (a pushed group's dead member). **Whether run783 settles 1804 was
+established first, on the disk**: it does, and no staging is owed for it.
+
+**1804 is not an early drop; it is `Guy::reset_pivots(0)`.** Widening run783's
+`0/6` GUY and unit rows on 792..797 (the dump's frame *n* is the state after
+tick *n−1*; the trace's draw on 793, `Unit::fight+0x9b0 < cavarch_fight+0x5e`,
+is the research roll, 45484, and ours' `head` on tick 793 is the dump's 794):
+- Both sides agree through 793: `cavarch_o` 6, turret `−821 952 512` (−68.9°),
+  `des_node_flags` 1, anim 10. On 794 theirs reads `cavarch_o` −1 with
+  **`des_turret_angles[0]` 0** and the turret 15° back (`−642 995 542`); ours
+  held `−821 952 512` to the trace's end (990), `aim` still the Citizen.
+- Ours dropped the target on the same tick (the research found nothing, the
+  Citizen 1 920 units off and out of the Dragoon's reach) — the **drop agrees**;
+  what ours lacked is what the original's search does on the way out.
+  `find_melee_target@005ff9c0:245`–`262`: **when `find_nearby_target` answers
+  nothing and the type's `unit_flags & 0x200000` (`v`) is set, every figure
+  gets `Guy::reset_pivots(guy, 0)`.** This crate listed it as a SEAM and said the
+  Dragoon's rest is 0, "which its figures already hold" (run657) — true while
+  the turret is on the bow, and not on run783, where it stands 69° off.
+- `Guy::reset_pivots@005d8a80` (read off the listing, `5d8ab0`–`5d8bb8`): for
+  each node `k` of the type's pivot table, `des[k] = degrees_to_angle((lo + hi)
+  / 2)` — the signed halving, `cltd; sub; sar` — plus `0x80000000` when
+  `hi < lo`; with `param_1 == 0` the turret's own angle and both node-flag words
+  are left, and `Turret::step` walks it back by 15° a frame. Built as
+  `Sim::reset_pivots`, called from `find_melee_target_as` (every caller: the
+  captain's re-search, the out-of-range search, the idle search of a `v` type).
+- **The unit test** `an_empty_search_of_a_v_type_resets_the_pivots_and_only_that`
+  fails without it; the mutation (`if false &&`) fails `chapter_fifty_five_s_word_frame_is_widened_whole`
+  (exit 101). **The value diff**: `0/6 g.des_turret0[0]` ours −821 952 512 against 0
+  and `g.turret0[0]` ours −821 952 512 against −642 995 542 on 794 (run783) — both gone,
+  14 → 12 rows. **Two captures already on disk carried the same two rows**: run
+  `ch43` and `ch46` on 1479 (`0/6`), and both lose them (their `WANT_CH43/46` re-pinned;
+  nothing else moved). Whoever read "an early drop" was reading the frame the
+  turret parts, not a drop.
+
+**M6's other arm (1806): staged and held.** `chapter56.cmd` is chapter fifty-five's
+six lines and a Hoplite squad, `763 add hoplites who=1 237,150`: on 763, M6's
+first roll (51729, `% 5` ≠ 0), the held Citizen (non-combat-role) is re-searched and the
+search answers the new Hoplite (`found` ≠ target, in reach), so the arm writes it
+and returns with no strike; without the arm the Dragoon strikes the Citizen.
+Walked on `stage_walk` first (`RON_STAGE_DRAWS`): `research && false` takes 764 from
+6 draws to 5, and `fight`'s strike moves to 763. **The mutation** (`roll % 5 != 0
+&& false`) fails both run786 tests (exit 101), closing 1806.
+
+**What run786 says.** The word **1010**, the trace's last frame; the draw stream
+agrees through the Hoplites' arrival, M6's switch and both Dragoons' rounds. The
+widening (605..1011) is 19 rows: the eleven `form` rows, and **eight rows the added
+squad `1/7`..`1/9` owns** — `order:group.id` on 765 (ours 764 000, theirs 770 400:
+the group number the squad's add takes), `near` on 774 (`1/8`, `1/9`: ours (6, 0)
+against none), and `death:extra` on 874, 900, 961 (ours 1, theirs 0). None parts a
+draw. Not booked as words: they name no frame the word is on (parked 1830).
+
+**Not staged: 1805 and 1778.** A chapter is three arms at most; the two-order snap's
+probes (1798) found no order that reaches it, and 1778 needs a pushed group with a
+member that dies — neither is a staging a script's few lines reach; both stay parked.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved.
+
+**Not established.** What the original's group-id allocation for an added squad is
+(765); why a `near` pair stays on the Hoplites (774); the snap (1805).
 
 ## 69. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 70. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 71. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

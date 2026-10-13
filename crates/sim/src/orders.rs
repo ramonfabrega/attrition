@@ -3615,6 +3615,18 @@ impl Sim {
         {
             return;
         }
+        // `think@005f74xx`'s carry arm (`docs/AI.md` §195): a type with a
+        // `CARRY` that is not strictly an aircraft carrier asks
+        // `think_carry`, and a `1` ends the think. It sits between the
+        // merchant and the supply/hero/scout tail.
+        // SEAM: `leader_flags & 8` (never set) returns above it.
+        if self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.carry != 0 && !self.is_aircraft_carrier(t))
+            && self.think_carry(u)
+        {
+            return;
+        }
         // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army
         // takes `think_scout`; a supply wagon or a hero takes
         // `add_to_army` (`docs/ARMY.md` §4). The two are exclusive in the

@@ -1461,13 +1461,17 @@ impl Sim {
                 if self.pushed[i].who != who || self.pushed[i].state.pool != Some(s) {
                     continue;
                 }
-                let keep: Vec<usize> = self.pushed[i]
-                    .list
-                    .iter()
-                    .copied()
-                    .filter(|&u| self.units[u].alive() && self.units[u].group_ptr == Some(s))
-                    .collect();
-                self.pushed[i].list = keep;
+                // The shift is over all five arrays (`normalize@00711540`'s
+                // inner loop, item 1776): the member's `off`, `curr` and
+                // `angles` entries leave with it.
+                for k in (0..self.pushed[i].list.len()).rev() {
+                    let u = self.pushed[i].list[k];
+                    if self.units[u].alive() && self.units[u].group_ptr == Some(s) {
+                        continue;
+                    }
+                    let p = &mut self.pushed[i];
+                    Self::seat_remove_at(&mut p.list, &mut p.state, k);
+                }
                 let g = crate::group::Group {
                     who,
                     army: None,
@@ -4989,6 +4993,37 @@ mod tests {
         assert_eq!(s.group_speed_of(fast), 26, "no reset between");
         s.groups_process(10_305);
         assert_eq!(s.group_speed_of(fast), 25, "and one at 10305");
+    }
+
+    /// **A pushed group's prune takes the per-member arrays with it**
+    /// (`normalize@00711540`'s inner loop shifts `off`, `curr` and `angles`
+    /// over the member it drops, item 1776): chapter fifty-three's pool slot
+    /// 1 on 962 held a member the original had dropped, and its `off`,
+    /// `curr` and `angle` rows parted one slot out.
+    ///
+    /// Made to fail with the shift removed: the arrays keep three entries.
+    #[test]
+    fn a_pushed_group_s_prune_shifts_its_per_member_arrays() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let mut g = group_of(1, &[a, b, c]);
+        assert!(s.push_group(&mut g, true));
+        let slot = s.pool_group_of(a);
+        let i = s.pushed.len() - 1;
+        let st = &mut s.pushed[i].state;
+        st.off = vec![(1, 1), (2, 2), (3, 3)];
+        st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
+        st.angles = vec![1, 2, 3];
+        s.units[b].group_ptr = None;
+        s.groups_process(slot);
+        let p = &s.pushed[i];
+        assert_eq!(p.list, vec![a, c]);
+        assert_eq!(p.state.off, vec![(1, 1), (3, 3)]);
+        assert_eq!(p.state.curr, vec![Pos::new(10, 10), Pos::new(30, 30)]);
+        assert_eq!(p.state.angles, vec![1, 3]);
     }
 
     /// **`push_group`'s numbering** (§3.1, §3.2, §19): a group equal to

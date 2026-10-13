@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 11,
-    sequence: 11,
+    count: 2838,
+    sequence: 2838,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -63,7 +63,7 @@ pub(crate) const RUN776: &str = "gamelog-run776-eastindies-mongol-alltech-window
 /// The window: block 1 through 33; the word's own block is 12.
 pub(crate) const WIDENING_MONGOL_FRAME_11: (i64, i64) = (1, 33);
 
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn mongol_frame_11_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -80,7 +80,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run776_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_11_window() else {
         return;
     };
     pin_eq!(w.blocks, 33, "every captured block");
@@ -90,8 +90,102 @@ fn run776_s_word_frame_is_widened_whole() {
         "the keys the capture prints and nothing reads"
     );
     // Item 1728: 128 keys part on blocks 1..33 of the Mongol start's
-    // window, the word's own block being 12 (frame 11: ours 556 draws,
+    // window, the word's own block being 12 (frame 11, before 1737: ours 556 draws,
     // theirs 629, index 3; the leader's MAKE list holds the Oil Well's
     // category first in theirs, `docs/AI.md` §190).
-    pin_eq!(w.firsts.len(), 128, "initial run776 baseline");
+    pin_eq!(w.firsts.len(), 46, "initial run776 baseline");
+    // Item 1737: the Mongol food term closes the leader economy (frame 3's
+    // `econ`/`rate`, food income 435 against 160 from frame 1) and with it
+    // the make list's order on 11; 128 -> 46, the control's start set. The
+    // word moves 11 -> 1354, outside this window (`docs/AI.md` §191).
+}
+
+/// run779: the word 1354's window, blocks 1349..1605 at the long's detail (item 1744).
+pub(crate) const RUN779: &str = "gamelog-run779-eastindies-mongol-alltech-window-1349-1606.txt";
+
+/// The window: block 1349 through 1605; the word 1354's own block is 1355.
+pub(crate) const WIDENING_MONGOL_FRAME_1354: (i64, i64) = (1349, 1605);
+
+pub(crate) fn mongol_frame_1354_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run779",
+        &[(RUN779, WIDENING_MONGOL_FRAME_1354.0)],
+        WIDENING_MONGOL_FRAME_1354,
+        1,
+        &[1355],
+        true,
+    )
+}
+
+#[test]
+fn run779_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_frame_1354_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 109, "initial run779 baseline");
+    // Item 1744: 1406 keys part on blocks 1349..1605 before the build, the
+    // word's own block being 1355 (frame 1354: ours 5 draws, theirs 7, index
+    // 1; building `1/2024`'s `queue[0].job_counter` 17200 against 17150 and
+    // on 1355 `num_units[206]` 0 against 1, a unit `1/42` born in theirs).
+    // The Mongol stable arm of `train_time` (`MONGOL_STABLE_SPEED`, 20 percent
+    // off an attacker trained in the Stable line) closes it: 1406 -> 109, and
+    // the word moves 1354 -> 2207, past this window (`docs/AI.md` §193).
+}
+
+/// run780: the word 2207's window, blocks 2201..2458 at the long's detail (item 1768).
+pub(crate) const RUN780: &str = "gamelog-run780-eastindies-mongol-alltech-window-2201-2459.txt";
+
+/// The window: block 2201 through 2458; the word 2207's own block is 2208.
+pub(crate) const WIDENING_MONGOL_FRAME_2207: (i64, i64) = (2201, 2458);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run780",
+        &[(RUN780, WIDENING_MONGOL_FRAME_2207.0)],
+        WIDENING_MONGOL_FRAME_2207,
+        1,
+        &[2208],
+        true,
+    )
+}
+
+#[test]
+fn run780_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 136, "initial run780 baseline");
+    // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
+    // window's first block (nothing dumped parts on the word's own block
+    // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
+    // anim draw of the citizen `1/72`, which ours stands idle from 2178 and
+    // theirs walks to (35736, 24984) (`docs/AI.md` §194). Item 1845 built
+    // `Unit::think_carry`'s worker arm (`docs/AI.md` §195): the Freighter
+    // now walks there too, the word moved 2207 -> 2838, and the window's
+    // keys fell 897 -> 136 (the word's delta; the 897 keys stand in §194).
 }

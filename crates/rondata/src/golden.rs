@@ -2027,6 +2027,12 @@ mod tests {
         // an idle group, and a Dragoon past a Scout and two Hoplite squads
         // (item 1707, `docs/GOLDEN.md` §63).
         ("chapter53.cmd", &[]),
+        // Chapter fifty-five: a second Dragoon's stationary rounds at a Stockade,
+        // and the first one past a Citizen (item 1798, `docs/GOLDEN.md` §67).
+        ("chapter55.cmd", &[]),
+        // Chapter fifty-six: chapter fifty-five's staging and a Hoplite squad
+        // added on 763, M6's first re-search (item 1829, `docs/GOLDEN.md` §68).
+        ("chapter56.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),

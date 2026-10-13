@@ -12,51 +12,52 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirtieth tranche opens**: the twenty-ninth pass scored its
-tranche whole (`docs/audit/2026-10-13-fable-pass-29.md`, DECISIONS 66): twenty-three
-landings in 4 h 11 min, **3.93 USD and 22.9 min waiting a landing**, all Sonnet 5.5
-medium, no kill rule; the coverage pair closed at 4730, the successor pair stood up
-at 11, Great Sahara 3182, chapter fifty-three 1004, the census 178. **The roster
-holds: four lanes on Sonnet 5.5 at `--effort medium`**, kill rules standing.*
+*2026-10-13, **the thirtieth tranche at twenty landings of twenty, draining**
+(`commander`, Opus 5.5; every lane Sonnet 5.5 medium): the successor pair's word
+11 → 2838 (1737, 1744, 1845 — the Freighter `1/72`'s carry arm, on run785's packet);
+chapters fifty-three, fifty-five and fifty-six closed (1740, 1798, 1829 — the
+last built `reset_pivots` on a `v` type's empty search); thirteen sweeps took the
+census 188 → 319. Great Sahara 3182 open (1738). No kill rule tripped.*
 
 - **The pass built**: the stub pool (AI §193–§198, GOLDEN §66–§69),
   `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **No lanes live**: 1737, 1738, 1736, 1740 wait, stubs in the base.
-  Next 1744, run 779, AI §193, GOLDEN §66. **The disk**: 242 GiB free.
-- **Fable backlog: 9 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743).
+- **Draining**: `att-1738` (1845 and 1856 merged); no spawn past twenty; 1868, 1863
+  and 1866 wait, stubs in the base. Next 1870, run 788, AI §197, GOLDEN §70. **The disk**: 233 GiB free.
+- **Fable backlog: 22 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867, 1869).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w11 of 5,056
-Census: simulation backed 178 of 3611
+Successor pair: EastIndiesMongolAllTech w2838 of 5,056
+Census: simulation backed 319 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3182 of 4,340
-Golden: ch53 w1004 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirtieth tranche, on `commander` — four lanes on Sonnet 5.5 at
-`--effort medium`: spawn 1737, 1738, 1736 and 1740 off this commit, one to a lane,
-briefs by `tools/brief.py`; a done line stops the wait, a `DEEP` line arms the lane's
-clear; stop at twenty landings from this commit, handoff written, `ccc clear steer --then` the thirtieth pass.**
+**Opener: the thirtieth tranche drains on `commander` — three lanes live
+(`att-1738`): re-arm `lanewait.py` on them, merge and
+book each with no spawn, write the handoff measured by `tools/tranche.py`, then
+`ccc clear steer --then` the thirtieth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1737 the headline's word, 1738, 1736 and 1740 the other three lanes —
+1868 the headline's word, 1738, 1866 and 1863 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1737. **The successor pair's word: frame 11, 556 versus 629 draws**, index
-    3: ours `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`;
-    inside run776 (block 12), `run776_s_word_frame_is_widened_whole` (128
-    keys). 1728's value diff: leader 1's `MAKE[1..3]` order; frame 0 agrees,
-    and the leader economy parts on 3 (§129's Oil Well shape). East Indies,
-    Mongols, `DIFFICULTY 3`, All Technologies (run774, run775). AI §191.
+1868. **The successor pair's word: frame 2838, 101 versus 16 draws**,
+    index 1: ours `Guy::set_anim < Unit::do_idle`, theirs `Guy::do_turn <
+    Unit::move_step`; past run780's last block (2457), so unwidened: a
+    capture over `--log-window 2832 3089` (parked 1848) and its widening,
+    every record on 2838 both ways before a mechanism. 1845 moved 2207 →
+    2838 with `think_carry`'s civilian arm; its other arms are parked 1847.
+    East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §196.
 
 1738. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
     ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
@@ -66,19 +67,21 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     since 2782 (`1/2018` `level` 2, `bordering` 3); dropping `base`'s ×3
     reached 3767 as a probe, not a build. AI §192.
 
-1736. **The sweep's fourteenth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 178 of 3611): 1735's shape,
-    merged by SHA; past the 130 swept, shortest decompile first; an
+1866. **The sweep's twenty-eighth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 319 of 3611): 1856's shape,
+    merged by SHA; past the 270 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1740. **Chapter fifty-three's word: frame 1004**, the Dragoon's first
-    round: `ammo[0]` on 1005, `1/11` damage 37 on 1006; inside run772,
-    `chapter_fifty_three_s_word_frame_is_widened_whole` (605..1009). 1711's
-    value rows: the turret angles on 963/965 stand, and pool slot 1 keeps
-    the dead `0/6` the original drops (parked 1731). M5/M6 lie past it
-    (1062; parked 1712). GOLDEN §65.
+1863. **Chapter fifty-seven: the rows chapter fifty-six left** (DECISIONS
+    56 §3; GOLDEN §68; run786 agrees to its end, 1010): parked 1830's
+    added squad (`1/7`..`1/9` `order:group.id` on 765, ours 764 000 against
+    770 400; `near` on 774; `death:extra` on 874, 900, 961), perhaps one
+    family with chapter fifty-three's staged Hoplites on 1302; 1805's
+    two-order snap and 1778's pushed group's dead member, never staged.
+    Whether run786 settles 1830 or a staging is owed is the item's to
+    establish first; a run is minted from 788. GOLDEN §69.
 
 ## How to maintain this file
 

@@ -9574,3 +9574,25 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
 # `rngcmp.py rontrace-run775.log rontrace-run776.log` -> 0 differing in 41 frames. The game ended itself at 5056.
 # ==== TAKEN 2026-10-13, one take each, 02:34-02:48 ====
+
+# ==== item 1744: the successor pair's word 1354 (`docs/AI.md` §193; `docs/RUNS.md` run779) ====
+#
+#   run779  --map 18 --end-frame 1611 --log-window 1349 1606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 (the lobby of run774..776)
+# Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
+# `rngcmp.py rontrace-run775.log rontrace-run779.log` -> 0 differing in 1612 frames.
+# ==== TAKEN 2026-10-13, one take, 04:45-05:03 ====
+
+
+# ==== item 1768: the successor pair's word 2207 (`docs/AI.md` §194; `docs/RUNS.md` run780) ====
+#
+#   run780  --map 18 --end-frame 2463 --log-window 2201 2458 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 (the lobby of run774..776)
+# Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
+# `rngcmp.py rontrace-run775.log rontrace-run780.log` -> 0 differing in 2464 frames.
+# ==== TAKEN 2026-10-13, one take, 05:44-06:04 (lane 1) ====
+
+# ==== item 1845: the successor pair's word 2207 (`docs/AI.md` §195; `docs/RUNS.md` run785) ====
+#
+#   run785  --map 18 --end-frame 2185 --log-window 2174 2182 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --tracer-def RON_STATE_FRAME=2178 (the lobby of run774..776)
+# Checks, as a stanza would carry them: `MAP_STYLE 18` / `DIFFICULTY 3` / `STARTING_TECHNOLOGY 8` / `STARTING_RESOURCES 7` / `(int)seed 12345` in `GAME INFO`;
+# `rngcmp.py rontrace-run775.log rontrace-run785.log` -> 0 differing in 2186 frames.
+# ==== TAKEN 2026-10-13, one take, 06:56-06:57 (lane 2) ====

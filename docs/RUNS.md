@@ -16102,6 +16102,43 @@ SHA-256 `b75b27b088190ffaa8ec41ba98d494d806654845ff42d8d9cad8c5aa667b2abc`.
 
 Archive `rontrace-run776.log`, 9,948,352 bytes,
 SHA-256 `6cc12cfd7072634ad61ea1d79b3b54b51764d0a6c66bdaaa7dbc5a7bfa85c8ad`.
+## run779 — the successor pair: the word 1354's widening, blocks 1349..1605 (2026-10-13, item 1744, `att-1744`)
+
+**Disk gap**: item 1737 moved the word 11 → 1354, past run776's last block (33); no dump of this lobby held a unit, a building or a
+leader record there. run776's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 1611 --timeout 3600 --log-window 1349 1606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`, `cover=0`, click-free lane 1; `success`, 1612
+frames, 1123.7 s. `rngcmp.py rontrace-run775.log rontrace-run779.log`: **1612 in common, 0 differing**. 257 `BEGIN FRAME`s 1349..1605
+and a 1612 closing block. Minutes waited on another lane's capture: none. run780 unused.
+
+Archive `gamelog-run779-eastindies-mongol-alltech-window-1349-1606.txt`, 500,286,256 bytes,
+SHA-256 `70dd83980f0cb0d5bd71f62f5bdeba113f345af2141fe0f0c03060770907046f`.
+
+Archive `rontrace-run779.log`, 38,343,488 bytes,
+SHA-256 `1e1dacee3492cee940dbb8ebb8d9fd1035a087de0db8959e55c5c9511181e120`.
+
+**What it holds**: `diff::mongol_pair::run779_s_word_frame_is_widened_whole` — 1406 keys before item 1744's build, 109 after; the
+word 1354's value diff (`1/2024`'s `queue[0].job_counter`). `docs/AI.md` §193.
+
+## run780 — the successor pair: the word 2207's widening, blocks 2201..2457 (2026-10-13, item 1768, `att-1768`)
+
+**Disk gap**: item 1744 moved the word 1354 → 2207, past run779's last block (1605); no dump of this lobby held a unit, a building or a
+leader record there. run779's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 2463 --timeout 3600 --log-window 2201 2458 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool;
+`success`, 2464 frames, 1220 s launch to exit (the receipt records a relaunch after 300 s, 1544 s in all). `rngcmp.py
+rontrace-run775.log rontrace-run780.log`: **2464 in common, 0 differing**. 257 `BEGIN FRAME`s 2201..2457 and a 2464 closing block.
+Minutes waited on another lane's capture: none. run785 unused.
+
+Archive `gamelog-run780-eastindies-mongol-alltech-window-2201-2459.txt`, 542,370,601 bytes,
+SHA-256 `7ef6e8b645b753c7c7abb2bc3644eb2163a83b2f1943e5813e61bcdeeaa093bb`.
+
+Archive `rontrace-run780.log`, 82,345,632 bytes,
+SHA-256 `5764d6e7fac983669a5156ace6da890c17868a15756f7252866b27d12b7f3ef3`.
+
+**What it holds**: `diff::mongol_pair::run780_s_word_frame_is_widened_whole` — 897 keys on blocks 2201..2457, none on the word's own
+block 2208; the value diff is on the unit `1/72` from 2201 (`docs/AI.md` §194).
+
 ## run773 — chapter fifty-three: a packet at logger frame 961, the idle Dragoon's search (2026-10-13, item 1711)
 
 `docs/GOLDEN.md` §64. **What the disk could not answer**: the value `Object::poor_target` returns for the Dragoon
@@ -16124,3 +16161,55 @@ with `--end-frame 3190 --log-window 3180 3186` and `--tracer-def RON_STATE_FRAME
 `6c3dc4`–`6c3e7e`): the Redoubt `446` in city 1 reaches `x` 4260, `base` 12780, `63900`, `51120` as this crate does, divides
 by **7** (`is_training_building` true on the branch `6c3e57`), `check_income` 122, final 3479. Minutes waited on another
 lane's capture: none.
+## run783 — chapter fifty-five: M6's arm past a Citizen and a second Dragoon's stationary rounds (2026-10-13, item 1798)
+
+`docs/GOLDEN.md` §67, `tools/gamelog/golden/chapter55.cmd` (6 staged lines). **What the disk could not answer**: no capture holds a captain
+Dragoon past a non-combat-role unit (run772's Scout is combat-role: `research` was false every time), nor a Dragoon's stationary round
+(anim 12, start 13) beside a walk that distinguishes the row; run784 unused. Staging walked by `stage_walk` on `ch53`'s start first.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch55 \
+    --map 14 --end-frame 1010 --log-window 605 1010 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter55.cmd
+```
+
+Pool lane 2 (lane 1 held by att-1768's capture; no wait), `success: true`, 1011 frames, seed 12345, map 14, exit 0; the first launch died
+before frame 0 on the script (`live_session.parse_commands`: frame 640 below 712 — a script's frames are ascending); `issuesmatch.py
+--none-refused`: 1 issue record (712), 0 refused. Dump 177,431,422 bytes (sha256 `a771a82845fd…`), trace 10,150,688 (`8ff2ddbc090b…`),
+kept in `~/ron-golden/ch55/map-14`. **What it holds**: `golden::chapter_fifty_five_holds_to_the_golden_word` (**1010**, the trace's end)
+and `chapter_fifty_five_s_word_frame_is_widened_whole` (605..1011, 14 rows, no pool row).
+
+## run785 — the successor pair: a packet at logger frame 2178, the idle Freighter's walk (2026-10-13, item 1845, `att-1845`)
+
+`docs/AI.md` §195. **What the disk could not answer**: what gives the Freighter `1/72` its walk to (35736, 24984) — run780 starts at 2201 and
+no dump before it held the unit (parked 1800); run788 unused. run780's recipe through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 2185 --timeout 3600 --log-window 2174 2182 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0 --tracer-def RON_STATE_FRAME=2178 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, pool lane 2, `success: true`, 2186 frames, 54.8 s launch to exit, seed 12345, map 18,
+five files restored. `rngcmp.py rontrace-run775.log` against its trace: **2186 in common, 0 differing**. Minutes waited on another lane's
+capture: none.
+
+Packet `~/ron-golden/run785/map-18/frame-snapshot.bin`, 948,454,012 bytes, SHA-256 `8ad5774f82720a345418b831a33282096e2a6c3afe10164ea44dde2863a89aaf`;
+the window's dump `gamelog.txt` beside it (blocks 2174..2181 hold `1/72`: still on 2178 and 2179, turning on 2180). On the packet
+(`step4.py --entry 5f6e40 --this 13e3947c`, `idle` byte 1): `Unit::think` enters `think_carry` → `think_carry_civilian(1)` and writes
+(35736, 24984). **What it holds**: no widening test (the window is five blocks); the diagnosis of §195.
+## run786 — chapter fifty-six: M6's other arm, a Hoplite squad on 763 (2026-10-13, item 1829)
+
+`docs/GOLDEN.md` §68, `tools/gamelog/golden/chapter56.cmd` (7 staged lines). **What the disk could not answer**: run783 holds M6 only
+where the re-search finds nothing or the held unit again (`research && false` exits 0, parked 1806); no capture has a re-search that
+answers a different in-reach unit. Staging walked by `stage_walk` on `ch53`'s start first (`RON_STAGE_DRAWS`: 764's draws 6 → 5 under the
+mutation). Census rows the lobby reaches: none new (a golden chapter). run787 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch56 \
+    --map 14 --end-frame 1010 --log-window 605 1010 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter56.cmd
+```
+
+Pool lane 1 (free, no wait), `success: true`, 1011 frames, seed 12345, map 14, exit 0, 588 s. Dump 180,758,411 bytes (sha256 `7bb968434a11…`),
+trace 10,223,200 (`92dd79ecaf67…`), kept in `~/ron-golden/ch56/map-14`. **What it holds**: `golden::chapter_fifty_six_holds_to_the_golden_word`
+(**1010**, the trace's end) and `chapter_fifty_six_s_word_frame_is_widened_whole` (605..1011, 19 rows, no pool row).

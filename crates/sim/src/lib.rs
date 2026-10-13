@@ -3127,7 +3127,7 @@ impl Sim {
     /// original's own order — as far as it is built — and the
     /// speed-upgrade step after it (item 1365).
     ///
-    /// **Of the national arms only the British is here**, and that is a scope claim rather
+    /// **Of the national arms only the British and the Mongol are here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where
@@ -3136,14 +3136,29 @@ impl Sim {
     /// what the AI's Dock clock is measured against.
     ///
     /// The arms that come *before* it in the original — the lobby handicap,
-    /// The President, the Mongol stable, the Japanese barracks and carrier,
-    /// the Chinese citizen — are all absent from this game: the handicap is
-    /// zero on both players and the rest are other nations' powers, so
-    /// starting the tail here is exact rather than approximate. Of the ones
+    /// The President, the Japanese barracks and carrier, the Chinese
+    /// citizen — are absent from the captures: the handicap is zero on
+    /// both players and the rest are other nations' powers, so starting
+    /// the tail here is exact rather than approximate. **The Mongol stable
+    /// arm is built** (item 1744), first of the block. Of the ones
     /// after it, the speed-upgrade step is built; the rest are the queue's
     /// own item.
     fn train_tail(&self, who: Player, ty: usize) -> Vec<production::Adjust> {
         let mut tail = Vec::new();
+        // **The Mongol stable arm** (`train_time@006508c0:109`–`117`), the
+        // first of the national block: a Mongol leader's unit with an attack
+        // (`type +0x1e8`) whose trainer is of the Stable line (`is(0x1ac)`,
+        // the Auto Plant included) takes `MONGOL_STABLE_SPEED` percent off.
+        if self.nation[who as usize].mongols
+            && self.unit_types[ty].combat.attack != 0
+            && self.unit_types[ty]
+                .tree
+                .and_then(|t| self.tech_tree.types.get(t))
+                .and_then(|d| d.where_)
+                .is_some_and(|w| self.tech_tree.is(w, nations::ty::STABLES[0], false))
+        {
+            tail.push(production::Adjust::Faster(self.tuning.mongol_stable_speed));
+        }
         // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
         // and the no-city gate apply through it (`crate::nations`).
         if self.nation[who as usize].british {

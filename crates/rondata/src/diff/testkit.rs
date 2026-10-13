@@ -6304,11 +6304,29 @@ pub(crate) const WIDENING_CHAPTER_FIFTY_ONE: (i64, i64) = (605, 1101);
 /// cavalry archer's M5 and M6. The walk's word was 962 (item 1707): the
 /// original's idle Dragoon `0/31` takes an `ATTACK` on the enemy Scout `1/6`,
 /// which `poor_target`'s distance floor (a ranged type's own reach, not the
-/// tile) let through — item 1711 moved it to 1004.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 1004;
+/// tile) let through — item 1711 moved it to 1004, and item 1740 (a
+/// fire-on-the-move round released at the cavalry pair, the Dragoon's own
+/// bay) to 1022: the original's `Unit::fight+0x9b0` roll, one draw ours lacks.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_THREE: i64 = 1120;
 
 /// `chapter_fifty_three_s_word_frame_is_widened_whole`'s window: run771 whole.
-pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 1009);
+pub(crate) const WIDENING_CHAPTER_FIFTY_THREE: (i64, i64) = (605, 1121);
+
+/// **Chapter fifty-five** (item 1798, `docs/GOLDEN.md` §67, run783): a
+/// captain Dragoon past a Citizen (parked 1777's M6) and a second Dragoon's
+/// stationary rounds at a Stockade (the anim-12 `RELEASES` row).
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_FIVE: i64 = 1010;
+
+/// `chapter_fifty_five_s_word_frame_is_widened_whole`'s window: run783 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_FIVE: (i64, i64) = (605, 1011);
+
+/// **Chapter fifty-six** (item 1829, `docs/GOLDEN.md` §68, run786): chapter
+/// fifty-five's staging and a Hoplite squad on 763 — M6's re-search finds a
+/// different, in-reach unit.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_SIX: i64 = 1010;
+
+/// `chapter_fifty_six_s_word_frame_is_widened_whole`'s window: run786 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_SIX: (i64, i64) = (605, 1011);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
@@ -6857,6 +6875,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // And run766's (item 1697): ten reads in the word 2640's window.
     ("run766_s_word_frame_is_widened_whole", 10),
     ("run767_s_word_frame_is_widened_whole", 81),
+    // The successor pair walked to its word 2207 (item 1744): four reads.
+    ("mongol_pair_first_parting", 4),
+    ("run780_s_word_frame_is_widened_whole", 4),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
@@ -8534,6 +8555,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1707,
         Some(WIDENING_CHAPTER_FIFTY_THREE),
     ),
+    // Item 1798: run783, chapter fifty-five. The widening is run783 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_FIVE",
+        GOLDEN_WORD_CHAPTER_FIFTY_FIVE,
+        Some("chapter_fifty_five_s_word_frame_is_widened_whole"),
+        1798,
+        Some(WIDENING_CHAPTER_FIFTY_FIVE),
+    ),
+    // Item 1829: run786, chapter fifty-six. The widening is run786 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_SIX",
+        GOLDEN_WORD_CHAPTER_FIFTY_SIX,
+        Some("chapter_fifty_six_s_word_frame_is_widened_whole"),
+        1829,
+        Some(WIDENING_CHAPTER_FIFTY_SIX),
+    ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
     // The widening is run576 whole.
@@ -8856,9 +8893,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "MONGOL_PAIR_WORD",
         crate::diff::mongol_pair::MONGOL_PAIR_WORD,
-        Some("run776_s_word_frame_is_widened_whole"),
-        1728,
-        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_11),
+        // Item 1737 moved the word 11 -> 1354, past run776's window
+        // (`run776_s_word_frame_is_widened_whole` keeps 11's value diff);
+        // item 1744 widened 1354 on run779 over 1349..1605 (block 1355) and
+        // closed it with the Mongol stable arm of `train_time`; the word
+        // moved 1354 -> 2207, past run779 (`run779_s_word_frame_is_widened_whole`
+        // keeps 1354's value diff); item 1768 widened 2207 on run780 over
+        // 2201..2457 (block 2208); item 1845 built `think_carry`'s worker arm
+        // and the word moved 2207 -> 2838, past run780 (its test keeps
+        // 2207's value diff: 897 -> 136 keys); item 1848 owes 2838's widening.
+        None,
+        1848,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

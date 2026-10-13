@@ -368,6 +368,10 @@ pub struct Holdings {
     /// rest of the nation layer: nothing reads the dump's `tribe` yet, so a
     /// traced game leaves all four false — see `docs/ECONOMY.md`.
     pub british: bool,
+    /// `has_tribe_bonus(0x11)` and the lobby's nation count: the Mongol
+    /// food term's inputs ([`mongol_nomadic_food`]).
+    pub mongols: bool,
+    pub num_nations: i32,
     pub egyptians: bool,
     pub french: bool,
     pub inca: bool,
@@ -629,6 +633,7 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     out[oil] = (h.refineries * t.refinery_bonus + 100) * out[oil] / 100;
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
+    out[Resource::Food.index()] += mongol_nomadic_food(t, h);
     resource_bonuses(t, h.wonders, &mut out);
     out
 }
@@ -767,6 +772,19 @@ pub fn territory_tax(t: &Tuning, h: &Holdings) -> i32 {
         rate = (t.british_taxation + 100) * rate / 100;
     }
     h.territory * rate * RATE_SCALE / h.land_size
+}
+
+/// **The Mongols' food from owned ground**
+/// (`Leader::calc_gather@006ceee0`, `006cf6ed`..): `num_nations × territory
+/// × 800 / land_size / MONGOL_NOMADIC_FOOD`, added in sixteenths straight to
+/// the food rate after the tax, and only where the world has land. Run776's
+/// Mongol AI reads food income 435 where this crate read 160 from frame 1
+/// (`docs/AI.md` §191). `num_nations` is the player count of the lobby.
+pub fn mongol_nomadic_food(t: &Tuning, h: &Holdings) -> i32 {
+    if !h.mongols || h.land_size <= 0 || t.mongol_nomadic_food == 0 {
+        return 0;
+    }
+    (h.num_nations * h.territory * 800 / h.land_size) / t.mongol_nomadic_food
 }
 
 /// The commerce cap for one resource, in sixteenths — `Leader::calc_resource_caps`.
@@ -1350,6 +1368,23 @@ mod tests {
         assert_eq!(territory_tax(&t, &h), 60 * RATE_SCALE);
         h.taxation = 0;
         assert_eq!(territory_tax(&t, &h), 0);
+    }
+
+    /// **The Mongols' food** (`docs/AI.md` §191): two nations, 287 of 1669
+    /// tiles, `2 × 287 × 800 / 1669` is the 275 sixteenths that run776's
+    /// Mongol AI reads above the 160 its farmers pay (435).
+    #[test]
+    fn the_mongols_take_food_from_their_land_and_nobody_else_does() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.land_size = 1669;
+        h.territory = 287;
+        h.num_nations = 2;
+        assert_eq!(mongol_nomadic_food(&t, &h), 0);
+        h.mongols = true;
+        assert_eq!(mongol_nomadic_food(&t, &h), 275);
+        h.land_size = 0;
+        assert_eq!(mongol_nomadic_food(&t, &h), 0);
     }
 
     /// **The British double it** (`docs/ECONOMY.md` §16): East Indies'

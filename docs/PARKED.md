@@ -3809,6 +3809,120 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-13 — the thirtieth tranche's
+
+(1761) **`sweep_gen.py const` maps `TYPE` over `OBJ`** (1736's Loop
+line): the generated `TYPE = 0x10010000` overlaps `OBJ`'s 0x20000 map and
+the script dies with `UC_ERR_MAP`; 1736 moved it to `0x10100000` by hand
+in four scripts. And the generator has no `this - K` shape, which four
+lanes have hand-copied. Candidate: fix the `TYPE` base and add the
+shape, with a test made to fail first. Two reaches: 1760 needed a
+"global cell" / "global address" shape for the `get_scary_*` family, the
+second lane in a row to; 1766 hand-wrote it a third time, and wants a
+"flag byte over 256 values" shape too; 1782 a fourth (a "byte cell" too);
+1787 a fifth (a "game-pointer byte"); 1793 a sixth: `field`'s `TYPE` still
+at `0x10010000`, and `and imm` returns the masked word where the shape
+assumes a bool (a `--mask` shape); 1799 a seventh: it moved the
+`range`/all shapes' `TYPE` base to `0x10100000` in the generator (the base
+half closed for generated shapes), and still wants `--mask` and a
+virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
+1814 an eighth: a "global cell" shape (`Game::is_infinite` reads the
+`GameAccess::game` cell `0xc061ec`) and a stack-out-pointer shape
+(`WCoord::get_tcorner`), both hand-written again.
+1819 a ninth: the global cell three times more (`avail_ctw`,
+`get_radius`), and a stack-args-array shape (a count, a pointer, a
+stride: `get_queue`, `get_job_counter`, `get_farm_type`).
+1824 a tenth: a virtual-dispatch shape (a laid vtable at a real function
+or `mov eax, imm; ret` stubs, a fresh stub per row) for five `is_*` and
+`is_map_unit`, and the global cell again (`get_gpiece`).
+1834 an eleventh: the virtual-dispatch shape for seven of ten, out of
+one 150-line throwaway generator that saved an hour — worth graduating.
+1840 a twelfth: a third shape in the same throwaway (an
+argument-carrying stub, `v + 1000*arg0 + arg1`, to verify what a virtual
+call is passed) — graduate the generator.
+1851 a thirteenth: the same header, `stub`/`argstub` and `setup()`
+thrown away again, with the out-pointer shape still missing.
+1856 a fourteenth: a "fixed-offset lea" and a "vtable-displacement"
+shape, the third batch's identical throwaway.
+
+(1767) **A pair's word is a literal `repin.py` cannot move** (1737's
+Loop line): `Pair`'s count and sequence are literals in the const, so a
+re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
+`Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
+the word's window function touched the coverage driver's tuple twice —
+a pair's windows want a list. 1768 a third: the window functions renamed again.
+
+(1869) **`step4.py` cannot poke memory or hook a call** (1845's Loop
+line): two scratch edits — a `game->frame` poke and an entry hook that
+prints a call's arguments — answered the whole item. Candidate:
+`--poke ADDR=BYTE` and `--hook ADDR`. One reach.
+
+(1867) **`callfn` has no xmm-argument seam** (1856's Loop line):
+`Guy::set_bank`/`set_pitch` take a float in an xmm register, and the
+emulator call cannot pass one, so the sweep leaves them. Candidate: an
+xmm argument in `tools/emu/callfn.py`. And `timeout` is absent on this
+machine, so a gate's wrapper cannot use it. One reach.
+
+(1864) **A probe's revert took an uncommitted build with it** (1829's
+Loop line): a `commit -a` after the build's edit swallowed it into the
+probe commit, and reverting the probe reverted the build. Candidate: the
+frame says a probe is committed before anything else is edited, or the
+build lives in a second tree. One reach.
+
+(1861) **`census.py --unbacked`'s shortest-first list is dead weight at
+the top** (1851's Loop line): destructors, `close`/`init`/`clear`,
+loggers, `dynamic_initializer`s and operators fill it, and every sweep
+lane skips them by hand, ~300 bytes deep. Candidate: a `--skip` for
+those name classes, on by default for `--kind sweep`. One reach.
+
+(1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
+(1851's gate): passes alone, red once under the full gate. A flaky
+guard of the capture lane's lock is a guard nobody trusts. Candidate:
+reproduce under the gate's parallelism, then pin the pid it picks. One
+reach.
+
+(1846) **`RON_DEBUG_UNIT`'s `TI` is the type index, `TY` the record
+number** (1768's Loop line): a brief that names a unit by its `TY`
+misreads it (272 reads as a `HUMMEL`; the Freighter is `TI` 322).
+Candidate: the tracer prints the type's name beside both. One reach.
+
+(1839) **`stage_walk`'s script reader accepts what the capture refuses**
+(1798's Loop line): `live_session.parse_commands` refuses descending
+frames, `stage_walk` does not and walks file order — so a staging passes
+a script the capture then refuses (run783's first launch died on 640
+below 712), and an out-of-order line is delayed in the walk. Candidate:
+one reader for both. One reach.
+
+(1812) **Parked rows appended at one tail conflict** (the commander, at
+1744's merge): 1744 added 1768/1769 after 1731 while the base's booking
+added 1756/1757 there; the merge backed out and the lane re-gated for a
+docs-only conflict (~25 min). The stub pool's shape (parked 1741), one
+file down. Candidate: a lane files its parks under its own `## Parked by
+item N` heading, never at another section's tail. Two more reaches,
+with that candidate in force: 1768 and 1845 each backed out under their
+own heading, because every lane appends its heading at the same file
+end — the tail is the conflict, not the section. A pool of park
+headings, as with the stubs.
+
+(1813) **`get_position.py`'s pivot table reads `d₁ i t x y z`** (1776's
+Loop line), where the Chariot tests read a slot column first; the
+script's docstring should say which. One reach.
+
+(1792) **`census.py` cannot find the PDB from a worktree** (1782's Loop
+line): its default path is `../game`, absent under `.claude/worktrees/`,
+so a lane passes `--pdb <main checkout>/game/sbl/rise.pdb` by hand — the
+same shape as the install-backed tests' (memory). Candidate: the default
+resolves the main checkout through `git rev-parse --git-common-dir`. One
+reach.
+
+(1781) **A chapter's close is written nowhere a lane reads** (1740's
+Loop line): a golden word reaching its trace end closes with `word == hi
+− 1` in the widening and the `Golden:` line reading `chN closed`; the
+`ENDPOINTS`/`AI_WORDS` rows are the long captures' and not owed. The lane
+found it by its gate. Candidate: the frame's `chapter` section says it.
+And a backgrounded `a && b && (gate) &` chain lost its heredoc once:
+write the journal with the file tool, then gate. One reach.
+
 ## Loop, filed 2026-10-13 — the twenty-ninth pass's
 
 (1743) **The before-reading rows name tools no lane ran** (the
@@ -3994,8 +4108,83 @@ chapter's first take, superseded by run772.
 
 (1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
 and 1062–1064, past the word 962; both mutations exit 0. Backed once
-1711 moves the word past them, on the same capture.
+1711 moves the word past them, on the same capture. 1740 walked run772
+to its end (1119): both now lie in the walked range, unbacked. **M5
+closed by 1776** (GOLDEN §66, its mutation held); M6 is not reached — 1777.
 
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
+**Closed by 1776** (GOLDEN §66): the pushed group's prune did not shift
+`off`/`curr`/`angles`.
+
+(1777) **M6 is reached by no walk** (1776): a probe at `if research {`
+exits 0 on run772. Candidate staging: a captain Dragoon holding a
+non-combat-role unit (a Villager) in a golden chapter. Chapter fifty-five.
+
+(1778) **A pushed group's dead member leaves early** (1776): the
+original drops it from the list on 932/996 (ch50) and 907/1003 (ch51), not
+at the slot's reset; the rows are re-pinned in `WANT_CH50_POOL` and
+`WANT_CH51_POOL`. Chapter fifty-five.
+
+## Parked by item 1744, 2026-10-13 — the successor pair's word 2207
+
+(1769) **run779's quiet rows after 1354** (1744): on 1583 `1/2020` and
+`1/2028`'s `queue[3].cost[0..1]` 99/90 and 106/97 ours against 144/134 and
+156/146, `leader:bucket[0:food]` 15880/15785, `bucket[1:timber]` 16844/16751;
+no draw behind them. `MONGOL_STABLE_COST` is the suspect to read first.
+
+(1756) **The turret's return runs ahead** (1740): on 1068 `0/31
+g.node_flags[0]` reads 15 against 14, the turret's return 4 718 592
+ahead; seeded on 963/965 (the turret angles). Pinned in `WANT_CH53`.
+**Closed by 1776** (GOLDEN §66): piece 491's missing node-4 row.
+
+(1757) **The stationary Dragoon's round lands a frame late** (1740): no
+bay for piece 491 anim 12 start 13, so `1/8` damage and `0/31 ammo[0]`
+part on 1100. 1740 measured the anim-10 bay once (start 12); the anim-12
+bay is unmeasured — a packet at 1099 and `get_position`. Pinned in `WANT_CH53`.
+**Closed by 1776** (GOLDEN §66): the same node row as 1756 — `node_flags`
+gates the release; "no bay" was the wrong mechanism.
+
+## Parked by item 1768, 2026-10-13 — the successor pair's word 2207
+
+(1800) **The idle Freighter `1/72` the original sends to (35736, 24984)** (1768; the successor pair's word 2207, 9 versus 8 draws,
+index 8): `TypeIndex` 322, ours stands it idle from 2178, after `Unit::work`'s `building_slot_reused` kills `[ExploreTo, Build(50)]` on
+2177 (`buildings[50]` is the closed `1/2043`; a new `1/2043` is born that frame at (26208, 24672)); theirs holds a nine-step walk to
+(35736, 24984) by 2201. Brief: a packet at 2178 and `step4.py` on the unit's `think` (run785 is reserved), or a window around 2170,
+before any reading; killers in `docs/AI.md` §194. ~~Not built.~~ **Answered by item 1845** (`docs/AI.md` §195): `think_carry`'s worker arm.
+
+## Parked by item 1798, 2026-10-13 — chapter fifty-five
+
+(1804) **Closed by 1829** (GOLDEN §68: `Guy::reset_pivots(0)` on a `v` type's empty search, built; the rows left ch43, ch46 and ch55). **Dragoon A's target drops a frame early in the original** (1798): on 794
+`0/6` `g.des_turret0[0]` ours −821 952 512 against 0 and `g.turret0[0]` ours
+−821 952 512 against −642 995 542 (run783, pinned in `WANT_CH55`); the Citizen
+`1/6` stands 1 949 units north of a Dragoon heading east-northeast, past M6's
+second re-search on 793. No draw parts. Widen the GUY and unit rows on 793 first.
+
+(1805) **The two-order snap (1709) is still unreached** (1798): a Dragoon, a Catapult
+and a General on a cell centre sent 1–3 or 2000 units either way never spend a
+`SITE_SNAP_STAND`; the arm needs the unit on its waypoint, turning, with one order.
+
+(1806) **Closed by 1829** (run786, GOLDEN §68: a Hoplite squad on 763). **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
+(`research` true), but `research && false` exits 0 — it needs `found` to be a
+different, in-reach unit than the held non-combat-role one.
+
+## Parked by item 1845, 2026-10-13 — the Freighter's walk
+
+(1847) **`Unit::think_carry`'s unmodelled arms** (1845; `docs/AI.md` §195): `think_carry_idle@005f2f30` (a transport with nothing of
+either kind aboard), the attack-carrier arm, `think_carry_military@005f3260` (the `(0)` call's fall-through), and
+`Group::action_eject_all` on a one-boat group (the shore arm's last step) all answer no / keep the cargo. The successor pair's
+word moved to 2838, ours 101 draws against 16 on index 1 (`Guy::set_anim < Unit::do_idle` against `Guy::do_turn < Unit::move_step`) —
+a frame and a delta; whether the eject is on it is the next item's widening to say. Not built.
+
+(1848) **The successor pair's word 2838, widened whole** (1845): ours 101 draws against 16, index 1 — run780 ends at 2457, so a capture over
+`--log-window 2832 3089` at the long's detail (the lobby of run774..776) is the widening, and the first item on the word compares every dumped
+record on 2838 both directions before any mechanism is named (`docs/AI.md` §195's hypothesis, the boat's arrival, is a hypothesis).
+
+## Parked by item 1829, 2026-10-13 — chapter fifty-six
+
+(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
+theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `death:extra` on 874, 900 and 961
+(ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
+`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.

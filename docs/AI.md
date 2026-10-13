@@ -18692,10 +18692,35 @@ cause. The pair's closing state (5056) is not scored: a closing-window capture a
 `floors::the_handoff_s_successor_pair_is_the_pinned_word`, with `AI_WORDS`' row `Successor pair` (`NEWEST_PAIR`) and the
 queue's `lower map first — East Indies (Mongols)`.
 
-## 191. Reserved for item 1737 (the successor pair's word 11)
+## 191. The Mongols' food: a nation term in `calc_gather`, and the successor pair's word at 1354 (2026-10-13, item 1737)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 11, 556 draws ours against 629, index 3 (ours `Leader::make_stuff+0x63d`, theirs
+`Leader::produce_building+0x1805`; run776 block 12). §190's value diff: leader 1's `MAKE[1..3]` order on 11, with frame 3's
+`econ[0:food]` 7/5, `econ[1:timber]` 5/3, `rate[0:food]` 10/27 parting before it, no draw behind.
+
+**Walked back to the first parted field.** Frame 1, not 3: `leader:income[0:food]`, `leftover[0:food]` and `resources[0:food]`
+read **435 theirs, 160 ours** on leader 1's block 1 (the human's food is 160, so 160 is what thirteen citizens' farms pay);
+timber and metal agree. `rate[food]` is `min(cap, income)/16` (§2.5), 27 against 10, and the threshold pass's bits (`econ`)
+follow it; the make list's order follows `econ`. `production_ai_setup` runs on 3 and so shows it there.
+
+**Cause.** `Leader::calc_gather@006ceee0` (decompile lines 380–385, after the territory tax and before
+`calc_resource_bonuses`): `has_tribe_bonus(0x11)` — **the Mongols** — and `MONGOL_NOMADIC_FOOD != 0` (`rules.xml`: 1) add
+**`(num_nations × territory × 800 / land_size) / MONGOL_NOMADIC_FOOD`** straight onto the food rate, in sixteenths, no `×16`
+(the tax beside it has one). It is `docs/ECONOMY.md` §4's "Mongol food term ... still not built"; no capture held a Mongol
+until run774. Built: `economy::mongol_nomadic_food`, called from the rate's assembly after the tax; `Tuning::mongol_nomadic_food`,
+`Nation::mongols` (`on[17]`), `Holdings::{mongols, num_nations}` (`nations.rs`, `holdings.rs`, `city.rs`, `tuning.rs`).
+`num_nations` is the sim's player count (2 in every lobby so far). Test
+`the_mongols_take_food_from_their_land_and_nobody_else_does` (`economy`).
+
+**Value diff and score.** run776's widening 128 → 46 keys: the food `income`/`leftover`/`resources` rows, frame 3's `econ`/`rate`
+and frame 11–12's `MAKE[1..3,5,8]` all close; what stands is the control's start set (`form`, the leaders' `SITE[n].reg`,
+`scouts`, the lobby's stockpile). **The word moves 11 → 1354, 5 draws against 7, index 1**: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` — a figure's birth in theirs, an idle in ours — outside
+run776's window (blocks 1..33), so its value diff needs a window around 1354 (the next item's capture).
+
+**Not established.** `num_nations` is a player count here, not `Game::num_nations`'s own writer; with the Mongols' territory
+the term grows through the game and only 1354 frames of it are checked (the equality is exact on 160 → 435 at frame 1 and on every
+rate row to 33). A mutation run of the term was not made (the unit test and the widening both fail without the call).
 
 ## 192. A Redoubt is a training building through its Fort, and the word at 3182 still stands (2026-10-13, item 1738)
 
@@ -18753,26 +18778,127 @@ the nearest writer of both); `check_income`'s own inputs for a 446 at 3182
 (the packet runs it: 122 on the original). No reading of `check_income` was
 needed.
 
-## 193. Reserved for the next item on the AI track
+## 193. The Mongols' stables: a nation arm in `train_time`, and the successor pair's word at 2207 (2026-10-13, item 1744)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 1354, 5 draws ours against 7, index 1 (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`, a figure born in theirs); §191's booking, past run776's last block, so unwidened.
 
-## 194. Reserved for the next item on the AI track
+**Capture (run779, the disk could not answer: no dump held a unit or building record past 33 of this lobby).** Click-free lane 1,
+`--map 18 --end-frame 1611 --log-window 1349 1606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17` and the
+lobby's profile (`docs/RUNS.md`); `rngcmp.py rontrace-run775.log rontrace-run779.log`: 1612 frames, 0 differing. Widening
+`diff::mongol_pair::run779_s_word_frame_is_widened_whole`: **1406 keys** on blocks 1349..1605 before the build (the control's start set
+on 1349 — `form`, the leaders' `SITE[n].reg`, the groups' `held`/`pool` rows, `scouts` — then the rows below).
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Value diff on the word's frame.** Building `1/2024` (`orig_type` 429, the Auto Plant; `uid` 42): `queue[0].job_counter` 17200 ours /
+**17150 theirs** on 1354 (theirs steps 17000, 17100, then the clamp at 17150; ours 27000 is the target it was still climbing to),
+`queued` 4/3, `leader:num_units[206]` 0/1, `num_units`/`active`/`control` 35/36 and the unit `1/42` on 1355. The dump shows the target
+the original's clamp reaches: 17150 where ours reads 27000, a factor of 0.635.
 
-## 195. Reserved for the next item on the AI track
+**Cause.** `ObjectData::train_time@006508c0` lines 109–117, first arm of the national block (before the Japanese barracks and the
+British arms): `has_tribe_bonus(0x11)` — a Mongol — and the unit type's attack (`+0x1e8`) non-zero and its trainer
+(`UnitTypeData +0x40`) `is(0x1ac, 0)` — the Stable line — divide the time by `(MONGOL_STABLE_SPEED + 100) / 100` (`rules.xml`: "20%
+faster creation", `+0x7ec`). It is `train_tail`'s "the Mongol stable" arm the doc comment had set aside as absent from every capture
+until run774. Built: `Sim::train_tail` pushes `Adjust::Faster(mongol_stable_speed)` first; `Tuning::mongol_stable_speed` (20,
+slots 366 → 367). Test `a_mongol_attacker_from_the_stable_trains_faster`.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** run779's widening 1406 → 109 keys; **the word moves 1354 → 2207**: 9 draws ours against 8, index 8, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none — past run779's last block (1605), so unwidened (parked 1768).
+`mongol_pair_first_parting` reads four uncatalogued heights on the walk to 2207 (`GROUND_INEXACT`, 4).
+
+**What stands in the window after 1354** (no draw behind any; parked 1769): on 1583 `leader:bucket[0:food]` 15880/15785 and
+`bucket[1:timber]` 16844/16751, the queued costs of `1/2020` and `1/2028` slot 3 (ours 99/90 and 106/97 against 144/134 and 156/146;
+on 1594 slot 2), and group `held`/`pool` rows on 1356 onwards (the window's first block holds none in theirs).
+
+**Not established.** The `is(0x1ac)` lineage was taken as the listing writes it (the Auto Plant, the trainer here, answers it); a mutation
+run of the arm (`tools/mutate.py`) was not made — the unit test fails without each of its three gates and the widening without the
+call. The Mongol stable cost arm (`MONGOL_STABLE_COST`, 10 %) is the cost side's, unread here; the 1583 rows above may name it.
+
+## 194. The successor pair's word at 2207: a widening, and the idle Freighter `1/72` (2026-10-13, item 1768)
+
+**Baseline.** Word 2207, 9 draws ours against 8, index 8, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none (§193's
+booking), past run779's last block, so unwidened.
+
+**Capture (run780; the disk could not answer: no dump of this lobby held a unit past block 1605).** Click-free lane 1, `--map 18
+--end-frame 2463 --log-window 2201 2458` at the long's detail and the lobby's profile (`docs/RUNS.md`); `rngcmp.py`: 2464 frames, 0
+differing. Widening `diff::mongol_pair::run780_s_word_frame_is_widened_whole`: **897 keys** on blocks 2201..2457 (129 on the window's
+first block — the control's start set, `form`, `SITE[n].reg`, group `held`/`pool` rows, the queued costs of `1/2020` and `1/2028` — and
+the rest from 2212 on); the word's own block 2208 carries none.
+
+**The draw's owner.** `RON_DEBUG_SITES=2206-2207` lists ours' nine draws on 2207: `1/39` (`do_guard`), then `inc_time` anim draws of
+`1/44`, `1/56`×2, `1/66`×2, `1/72`, `1/86`×2. Theirs has the same eight minus one, and the unit that stands in ours and not in theirs is
+**`1/72`** (the only unit whose block differs on 2201 by an idle against a walk): ours `idle 4`, no order, at (29639, 32249); theirs `idle
+0`, one `MOVEORDER` to **(35736, 24984)** (the first `PATHDATA`; nine steps) at (29925, 31796) — a unit walking does not draw its idle
+anim. The unit's own `GUY` block says `type 322`: `TypeIndex` 322, `TRANSPORTFREIGHTER` (ours `type_index` 322, `attack` 0, no worker
+role).
+
+**Where it parts, walked back on ours** (`RON_DEBUG_UNIT=1/72@1739-2201`): born 1739, walks a six-order approach to (27288, 28824), takes
+`[ExploreTo (28200, 31560), Build(50)]` from 2137, and **on 2177 both orders are gone**: `Unit::work`'s target-liveness arm
+(`building_slot_reused(50)`) kills the order — `buildings[50]` is the closed `1/2043` at (28032, 31104), and building **`1/2043` is born
+again on 2177** at (26208, 24672) (a Village site, `act0`, `jc0/42000`), taking the same number, so ours counts the slot reused and
+`process_unit` kills the Build a second time in the same frame. From 2178 the unit is idle in ours: `think` reaches no tail for it
+(`worker None`, not a scout or spy, no army, `think_peasant` never entered) and the `idle` counter runs to 4 by 2201. Theirs has a
+walk to (35736, 24984) in hand by 2201, ≈23 frames of 25 units at (29925, 31796), so begun on 2178–2179. **No dump before 2201 prints
+the unit in theirs**, so what handed it the walk — a think of the Freighter, or an order of the leader's — is not established; nothing
+at (35736, 24984) (no object within 2500 units on 2201) names the destination.
+
+**Score.** The word does not move: 2207, 9 versus 8, index 8. The widening is what this item owed; the cause is parked 1800 with the
+candidates below.
+
+**Candidates, none built.** (a) The original's `Unit::think` tail gives an idle `TRANSPORTFREIGHTER` a job ours omits —
+`think_civilian_transport(u, false)` is reached only through `think_scout`'s tail and a citizen's colonist arm in this crate
+(`crates/sim/src/transport.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
+unit's whole `think`. (b) The slot-reuse kill and the Build order's `exists` test differ in the original by a frame (ours kills twice in
+2177; `Unit::work@0060d180:319` kills once and returns). Killer: whether theirs holds `[Build]` on 2178 — a window around 2170 would
+say, and no dump on disk does.
+
+**Not established.** Everything about what theirs does to `1/72` between 2172 and 2201; the first-block rows of the window are the
+control's start set and are read, not diffed, against anything else; no mutation was run (no mechanism was built).
+
+## 195. The Freighter's walk: `Unit::think_carry`'s worker arm, and the successor pair's word moves 2207 → 2838 (2026-10-13, item 1845)
+
+**Baseline.** Word 2207, 9 draws ours against 8, index 8: the idle anim draw of the Freighter `1/72` (§194, parked 1800).
+
+**What the disk could not answer, and the packet that did (run785).** No dump before 2201 printed `1/72` in theirs. run785 is run780's lobby with
+`--tracer-def RON_STATE_FRAME=2178` and item 597's plan (`docs/RUNS.md`): a packet at logger frame 2178 (the state after tick 2177) **and**
+a `--log-window 2174 2182` that prints the unit on the five blocks before 2201 — theirs holds the unit still on 2178 and 2179 at
+(29639, 32249) and turns it on **2180** (angle `-768278528` → `390856704`), moving from there. So the walk begins on **tick 2179**, the frame after
+the unit's first idle frame (`idle == 1` on 2178), not on a 32-phase think.
+
+**On the packet** (`tools/recomp/step4.py` entered at `Unit::think@005f6e40` with `this` = `units.lists[1][72]`, `fs:` from the capturing
+thread; a scratch copy of step4 pokes `game->frame` and the idle byte): with the unit's `idle` byte 1 the think runs 26,456 instructions and enters
+`Unit::think_carry@005f2ee0` → `think_carry_civilian(1)@005f37c0` → `find_angle`, `update_action`, a `MOVE_TO` add, and **writes the unit's
+destination (35736, 24984)** — exactly §194's `MOVEORDER`. With `idle` 0 it returns in 172 instructions on every frame 2178..2201 but 2200. `think_carry_civilian`'s argument is 1: the Freighter carries a unit of `is_worker` (`unit.inside_down` 37 on the packet).
+
+**The mechanism.** `Unit::think`'s tail, after `think_merchant` and the `leader_flags & 8` exit (never set here), asks `think_carry` for a type
+whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRCRAFTCARRIER`; a `1` ends the think. This crate had no
+`think_carry`, so every transport fell through to the tail's army join. `think_carry` itself:
+
+- `count_inside(COUNT_WORKERS)` non-zero → `think_carry_civilian(1)`; `count_inside(COUNT_TYPE, 0x45)` non-zero → `(0)`;
+  otherwise `count_inside(COUNT_ATTACK) == 0` → `think_carry_idle@005f2f30`, else the attack-carrier arm. **Not modelled** (SEAM; answers
+  no, as before): `think_carry_idle`, the attack arm, and `think_carry_military@005f3260`, the `(0)` call's fall-through.
+- `think_carry_civilian`: every land region of size, `go_here` (bit 1 only for workers), `Region::is_coast(r, the boat's own tregion)`
+  (a `(0)` call also skips a region its leader has scouted); the region's cells strided `max(16, size/50)` and phased by `o + frame` as
+  `think_civilian_transport` (§7); a cell is any `coast_here(r, my region)` ≠ 0 — **no water-half test**; the score is `vector_dist ×
+  max(1, danger)` (`/3` for bit 1, `/2` for bit 2 on a `(0)` call). Then: no region → no; **no cell of the boat's nine (its own and its
+  eight neighbours) in the region** → `MOVE_TO` the chosen cell **plus `MOVE[d]`** with `d` the **last** `coast_here` answer of the whole
+  search, whichever region produced it (`move_x[local_48]`; nothing resets it) — the merchant's inlined `add_move_order(…, QUEUE_NEW)`;
+  **a neighbour in the region** → the sixteen quarter-cells of the boat's cell scored against that neighbour's centre, the nearest walked to,
+  or, when the boat stands in it, `Group::action_eject_all` (**SEAM**: the boat answers yes and keeps its cargo).
+- The listing settles two things the export hides: `find_angle`'s arguments are `(x − ux, y − uy)` to the **unsnapped** centre (§4.3), and
+  the two direction tables (`0xadc400`, `0xadcaf0`) are `MOVE_Y`, `MOVE_X` (`ai_place`), read off the packet.
+
+**Value diff beside the word.** Frame 2201's rows for `1/72` (`pos`, `orders_x`, `orders_y`, the order) now agree with theirs; the one
+remaining `1/72` row is the `form` standing row (ours −1, theirs 0, in the widening's own list). `run780_s_word_frame_is_widened_whole`: **897 → 136
+keys** on blocks 2201..2457. **The word moves 2207 → 2838**, ours 101 draws against 16 on 2838, index 1: ours `Guy::set_anim <
+Unit::do_idle+0x7d`, theirs `Guy::set_anim < Guy::do_turn+0x4a < Unit::move_step+0x389` (the one hypothesis the numbers allow: the
+boat's arrival, 637 frames after the walk's start, which is the unmodelled eject above — a frame and a delta, not a booking of it).
+
+**Killers, each a mutation** (`tools/mutate.py`): the worker arm returned `false` — held by `a_boat_with_a_worker_aboard_walks_to_a_free_shore`;
+`last_dir = 0` (the last-answer offset) — held by `mongol_pair::` (the word falls back); the quarter-cell origin shifted by one — held by
+`a_boat_beside_the_land_walks_to_its_nearest_quarter_cell` (first run: **failed nothing**, which is why that test exists).
+
+**Not established.** The cadence against theirs beyond the one boat; the `(0)` call, the idle and attack arms, the eject; the region *slot*
+order (dense here, as §7's seam); `danger` has no writer here, so the score's second factor is 1; no eject was reached by any capture.
 
 ## 196. Reserved for the next item on the AI track
 
