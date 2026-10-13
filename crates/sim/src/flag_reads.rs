@@ -12,6 +12,11 @@
 //!   unit's twin of [`crate::Building::repeat_air`];
 //! - [`unit_is_blown`]: `unit_masks & 0x1000`;
 //! - [`NUM_PREQ`]: `UnitTypeData::num_preq`, a constant.
+//!
+//! Item 1708 adds [`object_get_captain`] (the signed short at `+0xa`, a
+//! building's `o`), [`tcoord_less`] (`TCoord::operator<`, a signed compare of
+//! the two words) and [`SUPPLIES_LEFT`] (`UnitData::supplies_left`, a
+//! constant).
 
 /// `SubObjectData::is_active@0046cda0`: flags byte `& 1`.
 pub const fn sub_object_is_active(flags: u8) -> bool {
@@ -35,3 +40,15 @@ pub const fn unit_is_blown(unit_masks: u32) -> bool {
 }
 /// `UnitTypeData::num_preq@00470810`: always 2.
 pub const NUM_PREQ: i64 = 2;
+/// `ObjectData::get_captain@00472400`: the signed short at `+0xa` (`o`),
+/// sign-extended. For a building it is the building's own number, which
+/// `fight`'s attacker side reads.
+pub const fn object_get_captain(o: i16) -> i32 {
+    o as i32
+}
+/// `TCoord::operator<@00472b30`: a signed compare of the two words.
+pub const fn tcoord_less(a: i32, b: i32) -> bool {
+    a < b
+}
+/// `UnitData::supplies_left@00609a20`: always 1.
+pub const SUPPLIES_LEFT: i64 = 1;

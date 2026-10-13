@@ -11,6 +11,9 @@
 //! Each test skips, and says so, on a machine without the install or `uv`,
 //! as `path::tests::the_emulated_original_agrees_on_every_row` does.
 
+mod attack_ground_order_get_type;
+mod attack_order_get_type;
+mod build_order_get_type;
 mod build_type_corner_tile;
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
@@ -19,10 +22,12 @@ mod farms_grow;
 mod farms_snip;
 mod find_angle;
 mod flanking;
+mod follow_order_get_type;
 mod gather_point_is_inside;
 mod good_type_compute_largest_gather;
 mod is_air;
 mod is_move;
+mod object_get_captain;
 mod object_has_range;
 mod object_is_in_range;
 mod object_is_peasant;
@@ -31,8 +36,11 @@ mod object_is_worker;
 mod object_max_range;
 mod object_min_range;
 mod object_recharge;
+mod repair_order_get_type;
 mod reversing;
 mod subobject_is_active;
+mod tcoord_less;
+mod think_order_get_type;
 mod type_bonus;
 mod type_build;
 mod type_final;
@@ -62,6 +70,7 @@ mod unit_is_special;
 mod unit_is_supply;
 mod unit_mana_left;
 mod unit_min_range;
+mod unit_supplies_left;
 mod unit_type_blocks_while_dead;
 mod unit_type_get_stance_type;
 mod unit_type_is_caravan;
@@ -89,6 +98,7 @@ mod world_is_ocean;
 mod world_is_oil_at;
 mod world_is_river;
 mod world_is_rocks;
+mod world_is_tocean;
 mod world_is_tree_at;
 mod world_space_at_corner;
 

@@ -6011,10 +6011,7 @@ impl Sim {
     /// sides of the shore — the `(mask & 0x30) == 0x20` test, water against
     /// everything else.
     fn shore_flagged(&self, mut e: PathData, other: Pos) -> PathData {
-        let wet = |p: Pos| {
-            self.world.tile_mask(p.tile()) & crate::world::tile::SURFACE
-                == crate::world::tile::SURFACE_OCEAN
-        };
+        let wet = |p: Pos| self.world.is_tocean(p.tile());
         if wet(e.to) == wet(other) {
             e.flags &= !path_flag::TURN_FIRST;
         } else {
