@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2071) **`repin.py --write` cannot rewrite a golden widening's `const` want
+arrays** (2032's Loop line, filed at its merge): "the want is not a
+literal", so a new chapter's first pin is always by hand. Candidate:
+`repin.py` rewriting a `const NAME: &[…] = &[…];` array in place, with a
+test that fails on a chapter's const first.
+
 (2060) **A parted `queue[k].cost` has no price print with its inputs**
 (2026's Loop line, filed at its merge): `RON_PRICE` lives in one older walk
 (`harness.rs`) and prints the price, not its inputs; 2026 priced the entry
@@ -4007,6 +4013,8 @@ slot — `17410401` against `17410801`, `14336530` against `14336430`, one to fo
 out-of-range search of a non-captain call `find_melee_target_as` with no head. No capture shows a part.
 **Partly closed by 1960** (GOLDEN §71): a Guard's idle look (`do_guard`) takes the head. Still headless for a follower: `fight`'s
 guard-failure search (`guard_check_target`), `chase_refused` and the defensive-post review; none staged.
+**Partly closed by 2032** (GOLDEN §74, run814): `chase_refused`'s `find_new_target` and the guard refusal take the head;
+the refused chase is diff-backed, the guard refusal is parked 2033. The defensive post stands (no script verb sets a stance).
 
 (1830) **closed by 1863** (§69): `group.id`, `near`, and `death:extra` (the instrument).
 
@@ -4199,13 +4207,17 @@ slot whose answer is a function of its first argument (`GoodTypeData::is_flat`'s
 Also: three tracked `crates/sim/src/sweep/world_data_is_valid_*.rs-E` files are BSD `sed -i -E` leftovers from
 item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
 
-## Parked by the next landing, slot X — reserved
+## Parked by item 2032, 2026-10-13 — chapter sixty-one
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot X renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2033) **A follower's guard refusal takes the squad head, and no walk holds it** (2032, `docs/GOLDEN.md` §74): built
+beside the refused chase (`Sim::find_melee_target_headed` in `fight`'s guard refusal). run814 reaches it on 872 (`0/12`)
+and 906 (`0/11`), past the word 780, and this crate's walk had the head and the search both answer nothing there, so a
+mutation of that call fails no test. A walk needs a follower refused while its captain attacks another target, or a
+target in its leash its captain's search misses. Names no frame.
+
+(2034) **The enemy ladder's `find_new_target(this, NULL, 1)` for a follower takes the head** (2032): the same build
+reaches `resolve_unit_collision`'s call (`crate::collide`), with the stance at `STAND_GROUND` across the head as the
+original sets it. No capture holds a follower bumped by an enemy that is not its target. Names no frame.
 
 ## Parked by item 2020, 2026-10-13 — the sweep's forty-second batch
 

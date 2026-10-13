@@ -2751,15 +2751,7 @@ impl Sim {
         match self.melee_squad_head(u) {
             SquadHead::Nothing => None,
             SquadHead::Captain(t, mandatory) => {
-                let pos = if matches!(
-                    self.order_type(u),
-                    index::ATTACK_TO | index::GROUP_ATTACK_TO | index::GUARD
-                ) {
-                    QueuePos::First
-                } else {
-                    QueuePos::New
-                };
-                self.add_attack_order(u, t, pos, mandatory, false);
+                self.squad_head_add(u, t, mandatory);
                 Some(t)
             }
             SquadHead::Search => {
@@ -8868,9 +8860,8 @@ impl Sim {
             }
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
                 self.kill_current_order(u);
-                if let Some(t) = self.find_melee_target(u, -1) {
-                    self.nearby_add(u, t);
-                }
+                // The squad head first (item 2032, `docs/GOLDEN.md` §74).
+                self.find_melee_target_headed(u);
                 if self.order_type(u) == index::ATTACK {
                     self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                 }
@@ -9392,15 +9383,59 @@ impl Sim {
         if stand {
             self.units[u].combat.stance = combat::Stance::StandGround;
         }
-        let found = self.find_melee_target(u, -1);
-        if let Some(t) = found {
-            // SEAM: a group's attack-move may hand the target to
-            // `Group::action_attack` instead; this crate carries that arm
-            // for the attack-move's own look alone.
-            self.nearby_add(u, t);
-        }
+        let found = self.find_melee_target_headed(u);
         self.units[u].combat.stance = stance;
         found
+    }
+
+    /// **`find_melee_target(−1, NULL, 0, 1, 0)` whole, the squad head
+    /// first** (`Unit::find_melee_target@005ff9c0`, lines 32–91; item 2032,
+    /// `docs/GOLDEN.md` §74), as `find_new_target@005ff6a0` and `Unit::fight
+    /// @005fd4d0`'s guard refusal call it. The head sits above both the
+    /// search and the add flag, so it answers every caller: a follower whose
+    /// captain's action is an `ATTACK` on a target it may take adds that
+    /// target ([`Self::squad_head_add`]) and searches nothing; a follower
+    /// whose captain is not attacking gets −1. A captain, or a follower whose
+    /// captain's target it may not take, searches, and `find_nearby_target`
+    /// adds the find ([`Self::nearby_add`]).
+    ///
+    /// run814 is the witness: `0/8`, guarding beside its captain's Stockade
+    /// and out of reach of it, has its chase refused every sixteen frames
+    /// from 689, and the original's `near` stays −1 there (the head writes
+    /// none); on 770 the search would take who=1's Citizen `1/7` where the
+    /// head re-adds the Stockade, and `chase_refused` kills it.
+    pub(crate) fn find_melee_target_headed(&mut self, u: usize) -> Option<Obj> {
+        match self.melee_squad_head(u) {
+            SquadHead::Nothing => None,
+            SquadHead::Captain(t, mandatory) => {
+                self.squad_head_add(u, t, mandatory);
+                Some(t)
+            }
+            SquadHead::Search => {
+                let t = self.find_melee_target(u, -1)?;
+                // SEAM: a group's attack-move may hand the target to
+                // `Group::action_attack` instead; this crate carries that arm
+                // for the attack-move's own look alone.
+                self.nearby_add(u, t);
+                Some(t)
+            }
+        }
+    }
+
+    /// The head's add (`005ff9c0:60`–`85`): `QUEUE_FIRST` under an
+    /// `ATTACK_TO`, a `GROUP_ATTACK_TO` or a `GUARD` in front, `QUEUE_NEW`
+    /// under anything else, with the captain's `mandatory` byte (the
+    /// action's `+0x1c`).
+    fn squad_head_add(&mut self, u: usize, t: Obj, mandatory: bool) {
+        let pos = if matches!(
+            self.order_type(u),
+            index::ATTACK_TO | index::GROUP_ATTACK_TO | index::GUARD
+        ) {
+            QueuePos::First
+        } else {
+            QueuePos::New
+        };
+        self.add_attack_order(u, t, pos, mandatory, false);
     }
 
     /// **`Object::find_nearby_target`'s add** (`00649b3a`–`00649bc0`, the
