@@ -4127,13 +4127,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot V — reserved
+## Parked by item 1999, 2026-10-13 — a bordering city's Fort
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot V renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2008) **The Fort arm's ×10 reads the city its caller passes** (`docs/AI.md` §202): the original's `local_68` is the near building's `+0x72` whenever the near object is a city building, active or not; `ai_host`'s `produce_building` hint passes a city only for an **active** one, so an inactive anchor would score its Fort without the ×10 here. Names no frame; no walk is known to reach it.
 
 ## Parked by the next landing, slot W — reserved
 
