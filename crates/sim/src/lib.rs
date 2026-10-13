@@ -3651,7 +3651,7 @@ impl Sim {
             }
         }
         if hangar
-            && let Some(q) = self.buildings[at].gather.first().copied()
+            && let Some(q) = self.first_gather(at)
             && (self
                 .profile(crate::combat::Obj::Unit(unit))
                 .has(crate::combat::mask::MISSILE)

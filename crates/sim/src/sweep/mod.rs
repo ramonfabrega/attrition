@@ -248,6 +248,7 @@ mod borders_get_who;
 mod build_add_attack_order;
 mod build_data_get_caster_stance;
 mod build_data_get_combat_stance;
+mod build_data_get_first_gather;
 mod build_data_get_packer_stance;
 mod build_data_get_worker_stance;
 mod build_data_is_gathered_by;
