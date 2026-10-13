@@ -15920,3 +15920,31 @@ SHA-256 `ee0b37a38c936e949a9a0f4fa535b78b8c4d96d5ed9ec591e3a6cd16ad3ed2fc`.
 0, beside ours' `calc_road_cost` draws. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`),
 walked by the compared pin with run716's, and the coverage driver reads its block 3396. 149 inexact height reads in
 its window (`GROUND_INEXACT`). `docs/AI.md` §174.
+
+## run742 — the coverage pair: East Indies, Persians, All Technologies, blocks 3837..4094 at the long's detail (2026-10-12, item 1663, `att-1648-sh`)
+
+**Disk gap**: run721 ends at block 3645 and run652 holds the draw stream; nothing dumped this lobby's records at the
+word's frame, 3843 (ours 23 game draws against 28, index 5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`), whose block is 3844. Booked on landing: the frame moved from 3614 to 3843 past run721's window
+on item 1663's change. run721's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`:
+`--map 18 --end-frame 4103 --timeout 3600 --log-window 3837 4095 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool
+(lane 3, `~/wine-ron-3`). First take: receipt `success: true`, `settings_restored: true`, five files restored, exit 0,
+launched 20:13:05, launch-to-exit 1,632 s, 4,104 frames, seed 12345 and map 18 verified; output
+`~/ron-data/lab-captures/2026-10-12-run742`. Blocks `3837`..`4094` whole and a `4104` closing block (259 `BEGIN FRAME`s).
+`rngcmp.py rontrace-run652.log rontrace-run742.log`: **4,104 frames in common, 0 differing**. `MAP_STYLE 18`,
+`DIFFICULTY 5`, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 8` read back. Minutes waited on the capture: 21 (the
+change's whole-suite run and the documents ran beside it); no wait for the lane.
+
+Archive `gamelog-run742-eastindies-persian-alltech-window-3837-4095.txt`, 663,771,495 bytes,
+SHA-256 `07771ad190bbee17a29dc6307c890842500a666860aefa8a03c37bed9d07ea0e`.
+
+Archive `rontrace-run742.log`, 196,630,912 bytes,
+SHA-256 `099528f3b7d0aef9a581347a1a669472c9ee8f523793a358cc3e73c01561fc8d`.
+
+**What it holds**: `diff::coverage_pair::run742_s_word_frame_is_widened_whole` — **2,460** keys on item 1663's tree, 171
+standing on block 3837; the first parting past it is `1/233`'s `form` on 3843. On the word's block 3844 the computer's
+building `1/2042` gives birth to three Mech Infantry `1/235`, `1/236` and `1/237` (`TypeIndex` 104, uids 370–372, at
+(34584, 38712)) and the leader's `num_units[54]` reads 5 against ours' 4. It is the coverage pair's `AI_WORDS` window
+(`coverage_pair_word_window`), walked by the compared pin with run721's, and the coverage driver reads its block 3844.
+111 inexact height reads in its window (`GROUND_INEXACT`). `docs/AI.md` §181.

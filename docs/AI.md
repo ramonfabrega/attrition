@@ -18372,28 +18372,48 @@ angles match the dump's on every frame 3607–3615, which ours' `ang` had
 parted by 4.6° since 3597 before.
 
 **Killers.** The reading would die if the step on 3608 were not along the
-second angle (the forced `along = facing` gives (37454, 42905)'s
-neighbours: (65, −65)-ish, not the dump's), if the unit stood on 3608 as
-before, or if its figure's angle on 3609 parted from the dump's 1573556857.
-None happens: `1/212`'s whole compared record agrees from 3507 to the end
-of the window but `mirror`, and `1/184` and `1/203` — the same shape, on
-3589 and 3598 — lose their `order:kind` and `path` keys too. Not killed, not
-proven: that the arm's `0x40000000` is tested against *remaining* owed
-rather than the owed before the unit turn (the dump's 89.6° against 93.1°
-says remaining, on one frame, 0.28° from the edge); a Helicopter's
-`avg_speed` and `last_speed` use; the aircraft's *air* movement (`do_air_physics`)
-is a different function and was not touched.
+second angle (the unturned facing, 135°, steps (65, +65) — away from the
+point), if the unit stood on 3608 as before, or if its figure's angle on
+3609 parted from the dump's 1573556857. None happens: `1/212`'s whole
+compared record agrees from 3507 to the end of the window but its standing
+`mirror`; `1/184` and `1/203` — the same shape, parted on 3589 and 3598 —
+keep only `form`, `mirror` and `dest_angle`. Not killed, not proven: that the
+`0x40000000` is tested against the *remaining* owed turn rather than the
+owed before the unit turns (the dump's 89.6° against 93.1° says remaining,
+on one frame, 0.28° from the edge); `do_air_physics`, the aircraft's own
+flight, is a different function and was not touched.
 
-**Value diff** (`1/212`, the word's own frame and the frames it parted
-from): before, block 3609 `pos` (37459, 42922)… ours stepped on 3614 not
-3608; after, none of `1/212`'s keys but the standing `mirror` (3506) part
-in run721, and no key at all parts after 3632.
+**Value diff** (`1/212`, run721): before, `pos` parted on block 3608 (ours
+(37368, 42936) standing, the original (37455, 42905)) and `order:kind`,
+`orders.len` and `path:length` on 3614; after, nothing but the standing
+`mirror` (3506) parts, and no key of the window parts after 3632
+(`run721_s_word_frame_is_widened_whole` pins the positions on 3607, 3608 and
+3614, and the three followers' keys).
 
 **Score.** Word **3614 → 3843** (count and sequence, both 3843), ours 23
 draws against 28, index 5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-theirs `Guy::init_real+0x52` — five draws of a unit or building being born.
-Run721 keys 326 → 186. It lies past run721's last block (3645), and run742
-(`docs/RUNS.md`) is the window that holds it. Great Sahara untouched.
+theirs `Guy::init_real+0x52`. Run721 keys 326 → 186; run716's baseline 189 →
+184. 3843 lies past run721's last block (3645), so this landing took **run742**
+(`docs/RUNS.md`, blocks 3837..4094, 4,104 frames, 0 draws differing from
+run652) and widened it whole: 2,460 keys, 171 standing on 3837. Great Sahara
+untouched.
+
+**The next word, 3843** (block 3844, inside run742). The first parted
+records are three units the dump holds alone: `1/235`, `1/236`, `1/237`, Mech
+Infantry (`TypeIndex` 104, 180 hits, uids 370–372) at (34584, 38712), born on
+block 3844 by the computer's building `1/2042` (queue head `type 54`,
+`job_counter` 13600 on 3843 and 13650 on 3844 — both sides agree on it, and
+no key of `1/2042` parts in the window), with the leader's `num_units[54]`
+5 against 4 and `active`/`control` one higher. Ours has no births there (its
+own `1/235` on 3845 is another unit). The five draws are the three guys'
+`Guy::init_real`. Nothing has read why ours does not complete the batch:
+the batch size, the completion test or the queue entry's count are the
+first readings.
+
+**Limits.** The queue costs on 3583, `pool:81`, the group-id keys and the
+leader's buckets stand parted and unexplained. The Helicopter's arm is
+read from the decompile only; one real frame backs it (six more follow the
+same unit), and no other Helicopter in any capture is known to reach it.
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
 

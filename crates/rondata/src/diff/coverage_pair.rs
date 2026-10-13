@@ -1566,12 +1566,12 @@ pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-windo
 /// The window: block 3389 through 3645; the word 3395's own block is 3396.
 pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run721 walked from run651's start with the recorder on. It holds the
+/// run721 walked from run651's start with the recorder on. It held the
 /// word 3439 (item 1647), block 3440, and the word 3585 (item 1648),
 /// block 3586, the word 3587 (item 1661), block 3588, and the word 3614
-/// (item 1662), block 3615; the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// (item 1662), block 3615, until item 1663 moved the word to 3843; the old
+/// words remain checked.
+pub(crate) fn coverage_frame_3395_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1588,7 +1588,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run721_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3395_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1816,6 +1816,84 @@ fn run721_s_word_frame_is_widened_whole() {
         Some(3391),
         "the first parting past the standing block"
     );
+}
+
+/// run742, item 1663: the lobby's blocks 3837..4094 at the long's detail —
+/// the word 3843's block 3844 with seven before it and 250 after.
+pub(crate) const RUN742: &str = "gamelog-run742-eastindies-persian-alltech-window-3837-4095.txt";
+
+/// The window: block 3837 through 4094; the word 3843's own block is 3844.
+pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3837, 4094);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run742 walked from run651's start with the recorder on. It holds the
+/// word 3843 (item 1663), block 3844; the old words remain checked.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run742",
+        &[(RUN742, 3837)],
+        WIDENING_COVERAGE_FRAME_3843,
+        1,
+        &[3844],
+        true,
+    )
+}
+
+#[test]
+fn run742_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    // **2460** on item 1663's tree; 171 stand from the window's first block
+    // (the leader's buckets and escrow, `SITE[..].reg`, the pools, births'
+    // `form`). **The word 3843's block, 3844**: in the original the computer's
+    // building `1/2042` — its queue head a `type 54` batch, `job_counter`
+    // 13600 and 13650 in both — gives birth to three Mech Infantry
+    // (`TypeIndex` 104, 180 hits) `1/235`, `1/236` and `1/237` at (34584,
+    // 38712), uids 370–372, and the leader's `num_units[54]` reads 5 against
+    // ours' 4, `active` 159 against 158; ours has no such births (its `1/235`
+    // on 3845 is another unit). Five draws: `Guy::init_real+0x52`, the
+    // three births' guys. No mechanism is named: ours' `1/2042` carries the
+    // same counter and queue and does not complete, so the batch's size or
+    // its completion test is the item after's first reading.
+    pin_eq!(w.firsts.len(), 2460, "initial run742 baseline");
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 3837)
+        .min();
+    pin_eq!(
+        first,
+        Some(3843),
+        "the first parting past the standing block"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:num_units[54]".to_string()))
+            .map(|(block, _)| *block),
+        Some(3844),
+        "the original's batch of three is born on the word's block"
+    );
+    let path = dump(RUN742).expect("the replay just read run742");
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    for (block, born) in [(3843, false), (3844, true)] {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        for o in [235, 236, 237] {
+            let unit = frame.units.iter().find(|u| (u.who, u.o) == (1, o));
+            pin_eq!(unit.is_some(), born, "1/{o} on {block}");
+            if let Some(u) = unit {
+                pin_eq!(u.uid, Some(370 + (o - 235)), "1/{o}'s identity");
+                pin_eq!(u.guys.first().and_then(|g| g.kind), Some(104));
+            }
+        }
+    }
 }
 
 /// run717, item 1625: blocks 3104..3141 with `GUYS=4` and `AMMO=5` — the
