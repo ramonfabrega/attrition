@@ -19329,12 +19329,85 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 204. Reserved for the next item on the AI track
+## 204. The Statue of Liberty takes a third off a bomber's base, and the third map's word moves 3985 → 4266 (2026-10-13, item 2026)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame, both sides.** Great Sahara in the coverage pair's lobby, word
+3985 (29 draws each, index 1), inside run790's window. The trace
+(`report.py rontrace-run790.log draws 3985`) spends `Leader::make_stuff+0x221`
+twice, then `+0x63d` four times, the four `produce_building+0x1805` jitter
+draws of a building bought, `+0x63d` once; the walk's sites
+(`RON_DEBUG_SITES=3985-3985`) spend `+0x221` once and `+0x63d` five times
+around the same four. `+0x221` is one draw per slot holding the head's type
+(§2.6 step 4), so the two lists' heads differ.
+
+**Every record on 3985, both ways.** The widening (`RON_FIRSTS=1` on
+`run790_s_word_frame_is_widened_whole`) parts nothing on 3985 itself; the
+make list parts on block 3984 (written by frame 3983) and stands identical
+into 3985 on both sides. The original's leader 1 holds `[305 49263, 311
+36000, 58 18110, 141 9667, —, 50 26584, 305 55058, —, 525, —, —]`
+(`STRATEGICBOMBER`, `TRANSPORTHELICOPTER`, `SPY`, `TOW`, `PEASANTS`, the
+bomber again, `SAM`), so its head's type sits in slots 0 and 6 — two
+`+0x221` draws. Ours heads with `JETFIGHTER` (295) at 48705 and carries the
+bomber at 47146: one. Frame 3983 is a `create_units` frame on both sides
+(ten `create_units+0x642` draws each, the same seeds), so the offers' inputs
+differ, not the rolls.
+
+**The record walked back.** Block 3983 (frame 3982) parts first: leader 1's
+`bucket` 73–74 short in timber, wealth, metal and oil, and the queue costs
+— `1/2047` `queue[3].cost[0..1]` ours 173 against 136, `1/2053` 178 against
+141. Both are Airbases; on 3982 each queues one Strategic Bomber
+(`queued` 3 → 4 on both sides). A probe on `Sim::price_with` (one commit,
+reverted whole) printed ours: `of_type` 13 (seven held, six queued), base
+11 × 10, the ramp's five a unit, one percent of military discount —
+`(110 + 65) × 99 / 100 = 173`, and 178 at fourteen. The original's 136 and
+141 are `(73 + 65) × 99 / 100` and `(73 + 70) × 99 / 100`: the base is 73,
+`110 × 67 / 100`, and the ramp is untouched. The earlier bombers in the
+same queues (148, 163, 168) agree with ours and carry no such third.
+
+**The rule** (`TypeData::get_cost@00664090`, listing `00664da7`–`00664e1e`,
+the pre-ramp tail after Despotism and before Uranium): `has_wonder(0x219)`
+(`call 0x6ebc10`); then the unit type's vslot `+0x114`
+(`UnitTypeData::is_missile@0061d430`, the `obj_masks` bit `0x8000000`)
+picks `100 − constants+0x530` (`LIBERTY_MISSILES`, `0% cheaper`), else
+`is(0x130, 0)` — the Bomber's line — picks `100 − constants+0x52c`
+(`LIBERTY_BOMBERS`, `33% cheaper`); `imul`, `× 0x51eb851f`, `sar 5`: one
+truncating `(100 − x) × cost / 100` on the scaled base. The Persians'
+Statue `1/2044` (`orig_type` 537) is a site on run790's first block
+(`construct_hits` 13820) and complete by 3981 (24310, `wonder` 0); the
+frame it completes on is not dated here.
+
+Built: `Modifiers::liberty` (`crates/sim/src/cost.rs`), applied after the
+stable rares and before Uranium; `Sim::liberty_discount`
+(`crates/sim/src/lib.rs`) reading `Sim::wonders_held`'s `has_wonder` and
+the two percentages (`Tuning::liberty_bombers`, `liberty_missiles`, slotted
+against `rules.xml`), on the train and the research arm alike.
+
+**What moved.** The bombers cost 136 and 141, the wealth and oil stay, no
+Jet Fighter heads 3984's list, and 3985's `make_stuff` walks the head's two
+slots. The word moves **3985 → 4266** (sequence; count 4267): 67 draws each,
+index 18, ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
+Guy::move+0x19f` — past run790's last block (4017), so no dump holds it.
+run790's keys 133 → **119**: `1/2047`'s and `1/2053`'s costs, the wealth and
+oil buckets, 3984's `MAKE[0..3]`, 3986's `num_queued[91]` and three
+Barracks' `queued` are gone. What stands before the word is parked 2028.
+Every other lobby's `first_parting`, `floors::`, `coverage_pair::` and
+`coverage::` hold.
+
+**Killers.** `tools/mutate.py` with `self.tuning.liberty_bombers` made `0`:
+`sahara_coverage_first_parting` fails (3985 again, exit 101).
+`cost::tests::the_statue_of_liberty_takes_a_third_off_a_bomber_before_the_ramp`
+holds the order: a third off the whole price would be 115, not 136.
+
+**Not established.** The missile arm (`LIBERTY_MISSILES` ships 0) and a
+research priced under the Statue are read, not walked. The same tail's
+other air arm — Aluminum's `ALUMINUM_AIR_COST` and the Space Program's
+`SPACE_AIR_COST` on a type whose `+0x218` is 2 — and the Barracks' Salt arm
+are not modelled (parked 2027). `LIBERTY_AIR_DEFENSE` is read elsewhere and
+not here.
+
+**Coverage.** Diff-backed: the bombers' price (run790's `queue[3].cost` on
+3983 at both Airbases) and the walk's draws to 4266. Reading-only: the
+missile branch.
 
 ## 205. Reserved for the next item on the AI track
 
