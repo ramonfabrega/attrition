@@ -13792,7 +13792,10 @@ const WANT_CH59: &[&str] = &[
     "605 1/5 form",
 ];
 
-const WANT_CH59_POOL: &[&str] = &["625 slot 1 new_speed", "625 slot 1 speed"];
+/// Empty since item 2002 (`docs/GOLDEN.md` §73): slot 1's `speed`/`new_speed`
+/// 0 against 25 on 625 left when `find_nearby_target`'s add normalizes the
+/// searcher's group.
+const WANT_CH59_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the

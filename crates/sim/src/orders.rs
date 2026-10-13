@@ -2764,6 +2764,7 @@ impl Sim {
             }
             SquadHead::Search => {
                 let t = self.find_melee_target(u, range)?;
+                self.nearby_normalize(u);
                 // A guard's attack-move leg goes under the find
                 // ([`Self::nearby_add`]'s `local_2c`); every other head
                 // keeps the `QUEUE_FIRST` this arm always had.
@@ -2853,6 +2854,7 @@ impl Sim {
     /// target, and a plain `ATTACK_TO` is killed first), and the naval
     /// refusal (`+0x218 == 2`). No capture reaches either.
     fn attack_move_add(&mut self, u: usize, t: Obj) {
+        self.nearby_normalize(u);
         // `local_2c` first: a guard's leg is killed under the attack, and
         // its group never takes the find (`:551`, [`Self::nearby_add`]).
         let group_move = self.guard_activity(u).is_none()
@@ -2869,7 +2871,7 @@ impl Sim {
             self.group_action_attack(&g, t, false, QueuePos::First, 4);
             return;
         }
-        self.nearby_add(u, t);
+        self.nearby_add_order(u, t);
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
@@ -3501,6 +3503,7 @@ impl Sim {
                 && unit.combat.target.is_none()
                 && let Some(t) = self.find_melee_target(u, -1)
             {
+                self.nearby_normalize(u);
                 self.add_attack_order(u, t, QueuePos::New, false, false);
                 // `think_attack`'s tail (`005f5da6`..): a **unit** find by
                 // a unit its group lists is handed to
@@ -9002,6 +9005,7 @@ impl Sim {
                 let Some(t) = self.find_melee_target(u, -1) else {
                     return;
                 };
+                self.nearby_normalize(u);
                 let pos = if state.stance == combat::Stance::Defensive {
                     QueuePos::First
                 } else {
@@ -9418,6 +9422,32 @@ impl Sim {
     ///
     /// SEAM: the naval refusal (`+0x218 == 2`) under an attack-move.
     pub(crate) fn nearby_add(&mut self, u: usize, t: Obj) {
+        self.nearby_normalize(u);
+        self.nearby_add_order(u, t);
+    }
+
+    /// **`Object::find_nearby_target`'s first act on a find it adds**
+    /// (`00648da0`, the decompile's lines 495–499; item 2002,
+    /// `docs/GOLDEN.md` §73): a unit whose group (`+0x80`) is set
+    /// **normalizes that group** — `Group::normalize@00711540`'s prune,
+    /// `find_role`, and the speed tail, `speed = new_speed =
+    /// UnitData::speed(find_leader)` — before the `local_2c` kill and the
+    /// order. Every caller of `find_melee_target` that passes the add flag
+    /// (`do_attack_to`, `do_group_attack_to`, `do_guard`, `think_attack`,
+    /// `find_new_target`, `fight`'s guard refusal) reaches it.
+    ///
+    /// It is what primes a squad pushed with a zero cap: chapter fifty-nine's
+    /// Hoplites (pool slot 1, pushed on 622 at `(0, 0)`) read 25 from 625,
+    /// the frame the captain's guard look finds the Stockade (run801).
+    /// `find_role` is not modelled ([`Sim::groups_process`]).
+    pub(crate) fn nearby_normalize(&mut self, u: usize) {
+        if let Some(seat) = self.seat_of(u) {
+            self.seat_normalize(seat);
+        }
+    }
+
+    /// [`Self::nearby_add`]'s order, once the group is normalized.
+    fn nearby_add_order(&mut self, u: usize, t: Obj) {
         let head = self.order_type(u);
         let pos = if self.guard_activity(u).is_some() {
             if head == index::ATTACK_TO {
