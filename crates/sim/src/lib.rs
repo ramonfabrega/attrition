@@ -4986,10 +4986,13 @@ impl Sim {
     /// four's Religion at 400 moved run132's border 296 → 327 and this
     /// crate's not at all while the level was a constant 1.
     ///
-    /// **Still seams**, because nothing here models them: the Colosseum
-    /// and Eiffel Tower, and the AI handicap allowance, which is
-    /// unreachable in any game run here (`docs/ATTRITION.md`,
-    /// "Territory").
+    /// **The three wonders are `has_wonder`'s** (item 2106): Tikal
+    /// (`0x214`), the Colosseum (`0x212`) and the Eiffel Tower (`0x21c`),
+    /// as [`Sim::wonders_held`] answers. Tikal read `Nation::tikal`, which
+    /// nothing wrote, and the other two a constant `false`.
+    ///
+    /// **Still a seam**: the AI handicap allowance, which is unreachable in
+    /// any game run here (`docs/ATTRITION.md`, "Territory").
     fn player_borders(&self, who: Player) -> territory::PlayerBorders {
         let w = who as usize;
         let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
@@ -4997,15 +5000,16 @@ impl Sim {
         let temple_level = 1 + self.bonus_level(who, &roles.temple_borders_preq) as i32;
         let fort_level = 1 + self.bonus_level(who, &roles.fort_borders_preq) as i32;
         let n = &self.nation[w];
+        let held = self.wonders_held(who);
         territory::PlayerBorders::new(
             &self.tuning,
             civic as usize,
             temple_level,
             fort_level,
             &territory::Wonders {
-                colosseum: false,
-                tikal: n.tikal,
-                eiffel_tower: false,
+                colosseum: held & (1 << tech::wonder::COLOSSEUM) != 0,
+                tikal: held & (1 << tech::wonder::TIKAL) != 0,
+                eiffel_tower: held & (1 << tech::wonder::EIFFEL_TOWER) != 0,
             },
             &territory::NationBonuses {
                 roman: n.romans,

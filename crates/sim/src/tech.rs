@@ -537,6 +537,8 @@ pub mod wonder {
     pub const PYRAMIDS: usize = 0;
     pub const COLOSSUS: usize = 0x20f - BASE;
     pub const HANGING_GARDENS: usize = 0x210 - BASE;
+    /// `COLOSSEUM`: `compute_reg_territory`'s fort and flat border arms.
+    pub const COLOSSEUM: usize = 0x212 - BASE;
     pub const TIKAL: usize = 0x214 - BASE;
     /// The one wonder `has_wonder` holds without a city (`param_1 ==
     /// 0x216`).

@@ -2089,6 +2089,22 @@ impl Sim {
             if build::is_fort(&self.build_types, ty) {
                 self.sync_territory();
             }
+            // `Build::activate@00623e20`, `LAB_00626ac1`: a finished
+            // Colosseum, Eiffel Tower or Tikal zeroes every region's border
+            // stamp, as a fort does — the three wonders
+            // `compute_reg_territory` asks `has_wonder` for (item 2106).
+            let line = &self.tech_tree.roles.wonder_line;
+            let borders = [
+                crate::tech::wonder::COLOSSEUM,
+                crate::tech::wonder::EIFFEL_TOWER,
+                crate::tech::wonder::TIKAL,
+            ];
+            if self.build_types[ty]
+                .tree
+                .is_some_and(|t| borders.iter().any(|&k| line.get(k) == Some(&t)))
+            {
+                self.sync_territory();
+            }
             if !captured && self.building_is(b, Ident::Senate) {
                 self.senate_moves_capital(b);
             }
