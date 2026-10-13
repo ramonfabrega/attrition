@@ -5161,6 +5161,15 @@ impl Sim {
             }
         }
         if std::env::var_os("RON_PROBE_UPATH").is_some() && frame == 4238 {
+            let mut out = String::new();
+            for y in 0..self.coll.h {
+                for x in 0..self.coll.w {
+                    if self.coll.get(x, y) {
+                        out.push_str(&format!("{x} {y}\n"));
+                    }
+                }
+            }
+            std::fs::write(std::env::var("RON_PROBE_UPATH").unwrap(), out).unwrap();
             let (cx, cy) = (391, 625);
             for y in (cy - 30)..=(cy + 8) {
                 let row: String = ((cx - 90)..=(cx + 10))

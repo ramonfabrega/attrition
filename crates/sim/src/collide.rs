@@ -299,8 +299,8 @@ pub fn spiral(r: i32) -> Vec<(i32, i32)> {
 /// `CollBlock`, flattened: one bit per unit cell over the whole map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CollGrid {
-    w: i32,
-    h: i32,
+    pub w: i32,
+    pub h: i32,
     bits: Vec<u64>,
 }
 
