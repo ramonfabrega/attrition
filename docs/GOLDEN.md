@@ -11321,12 +11321,22 @@ and legs agree on every follower and captain to 779; and arm one — `Unit::figh
 **Not backed** by it: `Object::check_target@00649e00`'s leash refusal and `Object::find_nearby_target@00648da0` on
 arm two (past the word), `Unit::update_guard_order@005e3220`, and the defensive post's `UnitData::find_def_pos@00608560`.
 
-## 75. Reserved for the next item on the rules track
+## 75. Chapter sixty-two — a follower's guard refusal under its squad head (item 2066)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 2033 and 2034: the two follower arms item 2032 built through
+`Unit::find_melee_target@005ff9c0`'s squad head that no walk holds — `Unit::fight@005fd4d0`'s guard refusal, and
+the enemy ladder's `find_new_target(this, NULL, 1)`. **What the disk could not answer**: run814 reaches a
+follower's guard refusal only past its word (872, 906), on a state already parted, and there the head and the
+headless search both answer nothing, so a mutation of the call fails no test.
+
+**The census rows the lobby reaches**, named before the capture (`tools/census.py --unbacked`, the simulation
+layer's never-backed rows; each a staged line below enters): `Object::check_target@00649e00` (the guard's leash,
+captains and followers), `Object::find_nearby_target@00648da0` (the captain's search after its refusal, which finds
+the other squad's men or nothing), `Object::valid_target@00648ba0` (every guard's `fight`),
+`Unit::find_attack_pos@00602e60` (the chase's seven-argument entry) and `Unit::update_guard_order@005e3220` (the
+guard issued again on 640: each member's `GUARD` on the Citizen is found and re-offset, where 620 adds it).
+**Not reached**: the head's captain arm under a refusal (§75.2 says why a staging cannot aim at it) and the enemy
+ladder's call for a follower (§75.2: the original makes it for a captain only).
 
 ## 76. Reserved for the next item on the rules track
 
