@@ -3734,6 +3734,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
+from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
+reverses it into "first issued first". So its `[0]` is the current order and `<top>` marks the bottom.
+That cost item 2055's draft a misreading (a leader's bottom guard read as its top). The label could read
+`current first … <bottom>`.
+
 (2105) **The golden floor reads a widening's window as the trace's end**
 (found at 2066's booking): `golden_line_verdict` calls a chapter closed
 when its word is its window's `hi - 1`, and the window it is handed is
@@ -4358,12 +4364,6 @@ standing attrition and `sheltered` rows from 4260, which this item left alone.
 original takes any order whose vslot `+0x20` answers non-zero and reads `+0xb4`'s `TargetOrder`. Item 2055
 read the arm for a `GUARDORDER` off run821's packet. A `FOLLOWORDER` is likely one too, but no listing or
 packet has read it, so ours still walks past a `Follow`.
-
-(2059) **`unitat.py`'s order labels are inverted** (Loop; names no score). The dump prints an order list
-from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
-reverses it into "first issued first". So its `[0]` is the current order and `<top>` marks the bottom.
-That cost item 2055's draft a misreading (a leader's bottom guard read as its top). The label could read
-`current first … <bottom>`.
 
 ## Parked by item 2061, 2026-10-13 — the sweep's forty-fifth batch
 
