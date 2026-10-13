@@ -1243,7 +1243,9 @@ def main(argv=None):
     ap.add_argument('--argfrom', action='append', default=[], help='obj: IDX:OFF:SIZE — argument IDX copies the signed SIZE-byte word at OFF (45%%)')
     ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
     ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
-    ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
+    ap.add_argument('--ret', default=None, help='fwd: none (the default), an integer, or last (the last callee\'s answer); '
+                    'obj: eax (the default) or none, said only for a void function (item 2090: the obj shape '
+                    'took fwd\'s none and eight value-returning sweeps compared no eax)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
     ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
@@ -1280,7 +1282,7 @@ def main(argv=None):
                                                        win=args.win if args.win != 0x400 else 0x200, port=args.port)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
-                                                     own=args.own, ret=args.ret)
+                                                     own=args.own, ret=args.ret or 'none')
         else:
             sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
                                                  port=args.port, off=args.off, via=args.via,

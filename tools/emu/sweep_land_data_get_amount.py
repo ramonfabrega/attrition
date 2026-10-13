@@ -15,7 +15,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from callfn import STACK_BASE, STACK_SIZE, signed  # noqa: E402
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 
 ENTRY = 0x0067e6d0
@@ -45,7 +45,7 @@ def main(argv):
                 args[idx] = int.from_bytes(mem[off:off + size], "little", signed=True)
         h.m.uc.mem_write(this, bytes(mem))
         guard = bytes(h.m.uc.mem_read(this + WIN, 0x20))
-        r = signed(h.call(ENTRY, tuple(args), ecx=this))
+        r = h.call(ENTRY, tuple(args), ecx=this)  # Harness.call signs eax; signed() again would double a negative (item 2090)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {esp:x}: wrong pop"
         assert bytes(h.m.uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"

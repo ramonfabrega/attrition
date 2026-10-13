@@ -39,7 +39,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
             let _ = (&a, &m);
-            match rd(m, 0) {
+            match rd(m, 4) {
                 0 => 0x1a1,
                 1 => 0x1a2,
                 3 => 0x1a4,
@@ -48,7 +48,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 _ => -1,
             }
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "best_gather_type — eax, row `{line}`");
         assert_eq!(
             m,
             unhex(after.trim()),

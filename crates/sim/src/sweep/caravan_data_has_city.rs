@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
             );
             i64::from(m[0xc] & 2 != 0 && ((c2 == a[0] && w == a[1]) || (c3 == a[0] && wh == a[1])))
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "has_city — eax, row `{line}`");
         assert_eq!(m, unhex(after.trim()), "has_city — bytes, row `{line}`");
         n += 1;
     }

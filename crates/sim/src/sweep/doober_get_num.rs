@@ -48,7 +48,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     .wrapping_add(a[2]),
             )
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "get_num — eax, row `{line}`");
         assert_eq!(m, unhex(after.trim()), "get_num — bytes, row `{line}`");
         n += 1;
     }
