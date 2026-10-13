@@ -15962,3 +15962,44 @@ Click-free lane 1, free at launch; `success: true`, 721 frames, seed 12345, map 
 launch to exit. Dump 102,196,977 bytes (sha256 `db9d6ad60b61…`), trace 9,226,496 (`7f5228a2fd17…`), kept in
 `~/ron-golden/ch52fog/map-14`. **What it holds**:
 `golden::chapter_fifty_two_s_fog_plane_agrees_through_the_first_round` — 25 blocks, every fog cell compared.
+
+## run771 — chapter fifty-three's first take, the Dragoon's pair added on 612 (2026-10-13, item 1707)
+
+`docs/GOLDEN.md` §63. The script of run772 with `612 add dragoon who=0 225,152`, `614 add scout who=1 234,148`,
+`616 add 2 hoplites who=1 242,148` and `640 @move 0 46800 29288 31`. **What the disk could not answer**: whether the
+original takes the member `find_melee_target` arm (parked 1688) and the cavalry archer's M5 and M6 (parked 1689); no
+capture staged a group with an idle combat captain and a wounded Scout, or a Dragoon with a held target.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch53a \
+    --map 14 --end-frame 960 --log-window 605 960 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file <the script above>
+```
+
+The first take died before frame 0 (`extra lifecycle or fault records`, a 960-byte trace; kept as `ch53.dead-take1`) and
+was taken again once. Click-free lane 1, `success: true`, 961 frames, seed 12345, map 14, exit 0. Dump 193,012,690 bytes
+(sha256 `a34ad3773679…`), trace 10,408,224 (`c5c1cc66be7b…`), kept in `~/ron-golden/ch53a/map-14`. **What it holds**: no
+test. Its word is **652**, 6 draws against 8: the original's Dragoon `0/31` struck `1/6` on 643 and its round leaves on
+652 (`Ammo::init+0xcd9 < Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d`, index 0; ours
+`Farms::inc_time+0x1ae`), landing on 653 (`1/6` `hits_left` 24 against 50, `damage_frame` 653). §63's tail.
+
+## run772 — chapter fifty-three: the member arm, a Dragoon past a Scout (2026-10-13, item 1707)
+
+`docs/GOLDEN.md` §63, `tools/gamelog/golden/chapter53.cmd` (10 staged lines). **What the disk could not answer**: as
+run771's, and the Dragoon's pair moved to 942, after the last wound the member arm is read on.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch53 \
+    --map 14 --end-frame 1120 --log-window 605 1120 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter53.cmd
+```
+
+Click-free lane 1, free at launch; `success: true`, 1121 frames, seed 12345, map 14, exit 0; `issuesmatch.py
+--none-refused`: 2 issue records, 0 refused (on run771's trace, the same lines; run772's `@move`s are 639 and 970).
+Dump 268,096,624 bytes (sha256 `f9a0e826be76…`), trace 10,725,344 (`11ef1d315da3…`), kept in `~/ron-golden/ch53/map-14`.
+**What it holds**: `golden::chapter_fifty_three_s_word_frame_is_widened_whole` (605..966, 36 rows and 15 pool rows) and
+`chapter_fifty_three_holds_to_the_golden_word` (**962**). The member arm's four wounds (818, 844, 872, 906) agree.
