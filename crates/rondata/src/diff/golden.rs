@@ -13497,7 +13497,7 @@ fn chapter_fifty_three_s_word_frame_is_widened_whole() {
         WIDENING_CHAPTER_FIFTY_THREE,
         1119,
         0,
-        (1004, 1007),
+        (1099, 1101),
         true,
         CHAPTER_EIGHT_LEADER_KEYS,
     ) else {
@@ -13546,12 +13546,11 @@ const WANT_CH53: &[&str] = &[
     "943 0/6 death:extra",
     "963 0/31 g.des_turret0[0]",
     "965 0/31 g.turret0[0]",
-    "1005 0/31 ammo[0]",
-    "1006 1/11 damage_frame",
-    "1006 1/11 hits:damage",
-    "1006 1/11 hits_left",
-    "1007 0/12 g.cur_anim[0]",
-    "1007 0/12 g.end_time[0]",
+    "1068 0/31 g.node_flags[0]",
+    "1100 0/31 ammo[0]",
+    "1100 1/8 damage_frame",
+    "1100 1/8 hits:damage",
+    "1100 1/8 hits_left",
 ];
 
 const WANT_CH53_POOL: &[&str] = &[

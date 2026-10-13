@@ -441,6 +441,28 @@ mod tests {
         }
     }
 
+    /// **A request for `CHAR_ATTACKWALK` asks the reload** (`Guy::set_anim@
+    /// 005da300`'s head, run772's Dragoon on 1021 and 1022, `docs/GOLDEN.md`
+    /// §65): from another animation, a reload under six frames is cleared and
+    /// the walk-and-shoot plays; six and over, the walk plays instead. From
+    /// `CHAR_ATTACKWALK` itself the request leaves the reload alone.
+    #[test]
+    fn an_attack_walk_request_clears_a_short_reload_and_refuses_a_long_one() {
+        for (rest, from, anim, left) in [
+            (4u8, crate::anim::WALK, crate::anim::ATTACKWALK, 0u8),
+            (6, crate::anim::WALK, crate::anim::WALK, 6),
+            (4, crate::anim::ATTACKWALK, crate::anim::ATTACKWALK, 4),
+        ] {
+            let (mut sim, ty) = field(true);
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            sim.units[me].guys[0].anim = from;
+            sim.units[me].combat.recharging = rest;
+            sim.guy_set_anim(me, 0, crate::anim::ATTACKWALK, false, true);
+            assert_eq!(sim.units[me].guys[0].anim, anim, "from {from}, rest {rest}");
+            assert_eq!(sim.units[me].combat.recharging, left);
+        }
+    }
+
     /// **A guard's attack-move leg goes under the attack its look finds**
     /// (`find_nearby_target@00648da0:551`, `local_2c`; run657's `1/69` on
     /// 17166: `[Attack, Guard]`, path 0). A bare attack-move keeps its
