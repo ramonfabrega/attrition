@@ -16366,3 +16366,23 @@ Lane 1, 510 s, kept in `~/ron-golden/ch59fog`. Chapter 59's script with `WORLD=6
 Same script, `--end-frame 622 --log-window 600 612` (a staged `@guard` at 620 refuses a lower end frame), kept in
 `~/ron-golden/ch59early`. Shows the squad's members born at their seated spots on 603 (43752/43896/43800,
 29880/29880/30024). Read by item 1988; no test holds it.
+
+## run814 — chapter sixty-one: two guarding squads, a follower's refused chase and refused target (2026-10-13, item 2032)
+
+`docs/GOLDEN.md` §74, `tools/gamelog/golden/chapter61.cmd` (13 staged lines). **What the disk could not answer**: no
+dump holds a squad follower in `Unit::fight`'s refused chase or its guard refusal (run801's followers stood in reach of
+their Stockade). Census rows the lobby reaches: §74 names them. run815 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch61 \
+    --map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter61.cmd
+```
+
+Pool lane 1, first take held: `success: true`, 1,001 frames, seed 12345, map 14, 656 s; `issuesmatch.py
+--none-refused`: three issue records, none refused. Dump 182,977,677 bytes, kept in `~/ron-golden/ch61/map-14`.
+Waited on another lane's capture: none. **What it holds**: `golden::chapter_sixty_one_holds_to_the_golden_word`
+(**780**, scene two's captain `0/10`) and `chapter_sixty_one_s_word_frame_is_widened_whole` (605..781, 30 rows and 1
+pool row).
