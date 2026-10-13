@@ -892,3 +892,10 @@ every row**, no parting: constants `Window::on_focus@0041dbe0` (1),
 `PatrolOrder::get_patrol_order@004843e0` (`- 0x44`); offsets are the emulated
 original's, new `flag_reads` constants, no live port consumer.
 `docs/journal/2026-10-13-item-1735.md`.
+
+**Item 1760, the sweep's fifteenth batch** (2026-10-13): **simulation backed 198
+of 3,611 (5.5 %)** — 31 by a coverage section, 167 by a sweep. Ten packet-free
+`sweep/` tests, all agree, no parting: `GameAccessConst::get_scary_{fog,cliffs,doobers}`
+(global addresses), `get_scary_{camera,console,terrain,scene}` and
+`Signposts::{get_num,cur_x,cur_y}` (one global cell's word); no live port
+consumer. `docs/journal/2026-10-13-item-1760.md`.

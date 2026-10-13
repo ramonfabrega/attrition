@@ -87,3 +87,16 @@ pub const fn tcoord_less(a: i32, b: i32) -> bool {
 }
 /// `UnitData::supplies_left@00609a20`: always 1.
 pub const SUPPLIES_LEFT: i64 = 1;
+/// `GameAccessConst::get_scary_fog@005833b0`: the address of the global `fog`.
+pub const FOG_ADDR: u32 = 0x00e8_a790;
+/// `GameAccessConst::get_scary_cliffs@00583370`: the address of the global `cliffs`.
+pub const CLIFFS_ADDR: u32 = 0x00e8_8eb0;
+/// `GameAccessConst::get_scary_doobers@00583420`: the address of the global `doobers`.
+pub const DOOBERS_ADDR: u32 = 0x00ea_fda0;
+/// The getters that return a global cell's word as it stands:
+/// `GameAccessConst::get_scary_camera@005833a0`, `get_scary_console@005833c0`,
+/// `get_scary_terrain@00583400`, `get_scary_scene@00583470`,
+/// `Signposts::get_num@00897bc0`, `cur_x@00897a60`, `cur_y@00897a50`.
+pub const fn global_cell(word: i32) -> i32 {
+    word
+}
