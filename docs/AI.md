@@ -18315,10 +18315,85 @@ Nothing here has read the cause.
 guard followers above are parted and unexplained. No capture was taken; the
 disk answered everything (run721 blocks 3586–3616, the run652 trace).
 
-## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+## 181. A Helicopter owing a quarter turn or less steps at once, and the word at 3843 (2026-10-12, item 1663)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3614 (count 3615), 30 versus 30 draws, index 6:
+ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
+Unit::do_guard+0x7f4` (§180). The first parted record on block 3615 is
+`1/212`: `order:kind` 2 against 12, `path:length` 1 against 0.
+
+**Who the unit is.** `1/212`'s `GUY` block says `type 311`; the computer's
+make list on 3581 names 311 beside 295 and 305 as the Jet Fighter, Strategic
+Bomber and **Transport Helicopter** (§179), so it is a Helicopter
+(`unit_flags & 0x20`), a follower of the guard target uid 326 (offset (1170,
+−780)). Nothing about it is a foot unit.
+
+**What the dump does** (run721, `UNITDATA` and `GUY` of `1/212`, blocks
+3607–3615). On 3607 the `AttackTo` leg to (37368, 42936) ends by the snap
+and the unit stands there facing 1653145600 (138.4°). On 3608 `do_guard`
+lays the next leg, to the guard point's new position (37464, 42840) — 136
+away — and the unit **steps 92 at once**, to (37455, 42905), while its
+figure's angle turns by the unit-rate 3.4° (1653145600 → 1612330860). It
+then stands five frames (3609–3613) with the figure turning (1573556857 …
+1225178315) and `timer` counting down from 29, and on 3614 it is on (37464,
+42840) with the leg ended: `do_guard` stands on its post, which is the
+original's `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Ours turned in
+place on 3608–3613 (`move_step`'s near and far arms) and stepped on 3614,
+the same animation rolled from `Guy::move`.
+
+**The reading** (`Unit::move_step@005faf30`, the decompile; the listing
+not opened). After the unit-rate turn the function tests `(type + 0x2b4 &
+0x20) == 0 || 0x40000000 < owed`, where *owed* is what that turn left. The
+land arm below it is the near/far turn-in-place pair and the half step this
+crate had. A Helicopter owing **no more than a quarter turn** skips both:
+`Guy::do_turn` takes the unit-rate facing as always (fifth argument 0, no
+turn animation), and then `local_8` is turned **again**, from the guy's
+angle toward the bearing, by `GuyData::turn_speed(1)` — the body's rate — or
+snapped when within 3° or the rate; that second angle is the direction of the
+step and is **not stored**. The step is the full `param_2`, with the same
+clamp and snap as ever. On 3608 the numbers are exact: bearing 45.4°,
+facing 138.4°, owed 93.1° less the unit rate 3.4° is 89.6° — under 90° by
+0.28° — so the arm runs; the second turn takes 135.0° down 64.6° (the base,
+`base / (avg_speed / 4 + 1)` being the unit rate and `base` the body's) to
+70.4°, and 92 along 70.4° is (87, −31): the dump's (37455, 42905). From
+there the bearing is 7.4° and the facing 135°, 127° owed — over the quarter
+turn — so the unit turns in place until the owed turn is under 90° on 3614,
+when the point is within a step and the snap lands it.
+
+**The change.** `crates/sim/src/movement.rs`: `move_step_for` (the old
+`move_step` is `move_step_for(…, None)`), taking `body_rate: Option<u32>` —
+`Some(turn_speed(…, TurnMode::Body))` for a Helicopter — and the new
+`HELICOPTER_TURN_LIMIT`; the near and far arms and the half steps are
+skipped when `owed <= 0x40000000`, and the step's direction is the second
+turn. `crates/sim/src/orders.rs` `unit_step` passes it from `is_helicopter`.
+Unit test `movement::tests::a_helicopter_owing_a_quarter_turn_or_less_steps_at_once`
+(the six frames' numbers; fails with the arm off — run). The figure's
+angles match the dump's on every frame 3607–3615, which ours' `ang` had
+parted by 4.6° since 3597 before.
+
+**Killers.** The reading would die if the step on 3608 were not along the
+second angle (the forced `along = facing` gives (37454, 42905)'s
+neighbours: (65, −65)-ish, not the dump's), if the unit stood on 3608 as
+before, or if its figure's angle on 3609 parted from the dump's 1573556857.
+None happens: `1/212`'s whole compared record agrees from 3507 to the end
+of the window but `mirror`, and `1/184` and `1/203` — the same shape, on
+3589 and 3598 — lose their `order:kind` and `path` keys too. Not killed, not
+proven: that the arm's `0x40000000` is tested against *remaining* owed
+rather than the owed before the unit turn (the dump's 89.6° against 93.1°
+says remaining, on one frame, 0.28° from the edge); a Helicopter's
+`avg_speed` and `last_speed` use; the aircraft's *air* movement (`do_air_physics`)
+is a different function and was not touched.
+
+**Value diff** (`1/212`, the word's own frame and the frames it parted
+from): before, block 3609 `pos` (37459, 42922)… ours stepped on 3614 not
+3608; after, none of `1/212`'s keys but the standing `mirror` (3506) part
+in run721, and no key at all parts after 3632.
+
+**Score.** Word **3614 → 3843** (count and sequence, both 3843), ours 23
+draws against 28, index 5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+theirs `Guy::init_real+0x52` — five draws of a unit or building being born.
+Run721 keys 326 → 186. It lies past run721's last block (3645), and run742
+(`docs/RUNS.md`) is the window that holds it. Great Sahara untouched.
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
 

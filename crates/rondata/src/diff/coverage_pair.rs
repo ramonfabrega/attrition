@@ -232,7 +232,10 @@ pub(crate) struct Pair {
     /// refuses it before `find_path` marches (`docs/AI.md` §180): the count
     /// **3615**, the sequence **3614** — 30 versus 30 draws, index 6: ours
     /// `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
-    /// < Unit::do_guard+0x7f4`.
+    /// < Unit::do_guard+0x7f4`. Item 1663 lets a Helicopter owing a quarter
+    /// turn or less step at once (`docs/AI.md` §181): **3843** both ways,
+    /// 23 versus 28 draws, index 5: ours `Guy::set_anim+0x97a <
+    /// Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -250,8 +253,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3615,
-    sequence: 3614,
+    count: 3843,
+    sequence: 3843,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1542,7 +1545,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 184, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1621,9 +1624,14 @@ fn run721_s_word_frame_is_widened_whole() {
     // the computer's make list on 3581 agrees with the original's.
     // Item 1662: 394 -> 326 keys once `find_path` lifts a unit off a tile
     // that refuses it (`docs/AI.md` §180); the window now holds block 3615.
+    // Item 1663: 326 -> 186 keys once a Helicopter owing a quarter turn or
+    // less steps at once (`docs/AI.md` §181): the three guard followers
+    // `1/184`, `1/203` and `1/212` lose their orders, paths and positions
+    // (only `mirror` and `1/184`'s `dest_angle` stand). Nothing parts in the
+    // window past block 3632; the word 3843 lies beyond it, in run742.
     pin_eq!(
         w.firsts.len(),
-        326,
+        186,
         "run721 after find_path lifts a unit off a refusing tile"
     );
     let path = dump(RUN721).expect("the replay just read run721");
@@ -1714,6 +1722,41 @@ fn run721_s_word_frame_is_widened_whole() {
         .find(|u| (u.who, u.o) == (1, 133))
         .unwrap();
     pin_eq!((walker.pos.x, walker.pos.y), (40548, 37539));
+    // **Item 1663's value diff** (`docs/AI.md` §181): the Transport
+    // Helicopter `1/212` (`TypeIndex` 311, a guard follower) steps 92 at
+    // once on block 3608, to (37455, 42905), while its figure turns 3.4°;
+    // it stands turning five frames and snaps onto (37464, 42840) on 3614.
+    // Ours stood on 3608 and stepped on 3614. Only the standing `mirror`
+    // parts now, and the other two followers keep nothing but their form, mirror and `1/184`'s
+    // `dest_angle`.
+    for (block, at_x, at_y) in [
+        (3607, 37368, 42936),
+        (3608, 37455, 42905),
+        (3614, 37464, 42840),
+    ] {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        let heli = frame
+            .units
+            .iter()
+            .find(|u| (u.who, u.o) == (1, 212))
+            .unwrap();
+        pin_eq!((heli.pos.x, heli.pos.y), (at_x, at_y), "1/212 on {block}");
+    }
+    pin!(
+        w.firsts
+            .keys()
+            .filter(|(who, o, _)| (*who, *o) == (1, 212))
+            .all(|(_, _, what)| what == "mirror"),
+        "the Helicopter 1/212 parts on nothing but its standing mirror"
+    );
+    pin!(
+        w.firsts
+            .keys()
+            .filter(|(who, o, _)| matches!((*who, *o), (1, 184) | (1, 203)))
+            .all(|(_, _, what)| matches!(what.as_str(), "mirror" | "dest_angle" | "form")),
+        "the followers 1/184 and 1/203 keep their standing form, mirror and dest_angle only"
+    );
     for block in [3394, 3395, 3396] {
         let at = ix.frames().iter().position(|f| f.number == block).unwrap();
         let frame = ix.frame_state(at).unwrap();
@@ -1770,7 +1813,7 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3390),
+        Some(3391),
         "the first parting past the standing block"
     );
 }

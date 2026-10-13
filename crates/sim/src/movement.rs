@@ -409,6 +409,10 @@ pub const fn turn_speed(
 ///   which no shortest turn can reach.
 pub const CREW_TURN_SPEED: u32 = 0x4000_0000;
 
+/// The most a Helicopter may owe, after the unit's own turn, and still walk
+/// this frame: a quarter turn (`move_step@005faf30`'s `0x40000000 < owed`).
+pub const HELICOPTER_TURN_LIMIT: u32 = 0x4000_0000;
+
 /// A heading below this much from its target counts as already facing, and
 /// snaps. Three degrees.
 pub const FACING_TOLERANCE: u32 = 0x0222_2220;
@@ -572,9 +576,40 @@ pub fn move_step(
     turn_first: bool,
     half_step: bool,
 ) -> Step {
+    move_step_for(
+        from, facing, dest, step, turning, turn_rate, turn_first, half_step, None,
+    )
+}
+
+/// [`move_step`] for a type that may fly like a helicopter: `body_rate` is
+/// `Some(GuyData::turn_speed(1))` for a unit with `unit_flags & 0x20`.
+///
+/// `move_step@005faf30` opens its turning block with
+/// `(type + 0x2b4 & 0x20) == 0 || 0x40000000 < owed` — owed being what the
+/// unit-rate turn left. A Helicopter owing **no more than a quarter turn**
+/// takes the other arm: `Guy::do_turn` to the unit-rate facing as always, but
+/// no turn in place and no half step. The step is taken at once, along a
+/// direction turned a **second** time toward the bearing at the body's own
+/// rate — an angle the unit never keeps (its facing is the first turn's). A
+/// Transport Helicopter ordered 135° from its bearing steps at its full
+/// speed along 70° on the frame it is ordered, and stands turning in place
+/// once the bearing is over a quarter turn off (`docs/AI.md` §181).
+#[allow(clippy::too_many_arguments)]
+pub fn move_step_for(
+    from: Pos,
+    facing: Angle,
+    dest: Pos,
+    step: i32,
+    turning: &Turning,
+    turn_rate: u32,
+    turn_first: bool,
+    half_step: bool,
+    body_rate: Option<u32>,
+) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
     let heading = find_angle(dx, dy);
     let (facing, owed) = turn_towards(facing, heading, turn_rate);
+    let flying = body_rate.filter(|_| owed <= HELICOPTER_TURN_LIMIT);
     let manh = dx.abs() + dy.abs();
     let slow: i32 = if turning.type_turn_speed < SLOW_TURN_BELOW {
         2
@@ -592,7 +627,9 @@ pub fn move_step(
         turned_in_place: None,
         half_step_used: false,
     };
-    if manh < slow * UNITS_PER_TILE || turn_first {
+    if flying.is_some() {
+        // The Helicopter's arm: no turn in place, whatever is owed.
+    } else if manh < slow * UNITS_PER_TILE || turn_first {
         // Close in — or told to by the waypoint — any turn still owed
         // costs the frame.
         if owed != 0 {
@@ -622,7 +659,9 @@ pub fn move_step(
     // says and keeps the flag, and a unit owing less halves only if the
     // flag is set and spends it doing so (`docs/COLLISION.md` §7).
     let mut half_step_used = false;
-    let step = if owed >= FORTY_FIVE / slow as u32 {
+    let step = if flying.is_some() {
+        step
+    } else if owed >= FORTY_FIVE / slow as u32 {
         step / 2
     } else if half_step {
         half_step_used = true;
@@ -645,9 +684,24 @@ pub fn move_step(
     }
 
     // Along the facing the unit actually has after turning, not the heading it
-    // wants — a unit mid-turn walks where it is pointing.
-    let mut sx = sin_component(facing, step);
-    let mut cy = cos_component(facing, step);
+    // wants — a unit mid-turn walks where it is pointing. A Helicopter walks
+    // along that facing turned once more, by the body's rate.
+    let along = match flying {
+        Some(rate) => {
+            let delta = (heading.0 as u32).wrapping_sub(facing.0 as u32);
+            let left = if delta > 0x8000_0000 { !delta } else { delta };
+            if left < FACING_TOLERANCE || rate >= left {
+                heading
+            } else if delta < 0x8000_0001 {
+                Angle((facing.0 as u32).wrapping_add(rate) as i32)
+            } else {
+                Angle((facing.0 as u32).wrapping_sub(rate) as i32)
+            }
+        }
+        None => facing,
+    };
+    let mut sx = sin_component(along, step);
+    let mut cy = cos_component(along, step);
     if manh < 2 * step {
         if sx.abs() > dx.abs() {
             sx = dx;
@@ -1277,6 +1331,55 @@ mod tests {
         assert!(s.pos.y < 0, "moved the wrong way");
         assert!(s.pos.x > 0, "walked along the heading, not the facing");
         assert_eq!(s.pos.x.abs() + s.pos.y.abs(), 16, "not a half step");
+    }
+
+    /// **A Helicopter owing a quarter turn or less steps at once**
+    /// (`move_step@005faf30`'s `0x20` arm; `docs/AI.md` §181). Run721's
+    /// Transport Helicopter `1/212`, on frames 3607..3614: a leg to a point
+    /// (96, −96) away, 93° off its facing. The unit's own turn leaves it
+    /// owing 89.6° — under the quarter turn — so it takes the full 93-unit
+    /// step the frame it is ordered, along its facing turned a second time
+    /// by the body's rate (70°, not the 45° bearing), keeping only the first
+    /// turn; the next frames it owes more than a quarter turn again and
+    /// stands, and on the sixth it snaps onto the point. Every number is the
+    /// dump's: positions, and `GUY` angles 1612330860 and 1070082303.
+    #[test]
+    fn a_helicopter_owing_a_quarter_turn_or_less_steps_at_once() {
+        let from = Pos::new(37368, 42936);
+        let dest = Pos::new(37464, 42840);
+        let facing = Angle(1_653_145_600);
+        let (unit_rate, body_rate) = (40_814_740, 775_480_064);
+        let fly = |from, facing, rate| {
+            move_step_for(
+                from,
+                facing,
+                dest,
+                93,
+                &CITIZEN,
+                rate,
+                false,
+                false,
+                Some(body_rate),
+            )
+        };
+        let first = fly(from, facing, unit_rate);
+        assert_eq!(first.facing, Angle(1_612_330_860));
+        assert_eq!(first.pos, Pos::new(37455, 42905));
+        assert_eq!(first.turned_in_place, None);
+        // The same board without the flag turns in place: owing over 45°,
+        // a tile out.
+        let land = move_step(from, facing, dest, 93, &CITIZEN, unit_rate, false, false);
+        assert_eq!(land.pos, from);
+        assert_eq!(land.turned_in_place, Some(TurnArm::Far));
+        // Over a quarter turn off the new bearing, it stands.
+        let stands = fly(first.pos, Angle(1_573_556_857), unit_rate);
+        assert_eq!(stands.pos, first.pos);
+        assert_eq!(stands.turned_in_place, Some(TurnArm::Near));
+        // Under it, and within a step of the point: the snap.
+        let snap = fly(first.pos, Angle(1_225_178_315), 155_096_012);
+        assert_eq!(snap.facing, Angle(1_070_082_303));
+        assert_eq!(snap.pos, dest);
+        assert!(snap.snapped);
     }
 
     #[test]

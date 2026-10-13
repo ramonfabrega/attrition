@@ -573,8 +573,9 @@ SEAM: `Group::action_unitmask@006fcb90`, reached from
 a group's members from the order stream. Nothing in the corpus sends bit 3
 through it, and this crate has no counterpart.
 
-Not modelled, and listed at the end: the flyer branch (`unit_flags & 0x20`,
-which turns by the body's rule instead), `detect_unit_collision` /
+Not modelled, and listed at the end: ~~the flyer branch (`unit_flags & 0x20`,
+which turns by the body's rule instead)~~ (**modelled 2026-10-12, item 1663:
+`movement::move_step_for`, `docs/AI.md` §181**), `detect_unit_collision` /
 `resolve_unit_collision`, the rest of the path stack's flags, and the
 order angle the unit snaps to on the final waypoint.
 
@@ -1360,10 +1361,17 @@ the checks below.
   `tdata[tile_xs·y + x].mask & 0x800` and nothing else. It is a **river**,
   and run75 is the run that watches a scout wade one at half speed — "The
   river halves a land unit's step" above.
-- **The flyer branch of `move_step`.** A type with `unit_flags & 0x20` owing
+- ~~**The flyer branch of `move_step`.** A type with `unit_flags & 0x20` owing
   less than a quarter turn turns by `do_turn` and then again by the body's
   rate, with no turn-in-place and no half step. Read, not modelled: the
-  simulation has no aircraft.
+  simulation has no aircraft.~~ **Modelled 2026-10-12 (item 1663)**: the
+  Helicopter's arm — owing no more than a quarter turn *after the unit-rate
+  turn*, it takes the full step the frame it is ordered, along its facing
+  turned a second time by the body's rate (the unit keeps only the first
+  turn) — is `move_step_for`, backed by a Transport Helicopter's six frames
+  in run721 (`docs/AI.md` §181). The test is on the turn *remaining after
+  the unit's own turn* (`0x40000000 < local_10` in `move_step@005faf30`'s
+  decompile); the listing was not opened.
 - **Pathfinding.** `PathFinder`, `PathNode`, a `BRTree` and a `Stack<PathData>`
   per unit. `move_step` takes the top of the stack as its waypoint and pops it
   on arrival; `PathData.flags & 4` forces turn-in-place and `& 2` allows a
