@@ -4213,11 +4213,18 @@ item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
 beside the refused chase (`Sim::find_melee_target_headed` in `fight`'s guard refusal). run814 reaches it on 872 (`0/12`)
 and 906 (`0/11`), past the word 780, and this crate's walk had the head and the search both answer nothing there, so a
 mutation of that call fails no test. A walk needs a follower refused while its captain attacks another target, or a
-target in its leash its captain's search misses. Names no frame.
+target in its leash its captain's search misses. Names no frame. **Amended by item 2066** (`docs/GOLDEN.md` §75): the captain's-target arm is
+reached only on a frame after the follower collided (`fight`'s mirror writes the captain's target into the follower's
+order first), which no staging aims at and no walk in the suite reaches; the nothing-against-search arm is staged in
+run818, on 905, five frames past its word 900 — the item on that word reaches it.
 
 (2034) **The enemy ladder's `find_new_target(this, NULL, 1)` for a follower takes the head** (2032): the same build
 reaches `resolve_unit_collision`'s call (`crate::collide`), with the stance at `STAND_GROUND` across the head as the
-original sets it. No capture holds a follower bumped by an enemy that is not its target. Names no frame.
+original sets it. No capture holds a follower bumped by an enemy that is not its target. Names no frame. **Amended by item 2066** (`docs/GOLDEN.md` §75): the premise is false —
+`Unit::resolve_unit_collision@005f9d30` makes that call for a captain only (the export's line 233). A follower reaches
+`find_new_target(this, NULL, 1)` through `Unit::do_move@005f7b30`'s `ATTACK` retarget (line 105), this crate's
+dormant `SEAM` in `do_move`, which no walk in the release suite reaches (a probe: 19 suspended searches under an
+`ATTACK`, none on the retarget's phase with `repaths` set).
 
 ## Parked by item 2020, 2026-10-13 — the sweep's forty-second batch
 
@@ -4307,13 +4314,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AF — reserved
+## Parked by item 2066, 2026-10-13 — chapter sixty-two
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2067) **Chapter sixty-one's 780 is the captain's re-search finding nothing there** (2066, measured on run814 while
+staging): on 778 `0/10`'s attack on who=1's Citizen `1/6` takes `fight`'s captain arm — the one-in-five draw, a
+non-combat target, `find_new_target` — and the original's search writes `near` −1 and adds nothing, where this crate's
+finds `1/6` again and chases. `target_is_seen` answers true here: four of who=0's discs lit `1/6`'s half-cell (104, 79)
+at the 733 resync, at the same positions the dump prints. Whether the original's fog or its search refuses is open;
+a packet at 778, or a capture printing `WORLD=6` per frame as run770 did, settles it. Names the frame 780.
+
+(2068) **`1/8`'s first wound on run818's 841 is 13 here and 9 there** (2066, `docs/GOLDEN.md` §75): `hits_left` 107
+against 111, `damage_frac` 5 against 0, one block, no draw; a row before the word 900. A rally-armor family (parked
+666) is the nearest standing reading, unverified. Names no frame.
 
 ## Parked by the next landing, slot AG — reserved
 

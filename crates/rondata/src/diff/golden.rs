@@ -13977,7 +13977,7 @@ fn chapter_sixty_two_s_word_frame_is_widened_whole() {
 // 703); both leaders' `treaties[·]` on 757, the first blow, 2 here and 3
 // there (chapter eight's standing family, `docs/GOLDEN.md` §12); and `1/8`'s
 // first wound on 841, 13 here and 9 there (`hits_left` 107 against 111;
-// parked 2069). The word frame itself carries none: its rows are block 901's.
+// parked 2068). The word frame itself carries none: its rows are block 901's.
 const WANT_CH62: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
