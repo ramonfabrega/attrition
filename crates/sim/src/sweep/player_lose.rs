@@ -15,7 +15,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (flags, play, console) = (a[0], a[1], a[2]);
         assert_eq!(a[3], flags | 0x80, "the flags — row `{line}`");
         assert_eq!(a[4], 1, "the game is ended once, on this — row `{line}`");
-        let sound = (flags & 0x40 == 0).then(|| if play == console { 0x7f } else { 0x66 });
+        let sound = (flags & 0x40 == 0).then_some(if play == console { 0x7f } else { 0x66 });
         let got = match sound {
             Some(s) => (1, play, s),
             None => (0, 0, 0),

@@ -58,11 +58,7 @@ fn the_emulated_original_agrees_on_every_row() {
             assert_eq!(w, &want[1 + i], "snap_center — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + 0 + i],
-                "snap_center — window p[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "snap_center — window p[{i}], row `{line}`");
         }
         n += 1;
     }
