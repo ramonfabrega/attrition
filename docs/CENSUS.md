@@ -718,3 +718,30 @@ of 3,611 (1.9 %)** — 31 by a coverage section, 37 by a sweep. Ten more
 `Farms::snip` and `CityData::get_empty_trade_routes`. Nine agree on every
 row they compare (`get_land` only its `mode > 0` arm); `get_empty_trade_routes` parts twice and holds both in its test.
 `docs/journal/2026-10-07-item-1619.md` has the batch and its findings.
+
+**Item 1630, the sweep's third batch** (2026-10-12): **simulation backed 78
+of 3,611 (2.2 %)** — 31 by a coverage section, 47 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, all `WorldData` predicates on the
+cell and tile words: `is_rocks`, `is_gathered_from`, `is_built_at`,
+`get_tregion`, `is_cliff_at`, `is_river`, `is_mountain_at`, `is_tree_at`,
+`is_oil_at` and `is_blocked_at`. Nine agree on every row (the port has no
+standalone function for most, so each drives the inline bit test on the real
+`World`); `get_tregion` parts where the coastal refinement fires and
+`region2` is −1 (the original returns −1, the port's `tregion_alt` falls back
+to `region`) and holds it in its test. `docs/journal/2026-10-12-item-1630.md`
+has the batch and its findings.
+
+**Item 1691, the sweep's fourth batch** (2026-10-12): **simulation backed 88
+of 3,611 (2.4 %)** — 31 by a coverage section, 57 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, all pure predicates on a word of a
+unit, its type or an order index: `is_air`, `is_move`, `UnitTypeData::is_tank`,
+`UnitData::is_supply`, `is_special`, `is_captain`, `is_plane`, `is_merchant`,
+`ObjectData::is_peasant` and `is_scholar`. **All ten agree on every row**
+(44, 44, 266, 266, 266, 211, 242, 516, 516 and 516 rows). The port keeps three
+of them as state rather than a test — `Unit::captain` for `o_up < 0`, and
+`UnitType::worker` (assigned by `rondata::load` from the type id) for peasant
+and scholar — so those rows build the port's state from the row by the same
+rule and prove the sign test and the id sets, not the loader. `is_supply` is
+checked against the raw `unit_flags2 & 0x40` that `path::army_mode` reads, not
+`Sim::is_supply_unit`, which adds a general exclusion the original's
+predicate does not have. `docs/journal/2026-10-12-item-1691.md`.

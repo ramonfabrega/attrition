@@ -21,15 +21,35 @@ mod find_angle;
 mod flanking;
 mod gather_point_is_inside;
 mod good_type_compute_largest_gather;
+mod is_air;
+mod is_move;
 mod object_is_in_range;
+mod object_is_peasant;
+mod object_is_scholar;
 mod reversing;
 mod unit_get_speed;
+mod unit_is_captain;
+mod unit_is_merchant;
+mod unit_is_plane;
+mod unit_is_special;
+mod unit_is_supply;
 mod unit_mana_left;
 mod unit_type_get_stance_type;
+mod unit_type_is_tank;
 mod wcoord_to_tcoord;
 mod world_get_land;
+mod world_get_tregion;
 mod world_has_blocked_neighbors;
+mod world_is_blocked_at;
+mod world_is_built_at;
+mod world_is_cliff_at;
+mod world_is_gathered_from;
+mod world_is_mountain_at;
 mod world_is_ocean;
+mod world_is_oil_at;
+mod world_is_river;
+mod world_is_rocks;
+mod world_is_tree_at;
 mod world_space_at_corner;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
@@ -52,6 +72,18 @@ pub(crate) fn emu_rows(script: &str) -> Option<String> {
             None
         }
     }
+}
+
+/// A `Sim` holding one unit of type `ty`, for the predicates that read a
+/// unit's type record: `(sim, unit)`.
+pub(crate) fn sim_with_unit(ty: crate::UnitType) -> (crate::Sim, usize) {
+    use crate::world::Pos;
+    let mut s = crate::Sim::new(crate::Tuning::RON, crate::World::new(8, 8), 2);
+    let t = s.add_unit_type(ty);
+    let mut u = crate::Unit::new(1, 0, Pos::new(0x1000, 0x1000), 1);
+    u.ty = Some(t);
+    let u = s.add_unit(u);
+    (s, u)
 }
 
 /// One row, `<args…> -> <result>`, split into its integers.

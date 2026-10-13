@@ -17976,10 +17976,19 @@ launch point: ours leaves from `1/49`'s square, the original from its release no
 **Coverage.** Diff-backed: 1–4, by `coverage_pair_first_parting`, run715's and run716's widenings and run717's `AMMO`
 records (`run717_s_missiles_fly_their_spline_s_count`). Export-backed and held by unit tests alone: 5. Read only: 6.
 
-## 175. Reserved for item 1631 (Great Sahara's coverage word 2323)
+## 175. A freed farm slot is refilled, and the word moves to 2404 (2026-10-12, item 1639)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Established by**: run718's blocks 2267..2523 (`rondata::diff::sahara_coverage`), a scratch print in `farms_inc_time` and `farms_add` (reverted), and the listings `Farms::add@008d8a40` (the slot search at `008d8d5b`), `Farms::remove@008d8e50` and `Farms::inc_time@008d8600`, `Build::close@00628980:156`–`:160` (the `remove` call).
+
+**The value diff the item booked.** The word 2323 (12 draws against 13, index 10, ours `Farms::inc_time+0x1ae`, theirs `+0x1de`) was 1620's "the second farm's `empty`". It is not: ours' walk had six live Persian farms, and the roll at index 9 was `b44`'s, 16 against its chance 15 (`empty` 10 → `(10 − 4) · 20 / 8`) — one under the line the original's second farm cleared. Nothing in a farm's cells differs (no cell is cut, none parts); **the farm that rolled second is a different farm**. The original walks `farms` by slot, and `Farms::add` returns the **first record whose `valid` byte `Farms::remove` cleared** (`Build::close` calls it for every farm), appending only when none is free. This crate appended always (`docs/SYNC.md` §3.8's "nothing on any capture has demolished a farm" was true until this lobby). The nuke killed the human's three farms on 2116, 2118 and 2122; the Persians' fourth crop farm was placed on 2182 and took the human's first slot, so the original walks it **before** the farms placed on 1182, 1185 and 1982 — on 2323 it rolls second with chance 20, and the same roll (16) sprouts.
+
+**Built.** `Sim::farms_add` puts the new farm in the first `farm_order` entry whose building is not alive, and pushes when none is. Unit test `a_placement_takes_the_first_freed_slot` (fails with the old append). With it run718's keys fall 624 → 364 and the word moves 2323 → **2404** (count and sequence): ours 18 draws against 20, index 6, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52` — a birth in the original. Inside run718 (block 2405).
+
+**The new word's value diff** (the dump's own coordinates): block 2404 `1/2031` `queue:queue[0].job_counter` ours 9500 against theirs 9473, and on 2405 `1/2031` `queue:queued` 1 against 0, `1/126` unlinked (born in the original), the Persian leader's `control`/`active`/`num_units[0]`/`peasants` 103/100/33/33 against 104/101/34/34 and `num_queued[0]` 4 against 3. **A building's queue finishes a unit one frame earlier in the original: its training job's last count is 27 below ours.** Not read.
+
+**What is not established.** The original's `Farms::add` frees on `Build::close`; this crate frees on `!alive`, which is set where the building dies, not where `close` runs — same frame on this capture, unmeasured elsewhere. The human's dead (`leader:control` 14 against 12 from 2121, the corpses) are untouched and parked 1092/1328/1632. The new word's building (`1/2031`, its queue's unit) is unread.
+
+**Coverage.** Diff-backed: the slot refill (run718's 2323 sprout and its 260 keys). Read only: that `Farms::inc_time` has no `valid` test of its own.
 
 ## 176. Completion flags roads before the city grows (item 1634)
 
@@ -18356,3 +18365,8 @@ That a bonus's `has_preq` is `has_tech` of its `preq0` rests on the two
 sibling rows and this walk (the Persian General's rate is two on 3838..3844).
 Other lobbies that hold the preq (All Technologies) now recover at the
 doubled rate; the full suite is the check on them.
+
+## 184. Reserved for item 1697 (Great Sahara's word 2404)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
