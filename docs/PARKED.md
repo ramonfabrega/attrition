@@ -4009,7 +4009,7 @@ arguments are fields (`this->x`) need a `field` argument token.
 (1885) **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`** (1863): run791's first two takes died in the verifier;
 the third dropped `GROUPS=1`. A chapter that needs both the pool and the death list has no capture shape.
 
-(1886) **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
+(1886) **Closed by 1926** (GOLDEN §70). **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
 slot — `17410401` against `17410801`, `14336530` against `14336430`, one to four slots, no draw.
 
 (1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
@@ -4045,13 +4045,17 @@ on return to a chosen word (the way a real callee leaves it), then
 `tools/sweep_gen.py mix` gains a `walk4:OFF:ecx` step. Names no score: the Loop's
 (sweep tooling, Loop 1890's sixth reach); 1921's journal has the shapes.
 
-## Parked by the next landing, slot H — reserved
+## Parked by item 1926, 2026-10-13 — chapter fifty-eight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot H renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1886) **Closed by 1926** (GOLDEN §70): `group_id` reads the pool slot, not the army's number; the rows left every widening.
+
+(1887) **`find_melee_target`'s squad head for its other callers** (1926, unchanged): no capture on disk shows a part; a staging needs a
+non-captain's idle or out-of-range search with a captain target. Not staged.
+
+(1805) **The two-order snap** and (1778) **a pushed group's dead member** (1926): no script line reaches either; unchanged.
+
+(1927) **`coverage_pair` first parting past the standing block moved 1277 → 1292** (1926): a side effect of the id fix; read the frame
+1292 value diff if that window is ever booked.
 
 ## Parked by item 1932, 2026-10-13 — the sweep's thirty-fourth batch
 
