@@ -4919,18 +4919,6 @@ impl Sim {
                         (self.find_tpath(u), len_before, false)
                     }
                 };
-                if std::env::var("RON_PROBE_1982").is_ok() && self.units[u].index == 107 {
-                    eprintln!(
-                        "PROBE1982 f{} u107 r {} wflag {} len_before {} len_after {} top {:?} collide {}",
-                        self.frame,
-                        r,
-                        wflag,
-                        len_before,
-                        self.units[u].path.len(),
-                        self.units[u].path.last(),
-                        self.units[u].collide
-                    );
-                }
                 // A positive return with the stack length unchanged counts
                 // as a refusal.
                 let r = if r > 0 && self.units[u].path.len() == len_before {
