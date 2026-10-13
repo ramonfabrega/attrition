@@ -12,19 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-12, the twenty-eighth tranche opened (`commander`, Opus 5.5,
-from `69569abc`): the race on the coverage pair's word **3439**. Great
-Sahara's coverage word **2323**, the census's backed column **68**, the
-battery 576 / 6566 / 2974. No word has moved this tranche yet.*
+*2026-10-12, the race at ten landings of twenty (`commander`, Opus 5.5):
+nothing merged, so the board's word stays **3439** until the winner does;
+every cause two arms have both reached, they named alike.*
 
-- **Four racers on 1648, nothing else out** (DECISIONS 64, amended
-  2026-10-12), one brief, one session a landing, respawned off its own
-  tip: `att-1648-oh` (Opus 5.5 high) numbers 1651–1655, runs 722–731;
-  `att-1648-om` (Opus 5.5 medium) 1656–1660, runs 732–741; `att-1648-sh`
-  (Sonnet 5.5 high) 1661–1665, runs 742–751; `att-1648-sm` (Sonnet 5.5
-  medium) 1666–1670, runs 752–761. AI §178–§182, one set: only the winner
-  merges, at twenty. Next number 1672, run 762, §183; filters
-  `coverage_pair:: floors::`.
+- **Four racers on 1648, nothing else out** (DECISIONS 64, amended), a
+  `ccc clear` of the racer's own row a landing (`respawn.sh <racer> <k>`,
+  `rows.tsv` and the ledger in the commander's job tmp). Landings, frame,
+  tip: `att-1648-oh` (Opus high) 2, 3587, `de391554`, numbers 1651–1655,
+  runs 722–731; `att-1648-om` (Opus medium) 3, 3614, `d7bdf503`, 1656–1660,
+  732–741; `att-1648-sh` (Sonnet high) 2, 3587, `974ccf7a`, 1661–1665,
+  742–751; `att-1648-sm` (Sonnet medium) 3, 3614, `ebf4db21`, 1666–1670,
+  752–761. AI §178–§182 the winner's. Next 1672, run 762, §183.
 - **The disk**: 258 GiB free, the archive compressed. Astra's debt is 1649.
 - **Fable backlog: 26 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650, 1671).
 
