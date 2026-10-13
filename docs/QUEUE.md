@@ -23,9 +23,9 @@ every cause two arms have both reached, they named alike.*
   runs 722–731; `att-1648-om` (Opus medium) 3, 3614, `d7bdf503`, 1656–1660,
   732–741; `att-1648-sh` (Sonnet high) 2, 3587, `974ccf7a`, 1661–1665,
   742–751; `att-1648-sm` (Sonnet medium) 3, 3614, `ebf4db21`, 1666–1670,
-  752–761. AI §178–§182 the winner's. Next 1672, run 762, §183.
+  752–761. AI §178–§182 the winner's. Next 1673, run 762, §183.
 - **The disk**: 258 GiB free, the archive compressed. Astra's debt is 1649.
-- **Fable backlog: 26 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650, 1671).
+- **Fable backlog: 27 Loop items** (1119, 1475, 1507, 1518, 1521, 1534, 1537, 1548, 1554, 1560, 1566, 1570, 1590, 1593, 1601, 1604, 1607, 1610, 1613, 1616, 1627, 1636, 1638, 1649, 1650, 1671, 1672).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
