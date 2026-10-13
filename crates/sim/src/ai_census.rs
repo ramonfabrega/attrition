@@ -78,7 +78,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
-/// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`, no fisherman is idle. |
+/// | `unit_masks & 0x80000` | the unit's `combat.packed` | a packed fisherman is an idle one (`idle_fishermen`, item 1661); the merchant's `reg_unpack_merch` test is still unread (every merchant counts). |
 /// | order kinds 8 / 0xe | never | build-and-repair-through-a-transport is unmodelled. |
 ///
 /// Two seams closed 2026-08-25 with `docs/TRANSPORT.md`: `Region::num_coasts`
@@ -600,6 +600,13 @@ impl Sim {
                     }
                     if fisherman {
                         cs.fishermen += 1;
+                        // `plan_strategy@006b9620:545–548`: a fisherman with
+                        // `unit_masks & 0x80000` (packed) is an idle one, and
+                        // `create_units`' fishermen arm queues none while any
+                        // is. A type that packs is born packed.
+                        if self.units[u].combat.packed {
+                            cs.idle_fishermen += 1;
+                        }
                     }
                 }
                 Domain::Air => {
@@ -2141,6 +2148,33 @@ mod tests {
         f.sim.census(1);
         let c = &f.sim.ai[1].census;
         assert_eq!((c.active, c.combat, c.non_siege), (1, 1, 1));
+    }
+
+    /// **A packed fisherman is an idle one** (item 1661; `plan_strategy
+    /// @006b9620:545–548`): `fishermen` counts a sea unit whose type has
+    /// `unit_flags2 & 4`, and `idle_fishermen` counts the ones with
+    /// `unit_masks & 0x80000`, the packed bit. `create_units`' fishermen arm
+    /// queues no more while any is idle (`docs/AI.md` §179).
+    ///
+    /// Made to fail with the `packed` test dropped.
+    #[test]
+    fn a_packed_fisherman_is_an_idle_one() {
+        let mut f = fix();
+        build(&mut f.sim, 1, f.village, 20, 20);
+        f.sim.ai[1].census.resize(f.sim.world.region_count(), 2);
+        let boat = f.sim.unit_types[f.scout].clone();
+        let boat = f.sim.add_unit_type(boat);
+        f.sim.unit_types[boat].cols.unit_flags2 |= 4;
+        f.sim.unit_types[boat].combat.domain = crate::attrition::Domain::Sea;
+        let u = spawn(&mut f.sim, 1, boat, 20, 22);
+        f.sim.units[u].combat.packed = false;
+        f.sim.census(1);
+        let c = &f.sim.ai[1].census;
+        assert_eq!((c.fishermen, c.idle_fishermen), (1, 0), "a deployed boat");
+        f.sim.units[u].combat.packed = true;
+        f.sim.census(1);
+        let c = &f.sim.ai[1].census;
+        assert_eq!((c.fishermen, c.idle_fishermen), (1, 1), "a packed boat");
     }
 
     /// A military unit of mine standing on another leader's land shows up

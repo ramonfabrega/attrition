@@ -6968,7 +6968,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1648: 97 once the walk reaches the word 3585; the new prefix is
     // the Battleships' missiles and the computer's builders, measured
     // while the old bound was still 48.
-    ("coverage_pair_first_parting", 97),
+    ("coverage_pair_first_parting", 99),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8805,12 +8805,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
     // Item 1648 moves to 3585 (block 3586), inside the same run721: a volley
-    // under way shoots at a building at its ceiling.
+    // under way shoots at a building at its ceiling. Item 1661 moves to
+    // 3587 (block 3588), still in run721: a packed fisherman is an idle one.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run721_s_word_frame_is_widened_whole"),
-        1648,
+        1661,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

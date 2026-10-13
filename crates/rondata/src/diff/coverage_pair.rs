@@ -225,6 +225,10 @@ pub(crate) struct Pair {
     /// a volley already under way shoot at a building at its ceiling
     /// (`docs/AI.md` §178): **3585**, 24 versus 27 draws, index 6: ours
     /// `Leader::make_stuff+0x63d`, theirs `Leader::produce_building+0x1805`.
+    /// Item 1661 counts a packed fisherman as idle in the census
+    /// (`docs/AI.md` §179): **3587**, 15 versus 16 draws, index 1: ours
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    /// `Unit::do_move+0xe84`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -242,8 +246,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3585,
-    sequence: 3585,
+    count: 3587,
+    sequence: 3587,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1306,7 +1310,9 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
+    // Item 1661: 139 -> 121 once a packed fisherman is an idle one in the
+    // census (`docs/AI.md` §179).
+    pin_eq!(w.firsts.len(), 121, "initial run714 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1556,7 +1562,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
 /// word 3439 (item 1647), block 3440, and the word 3585 (item 1648),
-/// block 3586; the old words remain checked.
+/// block 3586, and the word 3587 (item 1661), block 3588; the old words
+/// remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1566,7 +1573,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586],
+        &[3395, 3396, 3398, 3440, 3586, 3588],
         true,
     )
 }
@@ -1606,10 +1613,12 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     // Item 1648: 951 -> 482 keys once the Advanced Battleship `1/49`'s
     // fifth and sixth missiles fly at the capital on 3439 and 3440.
+    // Item 1661: 482 -> 394 keys once a packed fisherman counts as idle and
+    // the computer's make list on 3581 agrees with the original's.
     pin_eq!(
         w.firsts.len(),
-        482,
-        "run721 after a volley fires at a building at its ceiling"
+        394,
+        "run721 after a packed fisherman is an idle one"
     );
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -1656,6 +1665,30 @@ fn run721_s_word_frame_is_widened_whole() {
                 || *block > 3441
         }),
         "the capital and the three Battleships agree through the old word"
+    );
+    // **Item 1661's value diff** (`docs/AI.md` §179): on block 3581 the
+    // original's computer (leader 1) holds Jet Fighter, Strategic Bomber and
+    // Transport Helicopter, ten each, in make slots 1–3 (`t` 295, 305, 311;
+    // `val` 60720, 58080, 41485) and no Fishermen; ours had offered the
+    // Fishermen (`t` 317, `val` 88000) because its census left
+    // `idle_fishermen` at zero while the three fishing boats stood packed.
+    // With the idle count, no make-list slot's `t`, `cat`, `num`, `city` or
+    // `escrow` parts in the window, and `val` parts only at slot 6 (the Rocket
+    // Artillery's 333185 against 347364, from 3581).
+    pin!(
+        w.firsts.keys().all(|(who, o, what)| {
+            (*who, *o) != (1, -1)
+                || !what.starts_with("leader:MAKE[")
+                || what == "leader:MAKE[6].val"
+        }),
+        "no make-list slot but the Rocket Artillery's value parts"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:MAKE[6].val".to_string()))
+            .map(|(block, _)| *block),
+        Some(3581),
+        "the one make-list key left parts on 3581"
     );
     for block in [3394, 3395, 3396] {
         let at = ix.frames().iter().position(|f| f.number == block).unwrap();

@@ -18146,10 +18146,74 @@ crate tests `struck` and not the uid (the SEAM above it stands). No capture
 was taken: the disk answered everything (run721's blocks 3438–3440, the
 run652 trace's frames 3435–3441, `unit_graphics.xml`).
 
-## 179. Reserved for the race on item 1648, its landing 2 (the coverage pair's word 3439)
+## 179. A packed fisherman is an idle one, and the word at 3587 (2026-10-12, item 1661)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3585, 24 versus 27 draws, index 6: ours
+`Leader::make_stuff+0x63d < Leader::production_ai+0x236`, theirs
+`Leader::produce_building+0x1805 < Leader::make_this+0x328 <
+Leader::make_stuff+0x45a`. Run721's block 3586 is widened whole (482 keys).
+The first parted record is the computer's make list, on block 3581.
+
+**The value diff, block 3581, leader 1** (the dump's `MAKEOBJECT`s against
+ours' list, read off `RON_DEBUG_LEADER=3570-3586`): both lists are empty on
+3580 (the Cities step clears them on 3577). On 3581 the original holds
+Citizen (slot 0), then **Jet Fighter, Strategic Bomber, Transport
+Helicopter** in slots 1–3 (`t` 295, 305, 311; `cat` 6, `num` 10; `val` 60720,
+58080, 41485), slot 4 empty, Citizen at 5, Rocket Artillery at 6. Ours held
+**Fishermen** (`t` 317, `cat` 4, `num` 1, `val` 88000) in slots 1, 2 and 4,
+Jet Fighter at 3, and neither the Bomber nor the Helicopter. The ranking
+and the Jet Fighter's value agree; the one difference is that ours
+offered the Fishermen and the original did not.
+
+**Which gate.** `create_units@006c40a0`'s Fishermen arm (`sea_value` here)
+returns nothing while `idle_fishermen` (`LeaderData +0x974`) is non-zero.
+Ours printed (temporary probe, reverted) on 3580 `n` 3, `commerce` 7,
+`reg_combat` 13, `attacked` false and `idle_fishermen` **0**; the dock, sea
+region (1931 cells), `n < commerce` and `reg_combat` gates all passed, and
+the leader counts (`num_units` 3 for the Fishermen, `num_queued` 0) agree
+with the dump. `idle_fishermen` is never incremented in this crate:
+`ai_census.rs`'s seam table said "no fisherman is idle".
+
+**The census.** `Leader::plan_strategy@006b9620:545–548` (read, not
+transcribed): in the sea arm, a unit whose type has `unit_flags2 & 4`
+(`+0x2b8`) bumps `fishermen` (`+0x970`), and **if the unit's `unit_masks`
+(`+0x68`) has `0x80000` it bumps `idle_fishermen` (`+0x974`)**. That bit is
+the packed bit; `Unit::init` makes a type that packs born packed
+(`lib.rs`, `a_type_that_packs_is_born_packed`), and `combat.packed` already
+carries it. The change counts a packed fisherman in `idle_fishermen`.
+Merchants (`:645–660`) use the same bit the other way — `reg_unpack_merch`
+only for an unpacked merchant — and that arm stays as it was (every
+merchant counts): no capture here parts on it.
+
+**Killers.** The reading would die if the three boats were unpacked in
+the dump (they are `PACKS` and idle), if `idle_fishermen` fed no other
+reader (the only reader is the arm above), or if the list still parted.
+It does not: no make-list slot's `t`, `cat`, `num`, `city` or `escrow`
+parts in run721's window, and `val` parts only at slot 6 (the Rocket
+Artillery, 333185 against 347364, from 3581). Unit test
+`ai_census::tests::a_packed_fisherman_is_an_idle_one` fails with the
+increment dropped (mutation run: `(1, 0)` against `(1, 1)`).
+
+**The word moves 3585 → 3587**, 15 versus 16 draws, index 1: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84`.
+Run721 keys 482 → 394; run714's baseline 139 → 121; the ground-height
+guard on `coverage_pair_first_parting` 97 → 99. Great Sahara's word is
+untouched. Run721's widening now compares block 3588 whole and the
+coverage driver walks it.
+
+**The next word, 3587** (block 3588, inside run721): the first parted
+record on the frame is `1/133` — `pos` (40553, 37515) against (40548,
+37539), `path:length` 14 against 26, `order:move.dest` (40644, 36756)
+against (40680, 37320), `path_recursion` 2 against 1 — a walker whose
+path was replanned differently; the original's extra draw is
+`Unit::do_move+0xe84`. Nothing here has read that cause. Standing keys
+before it (3563 `pool:81` `[215]`, births' `form`, 3583 queue costs 222
+against 202) are unchanged by this item.
+
+**Limits.** The 3583 queue costs, `pool:81` and the group-id keys are
+still parted and unexplained; none touches a draw. No capture was taken;
+the disk answered everything (run721's blocks 3580–3581, the run652
+trace).
 
 ## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
 
