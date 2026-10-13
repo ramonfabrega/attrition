@@ -970,12 +970,12 @@ fn run766_s_word_frame_is_widened_whole() {
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
 
-/// The window: block 2928 through 3185; the word 2934's own block is 2935.
+/// The window: block 2928 through 3185; the word 3182's own block is 3183 (2934's was 2935).
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_2934: (i64, i64) = (2928, 3185);
 
 /// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
 /// `GreatSaharaPersianAllTech`): run767 walked from run675's start with the
-/// recorder on — the word 2934's block 2935.
+/// recorder on — the word 3182's block 3183.
 pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
@@ -985,7 +985,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN767, WIDENING_SAHARA_COVERAGE_FRAME_2934.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_2934,
         1,
-        &[2935],
+        &[3183],
         true,
     )
 }
