@@ -16149,6 +16149,18 @@ restored. Packet `~/ron-data/lab-captures/2026-10-13-run773/map-14/frame-snapsho
 (`tools/recomp/step4.py --entry 64a270 --this 1566f344 --args 6,1,0`): `poor_target` returns 0; `get_speed` 34 (Scout
 `14ad85a4`) and 30 (Dragoon); the Dragoon's type record `+0x2c8` `0x5040c`, `+0x1fc` 9, `+0x2b4` `0x201201`.
 
+## run781 — Great Sahara in the coverage pair's lobby: a packet at logger frame 3182, the Redoubt's value (2026-10-13, item 1738)
+
+`docs/AI.md` §192. **What the disk could not answer**: the original's Redoubt value stage by stage on 3182
+(`Leader::create_buildings`' intermediates, the divisor); the dump prints the winner's final value alone. run767's recipe
+with `--end-frame 3190 --log-window 3180 3186` and `--tracer-def RON_STATE_FRAME=3182 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`, the click-free lane 1 from the pool, free at launch; `success: true`,
+3191 frames, seed 12345, map 7 verified, 73 s launch to exit, five files restored. Packet
+`~/ron-data/lab-captures/2026-10-13-run781/map-7/frame-snapshot.bin`, 945,971,552 bytes. On it (`tools/recomp/step4.py
+--entry 6c1be0 --this e4127c`, a scratch copy hooking `6c3baf`, `6c3f6c`, `6c3f99`, `6c3fb7` and the branch calls
+`6c3dc4`–`6c3e7e`): the Redoubt `446` in city 1 reaches `x` 4260, `base` 12780, `63900`, `51120` as this crate does, divides
+by **7** (`is_training_building` true on the branch `6c3e57`), `check_income` 122, final 3479. Minutes waited on another
+lane's capture: none.
 ## run783 — chapter fifty-five: M6's arm past a Citizen and a second Dragoon's stationary rounds (2026-10-13, item 1798)
 
 `docs/GOLDEN.md` §67, `tools/gamelog/golden/chapter55.cmd` (6 staged lines). **What the disk could not answer**: no capture holds a captain

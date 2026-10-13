@@ -227,17 +227,13 @@ impl Sim {
             .count() as i32
     }
 
-    /// `BuildTypeData::is_training_building` — `build_flags & 0x80000000`,
-    /// which no `BUILD_FLAGS` string carries: the loader must set it from the
-    /// unit tables' `WHERE`, so it is derived here the same way.
+    /// `BuildTypeData::is_training_building@00639de0` — `build_flags &
+    /// 0x80000000` read off the **root** of the `FROM` chain (`this+0x3c`,
+    /// then vslot `+0xe4`), exactly as `is_military_trainer` is: the
+    /// Redoubt's own record has no such bit and its root has (item 1738,
+    /// run781's packet: the divisor 7 is `(reg + (queued + 2·have)·2)·2 + 1`).
     fn is_training_building(&self, rec: usize) -> bool {
-        let Some(tree) = self.build_types[rec].tree else {
-            return false;
-        };
-        self.tech_tree
-            .types
-            .iter()
-            .any(|d| d.kind.is_unit() && d.where_ == Some(tree))
+        build::is_training_building(&self.build_types, rec)
     }
 
     /// `BuildTypeData::is_defensive` — a tower, a fort, an Airbase, or
@@ -2004,6 +2000,31 @@ mod tests {
         sim.lobby.difficulty = 0;
         sim.ai[0].defense_mod = 0x200;
         assert!(value(&mut sim, 0, c, t.tower).is_some());
+    }
+
+    /// **A Redoubt is a training building through the Fort it is `FROM`**
+    /// (`BuildTypeData::is_training_building@00639de0` reads the bit on the
+    /// root; item 1738, run781's packet: Great Sahara's Persian Redoubt in
+    /// `1/2018` is divided by `(reg + (queued + 2·have)·2)·2 + 1` = 7, not
+    /// by the fort's `(queued + 2·have)·4 + 1`). The derived bit is on the
+    /// Fort alone, so this crate's old scan of the record's own `WHERE` read
+    /// false. Made to fail once with that scan put back.
+    #[test]
+    fn a_redoubt_is_a_training_building_through_the_fort_it_comes_from() {
+        let (mut sim, t) = sim();
+        let mut root = bt(Ident::Fort, "ean", 4, 4);
+        root.flags |= flags::TRAINS;
+        let root = sim.add_build_type(root);
+        let mut redoubt = bt(Ident::Other, "ean", 4, 4);
+        redoubt.from = Some(root);
+        let redoubt = sim.add_build_type(redoubt);
+        assert!(
+            !sim.build_types[redoubt].has(flags::TRAINS),
+            "the bit is on the root alone"
+        );
+        assert!(sim.is_training_building(redoubt));
+        assert!(sim.is_training_building(root));
+        assert!(!sim.is_training_building(t.tower), "a tower trains nothing");
     }
 
     /// **A city a rival's border touches is worth ten times its tower**

@@ -965,7 +965,10 @@ fn run766_s_word_frame_is_widened_whole() {
     // (36024,26568) — and block 2852's `1/51` `collide` 1 against 0; the
     // word 2640's value diff was `1/2017`'s `queue[0].job_counter` 65500
     // against 65454 on 2640 and block 2641's `queued` 1 against 0.
-    pin_eq!(w.firsts.len(), 94, "initial run766 baseline");
+    // Item 1738: **93** keys with the Redoubt read as a training building
+    // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
+    // the 94 of item 1726 is gone.
+    pin_eq!(w.firsts.len(), 93, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
