@@ -10891,6 +10891,15 @@ fields the Dragoon) already holds piece 491's nine `AttachPos` entries, and
    already shifts them, `army_keep_units`, item 1493); it now goes through
    `seat_remove_at`.
 
+**What it moved elsewhere.** The same prune is in chapters fifty and fifty-one's
+pool pins: `770 slot 1` (`off`/`curr` 0..3, `angle[3]`) agrees and leaves both, and
+the dead member's other rows now part together at their first frame (ch50: 932,
+`curr[2]`/`off[2]`, and 996 `curr[1]`/`off[1]`; ch51: 907 `curr[2]`/`off[2]` and
+1003 `curr[1]`/`off[1]`) rather than `angle` alone. These are the list's own
+parting made visible, not a new one: ours keeps a pushed group's dead member
+until the slot's reset (`f mod 64`), and the original dropped it on 932 and 996,
+frames that are not slot 1's. Parked 1778.
+
 **Backed by.** The original's own `get_position` on every reachable cell of the
 four release rows: 369 664 cells (`d₁ 0..=360 × 256` turret steps × 4 anims),
 `pivot::tests::the_original_s_release_agrees_on_every_cell_for_the_dragoon`
