@@ -3942,7 +3942,8 @@ compared pin, or a widening that prints the unread keys that part. One reach.
 line): `tools/census.py --layers` needs `--pdb` pointed at the main
 checkout's `game/` from a worktree, and the candidates were a scratch
 script over `source_of`/`sweep_backed` — the third batch to write one;
-a `--candidates` flag graduates it. One reach.
+a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
+the same script and said so too. One reach.
 
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
