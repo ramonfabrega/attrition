@@ -970,18 +970,28 @@ mod tests {
             s.muster[0].cap = cap;
             let c = [0; crate::economy::RESOURCES];
             for ty in [plane_ty, heli_ty] {
-                s.buildings[b].queue.items.push(crate::production::Item::queued(ty, &c));
+                s.buildings[b]
+                    .queue
+                    .items
+                    .push(crate::production::Item::queued(ty, &c));
                 s.buildings[b].queue.items.last_mut().unwrap().job_counter = 1_000_000;
             }
             (s, b, heli_ty)
         };
         let (mut s, b, heli_ty) = build(1000);
         let out = s.process_queues();
-        assert_eq!(out.len(), 1, "the helicopter trains behind the refused head");
+        assert_eq!(
+            out.len(),
+            1,
+            "the helicopter trains behind the refused head"
+        );
         assert_eq!(s.buildings[b].queue.items.len(), 1, "the plane stays");
         assert_ne!(s.buildings[b].queue.items[0].ty, heli_ty);
         let (mut s, b, _) = build(-1000);
-        assert!(s.process_queues().is_empty(), "a population refusal is zero");
+        assert!(
+            s.process_queues().is_empty(),
+            "a population refusal is zero"
+        );
         assert_eq!(s.buildings[b].queue.items.len(), 2);
     }
 
