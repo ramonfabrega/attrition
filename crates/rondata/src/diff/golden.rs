@@ -13854,7 +13854,10 @@ fn chapter_sixty_s_fog_plane() {
     // Before the build 7 `seen2` cells parted on 605 (first (117,75)); the
     // eleven `form` rows are every chapter's first block.
     pin_eq!(
-        firsts.iter().filter(|((_, _, w), _)| w.contains("seen2")).count(),
+        firsts
+            .iter()
+            .filter(|((_, _, w), _)| w.contains("seen2"))
+            .count(),
         0,
         "ch60fog: fog cells that part"
     );
