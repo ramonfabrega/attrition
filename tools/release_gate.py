@@ -146,7 +146,7 @@ COMMANDERS_LINES = (
 # the pass re-times it (`suite_timings.py --stale` says how far it has
 # aged — 14 untimed and 6 gone when this one was made), and a newer
 # measure is a new dated file this constant moves to.
-TIMINGS = ROOT / 'docs/audit/2026-10-07-suite-timings.txt'
+TIMINGS = ROOT / 'docs/audit/2026-10-13-suite-timings.txt'
 LANE_BUDGET_SECONDS = 1.0
 RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
 
