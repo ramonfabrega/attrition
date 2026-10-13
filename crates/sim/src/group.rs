@@ -2369,6 +2369,15 @@ impl Sim {
         } else {
             self.group_loc(g)
         };
+        if std::env::var("RON_PROBE_2055").is_ok() && (4262..=4266).contains(&self.frame) {
+            let l = self.group_find_leader(g);
+            eprintln!(
+                "PROBE2055 f{} q{:?} set_angle {} from {:?} to {:?} angle {} leader {:?} head {:?} norders {}",
+                self.frame, queue, set_angle, from, to, angle.0, l,
+                l.and_then(|u| self.units[u].orders.front().map(|o| o.body)),
+                l.map_or(0, |u| self.units[u].orders.len())
+            );
+        }
         let angle = if set_angle {
             angle
         } else {
