@@ -2329,6 +2329,47 @@ fn a_citizen_trains_faster_for_a_player_holding_wool() {
 }
 
 #[test]
+fn a_mongol_attacker_from_the_stable_trains_faster() {
+    // `ObjectData::train_time@006508c0:109`–`117`: a Mongol leader's unit
+    // with an attack whose trainer is of the Stable line takes
+    // `MONGOL_STABLE_SPEED` percent off. East Indies' Mongol AI's first
+    // Stable unit at `1/2024` ends on 1354 in the original where ours ran a
+    // tick over (item 1744, `docs/AI.md` §193). Made to fail with the arm
+    // dropped, with the Mongol gate always held and with the attack gate
+    // dropped.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ac {
+        tree.add(TypeDef::building("pad"));
+    }
+    let stable = tree.add(TypeDef::building("Stable"));
+    assert_eq!(stable, 0x1ac);
+    let mut rider = TypeDef::unit("Rider", UnitTraits::default());
+    rider.where_ = Some(stable);
+    let rider_t = tree.add(rider);
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let mut rider_ty = citizen_type();
+    rider_ty.tree = Some(rider_t);
+    rider_ty.combat.attack = 40;
+    let rider = sim.add_unit_type(rider_ty);
+    let mut peaceful_ty = citizen_type();
+    peaceful_ty.tree = Some(rider_t);
+    let peaceful = sim.add_unit_type(peaceful_ty);
+    let faster = |s: &Sim, ty| {
+        s.train_tail(0, ty)
+            .iter()
+            .any(|a| matches!(a, production::Adjust::Faster(20)))
+    };
+    assert!(!faster(&sim, rider), "not a Mongol");
+    sim.nation[0].mongols = true;
+    assert!(faster(&sim, rider), "a Mongol's Stable attacker");
+    assert!(!faster(&sim, peaceful), "no attack, no bonus");
+}
+
+#[test]
 fn a_research_is_charged_for_the_army_it_refits() {
     // `get_cost:438`–`505`: researching a type charges for every unit of
     // its own `FROM` (and of any type whose `JUMP` chain reaches it), per
