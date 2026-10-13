@@ -451,6 +451,8 @@ impl Sim {
         h.handicap = handicap;
         h.taxation = levels.taxation;
         h.british = self.nation[w].british;
+        h.mongols = self.nation[w].mongols;
+        h.num_nations = self.players.len() as i32;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
         h.inca = self.nation[w].inca;

@@ -8856,9 +8856,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "MONGOL_PAIR_WORD",
         crate::diff::mongol_pair::MONGOL_PAIR_WORD,
-        Some("run776_s_word_frame_is_widened_whole"),
-        1728,
-        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_11),
+        // Item 1737 moved the word 11 -> 1354, past run776's window
+        // (`run776_s_word_frame_is_widened_whole` keeps 11's value diff);
+        // the widening on 1354 is owed by parked 1744.
+        None,
+        1744,
+        None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

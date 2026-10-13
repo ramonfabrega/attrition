@@ -2518,8 +2518,8 @@ non-zero.
   the gap is the likeliest source (a reassembly one frame apart around
   822's border fix on 18032). That is a guess.
 - **The Conquer-the-World arm** (`CTW_MISSIONARIES_BONUS`) is cut with
-  CtW. **The Mongol food term** beside it is still not built. No capture
-  holds a Mongol player.
+  CtW. **The Mongol food term** beside it is built (`docs/AI.md` §191, item 1737:
+  run776's Mongol AI, food 435 against 160).
 - **Coverage**: §16.2's British arm is diff-backed by run233's `income`
   row on 17184 and by every wealth row on run251, run253, run257, run261
   and run269. The truncation order is from the listing, and at these

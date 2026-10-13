@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 11,
-    sequence: 11,
+    count: 1354,
+    sequence: 1354,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -90,8 +90,12 @@ fn run776_s_word_frame_is_widened_whole() {
         "the keys the capture prints and nothing reads"
     );
     // Item 1728: 128 keys part on blocks 1..33 of the Mongol start's
-    // window, the word's own block being 12 (frame 11: ours 556 draws,
+    // window, the word's own block being 12 (frame 11, before 1737: ours 556 draws,
     // theirs 629, index 3; the leader's MAKE list holds the Oil Well's
     // category first in theirs, `docs/AI.md` §190).
-    pin_eq!(w.firsts.len(), 128, "initial run776 baseline");
+    pin_eq!(w.firsts.len(), 46, "initial run776 baseline");
+    // Item 1737: the Mongol food term closes the leader economy (frame 3's
+    // `econ`/`rate`, food income 435 against 160 from frame 1) and with it
+    // the make list's order on 11; 128 -> 46, the control's start set. The
+    // word moves 11 -> 1354, outside this window (`docs/AI.md` §191).
 }
