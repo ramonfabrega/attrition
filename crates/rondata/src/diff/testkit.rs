@@ -6969,7 +6969,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1647 extends the prefix to 3439: 48 reads, measured while
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends the prefix to 3585: 97 reads; item 1666 to 3587: 99; item 1667 to 3614: 110.
-    ("coverage_pair_first_parting", 110),
+    // Item 1700 extends the prefix to 4425: 411 reads.
+    ("coverage_pair_first_parting", 411),
+    ("run762_s_word_frame_is_widened_whole", 456),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -6981,9 +6983,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // 1611 put run718's window in the driver: six, as that window's own.
     // Item 1614 put run716's window in the compared pin: fourteen, as
     // that window's own. Item 1625 put run721's: 149, as that window's own.
+    // Item 1700 put run762's: 456, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        149,
+        456,
     ),
 ];
 
@@ -8809,12 +8812,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1673 moves to 3982 (block 3983), still inside run754: the
     // General `1/150`'s craft recovers two a frame, so its Create Decoys
     // cast is laid on 3864.
+    // Item 1700 moves to 4425 (block 4426), past run754's last block
+    // (4094): run762 over 4420..4676.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run754_s_word_frame_is_widened_whole"),
-        1673,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
+        Some("run762_s_word_frame_is_widened_whole"),
+        1700,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_4425),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

@@ -469,6 +469,9 @@ pub struct CityAi {
     /// city of a cell whose runner-up is at war with its owner.
     pub ocean_filled: i32,
     pub bordering: i32,
+    /// `city_flags & 0x1000`: a border-marked cell lay within four cells
+    /// of the city (`compute_reg_territory@006b0bb0:612`); sticky.
+    pub near_border: bool,
 }
 
 /// The census — every `LeaderData` count `plan_strategy`'s sweep writes

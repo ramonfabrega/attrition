@@ -533,6 +533,11 @@ impl Sim {
                 {
                     t = t.wrapping_mul(100);
                 }
+                // `city_flags & 0x1000`: ×2, or ×10 while the city is not
+                // `no_heal` (`create_buildings:328`).
+                if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
+                    t = t.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                }
                 v = t;
             }
             if build::is(&self.build_types, rec, Ident::Lookout) {
@@ -858,8 +863,12 @@ impl Sim {
                 } else if fort {
                     x /= 100;
                 }
-                // `city_flags & 0x1000` reads 0; `& 0x8` reads 0, so the
+                // `city_flags & 0x1000`: ×2, or ×10 while not `no_heal`
+                // (`create_buildings:847`). `& 0x8` still reads 0, so the
                 // halving always applies.
+                if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
+                    x = x.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                }
                 x /= 2;
                 if self.cities[f.c].founder != who {
                     x = x.wrapping_mul(3);
@@ -2037,6 +2046,35 @@ mod tests {
             (touched.val - plain.val * 100).abs() <= 100,
             "{} against {}",
             touched.val,
+            plain.val
+        );
+    }
+
+    /// **A city a marked cell lies within four cells of** (`city_flags &
+    /// 0x1000`, `compute_reg_territory@006b0bb0:612`) wants its temple ten
+    /// times more, twice while `no_heal` (`create_buildings:328`).
+    #[test]
+    fn a_temple_near_a_marked_border_cell_is_worth_ten_times() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.lobby.difficulty = 4;
+        sim.ai[0].wonder_mod = 1;
+        let plain = value(&mut sim, 0, c, t.temple).expect("a temple is listed");
+        sim.ai[0].city_ai[c].near_border = true;
+        let near = value(&mut sim, 0, c, t.temple).expect("still listed");
+        assert!(
+            (near.val - plain.val * 10).abs() <= 10,
+            "{} / {}",
+            near.val,
+            plain.val
+        );
+        sim.cities[c].no_heal = true;
+        let hurt = value(&mut sim, 0, c, t.temple).expect("still listed");
+        // A `no_heal` city is also worth a hundredth outside the arm.
+        assert!(
+            (hurt.val * 100 - plain.val * 2).abs() <= 200,
+            "{} / {}",
+            hurt.val,
             plain.val
         );
     }

@@ -243,7 +243,12 @@ pub(crate) struct Pair {
     /// craft recovery under `SPIES_GENERALS_RECOVER_CRAFT`, so `1/150`
     /// casts Create Decoys on 3864 as the original does: **3982**, 23
     /// versus 25 draws, index 2: ours `Leader::make_stuff+0x221`, theirs
-    /// `Leader::produce_building+0x1805`.
+    /// `Leader::produce_building+0x1805`. Item 1700 reads `city_flags &
+    /// 0x1000` (a border-marked cell within four cells of the city) in the
+    /// temple and tower arms, so the Persian temple is listed at ten times
+    /// the value: **4425**, 23 versus 22 draws, index 9: ours
+    /// `Guy::init_real+0x52` (a birth), theirs `Guy::set_anim+0x97a <
+    /// Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -261,8 +266,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3982,
-    sequence: 3982,
+    count: 4425,
+    sequence: 4425,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1595,11 +1600,9 @@ pub(crate) const RUN754: &str = "gamelog-run754-eastindies-persian-alltech-windo
 /// The window: block 3838 through 4094 (and a closing 4104).
 pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3838, 4095);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run754 walked from run651's start with the recorder on. It holds the
-/// word 3963 (item 1669), block 3964, inside the window item 1668 took for
-/// 3843 (block 3844); the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run754's window as it stood while the word was inside it (items 1668
+/// to 1673); the word left it for run762's on item 1700.
+pub(crate) fn coverage_frame_3963_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1613,10 +1616,49 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     )
 }
 
+/// run762, item 1700: the lobby's blocks 4420..4676 at the long's detail —
+/// the word 4425's block 4426 with six before it and 250 after.
+pub(crate) const RUN762: &str = "gamelog-run762-eastindies-persian-alltech-window-4420-4677.txt";
+
+/// The window: block 4420 through 4676 (and a closing 4686).
+pub(crate) const WIDENING_COVERAGE_FRAME_4425: (i64, i64) = (4420, 4677);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run762 walked from run651's start with the recorder on. It holds the
+/// word 4425 (item 1700), block 4426; run754's window stays checked.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run762",
+        &[(RUN762, 4420)],
+        WIDENING_COVERAGE_FRAME_4425,
+        1,
+        &[4425, 4426],
+        true,
+    )
+}
+
+#[test]
+fn run762_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // The word 4425 (block 4426): the original's `1/2010` queues a second
+    // `1/245` where ours has already produced it (`num_queued[245]` 1
+    // against 0, `num_units[245]` 13 against 14); 2322 keys (2320 before item
+    // 1497's two) over the
+    // window, most of them the first block's standing rows.
+    pin_eq!(w.firsts.len(), 2322, "run762 keys that part (item 1700)");
+}
+
 #[test]
 fn run754_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3963_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1632,8 +1674,13 @@ fn run754_s_word_frame_is_widened_whole() {
     // needs; its order kind 12 against 14 and `spell_time` on 3865 part no
     // more, `1/246`..`1/252` are linked. 1583 -> 409 keys; the new word is
     // 3982 (block 3983): the leader's MAKE rows.
-    // Item 1497: `myhits` and `construct_hits` compared on buildings, +2.
-    pin_eq!(w.firsts.len(), 411, "run754 keys that part (item 1669)");
+    // Item 1700: the temple arm's `city_flags & 0x1000` ×10 puts the
+    // Temple at the head of the Persian make list on 3982 as the
+    // original's; the MAKE rows agree, 409 -> 204 keys, and the word is
+    // **4425**, past this window's last block (4094).
+    // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
+    // on the tree before item 1700 (411); measured on the merged tree: 204.
+    pin_eq!(w.firsts.len(), 204, "run754 keys that part (item 1669)");
 }
 
 #[test]

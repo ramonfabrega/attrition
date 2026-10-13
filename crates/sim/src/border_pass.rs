@@ -82,7 +82,7 @@ impl Sim {
     /// runner-up that is none or `Ambiguous`, or the same player twice, marks
     /// nothing. The `city_flags & 0x1000` arm beside it (a cell within four
     /// cells of the city) is not modelled: no capture reads it.
-    fn mark_bordering(&mut self, who: Owner, who2: Owner, won: i32) {
+    fn mark_bordering(&mut self, who: Owner, who2: Owner, won: i32, cell: crate::world::Cell) {
         let (Some(p), Some(q)) = (who.player(), who2.player()) else {
             return;
         };
@@ -94,6 +94,8 @@ impl Sim {
         }
         let owner = self.cities[c].owner as usize;
         let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
+        let at = self.cities[c].pos.cell();
+        let near = (cell.x - at.x).abs() + (cell.y - at.y).abs() < 5;
         if let Some(a) = self.ai.get_mut(owner) {
             // A human's leader never sweeps, so its table starts short.
             if a.city_ai.len() <= c {
@@ -101,6 +103,12 @@ impl Sim {
             }
             let rec = &mut a.city_ai[c];
             rec.bordering = (rec.bordering | bits) & 0xff;
+            // `compute_reg_territory@006b0bb0:612`: a marked cell within
+            // Manhattan distance four of the city sets `city_flags &
+            // 0x1000`, which nothing in the pass clears.
+            if near {
+                rec.near_border = true;
+            }
         }
     }
 
@@ -119,7 +127,7 @@ impl Sim {
             for c in self.world.region_coords_strided(r, 0, 1) {
                 let i = (c.y * self.world.width() + c.x) as usize;
                 if let (Some(&(who, who2)), Some(&w)) = (target.get(i), won.get(i)) {
-                    self.mark_bordering(who, who2, w);
+                    self.mark_bordering(who, who2, w, c);
                 }
             }
         }
@@ -175,7 +183,7 @@ impl Sim {
                     let (who, who2) = pass.target[i];
                     self.world.set_owner(c, who, who2);
                     if let Some(&w) = pass.won.get(i) {
-                        self.mark_bordering(who, who2, w);
+                        self.mark_bordering(who, who2, w, c);
                     }
                     if let Some(p) = who.player() {
                         // `compute_reg_territory`'s per-cell goods scan: an
