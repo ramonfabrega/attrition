@@ -177,8 +177,16 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // 3985's `make_stuff` walks the head's two slots — 3985 → **4266**
     // (sequence; count 4267): 67 draws each, index 18, ours
     // `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
-    count: 4267,
-    sequence: 4266,
+    // Landing 19 (`docs/AI.md` §206, item 2055): `get_final_loc` walks the
+    // order ring from its bottom (the deepest point on the list), so
+    // `Army::charge`'s last re-issue on 4264 measures its formation from the
+    // copy beneath it, (6072, 29832), not from the charge's own (6216,
+    // 29784): `compute_form`'s reverse fires as the original's does, slot
+    // 80's `off` is (−10, 37) as run821's packet holds it, and the MLRS
+    // `1/144` walks 44 on 4265 — 4266 → **4340** (count and sequence), the
+    // game's last frame: the draw stream agrees to the end.
+    count: 4340,
+    sequence: 4340,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -218,6 +226,62 @@ fn sahara_coverage_first_parting() {
         SAHARA_COVERAGE.sequence,
         "the draw sequence's first parting"
     );
+}
+
+/// **The lobby's closing state** (item 2055): the word reached the game's
+/// last frame, 4340, once `get_final_loc` walked the order ring from its
+/// bottom (`docs/AI.md` §206), and a draw stream that agrees to a game's
+/// end says nothing of the end itself (item 1099). run676's closing dump
+/// walked to and compared whole.
+#[test]
+fn run676_sahara_coverage_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(SAHARA_COVERAGE.long.0),
+        dump(SAHARA_COVERAGE.start),
+        trace(SAHARA_COVERAGE.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Sahara coverage closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing city fields: {:?}",
+        harness::compare(&built, &fin, 8).city_diverged
+    );
+    pin_eq!(e.frame, 4341, "the closing block");
+    // Item 2055: 252 units compared; one off (`1/95`, ours (342, 159) from
+    // the dump's), eight building field-rows and five city field-rows apart.
+    // A residue of the closing, not a parity claim — the closing state's own
+    // item reads them.
+    pin_eq!(e.compared, 252, "units compared");
+    pin_eq!(e.counts(), [1, 0, 0, 0, 8, 0, 5], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
@@ -1060,10 +1124,10 @@ pub(crate) const RUN790: &str = "gamelog-run790-greatsahara-persian-alltech-wind
 /// The window: block 3761 through 4017; the word 3767's own block is 3768.
 pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_3767: (i64, i64) = (3761, 4017);
 
-/// **The coverage lobby's word's window** (`AI_WORDS`' `Third map` row for
-/// `GreatSaharaPersianAllTech`): run790 walked from run675's start with the
-/// recorder on — the word 3767's block 3768.
-pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
+/// run790 walked from run675's start with the recorder on — the word 3767's
+/// block 3768. It was the `AI_WORDS` window until the word moved past it, to
+/// run817's (item 2055).
+pub(crate) fn sahara_coverage_frame_3767_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[SAHARA_COVERAGE.start],
         true,
@@ -1080,7 +1144,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run790_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sahara_coverage_word_window() else {
+    let Some(w) = sahara_coverage_frame_3767_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1116,4 +1180,68 @@ fn run790_s_word_frame_is_widened_whole() {
     // `queue[k].cost[0]` 178 against 160 now first there; the word moves 3985 → 4266,
     // past the window.
     pin_eq!(w.firsts.len(), 119, "initial run790 baseline");
+}
+
+/// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
+/// the word 4266's block 4267 with six before it, to the game's closing
+/// block (the human is defeated at 4340).
+pub(crate) const RUN817: &str = "gamelog-run817-greatsahara-persian-alltech-window-4260-4341.txt";
+
+/// The window: block 4260 through 4341; the word 4266's own block is 4267.
+pub(crate) const WIDENING_SAHARA_COVERAGE_FRAME_4266: (i64, i64) = (4260, 4341);
+
+/// run817 walked from run675's start with the recorder on — the word 4266's
+/// block 4267, and the closing block 4341. It was the open word's window
+/// (`AI_WORDS`' `Third map` row for `GreatSaharaPersianAllTech`) until item
+/// 2055 closed the word at 4340 on it.
+pub(crate) fn sahara_coverage_frame_4266_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SAHARA_COVERAGE.start],
+        true,
+        SAHARA_COVERAGE.long,
+        "run817",
+        &[(RUN817, WIDENING_SAHARA_COVERAGE_FRAME_4266.0)],
+        WIDENING_SAHARA_COVERAGE_FRAME_4266,
+        1,
+        &[4267],
+        true,
+    )
+}
+
+#[test]
+fn run817_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sahara_coverage_frame_4266_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 81, "every captured block");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 2055: **10740** keys on the base tree (`37e269fb`). 264 stand
+    // from 4260, the window's first block (the attrition of group 66's
+    // members inside the human's border, ours 6 against 0, is among them);
+    // the word's own rows open on block 4266 — the MLRS `1/144`, group 66's
+    // leader under its new `GROUPATTACKTOORDER`, steps 22 where the
+    // original steps 44 (`pos` (14721, 25632) against (14700, 25638)), and
+    // every member guarding it takes the parted guard point.
+    //
+    // Then **10740 → 344** on item 2055's build, `get_final_loc` from the
+    // order ring's bottom (`docs/AI.md` §206): the charge's last re-issue on
+    // 4264 lays group 66 out reversed as the original does, the MLRS walks
+    // 44 on 4265, and block 4266 parts one key (`1/91 sheltered`) where it
+    // parted 509 — the MLRS's `pos` and every member's guard point agree.
+    // The 264 standing rows from 4260 stay; the rest are the attrition and
+    // shelter residue of group 66's members, and from 4285 a `path[k].to`
+    // residue (`1/105`, `1/107`, `1/168`: ours 768 south of theirs).
+    pin_eq!(w.firsts.len(), 344, "initial run817 baseline");
 }

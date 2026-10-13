@@ -16435,3 +16435,20 @@ Pool lane 1, first take held: `success: true`, 1,001 frames, seed 12345, map 14,
 `3c22c953f8060be2ed09620682a1b4665ea4f953875253d91f5fad719c177799`; kept in `~/ron-golden/ch62/map-14`. Waited on
 another lane's capture: none. **What it holds**: `golden::chapter_sixty_two_holds_to_the_golden_word` (**900**, the
 third squad's newborn men) and `chapter_sixty_two_s_word_frame_is_widened_whole` (605..901, 21 rows, no pool row).
+## run817 — Great Sahara in the coverage pair's lobby: the word 4266's widening, blocks 4260..4341, to the game's end (2026-10-13, item 2055, `att-2055`)
+
+**Disk gap**: item 2026 moved the word 3985 → 4266 (67 draws each, index 18), past run790's last block (4017); no dump of this lobby held a unit, a building or a leader record there. run790's recipe with the window moved to the game's own end, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 4340 --allow-early-end --timeout 3600 --log-window 4260 4341 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`, click-free lane 1 from the pool. Three launches: the first refused before staging (a window one past `quit + 1`); the second died before frame 0 on the `wow64cpu+0x1139` fault, and the runner's own retake died the same way; the third `success`, 4341 frames, 2458 s. `rngcmp.py` against run676: **4341 frames, 0 differing**. Output `~/ron-data/lab-captures/2026-10-13-run817`. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run817-greatsahara-persian-alltech-window-4260-4341.txt`, 555,710,361 bytes,
+SHA-256 `020e69388a3bfd8dcd793c8a77bc5c7eba9ff7899acf9a274ca5df4a5f58f321`.
+
+Archive `rontrace-run817.log`, 198,686,432 bytes,
+SHA-256 `f43145cf8af4151bd06f73ea21d9190b456ec6a739c229f85383c877ce2e7083`.
+
+**What it holds**: `diff::sahara_coverage::run817_s_word_frame_is_widened_whole` — 81 blocks (4260..4341, the closing block among them), **10,740** parted keys on the base tree and **344** after item 2055's build, which closed the word at 4340 on it; its window is `sahara_coverage_frame_4266_window`, and the coverage driver reads its block 4267. `docs/AI.md` §206.
+
+## run821 — Great Sahara in the coverage pair's lobby: a packet at logger frame 4265, group 66's slot table (2026-10-13, item 2055, `att-2055`)
+
+**Disk gap**: `GroupData`'s slot table (`off_x/off_y +0x4c/+0x24c`, `curr_x/curr_y +0x44c/+0x64c`, `facing +0x48`) is printed by no dump of this lobby (run817's `groupdata_blocks` is 0). run817's recipe with `--end-frame 4270 --log-window 4263 4268 --tracer-def RON_STATE_FRAME=4265` and `RON_STATE_PLAN` = run781's plan (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h`), the commander's number. Click-free lane 1, `success`, `settings_restored`. Packet `~/ron-data/lab-captures/2026-10-13-run821/map-7/frame-snapshot.bin`, 906,248,532 bytes, frame 4265 (trace frame 4264).
+
+**What it holds**: group 66 (`groups` at `0xe85f10`, list `+0x10`, record `0x113488c8`): `num` 104, `(ox, oy)` (6240, 30048), `o_angle` −1523843072, `facing` 0, slot 80 (the MLRS `1/144`) `off` **(−10, 37)** against ours (10, −37): every member's offsets negated, `compute_form`'s tail. `GroupData::get_loc_to@0070c5d0` entered on the record (`step4.py`) answers **(14743, 25626)**, the MLRS's point under the leader's bottom `GUARDORDER`. Read by item 2055 (`docs/AI.md` §206); nothing a test reads.

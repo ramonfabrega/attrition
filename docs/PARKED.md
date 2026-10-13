@@ -3734,6 +3734,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
+from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
+reverses it into "first issued first". So its `[0]` is the current order and `<top>` marks the bottom.
+That cost item 2055's draft a misreading (a leader's bottom guard read as its top). The label could read
+`current first … <bottom>`.
+
 (2105) **The golden floor reads a widening's window as the trace's end**
 (found at 2066's booking): `golden_line_verdict` calls a chapter closed
 when its word is its window's `hi - 1`, and the window it is handed is
@@ -4342,13 +4348,24 @@ landing. Made `struck` for every caller, the coverage pair parts at **3142** (47
 should keep in range, and something of ours that drops it otherwise. Names no frame on an open word; the `near_o` arm asks
 `is_in_range_struck` alone.
 
-## Parked by the next landing, slot AD — reserved
+## Parked by item 2055, 2026-10-13 — the order ring's bottom, and Great Sahara's close
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2056) **Great Sahara (All Technologies)'s closing residue** (the closing state's counts,
+`run676_sahara_coverage_closing_state`). On block 4341: 252 units, one off (`1/95`, ours (342, 159) from the
+dump's), eight building field-rows and five city field-rows apart (`[1, 0, 0, 0, 8, 0, 5]`). The cities are
+`1/2031 gatherers` (ours −1, theirs 255) and `1/2086`'s `land` 0/9, `filled` 0/1, `raid_stamp` and
+`reduce_stamp` 0/4340. The stamps of 4340, the game's last frame, read like item 1528's capture on a game's
+last frame: the next score of a closed lobby.
+
+(2057) **A `path[k].to` residue in run817 from 4285** (run817's 344 keys; names no word now). `1/105`,
+`1/107` and `1/168` push points ours 768 south of theirs (`path[77].to` (14472, 26424) against (14472,
+25656) on block 4285; `1/168`'s four on 4292 by the same 768). It sits in the same stream as group 66's
+standing attrition and `sheltered` rows from 4260, which this item left alone.
+
+(2058) **`get_final_loc`'s target arm and `Follow`** (`SEAM`, `Sim::unit_final_loc`; names no score). The
+original takes any order whose vslot `+0x20` answers non-zero and reads `+0xb4`'s `TargetOrder`. Item 2055
+read the arm for a `GUARDORDER` off run821's packet. A `FOLLOWORDER` is likely one too, but no listing or
+packet has read it, so ours still walks past a `Follow`.
 
 ## Parked by item 2061, 2026-10-13 — the sweep's forty-fifth batch
 

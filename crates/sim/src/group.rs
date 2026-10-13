@@ -1878,8 +1878,17 @@ impl Sim {
     /// `UnitData::get_final_loc@00608040` — where this unit's order list
     /// leaves it.
     ///
-    /// The walk is over the list from the head and it stops at the **first**
-    /// order that names a point, not the last: a move order hands back its
+    /// **The walk starts at the bottom of the ring** — the order issued
+    /// last at `QUEUE_LAST`, the one that runs last — and climbs toward the
+    /// current order, stopping at the first that names a point: the
+    /// *final* location is the deepest point on the list (item 2055,
+    /// `docs/AI.md` §206). The ring's anchor (`orderlist +0x14`) is where
+    /// `get_final_loc` starts and `OrderList::log_data` prints first, and
+    /// the current order is the node before it (`kill_current_order` reads
+    /// `+0x14 → +4`), so the dump prints the bottom first and the current
+    /// order last. ~~From the head~~ until item 2055: a re-issued charge
+    /// read the charge's own point, (6216, 29784), where the original reads
+    /// the copy beneath it, (6072, 29832). A move order hands back its
     /// destination (vslot `+0x14`, then `+0xb8`'s `(+4, +8)` — the order's
     /// `x`/`y`, not its live waypoint), and an order carrying a
     /// `TargetOrder` hands back its target **object's** position, provided
@@ -1898,20 +1907,34 @@ impl Sim {
     /// tile, and a queued attack behind another unit's — this crate keeps
     /// one target per unit, so a list holding two attacks answers with the
     /// live one for both.
+    ///
+    /// **A guard is a `TargetOrder` too**, and it answers the escorted
+    /// unit's own position, never its post (item 2055, `docs/AI.md` §206):
+    /// Great Sahara's leader `1/17` holds a `GUARDORDER` on the MLRS `1/144`
+    /// at its head on block 4265, and the original's `get_loc_to` on run821's
+    /// packet answers (14743, 25626), the MLRS's point. Walked past, the
+    /// answer was the charge's (6216, 29784), and `compute_form`'s reverse
+    /// on the last re-issue never fired. SEAM: `Follow` is not read off the
+    /// listing as one and still walks past.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
-        let found = self.units[u].orders.iter().find_map(|o| match o.body {
-            Body::Move(m) => Some(m.dest),
-            Body::Attack(_) => self.units[u]
-                .combat
-                .target
-                .and_then(|t| self.obj_alive_pos(t)),
-            Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
-                self.obj_alive_pos(crate::combat::Obj::Building(b))
-            }
-            Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
-            _ => None,
-        });
+        let found = self.units[u]
+            .orders
+            .iter()
+            .rev()
+            .find_map(|o| match o.body {
+                Body::Move(m) => Some(m.dest),
+                Body::Attack(_) => self.units[u]
+                    .combat
+                    .target
+                    .and_then(|t| self.obj_alive_pos(t)),
+                Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
+                    self.obj_alive_pos(crate::combat::Obj::Building(b))
+                }
+                Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
+                Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
+                _ => None,
+            });
         let Some(p) = found else { return here };
         if self.invalid_loc(u, p.tile(), true, false, false, false, false) != 0 {
             return here;
@@ -5761,20 +5784,22 @@ mod tests {
         );
     }
 
-    /// **`UnitData::get_final_loc@00608040` stops at the first order that
-    /// names a point**, not the last (`docs/ORDERS.md` §17.3) — and an
-    /// order naming none is walked past.
+    /// **`UnitData::get_final_loc@00608040` climbs from the bottom of the
+    /// ring** and stops at the first order that names a point — the
+    /// deepest point on the list (`docs/ORDERS.md` §17.3, overturned by
+    /// item 2055, `docs/AI.md` §206) — and an order naming none is walked
+    /// past.
     ///
-    /// Three orders on one unit: a think with nothing to say, then an
-    /// attack, then a move. The answer is the attack's target, because it
-    /// comes first; put the move in front and the answer is the move's
-    /// destination.
+    /// Three orders on one unit, current first: a think with nothing to
+    /// say, then an attack, then a move. The answer is the move's
+    /// destination, because it runs last; put the attack beneath it and the
+    /// answer is the attack's target.
     ///
-    /// **Made to fail on purpose** with a `rev()` on the walk, which reads
-    /// the move under the attack and is the natural way to write "where the
-    /// list ends".
+    /// ~~Made to fail with a `rev()` on the walk~~ until item 2055: the
+    /// walk without the `rev()` is the one that fails now, Great Sahara's
+    /// charge read from the charge's own point rather than the copy beneath.
     #[test]
-    fn get_final_loc_stops_at_the_first_order_that_names_a_point() {
+    fn get_final_loc_climbs_from_the_bottom_of_the_ring() {
         let mut s = sim();
         let t = fighter(&mut s);
         let u = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4000));
@@ -5793,8 +5818,7 @@ mod tests {
             false,
         );
         s.add_move_order(u, far, MoveKind::MoveTo, QueuePos::Last, false);
-        // A `Think` in front, which names no point and must be walked past
-        // rather than answered with.
+        // A `Think` in front, which names no point.
         s.units[u].orders.push_front(Order {
             flags: 0,
             body: Body::Think,
@@ -5810,24 +5834,54 @@ mod tests {
             .expect("the move went on");
         assert_eq!(
             s.unit_final_loc(u),
-            prey_at,
-            "the attack is ahead of the move, so its target is the answer"
+            snapped,
+            "the move is beneath the attack, so its destination is the answer"
         );
         s.units[u].orders.swap(1, 2);
         assert_eq!(
             s.unit_final_loc(u),
-            snapped,
-            "with the move ahead of it, the move's destination is"
+            prey_at,
+            "with the attack at the bottom, its target is"
         );
         // `flags & 1` alone, and nothing about the map: a dead target is
         // walked past like an order that names nothing.
-        s.units[u].orders.swap(1, 2);
         s.units[prey].health = 0;
         assert_eq!(
             s.unit_final_loc(u),
             snapped,
-            "a dead target is not a point, so the walk goes on to the move"
+            "a dead target is not a point, so the walk climbs on to the move"
         );
+    }
+
+    /// **A guard names its escorted unit's position** (item 2055,
+    /// `docs/AI.md` §206): a `GuardOrder` is a `TargetOrder`, and
+    /// `get_final_loc` reads the target object's `+0x10/+0x14`, never the
+    /// post. run821's packet: Great Sahara's leader, a guard on the MLRS at
+    /// the bottom of its list, answers the MLRS's point.
+    #[test]
+    fn get_final_loc_reads_a_guard_s_target() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let u = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4000));
+        let ward = spawn(&mut s, 1, t, Pos::new(0x1000, 0x6000));
+        s.add_move_order(
+            u,
+            Pos::new(0x7000, 0x2000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            false,
+        );
+        s.add_guard_order(u, ward, 0, 960, QueuePos::Last);
+        assert!(
+            matches!(
+                s.units[u].orders.back().map(|o| o.body),
+                Some(Body::Guard(_))
+            ),
+            "the guard is at the bottom"
+        );
+        // Moved after the order went on, so the post and the unit part.
+        s.units[ward].pos = Pos::new(0x1200, 0x6400);
+        assert_eq!(s.unit_final_loc(u), s.units[ward].pos);
     }
 
     /// **The follower tracks the leader's current position, not the
