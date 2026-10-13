@@ -3826,6 +3826,9 @@ assumes a bool (a `--mask` shape); 1799 a seventh: it moved the
 `range`/all shapes' `TYPE` base to `0x10100000` in the generator (the base
 half closed for generated shapes), and still wants `--mask` and a
 virtual-dispatch shape for the `BuildTypeData::is_*` family (slot `+0x60`).
+1814 an eighth: a "global cell" shape (`Game::is_infinite` reads the
+`GameAccess::game` cell `0xc061ec`) and a stack-out-pointer shape
+(`WCoord::get_tcorner`), both hand-written again.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
