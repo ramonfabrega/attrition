@@ -196,8 +196,8 @@ pub(crate) const RUN788: &str = "gamelog-run788-eastindies-mongol-alltech-window
 /// The window: block 2832 through 3089; the word 2838's own block is 2839.
 pub(crate) const WIDENING_MONGOL_FRAME_2838: (i64, i64) = (2832, 3090);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run788's blocks around the word 2838 (item 1868), the window the word left.
+pub(crate) fn mongol_frame_2838_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -214,7 +214,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run788_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_2838_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -234,4 +234,42 @@ fn run788_s_word_frame_is_widened_whole() {
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
     // is the Fishermen `1/122`'s arrival, whose final path point theirs planned
     // (32277, 44997) against ours (32276, 44952) (`docs/AI.md` section 196).
+}
+
+/// run799: the word 3131's window, blocks 3125..3382 at the long's detail (item 1948).
+pub(crate) const RUN799: &str = "gamelog-run799-eastindies-mongol-alltech-window-3125-3383.txt";
+
+/// The window: block 3125 through 3382; the word 3131's own block is 3132.
+pub(crate) const WIDENING_MONGOL_FRAME_3131: (i64, i64) = (3125, 3383);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run799",
+        &[(RUN799, WIDENING_MONGOL_FRAME_3131.0)],
+        WIDENING_MONGOL_FRAME_3131,
+        1,
+        &[3132],
+        true,
+    )
+}
+
+#[test]
+fn run799_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run799 baseline");
 }
