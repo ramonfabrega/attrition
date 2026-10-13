@@ -1,7 +1,6 @@
 //! `ThinkOrder::get_type@004845c0` under the emulator against the port (item 1708).
 
 use crate::orders::{Order, *};
-use crate::world::Pos;
 
 /// `ThinkOrder::get_type@004845c0`, run by `tools/emu/sweep_think_order_get_type.py` under unicorn
 /// (tools/emu): the constant `THINK` through `eax`, whatever `this` points at, against `Order::index` of a fresh `Body::Think` order — the port's own `OrderIndex` for the class.

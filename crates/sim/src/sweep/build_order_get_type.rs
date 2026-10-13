@@ -1,7 +1,6 @@
 //! `BuildOrder::get_type@00482b50` under the emulator against the port (item 1708).
 
 use crate::orders::{Order, *};
-use crate::world::Pos;
 
 /// `BuildOrder::get_type@00482b50`, run by `tools/emu/sweep_build_order_get_type.py` under unicorn
 /// (tools/emu): the constant `BUILD_AT` through `eax`, whatever `this` points at, against `Order::index` of a fresh `Body::Build` order — the port's own `OrderIndex` for the class.

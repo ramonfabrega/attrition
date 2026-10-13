@@ -1,7 +1,6 @@
 //! `RepairOrder::get_type@004827a0` under the emulator against the port (item 1708).
 
 use crate::orders::{Order, *};
-use crate::world::Pos;
 
 /// `RepairOrder::get_type@004827a0`, run by `tools/emu/sweep_repair_order_get_type.py` under unicorn
 /// (tools/emu): the constant `REPAIR` through `eax`, whatever `this` points at, against `Order::index` of a fresh `Body::Repair` order — the port's own `OrderIndex` for the class.

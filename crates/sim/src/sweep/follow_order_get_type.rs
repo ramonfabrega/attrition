@@ -1,7 +1,6 @@
 //! `FollowOrder::get_type@00486c20` under the emulator against the port (item 1708).
 
 use crate::orders::{Order, *};
-use crate::world::Pos;
 
 /// `FollowOrder::get_type@00486c20`, run by `tools/emu/sweep_follow_order_get_type.py` under unicorn
 /// (tools/emu): the constant `FOLLOW` through `eax`, whatever `this` points at, against `Order::index` of a fresh `Body::Follow` order — the port's own `OrderIndex` for the class.

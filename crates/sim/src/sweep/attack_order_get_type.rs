@@ -1,7 +1,6 @@
 //! `AttackOrder::get_type@0047ef80` under the emulator against the port (item 1708).
 
 use crate::orders::{Order, *};
-use crate::world::Pos;
 
 /// `AttackOrder::get_type@0047ef80`, run by `tools/emu/sweep_attack_order_get_type.py` under unicorn
 /// (tools/emu): the constant `ATTACK` through `eax`, whatever `this` points at, against `Order::index` of a fresh `Body::Attack` order — the port's own `OrderIndex` for the class.
