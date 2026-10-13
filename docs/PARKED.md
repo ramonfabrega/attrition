@@ -3954,6 +3954,19 @@ batch to write it; a `tools/sweep_gen.py` for index-range predicates
 makes the rest a one-liner; 1705 used it a third time (a probe shape
 reached three times graduates). A sibling of 1703; with it. One reach.
 
+(1713) **Two Sonnet lanes `pkill -f release_gate.py`'d every gate on the
+box** (2026-10-13, 05:45:23–05:46:06Z): `att-1700` three times
+(`pkill -f "release_gate.py"`, `"tools/release_gate.py"`) and `att-1708`
+once, each to stop its own suite; the commander's booking gate on
+`0283d82d` died twice (exit 144, no test failed), and any other lane's
+gate running then with it. The frame already says "kill a detached suite
+by its pid, never `pkill -f` on a name every lane shares" (1527); the
+row did not hold on Sonnet medium. Found by grepping the lanes'
+transcripts for `pkill`. Candidates: `release_gate.py` writes its own
+pid to the job tmp and prints the line that kills it; a guard that
+refuses a gate's death by a signal without naming who sent it; the
+frame's row moved up to the build section's first bullet. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

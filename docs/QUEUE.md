@@ -20,9 +20,9 @@ fifty-two landed (1497, the Temple's hit-point term). No kill rule tripped.*
 
 - **Out**: `att-1700` (parks 1675–1678, runs 762–765, AI §185), `att-1697`
   (1679–1682, 766–769, AI §184), `att-1708` (1683–1686), `att-1707`
-  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1713, run
+  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1714, run
   774, AI §186. **The disk**: 248 GiB free.
-- **Fable backlog: 23 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706).
+- **Fable backlog: 24 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
