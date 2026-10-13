@@ -35,6 +35,16 @@ Three shapes, each a `__thiscall` on `ecx`:
           handed on the stack (`[esp+4]`), reading one integer at
           `this+OFF`; the rows are the field shape's, `--port` over `v`.
 
+  fwd     the function hands its work to one or two direct callees and
+          answers a constant or the last callee's answer
+          (`--call ADDR:NARGS:ECX:ARGS`, repeatable; ECX is `this` or
+          `this+0xNN`, ARGS a comma list of `this`, `p0` or an integer;
+          `--own N` stack arguments of its own, `--ret` one of `none`, an
+          integer or `last`). The callees are hooked
+          (`tools/emu/hooks.py`); a row is `<this> <p0> <answer> -> <eax> |
+          <ecx,args…>;…` and the test holds the calls — which callee, with
+          what `ecx` and arguments, in what order — to the spec.
+
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port.
 
@@ -91,6 +101,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import Image, Machine, signed  # noqa: E402
 from sweeplib import OBJ, TYPE, REC, OUT, cell, setup  # noqa: E402,F401
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402,F401
 
 ENTRY = 0x{va:08x}
 INT_EDGES = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 15, 16, 255)
@@ -131,6 +142,69 @@ def main(argv):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
+'''
+
+FWD_TAIL = '''
+
+CALLS = {calls}
+OWN = {own}
+
+
+def rows():
+    rng = random.Random({item})
+    return [(rng.randrange(0x1000, 0x7FFF0000) & ~3, rng.randint(-0x80000000, 0x7FFFFFFF),
+             rng.randint(-0x80000000, 0x7FFFFFFF)) for _ in range(140)]
+
+
+def main(argv):
+    from hooks import Harness
+    from callfn import STACK_BASE, STACK_SIZE
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
+    for this, p0, ans in rows():
+        h.calls.clear()
+        for i, (a, n, _, _) in enumerate(CALLS):
+            h.answers[f"{{a:x}}"] = (ans + i) & 0xFFFFFFFF
+        r = h.call(ENTRY, (p0,)[:OWN], ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{p0}} {{ans}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+FWD_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, fwd).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with its callees hooked: {doc}
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, _p0, ans) = (a[0], a[1], a[2]);
+        let _ = (this, _p0, ans);
+        let calls: Vec<Vec<i64>> = {calls};
+        let want: String = calls
+            .iter()
+            .map(|c| c.iter().map(i64::to_string).collect::<Vec<_>>().join(","))
+            .collect::<Vec<_>>()
+            .join(";");
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+{ret}
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
 '''
 
 ROWS = {
@@ -187,6 +261,46 @@ BODIES = {
         assert_eq!(got, want != 0, "{short} — row `{{line}}`");''', 800),
 }
 BODIES['cell'] = BODIES['outptr'] = BODIES['vcall'] = BODIES['field']
+
+
+def _fwd_expr(tok):
+    tok = tok.strip()
+    if tok == 'this':
+        return 'this'
+    if tok.startswith('this+'):
+        return f'this + {int(tok[5:], 0):#x}'
+    if tok == 'p0':
+        return '_p0'
+    return str(int(tok, 0))
+
+
+def generate_fwd(spec, *, item, calls, own=0, ret='none'):
+    name, va = parse(spec)
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    parsed, exprs = [], []
+    for c in calls:
+        addr, nargs, ecx, args = c.split(':', 3)
+        parsed.append((int(addr, 16), int(nargs), ecx, args))
+        exprs.append('vec![' + ', '.join([_fwd_expr(ecx)] + [_fwd_expr(t) for t in args.split(',') if t.strip()]) + ']')
+    if ret == 'none':
+        retcode = '        let _ = eax;'
+    elif ret == 'last':
+        last = f'(ans + {len(calls) - 1})' if len(calls) > 1 else 'ans'
+        retcode = (f'        let want_eax = {last} as i32;\n'
+                   f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), i64::from(want_eax), "{short} — eax, row `{{line}}`");')
+    else:
+        retcode = (f'        assert_eq!(eax.trim().parse::<i64>().unwrap(), {int(ret, 0)}, '
+                   f'"{short} — eax, row `{{line}}`");')
+    cs = [(a, n, e, g) for a, n, e, g in parsed]
+    script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item,
+                                 what=f'the object; calls {len(calls)} direct callee(s) and returns {ret}')
+              + ROWS['const'].split('def rows')[0]
+              + FWD_TAIL.format(calls=repr(cs), own=own, item=item)).replace('\n\n\n\ndef main', '\n\n\ndef main')
+    doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
+    test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
+                           calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
@@ -266,7 +380,10 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd'))
+    ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
+    ap.add_argument('--own', type=int, default=0, help='fwd: stack arguments the function itself takes')
+    ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
     ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
@@ -280,9 +397,13 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
     try:
-        sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
-                                             port=args.port, off=args.off, via=args.via,
-                                             cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
+        if args.shape == 'fwd':
+            sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
+                                                     own=args.own, ret=args.ret)
+        else:
+            sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
+                                                 port=args.port, off=args.off, via=args.via,
+                                                 cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2
