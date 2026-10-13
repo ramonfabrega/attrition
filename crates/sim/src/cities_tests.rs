@@ -1024,7 +1024,14 @@ fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
     let b2 = sim.place_building(0, t.barracks, tile_pos(48, 36)).unwrap();
     let u = sim.init_unit(0, citizen, tile_pos(30, 44));
     sim.swarm_around(u, b1, Body::Build(b1), true);
-    sim.swarm_around_last(u, b2, Body::Build(b2), true, MoveKind::ExploreTo, QueuePos::Last);
+    sim.swarm_around_last(
+        u,
+        b2,
+        Body::Build(b2),
+        true,
+        MoveKind::ExploreTo,
+        QueuePos::Last,
+    );
     let dest = |sim: &Sim| -> Vec<Pos> {
         sim.units[u]
             .orders
