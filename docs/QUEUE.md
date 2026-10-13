@@ -20,9 +20,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 - **Out**: `att-1714` (parks 1675–1678, runs 763–765, AI §186), `att-1716`
   (1679–1682, 767–769, AI §187), `att-1708` (1683–1686), `att-1707`
-  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1718, run
+  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1719, run
   774, AI §188. **The disk**: 248 GiB free.
-- **Fable backlog: 26 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717).
+- **Fable backlog: 27 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

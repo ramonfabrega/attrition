@@ -3983,6 +3983,20 @@ brief listing three filters on a `cargo test` line is a trap: `cargo
 test` takes one; the lane gate's `--tests a:: b::` is the multi-filter
 form. One reach each.
 
+(1718) **The commander's own stub makes the lane's merge conflict**
+(2026-10-13): five of the tranche's first twelve merges backed out —
+two on a shared widening count (`coverage_pair.rs`, `sahara_coverage.rs`),
+one on a driver tuple that merged clean and failed to compile
+(`coverage.rs`, two lanes each adding a window), and three on
+`docs/AI.md`, where the lane rewrites its stub at the file's end and the
+booking of the lane beside it appends the next stub on the line after —
+adjacent hunks, a conflict every time. Each cost the lane a round trip
+(update, resolve, re-gate). Parked 1491's shape, measured again.
+Candidates: the tranche's opening booking lands every stub it will need
+(a dozen ahead, numbered), so no later booking edits the file's end; a
+sentinel line after the last stub; the driver tuple turned into a list a
+merge can append to. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
