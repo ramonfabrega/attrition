@@ -3731,9 +3731,27 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-13 — the thirty-second tranche's
+
+(2031) **`unitat.py` has no "when did ours place this building" mode**
+(1999's Loop line, filed at its merge): the fastest step of 1999 was
+`RON_DEBUG_BUILDS` over the gap to date a building whose row had already
+parted on a window's first block. Candidate: a `--building <who/id>` mode
+(or a `births.py`-like line) printing our placement frame and tile beside
+the dump's, so a parted building row dates itself in one command.
+
+(2025) **The census counts a callee a sweep script hooks as backed** (parked
+2012, filed at 1998's merge): `tools/census.py`'s `sweep_backed` reads every
+address and unique `Class::method` in a sweep test's chunk, doc comment
+included, so a callee the script hands `Harness(…, {ADDR: …})` counts beside
+the function swept; 1998's first draft read 461 for ten, reworded 459.
+Candidate: subtract the addresses a sweep's own script hooks, with a test
+made to fail first on 1998's first wording; then re-audit the 400-odd
+landed sweeps for the inflation (beside 1725, the same score's other leak).
+
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here.
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4127,21 +4145,30 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot V — reserved
+## Parked by item 1999, 2026-10-13 — a bordering city's Fort
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot V renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2008) **The Fort arm's ×10 reads the city its caller passes** (`docs/AI.md` §202): the original's `local_68` is the near building's `+0x72` whenever the near object is a city building, active or not; `ai_host`'s `produce_building` hint passes a city only for an **active** one, so an inactive anchor would score its Fort without the ×10 here. Names no frame; no walk is known to reach it.
 
-## Parked by the next landing, slot W — reserved
+## Parked by item 1998, 2026-10-13 — the sweep's forty-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot W renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2012) **The census counts a hooked callee a sweep test names as backed** (Loop; names no score, but it inflates
+the one the sweep lane is scored by). `tools/census.py`'s `sweep_backed` takes every `name@00xxxxxx`, every bare
+`@00xxxxxx` and every unique `Class::method` in a sweep `#[test]`'s chunk — doc comment included — as backed. Item
+1998's first draft named three callees it *hooked* (`TypeData::research_time`, `UnitData::invalid_loc`, the
+`WCoord` `find_good_at` (0x65bec0)) and the census read 461 for ten sweeps; reworded, 459. A guard would split the
+two: a hooked callee is whatever the script hands `Harness(…, {ADDR: …})`, so the census can subtract the
+addresses a sweep's own script hooks, or the test can cite them in a form `named` skips. Earlier batches were not
+re-audited for it (1993's `get_land` test cites only its own address; the other 400-odd were not read).
+
+(2013) **`sweep_gen.py vcall` has no shape for a slot entered as an ordinary call after `pop ebp; jmp [eax+N]`**
+(Loop; names no score). `Unit::set_type` (0x46ce10) and `Build::finished` (0x470e50) tear their frame down and jump:
+the slot sees the caller's return address at `[esp]` and the function's own stack arguments above it, so it is
+a non-tail stub with `nargs` = the function's own and `ret 4·N`. `--tail` is the `push; jmp` shape (`is_city`) and
+leaves `esp` wrong here, and the generated script holds neither `esp` nor what the slot was handed; both were by
+hand. A `--jmp` flag (non-tail stub, `--own N`, the handed arguments and `ecx` in the row) would take them, and a
+slot whose answer is a function of its first argument (`GoodTypeData::is_flat`'s three asks of `+0x60`) beside it.
+Also: three tracked `crates/sim/src/sweep/world_data_is_valid_*.rs-E` files are BSD `sed -i -E` leftovers from
+item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
 
 ## Parked by the next landing, slot X — reserved
 
@@ -4163,6 +4190,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot Z renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

@@ -20,10 +20,10 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **No lanes live**; **roster: Opus 5.5 medium, four lanes** (Ramon, at the steer). Next
-  2004, run 809, AI §204, GOLDEN §74, park slot U (pools: U–Z, AI §205–§209, GOLDEN
-  §75–§79). Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
-- **Fable backlog: 7 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003).
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2001, 2026, 2020, 2002; landings
+  since `dca6a873`: 2 (1998, 1999). Next 2032, run 813, AI §205, GOLDEN §74, park slot AA
+  (pools: AA–AF, AI §205–§209, GOLDEN §74–§79; U–Z assigned). Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`.
+- **Fable backlog: 9 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,8 +31,8 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w3632 of 5,056
-Census: simulation backed 449 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3825 of 4,340
+Census: simulation backed 459 of 3611
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3985 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -46,7 +46,7 @@ handoff written, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2001 the headline's word, 1999, 1998 and 2002 the other three lanes —
+2001 the headline's word, 2026, 2020 and 2002 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -60,21 +60,21 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     search that gives up pops its top; its kill half is parked 1984.
     East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §203.
 
-1999. **Great Sahara's word: frame 3825, 29 versus 28 draws**, index 5:
-    ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
-    `Guy::set_anim+0x97a < Unit::do_move+0x11cf`; 1937 moved 3805 → 3825
-    with a computer's siege arm, its bombard flag and a returning patrol's
-    look. Inside run790 (to 4018), widened by 1937: the Citizen `1/161`'s
-    `collide` on 3826 (parked 1938) is the first value row, a hypothesis;
-    parked 1939 are rows before the word. Every record on 3825 both ways
-    before a mechanism. AI §202.
+2026. **Great Sahara's word: frame 3985, 29 versus 29 draws**, index 1:
+    ours `Leader::make_stuff+0x63d`, theirs `Leader::make_stuff+0x221`
+    (theirs spends `+0x221` twice, ours once); 1999 moved 3825 → 3985 with
+    a bordering city's Fort scored ×10. Inside run790 (to 4017): rows open
+    on 3983 (leader 1's buckets 73–74 short; `1/2047` `queue[3].cost[0]`
+    173 against 136), then 3984's `MAKE[0..3]` — rows before the word, a
+    hypothesis. Every record on 3985 both ways before a mechanism. AI §204.
 
-1998. **The sweep's forty-first batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 449 of 3611): 1993's shape,
-    merged by SHA; past the 400 swept, shortest decompile first; an
+2020. **The sweep's forty-second batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 459 of 3611): 1998's shape,
+    merged by SHA; past the 410 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
-    citation pattern (parked 1722) — skip operators until it is built.
-    1630's `get_tregion` parting stands. `--kind sweep`.
+    citation pattern (parked 1722) — skip operators until it is built;
+    cite no hooked callee in a sweep test's chunk (parked 2012).
+    `--kind sweep`.
 
 2002. **Chapter sixty's last row: the guard walk's pool `speed` on 625**
     (DECISIONS 56 §3; GOLDEN §72; 1988 closed 1961 and 1962 on run801):

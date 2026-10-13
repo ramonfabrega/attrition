@@ -782,6 +782,25 @@ impl Sim {
                         }
                         _ => score /= 2,
                     }
+                    // **A bordering city's Fort is scored ten times over**
+                    // (`006e21b7`–`006e21f4`, `docs/AI.md` §202): after the
+                    // owner test, every arm of it, `score *= 10` when the
+                    // anchor's city (`local_68`, the near building's
+                    // `+0x72`) has `CityData::bordering` (`+0x65`) set and
+                    // `local_c` — the ring count, `[ebp-8]` — is under
+                    // `circle_radius[3]` (`0xcbe33c`). The ring count is
+                    // never that large, so the city's byte decides. It
+                    // weighs the distance and danger terms ten to one
+                    // against `0xff − val`, which is added after it.
+                    let bordering = city.is_some_and(|c| {
+                        self.ai[who as usize]
+                            .city_ai
+                            .get(c)
+                            .is_some_and(|r| r.bordering != 0)
+                    });
+                    if bordering && (rings as i32) < circle.radius[3] as i32 {
+                        score *= 10;
+                    }
                 }
                 // `w1` and `plenty` are the gather-amount weights; with no
                 // `gather_at` amounts they stay at their initial values.

@@ -162,8 +162,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // Rocket Artillery `1/96` on 3805 — 3805 → **3825** (count and sequence):
     // ours 29 draws against 28, index 5, ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_move+0x11cf`.
-    count: 3825,
-    sequence: 3825,
+    // Landing 17 (`docs/AI.md` §202, item 1999): a bordering city's Fort is
+    // scored ten times over (`produce_building`'s `006e21b7`–`006e21f4`), so
+    // the Persians' Redoubt `1/2078`, placed on 3585, stands at (38304,
+    // 24288) as the original's does, not three cells north at y 21984, and
+    // the Citizen `1/161` sent to it no longer meets the TOW `1/16` on 3825
+    // — 3825 → **3985** (sequence; count 4267): 29 draws each, index 1,
+    // ours `Leader::make_stuff+0x63d`, theirs `Leader::make_stuff+0x221`.
+    count: 4267,
+    sequence: 3985,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -1086,5 +1093,12 @@ fn run790_s_word_frame_is_widened_whole() {
     // the replay is diverged for 212 of the window's blocks, so the count
     // is the tail's, not the word's. The word 3767's own rows were
     // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
-    pin_eq!(w.firsts.len(), 1229, "initial run790 baseline");
+    // Item 1999: **133** (1229 before): a bordering city's Fort is scored
+    // ten times over, so the Redoubt `1/2078` stands where the original's
+    // does (`build:y_internal` 21984 against 24288 on 3761 is gone) and
+    // the Citizen `1/161` walking to it agrees on every block (its 3761
+    // path, its 3767 `collide_o` and its 3826 `collide` rows are gone).
+    // The word moves 3825 → 3985; its rows open on 3983 (leader 1's
+    // buckets, the queue's costs) and 3984 (`MAKE[0..3]`).
+    pin_eq!(w.firsts.len(), 133, "initial run790 baseline");
 }

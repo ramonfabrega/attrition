@@ -19238,12 +19238,89 @@ Mutation: `&& !resume` restored fails `run799_s_word_frame_is_widened_whole` (2,
 That a resumed failure's kill arm (no roll) is reached by any capture; the listing's, as 200.3's re-push is. `1/101`'s explore draw agrees on
 both sides and was not widened further.
 
-## 202. Reserved for the next item on the AI track
+## 202. A bordering city's Fort is scored ten times over, and the third map's word moves 3825 → 3985 (2026-10-13, item 1999)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame, both sides.** Great Sahara in the coverage pair's lobby, word
+3825 (ours 29 draws against 28, index 5), inside run790's window. The
+trace (`report.py rontrace-run790.log draws 3825`) and the walk's
+attributed sites (`RON_DEBUG_SITES=3825-3825` on
+`sahara_coverage_first_parting`) agree on everything but one draw: ours
+spends `Guy::set_anim+0x97a < Unit::move_step+0x823` for the Citizen
+`1/161` (`TI` 50, `TY` 0, `PEASANTS`), between `1/153`'s three `do_move`
+draws and `1/166`'s; the original's seven `do_move` draws are ours less
+that one. `RON_SWEEP=3825:1/161` names the cause on our side: the step to
+(42217, 18255) hits the TOW `1/16` (`hard 1/16`), and the stop is the draw.
+
+**The record walked back.** `1/161`'s parting is not on 3825: on run790's
+first block (3761) its position, path and move order already part —
+`pos` (41497, 17064) against (41455, 17118), `orders_x/y` (38472, 21432)
+against (38424, 23736), every `path[k].to` 48 to the east. The order is the
+swarm approach (`EXPLORE_TO`) to a `BUILDORDER` on `1/2078`, and that
+building's own row on 3761 is `build:y_internal` 21984 against 24288: a
+**Redoubt** (`orig_type` 446, `REDOUBT`, `construct_hits` 1) three cells
+north of the original's. run767 (to 3186) holds `1/161` gathering, and no
+dump covers 3187..3760; `RON_DEBUG_BUILDS` on the walk dates our site to
+tick **3585**, where the original spends the same four
+`Leader::produce_building+0x1805` jitter draws (`report.py rontrace-run676.log
+draws 3585`) — the same placement, a different cell.
+
+**The scores.** A probe on our spiral (one commit, reverted whole) printed
+every scored candidate on 3585: the Fort arm (`nocity`, `fortlike`) gives
+cell (49, 28) **4248** and the original's cell (49, 31) **4242** —
+`8000 + danger/4`, halved by the own-border test, plus `0xff − val`
+(val 3 and 10). The listing settles the difference:
+
+**The rule** (`Leader::produce_building@006e1400`, `006e21b7`–`006e21f4`;
+the decompile's `:571`–`575`). After the owner test — every arm of it, the
+`/ 2` and the enemy `× 8`/`× 4`/`× 16` all join at `006e21b7` — the score is
+multiplied by **10** when
+
+- `local_68 >= 0`: the anchor building's city (`*(short *)(near + 0x72)`,
+  set at the function's head when the near object is a city building),
+- `cities[who][local_68] + 0x65 != 0`: `CityData::bordering` (`types.txt`),
+- and `[ebp-8] < circle_radius[3]` (`0xcbe33c`, `circle_radius` being
+  `0xcbe330`): `[ebp-8]` is `local_c`, the **ring count** (`006e15c5`,
+  incremented at `006e160c` for a no-city type, and the loop's bound at
+  `006e25cc`). The ring count is a handful and `circle_radius[3]` the cells
+  within three rings, so the city's byte decides.
+
+It sits inside the Fort arm only (the `else` that reads the danger grid),
+and `0xff − val` is added after it. Ten times over, the distance and
+danger terms outweigh `val`: (49, 28) is 40212 and (49, 31) 40215, the
+original's cell. Built in `Sim::produce_building`
+(`crates/sim/src/ai_place.rs`), reading `city_ai[c].bordering`, which the
+border pass writes (item 1600).
+
+**What moved.** The Redoubt stands at (38304, 24288) as the original's
+does, `1/161` walks the original's route and no longer meets `1/16`, and
+the word moves **3825 → 3985** (sequence; count 4267): 29 draws each,
+index 1, ours `Leader::make_stuff+0x63d`, theirs `Leader::make_stuff+0x221`
+(theirs spends `+0x221` twice, ours once). run790's keys 1229 → **133**:
+`1/2078`'s `build:y_internal` and every `1/161` row (3761's path, 3766's
+`dest`, 3767's `collide_o`, 3826's `collide`) are gone. The rows the new word
+opens on are 3983's — leader 1's buckets (`timber` 5169 against 5242,
+`wealth`, `metal` and `oil` each 73–74 short) and the queue's costs
+(`1/2000` `queue[3].cost[0]` 78 against 67, `1/2047` 173 against 136) — and
+3984's `MAKE[0..3]` (`t` 295 against 305 at the head). `GROUND_INEXACT`'s
+`sahara_coverage_first_parting` row 514 → 975 (the walk now runs to 4267).
+Every other lobby's `first_parting`, `floors::`, `coverage_pair::` and
+`coverage::` hold.
+
+**Killer.** `tools/mutate.py` with `score *= 10` made `score *= 1`:
+`sahara_coverage_first_parting` fails (exit 101). No unit test was written:
+the floor is the test, as in §199.
+
+**Not established.** The anchor's city in the original is the near
+building's `+0x72` whenever the near object is a city building; this crate
+reads the `city` its callers pass, which `ai_host` gives only for an
+**active** city building (parked 2008). The rows standing before the word
+— `1/214`'s `mirror`/`group:65` on 3768, `1/132`'s `attrition` on 3773,
+`city:gatherers` on 3783, `group:67` on 3785 (parked 1939) — and the new
+`1/136`/`1/143` `attrition` 12 against 0 on 3961 and 3986 name no draw.
+
+**Coverage.** Diff-backed: the cell (run790's `BUILDDATA` `1/2078`, and the
+walk's draws to 3985). Reading-only: that the ring-count term never fails
+(no walk reaches a ring count near `circle_radius[3]`).
 
 ## 203. Reserved for the next item on the AI track
 
