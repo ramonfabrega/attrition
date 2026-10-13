@@ -4175,13 +4175,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot Y — reserved
+## Parked by item 2020, 2026-10-13 — the sweep's forty-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot Y renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2021) **`sweep_gen.py` has no shape for a function that compares its own vtable slot with the base's address**
+(Loop; names no score). `UnitTypeData::is_missile` (0x61d430) and `ObjectTypeData::is_cargo` (0x661d80) load a slot
+(`+0xf0`, `+0xc`) and compare the *pointer* with the base implementation's address: equal, they inline the base's
+test on a field and never call; different, they call the slot and test its answer. Both were by hand, a row's
+mode writing either the base address or a stub into the one vtable. The four `UnitData::get_*_stance` getters
+(0x610970, 0x6109b0, 0x6109f0, 0x610a30) are the same shape again — slot `+0x104` against `has_stance_type`
+(0x46ced0), the type record's `+0x134` asked on the inline arm — and were left for the next batch for want of it.
+A `vcall --base ADDR` (the slot's two arms, a mode column, the inline arm's field through `--off`/`--via`) would
+take all six.
+
+(2022) **`tools/emu/hooks.py`'s stub page holds 256 stubs, and a vtable built per row exhausts it** (Loop; names
+no score). `Harness.stub` hands out `0x10` bytes of the one `0x1000`-byte page at `STUBS` and never reuses them, so
+a script that calls `h.vtable` inside its row loop faults at the 257th row with an unmapped fetch
+(`UC_ERR_FETCH_UNMAPPED` inside the page's end) — 2020's `is_cargo` did at row 241 of 300. `sweep_unit_set_type.py`
+and the generator's `vcall` shape build one a row and stay under the limit only by running 220–240 rows. One
+vtable built before the loop, its answer moved through `h.answers`, is the cure in a script; the harness could map
+a larger page or refuse the 257th stub by name.
 
 ## Parked by the next landing, slot Z — reserved
 
