@@ -202,6 +202,13 @@ pub(crate) fn row(line: &str) -> (Vec<i64>, i64) {
 fn a_row_is_its_arguments_and_its_result() {
     assert_eq!(row("3 -4 0 -> -7"), (vec![3, -4, 0], -7));
 }
+mod build_data_is_infinite;
+mod build_data_max_gatherers;
+mod build_data_most_shots;
+mod build_data_num_gather;
+mod build_type_data_area;
+mod build_type_data_is_flat;
+mod build_type_data_is_gather_type;
 mod city_data_pop_growth;
 mod follow_order_get_follow_order;
 mod form_order_get_form_order;
@@ -233,6 +240,7 @@ mod groupmoveorder_is_fleeing;
 mod guard_order_get_guard_order;
 mod item_out_draw_overlays;
 mod move_order_is_pathed;
+mod object_type_data_is_upgrade;
 mod patrol_order_get_patrol_order;
 mod player_is_active;
 mod setup_init_wild_life;
@@ -241,4 +249,6 @@ mod signposts_cur_y;
 mod signposts_get_num;
 mod strafe_order_get_air_order;
 mod strafe_order_get_attack_order;
+mod turn_control_is_cannon_time;
+mod type_data_avail;
 mod window_on_focus;
