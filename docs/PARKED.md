@@ -3967,6 +3967,13 @@ pid to the job tmp and prints the line that kills it; a guard that
 refuses a gate's death by a signal without naming who sent it; the
 frame's row moved up to the build section's first bullet. One reach.
 
+(1715) **A new window's test fails "pin of 0" before it reports its
+keys** (1700's Loop line): the compared pin's `ground_inexact` table is
+keyed on the thread name's suffix with a default of 0, so a new window's
+widening (run762) panics on the inexact-height pin before printing the
+count a worker needs to re-pin. Candidate: report the keys first, or a
+frame row for a new window. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

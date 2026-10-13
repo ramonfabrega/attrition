@@ -18405,3 +18405,8 @@ a second `1/245` where ours has already produced it (`num_queued[245]` 1 against
 halving (ours has `ever_attacked`, unwired there). The flag's clearing (none found in
 `compute_reg_territory`; other writers not grepped). No capture holds the tower arm's
 `0x1000` term; reading-only. The temple term is diff-backed by the make list on 3982.
+
+## 186. Reserved for item 1714 (the coverage pair's word 4425)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
