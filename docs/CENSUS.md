@@ -745,3 +745,17 @@ rule and prove the sign test and the id sets, not the loader. `is_supply` is
 checked against the raw `unit_flags2 & 0x40` that `path::army_mode` reads, not
 `Sim::is_supply_unit`, which adds a general exclusion the original's
 predicate does not have. `docs/journal/2026-10-12-item-1691.md`.
+
+**Item 1694, the sweep's fifth batch** (2026-10-13): **simulation backed 98
+of 3,611 (2.7 %)** — 31 by a coverage section, 67 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, again flag-word and field readers:
+`UnitTypeData::is_caravan`, `is_siege`, `is_spellcaster`, `needs_packing`,
+`blocks_while_dead`, `UnitData::is_hero`, `is_gov_hero`, `min_range`,
+`uber_size` and `is_on_map`. **All ten agree on every row** (266 each for the
+seven flag words, 212 for the two integer reads, 211 for `is_on_map`). Where the
+port has a named bit (`uflags::SIEGE`, `uflags2::CARAVAN`/`CASTER`/`PACKS`/
+`GENERAL`) the row drives it; `blocks_while_dead` (`0x80_0000`) and
+`is_gov_hero` (`0x400_0000`) have no named constant in the port and are checked
+against the raw `UnitCols::flag` bit. `min_range`/`uber_size` go through the
+type's combat `Profile`, and `is_on_map` proves only the sign-bit test against
+`Unit::on_map`. `docs/journal/2026-10-13-item-1694.md`.
