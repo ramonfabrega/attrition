@@ -234,7 +234,12 @@ pub(crate) struct Pair {
     /// 1668 gives a helicopter its own step arm (`move_step`'s `0x20` test,
     /// the step aimed along a second, faster turn): both part at **3843**,
     /// 23 versus 28 draws, index 5: ours guy animation
-    /// (`Guy::inc_time+0x271`), theirs `Guy::init_real+0x52` (a birth).
+    /// (`Guy::inc_time+0x271`), theirs `Guy::init_real+0x52` (a birth). Item
+    /// 1669 gives the Terra Cotta Army its soldier (`Build::process`'s
+    /// `0x211` arm; `Build::activate` starts its clock at
+    /// `TERRA_COTTA_FREE * 15`): **3963**, 18 versus 32 draws, index 3:
+    /// ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    /// `Guy::init_real+0x52` (a birth).
     pub count: i64,
     pub sequence: i64,
 }
@@ -252,8 +257,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3843,
-    sequence: 3843,
+    count: 3963,
+    sequence: 3963,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1588,7 +1593,8 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3838, 4095);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run754 walked from run651's start with the recorder on. It holds the
-/// word 3843 (item 1668), block 3844; the old words remain checked.
+/// word 3963 (item 1669), block 3964, inside the window item 1668 took for
+/// 3843 (block 3844); the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1598,7 +1604,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN754, 3838)],
         WIDENING_COVERAGE_FRAME_3843,
         1,
-        &[3843, 3844],
+        &[3843, 3844, 3963, 3964],
         true,
     )
 }
@@ -1610,11 +1616,14 @@ fn run754_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    // The word 3843's block 3844: the original's `Guy::init_real` births a
-    // squad (`1/235`..`1/237`, dump alone) and the leader's `GENERAL`
-    // count (`num_units[54]`) reads 5 against ours' 4; `1/233`'s `form` is
-    // the first row, on 3843. Then 2460 keys over the diverged tail.
-    pin_eq!(w.firsts.len(), 2460, "run754 keys that part (item 1668)");
+    // The word 3843's block 3844 (item 1668): the original's Terra Cotta
+    // Army `1/2042` births a squad of the Mech Infantry (`1/235`..`1/237`)
+    // and the leader's `num_units[54]` reads 5 against ours' 4. Item 1669
+    // builds the arm and that block agrees but for the group lists the dump
+    // does not print and `1/233`'s `form`, on 3843. The word is **3963**
+    // (block 3964): the dump alone holds `1/246`..`1/252`, and `1/165`
+    // reads two orders against one. 2460 -> 1583 keys over the tail.
+    pin_eq!(w.firsts.len(), 1583, "run754 keys that part (item 1669)");
 }
 
 #[test]

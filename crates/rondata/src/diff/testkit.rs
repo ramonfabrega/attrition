@@ -8805,11 +8805,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // road flags on four newly attached city members at blocks 3395/3396.
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
+    // Item 1669 moves to 3963 (block 3964), inside run754 (item 1668's).
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run754_s_word_frame_is_widened_whole"),
-        1668,
+        1669,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

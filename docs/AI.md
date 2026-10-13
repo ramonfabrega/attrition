@@ -18262,7 +18262,57 @@ not tried). The helicopter's collision and landing arms past the step are
 unchanged. The 3843 birth's author (`Guy::init_real` from a production or
 a create) is the next word; no reading of it yet.
 
-## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+## 182. The Terra Cotta Army trains its soldier, and the word moves to 3963 (2026-10-12, item 1669)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Word 3843, 23 versus 28 draws, index 5: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`
+(run754, block 3844).
+
+**Who.** Three `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd` draws at indices 5..7 are one squad of three
+(`uber_size`), `1/235`..`1/237`, group 81, `TypeIndex` 104 `MECHINFANTRY`;
+the leader's `num_units[54]` (the array starts at type 50, so 54 here is the
+slot of type 104) goes 4 to 5, `active` and `control` one up. No queue
+popped on the frame (a block diff of every `BUILDQUEUE` finds only the
+Airbase `1/2010`'s jet, a frame earlier). The one building record that moved
+beyond the counters is `1/2042`, `orig_type` 529 = `TERRACOTTA`: its
+`recharging` (`BuildData +0x7a`) counts 6, 5, ... 1 across blocks 3838..3843
+and reads **607** on 3844, counting down again.
+
+**Cause.** `Build::process@0061edf0:384`..: for a `0x211` building,
+`recharging -= 1` every frame it is processed; below 1 it resets to
+`TERRA_COTTA_FREE * 15 + barracks_units * 15 / 2` (the delay constant is 7,
+which the file writes `7 == "half a second"`) and, when `control < cap`,
+`train`s `current_upgrade(get_graft(Slingers 0x52))` at the wonder.
+`TERRA_COTTA_FREE` loads `30 seconds` as 30, so 607 = 450 + 157 with
+`barracks_units` 21. `barracks_units` is `Leader +0x9f8`, moved only by
+`Leader::track_unit_type@006e0dd0` for armed types whose trainer is the
+Barracks (`0x1ab`) and zeroed by `Leader::init`; the sum of `num_units` over
+those types. `Build::activate@00623e20:1370` starts the clock at
+`TERRA_COTTA_FREE * 15` = 450: run721 reads `1/2042` at 449 on 3395, 6 on
+3838 (443 frames on), so the first soldier is the 3843 one. Built:
+`Sim::terra_cotta_army` and `terra_cotta_activate`
+(`crates/sim/src/nations.rs`), called after the Persian caravan in the
+tick's building walk and from `activate`.
+`a_terra_cotta_army_counts_its_clock_and_trains_a_soldier`
+(`cities_tests`) fails without the call.
+
+**Value diff and score.** Block 3844 now agrees but for `1/233`'s `form`
+(first row, on 3843) and the group lists the dump does not print. The first
+attempt reset the clock from `barracks_units` at activation and fired on
+3394 (ours 260 draws against 254): the 449 on 3395 says the wonder starts
+at 450, not at the formula. The count and the sequence part together at
+**3963**, 18 versus 32 draws, index 3: ours `Guy::set_anim+0x97a <
+Unit::do_move+0x11cf`, theirs `Guy::init_real+0x52`; the dump alone holds
+`1/246`..`1/252` (seven objects, more than one squad) on block 3964, and
+`1/165` reads two orders against ours' one. run754's widening
+`run754_s_word_frame_is_widened_whole` falls 2460 to **1583** keys; its
+window already holds the new word, so no capture was taken.
+
+**Not established.** The Kremlin's arm beside it (`0x21a`,
+`kremlin_spy`) writes `recharging` too and is not built. `Build::activate`
+zeroes `recharging` on every building (line 132); only the wonder's start is
+written here. `terra_cotta_total` (the game counter) is not carried. A
+second, third... firing is checked only through 3844 (one reset); the
+formula's `barracks_units` is the live sum, read on the reset frame.
+
