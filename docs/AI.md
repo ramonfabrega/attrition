@@ -18257,10 +18257,71 @@ Three units, one shape: theirs holds the `Guard` alone where ours
 still walks an `AttackTo` in front of it; the frame says which went first, and
 none of the three is named a cause here. The ground guard reads 110 (pinned at 99).
 
-## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+## 181. A Helicopter flies through its turn (2026-10-12, item 1658)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3614 (the sequence; the count 3615), 30
+versus 30 draws, index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Block 3614 parts
+`1/212`'s order, and the same shape stands earlier in the window on
+`1/184` (3589) and `1/203` (3598): theirs holds the `Guard` alone where
+ours still walks an `ATTACK_TO` in front of it.
+
+**The units.** All three are `GUY` type 311, `TRANSPORTHELICOPTER`
+(`enums/TypeIndex.txt`), air, flying a guard's patrol round `1/147`.
+`1/203`'s position stood parted from run716's 3387, so the first clean
+one is `1/184`: its whole record agrees through block 3588, at (37898,
+41213), seven units short of its `ATTACK_TO` point (37896, 41208),
+facing −332464128.
+
+**The value diff, block 3589.** Theirs: (37896, 41208), unit `angle`
+−261029888 (the bearing), guy angle −297215035, the `ATTACK_TO` popped
+and the `Guard` alone. Ours: (37898, 41213), the heading −261029888 and
+guy 0's facing −297215035 — the same turn — but no step: `last_speed`
+0, the `ATTACK_TO` still on top, and the arrival a frame later, on 3590,
+from which the guard point and every later order part (3591: 38232,
+41592 against 38184, 41544).
+
+**The gate.** The bearing to a point seven units off is a sharp turn,
+and `move_step`'s near arm (under a tile, any turn owed) turned the
+Helicopter in place.
+
+**The reading.** `Unit::move_step@005faf30`, the listing at `5fb18f`:
+`test byte [type + 0x2b4], 0x20; je 5fb231` and `cmp edx, 0x40000000; ja
+5fb231`, `edx` the turn still owed after the unit-mode turn. A type that
+flies like a helicopter owing a quarter turn or less skips both
+turn-in-place arms and the half step: `Guy::do_turn(guy 0, bearing,
+new, 0, 0)` (`5fb1b3`), then a second turn from guy 0's angle toward the
+bearing by `GuyData::turn_speed(guy, 1)` (`5fb1fa`), and the step at the
+full speed along it (`5fb346`) — inside the step, the snap onto the
+point. Killer: had the original stood for the turn, its 3589 would hold
+(37898, 41213) and the `ATTACK_TO`. It holds neither.
+
+**Built.** `movement::helicopter_step` and its caller in
+`Sim::unit_step` (`docs/MOVEMENT.md`, "The helicopter's step"); unit
+test `a_helicopter_flies_through_a_turn_it_owes_near_its_point`. The
+arm made dead (`tools/mutate.py`) fails `coverage_pair_first_parting`,
+the run721 and the run716 widenings (exit 101); the owed gate made
+total fails the unit test (exit 101).
+
+**Score.** The word moves **3614 → 3843**, 23 versus 28 draws, index 5:
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+(seeds `34dcc269`, `dd5ba8b4`, `78e23c83`) — a three-figure unit born
+in the original on 3843 and not here. It lies past run721's window
+(3389–3645), and run732 (blocks 3837–4093, `docs/RUNS.md`) widens it
+whole: **2,087** keys, 171 standing on 3837; the first parting past
+them is `1/233`'s `form` on 3843, and on 3844 the dump holds three
+Mechanized Infantry, `1/235`–`1/237` (uids 370..372, round (34584,
+38712)), alone, and the computer leader's `active`, `control` and
+`num_units[54]` count them (159, 174, 5 against 158, 173, 4). run721 widens
+**326 → 186** keys, nothing added: the Helicopters `1/184`, `1/203` and
+`1/212` leave every row but their group `mirror`, the births' `form` on
+3389 and `1/184`'s `dest_angle` on 3515, and with them the later rows of the caravan
+`1/207`, the Spies `1/197` and `1/156`, the Aegis Cruiser `1/112`, the
+Jet Fighter `1/139` and the General `1/102`; the first parting past the
+standing block is `1/204`'s `form` on 3391. run716 **189 → 184**:
+`1/203`'s position on 3387, its heading on 3388 and figure angle on
+3390. The ground guard reads 105 (pinned at 110).
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
 

@@ -6974,6 +6974,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1658 extends it to 3843 (a Helicopter flies through its turn):
     // 105 reads, measured with the bound at 0.
     ("coverage_pair_first_parting", 105),
+    // run732's widening walks on through 4093: 110 (item 1658, measured
+    // with no row).
+    ("run732_s_word_frame_is_widened_whole", 110),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8809,12 +8812,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // road flags on four newly attached city members at blocks 3395/3396.
     // Item 1647 moves to 3439 (block 3440); run721 holds the fleet count
     // and the original 3397 birth, whole-record, through that new word.
+    // Item 1658 moved it to **3843**, past run721's last block (3645), and
+    // took run732 over 3837..4093 (block 3844); run721's test keeps the
+    // Helicopters' value diff from 3389.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        Some("run721_s_word_frame_is_widened_whole"),
-        1647,
-        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
+        Some("run732_s_word_frame_is_widened_whole"),
+        1658,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

@@ -1578,10 +1578,10 @@ pub(crate) const RUN721: &str = "gamelog-run721-eastindies-persian-alltech-windo
 /// The window: block 3389 through 3645; the word 3395's own block is 3396.
 pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run721 walked from run651's start with the recorder on. It holds the
-/// word 3587 (item 1656), block 3588; the old words remain checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// run721 walked from run651's start with the recorder on. It held the
+/// words 3395 to 3614 (items 1625 to 1657), until item 1658 moved the word
+/// to 3843; the old words remain checked.
+pub(crate) fn coverage_frame_3395_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1598,7 +1598,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run721_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_3395_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1643,7 +1643,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // the rows to leave; the word moves to 3614, block 3615.
     // Item 1658 flies a Helicopter through a turn of a quarter or less
     // (`move_step`'s `005fb18f` arm): 326 -> 186, nothing added; the three
-    // Helicopters `1/184`, `1/203` and `1/212` leave, and with them the
+    // Helicopters `1/184`, `1/203` and `1/212` leave (all but `mirror`,
+    // `form` on 3389 and `1/184`'s `dest_angle` on 3515), and with them the
     // later rows of the caravan `1/207`, the Spies `1/197` and `1/156`,
     // the Aegis Cruiser `1/112`, the Jet Fighter `1/139` and the General
     // `1/102`; the
@@ -1787,5 +1788,59 @@ fn run717_s_missiles_fly_their_spline_s_count() {
         launched,
         [3124, 3125, 3126, 3127, 3128, 3128],
         "the six release frames, this crate's too"
+    );
+}
+
+/// run732, item 1658: blocks 3837..4093 at run721's detail, the word 3843
+/// six blocks in (`docs/RUNS.md` run732).
+pub(crate) const RUN732: &str = "gamelog-run732-eastindies-persian-alltech-window-3837-4093.txt";
+
+/// The window: block 3837 through 4093; the word 3843's own block is 3844.
+pub(crate) const WIDENING_COVERAGE_FRAME_3843: (i64, i64) = (3837, 4093);
+
+/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
+/// run732 walked from run651's start with the recorder on. It holds the
+/// word 3843 (item 1658), block 3844.
+pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[COVERAGE.start],
+        true,
+        COVERAGE.long,
+        "run732",
+        &[(RUN732, 3837)],
+        WIDENING_COVERAGE_FRAME_3843,
+        1,
+        &[3844],
+        true,
+    )
+}
+
+/// **The word 3843's block, widened whole** (item 1658): every dumped
+/// record on run732's 257 blocks, both directions.
+#[test]
+fn run732_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = coverage_pair_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    // **2087** keys on item 1658's tree, 171 standing on 3837 (the
+    // leaders, the pools, `1/84` and the births' `form`). The word's own
+    // block 3844: the dump holds the three Mechanized Infantry `1/235`,
+    // `1/236` and `1/237` (uids 370..372, at (34584, 38712), (34584,
+    // 38856), (34728, 38808)) alone — theirs' three `Guy::init_real`
+    // draws on 3843 — and the leader's `active`, `control` and
+    // `num_units[54]` count them (159, 174, 5 against 158, 173, 4).
+    pin_eq!(w.firsts.len(), 2087, "run732 at the word 3843");
+    let first = w
+        .firsts
+        .values()
+        .map(|(f, _)| *f)
+        .filter(|f| *f > 3837)
+        .min();
+    pin_eq!(
+        first,
+        Some(3843),
+        "the first parting past the standing block"
     );
 }

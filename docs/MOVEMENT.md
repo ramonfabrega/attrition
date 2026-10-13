@@ -524,6 +524,39 @@ ever wrong: the two sides' bearings, rates and `avg_speed` decay agree
 frame for frame either side of it (`docs/CARAVAN.md` §8,
 `run65_s_window_is_the_original_s_unit_for_unit`).
 
+### The helicopter's step (2026-10-12, item 1658)
+
+A type that flies like a helicopter (`UnitTypeData +0x2b4 & 0x20`,
+`ai_load::uflags::HELICOPTER`) has an arm of its own, ahead of both gates
+above. Read off the listing, `005fb18f`–`005fb22c`:
+
+```
+new, owed = turn_towards(facing, want, ts)           # as above, mode 0
+if type +0x2b4 & 0x20  and  owed <= 90°:             # cmp edx, 0x40000000; ja
+    Guy::do_turn(guy 0, want, new, 0, 0)             # no animation override
+    along = turn_towards(guy 0's angle, want,
+                         turn_speed(guy 0, mode 1))  # a second turn
+    step at the full speed along `along`             # no half step, no stand
+```
+
+The two turns are different numbers: guy 0's own angle takes the
+unit-mode rate as on every arm, and the step is taken along a second
+turn from that angle by the body-mode rate — so a helicopter **never
+turns in place and never halves its step** while it owes a quarter turn
+or less, and within a step of its point it snaps onto it the frame the
+turn begins. Past ninety degrees it is the ground arms'. The tail
+(bounds, the tile test, collision, arrival) is the common one.
+
+Diff-backed: run721's Helicopter `1/184`, seven units short of its guard
+point on 3588 and owing a few degrees, stands on the point on 3589 in
+the original with its `ATTACK_TO` popped, and the near arm turned it in
+place here for a frame (`docs/AI.md` §181). `Sim::unit_step` takes
+`movement::helicopter_step` for a helicopter and falls to `move_step`
+on its `None`; `a_helicopter_flies_through_a_turn_it_owes_near_its_point`.
+Not established: whether the half-step bit (`unit_masks & 0x100000`) a
+soft collision leaves on a helicopter is ever spent — this arm does not
+read it.
+
 ### The verified line's lifecycle (2026-09-05, item 230)
 
 `unit_masks & 8` is **the straight line to the current waypoint has been

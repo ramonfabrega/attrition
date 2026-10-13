@@ -2441,7 +2441,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // 1625), frame-3397 word (block 3398, item 1634), frame-3439 word
     // (block 3440, item 1647), frame-3585 word (block 3586, item 1648)
     // frame-3587 word (block 3588, item 1656) and frame-3614 word (block
-    // 3615, item 1657), each
+    // 3615, item 1657), and run732's frame-3843 word (block 3844, item
+    // 1658), each
     // with two either side; the third map's
     // lobby's run683 frame-1582 word (block 1583, item 1561), frame-1818
     // word (block 1819, item 1565) and frame-1830 word (block 1831, item
@@ -2476,6 +2477,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::coverage_pair::RUN721, 3586),
         (super::coverage_pair::RUN721, 3588),
         (super::coverage_pair::RUN721, 3615),
+        (super::coverage_pair::RUN732, 3844),
         (super::sahara_coverage::RUN677, 13),
         (super::sahara_coverage::RUN680, 721),
         (super::sahara_coverage::RUN681, 1198),
@@ -2905,6 +2907,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_2868 = super::coverage_pair::coverage_frame_2868_window();
     // Item 1625: and run716's, where it stood before run721.
     let coverage_3142 = super::coverage_pair::coverage_frame_3142_window();
+    // Item 1658: and run721's, where it stood before run732.
+    let coverage_3395 = super::coverage_pair::coverage_frame_3395_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2921,6 +2925,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2992,6 +2997,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_2288,
         coverage_2868,
         coverage_3142,
+        coverage_3395,
         coverage,
         sahara_12,
         sahara_720,
