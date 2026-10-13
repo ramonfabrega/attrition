@@ -139,8 +139,15 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // on 2877) — 2934 → **3182** (count and sequence): ours 46 draws against
     // 43, index 7, ours `Leader::produce_building+0x1805`, theirs
     // `Leader::make_stuff+0x63d`.
-    count: 3182,
-    sequence: 3182,
+    // Landing 14 (`docs/AI.md` §197, item 1870): `get_nuke_embargo` gates the
+    // market (leader 1's first nuke at 2101 holds it to frame 4001, so no
+    // timber sale on 3176), and `get_cost`'s building branch escalates the
+    // Fort line's and the production buildings' count (the Redoubt's third is
+    // priced as three: 175/525, check_income 122) — 3182 → **3767** (count and
+    // sequence): ours 33 draws against 37, index 7, ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
+    count: 3767,
+    sequence: 3767,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -1012,5 +1019,5 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 142, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 112, "initial run767 baseline");
 }

@@ -507,8 +507,7 @@ impl Sim {
             return 0;
         }
         let t = &self.tuning;
-        let v = i64::from(t.nuke_embargo_nation) * i64::from(self.nukes.used_of(who))
-            - self.frame
+        let v = i64::from(t.nuke_embargo_nation) * i64::from(self.nukes.used_of(who)) - self.frame
             + i64::from(t.nuke_embargo_base)
             + stamp;
         v.max(0) as i32
