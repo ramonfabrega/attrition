@@ -13932,14 +13932,13 @@ fn chapter_sixty_two_holds_to_the_golden_word() {
 #[test]
 fn chapter_sixty_two_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let (_, hi) = WIDENING_CHAPTER_SIXTY_TWO;
     let Some((firsts, pool)) = widen_civilians_and_pool(
         "ch62",
         "chapter62",
         WIDENING_CHAPTER_SIXTY_TWO,
         1000,
         0,
-        (hi - 3, hi - 1),
+        (898, 900),
         true,
         CHAPTER_EIGHT_LEADER_KEYS,
     ) else {
