@@ -2501,15 +2501,7 @@ impl Sim {
                 self.action_of(o)
                     .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
             });
-        let probe_before = self.units[u].path.len();
         let r = self.find_upath(u, anti);
-        if std::env::var_os("RON_PROBE_UPATH").is_some() {
-            eprintln!(
-                "PROBE upath f{} {}/{} repaths_after_inc {} anti {} r {} path {}->{} collide {} o {}",
-                self.frame, self.units[u].owner, self.units[u].index, self.repaths[who], anti, r,
-                probe_before, self.units[u].path.len(), collide, o
-            );
-        }
         // **`dest = 0`, on both arms** — `005f9d30`'s last two blocks are
         // the same store through `update_order()->get_move_order()`, and
         // the only thing the non-zero one adds is the pause roll. The
