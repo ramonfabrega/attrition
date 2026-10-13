@@ -11179,8 +11179,10 @@ Read, then built; two of the three close.
 reaches one fog cell further east. run805 shows the members **born at their seated spots** on 603, not stacked.
 `Unit::set_new_location@005f8d20` brackets a world-cell change (>>8) with `remove_from_world`/`add_to_world`, and
 `add_to_world` ends in `update_seen(0)`; this crate's `set_new_location` did `chain_add` only, so
-`Objects::init_unit`'s seating of members 1.. lit nothing at the new spot. **Built** (`collide.rs`): a cell change calls
-`update_seen(u, false)`. Value diff: `1/2006 ever_seen` 0 → 1 on 607, `treaties` 0 → 1 both sides, `ever_seen_completed`
+`Objects::init_unit`'s seating of members 1.. lit nothing at the new spot. **Built** (`lib.rs`, `init_unit`'s seating):
+a member whose seat crosses a world cell calls `update_seen(u, false)`. **Not in `set_new_location` itself**: the first
+build put the call there (every cell crossing) and moved the successor pair's first draw parting 3188 → 1387 and
+eight pair widenings; the seating alone leaves the pair at 3188 (it seats no member across a cell). Value diff: `1/2006 ever_seen` 0 → 1 on 607, `treaties` 0 → 1 both sides, `ever_seen_completed`
 2 → 3 on 610; the four rows leave and the fog plane has 0 parting cells.
 
 **Parked 1962 — closed.** `0/7`'s Stockade arrow: ours dealt 8, theirs 5 = `(120·3/4 + 5)/10 − 4`, §6 step 5's ×3/4 on a
@@ -11192,15 +11194,23 @@ moving FOOT target. `0/7`'s head order is an `AttackTo` (a Move) while it walks,
 `WANT_CH59_POOL`.
 
 **Pins.** `WANT_CH59` is the eleven `form` rows; `WANT_CH59_POOL` unchanged. `chapter_sixty_s_fog_plane` pins 0
-`seen2` rows. Every `golden::chapter_*` test (155) passes on the tip with no re-pin: neither build moved another widening.
+`seen2` rows. Every `golden::chapter_*` test (155) passed with the first build in `collide.rs`; the seating-only build was re-run on
+ch59/ch60 and the mongol pair's first parting (3188), the full lane gate after it.
 
-**Mutation.** Reverting `collide.rs`' `update_seen` returns the four 607/610 rows and the 7 `seen2` cells; reverting
+**Mutation.** Reverting `init_unit`'s seating `update_seen` returns the four 607/610 rows and the 7 `seen2` cells; reverting
 `moving: self.is_moving(i)` returns the two 655 rows (both by the value diffs above, run before the pins moved).
 
 **Not established.** 1887's follower arms (not staged). Whether the cell-change `update_seen` has a draw-visible case
-(none in any capture on the disk). A `seen` (non-`seen2`) plane is not printed by `WORLD=6`.
+(none in any capture on the disk); every other world-cell crossing's disc (the first build's 1387 says the original does not light it there, or that this crate lights it elsewhere). A `seen` (non-`seen2`) plane is not printed by `WORLD=6`.
 
 ## 73. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 74. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

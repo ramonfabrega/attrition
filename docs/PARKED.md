@@ -4190,9 +4190,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 1988, 2026-10-13 — chapter sixty: 1961 and 1962 closed
 
-(1964) **1961 and 1962 closed by builds** (GOLDEN §72): the cell-change `update_seen` (`collide.rs`) and `target_side`'s `is_moving`. 1963 (pool slot 1 `speed`/`new_speed`, 625) stands in `WANT_CH59_POOL`; `RON_DEBUG_UNIT=0/6@620-626` first.
+- **1961 and 1962 closed by builds** (GOLDEN §72): the cell-change `update_seen` (`collide.rs`) and `target_side`'s `is_moving`. 1963 (pool slot 1 `speed`/`new_speed`, 625) stands in `WANT_CH59_POOL`; `RON_DEBUG_UNIT=0/6@620-626` first.
 
-(1965) **For the Loop**: `golden_capture.sh` refuses an `--end-frame` below a staged `@` line's frame with a traceback; a one-line hint would save a take. `WORLD=6` prints `seen2`/`was_seen` only, not `seen`, so a `seen` question needs a packet.
+- **For the Loop**: `golden_capture.sh` refuses an `--end-frame` below a staged `@` line's frame with a traceback; a one-line hint would save a take. `WORLD=6` prints `seen2`/`was_seen` only, not `seen`, so a `seen` question needs a packet.
 
 ## Parked by the next landing, slot T — reserved
 

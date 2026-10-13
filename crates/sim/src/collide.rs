@@ -1139,15 +1139,6 @@ impl Sim {
             self.units[u].pos = to;
             if cell_change {
                 self.chain_add(u);
-                // **`Object::add_to_world`'s disc** (`005f8d20`: the world-cell
-                // change brackets the coordinate write with
-                // `remove_from_world` and `add_to_world`, and the latter ends
-                // in `update_seen(0)`, the whole disc at the new point). A
-                // squad's members, seated off their captain's point at birth,
-                // light the spots they are seated on (`docs/GOLDEN.md` §72).
-                if self.units[u].alive() {
-                    self.update_seen(u, false);
-                }
                 // The goody box, `docs/GOODY.md` §2. The original's four
                 // guards, in its own order after `add_to_world`: not an animal
                 // (`SubObjectData::is_animal`, the same slot `+0x30` step 0 of
