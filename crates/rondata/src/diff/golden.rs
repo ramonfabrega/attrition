@@ -13795,6 +13795,114 @@ const WANT_CH59: &[&str] = &[
 /// searcher's group.
 const WANT_CH59_POOL: &[&str] = &[];
 
+/// **Chapter sixty-one** (item 2032, `docs/GOLDEN.md` §74, run814): two
+/// guarding Hoplite squads; a follower's chase on its captain's Stockade
+/// refused (`find_new_target`) and a follower's target refused by the leash,
+/// each through `find_melee_target`'s squad head (parked 1887).
+#[test]
+fn chapter_sixty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch61", "chapter61", 61, 13, 1000) else {
+        return;
+    };
+    eprintln!(
+        "chapter sixty-one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIXTY_ONE,
+        "chapter sixty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIXTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIXTY_ONE,
+        "chapter sixty-one's golden word moved; re-pin it here and say so in docs/GOLDEN.md §74"
+    );
+}
+
+/// **run814 from 605 through the word 780, both directions** (item 2032,
+/// `docs/GOLDEN.md` §74).
+#[test]
+fn chapter_sixty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch61",
+        "chapter61",
+        WIDENING_CHAPTER_SIXTY_ONE,
+        1000,
+        0,
+        (778, 780),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch61 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch61: {} rows", got.len());
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch61 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH61.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch61: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH61_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch61: the pool's parting moved");
+}
+
+// **What parts through the word** on run814 (item 2032, `docs/GOLDEN.md`
+// §74): the standing `form` rows (605); `0/7`'s `death:extra` (the
+// instrument, parked 1830's family); and scene two's captain `0/10` from
+// 779, the word's own rows — its attack on who=1's Citizen `1/6` kept here
+// and dropped there. Arm one's rows (690 `0/8 near`, 770 the Citizen
+// attacked, and their tails) left with the squad head in `find_new_target`.
+const WANT_CH61: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "774 0/7 death:extra",
+    "779 0/10 dest_angle",
+    "779 0/10 near",
+    "779 0/10 order:kind",
+    "779 0/10 order:length",
+    "779 0/10 orders.len",
+    "779 0/10 orders_x",
+    "779 0/10 orders_y",
+    "780 0/10 g.angle[0]",
+    "780 0/10 g.des_angle[0]",
+    "780 0/10 g.des_x[0]",
+    "780 0/10 g.des_y[0]",
+    "780 0/10 g.last_speed[0]",
+    "780 0/10 g.x[0]",
+    "780 0/10 g.y[0]",
+    "780 0/10 heading",
+    "780 0/10 mirror",
+    "780 0/10 path[0].to",
+    "780 0/10 pos",
+];
+
+// The pool's one row is the word's: scene two's slot 0 `facing` on 780.
+const WANT_CH61_POOL: &[&str] = &["780 slot 0 facing"];
+
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.

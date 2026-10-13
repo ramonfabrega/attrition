@@ -226,6 +226,14 @@ pub struct Modifiers {
     /// (`get_cost`'s pre-ramp tail, before the research arm and the ramp;
     /// `docs/AI.md` §62). Zero is the identity.
     pub stable_rares: [i32; 2],
+    /// The **Statue of Liberty**'s percentage (`get_cost`'s pre-ramp tail,
+    /// listing `00664da7`..`00664e1e`): with `has_wonder(0x219)`, a missile
+    /// type (`UnitTypeData::is_missile`, vslot `+0x114`) takes
+    /// `LIBERTY_MISSILES` and any other type of the Bomber's line
+    /// (`is(0x130, 0)`) `LIBERTY_BOMBERS`, one `(100 − x) × cost / 100`
+    /// after Despotism and before Uranium. Zero is the identity
+    /// (`docs/AI.md` §204).
+    pub liberty: i32,
     /// `URANIUM_NUKE_COST`'s percentage off a type of the Nuclear Missile's
     /// line when the player holds Uranium, one more `(100 − x) × cost / 100`
     /// in the same pre-ramp tail (`get_cost:416`–`420`, after Despotism and
@@ -455,6 +463,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled * (100 - m.discount) / 100;
     for pct in m.stable_rares {
         cost = (100 - pct) * cost / 100;
+    }
+    if m.liberty != 0 {
+        cost = (100 - m.liberty) * cost / 100;
     }
     if m.uranium != 0 {
         cost = (100 - m.uranium) * cost / 100;
@@ -1277,6 +1288,34 @@ mod tests {
         assert_eq!(at(Resource::Food, [15, 0]), 51);
         assert_eq!(at(Resource::Timber, [15, 0]), 34);
         assert_eq!(at(Resource::Food, [15, 15]), 43);
+    }
+
+    /// **The Statue of Liberty takes its third off the base, not the
+    /// ramp** (`docs/AI.md` §204). Great Sahara's Persians queue a
+    /// Strategic Bomber (110 wealth and oil, five a unit up the ramp, one
+    /// percent of military discount) with thirteen and then fourteen held
+    /// and queued on 3982: 136 and 141 at `1/2047` and `1/2053`, where the
+    /// whole price less a third would be 115 and 119, and no Statue 173
+    /// and 178.
+    #[test]
+    fn the_statue_of_liberty_takes_a_third_off_a_bomber_before_the_ramp() {
+        let bomber = Price {
+            class: RampClass::Military,
+            pop: 1,
+            ..Price::free()
+                .with_base(Resource::Wealth, 11)
+                .with_support(Resource::Wealth, 5)
+        };
+        let at = |n, liberty| {
+            let m = Modifiers {
+                liberty,
+                late_discount: 1,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &bomber, Resource::Wealth, owned(n), &m)
+        };
+        assert_eq!((at(13, 0), at(14, 0)), (173, 178));
+        assert_eq!((at(13, 33), at(14, 33)), (136, 141));
     }
 
     #[test]

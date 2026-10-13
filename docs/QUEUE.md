@@ -20,10 +20,10 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2049, 2026, 2044, 2032; landings
-  since `dca6a873`: 6 (1998, 1999, 2002, 2020, 2038, 2001). Next 2055, run 817, AI §206, GOLDEN §75, park slot AD
-  (pools: AD–AF, AI §206–§209, GOLDEN §75–§79); run 816 is 2049's packet. Notes: `n-<item>.md`.
-- **Fable backlog: 12 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054).
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2049, 2055, 2061, 2066; landings
+  since `dca6a873`: 9 (1998, 1999, 2002, 2020, 2038, 2001, 2026, 2044, 2032). Next 2072, run 820, AI §207, GOLDEN §76,
+  park slot AG (pools: AG–AL, AI §207–§209, GOLDEN §76–§79); run 816 is 2049's packet. Notes: `n-<item>.md`.
+- **Fable backlog: 14 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,9 +31,9 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w3834 of 5,056
-Census: simulation backed 479 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3985 of 4,340
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed
+Census: simulation backed 501 of 3611
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4266 of 4,340
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-second tranche, on `commander` — spawn the four lanes
@@ -46,7 +46,7 @@ handoff written, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2049 the headline's word, 2026, 2044 and 2032 the other three lanes —
+2049 the headline's word, 2055, 2061 and 2066 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -60,27 +60,28 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     a hypothesis. Every record on 3834 both ways first; a packet at 3647
     if a value question follows. East Indies, Mongols. AI §205.
 
-2026. **Great Sahara's word: frame 3985, 29 versus 29 draws**, index 1:
-    ours `Leader::make_stuff+0x63d`, theirs `Leader::make_stuff+0x221`
-    (theirs spends `+0x221` twice, ours once); 1999 moved 3825 → 3985 with
-    a bordering city's Fort scored ×10. Inside run790 (to 4017): rows open
-    on 3983 (leader 1's buckets 73–74 short; `1/2047` `queue[3].cost[0]`
-    173 against 136), then 3984's `MAKE[0..3]` — rows before the word, a
-    hypothesis. Every record on 3985 both ways before a mechanism. AI §204.
+2055. **Great Sahara's word: frame 4266, 67 versus 67 draws**, index 18:
+    ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Guy::move+
+    0x19f`; 2026 moved 3985 → 4266 (the Statue of Liberty's third off a
+    bomber's base). Past run790 (to 4017), so no dump holds it: a capture
+    over a `--log-window` round 4266 (run790's recipe, run 817) and its
+    widening, every record on 4266 both ways before a mechanism; parked
+    2028's rows stand before the word. AI §206.
 
-2044. **The sweep's forty-fourth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 479 of 3611): 2038's shape,
-    merged by SHA; past the 430 swept, shortest decompile first; skip
+2061. **The sweep's forty-fifth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 489 of 3611): 2044's shape,
+    merged by SHA; past the 440 swept, shortest decompile first; skip
     operators (parked 1722); cite no hooked callee in a sweep test's chunk
-    (parked 2012); the slot-against-address and per-player-table shapes
-    wait on Loop 2003 (parked 2021, 2039, 2040). `--kind sweep`.
+    (parked 2012); the generator's owed shapes are Loop 2003's (parked
+    2021, 2039, 2040, 2045, 2046). `--kind sweep`.
 
-2032. **Chapter sixty-one: the arms the AI track built that no walk holds**
-    (DECISIONS 56 §3; 2002 closed chapter sixty, GOLDEN §73): name the
-    census rows the lobby reaches before the capture is staged —
-    candidates parked 1887's follower arms (`guard_check_target`,
-    `chase_refused`, the defensive post) and parked 2008's inactive
-    anchor's Fort; runs 814–815, minted here. GOLDEN §74.
+2066. **Chapter sixty-two: a follower's refusals under its squad head**
+    (DECISIONS 56 §3; 2032 closed chapter sixty-one at 780, GOLDEN §74):
+    the arms 2032 built that no walk holds — a follower's guard refusal
+    while its captain attacks another target (parked 2033; run814 reaches
+    it past the word, on 872 and 906), and the enemy ladder's
+    `find_new_target` for a follower bumped by an enemy not its target
+    (parked 2034). Name the census rows first; runs 818–819. GOLDEN §75.
 
 ## How to maintain this file
 
