@@ -34,6 +34,16 @@ Three shapes, each a `__thiscall` on `ecx`:
           `--via VIA` calls the slot of the object at `this+VIA` instead (the
           callee's `ecx` is held to it), with `--own N` stack arguments of the
           function's own that a `--tail` slot is handed unchanged (item 1993).
+          `--base ADDR` (item 2072, parked 2021) is the slot compared with
+          the base implementation's address: a row's mode writes either
+          ADDR (never entered) or a stub into the slot; on the base arm the
+          function inlines the base — a field test of `this`, or, with
+          `--base-via VIA --base-slot OFF`, a call of slot OFF of the
+          object at `this+VIA` handed the same arguments. `--handed V,..`
+          are the constants it pushes; a row is `<mode> <v> | <object hex>
+          -> <eax> | <calls>`, the test holds the calls (which object, what
+          arguments) and `--port`, a block over `mode`, `v` and `m` (the
+          object's bytes, with `rd`), every byte of the object unwritten.
 
   outptr  the function stores its answer through the out-pointer it is
           handed on the stack (`[esp+4]`), reading one integer at
@@ -640,6 +650,155 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None):
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
+VBASE_SCRIPT = '''#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+\"\"\"sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, vcall --base).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = a {win}-byte object of random bytes. It loads its own vtable slot +0x{slot:x} and compares
+the pointer with the base implementation 0x{base:08x}: equal, it {basedoc}; different, it calls the slot.
+Both arms are handed {handed!r}. A row's mode is 1 when the slot holds the base address (never entered), 0 when
+it holds a stub; every called slot answers `v`, drawn per row.
+Row: `<mode> <v> | <object hex> -> <eax> | <calls>`, a call `this|via,<args…>`.
+\"\"\"
+import os
+import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+BASE = 0x{base:08x}
+SLOT = 0x{slot:x}
+NARGS = {nargs}
+VIA = {via!r}
+VIA_SLOT = {via_slot!r}
+WIN = {win}
+I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 15, 16, 255)
+
+
+def rand32(rng):
+    return rng.choice(I32) if rng.random() < 0.4 else rng.randint(-0x80000000, 0x7FFFFFFF)
+
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{}})
+    uc = h.m.uc
+    rng = random.Random({item})
+    vt = h.vtable({{SLOT: ("slot", NARGS, 0)}})
+    stub = h.r32(vt + SLOT)
+    inner = None
+    if VIA is not None:
+        ivt = h.vtable({{VIA_SLOT: ("via", NARGS, 0)}})
+        inner = h.alloc(0x40)
+        h.w32(inner, ivt)
+    obj = h.alloc(WIN + 0x20)
+    for i in range(240):
+        mode = i % 2
+        v = rand32(rng)
+        h.calls.clear()
+        h.answers["slot"] = h.answers["via"] = v
+        h.w32(vt + SLOT, BASE if mode else stub)
+        mem = bytearray(rng.randrange(256) for _ in range(WIN))
+        mem[0:4] = vt.to_bytes(4, "little")
+        if VIA is not None:
+            mem[VIA:VIA + 4] = inner.to_bytes(4, "little")
+        uc.mem_write(obj, bytes(mem))
+        guard = bytes(uc.mem_read(obj + WIN, 0x20))
+        r = h.call(ENTRY, (), ecx=obj)
+        esp = uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        assert bytes(uc.mem_read(obj, WIN + 0x20)) == bytes(mem) + guard, "wrote the object"
+        calls = ";".join(",".join([{{obj: "this", inner: "via"}}.get(ecx, "other"), *map(str, args)])
+                         for _, ecx, args, _ in h.calls)
+        print(f"{{mode}} {{v}} | {{bytes(mem).hex()}} -> {{r}} | {{calls}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+VBASE_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, vcall --base).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {{
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}}
+
+fn unhex(s: &str) -> Vec<u8> {{
+    (0..s.len() / 2)
+        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
+        .collect()
+}}
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu): {doc}
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let handed: &[i64] = &{handed_rs};
+    let args: String = handed.iter().map(|h| format!(",{{h}}")).collect();
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<mode> <v> | <object> -> <eax> | <calls>`");
+        let (head, obj) = lhs.split_once(" | ").expect("`<mode> <v> | <object>`");
+        let (eax, calls) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let a: Vec<i64> = head.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (mode, v) = (a[0], i32::try_from(a[1]).expect("a 32-bit answer"));
+        let m = unhex(obj.trim());
+        let want_calls = match (mode, {via_some}) {{
+            (0, _) => format!("this{{args}}"),
+            (_, true) => format!("via{{args}}"),
+            _ => String::new(),
+        }};
+        assert_eq!(calls.trim(), want_calls, "{short} — calls, row `{{line}}`");
+        let got: i64 = {{
+            let (mode, v, m) = (mode, v, &m[..]);
+            let _ = (mode, v, m);
+            {port}
+        }};
+        assert_eq!(got, eax.trim().parse::<i64>().expect("an integer"), "{short} — eax, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 200, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+'''
+
+
+def generate_vbase(spec, *, item, slot, base, handed=(), via=None, via_slot=None, win=0x200, port=None):
+    """`vcall --base ADDR` (item 2072, parked 2021): a slot compared with the base's address."""
+    name, va = parse(spec)
+    if slot is None:
+        raise ValueError('vcall --base: --slot OFF names the vtable slot')
+    if (via is None) != (via_slot is None):
+        raise ValueError('vcall --base: --base-via and --base-slot go together')
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    handed = [int(h, 0) if isinstance(h, str) else h for h in handed]
+    port = port or f'todo!("the port of {name}")'
+    basedoc = (f'calls slot +0x{via_slot:x} of the object at this+0x{via:x}' if via is not None
+               else 'inlines the base on the object\'s own fields')
+    script = VBASE_SCRIPT.format(snake=sn, name=name, va=va, item=item, base=base, slot=slot, nargs=len(handed),
+                                 via=via, via_slot=via_slot, win=win, handed=handed, basedoc=basedoc)
+    doc = (f'slot +0x{slot:x} against the base 0x{base:08x}, a row each arm, the slots\' answer over the '
+           f'signed-32 edges and random words, {win} random bytes of object; the calls and `eax` held.')
+    test = VBASE_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
+                             handed_rs='[' + ', '.join(str(h) for h in handed) + ']',
+                             via_some='true' if via is not None else 'false')
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
 OBJ_SCRIPT = '''#!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.12"
@@ -1094,6 +1253,10 @@ def main(argv=None):
     ap.add_argument('--slot', type=lambda s: int(s, 0), help='vcall: the vtable slot the function calls')
     ap.add_argument('--nargs', type=int, default=0, help='vcall: stack arguments the slot takes')
     ap.add_argument('--tail', action='store_true', help='vcall: the slot is entered by a jmp, not a call')
+    ap.add_argument('--base', type=lambda s: int(s, 0), help='vcall: the slot is compared with this base address (parked 2021)')
+    ap.add_argument('--base-via', type=lambda s: int(s, 0), help='vcall --base: the base arm calls the object at this+VIA')
+    ap.add_argument('--base-slot', type=lambda s: int(s, 0), help='vcall --base: ... its slot OFF')
+    ap.add_argument('--handed', default='', help='vcall --base: the constants the function pushes, V,V,..')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1110,6 +1273,11 @@ def main(argv=None):
                                                     at=args.at, ptrargs=args.ptrarg, stubs=args.stub)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
+        elif args.shape == 'vcall' and args.base is not None:
+            sp, script, tp, test, mod = generate_vbase(args.function, item=args.item, slot=args.slot, base=args.base,
+                                                       handed=[h for h in args.handed.split(',') if h],
+                                                       via=args.base_via, via_slot=args.base_slot,
+                                                       win=args.win if args.win != 0x400 else 0x200, port=args.port)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
                                                      own=args.own, ret=args.ret)

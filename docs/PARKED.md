@@ -3789,7 +3789,7 @@ landed sweeps for the inflation (beside 1725, the same score's other leak).
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062).
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4238,6 +4238,10 @@ mode writing either the base address or a stub into the one vtable. The four `Un
 (0x46ced0), the type record's `+0x134` asked on the inline arm — and were left for the next batch for want of it.
 A `vcall --base ADDR` (the slot's two arms, a mode column, the inline arm's field through `--off`/`--via`) would
 take all six.
+**Built by item 2072**: `vcall --base ADDR [--base-via VIA --base-slot OFF] --handed V,..` (`tools/sweep_gen.py`,
+its test in `tools/explore/test_sweep_gen.py`) took the four stance getters; the inline arm is a call of the
+type record's slot or the object's own fields, read by the port's block over `mode`, `v` and `m`. 2040's two
+(a `mix` with `--base`) are still owed.
 
 (2022) **`tools/emu/hooks.py`'s stub page holds 256 stubs, and a vtable built per row exhausts it** (Loop; names
 no score). `Harness.stub` hands out `0x10` bytes of the one `0x1000`-byte page at `STUBS` and never reuses them, so
@@ -4342,13 +4346,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AG — reserved
+## Parked by item 2072, 2026-10-13 — the sweep's forty-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2073) **The per-player object table and the `buildtypes` forest, by hand again** (Loop 2003's sixth reach; names
+no score). Two of item 2072's eleven — `CityData::get_level` (0x739340) and `depop_can_queue` (0x738060) — open
+on 2038's `[0xc0ab84 + who*0x1c]` table (parked 2039's `--who-table`), each a copy of `pop_cap`'s script; three
+more — `BuildTypeData::fundamental_type` (0x639950), `is_military_trainer` (0x63bcf0) and `is_training_building`
+(0x639de0) — walk the `FROM` chain through the `buildtypes` cell `0xc0aaa0`, which item 2072 laid once as
+`tools/emu/buildtypes.py` (a forest of ten records, each record's slot `+0xe4` the real `basic_type` so the
+original's own recursion runs). `connects_to_roads` (parked 2040) and every `BuildTypeData` root predicate read
+the same table. Candidate: `obj --who-table` (2039) and an `obj --buildtypes N` window over `buildtypes.py`,
+each with a test made to fail first.
 
 ## Parked by item 2077, 2026-10-13 — a squad member's transport waits on its captain's
 
