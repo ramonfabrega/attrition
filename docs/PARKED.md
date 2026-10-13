@@ -4063,7 +4063,7 @@ the three `walk_data`s and `OrderList::get_new_data` (1944) are still left.
 
 (1962) closed 2026-10-13 by item 1988 (GOLDEN §72): **A Stockade arrow's first wound on `0/7`, 655** (1960, run801): `hits:damage` ours 13 theirs 10, `hits_left` 107 against 110. No draw. Pinned in `WANT_CH59`.
 
-(1963) **The captain's guard walk, pool slot 1 `speed`/`new_speed` on 625** (1960, run801): ours 0, theirs 25. Pinned in `WANT_CH59_POOL`.
+(1963) closed 2026-10-13 by item 2002 (GOLDEN §73): **The captain's guard walk, pool slot 1 `speed`/`new_speed` on 625** (1960, run801): ours 0, theirs 25. Pinned in `WANT_CH59_POOL`.
 
 ## Parked by item 1966, 2026-10-13 — the sweep's thirty-seventh batch
 

@@ -2667,7 +2667,7 @@ step on frame 10241.
 Every writer of `+0x40` in the export was a reading, and five were named
 before the run, each with what would kill it (`tools/gamelog/captures.txt`,
 run120): R1 a push by player 1 (`push_group` → `equals_group` normalizes the
-player's last slot), R2 a member's target search (`find_nearby_target:499`),
+player's last slot), R2 a member's target search (`find_nearby_target:499`; not this frame's, but a writer: built by item 2002, `docs/GOLDEN.md` §73),
 R3 `repath` → `kill_group_move`, R4 a membership change, R5 none of these.
 `near_o` could not decide R2: it is written only on a nearer candidate, so
 its silence dates nothing (`docs/COMBAT.md` §44.2.1).

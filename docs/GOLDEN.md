@@ -11203,12 +11203,46 @@ ch59/ch60 and the mongol pair's first parting (3188), the full lane gate after i
 **Not established.** 1887's follower arms (not staged). Whether the cell-change `update_seen` has a draw-visible case
 (none in any capture on the disk); every other world-cell crossing's disc (the first build's 1387 says the original does not light it there, or that this crate lights it elsewhere). A `seen` (non-`seen2`) plane is not printed by `WORLD=6`.
 
-## 73. Reserved for the next item on the rules track
+## 73. Chapter sixty's last row — a search that adds normalizes the searcher's group (item 2002)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 1963: run801's pool slot 1 `speed`/`new_speed`, ours 0 against 25 on **625**, pinned in
+`WANT_CH59_POOL`. No capture: run801 holds the frame.
+
+**The frame, both sides.** No draw on 625. The pool's slot 1 (`group id 1`, `0/6`–`0/8`, pushed on 622 at
+`speed 0`, `role 0` on both sides) reads `role 329731` and `speed 25` on 625 in the dump; `role` and `speed` written on
+one frame is `Group::normalize@00711540`'s shape — `find_role`, then `speed = new_speed = UnitData::speed(find_leader)`.
+625 mod 64 is 49, so it is not `Groups::process`'s cursor. Both sides' `0/6` (`unitat.py`, `RON_DEBUG_UNIT=0/6@619-626`)
+agree on the event: the captain's AttackTo leg under its Guard is replaced on 625 by an `ATTACK` on Stockade `1/2006`,
+`near 1/2006`. Our `AttackTo` carries no group move, so `kill_group_move`'s normalize is not it.
+
+**The writer.** `Object::find_nearby_target@00648da0`, the decompile's lines 482–499: a find with the add flag
+(`param_3 != 0`, `param_4 == 0`) on a unit whose group (`+0x80`) is set calls `Group::normalize` on that group before
+the `local_2c` kill and the order. `find_melee_target@005ff9c0` passes its fourth argument through as that flag, and the
+callers that pass 1 are `do_attack_to`, `do_group_attack_to`, `do_guard`, `think_attack`, `find_new_target` and
+`fight`'s guard refusal. `docs/GROUPS.md` §19.1 named it as R2 for Great Lakes' 10241 and run120 killed it there (no
+`normalize` on those frames); it was never built.
+
+**Built** (`orders.rs`): `Sim::nearby_normalize` (the seat's `seat_normalize`: the prune and the speed tail;
+`find_role` is not modelled) at every add site — `nearby_add`, `attack_move_add` (before the group hand-off),
+`find_melee_target_added_in`'s search arm, `think_attack`'s add, and the packer's re-search in `fight`.
+
+**The value diff.** ch59 625 slot 1 `speed`/`new_speed` ours 0 → 25, theirs 25: both rows leave and
+`WANT_CH59_POOL` is empty. The same writer closes four more widenings' rows, every one toward the dump:
+
+- **ch1** (run110): the army group's `speed`/`new_speed` on 616, 0 against 25 — the gap `chapter_one`'s comment
+  put on `Group::add`'s `compute_speed`; it is the members' first search.
+- **ch50 / ch51**: the dead member's pool rows (932/996 and 907/1003: `list`, `num`, `off`/`curr`/`angle`) — a
+  living member's search prunes it; item 1776 had the original "drop it at its death". Both pool pins are empty.
+- **run585**: `group:71.speed` on 17527 and `new_speed` on 17530, ours 26 theirs 25; 105 → 103 keys.
+
+No floor or word moves.
+
+**Mutation.** `nearby_normalize`'s body emptied (`tools/mutate.py`): run585's two rows come back (105 keys; the
+diff of the `RON_FIRSTS=1` prints), and the re-pinned ch59/ch1/ch50/ch51/run585 widenings fail.
+
+**Not established.** Parked 1887's follower arms (`guard_check_target`, `chase_refused`, the defensive post): no
+staging reaches them, and this item booked none. `find_role` (role 329731 here) is not modelled; nothing compares
+it. The original's prune predicate (`+0x30`, vslots `0x18`/`0x20`) is `seat_normalize`'s simplification.
 
 ## 74. Reserved for the next item on the rules track
 
