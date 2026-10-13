@@ -18922,8 +18922,7 @@ frame 3182) holds the same price and flux (`Game +0x568`/`+0x580`: 63 62 62
 62 62 62, flux −6 13 −9 13 8 −2, tick 3182 — equal to ours after 3181), so the
 sale decision is a gate: `step4.py --entry 6c8110 --this e4127c` with hooks
 shows `market_speculation` entering `has_tribe_bonus`, `has_preq`, `has_market`,
-`get_nuke_embargo` and stopping there — **`get_nuke_embargo` returns 0x2cf
-(719)**. `LeaderData::get_my_nuke_embargo@006d5350` is `NUKE_EMBARGO_WORLD ×
+`get_nuke_embargo` and stopping there — **`get_nuke_embargo` returns 719**. `LeaderData::get_my_nuke_embargo@006d5350` is `NUKE_EMBARGO_WORLD ×
 armageddon + NUKE_EMBARGO_NATION × nukes_used − frame + NUKE_EMBARGO_BASE +
 nuke_stamp` (900 / 900 / 0 frames), floored at 0, and zero when `nuke_stamp`
 is 0 or the Space Program (`0x21e`) is held; `get_nuke_embargo@006d52c0` takes
@@ -18957,8 +18956,7 @@ leader rows (`bucket[1]`, `bucket[2]`, `escrow[1]`), `MAKE[8]` on 3182 and the
 count on `1/2032`'s queue, unread). Value diff: `leader:MAKE[8]` t 446/526,
 val 4078/3481 → equal; `bucket[1:timber]` 5639/5739 → equal.
 
-**Not established.** The oil platform and oil well counts (`0x556c`/`0x556e`,
-`0x5d6c`/`0x5d6e` added to `n` at `0x1a6`/`0x1a5`) and the Indian arm of the
+**Not established.** The oil platform and oil well counts (two `u16` arrays' oil entries added to `n` for the Oil Platform and the Oil Well) and the Indian arm of the
 building support term. The embargo's `armageddon` term. The new word 3767 is
 unwidened (run767 ends at 3186).
 

@@ -3917,7 +3917,7 @@ words and edits nothing here; a refill lands when two remain.
 (1877) **Great Sahara's word 3767, widened whole** (1870; `docs/AI.md` §197): ours 33 draws against 37, index 7, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`; run767 ends at 3186, so a capture over `--log-window 3761 4018` (run790 reserved) and every record on 3767 both ways before a mechanism.
 
 (1878) **The queue cost on 3183**: `1/2032` `queue[0].cost[0]` ours 67, theirs 64 — a ramp count on the queue's price (the other queued costs agree); names no frame the word reaches yet, parks until 3767's widening reads it.
-(1879) **Oil platform / oil well building counts** (`get_cost` `0x1a6`, `0x1a5`: `+0x556c`/`+0x5d6c`, `+0x556e`/`+0x5d6e` added to `n`): no capture prices one.
+(1879) **Oil platform / oil well building counts** (`get_cost`: two `u16` arrays' oil entries added to `n` for the Oil Platform and the Oil Well): no capture prices one.
 
 ## Parked by the next landing, slot C — reserved
 
