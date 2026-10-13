@@ -1030,9 +1030,6 @@ impl Sim {
             let manh = (cur.x - goal.x).abs() + (cur.y - goal.y).abs();
             let over_limit = m.anti_unit && m.limit < probes;
             if manh <= arrive || traversed + probes >= work_cap || over_limit {
-                if std::env::var_os("RON_PROBE_ASTAR").is_some() && step == STEP_WORLD {
-                    eprintln!("ASTAR u{u} manh {manh} arrive {arrive} trav {} work_cap {work_cap} over {over_limit} anti {anti} node ({},{}) goal ({},{})", traversed + probes, cur.x, cur.y, goal.x, goal.y);
-                }
                 // **Suspend** (§4.3 step 3): a unit-grid search over its
                 // limit, still short of the goal, without `anti`. The node
                 // it stopped on goes back on the open list — so the resumed
