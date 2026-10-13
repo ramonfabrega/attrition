@@ -20,10 +20,10 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2001, 2026, 2020, 2002; landings
-  since `dca6a873`: 2 (1998, 1999). Next 2032, run 813, AI §205, GOLDEN §74, park slot AA
-  (pools: AA–AF, AI §205–§209, GOLDEN §74–§79; U–Z assigned). Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`.
-- **Fable backlog: 9 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031).
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2001, 2026, 2020, 2032; landings
+  since `dca6a873`: 3 (1998, 1999, 2002). Next 2038, run 816, AI §205, GOLDEN §75, park slot AA
+  (pools: AA–AF, AI §205–§209, GOLDEN §75–§79; U–Z assigned, X re-used). Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`.
+- **Fable backlog: 10 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,7 +46,7 @@ handoff written, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2001 the headline's word, 2026, 2020 and 2002 the other three lanes —
+2001 the headline's word, 2026, 2020 and 2032 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -76,11 +76,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     cite no hooked callee in a sweep test's chunk (parked 2012).
     `--kind sweep`.
 
-2002. **Chapter sixty's last row: the guard walk's pool `speed` on 625**
-    (DECISIONS 56 §3; GOLDEN §72; 1988 closed 1961 and 1962 on run801):
-    parked 1963, ours 0 against 25 in `WANT_CH59_POOL` — `RON_DEBUG_UNIT=
-    0/6@620-626` first, no capture; then 1887's follower arms if a
-    staging reaches them (runs 807–808). GOLDEN §73.
+2032. **Chapter sixty-one: the arms the AI track built that no walk holds**
+    (DECISIONS 56 §3; 2002 closed chapter sixty, GOLDEN §73): name the
+    census rows the lobby reaches before the capture is staged —
+    candidates parked 1887's follower arms (`guard_check_target`,
+    `chase_refused`, the defensive post) and parked 2008's inactive
+    anchor's Fort; runs 814–815, minted here. GOLDEN §74.
 
 ## How to maintain this file
 

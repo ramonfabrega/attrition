@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2037) **`groups.py` takes no `<dump> <frame>` form** (2002's Loop line, filed
+at its merge): `frame.py` cuts a frame to `/tmp/ron-runs` and prints one
+line, so the first `groups.py` read an empty file. Candidate: `groups.py
+<dump> <frame>` cutting the frame itself, with a test that fails on the
+two-step form's empty read.
+
 (2031) **`unitat.py` has no "when did ours place this building" mode**
 (1999's Loop line, filed at its merge): the fastest step of 1999 was
 `RON_DEBUG_BUILDS` over the gap to date a building whose row had already
