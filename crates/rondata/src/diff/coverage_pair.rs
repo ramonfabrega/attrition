@@ -1761,14 +1761,42 @@ fn run722_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
-    pin_eq!(w.firsts.len(), 0, "run722 on item 1653's tree");
+    // **2087** on item 1653's tree; 171 stand on the first block. The first
+    // parting past it is a birth's `form` (`1/233`, block 3843), then **the
+    // word 3843's own block, 3844**: the original holds a Mech Infantry
+    // squad (`TypeIndex` 104) ours never makes — `1/235` over `1/236` over
+    // `1/237`, uids 370..372, one figure each, the three
+    // `Guy::init_real+0x52` draws — and leader 1's `active`, `control`
+    // and `num_units[54]` are each one short in ours. Ours' own `1/235`
+    // and `1/236` are other units born later in those slots.
+    pin_eq!(w.firsts.len(), 2087, "run722 on item 1653's tree");
     let first = w
         .firsts
         .values()
         .map(|(f, _)| *f)
         .filter(|f| *f > 3837)
         .min();
-    pin_eq!(first, None, "the first parting past the standing block");
+    pin_eq!(
+        first,
+        Some(3843),
+        "the first parting past the standing block"
+    );
+    for o in [235, 236, 237] {
+        pin_eq!(
+            w.firsts
+                .get(&(1, o, "unlinked".to_string()))
+                .map(|(f, _)| *f),
+            Some(3844),
+            "1/{o}, the original's squad, born on the word's block"
+        );
+    }
+    pin_eq!(
+        w.firsts
+            .get(&(1, -1, "leader:num_units[54]".to_string()))
+            .map(|(f, _)| *f),
+        Some(3844),
+        "the computer's count one short on the word's block"
+    );
 }
 
 /// run717, item 1625: blocks 3104..3141 with `GUYS=4` and `AMMO=5` — the

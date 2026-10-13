@@ -15920,3 +15920,34 @@ SHA-256 `ee0b37a38c936e949a9a0f4fa535b78b8c4d96d5ed9ec591e3a6cd16ad3ed2fc`.
 0, beside ours' `calc_road_cost` draws. It is the coverage pair's `AI_WORDS` window (`coverage_pair_word_window`),
 walked by the compared pin with run716's, and the coverage driver reads its block 3396. 149 inexact height reads in
 its window (`GROUND_INEXACT`). `docs/AI.md` §174.
+
+## run722 — the coverage pair: East Indies, Persians, All Technologies, blocks 3837..4093 at the long's detail (2026-10-12, item 1653, `att-1648-oh`)
+
+**Disk gap**: run721 ends at block 3645 (and a closing 3655) and run652 holds the draw stream; nothing dumped this
+lobby's records at the word's frame, 3843 (ours 23 game draws against 28, index 5: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, three), whose block
+is 3844. Booking and killers, written before the run:
+`~/ron-data/lab-experiments/2026-10-12-item-1653-oh/run722-booking.json`. run721's recipe with the window moved,
+through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18 --end-frame 4102 --timeout 3600 --log-window 3837
+4094 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the pool (lane 1, `~/wine-ron`). First take,
+relaunched by the runner once after 300 s: receipt `success: true`, `settings_restored: true`, five files restored,
+exit 0, launched 20:22:40, launch-to-exit 1,477 s, 4,103 frames, seed 12345 and map 18 verified; output
+`~/ron-data/lab-captures/2026-10-12-run722`. Blocks `3837`..`4093` whole and a `4103` closing block (258 `BEGIN
+FRAME`s). `rngcmp.py rontrace-run652.log rontrace-run722.log`: **4,103 frames in common, 0 differing**. `MAP_STYLE
+18`, `DIFFICULTY 5`, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 8` read back. Every killer passed: the draws, the
+lobby, the blocks, and three units of who=1 born on block 3844.
+
+Archive `gamelog-run722-eastindies-persian-alltech-window-3837-4093.txt`, 661,095,209 bytes,
+SHA-256 `d8b7cfc0266f862e439f2202684a0ac01520b221f5b1df57701ded0ed8b14b06`.
+
+Archive `rontrace-run722.log`, 196,786,368 bytes,
+SHA-256 `f7f399e19e5bb9a8558242ea3c5e231d5446fb699ac6f2775f4dc79425e752a2`.
+
+**What it holds**: `diff::coverage_pair::run722_s_word_frame_is_widened_whole` — **2,087** keys on item 1653's tree,
+171 standing on 3837; the first parting past it is a birth's `form` (`1/233`) on 3843. On the word's block, 3844, the
+original holds a Mech Infantry squad (`TypeIndex` 104) — `1/235` over `1/236` over `1/237`, uids 370..372 — that ours
+never makes, and leader 1's `active`, `control` and `num_units[54]` are each one short in ours. It is the coverage
+pair's `AI_WORDS` window (`coverage_pair_word_window`), walked by the compared pin with run721's
+(`coverage_frame_3395_window`), and the coverage driver reads its block 3844. 110 inexact height reads in its window
+(`GROUND_INEXACT`). `docs/AI.md` §181.

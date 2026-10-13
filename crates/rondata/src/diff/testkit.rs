@@ -6970,6 +6970,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1652 extends it to 3614: 110, measured against 99. Item 1653
     // extends it to 3843: 105, measured against 110.
     ("coverage_pair_first_parting", 105),
+    // Item 1653's run722 walks from run651's start across 3837..4093: 110,
+    // measured against a pin of 0.
+    ("run722_s_word_frame_is_widened_whole", 110),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).

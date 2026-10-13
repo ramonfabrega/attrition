@@ -18266,8 +18266,12 @@ and `1/203` agree with it: their order-kind rows on 3589 and 3598 are gone, and 
 3387 too. run721 **326 → 186** keys, run716 **189 → 184**; the coverage walk's inexact height reads 110 → 105.
 The word **3614 → 3843**, count and sequence: **ours 23 game draws against 28, index 5**, ours
 `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 <
-Objects::init_unit+0xbd` three times — a three-figure unit born in the original that ours does not make (seeds
-`34dcc269`, `dd5ba8b4`, `78e23c83`). Past run721's last block (3645).
+Objects::init_unit+0xbd` three times (seeds `34dcc269`, `dd5ba8b4`, `78e23c83`). Past run721's last block (3645),
+so this item took **run722** over 3837..4093 (`docs/RUNS.md`) and widened block 3844 whole
+(`run722_s_word_frame_is_widened_whole`, 2,087 keys, 171 standing on 3837): the original holds a Mech Infantry squad
+(`TypeIndex` 104) — `1/235` over `1/236` over `1/237`, uids 370..372, one figure each — that ours never makes, and
+leader 1's `active`, `control` and `num_units[54]` are each one short in ours on that block. Which building trained
+it and why ours did not is the next item's.
 
 **Not established.** A helicopter's second turn from a standstill: `turn_speed(guy, 1)` answers instantly for
 `last_speed == 0` on a figure with `guy_flags & 0x10`, and this crate passes the type's `instant_from_stop`
@@ -18275,7 +18279,7 @@ through unchanged; no step on file starts a helicopter from rest owing more than
 orders go through `do_air_physics`, not `move_step`, and were not touched.
 
 **Coverage.** Diff-backed: 1, 2, and 3's effect (run652's draws, run721's `1/212`, `1/184` and `1/203`, run716's
-`1/203`, the walk). Export-backed: the branch's gate and its second turn's rate, held by the unit test, the two
+`1/203`, the walk), and the new word's block (run722). Export-backed: the branch's gate and its second turn's rate, held by the unit test, the two
 widenings and the walk.
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
