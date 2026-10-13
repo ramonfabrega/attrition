@@ -1006,6 +1006,9 @@ pub fn get_damage_checked(
     }
     // 20. Net damage.
     let mut dmg = (base + 5) / 10 - armor;
+    if std::env::var("RON_PROBE_1988").is_ok() && (650..660).contains(&frame) {
+        eprintln!("P1988D f{frame} attack {attack} pct {pct} base {base} armor {armor} dmg {dmg} moving {} attacks {} bp {} foot {} splash {splash}", tt.moving, tt.attacks, at.build_proper, tmask & mask::FOOT != 0);
+    }
     // 21. Overkill.
     if check_overkill
         && a.is_ranged()

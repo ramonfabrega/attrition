@@ -399,7 +399,7 @@ impl Sim {
                 Side {
                     unit: true,
                     packed: u.combat.packed,
-                    moving: u.movement.dest.is_some(),
+                    moving: self.is_moving(i),
                     attacks: self.attack_of(o) != 0,
                     entrenched: u.combat.entrenched,
                     facing: u.movement.facing,
@@ -2237,6 +2237,9 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
+        if std::env::var("RON_PROBE_1988").is_ok() && (650..660).contains(&frame) {
+            eprintln!("P1988H f{frame} dmg {dmg} count {count} ammo {ammo} apa {} uber {} dealt {:?} target {:?}", ap.ammo_per_att, ap.uber_size, dealt, if let Obj::Unit(t) = target { (self.units[t].owner, self.units[t].index, self.units[t].combat.damage_frame) } else {(9,9,0)});
+        }
         // Step 6: `dtype`, which is the death animation's gate (§42.1).
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic

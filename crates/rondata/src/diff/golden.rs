@@ -13836,6 +13836,29 @@ fn chapter_fifty_two_s_fog_plane_agrees_through_the_first_round() {
     );
 }
 
+/// **run804: chapter fifty-nine's script with the fog plane printed**, 605..645
+/// (item 1988, `docs/GOLDEN.md` §72): the Stockade added on 606 is met by
+/// player 0 at once in the original.
+#[test]
+fn chapter_sixty_s_fog_plane() {
+    let _pins = Pins::hold();
+    let Some((firsts, _pool)) = widen_civilians_and_pool(
+        "ch59fog",
+        "chapter59",
+        (605, 645),
+        645,
+        0,
+        (640, 643),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch60fog f{f} {w}/{o} {what}: {row}");
+    }
+}
+
 const WANT_CH51: &[&str] = &[
     // Item 1502: an attack's `order:target` on a building the start dump did
     // not link is named by `(owner, index)` (parked 681; `docs/AI.md`
