@@ -16300,3 +16300,21 @@ Packet `~/ron-golden/run795/map-18/frame-snapshot.bin`, 948,716,116 bytes, SHA-2
 **What it holds**: on it, `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on the boat) plans the move in 52,845
 instructions and leaves `(32277, 44997)`, `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)` on the path
 stack; the diagnosis of §196.
+
+## run799 — the successor pair: the word 3131's widening, blocks 3125..3382 (2026-10-13, item 1948, `att-1948`)
+
+`docs/AI.md` §200. **Disk gap**: item 1868 moved the word 2838 → 3131, past run788's last block (3088); no dump of this lobby held a unit, a
+building or a leader record there. run788's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 3388 --timeout 3600 --log-window 3125 3382 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1 from the pool, free at launch;
+`success`, 3389 frames, 1798 s launch to exit. `rngcmp.py rontrace-run775.log rontrace-run799.log`: **3389 in common, 0 differing**.
+258 `BEGIN FRAME`s 3125..3382. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run799-eastindies-mongol-alltech-window-3125-3383.txt`, 659,893,866 bytes,
+SHA-256 `087dbaf285205d51bf45b5d4a0f18a54bca1e7f46924b9d08bc7aefb7052f8d0`.
+
+Archive `rontrace-run799.log`, 123,494,112 bytes,
+SHA-256 `1cf1cea1307ed006a423510f0afba87a30e676aa24114453ae7ddb1fbc0bb89a`.
+
+**What it holds**: `diff::mongol_pair::run799_s_word_frame_is_widened_whole` — 5,308 keys on blocks 3125..3382 before item 1948's build,
+**2,210** after it; the unit is the BMP `1/27` and the Freighter `1/165` born in it on 3132 (`docs/AI.md` §200).

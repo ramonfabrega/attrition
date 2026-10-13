@@ -19075,12 +19075,52 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 200. Reserved for the next item on the AI track
+## 200. The BMP's refused first leg hands its transport bit down, and the successor pair's word moves 3131 → 3188 (2026-10-13, item 1948)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Sonnet 5.5 lane att-1948, base `8952198c`, updated to `b3ee446b`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech.*
+
+### 200.1 The frame, both sides (run799, blocks 3125..3382)
+
+**Disk gap**: run788 ends at 3088; nothing dumped held 3131. run799 is run788's recipe with the window moved (`docs/RUNS.md`).
+Frame 3131: ours 62 draws, theirs 65, index 0 (`report.py rontrace-run799.log draws 3131`): theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_cast+0xc89` then `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`;
+ours begins with `Guy::do_turn < Unit::move_step+0x3b6` (`1/87`'s). The unit that casts is **`1/27`, `TypeIndex` 223 `BMP`** (this crate's
+`TY` 173, `RON_DEBUG_UNIT`), a land transport of the army group 69; the unit born is **`1/165`, `TypeIndex` 322 `TRANSPORTFREIGHTER`**, at
+(37873, 44771) with `inside_down` 27 on 3132 (27's `inside_up` 165). Theirs holds the cast at the head on 3131 (`order:kind` 14, `orders.len` 2,
+`orders_x/y` the unit's own (37719, 44523)); ours stands on its move (kind 2, length 1). `docs/TRANSPORT.md`: the land unit walks to a shore
+leg and its cast makes the boat.
+
+### 200.2 The value diff, walked back to the frame the state first parted
+
+Every dumped record on 3131 compared both ways: the unit is `1/27` alone (plus `1/23`'s angle, `1/165`'s birth). `1/27` parts at **3067**
+(run788's window, not this one's: `path[63].flags`, ours 0 theirs 4, then `.to` on 3068, ours (38016, 44550) theirs (37176, 45096)). On 3067
+`1/27` takes a fresh 64-leg plan from its goal (39144, 43848) to (8010, 2873) across the water; the whole stack agrees leg for leg except the
+top's `flags`. After `astar_path` this crate's stack tops with the shore node `(37944, 45096)` tolerance 0 **flags 4**; both sides then refuse
+that first leg the same frame (`find_wpath`'s return with the length unchanged, `docs/ORDERS.md` §4.4) and pop it. **The original's pop
+hands the bit down**: `Unit::do_move@005f7b30`, `005f8b89`–`005f8bb5` (`test dl, 0x4`; `cmp [ebx+0xc0], 0`; pop the next entry, `or
+flags, 4`, push it back, tolerance kept). Ours popped and dropped it, so the next leg `(37176, 45096)` tolerance 384 carried flags 0 on
+3067 and was rewritten to (38016, 44550) on 3068 (the do_move region/collision path takes a `flags 4` top as a transport stop). Theirs keeps it
+flagged, the unit walks to the shore, stops there on 3130, and the army's cast pushes `CAST_SPELL` on 3131.
+
+### 200.3 What was built
+
+`crates/sim/src/orders.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
+the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
+3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
+A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
+`crates/sim/src/path.rs` also builds the **can-transport goal re-push** (`astar_path@00683770:586`–`613`, the old `SEAM`): on the work-cap drain
+arm, a nearest node still across the shore from the goal (`needs_transport`) for a unit that `can_transport` pops the stack top and pushes it
+back with `flags |= 4`. **No capture walks it** (the BMP's search arrives at 1,176 probes, under the cap of 3,200): it is the
+listing's, not a diff's.
+
+### 200.4 The word now, and what is not established
+
+**3188**: ours 152 draws, theirs 153, index 1 — ours `Unit::think_fish+0x27a`, theirs `Unit::do_move+0xe84`. Inside run799 (block 3189):
+`1/107` parts on `order:move.dest` (36756, 43140) against (36936, 43176), `path[60]` (35400, 42408) against (36168, 42408), `tolerance` 0 against 384,
+`last_x` 37752 against −1: a unit that walks where ours steps back (hypothesis, the next item's). One residual in the window: `1/165`'s
+`form` on 3132 (ours −1, theirs 0), a freighter's first frame, unpinned.
+Not established: the human arm of `find_wpath` (parked 1874) and whether the flag's other consumers (`do_move`'s region check) are exercised by
+a land transport that stops without a refusal.
 
 ## 201. Reserved for the next item on the AI track
 

@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 3131,
-    sequence: 3131,
+    count: 3188,
+    sequence: 3188,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -227,13 +227,16 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        151,
+        149,
         "run788 after item 1868's sea break test"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
     // is the Fishermen `1/122`'s arrival, whose final path point theirs planned
     // (32277, 44997) against ours (32276, 44952) (`docs/AI.md` section 196).
+    // Item 1948: 151 -> 149 keys, `1/27`'s `path[63].flags`/`.to` (the BMP's
+    // first leg, flags 4 against 0 on 3067) gone with the transport bit's
+    // hand-down (`docs/AI.md` section 200).
 }
 
 /// run799: the word 3131's window, blocks 3125..3382 at the long's detail (item 1948).
@@ -263,7 +266,7 @@ fn run799_s_word_frame_is_widened_whole() {
     let Some(w) = mongol_word_window() else {
         return;
     };
-    pin_eq!(w.blocks, 258, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -271,5 +274,14 @@ fn run799_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run799 baseline");
+    pin_eq!(w.firsts.len(), 2210, "run799 baseline");
+    // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
+    // them on the window's first block; the word 3131 (ours 62 draws, theirs
+    // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
+    // 0x28a) and the Freighter `1/165` born inside it on 3132, which ours had
+    // not pushed because `do_move` refused the first leg's transport waypoint
+    // on 3067 and dropped its `flags & 4` instead of handing it to the next
+    // leg (`docs/AI.md` section 200). With it the word moved 3131 -> 3188
+    // and the window's keys fell 5,308 -> 2,210 (the word's delta; the
+    // 5,308 stand in section 200).
 }
