@@ -19383,12 +19383,73 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 205. Reserved for the next item on the AI track
+## 205. An idle captain takes its cached nearest off the search's phase, and the successor pair's word moves 3834 → 3835 (2026-10-13, item 2049)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Opus 5.5 (medium) lane att-2049, base `2eb944db`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech. No capture: run809 (blocks
+3626..3883) holds the word; run 816 was not needed.*
+
+### 205.1 The frame, both sides
+
+Frame 3834 (`RON_DEBUG_SITES=3834-3834` on `mongol_pair_first_parting`): ours 169 draws, theirs 167. Theirs' index 9 is
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` (seed `30f7e6fa`), between `1/106`'s two `do_move+0x11cf` rolls and `1/122`'s `think_fish` run;
+ours goes straight to `think_fish`. The tail parts too: ours ends on five `Guy::set_anim+0x104b` (gaia `9/8` three, `9/10` two) where
+theirs ends on two. On the window (`RON_FIRSTS=1` on `run809_s_word_frame_is_widened_whole`) the only unit parted on 3833 and 3834 is
+the Aegis Cruiser **`1/113`** (`TypeIndex` 330, `AEGISCRUISER`, stance Raid, the computer's), whose `o` sits between 106 and 122: theirs
+idles where ours does not, and its record has stood parted since block 3648.
+
+### 205.2 The value diff, walked back
+
+`tools/gamelog/unitat.py` on run809, `1/113`:
+
+- **Block 3648** (tick 3647): theirs `orders 1`, an `ATTACKORDER` on `0/2000` (`mandatory 0`, `in_range 0`, `new_ord 1`), `idle 6`,
+  `near 0/2000`; ours no order. `orders.len` ours 0, theirs 1.
+- **Block 3649**: theirs at (3336, 7032), `orders 0`, `near −1/−1`, `idle 0`; ours (3346, 7047), `idle 6`. `pos`, `g.x/y`, `orders_x/y`,
+  `idle` part.
+- **Block 3833**: `heading`, `mirror`, `path:length` (ours 0, theirs 1); **3834** the facing — the idle roll above.
+
+`0/2000` is the city building of 2001's word (`orig_type 414`): `damage 1553` of `myhits 1560` in the dump, and in ours `alive`, a
+combat profile, **`health 0`** — this crate's ceiling state (`docs/COMBAT.md` §17.4), with `damage` agreeing; only `damage_frac` parts
+(3642).
+
+### 205.3 The mechanism
+
+`Unit::think@005f6e40:104`–`135` (listing `5f7017`–`5f70fc`): past the 16-frame gate, `unit_masks & 0x100` clear, **`idle != 1` and
+`(o + frame) & 0x1f != 0`** — the frames the search does not run — a captain (`+0x8e` sign bit) whose `near_o`/`near_who` are both `≥ 0`,
+whose **`get_combat_stance()`** (vslot `+0xf4`, read off `vtables.txt`; `docs/COMBAT.md` §37.5 had called it the order count) is under 5,
+whose `near_o` slot has `flags & 1`, and which is `is_in_range@00648d70` of it — `006486b0` with margin 0 — takes
+`add_attack_order(near_o, near_who, QUEUE_NEW, 0, 0)`, clears `flags & 0x10` (could-not-reach) and returns. A type that packs
+(`+0x2b8 & 4`), packed (`unit_masks & 0x80000`), whose `get_packer_stance()` (vslot `+0x100`) is not `PACKER_AUTO` returns at
+`5f761a` instead. Any other answer jumps to `5f7179`, past the search. On 3647, `1/113`: `o + frame` = 3760, `& 0x1f` = 16, `& 0xf` =
+0, `idle 6`, `near` `0/2000` — 2001's search wrote it and took nothing (`compare_target` 0).
+
+This crate had no arm (§37.5: "not implemented"). Built in `Sim::think` (`orders.rs`), and the probe said it still did not fire:
+`is_in_range` answered no, because `Sim::is_in_range_at_margin` asks `Sim::active` — a building's `health > 0` — where `006486b0`'s head
+asks only the slot's `flags & 1` and, for a unit, `is_on_map`: `Sim::struck`. The arm asks that (`Sim::is_in_range_struck`).
+
+**Not made global.** Asked of every caller, `struck` parts the coverage pair at **3142** (closed at 4730; ours 21 draws, theirs 20,
+index 3, `1/59`'s `Guy::move` roll), so a reader of the range test leans on the health term: parked 2051.
+
+Test: `fight::tests::an_idle_captain_off_phase_takes_its_cached_nearest` (a ceiling city at health 0, in range, idle 6, off phase: the
+attack and the bit cleared; not at `HOLD_FIRE`, not on the search's frame at `HOLD_FIRE`, not out of range, not for a gone slot).
+Mutations through `tools/mutate.py` against that test and `mongol_pair_first_parting`, each held: the arm dropped (both); the stance
+term dropped (the test); the could-not-reach clear dropped (the test); `struck` read as `active` (both — the word back at 3834).
+
+### 205.4 What moved
+
+**The word 3834 → 3835** (`mongol_pair_first_parting`, `MONGOL.count`/`.sequence`). run809's keys **357 → 353**: `1/113`'s thirteen
+rows leave the window whole (3648..3834); nine of `1/167` open on 3851, past the new word. **No other lobby's floor moved** (the
+whole `rondata` suite in release: 803 passed, the three red the successor pair's pins and the run's own test width).
+
+### 205.5 The next word, and what is not established
+
+Frame **3835: ours 46 draws, theirs 40, index 0** — ours `Guy::init_real+0x52` (`1/24`, then `1/36`), theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/34`) then one `init_real`; the scout `1/101`'s `think_scout+0xaba` spends more in
+ours. On 3836, `1/23`..`1/25` read `inside` ours 229 (the transport `1/229`), theirs −1. Parked 2050, a hypothesis until 3835's records
+are compared both ways.
+
+Not established: why theirs' attack on `0/2000` ends on 3648 with the ship one step on (`do_attack`'s first frame; this crate's
+`1/113` now agrees there, so it is diff-backed and unread); the arm's packer exit and its `unit_masks & 0x100` gate (no capture
+reaches them; the listing's); which caller of `is_in_range` needs the health term (parked 2051).
 
 ## 206. Reserved for the next item on the AI track
 

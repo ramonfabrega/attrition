@@ -4156,11 +4156,12 @@ Two of the ten (`UnitData::has_stance_type`, `get_stance_type`) were a forwarder
 
 ## Parked by item 2001, 2026-10-13 — a computer's raiding ship leaves a building alone
 
-(2004) **The successor pair's word 3834: 169 draws against 167, index 9** (2001; `docs/AI.md` §203.5): ours `Unit::think_fish+0x27a`,
+~~(2004) **The successor pair's word 3834: 169 draws against 167, index 9** (2001; `docs/AI.md` §203.5): ours `Unit::think_fish+0x27a`,
 theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Inside run809's window. The first parted row of the Aegis Cruiser `1/113` is
 `orders.len` on block 3648, ours 0 theirs 1: theirs' `think` off-32-phase `near_o` arm (`think@005f6e40:107-130`) adds an attack on tick 3647
 that ours does not, and drops it on 3648 with no shot; `pos` parts on 3649. Widen 3834's own block whole first; a packet at 3647 answers
-what the arm hands `add_attack_order`.
+what the arm hands `add_attack_order`.~~ **Closed by item 2049** (`docs/AI.md` §205): the arm, built; it hands `1/113` the ceiling city `0/2000`, which ours refused for its
+health. No packet.
 
 (2005) **`compare_target`'s raid-ship arm: the SIEGE-and-fires-on-move branch and the wall exemption are unreached** (2001): built from
 the listing (`0064e7a5`..`0064e81f`); run810 reaches only the non-SIEGE return.
@@ -4255,13 +4256,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AC — reserved
+## Parked by item 2049, 2026-10-13 — an idle captain takes its cached nearest off the search's phase
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2050) **The successor pair's word 3835: 46 draws against 40, index 0** (2049; `docs/AI.md` §205.5): ours `Guy::init_real+0x52` (`1/24`,
+then `1/36`), theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/34`) and then one `init_real`. Ours re-inits one body more, at the
+frame's head; the scout `1/101`'s `think_scout+0xaba` spends more in ours. Rows before and after it, a hypothesis: on 3836 `1/23`..`1/25`
+`inside` ours 229 (the transport `1/229`) theirs −1, and `1/101`'s move goal. Inside run809's window (to 3883); every record on 3835 both
+ways first.
+
+(2051) **`is_in_range`'s head asks health for every caller but the `near_o` arm** (2049): `006486b0` asks the slot (`flags & 1`, and
+`is_on_map` for a unit), never the health; [`Sim::is_in_range_at_margin`] asks `active` (a building's `health > 0`) from the first combat
+landing. Made `struck` for every caller, the coverage pair parts at **3142** (4730 before; ours 21 draws, theirs 20, index 3: `1/59`'s
+`Guy::move` roll in ours), so some reader of the range test leans on the health term — a ceiling city that an attack's in-range check
+should keep in range, and something of ours that drops it otherwise. Names no frame on an open word; the `near_o` arm asks
+`is_in_range_struck` alone.
 
 ## Parked by the next landing, slot AD — reserved
 
