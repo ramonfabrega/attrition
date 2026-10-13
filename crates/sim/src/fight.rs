@@ -3952,6 +3952,9 @@ impl Sim {
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
+        if std::env::var("RON_PROBE_2001").is_ok() && attacker == Obj::Unit(254) {
+            eprintln!("PROBE2001 compare f{} {:?} dmg {} v {} ai {} attack {} armor {}", self.frame, target, dmg, v, ai, self.attack_of(attacker), self.armor_of(target));
+        }
         if ai {
             if dmg == 0 {
                 return 0;
