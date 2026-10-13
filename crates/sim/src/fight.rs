@@ -3300,11 +3300,18 @@ impl Sim {
     ) -> Option<Obj> {
         let me = Obj::Unit(i);
         let st = self.units[i].combat;
-        if std::env::var_os("RON_PROBE_1887").is_some() && !self.units[i].captain {
+        if std::env::var_os("RON_PROBE_1887").is_some() {
             let head = self.melee_squad_head(i);
             eprintln!(
-                "PROBE1887 f{} {}/{} head={:?} range={} cavarch={}",
-                self.frame, self.units[i].owner, self.units[i].index, head, range, cavarch
+                "PROBE1887 f{} {}/{} cap={} up={:?} head={:?} range={} cavarch={}",
+                self.frame,
+                self.units[i].owner,
+                self.units[i].index,
+                self.units[i].captain,
+                self.units[i].o_up,
+                head,
+                range,
+                cavarch
             );
         }
         if st.stance == Stance::HoldFire {
