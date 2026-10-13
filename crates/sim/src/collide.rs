@@ -2502,26 +2502,6 @@ impl Sim {
                     .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
             });
         let probe_before = self.units[u].path.len();
-        if std::env::var_os("RON_PROBE_UPATH").is_some()
-            && self.frame == 4238
-            && self.units[u].index == 183
-        {
-            let c = ucell(self.units[u].pos);
-            for y in (c.y - 30)..=(c.y + 8) {
-                let row: String = ((c.x - 90)..=(c.x + 10))
-                    .map(|x| {
-                        if x == c.x && y == c.y {
-                            '@'
-                        } else if self.coll.get(x, y) {
-                            '#'
-                        } else {
-                            '.'
-                        }
-                    })
-                    .collect();
-                eprintln!("PROBE coll y{y:4} x{} {row}", c.x - 90);
-            }
-        }
         let r = self.find_upath(u, anti);
         if std::env::var_os("RON_PROBE_UPATH").is_some() {
             eprintln!(
