@@ -896,6 +896,16 @@ impl Sim {
                         x = x.wrapping_mul(2);
                     }
                     let base = x.wrapping_mul(3) / (have + 1);
+                    if std::env::var("RON_PROBE_FORT").is_ok() {
+                        eprintln!(
+                            "FORTPROBE fr={} who={} c={} rec={} v0={} dmod={} nb={} have={} k={} d={} x={} base={} founder={} unass={} bord={:?} nearb={:?} noheal={}",
+                            self.frame, who, f.c, rec, v, dmod, f.nb, have, k, d, x, base,
+                            self.cities[f.c].founder, self.city_unassimilated(f.c),
+                            self.ai[w].city_ai.get(f.c).map(|r| r.bordering),
+                            self.ai[w].city_ai.get(f.c).map(|r| r.near_border),
+                            self.cities[f.c].no_heal
+                        );
+                    }
                     if self.buildings_of_line(who, rec) + self.queued_of(who, rec) == 0 {
                         escrow = 1;
                     }
@@ -906,6 +916,9 @@ impl Sim {
                     let dy = ys / 2 - cell.y;
                     let reach = (xs / 2 + ys / 2 - dx.abs() - dy.abs()) / 10 + 1;
                     v = reach.wrapping_mul(base);
+                    if std::env::var("RON_PROBE_FORT").is_ok() {
+                        eprintln!("FORTREACH c={} xs={} ys={} cell={:?} pos={:?} reach={} v={}", f.c, xs, ys, (cell.x, cell.y), self.cities[f.c].pos, reach, v);
+                    }
                 }
             }
             if build::is(&self.build_types, rec, Ident::Airbase) {
