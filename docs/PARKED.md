@@ -4031,6 +4031,12 @@ checklist would do — 1674 (g)'s helper, reached again; and a lane's
 coverage driver's tuple pattern (43 against 44 at 1719's merge, fixed in
 its booking), so a lane that updates re-gates. Two reaches.
 
+(1730) **The walker's `add N <type>` makes N squads** (1707's Loop
+line): `add 4 hoplites` made units `0/7`..`0/29`, so ids are not what
+the count says; a staging that names ids reads them off
+`RON_STAGE_ALL`'s print first. Candidate: the walker prints the ids it
+made. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
@@ -4180,7 +4186,22 @@ term. The original recomputes `update_hits` on the frame of parked 1509's
 dirty bit; ours does not. No draw parts on it.
 
 (1688) **The member `find_melee_target` arm** (1473), still unwalked: needs
-an `@form` formation wider than a Stockade's reach band.
+an `@form` formation wider than a Stockade's reach band. **Walked and
+held by 1707** (GOLDEN §63: a walking Scout hit while the captains idle).
 
 (1689) **Two-order snap (1500) and M5/M6 (1508: the drop, the captain's
-re-search)**: not reached by this chapter (three arms).
+re-search)**: not reached by this chapter (three arms). 1707 reached
+M5/M6 past its word (1712) and no walk the snap (1709).
+
+## Parked by item 1707, 2026-10-13 — chapter fifty-three
+
+(1709) **The two-order snap (1500)**: no walk reaches the snap arm;
+what stages a unit on its own waypoint with a turn owed is unknown.
+
+(1710) **run771's word 652**: the Dragoon's round on the strike's
+release, 6 draws against 8 (`Ammo::init+0xcd9`); run771 is the
+chapter's first take, superseded by run772.
+
+(1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
+and 1062–1064, past the word 962; both mutations exit 0. Backed once
+1711 moves the word past them, on the same capture.

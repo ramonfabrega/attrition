@@ -10738,3 +10738,8 @@ the five wounds the same way (all five lie before the word and none parts; the
 fifth, on 942, kills the Scout and its row is the `death:extra` family); M5 and M6 in the original (past 962);
 what makes the original's idle Dragoon take an `ATTACK` on 962, and whether
 it is the same event as the pool's list losing a member there; the two-order snap.
+
+## 64. Reserved for item 1711 (chapter fifty-three's word 962)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
