@@ -3929,6 +3929,21 @@ merge. Candidate: the lane gate (`--lane`) fails when no
 `docs/journal/*-item-<N>.md` is in the branch's diff, with N from the
 brief's `--tests`/item. One reach.
 
+(1702) **A part the widening could not see sat in `coverage.rs`'s
+unread list** (1673's Loop line): General `1/150`'s `mana_burn`, 480
+against 0 on 3864, is printed and never compared, so run754's widening
+was quiet on the cause and the lane found it by printing the hero arm's
+inputs; reading it would have named the cause on 3838. Frame row 6
+already says "quiet is blind" for an unread key; the candidate is a
+reader for `mana_burn` (and the hero record's other unread keys) in the
+compared pin, or a widening that prints the unread keys that part. One reach.
+
+(1703) **The sweep's candidate list is a scratch script** (1694's Loop
+line): `tools/census.py --layers` needs `--pdb` pointed at the main
+checkout's `game/` from a worktree, and the candidates were a scratch
+script over `source_of`/`sweep_backed` — the third batch to write one;
+a `--candidates` flag graduates it. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
