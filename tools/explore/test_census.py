@@ -105,11 +105,15 @@ class PinnedTraces(unittest.TestCase):
         path = census.default_pdb(str(ROOT / 'tools'))
         self.assertTrue(path.endswith(os.path.join('game', 'sbl', 'rise.pdb')), path)
         self.assertNotIn('.claude/worktrees', path.replace(str(ROOT), '') if '.claude/worktrees' in str(ROOT) else '')
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ):
+            # The gate sets RON_INSTALL, which wins by design; this asks the fallback.
+            os.environ.pop('RON_INSTALL', None)
             Path(tmp, 'game', 'sbl').mkdir(parents=True)
             Path(tmp, 'game', 'sbl', 'rise.pdb').write_text('')
             self.assertEqual(census.default_pdb(os.path.join(tmp, 'tools')),
                              os.path.join(tmp, 'tools', '..', 'game', 'sbl', 'rise.pdb'))
+            os.environ['RON_INSTALL'] = '/x/install'
+            self.assertEqual(census.default_pdb(os.path.join(tmp, 'tools')), '/x/install/sbl/rise.pdb')
 
     def test_the_census_document_gives_the_flag_as_its_recipe(self):
         text = (ROOT / 'docs/CENSUS.md').read_text()
