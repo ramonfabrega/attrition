@@ -4142,7 +4142,7 @@ records; then those five are one line each.
 ## Parked by item 1971, 2026-10-13 — the sweep's thirty-eighth batch
 
 **1972. `sweep_gen.py`'s `vcall` has no `--via`** (Loop 1890's eleventh reach). Three of 1971's ten —
-`SubObject::time@0046ce20`, `ObjectData::has_objmask@0046cf10`, `ObjectData::get_wonder_value@0046cf20` —
+`SubObject::time`, `ObjectData::has_objmask`, `ObjectData::get_wonder_value` —
 are `vcall` through the object at `this+0x18` (`mov ecx,[ecx+0x18]; mov eax,[ecx]; pop ebp; jmp [eax+SLOT]`), the
 shape `--tail` already names with the slot of `this` itself; a `--via 0x18` would write all three as one line.
 Also written by hand on `hooks.py`: two objects-table gates (`SpellType::cast_lock_gate`/`cast_unlock_gate`, a
