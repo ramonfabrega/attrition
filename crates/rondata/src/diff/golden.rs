@@ -13819,8 +13819,8 @@ fn chapter_sixty_one_holds_to_the_golden_word() {
     );
 }
 
-/// **run814 from 605 through the word 780, both directions** (item 2032,
-/// `docs/GOLDEN.md` §74).
+/// **run814 whole, both directions** (item 2032, `docs/GOLDEN.md` §74;
+/// through its end since item 2099, §76).
 #[test]
 fn chapter_sixty_one_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
@@ -13862,11 +13862,10 @@ fn chapter_sixty_one_s_word_frame_is_widened_whole() {
 }
 
 // **What parts through the word** on run814 (item 2032, `docs/GOLDEN.md`
-// §74): the standing `form` rows (605); `0/7`'s `death:extra` (the
-// instrument, parked 1830's family); and scene two's captain `0/10` from
-// 779, the word's own rows — its attack on who=1's Citizen `1/6` kept here
-// and dropped there. Arm one's rows (690 `0/8 near`, 770 the Citizen
-// attacked, and their tails) left with the squad head in `find_new_target`.
+// §74; item 2099, §76): the standing `form` rows (605) and the
+// `death:extra` instrument on `0/7` (774) and `0/6` (931), parked 1830's
+// family. Scene two's captain `0/10` on 779–780 left with `fight`'s
+// `poor_target` arm (item 2099): the chapter is closed at 1000.
 const WANT_CH61: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -13880,28 +13879,12 @@ const WANT_CH61: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "774 0/7 death:extra",
-    "779 0/10 dest_angle",
-    "779 0/10 near",
-    "779 0/10 order:kind",
-    "779 0/10 order:length",
-    "779 0/10 orders.len",
-    "779 0/10 orders_x",
-    "779 0/10 orders_y",
-    "780 0/10 g.angle[0]",
-    "780 0/10 g.des_angle[0]",
-    "780 0/10 g.des_x[0]",
-    "780 0/10 g.des_y[0]",
-    "780 0/10 g.last_speed[0]",
-    "780 0/10 g.x[0]",
-    "780 0/10 g.y[0]",
-    "780 0/10 heading",
-    "780 0/10 mirror",
-    "780 0/10 path[0].to",
-    "780 0/10 pos",
+    "931 0/6 death:extra",
 ];
 
-// The pool's one row is the word's: scene two's slot 0 `facing` on 780.
-const WANT_CH61_POOL: &[&str] = &["780 slot 0 facing"];
+// Empty since item 2099: the word's slot 0 `facing` on 780 left with
+// `0/10`'s attack.
+const WANT_CH61_POOL: &[&str] = &[];
 
 /// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
 /// guarding Hoplite squads, who=1's squads walked past them and a third added
