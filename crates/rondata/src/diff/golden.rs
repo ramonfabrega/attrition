@@ -13798,10 +13798,7 @@ const WANT_CH59: &[&str] = &[
     "655 0/7 hits_left",
 ];
 
-const WANT_CH59_POOL: &[&str] = &[
-    "625 slot 1 new_speed",
-    "625 slot 1 speed",
-];
+const WANT_CH59_POOL: &[&str] = &["625 slot 1 new_speed", "625 slot 1 speed"];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the

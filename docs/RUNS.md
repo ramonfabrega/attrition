@@ -16300,3 +16300,23 @@ Packet `~/ron-golden/run795/map-18/frame-snapshot.bin`, 948,716,116 bytes, SHA-2
 **What it holds**: on it, `tools/recomp/step4.py --entry 610bc0 --this 14bd0eac` (`Unit::process` on the boat) plans the move in 52,845
 instructions and leaves `(32277, 44997)`, `(34200, 44952)`, `(34968, 44952)`, `(35736, 45720)`, `(36504, 45720)`, `(37272, 45720)` on the path
 stack; the diagnosis of §196.
+
+## run801 — chapter fifty-nine: a squad that guards between two Stockades (2026-10-13, item 1960)
+
+`docs/GOLDEN.md` §71, `tools/gamelog/golden/chapter59.cmd` (6 staged lines). **What the disk could not answer**: no dump
+holds a squad member searching outside the group's retarget and the add path (parked 1887). Census rows the lobby
+reaches: none new. run802 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch59 \
+    --map 14 --end-frame 760 --log-window 605 760 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter59.cmd
+```
+
+Pool lane 1. The first take died before frame 0 (`wine: Unhandled page fault` in startup, no `gamelog.txt`, the
+receipt's `success: false`); the second, taken again once, held: `success: true`, 761 frames, seed 12345, map 14,
+260 s. Dump 75,626,055 bytes, kept in `~/ron-golden/ch59/map-14` (the failed take in `ch59_failed`). Waited on another
+lane's capture: none. **What it holds**: `golden::chapter_fifty_nine_holds_to_the_golden_word` (**760**, the
+trace's end) and `chapter_fifty_nine_s_word_frame_is_widened_whole` (605..761, 17 rows and 2 pool rows).

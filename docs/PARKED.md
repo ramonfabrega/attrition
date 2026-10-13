@@ -4112,13 +4112,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot N — reserved
+## Parked by item 1960, 2026-10-13 — chapter fifty-nine
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot N renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1961) **`leader:treaties` and `1/2006` `build:ever_seen` on 607** (1960, run801): treaties[1] on 0 and treaties[0] on 1 ours 0, theirs 1; `ever_seen` 0 against 1 on 607, `ever_seen_completed` 2 against 3 on 610. A who=1 Stockade added on 606 is seen and the pair meets in the original at once. Pinned in `WANT_CH59`; no draw.
+
+(1962) **A Stockade arrow's first wound on `0/7`, 655** (1960, run801): `hits:damage` ours 13 theirs 10, `hits_left` 107 against 110. No draw. Pinned in `WANT_CH59`.
+
+(1963) **The captain's guard walk, pool slot 1 `speed`/`new_speed` on 625** (1960, run801): ours 0, theirs 25. Pinned in `WANT_CH59_POOL`.
+
+(1887) **Partly closed by 1960** (GOLDEN §71): the guard's idle look takes the head. Still headless for a follower: `fight`'s guard-failure search (`guard_check_target`), `chase_refused` and the defensive-post review; none staged.
 
 ## Parked by the next landing, slot O — reserved
 

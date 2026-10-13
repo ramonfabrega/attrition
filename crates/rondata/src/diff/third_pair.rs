@@ -426,7 +426,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // with no order (`0/1`..`0/5`) and moves leader 0's `leftover`, and the
     // harness replays no quit. The draws agree on every frame.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 202, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 199, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
