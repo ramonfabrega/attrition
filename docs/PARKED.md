@@ -4141,13 +4141,13 @@ words and edits nothing here; a refill lands when two remain.
 the one the sweep lane is scored by). `tools/census.py`'s `sweep_backed` takes every `name@00xxxxxx`, every bare
 `@00xxxxxx` and every unique `Class::method` in a sweep `#[test]`'s chunk — doc comment included — as backed. Item
 1998's first draft named three callees it *hooked* (`TypeData::research_time`, `UnitData::invalid_loc`, the
-`WCoord` `find_good_at@0065bec0`) and the census read 461 for ten sweeps; reworded, 459. A guard would split the
+`WCoord` `find_good_at` (0x65bec0)) and the census read 461 for ten sweeps; reworded, 459. A guard would split the
 two: a hooked callee is whatever the script hands `Harness(…, {ADDR: …})`, so the census can subtract the
 addresses a sweep's own script hooks, or the test can cite them in a form `named` skips. Earlier batches were not
 re-audited for it (1993's `get_land` test cites only its own address; the other 400-odd were not read).
 
 (2013) **`sweep_gen.py vcall` has no shape for a slot entered as an ordinary call after `pop ebp; jmp [eax+N]`**
-(Loop; names no score). `Unit::set_type@0046ce10` and `Build::finished@00470e50` tear their frame down and jump:
+(Loop; names no score). `Unit::set_type` (0x46ce10) and `Build::finished` (0x470e50) tear their frame down and jump:
 the slot sees the caller's return address at `[esp]` and the function's own stack arguments above it, so it is
 a non-tail stub with `nargs` = the function's own and `ret 4·N`. `--tail` is the `push; jmp` shape (`is_city`) and
 leaves `esp` wrong here, and the generated script holds neither `esp` nor what the slot was handed; both were by
