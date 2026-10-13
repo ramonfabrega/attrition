@@ -465,6 +465,35 @@ mod tests {
         }
     }
 
+    /// **An empty search sends the turret's `des` back to its rest angle**
+    /// (`find_melee_target@005ff9c0:245`–`262`, `Guy::reset_pivots(0)`;
+    /// item 1829, run783's `0/6` on 793): the Dragoon's turret aimed
+    /// −69° at a Citizen, the captain's re-search finds nothing, and the
+    /// next block reads `des_turret_angles[0]` 0 with the turret's own
+    /// angle and the node flags untouched. A type without `v` keeps its
+    /// aim — the reset is the fire-on-the-move arm's alone.
+    #[test]
+    fn an_empty_search_of_a_v_type_resets_the_pivots_and_only_that() {
+        for fires in [true, false] {
+            let (mut sim, ty) = field(fires);
+            let ti = sim.unit_types[ty].type_index;
+            sim.art
+                .pivots
+                .insert(ti, [(4, (-150, 150))].into_iter().collect());
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let aim = -821_952_512;
+            let t = &mut sim.units[me].guys[0].turret;
+            t.angles[0] = aim;
+            t.des[0] = aim;
+            t.des_flags = 1;
+            t.node_flags = 15;
+            assert_eq!(sim.find_melee_target_as(me, -1, 0, true), None);
+            let t = sim.units[me].guys[0].turret;
+            assert_eq!(t.des[0], if fires { 0 } else { aim }, "des");
+            assert_eq!((t.angles[0], t.node_flags, t.des_flags), (aim, 15, 1));
+        }
+    }
+
     /// **A request for `CHAR_ATTACKWALK` asks the reload** (`Guy::set_anim@
     /// 005da300`'s head, run772's Dragoon on 1021 and 1022, `docs/GOLDEN.md`
     /// §65): from another animation, a reload under six frames is cleared and
