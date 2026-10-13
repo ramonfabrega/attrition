@@ -471,7 +471,7 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 63, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 59, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
         47,
@@ -880,7 +880,7 @@ fn run718_s_word_frame_is_widened_whole() {
     // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
     // 1/2055's `construct_hits` part in the already diverged tail: on the
     // merged tree with item 1697's arms, 68 -> 69.
-    pin_eq!(w.firsts.len(), 69, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 67, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,

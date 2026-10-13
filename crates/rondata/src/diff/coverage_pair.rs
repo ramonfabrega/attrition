@@ -1023,7 +1023,7 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 77, "initial run679 baseline");
+    pin_eq!(w.firsts.len(), 76, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -1098,7 +1098,7 @@ fn run679_s_word_frame_is_widened_whole() {
     );
     pin_eq!(
         first,
-        Some(1277),
+        Some(1292),
         "the first parting past the standing block"
     );
 }
@@ -1143,7 +1143,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // `1/28`, `1/38`, `1/43`, `1/44` and `1/45` are no longer among them:
     // the army's normalize on 1434 puts its group's cap back to the
     // leader's 47 (`docs/AI.md` §161).
-    pin_eq!(w.firsts.len(), 109, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 107, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1272,7 +1272,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // where the original's is a citizen (`TypeIndex` 50) at (30456, 37080)
     // and its two-figure unit is `1/62`: the gap's births had taken other
     // numbers.
-    pin_eq!(w.firsts.len(), 108, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 106, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil

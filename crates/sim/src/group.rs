@@ -3566,14 +3566,24 @@ impl Sim {
     }
 
     /// The group's own id (`GroupData +0x4`), the pool index: 64 slots a
-    /// player, so an army group's is `who × 64 +` its army slot (item 1863;
-    /// run786's who=1 army 0 is 64) and a [`Pushed`] group's is `64 +` its
-    /// slot. The slot stands in for the pool's own `get_open_slot` answer, which
-    /// parts once an AI script has pushed a building group (parked 689).
+    /// player, so a group's is `who × 64 +` the pool slot its record sits in
+    /// (item 1926: an army's `group.pool`, a [`Pushed`] group's `state.pool`,
+    /// which `get_open_slot` hands out after the AI scripts' building groups;
+    /// item 1863 had the army's own number, which parted by one to four slots).
+    /// A record with no slot yet falls back to its own number.
     fn group_id(&self, g: &Group) -> i32 {
+        let who = i32::from(g.who);
         match (g.army, g.pushed) {
-            (Some(s), _) => i32::from(g.who) * 64 + s as i32,
-            (None, Some(i)) => 64 + i as i32,
+            (Some(s), _) => {
+                let slot = self
+                    .armies
+                    .get(g.who as usize)
+                    .and_then(|a| a.list.get(s))
+                    .and_then(|a| a.group.pool)
+                    .map_or(s as i32, i32::from);
+                who * 64 + slot
+            }
+            (None, Some(i)) => who * 64 + self.pushed[i].state.pool.map_or(i as i32, i32::from),
             (None, None) => -1,
         }
     }
@@ -5474,8 +5484,9 @@ mod tests {
             let m = s.current_move(u).expect("a move order");
             let gm = m.group.expect("a group order");
             assert_eq!(gm.leader, leader, "every member names one leader");
-            // who 1's pool starts at 64 (item 1863).
-            assert_eq!(gm.id, group_move_id(64 + slot as i32, s.frame, 0));
+            // who 1's pool starts at 64 and the army sits in its first push's
+            // slot, 1, since slot 0 is `last_group`'s (items 1863, 1926).
+            assert_eq!(gm.id, group_move_id(64 + 1, s.frame, 0));
             assert!(!gm.in_group, "`GroupMoveOrder::clear` leaves it 0");
         }
         assert_eq!(

@@ -7623,20 +7623,7 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     // this crate numbers a pushed group `64 +` its seat, where the
     // original's is `who·64 +` the pool slot, 701101 against 707501
     // (parked 689).
-    let mut want: Vec<String> = [
-        "702 0/10 order:group.id",
-        "702 0/11 order:group.id",
-        "702 0/12 order:group.id",
-        "702 0/13 order:group.id",
-        "702 0/14 order:group.id",
-        "702 0/6 order:group.id",
-        "702 0/7 order:group.id",
-        "702 0/8 order:group.id",
-        "702 0/9 order:group.id",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch14: what parts under the word moved");
 }
@@ -7863,18 +7850,10 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // prints a record per corpse and nothing else, so the dump cannot say
     // the list was not asked for. The target last prints on 808 on both
     // sides.
-    let mut want: Vec<String> = [
-        "622 0/10 order:group.id",
-        "622 0/11 order:group.id",
-        "622 0/6 order:group.id",
-        "622 0/7 order:group.id",
-        "622 0/8 order:group.id",
-        "622 0/9 order:group.id",
-        "809 1/6 death:extra",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = ["809 1/6 death:extra"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
     want.sort();
     pin_eq!(got, want, "ch15: what parts under the word moved");
     // **What parts in the pool: nothing**, on all 645 blocks. Slot 1 is
@@ -9890,18 +9869,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         })
         .collect();
     got.sort();
-    let mut want: Vec<String> = [
-        "622 0/6 order:patrol.id",
-        "642 0/7 order:group.id",
-        "642 0/7 order:patrol.id",
-        "642 0/8 order:group.id",
-        "642 0/8 order:patrol.id",
-        "642 0/9 order:group.id",
-        "642 0/9 order:patrol.id",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch10: what parts under the word moved");
 }
@@ -9983,14 +9951,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         })
         .collect();
     got.sort();
-    let mut want: Vec<String> = [
-        "642 0/7 order:group.id",
-        "642 0/8 order:group.id",
-        "642 0/9 order:group.id",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = Vec::new();
     want.sort();
     pin_eq!(got, want, "ch9: what parts under the word moved");
 }
@@ -12316,11 +12277,7 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
 // point, and `0/17` stands at (3384, 14232) on 1060 as there. 105 → 35
 // rows: the 70 of 1060..1079 go, and the Bowmen's three `form` rows stay
 // (parked 646).
-const WANT_CH30: &[&str] = &[
-    "856 0/11 order:group.id",
-    "856 0/12 order:group.id",
-    "856 0/13 order:group.id",
-];
+const WANT_CH30: &[&str] = &[];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's
 // building group, seated there by `process_group` and skipped here (618
@@ -12435,14 +12392,7 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
 // finished `BuildOrder` gave way to a `GATHERORDER`), agrees since item
 // 1167: the builder's gather clears `+0x80` (`docs/GOLDEN.md` §49). 15 →
 // 14 rows.
-const WANT_CH31: &[&str] = &[
-    "858 0/13 order:group.id",
-    "858 0/14 order:group.id",
-    "858 0/15 order:group.id",
-    "953 0/17 order:group.id",
-    "953 0/18 order:group.id",
-    "953 0/19 order:group.id",
-];
+const WANT_CH31: &[&str] = &[];
 
 // **What parts in the pool** on run338: the first seats' `ox`/`oy`
 // (parked 887). ~~And the two Hoplite groups laid out from their own
@@ -13530,9 +13480,6 @@ const WANT_CH53: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "641 0/7 order:group.id",
-    "641 0/8 order:group.id",
-    "641 0/9 order:group.id",
     "943 0/6 death:extra",
 ];
 
@@ -14203,9 +14150,6 @@ const WANT_CH46: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "704 0/10 form",
-    "1302 0/7 order:group.id",
-    "1302 0/8 order:group.id",
-    "1302 0/9 order:group.id",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",
@@ -14425,9 +14369,6 @@ const WANT_CH47: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "614 0/6 order:group.id",
-    "614 0/7 order:group.id",
-    "614 0/8 order:group.id",
     "708 0/12 form",
 ];
 
@@ -14503,9 +14444,6 @@ const WANT_CH43: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
     "704 0/10 form",
-    "1302 0/7 order:group.id",
-    "1302 0/8 order:group.id",
-    "1302 0/9 order:group.id",
     "1404 0/-1 leader:treaties[1]",
     "1404 1/-1 leader:treaties[0]",
     "1426 1/2000 city:raid_stamp",

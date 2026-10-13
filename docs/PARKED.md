@@ -3733,6 +3733,19 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
+hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
+golden `order:group.id`/`order:patrol.id` rows came out of `want` lists
+by hand, and a `[]` want needs a type. Candidate: a `--drop-rows` mode
+that removes named rows from a `Vec<String>` want. One reach.
+
+(1959) **The coverage driver is a 49-slot tuple** (the commander, at
+1868's booking gate): 1905 and 1868 each added a window binding and its
+tuple member, both merged clean, and the destructuring pattern came out
+one `Some(_)` short — a compile red no lane gate could see (`a0bcf9f9`).
+Candidate: the driver walks a `Vec` of `Option` windows, so a window is
+one line. One reach.
+
 (1953) **A packet's unit address is a scratch scan** (1868's Loop line;
 1845 read `units.lists` by hand too): `step4.py` on a unit needs its
 address, found by scanning for `(x ^ 0x63637, y ^ 0x63637)` at `+0x10`.
@@ -3791,7 +3804,14 @@ built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
 return, as the original's `extraout_ECX` consumers read it, would take
 `Tribes`, `Lands`, `Herds` (parked 1922). Six reaches. **1932**: four
 of ten were hand scripts that store through fixed offsets of `this` —
-a `store` shape (parked 1933). Seven reaches.
+a `store` shape (parked 1933). Seven reaches. **1942**: nine of
+ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
+reaches — the shape the pass should build before the next sweep. **1954**
+built it as `obj` (parked 1955; nine of ten); a global cell's record, an
+out-pointer into the object and a `this` chain are still unshaped. Nine
+reaches. **1966**: five of ten would be one line under `obj` with hooked
+callees and global cells, and `fwd` still lacks its `field` token
+(parked 1967). Ten reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4009,7 +4029,7 @@ arguments are fields (`this->x`) need a `field` argument token.
 (1885) **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`** (1863): run791's first two takes died in the verifier;
 the third dropped `GROUPS=1`. A chapter that needs both the pool and the death list has no capture shape.
 
-(1886) **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
+(1886) closed 2026-10-13 by item 1926 (GOLDEN §70): **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
 slot — `17410401` against `17410801`, `14336530` against `14336430`, one to four slots, no draw.
 
 (1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
@@ -4045,13 +4065,14 @@ on return to a chosen word (the way a real callee leaves it), then
 `tools/sweep_gen.py mix` gains a `walk4:OFF:ecx` step. Names no score: the Loop's
 (sweep tooling, Loop 1890's sixth reach); 1921's journal has the shapes.
 
-## Parked by the next landing, slot H — reserved
+## Parked by item 1926, 2026-10-13 — chapter fifty-eight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot H renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+1926 settled 1886 on the disk (closed at its row); 1887 needs a staging
+of a non-captain's idle or out-of-range search with a captain target, and
+no script line reaches 1805 or 1778 — all three unchanged at their rows.
+
+(1927) **`coverage_pair` first parting past the standing block moved 1277 → 1292** (1926): a side effect of the id fix; read the frame
+1292 value diff if that window is ever booked.
 
 ## Parked by item 1932, 2026-10-13 — the sweep's thirty-fourth batch
 
@@ -4069,13 +4090,16 @@ for a shape (CLAUDE.md, "a probe shape reached for a third time graduates"). Nam
 
 (1940) **`do_strafe`'s arm after the flight when the strike is not released** (`5eb0cd`, the `uVar12 <= lim` line check, `set_anim(CHAR_WALK)`): ours does nothing for a live target out of range or returning; a bomber's `iVar4 == 0` test decides the walk. Names no frame; the coverage pair holds 4730 without it.
 
-## Parked by the next landing, slot K — reserved
+## Parked by item 1942, 2026-10-13 — the sweep's thirty-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot K renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1943) **The `deref` and `store` shapes, still hand-written** (Loop 1890; 1933's sequel). Nine of 1942's ten were hand scripts and eight
+of them one of two shapes: a forwarder whose argument or `ecx` is `[this+OFF]` plus a constant (`ObjectData::say_name`,
+`TerrainMap::river_point`), and a store through fixed offsets of `this` or a global cell (`set_base_source_pool`, `start_river`,
+`cast_supplies`, `set_orig_coast`). `fwd` takes no dereference token; `store` is still unbuilt. Names no score but the census's.
+
+(1944) **`OrderList::get_new_data@0046ed60` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
+of it needs a chosen `ebp`, which `callfn` does not set. `MapScript::run_map_script` and `SurfWaveSection::load_old_bh3` are empty bodies
+(parked 1725's question), `Terrain::build_beach_data` and the three `walk_data`s are left.
 
 ## Parked by the next landing, slot L — reserved
 
@@ -4085,18 +4109,56 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot M — reserved
+## Parked by item 1954, 2026-10-13 — the sweep's thirty-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot M renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1955) **`sweep_gen.py obj` built (1943's `deref`/`store`), with its edges.** One shape for a function that reads and writes fixed offsets
+of `this`: random object bytes, `--bias`, `--argset`, `--argfrom` (an argument that copies a field, so equality tests are reached), a row of
+`<args> | <before> -> <eax> | <after>` and a port that sees the same bytes. Nine of 1954's ten used it. Still without a shape: a function
+that reads a global cell's record (`Game::teams_locked`, `World::scale_by_axis`), takes out-pointers into the object (`World::set_tocean`,
+`WCoord::traverse_x`), or reaches `this` through a chain (`DeathObjData::blocking`); `obj` writes only the object. Names no score but the census's.
+
+(1956) **Not taken, with why**: `Unit::air_alt_speed` reads `xmm1` (a float, `xmm_bits`, 1867), `Tribe::get_name` is a `String` copy
+constructor, `CityData::granary_level` and `Player::is_active_connection` call non-trivial callees (a `fwd`/`mix` row each). `Terrain::build_beach_data`,
+the three `walk_data`s and `OrderList::get_new_data` (1944) are still left.
 
 ## Parked by the next landing, slot N — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot N renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by item 1966, 2026-10-13 — the sweep's thirty-seventh batch
+
+**1967 — `tools/sweep_gen.py fwd` has no `field` token, and `obj` hooks no callee** (Loop; names no score). Two of
+1966's ten (`WallData::get_garrison_limit`, `ObjectData::attack_dist`) forward a field of `this` (`[this+0x18]`,
+`[this+0x10] ^ 0x63637`) to a hooked callee; 1896 asked for the token, and a third reach is here. They, `has_stance_type`
+(a vcall that *compares* the slot's answer with a stack argument) and the two `Game::action_cheat_*` (two global cells,
+a semaphore byte) were written by hand on `tools/emu/hooks.py` and `sweeplib.cell` through one throwaway writer.
+The shape to build is `obj` with `--hook ADDR:NARGS` callees, a row's calls beside its bytes, and `--cell VA:SIZE`
+records; then those five are one line each.
+
+## Parked by the next landing, slot P — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot P renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot Q — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot Q renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot R — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot R renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

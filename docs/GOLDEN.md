@@ -11099,14 +11099,47 @@ stay unstaged** (parked as they were).
 **Not established.** Why `GROUPS=1` with `DEATHS=1` prints no pool; the pool *slot* of an army past the first AI script
 push (parked 689/870); `find_melee_target`'s head for the callers that are not the group's retarget or the add path.
 
-## 70. Reserved for the next item on the rules track
+## 70. Chapter fifty-eight — the pool slot of a group the AI scripts' pushes precede, answered on the disk (item 1926)
+
+**The booking.** Parked 1886 (the slot past an AI script's push: `17410401` against `17410801`, `14336530` against
+`14336430`, one to four slots, no draw), 1887 (`find_melee_target`'s head for the other callers), 1805 and 1778.
+**Whether a capture on disk settles a row was established first: it settles 1886 whole, and no run was taken** (796–797
+unused).
+
+**1886: the id's slot is the pool's, not the army's number.** Item 1863 wrote `group.id = who × 64 + army slot`. This crate
+already carries the pool slot — `Army::group.pool`, and `Pushed::state.pool` for a pushed group, both what
+`open_slot` (`Groups::get_open_slot@006fa460`) hands out *after* the AI scripts' one-building groups
+(`push_building_group`) have taken their seats, which is how the dump's `GROUPDATA` rows already agree on the
+widening's pool compare (§23). The id read the army's own number beside it. **Built**: `Sim::group_id` is `who × 64 +` the
+record's pool slot (the army's `group.pool`, the pushed group's `state.pool`; the old number only where a record has none
+yet). The pushed arm also read `64 + index` — the who of player 1 for every player and the `pushed` vector's index
+for the slot — and takes the same fix. **The value diff, on the frames the rows stood on:** run233/run251's block 17405
+`1/48`..`1/58` `order:group.id` ours 17410401 → theirs 17410801 now agree (the six rows leave `harness.rs`); the third map's
+14582 `1/52` 14336530 → 14336430, 15581 and 16676 the same (`third.rs`); the 17662401/17662501 row of a Great Lakes
+window leaves too. **Every `order:group.id` and `order:patrol.id` row of the golden chapters leaves with it** (ch9, 10, 14,
+15, 30, 31: 46 rows) and run76's 630 and run83's three `Group.id` stand-ins and run100's fifteen standing residue units
+are gone. No word and no floor moves; 85 count pins fall 1–47 rows apiece, every one toward the dump
+(`repin.py --write`, then the six hand sites). One window's first parting moves later
+(`coverage_pair.rs`: 1277 → 1292, a standing-block edge, not a word). The battery reads **576 / 6566 / 2974**, unmoved.
+
+**Mutation (by reasoning, not `tools/mutate.py`).** `Sim::group_id` returning the army's own number (the old arm) fails run251's and the golden widenings
+(the id rows return) and `an_army_s_move_is_a_group_order…`'s pool-slot assertion.
+
+**1887, 1805, 1778: not staged, no run.** 1887's callers (the idle search, the out-of-range search of a non-captain) have no
+capture that shows a part, and a staging needs a script line that reaches them; 1805 and 1778 as §68 and §69 said. All stay
+parked.
+
+**Not established.** `find_melee_target`'s head for its other callers; the two-order snap; a pushed group's dead member.
+A chapter needing both the pool and the death list has no capture shape (parked 1885).
+
+## 71. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 71. Reserved for the next item on the rules track
+## 72. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

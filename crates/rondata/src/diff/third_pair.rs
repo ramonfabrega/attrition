@@ -355,7 +355,7 @@ fn run658_dates_the_gap_before_17171() {
     // dirty bit below rose for, and `treaties` 1 against 3 on both leaders
     // and Napata's `raid_stamp` 0 against 17053 on 17054, the first strike.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 142, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    pin_eq!(w.firsts.len(), 130, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -570,7 +570,7 @@ fn run655_s_word_frame_is_widened_whole() {
     // Item 1493: 173 → 170 on the tree merged after 1500 (army 65's siege
     // copy-back and the wider group-slot compare).
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-    pin_eq!(w.firsts.len(), 138, "initial run655 baseline");
+    pin_eq!(w.firsts.len(), 136, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -634,7 +634,7 @@ fn run642_s_word_frame_is_widened_whole() {
     // does (`popwin_timer`'s ×100, run649), and 15344's order is ours too:
     // 94 standing on 15339, and on 15345 sixteen of the group's members'
     // `order:group.id`, 15344609 here against 15350409 there, alone.
-    pin_eq!(w.firsts.len(), 78, "initial run642 baseline");
+    pin_eq!(w.firsts.len(), 62, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -816,7 +816,7 @@ fn run631_s_word_frame_is_widened_whole() {
     pin_eq!(w.blocks, 13, "every captured block");
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1460: 216 → 120; a French unit of the Siege Factory line costs `FRENCH_SIEGE_COST` less (`docs/COSTS.md`, "A French siege unit costs less").
-    pin_eq!(w.firsts.len(), 58, "initial run631 baseline");
+    pin_eq!(w.firsts.len(), 57, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -1558,7 +1558,7 @@ fn run601_s_word_frame_is_widened_whole() {
         w.missing
     );
     // Item 1457: 71 → 69; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
-    pin_eq!(w.firsts.len(), 40, "run601 after ruins placement");
+    pin_eq!(w.firsts.len(), 28, "run601 after ruins placement");
     pin!(
         w.firsts.keys().all(|(who, _, field)| *who != 1
             || !(field.starts_with("leader:SITE[8].") || field.starts_with("leader:SITE[9]."))),
