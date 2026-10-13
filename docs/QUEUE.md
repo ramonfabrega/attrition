@@ -20,9 +20,9 @@ unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows a
 `unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
 in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2001, 2026, 2038, 2032; landings
-  since `dca6a873`: 4 (1998, 1999, 2002, 2020). Next 2044, run 816, AI §205, GOLDEN §75, park slot AB
-  (pools: AB–AF, AI §205–§209, GOLDEN §75–§79); run 810 is 2001's packet. Notes: `n-<item>.md`.
+- **Lanes live (Opus 5.5 medium, Ramon's roster, four)**: 2001, 2026, 2044, 2032; landings
+  since `dca6a873`: 5 (1998, 1999, 2002, 2020, 2038). Next 2049, run 816, AI §205, GOLDEN §75, park slot AC
+  (pools: AC–AF, AI §205–§209, GOLDEN §75–§79); run 810 is 2001's packet. Notes: `n-<item>.md`.
 - **Fable backlog: 11 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w3632 of 5,056
-Census: simulation backed 469 of 3611
+Census: simulation backed 479 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3985 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ handoff written, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2001 the headline's word, 2026, 2038 and 2032 the other three lanes —
+2001 the headline's word, 2026, 2044 and 2032 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -68,12 +68,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     173 against 136), then 3984's `MAKE[0..3]` — rows before the word, a
     hypothesis. Every record on 3985 both ways before a mechanism. AI §204.
 
-2038. **The sweep's forty-third batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 469 of 3611): 2020's shape,
-    merged by SHA; past the 420 swept, shortest decompile first; skip
+2044. **The sweep's forty-fourth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 479 of 3611): 2038's shape,
+    merged by SHA; past the 430 swept, shortest decompile first; skip
     operators (parked 1722); cite no hooked callee in a sweep test's chunk
-    (parked 2012); the four `get_*_stance` getters wait on `vcall --base`
-    (parked 2021). `--kind sweep`.
+    (parked 2012); the slot-against-address and per-player-table shapes
+    wait on Loop 2003 (parked 2021, 2039, 2040). `--kind sweep`.
 
 2032. **Chapter sixty-one: the arms the AI track built that no walk holds**
     (DECISIONS 56 §3; 2002 closed chapter sixty, GOLDEN §73): name the
