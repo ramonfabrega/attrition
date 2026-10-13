@@ -330,6 +330,21 @@ impl City {
             Resource::Wealth | Resource::Knowledge | Resource::Oil => 0,
         }
     }
+
+    /// `CityData::enhancer_amount@00738360`: `amount` scaled by the city's
+    /// enhancer for the good `good` — `(pct + 100) · amount / 100`, the
+    /// multiply wrapping (`imul`) and the divide truncating toward zero — with
+    /// a good that is not 0..=5 (an unsigned `ja`) or has no enhancer scaling
+    /// by 100 %. The oil arm reads the refinery byte (`+0x59`), which
+    /// [`Self::enhancer`] answers zero for the reason above; the sweep
+    /// (item 2083) holds that byte at zero.
+    pub fn enhancer_amount(&self, good: i32, amount: i32) -> i32 {
+        let pct = usize::try_from(good)
+            .ok()
+            .and_then(|i| Resource::ALL.get(i))
+            .map_or(0, |&r| self.enhancer(r));
+        (pct + 100).wrapping_mul(amount) / 100
+    }
 }
 
 /// Everything the rate assembly reads about one player.
@@ -541,11 +556,7 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
     // truncated twelve, not a truncated twelve hundred.
     for site in &city.sites {
         let i = site.resource.index();
-        let mut rate = per_gatherer(t, site.resource, site.level);
-        let enhancer = city.enhancer(site.resource) + 100;
-        if enhancer != 100 {
-            rate = rate * enhancer / 100;
-        }
+        let rate = city.enhancer_amount(i as i32, per_gatherer(t, site.resource, site.level));
         out[i] += rate * site.gatherers;
     }
 
