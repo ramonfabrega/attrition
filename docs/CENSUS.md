@@ -849,3 +849,18 @@ exists for the flag readers (the bit is inline at its readers), so each drives
 `cell_data(c).flags & cell::…`. No parting, no port change; not taken:
 `get_whose@006b4d80` (the same read as `get_who`, a second pass is a
 one-liner). `docs/journal/2026-10-13-item-1721.md`.
+
+**Item 1724, the sweep's twelfth batch** (2026-10-13): **simulation backed 168
+of 3,611 (4.7 %)** — 31 by a coverage section, 137 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, **all ten agree on every row**,
+and one finding the decompile hid: `MiningList::clear@00471160` zeroes the
+*dword at `+4`* and sets the bytes `mtn` (`+0x1c`) and `cliff` (`+0x1d`) to
+`0xff` — the decompile's three "`_padding_`" writes are not at `+0/+4/+8` —
+and `Animal::update_los@005d7d50` writes a *byte* at `+0x3c`, not a dword.
+The rest: `UnitData::hits@00610890` (int `+0x20`), `UnitData::support_cost
+@0060fde0` (0), `UnitTypeData::get_circle_radius@0061db10` (identity),
+`WallData::los@0063fa50` (signed char `+0x3c`), `WallData::is_neutralized
+@0063ed30` (0), `SubObjectOut::is_on_screen@00662670` (uchar `+0x1c`,
+zero-extended), `WallOut::get_gpiece@006424d0` (int `+0x68`) and
+`Group::action_begin@00714100` (dword `+0x28` ← 0). None has a port
+consumer. `docs/journal/2026-10-13-item-1724.md`.
