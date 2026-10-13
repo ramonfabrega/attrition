@@ -18183,10 +18183,50 @@ from `unit_masks`, never read.
 **Coverage.** Diff-backed: 1, 2, 3's inputs (run652's draws, run721's make list and `unit_masks`, the walk).
 Export-backed: the `+0x974` predicate and its writer's arm, held by the unit test and the walk.
 
-## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
+## 180. A unit whose own tile refuses it is moved off first (2026-10-12, item 1652)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**What was established, how, how confident.** Item 1651 left the coverage pair's word at **frame 3587, ours 15 game
+draws against 16, index 1**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Unit::do_move+0xe84 <
+Unit::do_explore_to+0xe < Unit::do_job+0x59`, inside run721 (block 3588). Each claim is *diff-backed* unless marked.
+
+1. **The draw.** run652 on 3587 (seed `1ba0ba8f`, 26273) is `do_move`'s grid draw, between the animal `9/2`'s idle
+   roll and `1/15`'s clock; ours (`RON_DEBUG_SITES=3586-3587`) spends the rest in the same order. The unit is
+   **`1/133`** (`TypeIndex` 50, the Citizen, land): its order on block 3587 is `EXPLORETOORDER` over a `BUILDORDER`,
+   path 13 slots, top (42216, 35592) **flags 4**, `move.dest` 0 and `dest_x` (40698, 37310), at (40549, 37539) —
+   both sides agree there (`RON_DEBUG_UNIT=1/133@3583-3588`). It had gathered at tile (211, 196) through 3585.
+2. **The parting, block 3588.** Theirs: position **(40548, 37539)** (one point west), path **26** slots — the old 13
+   and thirteen new nodes from (42024, 35592) to (40680, 37320) — `dest` 1, `dest_x` **(40680, 37320)**, `last_x`
+   −1, `path_recursion` 1, unit `tolerance` 0. Ours: a step to (40553, 37515), a 14th slot (40644, 36756),
+   `last` (40549, 37539), `path_recursion` 2 — `go_around_building`'s detour, verified, so no planner and no draw.
+3. **The cause is `find_path`'s head.** `Unit::find_path@005fb910`, past the `+0x2b4 & 0x20` return, asks
+   `invalid_loc(own tile, 1, 0, 0, 0, 0)` and, refused, calls `UnitType::find_nearby_spot(x, y, &x', &y', 0, -1, 0,
+   0x55555555, FILTER_NOT_ME, o, who, 0, 0, -1, 0, -1)`, `set_new_location(x', y', 1, 0)` and returns 1 — so
+   `do_move` (`005f7b30:569`) takes the planner's arm and rolls at `+0xe84`. `invalid_loc@00607c30`'s head sets
+   `param_6` when the path's top has `flags & 4`, and with `param_3` set the land arm's cell test refuses a cell
+   flagged `0x70`. A scratch print (reverted) on ours' 3587: tile (211, 195), a grass tile in a forest-flagged cell, `invalid_loc(·, 1, …)`
+   **0 on 3586** (top (41448, 36360), flags 0) and **2 on 3587** (top flags 4) — the woodcutter's forest cell.
+   This crate had no such arm. *Export-backed* for the arm, diff-backed for its effect: the one-point move is
+   `find_nearby_spot`'s quarter-tile snap, still inside tile (211, 195).
+
+**Built.** `find_path`'s own-tile arm (`orders.rs`), `set_new_location(·, true)` and `moved_to(·, false)` (the
+original's `param_3` 1 lights the disc with `param_1 == 0`). Unit test
+`cities_tests::a_unit_on_a_tile_that_refuses_it_is_moved_off_before_it_marches`. `docs/PATHFINDER.md` §9 gains it as
+its fourth point.
+
+**What it moved.** The word **3587 → 3614** (sequence; the count parts on 3615): **30 game draws each, index 6**,
+ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_guard+0x7f4`. Inside run721 (block 3615). The value diff on the parted frame: `1/133` on block 3588 now
+(40548, 37539), angle 369426432, waypoint (40680, 37320), `last` none — the original's. run721 **394 → 326** keys.
+The new word's nearest row is `1/212`'s order on block 3614 (`order:kind` ours 2, theirs 12, `orders.len` 2
+against 1, `path:length` 1 against 0) — the shape `1/184`'s on 3589 and `1/203`'s on 3598 already stand in, a
+guard the original holds where ours still walks a move. The coverage walk's inexact height reads 99 → 110.
+
+**Not established.** Whether `find_nearby_spot`'s own refusals match `invalid_loc`'s cell test: the original's
+answer here stays on the refused tile, as ours does, and nothing on file shows a refusal the spot cannot leave.
+The `return 1` with no relocation (the mutation below) parts the position only — the draws agree through 3614.
+
+**Coverage.** Diff-backed: 1, 2, and 3's effect (run652's draw, run721's `1/133`, the walk). Export-backed: the
+arm's predicate and its arguments, held by the unit test, the widening and the walk.
 
 ## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
 

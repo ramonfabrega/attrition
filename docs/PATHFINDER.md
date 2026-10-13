@@ -656,6 +656,16 @@ re-aims due east, x closes, return 0, **no `find_wpath` draw**. The sim's
 "return 1 on no progress" guard is retired with the march rewritten this
 way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
 
+4. **Before any of it, the unit's own tile** (item 1652, `docs/AI.md` §180):
+   past the helicopter return, `invalid_loc(own tile, 1, 0, 0, 0, 0)` —
+   buildings ignored — refusing sends the unit to `UnitType::
+   find_nearby_spot(x, y, 0, -1, 0, 0x55555555, FILTER_NOT_ME, …)`'s
+   answer through `set_new_location(·, ·, 1, 0)` and returns 1, before the
+   goal is compared with the unit's point and before `path_recursion`
+   counts. A path top flagged transport (`flags & 4`) sets `invalid_loc`'s
+   `param_6`, so a land unit standing in a forest *cell* is refused on a
+   tile it stood on a frame before. *Diff-backed* on run721's `1/133`.
+
 ## 10. The oracle
 
 - **The per-frame path-stack diff is the oracle**, as the brief planned:
