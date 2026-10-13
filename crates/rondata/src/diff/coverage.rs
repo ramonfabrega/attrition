@@ -2900,6 +2900,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_2868 = super::coverage_pair::coverage_frame_2868_window();
     // Item 1625: and run716's, where it stood before run721.
     let coverage_3142 = super::coverage_pair::coverage_frame_3142_window();
+    // Item 1653: and run721's, where it stood before run722.
+    let coverage_3395 = super::coverage_pair::coverage_frame_3395_window();
     let coverage = super::coverage_pair::coverage_pair_word_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
@@ -2916,6 +2918,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -2987,6 +2990,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         coverage_2288,
         coverage_2868,
         coverage_3142,
+        coverage_3395,
         coverage,
         sahara_12,
         sahara_720,

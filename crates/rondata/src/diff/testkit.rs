@@ -6967,8 +6967,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends it to 3585: 97 reads, measured against the bound
     // of 48. Item 1651 extends it to 3587: 99, measured against 97.
-    // Item 1652 extends it to 3614: 110, measured against 99.
-    ("coverage_pair_first_parting", 110),
+    // Item 1652 extends it to 3614: 110, measured against 99. Item 1653
+    // extends it to 3843: 105, measured against 110.
+    ("coverage_pair_first_parting", 105),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8813,15 +8814,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `1/133`'s block-3588 move agrees. **Item 1653 moved it 3614 → 3843,
     // past run721's last block (3645)**: a helicopter steps along its
     // second turn, and the Transport Helicopter `1/212` arrives on 3614.
-    // The widening is owed a capture again and this row names the item
-    // that owes it (1654) and no test; run721's test keeps the move's
-    // value diff on `1/212`, `1/184` and `1/203`.
+    // The same item took run722 over 3837..4093 (block 3844); run721's
+    // test keeps the move's value diff on `1/212`, `1/184` and `1/203`.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
-        None,
-        1654,
-        None,
+        Some("run722_s_word_frame_is_widened_whole"),
+        1653,
+        Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after

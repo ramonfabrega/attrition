@@ -18228,10 +18228,55 @@ The `return 1` with no relocation (the mutation below) parts the position only �
 **Coverage.** Diff-backed: 1, 2, and 3's effect (run652's draw, run721's `1/133`, the walk). Export-backed: the
 arm's predicate and its arguments, held by the unit test, the widening and the walk.
 
-## 181. Reserved for the race on item 1648, its landing 4 (the coverage pair's word 3439)
+## 181. A helicopter owing ninety or less steps along a second turn (2026-10-12, item 1653)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**What was established, how, how confident.** Item 1652 left the coverage pair's word at **frame 3614, 30 game draws
+each, index 6**: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_guard+0x7f4`, inside run721 (block 3615). Each claim is *diff-backed* unless marked.
+
+1. **The draws.** run652 on 3614 spends `do_guard`'s anim draw twice (indices 6 and 8, seeds `e486ae5f` and
+   `38ab69e9`), either side of `1/210`'s `Guy::move` draw; ours (`RON_DEBUG_SITES=3612-3614`) spends neither and
+   two more `Guy::set_anim+0x104b` among the animals, the same 30 in all.
+2. **The unit.** `1/212`, `TypeIndex` 311, the Transport Helicopter (its `GUY` block's `type`), air: an escort on a
+   `GUARDORDER` over unit 326 that re-issues an `ATTACKTO` move to the guard point. On block 3607 both sides stand on
+   (37368, 42936) and are handed the move to (37464, 42840) on 3608. Theirs steps on 3608 to **(37455, 42905)**,
+   unit angle 541917184 (the bearing), figure angle 1612330860; stands 3609–3613 while the figure turns
+   (1573556857 … 1225178315); snaps onto the point on 3614 with its guard alone, and `do_guard` pays the anim draw.
+   Ours stood on (37368, 42936) through 3613 turning in place and stepped 92 on 3614 to (37459, 42922), its move
+   still on. Walked back (`RON_DEBUG_UNIT=1/212@3480-3616` beside a slicer over run721): the positions first part on
+   **3507**, the unit's first step, ours (32575, 40980) against (32578, 41002), and the gap is a step's direction
+   every move after.
+3. **The cause is `move_step`'s helicopter arm.** `Unit::move_step@005faf30`'s gate after the first turn is
+   `(type +0x2b4 & 0x20) == 0 || 0x40000000 < owed`; a helicopter owing a quarter turn or less takes the `else`:
+   `Guy::do_turn(…, 0, 0)` to the first turn's facing, then a second `turn_towards` from it by
+   `GuyData::turn_speed(guy, 1)` — the body's rate — and the whole step along that, with neither turn-in-place arm
+   nor either half step. On 3608 theirs owes 93.2° before the turn and 89.7° after a 3.5° turn: the arm; the step
+   (87, −31) is along 70.4°, the figure's 135.1° turned on by 64.7°, the type's undivided rate. 3609–3613 owe more
+   than 90° to the new bearing (7.4°), so the near arm stands it; 3614 owes 82.3° and the arm's Manhattan snap
+   lands it. This crate had no such arm. *Export-backed* for the branch, diff-backed for its effect.
+
+**Built.** `movement::move_step`'s `heli_rate` (`Some(turn_speed(…, TurnMode::Body))` for a helicopter, from
+`unit_step`), and its `straight_step`. Unit test
+`movement::tests::a_helicopter_owing_ninety_or_less_steps_along_a_second_turn`; `docs/MOVEMENT.md`'s unit step
+gains the arm.
+
+**What it moved.** `1/212` on block 3608 now (37455, 42905), figure angle 1612330860, and (37464, 42840) on its
+guard alone on 3614 — every block 3507–3645 the original's but `mirror` on 3506. The Transport Helicopters `1/184`
+and `1/203` agree with it: their order-kind rows on 3589 and 3598 are gone, and run716's `1/203` first step on
+3387 too. run721 **326 → 186** keys, run716 **189 → 184**; the coverage walk's inexact height reads 110 → 105.
+The word **3614 → 3843**, count and sequence: **ours 23 game draws against 28, index 5**, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd` three times — a three-figure unit born in the original that ours does not make (seeds
+`34dcc269`, `dd5ba8b4`, `78e23c83`). Past run721's last block (3645).
+
+**Not established.** A helicopter's second turn from a standstill: `turn_speed(guy, 1)` answers instantly for
+`last_speed == 0` on a figure with `guy_flags & 0x10`, and this crate passes the type's `instant_from_stop`
+through unchanged; no step on file starts a helicopter from rest owing more than its rate. A helicopter's air
+orders go through `do_air_physics`, not `move_step`, and were not touched.
+
+**Coverage.** Diff-backed: 1, 2, and 3's effect (run652's draws, run721's `1/212`, `1/184` and `1/203`, run716's
+`1/203`, the walk). Export-backed: the branch's gate and its second turn's rate, held by the unit test, the two
+widenings and the walk.
 
 ## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
 

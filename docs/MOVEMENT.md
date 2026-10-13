@@ -401,6 +401,11 @@ new, owed = turn_towards(facing, want, ts)               # snap if ts >= owed
 manh      = |dx| + |dy|
 slow      = type.turn_speed < 20° ? 2 : 1
 
+if type flies like a helicopter and owed <= 90°:         # +0x2b4 & 0x20
+    facing = new
+    along, _ = turn_towards(new, want, turn_speed(guy 0, mode 1))
+    the whole step along `along`: no stand, no half step  # see below
+
 if manh < slow * 192  or  path.flags & 4:                # short hop, or told to
     if owed != 0:  facing = new; return                  # turn in place
 else:
@@ -476,6 +481,26 @@ the remaining Manhattan distance so the unit can give up short.
 **A step outside the world is refused, not clamped**, and the order continues;
 the unit tries again next frame. (`crates/sim` asks `World::accepts`, which
 is the same bounds test.)
+
+**A helicopter does not turn in place while it owes 90° or less**
+(2026-10-12, item 1653). The gate at `005fb0fa` is `(type +0x2b4 & 0x20) ==
+0 || 0x40000000 < owed`: a type that flies like a helicopter, owing no more
+than a quarter turn after this frame's turn, skips both stands and both
+half steps — the hard turn's and the one-shot's, whose bit it neither reads
+nor spends. Guy 0 is turned by `do_turn(…, 0, 0)` to `new` exactly as
+elsewhere; then the angle the step is **taken along** is `new` turned on
+toward `want` by `turn_speed(guy 0, 1)` — the body's rate, undivided by
+`avg_speed` — snapping within that rate or within 3° (`005fb16a`..
+`005fb1a3`). So the facing kept and the bearing walked differ by up to the
+body's rate; the Manhattan snap, the clamps and everything after are the
+common tail. Owing more than 90°, a helicopter takes the ordinary arms.
+run721's Transport Helicopter `1/212` is handed a guard move on 3608 owing
+93° before its turn and 89.7° after it: the original steps 92 at once,
+along 70.4° where its figure faces 135.1°, then stands five frames in the
+near arm while it owes more than 90° to the new bearing, and snaps onto
+the point on 3614 (`docs/AI.md` §181). `crates/sim`'s `movement::move_step`
+takes the body's rate as `heli_rate`; the test is
+`a_helicopter_owing_ninety_or_less_steps_along_a_second_turn`.
 
 **`path.flags & 4` is read, since 2026-09-01.** The gate above is the
 original's `(manh < slow × 0xc0) || (local_18 & 4)` at `005fb1a5`, where
