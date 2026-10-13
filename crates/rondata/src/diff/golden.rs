@@ -7850,12 +7850,10 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // prints a record per corpse and nothing else, so the dump cannot say
     // the list was not asked for. The target last prints on 808 on both
     // sides.
-    let mut want: Vec<String> = [
-        "809 1/6 death:extra",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    let mut want: Vec<String> = ["809 1/6 death:extra"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
     want.sort();
     pin_eq!(got, want, "ch15: what parts under the word moved");
     // **What parts in the pool: nothing**, on all 645 blocks. Slot 1 is
@@ -12279,8 +12277,7 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
 // point, and `0/17` stands at (3384, 14232) on 1060 as there. 105 → 35
 // rows: the 70 of 1060..1079 go, and the Bowmen's three `form` rows stay
 // (parked 646).
-const WANT_CH30: &[&str] = &[
-];
+const WANT_CH30: &[&str] = &[];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's
 // building group, seated there by `process_group` and skipped here (618
@@ -12395,8 +12392,7 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
 // finished `BuildOrder` gave way to a `GATHERORDER`), agrees since item
 // 1167: the builder's gather clears `+0x80` (`docs/GOLDEN.md` §49). 15 →
 // 14 rows.
-const WANT_CH31: &[&str] = &[
-];
+const WANT_CH31: &[&str] = &[];
 
 // **What parts in the pool** on run338: the first seats' `ox`/`oy`
 // (parked 887). ~~And the two Hoplite groups laid out from their own
