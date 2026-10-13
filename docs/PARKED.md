@@ -4128,9 +4128,7 @@ same `I32`/`rand32`/`pop_ok` header — it belongs in `sweeplib`.
 
 ## Parked by item 1982, 2026-10-13 — a resumed search's failure pops its top
 
-(1983) **The successor pair's word 3632: 193 draws against 192, index 35** (1982; `docs/AI.md` §201.4): ours `GameAccess::rnd+0x20 <
-Unit::do_attack`, theirs `Unit::think_fish+0x27a`. Past run799's window (3125..3382): the lobby has **no dump holding 3632** — the next item is a
-window capture (run788's recipe, `--log-window` around 3632, a run number of the commander's) and then every record on the word's frame both ways.
+(1983) closed 2026-10-13 by item 2001: run809 holds the word 3632's window (3626..3883), and the word moved to 3834 (`docs/AI.md` §203).
 
 (1984) **A resumed 48-grid search's kill half is unwalked** (1982): `upath_search`'s `r == 0` teardown now also kills a resumed search's order when no
 retry roll spared it (an order that is not a move, or `attempts` ≥ 13); no capture reaches it. Listing's, `find_upath@00682f30:175`–`:195`.
@@ -4150,13 +4148,19 @@ Two of the ten (`UnitData::has_stance_type`, `get_stance_type`) were a forwarder
 `get_coll_block`, `Borders::get_who` and `WorldData::get_land` — read a world record through a global cell with WCoord *pointer* arguments
 (1977's shape, plus pointers): a `cell --ptrargs` option would take them. Not run to a parting; all ten agree.
 
-## Parked by the next landing, slot U — reserved
+## Parked by item 2001, 2026-10-13 — a computer's raiding ship leaves a building alone
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot U renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2004) **The successor pair's word 3834: 169 draws against 167, index 9** (2001; `docs/AI.md` §203.5): ours `Unit::think_fish+0x27a`,
+theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Inside run809's window. The first parted row of the Aegis Cruiser `1/113` is
+`orders.len` on block 3648, ours 0 theirs 1: theirs' `think` off-32-phase `near_o` arm (`think@005f6e40:107-130`) adds an attack on tick 3647
+that ours does not, and drops it on 3648 with no shot; `pos` parts on 3649. Widen 3834's own block whole first; a packet at 3647 answers
+what the arm hands `add_attack_order`.
+
+(2005) **`compare_target`'s raid-ship arm: the SIEGE-and-fires-on-move branch and the wall exemption are unreached** (2001): built from
+the listing (`0064e7a5`..`0064e81f`); run810 reaches only the non-SIEGE return.
+
+(2006) **A `RON_STATE_FRAME` tracer define without `RON_STATE_PLAN` dies in the build after the lane is taken** (Loop; 2001, run810's take
+1): the runner could refuse it before staging, or default the plan.
 
 ## Parked by item 1999, 2026-10-13 — a bordering city's Fort
 
