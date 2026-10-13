@@ -3660,7 +3660,7 @@ impl Sim {
                         {
                             let (h, t) = (self.units[i].pos, self.pos_of(o));
                             eprintln!(
-                                "PROBE2099 f{} o={o:?} valid_const={} admits={} reaches={} treg=({},{}) leash={:?} poor={} dist={} in_range={} guard={:?} attack_of={}",
+                                "PROBE2099 f{} o={o:?} valid_const={} admits={} reaches={} treg=({:?},{:?}) leash={:?} poor={} dist={} in_range={} guard={:?} attack_of={}",
                                 self.frame,
                                 self.valid_target_const(attacker, o),
                                 self.search_admits(o, flags),
