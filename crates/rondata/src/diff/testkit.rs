@@ -6967,7 +6967,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends it to 3585: 97 reads, measured against the bound
     // of 48. Item 1651 extends it to 3587: 99, measured against 97.
-    ("coverage_pair_first_parting", 99),
+    // Item 1652 extends it to 3614: 110, measured against 99.
+    ("coverage_pair_first_parting", 110),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
@@ -8807,12 +8808,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // release at a building on its ceiling is fired; run721's test holds
     // the jets that agree past 3446. Item 1651 moves it to **3587**
     // (block 3588): a packed fisherman is idle, and leader 1's make list
-    // agrees on 3581.
+    // agrees on 3581. Item 1652 moves it to **3614** (block 3615): a unit
+    // whose own tile refuses it is moved off at `find_path`'s head, and
+    // `1/133`'s block-3588 move agrees.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run721_s_word_frame_is_widened_whole"),
-        1651,
+        1652,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3395),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

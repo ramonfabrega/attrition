@@ -3763,6 +3763,41 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
     assert!(!sim.units[u].orders.is_empty(), "still trying");
 }
 
+/// **A unit whose own tile refuses it is moved off it before the line is
+/// marched** (`Unit::find_path@005fb910`'s head, `docs/AI.md` §180):
+/// `invalid_loc(own tile, 1, …)` refusing sends the unit to
+/// `find_nearby_spot`'s answer and returns 1, and `do_move` takes the
+/// planner's arm — the grid draw. The coverage pair's woodcutter `1/133`
+/// is refused by its forest cell once its path's top carries the transport
+/// bit; a mountain under its feet is the same refusal without the bit.
+#[test]
+fn a_unit_on_a_tile_that_refuses_it_is_moved_off_before_it_marches() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    // Off its quarter-tile centre, so `find_nearby_spot`'s snap is a move.
+    let from = Pos::new(3950, 3950);
+    let u = spawn(&mut sim, 0, citizen, from);
+    sim.world.set_tile_bits(from.tile(), tile::OBJECT_MOUNTAIN);
+    let spot = sim
+        .find_nearby_spot(u, from, 0, -1, 0, movement::Angle(0x5555_5555), None)
+        .expect("a spot");
+    assert_ne!(spot, from);
+    sim.trace_phases = true;
+    sim.order_move(u, tile_pos(22, 20));
+    sim.tick();
+    assert_eq!(
+        sim.units[u].pos, spot,
+        "set onto find_nearby_spot's answer, and no step this frame"
+    );
+    assert!(
+        sim.phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID),
+        "find_path's 1 is the planner's arm, and the planner's draw"
+    );
+}
+
 /// **`find_gather_spot` scores the headroom under the commerce cap, not the
 /// distance** — `docs/ORDERS.md` §6.6, and the whole of queue item 70.
 ///

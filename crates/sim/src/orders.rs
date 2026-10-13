@@ -5587,6 +5587,26 @@ impl Sim {
             return 0;
         }
         let here = self.units[u].pos;
+        // **A unit whose own tile refuses it is moved off it first**
+        // (`5fb987`..`5fb9f1`, item 1652): `invalid_loc(own tile, 1, 0, 0,
+        // 0, 0)` — buildings ignored — and on a refusal
+        // `UnitType::find_nearby_spot(x, y, 0, -1, 0, 0x55555555,
+        // FILTER_NOT_ME, o, who, 0, …)`, `set_new_location(spot, 1, 0)`
+        // and `return 1`, before the goal is compared with the unit's
+        // point and before `path_recursion` counts. The path top's
+        // transport bit is what makes it fire on a dry tile: it sets
+        // `invalid_loc`'s `param_6`, and with `param_3` the cell test
+        // refuses a forest cell. The coverage pair's woodcutter `1/133`,
+        // re-planning onto a top flagged 4 from its tree, is moved one
+        // point on 3587 and pays `do_move`'s grid draw (`docs/AI.md` §180).
+        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
+            let spot = self
+                .find_nearby_spot(u, here, 0, -1, 0, Angle(0x5555_5555), None)
+                .unwrap_or(here);
+            self.set_new_location(u, spot, true);
+            self.moved_to(u, here, false);
+            return 1;
+        }
         let mut goal = goal;
         if goal == here {
             return 0;

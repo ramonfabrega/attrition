@@ -232,7 +232,13 @@ pub(crate) struct Pair {
     /// so leader 1's make list keeps its Strategic Bomber and Transport
     /// Helicopter on block 3581 (`docs/AI.md` §179). **3587**, 15 versus
     /// 16 draws, index 1: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    /// theirs `Unit::do_move+0xe84`.
+    /// theirs `Unit::do_move+0xe84`. Item 1652 moves a unit off a tile that
+    /// refuses it at `find_path`'s head: the woodcutter `1/133`, whose
+    /// path's top carries the transport bit, is refused by its forest cell
+    /// on 3587, set one point over and pays the grid draw (`docs/AI.md`
+    /// §180). **3614** (sequence; the count parts on 3615), 30 draws each,
+    /// index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+    /// `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -250,8 +256,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3587,
-    sequence: 3587,
+    count: 3615,
+    sequence: 3614,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1568,7 +1574,7 @@ pub(crate) const WIDENING_COVERAGE_FRAME_3395: (i64, i64) = (3389, 3645);
 
 /// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
 /// run721 walked from run651's start with the recorder on. It holds the
-/// word 3587 (item 1651), block 3588; the old words remain checked.
+/// word 3614 (item 1652), block 3615; the old words remain checked.
 pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
@@ -1578,7 +1584,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
         &[(RUN721, 3389)],
         WIDENING_COVERAGE_FRAME_3395,
         1,
-        &[3395, 3396, 3398, 3440, 3586, 3588],
+        &[3395, 3396, 3398, 3440, 3586, 3588, 3615],
         true,
     )
 }
@@ -1624,7 +1630,12 @@ fn run721_s_word_frame_is_widened_whole() {
     // Leader 1's `MAKE[1..4]` agree on 3581 (the Fishermen at 88000 are
     // gone); the new word 3587's block, 3588, is `1/133`'s move — its
     // path 14 slots against 26 and `move.last_x` 40549 against -1.
-    pin_eq!(w.firsts.len(), 394, "run721 after the idle fisherman");
+    // Item 1652 moves `1/133` off its refused forest cell at `find_path`'s
+    // head: 394 -> 326. Its block-3588 rows agree (position (40548, 37539),
+    // the 26-slot path, `move.dest` (40680, 37320), `last_x` -1); the new
+    // word 3614's block, 3615, follows `1/212`'s order kind parting on
+    // 3614 (ours 2, theirs 12), as `1/184`'s on 3589 and `1/203`'s on 3598.
+    pin_eq!(w.firsts.len(), 326, "run721 after the refused own tile");
     let path = dump(RUN721).expect("the replay just read run721");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
     let at = ix.frames().iter().position(|f| f.number == 3398).unwrap();
