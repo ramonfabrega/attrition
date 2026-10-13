@@ -6347,6 +6347,9 @@ impl Sim {
             if step.turned_in_place.is_none() {
                 if step.snapped && mo.waypoint == from && self.units[u].orders.len() < 2 {
                     self.mark(crate::anim::SITE_SNAP_STAND);
+                    if std::env::var_os("RON_PROBE_1798").is_some() {
+                        eprintln!("PROBE1798 snapstand f{} u{u}", self.frame);
+                    }
                     self.set_default_anim(u);
                 } else {
                     self.set_anim(u, walk, false, true);
