@@ -5093,7 +5093,19 @@ twice; one merge backed out, in code, none on a document; the battery
    and the pass declines it again, for the thirtieth's reason — the
    opener names four items one to a lane; the only fifth is a second
    sweep lane, whose census re-pin is a merge re-pin and no blocker; a
-   fifth is the user's.
+   fifth is the user's. **Amended at the steer, the same day**: Ramon,
+   with the pass's record in front of him, moves the four lanes to
+   **Opus 5.5 at `--effort medium`** for the thirty-second tranche — the
+   honest trial Sonnet medium had for three tranches, measured the same
+   way (`tools/tranche.py`, USD and waiting a landing, the words, the
+   before-reading rows the lanes run, a repeated shape graduated or
+   not); the kill rules stand, and the lane count stays four. Two of
+   the pass's readings were corrected at the steer: the capture lane is
+   a pool (1568, 1569) and no lane waited on another's capture this
+   tranche — the capture minutes are each word's own captures — and
+   the four-lane starvation of parked 1693 was answered by `memcap.sh`'s
+   `nice`; what remains is four `cargo` builds on sixteen cores, a
+   slowdown, not starvation.
 2. **The `DEEP` answer works**: two sessions crossed 300 k, the waiter
    named each, the commander armed each clear, and both items landed
    from their second session at under 1.40 USD.

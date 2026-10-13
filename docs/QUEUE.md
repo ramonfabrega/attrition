@@ -13,17 +13,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-13, **the thirty-first pass closed the thirty-first tranche** (`45cf8c6b`..
-`aed28f3c`, twenty-three landings, every lane Sonnet 5.5 medium): 3.56 USD and 24.9
-minutes waiting a landing, seven captures; both words moved (successor pair 2838 → 3632,
-Great Sahara 3182 → 3825), chapters 57 and 59 closed, census 319 → 449; the battery
-576 / 6566 / 2974 unmoved a seventh tranche. The pass built ten Loop items — the sweep
-generator's windows and `void`, `unitat.py`, `unitaddr.py`, the runner's retake and
-refusals, every lobby's `first_parting` in a word's lane gate, the coverage driver's
-slice — closed one, filed 2003; `docs/audit/2026-10-13-fable-pass-31.md`, DECISIONS 68.*
+`aed28f3c`, twenty-three landings, Sonnet 5.5 medium): 3.56 USD and 24.9 minutes waiting
+a landing, seven captures; both words moved (successor pair 2838 → 3632, Great Sahara
+3182 → 3825), chapters 57 and 59 closed, census 319 → 449; the battery 576 / 6566 / 2974
+unmoved a seventh tranche. Ten Loop items built (the sweep generator's windows and `void`,
+`unitat.py`, `unitaddr.py`, the runner's retake and refusals, every lobby's `first_parting`
+in a word's lane gate, the driver's slice), one closed, 2003 filed; DECISIONS 68.*
 
-- **No lanes live**: the thirty-second tranche opens here. Next 2004, run 809, AI §204,
-  GOLDEN §74, park slot U (pools: U–Z, AI §205–§209, GOLDEN §75–§79). Notes:
-  `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+- **No lanes live**; **roster: Opus 5.5 medium, four lanes** (Ramon, at the steer). Next
+  2004, run 809, AI §204, GOLDEN §74, park slot U (pools: U–Z, AI §205–§209, GOLDEN
+  §75–§79). Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
 - **Fable backlog: 7 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -38,10 +37,11 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirty-second tranche, on `commander` — spawn the four lanes
-on 2001, 1999, 1998 and 2002, one each, Sonnet 5.5 medium (`ccc spawn
---model 'claude-sonnet-5-5[1m]' --effort medium`), park slots U, V, W, X
-in that order; the next number is 2004, the next run 809; count landings from this commit
-and stop at twenty with the handoff written, then `ccc clear steer`.**
+on 2001, 1999, 1998 and 2002, one each, **Opus 5.5 medium** (`ccc spawn
+--model 'claude-opus-5-5[1m]' --effort medium`; Ramon's trial, DECISIONS
+68), park slots U, V, W, X in that order; the next number is 2004, the next
+run 809; count landings from this commit and stop at twenty with the
+handoff written, then `ccc clear steer`.**
 
 ## The queue
 
