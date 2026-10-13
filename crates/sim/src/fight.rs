@@ -3652,29 +3652,6 @@ impl Sim {
                         )
                         .collect();
                     for o in here {
-                        if std::env::var_os("RON_PROBE_2099").is_some()
-                            && let Obj::Unit(i) = attacker
-                            && self.units[i].owner == 0
-                            && self.units[i].index == 10
-                            && (770..=790).contains(&self.frame)
-                        {
-                            let (h, t) = (self.units[i].pos, self.pos_of(o));
-                            eprintln!(
-                                "PROBE2099 f{} o={o:?} valid_const={} admits={} reaches={} treg=({},{}) leash={:?} poor={} dist={} in_range={} guard={:?} attack_of={}",
-                                self.frame,
-                                self.valid_target_const(attacker, o),
-                                self.search_admits(o, flags),
-                                self.check_target_reaches(i, o, duty),
-                                self.world.tregion_alt(h.tile()),
-                                self.world.tregion_alt(t.tile()),
-                                guard.map(|(i, g)| self.guard_leash(i, &g, o)),
-                                self.poor_target(attacker, o),
-                                self.attack_dist(attacker, o),
-                                self.is_in_range(attacker, o),
-                                guard.map(|(_, g)| g.guard),
-                                self.attack_of(o),
-                            );
-                        }
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
