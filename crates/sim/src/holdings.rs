@@ -166,6 +166,16 @@ impl Levels {
     }
 }
 
+/// `CityData::lumber_level@00736820`: 0 unless the city's flags carry `0x400` (a Lumber Mill), else one plus
+/// the [`crate::rares::top_held`] of `LUMBERMILL2..4` — `has_preq(i)` asked for row `i`, the top first. The
+/// leader half is [`Levels::for_player`]'s `lumber_mill`; item 2090's sweep holds the gate and the asks.
+pub fn lumber_level_by(city_flags: i32, has_preq: impl FnMut(usize) -> bool) -> i32 {
+    if city_flags & 0x400 == 0 {
+        return 0;
+    }
+    1 + crate::rares::top_held(3, has_preq) as i32
+}
+
 impl Default for Levels {
     fn default() -> Levels {
         Levels::BASE

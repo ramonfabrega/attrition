@@ -46,7 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 p != who && inf != 0 && (p < 0 || (inf & (1i32.wrapping_shl(p as u32 & 31))) != 0),
             )
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "is_infiltrated — eax, row `{line}`");
         assert_eq!(
             m,
             unhex(after.trim()),

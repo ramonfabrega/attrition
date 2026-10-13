@@ -44,7 +44,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 i64::from(f & 1 != 0 && f & 0x100 == 0 && f & 0xd0 == 0 && rd(m, 0x7c) != 0)
             }
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "is_active_connection — eax, row `{line}`");
         assert_eq!(
             m,
             unhex(after.trim()),

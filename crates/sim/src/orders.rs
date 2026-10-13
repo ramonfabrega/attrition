@@ -803,6 +803,12 @@ pub struct Order {
     pub body: Body,
 }
 
+/// `UnitData::is_fleeing@0046efa0` on the current order's `get_type()` (vslot `+0x10`): `FLEE_TO`; no order
+/// is not fleeing (item 2090's sweep holds the ask and the answer).
+pub fn is_fleeing_type(front: Option<i32>) -> bool {
+    front == Some(i32::from(index::FLEE_TO))
+}
+
 impl Order {
     /// `get_type()` — the `OrderIndex` value.
     pub const fn index(&self) -> u8 {
@@ -1122,6 +1128,17 @@ impl Sim {
     /// The current order — `Unit::update_order`, `head->prev`.
     pub fn current_order(&self, u: usize) -> Option<&Order> {
         self.units[u].orders.front()
+    }
+
+    /// `UnitData::is_idle@0046fa40`: no current order — the original's head null or its first node's data
+    /// null (item 2090's sweep holds both, and the iterator reset it writes on the way).
+    pub fn is_idle(&self, u: usize) -> bool {
+        self.current_order(u).is_none()
+    }
+
+    /// `UnitData::is_fleeing@0046efa0`: [`is_fleeing_type`] of the current order's `get_type()`.
+    pub fn is_fleeing(&self, u: usize) -> bool {
+        is_fleeing_type(self.current_order(u).map(|o| i32::from(o.index())))
     }
 
     /// `get_speed(x, y, 0)` — the virtual at slot `+0x17c` that both the

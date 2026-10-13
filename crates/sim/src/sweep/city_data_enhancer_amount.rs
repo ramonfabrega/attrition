@@ -49,7 +49,12 @@ fn the_emulated_original_agrees_on_every_row() {
                 i64::from(c.enhancer_amount(a[0], a[1]))
             }
         };
-        let _ = (got, want_eax);
+        // The oil arm reads the refinery byte the port's `City` holds at zero
+        // (`economy.rs` writes it so); the script's bias leaves a tenth of the rows
+        // random there, and on those the port claims nothing (item 2090).
+        if !(a[0] == 5 && m[0x59] != 0) {
+            assert_eq!(got, want_eax, "enhancer_amount — eax, row `{line}`");
+        }
         assert_eq!(
             m,
             unhex(after.trim()),

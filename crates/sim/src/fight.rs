@@ -3033,7 +3033,7 @@ impl Sim {
         // the hit again, and the test sits **above** everything below it
         // (`6002cf`).
         let front = self.units[responder].orders.front().copied();
-        if front.is_some_and(|o| o.index() == crate::orders::index::FLEE_TO) {
+        if self.is_fleeing(responder) {
             return;
         }
         if st.target.is_some() {
@@ -3255,7 +3255,7 @@ impl Sim {
         if !civilian && p.attack != 0 {
             return false;
         }
-        if self.worker_of(u) == crate::orders::Worker::None && !self.units[u].orders.is_empty() {
+        if self.worker_of(u) == crate::orders::Worker::None && !self.is_idle(u) {
             return false;
         }
         if p.packs {

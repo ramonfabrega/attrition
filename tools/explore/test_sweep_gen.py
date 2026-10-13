@@ -200,5 +200,24 @@ class Shapes(unittest.TestCase):
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
 
+    def test_an_obj_from_the_command_line_holds_its_answer(self):
+        # Item 2090: `--ret` defaulted to fwd's `none` for every shape, so an
+        # `obj` written without it compared no `eax`; eight value-returning
+        # sweeps stood on their bytes alone, one of them reading the wrong field.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
+                self.assertIn('assert_eq!(got, want_eax', (Path(tmp) / 'x_y.rs').read_text())
+                self.assertEqual(sweep_gen.main(['obj', 'X::z@00401010', '--item', '1', '--ret', 'none']), 0)
+                self.assertNotIn('assert_eq!(got, want_eax', (Path(tmp) / 'x_z.rs').read_text())
+                self.assertEqual(sweep_gen.main(['fwd', 'X::w@00401020', '--item', '1',
+                                                 '--call', '0x401000:0:this:']), 0)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+
 if __name__ == '__main__':
     unittest.main()

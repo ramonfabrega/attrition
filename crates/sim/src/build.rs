@@ -445,6 +445,13 @@ pub fn is_defensive_by(mut is: impl FnMut(Ident) -> bool, attack: i32) -> bool {
     is(Ident::Tower) || is(Ident::Fort) || is(Ident::Airbase) || attack != 0
 }
 
+/// `BuildTypeData::is_gather_enhancer@00472b50`: `is(GRANARY, 0)`, `is(LUMBERMILL, 0)`, `is(SMELTER, 0)` and
+/// `is(REFINERY, 0)` (`0x1a7..=0x1aa`) asked through the record's slot `+0x60` **in that order**, the first true
+/// answering (item 2090's sweep holds the order and the short circuit). `is` answers a lineage test.
+pub fn is_gather_enhancer_by(mut is: impl FnMut(Ident) -> bool) -> bool {
+    is(Ident::Granary) || is(Ident::Lumbermill) || is(Ident::Smelter) || is(Ident::Refinery)
+}
+
 /// [`is_defensive_by`] on the port's records.
 pub fn is_defensive(types: &[BuildType], t: usize) -> bool {
     is_defensive_by(|i| is(types, t, i), types[t].attack)
