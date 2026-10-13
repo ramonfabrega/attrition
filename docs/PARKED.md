@@ -3837,6 +3837,9 @@ or `mov eax, imm; ret` stubs, a fresh stub per row) for five `is_*` and
 `is_map_unit`, and the global cell again (`get_gpiece`).
 1834 an eleventh: the virtual-dispatch shape for seven of ten, out of
 one 150-line throwaway generator that saved an hour — worth graduating.
+1840 a twelfth: a third shape in the same throwaway (an
+argument-carrying stub, `v + 1000*arg0 + arg1`, to verify what a virtual
+call is passed) — graduate the generator.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
