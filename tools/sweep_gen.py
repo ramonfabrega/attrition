@@ -45,6 +45,10 @@ Three shapes, each a `__thiscall` on `ecx`:
           <ecx,args…>;…` and the test holds the calls — which callee, with
           what `ecx` and arguments, in what order — to the spec.
 
+  walk    the function hands the walker it was given (`[esp+4]`) two pointers
+          into `this` through the walker's first vtable slot: `walk_data`
+          (`--a0`, `--a1`, each `this` or `this+0xNN`); the callback is hooked.
+
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port.
 
@@ -153,6 +157,7 @@ OWN = {own}
 def rows():
     rng = random.Random({item})
     return [(rng.randrange(0x1000, 0x7FFF0000) & ~3, rng.randint(-0x80000000, 0x7FFFFFFF),
+             rng.randint(-0x80000000, 0x7FFFFFFF), rng.randint(-0x80000000, 0x7FFFFFFF),
              rng.randint(-0x80000000, 0x7FFFFFFF)) for _ in range(140)]
 
 
@@ -160,15 +165,15 @@ def main(argv):
     from hooks import Harness
     from callfn import STACK_BASE, STACK_SIZE
     h = Harness(argv[1], {{a: (f"{{a:x}}", n) for a, n, _, _ in CALLS}})
-    for this, p0, ans in rows():
+    for this, p0, ans, p1, p2 in rows():
         h.calls.clear()
         for i, (a, n, _, _) in enumerate(CALLS):
             h.answers[f"{{a:x}}"] = (ans + i) & 0xFFFFFFFF
-        r = h.call(ENTRY, (p0,)[:OWN], ecx=this)
+        r = h.call(ENTRY, (p0, p1, p2)[:OWN], ecx=this)
         esp = h.m.uc.reg_read(UC_X86_REG_ESP)
         assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
         seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
-        print(f"{{this}} {{p0}} {{ans}} -> {{r}} | {{seen}}")
+        print(f"{{this}} {{p0}} {{ans}} {{p1}} {{p2}} -> {{r}} | {{seen}}")
     return 0
 
 
@@ -190,8 +195,8 @@ fn the_emulated_original_agrees_on_every_row() {{
         let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
         let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
-        let (this, _p0, ans) = (a[0], a[1], a[2]);
-        let _ = (this, _p0, ans);
+        let (this, _p0, ans, _p1, _p2) = (a[0], a[1], a[2], a[3], a[4]);
+        let _ = (this, _p0, ans, _p1, _p2);
         let calls: Vec<Vec<i64>> = {calls};
         let want: String = calls
             .iter()
@@ -271,6 +276,8 @@ def _fwd_expr(tok):
         return f'this + {int(tok[5:], 0):#x}'
     if tok == 'p0':
         return '_p0'
+    if tok in ('p1', 'p2'):
+        return '_' + tok
     return str(int(tok, 0))
 
 
@@ -300,6 +307,95 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
     doc = (f'{len(calls)} hooked callee(s), `ecx` and arguments held to the spec, `eax` {ret}.')
     test = FWD_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc,
                            calls='vec![' + ', '.join(exprs) + ']', ret=retcode)
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
+WALK_SCRIPT = '''#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+"""sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, walk).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = the object, one stack argument: the walker. The function calls
+the walker's callback (the first word of the walker's vtable) with `ecx` = the walker
+and two stack arguments, `{a0}` and `{a1}` of the object. One row per input,
+`<this> <walker> -> <result> | <ecx,arg0,arg1>`.
+"""
+import os
+import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{}})
+    rng = random.Random({item})
+    for _ in range(140):
+        this = rng.randrange(0x1000, 0x7FFF0000) & ~3
+        ans = rng.randint(-0x80000000, 0x7FFFFFFF)
+        vt = h.vtable({{0: ("walk", 2, ans & 0xFFFFFFFF)}})
+        walker = h.alloc(16)
+        h.w32(walker, vt)
+        h.calls.clear()
+        r = h.call(ENTRY, (walker,), ecx=this)
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        seen = ";".join(",".join(str(x) for x in (ecx, *args)) for _, ecx, args, _ in h.calls)
+        print(f"{{this}} {{walker}} -> {{r}} | {{seen}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+WALK_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, walk).
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu) with the walker's callback hooked: it is entered once, `ecx` the walker,
+/// with `{a0}` and `{a1}` of the object, in that order.
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> -> <result>`");
+        let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
+        let (this, walker) = (a[0], a[1]);
+        let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
+        assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 100, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+'''
+
+
+def _walk_expr(tok):
+    tok = tok.strip()
+    return 'this' if tok == 'this' else f'this + {int(tok[5:], 0):#x}'
+
+
+def generate_walk(spec, *, item, a0, a1):
+    name, va = parse(spec)
+    sn = snake(name)
+    short = name.rsplit('::', 1)[-1]
+    script = WALK_SCRIPT.format(snake=sn, name=name, va=va, item=item, a0=a0, a1=a1)
+    test = WALK_TEST.format(snake=sn, name=name, va=va, item=item, short=short, a0=a0, a1=a1,
+                            e0=_walk_expr(a0), e1=_walk_expr(a1))
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -380,8 +476,10 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk'))
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
+    ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
+    ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--own', type=int, default=0, help='fwd: stack arguments the function itself takes')
     ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
@@ -397,7 +495,9 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
     try:
-        if args.shape == 'fwd':
+        if args.shape == 'walk':
+            sp, script, tp, test, mod = generate_walk(args.function, item=args.item, a0=args.a0, a1=args.a1)
+        elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
                                                      own=args.own, ret=args.ret)
         else:
