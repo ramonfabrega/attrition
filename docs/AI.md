@@ -18762,12 +18762,46 @@ on 1594 slot 2), and group `held`/`pool` rows on 1356 onwards (the window's firs
 run of the arm (`tools/mutate.py`) was not made — the unit test fails without each of its three gates and the widening without the
 call. The Mongol stable cost arm (`MONGOL_STABLE_COST`, 10 %) is the cost side's, unread here; the 1583 rows above may name it.
 
-## 194. Reserved for the next item on the AI track
+## 194. The successor pair's word at 2207: a widening, and the idle Freighter `1/72` (2026-10-13, item 1768)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 2207, 9 draws ours against 8, index 8, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none (§193's
+booking), past run779's last block, so unwidened.
+
+**Capture (run780; the disk could not answer: no dump of this lobby held a unit past block 1605).** Click-free lane 1, `--map 18
+--end-frame 2463 --log-window 2201 2458` at the long's detail and the lobby's profile (`docs/RUNS.md`); `rngcmp.py`: 2464 frames, 0
+differing. Widening `diff::mongol_pair::run780_s_word_frame_is_widened_whole`: **897 keys** on blocks 2201..2457 (129 on the window's
+first block — the control's start set, `form`, `SITE[n].reg`, group `held`/`pool` rows, the queued costs of `1/2020` and `1/2028` — and
+the rest from 2212 on); the word's own block 2208 carries none.
+
+**The draw's owner.** `RON_DEBUG_SITES=2206-2207` lists ours' nine draws on 2207: `1/39` (`do_guard`), then `inc_time` anim draws of
+`1/44`, `1/56`×2, `1/66`×2, `1/72`, `1/86`×2. Theirs has the same eight minus one, and the unit that stands in ours and not in theirs is
+**`1/72`** (the only unit whose block differs on 2201 by an idle against a walk): ours `idle 4`, no order, at (29639, 32249); theirs `idle
+0`, one `MOVEORDER` to **(35736, 24984)** (the first `PATHDATA`; nine steps) at (29925, 31796) — a unit walking does not draw its idle
+anim. The unit's own `GUY` block says `type 322`: `TypeIndex` 322, `TRANSPORTFREIGHTER` (ours `type_index` 322, `attack` 0, no worker
+role).
+
+**Where it parts, walked back on ours** (`RON_DEBUG_UNIT=1/72@1739-2201`): born 1739, walks a six-order approach to (27288, 28824), takes
+`[ExploreTo (28200, 31560), Build(50)]` from 2137, and **on 2177 both orders are gone**: `Unit::work`'s target-liveness arm
+(`building_slot_reused(50)`) kills the order — `buildings[50]` is the closed `1/2043` at (28032, 31104), and building **`1/2043` is born
+again on 2177** at (26208, 24672) (a Village site, `act0`, `jc0/42000`), taking the same number, so ours counts the slot reused and
+`process_unit` kills the Build a second time in the same frame. From 2178 the unit is idle in ours: `think` reaches no tail for it
+(`worker None`, not a scout or spy, no army, `think_peasant` never entered) and the `idle` counter runs to 4 by 2201. Theirs has a
+walk to (35736, 24984) in hand by 2201, ≈23 frames of 25 units at (29925, 31796), so begun on 2178–2179. **No dump before 2201 prints
+the unit in theirs**, so what handed it the walk — a think of the Freighter, or an order of the leader's — is not established; nothing
+at (35736, 24984) (no object within 2500 units on 2201) names the destination.
+
+**Score.** The word does not move: 2207, 9 versus 8, index 8. The widening is what this item owed; the cause is parked 1800 with the
+candidates below.
+
+**Candidates, none built.** (a) The original's `Unit::think` tail gives an idle `TRANSPORTFREIGHTER` a job ours omits —
+`think_civilian_transport(u, false)` is reached only through `think_scout`'s tail and a citizen's colonist arm in this crate
+(`crates/sim/src/transport.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
+unit's whole `think`. (b) The slot-reuse kill and the Build order's `exists` test differ in the original by a frame (ours kills twice in
+2177; `Unit::work@0060d180:319` kills once and returns). Killer: whether theirs holds `[Build]` on 2178 — a window around 2170 would
+say, and no dump on disk does.
+
+**Not established.** Everything about what theirs does to `1/72` between 2172 and 2201; the first-block rows of the window are the
+control's start set and are read, not diffed, against anything else; no mutation was run (no mechanism was built).
 
 ## 195. Reserved for the next item on the AI track
 

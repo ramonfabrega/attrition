@@ -4101,6 +4101,14 @@ bay is unmeasured — a packet at 1099 and `get_position`. Pinned in `WANT_CH53`
 **Closed by 1776** (GOLDEN §66): the same node row as 1756 — `node_flags`
 gates the release; "no bay" was the wrong mechanism.
 
+## Parked by item 1768, 2026-10-13 — the successor pair's word 2207
+
+(1800) **The idle Freighter `1/72` the original sends to (35736, 24984)** (1768; the successor pair's word 2207, 9 versus 8 draws,
+index 8): `TypeIndex` 322, ours stands it idle from 2178, after `Unit::work`'s `building_slot_reused` kills `[ExploreTo, Build(50)]` on
+2177 (`buildings[50]` is the closed `1/2043`; a new `1/2043` is born that frame at (26208, 24672)); theirs holds a nine-step walk to
+(35736, 24984) by 2201. Brief: a packet at 2178 and `step4.py` on the unit's `think` (run785 is reserved), or a window around 2170,
+before any reading; killers in `docs/AI.md` §194. Not built.
+
 ## Parked by item 1798, 2026-10-13 — chapter fifty-five
 
 (1804) **Dragoon A's target drops a frame early in the original** (1798): on 794

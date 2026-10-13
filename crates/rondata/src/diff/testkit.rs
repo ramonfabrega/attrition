@@ -6869,6 +6869,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run767_s_word_frame_is_widened_whole", 81),
     // The successor pair walked to its word 2207 (item 1744): four reads.
     ("mongol_pair_first_parting", 4),
+    ("run780_s_word_frame_is_widened_whole", 4),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
@@ -8881,10 +8882,11 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         // item 1744 widened 1354 on run779 over 1349..1605 (block 1355) and
         // closed it with the Mongol stable arm of `train_time`; the word
         // moved 1354 -> 2207, past run779 (`run779_s_word_frame_is_widened_whole`
-        // keeps 1354's value diff); the widening on 2207 is owed by parked 1768.
-        None,
+        // keeps 1354's value diff); item 1768 widened 2207 on run780 over
+        // 2201..2457 (block 2208).
+        Some("run780_s_word_frame_is_widened_whole"),
         1768,
-        None,
+        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_2207),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
