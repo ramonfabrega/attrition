@@ -6335,6 +6335,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_SEVEN: i64 = 1010;
 /// `chapter_fifty_seven_s_word_frame_is_widened_whole`'s window: run791 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_SEVEN: (i64, i64) = (605, 1011);
 
+/// **Chapter fifty-nine** (item 1960, `docs/GOLDEN.md` §71, run801): a Hoplite
+/// squad guarding between two Stockades, 605 to 760.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_NINE: i64 = 760;
+
+/// `chapter_fifty_nine_s_word_frame_is_widened_whole`'s window: run801 whole.
+pub(crate) const WIDENING_CHAPTER_FIFTY_NINE: (i64, i64) = (605, 761);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6894,7 +6901,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // flight (10 reads) into the tail the replay keeps running.
     // Item 1870: the walk reaches the word 3767 (the nuke embargo and the
     // fort escalation moved it 3182 → 3767): 433 reads, 352 more.
-    ("sahara_coverage_first_parting", 474),
+    // Item 1937: the walk reaches the word 3825 (3805 → 3825): 514 reads, 40 more.
+    ("sahara_coverage_first_parting", 514),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),
@@ -8590,6 +8598,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_seven_s_word_frame_is_widened_whole"),
         1863,
         Some(WIDENING_CHAPTER_FIFTY_SEVEN),
+    ),
+    // Item 1960: run801, chapter fifty-nine. The widening is run801 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FIFTY_NINE",
+        GOLDEN_WORD_CHAPTER_FIFTY_NINE,
+        Some("chapter_fifty_nine_s_word_frame_is_widened_whole"),
+        1960,
+        Some(WIDENING_CHAPTER_FIFTY_NINE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

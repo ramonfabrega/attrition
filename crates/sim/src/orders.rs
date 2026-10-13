@@ -2062,7 +2062,17 @@ impl Sim {
             }
         }
         let off = self.strafe_off_line(u, t);
-        if !self.is_in_range(crate::combat::Obj::Unit(u), t) {
+        // **`+0x3c` is read again after the flight** (`do_strafe@005eab00`,
+        // `5eb0f4`, item 1937): `check_fuel` sets it on an empty tank inside
+        // `do_air_physics`, and a strike flying home does not release.
+        let now_returning = matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(Body::Strafe(StrafeOrder {
+                returning: true,
+                ..
+            }))
+        );
+        if now_returning || !self.is_in_range(crate::combat::Obj::Unit(u), t) {
             return true;
         }
         if off >= 0x0aaa_aaaa && (!self.is_fighter_line(u) || off > 0x2aaa_aaaa) {
@@ -3995,9 +4005,12 @@ impl Sim {
         if !moving {
             let ph = self.units[u].phase(frame);
             if (ph + 8).rem_euclid(16) == 0 {
-                if let Some(v) = self.find_melee_target(u, -1) {
-                    self.add_attack_order(u, v, QueuePos::First, false, false);
-                }
+                // `find_melee_target@005ff9c0`'s head answers a follower
+                // first (item 1960, `docs/GOLDEN.md` §71, run801): nothing
+                // when its captain is not attacking, the captain's target
+                // when it is. Only a captain, or a follower whose
+                // captain's target has gone, searches.
+                self.find_melee_target_added(u);
                 return;
             }
             if ph.rem_euclid(16) == 0 {
@@ -8944,7 +8957,7 @@ impl Sim {
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
-            if self.packed_unpacks(u, a) {
+            if self.packed_unpacks(u, target, a) {
                 return;
             }
             // **Siege fire at a unit is ground fire** (`docs/COMBAT.md`
@@ -9129,12 +9142,16 @@ impl Sim {
     /// `0/10`, on its `@attack` at a Barracks in range: the `CASTORDER`
     /// of spell 652 beside its attack on block 624.
     ///
-    /// SEAM: the computer's siege arm ahead of it (`unit_masks & 0x40000`
-    /// and `is_siege`): against an armed building whose range is under its
-    /// own less one and which reaches it, a better spot from
-    /// `find_attack_pos`, moved to at `QUEUE_NEW` instead. No staging puts
-    /// a computer's packed engine at an armed building.
-    fn packed_unpacks(&mut self, u: usize, a: AttackOrder) -> bool {
+    /// **The computer's siege arm**, ahead of the cast (`fight:517`–`541`,
+    /// item 1937): a computer's (`unit_masks & 0x40000`) siege engine
+    /// against a **building** that is armed (`attack`, `+0x1e8`), whose
+    /// range plus one is under its own and which reaches it, asks
+    /// `find_attack_pos` for a better spot and, when the answer differs
+    /// from where it stands, moves there at `QUEUE_NEW` instead of
+    /// unpacking. The attack's `in_range` and `ever_in_range` are written
+    /// either way. Run790's Rocket Artillery `1/96` against Napata's city
+    /// centre on 3805.
+    fn packed_unpacks(&mut self, u: usize, target: Obj, a: AttackOrder) -> bool {
         let Some(t) = self.units[u].ty else {
             return false;
         };
@@ -9147,6 +9164,27 @@ impl Sim {
             return false;
         }
         self.store_attack(u, a);
+        if self.unit_ai_bit(self.units[u].owner)
+            && self.profile(Obj::Unit(u)).siege
+            && let Obj::Building(_) = target
+            && self.profile(target).attack != 0
+            && self.max_range_of(target) + 1 < self.max_range_of(Obj::Unit(u))
+            && self.is_in_range(target, Obj::Unit(u))
+        {
+            let here = self.units[u].pos;
+            let spot =
+                match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_SIEGE) {
+                    Some(p) => Some(p),
+                    None if self.attack_pos_refused(u, target) => None,
+                    None => Some(self.pos_of(target)),
+                };
+            if let Some(spot) = spot
+                && (spot.x != here.x || spot.y != here.y)
+            {
+                self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::New, false);
+                return true;
+            }
+        }
         self.add_cast_order(u, spell::UNPACK);
         true
     }

@@ -19068,12 +19068,82 @@ modelled. The first-block rows (122 at 3761: `SITE.reg`, `form`, `pool`,
 `death:extra`) are the window's start, the same shape run767 shows at 2928
 (77 rows), and are quiet by construction. The new word 3805 is unwidened.
 
-## 199. Reserved for the next item on the AI track
+## 199. A patrol going home still looks; a computer's siege engine bombards (2026-10-13, item 1937)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The frame.** Great Sahara in the coverage pair's lobby, word 3805 (ours 17
+draws against 32, index 1). run790 holds it (window to 4017), so the
+widening (`diff::sahara_coverage::run790_s_word_frame_is_widened_whole`,
+`RON_FIRSTS=1`, rows from 3762 on) was read before any mechanism.
+
+**The draws, both sides** (`report.py rontrace-run790.log draws 3805`): the
+original's index 1–15 are `Unit::find_attack_pos+0xea9 < +0x2d <
+Unit::fight+0x115e` — the siege arm's call (the listing: `5fe629 call
+602e60`, return `5fe62e`), a ring walk's fifteen draws. The unit is
+`1/96`, a **Rocket Artillery** (`TI` 273, `TY` 223), packed, on a group
+`ATTACK_TO` walk, which has just taken the Persian-held human city
+centre `0/2000` as target (`tgt Some((0, 2000))`, `in_range` true). Ours
+casts `UNPACK` (spell 652); theirs has one `MOVE` order to a spot
+(5688, 24696) — block 3806's `1/96` `order:kind` 14 against 1, `orders_x/y`
+6168/28296 against 5688/24696.
+
+**First mechanism: the computer's siege arm** (`Unit::fight@005fd4d0`,
+`fight:517`–`541`, `docs/COMBAT.md` §57.2). In the packed branch, a unit
+with `unit_masks & 0x40000` (a computer's) that `is_siege`, against a
+building (vslot `+0x20`, build-proper) whose type `attack` (`+0x1e8`) is
+non-zero, whose `max_range() + 1` is under its own, and which reaches it
+(`is_in_range` with the building as the asker), calls `find_attack_pos`
+(`Unit::find_attack_pos+0xea9 < Unit::fight+0x115e`, now
+`SITE_ATTACK_POS_SIEGE`) and, when the spot differs from its own in either
+coordinate, `add_move_order(…, QUEUE_NEW)` and returns — the attack's
+`in_range`/`ever_in_range` already stored. Otherwise the cast of
+`UNPACK`. Built in `Sim::packed_unpacks`.
+
+**Second: the bombard flag** (`find_attack_pos@00601280:601359`–`60139d`,
+`local_24`): `is_siege && unit_masks & 0x40000 && target->is_build`. It
+**skips the in-range first return** (`!bombard && is_in_range`) and puts the
+stand-off on the maximum-range arm. This was the crate's stated `SEAM`
+("the middle term — a per-unit mask bit — is not modelled"); `unit_ai_bit`
+is that bit. Without it the call answered the unit's own spot and the arm
+fell through to the cast. It applies to every `find_attack_pos` of a
+computer's siege engine at a building, the chase included.
+
+**Third, found by the regression it caused: a patrol going home still
+looks** (`Unit::do_air_patrol@005ea620`, the decompile above its `& 31`
+block). `+0x58` (the order's `returning`) gates only the arrival and the
+sixteen-frame search; the look — an enemy building on the waypoint's tile
+whose `ever_seen` holds the player's bit, pushed as a `mandatory 1` strafe
+— runs with it set. Ours returned at once. run790's Jet Fighter `1/172`
+on 3765 (`ox 2000 whom 0 mandatory 1`, a second order for one block) was
+the dump's evidence and a row before the word; run798 (below) shows the
+same push on East Indies block 4206 (`1/115`, `mandatory 1`, building
+`0/2000`).
+
+**And the regression it exposed** (the coverage pair 4730 → 4206): the
+look made a returning Jet Fighter bomb, and `do_strafe` read the strike's
+`returning` before the flight. The original reads `+0x3c` **after**
+`do_air_physics` (`5eb0f4`), where `check_fuel` sets it for an empty tank;
+a strike flying home does not release. `strafe_attack` re-reads it. **run798**
+(East Indies window 4199..4455, the coverage pair's lobby, `rngcmp` against
+run652: 4466 frames, 0 differing) is the capture that read the original's
+`1/115` on 4204–4209: position and heading agree with ours on 4207 to the
+unit, the original does not release (`recharging 0`).
+
+**What moved.** The word 3805 → **3825**: ours 29 draws against 28, index 5,
+ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a
+< Unit::do_move+0x11cf`; the value diff is the Citizen `1/161` (`TI` 50)
+on block 3826: `collide` ours 1 theirs 0, `start_dist` 1584 against 0
+(`coll 1@3825` in ours). run790's keys 12,582 → 1,296 (the tail now
+carries 20 more blocks of agreement); the rows before the word —
+`1/172`/`1/159`/`1/181`'s second orders (3765, 3778, 3788), `1/161`'s path
+(3766–3767, parked 1908) — are gone. Side effects, all fewer keys:
+run714–716, 721, 754, 762, 763 (115, 131, 169, 182, 187, 218, 201),
+run766 87, run767 91. The coverage pair stays at 4730.
+
+**Not established.** `fire_ammo` for a non-bomber's release (the `0x400000`
+arm) is still a seam. The Jet Fighter's non-attack arm after the flight
+(`uVar12 <= lim` line check, `5eb0cd`) is not the original's: ours does
+nothing there. `1/214` `mirror`/`group:65` on 3768 (parked 1907), `1/132`'s
+`attrition` 12 against 48 on 3773 and `group:67` on 3785 stand.
 
 ## 200. The BMP's refused first leg hands its transport bit down, and the successor pair's word moves 3131 → 3188 (2026-10-13, item 1948)
 

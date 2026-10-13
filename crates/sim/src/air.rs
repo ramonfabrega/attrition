@@ -837,7 +837,7 @@ impl Sim {
     ///
     /// SEAM: the `semaphore & 2` fallback between the two searches (the
     /// unit-balance mode's), a
-    /// `FIGHTERBOMBER`'s carrier-relative point, and a patrol going home.
+    /// `FIGHTERBOMBER`'s carrier-relative point.
     pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
         let Some(crate::orders::Body::AirPatrol(mut p)) = self.current_order(u).map(|o| o.body)
         else {
@@ -852,15 +852,19 @@ impl Sim {
         if self.plane_air_physics(u, goal, frame) == Flew::Done {
             return;
         }
-        if p.returning {
-            return;
+        // `+0x58` is read again after the flight: an empty tank sets it there.
+        if let Some(crate::orders::Body::AirPatrol(q)) = self.current_order(u).map(|o| o.body) {
+            p.returning = q.returning;
         }
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
         let at = self.units[u].pos;
         let point = p.current();
         let (gx, gy) = (point.x.clamp(0, xs - 1), point.y.clamp(0, ys - 1));
-        if vector_dist(at.x - gx, at.y - gy) < 0x240 {
+        // **A patrol going home still looks** (`5ea6c0`..: `+0x58` gates the
+        // arrival and the search and not the look below, item 1937): the
+        // arrival and the sixteen-frame search need `returning` clear.
+        if !p.returning && vector_dist(at.x - gx, at.y - gy) < 0x240 {
             // **The waypoint steps on** (item 947): within `0x240` of
             // `points[waypoint]` a patrol with a point after it flies at the
             // next; at the last, a patrol with an order behind it is killed,
@@ -874,7 +878,7 @@ impl Sim {
             }
         }
         let phase = i64::from(self.units[u].index) + frame;
-        if phase & 15 == 0 {
+        if !p.returning && phase & 15 == 0 {
             let me = crate::combat::Obj::Unit(u);
             // The search is round the **last** point (`x_pos[length − 1]`),
             // and a target it finds is struck from the last leg (`waypoint

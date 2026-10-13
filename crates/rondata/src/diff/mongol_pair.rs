@@ -227,8 +227,8 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        149,
-        "run788 after item 1868's sea break test"
+        137,
+        "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
@@ -274,7 +274,7 @@ fn run799_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 177, "run799 baseline");
+    pin_eq!(w.firsts.len(), 165, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -284,12 +284,13 @@ fn run799_s_word_frame_is_widened_whole() {
     // leg (`docs/AI.md` section 200). With it the word moved 3131 -> 3188
     // and the window's keys fell 5,308 -> 2,210 (the word's delta; the
     // 5,308 stand in section 200).
-    // Item 1982: 2,210 -> 177 keys, and the word 3188 -> 3632 (ours 193 draws,
+    // Item 1982: 2,198 -> 165 keys on the merged tree (2,210 -> 177 before 1937's
+    // re-pin), and the word 3188 -> 3632 (ours 193 draws,
     // theirs 192, index 35). The AA missile `1/107`'s resumed 48-grid search
     // gave up on 3180 and ours left its stack at 61 where the original
     // pops the non-final top (60): `find_upath`'s failure teardown is guarded
     // by the suspended flag, which every failure tail of `astar_path` clears,
-    // not by "resumed" (`docs/AI.md` section 201). 147 of the 177 stand on
+    // not by "resumed" (`docs/AI.md` section 201). 147 of the 165 stand on
     // the window's first block (the leaders' counts), the rest are the
     // freighters' `form` and the births (3126, 3132, 3134, 3180, 3183).
 }
