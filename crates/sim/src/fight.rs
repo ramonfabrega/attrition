@@ -2489,6 +2489,7 @@ impl Sim {
                     // the draw arm's `dtype` at all (§42.3).
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
+                    self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
                     self.hold_dead_slot(i);
                     self.close_supply(i);

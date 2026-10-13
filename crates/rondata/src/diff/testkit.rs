@@ -6972,7 +6972,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends the prefix to 3585: 97 reads; item 1666 to 3587: 99; item 1667 to 3614: 110.
     // Item 1700 extends the prefix to 4425: 411 reads.
-    ("coverage_pair_first_parting", 411),
+    ("coverage_pair_first_parting", 512),
+    ("run652_coverage_pair_closing_state", 513),
     ("run762_s_word_frame_is_widened_whole", 456),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
@@ -9121,8 +9122,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (All Technologies)",
         word: crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         length: 4_730,
-        endpoint: None,
-        window: Some("coverage_pair_word_window"),
+        endpoint: Some("run652_coverage_pair_closing_state"),
+        window: None,
     },
     AiWord {
         line: "Third pair",

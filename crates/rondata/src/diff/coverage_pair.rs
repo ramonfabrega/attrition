@@ -252,7 +252,10 @@ pub(crate) struct Pair {
     /// `num_aircraft_here(0) >= 10` (`Build::finished`'s -1), so `1/2010`
     /// keeps it queued as the original does: **4582**, 549 versus 551 draws,
     /// index 542: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    /// `Guy::init_real+0x52` (a birth).
+    /// `Guy::init_real+0x52` (a birth). Item 1719 trains the Kremlin's spy
+    /// (`Build::process`'s `0x21a` arm, `Build::activate`'s start): **4730**,
+    /// the trace's end — the coverage pair runs in lockstep, count and
+    /// sequence, for its whole length, and closes.
     pub count: i64,
     pub sequence: i64,
 }
@@ -270,8 +273,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 4582,
-    sequence: 4582,
+    count: 4730,
+    sequence: 4730,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -303,6 +306,61 @@ fn coverage_pair_first_parting() {
         COVERAGE.sequence,
         "the draw sequence's first parting"
     );
+}
+
+/// **The coverage pair's closing whole-map state** (item 1719): the word
+/// reached the trace's end, 4730, once the Kremlin's spy was trained
+/// (`docs/AI.md` §188), and a draw stream that agrees to a game's end says
+/// nothing of the end itself (item 1099). run652's closing dump walked to and
+/// compared whole.
+#[test]
+fn run652_coverage_pair_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(COVERAGE.long.0),
+        dump(COVERAGE.start),
+        trace(COVERAGE.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Coverage pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked
+    );
+    eprintln!(
+        "Closing city fields: {:?}",
+        harness::compare(&built, &fin, 8).city_diverged
+    );
+    pin_eq!(e.frame, 4731, "the closing block");
+    // Item 1719: 261 units compared; one unit off (`1/84`, ours (-96, -720)
+    // from the dump's), one building and one city the dump holds that ours
+    // does not link. A residue of the closing, not a parity claim — the
+    // closing state's own item reads them.
+    pin_eq!(e.compared, 261, "units compared");
+    pin_eq!(e.counts(), [1, 0, 0, 1, 0, 1, 0], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
@@ -1627,11 +1685,12 @@ pub(crate) const RUN762: &str = "gamelog-run762-eastindies-persian-alltech-windo
 /// The window: block 4420 through 4676 (and a closing 4686).
 pub(crate) const WIDENING_COVERAGE_FRAME_4425: (i64, i64) = (4420, 4677);
 
-/// **The newest pair's word's window** (`AI_WORDS`' `Coverage pair` row):
-/// run762 walked from run651's start with the recorder on. It holds the
-/// word 4425 (item 1700), block 4426, and 4582 (item 1714), block 4583;
-/// run754's window stays checked.
-pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
+/// **The coverage pair's word 4582's window** — it was the `AI_WORDS` window
+/// until item 1719 moved the word to the trace's end, 4730: run762 walked
+/// from run651's start with the recorder on. It holds the word 4425 (item
+/// 1700), block 4426, and 4582 (item 1714), block 4583; the compared pin
+/// and the coverage driver keep walking it.
+pub(crate) fn coverage_frame_4582_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[COVERAGE.start],
         true,
@@ -1648,7 +1707,7 @@ pub(crate) fn coverage_pair_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run762_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = coverage_pair_word_window() else {
+    let Some(w) = coverage_frame_4582_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -1661,7 +1720,12 @@ fn run762_s_word_frame_is_widened_whole() {
     // -1 at ten homed aircraft), 4426 agrees; the word is **4582** (block
     // 4583): the original births `1/169` (`num_units[8]` 5 against 4,
     // `active` 179 against 178). 2322 -> 1167 keys.
-    pin_eq!(w.firsts.len(), 1167, "run762 keys that part (item 1714)");
+    // Item 1719: the Kremlin's `Build::process` arm trains the SPY `1/169`
+    // on 4582 (`1/2033` finished on 4573, `recharging` 1, and `(2033 + 4582)
+    // % 15 == 0`), so 4583 agrees on `num_units[8]`, `active` and the unit
+    // itself, and the draw stream agrees to the trace's end, 4730: 1167 ->
+    // 250 keys.
+    pin_eq!(w.firsts.len(), 250, "run762 keys that part (item 1719)");
 }
 
 #[test]

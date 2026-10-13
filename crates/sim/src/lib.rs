@@ -364,6 +364,10 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// `unit_flags & 0x400`: the Kremlin's spy, which `Build::process`
+    /// tags as it trains it and which stands outside the owner's `control`
+    /// (`docs/AI.md` §188).
+    pub kremlin_spy: bool,
     /// `ObjectData::mylos` (`+0x3c`): the line of sight in tiles **as
     /// `Unit::update_los` last wrote it** — a cache, not a derivation. The
     /// fog sweep and the follower's spacing read it; [`Sim::update_los`]
@@ -963,6 +967,7 @@ impl Unit {
             carry: 0,
             cant_reach: false,
             decoy: false,
+            kremlin_spy: false,
             mylos: 0,
             unit_masks2: 0,
             avoid: None,
@@ -5410,6 +5415,7 @@ impl Sim {
             self.log_building_step(b, "gather");
             self.gather_region_building(b);
             if live {
+                self.kremlin_spy(b, frame);
                 self.persian_market_caravan(b, frame);
                 self.terra_cotta_army(b);
                 self.log_building_step(b, "tail");

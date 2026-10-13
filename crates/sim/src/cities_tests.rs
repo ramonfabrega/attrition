@@ -4658,6 +4658,67 @@ fn a_terra_cotta_army_counts_its_clock_and_trains_a_soldier() {
     assert_eq!(sim.buildings[w].recharging, 450);
 }
 
+/// **The Kremlin trains its spy on the first slot after it finishes, and
+/// again once that spy dies** (`Build::activate@00623e20:1376`,
+/// `Build::process@0061edf0:306`, `Unit::close@0060ee50:80`, `docs/AI.md`
+/// §188). The finished wonder starts at `recharging` 1 with the owner's
+/// `leader_flags & 0x10000000` set; on a slot where `(o + frame) % 15 == 0`
+/// the clock drops under 1, the flag clears, the clock rewinds to
+/// `KREMLIN_SPY` and a `SPY` is trained, tagged `0x400` and kept out of
+/// `control`. Run762's `1/2033` finishes on 4573 and births `1/169` on 4582.
+///
+/// Made to fail by dropping the tick's call: no spy is ever trained.
+#[test]
+fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let spy = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 50)
+        },
+        hits: 40,
+        ..UnitType::default()
+    });
+    while sim.tech_tree.types.len() <= 0x3a {
+        sim.tech_tree
+            .add(tech::TypeDef::unit("Filler", tech::UnitTraits::default()));
+    }
+    sim.unit_types[spy].tree = Some(0x3a);
+    while sim.tech_tree.types.len() <= 0x21a {
+        sim.tech_tree.add(tech::TypeDef::building("Filler"));
+    }
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut wonder = sim.build_types[t.market].clone();
+    wonder.tree = Some(0x21a);
+    let wonder = sim.add_build_type(wonder);
+    let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
+    finish(&mut sim, w);
+    let spies = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(spy))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(sim.buildings[w].recharging, 1, "activation starts it at 1");
+    assert!(sim.tech[0].kremlin_spy_due, "and marks the spy due");
+    let control = sim.muster[0].control;
+    for _ in 0..16 {
+        sim.tick();
+    }
+    let born = spies(&sim);
+    assert_eq!(born.len(), 1, "the first slot trains a spy");
+    assert!(sim.units[born[0]].kremlin_spy, "tagged 0x400");
+    assert_eq!(sim.muster[0].control, control, "outside the population");
+    assert_eq!(sim.buildings[w].recharging, 30, "KREMLIN_SPY");
+    assert!(!sim.tech[0].kremlin_spy_due, "the flag clears");
+    for _ in 0..60 {
+        sim.tick();
+    }
+    assert_eq!(spies(&sim).len(), 1, "no second spy while the first lives");
+    sim.kremlin_spy_closed(born[0]);
+    assert!(sim.tech[0].kremlin_spy_due, "its death makes the next due");
+}
+
 /// **A Senate that finishes a government trains its patriot, once**
 /// (`Build::finished@00628490`'s tail, `docs/TECH.md` §"The government
 /// patriot"). `get_gov` reads the government bonus's prerequisite,

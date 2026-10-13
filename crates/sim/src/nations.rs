@@ -479,6 +479,99 @@ impl Sim {
         }
     }
 
+    /// Whether a building is the `KREMLIN` wonder (`TypeIndex` `0x21a`).
+    fn is_kremlin(&self, b: usize) -> bool {
+        self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].tree == Some(0x21a))
+    }
+
+    /// **The Kremlin's start** — `Build::activate@00623e20:1376`..`1400`
+    /// and the earlier arm at `:617` (`docs/AI.md` §188). The finished
+    /// wonder starts its clock at 1 (`captured` false; a captured one
+    /// starts at `KREMLIN_SPY`) and, when none of the owner's live spies
+    /// carries the Kremlin's tag (`unit_flags & 0x400`), marks the spy as
+    /// due (`leader_flags |= 0x10000000`). `:617` sets that flag for any
+    /// uncaptured Kremlin the owner has not held before; one Kremlin
+    /// exists per game, so the two agree and only the second is written.
+    pub(crate) fn kremlin_activate(&mut self, b: usize, captured: bool) {
+        if !self.is_kremlin(b) {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        self.buildings[b].recharging = if captured { self.tuning.kremlin_spy } else { 1 };
+        let tagged = (0..self.units.len()).any(|u| {
+            self.units[u].alive()
+                && self.units[u].owner == who
+                && self.units[u].kremlin_spy
+                && self.unit_is_spy(u)
+        });
+        if !tagged && (who as usize) < self.tech.len() {
+            self.tech[who as usize].kremlin_spy_due = true;
+        }
+    }
+
+    /// **The Kremlin's spy** — `Build::process@0061edf0:306`..`333`, the
+    /// stretch ahead of the Persian caravan (`docs/AI.md` §188). Every
+    /// fifteenth frame of the wonder's own phase, `(o + frame) % 15 == 0`,
+    /// while the owner's `leader_flags & 0x10000000` is set, the clock
+    /// `recharging` loses one; under 1 the flag clears, the clock rewinds
+    /// to `KREMLIN_SPY`, and a `SPY` (the type itself) is trained at the
+    /// wonder with no queue and no population test. The unit takes the
+    /// `0x400` tag and its `control_cost` comes off the owner's `control`
+    /// again: the tagged spy stands outside the population.
+    ///
+    /// Run762's Kremlin `1/2033` finishes on 4573 (`recharging` 1) and its
+    /// first slot, `(2033 + 4582) % 15 == 0`, trains `1/169` (`guy` 58) on
+    /// the dump's block 4583, `recharging` 30.
+    ///
+    /// SEAM: the tagged spy's `Unit::close` re-arms the flag
+    /// ([`Sim::kremlin_spy_closed`]); a `set_type` of it and the `control`
+    /// the close hands back are not modelled (this crate's deaths do not
+    /// move `control` at all).
+    pub(crate) fn kremlin_spy(&mut self, b: usize, frame: i64) {
+        if !self.is_kremlin(b) || self.buildings[b].phase(frame) % 15 != 0 {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let w = who as usize;
+        if w >= self.tech.len() || !self.tech[w].kremlin_spy_due {
+            return;
+        }
+        self.buildings[b].recharging -= 1;
+        if self.buildings[b].recharging >= 1 {
+            return;
+        }
+        self.tech[w].kremlin_spy_due = false;
+        self.buildings[b].recharging = self.tuning.kremlin_spy;
+        let Some(rec) = self.unit_record(0x3a) else {
+            return;
+        };
+        let spy = self.build_train(b, rec);
+        self.units[spy.unit].kremlin_spy = true;
+        self.muster[w].control -= self.unit_types[rec].price.pop;
+    }
+
+    /// `Unit::close@0060ee50:80`..: a tagged spy that dies, its owner
+    /// holding a standing Kremlin (`LeaderData::has_wonder`, an activated
+    /// building of the type), makes the next one due (`docs/AI.md` §188).
+    pub(crate) fn kremlin_spy_closed(&mut self, u: usize) {
+        let who = self.units[u].owner as usize;
+        if self.units[u].kremlin_spy
+            && self.unit_is_spy(u)
+            && who < self.tech.len()
+            && self.buildings.iter().any(|b| {
+                b.alive
+                    && b.active
+                    && b.owner as usize == who
+                    && b.ty
+                        .is_some_and(|r| self.build_types[r].tree == Some(0x21a))
+            })
+        {
+            self.tech[who].kremlin_spy_due = true;
+        }
+    }
+
     /// **The Terra Cotta Army's soldier** — `Build::process@0061edf0:384`..
     /// `0061f733`, the arm after the Persian caravan. A building whose type
     /// is `TERRACOTTA` (`0x211`) counts its `recharging` (`BuildData +0x7a`)

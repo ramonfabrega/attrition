@@ -2905,7 +2905,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let coverage_3395 = super::coverage_pair::coverage_frame_3395_window();
     // Item 1700: and run754's, where it stood before run762.
     let coverage_3963 = super::coverage_pair::coverage_frame_3963_window();
-    let coverage = super::coverage_pair::coverage_pair_word_window();
+    let coverage = super::coverage_pair::coverage_frame_4582_window();
     // Item 1549: the third map in the coverage lobby, run677's blocks around
     // the word 12 and run680's around the word 720.
     let sahara_12 = super::sahara_coverage::sahara_coverage_frame_12_window();
