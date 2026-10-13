@@ -4017,6 +4017,12 @@ line moves the same as for a ported reader. Candidate: the census splits
 "layout backed" from "port backed", or the sweep takes only functions
 with a port consumer. One reach.
 
+(1727) **A regex that strips debug probes ate real code** (1716's Loop
+line): a non-greedy `.*?` across blocks removed working lines with the
+probes, restored from git. Candidate: the brief's probe row says a probe
+goes in behind one env guard in a single commit reverted whole, never
+stripped by a pattern. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
