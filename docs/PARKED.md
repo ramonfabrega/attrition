@@ -4216,3 +4216,7 @@ chapter's first take, superseded by run772.
 (1712) **M5/M6 diff-backing** (1508): reached in run772's walk on 1002
 and 1062–1064, past the word 962; both mutations exit 0. Backed once
 1711 moves the word past them, on the same capture.
+
+(1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
+the dead `0/6` in the group pool's slot 1 list where the original drops
+it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.

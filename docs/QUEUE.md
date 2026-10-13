@@ -12,16 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, the twenty-ninth tranche at twenty landings of twenty, draining (1728, 1726)
+*2026-10-13, the twenty-ninth tranche at twenty landings of twenty, drained (1728, 1726, 1711)
 (`commander`, Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65):
 **the coverage pair closed** at its trace's end — 3963 → 4730 (1673,
 1700, 1714, 1719) and the successor pair stood up (East Indies, Mongols, 1728) — Great Sahara 2323 → 3182 (1639,
-1697, 1716, 1726) — the census 68 → 178, chapter fifty-two landed and fifty-three opened at 962. No kill rule.*
+1697, 1716, 1726) — the census 68 → 178, chapter fifty-two landed and fifty-three opened, 962 → 1004. No kill rule.*
 
-- **Out**: `att-1711`
-  (1731–1734, 773, 777–778, GOLDEN §64); stubs in the base; the sweep
-  lane drained at twenty (1736 unspawned). Next 1740, run
-  779, AI §193, GOLDEN §65. **The disk**: 248 GiB free.
+- **Out**: none — every lane drained at twenty; 1737, 1738, 1736 and
+  1740 unspawned, their stubs in the base. Next 1741, run
+  779, AI §193, GOLDEN §66. **The disk**: 248 GiB free.
 - **Fable backlog: 34 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720, 1722, 1725, 1727, 1729, 1730, 1739).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,7 +31,7 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w11 of 5,056
 Census: simulation backed 178 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3182 of 4,340
-Golden: ch53 w962 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
+Golden: ch53 w1004 of 1,119 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twenty-ninth tranche — `commander` (Opus 5.5): four lanes
@@ -44,7 +43,7 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1737 the headline's word, 1738, 1736 and 1711 the other three lanes —
+1737 the headline's word, 1738, 1736 and 1740 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -71,13 +70,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1711. **Chapter fifty-three's word: frame 962, 5 versus 6 draws**, index
-    0: theirs `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`, ours
-    `Guy::set_anim+0x104b`; inside run772, `chapter_fifty_three_s_word_frame_is_widened_whole`
-    (605..966). 1707's value diff: the idle Dragoon `0/31` `near` (6,1)
-    against (-1,-1), `orders.len` 1 against 0 (an `ATTACK` on the enemy
-    Scout 7 tiles off), pool slot 1's members 6 against 7. M5/M6 lie past
-    it (1002, 1062; parked 1712). GOLDEN §64.
+1740. **Chapter fifty-three's word: frame 1004**, the Dragoon's first
+    round: `ammo[0]` on 1005, `1/11` damage 37 on 1006; inside run772,
+    `chapter_fifty_three_s_word_frame_is_widened_whole` (605..1009). 1711's
+    value rows: the turret angles on 963/965 stand, and pool slot 1 keeps
+    the dead `0/6` the original drops (parked 1731). M5/M6 lie past it
+    (1062; parked 1712). GOLDEN §65.
 
 ## How to maintain this file
 

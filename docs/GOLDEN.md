@@ -10789,3 +10789,8 @@ is reached by no other capture's frame to the word).
 searcher's modified range (this crate uses `max_range_of`, the techs included);
 whether a cavalry archer (`unit_flags & 0x400`, `+0x1fc` zero) takes the tile
 floor — read from `determine_roles` only, no capture holds one in this arm.
+
+## 65. Reserved for item 1740 (chapter fifty-three's word 1004)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
