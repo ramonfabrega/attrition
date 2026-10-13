@@ -28,7 +28,11 @@ fn the_emulated_original_agrees_on_every_row() {
             },
             i32::try_from(a[3]).expect("a 32-bit attack"),
         );
-        assert_eq!(tail[0], asked.join(";"), "is_defensive — the asks, row `{line}`");
+        assert_eq!(
+            tail[0],
+            asked.join(";"),
+            "is_defensive — the asks, row `{line}`"
+        );
         assert_eq!(i64::from(got), want, "is_defensive — eax, row `{line}`");
         n += 1;
     }

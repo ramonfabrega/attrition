@@ -22,10 +22,15 @@ fn the_emulated_original_agrees_on_every_row() {
     let args: String = handed.iter().map(|h| format!(",{h}")).collect();
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<mode> <v> | <object> -> <eax> | <calls>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<mode> <v> | <object> -> <eax> | <calls>`");
         let (head, obj) = lhs.split_once(" | ").expect("`<mode> <v> | <object>`");
         let (eax, calls) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
-        let a: Vec<i64> = head.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i64> = head
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let (mode, v) = (a[0], i32::try_from(a[1]).expect("a 32-bit answer"));
         let m = unhex(obj.trim());
         let want_calls = match (mode, true) {
@@ -33,13 +38,25 @@ fn the_emulated_original_agrees_on_every_row() {
             (_, true) => format!("via{args}"),
             _ => String::new(),
         };
-        assert_eq!(calls.trim(), want_calls, "get_caster_stance — calls, row `{line}`");
+        assert_eq!(
+            calls.trim(),
+            want_calls,
+            "get_caster_stance — calls, row `{line}`"
+        );
         let got: i64 = {
             let (mode, v, m) = (mode, v, &m[..]);
             let _ = (mode, v, m);
-            i64::from(crate::stance::get_stance(v != 0, m[0x7e], crate::stance::StanceType::Caster))
+            i64::from(crate::stance::get_stance(
+                v != 0,
+                m[0x7e],
+                crate::stance::StanceType::Caster,
+            ))
         };
-        assert_eq!(got, eax.trim().parse::<i64>().expect("an integer"), "get_caster_stance — eax, row `{line}`");
+        assert_eq!(
+            got,
+            eax.trim().parse::<i64>().expect("an integer"),
+            "get_caster_stance — eax, row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 200, "only {n} rows");
