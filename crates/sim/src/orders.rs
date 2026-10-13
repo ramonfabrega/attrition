@@ -8897,6 +8897,10 @@ impl Sim {
                     let ct = self.units[cap].combat.target;
                     let ck = self.action_of(cap).map(|k| self.units[cap].orders[k].index());
                     let head = self.melee_squad_head(u);
+                    let mut alt = self.clone();
+                    alt.kill_current_order(u);
+                    let search = alt.find_melee_target(u, -1);
+                    eprintln!("PROBE2066 A2 f{frame} search={search:?}");
                     eprintln!(
                         "PROBE2066 A f{frame} {}/{} captain={} tgt={target:?} cap={}/{} cap_action={ck:?} cap_tgt={ct:?} head={head:?} collide={}",
                         self.units[u].owner, self.units[u].index, self.units[u].captain,
