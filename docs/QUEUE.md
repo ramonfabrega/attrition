@@ -19,8 +19,8 @@ unmoved, chapters fifty-three, fifty-five, fifty-six closed, the census 178 → 
 the battery unmoved a sixth tranche. Seventeen Loop items out, six stay.*
 
 - **Four lanes live** (`commander`, Opus 5.5; lanes Sonnet 5.5 medium): `att-1868`
-  (A, runs 788–789, 794–795), `att-1937` (J, run 798), `att-1932` (I), `att-1926` (H, runs
-  796–797). 1866, 1889, 1870, 1895, 1911, 1916, 1863, 1921, 1905 landed: census 319 → 379, Great Sahara 3182 → 3805, chapter fifty-seven closed. Next 1942, run 799, AI §200, GOLDEN §71.
+  (A, runs 788–789, 794–795), `att-1937` (J, run 798), `att-1942` (K), `att-1926` (H, runs
+  796–797). 1866, 1889, 1870, 1895, 1911, 1916, 1863, 1921, 1905, 1932 landed: census 319 → 389, Great Sahara 3182 → 3805, chapter fifty-seven closed. Next 1948, run 799, AI §200, GOLDEN §71.
 - **`lanewait.py` exits `STALLED <lane> <min>` too**: one line to the lane (its
   gate or capture exited; read the log, land). Landings count from this pass's commit.
 - **Fable backlog: 11 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947).
@@ -31,7 +31,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w2838 of 5,056
-Census: simulation backed 379 of 3611
+Census: simulation backed 389 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3805 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -44,7 +44,7 @@ their turn; at twenty landings the handoff, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1868 the headline's word, 1937, 1932 and 1926 the other three lanes —
+1868 the headline's word, 1937, 1942 and 1926 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -66,9 +66,9 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     before a mechanism (parked 1906); parked 1907 and 1908 are rows
     before the word it should read. AI §199.
 
-1932. **The sweep's thirty-fourth batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 379 of 3611): 1921's shape,
-    merged by SHA; past the 330 swept, shortest decompile first; an
+1942. **The sweep's thirty-fifth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 389 of 3611): 1932's shape,
+    merged by SHA; past the 340 swept, shortest decompile first; an
     operator (`operator<`, `operator[]`) is uncountable under the census's
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.

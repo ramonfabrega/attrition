@@ -3783,7 +3783,9 @@ of ten with one line each; the walk family's rest (`Hero`, `Special`,
 a call with an `Array::walk_data` callback, in order. Five reaches. **1921**
 built it (`mix`, eight of ten); a hooked callee that sets `ecx` on
 return, as the original's `extraout_ECX` consumers read it, would take
-`Tribes`, `Lands`, `Herds` (parked 1922). Six reaches.
+`Tribes`, `Lands`, `Herds` (parked 1922). Six reaches. **1932**: four
+of ten were hand scripts that store through fixed offsets of `this` —
+a `store` shape (parked 1933). Seven reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4035,7 +4037,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 1932, 2026-10-13 — the sweep's thirty-fourth batch
 
-**1933.** (Loop) **`sweep_gen.py` has no `store` shape.** Four of 1932's ten (`Guy::set_bank`, `Guy::set_pitch`, `Group::report_speed`,
+(1933) **`sweep_gen.py` has no `store` shape** (Loop 1890). Four of 1932's ten (`Guy::set_bank`, `Guy::set_pitch`, `Group::report_speed`,
 `Group::leader_report_speed`) were hand scripts that read a few words of the object, store a few, and check every other byte is
 untouched; the sources are `p0`, `xmm1`, `[this+OFF]`, a constant, and one of them gates on a signed compare. The fourth reach
 for a shape (CLAUDE.md, "a probe shape reached for a third time graduates"). Names no score; the census is the sweep's.
