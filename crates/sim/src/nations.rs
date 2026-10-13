@@ -525,10 +525,10 @@ impl Sim {
     /// first slot, `(2033 + 4582) % 15 == 0`, trains `1/169` (`guy` 58) on
     /// the dump's block 4583, `recharging` 30.
     ///
-    /// SEAM: the tagged spy's `Unit::close` re-arms the flag
-    /// ([`Sim::kremlin_spy_closed`]); a `set_type` of it and the `control`
-    /// the close hands back are not modelled (this crate's deaths do not
-    /// move `control` at all).
+    /// Left out, and named in `docs/AI.md` §188: the tagged spy's close
+    /// hands its `control` back and a retyping of it (this crate's deaths
+    /// move no `control` at all). The close's re-arm is
+    /// [`Sim::kremlin_spy_closed`].
     pub(crate) fn kremlin_spy(&mut self, b: usize, frame: i64) {
         if !self.is_kremlin(b) || self.buildings[b].phase(frame) % 15 != 0 {
             return;
