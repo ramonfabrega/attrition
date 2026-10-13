@@ -6971,7 +6971,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // reads, measured while the bound was 97.
     // Item 1657 extends it to 3614 (a woodcutter re-seated off its forest
     // cell): 110 reads, measured while the bound was 99.
-    ("coverage_pair_first_parting", 110),
+    // Item 1658 extends it to 3843 (a Helicopter flies through its turn):
+    // 105 reads, measured with the bound at 0.
+    ("coverage_pair_first_parting", 105),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).

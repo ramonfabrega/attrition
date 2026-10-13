@@ -671,6 +671,68 @@ pub fn move_step(
     }
 }
 
+/// **The arm of `move_step` a helicopter flies** (`005fb18f`–`005fb22c`,
+/// item 1658, `docs/MOVEMENT.md` "The helicopter's step"): a type that
+/// flies like a helicopter (`UnitTypeData +0x2b4 & 0x20`) still owing no
+/// more than a quarter turn after the unit-mode turn (`cmp edx,
+/// 0x40000000; ja`) takes neither turn-in-place arm and no half step. Guy
+/// 0 turns by `turn_rate` as on every arm (`do_turn(·, ·, 0, 0)`, no
+/// animation override), and the step is then taken along a **second**
+/// turn from that new facing toward the bearing, by `body_rate` —
+/// `GuyData::turn_speed(guy, 1)` — at the full speed, snapping onto the
+/// destination when it is within the step. `None` is the other arms':
+/// not a helicopter, or owing more than ninety degrees.
+pub fn helicopter_step(
+    from: Pos,
+    facing: Angle,
+    dest: Pos,
+    step: i32,
+    turn_rate: u32,
+    body_rate: u32,
+) -> Option<Step> {
+    let (dx, dy) = (dest.x - from.x, dest.y - from.y);
+    let heading = find_angle(dx, dy);
+    let (facing, owed) = turn_towards(facing, heading, turn_rate);
+    if owed > 0x4000_0000 {
+        return None;
+    }
+    let along = turn_towards(facing, heading, body_rate).0;
+    if arrives(dx, dy, step) {
+        return Some(Step {
+            pos: dest,
+            facing,
+            heading,
+            owed,
+            arrived: true,
+            snapped: true,
+            turned_in_place: None,
+            half_step_used: false,
+        });
+    }
+    let manh = dx.abs() + dy.abs();
+    let mut sx = sin_component(along, step);
+    let mut cy = cos_component(along, step);
+    if manh < 2 * step {
+        if sx.abs() > dx.abs() {
+            sx = dx;
+        }
+        if cy.abs() > dy.abs() {
+            cy = -dy;
+        }
+    }
+    let pos = Pos::new(from.x + sx, from.y - cy);
+    Some(Step {
+        pos,
+        facing,
+        heading,
+        owed,
+        arrived: pos == dest,
+        snapped: false,
+        turned_in_place: None,
+        half_step_used: false,
+    })
+}
+
 /// The body: the figure drawn for the unit, standing where the unit stands.
 ///
 /// `GuyData::x / y`, `last_speed` and `avg_speed` for guy 0. The position is
@@ -1338,6 +1400,51 @@ mod tests {
             "halved once, not twice"
         );
         assert!(!turning.half_step_used, "the hard-turn arm keeps the bit");
+    }
+
+    /// **A helicopter flies through a turn the near arm would stand for**
+    /// (item 1658, run721's Helicopter `1/184` on 3589): seven short of
+    /// its point and owing a few degrees, a ground type turns in place and
+    /// a helicopter snaps onto the point in the same frame. Past a quarter
+    /// turn it is the other arms' again.
+    #[test]
+    fn a_helicopter_flies_through_a_turn_it_owes_near_its_point() {
+        let rate = turn_speed(&T, &SIEGE, 25, 25, TurnMode::Unit);
+        let body = turn_speed(&T, &SIEGE, 25, 25, TurnMode::Body);
+        let (from, dest) = (Pos::new(37898, 41213), Pos::new(37896, 41208));
+        let facing = Angle(-332_464_128);
+        let ground = move_step(from, facing, dest, 75, &SIEGE, rate, false, false);
+        assert_eq!(ground.turned_in_place, Some(TurnArm::Near));
+        let heli = helicopter_step(from, facing, dest, 75, rate, body).unwrap();
+        assert!(heli.owed != 0 && heli.snapped && heli.arrived);
+        assert_eq!(heli.pos, dest);
+        assert_eq!(heli.facing, ground.facing, "guy 0 turns by the unit rate");
+        // Owing more than ninety degrees after the turn: not this arm.
+        let behind = helicopter_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            Pos::new(0, 1000),
+            75,
+            rate,
+            body,
+        );
+        assert!(behind.is_none());
+        // Mid-flight, the step runs along the second turn, at full speed.
+        let mid = helicopter_step(
+            Pos::new(0, 0),
+            Angle(0x1000_0000),
+            Pos::new(0, -5000),
+            75,
+            0x0100_0000,
+            0x0400_0000,
+        )
+        .unwrap();
+        assert_eq!(mid.facing, Angle(0x0f00_0000));
+        let along = Angle(0x0b00_0000);
+        assert_eq!(
+            mid.pos,
+            Pos::new(sin_component(along, 75), -cos_component(along, 75))
+        );
     }
 
     #[test]

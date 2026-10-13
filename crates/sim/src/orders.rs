@@ -6074,16 +6074,35 @@ impl Sim {
         // (`docs/COLLISION.md` §7). `move_step` spends it and says so;
         // the bit is the unit's, so the clearing is here.
         let half = self.units[u].half_step;
-        let step = movement::move_step(
-            from,
-            m.facing,
-            mo.waypoint,
-            speed,
-            &m.turning,
-            rate,
-            turn_first,
-            half,
-        );
+        // **A helicopter owing a quarter turn or less flies through it**
+        // (`005fb18f`–`005fb22c`, item 1658): no turn-in-place arm, no half
+        // step, and the step along a second, body-rate turn
+        // ([`movement::helicopter_step`]).
+        let heli = self
+            .is_helicopter(u)
+            .then(|| {
+                let body_rate = movement::turn_speed(
+                    &self.tuning,
+                    &turning,
+                    m.body.last_speed,
+                    m.body.avg_speed,
+                    movement::TurnMode::Body,
+                );
+                movement::helicopter_step(from, m.facing, mo.waypoint, speed, rate, body_rate)
+            })
+            .flatten();
+        let step = heli.unwrap_or_else(|| {
+            movement::move_step(
+                from,
+                m.facing,
+                mo.waypoint,
+                speed,
+                &m.turning,
+                rate,
+                turn_first,
+                half,
+            )
+        });
         if step.half_step_used {
             self.units[u].half_step = false;
         }

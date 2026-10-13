@@ -234,7 +234,12 @@ pub(crate) struct Pair {
     /// re-seated off its own tile and re-plans — `1/133` agrees on 3588 —
     /// **3614** (the sequence; the count parts on 3615), 30 versus 30
     /// draws, index 6: ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
-    /// theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+    /// theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`. Item 1658: a
+    /// Helicopter owing a quarter turn or less flies through it, and
+    /// snaps onto a point within its step — `1/184` reaches its guard
+    /// point on 3589, not 3590 — **3843**, 23 versus 28 draws, index 5:
+    /// ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    /// `Guy::init_real+0x52`, past run721's window.
     pub count: i64,
     pub sequence: i64,
 }
@@ -252,8 +257,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3615,
-    sequence: 3614,
+    count: 3843,
+    sequence: 3843,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1549,7 +1554,10 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
+    // Item 1658 (a Helicopter flies through its turn): 189 -> 184, the
+    // Helicopter `1/203`'s position on 3387, heading on 3388 and figure
+    // angle on 3390 the rows to leave.
+    pin_eq!(w.firsts.len(), 184, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1633,9 +1641,18 @@ fn run721_s_word_frame_is_widened_whole() {
     // 3587 (the own-tile test, with its path top's boarding bit) and it
     // re-plans: 394 -> 326, `1/133`'s move on 3588 and its route on 3621
     // the rows to leave; the word moves to 3614, block 3615.
+    // Item 1658 flies a Helicopter through a turn of a quarter or less
+    // (`move_step`'s `005fb18f` arm): 326 -> 186, nothing added; the three
+    // Helicopters `1/184`, `1/203` and `1/212` leave, and with them the
+    // later rows of the caravan `1/207`, the Spies `1/197` and `1/156`,
+    // the Aegis Cruiser `1/112`, the Jet Fighter `1/139` and the General
+    // `1/102`; the
+    // first parting past the standing block is `1/204`'s `form` on 3391,
+    // `1/203`'s figure angle on 3390 gone. The word moves to 3843, past
+    // this window (block 3844; run732 is its capture).
     pin_eq!(
         w.firsts.len(),
-        326,
+        186,
         "run721 after a woodcutter is re-seated off its forest cell"
     );
     let path = dump(RUN721).expect("the replay just read run721");
@@ -1712,7 +1729,7 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3390),
+        Some(3391),
         "the first parting past the standing block"
     );
 }
