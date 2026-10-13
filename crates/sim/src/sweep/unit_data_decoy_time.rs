@@ -6,7 +6,7 @@ use crate::cast::decoy_time_left;
 /// `UnitData::decoy_time@00609d70`, run by `tools/emu/sweep_unit_data_decoy_time.py` under unicorn (tools/emu):
 /// the owner's general upgrade (a hooked callee, asked once of the owner's leader record), `DECOY_TIME` and the
 /// unit's `mana_burn` over the ranges a game holds and their edges, against [`decoy_time_left`] — the port's
-/// decoy close in `Unit::process`.
+/// decoy close (`cast.rs`).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_data_decoy_time.py") else {
