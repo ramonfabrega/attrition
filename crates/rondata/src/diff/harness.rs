@@ -11863,7 +11863,11 @@ pub(crate) mod tests {
         // …207, the original's 7): an army's retarget forms it twice on
         // one tick (`docs/ARMY.md` §21), so the group's count stands one
         // higher; the pool id (2 here, 66 there) is 689's.
-        pin_eq!(mid, Vec::<String>::new(), "the rows above run163, to the old word's block");
+        pin_eq!(
+            mid,
+            Vec::<String>::new(),
+            "the rows above run163, to the old word's block"
+        );
         // ~~**The new word, 12897 (block 12898), `1/41`'s every standing
         // row.**~~ The original's `1/41` stepped into `1/15` (`collide_o
         // 15`), stopped and stood (`Unit::move_step+0x823`, the third

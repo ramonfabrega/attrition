@@ -13767,7 +13767,6 @@ const WANT_CH57: &[&str] = &[
     "605 1/5 form",
 ];
 
-
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.
