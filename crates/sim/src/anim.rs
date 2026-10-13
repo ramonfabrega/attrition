@@ -1849,6 +1849,9 @@ impl Sim {
                     // Battery's among them, whose `get_position` entries
                     // `pivot::RELEASES` has not measured.
                     let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
+                    if std::env::var_os("RON_PROBE_1798").is_some() {
+                        eprintln!("PROBE1798 release f{} u{u} piece {} anim {} start {start} row {}", self.frame, guy.gpiece, guy.anim, pivot.is_some());
+                    }
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))

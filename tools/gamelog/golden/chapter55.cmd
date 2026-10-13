@@ -4,3 +4,4 @@
 602 add dragoon who=0 225,152
 712 add citizen who=1 243,151
 640 @move 0 46800 29288 6
+810 @move 0 46016 29304 6
