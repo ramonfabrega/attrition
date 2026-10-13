@@ -2062,6 +2062,10 @@ mod tests {
         // chase on a Stockade and a follower's refused target (item 2032,
         // `docs/GOLDEN.md` §74).
         ("chapter61.cmd", &[]),
+        // Chapter sixty-two: two guarding squads, who=1's squads walked past
+        // them and a third added inside the leash; a follower's guard refusal
+        // under its squad head (item 2066, `docs/GOLDEN.md` §75).
+        ("chapter62.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
