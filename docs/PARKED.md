@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2060) **A parted `queue[k].cost` has no price print with its inputs**
+(2026's Loop line, filed at its merge): `RON_PRICE` lives in one older walk
+(`harness.rs`) and prints the price, not its inputs; 2026 priced the entry
+by a probe commit. Candidate: the same print in `widen_on_siblings`, with
+`price_with`'s counts, bump and `Modifiers`, so a cost row answers itself.
+
 (2054) **A `RON_STATE_FRAME` tracer define without `RON_STATE_PLAN` dies in
 the build after the lane is taken** (parked 2006, filed at 2001's merge):
 run810's first take spent the lane on a build that could not succeed.
@@ -4281,6 +4287,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot AF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
