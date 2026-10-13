@@ -1075,9 +1075,6 @@ impl Sim {
                 .count() as i32
         };
         let holdings = &self.holdings[who as usize];
-        if std::env::var_os("RON_PROBE_BP").is_some() && who == 1 && (3181..3183).contains(&self.frame) {
-            eprintln!("PROBE bp f{} ty{} ident{:?} of_type{} price{:?}", self.frame, ty, self.build_types[ty].ident, of_type, self.build_types[ty].price);
-        }
         cost::charges(
             &self.tuning,
             &self.build_types[ty].price,
