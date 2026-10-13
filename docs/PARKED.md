@@ -3882,8 +3882,22 @@ evening**: `att-1648-oh` ended landing 1 with its row at `tempo=blocked`
 fires only on `idle` — the lane's done line, read as needing the
 commander's lines, parks the row out of the clear's reach; one message
 ("nothing is owed, end your turn") unblocked it, and the race's header
-now says so. The frame's done-line row could say it for every lane. The
+now says so. **The header did not hold it**: `att-1648-om` (landing 3,
+"reply `go` to land Coverage pair") and `att-1648-oh` (landing 3) ended
+blocked the same way after it, each one message from its clear — three
+of the race's first fourteen landings, both on Opus 5.5. The frame's
+done-line row could say it for every lane, or `lanewait.py` could name
+`ENDED … blocked` with an armed clear as the case it is. The
 twenty-eighth pass's.
+
+(1672) **A capture's wait dies at the background default** (`att-1648-sm`'s
+Loop line, its landing 4, 2026-10-12): `tools/gamelog/waitrun.sh` backgrounded
+without a `timeout` is killed at the harness's 30-minute default, before
+a long capture's exit; the lane lost about thirty minutes to a wait that
+had ended without its banner. CLAUDE.md's waiting clause and the brief's
+frame name `waitrun.sh` but no timeout; candidates — `timeout 3600000` in
+the frame's capture row, or `waitrun.sh` re-armed by its own exit code
+on a kill. The twenty-eighth pass's.
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
 
