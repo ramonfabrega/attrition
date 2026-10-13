@@ -19,10 +19,11 @@ ranked price and pace: Sonnet 5.5 medium 23.23 USD list, Opus medium
 estimated. **Ramon's word: four lanes on Sonnet 5.5 medium, the whole
 tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
-- **Nothing is out.** The race's five rows are reaped, the losing tips
-  tagged `race-1648-{oh,om,sh}` on origin, the four branches deleted.
-  Next 1675, run 762, §183. **The disk**: 248 GiB free, the archive
-  compressed again.
+- **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
+  2026-10-12): `att-1673` (items 1675–1678, runs 762–765, AI §183),
+  `att-1639` (1679–1682, 766–769, AI §175), `att-1630` (1683–1686),
+  `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
+  1691, run 774, AI §184. **The disk**: 248 GiB free.
 - **Fable backlog: 14 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850

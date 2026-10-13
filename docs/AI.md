@@ -18316,3 +18316,8 @@ written here. `terra_cotta_total` (the game counter) is not carried. A
 second, third... firing is checked only through 3844 (one reset); the
 formula's `barracks_units` is the live sum, read on the reset frame.
 
+
+## 183. Reserved for item 1673 (the coverage pair's word 3963)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

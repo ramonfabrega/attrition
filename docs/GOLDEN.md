@@ -10589,3 +10589,8 @@ building's first round); a Fortress, Bunker, Redoubt or observation post
 shooting; the march's `+0x4b` arm. The think tail's order is this crate's
 `add_attack_order(…, QUEUE_NEW)`, not `find_melee_target`'s own add
 (`docs/GROUPS.md` §12's second divergence).
+
+## 62. Reserved for item 1497 (chapter fifty-two)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.
