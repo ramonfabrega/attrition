@@ -678,6 +678,13 @@ impl Sim {
     pub fn do_sell(&mut self, who: Player, g: usize) -> bool {
         let w = who as usize;
         let (_, sell) = self.calc_market_prices(who, g);
+        if std::env::var_os("RON_PROBE_SELL").is_some() {
+            eprintln!(
+                "PROBE do_sell f{} who{} g{} sell{} bucket{} esc{} price{} flux{}",
+                self.frame, who, g, sell, self.ledgers[w].bucket[g], self.ledgers[w].escrow[g],
+                self.market.price[g], self.market.flux[g]
+            );
+        }
         if self.ledgers[w].bucket[g] < 100 {
             return false;
         }
