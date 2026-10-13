@@ -230,7 +230,11 @@ pub(crate) struct Pair {
     /// index 1: ours guy animation, theirs `Unit::do_move+0xe84`. Item 1667
     /// gives `find_path` its own-tile relocation: the sequence parts at
     /// **3614** (30 versus 30 draws, index 6: ours `Guy::move+0x19f`,
-    /// theirs `Unit::do_guard+0x7f4`) and the count at **3615**.
+    /// theirs `Unit::do_guard+0x7f4`) and the count at **3615**. Item
+    /// 1668 gives a helicopter its own step arm (`move_step`'s `0x20` test,
+    /// the step aimed along a second, faster turn): both part at **3843**,
+    /// 23 versus 28 draws, index 5: ours guy animation
+    /// (`Guy::inc_time+0x271`), theirs `Guy::init_real+0x52` (a birth).
     pub count: i64,
     pub sequence: i64,
 }
@@ -248,8 +252,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3615,
-    sequence: 3614,
+    count: 3843,
+    sequence: 3843,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1538,7 +1542,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // and, from 3383, a city's queue cost, a `MAKE` value and `1/203`'s
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
-    pin_eq!(w.firsts.len(), 189, "initial run716 baseline");
+    pin_eq!(w.firsts.len(), 184, "initial run716 baseline");
     let first = w
         .firsts
         .values()
@@ -1611,7 +1615,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        326,
+        186,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
@@ -1688,7 +1692,7 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3390),
+        Some(3391),
         "the first parting past the standing block"
     );
 }
