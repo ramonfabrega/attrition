@@ -3877,6 +3877,43 @@ reported committing on `worktree-att-1630` by name; the lane merged by
 cherry-pick on the SHA. The brief's sweep section could say that a
 subagent's report is taken by SHA, never by the branch it names. One reach.
 
+(1693) **A capture starves under four lanes' suites, and nothing ranks
+it** (Ramon, 2026-10-12, at the twenty-ninth steer's agenda: "no reason
+for us to be starved — maybe bump some numbers; the computer should be
+powerful"). Measured 23:31–23:33: `att-1497`'s click-free `ch52fog`
+staging sat on the loading screen ("heroes init") for minutes; load
+average 120 → 130 on the M4 Max's 16 cores (12 P + 4 E, 128 GiB),
+memory 82 % free, the game at 1–2.5 % CPU (55.1 → 57.4 s CPU in ~2 min:
+crawling, not stuck). Beside it four release suites at once — `att-1673`
+whole at `--test-threads 20` (671 %), `att-1497`'s, `att-1639`'s lane
+gate, and the commander's booking gate. `memcap.sh` caps memory, nothing
+caps or ranks CPU. Candidates, for the pass to rule with Ramon: `nice`
+the suites (release_gate, memcap) so a capture outranks them; a suite
+that yields while the capture lane is held (`ron_lane_state`); the
+whole-suite `20` threads lowered, or a box-wide thread budget across
+lanes; or raise what the box is asked to carry deliberately — measure the
+suite's wall clock at 4/8/12 threads under four lanes first. The
+capture's own wall clock from launch to frame 0 is the number to move.
+
+(1695) **A landing wakes the commander twice** (Ramon, 2026-10-12, for
+the twenty-ninth steer: "waits are firing after we already know, which
+is essentially another form of poll looping — we take a turn, read the
+context twice on the same message"). Measured this tranche: 1630's and
+1691's done lines each arrived first, and `lanewait.py` exited `LANDED`
+on the same push minutes later — a second whole-context turn that told
+the commander nothing (two of two landings so far). The double signal is
+by design (the done line is the lane's, the wait the backstop for a line
+that never comes — parked 1412), and the context is small today, so
+Ramon calls it maybe irrelevant; but it is the shape the "and then the
+turn ends" rule exists against. Candidates: `lanewait.py` takes the
+lanes already reported (`--known att-N@<sha>`) and skips their push; or
+the commander re-arms without a lane whose done line has arrived, as it
+did once by hand. Count the second wakes at the pass against landings.
+
+(1696) **A lane's shell trivia** (1691's Loop line): zsh expands a
+leading `==` in `echo == x`, and BSD `sed -i` wants `-i ''` — two small
+stalls, neither the repo's. A frame row only if a second lane hits one.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
