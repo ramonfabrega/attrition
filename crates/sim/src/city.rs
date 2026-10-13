@@ -368,7 +368,11 @@ impl Sim {
         } else {
             self.tuning.farms_per_city_base
         };
-        base + (self.city_level_of(c) - 1) * self.tuning.farms_per_city_level
+        farm_limit_by(
+            self.city_level_of(c),
+            base,
+            self.tuning.farms_per_city_level,
+        )
     }
 
     /// Whether the city holds an active building of a kind — the
@@ -3178,4 +3182,10 @@ impl Sim {
             self.ledgers[killer as usize].bucket[g] += v + hero;
         }
     }
+}
+
+/// `CityData::get_farm_limit@00738230`'s arithmetic: the leader's `get_farm_limit` plus `(level − 1) ·
+/// FARMS_PER_CITY_LEVEL`, the multiply and the add wrapping (item 2090's sweep holds it).
+pub fn farm_limit_by(level: i32, leader: i32, per_level: i32) -> i32 {
+    leader.wrapping_add((level - 1).wrapping_mul(per_level))
 }
