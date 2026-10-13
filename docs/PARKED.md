@@ -3809,6 +3809,15 @@ record. Item 1446 compares them on runs 610–613 with its own helper
 them quiet. Whether the shared widening should take them (every window's
 pinned count moves at once) is the pass's to decide. **The twenty-fourth pass rules**: the shared widening takes both, as a worker's item on the French word's lane the next time that word names a vision field — every window's count moves at once, which is `tools/repin.py`'s work and not a pass's. Until then 1446's helper stands. Stays as the pointer. **The twenty-fifth pass**: no landing on the French word named a vision field; stays as the pointer. **The twenty-sixth pass**: 1558's cause was a vision gate (`world_sees` falling through to `WorldData::is_seen`) on the coverage pair's word, which is the newest pair's now; the next item on that word (1563) is where the shared widening takes `ever_seen` and `ever_seen_completed`, and the opener says so. Stays as the pointer.
 
+## Loop, filed 2026-10-13 — the thirtieth tranche's
+
+(1761) **`sweep_gen.py const` maps `TYPE` over `OBJ`** (1736's Loop
+line): the generated `TYPE = 0x10010000` overlaps `OBJ`'s 0x20000 map and
+the script dies with `UC_ERR_MAP`; 1736 moved it to `0x10100000` by hand
+in four scripts. And the generator has no `this - K` shape, which four
+lanes have hand-copied. Candidate: fix the `TYPE` base and add the
+shape, with a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-13 — the twenty-ninth pass's
 
 (1743) **The before-reading rows name tools no lane ran** (the
