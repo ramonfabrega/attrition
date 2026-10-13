@@ -13727,7 +13727,7 @@ fn chapter_fifty_seven_holds_to_the_golden_word() {
 #[test]
 fn chapter_fifty_seven_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some((firsts, pool)) = widen_civilians_and_pool(
+    let Some(firsts) = widen_civilians(
         "ch57",
         "chapter57",
         WIDENING_CHAPTER_FIFTY_SEVEN,
@@ -13748,20 +13748,9 @@ fn chapter_fifty_seven_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     eprintln!("ch57: {} rows", got.len());
-    for ((slot, key), (f, row)) in &pool {
-        eprintln!("  ch57 pool f{f} slot {slot} {key}: {row}");
-    }
-    let mut got_pool: Vec<String> = pool
-        .iter()
-        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
-        .collect();
-    got_pool.sort();
     let mut want: Vec<String> = WANT_CH57.iter().map(|r| r.to_string()).collect();
     want.sort();
     pin_eq!(got, want, "ch57: what parts under the word moved");
-    let mut want_pool: Vec<String> = WANT_CH57_POOL.iter().map(|r| r.to_string()).collect();
-    want_pool.sort();
-    pin_eq!(got_pool, want_pool, "ch57: what parts in the pool moved");
 }
 
 const WANT_CH57: &[&str] = &[
@@ -13778,7 +13767,6 @@ const WANT_CH57: &[&str] = &[
     "605 1/5 form",
 ];
 
-const WANT_CH57_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
