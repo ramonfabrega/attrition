@@ -4085,7 +4085,7 @@ of them one of two shapes: a forwarder whose argument or `ecx` is `[this+OFF]` p
 `TerrainMap::river_point`), and a store through fixed offsets of `this` or a global cell (`set_base_source_pool`, `start_river`,
 `cast_supplies`, `set_orig_coast`). `fwd` takes no dereference token; `store` is still unbuilt. Names no score but the census's.
 
-(1944) **`OrderList::get_new_data` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
+(1944) **`OrderList::get_new_data@0046ed60` reads an unset `ebp`** (an empty-looking forwarder to `get_new_order`); skipped, not swept — a sweep
 of it needs a chosen `ebp`, which `callfn` does not set. `MapScript::run_map_script` and `SurfWaveSection::load_old_bh3` are empty bodies
 (parked 1725's question), `Terrain::build_beach_data` and the three `walk_data`s are left.
 
