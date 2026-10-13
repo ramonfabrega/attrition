@@ -54,6 +54,17 @@ Three shapes, each a `__thiscall` on `ecx`:
           into `this` through the walker's first vtable slot: `walk_data`
           (`--a0`, `--a1`, each `this`, `this+0xNN` or an absolute address); the callback is hooked.
 
+  obj     the function reads and/or writes fixed offsets of `this` (the
+          `deref` and `store` the sweeps wrote by hand, parked 1933, 1943):
+          `--win BYTES` of random object, `--bias OFF:V,V,..` (repeatable)
+          pins a 32-bit word at OFF to one of the listed values per row,
+          `--own N` stack arguments drawn from the edges and random words;
+          a row is `<args…> | <before hex> -> <eax> | <after hex>` and the
+          test hands `--port` (a Rust block over `a: &[i32]` and
+          `m: &mut [u8]`, with `rd(m, off) -> i32` and `wr(m, off, v)`, whose
+          value is eax) the same bytes and holds both the answer and every
+          byte after to the original's. `--ret none` ignores eax.
+
 A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
 a `--mask` is `field` with the mask in the port.
 
@@ -550,6 +561,136 @@ def generate_mix(spec, *, item, steps, glob=None, gate=None):
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
+OBJ_SCRIPT = '''#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
+"""sweep_{snake}.py — `{name}@{va:08x}` under unicorn (item {item}, tools/sweep_gen.py, obj).
+
+    uv run tools/emu/sweep_{snake}.py <install>/riseofnations.exe
+
+`__thiscall`, `ecx` = a {win}-byte object of random bytes ({biasdoc}), {own} stack argument(s).
+One row per input, `<args…> | <before hex> -> <eax> | <after hex>`; the test holds every byte.
+"""
+import os
+import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from callfn import STACK_BASE, STACK_SIZE, signed  # noqa: E402
+from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+
+ENTRY = 0x{va:08x}
+WIN = {win}
+OWN = {own}
+BIAS = {bias!r}
+ARGSET = {argset!r}
+ARGFROM = {argfrom!r}
+I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
+
+
+def main(argv):
+    from hooks import Harness
+    rng = random.Random({item})
+    h = Harness(argv[1], {{}})
+    for i in range(220):
+        this = h.alloc(WIN + 0x20)
+        mem = bytearray(rng.randrange(256) for _ in range(WIN))
+        for off, vals in BIAS:
+            v = rng.choice(vals) if rng.random() < 0.9 else rng.randint(-0x80000000, 0x7FFFFFFF)
+            mem[off:off + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
+        args = [rng.choice(I32) if rng.random() < 0.5 else rng.randint(-0x80000000, 0x7FFFFFFF) for _ in range(OWN)]
+        for idx, vals in ARGSET:
+            args[idx] = rng.choice(vals) if rng.random() < 0.9 else args[idx]
+        for idx, off, size in ARGFROM:
+            if rng.random() < 0.45:
+                args[idx] = int.from_bytes(mem[off:off + size], "little", signed=True)
+        h.m.uc.mem_write(this, bytes(mem))
+        guard = bytes(h.m.uc.mem_read(this + WIN, 0x20))
+        r = signed(h.call(ENTRY, tuple(args), ecx=this))
+        esp = h.m.uc.reg_read(UC_X86_REG_ESP)
+        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        assert bytes(h.m.uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
+        after = bytes(h.m.uc.mem_read(this, WIN))
+        print(" ".join(str(a) for a in args) + f" | {{bytes(mem).hex()}} -> {{r}} | {{after.hex()}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+OBJ_TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, obj).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {{
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}}
+
+#[allow(dead_code)]
+fn wr(m: &mut [u8], off: usize, v: i32) {{
+    m[off..off + 4].copy_from_slice(&v.to_le_bytes());
+}}
+
+fn unhex(s: &str) -> Vec<u8> {{
+    (0..s.len() / 2)
+        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
+        .collect()
+}}
+
+/// `{name}@{va:08x}`, run by `tools/emu/sweep_{snake}.py` under unicorn
+/// (tools/emu): {doc}
+#[test]
+fn the_emulated_original_agrees_on_every_row() {{
+    let Some(rows) = super::emu_rows("sweep_{snake}.py") else {{
+        return;
+    }};
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <before> -> <eax> | <after>`");
+        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
+        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let mut m = unhex(before.trim());
+        let want_eax: i64 = eax.trim().parse().expect("an integer");
+        let got: i64 = {{
+            let (a, m) = (&a[..], &mut m[..]);
+            let _ = (&a, &m);
+            {port}
+        }};
+{ret}
+        assert_eq!(m, unhex(after.trim()), "{short} — bytes, row `{{line}}`");
+        n += 1;
+    }}
+    assert!(n >= 200, "only {{n}} rows");
+    eprintln!("{name}@{va:08x}: {{n}} rows agree");
+}}
+'''
+
+
+def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=()):
+    name, va = parse(spec)
+    short = name.rsplit('::', 1)[-1]
+    sn = snake(name)
+    parsed = []
+    for b in bias:
+        off, vals = b.split(':', 1)
+        parsed.append((int(off, 0), [int(v, 0) for v in vals.split(',')]))
+    pset = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in argset]
+    pfrom = [tuple(int(x, 0) for x in a.split(':')) for a in argfrom]
+    port = port or f'todo!("the port of {name}")'
+    biasdoc = ', '.join(f'+{o:#x} in {v}' for o, v in parsed) or 'no bias'
+    script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed, biasdoc=biasdoc, argset=pset, argfrom=pfrom)
+    if ret == 'none':
+        retcode = '        let _ = (got, want_eax);'
+    else:
+        retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
+    doc = f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
+    test = OBJ_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port, ret=retcode)
+    return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
+
+
 def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
     """`(script path, script text, test path, test text, mod line)`."""
     name, va = parse(spec)
@@ -627,14 +768,18 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr', 'fwd', 'walk', 'mix', 'obj'))
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
     ap.add_argument('--a0', default='this', help='walk: the first callback argument, `this` or `this+0xNN`')
     ap.add_argument('--a1', default='this', help='walk: the second callback argument')
     ap.add_argument('--step', action='append', default=[], help='mix: call:ADDR:NARGS:ECX:ARGS | walk:A0:A1 | walk4:OFF, in order; `gated/` prefix')
     ap.add_argument('--glob', type=lambda s: int(s, 0), help='mix: the global cell (the walk4 argument is *(*cell+0x10)+OFF)')
     ap.add_argument('--gate', type=lambda s: int(s, 0), help='mix: gated steps run when [walker+GATE] == 0')
-    ap.add_argument('--own', type=int, default=0, help='fwd: stack arguments the function itself takes')
+    ap.add_argument('--own', type=int, default=0, help='fwd, obj: stack arguments the function itself takes')
+    ap.add_argument('--argset', action='append', default=[], help='obj: IDX:V,V,.. — argument IDX drawn from the list (90%%)')
+    ap.add_argument('--argfrom', action='append', default=[], help='obj: IDX:OFF:SIZE — argument IDX copies the signed SIZE-byte word at OFF (45%%)')
+    ap.add_argument('--win', type=lambda s: int(s, 0), default=0x400, help='obj: bytes of random object')
+    ap.add_argument('--bias', action='append', default=[], help='obj: OFF:V,V,.. — a 32-bit word at OFF drawn from the list')
     ap.add_argument('--ret', default='none', help='fwd: none, an integer, or last (the last callee\'s answer)')
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
@@ -654,6 +799,10 @@ def main(argv=None):
         elif args.shape == 'mix':
             sp, script, tp, test, mod = generate_mix(args.function, item=args.item, steps=args.step,
                                                     glob=args.glob, gate=args.gate)
+        elif args.shape == 'obj':
+            sp, script, tp, test, mod = generate_obj(args.function, item=args.item, win=args.win, bias=args.bias,
+                                                    own=args.own, ret='none' if args.ret == 'none' else 'eax', port=args.port,
+                                                    argset=args.argset, argfrom=args.argfrom)
         elif args.shape == 'fwd':
             sp, script, tp, test, mod = generate_fwd(args.function, item=args.item, calls=args.call,
                                                      own=args.own, ret=args.ret)

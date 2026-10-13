@@ -4104,13 +4104,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot M — reserved
+## Parked by item 1954, 2026-10-13 — the sweep's thirty-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot M renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1955) **`sweep_gen.py obj` built (1943's `deref`/`store`), with its edges.** One shape for a function that reads and writes fixed offsets
+of `this`: random object bytes, `--bias`, `--argset`, `--argfrom` (an argument that copies a field, so equality tests are reached), a row of
+`<args> | <before> -> <eax> | <after>` and a port that sees the same bytes. Nine of 1954's ten used it. Still without a shape: a function
+that reads a global cell's record (`Game::teams_locked`, `World::scale_by_axis`), takes out-pointers into the object (`World::set_tocean`,
+`WCoord::traverse_x`), or reaches `this` through a chain (`DeathObjData::blocking`); `obj` writes only the object. Names no score but the census's.
+
+(1956) **Not taken, with why**: `Unit::air_alt_speed` reads `xmm1` (a float, `xmm_bits`, 1867), `Tribe::get_name` is a `String` copy
+constructor, `CityData::granary_level` and `Player::is_active_connection` call non-trivial callees (a `fwd`/`mix` row each). `Terrain::build_beach_data`,
+the three `walk_data`s and `OrderList::get_new_data` (1944) are still left.
 
 ## Parked by the next landing, slot N — reserved
 
