@@ -19,8 +19,8 @@ unmoved, chapters fifty-three, fifty-five, fifty-six closed, the census 178 → 
 the battery unmoved a sixth tranche. Seventeen Loop items out, six stay.*
 
 - **Four lanes live** (`commander`, Opus 5.5; lanes Sonnet 5.5 medium): `att-1868`
-  (A, runs 788–789, 794), `att-1905` (E, runs 790, 793), `att-1921` (G), `att-1863` (D, runs
-  791–792). 1866, 1889, 1870, 1895, 1911, 1916 landed: census 319 → 369, Great Sahara 3182 → 3767. Next 1926, run 795, AI §199, GOLDEN §70.
+  (A, runs 788–789, 794–795), `att-1905` (E, runs 790, 793), `att-1921` (G), `att-1863` (D, runs
+  791–792). 1866, 1889, 1870, 1895, 1911, 1916 landed: census 319 → 369, Great Sahara 3182 → 3767. Next 1926, run 796, AI §199, GOLDEN §70.
 - **`lanewait.py` exits `STALLED <lane> <min>` too**: one line to the lane (its
   gate or capture exited; read the log, land). Landings count from this pass's commit.
 - **Fable backlog: 9 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910).
