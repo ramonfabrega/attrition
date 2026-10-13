@@ -5018,7 +5018,7 @@ mod tests {
         st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
         st.angles = vec![1, 2, 3];
         s.units[b].group_ptr = None;
-        s.groups_process(i64::from(slot));
+        s.groups_process(slot);
         let p = &s.pushed[i];
         assert_eq!(p.list, vec![a, c]);
         assert_eq!(p.state.off, vec![(1, 1), (3, 3)]);
