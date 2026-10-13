@@ -227,8 +227,8 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        163,
-        "run788 after item 1868's sea break test"
+        151,
+        "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
