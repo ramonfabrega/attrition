@@ -4023,6 +4023,14 @@ probes, restored from git. Candidate: the brief's probe row says a probe
 goes in behind one env guard in a single commit reverted whole, never
 stripped by a pattern. One reach.
 
+(1729) **A closing word's five things are mechanical** (1719's Loop
+line): the rename, the window, the `AI_WORDS` row, the pin and the
+widening of parked 1217 took a reading where a `tools/` printer of the
+checklist would do — 1674 (g)'s helper, reached again; and a lane's
+`ccc update` that adds a driver window beside another lane's breaks the
+coverage driver's tuple pattern (43 against 44 at 1719's merge, fixed in
+its booking), so a lane that updates re-gates. Two reaches.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

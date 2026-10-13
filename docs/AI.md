@@ -18598,3 +18598,8 @@ against 1353 on 4585 (1714's second row) is still in run762's 250 keys: a value,
 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
+
+## 190. Reserved for item 1728 (the successor pair)
+
+A stub the booking lands so two lanes append at their own anchors
+(parked 1491); the item's worker renames it and writes the section.

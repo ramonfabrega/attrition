@@ -2971,6 +2971,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         Some(_),
         Some(_),
         Some(_),
+        Some(_),
     ) = (
         walked,
         toughest,
