@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **thirty-first tranche, twelve landings** (from `45cf8c6b`; lanes Sonnet
+*2026-10-13, **thirty-first tranche, thirteen landings** (from `45cf8c6b`; lanes Sonnet
 5.5 medium): successor pair 2838 → 3131 (1868); Great Sahara 3182 → 3805 (1870, 1905);
-ch57 closed (1863); census 319 → 399. No kill rule: three booking gates red on merges
+ch57 closed (1863), ch58 on the disk (1926); census 319 → 399. No kill rule: three booking gates red on merges
 meeting, each a second commit (Loops 1910, 1959); 1870's red tip pushed once on an
 `echo`-wrapped exit (574) — gates run unwrapped now.*
 
 - **Four lanes live**: `att-1948` (L, runs 799–800), `att-1937` (J, run 798),
-  `att-1954` (M), `att-1926` (H, runs 796–797). Next 1960, run 801, AI §201, GOLDEN
-  §71, slot N. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
-- **Fable backlog: 13 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959).
+  `att-1954` (M), `att-1960` (N, runs 801–802). Next 1966, run 803, AI §201, GOLDEN
+  §72, slot O. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+- **Fable backlog: 14 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,7 +34,7 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-first tranche continues on `commander` at twelve
+**Opener: the thirty-first tranche continues on `commander` at thirteen
 landings — re-arm `lanewait.py` on the four live lanes and run the chain as
 `CLAUDE.md` writes it, `STALLED` and `DEEP` answered in their turn; at twenty
 landings the handoff, then `ccc clear steer`.**
@@ -42,7 +42,7 @@ landings the handoff, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1948 the headline's word, 1937, 1954 and 1926 the other three lanes —
+1948 the headline's word, 1937, 1954 and 1960 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -72,14 +72,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     citation pattern (parked 1722) — skip operators until it is built.
     1630's `get_tregion` parting stands. `--kind sweep`.
 
-1926. **Chapter fifty-eight: the rows chapter fifty-seven left** (DECISIONS
-    56 §3; GOLDEN §69; run791 agrees to its end, 1010): parked 1886's pool
-    slot past an AI script's push (`17410401` against `17410801`, one to
-    four slots, no draw) and 1887's squad head for `find_melee_target`'s
-    other callers; 1805's two-order snap and 1778's pushed group's dead
-    member, never staged. A chapter needing the death list drops the pool
-    (parked 1885). Whether a capture on disk settles a row is the item's to
-    establish first; runs 796–797. GOLDEN §70.
+1960. **Chapter fifty-nine: the rows no capture reaches** (DECISIONS 56
+    §3; GOLDEN §70; 1926 settled 1886 on the disk, no word moved): parked
+    1887 (`find_melee_target`'s squad head for a non-captain's idle or
+    out-of-range search with a captain target), 1805's two-order snap and
+    1778's pushed group's dead member — each needs a script line that
+    reaches it, so a staging is owed: name the census rows the lobby
+    reaches before the capture; a chapter needing the death list drops
+    the pool (parked 1885). Runs 801–802. GOLDEN §71.
 
 ## How to maintain this file
 

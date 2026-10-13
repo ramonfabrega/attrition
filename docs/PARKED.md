@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
+hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
+golden `order:group.id`/`order:patrol.id` rows came out of `want` lists
+by hand, and a `[]` want needs a type. Candidate: a `--drop-rows` mode
+that removes named rows from a `Vec<String>` want. One reach.
+
 (1959) **The coverage driver is a 49-slot tuple** (the commander, at
 1868's booking gate): 1905 and 1868 each added a window binding and its
 tuple member, both merged clean, and the destructuring pattern came out
@@ -4018,7 +4024,7 @@ arguments are fields (`this->x`) need a `field` argument token.
 (1885) **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`** (1863): run791's first two takes died in the verifier;
 the third dropped `GROUPS=1`. A chapter that needs both the pool and the death list has no capture shape.
 
-(1886) **Closed by 1926** (GOLDEN §70). **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
+(1886) closed 2026-10-13 by item 1926 (GOLDEN §70): **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
 slot — `17410401` against `17410801`, `14336530` against `14336430`, one to four slots, no draw.
 
 (1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
@@ -4056,12 +4062,9 @@ on return to a chosen word (the way a real callee leaves it), then
 
 ## Parked by item 1926, 2026-10-13 — chapter fifty-eight
 
-(1886) **Closed by 1926** (GOLDEN §70): `group_id` reads the pool slot, not the army's number; the rows left every widening.
-
-(1887) **`find_melee_target`'s squad head for its other callers** (1926, unchanged): no capture on disk shows a part; a staging needs a
-non-captain's idle or out-of-range search with a captain target. Not staged.
-
-(1805) **The two-order snap** and (1778) **a pushed group's dead member** (1926): no script line reaches either; unchanged.
+1926 settled 1886 on the disk (closed at its row); 1887 needs a staging
+of a non-captain's idle or out-of-range search with a captain target, and
+no script line reaches 1805 or 1778 — all three unchanged at their rows.
 
 (1927) **`coverage_pair` first parting past the standing block moved 1277 → 1292** (1926): a side effect of the id fix; read the frame
 1292 value diff if that window is ever booked.
@@ -4113,6 +4116,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot N renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot O — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot O renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot P — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot P renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot Q — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot Q renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot R — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot R renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
