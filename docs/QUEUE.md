@@ -16,15 +16,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 1648 is scored** — four arms tied at 3963 by the same five causes, so it
 ranked price and pace: Sonnet 5.5 medium 23.23 USD list, Opus medium
 32.40, Opus high 37.20, Sonnet high 40.47; 141 in all against 300
-estimated. Recommended: Sonnet 5.5 medium on every lane under the kill
-rules; **the commander is held for Ramon's word** (DECISIONS 65,
-`docs/audit/2026-10-13-fable-pass-28.md`).*
+estimated. **Ramon's word: four lanes on Sonnet 5.5 medium, the whole
+tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
-- **Nothing is out.** The four racer rows stand idle with clean trees,
-  their branches on origin as the record, `att-1648-sm` archived; the
-  reap — `ccc rm` on the five rows, the four remote `worktree-att-1648-*`
-  deleted — is the commander's first act after Ramon's word. Next 1675,
-  run 762, §183. **The disk**: 242 GiB free, the archive compressed again.
+- **Nothing is out.** The race's five rows are reaped, the losing tips
+  tagged `race-1648-{oh,om,sh}` on origin, the four branches deleted.
+  Next 1675, run 762, §183. **The disk**: 248 GiB free, the archive
+  compressed again.
 - **Fable backlog: 14 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,11 +35,11 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the twenty-ninth tranche — `commander` (Opus 5.5), cleared in
-by Ramon's word on the roster (DECISIONS 65): reap the race's rows and
-branches, then four lanes — 1673 the coverage pair's word, 1639 Great
-Sahara's, 1630 the sweep, 1497 the rules track — twenty landings, the
-clear at ten, the steer at twenty.**
+**Opener: the twenty-ninth tranche — `commander` (Opus 5.5): four lanes
+on Sonnet 5.5 at `--effort medium` (DECISIONS 65, Ramon's word) — 1673
+the coverage pair's word, 1639 Great Sahara's, 1630 the sweep, 1497 the
+rules track — twenty landings, the clear at ten, the steer at twenty,
+the tranche scored whole.**
 
 ## The queue
 

@@ -4852,8 +4852,24 @@ ratified").
    roster with clean trees, their branches on origin as the record
    until the next pass; `ccc rm` on each and the four remote branches.
 
+**Decided with Ramon the same night, in conversation**: the
+twenty-ninth tranche runs **four lanes on Sonnet 5.5 at medium** —
+1673, 1639, 1630 and 1497 — and is scored whole against the
+twenty-seventh's twenty-two (15.62 USD a landing, 44.6 minutes waiting)
+and the race's arms; the kill rules stand, Opus 5.5 high the successor
+on a trip. The race's five rows were reaped at the steer, the three
+losing tips kept as tags (`race-1648-oh`, `-om`, `-sh`) and the four
+remote branches deleted. On the blocked rows: the one earlier `blocked`
+ending on record (parked 1572) was a lane's self-written status while
+it waited on the pass's timings, a different shape; the race's five
+were a choice at the done line — the Opus arms, at both efforts, asked
+for the commander's lines or a `go` after the header said the lines
+were the commander's and to end as done, and neither Sonnet arm did.
+One evening's sample, now named by the waiter and the frame; the next
+tranche's count is the measure.
+
 **The estimate, written down to be wrong on record** (the roster as
-recommended; the mixed roster adds about a fifth to the price): twenty
+decided): twenty
 landings on four lanes in under fourteen hours with nobody typing; the
 coverage pair's word past 4,500 (its trace ends at 4,730); Great
 Sahara's past 3,000; chapter fifty-two closes and the battery moves on

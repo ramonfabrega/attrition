@@ -428,14 +428,14 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**the newest pair's lane runs Opus 5.5 and every other lane Sonnet
-5.5, each with `--effort high` on its spawn line** (`ccc spawn --model
-'claude-opus-5-5[1m]' --effort high`, or `'claude-sonnet-5-5[1m]'`;
-the model and effort verified from each worker's transcript — the
-harness's defaults differ by model, and a trial once moved two
-settings for one). **Two kill rules ride with a Sonnet lane**: a
-booking gate red on its merge for what its own lane gate passed
-returns that lane to Opus — **a red on a pin another landing's merge
+**every lane runs Sonnet 5.5 at `--effort medium`** (Ramon, at the
+twenty-eighth steer, DECISIONS 65: `ccc spawn --model
+'claude-sonnet-5-5[1m]' --effort medium`; the model and effort verified
+from each worker's transcript — the harness's defaults differ by
+model, and a trial once moved two settings for one). **Two kill rules
+ride with a Sonnet lane**: a booking gate red on its merge for what its
+own lane gate passed returns that lane to Opus 5.5 at high — **a red
+on a pin another landing's merge
 moved is a re-pin, not a trip** (parked 1469; seven of twenty merges
 moved one in the twenty-fifth tranche, Opus lanes among them) — and a
 lane that lands nothing in three
