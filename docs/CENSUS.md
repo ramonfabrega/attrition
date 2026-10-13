@@ -718,3 +718,15 @@ of 3,611 (1.9 %)** — 31 by a coverage section, 37 by a sweep. Ten more
 `Farms::snip` and `CityData::get_empty_trade_routes`. Nine agree on every
 row they compare (`get_land` only its `mode > 0` arm); `get_empty_trade_routes` parts twice and holds both in its test.
 `docs/journal/2026-10-07-item-1619.md` has the batch and its findings.
+
+**Item 1630, the sweep's third batch** (2026-10-12): **simulation backed 78
+of 3,611 (2.2 %)** — 31 by a coverage section, 47 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, all `WorldData` predicates on the
+cell and tile words: `is_rocks`, `is_gathered_from`, `is_built_at`,
+`get_tregion`, `is_cliff_at`, `is_river`, `is_mountain_at`, `is_tree_at`,
+`is_oil_at` and `is_blocked_at`. Nine agree on every row (the port has no
+standalone function for most, so each drives the inline bit test on the real
+`World`); `get_tregion` parts where the coastal refinement fires and
+`region2` is −1 (the original returns −1, the port's `tregion_alt` falls back
+to `region`) and holds it in its test. `docs/journal/2026-10-12-item-1630.md`
+has the batch and its findings.

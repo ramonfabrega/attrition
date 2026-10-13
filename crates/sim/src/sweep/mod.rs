@@ -28,8 +28,18 @@ mod unit_mana_left;
 mod unit_type_get_stance_type;
 mod wcoord_to_tcoord;
 mod world_get_land;
+mod world_get_tregion;
 mod world_has_blocked_neighbors;
+mod world_is_blocked_at;
+mod world_is_built_at;
+mod world_is_cliff_at;
+mod world_is_gathered_from;
+mod world_is_mountain_at;
 mod world_is_ocean;
+mod world_is_oil_at;
+mod world_is_river;
+mod world_is_rocks;
+mod world_is_tree_at;
 mod world_space_at_corner;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
