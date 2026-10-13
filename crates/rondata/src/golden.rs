@@ -2048,6 +2048,9 @@ mod tests {
         // Chapter fifty-six: chapter fifty-five's staging and a Hoplite squad
         // added on 763, M6's first re-search (item 1829, `docs/GOLDEN.md` §68).
         ("chapter56.cmd", &[]),
+        // Chapter fifty-seven: chapter fifty-six's staging with the death list
+        // printed at the end detail (item 1863, `docs/GOLDEN.md` §69).
+        ("chapter57.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),

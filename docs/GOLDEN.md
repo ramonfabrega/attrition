@@ -11048,12 +11048,56 @@ member that dies — neither is a staging a script's few lines reach; both stay 
 **Not established.** What the original's group-id allocation for an added squad is
 (765); why a `near` pair stays on the Hoplites (774); the snap (1805).
 
-## 69. Reserved for the next item on the rules track
+## 69. Chapter fifty-seven — the added squad's rows, answered: a pool id, a squad head, and an instrument gap (item 1863)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 1830, the rows run786 left on the added squad `1/7`..`1/9`:
+`order:group.id` on 765, `near` on 774, `death:extra` on 874, 900, 961. **Whether run786 settles it
+was established first, on the disk**: it settles two of the three and names the third's instrument.
+
+**`order:group.id` (765): a constant 64, the pool's `who × 64`.** Ours 764 000 against 770 400. The id is
+`group_move_id` = `(group.id + frame × 10) × 100 + order_num` (`705f10`): `7640 × 100` is group id 0, `7704 × 100`
+is **64**. The group is who=1's army 0, and the dump's pool is 512 records — 8 players × 64 — so
+`GroupData::id` is the pool index and who=1's first is 64. This crate carried `army slot` (0). The same constant is
+the standing 6,400 of parked 674, 1499 and AI §142.5 (`12537 1/61`: ours 2, theirs 66), written down for
+twenty days as "689's pool id". **Built**: an army group's id is `who × 64 + slot` (`Sim::group_id`). The pool
+*slot* an army sits in is still the army's own number here; where AI scripts push building groups before it the
+slot parts (parked 689/870), and those rows now read a few units apart rather than 64. The value diff, on
+run786 765: `1/7`..`1/9` ours 770 400, theirs 770 400. **22 widenings moved, every one toward the dump**
+(re-pinned): the 6,400 on `12537`, `8781`, `14582`, `15581`, `16676` goes to 0 or to the pool-slot residue
+(`17410401` against `17410801`, `14336530` against `14336430`: the slot, not the who), ch4, ch21, ch38 and ch47 lose
+their `group.id` rows, and the long walks lose 1–72 downstream keys apiece (`sahara_toughest` 72 → 0 on one).
+No word and no floor moves; the battery reads 576 / 6566 / 2974.
+
+**`near` (774): the squad head, never reached.** The dump has `near` = `(6, 0)` on the captain `1/7` from its
+birth and `(−1, −1)` on `1/8`, `1/9` throughout. Ours searched for both on 774: the captain's
+`attack_move_look` hands its find to the group (`group_action_attack`, `mandatory == 0`), and the member retarget there
+called `find_melee_target` for every member, which ends in `find_nearby_target`, the writer of `near`
+(`PROBE` backtrace: `find_nearby_target_as < find_melee_target_as < group_action_attack`, each member).
+`Unit::find_melee_target@005ff9c0:32`–`91`: **a non-captain, `cavarch == 0`, takes its captain's target and returns
+before the search** — `get_action` must be an ATTACK (`order kind 10`), else `−1`; the captain's target valid and the
+stance/entrench/in-range test, else it falls to the search. `find_melee_target_added` already read that head
+(`Sim::melee_squad_head`, the add path); the group's retarget did not, and its SEAM said "no capture reaches one".
+**Built**: `group_action_attack`'s retarget reads the head first (`Nothing` → the group's own target, `Captain(t)` → `t`,
+no search, `Search` → as before). The value diff: `1/8`, `1/9` `near` ours (6, 0) → (−1, −1) on 774; **no draw
+moves, no other widening moves** (the whole `rondata` suite, 795 pass, red only on this item's own new pins and the
+queue's line).
+
+**`death:extra` (874, 900, 961): the instrument, not the sim.** run786's `end:` detail has no `DEATHS`, so the harness
+compared this crate's three Hoplite corpses against a record the capture never printed (`harness.rs`'s own comment:
+"a record nobody asked for", item 731). **run791** is chapter fifty-six's script with `DEATHS=1` at the end detail:
+the death list agrees on all three — `valid`, `first_frame` (873 for `1/8`), `cur_anim` — and the widening is the
+eleven `form` rows alone. One catch: **`GROUPS=1` and `DEATHS=1` at `end:` together print no `GROUPDATA`** and
+`unattended_capture.py` refuses the take (twice); run791 drops `GROUPS=1`, so `chapter_fifty_seven_s_word_frame_is_widened_whole`
+walks no pool (`widen_civilians`). The old rows stay in `WANT_CH56` — run786 was never taken with deaths.
+
+**Mutations.** The id (`s as i32` for `who × 64 + s`) fails run786's and run791's widenings; the head (always `Search`) fails
+them on 774. Both exit 101.
+
+**Chapter fifty-three's Hoplites on 1302** carried the same `group.id` family; ch43/ch46 lost it with the id. **1805 and 1778
+stay unstaged** (parked as they were).
+
+**Not established.** Why `GROUPS=1` with `DEATHS=1` prints no pool; the pool *slot* of an army past the first AI script
+push (parked 689/870); `find_melee_target`'s head for the callers that are not the group's retarget or the add path.
 
 ## 70. Reserved for the next item on the rules track
 

@@ -3937,10 +3937,10 @@ record on 2838 both directions before any mechanism is named (`docs/AI.md` §195
 
 ## Parked by item 1829, 2026-10-13 — chapter fifty-six
 
-(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
+~~(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
 theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `death:extra` on 874, 900 and 961
 (ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
-`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.
+`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.~~ **Closed by item 1863** (`docs/GOLDEN.md` §69): the pool id, the squad head, and an instrument gap.
 
 ## Parked by the next landing, slot A — reserved
 
@@ -3968,13 +3968,18 @@ is entered by a `jmp` after the function pops its frame (`Type::set_*_name`
 into `String::operator=`) hooks as an ordinary call. Left: forwarders whose
 arguments are fields (`this->x`) need a `field` argument token.
 
-## Parked by the next landing, slot D — reserved
+## Parked by item 1863, 2026-10-13 — chapter fifty-seven
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot D renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1885) **`GROUPS=1` with `DEATHS=1` at `end:` prints no `GROUPDATA`** (1863): run791's first two takes died in the verifier;
+the third dropped `GROUPS=1`. A chapter that needs both the pool and the death list has no capture shape.
+
+(1886) **An army's pool slot past an AI script's push** (689/870, narrowed by 1863): the id is `who × 64 + slot` now and what parts is the
+slot — `17410401` against `17410801`, `14336530` against `14336430`, one to four slots, no draw.
+
+(1887) **`find_melee_target`'s squad head for its other callers** (1863): built for `group_action_attack`'s retarget only; the idle search and the
+out-of-range search of a non-captain call `find_melee_target_as` with no head. No capture shows a part.
+
+(1830) **closed by 1863** (§69): `group.id`, `near`, and `death:extra` (the instrument).
 
 ## Parked by the next landing, slot E — reserved
 
