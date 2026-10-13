@@ -779,3 +779,21 @@ the three words; **`control_cost` has no function in the port** (`ai_units`
 reads `price.pop` inline), so its row asserts the rule — 0 for a decoy at
 argument 0, else `POP` — from `Unit::decoy` and `price.pop`. No parting.
 `docs/journal/2026-10-13-item-1701.md`.
+
+**Item 1704, the sweep's seventh batch** (2026-10-13): **simulation backed 118
+of 3,611 (3.3 %)** — 31 by a coverage section, 87 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests, **all ten agree on every row**: the
+nine `TypeData::is_*_type` index-range predicates (`is_specialty_type`,
+`is_spell_type`, `is_bonus_type`, `is_final_type`, `is_gov_hero_type`,
+`is_gov_type`, `is_tech_type`, `is_build_type`, `is_unit_type`; 838 rows each,
+every `type` from −2 to `0x33f` and the signed edges) and
+`UnitData::is_entrenched` (280 rows, the two mask words crossed with the
+argument). The port had the ranges only as table columns (`tech::Kind`,
+`orders::spell`), so the batch adds `crates/sim/src/type_index.rs`, the bounds
+as `const fn`s, each naming the reader it drives in its header; a unit test
+ties them to `spell::FIRST/LAST` and `Kind`'s documented ranges. **Not wired
+into a reader**: `find_nearby_target`'s `local_24` reads `combat.entrenched`
+without `is_entrenched`'s `unit_masks2 & 0x20000` exclusion — the port keeps
+entrenchment as one flag, not the mask. `is_wonder_type`, `is_gaia_type`,
+`is_item_type`, `is_good_type` and `assault_benefit` remain. No parting.
+`docs/journal/2026-10-13-item-1704.md`.
