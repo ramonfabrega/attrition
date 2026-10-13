@@ -3995,9 +3995,12 @@ impl Sim {
         if !moving {
             let ph = self.units[u].phase(frame);
             if (ph + 8).rem_euclid(16) == 0 {
-                if let Some(v) = self.find_melee_target(u, -1) {
-                    self.add_attack_order(u, v, QueuePos::First, false, false);
-                }
+                // `find_melee_target@005ff9c0`'s head answers a follower
+                // first (item 1960, `docs/GOLDEN.md` §71, run801): nothing
+                // when its captain is not attacking, the captain's target
+                // when it is. Only a captain, or a follower whose
+                // captain's target has gone, searches.
+                self.find_melee_target_added(u);
                 return;
             }
             if ph.rem_euclid(16) == 0 {

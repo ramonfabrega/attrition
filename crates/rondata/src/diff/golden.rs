@@ -13714,6 +13714,95 @@ const WANT_CH57: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **Chapter fifty-nine** (item 1960, `docs/GOLDEN.md` §71, run801): a Hoplite
+/// squad guarding a Citizen between two Stockades; its members' guard search
+/// goes through `find_melee_target`'s squad head (parked 1887).
+#[test]
+fn chapter_fifty_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch59", "chapter59", 59, 6, 760) else {
+        return;
+    };
+    eprintln!(
+        "chapter fifty-nine: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIFTY_NINE,
+        "chapter fifty-nine's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIFTY_NINE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIFTY_NINE,
+        "chapter fifty-nine's golden word moved; re-pin it here and say so in docs/GOLDEN.md §71"
+    );
+}
+
+/// **run801 whole, both directions** (item 1960, `docs/GOLDEN.md` §71).
+#[test]
+fn chapter_fifty_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch59",
+        "chapter59",
+        WIDENING_CHAPTER_FIFTY_NINE,
+        760,
+        0,
+        (758, 760),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch59 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch59: {} rows", got.len());
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch59 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH59.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch59: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH59_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch59: the pool's parting moved");
+}
+
+const WANT_CH59: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "607 0/-1 leader:treaties[1]",
+    "607 1/-1 leader:treaties[0]",
+    "607 1/2006 build:ever_seen",
+    "610 1/2006 build:ever_seen_completed",
+    "655 0/7 hits:damage",
+    "655 0/7 hits_left",
+];
+
+const WANT_CH59_POOL: &[&str] = &[
+    "625 slot 1 new_speed",
+    "625 slot 1 speed",
+];
+
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.
