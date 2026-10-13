@@ -3840,6 +3840,8 @@ one 150-line throwaway generator that saved an hour — worth graduating.
 1840 a twelfth: a third shape in the same throwaway (an
 argument-carrying stub, `v + 1000*arg0 + arg1`, to verify what a virtual
 call is passed) — graduate the generator.
+1851 a thirteenth: the same header, `stub`/`argstub` and `setup()`
+thrown away again, with the out-pointer shape still missing.
 
 (1767) **A pair's word is a literal `repin.py` cannot move** (1737's
 Loop line): `Pair`'s count and sequence are literals in the const, so a
@@ -3847,6 +3849,24 @@ re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
 a pair's windows want a list. 1768 a third: the window functions renamed again.
+
+(1864) **A probe's revert took an uncommitted build with it** (1829's
+Loop line): a `commit -a` after the build's edit swallowed it into the
+probe commit, and reverting the probe reverted the build. Candidate: the
+frame says a probe is committed before anything else is edited, or the
+build lives in a second tree. One reach.
+
+(1861) **`census.py --unbacked`'s shortest-first list is dead weight at
+the top** (1851's Loop line): destructors, `close`/`init`/`clear`,
+loggers, `dynamic_initializer`s and operators fill it, and every sweep
+lane skips them by hand, ~300 bytes deep. Candidate: a `--skip` for
+those name classes, on by default for `--kind sweep`. One reach.
+
+(1862) **`test_lane_lock` clashed on a pid in a lane's offline step**
+(1851's gate): passes alone, red once under the full gate. A flaky
+guard of the capture lane's lock is a guard nobody trusts. Candidate:
+reproduce under the gate's parallelism, then pin the pid it picks. One
+reach.
 
 (1846) **`RON_DEBUG_UNIT`'s `TI` is the type index, `TY` the record
 number** (1768's Loop line): a brief that names a unit by its `TY`
@@ -4119,7 +4139,7 @@ before any reading; killers in `docs/AI.md` §194. ~~Not built.~~ **Answered by 
 
 ## Parked by item 1798, 2026-10-13 — chapter fifty-five
 
-(1804) **Dragoon A's target drops a frame early in the original** (1798): on 794
+(1804) **Closed by 1829** (GOLDEN §68: `Guy::reset_pivots(0)` on a `v` type's empty search, built; the rows left ch43, ch46 and ch55). **Dragoon A's target drops a frame early in the original** (1798): on 794
 `0/6` `g.des_turret0[0]` ours −821 952 512 against 0 and `g.turret0[0]` ours
 −821 952 512 against −642 995 542 (run783, pinned in `WANT_CH55`); the Citizen
 `1/6` stands 1 949 units north of a Dragoon heading east-northeast, past M6's
@@ -4129,7 +4149,7 @@ second re-search on 793. No draw parts. Widen the GUY and unit rows on 793 first
 and a General on a cell centre sent 1–3 or 2000 units either way never spend a
 `SITE_SNAP_STAND`; the arm needs the unit on its waypoint, turning, with one order.
 
-(1806) **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
+(1806) **Closed by 1829** (run786, GOLDEN §68: a Hoplite squad on 763). **M6's mutation is held by no walk** (1798): reached on run783's 763 and 793
 (`research` true), but `research && false` exits 0 — it needs `found` to be a
 different, in-reach unit than the held non-combat-role one.
 
@@ -4144,3 +4164,10 @@ a frame and a delta; whether the eject is on it is the next item's widening to s
 (1848) **The successor pair's word 2838, widened whole** (1845): ours 101 draws against 16, index 1 — run780 ends at 2457, so a capture over
 `--log-window 2832 3089` at the long's detail (the lobby of run774..776) is the widening, and the first item on the word compares every dumped
 record on 2838 both directions before any mechanism is named (`docs/AI.md` §195's hypothesis, the boat's arrival, is a hypothesis).
+
+## Parked by item 1829, 2026-10-13 — chapter fifty-six
+
+(1830) **An added squad's rows on run786** (1829): `1/7`..`1/9` `order:group.id` on 765 (ours 764 000,
+theirs 770 400), `near` on 774 (`1/8`, `1/9`: ours (6, 0) against none) and `death:extra` on 874, 900 and 961
+(ours 1, theirs 0), pinned in `WANT_CH56`; no draw parts. Chapter fifty-three's staged Hoplites carry the same
+`group.id` family on 1302 (ch43/ch46), so it may be one family: the group number a squad added mid-game takes.

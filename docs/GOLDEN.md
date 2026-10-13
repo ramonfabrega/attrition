@@ -10983,12 +10983,70 @@ simulation change).
 **Not established.** What the original reads on 793 that ours does not (the
 turret row); the snap's real shape (1805); M6's observable arm (1806).
 
-## 68. Reserved for the next item on the rules track
+## 68. Chapter fifty-six — a failed search resets the turret, and M6's other arm held (item 1829)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** The rows chapter fifty-five left: parked 1804 (the early target
+drop on 794), 1806 (M6's mutation held by no walk), 1805 (the two-order snap) and
+1778 (a pushed group's dead member). **Whether run783 settles 1804 was
+established first, on the disk**: it does, and no staging is owed for it.
+
+**1804 is not an early drop; it is `Guy::reset_pivots(0)`.** Widening run783's
+`0/6` GUY and unit rows on 792..797 (the dump's frame *n* is the state after
+tick *n−1*; the trace's draw on 793, `Unit::fight+0x9b0 < cavarch_fight+0x5e`,
+is the research roll, 45484, and ours' `head` on tick 793 is the dump's 794):
+- Both sides agree through 793: `cavarch_o` 6, turret `−821 952 512` (−68.9°),
+  `des_node_flags` 1, anim 10. On 794 theirs reads `cavarch_o` −1 with
+  **`des_turret_angles[0]` 0** and the turret 15° back (`−642 995 542`); ours
+  held `−821 952 512` to the trace's end (990), `aim` still the Citizen.
+- Ours dropped the target on the same tick (the research found nothing, the
+  Citizen 1 920 units off and out of the Dragoon's reach) — the **drop agrees**;
+  what ours lacked is what the original's search does on the way out.
+  `find_melee_target@005ff9c0:245`–`262`: **when `find_nearby_target` answers
+  nothing and the type's `unit_flags & 0x200000` (`v`) is set, every figure
+  gets `Guy::reset_pivots(guy, 0)`.** This crate listed it as a SEAM and said the
+  Dragoon's rest is 0, "which its figures already hold" (run657) — true while
+  the turret is on the bow, and not on run783, where it stands 69° off.
+- `Guy::reset_pivots@005d8a80` (read off the listing, `5d8ab0`–`5d8bb8`): for
+  each node `k` of the type's pivot table, `des[k] = degrees_to_angle((lo + hi)
+  / 2)` — the signed halving, `cltd; sub; sar` — plus `0x80000000` when
+  `hi < lo`; with `param_1 == 0` the turret's own angle and both node-flag words
+  are left, and `Turret::step` walks it back by 15° a frame. Built as
+  `Sim::reset_pivots`, called from `find_melee_target_as` (every caller: the
+  captain's re-search, the out-of-range search, the idle search of a `v` type).
+- **The unit test** `an_empty_search_of_a_v_type_resets_the_pivots_and_only_that`
+  fails without it; the mutation (`if false &&`) fails `chapter_fifty_five_s_word_frame_is_widened_whole`
+  (exit 101). **The value diff**: `0/6 g.des_turret0[0]` ours −821 952 512 against 0
+  and `g.turret0[0]` ours −821 952 512 against −642 995 542 on 794 (run783) — both gone,
+  14 → 12 rows. **Two captures already on disk carried the same two rows**: run
+  `ch43` and `ch46` on 1479 (`0/6`), and both lose them (their `WANT_CH43/46` re-pinned;
+  nothing else moved). Whoever read "an early drop" was reading the frame the
+  turret parts, not a drop.
+
+**M6's other arm (1806): staged and held.** `chapter56.cmd` is chapter fifty-five's
+six lines and a Hoplite squad, `763 add hoplites who=1 237,150`: on 763, M6's
+first roll (51729, `% 5` ≠ 0), the held Citizen (non-combat-role) is re-searched and the
+search answers the new Hoplite (`found` ≠ target, in reach), so the arm writes it
+and returns with no strike; without the arm the Dragoon strikes the Citizen.
+Walked on `stage_walk` first (`RON_STAGE_DRAWS`): `research && false` takes 764 from
+6 draws to 5, and `fight`'s strike moves to 763. **The mutation** (`roll % 5 != 0
+&& false`) fails both run786 tests (exit 101), closing 1806.
+
+**What run786 says.** The word **1010**, the trace's last frame; the draw stream
+agrees through the Hoplites' arrival, M6's switch and both Dragoons' rounds. The
+widening (605..1011) is 19 rows: the eleven `form` rows, and **eight rows the added
+squad `1/7`..`1/9` owns** — `order:group.id` on 765 (ours 764 000, theirs 770 400:
+the group number the squad's add takes), `near` on 774 (`1/8`, `1/9`: ours (6, 0)
+against none), and `death:extra` on 874, 900, 961 (ours 1, theirs 0). None parts a
+draw. Not booked as words: they name no frame the word is on (parked 1830).
+
+**Not staged: 1805 and 1778.** A chapter is three arms at most; the two-order snap's
+probes (1798) found no order that reaches it, and 1778 needs a pushed group with a
+member that dies — neither is a staging a script's few lines reach; both stay parked.
+
+**Held out.** The battery reads **576 / 6566 / 2974** on this tip, unmoved.
+
+**Not established.** What the original's group-id allocation for an added squad is
+(765); why a `near` pair stays on the Hoplites (774); the snap (1805).
 
 ## 69. Reserved for the next item on the rules track
 

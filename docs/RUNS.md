@@ -16183,3 +16183,21 @@ Packet `~/ron-golden/run785/map-18/frame-snapshot.bin`, 948,454,012 bytes, SHA-2
 the window's dump `gamelog.txt` beside it (blocks 2174..2181 hold `1/72`: still on 2178 and 2179, turning on 2180). On the packet
 (`step4.py --entry 5f6e40 --this 13e3947c`, `idle` byte 1): `Unit::think` enters `think_carry` → `think_carry_civilian(1)` and writes
 (35736, 24984). **What it holds**: no widening test (the window is five blocks); the diagnosis of §195.
+## run786 — chapter fifty-six: M6's other arm, a Hoplite squad on 763 (2026-10-13, item 1829)
+
+`docs/GOLDEN.md` §68, `tools/gamelog/golden/chapter56.cmd` (7 staged lines). **What the disk could not answer**: run783 holds M6 only
+where the re-search finds nothing or the held unit again (`research && false` exits 0, parked 1806); no capture has a re-search that
+answers a different in-reach unit. Staging walked by `stage_walk` on `ch53`'s start first (`RON_STAGE_DRAWS`: 764's draws 6 → 5 under the
+mutation). Census rows the lobby reaches: none new (a golden chapter). run787 unused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch56 \
+    --map 14 --end-frame 1010 --log-window 605 1010 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter56.cmd
+```
+
+Pool lane 1 (free, no wait), `success: true`, 1011 frames, seed 12345, map 14, exit 0, 588 s. Dump 180,758,411 bytes (sha256 `7bb968434a11…`),
+trace 10,223,200 (`92dd79ecaf67…`), kept in `~/ron-golden/ch56/map-14`. **What it holds**: `golden::chapter_fifty_six_holds_to_the_golden_word`
+(**1010**, the trace's end) and `chapter_fifty_six_s_word_frame_is_widened_whole` (605..1011, 19 rows, no pool row).
