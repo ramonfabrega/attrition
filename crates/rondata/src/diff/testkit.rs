@@ -8814,12 +8814,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // is lifted off before `find_path` marches. Item 1663 moved it to
     // **3843**, past run721's last block (3645), and took run742 over
     // 3837..4094 (block 3844); run721's test keeps the move's value diff on
-    // the Transport Helicopter `1/212` and its two fellow followers.
+    // the Transport Helicopter `1/212` and its two fellow followers. Item
+    // 1664 moved it to **3963** (block 3964), still in run742: the Terra
+    // Cotta Army's free soldier, whose clock the walk now compares by the
+    // squad it births.
     (
         "COVERAGE_PAIR_WORD",
         crate::diff::coverage_pair::COVERAGE_PAIR_WORD,
         Some("run742_s_word_frame_is_widened_whole"),
-        1663,
+        1664,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_FRAME_3843),
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word

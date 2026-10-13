@@ -235,7 +235,11 @@ pub(crate) struct Pair {
     /// < Unit::do_guard+0x7f4`. Item 1663 lets a Helicopter owing a quarter
     /// turn or less step at once (`docs/AI.md` §181): **3843** both ways,
     /// 23 versus 28 draws, index 5: ours `Guy::set_anim+0x97a <
-    /// Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`.
+    /// Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`. Item 1664 gives
+    /// the Terra Cotta Army its free soldier (`docs/AI.md` §182): **3963**
+    /// both ways, 18 versus 32 draws, index 3: ours `Guy::set_anim+0x97a <
+    /// Unit::do_move+0x11cf`, theirs `Guy::init_real+0x52` — seven units born
+    /// at once in one group.
     pub count: i64,
     pub sequence: i64,
 }
@@ -253,8 +257,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3843,
-    sequence: 3843,
+    count: 3963,
+    sequence: 3963,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1849,19 +1853,22 @@ fn run742_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 258, "every captured block");
-    // **2460** on item 1663's tree; 171 stand from the window's first block
-    // (the leader's buckets and escrow, `SITE[..].reg`, the pools, births'
-    // `form`). **The word 3843's block, 3844**: in the original the computer's
-    // building `1/2042` — its queue head a `type 54` batch, `job_counter`
-    // 13600 and 13650 in both — gives birth to three Mech Infantry
-    // (`TypeIndex` 104, 180 hits) `1/235`, `1/236` and `1/237` at (34584,
-    // 38712), uids 370–372, and the leader's `num_units[54]` reads 5 against
-    // ours' 4, `active` 159 against 158; ours has no such births (its `1/235`
-    // on 3845 is another unit). Five draws: `Guy::init_real+0x52`, the
-    // three births' guys. No mechanism is named: ours' `1/2042` carries the
-    // same counter and queue and does not complete, so the batch's size or
-    // its completion test is the item after's first reading.
-    pin_eq!(w.firsts.len(), 2460, "initial run742 baseline");
+    // **1583** on item 1664's tree (2460 on 1663's); 171 stand from the
+    // window's first block (the leader's buckets and escrow, `SITE[..].reg`,
+    // the pools, births' `form`). **Item 1663's word, 3843 (block 3844)**:
+    // the Mech Infantry squad `1/235`–`1/237` (`TypeIndex` 104, uids
+    // 370–372, at (34584, 38712)) was born by the Terra Cotta Army `1/2043`
+    // — not by `1/2042`'s queue, whose product is the General `1/238` on
+    // 3845 — on the frame its `recharging` clock ran out: the dump reads 1 on
+    // block 3843 and 607 on 3844 (450 + 21 Barracks-line units × 15 / 2),
+    // this crate's `Building::recharging` the same on every block of the
+    // window (`RON_DEBUG_BUILDS`, the `rc` column). The leader's
+    // `num_units[54]` (Mech Infantry; the table starts at `BASE_UNITTYPES`),
+    // `active` and `control` agree. **The word is now 3963 (block 3964)**:
+    // seven units born at once in group 69 — three Mech Infantry, two MLRS,
+    // a Flamethrower and a Heavy Tank, hits 180/230/125/245 — which this
+    // crate does not make; the 14 draws are their guys.
+    pin_eq!(w.firsts.len(), 1583, "initial run742 baseline");
     let first = w
         .firsts
         .values()
@@ -1877,8 +1884,15 @@ fn run742_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(1, -1, "leader:num_units[54]".to_string()))
             .map(|(block, _)| *block),
-        Some(3844),
-        "the original's batch of three is born on the word's block"
+        None,
+        "the Terra Cotta squad is counted on the frame it is born"
+    );
+    pin_eq!(
+        w.firsts
+            .get(&(1, 235, "unlinked".to_string()))
+            .map(|(block, _)| *block),
+        None,
+        "and ours has the squad"
     );
     let path = dump(RUN742).expect("the replay just read run742");
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -1892,6 +1906,49 @@ fn run742_s_word_frame_is_widened_whole() {
                 pin_eq!(u.uid, Some(370 + (o - 235)), "1/{o}'s identity");
                 pin_eq!(u.guys.first().and_then(|g| g.kind), Some(104));
             }
+        }
+    }
+    // The Terra Cotta Army `1/2043`'s clock, `BuildData +0x7a`, read off the
+    // dump's own text (the parser carries no `recharging` for a building):
+    // 7 on the window's first block, 1 on 3843, reset on 3844.
+    let clock = |ix: &mut crate::capture::indexed::IndexedCapture, block: i64| -> Option<i64> {
+        let at = ix.frames().iter().position(|f| f.number == block)?;
+        let body = ix.read_frame(at).ok()?;
+        let mut seen = false;
+        let mut who1 = false;
+        for line in body.lines() {
+            let line = line.trim();
+            if line == "o 2043" {
+                seen = true;
+            } else if seen && line == "who 1" {
+                who1 = true;
+            } else if seen
+                && who1
+                && let Some(v) = line.strip_prefix("recharging ")
+            {
+                return v.parse().ok();
+            }
+        }
+        None
+    };
+    pin_eq!(
+        clock(&mut ix, 3837),
+        Some(7),
+        "the clock on the first block"
+    );
+    pin_eq!(clock(&mut ix, 3843), Some(1), "one frame from its end");
+    pin_eq!(
+        clock(&mut ix, 3844),
+        Some(450 + 21 * 15 / 2),
+        "reset: TERRA_COTTA_FREE x 15 plus 21 units at 15 / 2"
+    );
+    // The new word's block: seven births in group 69 that only the dump has.
+    for (block, born) in [(3963, false), (3964, true)] {
+        let at = ix.frames().iter().position(|f| f.number == block).unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        for o in 246..=252 {
+            let unit = frame.units.iter().find(|u| (u.who, u.o) == (1, o));
+            pin_eq!(unit.is_some(), born, "1/{o} on {block}");
         }
     }
 }

@@ -530,8 +530,7 @@ impl Sim {
     fn barracks_line_units(&self, who: Player) -> i32 {
         (0..self.unit_types.len())
             .filter(|&r| {
-                self.unit_types[r].combat.attack != 0
-                    && self.trainer_where(r) == Some(ty::BARRACKS)
+                self.unit_types[r].combat.attack != 0 && self.trainer_where(r) == Some(ty::BARRACKS)
             })
             .map(|r| self.muster[who as usize].by_type[r])
             .sum()

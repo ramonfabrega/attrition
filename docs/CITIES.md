@@ -866,7 +866,7 @@ gameplay ("G") rather than message/sound/AI:
 | dock, MARKET, TEMPLE | a count and its high-water mark; a new high (frame > 0, built, counted) → `do_bonus(WEALTH, 30)` |
 | high-water mark | the nation's free units — **§4.3**, whole |
 | gather type | `gather_slots[k] += gather_max`; a new high → the first-slot resource bonus (`FOOD_BONUS_FOR_FARM`, `TIMBER_BONUS_PER_WOOD_SLOT`, …) |
-| **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund**; the per-wonder one-offs — Terra Cotta's free-unit timer, the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
+| **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund**; the per-wonder one-offs — Terra Cotta's free-unit timer (`FREE × 15` into `recharging`; modelled, `docs/AI.md` §182), the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
 | tail | **`update_hits(0)`** — full health now; `update_los`; **a non-city in a city → `City::check_upgrade`** (§5.3); `update_seen` |
 
 **The ordering matters** (item 1634, `docs/AI.md` §176): the road request

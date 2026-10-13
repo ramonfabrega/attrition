@@ -18401,21 +18401,134 @@ untouched.
 **The next word, 3843** (block 3844, inside run742). The first parted
 records are three units the dump holds alone: `1/235`, `1/236`, `1/237`, Mech
 Infantry (`TypeIndex` 104, 180 hits, uids 370–372) at (34584, 38712), born on
-block 3844 by the computer's building `1/2042` (queue head `type 54`,
+block 3844 ~~by the computer's building `1/2042` (queue head `type 54`,
 `job_counter` 13600 on 3843 and 13650 on 3844 — both sides agree on it, and
 no key of `1/2042` parts in the window), with the leader's `num_units[54]`
 5 against 4 and `active`/`control` one higher. Ours has no births there (its
 own `1/235` on 3845 is another unit). The five draws are the three guys'
 `Guy::init_real`. Nothing has read why ours does not complete the batch:
 the batch size, the completion test or the queue entry's count are the
-first readings.
+first readings.~~ **Not so (§182):** the squad is the Terra Cotta Army's free
+soldier, born by `Build::process`'s last `train`; `1/2042`'s product is the
+General `1/238`, on 3845 on both sides.
 
 **Limits.** The queue costs on 3583, `pool:81`, the group-id keys and the
 leader's buckets stand parted and unexplained. The Helicopter's arm is
 read from the decompile only; one real frame backs it (six more follow the
 same unit), and no other Helicopter in any capture is known to reach it.
 
-## 182. Reserved for the race on item 1648, its landing 5 (the coverage pair's word 3439)
+## 182. The Terra Cotta Army trains its free soldier, and the word at 3963 (2026-10-12, item 1664)
 
-A stub the booking lands so the race's winner writes its landings at their own anchors
-(parked 1491; DECISIONS 64, amended 2026-10-12); only the winner's chain merges, and it renames this.
+**Baseline.** Coverage word 3843 (block 3844, inside run742), 23 versus 28
+draws, index 5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`. §181 booked it as the Mech Infantry `1/235`–`1/237`
+"born by the computer's building `1/2042`". **That attribution was wrong, and
+it was the previous landing's hypothesis**: `1/2042`'s queue head `type 54` is
+the **General** (`TypeIndex` 54), whose product is `1/238` on block 3845 —
+the dump's own birth list (`tools/gamelog/births.py … 3837 3850`) and ours
+agree on it (position (33720, 41400), 599 hits, two guys). The squad has its
+own cause.
+
+**Who the units are.** `GUY.type` 104 is `MECHINFANTRY` (`enums/TypeIndex.txt`)
+and the three records are one squad (`up`/`down` chain 235↔236↔237, one guy
+each, 180 hits, uids 370–372). `LEADERDATA`'s `num_units[]` starts at
+`BASE_UNITTYPES` (50), so the one key that parted on the word's block,
+`num_units[54]` 4 against 5, is `TypeIndex` 104 — the squad, counted once —
+beside `active` and `control` one higher; `num_units[4]` (the General) rises
+on 3845 on both sides. The leader's resources do not move: nothing was paid.
+
+**What the dump does.** Block 3843 has no unit at (34584, 38712); block 3844
+has the squad, `group` 81, `idle` 0, orders at its own point; block 3845 has
+it in group 78 with a nine-step move toward (39288, 42168) — the army's
+rally. No building's queue holds a type 104 on any block 3837–3846, and no
+unit of the leader has a `num_queued` or `queue_time`. The draws on frame 3843
+(`report.py … draws 3843`): three `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd` between the units' idle draws and `Objects::inc_time`
+— the build step of `Objects::process_all`, where `Build::process` runs — and
+the squad's own animation draws in `Guy::inc_time`. The callers of
+`Objects::init_unit@0065e0c0` that a unit-less building can reach
+(`report.py <exe> refs 0065e0c0`: `Build::train` from `Build::process`'s five
+sites, `Build::activate`'s free units, `Build::finished`, `Leader::gain_tech`)
+narrowed it to **`Build::process@0061edf0`'s last `train`**:
+
+```text
+if building.type == TERRACOTTA (0x211):
+    recharging -= 1                            # BuildData +0x7a, every active frame
+    if recharging < 1:
+        recharging = FREE*15 + (DELAY == 7 ? n*15/2 : n*DELAY)   # n = LeaderData +0x9f8
+        t = current_upgrade(get_graft(SLINGERS))
+        if t >= 0 and control(+0x940) < pop_cap(+0x7e4): Build::train(this, t); terra_cotta_total++
+```
+
+`Build::activate@00623e20` seeds the clock, `FREE × 15`, when the wonder is
+finished (its `0x211` arm, in the wonder branch). `TERRA_COTTA_FREE` is `30
+seconds` (450 frames) and `TERRA_COTTA_DELAY` `7` (the original's own "7 is
+half a second" special case); `+0x9f8` is the count `Leader::track_unit_type`
+keeps of units whose trainer (`UnitTypeData +0x40`) is the Barracks (`0x1ab`)
+and whose base attack (`+0x1e8`) is not 0. The newest of the Slingers line
+for a leader holding every technology is the Mech Infantry (the Barracks'
+own Modern step), a squad of three.
+
+**The value diff** (the dump's own coordinates, run742). The wonder is
+`1/2043` (`orig_type` 529 = `0x211`, at (34560, 37632)); its `recharging`
+reads **7** on the window's first block (3837), **1** on 3843, **607** on
+3844 and 606 on 3845 — `450 + 21 × 15 / 2`, 21 being the leader's armed
+Barracks-line units. §176 and §177 had read the same clock (449 on 3395, 446
+on 3398) and called a Terra Cotta birth killed because it was not due; it was
+due **445 frames later**, on 3843 — a clock read on one block names a birth
+only with its arithmetic carried to the end. Before, ours' clock was 0 and
+the squad was absent (`1/235`–`1/237` "unlinked: the dump holds it alone",
+`leader:num_units[54]` 4/5, `active`/`control`); after, `RON_DEBUG_BUILDS`
+(its new `rc` column) prints 7, 6, … 1, 607, 606 for `1/2043` on every block
+of the window, the squad is at the dump's three positions on 3844 and in
+group 78 with the dump's move on 3845, and **no key of the leader or of the
+squad parts**. `run742_s_word_frame_is_widened_whole` pins the clock's three
+readings off the dump's text (the parser carries no building `recharging`:
+the field this crate now writes and **no widening compares**, see Limits),
+the leader key's absence, the squad's presence and the keys, 2460 → 1583.
+
+**Killers.** The reading would die if the squad were not at the wonder's exit
+ring (it is: 1080 from the wonder, as the General is 792 from its building),
+if the clock were not a countdown of one a frame (7→1 over six blocks), if
+the reset did not follow the Barracks count (21 units: 607; with 20 it is
+600), or if ours' clock parted from the dump's on any block (it does not,
+3837–3846). Unit test
+`cities_tests::a_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out`
+(seed 450, tick countdown, reset with one unit 457, birth, and the cap
+refusing the soldier while the clock resets; fails without the tick's call
+and without the soldier — mutated, below).
+
+**Built.** `Sim::terra_cotta_soldier` and `terra_cotta_activate`
+(`crates/sim/src/nations.rs`; the tick calls the first after the Persians'
+caravan in the live building pass, `lib.rs`; `Sim::activate` calls the second
+after `claim_building_high`, `city.rs`), `Tuning::terra_cotta_free` and
+`terra_cotta_delay` (`tuning.rs`, both slots checked against `rules.xml`),
+`ty::TERRA_COTTA`.
+
+**Score.** Word **3843 → 3963** (count and sequence, both), ours 18 draws
+against 32, index 3: ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`,
+theirs `Guy::init_real+0x52`. It is inside run742's window (block 3964,
+3837..4094), so no capture was taken and no run number spent. Great Sahara
+untouched.
+
+**The next word, 3963** (block 3964, inside run742). Seven units the dump
+holds alone are born at once, `1/246`–`1/252`, uids 383–389, all in **group
+69**: three Mech Infantry (180 hits), two MLRS (230), a Flamethrower (125)
+and a Heavy Tank (245) — the General `1/150`'s army. The General itself is
+casting: `1/150` has a `CASTORDER` on 3963 with `spell_time` 99 → 0 and
+`mana_burn` 804 → 802, and the new units carry `unit_masks & 1`, the
+decoy bit (`cast_create_decoy@00674370`, §99.14). Ours has the cast (§99.14's
+standing order) and does not make these copies; the first reading is why
+`1/150` does not complete its `0x27a` cast on 3963 in ours (its `spell_time`
+and mana against the original's), before the copies themselves. Fourteen
+extra draws: seven `Guy::init_real` and seven figures' `inc_time`.
+
+**Limits.** The wonder's `recharging` is a `BuildData` field the dump prints
+and no widening compares; this landing read it by hand from the text. The
+leader's group-id keys (`group:81.held`, `pool:81`) now part on the squad's
+own block (ours files the three in pool 81 on birth, the dump's `group` field
+is 81 and its pool table does not list them) and are the old unexplained
+family. The `terra_cotta_total` counter and the Kremlin's spy, which share
+the wonder branch of `activate` and `Build::process`, are not modelled. The
+arm is backed by one real firing (3844); the cap refusal, the non-7 delay and
+a non-Slingers upgrade line rest on the decompile alone.

@@ -2330,13 +2330,14 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             )
         };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]{head}",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} rc{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]{head}",
             b.owner,
             b.index,
             b.pos.x,
             b.pos.y,
             u8::from(b.active),
             u8::from(b.regen_roads),
+            b.recharging,
             b.job_counter,
             b.constr_time,
             b.construct_hits,
