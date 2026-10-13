@@ -1311,7 +1311,14 @@ fn run714_s_word_frame_is_widened_whole() {
     // past it; leader 1's army marches on Napata in both, and `1/51`'s
     // `path[2].to` on 2297 — (1848, 8616) against (2616, 8616) — is the
     // first of it to part, the item after's hypothesis.
-    pin_eq!(w.firsts.len(), 139, "initial run714 baseline");
+    // Item 1656 (a packed fisherman is idle): 139 -> 121, the leader's
+    // `MAKE` rows on 2381 and 2384 — two Fishermen offers against the
+    // original's air units, the same Units step run721 parts on 3581.
+    pin_eq!(
+        w.firsts.len(),
+        121,
+        "run714 after an idle fisherman holds the boat"
+    );
     pin_eq!(
         w.firsts
             .iter()

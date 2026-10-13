@@ -18183,7 +18183,9 @@ length 14 against 26, position (40553, 37515) against (40548, 37539).
 Rows that stand from earlier blocks: Rocket Artillery's `MAKE[6].val`
 333185 against 347364 on 3581, `1/57` and `1/105`'s `group.id` on 3581,
 and the queue costs of `1/2023`, `1/2032` and `1/2035` on 3583 (222
-against 202). The ground guard reads 99 (pinned at 97).
+against 202). The ground guard reads 99 (pinned at 97). run714's window
+parts on the same Units step at 2381 (two Fishermen at 127602 against
+the air units) and agrees now: **139 → 121** keys, nothing added.
 
 ## 180. Reserved for the race on item 1648, its landing 3 (the coverage pair's word 3439)
 
