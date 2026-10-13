@@ -188,6 +188,9 @@ impl crate::Sim {
             }
             if research {
                 let found = self.find_melee_target_as(u, -1, 0, true);
+                if std::env::var_os("RON_PROBE_1798").is_some() {
+                    eprintln!("PROBE1798 found={found:?} target={target:?}");
+                }
                 if found != Some(target) {
                     self.cavarch_take(u, found);
                     return;
