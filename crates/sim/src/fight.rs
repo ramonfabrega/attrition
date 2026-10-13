@@ -187,6 +187,11 @@ pub const SITE_FIRST_WOUND_FLOCK: &str = "Object::take_damage+0x18b";
 pub const SITE_ATTACK_POS_REVIEW: &str =
     "Unit::find_attack_pos+0xea9 < Unit::check_target_path+0x445";
 
+/// The ring draw of the computer's siege arm — `Unit::fight@005fd4d0`'s
+/// packed branch asking for a better spot against an armed building
+/// (`fight:533`, returning to `+0x115e`, item 1937).
+pub const SITE_ATTACK_POS_SIEGE: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0x115e";
+
 /// The same draw from `Group::action_attack@00712490+0x41a`, which calls
 /// the nine-argument form **once**, on the group's leader, and only when
 /// `ObjectData::is_in_range` says the leader cannot already shoot

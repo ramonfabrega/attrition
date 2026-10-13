@@ -85,12 +85,13 @@ impl crate::Sim {
         // SEAM (`601304`): a unit inside a carrier tail-calls the
         // carrier's own `find_attack_pos`. Nothing here rides in one.
         //
-        // SEAM (`60130d`-`601348`, `local_28`): the flag that forces the
-        // stand-off onto the maximum-range arm is
-        // `vtable+0x10c && (unit_masks & 0x40000) && target->is_build`,
-        // and the middle term — a per-unit mask bit — is not modelled, so
-        // it is taken as clear.
-        let bombard = false;
+        // **The bombard flag, `local_24`** (`601359`-`60139d`, item 1937):
+        // `is_siege && unit_masks & 0x40000 && target->is_build` — a
+        // computer's siege engine asking for a spot against a building.
+        // It skips the first return below (already in range) and puts the
+        // stand-off on the maximum-range arm.
+        let bombard =
+            p.siege && self.unit_ai_bit(self.units[u].owner) && matches!(target, Obj::Building(_));
         // `local_38`: the head order's `mandatory` byte when the current
         // order is an ATTACK (`60142c`). It gates the `find_nearby_spot`
         // fallback at the very end, which is not modelled here.

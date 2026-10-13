@@ -8999,7 +8999,7 @@ impl Sim {
         // position, which is what this crate did for all of them until
         // item 328.
         let here = self.units[u].pos;
-        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
+        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_SIEGE)
         {
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
@@ -9138,17 +9138,6 @@ impl Sim {
             return false;
         }
         self.store_attack(u, a);
-        if std::env::var("RON_PROBE1937").is_ok() {
-            eprintln!(
-                "PROBE1937 u{u} ai {} siege {} atk {} tr {} mr {} inr {}",
-                self.unit_ai_bit(self.units[u].owner),
-                self.profile(Obj::Unit(u)).siege,
-                self.profile(target).attack,
-                self.max_range_of(target),
-                self.max_range_of(Obj::Unit(u)),
-                self.is_in_range(target, Obj::Unit(u))
-            );
-        }
         if self.unit_ai_bit(self.units[u].owner)
             && self.profile(Obj::Unit(u)).siege
             && let Obj::Building(_) = target
@@ -9158,7 +9147,7 @@ impl Sim {
         {
             let here = self.units[u].pos;
             let spot =
-                match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT) {
+                match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_SIEGE) {
                     Some(p) => Some(p),
                     None if self.attack_pos_refused(u, target) => None,
                     None => Some(self.pos_of(target)),
