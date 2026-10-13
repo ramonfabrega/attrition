@@ -799,9 +799,10 @@ walk** (1248's mutation D).
 forty-six holds the prune itself (1049, `1/2001`'s `gather_down` 6 → 2,
 both sides); the off-map arm no staging reached.
 
-(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
+~~(1249) **`do_cast`'s captain check** (1235; 1223's hypothesis, not the
 cause): a member with its own cast stepped before its captain. Transport
-only; no staging has one.
+only; no staging has one.~~ **Closed by item 2077** (`docs/AI.md` §207):
+built; the successor pair's `1/24` reaches it on 3835.
 
 (1239) **A refused passenger (`num_inside != 0`)**: the original's boat
 lives; no staging crowds a shore.
@@ -3733,6 +3734,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2082) **The brief says "under `tools/memcap.sh`" without its ceiling
+argument** (2049's Loop line, filed at its merge): `memcap.sh` takes the
+ceiling first (`memcap.sh 12 cargo …`), and one refused run came of the
+bare form. Candidate: the frame's line carries the ceiling, held by the
+brief test against the script's usage line.
+
 (2071) **`repin.py --write` cannot rewrite a golden widening's `const` want
 arrays** (2032's Loop line, filed at its merge): "the want is not a
 literal", so a new chapter's first pin is always by hand. Candidate:
@@ -3782,7 +3789,7 @@ landed sweeps for the inflation (beside 1725, the same score's other leak).
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
-(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046).
+(2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4170,11 +4177,12 @@ Two of the ten (`UnitData::has_stance_type`, `get_stance_type`) were a forwarder
 
 ## Parked by item 2001, 2026-10-13 — a computer's raiding ship leaves a building alone
 
-(2004) **The successor pair's word 3834: 169 draws against 167, index 9** (2001; `docs/AI.md` §203.5): ours `Unit::think_fish+0x27a`,
+~~(2004) **The successor pair's word 3834: 169 draws against 167, index 9** (2001; `docs/AI.md` §203.5): ours `Unit::think_fish+0x27a`,
 theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Inside run809's window. The first parted row of the Aegis Cruiser `1/113` is
 `orders.len` on block 3648, ours 0 theirs 1: theirs' `think` off-32-phase `near_o` arm (`think@005f6e40:107-130`) adds an attack on tick 3647
 that ours does not, and drops it on 3648 with no shot; `pos` parts on 3649. Widen 3834's own block whole first; a packet at 3647 answers
-what the arm hands `add_attack_order`.
+what the arm hands `add_attack_order`.~~ **Closed by item 2049** (`docs/AI.md` §205): the arm, built; it hands `1/113` the ceiling city `0/2000`, which ours refused for its
+health. No packet.
 
 (2005) **`compare_target`'s raid-ship arm: the SIEGE-and-fires-on-move branch and the wall exemption are unreached** (2001): built from
 the listing (`0064e7a5`..`0064e81f`); run810 reaches only the non-SIEGE return.
@@ -4237,6 +4245,10 @@ mode writing either the base address or a stub into the one vtable. The four `Un
 (0x46ced0), the type record's `+0x134` asked on the inline arm — and were left for the next batch for want of it.
 A `vcall --base ADDR` (the slot's two arms, a mode column, the inline arm's field through `--off`/`--via`) would
 take all six.
+**Built by item 2072**: `vcall --base ADDR [--base-via VIA --base-slot OFF] --handed V,..` (`tools/sweep_gen.py`,
+its test in `tools/explore/test_sweep_gen.py`) took the four stance getters; the inline arm is a call of the
+type record's slot or the object's own fields, read by the port's block over `mode`, `v` and `m`. 2040's two
+(a `mix` with `--base`) are still owed.
 
 (2022) **`tools/emu/hooks.py`'s stub page holds 256 stubs, and a vtable built per row exhausts it** (Loop; names
 no score). `Harness.stub` hands out `0x10` bytes of the one `0x1000`-byte page at `STUBS` and never reuses them, so
@@ -4290,13 +4302,21 @@ per-player table besides) waits on it. It is 2003's second-window token (1972) f
 `this`: `--cell-win VA:SIZE --via OFF:SIZE`, the pointer at the record's `OFF` naming SIZE random bytes, with the
 coordinates drawn inside a pinned width.
 
-## Parked by the next landing, slot AC — reserved
+## Parked by item 2049, 2026-10-13 — an idle captain takes its cached nearest off the search's phase
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+~~(2050) **The successor pair's word 3835: 46 draws against 40, index 0** (2049; `docs/AI.md` §205.5): ours `Guy::init_real+0x52` (`1/24`,
+then `1/36`), theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/34`) and then one `init_real`. Ours re-inits one body more, at the
+frame's head; the scout `1/101`'s `think_scout+0xaba` spends more in ours. Rows before and after it, a hypothesis: on 3836 `1/23`..`1/25`
+`inside` ours 229 (the transport `1/229`) theirs −1, and `1/101`'s move goal. Inside run809's window (to 3883); every record on 3835 both
+ways first.~~ **Closed by item 2077** (`docs/AI.md` §207): `do_cast`'s member check; `1/24` waits on its captain `1/23`'s
+cast. No packet.
+
+(2051) **`is_in_range`'s head asks health for every caller but the `near_o` arm** (2049): `006486b0` asks the slot (`flags & 1`, and
+`is_on_map` for a unit), never the health; [`Sim::is_in_range_at_margin`] asks `active` (a building's `health > 0`) from the first combat
+landing. Made `struck` for every caller, the coverage pair parts at **3142** (4730 before; ours 21 draws, theirs 20, index 3: `1/59`'s
+`Guy::move` roll in ours), so some reader of the range test leans on the health term — a ceiling city that an attack's in-range check
+should keep in range, and something of ours that drops it otherwise. Names no frame on an open word; the `near_o` arm asks
+`is_in_range_struck` alone.
 
 ## Parked by the next landing, slot AD — reserved
 
@@ -4306,13 +4326,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AE — reserved
+## Parked by item 2061, 2026-10-13 — the sweep's forty-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2062) **The order list's head is a shape four sweeps took by hand** (Loop; names no score). `UnitData::order_type`
+(0x616e80), `is_moving` (0x610af0), `is_packing` (0x60aa60) and `is_unpacking` (0x60a4b0) open alike: a null
+`this+0xdc` answers 0; else the cursor is rewound (`+0xd4` the head's first link, `+0xcc` its order, `+0xd0` its
+byte) and the head order is asked a slot — `+0x10` or `+0x14` by a `jmp`, or `+0xf4` twice and then the type the
+answer's `+0x20` indexes in `types.list` (`0xe85ddc`), slot `+0x50`/`+0x54`. Item 2061 wrote them on a shared
+`tools/emu/orderhead.py` (the layout, and the cursor's `n`/`o` marks with every other byte held) rather than four
+copies; `AnimalData::get_speed` (0x5d8380) and the rest of `UnitData`'s order predicates open the same way.
+Candidate: `sweep_gen.py ohead --slot OFF [--tail] [--spell SLOT]` over `orderhead.py`, each arm with a test made to
+fail first.
+
+(2063) **`ObjectData::health_level` clamps a negative pool to zero, the port does not** (reading, from the listing;
+names no score). At `6534f8`..`653505` the original zeroes the hits left when either the subtraction or the hit
+pool itself is negative (`js`, `testl %edi; js`) and only otherwise takes the minimum with the pool; `city.rs`'s
+`health_level` clamps the left at zero first and then at the pool, so a negative pool reads level 6 where the
+original reads 0. Item 2061's rows draw the pool non-negative, which every caller hands it; a capture that showed
+a negative pool would name the frame. Parked rather than fixed: no score reads it.
 
 ## Parked by item 2066, 2026-10-13 — chapter sixty-two
 
@@ -4327,21 +4358,25 @@ a packet at 778, or a capture printing `WORLD=6` per frame as run770 did, settle
 against 111, `damage_frac` 5 against 0, one block, no draw; a row before the word 900. A rally-armor family (parked
 666) is the nearest standing reading, unverified. Names no frame.
 
-## Parked by the next landing, slot AG — reserved
+## Parked by item 2072, 2026-10-13 — the sweep's forty-sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2073) **The per-player object table and the `buildtypes` forest, by hand again** (Loop 2003's sixth reach; names
+no score). Two of item 2072's eleven — `CityData::get_level` (0x739340) and `depop_can_queue` (0x738060) — open
+on 2038's `[0xc0ab84 + who*0x1c]` table (parked 2039's `--who-table`), each a copy of `pop_cap`'s script; three
+more — `BuildTypeData::fundamental_type` (0x639950), `is_military_trainer` (0x63bcf0) and `is_training_building`
+(0x639de0) — walk the `FROM` chain through the `buildtypes` cell `0xc0aaa0`, which item 2072 laid once as
+`tools/emu/buildtypes.py` (a forest of ten records, each record's slot `+0xe4` the real `basic_type` so the
+original's own recursion runs). `connects_to_roads` (parked 2040) and every `BuildTypeData` root predicate read
+the same table. Candidate: `obj --who-table` (2039) and an `obj --buildtypes N` window over `buildtypes.py`,
+each with a test made to fail first.
 
-## Parked by the next landing, slot AH — reserved
+## Parked by item 2077, 2026-10-13 — a squad member's transport waits on its captain's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2078) **The successor pair's word 4238: 158 draws against 159, index 145** (2077; `docs/AI.md` §207.5): ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/188`), theirs `PathFinder::astar_path+0x1697` (seed `8ce6ff4e`), between `1/170`'s
+`move_step` roll and `1/188`'s. Theirs spends a path search's draw that ours does not; whose search is a hypothesis. Past run809's
+window (to 3883), so no dump holds it: a capture over a `--log-window` round 4238 (run809's recipe) and its widening, every record on
+4238 both ways before a mechanism.
 
 ## Parked by the next landing, slot AI — reserved
 

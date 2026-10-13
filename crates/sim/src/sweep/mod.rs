@@ -218,9 +218,23 @@ pub(crate) fn row(line: &str) -> (Vec<i64>, i64) {
     (args, rhs.trim().parse().expect("an integer result"))
 }
 
+/// One row with a tail, `<args…> -> <result> | <tail> | …` (item 2061): its
+/// integers and the tail's fields, each trimmed, in order.
+pub(crate) fn tail_row(line: &str) -> (Vec<i64>, i64, Vec<&str>) {
+    let (head, tail) = line.split_once(" | ").unwrap_or((line, ""));
+    let (args, eax) = row(head);
+    let tail = if tail.is_empty() && !line.contains(" | ") {
+        Vec::new()
+    } else {
+        tail.split(" | ").map(str::trim).collect()
+    };
+    (args, eax, tail)
+}
+
 #[test]
 fn a_row_is_its_arguments_and_its_result() {
     assert_eq!(row("3 -4 0 -> -7"), (vec![3, -4, 0], -7));
+    assert_eq!(tail_row("1 -> 2 |  | nnn"), (vec![1], 2, vec!["", "nnn"]));
 }
 mod air_attack_ground_order_get_air_attack_ground_order;
 mod ammo_process;
@@ -243,6 +257,8 @@ mod build_queue_data_get_queue;
 mod build_queue_set_job_counter;
 mod build_type_data_area;
 mod build_type_data_connects_to_roads;
+mod build_type_data_fundamental_type;
+mod build_type_data_gather_radius;
 mod build_type_data_gathers;
 mod build_type_data_get_city_level;
 mod build_type_data_has_stance_type;
@@ -250,6 +266,8 @@ mod build_type_data_is_civilian;
 mod build_type_data_is_embassy;
 mod build_type_data_is_flat;
 mod build_type_data_is_gather_type;
+mod build_type_data_is_military_trainer;
+mod build_type_data_is_training_building;
 mod build_type_data_max_flat_gatherers;
 mod build_type_data_max_knowledge_gatherers;
 mod build_type_set_domain;
@@ -259,6 +277,9 @@ mod caravan_distance;
 mod caravan_link_walk_data;
 mod caster_walk_data;
 mod circle_render_on_field_change;
+mod city_data_can_upgrade;
+mod city_data_depop_can_queue;
+mod city_data_get_level;
 mod city_data_granary_level;
 mod city_data_pop_cap;
 mod city_data_pop_growth;
@@ -329,6 +350,7 @@ mod guy_data_walk_data;
 mod guy_set_bank;
 mod guy_set_elev_angle;
 mod guy_set_pitch;
+mod guy_turn_towards;
 mod herd_walk_data;
 mod hero_walk_data;
 mod item_data_get_gpiece;
@@ -347,6 +369,7 @@ mod nuke_out_update;
 mod object_data_attack_dist;
 mod object_data_get_wonder_value;
 mod object_data_has_objmask;
+mod object_data_health_level;
 mod object_data_hits_left;
 mod object_data_is_active_build;
 mod object_data_is_dock;
@@ -441,13 +464,24 @@ mod types_walk_rules_data;
 mod unbuilt_city_walk_data;
 mod unbuilt_fort_walk_data;
 mod unbuilt_wonder_walk_data;
+mod unit_air_turn_speed;
 mod unit_data_can_gather;
+mod unit_data_decoy_time;
+mod unit_data_get_caster_stance;
+mod unit_data_get_combat_stance;
+mod unit_data_get_packer_stance;
 mod unit_data_get_stance_type;
+mod unit_data_get_worker_stance;
 mod unit_data_has_stance_type;
 mod unit_data_is_caravan;
 mod unit_data_is_casting;
+mod unit_data_is_moving;
+mod unit_data_is_packing;
 mod unit_data_is_rare_collector;
+mod unit_data_is_unpacking;
 mod unit_data_needs_transport;
+mod unit_data_order_type;
+mod unit_data_recharge;
 mod unit_data_turn_speed;
 mod unit_die;
 mod unit_do_flee_to;
@@ -491,6 +525,7 @@ mod world_data_is_passable;
 mod world_data_is_valid_coord;
 mod world_data_is_valid_int;
 mod world_data_is_valid_tcoord;
+mod world_data_num_waterhalf;
 mod world_data_restrict_coord;
 mod world_data_restrict_wcoord;
 mod world_data_valid;

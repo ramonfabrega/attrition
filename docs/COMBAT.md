@@ -5871,8 +5871,9 @@ every capture that reaches this.
 `near_o` has a second reader and it is a bigger one.
 `Unit::think@005f6e40:104`-`134`, above the step-3 cadence gate: on the
 frames where `(o + frame) % 32 != 0` — thirty-one in thirty-two — a
-captain whose `idle` is not 1, whose `near_o` is valid, and whose order
-count is under 5 takes `add_attack_order(near_o, QUEUE_NEW)` if it is
+captain whose `idle` is not 1, whose `near_o` is valid, and whose ~~order
+count~~ **combat stance** is under 5 (vslot `+0xf4` is `get_combat_stance`:
+anything but `HOLD_FIRE`; item 2049) takes `add_attack_order(near_o, QUEUE_NEW)` if it is
 `is_in_range` of it, **instead of running the search at all**. So the
 field is a cache that lets the engine skip `find_nearby_target` almost
 always, and this crate runs the search on the phase frames and nothing
@@ -5884,9 +5885,11 @@ with a `MOVE` at the head of its list never enters it, and `0/9` on 644
 has one. The dump says the same thing independently: `think`'s arm
 creates an order, and a created order prints `in_range 0`.
 
-Parked as a successor. It needs `idle`, the order count and the
+~~Parked as a successor. It needs `idle`, the order count and the
 `% 32` phase, all of which this crate has, and it will change what every
-idle captain in every capture does.
+idle captain in every capture does.~~ **Built by item 2049**
+(`docs/AI.md` §205): it moved no floor but the successor pair's, whose
+raiding `1/113` it hands a ceiling city on 3647.
 
 ### 37.6 What moved
 
