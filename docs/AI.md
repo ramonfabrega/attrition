@@ -14082,9 +14082,9 @@ mana_burn -= min(mana_burn, ((frame & 1) + r) / 2)
 
 Power 10 is France. `is(x, 1)` is vslot `+0xb8` with `push 1; push x`,
 the strict test (the type or its graft). `SPIES_GENERALS_RECOVER_CRAFT`
-(`0x301`) is a Conquer the World bonus. The crate's tree carries no row
-for it, so the arm is not taken. The original's French General shows
-`r = 4` exactly, so it is not taken there either.
+(`0x301`) is the 86th `TECHBONUSES` row — read as absent here until item
+1673 (§183), which loads it. The original's French General shows `r = 4`
+exactly, so it is not taken there (the French lobby does not hold it).
 `MEMNON_REGEN_RATE` is `2/1`, loaded 8.8 (`get_fraction(…, 0x100)`, 512).
 `UnitData::mana@00609a50` has the same French arm. A French General's pool
 is `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100`, and the constant ships as
@@ -18317,7 +18317,42 @@ second, third... firing is checked only through 3844 (one reset); the
 formula's `barracks_units` is the live sum, read on the reset frame.
 
 
-## 183. Reserved for item 1673 (the coverage pair's word 3963)
+## 183. A General's craft recovers twice as fast under `SPIES_GENERALS_RECOVER_CRAFT`, and the word moves to 3982 (2026-10-12, item 1673)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**Baseline.** Word 3963, 18 versus 32 draws, index 3: theirs seven
+`Guy::init_real+0x52`, `1/246`..`1/252`, the General `1/150`'s Create Decoys
+copies (group 69), ours none (run754, block 3964).
+
+**Walked back.** `1/150`'s order stack parts on **3865**: ours the Guard
+alone (kind 12), theirs a Guard and a `CastOrder` (kind 14, `spell 634` =
+`0x27a`, `paid 1`), `spell_time` 1, `mana_burn` 1000. The cast was laid on
+3864, army 1/1's spellcaster turn (`(frame - 30 + phase) % 128 == 0`),
+through `think_hero`'s standing arm, which needs `unit_mana >= mana_burn +
+MANA` (a full pool of 1000 against a 1000 craft, so `mana_burn` 0).
+
+**Value diff.** Ours' `1/150` held `mana_burn` 480 on 3864, the original 0:
+the dump prints 12, 10, 8, ... 0 on 3838..3844, **two a frame**; ours took
+one. `Unit::process@00610bc0:610f2d`'s rate `r` is doubled by
+`has_preq(SPIES_GENERALS_RECOVER_CRAFT)` for a General or a Spy (§119). The
+crate read the bonus as absent ("no row for it"); it is the 86th
+`TECHBONUSES` row (`0x301`, one below `0x302`/`0x303`, which §158 and §159
+read as rows 87 and 88): `Roles::spy_general_recover_preq`, loaded from
+`bonus_preqs[85]` and tested with `has_tech` as the two beside it are. Under
+All Technologies every leader holds it. Built: `Sim::craft_rate`
+(`cast.rs`). `the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate`
+(`cast::tests`) fails with the doubling dropped; the loader row is held by
+`coverage_pair_first_parting` (mutation: the index moved to 99).
+
+**Score.** The word moves **3963 -> 3982**, 23 versus 25 draws, index 2:
+ours `Leader::make_stuff+0x221`, theirs `Leader::produce_building+0x1805`
+(count and sequence). run754's widening falls 1583 -> **409** keys; `1/150`
+agrees through 3964 and `1/246`..`1/252` link. `1/165`'s two orders against
+one on 3964 still stand. The new word's first value parts are the leader's
+`MAKE[..]` rows on 3982.
+
+**Not established.** The `7 == half a second` test of `TERRA_COTTA_DELAY`
+is by value as the original's; any other value is read as frames, unbuilt.
+That a bonus's `has_preq` is `has_tech` of its `preq0` rests on the two
+sibling rows and this walk (the Persian General's rate is two on 3838..3844).
+Other lobbies that hold the preq (All Technologies) now recover at the
+doubled rate; the full suite is the check on them.
