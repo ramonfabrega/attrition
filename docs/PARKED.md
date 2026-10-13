@@ -3809,7 +3809,9 @@ ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
 reaches — the shape the pass should build before the next sweep. **1954**
 built it as `obj` (parked 1955; nine of ten); a global cell's record, an
 out-pointer into the object and a `this` chain are still unshaped. Nine
-reaches.
+reaches. **1966**: five of ten would be one line under `obj` with hooked
+callees and global cells, and `fwd` still lacks its `field` token
+(parked 1967). Ten reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -4133,13 +4135,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot O — reserved
+## Parked by item 1966, 2026-10-13 — the sweep's thirty-seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot O renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**1967 — `tools/sweep_gen.py fwd` has no `field` token, and `obj` hooks no callee** (Loop; names no score). Two of
+1966's ten (`WallData::get_garrison_limit`, `ObjectData::attack_dist`) forward a field of `this` (`[this+0x18]`,
+`[this+0x10] ^ 0x63637`) to a hooked callee; 1896 asked for the token, and a third reach is here. They, `has_stance_type`
+(a vcall that *compares* the slot's answer with a stack argument) and the two `Game::action_cheat_*` (two global cells,
+a semaphore byte) were written by hand on `tools/emu/hooks.py` and `sweeplib.cell` through one throwaway writer.
+The shape to build is `obj` with `--hook ADDR:NARGS` callees, a row's calls beside its bytes, and `--cell VA:SIZE`
+records; then those five are one line each.
 
 ## Parked by the next landing, slot P — reserved
 
