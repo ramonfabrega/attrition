@@ -488,6 +488,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     ),
     (
         0x0060_2129,
+        Some(0x005f_e62e), // `Unit::fight+0x115e`, the computer's siege arm
+        sim::fight::SITE_ATTACK_POS_SIEGE,
+    ),
+    (
+        0x0060_2129,
         Some(0x0071_28aa), // `Group::action_attack+0x41a`
         sim::fight::SITE_ATTACK_POS_GROUP,
     ),

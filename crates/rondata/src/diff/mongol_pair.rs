@@ -227,8 +227,8 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        149,
-        "run788 after item 1868's sea break test"
+        137,
+        "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
     // on the window's first block; the word 2838 (ours 101 draws, theirs 16, index 1)
@@ -274,7 +274,7 @@ fn run799_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 2210, "run799 baseline");
+    pin_eq!(w.firsts.len(), 2198, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell

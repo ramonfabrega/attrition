@@ -6901,7 +6901,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // flight (10 reads) into the tail the replay keeps running.
     // Item 1870: the walk reaches the word 3767 (the nuke embargo and the
     // fort escalation moved it 3182 → 3767): 433 reads, 352 more.
-    ("sahara_coverage_first_parting", 474),
+    // Item 1937: the walk reaches the word 3825 (3805 → 3825): 514 reads, 40 more.
+    ("sahara_coverage_first_parting", 514),
     // Chapter fifty (item 1404): the Stockades' arrows over run577's ground.
     ("chapter_fifty_holds_to_the_golden_word", 7),
     ("chapter_fifty_s_word_frame_is_widened_whole", 7),

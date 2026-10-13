@@ -4103,13 +4103,13 @@ untouched; the sources are `p0`, `xmm1`, `[this+OFF]`, a constant, and one of th
 for a shape (CLAUDE.md, "a probe shape reached for a third time graduates"). Names no score; the census is the sweep's.
 **Also**: `fwd` printed `ecx` signed for `p0` (fixed in 1932).
 
-## Parked by the next landing, slot J — reserved
+## Parked by item 1937, 2026-10-13 — the siege arm and the looking patrol
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot J renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1938) **Great Sahara's word 3825, widened by run790** (1937; `docs/AI.md` §199): ours 29 draws against 28, index 5, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. The block 3826 value diff: the Citizen `1/161` (`TI` 50) `collide` ours 1 theirs 0, `start_dist` 1584 against 0, `coll 1@3825` in ours — a collision this crate detects that the original does not. Read `1/161`'s neighbours on 3825 first.
+
+(1939) **Rows that stand before 3825**: `1/132` `attrition` 12 against 48 on 3773 (`hits:damage` 3781), `city:gatherers` `1/2031` on 3783, `group:67.held` `[215, 216, 217]` against none on 3785, `1/214` `mirror` and `group:65` on 3768 (parked 1907). Names no draw.
+
+(1940) **`do_strafe`'s arm after the flight when the strike is not released** (`5eb0cd`, the `uVar12 <= lim` line check, `set_anim(CHAR_WALK)`): ours does nothing for a live target out of range or returning; a bomber's `iVar4 == 0` test decides the walk. Names no frame; the coverage pair holds 4730 without it.
 
 ## Parked by item 1942, 2026-10-13 — the sweep's thirty-fifth batch
 
