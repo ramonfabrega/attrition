@@ -18907,12 +18907,58 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 197. Reserved for the next item on the AI track
+## 197. A nuke embargo closes the market, a Fort's count escalates, and Great Sahara's word moves 3182 → 3767 (2026-10-13, item 1870)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 3182, 46 versus 43 draws, index 7 (run767); §192's value
+diff left `check_income` 143 here against the original's 122 and the state
+parting first on 3177: `bucket[1:timber]` 5639/5739, `bucket[2:wealth]`
+12256/12181, `escrow[1:timber]` 0/32.
+
+**3177: the market was shut.** A probe on `do_sell` (reverted whole) showed
+this crate's only sale of the window at frame 3176, from
+`market_speculation`: timber at price 62 + flux 13 = **75**, exactly the
+`75 / (tier + 1)` floor. The original did not sell. run781's packet (logger
+frame 3182) holds the same price and flux (`Game +0x568`/`+0x580`: 63 62 62
+62 62 62, flux −6 13 −9 13 8 −2, tick 3182 — equal to ours after 3181), so the
+sale decision is a gate: `step4.py --entry 6c8110 --this e4127c` with hooks
+shows `market_speculation` entering `has_tribe_bonus`, `has_preq`, `has_market`,
+`get_nuke_embargo` and stopping there — **`get_nuke_embargo` returns 719**. `LeaderData::get_my_nuke_embargo@006d5350` is `NUKE_EMBARGO_WORLD ×
+armageddon + NUKE_EMBARGO_NATION × nukes_used − frame + NUKE_EMBARGO_BASE +
+nuke_stamp` (900 / 900 / 0 frames), floored at 0, and zero when `nuke_stamp`
+is 0 or the Space Program (`0x21e`) is held; `get_nuke_embargo@006d52c0` takes
+the maximum over the live leaders that are the nation or its allies, and is 0
+under the Space Program. Leader 1's dump has `nuke_stamp` 2101, `nukes_used`
+1: 1800 − 3182 + 2101 = 719 ✓, and the embargo ends at frame 4001. It is the
+last clause of the gate in `use_market` and `market_speculation` both
+(`Sim::nuke_embargo`, `market_gate`); the SEAM "taken as zero" is gone.
+`Game::armageddon` is not carried (the shipped world term is 0 frames).
+
+**3182: a Fort's count escalates.** With the market shut the buckets agree, and
+the Redoubt's value is the original's `check_income` factor times 7302:
+`check_income` hooks on the packet price the Redoubt (`1/2018`'s city) at
+**175 wealth / 525 metal**, this crate at 150/450. The building's base is
+100/300 with a 25/75 support: the original's count is 3 where ours is the two
+Redoubts alive. `TypeData::get_cost`'s building branch (`00665951`..`00665aa5`,
+read off the listing) shapes `n = num_buildings + num_queued` by family before
+the support multiply: the Fort line (`0x1bb..=0x1be`) `n → 2n − 1` past one,
+then `+ n − 3`, `+ n − 5`, `+ n − 7` past three, five, seven; production
+buildings (`0x1ab..=0x1af`, `0x1bf`, `0x208`) `2n − 2` past two, `+ 2n − 10`
+past five, `+ 3n − 24` past eight, `+ 4n − 48` past twelve, every comparison on
+the raw `n` (`cost::building_family_count`, `building_price`). Unit test
+`a_fort_and_a_barracks_escalate_their_count`.
+
+**What moved.** The word 3182 → **3767** (585 frames): 33 draws against 37,
+index 7, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`. run767's widening: 142 → 112 parted keys; the 3177
+leader rows (`bucket[1]`, `bucket[2]`, `escrow[1]`), `MAKE[8]` on 3182 and the
+3183 block's bucket, city and build rows are gone; what remains is 3139
+`mirror`, 3170's `1/127` order and 3183's `queue[0].cost[0]` 67/64 (a ramp
+count on `1/2032`'s queue, unread). Value diff: `leader:MAKE[8]` t 446/526,
+val 4078/3481 → equal; `bucket[1:timber]` 5639/5739 → equal.
+
+**Not established.** The oil platform and oil well counts (two `u16` arrays' oil entries added to `n` for the Oil Platform and the Oil Well) and the Indian arm of the
+building support term. The embargo's `armageddon` term. The new word 3767 is
+unwidened (run767 ends at 3186).
 
 ## 198. Reserved for the next item on the AI track
 

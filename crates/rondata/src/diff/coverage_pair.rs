@@ -1740,7 +1740,8 @@ fn run763_s_closing_frame_is_widened_whole() {
     // -1 against 0, `mirror`, `attrition` 6 against 24 and its one-point
     // `hits` rows) and, on 4677 and 4702, two Move orders ours reads as one
     // (`1/240`, `1/259`: `order:kind` 17 against 16). No draw parts.
-    pin_eq!(w.firsts.len(), 230, "run763 keys that part (item 1719)");
+    // Item 1870 (the nuke embargo, the Fort's count): 230 -> 228.
+    pin_eq!(w.firsts.len(), 228, "run763 keys that part (item 1719)");
 }
 
 #[test]
@@ -1764,7 +1765,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // % 15 == 0`), so 4583 agrees on `num_units[8]`, `active` and the unit
     // itself, and the draw stream agrees to the trace's end, 4730: 1167 ->
     // 250 keys.
-    pin_eq!(w.firsts.len(), 250, "run762 keys that part (item 1719)");
+    pin_eq!(w.firsts.len(), 248, "run762 keys that part (item 1719)");
 }
 
 #[test]
