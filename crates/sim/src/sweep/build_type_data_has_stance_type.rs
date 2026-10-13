@@ -1,11 +1,5 @@
 //! `BuildTypeData::has_stance_type@00639770` under the emulator against the port (item 1966; hand-written on tools/emu/hooks.py).
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 /// `BuildTypeData::has_stance_type@00639770`, run by `tools/emu/sweep_build_type_data_has_stance_type.py` under unicorn
 /// (tools/emu): the slot's answer drawn so half the rows are equal to the argument.
 #[test]

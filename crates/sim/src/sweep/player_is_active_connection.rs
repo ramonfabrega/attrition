@@ -25,19 +25,31 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <before> -> <eax> | <after>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <before> -> <eax> | <after>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut m = unhex(before.trim());
         let want_eax: i64 = eax.trim().parse().expect("an integer");
         let got: i64 = {
             let (a, m) = (&a[..], &mut m[..]);
             let _ = (&a, &m);
-            { let f = rd(m, 0x30) as u16; i64::from(f & 1 != 0 && f & 0x100 == 0 && f & 0xd0 == 0 && rd(m, 0x7c) != 0) }
+            {
+                let f = rd(m, 0x30) as u16;
+                i64::from(f & 1 != 0 && f & 0x100 == 0 && f & 0xd0 == 0 && rd(m, 0x7c) != 0)
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(m, unhex(after.trim()), "is_active_connection — bytes, row `{line}`");
+        assert_eq!(
+            m,
+            unhex(after.trim()),
+            "is_active_connection — bytes, row `{line}`"
+        );
         n += 1;
     }
     assert!(n >= 200, "only {n} rows");

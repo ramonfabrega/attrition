@@ -15,7 +15,9 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("`<ans> | <hex> -> <eax> | <calls>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("`<ans> | <hex> -> <eax> | <calls>`");
         let (ans, hex) = lhs.split_once(" | ").expect("`<ans> | <hex>`");
         let (eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let m = unhex(hex.trim());
