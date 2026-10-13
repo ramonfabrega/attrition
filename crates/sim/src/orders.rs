@@ -8868,7 +8868,6 @@ impl Sim {
             }
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
                 self.kill_current_order(u);
-                self.probe_2032(u, "guard-refusal");
                 if let Some(t) = self.find_melee_target(u, -1) {
                     self.nearby_add(u, t);
                 }
@@ -9068,36 +9067,7 @@ impl Sim {
     /// `grep -alE '^ *defensive 1' gamelog*.txt`, 5 of the 338 dumps, runs 16,
     /// 17, 320, 324 and 405; then per `UNITDATA` block a `defensive 1` beside
     /// a `BEGIN GUARDORDER`: none in any of the five).
-    /// PROBE 2032 (revert whole): a follower's search, the head's answer
-    /// beside the headless search's.
-    pub(crate) fn probe_2032(&self, u: usize, arm: &str) {
-        if std::env::var_os("RON_PROBE_2032").is_none() || self.units[u].captain {
-            return;
-        }
-        let mut c = self.clone();
-        let head = match c.melee_squad_head(u) {
-            SquadHead::Search => "Search".to_string(),
-            SquadHead::Nothing => "Nothing".to_string(),
-            SquadHead::Captain(t, m) => format!("Captain({t:?},{m})"),
-        };
-        let mut d = self.clone();
-        let search = d.find_melee_target(u, -1);
-        let cap = self.squad_captain(u);
-        eprintln!(
-            "P2032 f{} {arm} {}/{} cap={} head={head} search={search:?} target={:?} orders={:?}",
-            self.frame,
-            self.units[u].owner,
-            self.units[u].index,
-            self.units[cap].index,
-            self.units[u].combat.target,
-            self.units[u].orders.iter().map(|o| o.index()).collect::<Vec<_>>()
-        );
-    }
-
     fn chase_refused(&mut self, u: usize, target: Obj) {
-        if std::env::var_os("RON_PROBE_2032").is_some() {
-            eprintln!("P2032 f{} chase_refused {}/{} on {target:?}", self.frame, self.units[u].owner, self.units[u].index);
-        }
         self.find_new_target(u, false);
         if let Some(Order {
             body: Body::Attack(a),
@@ -9418,7 +9388,6 @@ impl Sim {
     pub(crate) fn find_new_target(&mut self, u: usize, stand: bool) -> Option<Obj> {
         self.repath(u);
         self.kill_current_order(u);
-        self.probe_2032(u, if stand { "fnt-stand" } else { "fnt" });
         let stance = self.units[u].combat.stance;
         if stand {
             self.units[u].combat.stance = combat::Stance::StandGround;
