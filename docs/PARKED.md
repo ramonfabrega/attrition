@@ -4048,6 +4048,20 @@ line): last order first, so "the first order" read off it is reversed,
 and it cost the lane its first hour. Candidate: a `tools/` printer of a
 unit's orders in list order from the dump. One reach.
 
+(1741) **A booked stub beside a stub a lane rewrites conflicts** (the
+commander, the twenty-ninth tranche): the booking appended AI §189 and
+§190 at the file's end, directly after the stub another live lane was
+rewriting, and both merges (1719, 1726) backed out on `docs/AI.md` and
+went back to their lanes. Parked 1491's anchors are adjacent hunks to
+git. Candidate: the booking lands a stub with a spacer paragraph, or
+`docs_guard` refuses two reserved stubs on consecutive lines. Two reaches.
+
+(1742) **`ccc push commander --base` pushed `main`** (the commander, at
+8649c16c): it answered "nothing to push: origin/main already has every
+commit of main" with `origin/worktree-replan-pdb` two commits behind;
+`git push origin worktree-replan-pdb`, read back, did it. Parked 1492's
+shape again; the chain's push verb is wrong for this row. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
