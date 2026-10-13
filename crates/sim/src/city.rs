@@ -279,7 +279,7 @@ pub(crate) const fn upgrade_kinds(tuning: &crate::Tuning, next: Ident) -> Option
 /// a `VILLAGE` (0x19e) and `METROPOLIS` from anything else, 0 when `type_avail(next)` says the leader may not have it, and
 /// [`upgrade_kinds`]' count when it may. Item 2112's sweep holds the order: the type test before the ask.
 #[must_use]
-pub(crate) fn kinds_needed_by(
+pub fn kinds_needed_by(
     tuning: &crate::Tuning,
     ty: i32,
     type_avail: impl FnOnce(i32) -> bool,

@@ -991,6 +991,29 @@ pub const fn exceeds_population(cap: i32, control: i32, pop: i32) -> bool {
     cap < control + pop
 }
 
+/// `BuildTypeData::get_kill_value@00639790`: the type's base value (its slot `+0x7c` handed 0, asked first and
+/// always) and, for a player (`who >= 0`), the two support words `+0x270` and `+0x274` summed, times
+/// `BUILD_SUPPORT_FACTOR`, times the player's built and ordered count of the type (`num_buildings[t - 0x19e] +
+/// num_queued[t]`, both unsigned 16-bit) on top — 32-bit and wrapping, as the `imull`s are. `counts` is `None`
+/// for a negative `who`, which reads no leader. Item 2112's sweep holds it on random words.
+#[must_use]
+pub fn kill_value_by(
+    base: i32,
+    support: (i32, i32),
+    factor: i32,
+    counts: Option<(u16, u16)>,
+) -> i32 {
+    let Some((built, queued)) = counts else {
+        return base;
+    };
+    support
+        .1
+        .wrapping_add(support.0)
+        .wrapping_mul(factor)
+        .wrapping_mul(i32::from(built) + i32::from(queued))
+        .wrapping_add(base)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1663,27 +1686,4 @@ mod tests {
             "120 was 100 at a 20% surcharge; three levels behind it is 110"
         );
     }
-}
-
-/// `BuildTypeData::get_kill_value@00639790`: the type's base value (its slot `+0x7c` handed 0, asked first and
-/// always) and, for a player (`who >= 0`), the two support words `+0x270` and `+0x274` summed, times
-/// `BUILD_SUPPORT_FACTOR`, times the player's built and ordered count of the type (`num_buildings[t - 0x19e] +
-/// num_queued[t]`, both unsigned 16-bit) on top — 32-bit and wrapping, as the `imull`s are. `counts` is `None`
-/// for a negative `who`, which reads no leader. Item 2112's sweep holds it on random words.
-#[must_use]
-pub fn kill_value_by(
-    base: i32,
-    support: (i32, i32),
-    factor: i32,
-    counts: Option<(u16, u16)>,
-) -> i32 {
-    let Some((built, queued)) = counts else {
-        return base;
-    };
-    support
-        .1
-        .wrapping_add(support.0)
-        .wrapping_mul(factor)
-        .wrapping_mul(i32::from(built) + i32::from(queued))
-        .wrapping_add(base)
 }
