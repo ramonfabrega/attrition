@@ -24,8 +24,8 @@ pub(crate) const MONGOL: Pair = Pair {
         "rontrace-run775.log",
     ),
     length: 5056,
-    count: 2207,
-    sequence: 2207,
+    count: 2838,
+    sequence: 2838,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -179,10 +179,13 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 897, "initial run780 baseline");
+    pin_eq!(w.firsts.len(), 136, "initial run780 baseline");
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
     // anim draw of the citizen `1/72`, which ours stands idle from 2178 and
-    // theirs walks to (35736, 24984) (`docs/AI.md` §194).
+    // theirs walks to (35736, 24984) (`docs/AI.md` §194). Item 1845 built
+    // `Unit::think_carry`'s worker arm (`docs/AI.md` §195): the Freighter
+    // now walks there too, the word moved 2207 -> 2838, and the window's
+    // keys fell 897 -> 136 (the word's delta; the 897 keys stand in §194).
 }

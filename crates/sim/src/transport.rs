@@ -15,6 +15,7 @@
 //! (§5.2).
 
 use crate::attrition::Domain;
+use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::build;
 use crate::orders::Worker;
 use crate::tech::TypeId;
@@ -702,6 +703,189 @@ impl Sim {
                 *n += 1;
             }
         }
+        true
+    }
+
+    /// `Unit::think_carry@005f2ee0`'s dispatch (`docs/AI.md` §195), reached from
+    /// `Unit::think@005f6e40`'s tail for a type with a non-zero `CARRY` that
+    /// is not strictly an aircraft carrier. `true` ends the think.
+    ///
+    /// A boat with a **worker aboard** asks [`Sim::think_carry_civilian`]
+    /// with 1; one with a unit of `is(0x45)` aboard asks it with 0.
+    /// `count_inside` opens on `is_on_map` of the carrier itself.
+    ///
+    /// SEAMS: the arm with nothing of either aboard — `think_carry_idle`
+    /// (`005f2f30`) when `count_inside(COUNT_ATTACK)` is zero, the
+    /// attack-carrier's own arm (the group's city and army search, then
+    /// `eject_contents`) otherwise — is not modelled, and answers `false`:
+    /// the think goes on to the tail, as it did before this arm existed.
+    pub(crate) fn think_carry(&mut self, u: usize) -> bool {
+        if !self.units[u].on_map {
+            return false;
+        }
+        let riders: Vec<usize> = (0..self.units.len())
+            .filter(|&i| self.units[i].alive() && self.units[i].inside_unit == Some(u))
+            .collect();
+        if riders.iter().any(|&i| self.is_worker(i)) {
+            return self.think_carry_civilian(u, true);
+        }
+        if riders.iter().any(|&i| self.unit_line_is(i, 0x45)) {
+            return self.think_carry_civilian(u, false);
+        }
+        false
+    }
+
+    /// `Unit::think_carry_civilian(workers)@005f37c0` (`docs/AI.md` §195): a
+    /// boat with its cargo aboard looks for the **shore of a land region**
+    /// it can put them on.
+    ///
+    /// The search is [`Sim::think_civilian_transport`]'s with three
+    /// differences: the region need only coast **the boat's own region**
+    /// (`Region::is_coast(r, my)`, where that one finds a sea first);
+    /// the cell is any `coast_here(r, my)` cell, water-half or not; and
+    /// the score is `vector_dist × max(1, danger)`, then — for `workers ==
+    /// false` only — `/ 3` when the region is `go_here` bit 1 and `/ 2` for
+    /// bit 2. A worker boat takes bit 1 alone and ignores `scouted`; the
+    /// other takes any bit and skips a region its leader has scouted.
+    ///
+    /// Then three outcomes:
+    /// 1. **no region** — `false` for workers (`think_carry_military` is
+    ///    the other's, a SEAM);
+    /// 2. **none of the boat's nine cells (itself and its eight
+    ///    neighbours) is in the chosen region** — a `MOVE_TO` to the chosen
+    ///    cell **plus `MOVE[d]`**, where `d` is **the last `coast_here`
+    ///    answer the whole search made**, whichever region it was in
+    ///    (`move_x[local_48]` is the unit's local and nothing resets it);
+    /// 3. **the boat is on the shore** — the sixteen quarter-cells of its
+    ///    own cell are scored against the first neighbour found in the
+    ///    region, and the nearest by `vector_dist` is walked to — or, when
+    ///    the boat already stands in it, `Group::action_eject_all`
+    ///    (SEAM: stated here and not modelled — the boat answers `true`
+    ///    and keeps its cargo).
+    ///
+    /// The `MOVE_TO` is the merchant's inlined `add_move_order(…,
+    /// QUEUE_NEW, 0)`: the bearing is taken to the unsnapped centre, the
+    /// destination snapped to 48.
+    pub(crate) fn think_carry_civilian(&mut self, u: usize, workers: bool) -> bool {
+        let who = self.units[u].owner;
+        let pos = self.units[u].pos;
+        let my_cell = pos.cell();
+        let Some(my_region) = self.world.tregion(pos.tile()) else {
+            return false;
+        };
+        let sizes: Vec<i32> = (0..self.world.region_count() as u16)
+            .map(|r| self.world.region_size(r))
+            .collect();
+        let size = |r: u16| sizes.get(r as usize).copied().unwrap_or(0);
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == crate::world::Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        let mut best = 99_999_999;
+        let mut best_cell: Option<Cell> = None;
+        let mut best_region = 0u16;
+        let mut last_dir = 0usize;
+        for r in lands {
+            if size(r) == 0 {
+                continue;
+            }
+            let g = self.go_here(r, who);
+            let g = if workers { g & 1 } else { g };
+            if g == 0 || !self.world.is_coast(r, my_region) {
+                continue;
+            }
+            if !workers && self.world.region_scouted(r, who) {
+                continue;
+            }
+            let stride = (size(r) / 0x32).max(0x10);
+            let len = size(r);
+            let mut phase = i32::from(self.units[u].index)
+                .wrapping_add(i32::try_from(self.frame).unwrap_or(i32::MAX));
+            for _ in 0..stride {
+                let start = phase.rem_euclid(stride);
+                if start < len {
+                    let mut found = false;
+                    for c in self.world.region_coords_strided(r, start, stride) {
+                        let d = self.world.coast_here(r, my_region, c);
+                        last_dir = d as usize;
+                        if d == 0 {
+                            continue;
+                        }
+                        found = true;
+                        let danger = self.world.danger_half(who, c).max(1);
+                        let dist = crate::world::vector_dist(c.x - my_cell.x, c.y - my_cell.y);
+                        let mut score = dist * danger;
+                        if !workers {
+                            if g & 1 != 0 {
+                                score /= 3;
+                            } else if g & 2 != 0 {
+                                score /= 2;
+                            }
+                        }
+                        if score >= 0 && score < best {
+                            best = score;
+                            best_cell = Some(c);
+                            best_region = r;
+                        }
+                    }
+                    if found {
+                        break;
+                    }
+                }
+                phase += 1;
+            }
+        }
+        let Some(target) = best_cell else {
+            // SEAM: `workers == false` is `think_carry_military@005f3260`.
+            return false;
+        };
+        let (width, height) = (self.world.width(), self.world.height());
+        let beside = (0..9).find_map(|k| {
+            let c = Cell::new(my_cell.x + MOVE_X[k], my_cell.y + MOVE_Y[k]);
+            (c.x >= 0 && c.y >= 0 && c.x < width && c.y < height
+                && self.world.region_of(c) == Some(best_region))
+            .then_some(c)
+        });
+        let Some(shore) = beside else {
+            let to = Pos::new(
+                (target.x + MOVE_X[last_dir]) * 0x300 + 0x180,
+                (target.y + MOVE_Y[last_dir]) * 0x300 + 0x180,
+            );
+            self.add_move_order(
+                u,
+                to,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::New,
+                false,
+            );
+            return true;
+        };
+        // On the shore: the sixteen quarter-cells of the boat's own cell.
+        let (qx, qy) = (my_cell.x * 4, my_cell.y * 4);
+        let mut best_q = (qx + 2, qy + 2);
+        let mut best_d = 99_999_999;
+        for k in 0..16 {
+            let (x4, y4) = (qx + (k & 3), qy + (k >> 2));
+            let d = crate::world::vector_dist(x4 - shore.x * 4 - 2, y4 - shore.y * 4 - 2);
+            if d < best_d {
+                best_d = d;
+                best_q = (x4, y4);
+            }
+        }
+        if pos.x / 0xc0 == best_q.0 && pos.y / 0xc0 == best_q.1 {
+            // SEAM: `Group::action_eject_all(one-boat group, 0, -1, -1, -1)`.
+            return true;
+        }
+        let to = Pos::new(best_q.0 * 0xc0 + 0x60, best_q.1 * 0xc0 + 0x60);
+        self.add_move_order(
+            u,
+            to,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
         true
     }
 
@@ -2994,6 +3178,30 @@ mod tests {
             !f.sim.think_civilian_transport(u, false),
             "a region this leader has scouted is not a candidate"
         );
+    }
+
+    /// `Unit::think_carry` (`docs/AI.md` §195): a boat with a worker aboard
+    /// walks to the shore of a free land region; with nothing aboard it
+    /// does nothing here.
+    #[test]
+    fn a_boat_with_a_worker_aboard_walks_to_a_free_shore() {
+        let mut f = fix();
+        f.sim.world.set_region_flags(f.land, 8);
+        let boat = unit(&mut f.sim, 1, f.ship, tile_pos(36, 12));
+        f.sim.units[boat].on_map = true;
+        assert!(!f.sim.think_carry(boat), "nothing aboard: the seam answers no");
+        assert!(f.sim.units[boat].orders.is_empty());
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(36, 12));
+        f.sim.units[rider].type_index = 0x32;
+        f.sim.units[rider].inside_unit = Some(boat);
+        f.sim.units[rider].on_map = false;
+        assert!(f.sim.think_carry(boat), "a worker aboard and a free shore");
+        let dest = f.sim.units[boat]
+            .orders
+            .front()
+            .and_then(|o| o.move_dest())
+            .expect("a move order");
+        assert!(dest.cell().x >= 7, "the land's own shore column: {dest:?}");
     }
 
     #[test]
