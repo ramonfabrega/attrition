@@ -260,6 +260,20 @@ pub const fn pop_value(level: i32) -> i32 {
 /// How close a builder must stand: its tile within one tile of the
 /// footprint (on it counts too, since movement here does not path around
 /// buildings) — `docs/CITIES.md` §11.
+/// `CityData::can_upgrade@007383c0`'s count: the distinct completed
+/// building kinds a city needs before it may become `next` — none for a
+/// `VILLAGE` (0x19e, answered 1 without asking), `CITY_BUILDINGS + 1` for a
+/// `TOWN` (0x19f), `METRO_BUILDINGS + 1` for anything else; the original
+/// then asks `enough_kinds` of the count (item 2072).
+#[must_use]
+pub(crate) const fn upgrade_kinds(tuning: &crate::Tuning, next: Ident) -> Option<i32> {
+    match next {
+        Ident::Village => None,
+        Ident::Town => Some(tuning.city_buildings + 1),
+        _ => Some(tuning.metro_buildings + 1),
+    }
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Small accessors
@@ -785,11 +799,10 @@ impl Sim {
         {
             return None;
         }
-        let needed = match self.build_types[next].ident {
-            Ident::Town => self.tuning.city_buildings + 1,
-            _ => self.tuning.metro_buildings + 1,
-        };
-        self.enough_kinds(c, needed).then_some(next)
+        match upgrade_kinds(&self.tuning, self.build_types[next].ident) {
+            Some(needed) => self.enough_kinds(c, needed).then_some(next),
+            None => Some(next),
+        }
     }
 
     /// `City::check_upgrade`: the automatic level-up.

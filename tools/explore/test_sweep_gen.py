@@ -116,6 +116,30 @@ class Shapes(unittest.TestCase):
         self.assertIn('row[1:]', script)
         self.assertIn('let p: &[i64] = &a[1..];', test)
 
+    def test_a_slot_compared_with_the_base_s_address(self):
+        # Parked 2021 (Loop 2003's second reach), built by item 2072: the
+        # four `UnitData::get_*_stance` getters compare slot +0x104 with the
+        # base's address and, equal, call the type record's +0x134 instead.
+        sp, script, tp, test, mod = sweep_gen.generate_vbase(
+            'UnitData::get_combat_stance@00610a30', item=2072, slot=0x104, base=0x46ced0,
+            handed=['0'], via=0x18, via_slot=0x134, port='i64::from(v)')
+        compile(script, str(sp), 'exec')
+        self.assertIn('BASE = 0x0046ced0', script)
+        self.assertIn('h.w32(vt + SLOT, BASE if mode else stub)', script)
+        self.assertIn('VIA = 24', script)
+        self.assertIn('let handed: &[i64] = &[0];', test)
+        self.assertIn('match (mode, true)', test)
+        self.assertIn('UnitData::get_combat_stance@00610a30', test)
+        # The inline arm that calls nothing (is_missile's field test).
+        _, script, _, test, _ = sweep_gen.generate_vbase(
+            'UnitTypeData::is_missile@0061d430', item=2072, slot=0xf0, base=0x470860, handed=['0x8000000'])
+        self.assertIn('VIA = None', script)
+        self.assertIn('match (mode, false)', test)
+        self.assertIn('&[134217728]', test)
+        # A via with no slot is refused.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_vbase('Foo::bar@00401000', item=1, slot=0x10, base=0x401000, via=0x18)
+
     def test_an_answer_may_set_ecx_on_return(self):
         # Parked 1922 (Loop 1890's sixth reach): `Tribes`, `Lands` and
         # `Herds` read a hooked callee's `ecx` on return (the decompiler's
