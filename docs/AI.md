@@ -19245,12 +19245,59 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 203. Reserved for the next item on the AI track
+## 203. A computer's raiding ship leaves a building alone, and the successor pair's word moves 3632 → 3834 (2026-10-13, item 2001)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Opus 5.5 (medium) lane att-2001, base `dca6a873`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech. run809 (blocks 3626..3883), run810
+(the packet at logger frame 3631).*
+
+### 203.1 The frame, both sides
+
+Frame 3632: ours 193 draws, theirs 192, index 35 — ours `GameAccess::rnd+0x20 < Unit::do_attack`, theirs `Unit::think_fish+0x27a`. The extra
+draw is the jam roll (`SITE_JAM_ROLL`, `Unit::fight` → `swing_anim` → `radar_jams`) of the Aegis Cruiser **`1/113`** (`TypeIndex` 330, `TY`
+280, FLAGS `vjg`, stance Raid, the computer's). run809 is the window's capture (the disk gap of parked 1983).
+
+### 203.2 The value diff
+
+`1/113` `orders.len` ours 1, theirs 0 on block 3632 (trace tick 3631). Both sides' `think_attack` searched on 3631 and wrote `near_o` =
+`0/2000` (a finished Build-proper, `orig_type 414`, 8 hits left). Ours took it — score 1 (`compare_target` 15, distance 1428 with the
+targeted term, radius 4608) — and fired on 3632; theirs took nothing. (Theirs then adds the attack on 3647 through `think`'s off-32-phase
+`near_o` arm, `think@005f6e40:107-130`, and drops it on 3648 with no shot: 203.5.)
+
+### 203.3 The packet
+
+run810, `RON_STATE_FRAME=3631`. `step4.py --entry 610bc0 --this 15e52afc` (`1/113`): process → think → think_attack → find_melee_target →
+`find_nearby_target(0x1200)` → `compare_target(0/2000, 0, 1, 0)` returns **0** (`649715`), and the search's winner stays empty —
+`add_attack_order` is never called. `compare_target` alone runs 294 instructions: the `testl $0x200000, 0x2b4(type)` at `64e7d9` is taken and
+`xor eax,eax` at `64e7e5` answers.
+
+### 203.4 The mechanism
+
+`compare_target`'s `0064e7a5`..`0064e81f`: under `iVar5 && iVar4` — the target is a **finished** (`flags & 4`) **Build-proper** (vslot
+`+0x20`; a wall answers 0) — and `bVar3 && bVar16` — the attacker is on the raid stance, AI-driven (`unit_masks & 0x40000`), of the sea
+domain — the answer is 0 when the ship fires on the move (`unit_flags & 0x200000`, `v`), and otherwise 0 when the target's type
+`is_build_type` (every building's, `0x19e..0x21e`) and the ship lacks SIEGE. And `find_nearby_target`'s winner is `local_70 < score`, seeded
+0 (`00648da0:232`, `jle` at `64987d`): a zero is never taken, not even first; `near_o` is written regardless. Built in `fight.rs`
+(`compare_target`, and the search's `score > best.map_or(0, …)` where ours took a first candidate at any score).
+
+Test: `fight::tests::a_computer_s_raiding_ship_weighs_a_finished_building_at_zero` (a human's, a non-raiding, a SIEGE and an unfinished
+case each weigh above zero; a SIEGE ship that fires on the move does not). Mutations, each held: the arm's `return 0` dropped; the
+`active` term dropped; the fires-on-move term dropped; the AI term dropped (that test); the search's `best.is_none_or` restored
+(`mongol_pair_first_parting`, back to 3632).
+
+### 203.5 What moved
+
+**The word 3632 → 3834**: ours 169 draws, theirs 167, index 9, ours `Unit::think_fish+0x27a`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`
+(`mongol_pair_first_parting`; the walk's height reads 38 → 113, pinned). run809's keys **357** after the build (957 before it), 160 on the
+window's first block (the leaders' counts). No other lobby's floor moved (the whole suite on the build). 3834 is inside run809: the first
+parted row of `1/113` after the build is **`orders.len` on block 3648, ours 0 theirs 1** — theirs' `think` off-phase `near_o` arm adds the
+attack ours does not — then `pos` on 3649 ((3346,7047) against (3336,7032)), and the ship's `heading`/`path:length` on 3833. Earlier
+non-draw rows: `form` of fresh units (3629, 3632, 3641, …), the AI pool/group rows 91 and 92 on 3634 and 3636, `0/2000`'s `damage_frac` on
+3642, `mirror` on four units. Parked 2004.
+
+### 203.6 Not established
+
+Which candidate `think`'s off-phase arm hands `add_attack_order` on 3647, and why the order is dropped on 3648 with no shot: the next item's
+frame (parked 2004). The arm's SIEGE-and-fires-on-move branch and its wall exemption are reached by no capture; the listing's.
 
 ## 204. Reserved for the next item on the AI track
 
