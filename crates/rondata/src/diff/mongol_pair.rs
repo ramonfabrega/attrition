@@ -49,7 +49,11 @@ fn mongol_pair_first_parting() {
     pin_eq!(w.difficulty, MONGOL.difficulty, "the lobby read back");
     pin_eq!(w.last, MONGOL.length, "the game's last frame");
     pin_eq!(w.count, MONGOL.count, "the draw count's first parting");
-    pin_eq!(w.sequence, MONGOL.sequence, "the draw sequence's first parting");
+    pin_eq!(
+        w.sequence,
+        MONGOL.sequence,
+        "the draw sequence's first parting"
+    );
 }
 
 /// run776: the lobby's blocks 1..34 at the long's detail, the word 11's
@@ -80,7 +84,7 @@ fn run776_s_word_frame_is_widened_whole() {
         return;
     };
     pin_eq!(w.blocks, 33, "every captured block");
-        pin_eq!(
+    pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
