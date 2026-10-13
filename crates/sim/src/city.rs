@@ -2048,6 +2048,8 @@ impl Sim {
         // building high-water mark, and the nation's free units for a
         // first-of-its-kind building (`crate::nations`, §4.3).
         self.claim_building_high(b, captured, counted);
+        // `Build::activate@00623e20:1366`: the Terra Cotta Army's clock.
+        self.terra_cotta_activate(b);
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);

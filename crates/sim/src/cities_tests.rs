@@ -4538,6 +4538,79 @@ fn a_persian_market_trains_a_caravan_on_its_slot_up_to_the_limit() {
     );
 }
 
+/// **The Terra Cotta Army trains a free soldier when its clock runs out**
+/// (`Build::process@0061edf0`'s last `train`, `Build::activate@00623e20`'s
+/// seed; `docs/AI.md` §182). The wonder's `recharging` starts at `FREE × 15`
+/// (450) when it activates and counts down a frame at a time while it is
+/// active; at 0 it is reset to `450 + armed Barracks-line units × 15 / 2` and
+/// the newest of the Slingers line is born at the wonder — no queue, no
+/// price — if the owner's population is under its cap. The coverage pair's
+/// Persians: the wonder `1/2043` reads 1 on block 3843 and 607 on 3844
+/// (21 units), and a Mech Infantry squad is born on the frame between.
+///
+/// Made to fail by dropping the tick's call (the clock never moves) or the
+/// soldier (the clock resets and nothing is born).
+#[test]
+fn a_terra_cotta_army_trains_a_soldier_when_its_clock_runs_out() {
+    use crate::nations::ty;
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    while sim.tech_tree.types.len() <= ty::TERRA_COTTA {
+        let def = if sim.tech_tree.types.len() == ty::SLINGERS {
+            tech::TypeDef::unit("Slingers", tech::UnitTraits::default()).at(0x1ab)
+        } else {
+            tech::TypeDef::building("Filler")
+        };
+        sim.tech_tree.add(def);
+    }
+    let slinger = sim.add_unit_type(UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 20)
+        },
+        hits: 40,
+        combat: combat::Profile {
+            attack: 5,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    });
+    sim.unit_types[slinger].tree = Some(ty::SLINGERS);
+    let mut wonder = bt(Ident::Other, None, "ean", 4, 4, 420, 1200, 0);
+    wonder.tree = Some(ty::TERRA_COTTA);
+    let wonder = sim.add_build_type(wonder);
+    let w = sim.init_build(0, wonder, tile_pos(38, 32), false);
+    finish(&mut sim, w);
+    assert_eq!(
+        sim.buildings[w].recharging, 450,
+        "activation seeds TERRA_COTTA_FREE x 15"
+    );
+    let count = |sim: &Sim| sim.muster[0].by_type[slinger];
+    // One armed Barracks-line unit of the owner's is a share of the delay.
+    sim.produce(0, slinger, tile_pos(34, 32)).unwrap();
+    assert_eq!(count(&sim), 1);
+    sim.buildings[w].recharging = 3;
+    sim.tick();
+    assert_eq!(sim.buildings[w].recharging, 2, "the tick counts it down");
+    sim.tick();
+    assert_eq!(sim.buildings[w].recharging, 1);
+    assert_eq!(count(&sim), 1, "and nothing is born while it is over 0");
+    sim.tick();
+    assert_eq!(
+        sim.buildings[w].recharging,
+        450 + 15 / 2,
+        "at 0 it resets to 450 plus 15 / 2 a unit (TERRA_COTTA_DELAY 7)"
+    );
+    assert_eq!(count(&sim), 2, "and the soldier is born");
+    // At the cap the clock still resets and nobody is born.
+    sim.muster[0].control = sim.muster[0].cap;
+    sim.buildings[w].recharging = 1;
+    sim.tick();
+    assert_eq!(sim.buildings[w].recharging, 450 + 2 * 15 / 2);
+    assert_eq!(count(&sim), 2, "a player at its cap is given nothing");
+}
+
 /// **A Senate that finishes a government trains its patriot, once**
 /// (`Build::finished@00628490`'s tail, `docs/TECH.md` §"The government
 /// patriot"). `get_gov` reads the government bonus's prerequisite,

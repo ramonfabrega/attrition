@@ -45,8 +45,11 @@ pub mod ty {
     pub const GENERAL: TypeId = 0x36;
     /// `SUPPLYWAGON`, the French one from a Siege Factory.
     pub const SUPPLYWAGON: TypeId = 0x3f;
-    /// `SLINGERS`, the Aztecs' from a Barracks.
+    /// `SLINGERS`, the Aztecs' from a Barracks — and the Terra Cotta
+    /// Army's soldier.
     pub const SLINGERS: TypeId = 0x52;
+    /// `TERRACOTTA`, the wonder.
+    pub const TERRA_COTTA: TypeId = 0x211;
     /// `HOPLITES`, the Roman legion.
     pub const HOPLITES: TypeId = 0x84;
     /// `BOWMEN`, the British archers.
@@ -460,6 +463,78 @@ impl Sim {
             return;
         }
         self.build_train(b, rec);
+    }
+
+    /// **The Terra Cotta Army's free soldier** (`Build::process@0061edf0`'s
+    /// last `train`, after the Persians' caravan; `Build::activate@00623e20`
+    /// seeds its clock). The wonder (`TypeIndex` 0x211) carries a countdown
+    /// in `BuildData +0x7a` — this crate's [`Building::recharging`], the
+    /// dump's `recharging` — set to `TERRA_COTTA_FREE × 15` when it
+    /// activates, and counted down once a frame while the building is
+    /// active. When it falls under 1 it is reset to `FREE × 15` plus one
+    /// share per armed Barracks-line unit the owner holds (`LeaderData
+    /// +0x9f8`, kept by `Leader::track_unit_type`): `count × 15 / 2` when
+    /// `TERRA_COTTA_DELAY` is 7, `count × DELAY` otherwise. Then, if the
+    /// owner's population is under its cap (`+0x940 < +0x7e4`, strict),
+    /// `Build::train` births the newest of the Slingers line the nation can
+    /// field — `get_graft(SLINGERS)` then `current_upgrade` — straight
+    /// through, with no queue and no price, and `terra_cotta_total` rises.
+    ///
+    /// The coverage pair's Persians: the clock reads 1 on block 3843 and
+    /// 607 on 3844 (450 + 21 × 15 / 2), and a Mech Infantry squad
+    /// (`TypeIndex` 104, three figures) is born at the wonder `1/2043` on
+    /// the frame the clock expires. `docs/AI.md` §182.
+    pub(crate) fn terra_cotta_soldier(&mut self, b: usize) {
+        if !self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].tree == Some(ty::TERRA_COTTA))
+        {
+            return;
+        }
+        self.buildings[b].recharging -= 1;
+        if self.buildings[b].recharging >= 1 {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let t = &self.tuning;
+        let base = t.terra_cotta_free * 15;
+        let units = self.barracks_line_units(who);
+        self.buildings[b].recharging = if t.terra_cotta_delay == 7 {
+            units * 15 / 2 + base
+        } else {
+            units * t.terra_cotta_delay + base
+        };
+        let Some(rec) = self.free_unit_record(who, ty::SLINGERS, true) else {
+            return;
+        };
+        let m = &self.muster[who as usize];
+        if m.control < m.cap {
+            self.build_train(b, rec);
+        }
+    }
+
+    /// `Activate`'s half of the Terra Cotta clock: `FREE × 15`.
+    pub(crate) fn terra_cotta_activate(&mut self, b: usize) {
+        if self.buildings[b]
+            .ty
+            .is_some_and(|r| self.build_types[r].tree == Some(ty::TERRA_COTTA))
+        {
+            self.buildings[b].recharging = self.tuning.terra_cotta_free * 15;
+        }
+    }
+
+    /// `LeaderData +0x9f8`: the units of the player's whose trainer
+    /// (`UnitTypeData +0x40`) is the Barracks (`0x1ab`) and whose base
+    /// attack (`+0x1e8`) is not 0 — the count `Leader::track_unit_type`
+    /// keeps beside `num_units`.
+    fn barracks_line_units(&self, who: Player) -> i32 {
+        (0..self.unit_types.len())
+            .filter(|&r| {
+                self.unit_types[r].combat.attack != 0
+                    && self.trainer_where(r) == Some(ty::BARRACKS)
+            })
+            .map(|r| self.muster[who as usize].by_type[r])
+            .sum()
     }
 
     /// One arm: `n` copies of `base`'s line, each under `check_population`.
