@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2054) **A `RON_STATE_FRAME` tracer define without `RON_STATE_PLAN` dies in
+the build after the lane is taken** (parked 2006, filed at 2001's merge):
+run810's first take spent the lane on a build that could not succeed.
+Candidate: the runner refuses the pair's absence before staging (or
+defaults the plan), with a test that fails on the bare define first.
+
 (2043) **`hooks.py`'s stub page holds 256 stubs and never reuses one**
 (parked 2022, filed at 2020's merge): `Harness.stub` hands out `0x10` bytes
 of one `0x1000`-byte page, so a script calling `h.vtable` inside its row
