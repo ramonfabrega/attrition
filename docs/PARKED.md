@@ -3946,7 +3946,9 @@ checkout's `game/` from a worktree, and the candidates were a scratch
 script over `source_of`/`sweep_backed` — the third batch to write one;
 a `--candidates` flag graduates it; 1701 (the sixth batch) reached for
 the same script and said so too, and 1705 asks for `tools/census.py
---unbacked`, shortest decompile first, which found its batch in one call. One reach.
+--unbacked`, shortest decompile first, which found its batch in one call; 1721
+and 1724 wrote it again. One reach — and the probe-shape rule's third reach
+long past (CLAUDE.md, Conventions).
 
 (1706) **The sweep's generator is a scratch script** (1704's Loop
 line): one template → ten emulator scripts and ten tests was the second
