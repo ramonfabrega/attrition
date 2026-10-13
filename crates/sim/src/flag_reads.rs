@@ -133,3 +133,33 @@ pub const fn game_is_team_game(flags: u8) -> bool {
 pub const fn move_order_is_pathed(flags: i8) -> bool {
     flags & 1 != 0
 }
+/// `GarrisonOrder::get_garrison_order@00482dd0`: `this - 0x1c` (item 1782).
+pub const GARRISON_ORDER_BASE: i32 = 0x1c;
+/// `AttackToOrder::get_attack_to_order@00482f60`: `this - 0x54`.
+pub const ATTACK_TO_ORDER_BASE: i32 = 0x54;
+/// `AirPatrolOrder::get_air_patrol_order@004843d0`: `this - 0x60`.
+pub const AIR_PATROL_ORDER_BASE: i32 = 0x60;
+/// `AirAttackGroundOrder::get_air_order@004835b0`: `this - 0x2c`.
+pub const AIR_ATTACK_GROUND_ORDER_BASE: i32 = 0x2c;
+/// `GraphicWinXML::get_graphicwinxml@0041c000`: `this`, unchanged.
+pub const fn graphic_win_xml(this: i32) -> i32 {
+    this
+}
+/// `get_unique_types@00669120` and `get_unique_types2@00669100`: the byte
+/// held in a global cell (`0x00ed88cb`, `0x00ed88cc`), in `al`.
+pub const fn global_byte(b: u8) -> u8 {
+    b
+}
+/// `get_type_count2@00669110`: the byte at `0x00ed9936 + i`; `table` is that
+/// array.
+pub fn type_count_at(table: &[u8], i: usize) -> u8 {
+    table[i]
+}
+/// `GroupMoveOrder::is_pathed@00485a20`: bit 0 of the order's flag byte.
+pub const fn group_move_order_is_pathed(flags: i8) -> bool {
+    flags & 1 != 0
+}
+/// `MoveOrder::is_fleeing@004889a0`: bit 1 of the order's flag byte.
+pub const fn move_order_is_fleeing(flags: i8) -> bool {
+    flags & 2 != 0
+}

@@ -903,3 +903,11 @@ consumer. `docs/journal/2026-10-13-item-1760.md`.
 **Item 1766, the sweep's sixteenth batch** (2026-10-13): **simulation backed 208
 of 3,611** — ten packet-free sweeps, all agree, no parting, no port consumer.
 `docs/journal/2026-10-13-item-1766.md`.
+
+**Item 1782, the sweep's seventeenth batch** (2026-10-13): **simulation backed 218
+of 3,611** — ten packet-free sweeps, all agree, no parting, no port consumer:
+the enclosing-order casts `GarrisonOrder`, `AttackToOrder`, `AirPatrolOrder`,
+`AirAttackGroundOrder`, `GraphicWinXML::get_graphicwinxml` (identity), the
+`types.cpp` byte readers `get_unique_types{,2}` and `get_type_count2`, and the
+flag bits `GroupMoveOrder::is_pathed`, `MoveOrder::is_fleeing`.
+`docs/journal/2026-10-13-item-1782.md`.
