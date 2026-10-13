@@ -3843,7 +3843,12 @@ Loop line): `Pair`'s count and sequence are literals in the const, so a
 re-pin of a pair's word is a hand edit. Candidate: `repin.py` learns the
 `Pair` shape. Two reaches: 1744 re-pinned it by hand again, and renaming
 the word's window function touched the coverage driver's tuple twice —
-a pair's windows want a list.
+a pair's windows want a list. 1768 a third: the window functions renamed again.
+
+(1846) **`RON_DEBUG_UNIT`'s `TI` is the type index, `TY` the record
+number** (1768's Loop line): a brief that names a unit by its `TY`
+misreads it (272 reads as a `HUMMEL`; the Freighter is `TI` 322).
+Candidate: the tracer prints the type's name beside both. One reach.
 
 (1839) **`stage_walk`'s script reader accepts what the capture refuses**
 (1798's Loop line): `live_session.parse_commands` refuses descending

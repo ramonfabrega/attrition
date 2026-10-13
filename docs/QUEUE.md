@@ -12,10 +12,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirtieth tranche at sixteen landings of twenty** (`commander`,
+*2026-10-13, **the thirtieth tranche at seventeen landings of twenty** (`commander`,
 Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65): **the successor pair's
 word moved twice** — 11 → 1354 (1737, `calc_gather`'s Mongol food term) → 2207
-(1744, `train_time`'s Mongol stable arm); chapters fifty-three (1740) and
+(1744, `train_time`'s Mongol stable arm), widened whole at 2207 on run780 (1768); chapters fifty-three (1740) and
 fifty-five (1798, 1010) closed, fifty-four's rows settled (1776); ten sweeps
 took the census 188 → 288. Great Sahara 3182 open (1738). No kill rule tripped.*
 
@@ -23,9 +23,9 @@ took the census 188 → 288. Great Sahara 3182 open (1738). No kill rule tripped
   `lanewait.py --deep`, `release_gate.py --item`, `Gate pid:`, `nice` under
   `memcap.sh`, `census.py --unbacked`, `sweep_gen.py`, `seams.py --dated`,
   `runwiring.py`; a done line stops the wait; the chain pushes with `git push`.
-- **Lanes live**: `att-1738`, `att-1768`, `att-1829`, `att-1840`; 16 of 20 landed (word
-  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 288). Next 1845, run 788, AI §195, GOLDEN §69. **The disk**: 233 GiB free.
-- **Fable backlog: 16 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839).
+- **Lanes live**: `att-1738`, `att-1845`, `att-1829`, `att-1840`; 17 of 20 landed (word
+  11 → 2207, ch53 and ch55 closed, ch54's rows settled, census 288). Next 1851, run 788, AI §196, GOLDEN §69. **The disk**: 233 GiB free.
+- **Fable backlog: 17 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,25 +39,26 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the thirtieth tranche continues at ten landings, on `commander` — four
-lanes live on Sonnet 5.5 medium (`att-1738`, `att-1768`, `att-1829`, `att-1840`):
+lanes live on Sonnet 5.5 medium (`att-1738`, `att-1845`, `att-1829`, `att-1840`):
 re-arm `lanewait.py` on them; count landings from 5d6f28ef, stop at twenty, handoff
 written, `ccc clear steer --then` the thirtieth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1768 the headline's word, 1738, 1840 and 1829 the other three lanes —
+1845 the headline's word, 1738, 1840 and 1829 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1768. **The successor pair's word: frame 2207, 9 versus 8 draws**, index
-    8: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none; past
-    run779's last block (1605), so unwidened: a window capture around 2207
-    (six blocks before, 250 after) and its widening (`MONGOL_PAIR_WORD`
-    names 1768 until then). 1744 moved 1354 → 2207 with the Mongol stable
-    arm of `train_time`; run779's quiet rows on 1583 are parked 1769.
-    East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §194.
+1845. **The successor pair's word: frame 2207, 9 versus 8 draws**, index
+    8: the idle draw of the Freighter `1/72` (parked 1800); run780 widened
+    whole (897 keys, `run780_s_word_frame_is_widened_whole`). Ours idles it
+    from 2178 after `building_slot_reused` kills `[ExploreTo, Build(50)]`
+    on 2177; theirs walks it to (35736, 24984) by 2201, nothing before
+    2201 dumped. A packet at 2178 and `step4.py` on its `think` first
+    (run 785), killers in AI §194. East Indies, Mongols, `DIFFICULTY 3`,
+    All Tech. AI §195.
 
 1738. **Great Sahara's word: frame 3182, 46 versus 43 draws**, index 7:
     ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`;
