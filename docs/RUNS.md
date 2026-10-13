@@ -15975,6 +15975,18 @@ SHA-256 `2c21625e3e4c00d9da1f3ec837eb0aa9fe41bf9848c3fd75e999f602172a2cbe`.
 
 **What it holds**: `diff::sahara_coverage::run766_s_word_frame_is_widened_whole` — **252** keys on item 1697's tree; the third map's `AI_WORDS` window (`sahara_coverage_word_window`), walked by the compared pin; the coverage driver reads its blocks 2641 and 2852. run718's window stays as `sahara_coverage_frame_2273_window`. `docs/AI.md` §184.
 
+## run767 — Great Sahara in the coverage pair's lobby: the word 2934's widening, blocks 2928..3185 (2026-10-13, item 1716, `att-1716`)
+
+**Disk gap**: item 1716's Fort danger term moved the word 2851 → 2934 (191 versus 205 draws, index 0), past run766's last block (2890); no dump of this lobby held a unit, a building or a leader record there. run766's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 7 --end-frame 3191 --timeout 3600 --log-window 2928 3186 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`, `cover=0`, the click-free lane, the pool took lane 2. First take: `success: true`, `settings_restored: true`, 3192 frames; output `~/ron-data/lab-captures/2026-10-13-run767`. `rngcmp.py rontrace-run676.log rontrace-run767.log`: **3192 frames in common, 0 differing**. 259 `BEGIN FRAME`s: 2928..3185 and a 3192 closing block. Minutes waited on another lane's capture: none.
+
+Archive `gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt`, 572,473,242 bytes,
+SHA-256 `4229ecf7ca2e6d563f8374edecf2fba613ac7964a645f662026db512b32248d6`.
+
+Archive `rontrace-run767.log`, 119,057,376 bytes,
+SHA-256 `4613b5c56dae549ce81108772c6b5f2da652e5f5a74b8b6a16f499dd9445b810`.
+
+**What it holds**: `diff::sahara_coverage::run767_s_word_frame_is_widened_whole` — **2856** keys on item 1716's tree; the third map's `AI_WORDS` window (`sahara_coverage_word_window`), walked by the compared pin; the coverage driver reads its block 2935. run766's window stays as `sahara_coverage_frame_2640_window` (97 keys). `docs/AI.md` §187.
+
 ## run770 — chapter fifty-one's script with the fog plane printed, blocks 690..714 (2026-10-13, item 1497)
 
 `docs/GOLDEN.md` §62, `tools/gamelog/golden/chapter51.cmd` unchanged. **What the disk could not answer**: no
