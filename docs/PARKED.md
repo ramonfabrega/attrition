@@ -4135,13 +4135,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot W — reserved
+## Parked by item 1998, 2026-10-13 — the sweep's forty-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot W renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2012) **The census counts a hooked callee a sweep test names as backed** (Loop; names no score, but it inflates
+the one the sweep lane is scored by). `tools/census.py`'s `sweep_backed` takes every `name@00xxxxxx`, every bare
+`@00xxxxxx` and every unique `Class::method` in a sweep `#[test]`'s chunk — doc comment included — as backed. Item
+1998's first draft named three callees it *hooked* (`TypeData::research_time`, `UnitData::invalid_loc`, the
+`WCoord` `find_good_at` (0x65bec0)) and the census read 461 for ten sweeps; reworded, 459. A guard would split the
+two: a hooked callee is whatever the script hands `Harness(…, {ADDR: …})`, so the census can subtract the
+addresses a sweep's own script hooks, or the test can cite them in a form `named` skips. Earlier batches were not
+re-audited for it (1993's `get_land` test cites only its own address; the other 400-odd were not read).
+
+(2013) **`sweep_gen.py vcall` has no shape for a slot entered as an ordinary call after `pop ebp; jmp [eax+N]`**
+(Loop; names no score). `Unit::set_type` (0x46ce10) and `Build::finished` (0x470e50) tear their frame down and jump:
+the slot sees the caller's return address at `[esp]` and the function's own stack arguments above it, so it is
+a non-tail stub with `nargs` = the function's own and `ret 4·N`. `--tail` is the `push; jmp` shape (`is_city`) and
+leaves `esp` wrong here, and the generated script holds neither `esp` nor what the slot was handed; both were by
+hand. A `--jmp` flag (non-tail stub, `--own N`, the handed arguments and `ecx` in the row) would take them, and a
+slot whose answer is a function of its first argument (`GoodTypeData::is_flat`'s three asks of `+0x60`) beside it.
+Also: three tracked `crates/sim/src/sweep/world_data_is_valid_*.rs-E` files are BSD `sed -i -E` leftovers from
+item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
 
 ## Parked by the next landing, slot X — reserved
 
