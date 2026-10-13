@@ -19,11 +19,11 @@ unmoved, chapters fifty-three, fifty-five, fifty-six closed, the census 178 → 
 the battery unmoved a sixth tranche. Seventeen Loop items out, six stay.*
 
 - **Four lanes live** (`commander`, Opus 5.5; lanes Sonnet 5.5 medium): `att-1868`
-  (A, runs 788–789, 794–795), `att-1905` (E, runs 790, 793), `att-1932` (I), `att-1926` (H, runs
-  796–797). 1866, 1889, 1870, 1895, 1911, 1916, 1863, 1921 landed: census 319 → 379, Great Sahara 3182 → 3767, chapter fifty-seven closed. Next 1937, run 798, AI §199, GOLDEN §71.
+  (A, runs 788–789, 794–795), `att-1937` (J, run 798), `att-1932` (I), `att-1926` (H, runs
+  796–797). 1866, 1889, 1870, 1895, 1911, 1916, 1863, 1921, 1905 landed: census 319 → 379, Great Sahara 3182 → 3805, chapter fifty-seven closed. Next 1942, run 799, AI §200, GOLDEN §71.
 - **`lanewait.py` exits `STALLED <lane> <min>` too**: one line to the lane (its
   gate or capture exited; read the log, land). Landings count from this pass's commit.
-- **Fable backlog: 10 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931).
+- **Fable backlog: 11 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -32,7 +32,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w2838 of 5,056
 Census: simulation backed 379 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3767 of 4,340
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3805 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -44,7 +44,7 @@ their turn; at twenty landings the handoff, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1868 the headline's word, 1905, 1932 and 1926 the other three lanes —
+1868 the headline's word, 1937, 1932 and 1926 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -57,14 +57,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     2838 with `think_carry`'s civilian arm; its other arms are parked 1847.
     East Indies, Mongols, `DIFFICULTY 3`, All Tech. AI §196.
 
-1905. **Great Sahara's word: frame 3767, 33 versus 37 draws**, index 7:
-    ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    `Guy::init_real+0x52`; 1870 moved 3182 → 3767 with `get_nuke_embargo`
-    and `get_cost`'s Fort and production counts. Past run767's end (3186),
-    so unwidened and no value diff on file: a capture over `--log-window
-    3761 4018` and its widening, every record on 3767 both ways before a
-    mechanism (parked 1877). Parked 1878 (`1/2032`'s queue cost 67/64 on
-    3183) is the widening's to read. AI §198.
+1937. **Great Sahara's word: frame 3805, 17 versus 32 draws**, index 1:
+    ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs
+    `Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d <
+    Unit::fight+0x115e` — a search's fifteen draws; 1905 moved 3767 →
+    3805 with `Build::do_queue`'s helicopter fallback. Inside run790 (to
+    4018), so no capture: the widening, every record on 3805 both ways,
+    before a mechanism (parked 1906); parked 1907 and 1908 are rows
+    before the word it should read. AI §199.
 
 1932. **The sweep's thirty-fourth batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 379 of 3611): 1921's shape,

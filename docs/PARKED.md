@@ -3733,6 +3733,12 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1947) **A widening past its word reports the tail's thousands** (1905's
+Loop line): run790's baseline is 12,582 keys because the replay diverges
+at 3805 and the window runs 212 blocks past it, so the pin reads "the
+tail" until the word nears the window's end. Candidate: a `firsts` print
+(and a pin) bounded at the word's frame plus five. One reach.
+
 (1931) **`unattended_capture.py` refuses `GROUPS` with `DEATHS` at one
 detail and says nothing of the pairing** (1863's Loop line; parked 1885):
 run791's first two takes died in `verify_game` before the lane dropped
