@@ -1468,7 +1468,10 @@ captain and its chain: one group move on each figure. run496 block 1902:
 `Sim::disembark` walks it (`land_passenger`, `land_tail`), and
 `a_landed_squad_takes_one_group_move_each_and_its_captain_s_angle`
 holds it; chapter forty-six's widening holds it on run496.
-- `do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
+- ~~`do_cast`'s captain check (`005ebfe0`, transport only: a non-captain
   whose captain's current order is `CAST_SPELL` gives its frame back) is
   reached only by a member holding its own transport cast and stepped
-  before its captain. No staging has one.
+  before its captain. No staging has one.~~ **Built by item 2077**
+  (`docs/AI.md` §207): East Indies' `1/24` on 3835 reaches it stepped
+  *after* its captain `1/23`, which queued its own cast on its step;
+  diff-backed by the successor pair's walk.
