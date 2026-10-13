@@ -2481,6 +2481,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         (super::sahara_coverage::RUN702, 1986),
         (super::sahara_coverage::RUN718, 2274),
         (super::sahara_coverage::RUN718, 2324),
+        (super::sahara_coverage::RUN718, 2405),
     ] {
         if let Some(path) = crate::testenv::dump(name) {
             let n = drive_capture(&path, block - 2, block + 2, &mut paths);

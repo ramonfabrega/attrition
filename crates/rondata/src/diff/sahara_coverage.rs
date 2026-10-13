@@ -110,8 +110,14 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     // and sequence): ours 12 draws against 13, index 10, ours
     // `Farms::inc_time+0x1ae`, theirs `Farms::inc_time+0x1de` (a sprout's
     // `% empty` draw the original spends on the second farm of the walk).
-    count: 2323,
-    sequence: 2323,
+    // Landing 9 (`docs/AI.md` §175): `Farms::add` refills the first record
+    // `Farms::remove` freed, so the Persians' farm placed on 2182 after the
+    // human's three died (2116..2122) is walked ahead of the farms placed
+    // before it — 2323 → **2404** (count and sequence): ours 18 draws
+    // against 20, index 6, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    // theirs `Guy::init_real+0x52`.
+    count: 2404,
+    sequence: 2404,
 };
 
 /// The lobby's word as the handoff's `Third map:` line and `AI_WORDS` carry
@@ -790,7 +796,7 @@ pub(crate) fn sahara_coverage_word_window() -> Option<harness::tests::Widened> {
         &[(RUN718, WIDENING_SAHARA_COVERAGE_FRAME_2273.0)],
         WIDENING_SAHARA_COVERAGE_FRAME_2273,
         1,
-        &[2324],
+        &[2405],
         true,
     )
 }
@@ -814,7 +820,13 @@ fn run718_s_word_frame_is_widened_whole() {
     // residue, not the upgrade.
     // Item 1634: three false road flags at 2429 disappear; two new
     // order keys arise in the already diverged tail, net 625 -> 624.
-    pin_eq!(w.firsts.len(), 626, "initial run718 baseline");
+    // Item 1639: `Farms::add` refills a freed slot, so the Persians' farm of
+    // 2182 is walked ahead of its elders and the word's sprout lands on 2323;
+    // the keys the old word's run-on parted drop 624 -> 364 and the word is
+    // 2404 (`docs/AI.md` §175). Value diff on the word: block 2404's
+    // `1/2031` `queue:queue[0].job_counter` 9500 against 9473; 2405's `1/126`
+    // is born in the original alone (`leader:control` 103 against 104).
+    pin_eq!(w.firsts.len(), 364, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,
