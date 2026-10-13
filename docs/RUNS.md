@@ -16102,6 +16102,24 @@ SHA-256 `b75b27b088190ffaa8ec41ba98d494d806654845ff42d8d9cad8c5aa667b2abc`.
 
 Archive `rontrace-run776.log`, 9,948,352 bytes,
 SHA-256 `6cc12cfd7072634ad61ea1d79b3b54b51764d0a6c66bdaaa7dbc5a7bfa85c8ad`.
+## run779 — the successor pair: the word 1354's widening, blocks 1349..1605 (2026-10-13, item 1744, `att-1744`)
+
+**Disk gap**: item 1737 moved the word 11 → 1354, past run776's last block (33); no dump of this lobby held a unit, a building or a
+leader record there. run776's recipe with the window moved, through `viadriver.sh tools/explore/golden_capture.sh`: `--map 18
+--end-frame 1611 --timeout 3600 --log-window 1349 1606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17
+--profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`, `cover=0`, click-free lane 1; `success`, 1612
+frames, 1123.7 s. `rngcmp.py rontrace-run775.log rontrace-run779.log`: **1612 in common, 0 differing**. 257 `BEGIN FRAME`s 1349..1605
+and a 1612 closing block. Minutes waited on another lane's capture: none. run780 unused.
+
+Archive `gamelog-run779-eastindies-mongol-alltech-window-1349-1606.txt`, 500,286,256 bytes,
+SHA-256 `70dd83980f0cb0d5bd71f62f5bdeba113f345af2141fe0f0c03060770907046f`.
+
+Archive `rontrace-run779.log`, 38,343,488 bytes,
+SHA-256 `1e1dacee3492cee940dbb8ebb8d9fd1035a087de0db8959e55c5c9511181e120`.
+
+**What it holds**: `diff::mongol_pair::run779_s_word_frame_is_widened_whole` — 1406 keys before item 1744's build, 109 after; the
+word 1354's value diff (`1/2024`'s `queue[0].job_counter`). `docs/AI.md` §193.
+
 ## run773 — chapter fifty-three: a packet at logger frame 961, the idle Dragoon's search (2026-10-13, item 1711)
 
 `docs/GOLDEN.md` §64. **What the disk could not answer**: the value `Object::poor_target` returns for the Dragoon

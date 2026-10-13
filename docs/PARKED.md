@@ -4015,3 +4015,17 @@ and 1062–1064, past the word 962; both mutations exit 0. Backed once
 (1731) **Pool slot 1 keeps a dead member** (1711): on 962 ours keeps
 the dead `0/6` in the group pool's slot 1 list where the original drops
 it; the rows are pinned in `WANT_CH53_POOL`. No draw parts on it yet.
+
+## Parked by item 1744, 2026-10-13 — the successor pair's word 2207
+
+(1768) **The successor pair's word: frame 2207, 9 versus 8 draws**, index 8:
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none; past run779's
+last block (1605), so unwidened — a window capture around 2207 (six blocks
+before, 250 after) and its widening; `MONGOL_PAIR_WORD` names 1768 until then.
+1744 moved 1354 → 2207 with the Mongol stable arm of `train_time`.
+
+(1769) **run779's quiet rows after 1354** (1744): on 1583 `1/2020` and
+`1/2028`'s `queue[3].cost[0..1]` 99/90 and 106/97 ours against 144/134 and
+156/146, `leader:bucket[0:food]` 15880/15785, `bucket[1:timber]` 16844/16751;
+no draw behind them. `MONGOL_STABLE_COST` is the suspect to read first.
+

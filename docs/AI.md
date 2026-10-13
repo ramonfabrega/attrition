@@ -18727,12 +18727,40 @@ rate row to 33). A mutation run of the term was not made (the unit test and the 
 A stub the booking lands so two lanes append at their own anchors
 (parked 1491); the item's worker renames it and writes the section.
 
-## 193. Reserved for the next item on the AI track
+## 193. The Mongols' stables: a nation arm in `train_time`, and the successor pair's word at 2207 (2026-10-13, item 1744)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Baseline.** Word 1354, 5 draws ours against 7, index 1 (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::init_real+0x52`, a figure born in theirs); §191's booking, past run776's last block, so unwidened.
+
+**Capture (run779, the disk could not answer: no dump held a unit or building record past 33 of this lobby).** Click-free lane 1,
+`--map 18 --end-frame 1611 --log-window 1349 1606 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17` and the
+lobby's profile (`docs/RUNS.md`); `rngcmp.py rontrace-run775.log rontrace-run779.log`: 1612 frames, 0 differing. Widening
+`diff::mongol_pair::run779_s_word_frame_is_widened_whole`: **1406 keys** on blocks 1349..1605 before the build (the control's start set
+on 1349 — `form`, the leaders' `SITE[n].reg`, the groups' `held`/`pool` rows, `scouts` — then the rows below).
+
+**Value diff on the word's frame.** Building `1/2024` (`orig_type` 429, the Auto Plant; `uid` 42): `queue[0].job_counter` 17200 ours /
+**17150 theirs** on 1354 (theirs steps 17000, 17100, then the clamp at 17150; ours 27000 is the target it was still climbing to),
+`queued` 4/3, `leader:num_units[206]` 0/1, `num_units`/`active`/`control` 35/36 and the unit `1/42` on 1355. The dump shows the target
+the original's clamp reaches: 17150 where ours reads 27000, a factor of 0.635.
+
+**Cause.** `ObjectData::train_time@006508c0` lines 109–117, first arm of the national block (before the Japanese barracks and the
+British arms): `has_tribe_bonus(0x11)` — a Mongol — and the unit type's attack (`+0x1e8`) non-zero and its trainer
+(`UnitTypeData +0x40`) `is(0x1ac, 0)` — the Stable line — divide the time by `(MONGOL_STABLE_SPEED + 100) / 100` (`rules.xml`: "20%
+faster creation", `+0x7ec`). It is `train_tail`'s "the Mongol stable" arm the doc comment had set aside as absent from every capture
+until run774. Built: `Sim::train_tail` pushes `Adjust::Faster(mongol_stable_speed)` first; `Tuning::mongol_stable_speed` (20,
+slots 366 → 367). Test `a_mongol_attacker_from_the_stable_trains_faster`.
+
+**Score.** run779's widening 1406 → 109 keys; **the word moves 1354 → 2207**: 9 draws ours against 8, index 8, ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none — past run779's last block (1605), so unwidened (parked 1768).
+`mongol_pair_first_parting` reads four uncatalogued heights on the walk to 2207 (`GROUND_INEXACT`, 4).
+
+**What stands in the window after 1354** (no draw behind any; parked 1769): on 1583 `leader:bucket[0:food]` 15880/15785 and
+`bucket[1:timber]` 16844/16751, the queued costs of `1/2020` and `1/2028` slot 3 (ours 99/90 and 106/97 against 144/134 and 156/146;
+on 1594 slot 2), and group `held`/`pool` rows on 1356 onwards (the window's first block holds none in theirs).
+
+**Not established.** The `is(0x1ac)` lineage was taken as the listing writes it (the Auto Plant, the trainer here, answers it); a mutation
+run of the arm (`tools/mutate.py`) was not made — the unit test fails without each of its three gates and the widening without the
+call. The Mongol stable cost arm (`MONGOL_STABLE_COST`, 10 %) is the cost side's, unread here; the 1583 rows above may name it.
 
 ## 194. Reserved for the next item on the AI track
 

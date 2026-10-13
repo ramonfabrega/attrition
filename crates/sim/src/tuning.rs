@@ -326,6 +326,9 @@ pub struct Tuning {
     /// `Leader::calc_gather@006ceee0` (`num_nations × territory × 800 /
     /// land_size / x`, in sixteenths; 0 turns it off). Ships as 1.
     pub mongol_nomadic_food: i32,
+    /// Percent faster creation of a Mongol attacker trained at the Stable
+    /// line — `ObjectData::train_time@006508c0`'s Mongol arm. Ships as 20.
+    pub mongol_stable_speed: i32,
     /// Percentage off the British price of the four taxation techs,
     /// Taxation through Income Tax — `get_cost`'s `TVar21 − TAXATION < 4`
     /// with `has_tribe_bonus(0xb)` (`docs/AI.md` §74).
@@ -1068,6 +1071,7 @@ impl Tuning {
         british_commerce: 25,
         british_taxation: 100,
         mongol_nomadic_food: 1,
+        mongol_stable_speed: 20,
         british_taxation_discount: 50,
         democracy_tech_bonus: [20, 20],
         furs_military: 25,
@@ -1340,7 +1344,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 366] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 367] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1458,6 +1462,7 @@ impl Tuning {
             ("BRITISH_COMMERCE", Slot::Value(T.british_commerce)),
             ("BRITISH_TAXATION", Slot::Value(T.british_taxation)),
             ("MONGOL_NOMADIC_FOOD", Slot::Value(T.mongol_nomadic_food)),
+            ("MONGOL_STABLE_SPEED", Slot::Value(T.mongol_stable_speed)),
             (
                 "BRITISH_TAXATION_DISCOUNT",
                 Slot::Value(T.british_taxation_discount),
