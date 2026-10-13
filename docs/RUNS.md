@@ -16066,3 +16066,39 @@ Click-free lane 1, free at launch; `success: true`, 1121 frames, seed 12345, map
 Dump 268,096,624 bytes (sha256 `f9a0e826be76…`), trace 10,725,344 (`11ef1d315da3…`), kept in `~/ron-golden/ch53/map-14`.
 **What it holds**: `golden::chapter_fifty_three_s_word_frame_is_widened_whole` (605..966, 36 rows and 15 pool rows) and
 `chapter_fifty_three_holds_to_the_golden_word` (**962**). The member arm's four wounds (818, 844, 872, 906) agree.
+
+## run774 — the successor pair: East Indies, Mongols, Difficulty 3, All Technologies, the `DUMP_ALL` start (2026-10-13, item 1728, `att-1728`)
+
+`--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`, click-free lane 1, `cover=0`; `success`, 37 frames, 452.6 s launch-to-exit, five settings files restored,
+tribes 4 and 17, seed 12345. The lobby's own start (`docs/AI.md` §190). No wait for the lane.
+
+Archive `gamelog-run774-eastindies-mongol-alltech-start.txt`, 153,483,537 bytes,
+SHA-256 `dea03fb5230d3a254a44c71c0b23d2950b9a95aece853103fac727857226476f`.
+
+Archive `rontrace-run774.log`, 10,185,984 bytes,
+SHA-256 `53794755721e1777b15a9799883c6a49fa2ad0efb8b31f11d8c8f931a249a180`.
+
+## run775 — the successor pair: East Indies, Mongols, Difficulty 3, the draw stream to the game's end (2026-10-13, item 1728)
+
+Run600's recipe with `--allow-early-end`: `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001 --ffwd-minute 27 --cover cover=0
+--callwin 0 24000 --ai-tribe 17`, the lobby of run774. **The game ended itself at frame 5056** (5,057 frames, closing block 5057;
+`ended_early`), 81.3 s launch-to-exit. `rngcmp.py rontrace-run774.log rontrace-run775.log`: 37 in common, 0 differing.
+
+Archive `gamelog-run775-eastindies-mongol-alltech-trace.txt`, 14,174,550 bytes,
+SHA-256 `e7fec5e7a494f63e10d12e7c4d4baff3a094e5c7d63807fa9092a97f3c5c7309`.
+
+Archive `rontrace-run775.log`, 171,917,472 bytes,
+SHA-256 `f37b8a9f775b632bb08d36135495504b8f0d0abddbb763d2b2a3e0a2f5793a42`.
+
+## run776 — the successor pair: blocks 1..33 at the long's detail, the word 11's widening (2026-10-13, item 1728)
+
+`--map 18 --end-frame 40 --timeout 1800 --log-window 1 34 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17`
+and the lobby's profile; `success`, 41 frames, 118.2 s; 34 blocks. `rngcmp.py rontrace-run775.log rontrace-run776.log`: 41 frames, 0
+differing. `diff::mongol_pair::run776_s_word_frame_is_widened_whole`.
+
+Archive `gamelog-run776-eastindies-mongol-alltech-window-1-34.txt`, 58,104,421 bytes,
+SHA-256 `b75b27b088190ffaa8ec41ba98d494d806654845ff42d8d9cad8c5aa667b2abc`.
+
+Archive `rontrace-run776.log`, 9,948,352 bytes,
+SHA-256 `6cc12cfd7072634ad61ea1d79b3b54b51764d0a6c66bdaaa7dbc5a7bfa85c8ad`.

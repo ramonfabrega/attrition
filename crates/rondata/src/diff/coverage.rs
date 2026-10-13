@@ -2926,9 +2926,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let sahara_2640 = super::sahara_coverage::sahara_coverage_frame_2640_window();
     // Item 1716: and run767's block around the word 2934.
     let sahara_2934 = super::sahara_coverage::sahara_coverage_word_window();
+    // Item 1728: the successor pair's word 11, run776's blocks 1..33.
+    let mongol_11 = super::mongol_pair::mongol_word_window();
     let seen = compared::stop();
     let (
         Some(w),
+        Some(_),
         Some(_),
         Some(_),
         Some(_),
@@ -3017,6 +3020,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         sahara_2273,
         sahara_2640,
         sahara_2934,
+        mongol_11,
     )
     else {
         eprintln!("skipping: the open words' captures are not all on disk");

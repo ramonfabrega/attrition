@@ -8848,6 +8848,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1719,
         Some(crate::diff::coverage_pair::WIDENING_COVERAGE_CLOSING),
     ),
+    // **The successor pair's first word** (item 1728): frame 11, widened on
+    // run776 over 1..33 (block 12).
+    (
+        "MONGOL_PAIR_WORD",
+        crate::diff::mongol_pair::MONGOL_PAIR_WORD,
+        Some("run776_s_word_frame_is_widened_whole"),
+        1728,
+        Some(crate::diff::mongol_pair::WIDENING_MONGOL_FRAME_11),
+    ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
     // was frame 12 on run675/676 (widened on run677 over 6..262), 718 after
     // item 1538's build and **720** on the merged tree, widened on run680
@@ -9133,9 +9142,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// **The coverage pair since item 1511** (DECISIONS 62 §3): the French
 /// pair closed at its end on item 1519, and the coverage pair's row is
 /// the newest.
-pub(crate) const NEWEST_PAIR: &str = "Coverage pair";
+pub(crate) const NEWEST_PAIR: &str = "Successor pair";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The successor pair** (DECISIONS 53 §2, 61 §6; item 1728): East
+    // Indies, the Mongols at Difficulty 3 and All Technologies.
+    AiWord {
+        line: "Successor pair",
+        map: "EastIndiesMongolAllTech",
+        named: "East Indies (Mongols)",
+        word: crate::diff::mongol_pair::MONGOL_PAIR_WORD,
+        length: 5_056,
+        endpoint: None,
+        window: Some("mongol_word_window"),
+    },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
     // the idle human is defeated at 4730.
