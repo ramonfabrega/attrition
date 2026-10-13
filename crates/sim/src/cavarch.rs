@@ -37,10 +37,12 @@
 //!
 //! **What the strike does not do**: the shot. A fire-on-the-move type's
 //! round leaves on its `CHAR_ATTACKWALK` release event (the Dragoon's
-//! `RELEASEEVENT starttime="866" anim="CHAR_ATTACKWALK"`), aimed by the
-//! *order*'s target as every release is (`docs/COMBAT.md` §9.0), so the
-//! frame `fight` runs puts nothing in the air; run657 has no `1/80` round
-//! on 17170..17178.
+//! `RELEASEEVENT starttime="866" anim="CHAR_ATTACKWALK"`), so the frame
+//! `fight` runs puts nothing in the air; run657 has no `1/80` round on
+//! 17170..17178. **The release is aimed by this pair** when the current
+//! order is no attack: `Guy::execute_events@005d99c0`'s `LAB_005d9c14` reads
+//! `cavarch_o`/`cavarch_who` for a move order (item 1740, `docs/GOLDEN.md`
+//! §65), where an attack order's own target stands first.
 
 use crate::ai_load::uflags;
 use crate::combat::{Obj, Stance};
@@ -438,6 +440,28 @@ mod tests {
                 assert_eq!(sim.cavarch_o(me), -1, "dropped");
                 assert_eq!(sim.units[me].guys[0].turret.des_flags & 1, 1);
             }
+        }
+    }
+
+    /// **A request for `CHAR_ATTACKWALK` asks the reload** (`Guy::set_anim@
+    /// 005da300`'s head, run772's Dragoon on 1021 and 1022, `docs/GOLDEN.md`
+    /// §65): from another animation, a reload under six frames is cleared and
+    /// the walk-and-shoot plays; six and over, the walk plays instead. From
+    /// `CHAR_ATTACKWALK` itself the request leaves the reload alone.
+    #[test]
+    fn an_attack_walk_request_clears_a_short_reload_and_refuses_a_long_one() {
+        for (rest, from, anim, left) in [
+            (4u8, crate::anim::WALK, crate::anim::ATTACKWALK, 0u8),
+            (6, crate::anim::WALK, crate::anim::WALK, 6),
+            (4, crate::anim::ATTACKWALK, crate::anim::ATTACKWALK, 4),
+        ] {
+            let (mut sim, ty) = field(true);
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            sim.units[me].guys[0].anim = from;
+            sim.units[me].combat.recharging = rest;
+            sim.guy_set_anim(me, 0, crate::anim::ATTACKWALK, false, true);
+            assert_eq!(sim.units[me].guys[0].anim, anim, "from {from}, rest {rest}");
+            assert_eq!(sim.units[me].combat.recharging, left);
         }
     }
 

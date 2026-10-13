@@ -899,3 +899,7 @@ of 3,611 (5.5 %)** — 31 by a coverage section, 167 by a sweep. Ten packet-free
 (global addresses), `get_scary_{camera,console,terrain,scene}` and
 `Signposts::{get_num,cur_x,cur_y}` (one global cell's word); no live port
 consumer. `docs/journal/2026-10-13-item-1760.md`.
+
+**Item 1766, the sweep's sixteenth batch** (2026-10-13): **simulation backed 208
+of 3,611** — ten packet-free sweeps, all agree, no parting, no port consumer.
+`docs/journal/2026-10-13-item-1766.md`.

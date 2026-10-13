@@ -1268,6 +1268,21 @@ impl Sim {
     pub(crate) fn guy_set_anim(&mut self, u: usize, g: usize, anim: i8, force: bool, p3: bool) {
         let frame = self.frame;
         let guy = self.units[u].guys[g];
+        // **`Guy::set_anim@005da300`'s head** (`docs/GOLDEN.md` §65): a
+        // request for `CHAR_ATTACKWALK` from any other animation asks the
+        // unit's reload (`UnitData +0xae`) first — under six frames it is
+        // **cleared** and the walk-and-shoot starts; six and over turns the
+        // request into `CHAR_WALK`.
+        let anim = if anim == ATTACKWALK && guy.anim != ATTACKWALK {
+            if self.units[u].combat.recharging < 6 {
+                self.units[u].combat.recharging = 0;
+                anim
+            } else {
+                WALK
+            }
+        } else {
+            anim
+        };
         let cur_cat = category(guy.anim);
         let end_at_entry = guy.end_time;
         let who = self.units[u].owner;
@@ -1772,7 +1787,14 @@ impl Sim {
             Some(crate::orders::Body::AttackGround(g)) => (Some(g), None),
             Some(crate::orders::Body::Attack(_)) => (None, self.units[u].combat.target),
             Some(crate::orders::Body::Strafe(s)) => (None, s.target),
-            _ => return,
+            // **No attack in front: the fire on the move's own pair.**
+            // `Guy::execute_events@005d99c0`'s `LAB_005d9c14` — no order
+            // list, no current order, or one that is neither attack-like
+            // nor kind 0x17..0x19 — reads `UnitData +0xa2/+0xa8/+0xa6`,
+            // `cavarch_o`/`cavarch_who`/`cavarch_uid`, when `cavarch_o` is
+            // not negative (`docs/GOLDEN.md` §65). A Dragoon walking a move
+            // order releases its `CHAR_ATTACKWALK` round at that target.
+            _ => (None, self.units[u].cast_target),
         };
         let target = match ground {
             Some(_) => None,
