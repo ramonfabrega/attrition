@@ -21,17 +21,17 @@ tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
 - **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
   2026-10-12): `att-1673` (items 1675–1678, runs 762–765, AI §183),
-  `att-1639` (1679–1682, 766–769, AI §175), `att-1630` (1683–1686),
+  `att-1639` (1679–1682, 766–769, AI §175), `att-1691` (1683–1686),
   `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
-  1691, run 774, AI §184. **The disk**: 248 GiB free.
-- **Fable backlog: 14 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674).
+  1693, run 774, AI §184. Landed: 1630 (census 78). **The disk**: 248 GiB free.
+- **Fable backlog: 15 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w3963 of 4,730
-Census: simulation backed 68 of 3611
+Census: simulation backed 78 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2323 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -45,7 +45,7 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1673 the headline's word, 1639, 1630 and 1497 the
+roster is Ramon's**: 1673 the headline's word, 1639, 1691 and 1497 the
 other three lanes — lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -66,12 +66,12 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     1092/1328, 1632). The race moved to 1648 on 2026-10-12; this is the
     third map's lane's first item of the twenty-ninth tranche. AI §175.
 
-1630. **The sweep's third batch: ten never-backed simulation functions**
-    (DECISIONS 63 (iv); the score `Census:` 68 of 3611): 1575's and 1619's
-    shape — `crates/sim/src/sweep/`, one subagent a function, merged once;
-    packet-free first, past the twenty swept. The brief is `--kind sweep`
-    (its section says the worktrees cut from the scaffold commit, 1629).
-    The swarm runs on the lane's model until Ramon rules on 1575's trial.
+1691. **The sweep's fourth batch: ten never-backed simulation functions**
+    (DECISIONS 63 (iv); the score `Census:` 78 of 3611): 1630's shape —
+    `crates/sim/src/sweep/`, one subagent a function, merged once by SHA
+    (1630's Loop line, parked 1692); packet-free first, past the thirty
+    swept; 1630's `get_tregion` parting (`region2` −1 on the coastal arm)
+    is held in its test, its reach unestablished. Brief `--kind sweep`.
 
 1497. **Chapter fifty-two: the arms the unit tests hold and no walk**
     (DECISIONS 56 §3): parked 1473's member `find_melee_target` arm and

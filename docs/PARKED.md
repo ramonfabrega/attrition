@@ -3869,6 +3869,14 @@ frames (`oh` 1652, `invalid_loc` on the path top's transport bit). (l) the
 (done). The twenty-ninth pass's: (d), (e), (h) and (i) are a worker's on
 its next reach; (g) graduates the next time a word leaves its window.
 
+## Loop, filed 2026-10-12 — the twenty-ninth tranche's
+
+(1692) **A subagent's report names a branch it did not commit on**
+(1630's Loop line, 2026-10-12): a sweep subagent in its own worktree
+reported committing on `worktree-att-1630` by name; the lane merged by
+cherry-pick on the SHA. The brief's sweep section could say that a
+subagent's report is taken by SHA, never by the branch it names. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
