@@ -23,9 +23,9 @@ tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
   2026-10-12): `att-1673` (parks 1675–1678, runs 762–765, AI §183),
   `att-1697` (parks 1679–1682, runs 766–769, AI §184), `att-1694` (parks 1683–1686),
   `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
-  1698, run 774, AI §185. Landed: 1630, 1691 (census 88), 1639
+  1700, run 774, AI §185. Landed: 1630, 1691 (census 88), 1639
   (Sahara 2323 → 2404). **The disk**: 248 GiB free.
-- **Fable backlog: 18 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696).
+- **Fable backlog: 20 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

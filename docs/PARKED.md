@@ -3914,6 +3914,21 @@ did once by hand. Count the second wakes at the pass against landings.
 leading `==` in `echo == x`, and BSD `sed -i` wants `-i ''` — two small
 stalls, neither the repo's. A frame row only if a second lane hits one.
 
+(1698) **A prose claim about what no capture holds breaks silently**
+(1639's Loop line): `docs/SYNC.md` §3.8's "nothing on any capture has
+demolished a farm" was true until Great Sahara (All Technologies), and
+being prose, not a `SEAM`, `tools/seams.py` could not find it — parked
+1132's shape. Candidate: `seams.py` greps "no capture"/"nothing on any
+capture" sentences in the specifications too. One reach.
+
+(1699) **A landing said its journal was written and it was not** (1639,
+2026-10-12): the lane's chain `sed … && cat > journal && git commit`
+died on the `sed`'s `§`, skipped the journal, and the gate ran and the
+done line went out without it; the commander found it missing at the
+merge. Candidate: the lane gate (`--lane`) fails when no
+`docs/journal/*-item-<N>.md` is in the branch's diff, with N from the
+brief's `--tests`/item. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's
