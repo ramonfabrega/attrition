@@ -899,3 +899,11 @@ of 3,611 (5.5 %)** — 31 by a coverage section, 167 by a sweep. Ten packet-free
 (global addresses), `get_scary_{camera,console,terrain,scene}` and
 `Signposts::{get_num,cur_x,cur_y}` (one global cell's word); no live port
 consumer. `docs/journal/2026-10-13-item-1760.md`.
+
+**Item 1766, the sweep's sixteenth batch** (2026-10-13): **simulation backed 208
+of 3,611 (5.8 %)** — 31 by a coverage section, 177 by a sweep. Ten packet-free
+`sweep/` tests, all agree, no parting: `GameAccessConst::get_scary_{iface_main,message_win,iface_current,graphic_pieces,scenario_editor}`
+(one global cell's word), `get_scary_console_who` and `get_scary_console_leader`
+(the record the console cell points at, `+0x298`), `Game::is_solo`,
+`Game::is_team_game` and `MoveOrder::is_pathed` (a flag byte over all 256
+values); no live port consumer. `docs/journal/2026-10-13-item-1766.md`.
