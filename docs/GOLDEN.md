@@ -11244,12 +11244,36 @@ diff of the `RON_FIRSTS=1` prints), and the re-pinned ch59/ch1/ch50/ch51/run585 
 staging reaches them, and this item booked none. `find_role` (role 329731 here) is not modelled; nothing compares
 it. The original's prune predicate (`+0x30`, vslots `0x18`/`0x20`) is `seat_normalize`'s simplification.
 
-## 74. Reserved for the next item on the rules track
+## 74. Chapter sixty-one — a guarding follower's refused chase and refused target (item 2032)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 1887's follower arms (`guard_check_target`, `chase_refused`, the defensive post) and parked
+2008's inactive anchor. **What the disk could not answer**: no dump holds a squad follower in `Unit::fight@005fd4d0`'s
+refused chase or its guard refusal — run801's followers stood in reach of their Stockade, and only its captain's chase
+was refused (the walk of chapter fifty-nine's own script, `RON_PROBE_2032`: eleven captain rows, no follower's).
+`Unit::find_melee_target@005ff9c0`'s head (lines 32–91) sits above both its arms and the `param_4` add flag, so it
+answers for every caller: a follower takes its captain's `ATTACK` target, or gets −1, before any search. This crate's
+`find_new_target` and `fight`'s guard refusal search headless.
+
+**The census rows the lobby reaches**, named before the capture (`tools/census.py --unbacked`, the simulation layer's
+never-backed rows, each one a staged line below enters): the issuer — `CommandManager::issue_guard@00941ed0`,
+`CommandPackage::process_guard@009478a0`, `Group::action_guard@006fcd30`, `Unit::add_guard_order@005e3e40`; the
+guard — `Unit::do_guard@005e5c70`, `Unit::update_guard_order@005e3220`, `UnitData::get_activity@00608370`; arm 1, the
+refused chase — `Unit::fight@005fd4d0`, `Unit::find_attack_pos@00601280`, `Unit::find_new_target@005ff6a0`,
+`Unit::find_melee_target@005ff9c0`, `Unit::add_attack_order@005e5410`, `Unit::kill_current_order@005e2cb0`; arm 2,
+the refused target — `Object::check_target@00649e00`, `Object::find_nearby_target@00648da0`. **Not reached**: the
+defensive post (`UnitData::find_def_pos@00608560`, a `DEFENSIVE` stance, which no script verb sets) and 2008's
+inactive anchor (`ai_host`'s `produce_building` hint: a computer's planner, and every chapter runs `ai off`); both stay
+at their rows.
+
+**The staging** (`tools/gamelog/golden/chapter61.cmd`), walked by this crate on run801's start with a probe printing,
+for every follower search in the two arms, the head's answer beside the headless search's (committed and reverted
+whole). Scene one: the squad `0/6` (captain), `0/7`, `0/8` guards the Citizen `0/9` beside who=1's Stockade `1/2006`
+(234,152); the captain stands in its reach and `0/8` does not, so from 689, one frame in sixteen, `0/8` takes the
+captain's Stockade through the guard's look and its chase is refused — 16 rows where the head and the search both
+answer the Stockade. A who=1 Citizen added on 760 by the squad: on 769–776 the search finds it for `0/8` where the
+head answers the Stockade (8 rows). Scene two, 4,000 units west: the squad `0/10`, `0/11`, `0/12` guards the Citizen
+`0/13`; who=1's Citizen `1/6` is walked through it from 700 (`be 1`), and the followers' attack is refused on 872
+(`0/12`) and 906 (`0/11`), the head answering nothing and the search nothing.
 
 ## 75. Reserved for the next item on the rules track
 

@@ -2058,6 +2058,10 @@ mod tests {
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),
+        // Chapter sixty-one: two guarding squads, a follower's refused
+        // chase on a Stockade and a follower's refused target (item 2032,
+        // `docs/GOLDEN.md` §74).
+        ("chapter61.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
