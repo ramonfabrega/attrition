@@ -240,9 +240,6 @@ impl Sim {
     /// next of those (`docs/VISION.md` §2).
     pub(crate) fn update_los(&mut self, u: usize) {
         self.units[u].mylos = self.unit_los(u);
-        if std::env::var("RON_PROBE_1988").is_ok() && (600..610).contains(&self.frame) {
-            eprintln!("P1988L f{} u{} ti{:#x} los{} pos{:?} st{}", self.frame, u, self.units[u].type_index, self.units[u].mylos, self.units[u].pos, self.lobby.starting_town);
-        }
     }
 
     /// `LeaderData::get_troops_los_upgrade@006e1110`: how many of
@@ -484,9 +481,6 @@ impl Sim {
     /// is the count of `reveal_fog` calls the original would make; nothing
     /// reads it but the tests.
     pub fn update_seen(&mut self, u: usize, ring_pass: bool) -> usize {
-        if std::env::var("RON_PROBE_1988").is_ok() && (600..610).contains(&self.frame) {
-            eprintln!("P1988S f{} u{} who{} ring{} los{} pos{:?}", self.frame, u, self.units[u].owner, ring_pass, self.units[u].mylos, self.units[u].pos);
-        }
         if !self.world.has_fog() || !self.units[u].on_map || !self.units[u].alive() {
             return 0;
         }
@@ -698,28 +692,6 @@ impl Sim {
             self.buildings[b].ever_seen_completed = ec;
         }
         let now = self.buildings[b].ever_seen;
-        if std::env::var("RON_PROBE_1988").is_ok() {
-            let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-            let corner = self.tile_corner(ty, self.buildings[b].pos);
-            let mut cells = Vec::new();
-            for v in 0..ys {
-                for u in 0..xs {
-                    cells.push(self.world.seen((corner.x + u) >> 1, (corner.y + v) >> 1).unwrap_or(0));
-                }
-            }
-            let mut p2 = Vec::new();
-            for y in 73..80 {
-                let mut row = String::new();
-                for x in 110..122 {
-                    row.push_str(&format!("{}{} ", self.world.seen(x, y).unwrap_or(9), self.world.seen2(x, y).unwrap_or(9)));
-                }
-                p2.push(row);
-            }
-            if who == 1 && self.frame >= 604 && self.frame <= 607 {
-                for r in &p2 { eprintln!("P1988G f{} {}", self.frame, r); }
-            }
-            eprintln!("P1988 f{} b{} who{} started{} old{} now{} corner{:?} {}x{} cells{:?}", self.frame, b, who, started, old, now, (corner.x, corner.y), xs, ys, cells);
-        }
         if old == now && !force {
             return;
         }
