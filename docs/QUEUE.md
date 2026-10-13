@@ -12,29 +12,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **thirty-first tranche, sixteen landings** (from `45cf8c6b`; lanes Sonnet
-5.5 medium): successor pair 2838 → 3131 (1868); Great Sahara 3182 → 3805 (1870, 1905);
+*2026-10-13, **thirty-first tranche, seventeen landings** (from `45cf8c6b`; lanes Sonnet
+5.5 medium): successor pair 2838 → 3188 (1868, 1948); Great Sahara 3182 → 3805 (1870, 1905);
 ch57 closed (1863), ch58 on the disk (1926); census 319 → 429. No kill rule: three booking gates red on merges
 meeting, each a second commit (Loops 1910, 1959); 1870's red tip pushed once on an
 `echo`-wrapped exit (574) — gates run unwrapped now.*
 
-- **Four lanes live**: `att-1948` (L, runs 799–800), `att-1937` (J, run 798),
-  `att-1976` (Q), `att-1960` (N, runs 801–802). Next 1981, run 803, AI §201, GOLDEN
-  §72, slot R. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
-- **Fable backlog: 14 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965).
+- **Four lanes live**: `att-1982` (R, run 803), `att-1937` (J, run 798),
+  `att-1976` (Q), `att-1960` (N, runs 801–802). Next 1987, run 804, AI §202, GOLDEN
+  §72, slot S. Notes: `$CLAUDE_JOB_DIR/tmp/n-<item>.md`; AI filters add `coverage_pair::`.
+- **Fable backlog: 15 Loop items** (1475, 1570, 1601, 1725, 1739, 1862, 1890, 1900, 1910, 1931, 1947, 1953, 1959, 1965, 1981).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
-Successor pair: EastIndiesMongolAllTech w3131 of 5,056
+Successor pair: EastIndiesMongolAllTech w3188 of 5,056
 Census: simulation backed 429 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w3805 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-first tranche continues on `commander` at sixteen
+**Opener: the thirty-first tranche continues on `commander` at seventeen
 landings — re-arm `lanewait.py` on the four live lanes and run the chain as
 `CLAUDE.md` writes it, `STALLED` and `DEEP` answered in their turn; at twenty
 landings the handoff, then `ccc clear steer`.**
@@ -42,19 +42,19 @@ landings the handoff, then `ccc clear steer`.**
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-1948 the headline's word, 1937, 1976 and 1960 the other three lanes —
+1982 the headline's word, 1937, 1976 and 1960 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1948. **The successor pair's word: frame 3131, 62 versus 65 draws**,
-    index 0: ours `Guy::do_turn < Unit::move_step+0x3b6` on `1/87`, theirs
-    `Unit::do_cast+0xc89` then a unit born (`Objects::init_unit`); past
-    run788's last block (3088), so unwidened: a capture over `--log-window
-    3125 3382` and its widening, every record on 3131 both ways before a
-    mechanism (parked 1873). 1868 moved 2838 → 3131 with `find_wpath`'s
-    sea clause; its human arm is parked 1874. East Indies, Mongols,
-    `DIFFICULTY 3`, All Tech. AI §200.
+1982. **The successor pair's word: frame 3188, 152 versus 153 draws**,
+    index 1: ours `Unit::think_fish+0x27a`, theirs `Unit::do_move+0xe84`;
+    inside run799 (3125–3382, widened by 1948), where `1/107` parts on
+    `order:move.dest`, `path[60]`, `tolerance` and `last_x` (parked 1949):
+    every record on 3188 both ways before a mechanism. 1948 moved 3131 →
+    3188 with `do_move`'s refused leg handing its transport bit down; the
+    re-push it built unwalked is parked 1950. East Indies, Mongols,
+    `DIFFICULTY 3`, All Tech. AI §201.
 
 1937. **Great Sahara's word: frame 3805, 17 versus 32 draws**, index 1:
     ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs

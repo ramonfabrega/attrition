@@ -3733,6 +3733,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1981) **A one-unit printer for a dump** (1948's Loop line): naming a
+unit by `TypeIndex` meant reading `decomp/enums/TypeIndex.txt` by hand,
+and the order kind and `GUY` `type` share a field name in a UNITDATA
+block; the lane wrote ten scratch parses (`blk.py`, `ord.py`). Candidate:
+`tools/gamelog/unitat.py <dump> <frame> <who/o>` printing one unit's
+kinds by name, path ends and inside/up links. One reach.
+
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
 golden `order:group.id`/`order:patrol.id` rows came out of `want` lists
