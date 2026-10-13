@@ -185,6 +185,32 @@ pub const fn init_stance(
     }
 }
 
+/// `UnitData::get_combat_stance@00610a30`, `get_worker_stance@006109f0`,
+/// `get_caster_stance@006109b0` and `get_packer_stance@00610970` — one
+/// body four times (item 2072): the unit's `stance` byte (`+0xb1`),
+/// **sign-extended** (`movsx`), when its type has stance type `kind`
+/// (`holds`, the type's `has_stance_type(kind)`, which each getter asks
+/// through the unit's vtable slot `+0x104` or, devirtualised, the type
+/// record's `+0x134`), and otherwise the kind's default: `COMBAT_STAND_GROUND`
+/// 2, `WORKER_STAND` 3, `CASTER_NONE` 1, `PACKER_NEVER` 1 (the listing's
+/// constants). `None` has no getter and answers 0. `BuildData`'s four —
+/// `get_combat_stance@0062e0f0`, `get_worker_stance@0062e0b0`,
+/// `get_caster_stance@0062e070`, `get_packer_stance@0062e030` — are the same
+/// body over the building's own `stance` byte (`+0x7e`), compared with the
+/// same base `UnitData::has_stance_type` (item 2083).
+#[must_use]
+pub const fn get_stance(holds: bool, stance: u8, kind: StanceType) -> i32 {
+    if holds {
+        return stance as i8 as i32;
+    }
+    match kind {
+        StanceType::Combat => 2,
+        StanceType::Worker => 3,
+        StanceType::Caster | StanceType::Packer => 1,
+        StanceType::None => 0,
+    }
+}
+
 /// `BuildTypeData::get_stance_type@006396c0` — the *building's* kind, which
 /// is what decides whether a unit it trains inherits its stance at all.
 ///

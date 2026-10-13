@@ -11244,12 +11244,82 @@ diff of the `RON_FIRSTS=1` prints), and the re-pinned ch59/ch1/ch50/ch51/run585 
 staging reaches them, and this item booked none. `find_role` (role 329731 here) is not modelled; nothing compares
 it. The original's prune predicate (`+0x30`, vslots `0x18`/`0x20`) is `seat_normalize`'s simplification.
 
-## 74. Reserved for the next item on the rules track
+## 74. Chapter sixty-one — a guarding follower's refused chase and refused target (item 2032)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Parked 1887's follower arms (`guard_check_target`, `chase_refused`, the defensive post) and parked
+2008's inactive anchor. **What the disk could not answer**: no dump holds a squad follower in `Unit::fight@005fd4d0`'s
+refused chase or its guard refusal — run801's followers stood in reach of their Stockade, and only its captain's chase
+was refused (the walk of chapter fifty-nine's own script, `RON_PROBE_2032`: eleven captain rows, no follower's).
+`Unit::find_melee_target@005ff9c0`'s head (lines 32–91) sits above both its arms and the `param_4` add flag, so it
+answers for every caller: a follower takes its captain's `ATTACK` target, or gets −1, before any search. This crate's
+`find_new_target` and `fight`'s guard refusal search headless.
+
+**The census rows the lobby reaches**, named before the capture (`tools/census.py --unbacked`, the simulation layer's
+never-backed rows, each one a staged line below enters): the issuer — `CommandManager::issue_guard@00941ed0`,
+`CommandPackage::process_guard@009478a0`, `Group::action_guard@006fcd30`, `Unit::add_guard_order@005e3e40`; the
+guard — `Unit::do_guard@005e5c70`, `Unit::update_guard_order@005e3220`, `UnitData::get_activity@00608370`; arm 1, the
+refused chase — `Unit::fight@005fd4d0`, `Unit::find_attack_pos@00601280`, `Unit::find_new_target@005ff6a0`,
+`Unit::find_melee_target@005ff9c0`, `Unit::add_attack_order@005e5410`, `Unit::kill_current_order@005e2cb0`; arm 2,
+the refused target — `Object::check_target@00649e00`, `Object::find_nearby_target@00648da0`. **Not reached**: the
+defensive post (`UnitData::find_def_pos@00608560`, a `DEFENSIVE` stance, which no script verb sets) and 2008's
+inactive anchor (`ai_host`'s `produce_building` hint: a computer's planner, and every chapter runs `ai off`); both stay
+at their rows.
+
+**The staging** (`tools/gamelog/golden/chapter61.cmd`), walked by this crate on run801's start with a probe printing,
+for every follower search in the two arms, the head's answer beside the headless search's (committed and reverted
+whole). Scene one: the squad `0/6` (captain), `0/7`, `0/8` guards the Citizen `0/9` beside who=1's Stockade `1/2006`
+(234,152); the captain stands in its reach and `0/8` does not, so from 689, one frame in sixteen, `0/8` takes the
+captain's Stockade through the guard's look and its chase is refused — 16 rows where the head and the search both
+answer the Stockade. A who=1 Citizen added on 760 by the squad: on 769–776 the search finds it for `0/8` where the
+head answers the Stockade (8 rows). Scene two, 4,000 units west: the squad `0/10`, `0/11`, `0/12` guards the Citizen
+`0/13`; who=1's Citizen `1/6` is walked through it from 700 (`be 1`), and the followers' attack is refused on 872
+(`0/12`) and 906 (`0/11`), the head answering nothing and the search nothing.
+
+**run814** (`tools/gamelog/golden/chapter61.cmd`, 605..1000, lane 1, 656 s; every `@` line issued, none refused): the
+word is **780**, 6 draws against 5 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823` for scene two's captain
+`0/10`, theirs five `Farms::inc_time+0x1ae` alike. **Both sides on 779** (`unitat.py … 776-781 0/10`): the original's
+`0/10` holds `[ATTACK 1/6, GUARD]` from 776, and on 779 the attack is gone, `near` −1, the Guard alone; on 780 it
+walks back to its post (an `ATTACK_TO` leg). This crate's keeps `1/6`: `near` (6, 1), three orders, the chase leg
+toward `(40392, 30648)`. `1/6` stands 478 units from the post, inside the leash. It is a captain's arm, not either
+arm this chapter booked, and the chapter ends there: the word is the next item's, by its frame and its delta.
+
+**The value diff before the build** (the widening over 605..1001): arm one parts first, on **690**, `0/8`'s `near`
+ours (2006, 1) against (−1, −1) — the original's follower re-adds its captain's Stockade from the head, which
+writes no `near`; this crate's search wrote it. On **770**, `0/8`'s `order:kind` 10 against 12 and `orders.len` 2
+against 1: this crate's search took who=1's Citizen added on 760 and attacked it where the head re-added the Stockade
+and `chase_refused` killed it; its tails on 771, 778 (`order:guard.idle` 103 against 111) and 786.
+**Built** (`crates/sim/src/orders.rs`): `Sim::find_melee_target_headed` — `melee_squad_head`, then the search and
+`nearby_add` — for `find_new_target` (the refused chase, the captain's re-search and the enemy ladder's
+`stand` call alike) and for `fight`'s guard refusal; the head's add is `Sim::squad_head_add`, which
+`find_melee_target_added_in` now shares. The value diff after: 690 `0/8 near` (−1, −1) both sides, 770 `order:kind`
+12 and `orders.len` 1 both sides; every arm-one row leaves, 30 rows before the word become 8 (437 → 383 over the
+whole capture). **No draw moves**: the word stays 780.
+
+**Pins.** `GOLDEN_WORD_CHAPTER_SIXTY_ONE` 780; the widening's window is 605..781, the word's frame its last.
+`WANT_CH61` is the eleven `form` rows, `0/7`'s `death:extra` on 774 (the instrument, parked 1830's family) and
+`0/10`'s eighteen word rows on 779–780; `WANT_CH61_POOL` the word's slot 0 `facing` on 780.
+
+**Mutation** (`tools/mutate.py`, `find_new_target` back to the headless search and `nearby_add`): held —
+`chapter_sixty_one_s_word_frame_is_widened_whole` fails, the word test passes.
+
+**Not established.** **Arm two is reached and not held**: the followers' guard refusals fall on 872 and 906, past the
+word, on a state already parted; the head answers nothing and the search nothing there in this crate's walk, so no
+walk holds the change in that call (parked 2033). The enemy ladder's `find_new_target(this, NULL, 1)` for a follower
+takes the head too, and no walk holds it (parked 2034). The defensive post and 2008's inactive anchor are not staged
+(above).
+
+### 74.1 Coverage
+
+**Diff-backed** by run814's widening through the word, with arm one's mutation failing it: the guard issued and
+held — `CommandManager::issue_guard@00941ed0`, `CommandPackage::process_guard@009478a0`,
+`Group::action_guard@006fcd30`, `Unit::add_guard_order@005e3e40` and `Unit::do_guard@005e5c70`, whose posts, offsets
+and legs agree on every follower and captain to 779; and arm one — `Unit::fight@005fd4d0`'s refused chase,
+`Unit::find_attack_pos@00601280`'s guard refusal through `UnitData::get_activity@00608370`,
+`Unit::find_new_target@005ff6a0`, `Unit::find_melee_target@005ff9c0`'s head, `Unit::add_attack_order@005e5410` and
+`Unit::kill_current_order@005e2cb0`, on `0/8` from 689.
+
+**Not backed** by it: `Object::check_target@00649e00`'s leash refusal and `Object::find_nearby_target@00648da0` on
+arm two (past the word), `Unit::update_guard_order@005e3220`, and the defensive post's `UnitData::find_def_pos@00608560`.
 
 ## 75. Reserved for the next item on the rules track
 

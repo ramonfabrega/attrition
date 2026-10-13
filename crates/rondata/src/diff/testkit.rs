@@ -6342,6 +6342,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTY_NINE: i64 = 760;
 /// `chapter_fifty_nine_s_word_frame_is_widened_whole`'s window: run801 whole.
 pub(crate) const WIDENING_CHAPTER_FIFTY_NINE: (i64, i64) = (605, 761);
 
+/// **Chapter sixty-one** (item 2032, `docs/GOLDEN.md` §74, run814): two
+/// guarding Hoplite squads, a follower's refused chase on a Stockade and a
+/// follower's refused target, 605 to 1000. Open at **780**, 6 draws against
+/// 5: ours `Guy::set_anim+0x97a < Unit::move_step+0x823` for scene two's
+/// captain `0/10`, whose attack on who=1's Citizen `1/6` the original drops
+/// on 779 (`near` −1, its Guard alone) and this crate keeps.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_ONE: i64 = 780;
+
+/// `chapter_sixty_one_s_word_frame_is_widened_whole`'s window: run814 from
+/// its first block through the word's.
+pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 781);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -6893,7 +6905,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // run817 (item 2055): the word 4266's window to the game's end.
     ("run817_s_word_frame_is_widened_whole", 1013),
     // The successor pair walked to its word 2207 (item 1744): four reads.
-    ("mongol_pair_first_parting", 113),
+    // Item 2077: 113 -> 516, the walk past 3835 to the word 4238.
+    ("mongol_pair_first_parting", 516),
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),
@@ -8617,6 +8630,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifty_nine_s_word_frame_is_widened_whole"),
         1960,
         Some(WIDENING_CHAPTER_FIFTY_NINE),
+    ),
+    // Item 2032: run814, chapter sixty-one. The widening is run814 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_ONE",
+        GOLDEN_WORD_CHAPTER_SIXTY_ONE,
+        Some("chapter_sixty_one_s_word_frame_is_widened_whole"),
+        2032,
+        Some(WIDENING_CHAPTER_SIXTY_ONE),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

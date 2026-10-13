@@ -2751,15 +2751,7 @@ impl Sim {
         match self.melee_squad_head(u) {
             SquadHead::Nothing => None,
             SquadHead::Captain(t, mandatory) => {
-                let pos = if matches!(
-                    self.order_type(u),
-                    index::ATTACK_TO | index::GROUP_ATTACK_TO | index::GUARD
-                ) {
-                    QueuePos::First
-                } else {
-                    QueuePos::New
-                };
-                self.add_attack_order(u, t, pos, mandatory, false);
+                self.squad_head_add(u, t, mandatory);
                 Some(t)
             }
             SquadHead::Search => {
@@ -3422,7 +3414,7 @@ impl Sim {
 
     /// `Unit::think` (§2.4): the auto-attack on the first idle frame and
     /// every 32 after, phased by `o`; a worker's `think_peasant(0)`.
-    fn think(&mut self, u: usize, frame: i64) {
+    pub(crate) fn think(&mut self, u: usize, frame: i64) {
         // **A non-captain's whole think is the captain mirror**, and it is
         // `Unit::think@005f6e40`'s *first* statement — above the citizen
         // mask-clear, above both cadence gates, above everything
@@ -3468,6 +3460,43 @@ impl Sim {
             return;
         }
         let me = Obj::Unit(u);
+        // **The off-phase `near_o` arm** (`think@005f6e40:104`–`135`,
+        // `5f7017`–`5f70fc`; `docs/AI.md` §205, `docs/COMBAT.md` §37.5):
+        // on the thirty-one frames in thirty-two that are not the search's,
+        // past an idle of 1, a captain whose cached nearest (`near_o`) is
+        // still standing, whose combat stance is under 5 (vslot `+0xf4` is
+        // `get_combat_stance`: anything but `HOLD_FIRE`) and which is
+        // `is_in_range@00648d70` of it (margin 0, the slot and never the
+        // health: [`Sim::is_in_range_struck`]) takes it —
+        // `add_attack_order(near_o, QUEUE_NEW, 0, 0)` — clears its
+        // could-not-reach bit, and returns; a packed packer whose packer
+        // stance is not `PACKER_AUTO` (vslot `+0x100`) returns without it.
+        // Every other answer skips the search to the tail (`5f7179`). The
+        // search writes `near_o` whether or not it takes a candidate, so
+        // this is what gives a computer's raiding ship the finished
+        // building its `compare_target` weighed at 0 (run809's `1/113` on
+        // 3647).
+        if unit.idle != 1
+            && phase & 0x1f != 0
+            && let Some(t) = unit.near
+            && unit.combat.stance != combat::Stance::HoldFire
+            && self.is_in_range_struck(me, t)
+        {
+            let packer_auto = self.unit_stance_type(u) == crate::group::StanceType::Packer
+                && self.units[u].stance == PACKER_AUTO;
+            if self.units[u]
+                .ty
+                .is_some_and(|ty| self.unit_types[ty].combat.packs)
+                && self.units[u].combat.packed
+                && !packer_auto
+            {
+                return;
+            }
+            self.add_attack_order(u, t, QueuePos::New, false, false);
+            self.units[u].cant_reach = false;
+            return;
+        }
+        let unit = &self.units[u];
         // Step 3's own cadence — the first idle frame and then one in
         // thirty-two, phased by `o` (`think@005f6e40`, the arm at
         // `5f70fd`). Past it the original enters `Unit::think_attack`,
@@ -8868,9 +8897,8 @@ impl Sim {
             }
             if drop || !self.guard_check_target(u, &g, target, use_poor) {
                 self.kill_current_order(u);
-                if let Some(t) = self.find_melee_target(u, -1) {
-                    self.nearby_add(u, t);
-                }
+                // The squad head first (item 2032, `docs/GOLDEN.md` §74).
+                self.find_melee_target_headed(u);
                 if self.order_type(u) == index::ATTACK {
                     self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                 }
@@ -9392,15 +9420,59 @@ impl Sim {
         if stand {
             self.units[u].combat.stance = combat::Stance::StandGround;
         }
-        let found = self.find_melee_target(u, -1);
-        if let Some(t) = found {
-            // SEAM: a group's attack-move may hand the target to
-            // `Group::action_attack` instead; this crate carries that arm
-            // for the attack-move's own look alone.
-            self.nearby_add(u, t);
-        }
+        let found = self.find_melee_target_headed(u);
         self.units[u].combat.stance = stance;
         found
+    }
+
+    /// **`find_melee_target(−1, NULL, 0, 1, 0)` whole, the squad head
+    /// first** (`Unit::find_melee_target@005ff9c0`, lines 32–91; item 2032,
+    /// `docs/GOLDEN.md` §74), as `find_new_target@005ff6a0` and `Unit::fight
+    /// @005fd4d0`'s guard refusal call it. The head sits above both the
+    /// search and the add flag, so it answers every caller: a follower whose
+    /// captain's action is an `ATTACK` on a target it may take adds that
+    /// target ([`Self::squad_head_add`]) and searches nothing; a follower
+    /// whose captain is not attacking gets −1. A captain, or a follower whose
+    /// captain's target it may not take, searches, and `find_nearby_target`
+    /// adds the find ([`Self::nearby_add`]).
+    ///
+    /// run814 is the witness: `0/8`, guarding beside its captain's Stockade
+    /// and out of reach of it, has its chase refused every sixteen frames
+    /// from 689, and the original's `near` stays −1 there (the head writes
+    /// none); on 770 the search would take who=1's Citizen `1/7` where the
+    /// head re-adds the Stockade, and `chase_refused` kills it.
+    pub(crate) fn find_melee_target_headed(&mut self, u: usize) -> Option<Obj> {
+        match self.melee_squad_head(u) {
+            SquadHead::Nothing => None,
+            SquadHead::Captain(t, mandatory) => {
+                self.squad_head_add(u, t, mandatory);
+                Some(t)
+            }
+            SquadHead::Search => {
+                let t = self.find_melee_target(u, -1)?;
+                // SEAM: a group's attack-move may hand the target to
+                // `Group::action_attack` instead; this crate carries that arm
+                // for the attack-move's own look alone.
+                self.nearby_add(u, t);
+                Some(t)
+            }
+        }
+    }
+
+    /// The head's add (`005ff9c0:60`–`85`): `QUEUE_FIRST` under an
+    /// `ATTACK_TO`, a `GROUP_ATTACK_TO` or a `GUARD` in front, `QUEUE_NEW`
+    /// under anything else, with the captain's `mandatory` byte (the
+    /// action's `+0x1c`).
+    fn squad_head_add(&mut self, u: usize, t: Obj, mandatory: bool) {
+        let pos = if matches!(
+            self.order_type(u),
+            index::ATTACK_TO | index::GROUP_ATTACK_TO | index::GUARD
+        ) {
+            QueuePos::First
+        } else {
+            QueuePos::New
+        };
+        self.add_attack_order(u, t, pos, mandatory, false);
     }
 
     /// **`Object::find_nearby_target`'s add** (`00649b3a`–`00649bc0`, the
