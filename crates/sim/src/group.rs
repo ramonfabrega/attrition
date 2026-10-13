@@ -1574,6 +1574,9 @@ impl Sim {
     /// dead member from a pool slot mid-frame is a different change.
     pub(crate) fn group_set_speed(&mut self, g: &Group) {
         let s = self.group_compute_speed(g);
+        if std::env::var_os("RON_PROBE_GSPEED").is_some() {
+            eprintln!("PROBE set_speed {s} leader {:?} n {}", self.group_find_leader(g).map(|u| (self.units[u].owner, self.units[u].index)), g.list.len());
+        }
         if let Some(st) = self.gstate_mut(g) {
             st.speed = s;
             st.new_speed = s;
