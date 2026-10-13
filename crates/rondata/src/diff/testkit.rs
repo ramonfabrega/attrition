@@ -6861,6 +6861,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run767_s_word_frame_is_widened_whole", 81),
     // The successor pair walked to its word 2207 (item 1744): four reads.
     ("mongol_pair_first_parting", 4),
+    ("run780_s_word_frame_is_widened_whole", 4),
     // The same lobby walked to the word (items 1584, 1585): the nuke's
     // flight reads the five corners run702's window does.
     // Item 1726: the walk now reaches the word 3182, past the nuke's
