@@ -343,8 +343,9 @@ fn run809_s_word_frame_is_widened_whole() {
     // (957 before it), 160 on the first block (the leaders' counts); the
     // first of `1/113` is now `orders.len` on 3648, theirs 1 (`docs/AI.md`
     // section 203.5).
-    // Item 2049: 357 -> 353 — `1/113`'s four first rows (`orders.len` on
+    // Item 2049: 357 -> 353 — `1/113`'s thirteen rows (`orders.len` on
     // 3648, `pos` on 3649, `heading` on 3833, `angle` on 3834) leave the
-    // window whole; the word 3834's block is 3835 (section 205).
+    // window whole; nine of `1/167` open on 3851, past the new word 3835
+    // (section 205).
     pin_eq!(w.firsts.len(), 353, "run809 baseline");
 }
