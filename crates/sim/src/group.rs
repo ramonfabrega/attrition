@@ -3474,12 +3474,11 @@ impl Sim {
                 // all eighteen members take it through `+0xc44`, not one
                 // `find_melee_target` between (`docs/COMBAT.md` §68.2).
                 //
-                // SEAM: `find_melee_target`'s squad head (a follower takes
-                // its captain's attack without a search) is on the
-                // decompile's path for a unit or wall target, and no
-                // capture reaches one. Item 1012's kill of it (the city's
-                // `targeted` twelve bumps short) was a city target, which
-                // never reaches the search (`docs/COMBAT.md` §68.2).
+                // The squad head (a follower takes its captain's attack
+                // without a search) is read below; run786's `1/8` and `1/9`
+                // reach it (`docs/GOLDEN.md` §69). Item 1012's kill of it (the
+                // city's `targeted` twelve bumps short) was a city target,
+                // which never reaches the search (`docs/COMBAT.md` §68.2).
                 let build = matches!(target,
                     Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
                 let t = if mandatory || build {
@@ -3566,13 +3565,11 @@ impl Sim {
         self.gstate(g).map_or(Angle(0), |st| st.o_angle)
     }
 
-    /// The group's own id (`GroupData +0x4`). The seat stands in for the
-    /// pool index the original keeps: an army group's is its army slot and
-    /// a [`Pushed`] group's is `64 +` its slot, which is all
-    /// [`group_move_id`] needs of it — distinct per owner, and stable for
-    /// as long as the group lives. The numbers are **not** the dump's own
-    /// (Great Lakes' probe is `group 65` there and this crate's armies do
-    /// not sit in the same pool), so nothing compares them.
+    /// The group's own id (`GroupData +0x4`), the pool index: 64 slots a
+    /// player, so an army group's is `who × 64 +` its army slot (item 1863;
+    /// run786's who=1 army 0 is 64) and a [`Pushed`] group's is `64 +` its
+    /// slot. The slot stands in for the pool's own `get_open_slot` answer, which
+    /// parts once an AI script has pushed a building group (parked 689).
     fn group_id(&self, g: &Group) -> i32 {
         match (g.army, g.pushed) {
             (Some(s), _) => i32::from(g.who) * 64 + s as i32,
