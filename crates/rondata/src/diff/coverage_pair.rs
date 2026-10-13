@@ -243,7 +243,12 @@ pub(crate) struct Pair {
     /// craft recovery under `SPIES_GENERALS_RECOVER_CRAFT`, so `1/150`
     /// casts Create Decoys on 3864 as the original does: **3982**, 23
     /// versus 25 draws, index 2: ours `Leader::make_stuff+0x221`, theirs
-    /// `Leader::produce_building+0x1805`.
+    /// `Leader::produce_building+0x1805`. Item 1700 reads `city_flags &
+    /// 0x1000` (a border-marked cell within four cells of the city) in the
+    /// temple and tower arms, so the Persian temple is listed at ten times
+    /// the value: **4425**, 23 versus 22 draws, index 9: ours
+    /// `Guy::init_real+0x52` (a birth), theirs `Guy::set_anim+0x97a <
+    /// Guy::inc_time+0x271`.
     pub count: i64,
     pub sequence: i64,
 }
@@ -261,8 +266,8 @@ pub(crate) const COVERAGE: Pair = Pair {
         "rontrace-run652.log",
     ),
     length: 4730,
-    count: 3982,
-    sequence: 3982,
+    count: 4425,
+    sequence: 4425,
 };
 
 /// The pair's word as the handoff's `Coverage pair:` line and `AI_WORDS`
@@ -1632,7 +1637,11 @@ fn run754_s_word_frame_is_widened_whole() {
     // needs; its order kind 12 against 14 and `spell_time` on 3865 part no
     // more, `1/246`..`1/252` are linked. 1583 -> 409 keys; the new word is
     // 3982 (block 3983): the leader's MAKE rows.
-    pin_eq!(w.firsts.len(), 409, "run754 keys that part (item 1669)");
+    // Item 1700: the temple arm's `city_flags & 0x1000` ×10 puts the
+    // Temple at the head of the Persian make list on 3982 as the
+    // original's; the MAKE rows agree, 409 -> 204 keys, and the word is
+    // **4425**, past this window's last block (4094).
+    pin_eq!(w.firsts.len(), 204, "run754 keys that part (item 1669)");
 }
 
 #[test]

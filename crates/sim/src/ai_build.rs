@@ -533,6 +533,11 @@ impl Sim {
                 {
                     t = t.wrapping_mul(100);
                 }
+                // `city_flags & 0x1000`: ×2, or ×10 while the city is not
+                // `no_heal` (`create_buildings:328`).
+                if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
+                    t = t.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                }
                 v = t;
             }
             if build::is(&self.build_types, rec, Ident::Lookout) {
@@ -858,8 +863,12 @@ impl Sim {
                 } else if fort {
                     x /= 100;
                 }
-                // `city_flags & 0x1000` reads 0; `& 0x8` reads 0, so the
+                // `city_flags & 0x1000`: ×2, or ×10 while not `no_heal`
+                // (`create_buildings:847`). `& 0x8` still reads 0, so the
                 // halving always applies.
+                if self.ai[w].city_ai.get(f.c).is_some_and(|r| r.near_border) {
+                    x = x.wrapping_mul(if self.cities[f.c].no_heal { 2 } else { 10 });
+                }
                 x /= 2;
                 if self.cities[f.c].founder != who {
                     x = x.wrapping_mul(3);

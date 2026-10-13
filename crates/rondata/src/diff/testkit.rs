@@ -6969,7 +6969,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 1647 extends the prefix to 3439: 48 reads, measured while
     // the old bound was still 19. Ground-height exactness remains debt.
     // Item 1648 extends the prefix to 3585: 97 reads; item 1666 to 3587: 99; item 1667 to 3614: 110.
-    ("coverage_pair_first_parting", 110),
+    // Item 1700 extends the prefix to 4425: 411 reads.
+    ("coverage_pair_first_parting", 411),
     ("run710_s_word_frame_is_widened_whole", 3),
     ("run711_s_word_frame_is_widened_whole", 4),
     // And run714's, which walks past it to the word 2288 (item 1598).
