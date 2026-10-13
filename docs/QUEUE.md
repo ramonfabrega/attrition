@@ -21,9 +21,10 @@ tranche scored** (DECISIONS 65, `docs/audit/2026-10-13-fable-pass-28.md`).*
 
 - **Four lanes out, all Sonnet 5.5 at medium** (`commander`, Opus 5.5,
   2026-10-12): `att-1673` (parks 1675–1678, runs 762–765, AI §183),
-  `att-1639` (1679–1682, 766–769, AI §175), `att-1694` (parks 1683–1686),
+  `att-1697` (parks 1679–1682, runs 766–769, AI §184), `att-1694` (parks 1683–1686),
   `att-1497` (1687–1690, 770–773, GOLDEN §62); stubs in the base. Next
-  1697, run 774, AI §184. Landed: 1630, 1691 (census 88). **The disk**: 248 GiB free.
+  1698, run 774, AI §185. Landed: 1630, 1691 (census 88), 1639
+  (Sahara 2323 → 2404). **The disk**: 248 GiB free.
 - **Fable backlog: 18 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -32,7 +33,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w3963 of 4,730
 Census: simulation backed 88 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2323 of 4,340
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2404 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -45,7 +46,7 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1673 the headline's word, 1639, 1694 and 1497 the
+roster is Ramon's**: 1673 the headline's word, 1697, 1694 and 1497 the
 other three lanes — lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,12 +60,14 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     `TERRA_COTTA_FREE`/`_DELAY` into `Tuning`, as the other three arms
     built them (`6ba1339c` the reference). AI §183.
 
-1639. **Great Sahara's word: frame 2323, 12 versus 13 draws**, index 10:
-    ours `Farms::inc_time+0x1ae`, theirs `+0x1de`; inside run718 (block
-    2324), widened by `run718_s_word_frame_is_widened_whole` (624 keys, 62
-    standing); 1620's hypothesis the second farm's `empty` (parked
-    1092/1328, 1632). The race moved to 1648 on 2026-10-12; this is the
-    third map's lane's first item of the twenty-ninth tranche. AI §175.
+1697. **Great Sahara's word: frame 2404, 18 versus 20 draws**, index 6:
+    ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `Guy::init_real+0x52` — a birth in the original (`1/126`); inside
+    run718 (block 2405), `run718_s_word_frame_is_widened_whole` (364
+    keys). Value diff: 2404 `1/2031` `queue[0].job_counter` 9500 against
+    9473, 2405 `queued` 1 against 0 — 1639's hypothesis a training job
+    that finishes a frame earlier in the original; `1/2031` is unread.
+    AI §184.
 
 1694. **The sweep's fifth batch: ten never-backed simulation functions**
     (DECISIONS 63 (iv); the score `Census:` 88 of 3611): 1691's shape —
