@@ -2679,10 +2679,10 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     //   the age").
     // - ~~**611 and 616, the births**: `form` −1 against 0 on all six
     //   hoplites.~~ Closed by item 1330, `Unit::init`'s `form`.
-    // - **616, the army group's `speed`/`new_speed`**, 0 against 25 on
-    //   every block run110 prints: `Group::add` ends in `compute_speed`
-    //   for a group with an id, and this crate's army group takes its
-    //   speed later.
+    // - ~~**616, the army group's `speed`/`new_speed`**, 0 against 25 on
+    //   every block run110 prints~~: closed by item 2002, the member's
+    //   search normalizing its group (`find_nearby_target`'s add,
+    //   `docs/GOLDEN.md` §73).
     let got: Vec<(&str, i64)> = first.iter().map(|(k, (n, _))| (k.as_str(), *n)).collect();
     // Item 1605 took the human's twelve `0/2000 city:*` rows: the human
     // leader takes the sweep (`docs/AI.md` §169).
@@ -2698,8 +2698,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("form 1/3", 605),
         ("form 1/4", 605),
         ("form 1/5", 605),
-        ("group:new_speed 1/army0", 616),
-        ("group:speed 1/army0", 616),
     ];
     pin_eq!(
         got,
@@ -13792,7 +13790,10 @@ const WANT_CH59: &[&str] = &[
     "605 1/5 form",
 ];
 
-const WANT_CH59_POOL: &[&str] = &["625 slot 1 new_speed", "625 slot 1 speed"];
+/// Empty since item 2002 (`docs/GOLDEN.md` §73): slot 1's `speed`/`new_speed`
+/// 0 against 25 on 625 left when `find_nearby_target`'s add normalizes the
+/// searcher's group.
+const WANT_CH59_POOL: &[&str] = &[];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
@@ -13886,18 +13887,11 @@ const WANT_CH51: &[&str] = &[
 ];
 
 // Item 1776: a pushed group's prune shifts the arrays with the list, so the
-// 770 slot 1 rows agree and leave; the dead member's other rows (907, 1003)
-// part with the list, where the original drops it at its death.
-const WANT_CH51_POOL: &[&str] = &[
-    "1003 slot 1 angle[1]",
-    "1003 slot 1 curr[1]",
-    "1003 slot 1 off[1]",
-    "907 slot 1 angle[2]",
-    "907 slot 1 curr[2]",
-    "907 slot 1 list",
-    "907 slot 1 num",
-    "907 slot 1 off[2]",
-];
+// 770 slot 1 rows agree and leave. Item 2002 (`docs/GOLDEN.md` §73): the
+// dead member's rows (907, 1003: `list`, `num`, `off`/`curr`/`angle`) agree
+// and leave too — a living member's search normalizes the slot and prunes
+// it (`find_nearby_target`'s add).
+const WANT_CH51_POOL: &[&str] = &[];
 
 const WANT_CH50: &[&str] = &[
     // Item 1502: an attack's `order:target` on a building the start dump did
@@ -13922,16 +13916,8 @@ const WANT_CH50: &[&str] = &[
 ];
 
 // Item 1776: as chapter fifty-one's pool (770 slot 1 agrees and leaves).
-const WANT_CH50_POOL: &[&str] = &[
-    "932 slot 1 angle[2]",
-    "932 slot 1 curr[2]",
-    "932 slot 1 list",
-    "932 slot 1 num",
-    "932 slot 1 off[2]",
-    "996 slot 1 angle[1]",
-    "996 slot 1 curr[1]",
-    "996 slot 1 off[1]",
-];
+// Item 2002: as chapter fifty-one's, the dead member's 932 and 996 rows leave.
+const WANT_CH50_POOL: &[&str] = &[];
 
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
