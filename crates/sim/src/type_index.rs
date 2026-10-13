@@ -16,6 +16,10 @@
 //! - [`is_gov_hero_type`]: the six government patriots, `UnitTraits::patriot`;
 //! - [`is_specialty_type`]: the two units whose `type` the flamethrower and
 //!   mech-infantry rules key on (`role::FLAMETHROWER`);
+//! - [`is_item_type`], [`is_wonder_type`], [`is_gaia_type`], [`is_good_type`]
+//!   (item 1705): the blocks `TypeIndex` names around the units and
+//!   buildings — goods below `0x32`, gaia's `0x192..=0x19d` tail of the unit
+//!   block, the wonders `0x20e..=0x21e` and the one item type `0x21f`;
 //! - [`is_entrenched`]: `UnitData::is_entrenched`, the reader the combat
 //!   step's entrenchment gate and `find_nearby_target`'s `local_24` stand on
 //!   (`combat.entrenched`).
@@ -62,6 +66,23 @@ pub const fn is_unit_type(t: i32) -> bool {
     0x31 < t && t < 0x19e
 }
 
+/// `TypeData::is_item_type@00470760`: only `0x21f`.
+pub const fn is_item_type(t: i32) -> bool {
+    0x21e < t && t < 0x220
+}
+/// `TypeData::is_wonder_type@00470780`: `0x20e..=0x21e`.
+pub const fn is_wonder_type(t: i32) -> bool {
+    0x20d < t && t < 0x21f
+}
+/// `TypeData::is_gaia_type@004707a0`: `0x192..=0x19d`.
+pub const fn is_gaia_type(t: i32) -> bool {
+    0x191 < t && t < 0x19e
+}
+/// `TypeData::is_good_type@00470800`: signed `t < 0x32`, negatives included.
+pub const fn is_good_type(t: i32) -> bool {
+    t < 0x32
+}
+
 /// `UnitData::is_entrenched@0060a810`: with `param` 0 the raw `unit_masks &
 /// 0x2000000`; otherwise entrenched only while `unit_masks2 & 0x20000` is clear.
 pub const fn is_entrenched(unit_masks: u32, unit_masks2: u32, param: i32) -> bool {
@@ -85,6 +106,8 @@ mod tests {
         assert!(is_final_type(0x243) && is_tech_type(0x243) && is_gov_type(0x26f));
         assert!(is_tech_type(0x274) && is_spell_type(0x275) && is_bonus_type(0x2ac));
         assert!(is_specialty_type(0x68) && !is_specialty_type(0x69));
+        assert!(is_good_type(0x31) && !is_good_type(0x32) && is_gaia_type(0x19d));
+        assert!(is_wonder_type(0x21e) && is_item_type(0x21f) && !is_item_type(0x220));
         assert!(is_entrenched(0x200_0000, 0x2_0000, 0) && !is_entrenched(0x200_0000, 0x2_0000, 1));
     }
 }
