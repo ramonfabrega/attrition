@@ -3997,6 +3997,12 @@ Candidates: the tranche's opening booking lands every stub it will need
 sentinel line after the last stub; the driver tuple turned into a list a
 merge can append to. One reach.
 
+(1720) **One building's queue across blocks is walked by hand** (1714's
+Loop line): the first read of a `queue:queued` value diff took a
+per-block extraction of `1/2010`'s queue, most of the session's wall
+clock; a `tools/` slicer for one building's queue across a window
+would have saved it. Graduates on a third reach. One reach.
+
 ## Loop, filed 2026-10-12 — the Codex settlement's
 
 ## Loop, filed 2026-10-07 — the twenty-seventh tranche's

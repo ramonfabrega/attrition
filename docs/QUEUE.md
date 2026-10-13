@@ -12,23 +12,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, the twenty-ninth tranche at eleven landings of twenty
+*2026-10-13, the twenty-ninth tranche at twelve landings of twenty
 (`commander`, Opus 5.5; every lane Sonnet 5.5 medium, DECISIONS 65):
-**both AI words moved twice** — the coverage pair 3963 → 4425 (1673,
-1700), Great Sahara 2323 → 2851 (1639,
+**both AI words moved twice** — the coverage pair 3963 → 4582 (1673,
+1700, 1714), Great Sahara 2323 → 2851 (1639,
 1697) — the census 68 → 128, chapter fifty-two landed. No kill rule.*
 
-- **Out**: `att-1714` (parks 1675–1678, runs 763–765, AI §186), `att-1716`
+- **Out**: `att-1719` (parks 1675–1678, runs 763–765, AI §188), `att-1716`
   (1679–1682, 767–769, AI §187), `att-1708` (1683–1686), `att-1707`
-  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1719, run
-  774, AI §188. **The disk**: 248 GiB free.
-- **Fable backlog: 27 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718).
+  (1709–1712, 771–773, GOLDEN §63); stubs in the base. Next 1721, run
+  774, AI §189. **The disk**: 248 GiB free.
+- **Fable backlog: 28 Loop items** (1119, 1475, 1554, 1560, 1570, 1590, 1593, 1601, 1604, 1607, 1613, 1616, 1638, 1674, 1692, 1693, 1695, 1696, 1698, 1699, 1702, 1703, 1706, 1713, 1715, 1717, 1718, 1720).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
-Coverage pair: EastIndiesPersianAllTech w4425 of 4,730
+Coverage pair: EastIndiesPersianAllTech w4582 of 4,730
 Census: simulation backed 128 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w2851 of 4,340
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed
@@ -43,18 +43,17 @@ the tranche scored whole.**
 ## The queue
 
 In dependency order, headline-nearest first. **The race is scored, the
-roster is Ramon's**: 1714 the headline's word, 1716, 1708 and 1707 the
+roster is Ramon's**: 1719 the headline's word, 1716, 1708 and 1707 the
 other three lanes — lower map first — East Indies (All Technologies).
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
-1714. **The coverage pair's word: frame 4425, 23 versus 22 draws**,
-    index 9: ours `Guy::init_real+0x52` (a birth), theirs
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`; inside run762 (blocks
-    4420..4676), `run762_s_word_frame_is_widened_whole` (2322 keys).
-    1700's value diff: on 4426 the original's `1/2010` queues a second
-    `1/245` where ours has produced it (`num_queued[245]` 1 against 0,
-    `num_units[245]` 13 against 14). AI §186.
+1719. **The coverage pair's word: frame 4582, 549 versus 551 draws**,
+    index 542: ours `Guy::set_anim+0x97a`, theirs `Guy::init_real+0x52`
+    (a birth); inside run762 (block 4583), `run762_s_word_frame_is_widened_whole`
+    (1167 keys). 1714's value diff: on 4583 leader 1's `num_units[8]` 5
+    against 4, `active` 179 against 178, `1/169` in the dump alone; 4585
+    `MAKE[2,3].val` 1294 against 1353. AI §188.
 
 1716. **Great Sahara's word: frame 2851, 18 versus 17 draws**, index 0:
     ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
