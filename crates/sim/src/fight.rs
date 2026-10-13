@@ -3751,7 +3751,11 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if best.is_none_or(|(b, _)| score > b) {
+                        // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
+                        // `jle` (`64987d`): a score of 0 — a candidate
+                        // `compare_target` answered 0 for — is never the
+                        // winner, even the first (item 2001).
+                        if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
                         if is_unit {
@@ -3870,6 +3874,29 @@ impl Sim {
             }
             _ => (false, false),
         };
+        // **A computer's raiding ship leaves a building alone**
+        // (`0064e7a5`–`0064e81f`, item 2001, `docs/AI.md` §203). Under
+        // `iVar5 && iVar4` — a finished (`WallData::is_active`, `flags &
+        // 4`) Build-proper target (vslot `+0x20`; a wall answers 0) —
+        // `bVar3 && bVar16`, the raid stance on an AI-driven unit
+        // (`unit_masks & 0x40000`) of the sea domain, returns 0 when the
+        // ship fires on the move (`unit_flags & 0x200000`, `v`), and
+        // otherwise when the target's type `is_build_type` (every
+        // building's, `0x19e..0x21e`) and the ship lacks SIEGE. A zero
+        // is never taken (`find_nearby_target`'s `local_70 < score`, from
+        // 0), though `near_o` is already written. run810's packet: the
+        // Aegis Cruiser `1/113` returns 0 at `64e7e5` for `0/2000`.
+        if let Obj::Unit(i) = attacker
+            && let Obj::Building(b) = target
+            && self.units[i].combat.stance == Stance::Raid
+            && self.unit_ai_bit(self.units[i].owner)
+            && matches!(ap.domain, Domain::Sea)
+            && self.buildings[b].index < crate::WALL_BASE
+            && self.buildings[b].active
+            && (self.fires_on_move(i) || !ap.has(mask::SIEGE))
+        {
+            return 0;
+        }
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
         if t_attack != 0 && left != 0 && !aa {
