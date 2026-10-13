@@ -532,7 +532,12 @@ module merge, or conflict out loud at `ccc update` or at the gate; the
 lane that lands second takes the update before its gate; a brief says
 where the other lane's word sits as information, no grant is asked or
 given, and **a worker never hands its word over for where the code
-sits** (`docs/DECISIONS.md` entry 55). **A pinned
+sits** (`docs/DECISIONS.md` entry 55). **And a brief names the lane's
+park heading** — one of the parked file's pool, `## Parked by the next
+landing, slot <A> — reserved`, landed six deep at the file's end,
+assigned by letter, renamed by the lane, held at two by `docs_guard` —
+because every lane appended its heading at one tail and three merges of
+one tranche backed out there (parked 1812, DECISIONS 67). **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half — **which its gate says, under `--lane`,
@@ -568,7 +573,12 @@ lane's own line, each a whole-context turn that learned nothing (parked
 line to the lane — journal as a draft, commit, end the turn — and `ccc
 clear <lane> --then "continue item <N> from the journal"`, armed by the
 commander, since a lane's own arm is refused (DECISIONS 61) and five
-sessions over 300 k took none (parked 1637, 1638). A red booking gate is a second commit and one line to every
+sessions over 300 k took none (parked 1637, 1638). **And a `STALLED
+<lane> <min>` exit is answered in its turn**: one line to the lane —
+the gate or capture it waited on has exited; read its log and land —
+because a lost exit notice leaves a row `working` at `tempo=idle` with
+nothing running, where no other exit can fire, and one sat 178 minutes
+(parked 1871, DECISIONS 67). A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to

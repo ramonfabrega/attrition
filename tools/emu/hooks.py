@@ -73,28 +73,36 @@ class Harness:
     def r32(self, a):
         return struct.unpack("<i", self.m.uc.mem_read(a, 4))[0]
 
-    def stub(self, name, nargs, answer):
+    def stub(self, name, nargs, answer, tail=False):
+        """`tail`: the slot is entered by a `jmp`, not a `call` (parked 1761:
+        `BuildTypeData::is_city` pushes its constant and jumps into
+        `TypeData::is`), so the arguments sit at `[esp]` and the caller's
+        return address below them."""
         a = self.next_stub
         self.next_stub += 0x10
-        self.hooked[a] = (name, nargs)
+        self.hooked[a] = (name, nargs, tail)
         self.answers[name] = answer
         return a
 
     def vtable(self, slots):
         """A fake vtable of 0x200 bytes, each named slot a stub:
-        `{offset: (name, nargs, answer)}`."""
+        `{offset: (name, nargs, answer[, tail])}`."""
         v = self.alloc(0x200)
-        for off, (name, nargs, ans) in slots.items():
-            self.w32(v + off, self.stub(name, nargs, ans))
+        for off, slot in slots.items():
+            self.w32(v + off, self.stub(*slot))
         return v
 
     def _on_code(self, uc, addr, size, _):
         if addr not in self.hooked:
             return
-        name, nargs = self.hooked[addr]
+        name, nargs, tail = (self.hooked[addr] + (False,))[:3]
         esp = uc.reg_read(UC_X86_REG_ESP)
-        ret = struct.unpack("<I", uc.mem_read(esp, 4))[0]
-        args = list(struct.unpack(f"<{nargs}i", uc.mem_read(esp + 4, 4 * nargs))) if nargs else []
+        if tail:
+            args = list(struct.unpack(f"<{nargs}i", uc.mem_read(esp, 4 * nargs))) if nargs else []
+            ret = struct.unpack("<I", uc.mem_read(esp + 4 * nargs, 4))[0]
+        else:
+            ret = struct.unpack("<I", uc.mem_read(esp, 4))[0]
+            args = list(struct.unpack(f"<{nargs}i", uc.mem_read(esp + 4, 4 * nargs))) if nargs else []
         ecx = uc.reg_read(UC_X86_REG_ECX)
         ans = self.answers.get(name, 0)
         eax = ans(ecx, args) if callable(ans) else ans

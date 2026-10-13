@@ -82,10 +82,16 @@ class Machine:
         self.fault = (access, addr, size, uc.reg_read(UC_X86_REG_EIP))
         return False
 
-    def call(self, entry, stack_args=(), ecx=0, edx=0, max_insns=100_000):
+    def call(self, entry, stack_args=(), ecx=0, edx=0, max_insns=100_000, xmm=None):
         """Enter `entry` with `stack_args` pushed (first argument nearest the
-        return address) and `ecx`/`edx` set; return `eax` at the sentinel."""
+        return address) and `ecx`/`edx` set; return `eax` at the sentinel.
+        `xmm` maps a register number to the 128-bit value to load — a float
+        argument's bits in the low lane (`sweeplib.xmm_bits`; parked 1867:
+        `Guy::set_bank`/`set_pitch` read `xmm1`)."""
         uc = self.uc
+        for n, v in (xmm or {}).items():
+            from unicorn.x86_const import UC_X86_REG_XMM0
+            uc.reg_write(UC_X86_REG_XMM0 + n, v)
         esp = STACK_BASE + STACK_SIZE - 0x100
         frame = struct.pack("<I", SENTINEL) + b"".join(struct.pack("<i", a) for a in stack_args)
         esp -= len(frame)

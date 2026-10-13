@@ -85,6 +85,35 @@ class Repin(unittest.TestCase):
         # Nothing else moved: the file is the fixture with three wants swapped.
         self.assertEqual(len(text.split('\n')), len(SOURCE.split('\n')))
 
+    def test_a_want_that_names_a_constant_s_field_rewrites_the_constant(self):
+        # Parked 1767, the thirtieth pass: a pair's word is `MONGOL.count`,
+        # a literal in the `Pair` const, and three re-pins were hand edits.
+        self.file.write_text('''pub(crate) const MONGOL: Pair = Pair {
+    name: "EastIndiesMongolAllTech",
+    length: 5056,
+    count: 2838,
+    sequence: 2838,
+};
+
+fn t() {
+    let _pins = Pins::hold();
+    pin_eq!(w.count, MONGOL.count, "the draw count's first parting");
+    pin_eq!(w.sequence, MONGOL.sequence, "the draw sequence's first parting");
+}
+''')
+        log = '''1 pins moved:
+  crates/rondata/src/diff/fixture.rs:10: the draw count's first parting
+    got  2900
+    want 2838
+'''
+        edits, by_hand = repin.plan(repin.parse(log), root=self.root)
+        self.assertEqual(by_hand, [])
+        repin.apply(edits, root=self.root)
+        text = self.file.read_text()
+        self.assertIn('    count: 2900,', text)
+        self.assertIn('    sequence: 2838,', text)
+        self.assertIn('pin_eq!(w.count, MONGOL.count,', text)
+
     def test_a_site_two_tests_moved_to_two_values_is_by_hand(self):
         log = LOG + '''
 1 pin moved:

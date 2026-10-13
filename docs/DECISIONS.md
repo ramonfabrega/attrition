@@ -78,6 +78,7 @@ is append-only and amended in place, as it always was.
 - 64 standing — The race is scored, the sweep is a lane, the loop's debt is paid down, and a fourth lane returns by rule
 - 65 standing — The race on 1648 is scored, the price was the context, and the roster waits on Ramon
 - 66 standing — The first Sonnet tranche is scored whole, the stub pool replaces the appended stub, the waiter names a deep lane, and the lane count holds for a measured reason
+- 67 standing — The second Sonnet tranche is scored, the done line held, the waiter names a stalled lane, the parked file gets a pool, and the brief carries the seams
 
 ## 1. Fidelity before divergence
 
@@ -4970,3 +4971,89 @@ against 576 / 6566 / 2974; the census's never against 191, backed
 against 178, cited against 1337; the backlog against nine; the timings
 file's `--stale` against 5 untimed; the disk against 242 GiB; and
 1743's count of the before-reading rows the lanes ran.
+
+## 67. The second Sonnet tranche is scored, the done line held, the waiter names a stalled lane, the parked file gets a pool, and the brief carries the seams
+
+**Decided 2026-10-13**, the thirtieth pass
+(`docs/audit/2026-10-13-fable-pass-30.md`), unattended. Amends `CLAUDE.md`'s
+chain in two clauses (the `STALLED` answer, the park heading); applies entry
+54's two-tranche closure and entry 61's rules 2, 4 and 5; declines entry
+61's one-lane-a-tranche addition for the opener's roster, and says so.
+
+**What was measured.** Twenty-three landings on four lanes, every session
+Sonnet 5.5 at medium, one session a landing, in 3 h 51 min from the
+twenty-ninth pass's commit: 63.83 USD list for the workers (2.78 a
+landing; the word lanes alone 4.90, the fourteen sweeps 1.41) and 14.11
+for the commander's two sessions; 20.9 minutes waiting a landing (13.8
+without 1738's 178 on a lost gate notice), of which the capture lane 3.3
+(from 8.1); the successor pair's word 11 → 2838, Great Sahara 3182
+unmoved, chapters fifty-three, fifty-five and fifty-six closed and
+fifty-four settled, the census backed 178 → 319, cited 1337 → 1467, never
+191 → 260; peak context 303 k once, no `DEEP` exit; one blocked ending;
+no kill rule; the waiter exited four times for twenty-three landings
+(two `LANDED`, one `PUSHED`, one `ENDED`) against sixteen second wakes
+the tranche before; three merges backed out, all on the parked file's
+tail, none on a stub; the battery 576 / 6566 / 2974, unmoved a sixth
+tranche; the backlog 23.
+
+**What it means.**
+
+1. **The roster holds: Sonnet 5.5 medium on every lane, four lanes.**
+   The price fell by a third and the pace held on real items. Entry 61's
+   rule would add a fifth lane — the waiting held and the captures no
+   longer starve — and the pass declines it because the opener names four
+   items one to a lane and the only fifth is a second sweep batch, which
+   re-pins the same census constant as the first; a fifth is the user's.
+2. **A done line stops the wait, measured**: sixteen second wakes became
+   zero. The waiter is the backstop it was built to be.
+3. **The waiter names a stalled lane** (parked 1871). A lane whose gate's
+   exit notice is lost reads `working` at `tempo=idle` with no child but
+   its servers, and no exit could fire on it; `lanewait.py` exits
+   `STALLED <lane> <minutes>` after thirty idle minutes and the commander
+   sends one line. Made to fail first on a pure function.
+4. **The parked file carries a park pool** (parked 1812): every lane
+   appended its heading at one tail and three merges backed out there;
+   six `## Parked by the next landing, slot <A> — reserved` headings are
+   landed ahead, assigned by letter in the brief, held at two by
+   `docs_guard`, the stub pool's shape one file down.
+5. **The brief does the before-reading step no lane did** (parked 1743):
+   `seams.py --item N` ran in one journal of nine and `standing.py` in
+   none, so `tools/brief.py` runs the seams and carries the print. The
+   rows no lane runs are measured each pass; 1554 and 1560 close by
+   entry 54 with their shapes kept in the record.
+6. **The sweep's generator is the lane's, not a throwaway** (parked
+   1761, fourteen reaches): `tools/emu/sweeplib.py` holds the helpers
+   fourteen lanes rewrote, `sweep_gen.py` writes `cell`, `vcall` and
+   `outptr` beside `const`, `field` and `range`, and both new shapes
+   were run against the executable in the pass (212 rows each, agreeing
+   with 1760's and 1824's hand-written sweeps); `hooks.py` reads what a
+   virtual call is handed.
+7. **The gate runs every Python suite or names the one it does not**
+   (1872): three suites two passes landed ran in no gate for a day;
+   `offline_tests.py` lists its exclusions with a reason and a test holds
+   the directory to the two lists.
+8. **Seventeen Loop items leave the backlog**: twelve built (1761, 1767,
+   1871, 1869, 1867, 1861, 1792, 1839, 1846, 1812, 1813, 1743), two frame
+   rows (1864, 1781), three closed by entry 54 (1554, 1560, 1674) and
+   1601's three letters with them; 1862 is hardened and stays; twenty-
+   three become six.
+
+**The estimate, written down to be wrong on record**: twenty landings on
+four Sonnet 5.5 medium lanes in under four and a half hours; the
+successor pair's word past 3,500; Great Sahara's past 3,600; chapter
+fifty-seven closes; the backed column past 420; under 3.00 USD and under
+20 minutes waiting a landing, the capture's share under 4; no blocked
+ending; a `STALLED` exit, if any, answered within a poll; second wakes
+under two of twenty; no merge backed out on the parked file; the battery
+moves on at least one lobby.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 2.78 / 20.9, the word lanes alone against 4.90; capture minutes
+against 3.3; waiter exits against 4 of 23 and second wakes against 0;
+`STALLED` and `DEEP` exits against the sessions that earned them, each
+answered; blocked against 1 of 23; merges backed out against 3 of 23 and
+the parked file's tail against 3; the battery against 576 / 6566 / 2974;
+the census's never against 260, backed against 319, cited against 1467;
+the backlog against six; the timings file's `--stale` against 5 untimed;
+the disk against 233 GiB; and the before-reading rows the lanes ran,
+counted from the journals and the transcripts both.

@@ -135,6 +135,33 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn('run424', reserved)
         self.assertIn('docs/GOLDEN.md §48', reserved)
 
+    def test_a_park_slot_is_reserved_by_letter(self):
+        # Parked 1812: every lane appended its `## Parked by item N` at the
+        # file's tail, and three merges backed out there; the brief names
+        # the pool heading the lane renames.
+        text = self.compose(1131, 'chapter', park='C')
+        reserved = text.split('## Reserved for you')[1].split('\n## ')[0]
+        self.assertIn('## Parked by the next landing, slot C — reserved', reserved)
+        self.assertIn('rename', reserved)
+        self.assertIn('never append', reserved)
+        self.assertIn('ask me for a park slot', self.compose(1131, 'chapter').split('## Reserved for you')[1])
+
+    def test_the_seams_are_read_for_the_lane(self):
+        # Parked 1743: `seams.py` ran in one of nine word lanes' journals and
+        # `standing.py` in none, though the frame's rows name both. The
+        # brief carries `seams.py --item N`'s own print, so the step is done
+        # before the lane reads it.
+        text = self.compose(1133, seams=lambda item: f'SEAM a.rs:1 the thing item {item} lacks\n' * 3)
+        section = text.split('## Seams, read for you')[1].split('\n## ')[0]
+        self.assertIn('SEAM a.rs:1 the thing item 1133 lacks', section)
+        self.assertIn('seams.py --item 1133', section)
+        self.assertNotIn('## Seams, read for you', self.compose(1133, seams=None))
+        long = self.compose(1133, seams=lambda item: '\n'.join(f'line {i}' for i in range(300)))
+        section = long.split('## Seams, read for you')[1].split('\n## ')[0]
+        self.assertIn('line 0', section)
+        self.assertNotIn('line 299', section)
+        self.assertIn('more lines', section)
+
     def test_a_chapter_s_rows_are_a_chapter_s(self):
         self.assertIn('issuer chapter', self.compose(1131, 'chapter'))
         self.assertNotIn('issuer chapter', self.compose(1133))

@@ -52,6 +52,10 @@ pub struct Built {
     /// per-frame comparison can read the production queue without the
     /// whole [`Loaded`] (`docs/PRODUCTION.md`, "The queue record").
     pub type_index: Vec<i32>,
+    /// Each unit type's name, by this crate's type index (parked 1846: a
+    /// brief that named a unit by `RON_DEBUG_UNIT`'s `TY` — the record —
+    /// read it as another type; the print names both now).
+    pub unit_type_names: Vec<String>,
     /// Each simulation unit type's own id, so a queue entry holding a unit
     /// can be turned into a `TypeIndex` through `type_index` above.
     pub unit_tree: Vec<usize>,
@@ -1061,6 +1065,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         rng_frames: Vec::new(),
         frame_guys: init.frame_guys.clone(),
         frame_sites: Vec::new(),
+        unit_type_names: loaded.unit_type_names.clone(),
         type_index: (0..loaded.good_tree.len()
             + loaded.unit_tree.len()
             + loaded.build_tree.len()

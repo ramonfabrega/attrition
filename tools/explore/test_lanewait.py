@@ -135,6 +135,33 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         self.assertEqual(lanewait.deep(ctxs, 300_000, reported), (5, 'DEEP a 305k'))
         self.assertIsNone(lanewait.deep({'b': 400_000}, 0, set()), 'off at 0')
 
+    def test_a_working_row_idle_with_nothing_running_has_stalled(self):
+        # Parked 1871, the thirtieth pass: 1738's lane gate exited and the
+        # notice never reached the session; the row read `working` at
+        # `tempo=idle` for 178 minutes. A row that is idle past the
+        # threshold with no child but its servers waits on nothing.
+        idle = {'a': 45.0, 'b': 45.0, 'c': 3.0}
+        children = {'a': ['bun server.ts'], 'b': ['bun server.ts', 'python3 tools/release_gate.py'],
+                    'c': ['bun server.ts']}
+        found = lanewait.stalled(['a', 'b', 'c'], {'a': 'working', 'b': 'working', 'c': 'working'},
+                                 idle, children, 30, set())
+        self.assertEqual(found, (6, 'STALLED a 45'))
+
+    def test_a_stalled_row_is_named_once_and_a_busy_one_never(self):
+        reported = set()
+        idle = {'a': 45.0}
+        children = {'a': []}
+        self.assertEqual(lanewait.stalled(['a'], {'a': 'working'}, idle, children, 30, reported), (6, 'STALLED a 45'))
+        self.assertIsNone(lanewait.stalled(['a'], {'a': 'working'}, idle, children, 30, reported))
+        self.assertIsNone(lanewait.stalled(['b'], {'b': 'done'}, {'b': 90.0}, {'b': []}, 30, set()))
+        self.assertIsNone(lanewait.stalled(['a'], {'a': 'working'}, {'a': 45.0}, {'a': ['sh -c sleep 9']}, 30, set()))
+
+    def test_a_server_child_is_not_a_wait(self):
+        self.assertTrue(lanewait.is_server('bun /x/lazy/server.ts'))
+        self.assertTrue(lanewait.is_server('bun run --cwd /x/hail --shell=bun --silent start'))
+        self.assertFalse(lanewait.is_server('python3 tools/lanewait.py att-1'))
+        self.assertFalse(lanewait.is_server('zsh -c python3 tools/release_gate.py'))
+
     def test_an_ended_row_s_detail_is_on_the_line(self):
         watch = watching(a='1' * 40)
         states, tips = {'a': 'blocked'}, {'a': '1' * 40}

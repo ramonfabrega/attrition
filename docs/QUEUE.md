@@ -12,20 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirtieth pass is due**: twenty-three landings (twenty and
-three drained) in 3 h 40 min, every lane Sonnet 5.5 medium. The successor pair's
-word 11 → 2838 (1737, 1744, 1845 — the Freighter's carry arm, on run785's packet);
-chapters fifty-three, fifty-five and fifty-six closed (1740, 1798, 1829); thirteen
-sweeps took the census 188 → 319. Great Sahara 3182 unmoved (1738: the Redoubt's
-divisor built, the state parts on 3177). No kill rule tripped.*
+*2026-10-13, **the thirtieth pass done** (`docs/audit/2026-10-13-fable-pass-30.md`,
+DECISIONS 67): twenty-three landings in 3 h 51 min, 2.78 USD and 20.9 min waiting
+a landing on Sonnet 5.5 medium; the successor pair 11 → 2838, Great Sahara 3182
+unmoved, chapters fifty-three, fifty-five, fifty-six closed, the census 178 → 319;
+the battery unmoved a sixth tranche. Seventeen Loop items out, six stay.*
 
-- **Measured** (`tools/tranche.py`): 63.83 USD list, **2.78 a landing**, **20.9
-  min waiting** a landing — 13.8 without 1738's 178 min on a lost gate notice
-  (parked 1871); peak 303 k (1845); one `blocked` (1829); two merges backed out on
-  `PARKED.md`'s tail (1812); booking gates all green; battery 576/6566/2974 unmoved.
-- **No lanes live**: 1868, 1870, 1866, 1863 wait, stubs in the base. Next 1872,
-  run 788, AI §198, GOLDEN §70. **The disk**: 232 GiB free.
-- **Fable backlog: 23 Loop items** (1475, 1554, 1560, 1570, 1601, 1674, 1725, 1739, 1743, 1761, 1767, 1781, 1792, 1812, 1813, 1839, 1846, 1861, 1862, 1864, 1867, 1869, 1871).
+- **No lanes live**: 1868, 1870, 1866, 1863 wait, one to a lane, Sonnet 5.5 medium
+  (`ccc spawn --model 'claude-sonnet-5-5[1m]' --effort medium`), briefs by
+  `tools/brief.py <item> --kind … --park <A|B|C|D>` in that order (E, F spare).
+  Next 1873, run 788, AI §198, GOLDEN §70. Disk 233 GiB free.
+- **`lanewait.py` exits `STALLED <lane> <min>` too**: one line to the lane (its
+  gate or capture exited; read the log, land). Landings count from this pass's commit.
+- **Fable backlog: 6 Loop items** (1475, 1570, 1601, 1725, 1739, 1862).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,10 +37,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirtieth steering pass, on Fable — score the thirtieth
-tranche whole, rule the twenty-three Loop items (1761's fourteen reaches
-first), then clear `commander` into the thirty-first tranche with 1868,
-1870, 1866 and 1863, one to a lane.**
+**Opener: the thirty-first tranche, the commander — spawn 1868, 1870,
+1866 and 1863, one to a lane, Sonnet 5.5 medium, the briefs with their park
+slots; the chain as `CLAUDE.md` writes it, `STALLED` and `DEEP` answered in
+their turn; at twenty landings the handoff, then `ccc clear steer`.**
 
 ## The queue
 

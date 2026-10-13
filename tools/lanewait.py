@@ -13,6 +13,11 @@ session. A lane is named as `ccc list` names it. The exits:
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
     5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
+    6  STALLED <lane> <minutes>              a working row idle --stalled-after minutes
+                                             with no child process but its servers:
+                                             a gate's or a capture's exit notice was
+                                             lost (parked 1871, 178 minutes); one line
+                                             to the lane says what to read
                                              tokens or more (lore's `ctx`), once a lane
     2  usage, a lane the roster does not hold when the wait starts, or a
        lane whose tree holds a second row (parked 1671: a lane's next session
@@ -117,6 +122,67 @@ def deep(ctxs, k_tokens, reported):
     return None
 
 
+SERVERS = ('bun ', 'node ', 'npx ')
+
+
+def is_server(command):
+    """A child every session carries from its start — an MCP server —
+    and not a wait: the lazy-tools and hail servers here are `bun …`."""
+    return command.startswith(SERVERS)
+
+
+def stalled(watch, states, idle_minutes, children, after, reported):
+    """The first watched lane that is `working`, idle for `after` minutes
+    or more, with no child process but its servers, not yet in `reported`
+    — as (6, `STALLED <lane> <minutes>`), or None. Parked 1871: 1738's lane
+    gate exited and its notice never reached the session, which sat
+    `working` at `tempo=idle` for 178 minutes; the row never left
+    `working`, so no other exit could fire. A lane that waits on a gate or
+    a capture has that process as a child."""
+    for lane in watch:
+        if states.get(lane) != WORKING or lane in reported:
+            continue
+        idle = idle_minutes.get(lane)
+        if idle is None or idle < after:
+            continue
+        if any(not is_server(c) for c in children.get(lane, [])):
+            continue
+        reported.add(lane)
+        return 6, f"STALLED {lane} {int(idle)}"
+    return None
+
+
+def children_of(pids):
+    """Each pid's child command lines, from one `ps`."""
+    out = subprocess.run(['ps', '-axo', 'pid=,ppid=,command='], capture_output=True, text=True,
+                         check=False).stdout
+    found = {pid: [] for pid in pids}
+    for line in out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            continue
+        try:
+            ppid = int(parts[1])
+        except ValueError:
+            continue
+        if ppid in found:
+            found[ppid].append(parts[2])
+    return found
+
+
+def idle_since(stamp, now):
+    """Minutes from a row's `updatedAt` (ccc's ISO instant, `Z`) to `now`,
+    or None when it does not parse."""
+    from datetime import datetime, timezone
+    try:
+        then = datetime.fromisoformat(stamp.replace('Z', '+00:00'))
+    except (ValueError, AttributeError):
+        return None
+    if then.tzinfo is None:
+        then = then.replace(tzinfo=timezone.utc)
+    return (now - then).total_seconds() / 60
+
+
 def contexts(lanes):
     """Each lane's `ctx` from `lore agents --json`; None for a lane lore
     does not list, and {} when lore did not answer."""
@@ -169,7 +235,7 @@ def roster():
         rows = json.loads(out)
     except ValueError:
         return None
-    found, trees = {}, {}
+    found, trees, rests = {}, {}, {}
     for row in rows:
         session = row.get('session') or {}
         name = session.get('name')
@@ -181,7 +247,10 @@ def roster():
             found[name] = (state_of(session, row.get('job')), session.get('cwd'),
                            (row.get('worktree') or {}).get('branch'), session.get('startedAt', ''),
                            session.get('detail') or (row.get('job') or {}).get('detail'))
+            job = row.get('job') or {}
+            rests[name] = (session.get('pid'), job.get('tempo'), job.get('updatedAt'))
     roster.trees = trees
+    roster.rests = rests
     return found
 
 
@@ -200,6 +269,8 @@ def main(argv=None):
                         help='exit DEEP once per lane whose next turn carries K k tokens or more; 0 off')
     parser.add_argument('--deep-every', type=int, default=10, metavar='POLLS',
                         help='read lore agents every this many polls')
+    parser.add_argument('--stalled-after', type=float, default=30, metavar='MIN',
+                        help='exit STALLED once per working lane idle this long with nothing running; 0 off')
     args = parser.parse_args(argv)
 
     rows = roster()
@@ -226,6 +297,7 @@ def main(argv=None):
     started = time.monotonic()
     polls = 0
     reported = set()
+    stalled_reported = set()
     while True:
         time.sleep(args.interval)
         polls += 1
@@ -239,6 +311,19 @@ def main(argv=None):
             continue
         states = {lane: (rows[lane][0] if lane in rows else None) for lane in watch}
         details = {lane: (rows[lane][4] if lane in rows else None) for lane in watch}
+        if args.stalled_after:
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc)
+            rests = getattr(roster, 'rests', {})
+            idle = {lane: (idle_since(rests[lane][2], now) if lane in rests and rests[lane][1] == 'idle'
+                           and rests[lane][2] else None) for lane in watch}
+            pids = {lane: rests[lane][0] for lane in watch if lane in rests and rests[lane][0]}
+            kids = children_of(list(pids.values()))
+            children = {lane: kids.get(pid, []) for lane, pid in pids.items()}
+            found = stalled(list(watch), states, idle, children, args.stalled_after, stalled_reported)
+            if found:
+                print(found[1], flush=True)
+                return found[0]
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
         notes = []
         found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,

@@ -221,8 +221,23 @@ impl Script {
         out
     }
 
+    /// Reads a script file. **A frame below its predecessor is refused**
+    /// with the capture's own words (parked 1839): `live_session.
+    /// parse_commands` refuses such a line and the tracer clamps it, so a
+    /// staging that walked clean here died at the capture (run783, 640
+    /// below 712). `parse` keeps the clamp for a text already captured.
     pub fn read(path: &std::path::Path) -> std::io::Result<Script> {
-        Ok(Script::parse(&std::fs::read_to_string(path)?))
+        let text = std::fs::read_to_string(path)?;
+        if let Some((line, frame, previous)) = Script::backwards(&text).first() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!(
+                    "{}: line {line}: frame {frame} is below the previous {previous}; the capture refuses it (parked 1839)",
+                    path.display()
+                ),
+            ));
+        }
+        Ok(Script::parse(&text))
     }
 
     pub fn lines(&self) -> &[Staged] {
@@ -2592,6 +2607,31 @@ mod tests {
     /// predecessor runs the appended lines on the last frame and says
     /// nothing. Made to fail first on a line appended to chapter
     /// thirty-eight.
+    /// **The staging reader refuses what the capture refuses** (parked
+    /// 1839, the thirtieth pass): `live_session.parse_commands` refuses a
+    /// frame below its predecessor, and `Script::parse` clamped it, so a
+    /// staging walked clean and the capture then died on the same script
+    /// (run783's first launch, 640 below 712). `Script::read` — the
+    /// staging walk's and every chapter's path — refuses the line now with
+    /// the capture's own words; `parse` keeps the tracer's clamp for a
+    /// text already on disk. Made to fail first on a file with 599 after 600.
+    #[test]
+    fn the_staging_reader_refuses_a_frame_below_its_predecessor() {
+        let dir = std::env::temp_dir().join(format!("attrition-script-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("backwards.cmd");
+        std::fs::write(&path, "0 !ai off\n600 age who=0 8\n599 war\n").unwrap();
+        let err = Script::read(&path).expect_err("a descending frame is refused");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("599") && msg.contains("600") && msg.contains("line 3"),
+            "{msg}"
+        );
+        std::fs::write(&path, "0 !ai off\n600 age who=0 8\n605 war\n").unwrap();
+        assert_eq!(Script::read(&path).unwrap().lines().len(), 3);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn no_chapter_script_writes_a_frame_below_its_predecessor() {
         assert_eq!(
@@ -2797,6 +2837,7 @@ mod tests {
             frame_guys: vec![],
             frame_sites: vec![],
             type_index: vec![],
+            unit_type_names: Vec::new(),
             unit_tree: vec![],
         };
         let refused = |built: &Built, text: &str| {

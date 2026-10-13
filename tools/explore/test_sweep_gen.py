@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools'))
+sys.path.insert(0, str(ROOT / 'tools/emu'))
 import sweep_gen  # noqa: E402
 
 
@@ -58,6 +59,46 @@ class Shapes(unittest.TestCase):
         _, test = self.check('range', 'TCoord::operator<@00472b30', port='t < 0')
         self.assertIn('TCoord::operator<@00472b30', test)
         self.assertEqual(sweep_gen.snake('TCoord::operator<'), 'tcoord_operator')
+
+    def test_a_global_cell_shape(self):
+        # Parked 1761, the thirtieth pass: eight lanes hand-wrote "the
+        # pointer in a global cell, a word at +OFF of the record it names".
+        script, test = self.check('cell', 'GameAccessConst::get_scary_console_leader@005833e0',
+                                  cell=0xc06210, off=0x298, port='i64::from(v)')
+        self.assertIn('CELL = 0x00c06210', script)
+        self.assertIn('REC + 0x298', script)
+        self.assertIn('from sweeplib import', script)
+        self.assertIn('let got: i64 = i64::from(v);', test)
+
+    def test_a_virtual_call_shape(self):
+        # Five lanes laid a fake vtable whose slot answers the row's value;
+        # the generated script uses `tools/emu/hooks.py`'s Harness.
+        script, test = self.check('vcall', 'OrderList::get_data_type@0046ed70',
+                                  slot=0x10, nargs=0, port='i64::from(v)')
+        self.assertIn('from hooks import Harness', script)
+        self.assertIn('0x10: ("slot", 0, ', script)
+        self.assertIn('h.calls', script)
+        self.assertIn('let got: i64 = i64::from(v);', test)
+
+    def test_an_out_pointer_shape(self):
+        # `WCoord::traverse_y` and `get_tcorner` store through `[esp+4]`.
+        script, test = self.check('outptr', 'WCoord::traverse_y@0046eed0', off=0x0, port='i64::from(v) >> 2')
+        self.assertIn('OUT', script)
+        self.assertIn('OBJ + 0x0', script)
+        self.assertIn('let got: i64 = i64::from(v) >> 2;', test)
+
+    def test_the_generated_script_s_helpers_are_one_module(self):
+        # Fourteen lanes threw away the same `stub`/`argstub`/`setup()`.
+        import sweeplib
+        self.assertEqual(sweeplib.stub_bytes(7), b'\xb8\x07\x00\x00\x00\xc3')
+        self.assertEqual(sweeplib.stub_bytes(-1, ret=8), b'\xb8\xff\xff\xff\xff\xc2\x08\x00')
+        self.assertTrue(sweeplib.argstub_bytes(5).endswith(b'\xc2\x08\x00'))
+        self.assertIn('setup', dir(sweeplib))
+        # Parked 1867: `Guy::set_bank`/`set_pitch` take a float in `xmm1`;
+        # the seam is a float's bits in a 128-bit register's low lane.
+        self.assertEqual(sweeplib.xmm_bits(1.0), 0x3f800000)
+        self.assertEqual(sweeplib.xmm_bits(-2.5), 0xc0200000)
+        self.assertEqual(sweeplib.xmm_bits(0x42280000, raw=True), 0x42280000)
 
     def test_a_function_spelled_another_way_is_refused(self):
         with self.assertRaises(ValueError):

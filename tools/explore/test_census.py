@@ -74,6 +74,43 @@ class PinnedTraces(unittest.TestCase):
                 'and `Unit::operator=@00612340`, and `plain@00401000`.\n')
             self.assertEqual(census.cited_in(tmp), {0x472b30, 0x512340, 0x612340, 0x401000})
 
+    def test_the_unbacked_list_skips_the_dead_weight_by_default(self):
+        # Parked 1861, the thirtieth pass: destructors, `close`/`init`/
+        # `clear`, loggers and `dynamic_initializer`s fill the shortest-first
+        # list and every sweep lane skipped them by hand, ~300 bytes deep.
+        entries = [(0x10, 'Army::~Army', 'c:\\rise\\game\\army.cpp', 93),
+                   (0x20, 'Units::init', 'c:\\rise\\game\\units.cpp', 94),
+                   (0x30, 'Guy::close', 'c:\\rise\\game\\guy.cpp', 90),
+                   (0x40, 'Lands::clear', 'c:\\rise\\game\\lands.cpp', 110),
+                   (0x50, 'Storm::registration', 'c:\\rise\\game\\storm.cpp', 110),
+                   (0x60, 'LeaderData::log_data', 'c:\\rise\\game\\leader.cpp', 120),
+                   (0x70, "`dynamic initializer for 'x''", 'c:\\rise\\game\\x.cpp', 50),
+                   (0x80, 'Cliff::close_class', 'c:\\rise\\game\\cliff.cpp', 98),
+                   (0x90, 'World::adjust_fog', 'c:\\rise\\game\\world.cpp', 106),
+                   (0xa0, 'BorderWData::BorderWData', 'c:\\rise\\game\\borders.cpp', 140),
+                   (0xb0, 'TerrainOil::one_time_init', 'c:\\rise\\game\\terrainoil.cpp', 127)]
+        with patch.object(census, 'layer_of', return_value='simulation'):
+            rows = census.rank_unbacked(entries, set(), set())
+        marks = {name: mark for _, _, name, mark, _ in rows}
+        for name in ('Army::~Army', 'Units::init', 'Guy::close', 'Lands::clear', 'Storm::registration',
+                     'LeaderData::log_data', "`dynamic initializer for 'x''", 'Cliff::close_class',
+                     'BorderWData::BorderWData', 'TerrainOil::one_time_init'):
+            self.assertEqual(marks[name], 'skip', name)
+        self.assertEqual(marks['World::adjust_fog'], '-')
+        self.assertEqual([r[2] for r in census.worth_sweeping(rows)], ['World::adjust_fog'])
+
+    def test_the_pdb_default_resolves_the_main_checkout_from_a_worktree(self):
+        # Parked 1792: `../game` is absent under `.claude/worktrees/`, so
+        # every lane passed `--pdb <main checkout>/game/sbl/rise.pdb` by hand.
+        path = census.default_pdb(str(ROOT / 'tools'))
+        self.assertTrue(path.endswith(os.path.join('game', 'sbl', 'rise.pdb')), path)
+        self.assertNotIn('.claude/worktrees', path.replace(str(ROOT), '') if '.claude/worktrees' in str(ROOT) else '')
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, 'game', 'sbl').mkdir(parents=True)
+            Path(tmp, 'game', 'sbl', 'rise.pdb').write_text('')
+            self.assertEqual(census.default_pdb(os.path.join(tmp, 'tools')),
+                             os.path.join(tmp, 'tools', '..', 'game', 'sbl', 'rise.pdb'))
+
     def test_the_census_document_gives_the_flag_as_its_recipe(self):
         text = (ROOT / 'docs/CENSUS.md').read_text()
         self.assertIn('tools/census.py --top 30 --never --pin', text)

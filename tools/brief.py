@@ -11,7 +11,7 @@ A brief is four things, and this writes three of them:
   the brief checklist is held to — what every brief of a kind says;
 - **the item, in the queue's own words**, quoted from `docs/QUEUE.md` and
   never retold, with the other open items as the other lanes' words;
-- **what is reserved**: run numbers and section numbers, the two things two
+- **what is reserved**: run numbers, section numbers and a park slot, the things two
   lanes can take in silence. Code is not fenced (`docs/DECISIONS.md` 55);
 - **the commander's own note** (`--note-file`), which is where its judgement
   goes: what this item alone needs, in its own words, as short as it can be.
@@ -56,6 +56,15 @@ ALWAYS_TESTS = {'residue': ('coverage::',), 'chapter': ('coverage::',), 'sweep':
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
 N = r'\d{1,4}(?!\d)'
+# The seams print the brief carries whole; past it, a count (parked 1743).
+SEAMS_LINES = 120
+
+
+def run_seams(item):
+    """`python3 tools/seams.py --item N` on this tree, its stdout and stderr."""
+    out = subprocess.run([sys.executable, str(ROOT / 'tools/seams.py'), '--item', str(item)],
+                         cwd=ROOT, capture_output=True, text=True, check=False)
+    return (out.stdout + out.stderr).strip() or '(seams.py printed nothing)'
 
 
 def sections(frame):
@@ -96,7 +105,8 @@ def filters(kind, tests):
     return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
 
 
-def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=()):
+def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=(),
+            park=None, seams=None):
     if kind not in KINDS:
         raise ValueError(f'no such kind of brief: {kind}; one of {sorted(KINDS)}')
     tests = filters(kind, tests)
@@ -130,6 +140,23 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     out += ['- **Sections**: ' + ('; '.join(sections) if sections else
                                   'amend your documents\' sections in place; name a new '
                                   'section to me before you write it') + '.']
+    out += ['- **Park heading**: ' + (
+        f'`## Parked by the next landing, slot {park} — reserved`, at the end of `docs/PARKED.md`: '
+        f'rename it `## Parked by item {item}, <the day you land> — <title>` and file your parked rows '
+        'under it; never append a heading at the file\'s tail (parked 1812: three merges backed out there).'
+        if park else 'ask me for a park slot before you park a row; never append a heading at '
+                     '`docs/PARKED.md`\'s tail (parked 1812).')]
+    if seams is not None and kind in ('residue', 'chapter'):
+        lines = seams(item).rstrip('\n').split('\n')
+        shown, rest = lines[:SEAMS_LINES], len(lines) - SEAMS_LINES
+        out += ['', '## Seams, read for you', '',
+                f'`python3 tools/seams.py --item {item}` on the base, so the frame\'s step 7 is on your '
+                'desk before you read (parked 1743: the step ran in one journal of nine). Re-run it with '
+                '`--field <the first parted field>` once you have one.', '', '```']
+        out += shown
+        if rest > 0:
+            out += [f'… {rest} more lines; run it yourself for the rest']
+        out += ['```']
     titles = {'before-reading': 'Before any reading', 'reading': 'Reading the original',
               'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
               'build': 'Build', 'landing': 'Landing'}
@@ -155,6 +182,8 @@ def main():
     ap.add_argument('--model', default='Opus 5.5')
     ap.add_argument('--tests', nargs='+', default=[],
                     help="the lane gate's filters for the word; `coverage::` is added (1623)")
+    ap.add_argument('--park', help='the park slot letter reserved for the item (parked 1812)')
+    ap.add_argument('--no-seams', action='store_true', help='leave out the seams.py print (parked 1743)')
     args = ap.parse_args()
     base = subprocess.run(['git', 'rev-parse', '--short=8', 'HEAD'], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout.strip()
@@ -164,7 +193,8 @@ def main():
                        runs=[r for r in args.runs.split(',') if r],
                        sections=args.sections, read=args.read,
                        note=args.note_file.read_text() if args.note_file else '',
-                       tests=args.tests)
+                       tests=args.tests, park=args.park,
+                       seams=None if args.no_seams else run_seams)
     except ValueError as e:
         print(f'brief.py: {e}', file=sys.stderr)
         sys.exit(2)

@@ -61,7 +61,12 @@ class LaneLock(unittest.TestCase):
                              capture_output=True, text=True, check=True)
         pid = int(run.stdout.strip())
         self.holders.append(pid)
-        self.lock.write_text(f'{pid}\ntest since now\n')
+        # The lock's `stamp` line (parked 1180): a pid the kernel hands out
+        # again under a full gate's spawning reads as stale, not as held —
+        # the red 1851's offline step saw once (parked 1862).
+        started = subprocess.run(['ps', '-o', 'lstart=', '-p', str(pid)], capture_output=True,
+                                 text=True).stdout.strip()
+        self.lock.write_text(f'{pid}\ntest since now\nstamp {pid} {started}\n')
         return pid
 
     def holder_pid(self):

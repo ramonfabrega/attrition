@@ -402,6 +402,28 @@ def snake(name):
     return re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", name).lower()
 
 
+def default_pdb(here):
+    """`RON_INSTALL/sbl/rise.pdb`, else `../game/sbl/rise.pdb` beside the
+    tools, else the main checkout's through `git rev-parse --git-common-dir`
+    (parked 1792: `../game` is absent under `.claude/worktrees/`, and every
+    lane passed the main checkout's path by hand)."""
+    if os.environ.get("RON_INSTALL"):
+        return os.path.join(os.environ["RON_INSTALL"], "sbl", "rise.pdb")
+    beside = os.path.join(here, "..", "game", "sbl", "rise.pdb")
+    if os.path.isfile(beside):
+        return beside
+    try:
+        common = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=here, capture_output=True,
+                                text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return beside
+    if not os.path.isabs(common):
+        common = os.path.join(here, common)
+    main_checkout = os.path.dirname(os.path.abspath(common))
+    candidate = os.path.join(main_checkout, "game", "sbl", "rise.pdb")
+    return candidate if os.path.isfile(candidate) else beside
+
+
 def rank_unbacked(entries, backed, port):
     """`(size, va, name, mark, file)` for every simulation function not yet
     backed, shortest decompile first (parked 1703: four batches wrote this
@@ -419,6 +441,8 @@ def rank_unbacked(entries, backed, port):
         short = name.rsplit("::", 1)[-1]
         if "operator" in short:
             mark = "operator"
+        elif is_dead_weight(name):
+            mark = "skip"
         elif snake(short) in port:
             mark = "port"
         else:
@@ -428,8 +452,29 @@ def rank_unbacked(entries, backed, port):
     return rows
 
 
-def unbacked(index, docs, sim_src, pdb, top):
-    """The never-backed simulation functions, shortest decompile first."""
+# The name classes every sweep lane skipped by hand (parked 1861): a
+# destructor, a class's open/close/init/clear, a registration, a logger, a
+# compiler's dynamic initializer. None reads a value a port can be held to.
+DEAD_WEIGHT = re.compile(r"(^|::)(~|close|close_class|init|init_class|clear|reset|registration|"
+                         r"log|log_data|log_state|dump|print|print_data|dynamic_initializer|"
+                         r"dynamic_atexit|scalar_deleting|vector_deleting)")
+
+
+def is_dead_weight(name):
+    cls, _, short = name.rpartition("::")
+    constructor = bool(cls) and short == cls.rsplit("::", 1)[-1]
+    return (constructor or short.startswith("one_time_") or bool(DEAD_WEIGHT.search("::" + short))
+            or "dynamic initializer" in name or "dynamic atexit" in name)
+
+
+def worth_sweeping(rows):
+    """The rows the sweep wants: not `skip`, not `operator` (parked 1722)."""
+    return [r for r in rows if r[3] not in ("skip", "operator")]
+
+
+def unbacked(index, docs, sim_src, pdb, top, show_all=False):
+    """The never-backed simulation functions, shortest decompile first;
+    the dead weight (`skip`) and the operators are hidden unless `show_all`."""
     root = os.path.dirname(index)
     entries, by_name = [], {}
     with open(index) as f:
@@ -445,12 +490,15 @@ def unbacked(index, docs, sim_src, pdb, top):
     entries = [(va, name, source.get(va), size) for va, name, _, size in entries]
     backed = (doc_backed(docs, by_name) | sweep_backed(sim_src, by_name))
     rows = rank_unbacked(entries, backed, port_names(sim_src))
+    shown = rows if show_all else worth_sweeping(rows)
     print(f"{'bytes':>6} {'function':52} {'mark':8} file")
-    for size, va, name, mark, fname in rows[:top]:
+    for size, va, name, mark, fname in shown[:top]:
         print(f"{size:6} {name + '@' + format(va, '08x'):52} {mark:8} {fname}")
     marks = Counter(r[3] for r in rows)
     print(f"\n{len(rows)} never-backed simulation functions: {marks.get('port', 0)} with a port "
-          f"consumer by name, {marks.get('operator', 0)} operators; the {min(top, len(rows))} "
+          f"consumer by name, {marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
+          f"(destructors, close/init/clear, loggers, initializers"
+          f"{'; shown' if show_all else '; hidden, --all shows them'}); the {min(top, len(shown))} "
           f"shortest shown (--top)")
 
 
@@ -491,15 +539,16 @@ def main():
     ap.add_argument("--unbacked", action="store_true",
                     help="the never-backed simulation functions, shortest decompile first, "
                          "with a port-consumer mark (parked 1703, 1725); --top rows")
-    ap.add_argument("--pdb", default=os.path.join(
-        os.environ.get("RON_INSTALL", os.path.join(HERE, "..", "game")), "sbl", "rise.pdb"))
+    ap.add_argument("--pdb", default=default_pdb(HERE))
+    ap.add_argument("--all", action="store_true",
+                    help="--unbacked: show the dead weight and the operators too")
     ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
     a = ap.parse_args()
     if a.layers:
         print_layers(*layers(a.index, a.docs, a.sim_src, a.pdb), a.json)
         return
     if a.unbacked:
-        unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top)
+        unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all)
         return
     if a.pin:
         a.logs = pinned_logs() + a.logs

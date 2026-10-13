@@ -330,6 +330,7 @@ mod tests {
             frame_guys: vec![],
             frame_sites: vec![],
             type_index: vec![],
+            unit_type_names: Vec::new(),
             unit_tree: vec![],
         };
         let frame = Frame {

@@ -678,6 +678,34 @@ fn the_handoff_counts_the_loop_backlog() {
     );
 }
 
+/// **The parked file's park pool holds two unassigned headings** (parked
+/// 1812, the thirtieth pass). A lane files its parked rows under its own
+/// `## Parked by item N` heading, and every lane appends that heading at
+/// the file's end — so two lanes' headings are one hunk, and three merges
+/// of the thirtieth tranche backed out on `docs/PARKED.md`'s tail (1744,
+/// 1768, 1845). The stub pool's shape, one file down: `## Parked by the
+/// next landing, slot <A> — reserved` headings landed ahead at the file's
+/// end, each with its own paragraph, assigned by letter in the queue's
+/// words (the handoff's `park <A>`) and renamed by the lane; a refill
+/// lands when two remain. Failed first on 2026-10-13 with no pool.
+#[test]
+fn the_park_pool_holds_two_unassigned_headings() {
+    let text = read("PARKED.md");
+    let free: Vec<&str> = text
+        .lines()
+        .filter(|l| {
+            l.starts_with("## Parked by the next landing, slot ") && l.ends_with(" — reserved")
+        })
+        .collect();
+    assert!(
+        free.len() >= 2,
+        "docs/PARKED.md holds {} unassigned park heading(s), fewer than two; append `## Parked by the \
+         next landing, slot <A> — reserved` sections at the file's end, each with a paragraph, past \
+         the last one a live lane holds (parked 1812)",
+        free.len()
+    );
+}
+
 /// **An item number is minted once, and in its file's form** (parked 461,
 /// the eighth pass). Item 457 parked two real findings as `308.` and
 /// `309.` — both numbers already taken, one by a landed item with a journal

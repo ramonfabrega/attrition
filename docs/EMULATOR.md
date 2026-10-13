@@ -217,8 +217,14 @@ of them.
 **A function on the packet.** `tools/recomp/step4.py` runs one function
 on the packet under unicorn — the capturing thread's TEB as `fs:`, the
 clock, heap and thread imports stubbed — and reports what it called,
-`--watch` who writes a range and `--find` the instruction that first
-produces a value. That is how item 327's formula was read: `create_units`
+`--watch` who writes a range, `--find` the instruction that first
+produces a value, `--poke ADDR=HEXBYTES` bytes written into the packet
+before the entry (1845's `game->frame`) and `--hook ADDR[:CAP]` the
+registers and the stack top each time an address is reached (1738's
+hand-written `s4h.py`; parked 1869, the thirtieth pass;
+`tools/recomp/flags.py` holds the flags). A float argument in an xmm
+register goes in through `callfn.Machine.call(…, xmm={1:
+sweeplib.xmm_bits(0.5)})` (parked 1867). That is how item 327's formula was read: `create_units`
 to its return, 438k instructions, the `idiv` and the `sar` named, forty
 minutes from brief to formula. It is the move that earns the rung a
 booking, inside a booked item (571 first), never a frame.

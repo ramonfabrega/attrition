@@ -23,6 +23,21 @@ Three shapes, each a `__thiscall` on `ecx`:
           against a range; the rows are every index -2..=0x33f and the
           edges, and the test holds `--port`, a `bool` over `t: i32`.
 
+  cell    the function reads the pointer in a global cell (`--cell VA`, in
+          the image's .data) and an integer at `--off` of the record it
+          names; the rows are the field shape's, `--port` over `v: i32`.
+  vcall   the function calls a virtual slot of `this` (`--slot OFF`, with
+          `--nargs N` stack arguments; `--tail` when it jumps into the slot
+          after pushing them, as `is_city` does) and answers from it; the rows vary
+          the slot's answer through `tools/emu/hooks.py`'s Harness, which
+          records what the call was handed, and `--port` is over `v: i32`.
+  outptr  the function stores its answer through the out-pointer it is
+          handed on the stack (`[esp+4]`), reading one integer at
+          `this+OFF`; the rows are the field shape's, `--port` over `v`.
+
+A fixed-offset `lea eax, [ecx-0x70]` is `const` with `--port '_this - 0x70'`;
+a `--mask` is `field` with the mask in the port.
+
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
 the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
 `--write-mod`. Without `--port` the test's port is `todo!()`, so the row
@@ -75,9 +90,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import Image, Machine, signed  # noqa: E402
+from sweeplib import OBJ, TYPE, REC, OUT, cell, setup  # noqa: E402,F401
 
 ENTRY = 0x{va:08x}
-OBJ, TYPE = 0x10000000, 0x10100000
 INT_EDGES = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 15, 16, 255)
 '''
 
@@ -86,12 +101,31 @@ SCRIPT_TAIL = '''
 def main(argv):
     m = Machine(Image(argv[1]))
     uc = m.uc
-    uc.mem_map(OBJ, 0x20000)
-    uc.mem_map(TYPE, 0x1000)
+    setup(uc)
     for row in rows():
 {write}
-        r = signed(m.call(ENTRY, (), ecx={ecx}))
+        r = {call}
         print(" ".join(str(x) for x in row) + f" -> {{r}}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
+'''
+
+VCALL_TAIL = '''
+
+def main(argv):
+    from hooks import Harness
+    h = Harness(argv[1], {{}})
+    for row in rows():
+        h.calls.clear()
+        vt = h.vtable({{0x{slot:x}: ("slot", {nargs}, row[0], {tail})}})
+        obj = h.alloc(0x400)
+        h.w32(obj, vt)
+        r = h.call(ENTRY, (), ecx=obj)
+        handed = ",".join(str(a) for name, ecx, args, _ in h.calls for a in args)
+        print(" ".join(str(x) for x in row) + f" -> {{r}}" + (f"  # slot handed {{handed}}" if handed else ""))
     return 0
 
 
@@ -119,6 +153,7 @@ def rows():
     return [(i,) for i in range(-2, 0x340)] + [(-1000,), (0x7FFFFFFF,), (-0x80000000,), (0x10000,)]
 ''',
 }
+ROWS['cell'] = ROWS['outptr'] = ROWS['vcall'] = ROWS['field']
 
 TEST = '''//! `{name}@{va:08x}` under the emulator against the port (item {item}; tools/sweep_gen.py, {shape}).
 
@@ -151,15 +186,42 @@ BODIES = {
         let got: bool = {port};
         assert_eq!(got, want != 0, "{short} — row `{{line}}`");''', 800),
 }
+BODIES['cell'] = BODIES['outptr'] = BODIES['vcall'] = BODIES['field']
 
 
-def generate(shape, spec, *, item, port=None, off=None, via=None):
+def generate(shape, spec, *, item, port=None, off=None, via=None, cell=None, slot=None, nargs=0, tail=False):
     """`(script path, script text, test path, test text, mod line)`."""
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = snake(name)
     port = port or f'todo!("the port of {name}")'
-    if shape == 'const':
+    call = 'signed(m.call(ENTRY, (), ecx={ecx}))'
+    head = ''
+    if shape == 'cell':
+        if cell is None:
+            raise ValueError('cell: --cell VA names the global cell')
+        off = 0 if off is None else off
+        what = f'unused; the pointer in the global cell 0x{cell:08x}, the int at +0x{off:x} of its record'
+        head = f'CELL = 0x{cell:08x}\n'
+        write = (f'        cell(uc, CELL, REC)\n'
+                 f'        uc.mem_write(REC + 0x{off:x}, struct.pack("<i", row[0]))')
+        ecx = 'OBJ'
+        doc = f'the signed-32 edges and two hundred random words at the record\'s field, against `{port}`.'
+    elif shape == 'outptr':
+        off = 0 if off is None else off
+        what = f'the object; reads the int at this+0x{off:x}, stores through the out pointer `[esp+4]`'
+        write = f'        uc.mem_write(OBJ + 0x{off:x}, struct.pack("<i", row[0]))'
+        ecx = 'OBJ'
+        call = 'signed((m.call(ENTRY, (OUT,), ecx=OBJ), struct.unpack("<I", uc.mem_read(OUT, 4))[0])[1])'
+        doc = f'the signed-32 edges and two hundred random words at the field, the out word against `{port}`.'
+    elif shape == 'vcall':
+        if slot is None:
+            raise ValueError('vcall: --slot OFF names the vtable slot')
+        what = (f'the object; {"jumps into" if tail else "calls"} slot +0x{slot:x} of its vtable '
+                f'with {nargs} stack argument(s)')
+        write = ecx = ''
+        doc = f'the slot\'s answer over the signed-32 edges and two hundred random words, against `{port}`.'
+    elif shape == 'const':
         what = 'the object (never read)'
         write = '        pass'
         ecx = 'row[0]'
@@ -182,10 +244,13 @@ def generate(shape, spec, *, item, port=None, off=None, via=None):
         ecx = 'TYPE'
         doc = f'every index -2..=0x33f and the edges, against `{port}`.'
     else:
-        raise ValueError(f'no such shape: {shape}; one of const, field, range')
-    script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item, what=what)
-              + ROWS[shape].format(item=item)
-              + SCRIPT_TAIL.format(write=write, ecx=ecx))
+        raise ValueError(f'no such shape: {shape}; one of const, field, range, cell, vcall, outptr')
+    if shape == 'vcall':
+        tail = VCALL_TAIL.format(slot=slot, nargs=nargs, tail=tail)
+    else:
+        tail = SCRIPT_TAIL.format(write=write, call=call.format(ecx=ecx))
+    script = (SCRIPT_HEAD.format(snake=sn, name=name, va=va, item=item, what=what) + head
+              + ROWS[shape].format(item=item) + tail)
     body, least = BODIES[shape]
     test = TEST.format(name=name, va=va, item=item, shape=shape, snake=sn, doc=doc,
                        body=body.format(port=port, short=short), least=least)
@@ -201,18 +266,23 @@ def shown(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('shape', choices=('const', 'field', 'range'))
+    ap.add_argument('shape', choices=('const', 'field', 'range', 'cell', 'vcall', 'outptr'))
     ap.add_argument('function', help='`Class::method@00xxxxxx`, as the export names it')
     ap.add_argument('--item', type=int, required=True)
     ap.add_argument('--port', help="the port's Rust expression (`v`, `t` or `_this` in scope)")
     ap.add_argument('--off', type=lambda s: int(s, 0), help='the field offset (field; range: default 0x4)')
     ap.add_argument('--via', type=lambda s: int(s, 0), help='field: the pointer at this+VIA holds the record')
+    ap.add_argument('--cell', type=lambda s: int(s, 0), help='cell: the global cell that holds the record pointer')
+    ap.add_argument('--slot', type=lambda s: int(s, 0), help='vcall: the vtable slot the function calls')
+    ap.add_argument('--nargs', type=int, default=0, help='vcall: stack arguments the slot takes')
+    ap.add_argument('--tail', action='store_true', help='vcall: the slot is entered by a jmp, not a call')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
     try:
         sp, script, tp, test, mod = generate(args.shape, args.function, item=args.item,
-                                             port=args.port, off=args.off, via=args.via)
+                                             port=args.port, off=args.off, via=args.via,
+                                             cell=args.cell, slot=args.slot, nargs=args.nargs, tail=args.tail)
     except ValueError as e:
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2

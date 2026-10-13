@@ -667,6 +667,48 @@ rows' wording, no number struck; the chapter kind stands at 12,990 of
   demolished a farm" silently; 624 such sentences stand, each with its
   blame day and the runs captured since.
 
+## The brief checklist, from the thirtieth pass
+
+The thirtieth tranche (DECISIONS 66, 67): twenty-three landings on four
+Sonnet 5.5 medium lanes in 3 h 51 min, 2.78 USD and 20.9 minutes waiting
+a landing. The pass added these rows, each from the tranche's own
+journals, and paid by trimming the wording of twenty rows, no number
+struck; the chapter kind stands at 12,979 of 13,000.
+
+- **The seams are read for the lane, in the brief** (1743): the frame's
+  step 7 ran in one journal of nine word lanes and `standing.py` in none
+  (lore's transcripts: `seams.py` once, `--callees` once, `report.py when`
+  never), so `tools/brief.py` runs `seams.py --item N` and carries the
+  print; the lane re-runs it with `--field` once it has one.
+- **A probe is committed before any other edit; never `commit -a` across
+  a probe and a build** (1864): 1829's revert of its probe commits took
+  an uncommitted build that a `commit -a` had swallowed.
+- **A chapter at its trace's end closes with `word == hi − 1` in its
+  widening and `chN closed` on the `Golden:` line** (1781): 1740 found
+  the form by its gate; `ENDPOINTS`/`AI_WORDS` are the long captures'.
+- **The journal is written with the file tool, never in a backgrounded
+  `&&` chain** (1781): a chain lost its heredoc once.
+- **Parked rows go under the lane's park heading, never at the file's
+  tail** (1812): 1744, 1768 and 1845 each appended `## Parked by item N`
+  at the end of `docs/PARKED.md` and each merge backed out there; the
+  pool is six headings deep, assigned by letter, held at two by
+  `docs_guard`.
+- **`RON_DEBUG_UNIT` prints `TI`, `TY` and the type's name** (1846): a
+  brief that named a unit by `TY` read 272 as a `HUMMEL`; the Freighter
+  was `TI` 322.
+- **The staging walk refuses a frame below its predecessor, as the
+  capture does** (1839): run783's first launch died on a script
+  `stage_walk` had walked clean.
+- **The sweep's shapes are `sweep_gen.py`'s six, its helpers
+  `sweeplib.py`, a float argument `xmm_bits`; the dead weight is hidden
+  from `--unbacked`** (1761, 1867, 1861): fourteen batches threw away
+  the same generator, and every lane skipped destructors and `close`
+  by hand ~300 bytes deep.
+- **`step4.py --poke` and `--hook`** (1869): two scratch edits answered
+  1845 whole, and 1738 hand-wrote the hook as `s4h.py`.
+- **A `Pair`'s word is a const field `repin.py` rewrites** (1767): three
+  re-pins of the successor pair's word were hand edits.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

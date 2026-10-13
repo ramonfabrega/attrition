@@ -21156,3 +21156,27 @@ built — the unbacked lister, the sweep generator, the dated absences, the
 run-wiring printer, the lane gate's journal check, the gate's pid, the
 operator citation. **DECISIONS 66.**
 `docs/audit/2026-10-13-fable-pass-29.md`.
+
+**2026-10-13 — the thirtieth Fable pass: the second Sonnet tranche
+scored, the waiter names a stalled lane, the parked file gets a pool.**
+Twenty-three landings on four Sonnet 5.5 medium lanes in 3 h 51 min:
+2.78 USD and 20.9 minutes waiting a landing against 3.93 / 22.9; the
+successor pair 11 → 2838, Great Sahara 3182 unmoved, chapters
+fifty-three, fifty-five and fifty-six closed, the census 178 → 319; one
+blocked ending, no kill rule, the battery unmoved. The done-line clause
+held: four waiter exits for twenty-three landings against sixteen second
+wakes. One lane sat 178 minutes on a lost gate notice, so the waiter
+exits `STALLED` on a working row idle with nothing running; three merges
+backed out at the parked file's tail, so it carries a pool of park
+headings; the before-reading step no lane ran is done by the brief,
+which carries `seams.py`'s print. Built, each made to fail first: the
+sweep library and three generator shapes run against the executable
+(items 1761, 1867), `repin.py` on a pair's const (item 1767), the census's
+dead-weight skip and its PDB default (items 1861, 1792), `step4.py`'s
+poke and hook (item 1869), the staging reader's refusal (item 1839), the
+type's name in `RON_DEBUG_UNIT` (item 1846), the pivot docstring (item
+1813), the gate's suite guard (item 1872); frame rows for items 1864 and
+1781; items 1743, 1812 and 1871 built as above; items 1554, 1560, 1674
+closed on two tranches without a reach and item 1601's letters with
+them; item 1862 hardened. Six Loop items stay. **DECISIONS 67.**
+`docs/audit/2026-10-13-fable-pass-30.md`.

@@ -6,6 +6,8 @@
 """step4.py — how far a frame runs on the snapshot, and whether what it ran lifts.
 
     uv run tools/recomp/step4.py <exe> <frame-snapshot.bin> [--max-insns N] [--out DIR]
+        [--entry HEX --this HEX --args A,B] [--dump VA+N] [--watch VA+N] [--find V]
+        [--poke ADDR=HEXBYTES] [--hook ADDR[:CAP]]          (tools/recomp/flags.py)
 
 The charter's step 4, measured with unicorn as the explorer: the lab's
 end-frame snapshot loaded at its addresses, the capturing thread's TEB found
@@ -170,30 +172,12 @@ class Stubs:
 
 
 def main(argv):
-    args = argv[1:]
-    max_insns, out_dir = 20_000_000, os.path.join(HERE, "..", "..", "target", "recomp")
-    entry, this, dump, watch, find = DO_FRAME, None, [], [], set()
-    call_args = []
-    for flag in ("--max-insns", "--out", "--entry", "--this", "--dump", "--watch", "--find", "--args"):
-        while flag in args:
-            k = args.index(flag)
-            v = args[k + 1]
-            if flag == "--max-insns":
-                max_insns = int(v)
-            elif flag == "--out":
-                out_dir = v
-            elif flag == "--entry":
-                entry = int(v, 16)
-            elif flag == "--this":
-                this = int(v, 16)
-            elif flag == "--args":
-                call_args = [int(a, 0) for a in v.split(",")]
-            elif flag == "--find":
-                find.add(int(v, 0) & 0xFFFFFFFF)
-            else:
-                va, n = v.split("+")
-                (dump if flag == "--dump" else watch).append((int(va, 16), int(n, 16)))
-            del args[k:k + 2]
+    from flags import hook_line, parse
+    fl, args = parse(argv[1:])
+    max_insns = fl.max_insns
+    out_dir = fl.out or os.path.join(HERE, "..", "..", "target", "recomp")
+    entry = DO_FRAME if fl.entry is None else fl.entry
+    this, dump, watch, find, call_args = fl.this, fl.dump, fl.watch, fl.find, fl.args
     if len(args) < 2:
         print(__doc__)
         return 2
@@ -278,6 +262,31 @@ def main(argv):
         from unicorn import UC_HOOK_MEM_WRITE
         for va, n in watch:
             uc.hook_add(UC_HOOK_MEM_WRITE, on_write, begin=va, end=va + n - 1)
+
+    # --poke (parked 1869): bytes into the packet before the entry, so a
+    # frame counter or a flag reads as the row under test asks.
+    for va, data in fl.poke:
+        uc.mem_write(va, data)
+        print(f"poked {va:08x} <- {data.hex()}")
+
+    # --hook (parked 1869): the registers and the stack top each time an
+    # address is reached, CAP times — what 1738 hand-wrote as `s4h.py`.
+    hits = {}
+
+    def on_hook(uc, address, size, _):
+        n = hits.get(address, 0) + 1
+        hits[address] = n
+        cap = dict(fl.hook).get(address, 20)
+        if n > cap:
+            return
+        regs = {name: uc.reg_read(reg) for name, reg in REGS}
+        regs["esp"] = uc.reg_read(UC_X86_REG_ESP)
+        stack = list(struct.unpack("<4I", uc.mem_read(regs["esp"] + 4, 16)))
+        fn = funcs.sorted[bisect.bisect_right(funcs.sorted, address) - 1]
+        print(hook_line(address, funcs.name(fn), address - fn, n, regs, stack), flush=True)
+
+    for va, _cap in fl.hook:
+        uc.hook_add(UC_HOOK_CODE, on_hook, begin=va, end=va)
 
     esp = FRAME_STACK + FRAME_STACK_SIZE - 0x100
     uc.mem_write(esp, struct.pack("<I", SENTINEL) + b"".join(struct.pack("<I", a & 0xFFFFFFFF) for a in call_args))

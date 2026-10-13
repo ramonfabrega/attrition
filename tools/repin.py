@@ -175,6 +175,32 @@ def replacement(want_src, got):
     return prefix + got
 
 
+CONST_FIELD = re.compile(r'^([A-Z][A-Z0-9_]*)\.([a-z_][a-z0-9_]*)$')
+
+
+def constant_field(text, want_src):
+    """`(start, end)` of the integer literal a want like `MONGOL.count`
+    names — the `count:` field of `const MONGOL: T = T { … }` in the same
+    file — or None (parked 1767: a pair's word is a field of its `Pair`
+    const, and three re-pins were hand edits)."""
+    m = CONST_FIELD.match(want_src.strip())
+    if not m:
+        return None
+    name, field = m.groups()
+    head = re.search(r'\bconst\s+' + re.escape(name) + r'\s*:[^=]*=\s*[A-Za-z_][A-Za-z0-9_:]*\s*\{', text)
+    if not head:
+        return None
+    depth, i = 1, head.end()
+    while i < len(text) and depth:
+        depth += {'{': 1, '}': -1}.get(text[i], 0)
+        i += 1
+    body = text[head.end():i]
+    f = re.search(r'(?m)^\s*' + re.escape(field) + r'\s*:\s*(-?\d[\d_]*)\s*,', body)
+    if not f:
+        return None
+    return head.end() + f.start(1), head.end() + f.end(1)
+
+
 def plan(sites, root=ROOT):
     """`(edits, by_hand)`: edits as `{file: [(start, end, new)]}` by offset
     into the file's text; by_hand as `[(file, line, why, msg, got, want)]`."""
@@ -205,6 +231,10 @@ def plan(sites, root=ROOT):
         a, b = arguments[1]
         new = replacement(text[a:b], got)
         if new is None:
+            span = constant_field(text, text[a:b])
+            if span and LITERAL.match(got.strip()):
+                edits[file].append((span[0], span[1], got.strip()))
+                continue
             by_hand.append((file, line, 'the want is not a literal', msg, got, want))
             continue
         edits[file].append((a, b, new))

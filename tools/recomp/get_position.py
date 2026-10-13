@@ -32,6 +32,9 @@ so the packet must come from a game that fields the type.
   `0..=360` and every turret step `fast_angle_to_degrees(i << 24)` read off
   the packet's own table. `sim::pivot::Release`'s `float_lands` are the
   cells where the exact integer form disagrees with this (item 602).
+  **Its columns are `deg i t x y z`** — the facing degree, the turret step's
+  index `i` (0..256), the step in degrees `t`, then the point — and not the
+  slot-first order the Chariot tests read (parked 1813): read a row by name.
 
 Item 1208 filed the shape: reached three times from one scratch script
 (items 602/603, 1194, 1257); this is that script with its paths and piece
