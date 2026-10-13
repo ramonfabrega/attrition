@@ -100,3 +100,36 @@ pub const DOOBERS_ADDR: u32 = 0x00ea_fda0;
 pub const fn global_cell(word: i32) -> i32 {
     word
 }
+
+/// The getters that return a global cell's word are [`global_cell`] too:
+/// `GameAccessConst::get_scary_iface_main@00583390` (`0x00e37b9c`),
+/// `get_scary_message_win@00583480` (`0x00c06208`), `get_scary_iface_current@005833d0`
+/// (`0x00e39964`), `get_scary_graphic_pieces@00583490` (`0x00c06214`) and
+/// `get_scary_scenario_editor@00583380` (`0x00e7f8dc`) (item 1766).
+///
+/// `GameAccessConst::get_scary_console_who@005834a0`: the console player's
+/// record is the pointer in the cell `0x00c06210`; `who` is its word at `+0x298`.
+/// `rec` is that record as words.
+pub fn console_who(rec: &[i32]) -> i32 {
+    rec[0x298 / 4]
+}
+/// `GameAccessConst::get_scary_console_leader@005833e0`: `0x00e3a390 + who *
+/// 0x6eec` (a 32-bit multiply), the address of that player's leader record.
+pub fn console_leader(rec: &[i32]) -> i32 {
+    console_who(rec)
+        .wrapping_mul(0x6eec)
+        .wrapping_add(0x00e3_a390)
+}
+/// `Game::is_solo@0043ec40`: bit 2 of the game's flag byte at `+0x820` clear.
+pub const fn game_is_solo(flags: u8) -> bool {
+    flags & 4 == 0
+}
+/// `Game::is_team_game@00593f70`: bit 7 of the same byte.
+pub const fn game_is_team_game(flags: u8) -> bool {
+    flags >> 7 != 0
+}
+/// `MoveOrder::is_pathed@00488980`: bit 0 of the order's flag byte (a signed
+/// byte, widened, then masked).
+pub const fn move_order_is_pathed(flags: i8) -> bool {
+    flags & 1 != 0
+}
