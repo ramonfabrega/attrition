@@ -8952,19 +8952,6 @@ impl Sim {
                 Obj::Unit(t) => {
                     self.mark(crate::fight::SITE_FIGHT_RESEARCH);
                     let roll = self.rng.roll();
-                    if std::env::var_os("RON_PROBE_2099").is_some() {
-                        eprintln!(
-                            "PROBE2099 fight f{} u={}/{} t={}/{} roll={roll} latch={} combat_role={} poor={}",
-                            self.frame,
-                            self.units[u].owner,
-                            self.units[u].index,
-                            self.units[t].owner,
-                            self.units[t].index,
-                            flags & flag::FIGHT_REENTRY != 0,
-                            self.profile(Obj::Unit(t)).combat_role,
-                            self.poor_target(Obj::Unit(u), Obj::Unit(t)),
-                        );
-                    }
                     !self.profile(Obj::Unit(t)).combat_role
                         && roll % 5 != 0
                         && flags & flag::FIGHT_REENTRY == 0
