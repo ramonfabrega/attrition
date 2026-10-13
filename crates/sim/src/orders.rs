@@ -1732,6 +1732,9 @@ impl Sim {
         mandatory: bool,
         action: bool,
     ) {
+        if std::env::var("RON_PROBE_2001").is_ok() && u == 254 && (3628..=3634).contains(&self.frame) {
+            eprintln!("PROBE2001 add_attack_order f{} u{} {:?} pos {:?} mand {} act {}\n{}", self.frame, u, target, pos, mandatory, action, std::backtrace::Backtrace::force_capture());
+        }
         if pos == QueuePos::New {
             self.units[u].path.clear();
             self.close_orders(u);
