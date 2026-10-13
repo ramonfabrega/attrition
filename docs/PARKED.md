@@ -3806,7 +3806,10 @@ return, as the original's `extraout_ECX` consumers read it, would take
 of ten were hand scripts that store through fixed offsets of `this` —
 a `store` shape (parked 1933). Seven reaches. **1942**: nine of
 ten hand-written, eight of them `deref` or `store` (parked 1943). Eight
-reaches — the shape the pass should build before the next sweep.
+reaches — the shape the pass should build before the next sweep. **1954**
+built it as `obj` (parked 1955; nine of ten); a global cell's record, an
+out-pointer into the object and a `this` chain are still unshaped. Nine
+reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
