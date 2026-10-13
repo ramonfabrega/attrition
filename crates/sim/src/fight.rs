@@ -404,7 +404,7 @@ impl Sim {
                 Side {
                     unit: true,
                     packed: u.combat.packed,
-                    moving: u.movement.dest.is_some(),
+                    moving: self.is_moving(i),
                     attacks: self.attack_of(o) != 0,
                     entrenched: u.combat.entrenched,
                     facing: u.movement.facing,

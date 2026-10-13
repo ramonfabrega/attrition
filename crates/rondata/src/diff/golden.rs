@@ -13790,12 +13790,6 @@ const WANT_CH59: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "607 0/-1 leader:treaties[1]",
-    "607 1/-1 leader:treaties[0]",
-    "607 1/2006 build:ever_seen",
-    "610 1/2006 build:ever_seen_completed",
-    "655 0/7 hits:damage",
-    "655 0/7 hits_left",
 ];
 
 const WANT_CH59_POOL: &[&str] = &["625 slot 1 new_speed", "625 slot 1 speed"];
@@ -13833,6 +13827,39 @@ fn chapter_fifty_two_s_fog_plane_agrees_through_the_first_round() {
         got.iter().filter(|r| r.contains("seen2")).count(),
         0,
         "ch52fog: fog cells that part"
+    );
+}
+
+/// **run804: chapter fifty-nine's script with the fog plane printed**, 605..645
+/// (item 1988, `docs/GOLDEN.md` §72): the Stockade added on 606 is met by
+/// player 0 at once in the original.
+#[test]
+fn chapter_sixty_s_fog_plane() {
+    let _pins = Pins::hold();
+    let Some((firsts, _pool)) = widen_civilians_and_pool(
+        "ch59fog",
+        "chapter59",
+        (605, 645),
+        645,
+        0,
+        (640, 643),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch60fog f{f} {w}/{o} {what}: {row}");
+    }
+    // Before the build 7 `seen2` cells parted on 605 (first (117,75)); the
+    // eleven `form` rows are every chapter's first block.
+    pin_eq!(
+        firsts
+            .iter()
+            .filter(|((_, _, w), _)| w.contains("seen2"))
+            .count(),
+        0,
+        "ch60fog: fog cells that part"
     );
 }
 

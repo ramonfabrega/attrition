@@ -3771,7 +3771,19 @@ impl Sim {
                         angle,
                         None,
                     ) {
+                        let before = self.units[u].pos;
                         self.set_new_location(u, spot, true);
+                        // **`Unit::set_new_location@005f8d20`'s world-cell
+                        // change** brackets the write with `remove_from_world`
+                        // and `add_to_world`, which ends in `update_seen(0)`:
+                        // the seated member lights the disc at its own spot
+                        // (`docs/GOLDEN.md` §72). Only this seating is
+                        // built: the same call on every cell crossing moved
+                        // the successor pair's first draw parting 3188 → 1387.
+                        let (a, b) = (before, self.units[u].pos);
+                        if (a.x >> 8, a.y >> 8) != (b.x >> 8, b.y >> 8) {
+                            self.update_seen(u, false);
+                        }
                     }
                 }
                 (Some(_), None) => unreachable!("a head is set with its own index"),

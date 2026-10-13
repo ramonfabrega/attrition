@@ -4204,13 +4204,11 @@ window capture (run788's recipe, `--log-window` around 3632, a run number of the
 (1984) **A resumed 48-grid search's kill half is unwalked** (1982): `upath_search`'s `r == 0` teardown now also kills a resumed search's order when no
 retry roll spared it (an order that is not a move, or `attempts` ≥ 13); no capture reaches it. Listing's, `find_upath@00682f30:175`–`:195`.
 
-## Parked by the next landing, slot S — reserved
+## Parked by item 1988, 2026-10-13 — chapter sixty: 1961 and 1962 closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot S renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **1961 and 1962 closed by builds** (GOLDEN §72): the cell-change `update_seen` (`collide.rs`) and `target_side`'s `is_moving`. 1963 (pool slot 1 `speed`/`new_speed`, 625) stands in `WANT_CH59_POOL`; `RON_DEBUG_UNIT=0/6@620-626` first.
+
+- **For the Loop**: `golden_capture.sh` refuses an `--end-frame` below a staged `@` line's frame with a traceback; a one-line hint would save a take. `WORLD=6` prints `seen2`/`was_seen` only, not `seen`, so a `seen` question needs a packet.
 
 ## Parked by item 1993, 2026-10-13 — the sweep's fortieth batch
 

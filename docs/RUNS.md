@@ -16348,3 +16348,21 @@ receipt's `success: false`); the second, taken again once, held: `success: true`
 260 s. Dump 75,626,055 bytes, kept in `~/ron-golden/ch59/map-14` (the failed take in `ch59_failed`). Waited on another
 lane's capture: none. **What it holds**: `golden::chapter_fifty_nine_holds_to_the_golden_word` (**760**, the
 trace's end) and `chapter_fifty_nine_s_word_frame_is_widened_whole` (605..761, 17 rows and 2 pool rows).
+
+## run804 — chapter fifty-nine with the fog plane printed (2026-10-13, item 1988)
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch59fog \
+    --map 14 --end-frame 660 --log-window 605 645 --timeout 3600 \
+    --detail end:WORLD=6,UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,GROUPS=1,AMMO=5 \
+    --cmd-file tools/gamelog/golden/chapter59.cmd
+```
+
+Lane 1, 510 s, kept in `~/ron-golden/ch59fog`. Chapter 59's script with `WORLD=6` on 605..645 (the `seen2` plane).
+**What it holds**: `golden::chapter_sixty_s_fog_plane` (0 `seen2` rows after item 1988's build; 7 cells parted on 605 before it).
+
+## run805 — chapter fifty-nine's squad birth, window 600..612 (2026-10-13, item 1988)
+
+Same script, `--end-frame 622 --log-window 600 612` (a staged `@guard` at 620 refuses a lower end frame), kept in
+`~/ron-golden/ch59early`. Shows the squad's members born at their seated spots on 603 (43752/43896/43800,
+29880/29880/30024). Read by item 1988; no test holds it.
