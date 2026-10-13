@@ -4219,13 +4219,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AA — reserved
+## Parked by item 2038, 2026-10-13 — the sweep's forty-third batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2039) **`sweep_gen.py` has no window for the per-player object tables** (Loop; names no score). Four of item
+2038's ten — `Armies::num_armies` (0x6f3200, `0xc09710`), `BuildData::is_gathered_by` (0x62f520, `0xc0aec0`),
+`UnitData::is_casting` (0x60a530, `0xc0aec0`) and `CityData::pop_cap` (0x737d40, `0xc0ab84`) — read
+`[TABLE + who*0x1c]`, a pointer to an array of record pointers, with `who` a byte of `this` (or an argument) and
+the index a short of `this` (or a walk). Each was by hand: an array of `h.alloc` records, the owner's word written
+and restored a row. `obj --at` writes a table of random bytes, which faults on the first dereference. A
+`--who-table VA:WHO_OFF:IDX_OFF:N:SIZE` window (the owner and index fields of `this` pinned, N records of SIZE
+random bytes, the `who` slot restored after the call) would have taken three of the four.
+
+(2040) **Two more slot-against-address functions, neither of 2021's simple shape** (Loop, parked 2021's next
+reach; names no score). `BuildTypeData::connects_to_roads` (0x6398c0) compares slot `+0x90` with `0x472bb0` and
+`Wall::set_type` (0x4723b0) slot `+0x84` with `0x640da0`; both were by hand. Their inline arms are not a field
+test: the first goes on to ask slot `+0x60` of `0x1a4` on either arm, the second runs three hooked callees. So
+2021's `vcall --base ADDR` with a field arm would not have taken them; `--base` as a mode column on `mix` (the
+inline arm's steps, the overridden arm one `slot:OFF:NARGS` call) would take these two and the six 2021 names.
 
 ## Parked by the next landing, slot AB — reserved
 
