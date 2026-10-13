@@ -374,6 +374,7 @@ fn the_emulated_original_agrees_on_every_row() {{
         let a: Vec<i64> = lhs.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
         let (this, walker) = (a[0], a[1]);
+        let _ = this;
         let want = format!("{{walker}},{{}},{{}}", {e0}, {e1});
         assert_eq!(seen.trim(), want, "{short} — calls, row `{{line}}`");
         n += 1;

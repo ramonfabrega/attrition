@@ -18,7 +18,7 @@ fn the_emulated_original_agrees_on_every_row() {
             .map(|s| s.parse().expect("an integer"))
             .collect();
         let (_eax, seen) = rhs.split_once(" | ").expect("`<eax> | <calls>`");
-        let (this, walker) = (a[0], a[1]);
+        let walker = a[1];
         let want = format!("{walker},{},{}", 0xe85e98, 0xe85f04);
         assert_eq!(seen.trim(), want, "walk_data — calls, row `{line}`");
         n += 1;
