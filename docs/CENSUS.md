@@ -831,3 +831,21 @@ each against `Order::index` of a fresh body. Mutation check: widening
 pattern cannot spell `operator<` (its name class stops at `<`), so that
 test's doc cites the export's `tcoord::operator@` name.
 `docs/journal/2026-10-13-item-1708.md`.
+
+**Item 1721, the sweep's tenth batch** (2026-10-13): **simulation backed 148
+of 3,611 (4.1 %)** — 31 by a coverage section, 117 by a sweep. Ten more
+packet-free `crates/sim/src/sweep/` tests over a `WData` array (stride `0x1c`)
+laid out in mapped memory, a decoy in every other cell, **all ten agree on
+every row**: five flag readers — `WorldData::is_coast@006b3020` (`flags & 4`),
+`is_forest@006b5560` (`& 0x20`), `is_mountains@006b5590` (`& 0x10`),
+`is_dead_build@006b2390` (`& 2`; the raw masked word, not a boolean) and
+`is_impassable@006b4880` (`(flags & 0x70) != 0`) — four field readers —
+`get_region@006b5680` and `get_region2@006b3960` (signed shorts at `+4`,
+`+6`; −1 against `region_of`/`CellData::region2` `None`), `get_who@006b4700`
+and `get_who2@006b2510` (signed chars at `+0xf`, `+0x10`; −1 `None`, −2
+`Ambiguous` against `World::owner`/`second`) — and
+`GatherOrder::get_type@00487310` (7, against `Order::index`). No port function
+exists for the flag readers (the bit is inline at its readers), so each drives
+`cell_data(c).flags & cell::…`. No parting, no port change; not taken:
+`get_whose@006b4d80` (the same read as `get_who`, a second pass is a
+one-liner). `docs/journal/2026-10-13-item-1721.md`.
