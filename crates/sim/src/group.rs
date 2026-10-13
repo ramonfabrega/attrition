@@ -1898,6 +1898,15 @@ impl Sim {
     /// tile, and a queued attack behind another unit's — this crate keeps
     /// one target per unit, so a list holding two attacks answers with the
     /// live one for both.
+    ///
+    /// **A guard is a `TargetOrder` too**, and it answers the escorted
+    /// unit's own position, never its post (item 2055, `docs/AI.md` §206):
+    /// Great Sahara's leader `1/17` holds a `GUARDORDER` on the MLRS `1/144`
+    /// at its head on block 4265, and the original's `get_loc_to` on run821's
+    /// packet answers (14743, 25626), the MLRS's point. Walked past, the
+    /// answer was the charge's (6216, 29784), and `compute_form`'s reverse
+    /// on the last re-issue never fired. SEAM: `Follow` is not read off the
+    /// listing as one and still walks past.
     pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
         let here = self.units[u].pos;
         let found = self.units[u].orders.iter().find_map(|o| match o.body {
@@ -1910,6 +1919,7 @@ impl Sim {
                 self.obj_alive_pos(crate::combat::Obj::Building(b))
             }
             Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
+            Body::Guard(gd) => self.obj_alive_pos(crate::combat::Obj::Unit(gd.target)),
             _ => None,
         });
         let Some(p) = found else { return here };
