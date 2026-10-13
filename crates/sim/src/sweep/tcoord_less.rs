@@ -1,6 +1,6 @@
 //! `TCoord::operator<@00472b30` under the emulator against the port (item 1708).
 
-/// `TCoord::operator<` (the export's `operator_@00472b30`, a name the census's citation pattern cannot spell with its `<`), run by `tools/emu/sweep_tcoord_less.py` under unicorn
+/// `TCoord::operator<` (the export's `tcoord::operator@00472b30`, a name the census's citation pattern cannot spell with its `<`), run by `tools/emu/sweep_tcoord_less.py` under unicorn
 /// (tools/emu): `this->value < other->value`, a signed 32-bit compare, over the word's edges squared, equal pairs and a seeded band, against `flag_reads::tcoord_less`.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {

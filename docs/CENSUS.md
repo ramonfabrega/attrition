@@ -822,12 +822,12 @@ array, 400+ rows with a decoy mask in every other tile, against the new
 `World::is_tocean`, which `shore_flagged` now reads),
 `ObjectData::get_captain@00472400` (the signed short at `+0xa`, against
 `flag_reads::object_get_captain`, now what `fight`'s attacker side reads for a
-building's `o`), `TCoord::operator<` (`operator_@00472b30`, signed compare,
+building's `o`), `TCoord::operator<` (`tcoord::operator@00472b30`, signed compare,
 against `flag_reads::tcoord_less`), `UnitData::supplies_left@00609a20`
 (constant 1) and six `get_type` constants — `AttackOrder` 10, `RepairOrder` 13,
 `BuildOrder` 6, `ThinkOrder` 27, `FollowOrder` 11, `AttackGroundOrder` 23 —
 each against `Order::index` of a fresh body. Mutation check: widening
 `is_tocean`'s mask by the road bit fails. No parting. The census's citation
 pattern cannot spell `operator<` (its name class stops at `<`), so that
-test's doc cites the export's `operator_@` file name.
+test's doc cites the export's `tcoord::operator@` name.
 `docs/journal/2026-10-13-item-1708.md`.
