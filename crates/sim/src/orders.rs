@@ -3468,6 +3468,40 @@ impl Sim {
             return;
         }
         let me = Obj::Unit(u);
+        // **The off-phase `near_o` arm** (`think@005f6e40:104`–`135`,
+        // `5f7017`–`5f70fc`; `docs/AI.md` §205, `docs/COMBAT.md` §37.5):
+        // on the thirty-one frames in thirty-two that are not the search's,
+        // past an idle of 1, a captain whose cached nearest (`near_o`) is
+        // still standing, whose combat stance is under 5 (vslot `+0xf4` is
+        // `get_combat_stance`: anything but `HOLD_FIRE`) and which is
+        // `is_in_range@00648d70` of it (margin 0) takes it —
+        // `add_attack_order(near_o, QUEUE_NEW, 0, 0)` — clears its
+        // could-not-reach bit, and returns; a packed packer whose packer
+        // stance is not `PACKER_AUTO` (vslot `+0x100`) returns without it.
+        // Every other answer skips the search to the tail (`5f7179`). The
+        // search writes `near_o` whether or not it takes a candidate, so
+        // this is what gives a computer's raiding ship the finished
+        // building its `compare_target` weighed at 0 (run809's `1/113` on
+        // 3647).
+        if unit.idle != 1
+            && phase & 0x1f != 0
+            && let Some(t) = unit.near
+            && unit.combat.stance != combat::Stance::HoldFire
+            && self.is_in_range(me, t)
+        {
+            let packer_auto = self.unit_stance_type(u) == crate::group::StanceType::Packer
+                && self.units[u].stance == PACKER_AUTO;
+            if self.units[u].ty.is_some_and(|ty| self.unit_types[ty].combat.packs)
+                && self.units[u].combat.packed
+                && !packer_auto
+            {
+                return;
+            }
+            self.add_attack_order(u, t, QueuePos::New, false, false);
+            self.units[u].cant_reach = false;
+            return;
+        }
+        let unit = &self.units[u];
         // Step 3's own cadence — the first idle frame and then one in
         // thirty-two, phased by `o` (`think@005f6e40`, the arm at
         // `5f70fd`). Past it the original enters `Unit::think_attack`,
