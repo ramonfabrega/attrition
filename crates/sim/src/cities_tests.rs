@@ -7035,11 +7035,13 @@ fn a_fort_is_placed_where_the_danger_is() {
         sim.buildings[g].pos
     };
     let plain = place(&mut sim.clone());
-    let moved = [(2, 2), (3, 0), (0, 3), (4, 4), (-2, 2), (2, -2)].iter().any(|&(dx, dy)| {
-        let mut hot = sim.clone();
-        let at = Cell::new(plain.cell().x + dx, plain.cell().y + dy);
-        hot.world.set_danger_at(0, at, 400_000);
-        place(&mut hot).cell() != plain.cell()
-    });
+    let moved = [(2, 2), (3, 0), (0, 3), (4, 4), (-2, 2), (2, -2)]
+        .iter()
+        .any(|&(dx, dy)| {
+            let mut hot = sim.clone();
+            let at = Cell::new(plain.cell().x + dx, plain.cell().y + dy);
+            hot.world.set_danger_at(0, at, 400_000);
+            place(&mut hot).cell() != plain.cell()
+        });
     assert!(moved, "the danger a cell carries draws the Fort to it");
 }
