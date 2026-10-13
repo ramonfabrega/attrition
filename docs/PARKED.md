@@ -3733,6 +3733,17 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-first tranche's
 
+(1910) **A lane gate's filters miss a word's other pairs** (the
+commander, at 1870's booking gate): 1870's lane gate ran
+`sahara_coverage:: floors::`; its change to `get_cost` and the market
+moved four widenings of the coverage pair (`coverage_pair.rs`, run715,
+716, 721, 754 — all closer), which no filter named, and the booking gate
+went red for a re-pin. Not counted as a kill-rule trip: the lane gate
+never ran them, the filters were the commander's, and every pin moved
+toward the original. Candidate: `brief.py --tests` adds every pair
+suite whose capture reads the module the word sits in, or the lane gate
+runs every `*_s_word_frame_is_widened_whole`. One reach.
+
 (1900) **`step4.py` has no "print each call's return" mode** (1870's
 Loop line): `--hook` on a gate's three call sites (`6c8124`, `6c8143`,
 `6c8152`) found `get_nuke_embargo`'s 719 — a SEAM that read as zero — in
@@ -3749,7 +3760,9 @@ in the 4 KB around the object changed. Candidate: both shapes, and the
 1889 took ten empty-body voids (bare `ret N`) by a throwaway substitution
 of 1866's script, and asks for a `void` shape (a cdecl body relaxes the
 `esp` check by `4 * NARGS`). (`timeout` is still not on this machine,
-1856's and 1866's journals.)
+1856's and 1866's journals.) **1895** built a `fwd` shape (callees
+hooked, `ecx` and arguments held in order); a forwarder whose argument is
+a field of `this` still needs a `field` token (parked 1896). Three reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
@@ -3941,8 +3954,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 1895, 2026-10-13 — the sweep's forwarder shape
 
-**1896.** `tools/sweep_gen.py` had no shape for a function that hands its
-work to direct callees (`think_hero`, `do_flee_to`, `NukeOut::update`: a
+(1896) **`tools/sweep_gen.py` had no shape for a function that hands its
+work to direct callees** (`think_hero`, `do_flee_to`, `NukeOut::update`: a
 call or two and a constant). Item 1895 added `fwd` (`--call ADDR:NARGS:ECX:ARGS`,
 `--own`, `--ret`), hooking the callees through `tools/emu/hooks.py` and
 holding the calls' `ecx` and arguments, in order, to the spec. A callee that
@@ -3970,6 +3983,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot F renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot G — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot G renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot H — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot H renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot I — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot I renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot J — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot J renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
