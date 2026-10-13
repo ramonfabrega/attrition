@@ -263,10 +263,23 @@ impl Sim {
         // is clear and appends when there is none, and that slot is the
         // order `Farms::inc_time` walks the farms in — so it is fixed here,
         // at *placement*, not at activation. A slot freed by `Farms::remove`
-        // is refilled by the original and appended to here; nothing on any
-        // capture has demolished a farm (`docs/SYNC.md` §3.8).
+        // is refilled by the original: the first record in the list whose
+        // building has closed (`Build::close` → `Farms::remove` clears the
+        // `valid` byte) takes the new farm, and only when none is free does
+        // the list grow. Great Sahara's coverage lobby is the first capture
+        // to demolish farms (the nuke kills the human's three) and then
+        // place one: the Persians' 64th building takes the human's first
+        // slot and is walked ahead of the farms placed between (item 1639,
+        // `docs/AI.md` §175).
         if !self.farm_order.contains(&b) {
-            self.farm_order.push(b);
+            let free = self
+                .farm_order
+                .iter()
+                .position(|&f| !self.buildings[f].alive);
+            match free {
+                Some(i) => self.farm_order[i] = b,
+                None => self.farm_order.push(b),
+            }
         }
         let (o, city) = {
             let bd = &self.buildings[b];
@@ -1447,6 +1460,28 @@ mod tests {
         // And the list is joined at placement, in placement order — these
         // four have never been activated.
         assert_eq!(s.farm_order, vec![lone, lone2, f1, f2, f3, f4]);
+    }
+
+    /// **A freed slot is refilled** (item 1639, `docs/AI.md` §175):
+    /// `Farms::add` returns the first record whose `valid` byte
+    /// `Farms::remove` cleared, so a farm placed after a demolition is walked
+    /// where the dead farm stood — ahead of the farms placed in between.
+    #[test]
+    fn a_placement_takes_the_first_freed_slot() {
+        let (mut s, t, _city) = city_sim();
+        let a = s.init_build(0, t, Pos::new(16 * 192 + 96, 16 * 192 + 96), false);
+        let b = s.init_build(0, t, Pos::new(24 * 192 + 96, 16 * 192 + 96), false);
+        let c = s.init_build(0, t, Pos::new(16 * 192 + 96, 24 * 192 + 96), false);
+        assert_eq!(s.farm_order, vec![a, b, c]);
+        s.buildings[a].alive = false;
+        let d = s.init_build(0, t, Pos::new(24 * 192 + 96, 24 * 192 + 96), false);
+        assert_eq!(
+            s.farm_order,
+            vec![d, b, c],
+            "the dead farm's slot, not the end"
+        );
+        let e = s.init_build(0, t, Pos::new(8 * 192 + 96, 8 * 192 + 96), false);
+        assert_eq!(s.farm_order, vec![d, b, c, e], "none free: it appends");
     }
 
     /// **A farm site nobody has started is not a neighbour** (`docs/AI.md`
