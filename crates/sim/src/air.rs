@@ -177,7 +177,7 @@ pub(crate) const fn owed(from: Angle, to: Angle) -> u32 {
 /// `roll` is the guy's *stored* bank, read before this frame's has been
 /// written — so a frame that reverses the bank turns at the floor rather
 /// than at the old rate, which is the `(u ^ sign) < 0` arm.
-fn air_turn_speed(base: u32, roll: Single, sign: i32) -> u32 {
+pub(crate) fn air_turn_speed(base: u32, roll: Single, sign: i32) -> u32 {
     let v = roll.to_i32().wrapping_neg();
     if (v ^ sign) < 0 {
         return MIN_TURN;

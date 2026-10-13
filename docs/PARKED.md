@@ -4299,13 +4299,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AE — reserved
+## Parked by item 2061, 2026-10-13 — the sweep's forty-fifth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2062) **The order list's head is a shape four sweeps took by hand** (Loop; names no score). `UnitData::order_type`
+(0x616e80), `is_moving` (0x610af0), `is_packing` (0x60aa60) and `is_unpacking` (0x60a4b0) open alike: a null
+`this+0xdc` answers 0; else the cursor is rewound (`+0xd4` the head's first link, `+0xcc` its order, `+0xd0` its
+byte) and the head order is asked a slot — `+0x10` or `+0x14` by a `jmp`, or `+0xf4` twice and then the type the
+answer's `+0x20` indexes in `types.list` (`0xe85ddc`), slot `+0x50`/`+0x54`. Item 2061 wrote them on a shared
+`tools/emu/orderhead.py` (the layout, and the cursor's `n`/`o` marks with every other byte held) rather than four
+copies; `AnimalData::get_speed` (0x5d8380) and the rest of `UnitData`'s order predicates open the same way.
+Candidate: `sweep_gen.py ohead --slot OFF [--tail] [--spell SLOT]` over `orderhead.py`, each arm with a test made to
+fail first.
+
+(2063) **`ObjectData::health_level` clamps a negative pool to zero, the port does not** (reading, from the listing;
+names no score). At `6534f8`..`653505` the original zeroes the hits left when either the subtraction or the hit
+pool itself is negative (`js`, `testl %edi; js`) and only otherwise takes the minimum with the pool; `city.rs`'s
+`health_level` clamps the left at zero first and then at the pool, so a negative pool reads level 6 where the
+original reads 0. Item 2061's rows draw the pool non-negative, which every caller hands it; a capture that showed
+a negative pool would name the frame. Parked rather than fixed: no score reads it.
 
 ## Parked by the next landing, slot AF — reserved
 
