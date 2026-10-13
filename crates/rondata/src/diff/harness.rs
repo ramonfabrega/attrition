@@ -8853,13 +8853,15 @@ pub(crate) mod tests {
         // 275) closes once `push_group` keeps an equal group's record.
         // **16 → 15 on item 1115**: the caravan's trade order carries no
         // bit 4 and its leg faces its bearing (`docs/CARAVAN.md` §11.3).
+        // **15 → 0 on item 1926**: all fifteen were the `group.id` stand-in,
+        // the army's number against the pool slot the original's id names.
         assert_eq!(
             orders
                 .values()
                 .filter(|f| **f < LONG_WORD_GREAT_LAKES)
                 .count(),
-            15,
-            "the window's standing order residue is not fifteen units: {orders:?}"
+            0,
+            "the window's standing order residue is not empty: {orders:?}"
         );
         // **Twenty → twenty-one on item 497**, and the extra field is
         // the window's, not the simulation's: the word moved 279 frames
@@ -11025,7 +11027,7 @@ pub(crate) mod tests {
         // Item 1477: 106 → 104; the census circle walk starts at entry 1 (`docs/AI.md` §122).
         pin_eq!(
             under, // Item 1444: the ruins guard removes stale site fields (batch replay).
-            47,    // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            38,    // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor under the word"
         );
         let pair: Vec<String> = firsts
@@ -11730,7 +11732,7 @@ pub(crate) mod tests {
         // Item 1461: (112, 118) → (106, 112); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (47, 49), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 40), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -11930,7 +11932,7 @@ pub(crate) mod tests {
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (49, 136), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (40, 127), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12144,7 +12146,7 @@ pub(crate) mod tests {
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
             // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (136, 2, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (127, 2, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12272,7 +12274,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12383,7 +12385,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12706,7 +12708,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12861,7 +12863,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -12985,7 +12987,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -13129,7 +13131,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (138, 0, 138), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (129, 0, 129), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the floor"
         );
     }
@@ -13563,22 +13565,12 @@ pub(crate) mod tests {
             .collect();
         pin_eq!(
             parted,
-            [
-                (19840, 1, -1, 1),
-                (19840, 1, 40, 1),
-                (19840, 1, 41, 1),
-                (19840, 1, 42, 1),
-                (19840, 1, 60, 1),
-                (19840, 1, 80, 1)
-            ],
+            [(19840, 1, -1, 1), (19840, 1, 80, 1)],
             "who first parts past run226, and on how many keys"
         );
         pin_eq!(
             firsts.get(&(1, 40, "order:group.id".to_string())),
-            Some(&(
-                19_840,
-                "Group { field: \"id\", ours: 17662401, theirs: 17662501 }".to_string()
-            )),
+            None,
             "the walkers' group number, 4 here and 5 there"
         );
     }
@@ -16200,7 +16192,7 @@ pub(crate) mod tests {
         // `1/49`, `1/52` 69 against 68, and `1/53`'s on 13594 (`docs/GROUPS.md` §29).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (153, 162, 162).
         // Item 1330 took 40 (153/155/155 → 113/114/114): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (38, 38, 38), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (37, 37, 37), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -16877,7 +16869,7 @@ pub(crate) mod tests {
             // slot 0 here and the pool's 68 there.
             pin_eq!(
                 on(WORD_BLOCK + 1, 1, o, "order:group.id").as_deref(),
-                Some("Group { field: \"id\", ours: 17410401, theirs: 17410801 }"),
+                None,
                 "`1/{o}`'s order id on 17405"
             );
         }
@@ -16957,7 +16949,7 @@ pub(crate) mod tests {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (37, 38, 38, 44),
+            (37, 38, 38, 38),
             "the floor"
         );
     }
@@ -17091,7 +17083,7 @@ pub(crate) mod tests {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (43, 0, 43, 44),
+            (38, 0, 38, 39),
             "the floor"
         );
     }
@@ -20310,8 +20302,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             ids.len(),
-            their_group.len() * 3,
-            "the group-id stand-in should be one row per grouped unit-frame"
+            0,
+            "the group-id stand-in is gone since item 1926: the pool slot is the army's own"
         );
         // **The ungroup, pinned** (item 236). From the frame the formation
         // ends, the three Archers agree with the original on every order
@@ -22494,12 +22486,11 @@ pub(crate) mod tests {
                 // Item 1115 took the caravan `1/23`'s three: its trade
                 // order carries no bit 4 and its leg faces its bearing
                 // (`docs/CARAVAN.md` §11.3).
-                (1, 27, "Group.id".into(), 9, 6_907),
-                (1, 28, "Group.id".into(), 9, 6_907),
-                (1, 29, "Group.id".into(), 9, 6_907),
+                // Item 1926 took the three `Group.id` stand-ins: the army's
+                // id is its pool slot, which the original's agrees on.
             ],
             "run83's order rows are the caravan's three, carried into the \
-             window, and the group-id stand-in from the re-group"
+             window"
         );
 
         // **The re-group on 6907, which nothing had ever seen.** The AI

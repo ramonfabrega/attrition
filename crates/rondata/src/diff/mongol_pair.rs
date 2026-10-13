@@ -134,7 +134,7 @@ fn run779_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 109, "initial run779 baseline");
+    pin_eq!(w.firsts.len(), 106, "initial run779 baseline");
     // Item 1744: 1406 keys part on blocks 1349..1605 before the build, the
     // word's own block being 1355 (frame 1354: ours 5 draws, theirs 7, index
     // 1; building `1/2024`'s `queue[0].job_counter` 17200 against 17150 and
@@ -179,7 +179,7 @@ fn run780_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 136, "initial run780 baseline");
+    pin_eq!(w.firsts.len(), 135, "initial run780 baseline");
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -227,7 +227,7 @@ fn run788_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.firsts.len(),
-        163,
+        151,
         "run788 after item 1868's sea break test"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them

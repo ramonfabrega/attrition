@@ -463,7 +463,7 @@ fn run681_s_word_frame_is_widened_whole() {
     // both leaders' `SITE` `reg`, `form`, the city and pool fields, `scouts`,
     // the territory counts) and the rest part later. The 700 that went part
     // downstream of `1/35`'s stall on 1247 (not itemised row by row).
-    pin_eq!(w.firsts.len(), 63, "initial run681 baseline");
+    pin_eq!(w.firsts.len(), 59, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
         47,
@@ -872,7 +872,7 @@ fn run718_s_word_frame_is_widened_whole() {
     // 1/2018's `myhits` (8125 against 3900 on 3395's sibling window) and
     // 1/2055's `construct_hits` part in the already diverged tail: on the
     // merged tree with item 1697's arms, 68 -> 69.
-    pin_eq!(w.firsts.len(), 69, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 67, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,
@@ -983,7 +983,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 1738: **93** keys with the Redoubt read as a training building
     // through its Fort (`docs/AI.md` §192): its divisor 7, so one key of
     // the 94 of item 1726 is gone.
-    pin_eq!(w.firsts.len(), 93, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 88, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1027,7 +1027,7 @@ fn run767_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 112, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 103, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1078,5 +1078,5 @@ fn run790_s_word_frame_is_widened_whole() {
     // the replay is diverged for 212 of the window's blocks, so the count
     // is the tail's, not the word's. The word 3767's own rows were
     // `1/2011`'s `queue:queued` 4 against 3 and `1/214`'s birth.
-    pin_eq!(w.firsts.len(), 12582, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 12577, "initial run790 baseline");
 }
