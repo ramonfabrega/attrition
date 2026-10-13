@@ -294,7 +294,9 @@ def generate_fwd(spec, *, item, calls, own=0, ret='none'):
     for c in calls:
         addr, nargs, ecx, args = c.split(':', 3)
         parsed.append((int(addr, 16), int(nargs), ecx, args))
-        exprs.append('vec![' + ', '.join([_fwd_expr(ecx)] + [_fwd_expr(t) for t in args.split(',') if t.strip()]) + ']')
+        # `ecx` is read unsigned off the register; a stack argument is read signed (item 1932)
+        ecx_expr = 'i64::from(_p0 as i32 as u32)' if ecx.strip() == 'p0' else _fwd_expr(ecx)
+        exprs.append('vec![' + ', '.join([ecx_expr] + [_fwd_expr(t) for t in args.split(',') if t.strip()]) + ']')
     if ret == 'none':
         retcode = '        let _ = eax;'
     elif ret == 'last':
