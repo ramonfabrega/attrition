@@ -10790,10 +10790,71 @@ searcher's modified range (this crate uses `max_range_of`, the techs included);
 whether a cavalry archer (`unit_flags & 0x400`, `+0x1fc` zero) takes the tile
 floor — read from `determine_roles` only, no capture holds one in this arm.
 
-## 65. Reserved for item 1740 (chapter fifty-three's word 1004)
+## 65. Chapter fifty-three's word 1004 — a fire-on-the-move round leaves at the cavarch pair, and `set_anim(ATTACKWALK)` asks the reload (item 1740)
 
-A stub the booking lands so two lanes append at their own anchors
-(parked 1491); the item's worker renames it and writes the section.
+**The booking.** Frame 1004 of run772, 4 versus 6 draws at index 0: the
+original's Dragoon `0/31` (type 189, walking a `MOVETO` to (46056, 29304) with
+`cavarch_o` 11, `cavarch_who` 1 — the Scout `1/11`) spends `Ammo::init+0xcd9`
+and `+0xd0b`, the landing scatter's two draws; `ammo[0]` stands in the dump on
+1005 and `1/11` takes 37 on 1006. This crate's Dragoon spent nothing.
+
+**How it was found.** The strike agrees (`recharging` 21 on 1004 in both, the
+reload 30 minus nine frames), and the guy's anim is `CHAR_ATTACKWALK` (10) at
+`cur_time` 11 with the event at 12 — the release is what is missing.
+`Guy::release_events` here returned for any current order that was not an
+attack, a ground attack or a strafe. The original's `Guy::execute_events@005d99c0`
+takes the *order's* object when the order is attack-like and, **everywhere
+else** — no order list, no current order, or one that is neither attack-like nor
+kind `0x17`..`0x19` — falls to `LAB_005d9c14`, which reads `UnitData +0xa2/
++0xa8/+0xa6` (`cavarch_o`, `cavarch_who`, `cavarch_uid`) when `cavarch_o ≥ 0`.
+
+**The rules built.**
+
+1. `guy_release_events`' default arm is the cavarch pair (`units[u].cast_target`)
+   rather than a return.
+2. **The Dragoon's `CHAR_ATTACKWALK` bay** (`launch::BAYS`, piece 491, anim 10,
+   start 12): the round on 1004 left (44857, 29798) 205 over a figure at
+   (44708, 29828) turned 68° (`whole_degrees`); the row's `right` 27 720 and
+   `fwd` 150 040 (thousandths) are the **centre of the region** the one
+   measurement allows — one round, one facing, so both are a point in a
+   rectangle, not a measured vector.
+3. **`Guy::set_anim@005da300`'s head**: a request for `CHAR_ATTACKWALK` from
+   any other animation asks `UnitData +0xae` (`recharging`) — below six it is
+   **cleared to 0** and the animation plays; six and over the request becomes
+   `CHAR_WALK`. Found on the word it opened: on 1021 the Dragoon stopped (anim 0)
+   at `recharging` 4 and on 1022 the original's block reads 0 where ours kept 3,
+   and the next draw was `Unit::fight+0x9b0`, the fight's re-search roll
+   `cavarch_fight_body` spends once the reload is gone.
+
+**The word is now the trace's end: 1120** (`GOLDEN_WORD_CHAPTER_FIFTY_THREE`,
+window (605, 1121), 20 rows and 15 pool rows): the draw stream agrees through
+1119. Mutations, each failing the walk: rule 1 restored to a return — word 1004;
+rule 3's clear removed — 1022; rule 3's `< 6` made unconditional — 1026. The bay
+holds on the widening (`fwd` 0 moves the `ammo` rows).
+
+**Values that part, and are the next items** (parked 1756, 1757):
+
+- `0/31 g.node_flags[0]` on 1068, ours 15 against 14: the turret's return to the
+  bow runs a constant 4 718 592 (`0x480000`) ahead of the original's from before
+  1066 (ours 177 930 246 against 182 648 838 on 1067), so ours clears the arc a
+  frame early. The seed is the standing `g.des_turret0[0]` on 963 and
+  `g.turret0[0]` on 965.
+- `1100 1/8 damage_frame`/`hits:damage`/`hits_left` and `0/31 ammo[0]`: the
+  Dragoon's stationary round (anim 12, start 13, piece 491) lands **in the frame
+  it is released** in the original (`damage_frame` 1099, 37 taken) and a frame
+  later here. Its launch point is the unit's own square — no bay row — and the
+  flight time reads the distance; the original's ammo is gone by the end of the
+  frame, so no `AMMO` print holds its `sx/sy/sz`: a packet at 1099 and
+  `get_position`, not a capture of the dump.
+
+**Held out.** The battery (`battery_measure`) reads **576 / 6566 / 2974** on this
+tip, unmoved.
+
+**Not established.** The bay's two components (above); that kind `0x19` and the
+other attack-like vslot-`0x18` orders do not read the pair (this crate falls back
+to it for every body that is not an attack, a ground attack or a strafe); the
+`cavarch_uid` gate (`+0x30 != local_c`), which the original applies only under
+`CHAR_ATTACK2` — this crate tests that the target is struck.
 
 ## 66. Reserved for the next item on the rules track
 

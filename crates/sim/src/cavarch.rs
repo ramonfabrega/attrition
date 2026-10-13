@@ -37,10 +37,12 @@
 //!
 //! **What the strike does not do**: the shot. A fire-on-the-move type's
 //! round leaves on its `CHAR_ATTACKWALK` release event (the Dragoon's
-//! `RELEASEEVENT starttime="866" anim="CHAR_ATTACKWALK"`), aimed by the
-//! *order*'s target as every release is (`docs/COMBAT.md` §9.0), so the
-//! frame `fight` runs puts nothing in the air; run657 has no `1/80` round
-//! on 17170..17178.
+//! `RELEASEEVENT starttime="866" anim="CHAR_ATTACKWALK"`), so the frame
+//! `fight` runs puts nothing in the air; run657 has no `1/80` round on
+//! 17170..17178. **The release is aimed by this pair** when the current
+//! order is no attack: `Guy::execute_events@005d99c0`'s `LAB_005d9c14` reads
+//! `cavarch_o`/`cavarch_who` for a move order (item 1740, `docs/GOLDEN.md`
+//! §65), where an attack order's own target stands first.
 
 use crate::ai_load::uflags;
 use crate::combat::{Obj, Stance};
