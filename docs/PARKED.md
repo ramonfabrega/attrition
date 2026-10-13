@@ -4172,13 +4172,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot R — reserved
+## Parked by item 1982, 2026-10-13 — a resumed search's failure pops its top
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot R renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(1983) **The successor pair's word 3632: 193 draws against 192, index 35** (1982; `docs/AI.md` §201.4): ours `GameAccess::rnd+0x20 <
+Unit::do_attack`, theirs `Unit::think_fish+0x27a`. Past run799's window (3125..3382): the lobby has **no dump holding 3632** — the next item is a
+window capture (run788's recipe, `--log-window` around 3632, a run number of the commander's) and then every record on the word's frame both ways.
+
+(1984) **A resumed 48-grid search's kill half is unwalked** (1982): `upath_search`'s `r == 0` teardown now also kills a resumed search's order when no
+retry roll spared it (an order that is not a move, or `attempts` ≥ 13); no capture reaches it. Listing's, `find_upath@00682f30:175`–`:195`.
 
 ## Parked by the next landing, slot S — reserved
 

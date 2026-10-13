@@ -19122,12 +19122,51 @@ listing's, not a diff's.
 Not established: the human arm of `find_wpath` (parked 1874) and whether the flag's other consumers (`do_move`'s region check) are exercised by
 a land transport that stops without a refusal.
 
-## 201. Reserved for the next item on the AI track
+## 201. A resumed 48-grid search that gives up pops its top, and the successor pair's word moves 3188 → 3632 (2026-10-13, item 1982)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Sonnet 5.5 lane att-1982, base `343e7432`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech. run799 (blocks 3125..3382).*
+
+### 201.1 The frame, both sides
+
+Frame 3188: ours 152 draws, theirs 153, index 1 (`report.py rontrace-run799.log draws 3188`). Theirs opens with `Unit::do_move+0xe84 <
+Unit::do_explore_to` (index 0) and `Unit::do_move+0xe84 < Unit::do_attack_to` (index 1), then the fishers' `think_fish+0x27a`; ours has one
+`do_move+0xe84` (`RON_DEBUG_SITES=3188-3188`: `1/101`, the Mongol `TypeIndex` 330 unit on its `EXPLORETOORDER`) and then the fishers. The
+second belongs to the AA missile **`1/107`** (`TypeIndex` 284, `TY` 234; this crate's slot 247) on an `ATTACKTOORDER` move, the unit parting on
+3189 (`order:move.dest`, `path[60]`, `tolerance`, `last_x`, parked 1949): theirs re-plans on 3188 through `do_move`'s grid draw (`last_x` −1,
+two entries pushed, tolerance 384); ours took its step and `resolve_unit_collision`'s sidestep `(36756, 43140)` instead.
+
+### 201.2 Walked back to the first parted field
+
+The first row of `1/107` is **`path:length` on 3181, ours 61 against theirs 60**; the same stack (`[.. (34632, 42408), (35400, 42408)]` against
+`[.. (34632, 42408)]`, nothing else differs). On 3179 the unit meets `1/55`/`1/5` and starts a 48-grid search that **suspends** (`search`
+set entering 3180); on 3180 `do_move`'s suspended block calls `find_upath_restore`, the resumed search exhausts its open list, and **both** sides
+roll the retry (`retry` 7 on 3181; the draws agree through 3187). Theirs also pops the stack's non-final top (35400); ours did not, so on 3188
+(`retry` 0, `attempts` 3 → 2) ours' top (35400, tolerance 384) was a straight step that collides and sidesteps where theirs, with the top one
+shorter, fails the straight-line check and re-plans (the grid draw).
+
+### 201.3 The mechanism
+
+`find_upath@00682f30`'s tail: `if (iVar9 < 1) { if (pathfinder._132_4_ == 0) { pop a non-FINAL top; kill the order unless the retry
+roll spared it } }`. `_132_4_` is **`pathfinder +0x84`**, `astar_path`'s own suspended flag — it writes 1 on its suspend (`:507`) and **0 on
+every failure tail before it returns** (`:535`, `:908`); `find_upath_restore@00688f40` merely starts it at 1. The prologue's `if
+(_132_4_ == 0)` tests the same word. Ours (`path.rs`, `upath_search`) had read the teardown as "skipped on a resume" (`r == 0 && !resume`,
+item 329's reading of the guard) and so a resumed search that gave up neither popped nor killed. Built: `r == 0` alone. **The kill half
+is reached too** — a resumed failure with no retry roll (an order that is not a move, or over the `attempts` ceiling) now kills as a fresh
+one does; no capture reaches that half.
+
+### 201.4 What moved
+
+run799's keys 2,210 → **177** (147 on the window's first block, the leaders' counts the window cannot know; the rest `1/165`'s `form` on
+3132, 3134, 3180, 3183 and two on 3126). run788, run780, run779, run776 and the floors unchanged. **The word 3188 → 3632**: ours 193
+draws, theirs 192, index 35, ours `GameAccess::rnd+0x20 < Unit::do_attack`, theirs `Unit::think_fish+0x27a` (`mongol_pair_first_parting`; the
+walk's height reads 4 → 38, pinned). 3632 is past run799's window (3125..3382): **no dump of this lobby holds it** — a disk gap, parked 1983.
+
+Mutation: `&& !resume` restored fails `run799_s_word_frame_is_widened_whole` (2,210) and `mongol_pair_first_parting` (3188).
+
+### 201.5 Not established
+
+That a resumed failure's kill arm (no roll) is reached by any capture; the listing's, as 200.3's re-push is. `1/101`'s explore draw agrees on
+both sides and was not widened further.
 
 ## 202. Reserved for the next item on the AI track
 
