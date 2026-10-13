@@ -1006,6 +1006,47 @@ fn a_human_s_one_unit_swarm_walks_under_a_move() {
     }
 }
 
+/// **A builder's re-entry swarms the build queued behind it afresh** (item
+/// 1726, `docs/AI.md` §189). `Unit::do_build`'s re-entry is a one-member
+/// group's `action_swarm_around(QUEUE_FIRST)`: the insert dance copies the
+/// action-flagged orders aside, halts the member, lays the new swarm and
+/// re-issues each copy at `QUEUE_LAST`, so the approach to the second site
+/// is the ring spot from where the builder now stands (run767's `1/12` on
+/// 2877: (33144, 16680) became (33144, 16440)). Made to fail with the
+/// re-entry's plain `swarm_around`, which left the stale approach standing.
+#[test]
+fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.nation[0].human = false;
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    let b1 = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let b2 = sim.place_building(0, t.barracks, tile_pos(48, 36)).unwrap();
+    let u = sim.init_unit(0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b1, Body::Build(b1), true);
+    sim.swarm_around_last(u, b2, Body::Build(b2), true, MoveKind::ExploreTo, QueuePos::Last);
+    let dest = |sim: &Sim| -> Vec<Pos> {
+        sim.units[u]
+            .orders
+            .iter()
+            .filter_map(|o| match o.body {
+                Body::Move(m) => Some(m.dest),
+                _ => None,
+            })
+            .collect()
+    };
+    let before = dest(&sim);
+    assert_eq!(before.len(), 2, "{:?}", sim.units[u].orders);
+    // The builder is carried off, its first approach spent: the build on
+    // `b1` heads the list and it is not beside it.
+    sim.units[u].pos = tile_pos(30, 36);
+    sim.units[u].orders.remove(0);
+    sim.tick();
+    let after = dest(&sim);
+    assert_eq!(after.len(), 2, "{:?}", sim.units[u].orders);
+    assert_ne!(after[1], before[1], "the second approach is laid afresh");
+}
+
 /// **A closed site's builder walks on until its number is reused** (item
 /// 644). `Unit::work@0060d180:319` ends the action on a `uid` mismatch,
 /// and a closed building keeps its uid until `Objects::find_free` hands the
