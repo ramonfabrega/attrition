@@ -518,9 +518,10 @@ mod tests {
         // 372,056 on item 763**: `damage` and `damage_frac`, and `bad`
         // stays empty (parked 728). **372,056 → 464,682 on item 1563**:
         // `ever_seen` and `ever_seen_completed`, and `bad` stays empty
-        // (parked 1450).
+        // (parked 1450). **464,682 → 512,547 on item 1497**: `myhits` on
+        // every building and `construct_hits` on an unfinished site.
         assert_eq!(
-            seen, 464_682,
+            seen, 512_547,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

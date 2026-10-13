@@ -814,7 +814,7 @@ fn run718_s_word_frame_is_widened_whole() {
     // residue, not the upgrade.
     // Item 1634: three false road flags at 2429 disappear; two new
     // order keys arise in the already diverged tail, net 625 -> 624.
-    pin_eq!(w.firsts.len(), 624, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 626, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
         62,

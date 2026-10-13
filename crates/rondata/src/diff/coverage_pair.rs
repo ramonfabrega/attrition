@@ -704,7 +704,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // run669's 180: the blank `SITE` slots' `reg`, `form`, the pools,
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
-    pin_eq!(w.firsts.len(), 55, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 56, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -1623,7 +1623,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // does not print and `1/233`'s `form`, on 3843. The word is **3963**
     // (block 3964): the dump alone holds `1/246`..`1/252`, and `1/165`
     // reads two orders against one. 2460 -> 1583 keys over the tail.
-    pin_eq!(w.firsts.len(), 1583, "run754 keys that part (item 1669)");
+    pin_eq!(w.firsts.len(), 1587, "run754 keys that part (item 1669)");
 }
 
 #[test]
@@ -1661,7 +1661,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // throughout and the caravan agrees through the new word 3439.
     pin_eq!(
         w.firsts.len(),
-        186,
+        187,
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

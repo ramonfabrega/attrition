@@ -1328,6 +1328,34 @@ fn construction_takes_a_tenth_off_the_clock_and_adds_a_tenth_to_the_hits() {
     );
 }
 
+/// Item 1497 (`docs/GOLDEN.md` §62): a City with a Temple takes
+/// `TEMPLE_UPGRADE_HP[level − 1]`, the level `Wall::update_hits` reads off
+/// `TEMPLEHP4`, then `get_temple_hp` (`TEMPLEHP3` is 3, else 1 plus
+/// `TEMPLEHP2`). `Nation::temple_level` held it and nothing wrote it, so
+/// run683's City `1/2000` read `myhits` 6500 where the original's read
+/// 16250 (level 4, 150 %) from the frame its Temple finished.
+#[test]
+fn the_temple_s_hit_point_level_follows_templehp_from_the_top() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let l2 = tree.add(tech::TypeDef::plain("TEMPLEHP2", 0));
+    let l3 = tree.add(tech::TypeDef::plain("TEMPLEHP3", 0));
+    let l4 = tree.add(tech::TypeDef::plain("TEMPLEHP4", 0));
+    tree.roles.temple_hp_preq = [Some(l2), Some(l3), Some(l4)];
+    sim.set_tech_tree(tree);
+    assert_eq!(sim.temple_hp_level(0), 1, "none held");
+    sim.tech[0].tech[l2] = true;
+    assert_eq!(sim.temple_hp_level(0), 2);
+    sim.tech[0].tech[l3] = true;
+    assert_eq!(sim.temple_hp_level(0), 3);
+    sim.tech[0].tech[l2] = false;
+    assert_eq!(sim.temple_hp_level(0), 3, "TEMPLEHP3 alone is 3");
+    sim.tech[0].tech[l3] = false;
+    sim.tech[0].tech[l4] = true;
+    assert_eq!(sim.temple_hp_level(0), 4, "TEMPLEHP4 alone is 4");
+    assert_eq!(sim.temple_hp_level(1), 1, "the other player holds none");
+}
+
 /// **The President's clause of `BuildData::construct_time`** (item 1503, Great
 /// Sahara at Toughest's Smelter `1/2053`, finished on 14363 at a clock of
 /// 75187 — `100000 × 100 / 133`). `has_general(0, 0x163)` finds one of the

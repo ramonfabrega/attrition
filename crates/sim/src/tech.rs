@@ -472,6 +472,12 @@ pub struct Roles {
     /// `Wall::update_hits` read them (`docs/CITIES.md` §3.2).
     pub buildings_speed_preq: [Option<TypeId>; 3],
     pub buildings_hp_preq: [Option<TypeId>; 3],
+    /// `TEMPLEHP2..4` (`0x2cb..0x2cd`), `TECHBONUSES` rows 31–33:
+    /// `Wall::update_hits@0063f0d0` asks `has_preq(TEMPLEHP4)` first (level
+    /// 4), else `LeaderData::get_temple_hp@006db470` — `TEMPLEHP3` is 3,
+    /// else 1 plus `TEMPLEHP2` — and indexes `TEMPLE_UPGRADE_HP` by it
+    /// (item 1497).
+    pub temple_hp_preq: [Option<TypeId>; 3],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,
