@@ -3828,7 +3828,9 @@ callees and global cells, and `fwd` still lacks its `field` token
 object at `this+0x18`, a `--via` away from one line each, and a pointer
 field wants a second `obj` window (parked 1972). Eleven reaches. **1976**: six of ten read a record through a
 global cell — `--cell VA:OFF=field` repeated — and every script re-carries
-one header that belongs in `sweeplib` (parked 1977). Twelve reaches.
+one header that belongs in `sweeplib` (parked 1977). Twelve reaches. **1993** built `vcall --via`/`--own`; four
+more read a world record through a global cell with `WCoord` pointer
+arguments — a `cell --ptrargs` (parked 1994). Thirteen reaches.
 
 ## Loop, filed 2026-10-13 — the thirtieth tranche's
 
