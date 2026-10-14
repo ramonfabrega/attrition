@@ -7897,20 +7897,18 @@ impl Sim {
     /// `num_gatherers` through `count_inside` instead.
     pub fn is_gathering_at(&self, u: usize, b: usize, strict: bool) -> bool {
         let unit = &self.units[u];
-        if !unit.on_map {
-            return self.worker_of(u) == Worker::Scholar && unit.inside == Some(b);
-        }
-        if self.worker_of(u) == Worker::None {
-            return false;
-        }
-        match self
-            .action_of(u)
-            .and_then(|i| unit.orders.get(i))
-            .map(|o| o.body)
-        {
-            Some(Body::Gather(g)) if g.building == b => !strict || g.been_there,
-            _ => false,
-        }
+        let worker = self.worker_of(u);
+        gathering_at_steps(
+            worker == Worker::Scholar,
+            || unit.on_map,
+            || unit.inside == Some(b),
+            strict,
+            worker != Worker::None,
+            || match self.action_of(u).and_then(|i| unit.orders.get(i)).map(|o| o.body) {
+                Some(Body::Gather(g)) => Some((g.building == b, i32::from(g.been_there))),
+                _ => None,
+            },
+        ) != 0
     }
 
     /// `BuildData::num_gatherers(arrived, skip_decoys)`: the garrisoned
@@ -10254,5 +10252,42 @@ pub(crate) fn think_order_steps<C>(
     }
     if worker(cx) {
         think(cx);
+    }
+}
+
+/// **`UnitData::is_gathering_at@00608880`'s steps** (item 2287): a scholar
+/// (`0x34`/`0x35`) off the map is gathering where it is inside
+/// (`get_inside`), and, when `strict`, nowhere else. Then a worker type
+/// on the map (`is_on_map`, `inside_up`'s sign bit, asked again) whose
+/// action is a `GATHER` (`get_type() == 7`) naming this building answers
+/// 1, or, `strict`, the order's arrived byte (`+0x27`).
+pub(crate) fn gathering_at_steps(
+    scholar: bool,
+    mut on_map: impl FnMut() -> bool,
+    inside_here: impl FnOnce() -> bool,
+    strict: bool,
+    worker: bool,
+    gather: impl FnOnce() -> Option<(bool, i32)>,
+) -> i32 {
+    if scholar && !on_map() {
+        if inside_here() {
+            return 1;
+        }
+        if strict {
+            return 0;
+        }
+    }
+    if !on_map() || !worker {
+        return 0;
+    }
+    match gather() {
+        Some((true, arrived)) => {
+            if strict {
+                arrived
+            } else {
+                1
+            }
+        }
+        _ => 0,
     }
 }
