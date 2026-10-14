@@ -16812,6 +16812,37 @@ SHA-256 `228256e15ad06009967c8a82d994c2baa6f6d4f1ed27838c0c793d875ba5130b`.
 **What it holds**: `diff::lakota_pair::run848_s_word_frame_is_widened_whole` — 870 keys on blocks 1378..1634; the word's
 value diff (`docs/AI.md` §218).
 
+## run852 — chapter sixty-eight: a Stable and a Siege Factory two Military levels on, Monarchy, then Socialism (2026-10-14, item 2357, `att-2357`)
+
+`docs/GOLDEN.md` §85, `tools/gamelog/golden/chapter68.cmd` (fourteen staged lines). **What the disk could not answer**:
+no dump on disk holds a queue entry written under Socialism. `gov 627` is in run775, run838 and run844 alone. Their
+Airbase, Siege Factory and Dock entries were all priced before 4782, and the four Bombers run838's `1/2014` shows on
+4783 are stale slots past `queued`. So nothing had printed `get_cost`'s Socialism arm. And no capture holds a Stable
+unit under Monarchy with the military discount live (run845's was 0, parked 2334).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch68 \
+    --map 14 --end-frame 1360 --log-window 600 1360 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter68.cmd
+```
+
+**One take**, click-free pool lane 1: `success: true`, `settings_restored`, 1,361 frames, seed 12345, map 14, 961 s
+launch to exit. Kept in `~/ron-golden/ch68/map-14`: `gamelog.txt` 231,601,230 bytes, `rontrace.log` 10,890,816
+bytes, `rontrace.dll` SHA-256 `21a6bd8b12e6332c09d35d4d52049b3ab8ba4eca7af9277068ed78a3681b7f4a`. Minutes waited on
+another lane's capture: none (the lane was free at the launch).
+
+All four falsifiers in the `.cmd` header held:
+
+- Light Horse A queued at 47/33 on block 616 (the listing's order).
+- Catapult A at 63/63 on 618.
+- Catapult B at 60/60 on 804.
+- Light Horse B at 50/36 on 806.
+- Births on 808, 858, 1007 and 1105.
+
+**What it holds**: `golden::chapter_sixty_eight_holds_to_the_golden_word` (**1360**, the trace's end, closed) and
+`chapter_sixty_eight_s_word_frame_is_widened_whole` (600..1361, eleven standing `form` rows).
 ## run849 — the peace pair: the word 1984's widening, blocks 1978..2235 (2026-10-14, item 2351, `att-2351`)
 
 **Disk gap**: run848 ends at 1634, and run847 has checksums and the closing block only. No dump of this lobby holds a

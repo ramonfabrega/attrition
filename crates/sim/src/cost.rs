@@ -254,6 +254,14 @@ pub struct Modifiers {
     /// `MILITARY_UNIT_DISCOUNT` (item 2331, `docs/GOLDEN.md` §84). Zero is
     /// the identity.
     pub monarchy: i32,
+    /// `get_cost`'s **Socialism arm** (`TypeData::get_cost@00664090:666`–
+    /// `672`, the train arm only, the line after Monarchy's):
+    /// `SOCIALISM_UNIT_BONUS` off a unit whose trainer is the Siege Factory,
+    /// the Airbase or the Dock (`+0x40` `0x1ae`, `0x1bf`, `0x1b0`, each by
+    /// equality) when `has_preq(SOCIALISM_1)` holds. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::monarchy`] (item 2357,
+    /// `docs/GOLDEN.md` §85). Zero is the identity.
+    pub socialism: i32,
     /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
     /// percentages off a library epoch's price, each its own
     /// `(100 − x) × cost / 100` in order, after
@@ -541,6 +549,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     cost = cost * (100 - m.late_discount) / 100;
     if m.monarchy != 0 {
         cost = (100 - m.monarchy) * cost / 100;
+    }
+    if m.socialism != 0 {
+        cost = (100 - m.socialism) * cost / 100;
     }
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;
@@ -1350,6 +1361,47 @@ mod tests {
         assert_eq!(at(0, 25), 45);
         assert_eq!(at(10, 25), 40);
         assert_eq!(at(35, 0), 39);
+    }
+
+    /// **Socialism takes its quarter last, after the military discount and
+    /// Monarchy, each in its own truncation** (`get_cost@00664090:632`–`672`;
+    /// item 2357, `docs/GOLDEN.md` §85). run852's Catapult B is 90 timber
+    /// ramped under a 10% military discount: 81, then 60 under Socialism,
+    /// where one fold of 35% would give 58. Light Horse A's food is 70: 63
+    /// under the discount and 47 under Monarchy after it, where Monarchy
+    /// first would give 52 and then 46.
+    #[test]
+    fn socialism_takes_its_quarter_after_the_military_discount() {
+        let ramped = |base: i32, support: i32| Price {
+            class: RampClass::Military,
+            pop: 1,
+            ..Price::free()
+                .with_base(Resource::Food, base)
+                .with_support(Resource::Food, support)
+        };
+        let at = |p: &Price, n, late_discount, monarchy, socialism| {
+            let m = Modifiers {
+                late_discount,
+                monarchy,
+                socialism,
+                ..Modifiers::default()
+            };
+            cost_of(&T, p, Resource::Food, owned(n), &m)
+        };
+        let catapult = ramped(7, 10);
+        assert_eq!(at(&catapult, 2, 0, 0, 0), 90);
+        assert_eq!(at(&catapult, 2, 10, 0, 0), 81);
+        assert_eq!(at(&catapult, 2, 10, 0, 25), 60);
+        assert_eq!(at(&catapult, 2, 35, 0, 0), 58);
+        let horse = ramped(6, 2);
+        assert_eq!(at(&horse, 5, 0, 0, 0), 70);
+        assert_eq!(at(&horse, 5, 10, 25, 0), 47);
+        assert_eq!(at(&horse, 5, 25, 0, 0), 52);
+        assert_eq!(
+            at(&horse, 5, 10, 25, 25),
+            35,
+            "Monarchy and Socialism both, in order"
+        );
     }
 
     /// **The Statue of Liberty takes its third off the base, not the

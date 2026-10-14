@@ -105,7 +105,10 @@ Three shapes, each a `__thiscall` on `ecx`:
           as `get_inside` writes a player index — printed after the
           answers and `o` in a place; `--stub-cdecl IDX` hooks a direct
           callee as `__cdecl`, its arguments left for the caller to pop
-          (`memcpy`, an import).
+          (`memcpy`, an import). `--deref IDX:K:N` (item 2379) prints
+          the N bytes stub IDX's argument K points at, read when it is
+          called, after the record's columns: a caller's local the
+          record names only by depth (`add_command`'s `Command`).
 
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
@@ -117,8 +120,8 @@ function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
-the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
-`--write-mod`; `--regen` redraws a generated sweep in place (both files
+the `mod <snake>;` line for `sweep/mod.rs` is printed, or inserted with
+`--write-mod` at its sorted place in the file's last `mod` run (item 2379); `--regen` redraws a generated sweep in place (both files
 rewritten, `mod.rs` left alone), so a starved draw is one line. The script
 keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
@@ -1164,6 +1167,7 @@ LINKS = {links!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
+DEREF = {deref!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1252,6 +1256,18 @@ def win_write(inner, at, size, v, write):
     as `inner` would."""
     def answer(ecx, args):
         write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def read_arg(inner, k, n, read, sink):
+    """`--deref IDX:K:N` (item 2379, parked 2348): a stub that reads the N
+    bytes its argument K points at when it is called — a caller's local
+    `Command`, gone once the call returns — into `sink` as hex (`null` for a
+    null argument), then answers as `inner` would."""
+    def answer(ecx, args):
+        a = args[k] & 0xFFFFFFFF
+        sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -1499,6 +1515,10 @@ def main(argv):
         for idx, win, off, size, v in STUBWRITE:
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
+        derefs = [[] for _ in DEREF]
+        for (idx, k, n), sink in zip(DEREF, derefs):
+            h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
+                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -1527,7 +1547,7 @@ def main(argv):
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
         log = ""
-        if RECORD:
+        if RECORD or DEREF:
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
@@ -1540,6 +1560,8 @@ def main(argv):
                 else:
                     cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
                                          for e, a_ in calls) or "-")
+            # `--deref`: the bytes each call's argument pointed at (item 2379).
+            cols += ["/".join(sink) or "-" for sink in derefs]
             log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
@@ -1704,7 +1726,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, edx=None, tame=False, stub_write=()):
+                 rows=220, record_order=False, edx=None, tame=False, stub_write=(), deref=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -1781,6 +1803,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
     if any(not 0 <= t < len(psparse) for t in prowsplit.values()):
         raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
+    pderef = []
+    for one in deref:
+        idx, k, n = (int(x, 0) for x in str(one).split(':'))
+        if not 0 <= idx < len(pstubs):
+            raise ValueError('--deref IDX:K:N names one of the --stub callees, by its order on the line')
+        if not 0 <= k < pstubs[idx][2] or n < 1:
+            raise ValueError(f'--deref {one}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one, N >= 1')
+        pderef.append((idx, k, n))
     if record_order and (not precord or prowsplit):
         raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
@@ -1903,6 +1933,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx in precord]
         + (['the recorded calls one token a call, in call order, each headed `sIDX:` (the callee)']
            if record_order else [])
+        + [f'stub {idx} prints the {n} bytes its argument {k} points at, hex, after the record (`/` a call)'
+           for idx, k, n in pderef]
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
@@ -1931,12 +1963,12 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, recordorder=record_order, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, rows=rows)
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
     doc += rowdoc
-    if precord:
+    if precord or pderef:
         logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
                     '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
         logdecl = '        let mut log: Vec<String> = Vec::new();\n'
@@ -2096,6 +2128,22 @@ def kept_port(old, new, todo):
     return new[:at] + old[i:j] + new[at + len(todo):]
 
 
+def insert_mod(text, line):
+    """`text` with `line` (`mod name;`) placed in its last run of `mod` lines
+    at the name's sorted place, or appended where the file has none (item
+    2379, Loop 2003: two batches sorted the appended tail by hand)."""
+    lines = text.splitlines()
+    run = [i for i, ln in enumerate(lines) if re.fullmatch(r'mod \w+;', ln)]
+    if not run:
+        return text + ('' if text.endswith('\n') or not text else '\n') + line + '\n'
+    start = end = run[-1]
+    while start - 1 in run:
+        start -= 1
+    at = next((i for i in range(start, end + 1) if lines[i] > line), end + 1)
+    lines.insert(at, line)
+    return '\n'.join(lines) + '\n'
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2172,6 +2220,9 @@ def main(argv=None):
                     'the list (90%%), not the object; printed last on the row (parked 2141)')
     ap.add_argument('--edx', metavar='LO..HI|V,V,..', help='obj: `edx` an integer drawn from the range or the '
                     'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
+    ap.add_argument('--deref', action='append', default=[], metavar='IDX:K:N',
+                    help='obj: stub IDX prints the N bytes its argument K points at, read when it is called '
+                         '(a caller\'s local the record names only by depth; item 2379, parked 2348)')
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
                     help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
                          'a callee that unlinks the head its caller loops over (item 2346)')
@@ -2230,7 +2281,7 @@ def main(argv=None):
     ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
                     help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
                          'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
-    ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
+    ap.add_argument('--write-mod', action='store_true', help='insert the `mod` line into sweep/mod.rs in sorted order')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
     ap.add_argument('--dry-run', action='store_true')
@@ -2261,7 +2312,8 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, tame=args.tame, stub_write=args.stub_write)
+                                                    edx=args.edx, tame=args.tame, stub_write=args.stub_write,
+                                                    deref=args.deref)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
@@ -2311,8 +2363,8 @@ def main(argv=None):
     sp.chmod(0o755)
     tp.write_text(test)
     if args.write_mod:
-        with open(SWEEP / 'mod.rs', 'a') as f:
-            f.write(mod + '\n')
+        mp = SWEEP / 'mod.rs'
+        mp.write_text(insert_mod(mp.read_text() if mp.exists() else '', mod))
     print(f'{shown(sp)}\n{shown(tp)}\n{mod}'
           + ('' if args.write_mod or args.regen else '  (add to crates/sim/src/sweep/mod.rs)'))
     return 0

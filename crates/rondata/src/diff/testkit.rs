@@ -6415,6 +6415,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_SEVEN: i64 = 1330;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_SEVEN: (i64, i64) = (600, 1331);
 
+/// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
+/// Stable and a Siege Factory for who=0 standing two Military levels past
+/// their units, a Light Horse under Monarchy and a Catapult each side of
+/// Socialism — `get_cost`'s military discount, Monarchy and Socialism arms
+/// in the listing's order, and `train_time`'s Socialism arm on a Siege
+/// Factory.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_EIGHT: i64 = 1360;
+
+/// `chapter_sixty_eight_s_word_frame_is_widened_whole`'s window: run852
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SIXTY_EIGHT: (i64, i64) = (600, 1361);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8765,6 +8777,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_seven_s_word_frame_is_widened_whole"),
         2331,
         Some(WIDENING_CHAPTER_SIXTY_SEVEN),
+    ),
+    // Item 2357: run852, chapter sixty-eight, Socialism's price and a live
+    // military discount. The widening is run852 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_SIXTY_EIGHT,
+        Some("chapter_sixty_eight_s_word_frame_is_widened_whole"),
+        2357,
+        Some(WIDENING_CHAPTER_SIXTY_EIGHT),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.

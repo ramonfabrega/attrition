@@ -2227,6 +2227,7 @@ impl Sim {
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
                 monarchy: self.monarchy_cost_discount(who, ty),
+                socialism: self.socialism_cost_discount(who, ty),
                 discount,
                 stable_rares,
                 liberty,
@@ -2256,6 +2257,38 @@ impl Sim {
         });
         if trainer == Some(nations::ty::STABLES[0]) && held {
             self.tuning.monarchy_unit_prod[0]
+        } else {
+            0
+        }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Socialism arm** (`:666`–`672`, the
+    /// train arm, after Monarchy's): a unit whose trainer (`UnitTypeData
+    /// +0x40`) is the Siege Factory, the Airbase or the Dock, each by
+    /// equality, of a player for whom `has_preq(SOCIALISM_1)` holds, takes
+    /// `SOCIALISM_UNIT_BONUS` — the same predicate as `train_time`'s
+    /// Socialism arm in [`Sim::train_tail`] (item 2357, `docs/GOLDEN.md`
+    /// §85).
+    pub fn socialism_cost_discount(&self, who: Player, ty: usize) -> i32 {
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_);
+        if trainer.is_some_and(|w| {
+            [
+                nations::ty::SIEGE[0],
+                nations::ty::AIRBASE,
+                nations::ty::DOCKS[0],
+            ]
+            .contains(&w)
+        }) && self
+            .bonus_tier_held(
+                who,
+                std::slice::from_ref(&self.tech_tree.roles.socialism_preqs),
+            )
+            .is_some()
+        {
+            self.tuning.socialism_unit_bonus
         } else {
             0
         }

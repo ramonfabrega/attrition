@@ -380,3 +380,14 @@ market transactions (17 `buy` + 27 `sell`), 22 pauses, one `disband`.
 First package (frame 0, `valid = 1`): a lone `leader_options` — the
 player's auto-citizen settings pushed at game start. Every stamp
 contiguous, every payload plain — the SP path of §2 exactly as derived.
+
+The issuing side agrees with §3's table for ten issuers, run under the
+emulator (item 2379, `crates/sim/src/sweep/command_manager_issue_*`):
+`speed_up` 0x35, `speed_down` 0x36, `cheat_ai_toggle` 0x40 and `halt`
+0x0c, `alarm` 0x1b, `recall` 0x23 (length 1, the last three after
+`add_group` answers nonzero); `speed_set` 0x34, `cheat_increase_buckets`
+0x41 and `cheat_zero_buckets` 0x42 (length 5, the argument little-endian
+behind the byte); `pause` 0x4c (length 2, the argument's low byte). Each
+holds the bytes `add_command` is handed, read at the call. The one-byte
+issuers' type is written by a `mov byte` the decompiler drops (it prints
+an unwritten `local_5`); the listing has it.

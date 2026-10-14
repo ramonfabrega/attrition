@@ -523,11 +523,14 @@ shape carries no information and the predicates do:
   `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
   nine tenths, so Salt is worth 10% and the constant is decoration.
 - **Governments.** Despotism has three tiers on barracks units, Monarchy two on
-  stable units (**one** `MONARCHY_UNIT_PROD` on either tier; `..._PROD2` is never read, A1 row 56), Socialism one on siege, aircraft and ships, Democracy two on
+  stable units (**one** `MONARCHY_UNIT_PROD` on either tier; `..._PROD2` is never read, A1 row 56), Socialism one on the Siege Factory's, the Airbase's and the Dock's units (each trainer by equality; the higher docks are not on it), Democracy two on
   research. Each uses the highest held tier, not compounded tiers.
   Monarchy's is built and diff-backed (item 2331, `docs/GOLDEN.md` §84: run845's
   Light Horse at 45/30 where the whole price is 61/41), its own truncation after
-  `MILITARY_UNIT_DISCOUNT`; Socialism's is not (parked 2333).
+  `MILITARY_UNIT_DISCOUNT`, and that order is diff-backed since item 2357 (run852's Light Horse at 47 food where
+  Monarchy first gives 46). ~~Socialism's is not (parked 2333).~~ Socialism's is built and diff-backed since item 2357
+  (`docs/GOLDEN.md` §85: run852's Catapult at 60/60 where the discounted price is 81), its own truncation after
+  Monarchy's. Salmon's naval arm and Maize's ramp term are not built (parked 2358).
   Democracy's non-library term is built; see `docs/AI.md` §109 for the
   rule, run574's paid-price diff, and the remaining review debt.
 - **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per **Military tech level**

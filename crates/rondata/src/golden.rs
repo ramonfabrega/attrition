@@ -2133,6 +2133,10 @@ mod tests {
         // a Light Horse each side of Monarchy (item 2331, `docs/GOLDEN.md`
         // §84).
         ("chapter67.cmd", &[]),
+        // Chapter sixty-eight: a Stable and a Siege Factory under a live
+        // military discount, Monarchy and then Socialism (item 2357,
+        // `docs/GOLDEN.md` §85).
+        ("chapter68.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
