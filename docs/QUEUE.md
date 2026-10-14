@@ -12,19 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirty-second pass is done** (`docs/audit/2026-10-13-fable-pass-32.md`, DECISIONS 69):
-the Opus 5.5 medium trial scored — 23 landings in 4 h 52, **8.14 USD a landing against Sonnet 5.5 medium's
-3.56**, 23.4 min waiting; the words moved a comparable distance (successor 3632 → 4246, Great Sahara 3825 →
-4340 closed, chapters 60–62 closed, census 449 → 571); the sweeps cost 3× for the same ten. The pass
-recommends Sonnet on every lane and **changes no roster**: the thirty-third tranche runs Opus 5.5 medium,
-four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`).*
+*2026-10-14, **the thirty-third tranche: eleven landings booked** (by `git log` from the pass's `d41d5666`), Opus
+5.5 medium on four lanes (DECISIONS 68, 69; the pass recommends Sonnet — Ramon's call). The headline moved three
+times, the successor pair 4246 → 4338 → 4353 → 4603; Great Sahara in the successor lobby closed on its first build
+(3268 of 3268); chapter sixty-three closed at 760 and sixty-four opened at 637; the census 571 → 639. Every booking
+gate green; no kill rule tripped.*
 
-- **Built**: `lanewait.py` exits `7 UNCLEARED <lane> <min>` when a clear's prompt never ran (2127) — answer
-  with one message carrying the prompt; `coll_add` refuses a second paint in debug (2132); closing tests
-  print `Closing fields:` with `build` rows (2128); `unitat.py` prints the ring bottom first, `<current>`
-  last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
-  `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
-  coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
+- **At the commander's clear**: 2187 (tip `eef4890a`) and 2200 (tip `3579cb49`, `obj --argeq`, parked
+  2201–2203) landed on their branches, each census 649 on 639 — merge 2187, book 649 and the fifty-seventh
+  batch as 2211 (park BF, items 2212–2215); 2200 then conflicts on census.rs and takes `ccc update` (659 if
+  disjoint) before its merge, and its lane's next is the port-consumer sweep again. The fourth lane is a
+  second sweep lane (DECISIONS 61): no map word is open. Lane wait `--deep 340` (Loop 2186). Blind list 332.
 - **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, run 838), 2200 (BD), 2187 (BB), 2205 (GOLDEN §80,
   BE, runs 839–840). Next 2211, run 841, AI §215, GOLDEN §81, park BF (pools BF and BG–BL, AI §215–§221, GOLDEN §81–§83).
 - **Fable backlog: 19 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199, 2210).
