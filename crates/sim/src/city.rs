@@ -377,16 +377,15 @@ impl Sim {
     /// counts itself — and `blocked_location`'s is `> egyptians`.
     pub fn num_wonders(&self, c: usize, exclude_city: bool) -> i32 {
         let city = &self.cities[c];
-        std::iter::once(city.building)
-            .chain(city.members.iter().copied())
-            .filter(|&b| {
+        count_wonders(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| {
                 let bd = &self.buildings[b];
-                bd.alive
-                    && bd.ty.is_some_and(|t| self.build_types[t].wonder)
-                    && !self.building_is(b, Ident::RedFort)
-                    && !(exclude_city && self.building_is_city(b))
-            })
-            .count() as i32
+                bd.alive && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+            },
+            |b| self.building_is(b, Ident::RedFort),
+            |b| exclude_city && self.building_is_city(b),
+        )
     }
 
     /// `CityData::get_farm_limit`.
@@ -3305,4 +3304,21 @@ pub(crate) fn distinct_kinds<K: PartialEq>(
         }
     }
     (kinds.len() as i32, false)
+}
+
+/// **`CityData::num_wonders@007382b0`**'s count: the chain's members that
+/// are a `wonder` (`BuildData::is_wonder`, vslot `+0x2c`), then not the
+/// Red Fort (`is(0x216)`, asked only of a wonder), and not `skip_city`
+/// (`exclude_city` and the object's `flags & 0x20`). Item 2276's sweep
+/// holds it.
+pub(crate) fn count_wonders(
+    chain: impl IntoIterator<Item = usize>,
+    mut wonder: impl FnMut(usize) -> bool,
+    mut red_fort: impl FnMut(usize) -> bool,
+    skip_city: impl Fn(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&b| wonder(b) && !red_fort(b) && !skip_city(b))
+        .count() as i32
 }
