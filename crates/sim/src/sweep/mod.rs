@@ -725,6 +725,7 @@ mod unit_do_think_order;
 mod unit_get_goody_box;
 mod unit_kill_current_action;
 mod unit_kill_current_path;
+mod unit_kill_group_move;
 mod unit_on_duty;
 mod unit_order_is_move_attack;
 mod unit_order_walk_data;

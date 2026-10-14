@@ -930,6 +930,55 @@ pub(crate) fn repath_steps<C, G, I>(
     }
 }
 
+/// `Unit::kill_group_move@005e3400`, in the original's own call order
+/// (item 2368's sweep, `crate::sweep::unit_kill_group_move`). With a head
+/// (`+0xdc`), the cursor starts on the first node and, for each order:
+/// `is_move` (vslot `+0x14`), `get_type` (`+0x10`) not `GROUP_ATTACK_TO`
+/// and `is_pathed` (`+0x24`) clear the order's `PATHED` bit and
+/// `kill_current_path` (`5e345d`-`5e348a`); then `get_group_move_order`
+/// (`+0x94`), its id (`+0xc`) against `id`, and the same record's
+/// `is_move` and `get_type` not `GROUP_ATTACK_TO` call
+/// `kill_current_order(0)` **inside the walk** (`5e3497`-`5e34ce`), which
+/// moves the cursor to the new head. The cursor advances while there is a
+/// head, and the walk goes round while the count (`+0xd8`) is not zero and
+/// the advanced node's `+0` is not the tail (`5e34d3`-`5e351a`).
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn kill_group_move_steps<C, K: Copy>(
+    cx: &mut C,
+    id: i64,
+    first: impl Fn(&mut C) -> Option<K>,
+    has_head: impl Fn(&mut C) -> bool,
+    next: impl Fn(&mut C, K) -> K,
+    more: impl Fn(&mut C, K) -> bool,
+    mut is_move: impl FnMut(&mut C, K) -> bool,
+    mut get_type: impl FnMut(&mut C, K) -> i32,
+    mut is_pathed: impl FnMut(&mut C, K) -> bool,
+    mut unpath: impl FnMut(&mut C, K),
+    mut kill_path: impl FnMut(&mut C),
+    mut group_id: impl FnMut(&mut C, K) -> Option<i64>,
+    mut kill_current: impl FnMut(&mut C, K) -> K,
+) {
+    let Some(mut k) = first(cx) else {
+        return;
+    };
+    let gat = i32::from(index::GROUP_ATTACK_TO);
+    loop {
+        if is_move(cx, k) && get_type(cx, k) != gat && is_pathed(cx, k) {
+            unpath(cx, k);
+            kill_path(cx);
+        }
+        if group_id(cx, k) == Some(id) && is_move(cx, k) && get_type(cx, k) != gat {
+            k = kill_current(cx, k);
+        }
+        if has_head(cx) {
+            k = next(cx, k);
+        }
+        if !more(cx, k) {
+            return;
+        }
+    }
+}
+
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Did {
@@ -5860,27 +5909,37 @@ impl Sim {
         );
     }
 
-    /// `Unit::kill_group_move@005e3400` for one member: its orders lose
-    /// the group plan, and one carrying `id` that is **not** an
-    /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
+    /// `Unit::kill_group_move@005e3400` for one member: each pathed move
+    /// but a `GROUP_ATTACK_TO` loses its plan, and a group order carrying
+    /// `id` that is not a `GROUP_ATTACK_TO` kills the head where the walk
+    /// stands. The walk is [`kill_group_move_steps`] (item 2368), which the
+    /// sweep `sweep::unit_kill_group_move` holds to the original.
     fn unit_kill_group_move(&mut self, u: usize, id: i64) {
-        let mut kill = false;
-        for j in 0..self.units[u].orders.len() {
-            let Body::Move(m) = self.units[u].orders[j].body else {
-                continue;
-            };
-            if m.kind == MoveKind::AttackTo {
-                continue;
-            }
-            self.units[u].orders[j].flags &= !flag::PATHED;
-            self.kill_current_path(u);
-            if m.group.is_some_and(|x| x.id == id) {
-                kill = true;
-            }
-        }
-        if kill {
-            self.kill_current_order(u);
-        }
+        kill_group_move_steps(
+            self,
+            id,
+            |s| (!s.units[u].orders.is_empty()).then_some(0),
+            |s| !s.units[u].orders.is_empty(),
+            |s, k| (k + 1) % s.units[u].orders.len(),
+            // `+0xd8` and the advanced node's `prev` against the tail
+            // (`5e3503`-`5e351a`): a non-empty list not wrapped to its first.
+            |s, k| !s.units[u].orders.is_empty() && k != 0,
+            |s, k| s.units[u].orders[k].is_move(),
+            |s, k| i32::from(s.units[u].orders[k].index()),
+            |s, k| s.units[u].orders[k].has(flag::PATHED),
+            |s, k| s.units[u].orders[k].flags &= !flag::PATHED,
+            |s| s.kill_current_path(u),
+            |s, k| match s.units[u].orders[k].body {
+                Body::Move(m) => m.group.map(|g| g.id),
+                _ => None,
+            },
+            // `kill_current_order` kills the head and leaves the engine's
+            // cursor on the new head (`5e2cb0`), whatever order matched.
+            |s, _| {
+                s.kill_current_order(u);
+                0
+            },
+        );
     }
 
     /// Writes a move order's fields back to the front of the list.
