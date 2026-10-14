@@ -1121,6 +1121,7 @@ CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
 RECORD = {record!r}
+ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
@@ -1157,6 +1158,22 @@ def token(v, spans):
         if at <= v <= at + size:
             return f"{{name}}+{{v - at:#x}}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
+
+
+def by_row(calls, base, stride, n, spans):
+    """`--record IDX@S` (item 2309): a stub's calls `(ecx, args)` split by
+    the row of a sparse table their `ecx` lies in — one token a row, `ecx`
+    written `r+OFF` within it, `-` for a row not called — and a last token
+    for the calls whose `ecx` lies outside the table."""
+    cols = [[] for _ in range(n + 1)]
+    for ecx_, args_ in calls:
+        k = ((ecx_ & 0xFFFFFFFF) - base) // stride
+        if 0 <= k < n:
+            head = f"r+{{(ecx_ & 0xFFFFFFFF) - base - k * stride:#x}}"
+        else:
+            k, head = n, token(ecx_, spans)
+        cols[k].append(",".join([head] + [token(v, spans) for v in args_]))
+    return ["/".join(col) or "-" for col in cols]
 
 
 def wdraw(rng, vals):
@@ -1242,6 +1259,7 @@ def main(argv):
             shape(rng, f"c{{k}}", b)
         for k, b in enumerate(p):
             shape(rng, f"p{{k}}", b)
+        tables = []
         for win, loc, stride, n, slices in SPARSE:
             # A table of N rows STRIDE apart of which the function reads a
             # few slices: the table zeroed, each row's slices `p` windows, the
@@ -1254,6 +1272,7 @@ def main(argv):
             else:
                 tbase = h.alloc(stride * n + 0x20)
                 uc.mem_write(tbase, bytes(stride * n))
+            tables.append((tbase, stride, n))
             for k in range(n):
                 for off, size in slices:
                     b = bytearray(rng.randrange(256) for _ in range(size))
@@ -1408,10 +1427,15 @@ def main(argv):
         if RECORD:
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
-            log = " # " + " ".join(
-                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
-                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
-                for idx in RECORD)
+            cols = []
+            for idx in RECORD:
+                calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
+                if idx in ROWSPLIT:
+                    cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
+                else:
+                    cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
+                                         for e, a_ in calls) or "-")
+            log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
 
@@ -1615,9 +1639,16 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
-    precord = [int(k, 0) for k in record]
+    precord, prowsplit = [], {}
+    for one in record:
+        k, at, tab = str(one).partition('@')
+        precord.append(int(k, 0))
+        if at:
+            prowsplit[int(k, 0)] = int(tab, 0)
     if any(not 0 <= k < len(pstubs) for k in precord):
         raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
+    if any(not 0 <= t < len(psparse) for t in prowsplit.values()):
+        raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -1702,6 +1733,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
+           + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
+              f'then the calls outside it)' if idx in prowsplit else '')
            for idx in precord]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
@@ -1721,7 +1754,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, links=plinks)
+                                   sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1911,10 +1944,11 @@ def main(argv=None):
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
                     help='obj: argument IDX copies the 32-bit word at WIN+OFF (45%%) once every window is laid — '
                          'an argument compared with a placed record\'s field (item 2200)')
-    ap.add_argument('--record', action='append', default=[], metavar='IDX',
+    ap.add_argument('--record', action='append', default=[], metavar='IDX[@S]',
                     help='obj: stub IDX\'s calls printed after ` # `, each `ecx,arg..` with a pointer into a '
                          'window by its name, and held to a `log` the port pushes (a tail target\'s hand-off; '
-                         'item 2281)')
+                         'item 2281); `@S` splits them by the row of --sparse table S their `ecx` lies in, a '
+                         'token a row and one for the rest (a walk of the leaders table; item 2309)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
