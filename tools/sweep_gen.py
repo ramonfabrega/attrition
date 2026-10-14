@@ -103,7 +103,9 @@ Three shapes, each a `__thiscall` on `ecx`:
           `--outarg IDX:K:VALS` (item 2325) makes stub IDX write a value
           drawn from VALS through its argument K — the caller's local,
           as `get_inside` writes a player index — printed after the
-          answers and `o` in a place.
+          answers and `o` in a place; `--stub-cdecl IDX` hooks a direct
+          callee as `__cdecl`, its arguments left for the caller to pop
+          (`memcpy`, an import).
 
   void    `obj` with no answer: an empty body (`ret N`), `--own N`, every
           byte of the object held and `esp` checked after the return
@@ -1134,6 +1136,7 @@ RECORD = {record!r}
 ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
 OUTARG = {outarg!r}
+CDECLSTUBS = {cdeclstubs!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1228,7 +1231,9 @@ def shape(rng, name, buf):
 def main(argv):
     from hooks import Harness
     rng = random.Random({item})
-    h = Harness(argv[1], {{a: (f"{{a:x}}", n) for k, a, n in STUBS if k == "call"}})
+    # `--stub-cdecl IDX`: the callee's arguments are the caller's to pop (item 2325).
+    h = Harness(argv[1], {{a: (f"{{a:x}}", n, False, i in CDECLSTUBS) for i, (k, a, n) in enumerate(STUBS)
+                          if k == "call"}})
     uc = h.m.uc
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
@@ -1623,7 +1628,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1668,6 +1673,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
+    pcdecl = [int(k, 0) for k in stub_cdecl]
+    if any(not 0 <= k < len(pstubs) or pstubs[k][0] != 'call' for k in pcdecl):
+        raise ValueError('--stub-cdecl IDX names a direct callee among the --stub callees, by its order on the line')
     pout = []
     for o in outarg:
         idx, k, vals = o.split(':', 2)
@@ -1741,7 +1749,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse or plinks or pout):
+            or pseq or pansr or pthis or palso or phalf or psparse or plinks or pout or pcdecl):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1777,6 +1785,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
+        + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
@@ -1796,7 +1805,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout)
+                                   outarg=pout, cdeclstubs=pcdecl)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -2054,6 +2063,9 @@ def main(argv=None):
                     help='obj: stub IDX writes a value drawn from the list or range through its argument K '
                          '(unless null), printed after the answers, `o` in a place (a callee that answers through '
                          'the address of the caller\'s local: `get_inside`; item 2325)')
+    ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
+                    help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
+                         'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
@@ -2084,7 +2096,7 @@ def main(argv=None):
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, links=args.link,
-                                                    outarg=args.outarg)
+                                                    outarg=args.outarg, stub_cdecl=args.stub_cdecl)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

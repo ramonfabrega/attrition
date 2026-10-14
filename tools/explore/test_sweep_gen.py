@@ -622,6 +622,28 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
                                    stubs=['0x402000:1'], outarg=['0:1:0..7'])
 
+    def test_a_stubbed_callee_may_leave_its_arguments_to_the_caller(self):
+        # Item 2325: `BuildQueue::un_queue` calls `memcpy` (an import, which
+        # the emulator cannot enter) and pops its three arguments itself
+        # (`add esp, 0xc`); a stub that popped them too left `esp` twelve
+        # bytes high. `--stub-cdecl IDX` hooks stub IDX as `__cdecl`: its
+        # arguments are read and recorded, and only the return is popped.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+            stubs=['0x402000:3', '0x403000:1'], stub_cdecl=['0'], record=['0'], ret='none', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CDECLSTUBS = [0]', script)
+        self.assertIn('stub 0 is `__cdecl`: the caller pops its arguments', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['slot:0x10:1'], stub_cdecl=['0'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2325, win=0x20, bias=[], own=0,
+                                   stubs=['0x402000:3'], stub_cdecl=['1'])
+        # The hook pops the return address alone for a `__cdecl` callee.
+        src = (ROOT / 'tools/emu/hooks.py').read_text()
+        self.assertIn('cdecl', src[src.index('def _on_code'):])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
