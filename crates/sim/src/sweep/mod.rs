@@ -647,6 +647,7 @@ mod unbuilt_forts_remove_unbuilt_fort;
 mod unbuilt_wonder_is_started;
 mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_remove_unbuilt_wonder;
+mod unit_add_air_patrol_order;
 mod unit_add_think_order;
 mod unit_air_turn_speed;
 mod unit_data_action_type;
