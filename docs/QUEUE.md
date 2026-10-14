@@ -25,9 +25,9 @@ four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort 
   last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
   `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
   coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
-- **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, run 838), 2107 (AI §211, AR, runs 830–832, 834), 2187 (BB), 2165 (GOLDEN §79,
-  AX, runs 835–836). Next 2199, run 839, AI §215, GOLDEN §80, park BD (pools BD–BF, AI §215–§221, GOLDEN §80–§83).
-- **Fable backlog: 17 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198).
+- **Lanes live** (tranche 33, 2026-10-14): 2193 (AI §214, BC, run 838), 2200 (BD), 2187 (BB), 2165 (GOLDEN §79,
+  AX, runs 835–836). Next 2205, run 839, AI §215, GOLDEN §80, park BE (pools BE–BF, AI §215–§221, GOLDEN §80–§83).
+- **Fable backlog: 18 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104, 2145, 2146, 2154, 2180, 2186, 2198, 2199).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,7 +36,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4603 of 5,056
 Census: simulation backed 632 of 3611
-Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340
+Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
@@ -46,7 +46,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2193 the headline's word, 2107, 2165 and 2187 the other three lanes —
+2193 the headline's word, 2165, 2187 and 2200 the other three lanes —
 lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -59,11 +59,11 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     run820's recipe at `--log-window 4597 4853` (parked 2176), then every
     record on 4604 both ways. East Indies, Mongols. AI §214.
 
-2107. **Great Sahara in the successor pair's lobby** (DECISIONS 56 §1):
-    the closed map's successor; 2106's closing state agrees (0s) — seed
-    12345, the successor pair's settings (Mongols, All Technologies) on
-    map style 7, a `cover=0` trace to the game's end, the lobby read
-    back; its first parting is the third map's word.
+2200. **A second sweep lane: ten never-backed functions with a port
+    consumer** (DECISIONS 61, a lane with no word of its own; parked
+    1725; 2107 closed the third map's successor on its first build, so
+    no map word is open). 2187's shape, its ten excluded by name; the
+    score `Census:` as 2187's. `--kind sweep`.
 
 2165. **Chapter sixty-four: the arms the AI track built that no walk
     holds** (DECISIONS 56 §3; 2131 closed chapter sixty-three at 760, a

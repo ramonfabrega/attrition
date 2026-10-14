@@ -3771,6 +3771,12 @@ successor pair's word sat on it. Candidate: a brief-checklist row — "a flag pr
 checked at each reader against the reader's own vslot" — or a grep guard over `crates/sim` for the copied predicate.
 One reach.
 
+(2199) **A long launched without `--detail` is a silent waste** (2107's "for the Loop" line). run830 was the
+long with no `--detail`: the runner staged `end:UNITS=3` on every frame (37 minutes, 717 MB) and the walker cannot
+stand on it, so run831 became the long. Every `captures.txt` entry says "run652's details" and none prints them.
+Candidate: `unattended_capture.py` refuses `--log-window 0 24001` with no `--detail`, or `captures.txt` carries the
+long's line whole, flags included, with a test made to fail first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
