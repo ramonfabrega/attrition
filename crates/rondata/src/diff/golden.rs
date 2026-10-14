@@ -16784,13 +16784,18 @@ fn stage_walk() {
                     city.members.iter().map(|&m| s.buildings[m].index).collect();
                 now.push((
                     format!("c{c}"),
+                    // Item 2235: the capital bit and the alarm's two
+                    // stamps (`Sim::city_alarm`).
                     format!(
-                        "C {}/{} alive={} under_attack={} attacking={} members={members:?}",
+                        "C {}/{} alive={} under_attack={} attacking={} capital={} raid_stamp={} attack_stamp={} members={members:?}",
                         city.owner,
                         s.buildings[city.building].index,
                         city.alive,
                         city.no_heal,
-                        city.attacking
+                        city.attacking,
+                        city.capital,
+                        city.raid_stamp,
+                        city.attack_stamp
                     ),
                 ));
             }
