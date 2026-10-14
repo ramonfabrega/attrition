@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_unit_type_restore.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 768-byte object of random bytes (no bias), 1 stack argument(s);
-argument 0 names 816 random bytes (null a third of the rows); callee 0x0065fb30 (1 args) stubbed.
+argument 0 names 816 random bytes (null a third of the rows); callee 0x0065fb30 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -49,6 +49,7 @@ ANSRANGE = []
 CELLTHIS = []
 VTALSO = []
 SPARSE = []
+RECORD = [0]
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -74,6 +75,16 @@ def u16(w, off):
 
 def u8(w, off):
     return w[off]
+
+
+def token(v, spans):
+    """A recorded value: a pointer into a window by the window's name and
+    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    v &= 0xFFFFFFFF
+    for name, at, size in spans:
+        if at <= v <= at + size:
+            return f"{name}+{v - at:#x}"
+    return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
 def wdraw(rng, vals):
@@ -310,7 +321,18 @@ def main(argv):
         shown = ([str(a) for a in args] + [str(v) for v in answers]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]))
-        print(" ".join(shown) + f" | {before} -> {r} | {after}")
+        # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
+        # calls joined by `/`, `-` when it was not called, after ` # `
+        # (item 2281: a tail target's `ecx` and argument, parked 2272).
+        log = ""
+        if RECORD:
+            spans = [("m", this, WIN)] + [(f"c{k}" if k < nc else f"p{k - nc}", a_, len(b))
+                                          for k, (a_, b) in enumerate(wins)]
+            log = " # " + " ".join(
+                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
+                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
+                for idx in RECORD)
+        print(" ".join(shown) + f" | {before} -> {r} | {after}" + log)
     return 0
 
 

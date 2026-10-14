@@ -481,6 +481,44 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
                                    ptrargs=['0:0x40'], ptrarg_null=['1'])
 
+    def test_a_stub_may_record_what_it_was_handed(self):
+        # Item 2281 (Loop 2003, parked 2272 and 2219): six of 2271's ten end
+        # in `pop ebp; jmp` into the base class's twin, and a stubbed tail
+        # target answered without a row saying what `ecx` and argument it
+        # was handed. `--record IDX` prints stub IDX's calls after ` # `,
+        # each `ecx,arg..` with a pointer into a window named by it
+        # (`m+0x0`, `p0+0x10`), `-` when it was not called; the test hands
+        # the port a `log` and holds it to the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+            ptrargs=['0:0x40'], ptrarg_null=['0'], stubs=['0x402000:1'], record=['0'], ret='none',
+            port='{ log.push("-".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORD = [0]', script)
+        self.assertIn('def token(', script)
+        self.assertIn('" # "', script)
+        self.assertIn('let mut log: Vec<String> = Vec::new();', test)
+        self.assertIn('split_once(" # ")', test)
+        self.assertIn('stub 0 records its `ecx` and arguments', test)
+        # Without the flag the row and the test are as before.
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+            ptrargs=['0:0x40'], stubs=['0x402000:1'], ret='none', port='0')
+        self.assertIn('RECORD = []', script2)
+        self.assertNotIn('split_once(" # ")', test2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+                                   stubs=['0x402000:1'], record=['1'])
+        # The token: a pointer into a window by its name, anything else signed.
+        ns = {}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20), ('p0', 0x2000, 0x40)]
+        self.assertEqual(ns['token'](0x1000, spans), 'm+0x0')
+        self.assertEqual(ns['token'](0x2010, spans), 'p0+0x10')
+        self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
+        self.assertEqual(ns['token'](0, spans), '0')
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.
