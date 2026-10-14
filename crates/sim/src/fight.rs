@@ -2375,6 +2375,9 @@ impl Sim {
         whole: i32,
         frame: i64,
     ) -> bool {
+        if std::env::var_os("RON_PROBE_2235").is_some() {
+            eprintln!("PROBE2235 f{frame} att {attacker:?} tgt {target:?} whole {whole} siege {siege} {:?}", match target { Obj::Building(b) => Some((self.buildings[b].owner, self.buildings[b].index, self.buildings[b].active, self.buildings[b].city, self.buildings[b].damage, self.buildings[b].hits_now())), _ => None });
+        }
         let Obj::Building(b) = target else {
             return false;
         };
