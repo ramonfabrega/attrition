@@ -691,15 +691,6 @@ impl Sim {
         // jumps straight to the add (`005f7891`). `ArmyData::get_unit(0)`
         // is the army's first member — the unit every later joiner is sent
         // to stand beside.
-        if std::env::var("RON_PROBE_2117").is_ok() {
-            let a = &self.armies[who as usize].list[slot];
-            let first = self.army_get_unit(who, slot, 0);
-            eprintln!(
-                "PROBE2117 f{} add_to_army {}/{} slot {slot} num_units {} units {:?} group {:?} first {:?} first_alive {:?} first_pos {:?} me {:?}",
-                self.frame, who, u, a.num_units, a.units, a.group.pool, first,
-                first.map(|f| self.units[f].alive()), first.map(|f| self.units[f].pos), self.units[u].pos
-            );
-        }
         if self.armies[who as usize].list[slot].num_units != 0
             && let Some(first) = self.army_get_unit(who, slot, 0)
             && self.units[first].alive()
@@ -770,11 +761,7 @@ impl Sim {
     /// the whole squad — pushed with `force = 1`, and moved with
     /// `QUEUE_NEW`, `set_angle 0`, `angle 0`, `action 0`, `form/width −1`.
     fn go_to(&mut self, u: usize, to: Pos, kind: MoveKind, min: i32, max: i32) {
-        let spot_ = self.find_nearby_spot_squad(u, to, min, max, 0, Angle(0x5555_5555));
-        if std::env::var("RON_PROBE_2117").is_ok() {
-            eprintln!("PROBE2117 f{} go_to {u} to {to:?} spot {spot_:?}", self.frame);
-        }
-        let Some(spot) = spot_ else {
+        let Some(spot) = self.find_nearby_spot_squad(u, to, min, max, 0, Angle(0x5555_5555)) else {
             return;
         };
         let mut g = crate::group::Group::stack(self.units[u].owner);
@@ -783,11 +770,6 @@ impl Sim {
             return;
         }
         self.group_action_move_to(&g, spot, QueuePos::New, false, Angle(0), kind, false);
-        if std::env::var("RON_PROBE_2117").is_ok() {
-            for &m in &g.list {
-                eprintln!("PROBE2117 f{} go_to after {m} orders {:?}", self.frame, self.units[m].orders.iter().map(|o| format!("{:?}", o.body)).map(|s| s.chars().take(60).collect::<String>()).collect::<Vec<_>>());
-            }
-        }
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, flag 0x200, FILTER_ALL)`:
