@@ -760,3 +760,4 @@ mod world_set_tocean;
 mod world_set_was_seen;
 mod world_set_waterhalf;
 mod groups_push_group;
+mod object_data_attack_dist_at;
