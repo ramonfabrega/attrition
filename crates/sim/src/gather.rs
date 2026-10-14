@@ -160,6 +160,21 @@ const ORTHOG: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 /// units, three tiles.
 const ACCESS_NEAR: i32 = 0x240;
 
+/// `total_gather_access`'s test on one list tile, in world units from the
+/// footprint's centre `(cx, cy)` to the tile's: past the ring when the
+/// Manhattan sum is over [`ACCESS_NEAR`] or either axis reaches it. The
+/// arithmetic wraps as the listing's 32-bit `sub`/`cdq`/`add` do.
+pub(crate) fn beyond_access_ring(cx: i32, cy: i32, p: Pos) -> bool {
+    let half = UNITS_PER_TILE / 2;
+    let d = |c: i32, t: i32| {
+        c.wrapping_sub(t.wrapping_mul(UNITS_PER_TILE))
+            .wrapping_sub(half)
+            .wrapping_abs()
+    };
+    let (dx, dy) = (d(cx, p.x), d(cy, p.y));
+    dx.wrapping_add(dy) > ACCESS_NEAR || dx >= ACCESS_NEAR || dy >= ACCESS_NEAR
+}
+
 /// What a gather building's slot count is being computed for: an existing
 /// building, which reads its own `MiningList`, or a prospective site, which
 /// surveys the map (`max_gatherers`' `o < 0 || who < 0` branch).
@@ -660,18 +675,9 @@ impl Sim {
         let half = UNITS_PER_TILE / 2;
         let cx = corner.x * UNITS_PER_TILE + t.x_size * half;
         let cy = corner.y * UNITS_PER_TILE + t.y_size * half;
-        let mut n = 0;
-        for &p in list {
-            if !self.has_gather_access(p, who) {
-                continue;
-            }
-            let dx = (cx - p.x * UNITS_PER_TILE - half).abs();
-            let dy = (cy - p.y * UNITS_PER_TILE - half).abs();
-            if dx + dy > ACCESS_NEAR || dx >= ACCESS_NEAR || dy >= ACCESS_NEAR {
-                n += 1;
-            }
-        }
-        n
+        list.iter()
+            .filter(|&&p| self.has_gather_access(p, who) && beyond_access_ring(cx, cy, p))
+            .count() as i32
     }
 
     /// `WorldData::has_gather_access@006b4e50` with `param_4 = param_5 = 0`:
