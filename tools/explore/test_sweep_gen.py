@@ -635,6 +635,42 @@ class Shapes(unittest.TestCase):
         self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
         self.assertEqual(ns['token'](0, spans), '0')
 
+    def test_a_stub_may_print_the_bytes_an_argument_points_at(self):
+        # Item 2379 (parked 2348): `CommandManager::issue_speed_up` and its
+        # siblings hand `add_command` the address of a local `Command` whose
+        # bytes are gone once the call returns, and `--record` printed only
+        # its depth (`sp-0x9`), so a break that writes the wrong command type
+        # passed. `--deref IDX:K:N` reads N bytes at stub IDX's argument K at
+        # call time, hex, calls joined by `/`, `-` when it was not called,
+        # `null` for a null argument, after the record's columns.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2379, win=0x20, bias=[], own=0,
+            stubs=['0x402000:0', '0x403000:2'], deref=['1:0:2'], ret='none',
+            port='{ log.push("3501".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn('DEREF = [(1, 0, 2)]', script)
+        self.assertIn('def read_arg(', script)
+        self.assertIn('split_once(" # ")', test)
+        self.assertIn('let mut log: Vec<String> = Vec::new();', test)
+        self.assertIn('stub 1 prints the 2 bytes its argument 0 points at', test)
+        # The wrapper reads at call time and answers as the stub would.
+        ns = {}
+        body = script[script.index('def read_arg('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        seen = []
+        ans = ns['read_arg'](7, 0, 2, lambda a, n: bytes([a & 0xFF, n]), seen)
+        self.assertEqual(ans(0, [0x35, 1]), 7)
+        self.assertEqual(ans(0, [0, 1]), 7)
+        self.assertEqual(seen, ['3502', 'null'])
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2379, win=0x20, bias=[], own=0, stubs=['0x402000:2'], ret='none', port='0')
+        self.assertIn('DEREF = []', script2)
+        self.assertNotIn('split_once(" # ")', test2)
+        for bad in (['1:0:2'], ['0:2:2'], ['0:0:0']):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=2379, win=0x20, bias=[], own=0,
+                                       stubs=['0x402000:2'], deref=bad)
+
     def test_an_obj_may_draw_more_rows(self):
         # Item 2314 (Loop 2003, 2287's line): `Object::valid_target` and
         # `UnitData::is_gathering_at` each had an arm few of 220 rows

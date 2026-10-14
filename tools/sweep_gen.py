@@ -1163,6 +1163,7 @@ LINKS = {links!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
+DEREF = {deref!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1251,6 +1252,18 @@ def win_write(inner, at, size, v, write):
     as `inner` would."""
     def answer(ecx, args):
         write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def read_arg(inner, k, n, read, sink):
+    """`--deref IDX:K:N` (item 2379, parked 2348): a stub that reads the N
+    bytes its argument K points at when it is called — a caller's local
+    `Command`, gone once the call returns — into `sink` as hex (`null` for a
+    null argument), then answers as `inner` would."""
+    def answer(ecx, args):
+        a = args[k] & 0xFFFFFFFF
+        sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -1487,6 +1500,10 @@ def main(argv):
         for idx, win, off, size, v in STUBWRITE:
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
+        derefs = [[] for _ in DEREF]
+        for (idx, k, n), sink in zip(DEREF, derefs):
+            h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
+                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -1515,7 +1532,7 @@ def main(argv):
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
         log = ""
-        if RECORD:
+        if RECORD or DEREF:
             spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
@@ -1528,6 +1545,8 @@ def main(argv):
                 else:
                     cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
                                          for e, a_ in calls) or "-")
+            # `--deref`: the bytes each call's argument pointed at (item 2379).
+            cols += ["/".join(sink) or "-" for sink in derefs]
             log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
@@ -1692,7 +1711,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, edx=None, tame=False, stub_write=()):
+                 rows=220, record_order=False, edx=None, tame=False, stub_write=(), deref=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -1769,6 +1788,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
     if any(not 0 <= t < len(psparse) for t in prowsplit.values()):
         raise ValueError('--record IDX@S names a --sparse table S, by its order on the line (item 2309)')
+    pderef = []
+    for one in deref:
+        idx, k, n = (int(x, 0) for x in str(one).split(':'))
+        if not 0 <= idx < len(pstubs):
+            raise ValueError('--deref IDX:K:N names one of the --stub callees, by its order on the line')
+        if not 0 <= k < pstubs[idx][2] or n < 1:
+            raise ValueError(f'--deref {one}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one, N >= 1')
+        pderef.append((idx, k, n))
     if record_order and (not precord or prowsplit):
         raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
@@ -1882,6 +1909,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            for idx in precord]
         + (['the recorded calls one token a call, in call order, each headed `sIDX:` (the callee)']
            if record_order else [])
+        + [f'stub {idx} prints the {n} bytes its argument {k} points at, hex, after the record (`/` a call)'
+           for idx, k, n in pderef]
         + [f'stub {idx} writes a value in '
            + (f'{v[1]}..{v[2]}' if v[0] == 'range' else str(v[1]))
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
@@ -1910,12 +1939,12 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
                                    sparse=psparse, record=precord, recordorder=record_order, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, rows=rows)
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
     doc += rowdoc
-    if precord:
+    if precord or pderef:
         logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
                     '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
         logdecl = '        let mut log: Vec<String> = Vec::new();\n'
@@ -2143,6 +2172,9 @@ def main(argv=None):
                     'the list (90%%), not the object; printed last on the row (parked 2141)')
     ap.add_argument('--edx', metavar='LO..HI|V,V,..', help='obj: `edx` an integer drawn from the range or the '
                     'list (90%%), beside `ecx`; printed after `ecx` on the row (item 2346, parked 2338)')
+    ap.add_argument('--deref', action='append', default=[], metavar='IDX:K:N',
+                    help='obj: stub IDX prints the N bytes its argument K points at, read when it is called '
+                         '(a caller\'s local the record names only by depth; item 2379, parked 2348)')
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
                     help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
                          'a callee that unlinks the head its caller loops over (item 2346)')
@@ -2231,7 +2263,8 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, tame=args.tame, stub_write=args.stub_write)
+                                                    edx=args.edx, tame=args.tame, stub_write=args.stub_write,
+                                                    deref=args.deref)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
