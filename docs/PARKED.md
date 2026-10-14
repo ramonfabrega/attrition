@@ -4881,13 +4881,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BQ — reserved
+## Parked by item 2304, 2026-10-14 — chapter sixty-six: a round leaves its release node
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2305) **Chapter sixty-six's two other arms stay unwalked: 2111 and 2196** (item 2304, `docs/GOLDEN.md` §83; names
+no score). 2304 took the release point, the arm the disk already parted on. `ai_sites`' wrapping decrement (2111)
+needs a computer's census adjustment to meet a city at zero gatherers, and no capture under `!ai off` runs the AI
+that adjusts; `land_tail`'s `buildings` toggle (2196) needs a building group whose `list[0]` turns, which no
+staging builds. Run 845 was reserved for the chapter and not taken: two packets on disk (run839, run842) answered
+the release rows. A chapter that books either names its staging first.
 
 ## Parked by the next landing, slot BR — reserved
 
