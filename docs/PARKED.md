@@ -3735,6 +3735,23 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-14 — the thirty-fourth tranche's
 
+(2408) **The box is a build bottleneck of the loop's own making** (the thirty-fourth steer, Ramon and the pass;
+Loop). This tranche ran about seventy full `cargo --release` builds and suites in six hours — 24 lane-gate
+verdicts, 23 booking gates, a whole-suite run before most lane gates — on one sixteen-core box with no cache
+across the worktrees, so every `ccc update` recompiles a lane's workspace and four builds at once each run about
+four times slower; gate minutes a landing rose 8.4 → 11.5 and the suite's 5.3 → 9.1, and the waiting broke a
+fifth (DECISIONS 71). Candidate: `sccache` (or a shared read-only artifact directory) across the lanes' worktrees,
+measured by `tools/tranche.py`'s gate and suite minutes before and after on one tranche — the pass's to build,
+with the stale-binary trap of 1629 in mind. Two reaches (the twenty-eighth tranche's starvation, parked 1693; this).
+
+(2409) **The whole-suite run before the lane gate is the booking gate's work done twice** (the thirty-fourth
+steer; Loop). The frame's landing row says "run the whole suite once; commit, then gate", and the lane gate then
+runs the word's filters and the fast tests while the booking gate runs the timed ones (1567): the suite run is a
+third full build-and-test per landing, 9.1 minutes of waiting a landing this tranche. Candidate: the row becomes
+"run the word's filters and the widenings a shared path reaches (1313), never the whole suite", with
+`test_brief` holding it; or the measure first — whether any lane's whole-suite run caught what its gate did not.
+One reach.
+
 (2405) **The caller scan for a pair's lobby is a third-time shape** (2320's "for the Loop" line, filed by the
 thirty-fourth pass at the tranche's end — the commander's merge did not file it). 1466's scan — never-entered
 simulation functions with an entered direct `E8` caller, the frontier a new lobby would enter — was written again by

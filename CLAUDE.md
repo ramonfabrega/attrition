@@ -430,11 +430,13 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**every lane runs Opus 5.5 at `--effort medium`** for the
-thirty-second tranche (Ramon, at the thirty-first steer, DECISIONS 68:
-`ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`, the honest
-trial Sonnet 5.5 medium had for three tranches, DECISIONS 65; the model
-and effort verified from each worker's transcript — the harness's
+**three lanes for the thirty-fifth tranche: Opus 5.5 at `--effort
+medium` on the AI word's lane, Sonnet 5.5 at `--effort medium` on the
+rules track and the one sweep lane** (Ramon, at the thirty-fourth steer,
+DECISIONS 71: `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`
+and `--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
+tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
+model and effort verified from each worker's transcript — the harness's
 defaults differ by model, and a trial once moved two settings for one).
 **Two kill rules ride with a medium lane**: a booking gate red on its merge for what its
 own lane gate passed returns that lane to Opus 5.5 at high — **a red

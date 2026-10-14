@@ -5505,6 +5505,21 @@ against 216; the backlog against nine, and whether 1900, 2146 and 2240
 reached; and whether every journal's "for the Loop" line is in the
 parked file at the handoff.
 
-**The roster and the lane count for the thirty-fifth tranche**: Opus 5.5
-at `--effort medium` on four lanes, entry 68's, until Ramon's word at
-this steer replaces this paragraph.
+**The roster and the lane count for the thirty-fifth tranche — Ramon's
+word at this steer, 2026-10-14**: **three lanes**. The AI word's lane
+(2384) on **Opus 5.5 at `--effort medium`** (`ccc spawn --model
+'claude-opus-5-5[1m]' --effort medium`); the rules track (2389) and the
+one sweep lane (2395, then 2400) on **Sonnet 5.5 at `--effort medium`**
+(`--model 'claude-sonnet-5-5[1m]' --effort medium`) — the pass's option
+A: the rules track is where Sonnet's three tranches came closest (2.5
+chapters a tranche against 3, 2 and 4, at 5.78 a landing against 9.02),
+the headline word is where Opus closed three maps and Sonnet none, and
+the sweep is the same product at under half the price. The kill rules
+stand (a lane that lands nothing in three attempts on one word gets an
+Opus-high successor). The fourth lane returns by entry 61 §5 when the
+waiting comes back inside a fifth. **And two findings of the steer are
+Loop rows** (parked 2408, 2409): the box is a build bottleneck of the
+loop's own making — about seventy full release builds and suites in six
+hours, no cache across the worktrees — so a build cache is the next
+pass's to measure, and the whole-suite run before the lane gate is the
+booking gate's work done twice.

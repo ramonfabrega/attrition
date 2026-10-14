@@ -18,12 +18,12 @@ measured, 7.07 USD and 36.3 minutes waiting a landing, every lane Opus 5.5 mediu
 - **Words**: the successor pair closed at 5056 (2293); the peace pair (2320: East Indies, the Lakota, All
   Technologies, `RUSH_RULES 10`, ends at 6822) at 1984 (2351), the open word. Chapters 65–68 closed. Census 894.
   Battery 576 / 6566 / 2974, unmoved a tenth tranche. No floor fell; the pass moved no score.
-- **The pass built**: the census pin is the commander's at booking (Loop 2367 — never re-pinned by a lane; see
-  below), `port` marks a consumer whose `Class::method` the crate spells (2286), the backticked initializers are
-  hidden (2394); six Loop lines are brief rows. Three journal Loop lines the merges had not filed are 2405–2407.
-- **Lanes**: four lanes on Opus 5.5 medium, entry 68's, until Ramon's word at the steer replaces entry 71's last paragraph. Queued, not spawned: 2384 (AI §220, CF, runs 853–855), 2389 (GOLDEN §86, CG,
-  run 856), 2395 (CH), 2400 (CI). Next 2408, run 857, AI §221, GOLDEN §87, park CJ.
-- **Fable backlog: 9 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407).
+- **The pass built**: the census pin is the commander's at booking (Loop 2367, below), `port` marks a consumer whose
+  `Class::method` the crate spells (2286), initializers hidden (2394); six Loop lines are brief rows; 2405–2409 filed.
+- **Lanes: three** (Ramon, DECISIONS 71): 2384 on Opus 5.5 medium; 2389 and the sweep lane (2395, then 2400) on Sonnet
+  5.5 medium. Queued, not spawned: 2384 (AI §220, CF, runs 853–855), 2389 (GOLDEN §86, CG, run 856), 2395 (CH),
+  2400 (CI). Next 2410, run 857, AI §221, GOLDEN §87, park CJ.
+- **Fable backlog: 11 Loop items** (1570, 1725, 1900, 2003, 2146, 2240, 2405, 2406, 2407, 2408, 2409).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,17 +37,17 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed · ch67 closed · ch68 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-fifth tranche (commander): read this file, spawn the lanes on the roster DECISIONS 71's last
-paragraph names — 2384 the AI word's, 2389 the rules track's, 2395 the sweep's, 2400 only if a fourth lane is set —
-arm `tools/lanewait.py` on every live lane, and run the chain; re-pin `census::SIMULATION_BACKED` yourself in each
-sweep booking (Loop 2367); file every journal's "for the Loop" line at its merge; at twenty landings write the
-handoff and clear `steer` into the thirty-fifth pass.**
+**Opener: the thirty-fifth tranche (commander): read this file, spawn three lanes on DECISIONS 71's roster — 2384
+on `--model 'claude-opus-5-5[1m]' --effort medium`, 2389 and 2395 on `--model 'claude-sonnet-5-5[1m]' --effort
+medium`, 2400 after 2395 on the same lane — arm `tools/lanewait.py` on every live lane, and run the chain; re-pin
+`census::SIMULATION_BACKED` yourself in each sweep booking (Loop 2367); file every journal's "for the Loop" line at
+its merge; at twenty landings write the handoff and clear `steer` into the thirty-fifth pass.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2384 the AI word's, 2389 the rules track's, 2395 and 2400 the
-sweep lanes' — lower map first — East Indies (Lakota), the peace pair's only map.
+2384 the AI word's (Opus), 2389 the rules track's and 2395 then 2400
+the sweep lane's (Sonnet) — lower map first — East Indies (Lakota), the peace pair's only map.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
 
