@@ -156,6 +156,14 @@ class Stubs:
             self.ret(12, p)
         elif name == "HeapFree":
             self.ret(12, 1)
+        elif name == "memset":  # cdecl: (dst, c, n) -> dst
+            dst, c, n = self.arg(0), self.arg(1) & 0xFF, self.arg(2)
+            self.uc.mem_write(dst, bytes([c]) * n)
+            self.ret(0, dst)
+        elif name in ("memcpy", "memmove"):  # cdecl: (dst, src, n) -> dst
+            dst, src, n = self.arg(0), self.arg(1), self.arg(2)
+            self.uc.mem_write(dst, bytes(self.uc.mem_read(src, n)))
+            self.ret(0, dst)
         elif name in ("EnterCriticalSection", "LeaveCriticalSection"):
             self.ret(4, 0)
         elif name == "GetLastError":
@@ -283,7 +291,10 @@ def main(argv):
         regs["esp"] = uc.reg_read(UC_X86_REG_ESP)
         stack = list(struct.unpack("<4I", uc.mem_read(regs["esp"] + 4, 16)))
         fn = funcs.sorted[bisect.bisect_right(funcs.sorted, address) - 1]
-        print(hook_line(address, funcs.name(fn), address - fn, n, regs, stack), flush=True)
+        ret = struct.unpack("<I", uc.mem_read(regs["esp"], 4))[0]
+        rf = funcs.sorted[bisect.bisect_right(funcs.sorted, ret) - 1]
+        line = hook_line(address, funcs.name(fn), address - fn, n, regs, stack)
+        print(f"{line} ret={ret:08x} {funcs.name(rf)}+{ret - rf:#x}", flush=True)
 
     for va, _cap in fl.hook:
         uc.hook_add(UC_HOOK_CODE, on_hook, begin=va, end=va)

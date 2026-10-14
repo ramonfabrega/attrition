@@ -2689,6 +2689,58 @@ mod tests {
         (boat, at)
     }
 
+    /// **A boat that dies stepping ashore still moves its disc with its
+    /// figure** (item 2088, `docs/AI.md` §208). run825's packet on East
+    /// Indies' tick 4204: `Object::close` → `remove_from_world@00647970`
+    /// clears the Freighter `1/191`'s disc round its figure, and then the
+    /// boat's own `Guy::move+0x4a5` → `Guy::set_new_location` →
+    /// `CollCheck::move_unit` steps the figure a unit cell on, whose set
+    /// pass paints the new disc's leading row on no unit.
+    ///
+    /// Made to fail by dropping the `coll_move` after the dead boat's
+    /// `process_movement`: the leading row is clear.
+    #[test]
+    fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
+        let mut f = fix();
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let (boat, at) = landing(&mut f, rider, 25);
+        // The figure a unit cell behind its unit, and painted there —
+        // the disc `unit` painted at the unit's own point cleared first,
+        // or its leading row stands in for the step's. South of it, so the step's leading row lies in the boat's own
+        // sea cell: a column west of it would be the shore's, which the
+        // region gate refuses.
+        let body = Pos::new(
+            at.x,
+            (crate::collide::ucell(at).y + 1) * crate::collide::UNITS_PER_UCELL + 1,
+        );
+        f.sim.coll_remove(boat);
+        f.sim.units[boat].movement.body.pos = body;
+        f.sim.units[boat].pos = body;
+        f.sim.coll_add(boat);
+        f.sim.units[boat].pos = at;
+        let size = f.sim.coll_size(boat);
+        assert!(size > 0, "the barge blocks");
+        let from = crate::collide::ucell(body);
+        // Off every repaint phase.
+        let o = i64::from(f.sim.units[boat].index);
+        f.sim.frame = 64 * 100 - o + 7;
+        f.sim.process_unit(boat, f.sim.frame, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        let to = crate::collide::ucell(f.sim.units[boat].movement.body.pos);
+        assert!(
+            to.y < from.y,
+            "its figure stepped north a cell: {from:?} -> {to:?}"
+        );
+        assert!(
+            f.sim.coll.get(to.x, to.y - size),
+            "the step's set pass painted the leading row"
+        );
+        assert!(
+            !f.sim.coll.get(from.x, from.y + size),
+            "and the close cleared the trailing one"
+        );
+    }
+
     /// **A boat that dies stepping ashore repaints its disc on its
     /// sixty-fourth frame** (item 1223, `docs/GOLDEN.md` §52):
     /// `Guy::process@005e0230`'s tail runs on the dead boat's figure, and

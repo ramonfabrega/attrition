@@ -29,12 +29,15 @@ pub(crate) const MONGOL: Pair = Pair {
     // off-phase `near_o` arm hands it the ceiling city `0/2000` on 3647
     // (`docs/AI.md` section 205).
     // Item 2077: 3835 -> 4238 (ours 158 draws, theirs 159, index 145).
+    // Item 2088: 4238 -> 4246 (ours 156 draws, theirs 157, index 147): the
+    // dead Freighter `1/191`'s figure step on 4204 paints its disc's new
+    // row after the close cleared it (`docs/AI.md` section 208).
     // `1/24` re-inited a transport on 3835 that the original holds a
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4238,
-    sequence: 4238,
+    count: 4246,
+    sequence: 4246,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -315,8 +318,8 @@ pub(crate) const RUN809: &str = "gamelog-run809-eastindies-mongol-alltech-window
 /// The window: block 3626 through 3883; the word 3632's own block is 3633.
 pub(crate) const WIDENING_MONGOL_FRAME_3632: (i64, i64) = (3626, 3884);
 
-/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
-pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+/// run809's window, the word 3632's (item 2001).
+pub(crate) fn mongol_frame_3632_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[MONGOL.start],
         true,
@@ -333,7 +336,7 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn run809_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = mongol_word_window() else {
+    let Some(w) = mongol_frame_3632_window() else {
         return;
     };
     pin_eq!(w.blocks, 257, "every captured block");
@@ -358,4 +361,50 @@ fn run809_s_word_frame_is_widened_whole() {
     // original's frames, the scout `1/101`'s goal and `1/167`'s nine with
     // them (section 207).
     pin_eq!(w.firsts.len(), 180, "run809 baseline");
+}
+
+/// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
+pub(crate) const RUN820: &str = "gamelog-run820-eastindies-mongol-alltech-window-4232-4490.txt";
+
+/// The window: block 4232 through 4488; the word 4238's own block is 4239.
+pub(crate) const WIDENING_MONGOL_FRAME_4238: (i64, i64) = (4232, 4490);
+
+/// **The successor pair's word's window** (`AI_WORDS`' `Successor pair` row).
+pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL.start],
+        true,
+        MONGOL.long,
+        "run820",
+        &[(RUN820, WIDENING_MONGOL_FRAME_4238.0)],
+        WIDENING_MONGOL_FRAME_4238,
+        1,
+        &[4239],
+        true,
+    )
+}
+
+#[test]
+fn run820_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_word_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // The word 4238's block is 4239. Item 2088: 2,316 keys before the
+    // build, 295 on the first block (the leaders' counts, the swapped
+    // Citizens `1/186`/`1/208`, the freighters' `form`); the first past
+    // them was the Freighter `1/183` on 4239, `path:length` 44 against 33
+    // and `safe` 0 against 30 — its 48-grid search walled in by four bits
+    // of row 624 the dead `1/191`'s figure painted on 4204. 2,316 -> 2,079
+    // with the paint: both rows agree, and the new word 4246's block 4247
+    // opens on `1/186` (`docs/AI.md` section 208).
+    pin_eq!(w.firsts.len(), 2079, "run820 baseline");
 }

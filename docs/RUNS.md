@@ -16414,6 +16414,53 @@ SHA-256 `4baa49b677b64e428a6669e8eee5c7a326d9aaf51dbd097d1de761f32022f7c0`.
 **What it holds**: `step4.py --entry 610bc0 --this 15e52afc` (the Aegis Cruiser `1/113`): `compare_target(0/2000)` returns 0 at `64e7e5`
 and `find_nearby_target` takes nothing. No test reads it.
 
+## run820 — the successor pair: the word 4238's widening, blocks 4232..4488 (2026-10-13, item 2088, `att-2088`)
+
+`docs/AI.md` §208. **Disk gap** (parked 2078): item 2077 moved the word 3835 → 4238, past run809's last block (3883). run809's recipe with
+the window moved: `--map 18 --end-frame 4495 --log-window 4232 4489 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, click-free lane 1
+from the pool; `success`, 4496 frames, 2010 s launch to exit. `rngcmp.py` against run775: **0 differing**.
+
+Archive `gamelog-run820-eastindies-mongol-alltech-window-4232-4490.txt`, 651,414,945 bytes,
+SHA-256 `76c5be96487e575f89377f73e9652a79588027237badf111200040111dbea189`.
+
+Archive `rontrace-run820.log`, 151,164,032 bytes,
+SHA-256 `fd39040c9f2712cfe61d0633a95038865d164d187d45f8abe68ac99addb2a11f`.
+
+**What it holds**: `diff::mongol_pair::run820_s_word_frame_is_widened_whole` (blocks 4232..4488, `mongol_word_window`), the coverage
+driver's window, and `mongol_pair_first_parting`'s walk to 4245.
+
+## run823 — the successor pair's packet at logger frame 4238 (2026-10-13, item 2088, `att-2088`)
+
+`docs/AI.md` §208.3. run820's recipe with `--end-frame 4245 --log-window 4234 4242 --tracer-def RON_STATE_FRAME=4238 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, lane 1, 186 s; 4246 frames. Kept in
+`~/ron-golden/run823/map-18/frame-snapshot.bin`, 956,703,396 bytes,
+SHA-256 `d2dac1799b098083e1965b02e07fa572bd9b13b32597722328a2d61142d27683`.
+
+**What it holds**: theirs' `CollBlock` bitmap at the tick's head, which agrees with ours but four bits (x 384..387 of row 624). No test
+reads it.
+
+## run824 — the successor pair at detail, blocks 4196..4210 (2026-10-13, item 2088, `att-2088`)
+
+`docs/AI.md` §208.3. run820's recipe with `--end-frame 4216 --log-window 4196 4210`, lane 1, 131 s; 4217 frames; `rngcmp` 0 differing.
+
+Archive `gamelog-run824-eastindies-mongol-alltech-window-4196-4211.txt`, 35,565,720 bytes,
+SHA-256 `731274ebba3dfddec076e5ba09ed62611e2f1b782f957943f0b6282519d7292b`.
+
+Archive `rontrace-run824.log`, 143,673,248 bytes,
+SHA-256 `6a3edb58724fc54b52e3b552e584b7e14875d9935b504f23bf2be4b980ab4052`.
+
+**What it holds**: the Freighter `1/191`'s last frames and its passenger `1/62`'s landing, walked on ours' points. No test reads it.
+
+## run825 — the successor pair's packet at logger frame 4204 (2026-10-13, item 2088, `att-2088`)
+
+`docs/AI.md` §208.3. run820's recipe with `--end-frame 4211 --log-window 4200 4208 --tracer-def RON_STATE_FRAME=4204 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`, lane 1, 175 s; 4212 frames. Kept in
+`~/ron-golden/run825/map-18/frame-snapshot.bin`, 954,876,428 bytes,
+SHA-256 `9c7a476c2f7f4a8c90968727691b7090d31a0e1b4be3fd2a7366bc1f5d4c2463`.
+
+**What it holds**: `step4.py --entry 65dce0 --this c0ab70 --watch 3b71bee8+8`: the dead `1/191`'s `Guy::move+0x4a5` →
+`Guy::set_new_location` → `CollCheck::move_unit+0x401` paints row 624 after `remove_from_world` cleared the disc. No test reads it.
 ## run818 — chapter sixty-two: two guarding squads, who=1's squads walked past, a third added inside the leash (2026-10-13, item 2066)
 
 `docs/GOLDEN.md` §75, `tools/gamelog/golden/chapter62.cmd` (13 staged lines). **What the disk could not answer**:

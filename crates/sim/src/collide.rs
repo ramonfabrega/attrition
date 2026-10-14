@@ -917,7 +917,7 @@ impl Sim {
     /// `from` that are further than `size` from `to`, then set those around
     /// `to` that are further than `size` from `from`. Each pass uses its
     /// own end's tile region.
-    fn coll_move(&mut self, u: usize, from: Pos, to: Pos) {
+    pub(crate) fn coll_move(&mut self, u: usize, from: Pos, to: Pos) {
         let size = self.coll_size(u);
         if size == 0 || self.is_air(u) {
             return;
