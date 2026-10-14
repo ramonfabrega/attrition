@@ -3734,6 +3734,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2132) **A unit test's fixture paints a disc the test then paints again**
+(2088's Loop line, filed at its merge): `unit()` already paints the
+unit's collision disc, and a test that paints a fixture's disc by hand
+without clearing that one left a stale disc at the unit's point, so the
+first mutation passed the test while the walk held it. Candidate: the
+fixture helper clears or refuses a second paint, held by a test.
+
 (2128) **A closing-state test prints its city rows and not its building
 rows** (2106's Loop line, filed at its merge): `counts()` counts both,
 but each closing test prints `city_diverged` and never `build_diverged`,
@@ -3795,7 +3802,7 @@ brief test against the script's usage line.
 arrays** (2032's Loop line, filed at its merge): "the want is not a
 literal", so a new chapter's first pin is always by hand. Candidate:
 `repin.py` rewriting a `const NAME: &[…] = &[…];` array in place, with a
-test that fails on a chapter's const first.
+test that fails on a chapter's const first. **2099 and 2117** re-pinned 13 and 73 rows by hand again.
 
 (2060) **A parted `queue[k].cost` has no price print with its inputs**
 (2026's Loop line, filed at its merge): `RON_PRICE` lives in one older walk
@@ -4437,11 +4444,11 @@ each with a test made to fail first.
 
 ## Parked by item 2077, 2026-10-13 — a squad member's transport waits on its captain's
 
-(2078) **The successor pair's word 4238: 158 draws against 159, index 145** (2077; `docs/AI.md` §207.5): ours
+~~(2078) **The successor pair's word 4238: 158 draws against 159, index 145** (2077; `docs/AI.md` §207.5): ours
 `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/188`), theirs `PathFinder::astar_path+0x1697` (seed `8ce6ff4e`), between `1/170`'s
 `move_step` roll and `1/188`'s. Theirs spends a path search's draw that ours does not; whose search is a hypothesis. Past run809's
 window (to 3883), so no dump holds it: a capture over a `--log-window` round 4238 (run809's recipe) and its widening, every record on
-4238 both ways before a mechanism.
+4238 both ways before a mechanism.~~ **Closed by item 2088** (`docs/AI.md` §208): the dead freighter's last move.
 
 ## Parked by item 2083, 2026-10-13 — the sweep's forty-seventh batch
 
