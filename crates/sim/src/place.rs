@@ -105,6 +105,17 @@ pub(crate) fn tile_corner_of(x_size: i32, y_size: i32, pos: Pos) -> Pos {
     Pos::new(c.x - (x_size >> 1), c.y - (y_size >> 1))
 }
 
+/// `WallData::covers_tile@006439b0`'s test over the footprint's corner and
+/// its `x_size` and `y_size`: the tile lies in `corner .. corner + size` on
+/// both axes, each bound signed. Item 2187's sweep holds it, with
+/// [`tile_corner_of`] for the corner, against the original.
+pub(crate) fn footprint_covers(corner: Pos, x_size: i32, y_size: i32, tile: Pos) -> bool {
+    tile.x >= corner.x
+        && tile.x < corner.x.wrapping_add(x_size)
+        && tile.y >= corner.y
+        && tile.y < corner.y.wrapping_add(y_size)
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Geometry
@@ -960,7 +971,7 @@ impl Sim {
     }
 
     /// `BuildTypeData::count_water`: footprint tiles that are ocean.
-    fn count_water(&self, ty: usize, corner: Pos) -> i32 {
+    pub(crate) fn count_water(&self, ty: usize, corner: Pos) -> i32 {
         self.footprint(ty, corner)
             .into_iter()
             .filter(|t| self.is_ocean_tile(*t))
