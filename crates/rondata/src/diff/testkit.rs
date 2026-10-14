@@ -6930,6 +6930,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("sahara_mongol_first_parting", 204),
     // And run834 (item 2107): the word 2995's window to the closing block.
     ("run834_s_word_frame_is_widened_whole", 204),
+    ("run831_sahara_mongol_closing_state", 204),
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),
@@ -9052,7 +9053,11 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The third map in the successor pair's lobby** (item 2107): frame
     // 2995 on run831, walked from run832's start; widened on run834 over
-    // 2989..3269 (block 2996), which runs to the game's closing block.
+    // 2989..3269 (block 2996), which runs to the game's closing block. The
+    // same item moved it to **3268**, the game's last frame (a done Caravan
+    // the limit holds): run834 runs to the closing block 3269, so the last
+    // blocks are widened on it, and the closing state is scored by
+    // `run831_sahara_mongol_closing_state`.
     (
         "SAHARA_MONGOL_WORD",
         crate::diff::sahara_mongol::SAHARA_MONGOL_WORD,
@@ -9417,7 +9422,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Mongols)",
         word: crate::diff::sahara_mongol::SAHARA_MONGOL_WORD,
         length: 3_268,
-        endpoint: None,
-        window: Some("sahara_mongol_word_window"),
+        // Item 2107: closed at the game's last frame.
+        endpoint: Some("run831_sahara_mongol_closing_state"),
+        window: None,
     },
 ];

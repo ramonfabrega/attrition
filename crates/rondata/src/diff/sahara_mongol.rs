@@ -12,7 +12,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const SAHARA_MONGOL: Pair = Pair {
     name: "GreatSaharaMongolAllTech",
@@ -64,6 +64,60 @@ fn sahara_mongol_first_parting() {
         SAHARA_MONGOL.sequence,
         "the draw sequence's first parting"
     );
+}
+
+/// **The lobby's closing state** (item 2107): the word reached the game's
+/// last frame, 3268, once `Build::finished` held a done Caravan at the
+/// limit (`docs/AI.md` §211), and a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099). run831's closing dump walked
+/// to and compared whole.
+#[test]
+fn run831_sahara_mongol_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(SAHARA_MONGOL.long.0),
+        dump(SAHARA_MONGOL.start),
+        trace(SAHARA_MONGOL.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Sahara Mongol closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 3269, "the closing block");
+    // Item 2107, first try: 178 units compared, none apart, and no
+    // building or city field-row.
+    pin_eq!(e.compared, 178, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
@@ -160,7 +214,7 @@ fn run834_s_word_frame_is_widened_whole() {
     let Some(w) = sahara_mongol_word_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 280, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -168,5 +222,12 @@ fn run834_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run834 baseline");
+    // The word 2995's block is 2996. Item 2107: 1,284 keys before the
+    // build, 87 standing on 2989; the first past them was leader 1's
+    // Market `1/2019` on 2996, `queue:queued` 4 against 5 and
+    // `num_units[9]` (the Caravan) 9 against 8 — ours released a done
+    // Caravan the original holds at 17304 with `caras` 8 at its limit 8.
+    // 1,284 -> 296 with `Build::finished`'s caravan arm and
+    // `get_next_non_caravan` (`docs/AI.md` section 211).
+    pin_eq!(w.firsts.len(), 296, "run834 baseline");
 }
