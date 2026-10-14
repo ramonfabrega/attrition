@@ -27,9 +27,9 @@
 /// `get_stance_option`, `get_stance_type`; item 2187: 639 -> 649, the sweep's fifty-sixth batch; item
 /// 2200: 649 -> 659, a second sweep lane's ten with a port consumer; item 2211: 659 -> 669, the
 /// sweep's fifty-seventh batch; item 2205: 669 -> 670, `compare_target`, by golden chapter sixty-four's
-/// sea arm, `docs/GOLDEN.md` §80.1; item 2217: 670 -> 680, the second sweep lane's ten with a port
-/// consumer).
-pub const SIMULATION_BACKED: usize = 680;
+/// sea arm, `docs/GOLDEN.md` §80.1; item 2223: 670 -> 680, the sweep's fifty-eighth batch; item 2217:
+/// 680 -> 690, the second sweep lane's ten with a port consumer).
+pub const SIMULATION_BACKED: usize = 690;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
