@@ -3801,7 +3801,7 @@ the dump's, so a parted building row dates itself in one command. **The thirty-s
 
 (2003) **The sweep generator's residue, after the thirty-first pass** (Loop 1890's thirteen reaches, built as `obj` with windows, `void`, `vcall --own` and a callee's `(eax, ecx)` answer): still owed are `fwd`'s `[this+OFF]` argument token (1896 — the test would have to hold a value the script prints, so the row grows a column) and `obj`'s second window behind a pointer field of `this` (1972 — a `--ptrarg`-shaped window the object names, not an argument). And the generator's `obj` template double-signed a negative `eax` (`signed()` over `Harness.call`'s already-signed answer) — fixed in the pass; the thirteen landed `obj` sweeps carry the old line and every one is `--ret none`, so none was wrong. Candidate: both tokens, each with a test made to fail first; a lane that hand-writes either shape files the reach here. **1998** (first reach): a third shape, a slot entered as an ordinary call after `pop ebp; jmp [eax+N]` (`Unit::set_type`, `Build::finished`) — `vcall --jmp` (parked 2013). **2020** (second reach): a slot compared with the base implementation's address, inline arm or call — `vcall --base ADDR`, six functions waiting (parked 2021); and `fwd` with field-derived arguments again (1896). **2038** (third reach): a `--who-table` window for the per-player object tables, four of ten by hand (parked 2039), and `--base` as a mode on `mix` for slot-against-address functions whose arms are calls (parked 2040). **2044** (fourth reach): `obj` bounding an argument and naming a module (parked 2045), and the world cell array behind a cell record — `cell --ptrargs` is `obj --cell-win --ptrarg` already (parked 2046). **2061** (fifth reach): the order list's head — a null `this+0xdc`, the cursor rewound, the head order asked a slot — four by hand (parked 2062). **2072** (sixth reach): built `vcall --base` (2021); the per-player table and the `buildtypes` forest by hand, five on two shapes (parked 2073). **2083** (seventh reach): a stub answered per argument on the object at `this+VIA`, three by hand (parked 2084). **2090** (eighth and ninth reaches): a slot against its base whose base arm is inline, four by hand (parked 2095); the order-list iterator, three by hand (parked 2096); and `obj` compared no `eax` by default — fixed, eight earlier sweeps now assert it. **2112** (tenth reach): built `vcall --base ADDR --base-call OFF` — the base inlined as a call of the same object's slot, constants or forwarded arguments, `--base-not` — four (`makes_roads`, both `can_capture`s, `ObjectData::isnt`); a table cell placed so the reads land in a buffer, three by hand (parked 2113). **2122** (eleventh reach): built
 `obj --place` (2113, 2046), `--wbias`, `--fill`, `--argrange` and `--name` (2045), `--slotbase` (2095's range-test
-arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole. **2129** (twelfth reach): a stub's answer drawn from a list beside `--argset` (`obj --answers`) and an integer `ecx` (`obj --ecx-int`), one hand-widened `I32` and two read and not taken (parked 2141). **2149** (thirteenth reach): built `obj --ecx-int` (parked 2150); a hidden-return `Coord` through `[esp+4]` with a per-player-table object, four read and not taken (parked 2151). **2160** (fourteenth reach): built `obj --answers IDX:V,..` and the stubs' answers readable by `--place` as `s` (parked 2161); a `--place` LOC of a negative index is clamped by hand with `max(0, …)` where a guard skips the read — a `--place` that skips the row would say it directly. **2160** (fourteenth reach): built `obj --answers` and the answers as `s` in a `--place` expression (parked 2161); 2151's hidden-return `Coord` still owed. **2129** (twelfth reach): all ten generated, one script's `I32` widened by hand for a stub's thresholds; a stub answered from a list and `ecx` an integer, one function each (parked 2141).
+arm), all ten of the batch generated (parked 2123). **The thirty-second pass**: eleven reaches, the lane built at six of them (2072, 2090, 2112, 2122 and the pass's own); the owed shapes are 1896 (`fwd`'s field argument), 1972, 2039, 2040, 2062, 2073, 2084, 2096, named in 2129's brief; the generator is the sweep lane's at each reach, and this row is the ledger of them, not an item to build whole. **2129** (twelfth reach): a stub's answer drawn from a list beside `--argset` (`obj --answers`) and an integer `ecx` (`obj --ecx-int`), one hand-widened `I32` and two read and not taken (parked 2141). **2149** (thirteenth reach): built `obj --ecx-int` (parked 2150); a hidden-return `Coord` through `[esp+4]` with a per-player-table object, four read and not taken (parked 2151). **2160** (fourteenth reach): built `obj --answers IDX:V,..` and the stubs' answers readable by `--place` as `s` (parked 2161); a `--place` LOC of a negative index is clamped by hand with `max(0, …)` where a guard skips the read — a `--place` that skips the row would say it directly. **2160** (fourteenth reach): built `obj --answers` and the answers as `s` in a `--place` expression (parked 2161); 2151's hidden-return `Coord` still owed. **2170** (fifteenth reach): built `obj --vtat` and `--answer-win` (parked 2171), 2151's hidden-return `Coord` taken four times and `--vtat` a fifth; all ten generated. **2129** (twelfth reach): all ten generated, one script's `I32` widened by hand for a stub's thresholds; a stub answered from a list and `ecx` an integer, one function each (parked 2141).
 
 (1965) **`repin.py` leaves an emptied `Vec` want and a golden site by
 hand** (1926's Loop line): 85 count pins moved by `--write`, but 46
@@ -4551,7 +4551,8 @@ test reads it as `a[a.len() - 1]`; refused on the plain `obj`, which has no row 
 slot `+0xac` of `objects[who][o]` (the per-player table, `this->who`·0x1c + `+0x14`, `this->o`·4) and write the
 answer record's `+0x10` or `+0x14` `^ 0x63637` through `[esp+4]`, the hidden return pointer — four of one shape,
 `outptr` with a per-player-table object and a stubbed slot whose answer names a window. Build it as `obj` with
-`--stub slot` answering a pointer to a window when two are taken.
+`--stub slot` answering a pointer to a window when two are taken. ~~Built by item 2170~~ (parked 2171): all four
+taken.
 
 ## Parked by the next landing, slot AV — reserved
 
@@ -4582,13 +4583,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AY — reserved
+## Parked by item 2170, 2026-10-13 — the sweep's fifty-fourth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2171) **`obj --vtat WIN+OFF` and `obj --answer-win IDX:SIZE` built** (Loop 2003's fifteenth reach; names no
+score): the stubbed vtable laid at a word of a window rather than at `this` — a slot of an object the function
+reaches through a table — and a stub that answers the address of SIZE random bytes of its own, a `p` window after
+the places. Together they are 2151's hidden-return `Coord`: `UnbuiltCity::get_x`/`get_y` and `UnbuiltFort::get_x`/
+`get_y` (0x73b740, 0x73b780, 0x73bb80, 0x73bbc0) take `[esp+4]` as `--ptrarg 0:4`, reach `objects[who][o]` by two
+places, lay the vtable there and read `+0x10`/`+0x14` of slot `+0xac`'s answer window. A fifth, `BuildData::
+can_queue` (0x62da00), takes `--vtat` alone: slot `+0x84` of `types.list[t]`. Test made to fail first:
+`tools/explore/test_sweep_gen.py::test_a_slot_of_a_placed_object_may_answer_a_window` (no keywords; then its
+`WIN = 8` line caught `--vtat`'s parse shadowing the window size, which the first generation shipped as `WIN = p2`
+and the scripts refused to run).
 
 ## Parked by the next landing, slot AZ — reserved
 
