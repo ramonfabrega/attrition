@@ -502,6 +502,7 @@ mod nuke_been_damaged_before;
 mod nuke_on_field_change;
 mod nuke_out_num_current_nukes;
 mod nuke_out_update;
+mod object_adjacent_to;
 mod object_data_attack_dist;
 mod object_data_attack_dist_at;
 mod object_data_get_wonder_value;

@@ -6840,19 +6840,42 @@ impl Sim {
     // Build, repair, garrison — §5
     // ------------------------------------------------------------------
 
-    /// `Object::adjacent_to`: `attack_dist < 0x60`, the footprint's extent
-    /// for the building and `block_radius + 0x18` for the unit.
+    /// `Object::adjacent_to@00651f40` (vslot `+0x170`), through
+    /// [`adjacent_steps`]: `attack_dist < 0x60`, the footprint's extent for
+    /// the building and `block_radius + 0x18` for the unit — or, for a sea
+    /// unit that is no transport, `attack_dist <
+    /// BOAT_GARRISON_MAX_DISTANCE`, three tiles and `0x180` more for a
+    /// `coll_size` under 4 (`651f7f`–`651fef`). Both slots' in-use bits
+    /// first (`651f46`, `651f70`), as `in_range_from` reads them.
     pub fn adjacent_to(&self, u: usize, b: usize) -> bool {
         let bd = &self.buildings[b];
-        let t_ext = match bd.ty {
-            Some(ty) => (
-                self.build_types[ty].x_size * HALF_TILE,
-                self.build_types[ty].y_size * HALF_TILE,
-            ),
-            None => combat::extent(&bd.combat.unwrap_or_default(), true),
+        let unit = &self.units[u];
+        let dist = |_boat: bool| {
+            let t_ext = match bd.ty {
+                Some(ty) => (
+                    self.build_types[ty].x_size * HALF_TILE,
+                    self.build_types[ty].y_size * HALF_TILE,
+                ),
+                None => combat::extent(&bd.combat.unwrap_or_default(), true),
+            };
+            let a_ext = combat::extent(&self.profile(Obj::Unit(u)), false);
+            combat::attack_dist(unit.pos, bd.pos, a_ext, t_ext, false)
         };
-        let a_ext = combat::extent(&self.profile(Obj::Unit(u)), false);
-        combat::attack_dist(self.units[u].pos, bd.pos, a_ext, t_ext, false) < ADJACENT
+        adjacent_steps(
+            unit.alive(),
+            bd.alive,
+            unit.kind.domain == crate::attrition::Domain::Sea,
+            // `+0x18` on a `Unit` is `return 1` (`0041e0e0`).
+            || true,
+            || {
+                let transport = unit
+                    .ty
+                    .is_some_and(|t| self.unit_types[t].cols.flag(uflags::TRANSPORT));
+                (transport, self.coll_size(u))
+            },
+            self.tuning.boat_garrison_max_distance,
+            dist,
+        )
     }
 
     /// `ObjectsData::find_any_building_at(t, …, who, FILTER_ALL)`
@@ -11087,4 +11110,35 @@ pub(crate) fn prune_chain<C>(
             set_next(cx, prev, after);
         }
     }
+}
+
+/// `Object::adjacent_to@00651f40` in the original's own order. `live` and
+/// `target_live` are the two slots' `+8 & 1`; `sea` the type's `+0x218 ==
+/// 1`; `is_unit` vslot `+0x18`, asked only of a sea type; `boat` the
+/// unit's own type read back through the units table — its `+0x2b4 &
+/// 0x10` (a transport) and `+0x248` (`coll_size`); `boat_max` the
+/// constants' `+0x94`. `dist(true)` is the two-argument
+/// `ObjectData::attack_dist@0064c880` of the boat arm, `dist(false)` the
+/// four-argument `006488f0` at the unit's own position — the same
+/// distance, called by two names.
+pub(crate) fn adjacent_steps(
+    live: bool,
+    target_live: bool,
+    sea: bool,
+    is_unit: impl FnOnce() -> bool,
+    boat: impl FnOnce() -> (bool, i32),
+    boat_max: i32,
+    dist: impl FnOnce(bool) -> i32,
+) -> bool {
+    if !live || !target_live {
+        return false;
+    }
+    if sea && is_unit() {
+        let (transport, coll) = boat();
+        if !transport {
+            let max = if coll < 4 { boat_max + 0x180 } else { boat_max };
+            return dist(true) < max;
+        }
+    }
+    dist(false) < ADJACENT
 }
