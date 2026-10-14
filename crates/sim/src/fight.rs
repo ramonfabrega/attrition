@@ -1120,13 +1120,11 @@ impl Sim {
     /// the per-pair "has attacked" record at `00e3a424` and the victim's
     /// own counter-array — are not modelled; nothing here reads either.
     pub(crate) fn set_attacking(&mut self, i: usize, who: crate::Player) {
-        self.units[i].attacking = true;
-        let bit = Self::who_bit(who);
-        if self.units[i].visible & bit != 0 {
-            return;
-        }
-        let reveal = !self.world_sees(self.units[i].pos, who);
-        self.units[i].visible |= bit;
+        let pos = self.units[i].pos;
+        let (mut flags, mut visible) = (0u8, self.units[i].visible);
+        let reveal = attacking_bits(&mut flags, &mut visible, who, || self.world_sees(pos, who));
+        self.units[i].attacking |= flags & 0x80 != 0;
+        self.units[i].visible = visible;
         if reveal {
             self.update_local_seen_unit(i);
         }
@@ -8901,4 +8899,26 @@ mod tests {
             "idle"
         );
     }
+}
+
+/// **`Unit::set_attacking@005ff5b0`'s own bytes** (item 2287): `flags |=
+/// 0x80` whatever follows; then, when the victim `who`'s bit of
+/// `visible` (`+0x40`, read sign-extended, `1 << who`) is clear, the bit
+/// goes in and the answer is whether `who` could **not** already see the
+/// unit's half-cell (`WorldData::is_seen`, asked only then) — the caller
+/// lights the unit's disc (`vtable[0x164]`) on a yes.
+pub(crate) fn attacking_bits(
+    flags: &mut u8,
+    visible: &mut u8,
+    who: crate::Player,
+    sees: impl FnOnce() -> bool,
+) -> bool {
+    *flags |= 0x80;
+    let bit = Sim::who_bit(who);
+    if *visible & bit != 0 {
+        return false;
+    }
+    let reveal = !sees();
+    *visible |= bit;
+    reveal
 }
