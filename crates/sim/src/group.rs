@@ -2484,17 +2484,6 @@ impl Sim {
         // `facing 1` and mirrors (§6.3, §12.3).
         let facing = self.group_facing(g);
         let reverse = facing != self.group_leader_faces_away(g, angle);
-        if std::env::var_os("RON_PROBE_MOVE").is_some() && g.list.len() == 1 {
-            eprintln!(
-                "  probe form f{} list {:?} facing {facing} away {} leader {:?} bearing {:?} angle {}",
-                self.frame,
-                g.list.iter().map(|&u| (self.units[u].owner, self.units[u].index, self.units[u].movement.heading.0)).collect::<Vec<_>>(),
-                self.group_leader_faces_away(g, angle),
-                self.group_find_leader_slot(g),
-                self.group_leader_bearing(g).map(|a| a.0),
-                angle.0
-            );
-        }
         // `Form::compute` → `Form::categorize`, whose first statement is
         // `Group::sort@00708090` (§4.1, §23) — after the clear and the
         // mirror above, before the layout and the order loop, which
