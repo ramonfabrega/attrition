@@ -10,6 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
+use crate::testenv::{dump, install};
 
 pub(crate) const MONGOL: Pair = Pair {
     name: "EastIndiesMongolAllTech",
@@ -100,6 +101,58 @@ fn mongol_pair_first_parting() {
         MONGOL.sequence,
         "the draw sequence's first parting"
     );
+}
+
+/// **The pair's closing state** (item 2293): the word reached the game's
+/// last frame, 5056, once `train_time`'s Socialism arm sped the Airbase
+/// `1/2010`'s MiG (`docs/AI.md` §217), and a draw stream that agrees to a
+/// game's end says nothing of the end itself (item 1099). run775's closing
+/// dump, block 5057, walked to and compared whole.
+#[test]
+fn run775_mongol_pair_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(MONGOL.long.0),
+        dump(MONGOL.start),
+        trace(MONGOL.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Mongol pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 5057, "the closing block");
+    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run776: the lobby's blocks 1..34 at the long's detail, the word 11's

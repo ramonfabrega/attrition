@@ -2847,35 +2847,34 @@ impl Sim {
         {
             return 0;
         }
-        self.tech_tree
-            .roles
-            .democracy_preqs
-            .iter()
-            .enumerate()
-            .rev()
-            .find(|(tier, _)| {
-                // A tier above the first also holds the one under it, two
-                // governments taken, and — Democracy being the tier
-                // below's `preq0` — Socialism or Capitalism (group 21;
-                // A1 row 5).
-                let p = &self.tech[who as usize];
-                let rows = &self.tech_tree.roles.democracy_preqs;
-                (0..=*tier).all(|k| {
-                    rows[k].is_some_and(|qs| {
-                        qs.iter()
-                            .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
-                    }) && self.tech_tree.bonus_tier_extra(
-                        &self.setup,
-                        p,
-                        k,
-                        k.checked_sub(1).and_then(|b| match rows[b] {
-                            Some([tech::Preq::Of(t), ..]) => Some(t),
-                            _ => None,
-                        }),
-                    )
-                })
+        self.bonus_tier_held(who, &self.tech_tree.roles.democracy_preqs)
+            .map_or(0, |tier| self.tuning.democracy_tech_bonus[tier])
+    }
+
+    /// The highest tier of a government bonus ladder the player holds —
+    /// `LeaderData::has_preq` asked of each tier from the top down, `None`
+    /// when not even the first is held.
+    fn bonus_tier_held(&self, who: Player, rows: &[Option<[tech::Preq; 3]>]) -> Option<usize> {
+        (0..rows.len()).rev().find(|&tier| {
+            // A tier above the first also holds the one under it, two
+            // governments taken, and — Monarchy or Democracy being the tier
+            // below's `preq0` — Socialism or Capitalism (group 21; A1 row 5).
+            let p = &self.tech[who as usize];
+            (0..=tier).all(|k| {
+                rows[k].is_some_and(|qs| {
+                    qs.iter()
+                        .all(|&q| self.tech_tree.has_tech_p(&self.setup, p, q))
+                }) && self.tech_tree.bonus_tier_extra(
+                    &self.setup,
+                    p,
+                    k,
+                    k.checked_sub(1).and_then(|b| match rows[b] {
+                        Some([tech::Preq::Of(t), ..]) => Some(t),
+                        _ => None,
+                    }),
+                )
             })
-            .map_or(0, |(tier, _)| self.tuning.democracy_tech_bonus[tier])
+        })
     }
 
     /// `TypeData::get_cost`'s **Silver arm** (`00666af0`..`00666b51`): an
@@ -3276,6 +3275,44 @@ impl Sim {
         if matches!(ty, 0 | 1) && self.has_rare(who, economy::WOOL) {
             tail.push(production::Adjust::Faster(self.tuning.wool_citizens_speed));
         }
+        // **The two government arms** (`train_time@006508c0:315`–`339`,
+        // after the wool arm; `docs/AI.md` §217). Both test the unit's
+        // trainer (`TypeData +0x40`) by equality, never by lineage: a
+        // Stable's unit under `MONARCHY_2` takes `MONARCHY_UNIT_PROD2`,
+        // else under `MONARCHY_1` `MONARCHY_UNIT_PROD`; a Siege Factory's,
+        // an Airbase's or a Dock's under `SOCIALISM_1` takes
+        // `SOCIALISM_UNIT_BONUS`.
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.where_);
+        if trainer == Some(nations::ty::STABLES[0])
+            && let Some(tier) = self.bonus_tier_held(who, &self.tech_tree.roles.monarchy_preqs)
+        {
+            tail.push(production::Adjust::Faster(
+                self.tuning.monarchy_unit_prod[tier],
+            ));
+        }
+        if trainer.is_some_and(|w| {
+            [
+                nations::ty::SIEGE[0],
+                nations::ty::AIRBASE,
+                nations::ty::DOCKS[0],
+            ]
+            .contains(&w)
+        }) && self
+            .bonus_tier_held(
+                who,
+                std::slice::from_ref(&self.tech_tree.roles.socialism_preqs),
+            )
+            .is_some()
+        {
+            tail.push(production::Adjust::Faster(self.tuning.socialism_unit_bonus));
+        }
+        // SEAM: the unit wonders after them — the Statue of Liberty on a
+        // land unit, the Porcelain Tower on a ship, the Space Program on an
+        // aircraft (`+0x218`) — and the Kremlin's and `INSTANT_UNIT_BONUS`'s
+        // `ACCEL_TRAIN * 5 - 1` return. No capture's player holds one.
         tail
     }
 
