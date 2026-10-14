@@ -3732,6 +3732,14 @@ half of `find_attack_pos` (COMBAT §32.2). The candidate was
 cheap, precise and wrong, which is what a written falsifier is
 for: it cost one run rather than an item.
 
+## Loop, filed 2026-10-14 — the thirty-third tranche's
+
+(2154) **A "swapped" row pair in a handoff does not say which swap it is** (2130's "for the Loop"
+line). run820's block 4247 opened on Citizens `1/186` and `1/80` read as swapped, and the queue booked it as a
+collision; `unitat.py` on an earlier window (run809's 3800) showed a job swap — a numbering, in one command.
+Candidate: a brief-checklist row, or `unitat.py` printing whether a first-block pair is a numbering or a state
+swap, so a word's opening rows name which. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
