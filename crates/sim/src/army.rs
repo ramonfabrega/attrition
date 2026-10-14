@@ -4157,6 +4157,62 @@ mod tests {
         assert!(sim.army_of(h).is_some(), "`is_hero` is the second");
     }
 
+    /// **A government patriot is capped by the army's wagons, not its
+    /// heroes** (`find_local_army@006f32e0`, `docs/AI.md` §213): the arm is
+    /// the joiner's `is_supply` (`& 0x40`), and `is_hero` (`& 0x20`) is
+    /// asked only when that is clear. The Despot (`FROM General`, both
+    /// bits) refuses the near army's three wagons and takes the far army,
+    /// as run820's `1/191` does on 4344; a General (`0x20` alone) takes
+    /// the near one. Made to fail with the arm read as "a wagon is `0x40`
+    /// without `0x20`": the Despot joins the near army.
+    #[test]
+    fn a_government_patriot_is_capped_by_the_army_s_wagons() {
+        let (mut sim, c) = sim_with_city();
+        let near = sim.init_army(1, Some(c));
+        let far = sim.init_army(1, Some(c));
+        let here = sim.armies[1].list[near].pos;
+        sim.armies[1].list[far].pos = Pos::new(here.x + 0x1800, here.y);
+        let ty = |sim: &mut Sim, flags2: u32| {
+            sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                cols: crate::ai_load::UnitCols {
+                    unit_flags2: flags2,
+                    ..crate::ai_load::UnitCols::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let wagon = ty(&mut sim, uflags2::SUPPLY_OR_HERO);
+        let general = ty(&mut sim, uflags2::GENERAL);
+        let despot = ty(&mut sim, uflags2::GENERAL | uflags2::SUPPLY_OR_HERO);
+        for _ in 0..3 {
+            let w = put(&mut sim, 1, wagon, here);
+            sim.army_add_unit(1, near, w);
+        }
+        let w = put(&mut sim, 1, wagon, here);
+        sim.army_add_unit(1, far, w);
+        for slot in [near, far] {
+            sim.armies[1].list[slot].status |= status::MUSTERING;
+        }
+        let d = put(&mut sim, 1, despot, here);
+        assert_eq!(
+            sim.find_local_army(1, here, Some(d)).map(|(s, _)| s),
+            Some(far),
+            "three wagons refuse a patriot"
+        );
+        let g = put(&mut sim, 1, general, here);
+        assert_eq!(
+            sim.find_local_army(1, here, Some(g)).map(|(s, _)| s),
+            Some(near),
+            "a General is asked about generals"
+        );
+        assert_eq!(
+            sim.find_army(1, here, -1, Some(d)).map(|(s, _)| s),
+            Some(far),
+            "`find_army` has the same arm"
+        );
+    }
+
     /// **`think_attack`'s head is the one an AI soldier takes** (§4.2) —
     /// the site the think tail's test above says is a different one.
     ///
