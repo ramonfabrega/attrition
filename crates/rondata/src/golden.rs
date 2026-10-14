@@ -2081,6 +2081,9 @@ mod tests {
         // them and a third added inside the leash; a follower's guard refusal
         // under its squad head (item 2066, `docs/GOLDEN.md` §75).
         ("chapter62.cmd", &[]),
+        // Chapter sixty-three: two squads follow a Chariot and are
+        // shift-moved, `@moveadd` (item 2131, `docs/GOLDEN.md` §78).
+        ("chapter63.cmd", &[]),
         // Chapter six-b: chapter six with an Airbase a side (item 651).
         ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),

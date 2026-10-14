@@ -14042,6 +14042,78 @@ const WANT_CH62: &[&str] = &[
 // Empty: no slot of the pool parts through the word.
 const WANT_CH62_POOL: &[&str] = &[];
 
+/// **Chapter sixty-three** (item 2131, `docs/GOLDEN.md` §78, run827): two
+/// Hoplite squads follow a Chariot and are shift-moved — a `QUEUE_LAST`
+/// move's formation read from `get_loc_to`, which reads `get_final_loc`'s
+/// `Follow` arm (parked 2058).
+#[test]
+fn chapter_sixty_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch63", "chapter63", 63, 9, 760) else {
+        return;
+    };
+    eprintln!(
+        "chapter sixty-three: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIXTY_THREE,
+        "chapter sixty-three's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIXTY_THREE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIXTY_THREE,
+        "chapter sixty-three's golden word moved; re-pin it here and say so in docs/GOLDEN.md §78"
+    );
+}
+
+/// **run827 whole, both directions** (item 2131, `docs/GOLDEN.md` §78).
+#[test]
+fn chapter_sixty_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let (_, hi) = WIDENING_CHAPTER_SIXTY_THREE;
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch63",
+        "chapter63",
+        WIDENING_CHAPTER_SIXTY_THREE,
+        760,
+        0,
+        (hi - 3, hi - 1),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch63 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch63: {} rows", got.len());
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch63 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH63.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch63: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH63_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch63: the pool's parting moved");
+}
+
+// **What parts through the word** on run827 (item 2131, `docs/GOLDEN.md`
+// §78).
+const WANT_CH63: &[&str] = &[];
+
+const WANT_CH63_POOL: &[&str] = &[];
+
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.
