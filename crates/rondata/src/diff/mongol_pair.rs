@@ -68,7 +68,7 @@ pub(crate) const MONGOL: Pair = Pair {
     // count and sequence both): a held Supercollider zeroes a tech's
     // research time, so who=1's Senate `1/2019` finishes Monarchy on 4671,
     // the frame its Supercollider `1/2034` completes, and the Despot
-    // `1/191` becomes the King there as the original's does (`docs/AI.md`
+    // `1/191` becomes The Monarch there as the original's does (`docs/AI.md`
     // section 216).
     count: 4946,
     sequence: 4946,
@@ -532,7 +532,7 @@ fn run838_s_word_frame_is_widened_whole() {
     // Item 2259: 1,370 -> 189 — block 4672 leaves whole: a held
     // Supercollider zeroes a tech's research time, so the Senate `1/2019`
     // finishes Monarchy on 4671 with the Supercollider `1/2034` (`gov` 625,
-    // `queue:queued` 0, `num_units[304]` 1 on both sides), and the King
+    // `queue:queued` 0, `num_units[304]` 1 on both sides), and The Monarch
     // `1/191`'s figures and `mylos` 14 agree; the first row past the
     // standing ones is now `1/176`'s `mirror` on 4702 (`docs/AI.md`
     // section 216).

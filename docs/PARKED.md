@@ -4720,13 +4720,15 @@ return 4`), where the port returned 4 on a corner that answered 4 even past a be
 reads a border node, so 2187's "a candidate if a shape lays one" has no consumer to hold. The census's port mark
 matches the bare method name; a qualified match (`Class::method` or the snake of both) would drop it and its kind.
 
-## Parked by the next landing, slot BH — reserved
+## Parked by item 2259, 2026-10-14 — a held Supercollider zeroes a tech's research time
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2260) **The successor pair's word 4946: ours 161 draws, theirs 162, index 150** (2259; `docs/AI.md` §216.4; count
+and sequence both). Both spend three `Unit::do_move+0x11cf` draws at 147..149; theirs then spends one
+`Guy::init_real+0x52` (a birth, seed `233f94a7`) ahead of the `Guy::inc_time+0x271` run that ours opens on at 150. The
+frame is past run838 (4597..4852), so its widening is a capture's, and the booking cites what the disk could not say.
+run838's standing rows past 4672 are candidates, unwalked: `1/176`'s `mirror` (ours 0, theirs 1) on 4702, the leader's
+`MAKE[1].val` (2,754,200 against 2,883,052) on 4782, `escrow[1:timber]` (28 against 42) on 4783 and the Airbase
+`1/2010`'s `queue[0].job_counter` (27250 against 22320) on 4784. That the birth is the Airbase's is unread.
 
 ## Parked by item 2229, 2026-10-14 — a re-entry re-issues a queued build by its site's number
 
