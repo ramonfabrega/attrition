@@ -2607,6 +2607,43 @@ mod tests {
         }
     }
 
+    /// **A passenger that lands as its group's leader toggles the group's
+    /// mirror** (item 2193, `docs/AI.md` §214): `come_out`'s turn to the
+    /// boat's heading is `Unit::set_angle@00605400`, whose reversing arm
+    /// flips `GroupData::facing` when `find_leader` names the unit. The
+    /// successor pair's BMP `1/28` landed on 4363 as army 1's leader, and
+    /// the original's flag was 1 from there (run841). Made to fail by
+    /// dropping the toggle from `land_tail`: the flag stays clear.
+    #[test]
+    fn a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let slot = f.sim.init_army(1, None);
+        f.sim.army_add_unit(1, slot, rider);
+        f.sim.units[rider]
+            .movement
+            .set_facing(crate::movement::Angle::NORTH);
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.board(rider, boat);
+        f.sim.units[boat]
+            .movement
+            .set_facing(crate::movement::Angle::SOUTH);
+        assert!(!f.sim.armies[1].list[slot].group.facing);
+        f.sim.disembark(boat);
+        assert!(f.sim.units[rider].on_map, "it is ashore");
+        assert_eq!(
+            f.sim.units[rider].movement.heading,
+            crate::movement::Angle::SOUTH,
+            "turned to the boat's heading"
+        );
+        assert!(
+            f.sim.armies[1].list[slot].group.facing,
+            "a reversing turn by the leader toggles the army's flag"
+        );
+    }
+
     /// The other arm of the same test: a boat that steps off the water
     /// puts its passenger out and dies.
     #[test]
