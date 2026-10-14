@@ -543,7 +543,10 @@ impl Sim {
     /// type in `0x32..=0x19d` of the **land** domain. What can ride a boat.
     fn is_cargo(&self, u: usize) -> bool {
         self.units[u].on_map
-            && cargo_type(self.units[u].type_index, self.unit_domain_of(u) == Domain::Land)
+            && cargo_type(
+                self.units[u].type_index,
+                self.unit_domain_of(u) == Domain::Land,
+            )
     }
 
     /// `Unit::think_civilian_transport(colonise)@005f40d0` (§7) — the AI's

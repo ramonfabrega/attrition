@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,30 +43,38 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // An 8 x 8-tile world (2 x 2 cells), `this` and `GameAccess::world`
-    // one object: the tiles' masks from p[2], each cell's flags word (`+0`)
-    // from p[3]. The callees are stubs, so the port is entered with
-    // `p5 = 1`: the mesh's half (`road_cleared`, `road_added`) is theirs.
-    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::World::new(2, 2), 2);
-    let tile = |k: usize| crate::Pos::new((k % 8) as i32, (k / 8) as i32);
-    let cell = |i: usize| crate::world::Cell::new((i % 2) as i32, (i / 2) as i32);
-    for k in 0..64 {
-        sim.world.set_tile_mask(tile(k), u16::from_le_bytes([p[2][2 * k], p[2][2 * k + 1]]));
-    }
-    for i in 0..4 {
-        let mut d = sim.world.cell_data(cell(i));
-        d.flags = u16::from_le_bytes([p[3][i * 0x1c], p[3][i * 0x1c + 1]]);
-        sim.world.set_cell_data(cell(i), d);
-    }
-    sim.world_set_road_at(crate::Pos::new(rd(&p[0], 0), rd(&p[1], 0)), a[2] != 0, a[3], 1);
-    for k in 0..64 {
-        p[2][2 * k..2 * k + 2].copy_from_slice(&sim.world.tile_mask(tile(k)).to_le_bytes());
-    }
-    for i in 0..4 {
-        p[3][i * 0x1c..i * 0x1c + 2].copy_from_slice(&sim.world.cell_data(cell(i)).flags.to_le_bytes());
-    }
-    0
-}
+                // An 8 x 8-tile world (2 x 2 cells), `this` and `GameAccess::world`
+                // one object: the tiles' masks from p[2], each cell's flags word (`+0`)
+                // from p[3]. The callees are stubs, so the port is entered with
+                // `p5 = 1`: the mesh's half (`road_cleared`, `road_added`) is theirs.
+                let mut sim = crate::Sim::new(crate::Tuning::RON, crate::World::new(2, 2), 2);
+                let tile = |k: usize| crate::Pos::new((k % 8) as i32, (k / 8) as i32);
+                let cell = |i: usize| crate::world::Cell::new((i % 2) as i32, (i / 2) as i32);
+                for k in 0..64 {
+                    sim.world
+                        .set_tile_mask(tile(k), u16::from_le_bytes([p[2][2 * k], p[2][2 * k + 1]]));
+                }
+                for i in 0..4 {
+                    let mut d = sim.world.cell_data(cell(i));
+                    d.flags = u16::from_le_bytes([p[3][i * 0x1c], p[3][i * 0x1c + 1]]);
+                    sim.world.set_cell_data(cell(i), d);
+                }
+                sim.world_set_road_at(
+                    crate::Pos::new(rd(&p[0], 0), rd(&p[1], 0)),
+                    a[2] != 0,
+                    a[3],
+                    1,
+                );
+                for k in 0..64 {
+                    p[2][2 * k..2 * k + 2]
+                        .copy_from_slice(&sim.world.tile_mask(tile(k)).to_le_bytes());
+                }
+                for i in 0..4 {
+                    p[3][i * 0x1c..i * 0x1c + 2]
+                        .copy_from_slice(&sim.world.cell_data(cell(i)).flags.to_le_bytes());
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

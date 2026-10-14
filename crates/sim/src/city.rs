@@ -551,7 +551,14 @@ impl Sim {
         let centre = self.cities[c].pos.cell();
         let r = self.radius_of(c);
         let circle = crate::ai_place::circle();
-        wear_site_vals(&mut self.world, centre, r, &circle.radius, &circle.x, &circle.y);
+        wear_site_vals(
+            &mut self.world,
+            centre,
+            r,
+            &circle.radius,
+            &circle.x,
+            &circle.y,
+        );
     }
 
     /// `City::close`: the record dies; members re-home.

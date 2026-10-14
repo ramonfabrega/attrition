@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -38,37 +43,45 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // A world of `c[1]`'s width and height in cells, `WData.val` (`+0xc`) from p[3].
-    let (xs, ys) = (rd(&c[1], 0), rd(&c[1], 4));
-    let mut w = crate::World::new(xs, ys);
-    let cell = |i: i32| crate::world::Cell::new(i % xs, i / xs);
-    for i in 0..xs * ys {
-        let mut d = w.cell_data(cell(i));
-        d.val = p[3][i as usize * 0x1c + 0xc];
-        w.set_cell_data(cell(i), d);
-    }
-    let centre = crate::world::Cell::new(
-        rd(&c[0], 4 * (rd(m, 0xc) >> 8) as usize),
-        rd(&c[0], 4 * (rd(m, 0x10) >> 8) as usize),
-    );
-    let radius: Vec<usize> = (0..0x41).map(|i| rd(&c[3], 4 * i) as usize).collect();
-    let x: Vec<i32> = c[4].iter().map(|&b| i32::from(b as i8)).collect();
-    let y: Vec<i32> = c[5].iter().map(|&b| i32::from(b as i8)).collect();
-    crate::city::wear_site_vals(&mut w, centre, a[0], &radius, &x, &y);
-    for i in 0..xs * ys {
-        p[3][i as usize * 0x1c + 0xc] = w.cell_data(cell(i)).val;
-    }
-    0
-}
+                // A world of `c[1]`'s width and height in cells, `WData.val` (`+0xc`) from p[3].
+                let (xs, ys) = (rd(&c[1], 0), rd(&c[1], 4));
+                let mut w = crate::World::new(xs, ys);
+                let cell = |i: i32| crate::world::Cell::new(i % xs, i / xs);
+                for i in 0..xs * ys {
+                    let mut d = w.cell_data(cell(i));
+                    d.val = p[3][i as usize * 0x1c + 0xc];
+                    w.set_cell_data(cell(i), d);
+                }
+                let centre = crate::world::Cell::new(
+                    rd(&c[0], 4 * (rd(m, 0xc) >> 8) as usize),
+                    rd(&c[0], 4 * (rd(m, 0x10) >> 8) as usize),
+                );
+                let radius: Vec<usize> = (0..0x41).map(|i| rd(&c[3], 4 * i) as usize).collect();
+                let x: Vec<i32> = c[4].iter().map(|&b| i32::from(b as i8)).collect();
+                let y: Vec<i32> = c[5].iter().map(|&b| i32::from(b as i8)).collect();
+                crate::city::wear_site_vals(&mut w, centre, a[0], &radius, &x, &y);
+                for i in 0..xs * ys {
+                    p[3][i as usize * 0x1c + 0xc] = w.cell_data(cell(i)).val;
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "fix_world_vals — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "fix_world_vals — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "fix_world_vals — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[7 + i], "fix_world_vals — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[7 + i],
+                "fix_world_vals — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

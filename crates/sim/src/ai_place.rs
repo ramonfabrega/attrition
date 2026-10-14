@@ -166,7 +166,12 @@ pub(crate) const GRID_THREES: [[usize; 5]; 4] = [
 /// `check_building_wcoord`'s three gates on the cell, before any corner:
 /// another leader's (`owner` byte `+0xf` non-negative and not `who`), an
 /// occupied cell (`flags & 0x70`), or `blocked == 0x10`.
-pub(crate) fn wcoord_cell_refused(owner: Option<Player>, who: Player, flags: u16, blocked: u8) -> bool {
+pub(crate) fn wcoord_cell_refused(
+    owner: Option<Player>,
+    who: Player,
+    flags: u16,
+    blocked: u8,
+) -> bool {
     owner.is_some_and(|o| o != who) || flags & 0x70 != 0 || blocked == 0x10
 }
 

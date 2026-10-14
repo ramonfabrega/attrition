@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -38,21 +43,21 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // The answers of `this`'s slot `+0xbc` and the type's `+0xc` and
-    // `+0x12c`, then whether `+0x12c` and `+0xc` were laid as the base ones.
-    let (on_map, unit_ty, cargo) = (a[0], a[1], a[2]);
-    let (cargo_base, unit_base) = (a[3] != 0, a[4] != 0);
-    let land = rd(&p[0], 0x218) == 0;
-    if on_map == 0 {
-        0
-    } else if !cargo_base {
-        i64::from(cargo)
-    } else if unit_base {
-        i64::from(crate::transport::cargo_type(rd(&p[0], 4), land))
-    } else {
-        i64::from(unit_ty != 0 && land)
-    }
-}
+                // The answers of `this`'s slot `+0xbc` and the type's `+0xc` and
+                // `+0x12c`, then whether `+0x12c` and `+0xc` were laid as the base ones.
+                let (on_map, unit_ty, cargo) = (a[0], a[1], a[2]);
+                let (cargo_base, unit_base) = (a[3] != 0, a[4] != 0);
+                let land = rd(&p[0], 0x218) == 0;
+                if on_map == 0 {
+                    0
+                } else if !cargo_base {
+                    i64::from(cargo)
+                } else if unit_base {
+                    i64::from(crate::transport::cargo_type(rd(&p[0], 4), land))
+                } else {
+                    i64::from(unit_ty != 0 && land)
+                }
+            }
         };
         assert_eq!(got, want_eax, "is_cargo — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();

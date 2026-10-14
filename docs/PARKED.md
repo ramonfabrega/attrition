@@ -4766,13 +4766,38 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BG — reserved
+## Parked by item 2217, 2026-10-14 — the second sweep lane's ten with a port consumer
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2218) **Four `obj` shapes built: `--seq`, `--answer-range`, `--cell-this`, `--vtat-also`** (Loop 2003's
+nineteenth reach, 2211's line answered; names no score). Each test was made to fail first (`generate_obj() got an
+unexpected keyword argument …`). `--seq IDX:N`: a callee called more than once a row answers N values in call order,
+the last repeated, printed after the answers — `UnitType::determine_roles` asks `is` for SCOUT and then HOPLITES,
+and `WorldData::check_building_wcoord` asks `space_at_corner` once a corner; with one answer a row both could only
+agree. `--answer-range IDX:LO:HI`: an answer held to a range every row, because `City::fix_world_vals` indexes
+`circle_radius` by `get_radius`' answer and `--answers`' 10% of random words read before the table.
+`--cell-this VA`: the global cell holds `this`, because `World::set_road_at` writes through `this` and scans through
+`GameAccess::world`. `--vtat-also WIN+OFF`: the stubbed vtable laid in a window as well as at `this`, for
+`ObjectData::is_cargo`, which asks `this`'s slot `+0xbc` and its type record's `+0xc` and `+0x12c`.
+
+(2219) **`obj` cannot see a stubbed callee's arguments** (Loop 2003's next shape; names no score). The harness
+records every hooked call (`h.calls`: name, `ecx`, arguments) and only `fwd` prints them. `check_building_wcoord`'s
+sweep held its corner walk's order to nothing: a break that swapped the `dx` and `dy` loops passed, because the
+answers go out in call order and the corners they were asked for are never compared. A `--calls IDX` that prints
+stub IDX's argument words (dereferenced where an argument is a pointer to a local, as `space_at_corner`'s
+`&local_c`/`&param_6` are) would hold the walk; `World::set_road_at`'s mesh calls (`road_cleared`, `road_added`,
+gated on `p5 == 0`) and `World::set_blocked_at`'s `set_road_at(x, y, 0, 0, 0)` are the same gap.
+
+(2220) **Two port behaviours made the listing's** (fixed in 2217; names no score). `World::set_blocked_at`'s
+`WData.blocked` and `solid` counts saturated where the listing's `inc`/`dec byte` wrap (2203's twin), which no real
+count reaches; the sweep draws `0xff` and `0x00` bytes and failed on the saturating version. And
+`ai_place::best_corner` answers 4 when the **running best** reaches it (`if (best < sp) best = sp; if (best == 4)
+return 4`), where the port returned 4 on a corner that answered 4 even past a best of 5 — inert while
+`space_at_corner` answers `0..=4`, and the sweep's answer of 5 then 4 failed on the old order.
+
+(2221) **`BorderNodes::find@00882170`'s port mark is a name collision** (names no score). `tools/census.py
+--unbacked` marks it `port` because `crates/sim` has functions named `find` (`bhs.rs`, `supply.rs`); no port code
+reads a border node, so 2187's "a candidate if a shape lays one" has no consumer to hold. The census's port mark
+matches the bare method name; a qualified match (`Class::method` or the snake of both) would drop it and its kind.
 
 ## Parked by the next landing, slot BH — reserved
 
