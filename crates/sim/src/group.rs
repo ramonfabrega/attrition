@@ -2492,8 +2492,8 @@ impl Sim {
         if std::env::var_os("RON_PROBE_2193").is_some() {
             eprintln!(
                 "PROBE2193 f{} who {} list {:?} facing {} away {} angle {:x} leader {:?} bearing {:?} to {:?} kind {:?} form {}",
-                self.frame, g.who, g.list.iter().map(|&u| self.units[u].o).collect::<Vec<_>>(), facing,
-                self.group_leader_faces_away(g, angle), angle.0, self.group_find_leader_slot(g).map(|(u, s)| (self.units[u].o, s)),
+                self.frame, g.who, g.list.iter().map(|&u| self.units[u].index).collect::<Vec<_>>(), facing,
+                self.group_leader_faces_away(g, angle), angle.0, self.group_find_leader_slot(g).map(|(u, s)| (self.units[u].index, s)),
                 self.group_leader_bearing(g).map(|a| a.0), to, kind, form
             );
         }
