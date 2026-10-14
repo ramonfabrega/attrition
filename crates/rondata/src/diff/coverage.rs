@@ -2959,7 +2959,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 2001: and run809's blocks around the word 3632.
     let mongol_3632 = super::mongol_pair::mongol_frame_3632_window();
     // Item 2088: and run820's blocks around the word 4238.
-    let mongol_4238 = super::mongol_pair::mongol_word_window();
+    let mongol_4238 = super::mongol_pair::mongol_frame_4238_window();
+    // Item 2193: and run838's blocks around the word 4603.
+    let mongol_4603 = super::mongol_pair::mongol_word_window();
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
@@ -3020,6 +3022,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_3131,
         mongol_3632,
         mongol_4238,
+        mongol_4603,
     ];
     if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");
