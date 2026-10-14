@@ -11299,10 +11299,9 @@ fn chapter_three_s_catapult_fires_on_the_ground() {
     // landing** (item 625): the point plus the scatter's two draws, taken
     // on 798, now that the stream holds to 792 — (2413, 8276) on both
     // sides, where ours read (2655, 8142) while the crew's walk parted
-    // the stream on 782. One field parts, and it is not the order's: the
-    // **launch** is the unit's own square here and the release node in
-    // the dump, because `sim::launch` has no node for the catapult's
-    // piece (§22's seam).
+    // the stream on 782. **And the launch** (item 2304, `docs/GOLDEN.md`
+    // §83): the unit's own square here, (888, 7992, 251), until piece
+    // 567's release row was read off run842's packet.
     let mine = mine.expect("this crate's catapult fires");
     assert_eq!(
         (mine.0, mine.4, mine.5, mine.6, mine.7, mine.8),
@@ -11311,8 +11310,8 @@ fn chapter_three_s_catapult_fires_on_the_ground() {
     );
     assert_eq!(
         (mine.1, mine.2, mine.3),
-        (888, 7992, 251),
-        "the launch moved; re-pin it against the dump's"
+        (theirs.1, theirs.2, theirs.3),
+        "the launch parts from the dump's"
     );
 }
 
@@ -14194,14 +14193,12 @@ fn chapter_sixty_four_s_word_frame_is_widened_whole() {
     pin_eq!(got_pool, want_pool, "ch64: the pool's parting moved");
 }
 
-// **What parts through run835** (items 2165, 2205; `docs/GOLDEN.md` §79,
-// §80): the eleven standing `form` rows (605), then the Barks' rounds
-// alone — a round leaves the hull's own square here and a release point
-// 52 up and off it there (638 on, parked 2206), with the wounds and
-// landings that follow. Without `compare_target`'s sea arm block 634's
-// `0/7` takes the Trireme `1/6`; without the retarget's Bark predicate
-// block 635's `0/7` chases the Bark `1/8` where the original's
-// `do_move+0x6e6` hands it the fishing boat `1/7`.
+// **What parts through run835** (items 2165, 2205, 2304; `docs/GOLDEN.md`
+// §79, §80, §83): the eleven standing `form` rows (605), and block 800,
+// where this crate prints `0/6`'s death and the Trireme `1/6`'s round loses
+// its target while the dump prints no death record for the sunk Bark. The
+// Barks' rounds (638 on, parked 2206) and the Trireme's third key (634, a
+// unit out) leave from the packet's release rows since item 2304: 140 → 14.
 const WANT_CH64: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -14214,136 +14211,9 @@ const WANT_CH64: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "634 1/6 ammo[2].angle",
-    "634 1/6 ammo[2].sx",
-    "638 0/6 ammo[3].angle",
-    "638 0/6 ammo[3].ex",
-    "638 0/6 ammo[3].ey",
-    "638 0/6 ammo[3].sx",
-    "638 0/6 ammo[3].sy",
-    "638 0/6 ammo[3].sz",
-    "638 0/6 ammo[3].total_time",
-    "638 0/6 ammo[3].v1z",
-    "638 0/7 ammo[4].angle",
-    "638 0/7 ammo[4].sx",
-    "638 0/7 ammo[4].sy",
-    "638 0/7 ammo[4].sz",
-    "638 0/7 ammo[4].v1z",
-    "646 0/6 ammo[0].angle",
-    "646 0/6 ammo[0].sx",
-    "646 0/6 ammo[0].sy",
-    "646 0/6 ammo[0].sz",
-    "646 0/6 ammo[0].v1z",
-    "646 0/7 ammo[1].angle",
-    "646 0/7 ammo[1].ex",
-    "646 0/7 ammo[1].ey",
-    "646 0/7 ammo[1].sx",
-    "646 0/7 ammo[1].sy",
-    "646 0/7 ammo[1].sz",
-    "646 0/7 ammo[1].total_time",
-    "646 0/7 ammo[1].v1z",
-    "647 0/6 ammo[3]",
-    "647 1/7 damage_frac",
-    "647 1/7 hits:damage",
-    "647 1/7 hits:damage_frac",
-    "647 1/7 hits_left",
-    "653 0/6 ammo[2].angle",
-    "653 0/6 ammo[2].sx",
-    "653 0/6 ammo[2].sy",
-    "653 0/6 ammo[2].sz",
-    "653 0/6 ammo[2].v1z",
-    "653 0/7 ammo[1]",
-    "653 0/7 ammo[3].angle",
-    "653 0/7 ammo[3].sx",
-    "653 0/7 ammo[3].sy",
-    "653 0/7 ammo[3].sz",
-    "653 0/7 ammo[3].v1z",
-    "658 1/8 ammo[0].angle",
-    "658 1/8 ammo[0].sx",
-    "658 1/8 ammo[0].sy",
-    "658 1/8 ammo[0].sz",
-    "658 1/8 ammo[0].v1z",
-    "666 1/8 ammo[5].angle",
-    "666 1/8 ammo[5].sx",
-    "666 1/8 ammo[5].sy",
-    "666 1/8 ammo[5].sz",
-    "666 1/8 ammo[5].v1z",
-    "673 1/6 ammo[6].angle",
-    "673 1/6 ammo[6].sx",
-    "673 1/8 ammo[7].angle",
-    "673 1/8 ammo[7].sx",
-    "673 1/8 ammo[7].sy",
-    "673 1/8 ammo[7].sz",
-    "673 1/8 ammo[7].v1z",
-    "688 0/6 ammo[1].angle",
-    "688 0/6 ammo[1].sx",
-    "688 0/6 ammo[1].sy",
-    "688 0/6 ammo[1].sz",
-    "688 0/6 ammo[1].v1z",
-    "688 0/7 ammo[2].angle",
-    "688 0/7 ammo[2].sx",
-    "688 0/7 ammo[2].sy",
-    "688 0/7 ammo[2].sz",
-    "688 0/7 ammo[2].v1z",
-    "691 1/8 ammo[3].angle",
-    "691 1/8 ammo[3].sx",
-    "691 1/8 ammo[3].sy",
-    "691 1/8 ammo[3].sz",
-    "691 1/8 ammo[3].v1z",
-    "713 0/6 ammo[4].angle",
-    "713 0/6 ammo[4].sx",
-    "713 0/6 ammo[4].sy",
-    "713 0/6 ammo[4].sz",
-    "713 0/6 ammo[4].v1z",
-    "713 0/7 ammo[5].angle",
-    "713 0/7 ammo[5].sx",
-    "713 0/7 ammo[5].sy",
-    "713 0/7 ammo[5].sz",
-    "713 0/7 ammo[5].v1z",
-    "713 1/6 ammo[7].angle",
-    "713 1/6 ammo[7].sx",
-    "716 1/8 ammo[2].angle",
-    "716 1/8 ammo[2].sx",
-    "716 1/8 ammo[2].sy",
-    "716 1/8 ammo[2].sz",
-    "716 1/8 ammo[2].v1z",
-    "741 1/8 ammo[4].angle",
-    "741 1/8 ammo[4].sx",
-    "741 1/8 ammo[4].sy",
-    "741 1/8 ammo[4].sz",
-    "741 1/8 ammo[4].v1z",
-    "746 0/6 ammo[5].angle",
-    "746 0/6 ammo[5].sx",
-    "746 0/6 ammo[5].sy",
-    "746 0/6 ammo[5].sz",
-    "746 0/6 ammo[5].v1z",
-    "746 0/7 ammo[6].angle",
-    "746 0/7 ammo[6].sx",
-    "746 0/7 ammo[6].sy",
-    "746 0/7 ammo[6].sz",
-    "746 0/7 ammo[6].v1z",
-    "753 1/6 ammo[4].angle",
-    "753 1/6 ammo[4].sx",
-    "766 1/8 ammo[1].angle",
-    "766 1/8 ammo[1].sx",
-    "766 1/8 ammo[1].sy",
-    "766 1/8 ammo[1].sz",
-    "766 1/8 ammo[1].v1z",
-    "793 1/6 ammo[1].angle",
-    "793 1/6 ammo[1].sx",
-    "796 0/7 ammo[7].angle",
-    "796 0/7 ammo[7].sx",
-    "796 0/7 ammo[7].sy",
-    "796 0/7 ammo[7].sz",
-    "796 0/7 ammo[7].v1z",
     "800 0/6 death:extra",
     "800 1/6 ammo[1].ox",
     "800 1/6 ammo[1].whom",
-    "803 0/7 ammo[0].angle",
-    "803 0/7 ammo[0].sx",
-    "803 0/7 ammo[0].sy",
-    "803 0/7 ammo[0].sz",
-    "803 0/7 ammo[0].v1z",
 ];
 
 const WANT_CH64_POOL: &[&str] = &[];
@@ -14405,14 +14275,10 @@ fn chapter_sixty_five_s_word_frame_is_widened_whole() {
     pin_eq!(got, want, "ch65: what parts under the word moved");
 }
 
-// **What parts through run843** (items 2235, 2265; `docs/GOLDEN.md` §81,
-// §82): the eleven standing `form` rows (605), and the Catapult `0/9`'s
-// first round on the Barracks `1/2008`, whose launch point (`sx`, `sy`,
-// `sz`, `v1z`) is the original's release node here and the unit's square
-// in this crate (block 818; parked 2266, the Bark's 2206 on a siege engine).
-// Item 2235's 777 wake — the Small City found here and nothing there — is
-// gone: a packer reads `COMBAT_STAND_GROUND`, so the search runs at 0xc00.
-// The city's stamps, both heavy arms (849, 915), agree to the trace's end.
+// **What parts through run843** (items 2235, 2265, 2304; `docs/GOLDEN.md`
+// §81, §82, §83): the eleven standing `form` rows (605) alone. Item 2235's
+// 777 wake went with 2265's packer stance, and the Catapult's first round's
+// launch point on 818 (parked 2266) with item 2304's release row: 15 → 11.
 const WANT_CH65: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -14425,10 +14291,6 @@ const WANT_CH65: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "818 0/9 ammo[0].sx",
-    "818 0/9 ammo[0].sy",
-    "818 0/9 ammo[0].sz",
-    "818 0/9 ammo[0].v1z",
 ];
 
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
