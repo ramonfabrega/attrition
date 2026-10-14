@@ -2682,20 +2682,22 @@ mod tests {
     /// pass paints the new disc's leading row on no unit.
     ///
     /// Made to fail by dropping the `coll_move` after the dead boat's
-    /// `process_movement`: the column is clear.
+    /// `process_movement`: the leading row is clear.
     #[test]
     fn a_boat_that_dies_stepping_ashore_paints_its_figure_s_step() {
         let mut f = fix();
         let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
         let (boat, at) = landing(&mut f, rider, 25);
-        // The figure a unit cell behind its unit, and painted there.
-        // South of it, so the step's leading row lies in the boat's own
+        // The figure a unit cell behind its unit, and painted there —
+        // the disc `unit` painted at the unit's own point cleared first,
+        // or its leading row stands in for the step's. South of it, so the step's leading row lies in the boat's own
         // sea cell: a column west of it would be the shore's, which the
         // region gate refuses.
         let body = Pos::new(
             at.x,
             (crate::collide::ucell(at).y + 1) * crate::collide::UNITS_PER_UCELL + 1,
         );
+        f.sim.coll_remove(boat);
         f.sim.units[boat].movement.body.pos = body;
         f.sim.units[boat].pos = body;
         f.sim.coll_add(boat);
