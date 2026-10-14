@@ -282,6 +282,28 @@ pub const CAT: [i8; NUM_ANIMS] = [
     8, 27, 8, 29, 8, 31, 8, 33, 34, 35, 36, 37,
 ];
 
+/// The figures `Unit::set_anim@00616f40` hands to `Guy::set_anim`, in
+/// order: `0 .. guy_mark` (`+0xb5`, a signed byte), then `squad_size ..
+/// num_guys` (`UnitTypeData +0x304`, `Unit +0xe8`). Two loops, so a crew
+/// that starts below `guy_mark` is walked twice and one that starts above
+/// it leaves a gap. Swept in `sweep::unit_set_anim`.
+pub(crate) fn set_anim_walk(
+    guy_mark: i32,
+    squad_size: i32,
+    num_guys: i32,
+) -> impl Iterator<Item = usize> {
+    let squad = 0..guy_mark.max(0);
+    let crew = squad_size..num_guys.max(squad_size);
+    squad.chain(crew).map(|g| g as usize)
+}
+
+/// Whether `Unit::set_anim@00616f40` drops a figure's pending attack
+/// (`GuyData +0x9e`) on this pass: unless **guy 0's** current slot
+/// (`+0x9c`) is an attack (`UnitAnimCat[..] == CHAR_ATTACK2`).
+pub(crate) fn set_anim_clears(lead: i8) -> bool {
+    category(lead) != ATTACK2
+}
+
 /// The category of an animation index.
 pub fn category(anim: i8) -> i8 {
     usize::try_from(anim)
@@ -1179,12 +1201,16 @@ impl Sim {
         // CHAR_ATTACK2` drops every guy's `+0x9e`. So any unit-level
         // request made while the unit is not already swinging cancels an
         // attack it owed, whatever the request is for (§6.2).
-        for g in 0..self.units[u].guys.len() {
+        // The port's figures are the squad (`guy_mark`, which is
+        // `SQUAD_SIZE`) and then the crew from `squad_size` up, so the
+        // original's two loops are `0 .. len` here.
+        let len = self.units[u].guys.len();
+        for g in set_anim_walk(SQUAD_SIZE.min(len) as i32, SQUAD_SIZE as i32, len as i32) {
             // **Guy 0's slot is re-read on every pass**, not once before
             // the loop: the original's test is inside the body, so a call
             // that puts guy 0 on an attack spares the guys after it.
             let lead = self.units[u].guys.first().map_or(DEFAULT, |g| g.anim);
-            if category(lead) != 12 {
+            if set_anim_clears(lead) {
                 self.units[u].guys[g].pending_attack = 0;
             }
             // The roll this pass may take is named by the loop it is in:

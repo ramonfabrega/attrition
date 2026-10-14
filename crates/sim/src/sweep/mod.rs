@@ -669,6 +669,7 @@ mod unit_on_duty;
 mod unit_order_is_move_attack;
 mod unit_order_walk_data;
 mod unit_set_ai_control;
+mod unit_set_anim;
 mod unit_set_attacking;
 mod unit_set_group;
 mod unit_set_in_danger;
