@@ -74,8 +74,9 @@ pub(crate) const MONGOL: Pair = Pair {
     // Item 2293: 4946 -> 5056, the game's last frame (count and sequence
     // both): `train_time`'s Socialism arm takes SOCIALISM_UNIT_BONUS off an
     // Airbase's unit, so the Airbase `1/2010`'s MiG target falls 27900 ->
-    // 22320 on 4782, the frame who=1 researches Socialism, and its MiG is
-    // born on 4946 as the original's is (`docs/AI.md` section 217).
+    // 22320 on 4782, the frame who=1 researches Socialism, and the Airbase
+    // `1/2052`'s Strategic Bomber is born on 4946 at 27600 as the
+    // original's is (`docs/AI.md` section 217).
     count: 5056,
     sequence: 5056,
 };

@@ -20338,12 +20338,96 @@ run838's window. Parked 2260.
 MIN_TIME`) or only through `target <= counter`; on a counter above zero the two agree. The `DISBAND`/`RAZE` exemption
 is not built, since neither is a tech entry here.
 
-## 217. Reserved for the next item on the AI track
+## 217. Socialism speeds an Airbase's unit, and the successor pair closes at its end (2026-10-14, item 2293)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, `run838_s_word_frame_is_widened_whole`,
+`run775_mongol_pair_closing_state`). The cause was on disk in run838; run 844 is the last blocks' capture the
+closed word owes (§217.4).
+
+### 217.1 The frame, both sides
+
+Frame **4946: ours 161 draws, theirs 162, parting at index 150** (`RON_DEBUG_SITES=4946-4946`). Both spend the
+same 150 draws to `1/237`'s `Unit::do_move+0x11cf` at 149. Theirs then spends one `Guy::init_real+0x52` (seed
+`233f94a7`) and then the same ten `Guy::inc_time+0x271` draws as ours. The birth falls between the units' pass and
+the figures' pass, so it is a building's: a queue that completes on 4946. run775 is a draw stream to the end with
+checksums only, so no dump prints 4946.
+
+### 217.2 Walked back inside run838: the Airbase's MiG, and the arm both Airbases share
+
+Parked 2260 listed four standing rows past 4672. The Airbase `1/2010` (`orig_type` 447, `AIRBASE`) is the one with a
+queue. Its head is a MiG (`TypeIndex` 299, `MIG`), with two Strategic Bombers (305) behind it. Theirs, from the dump:
+
+| block | theirs `queue[0].job_counter` | ours (`RON_DEBUG_BUILDS`, frame = block − 1) |
+|---|---|---|
+| 4678..4783 | 27150, held (the target reached; the birth waits) | 27150, target 27150 |
+| 4783 | 27150 | 27250, target 27900 (`owned` 9 → 10) |
+| 4784.. | **22320**, held to 4852 | 27350 … 27900, held from 4794 |
+
+Ours' target rises 27150 → 27900 on 4782: a MiG is born elsewhere, and the ramp (`UNIT_RATE_PROGRESSION` × the
+type's count) grows the next one's time. Theirs' MiG count moves the same way (`num_units[249]` 9 → 10, `air_units`
+28 → 29). Its target still falls to 22320, and the counter is clamped to it.
+
+The leader's whole record across 4782 → 4783 (Loop 2292) names why. `gov` 625 → 627 (`GOV_SOCIALISM`),
+`discovered_get()` 43 → 44, `tech_frame` 4382 → 4782. The make list's slot 0 is Socialism (`t 627`, `val 5250000`,
+`escrow 1`) from 4781, and it is bought on 4782. The Senate `1/2019`'s `queue[0].type` turns 627 with `queued` 0 on
+4783: a research that finished on its own frame, since the Supercollider is held (§216). Ours buys Socialism on the
+same frame (`RON_DEBUG_LEADER`: `t626(Socialism)` `v5250000` `e1`, then `v52500`). So both sides hold Socialism from
+4782, and only theirs' MiG target moves. 22320 = 27900 × 100 / 125.
+
+### 217.3 The mechanism, and the build
+
+`ObjectData::train_time@006508c0`'s train block has two government arms after the wool arm. Each tests the unit's
+trainer (`TypeData +0x40`) **by equality**, not by lineage:
+
+1. `+0x40 == 0x1ac` (`STABLE`): with `has_preq(MONARCHY_2)`, `MONARCHY_UNIT_PROD2`; else with
+   `has_preq(MONARCHY_1)`, `MONARCHY_UNIT_PROD`. The time is `t × 100 / (x + 100)`.
+2. `+0x40` is `0x1ae` (`SIEGEFACTORY`), `0x1bf` (`AIRBASE`) or `0x1b0` (`DOCK`): with `has_preq(SOCIALISM_1)`,
+   `t × 100 / (SOCIALISM_UNIT_BONUS + 100)`. The Factory (`0x1af`), the Auto Plant (`0x1ad`) and the higher docks are
+   not on the lists.
+
+All three constants ship as 25. `MONARCHY_1`/`_2` are bonuses `0x320`/`0x321`, and `SOCIALISM_1` is `0x324`.
+
+Built in `Sim::train_tail` (`crates/sim/src/lib.rs`), after the wool arm, as `production::Adjust::Faster`. The bonus
+rows are `Roles::monarchy_preqs` and `Roles::socialism_preqs` (`crates/rondata/src/load.rs`). They are asked through
+`Sim::bonus_tier_held`, the tier walk Democracy's price discount already used, now shared. The tuning entries are
+`monarchy_unit_prod` and `socialism_unit_bonus` (378 slots).
+
+Test: `harness_tests::a_government_speeds_its_trainer_lines_by_equality`.
+
+**Mutations** (`tools/mutate.py`):
+
+- The Socialism arm dropped (`&& false`): **held** by the walk. `mongol_pair_first_parting` goes back to 4946,
+  `run838` goes back to 189, and the closing state fails.
+- `SIEGE[0]` → `SIEGE[1]` (the Factory in place of the Siege Factory): **held** by the test.
+- The Monarchy arm dropped: **held** by the test, and **failed nothing** on the pair's walk. No Stable unit of
+  who=1's completes under Monarchy between 4671 and 5056 at a different frame.
+
+So the Monarchy arm rests on the reading and its test. The Socialism arm is diff-backed on the Airbase only.
+
+### 217.4 What moved: the pair closes at the game's end
+
+**The value diff, block 4784**: `1/2010`'s `queue:queue[0].job_counter` is 22320 on both sides (ours 27250 → 22320),
+and the target is 22320 from 4782. run838 189 → 188; that row leaves.
+
+**The word 4946 → 5056 of 5,056**, the game's last frame, by the count and by the sequence. **The birth on 4946 is
+not `1/2010`'s**: its MiG stays held at 22320 on both sides past 4946. It is the other Airbase `1/2052`'s Strategic
+Bomber (`RON_DEBUG_BUILDS=4945-4946`): its queue reads `305@27600`, then empty, and `control` goes 198 → 199. Theirs'
+counter is 18200 on block 4852 at 100 a frame, so 27600 on 4946. The same arm takes the bomber's target to 27600
+(× 100 / 125). Ours' target without the arm is higher, so it births later. **The closing state**, `run775_mongol_pair_closing_state`: block 5057, 237 units compared. Two
+are apart and nothing else is: no torn, unlinked or extra unit, and no building or city field-row. `1/93` is off by
+(−96, −720) and `1/176` by (20, 17). Both are standing rows run838 already holds: `1/93`'s `g.x[0]` from 4597 (42456
+against 42552) and `1/176`'s `mirror` from 4702. The coverage pair's closing state had a unit off by the same
+(−96, −720) (`run652_coverage_pair_closing_state`, `1/84`). Parked 2294.
+
+**What the closed word owes**: the `AI_WORDS` row closed (`endpoint: run775_mongol_pair_closing_state`). run838's
+window is renamed `mongol_frame_4603_window`, a closed word's window the coverage driver still walks. The last blocks
+are run 844, 4940..5057: six blocks before 4946's block 4947, on to the closing block. Its test and its `WIDENINGS`
+row are below once it lands.
+
+**Not established**: the Monarchy arm's second tier against a capture. Both constants are 25, so the tier is
+numerically inert. The unit wonders after the arms (Liberty on land, Porcelain on ships, the Space Program on
+aircraft) and the Kremlin's and `INSTANT_UNIT_BONUS`'s `ACCEL_TRAIN * 5 − 1` return are a `SEAM` in `train_tail`. No
+capture's player holds one.
 
 ## 218. Reserved for the next item on the AI track
 

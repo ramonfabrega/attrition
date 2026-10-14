@@ -4842,13 +4842,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BO — reserved
+## Parked by item 2293, 2026-10-14 — Socialism speeds an Airbase's unit; the successor pair closes at its end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2294) **The successor pair's closing residue: two units apart on block 5057** (2293; `docs/AI.md` §217.4;
+`run775_mongol_pair_closing_state`, counts `[2, 0, 0, 0, 0, 0, 0]`, 237 units). `1/93` is off by (−96, −720) and
+`1/176` by (20, 17). Both are standing rows in run838: `1/93`'s `g.x[0]` (ours 42456, theirs 42552) stands from 4597,
+the window's first block, and `1/176`'s `mirror` (ours 0, theirs 1) parts on 4702. The coverage pair's closing state
+has a unit off by the same (−96, −720) (`1/84`, `run652_coverage_pair_closing_state`). Neither is walked back past
+run838's first block. Names the closing pin and no draw word.
+
+(2295) **The Monarchy arm's walk is inert** (2293; names no score). `train_time`'s Stable arm under `MONARCHY_1`/`_2`
+is built and its test holds it. Dropped, it failed nothing on the successor pair's walk. No capture shows a Stable
+unit finishing under Monarchy on a different frame. Both tiers' constants are 25, so the tier is numerically inert.
 
 ## Parked by the next landing, slot BP — reserved
 
