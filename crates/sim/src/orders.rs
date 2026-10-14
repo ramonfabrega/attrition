@@ -9114,7 +9114,13 @@ impl Sim {
         } else {
             target
         };
-        if state.stance == combat::Stance::StandGround {
+        // **A STAND_GROUND unit chases only on duty** (`fight@005fd4d0`,
+        // `005fe139`–`005fe151`): `get_combat_stance() == 2 &&
+        // !Unit::on_duty()` skips the chase, so an attack-move's or a
+        // guard's still walks. Every packer and worker reads 2
+        // (`get_combat_stance@00610a30`, item 2265): run589's cannon
+        // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
+        if state.stance == combat::Stance::StandGround && !self.on_duty(u) {
             return;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to
