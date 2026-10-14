@@ -746,3 +746,4 @@ mod unit_do_think_order;
 mod unit_data_is_gathering_at;
 mod army_use_generals;
 mod spell_type_cast_march;
+mod build_check_gatherers;

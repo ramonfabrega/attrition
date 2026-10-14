@@ -7862,14 +7862,30 @@ impl Sim {
 
     /// `Build::check_gatherers`: prune the dead, the re-tasked, the off-map.
     pub fn check_gatherers(&mut self, b: usize) {
-        let keep: Vec<usize> = self.buildings[b]
-            .gatherers
-            .iter()
-            .copied()
-            .filter(|&u| {
-                self.units[u].alive() && self.units[u].on_map && self.is_gathering_at(u, b, false)
-            })
+        // The list is the chain, its order the links (`+0x70`, then each
+        // member's `+0x92`).
+        let list = self.buildings[b].gatherers.clone();
+        let mut next: Vec<i32> = (1..=list.len())
+            .map(|k| if k < list.len() { k as i32 } else { -1 })
             .collect();
+        let mut head = if list.is_empty() { -1 } else { 0 };
+        prune_chain(
+            &mut next,
+            &mut head,
+            |n, k| n[k as usize],
+            |n, k, v| n[k as usize] = v,
+            |_, k| {
+                let u = list[k as usize];
+                self.units[u].alive()
+                    && self.is_gathering_at(u, b, false)
+                    && self.units[u].on_map
+            },
+        );
+        let mut keep = Vec::new();
+        while head >= 0 {
+            keep.push(list[head as usize]);
+            head = next[head as usize];
+        }
         self.buildings[b].gatherers = keep;
     }
 
@@ -10289,5 +10305,49 @@ pub(crate) fn gathering_at_steps(
             }
         }
         _ => 0,
+    }
+}
+
+/// **`Build::check_gatherers@0062f710`'s prune** (item 2287): an empty
+/// chain (`head < 0`) answers `-1` untouched. From the head, a member that
+/// is not kept (in use, vslot `+8`; `is_gathering_at(this, 0)`; in use and
+/// on the map, `+8` and `+0xbc`, of its unit record) is unlinked — the
+/// head takes its link and its own link (`+0x92`) goes to `-1` — until a
+/// keeper; past it, a dropped member is stepped over, the keeper before it
+/// taking its link and **its own link left as it was**. The answer is the
+/// head as it stands.
+pub(crate) fn prune_chain<C>(
+    cx: &mut C,
+    head: &mut i32,
+    next: impl Fn(&mut C, i32) -> i32,
+    mut set_next: impl FnMut(&mut C, i32, i32),
+    mut keep: impl FnMut(&mut C, i32) -> bool,
+) -> i32 {
+    if *head < 0 {
+        return -1;
+    }
+    while *head >= 0 {
+        if keep(cx, *head) {
+            break;
+        }
+        let n = next(cx, *head);
+        set_next(cx, *head, -1);
+        *head = n;
+    }
+    if *head < 0 {
+        return *head;
+    }
+    let mut prev = *head;
+    loop {
+        let n = next(cx, prev);
+        if n < 0 {
+            return *head;
+        }
+        if keep(cx, n) {
+            prev = n;
+        } else {
+            let after = next(cx, n);
+            set_next(cx, prev, after);
+        }
     }
 }
