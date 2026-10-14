@@ -246,6 +246,14 @@ pub struct Modifiers {
     /// the original, after the captured-building doubling rather than before it
     /// — the Supercollider surcharge and the Indian elephant discount.
     pub late_discount: i32,
+    /// `get_cost`'s **Monarchy arm** (`TypeData::get_cost@00664090:657`–`665`,
+    /// the train arm only): `MONARCHY_UNIT_PROD` off a unit whose trainer is
+    /// the Stable (`+0x40 == 0x1ac`, by equality) when either `MONARCHY_1` or
+    /// `MONARCHY_2` is held — `_PROD2` is never read here. Its own
+    /// `(100 − x) × cost / 100`, after [`Modifiers::late_discount`]'s
+    /// `MILITARY_UNIT_DISCOUNT` (item 2331, `docs/GOLDEN.md` §84). Zero is
+    /// the identity.
+    pub monarchy: i32,
     /// `get_cost`'s **library-line tail** (`00666b7d`): up to three
     /// percentages off a library epoch's price, each its own
     /// `(100 − x) × cost / 100` in order, after
@@ -531,6 +539,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         cost = cost.wrapping_mul(100 - m.democracy) / 100;
     }
     cost = cost * (100 - m.late_discount) / 100;
+    if m.monarchy != 0 {
+        cost = (100 - m.monarchy) * cost / 100;
+    }
     if m.silver != 0 {
         cost = (100 - m.silver) * cost / 100;
     }
