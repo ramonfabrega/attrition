@@ -435,13 +435,20 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // at `PROJ_SPEED` 100. Each row is the centroid of the region that
     // reproduces both facings to the unit under the whole-degree
     // rotation. `CHAR_ATTACK2` plays the same file with the same events.
+    // **Since item 2304 each row is the packet's** (run839, chapter
+    // sixty-four's game, which fields the computer's Trireme `1/6`): the
+    // model point times `guy_scale × RData +0x88` (4.8 × 0.8), `right =
+    // −s·x` and `fwd = −s·y`, inside the region that reproduces
+    // `get_position`'s truncated answer at all 256 headings. The centroids
+    // of two facings had the third key's round a unit out at a third:
+    // run835's `1/6` at 63° (`756678656`), `sx` 12348 against 12349.
     (
         290,
         crate::anim::ATTACK1,
         5,
         Bay {
-            right: -259,
-            fwd: 45_488,
+            right: -293,
+            fwd: 45_430,
             dz: 88,
         },
     ),
@@ -450,8 +457,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         9,
         Bay {
-            right: -777,
-            fwd: -14_523,
+            right: -1_294,
+            fwd: -14_718,
             dz: 88,
         },
     ),
@@ -460,8 +467,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK1,
         17,
         Bay {
-            right: -2_166,
-            fwd: -66_602,
+            right: -2_106,
+            fwd: -66_171,
             dz: 87,
         },
     ),
@@ -470,8 +477,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         5,
         Bay {
-            right: -259,
-            fwd: 45_488,
+            right: -293,
+            fwd: 45_430,
             dz: 88,
         },
     ),
@@ -480,8 +487,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         9,
         Bay {
-            right: -777,
-            fwd: -14_523,
+            right: -1_294,
+            fwd: -14_718,
             dz: 88,
         },
     ),
@@ -490,8 +497,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::anim::ATTACK2,
         17,
         Bay {
-            right: -2_166,
-            fwd: -66_602,
+            right: -2_106,
+            fwd: -66_171,
             dz: 87,
         },
     ),
@@ -1293,7 +1300,8 @@ mod tests {
     /// 273) at five headings, and run843's Catapult `0/9` (piece 567),
     /// `(anim, starttime, figure x, y, angle, figure z, sx, sy, sz)` — the
     /// `GUY` record and the `AMMO` record on the round's first block. The
-    /// rows were read off two packets (run839, run842); these are the dump,
+    /// rows were read off two packets (run839, run842), and so were the
+    /// Trireme's that fire beside them; these are the dump,
     /// so the two are independent. Made to fail first: with the rows taken
     /// out every round leaves the figure's square at its own `z`.
     #[test]
@@ -1337,6 +1345,24 @@ mod tests {
                 gz + release_dz(273, anim, t, 0).unwrap_or(0),
                 sz,
                 "piece 273 dz"
+            );
+        }
+        // run835's computer Trireme `1/6` (piece 290), whose rows are the
+        // packet's since this item: 634's third key was a unit out.
+        #[rustfmt::skip]
+        const TRIREME: &[Row] = &[
+            (crate::anim::ATTACK2, 5, 12408, 36216, 756678656, 0, 12448, 36196, 88), // 622
+            (crate::anim::ATTACK2, 9, 12408, 36216, 756678656, 0, 12395, 36221, 88), // 626
+            (crate::anim::ATTACK2, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 634
+            (crate::anim::ATTACK1, 17, 12408, 36216, 756678656, 0, 12349, 36244, 87), // 713
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in TRIREME {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 290, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 290 anim {anim} t {t}");
+            assert_eq!(
+                gz + release_dz(290, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 290 dz"
             );
         }
         // run843 block 818: `0/9`'s first round on the Barracks `1/2008`.
