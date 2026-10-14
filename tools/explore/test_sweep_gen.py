@@ -418,6 +418,25 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat_half=['p0+0'])
 
+    def test_a_stub_may_answer_a_placed_record(self):
+        # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
+        # `objects[who][o]` and reads `+4` of the record at `+0x18` of the
+        # record the slot answers — two levels below the answer, where an
+        # `--answer-win` (laid after the places) can lay no pointer. So a
+        # place's location may be a stub's answer, `sN`: the stub answers
+        # the placed buffer, and a later place reaches into it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2241, win=0x60, bias=[], stubs=['slot:0x3c:0'],
+            places=['0xc0ab84+i8(m,0x5e)*0x1c:i16(m,8)*4:4', 'p0+0:0:4', 's0:0:0x1c', 'p2+0x18:4:4'],
+            vtat='p1+0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("('s0', '0', '0', 28)", script)
+        self.assertIn('answers[int(win[1:])] = (buf - off)', script)
+        self.assertIn('stub 0\'s answer points at 28 random bytes less `0` (placed)', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2241, win=8, bias=[], stubs=['slot:0x3c:0'],
+                                   places=['s1:0:4'])
+
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer
         # with its own `p0`; the plain `vcall` had no `--own`.

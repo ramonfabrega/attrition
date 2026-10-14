@@ -20202,12 +20202,81 @@ Not established: whether `come_out`'s other `set_angle` (`come_out:629`, a squad
 toggles anything. A follower is never a captain, so `find_leader` never names it. Between 4608 and 4615, four of group 83's
 helicopters part on `dest_angle` and no draw (`1/196`, `1/227`, `1/184`, `1/226`). Not read.
 
-## 215. Reserved for the next item on the AI track
+## 215. A re-entry re-issues a queued build by its site's number, and the successor pair's word moves 4637 → 4671 (2026-10-14, item 2229)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, and the widenings of run788, run799, run809, run820 and
+run838). No capture and no packet: every frame below is on disk.
+
+### 215.1 The frame, both sides
+
+Frame **4637: 37 draws on each side, parting at index 0** (`RON_DEBUG_SITES`). Ours spends `1/8`'s idle roll
+(`Unit::do_idle+0x7d`), then `1/58`'s turn (`Guy::do_turn+0x4a < Unit::move_step+0x389`), then `1/82`'s idle roll. Theirs
+opens on the turn. The Citizen `1/8` (`TypeIndex` 50) is still on its `BUILD` on `1/2073` there, so it spends no idle
+roll. The counts agree only because theirs' scout `1/101` spends nine `think_scout` draws to ours' eight. The seeds are
+in the trace (`caf03796` first).
+
+### 215.2 Walked back: the clock, the builder and the stack
+
+- **The clock.** run820 parts `1/2073` first on block 4370: `build:job_counter` ours 16850, theirs 16800. Theirs gains
+  100 a frame to 16900 on 4371 and then 150, when a second builder joins. Ours is 150 ahead a block early. The lead of
+  100 that run838 reads on 4597 (61083 against 60983) is the same two builder-frames.
+- **The builder.** The second builder is the Citizen `1/82` (`TypeIndex` 50, group 70). Ours reaches `2073`'s spot
+  (34056, 38280) two frames before theirs (on 4371). Ours reaches `2057`'s spot (35016, 40584) on 4257 against
+  theirs' 4259, and ours is reassigned to `2073` on 4258 against theirs' 4260. The two-frame lead is a walk. run820
+  holds it as standing rows from 4232 (`pos` ours (35368, 41089), theirs (35398, 41129); `order:flags` 0 against 4).
+- **The stack.** `1/82`'s first parted field is in run788, block **2972**: `orders.len` ours 2, theirs 4. On 2971 both
+  hold five orders, bottom first: `BUILD 2056` uid 213, an `EXPLORE_TO`, `BUILD 2057` uid 196, an `EXPLORE_TO`, and
+  `BUILD 2053` as the current one. Slot 2056 is empty on 2971. Slot 2057 holds a different, unstarted site, uid 214,
+  which `1/98` is walking to. On 2972 theirs holds `BUILD 2057` **uid 214** (flags 4), `EXPLORE_TO` (33912, 40152),
+  `BUILD 2053` (flags 4), and `EXPLORE_TO` (33288, 41160) as the current one. Ours holds only the top two.
+
+### 215.3 The mechanism
+
+The event is `Unit::do_build`'s re-entry, which ours models (§189). `1/82` is not beside `2053`, so it re-enters
+through a one-member group at `QUEUE_FIRST`. `set_up_insert` copies the action-bit orders aside, `action_halt` clears
+the list, and the swarm on `2053` runs at `QUEUE_NEW`. `finish_insert` then re-issues each copy at `QUEUE_LAST`. A probe
+(reverted whole) put ours' clear on 2971's tick at `work < group_action_halt < clear_orders`.
+
+`Group::finish_insert@0070e620`'s case 6 calls `action_swarm_around(this, *(order + 8), *(order + 0xc), QUEUE_LAST, …)`.
+Those are the target order's `ox` and `whom`. The uid is not passed. `Group::action_swarm_around@0070fbe0` returns only
+when the slot's object has `+8 & 1` clear: `objects[whom].list[ox]`. So the copy of the build on the closed `2057`
+uid 196 is re-issued on the live site in that slot, uid 214, swarmed afresh from where `1/82` stands. The copy of
+`2056` finds its slot empty and is dropped.
+
+Ours' `Body::Build` holds a building's index in an append-only list, and the swarm gated on that building's alive
+bit. The copy named the dead `2057`, so it was dropped.
+
+### 215.4 The build
+
+`Sim::group_finish_insert` (`crates/sim/src/group.rs`) resolves a build or repair copy through `building_by_o`: the
+live building with the copy's owner and object number. It re-issues the order on that building, and drops the copy
+when the slot is empty. Test: `cities_tests::a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number`.
+A builder holds a build on `b1` and one queued on `b2`. `b2` closes, `b3` takes its number, and the builder is carried
+off `b1`. Its builds afterwards are `[b1, b3]`.
+
+**Mutations** (`tools/mutate.py`, the copy resolved on its own index as before): **held** by the test (exit 101) and by
+the walk (`mongol_pair_first_parting` back at count 4638, sequence 4637).
+
+### 215.5 What moved, and the next word
+
+**The value diff**: on run788's block 2972, `1/82` holds four orders on both sides, `BUILD 2057` uid 214 at the
+bottom. On run820's block 4370, `1/2073`'s `job_counter` reads 16800 on both sides. On run838's block 4637, `1/8` holds
+its `BUILD` on `1/2073` in both.
+
+**The keys**: run788 135 → 133, run799 163 → 161, run809 180 → 178 (`1/82`'s `orders.len` rows). run820 201 → 171:
+`1/82` and `1/2073` leave whole. run838 1,515 → 1,371: the build clock on 4597 leaves, and with it block 4637.
+`GROUND_INEXACT`'s `mongol_pair_first_parting` 873 → 877.
+
+**The word 4637 → 4671** (count and sequence both). Frame **4671: ours 161 draws, theirs 165, parting at index 145**.
+Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`; theirs spends `Guy::init_real+0x52`, a birth. It is inside
+run838. Block 4672 opens on the leader's `num_units[302]` (ours 1, theirs 0) and `num_units[304]` (ours 0, theirs 1),
+`discovered` 42 against 43, `gov` 623 against 625, and `1/2019`'s `queue:queued` 1 against 0. The Despot `1/191`'s
+figures part the same block (`g.x[1]` 30664 against 30683, `mylos` 22 against 14). Parked 2230.
+
+**Not established**: the other `finish_insert` cases by slot. Ours carries an attack copy's target on the unit, so
+its `aim` is the live object, not the slot. Guard, follow and spell copies are seams there already. Whether
+`Unit::do_build`'s own stale-site test is uid-checked was not read: `Unit::work@0060d180:319`'s uid test is, and the
+closed-site builder walks on (item 644).
 
 ## 216. Reserved for the next item on the AI track
 

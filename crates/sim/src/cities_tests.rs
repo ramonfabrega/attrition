@@ -1054,6 +1054,50 @@ fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
     assert_ne!(after[1], before[1], "the second approach is laid afresh");
 }
 
+/// **A re-entry re-issues a queued build on whatever now holds its
+/// site's number** (item 2229, `docs/AI.md` §215). `Group::finish_insert`
+/// hands `action_swarm_around` the copy's `ox` and `whom` and no uid, and
+/// the swarm asks only that the slot be alive: run788's `1/82`, re-entering
+/// `2053` on 2972, takes `BUILD 2057` uid 214 for the copy of a build on
+/// the closed `2057` uid 196. This crate dropped the copy on the dead
+/// building's alive bit.
+#[test]
+fn a_re_entry_re_issues_a_queued_build_on_the_site_that_took_its_number() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.nation[0].human = false;
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    let b1 = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let b2 = sim.place_building(0, t.barracks, tile_pos(48, 36)).unwrap();
+    let u = sim.init_unit(0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b1, Body::Build(b1), true);
+    sim.swarm_around_last(
+        u,
+        b2,
+        Body::Build(b2),
+        true,
+        MoveKind::ExploreTo,
+        QueuePos::Last,
+    );
+    sim.close_building(b2, false);
+    let b3 = sim.place_building(0, t.barracks, tile_pos(48, 44)).unwrap();
+    assert_eq!(sim.buildings[b3].index, sim.buildings[b2].index);
+    // The builder is carried off, its first approach spent: the build on
+    // `b1` heads the list and it is not beside it.
+    sim.units[u].pos = tile_pos(30, 36);
+    sim.units[u].orders.remove(0);
+    sim.tick();
+    let builds: Vec<usize> = sim.units[u]
+        .orders
+        .iter()
+        .filter_map(|o| match o.body {
+            Body::Build(b) => Some(b),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(builds, vec![b1, b3], "{:?}", sim.units[u].orders);
+}
+
 /// **A closed site's builder walks on until its number is reused** (item
 /// 644). `Unit::work@0060d180:319` ends the action on a `uid` mismatch,
 /// and a closed building keeps its uid until `Objects::find_free` hands the

@@ -28,9 +28,10 @@
 /// 2200: 649 -> 659, a second sweep lane's ten with a port consumer; item 2211: 659 -> 669, the
 /// sweep's fifty-seventh batch; item 2205: 669 -> 670, `compare_target`, by golden chapter sixty-four's
 /// sea arm, `docs/GOLDEN.md` §80.1; item 2223: 670 -> 680, the sweep's fifty-eighth batch; item 2217:
-/// 680 -> 690, the second sweep lane's ten with a port consumer; item 2247: 690 -> 700, its next ten,
-/// the territory family through `obj --sparse`).
-pub const SIMULATION_BACKED: usize = 700;
+/// 680 -> 690, the second sweep lane's ten with a port consumer; item 2241: 690 -> 700, the sweep's
+/// fifty-ninth batch; item 2247: 700 -> 710, the second sweep lane's next ten, the territory family
+/// through `obj --sparse`).
+pub const SIMULATION_BACKED: usize = 710;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

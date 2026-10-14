@@ -1272,6 +1272,10 @@ def main(argv):
             at = eval(loc, env)
             if win is None:
                 uc.mem_write(at & 0xFFFFFFFF, ptr)
+            elif win[0] == "s":
+                # A stub answers the placed buffer, a record a later place
+                # may reach into (item 2241).
+                answers[int(win[1:])] = (buf - off) & 0xFFFFFFFF
             else:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[at:at + 4] = ptr
@@ -1445,6 +1449,10 @@ def _place(spec):
     """`LOC:EXPR:SIZE` — LOC a window's `m+OFF`, `cN+OFF`, `pN+OFF`, or an
     address expression; EXPR the byte offset the function adds (parked 2113)."""
     loc, expr, size = spec.split(':')
+    if re.fullmatch(r's\d+', loc):
+        # A stub's answer laid as the placed buffer: a record the callee
+        # answers, which a later place may reach into (item 2241).
+        return (loc, '0', expr, int(size, 0))
     win, plus, off = loc.partition('+')
     if plus and re.fullmatch(r'm|c\d+|p\d+', win):
         return (win, off, expr, int(size, 0))
@@ -1454,6 +1462,8 @@ def _place(spec):
 
 
 def _placed(win, off):
+    if win and win[0] == 's':
+        return f'stub {win[1:]}\'s answer'
     return f'the word at `{win}+{off}`' if win else f'the word at `{off}`'
 
 
@@ -1533,6 +1543,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--answers IDX:V,.. names one of the --stub callees, by its order on the line')
     if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
+    if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
+        raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
@@ -1776,7 +1788,8 @@ def main(argv=None):
     ap.add_argument('--base-not', action='store_true', help='vcall --base-call: the base arm answers `== 0`')
     ap.add_argument('--place', action='append', default=[], metavar='LOC:EXPR:SIZE',
                     help='obj: the word at LOC (`m+OFF`, `cN+OFF`, `pN+OFF` or an address expression) points at '
-                         'SIZE random bytes less EXPR, the offset the function adds — a new `p` window (parked 2113)')
+                         'SIZE random bytes less EXPR, the offset the function adds — a new `p` window (parked 2113); '
+                         'LOC `sN` lays stub N\'s answer as the pointer (a record a callee answers, item 2241)')
     ap.add_argument('--wbias', action='append', default=[], metavar='WIN+OFF:V,V|LO..HI',
                     help='obj: a 32-bit word of window m, cN or pN held to the list or range every row; OFF `*` every word')
     ap.add_argument('--fill', action='append', default=[], metavar='WIN:EXPR',
