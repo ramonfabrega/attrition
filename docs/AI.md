@@ -20050,12 +20050,83 @@ capture on disk holds it, so the first act on it is run820's recipe with the win
 Not established: whether `COUNT_TYPE 0x3f`'s lineage counts a type this crate's flag test does not (no lobby has fielded one).
 The counts were not changed.
 
-## 214. Reserved for the next item on the AI track
+## 214. A landing leader turns its group's mirror: `come_out`'s `set_angle`, and the successor pair's word moves 4603 → 4637 (2026-10-14, item 2193)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, run838's widening, run841's `GROUPDATA`). Two captures: run838
+(the word's window, 4597..4852) and run841 (`GROUPS=1` over 4482..4606). No packet.
+
+### 214.1 The frame, both sides
+
+Frame **4603: ours 22 draws, theirs 21, index 17** (`RON_DEBUG_SITES`). Indices 0–16 agree, and so do ours 18–21 and theirs
+17–20. Ours' extra draw is `Guy::set_anim+0x97a < Unit::move_step+0x823`, the stop roll of the Mechanized Infantry `1/111`
+(`TypeIndex` 104, `MECHINFANTRY`, army 1). On 4603 it takes a fresh `ATTACK_TO`, steps once to (11664, 23648), meets a
+collision and stops. Theirs' `1/111` takes the same order kind and stops nowhere.
+
+### 214.2 Every record on 4603, and the field that parted first
+
+run838's widening (`RON_FIRSTS=1`): 159 standing rows on 4597 and none on army 1's members. Then **74 rows on block 4603**,
+all of them group 69's: army 1's whole group takes a `GROUP_ATTACK_TO` to (6474, 6713), `o_angle` −1956511744. Only four
+members are on the map: the MLRS `1/79` (`TypeIndex` 273) and the squad `1/110`..`1/112`. The other 56 are in transports.
+
+- `order:move.facing` is ours 1 against theirs 0 on all four.
+- `1/111`'s slot is ours (6600, 6744) against theirs (6312, 6696). `1/112`'s is ours (6360, 6744) against theirs (6648, 6792).
+  The two slots' centre is (6480, 6744) on both sides, and `1/110`'s slot (6456, 6696) agrees. So the formation is the
+  same; ours is mirrored.
+- Their paths follow the slots.
+
+**The mirror is `GroupData::facing` XOR the leader's turn** (§6.3 of `docs/GROUPS.md`). On 4602 ours' leader is `1/110`
+(`type_cat` 4, against the MLRS's 6), heading 0. The order's angle is 0x8b620000, so the leader faces away, and so would the
+MLRS (0xdfb00000). So the layout's mirror differs only if the group's own flag does. Ours' was 0.
+
+### 214.3 Where the flag parted
+
+**run841** prints the pool every frame. Group 69 reads `facing 1` on 4482, 0 on 4513 and 1 on 4524, then holds to 4606.
+Its list order is ours, member for member. Ours' writes on the same frames (a probe, reverted) toggle the same way, at
+`1/64`'s turn-arounds on 4512 and 4523, but from 0. So the flag parted before 4482.
+
+Ours' writes after the agreeing layout of 4346 (its members' `facing` agree in run820) were `1/28`'s turns on 4374 and 4460,
+both as leader, and nothing else. The unit mirrors (`unit_masks & 2`) of army 1's members agree through run820 and run838.
+
+**The writer ours skipped is `come_out`'s turn.** `Unit::come_out@00617c10` ends a landing from a unit host with
+`set_angle(this, host->angle, …, 1)` (`6191f4`, `docs/TRANSPORT.md` §6.4). `Unit::set_angle@00605400` tests `reversing` on
+the turn, flips `unit_masks & 2`, and toggles `GroupData::facing` when `find_leader` (or `list[0]` for a building group)
+names the unit. Nothing in it reads the last argument before the toggle. Ours' `land_tail` wrote the heading through
+`Movement::set_facing`, which flips the unit's mirror and does not touch the group.
+
+The BMP `1/28` (`TypeIndex` 223) lands on 4363 and leads army 1 at once (`type_cat` 0, list slot 7, ahead of `1/62` and
+`1/51`). Its turn to the boat's heading is a reversal, so the original's flag goes to 1 there. 4374 and 4460 then toggle
+it to 0 and back to 1, and 4482 reads 1.
+
+### 214.4 The build
+
+`Sim::toggle_leader_facing` (`crates/sim/src/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
+and so does `land_tail` (`crates/sim/src/transport.rs`) on a reversing turn to the host's angle. The probe counted
+thirty reversing landings in this game before 4637, twelve of them by the group's leader, which now toggle. They run
+from 2105 on: `1/29` on 4255, `1/48` on 4195, and army 0's wagons among them.
+The walk stays clean past all of them, because a later hand-back overwrites the flag before a layout reads it.
+
+Test `transport::tests::a_passenger_that_lands_as_its_group_s_leader_toggles_the_group_s_mirror`: one army member boards
+facing north, the barge turns south and ejects it, and the army's flag is set.
+
+**Mutations** (`tools/mutate.py`, the toggle dropped from `land_tail`): **held** by the test (101) and by the walk
+(`mongol_pair_first_parting` back at 4603, count and sequence).
+
+### 214.5 What moved, and the next word
+
+**The value diff**: on block 4603 group 69's four members carry `facing` 0 on both sides, and `1/111` holds (6312, 6696)
+with its path's first leg at (6335, 6673), as theirs does. All 74 rows of 4603 leave. run838's keys go **1,694 → 1,515**.
+`GROUND_INEXACT`'s `mongol_pair_first_parting` goes 688 → 873. The coverage pair's run762 goes 199 → 197 and run763 192 → 191;
+no draw parts there, and the keys that left were not named. Every other lobby's `first_parting` holds.
+
+**The word 4603 → 4637** (sequence; the count parts at 4638). Frame **4637: 37 draws on each side, parting at index 0**:
+ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
+The first row is block 4637's: the Citizen `1/8` holds its `BUILD` on `1/2073` one frame longer in theirs (`orders.len` 1
+against 0). `1/2073`'s build clock has been standing since run820's 4370 (`build:construct_hits` 1134 against 1132,
+`build:job_counter` 61083 against 60983 on 4597). Parked 2194.
+
+Not established: whether `come_out`'s other `set_angle` (`come_out:629`, a squad follower turned to its captain's angle)
+toggles anything. A follower is never a captain, so `find_leader` never names it. Between 4608 and 4615, four of group 83's
+helicopters part on `dest_angle` and no draw (`1/196`, `1/227`, `1/184`, `1/226`). Not read.
 
 ## 215. Reserved for the next item on the AI track
 

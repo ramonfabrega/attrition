@@ -4655,13 +4655,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BC — reserved
+## Parked by item 2193, 2026-10-14 — a landing leader turns its group's mirror
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2194) **The successor pair's word 4637: 37 draws each, index 0** (2193; `docs/AI.md` §214.5; the count parts at 4638).
+Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x389`. The first row is on block 4637: the Citizen `1/8` (`TypeIndex` 50) holds its `BUILD` on `1/2073`
+(uid 374) in theirs and has none in ours (`orders.len` 1 against 0, `idle` on 4638). `1/2073`'s build clock has stood since
+run820's 4370 (`build:construct_hits` 315 against 313 there; on run838's 4597, 1134 against 1132 and `build:job_counter`
+61083 against 60983). The word is inside run838 (4597..4852), so no capture is owed. Its widening, every record on 4638 both
+ways, is `run838_s_word_frame_is_widened_whole`.
+
+(2195) **Four of group 83's helicopters part on `dest_angle` from 4608 to 4615 and spend no draw** (2193; names no score).
+`1/196`, `1/227`, `1/184`, `1/226`: ours, for example, −1707540480 against −541917184 on `1/227`. Theirs reads the guard's
+outward bearing on three of them. Not read.
+
+(2196) **`land_tail`'s toggle names no `buildings` group** (2193; names no score). `Unit::set_angle@00605400` asks
+`list[0]` instead of `find_leader` when the group's `buildings` byte is set. `is_group_leader` asks `find_leader` alone, in
+both of its callers. No capture has had a building group whose `list[0]` turned.
 
 ## Parked by the next landing, slot BD — reserved
 

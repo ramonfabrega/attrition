@@ -3835,10 +3835,11 @@ impl Sim {
     ///
     /// `Unit::move_step`'s call is modelled — the one a marching unit
     /// makes every frame — and `Unit::do_build`'s turn to its site (item
-    /// 1330). The other callers (`do_gather`, `fight`, `come_out`, …) are
-    /// turns this simulation makes through `Movement::set_heading` or not
-    /// at all, and each is a place a group's flag would move that this one
-    /// leaves still.
+    /// 1330). `come_out`'s turn to a boat's heading reaches the group arm
+    /// through [`Self::toggle_leader_facing`] (item 2193). The other
+    /// callers (`do_gather`, `fight`, …) are turns this simulation makes
+    /// through `Movement::set_heading` or not at all, and each is a place a
+    /// group's flag would move that this one leaves still.
     ///
     /// **And the tail of it is `Guy::set_angle(guy 0, angle, 0)`**, whose
     /// crew loop rewrites every tracked figure's `des_angle` and `des`
