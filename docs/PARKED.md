@@ -3808,6 +3808,14 @@ branch in silence, and the second poked the seed by hand (8/3 draws first). Cand
 the walk's printed seed at the unit's draw, so a per-unit packet run says which roll it took, with a test made to
 fail first. One reach.
 
+(2264) **A standing row on the word's unit is walked back through every earlier widening first** (2229's "for
+the Loop" line). The parting was 1,665 frames before the word: 2193 handed it over as "the build clock, two hits
+behind since 4370", and each widening's standing rows on its first block led one window back (run820 `pos` → run809
+and run799 `orders.len` → run788's 2972). Also, `grep -v '^  f'` on a widening log drops the `first` lines with the
+`f` lines, which cost one false "agrees". Candidate: a brief-checklist row — "a standing row on a unit the word names
+is walked back through every earlier widening of the pair (`RON_FIRSTS=1`) before its mechanism is read" — beside
+Loop 2180's. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
