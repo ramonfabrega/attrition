@@ -3747,6 +3747,12 @@ the coverage pin lists as unread, so no widening could show them. Candidate: a b
 on the word's block: diff the dump's whole `LEADERDATA` across the block, unread fields included" — beside Loop
 2180's standing-row walk. One reach.
 
+(2303) **A packet for a decision first printed on block N is taken at `RON_STATE_FRAME=N−1`** (2265's "for the
+Loop" line). A `RON_STATE_FRAME=N` packet holds block N's state, so `Unit::process` run on it is tick N; a decision
+the dump first prints on block N was made on tick N−1. The brief's "a packet at the word's own frame" cost run842 a
+second take. Candidate: the frame's packet row and `docs/EMULATOR.md` §8 say "the frame before the block that first
+prints the decision", and `frame_snapshot.py` names the tick it holds. One reach.
+
 ## Loop, filed 2026-10-14 — the thirty-third tranche's
 
 (2146) **`GROUPS=1` without `BUILDS=7` prints no `GROUPDATA`** (Loop; names no score). run827's first take asked
