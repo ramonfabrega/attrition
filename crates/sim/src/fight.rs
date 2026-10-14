@@ -393,7 +393,8 @@ impl Sim {
     pub(crate) fn in_unfriendly_territory(&self, b: usize) -> bool {
         let who = self.buildings[b].owner;
         matches!(self.world.owner_at(self.buildings[b].pos),
-            crate::Owner::Player(t) if t != who && !self.is_ally(who, t))
+            crate::Owner::Player(t) if !crate::place::friendly_ground(
+                i32::from(t), i32::from(who), self.allied_with(who, t), self.allied_with(t, who)))
     }
 
     /// The side of the damage formula an object presents as a **target**.

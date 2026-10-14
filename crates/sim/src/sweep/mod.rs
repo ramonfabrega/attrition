@@ -616,6 +616,7 @@ mod vector_dist_coords;
 mod vector_dist_ints;
 mod wall_data_can_capture;
 mod wall_data_get_garrison_limit;
+mod wall_data_in_unfriendly_territory;
 mod wall_data_is_defensive;
 mod wall_data_tile_corner;
 mod wall_die;
