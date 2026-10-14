@@ -705,6 +705,7 @@ mod unit_kill_current_path;
 mod unit_on_duty;
 mod unit_order_is_move_attack;
 mod unit_order_walk_data;
+mod unit_repath;
 mod unit_set_ai_control;
 mod unit_set_anim;
 mod unit_set_attacking;

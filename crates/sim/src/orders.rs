@@ -883,6 +883,49 @@ impl Order {
     }
 }
 
+/// `Unit::repath@005e29b0`, in the original's own call order (item 2341's
+/// sweep, `crate::sweep::unit_repath`): while there is a head, `get_type`
+/// (vslot `+0x10`) is asked; outside the move family (`1, 2, 3, 4, 0x12,
+/// 0x13, 0x15`) it is asked again and the walk stops unless that answer
+/// is `CHANGE_FORM` without the action bit (dead with one answer a head,
+/// but a second call all the same). In the family, `get_type` a third
+/// time: a `GROUP_MOVE` of a unit whose group (`+0x80`) is not `-1` has
+/// `Group::kill_group_move(groups[group], get_group_move_order()->id)`
+/// (`+0x10c`, `+0xc`), anything else `kill_current_order(0)`, and the
+/// walk goes round. The action bit is never read on the family's arm.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn repath_steps<C, G, I>(
+    cx: &mut C,
+    has_head: impl Fn(&mut C) -> bool,
+    mut get_type: impl FnMut(&mut C) -> i32,
+    action: impl Fn(&mut C) -> bool,
+    group: impl Fn(&mut C) -> Option<G>,
+    mut group_id: impl FnMut(&mut C) -> I,
+    mut kill_group_move: impl FnMut(&mut C, G, I),
+    mut kill_current: impl FnMut(&mut C),
+) {
+    let family = |t: i32| u8::try_from(t).is_ok_and(index::is_move_family);
+    loop {
+        if !has_head(cx) {
+            return;
+        }
+        if !family(get_type(cx))
+            && (!has_head(cx) || get_type(cx) != i32::from(index::CHANGE_FORM) || action(cx))
+        {
+            return;
+        }
+        if has_head(cx)
+            && get_type(cx) == i32::from(index::GROUP_MOVE)
+            && let Some(g) = group(cx)
+        {
+            let id = group_id(cx);
+            kill_group_move(cx, g, id);
+            continue;
+        }
+        kill_current(cx);
+    }
+}
+
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Did {
@@ -3373,12 +3416,38 @@ impl Sim {
         true
     }
 
-    /// `Unit::repath`: pop the leading transit legs so the target order
-    /// re-issues them.
+    /// `Unit::repath@005e29b0` ([`repath_steps`], item 2341): while the
+    /// head is of the move family it goes — a `GROUP_MOVE` of a unit in a
+    /// group through `Group::kill_group_move` (the whole group's plan),
+    /// anything else through `kill_current_order(0)`. The action bit is
+    /// not asked (it was until item 2341's sweep: the port popped only
+    /// transit legs and kept a player's own move).
+    ///
+    /// SEAM: a `GROUP_MOVE` whose group's walk leaves the head standing
+    /// (the unit not in the list, dead or off the map) loops for ever in
+    /// the original; here it falls through to `kill_current_order`.
     pub(crate) fn repath(&mut self, u: usize) {
-        while self.current_order(u).is_some_and(Order::is_transit) {
-            self.kill_current_order(u);
-        }
+        repath_steps(
+            self,
+            |s| s.current_order(u).is_some(),
+            |s| i32::from(s.order_type(u)),
+            |s| s.current_order(u).is_some_and(|o| o.has(flag::ACTION)),
+            |s| s.group_of(u),
+            |s| match s.current_order(u).map(|o| o.body) {
+                Some(Body::Move(MoveOrder {
+                    group: Some(gm), ..
+                })) => gm.id,
+                _ => 0,
+            },
+            |s, g, id| {
+                let head = s.units[u].head_serial;
+                s.kill_group_move(&g, id);
+                if s.units[u].head_serial == head && s.current_order(u).is_some() {
+                    s.kill_current_order(u);
+                }
+            },
+            |s| s.kill_current_order(u),
+        );
     }
 
     // ------------------------------------------------------------------
