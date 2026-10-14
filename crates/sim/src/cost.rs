@@ -1324,6 +1324,34 @@ mod tests {
         assert_eq!(at(Resource::Food, [15, 15]), 43);
     }
 
+    /// **Monarchy takes its quarter after `MILITARY_UNIT_DISCOUNT`, in a
+    /// truncation of its own** (`get_cost@00664090:657`–`665`; item 2331,
+    /// `docs/GOLDEN.md` §84). run845's second Light Horse is 61 food ramped,
+    /// 45 under Monarchy alone; under a 10% military discount as well it is
+    /// 54 then 40, where one fold of 35% would give 39.
+    #[test]
+    fn monarchy_takes_its_quarter_after_the_military_discount() {
+        let horse = Price {
+            class: RampClass::Military,
+            pop: 1,
+            ..Price::free()
+                .with_base(Resource::Food, 6)
+                .with_support(Resource::Food, 1)
+        };
+        let at = |late_discount, monarchy| {
+            let m = Modifiers {
+                late_discount,
+                monarchy,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &horse, Resource::Food, owned(1), &m)
+        };
+        assert_eq!(at(0, 0), 61);
+        assert_eq!(at(0, 25), 45);
+        assert_eq!(at(10, 25), 40);
+        assert_eq!(at(35, 0), 39);
+    }
+
     /// **The Statue of Liberty takes its third off the base, not the
     /// ramp** (`docs/AI.md` §204). Great Sahara's Persians queue a
     /// Strategic Bomber (110 wealth and oil, five a unit up the ramp, one
