@@ -408,6 +408,24 @@ class Shapes(unittest.TestCase):
         self.assertIn('def call(self, entry, stack_args=(), ecx=0, max_insns=200_000, edx=0):', hooks)
         self.assertIn('edx=edx', hooks)
 
+    def test_a_stub_may_write_a_window_word(self):
+        # Item 2346 (parked 2338's spare): `Object::kill_contents` loops while
+        # its container's head (+0x28) is not negative, and only the callee
+        # that kills the head unlinks it; a stub that writes nothing loops
+        # until the instruction budget. `--stub-write IDX:WIN+OFF:SIZE:VAL`
+        # writes VAL (SIZE bytes) at the window's word each call of stub IDX.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2346, win=0x40, bias=[], own=0, ret='none',
+            stubs=['0x402000:1', '0x403000:1'], stub_write=['1:m+0x28:2:-1'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("STUBWRITE = [(1, 'm', 40, 2, -1)]", script)
+        self.assertIn('def win_write(', script)
+        self.assertIn('stub 1 writes -1 (2 bytes) at `m+0x28` each call', test)
+        for bad in ('1:m+0x28:3:-1', '2:m+0x28:2:-1', '1:q+0x28:2:-1', '1:m:2:-1'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
+
     def test_a_tame_register_draws_no_wild_rows(self):
         # Item 2346 (parked 2338): `add_type_bucket2` increments a byte of a
         # table at `ecx`, and `--ecx-int` drew a random word one row in ten,
