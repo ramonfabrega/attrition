@@ -1915,11 +1915,7 @@ impl Sim {
     /// building finished, a city captured. Anything that edits
     /// [`Sim::holdings`] should say so here, or the change will not show up
     /// for up to half a minute.
-    #[track_caller]
     pub fn economy_changed(&mut self, who: Player) {
-        if std::env::var("RON_PROBE_DIRTY").is_ok() && who == 1 && (1440..1470).contains(&self.frame) {
-            eprintln!("DIRTY f{} {}", self.frame, std::panic::Location::caller());
-        }
         self.ledgers[who as usize].dirty = true;
     }
 
