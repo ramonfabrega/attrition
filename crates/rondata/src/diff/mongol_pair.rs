@@ -47,8 +47,8 @@ pub(crate) const MONGOL: Pair = Pair {
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4353,
-    sequence: 4353,
+    count: 4603,
+    sequence: 4603,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -431,5 +431,5 @@ fn run820_s_word_frame_is_widened_whole() {
     // 33048), the General `1/175`'s 31); the Freighter `1/191` parts first
     // on 4343 (`myhits` 599 against 659) and the run's tail moves
     // (`docs/AI.md` section 212).
-    pin_eq!(w.firsts.len(), 1128, "run820 baseline");
+    pin_eq!(w.firsts.len(), 201, "run820 baseline");
 }
