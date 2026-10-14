@@ -4979,13 +4979,15 @@ The port assumes every member already points at the slot. The sweep holds the he
   wrap its sums).
 
 
-## Parked by the next landing, slot BT — reserved
+## Parked by item 2320, 2026-10-14 — the peace pair
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
+    `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
+    `9 <= rush_rules` arm after `current_age@005946d0`). `crates/sim/src/army.rs`'s seam list models it as "always
+    allowed" in `release_mustering`, and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
+    `Leader::diplomacy`, `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
+    `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Game::do_frame`'s frame-4500 event — are not read. Names
+    the peace pair's word once it passes 1384; a word that parts before 4500 on a pre-war gate is this row's frame.
 
 ## Parked by item 2325, 2026-10-14 — a stub that answers through its argument, and a sweep that keeps its line
 

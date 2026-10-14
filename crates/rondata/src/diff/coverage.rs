@@ -2994,6 +2994,9 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // Item 2107: Great Sahara in the successor pair's lobby, run834's
     // blocks around the word 2995 to the game's closing block 3269.
     let sahara_mongol_2995 = super::sahara_mongol::sahara_mongol_frame_2995_window();
+    // Item 2320: the peace pair, the newest pair's open word, run848's
+    // blocks around the word 1384.
+    let lakota_1384 = super::lakota_pair::lakota_frame_1384_window();
     let seen = compared::stop();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
@@ -3057,6 +3060,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         mongol_4603,
         mongol_closing,
         sahara_mongol_2995,
+        lakota_1384,
     ];
     if windows.iter().any(Option::is_none) {
         eprintln!("skipping: the open words' captures are not all on disk");

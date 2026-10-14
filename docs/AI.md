@@ -20439,12 +20439,61 @@ numerically inert. The unit wonders after the arms (Liberty on land, Porcelain o
 aircraft) and the Kremlin's and `INSTANT_UNIT_BONUS`'s `ACCEL_TRAIN * 5 − 1` return are a `SEAM` in `train_tail`. No
 capture's player holds one.
 
-## 218. Reserved for the next item on the AI track
+## 218. The peace pair: East Indies, the Lakota, five minutes' peace — and its first word at frame 1384 (2026-10-14, item 2320)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What was established, how, how confident.** The successor pair closed at its game's end (§217); DECISIONS 53 §2 and 61
+§6 owe the next pair, chosen by the census rows no trace has entered.
+
+1. **The rows, named before the capture** (journal `2026-10-14-item-2320.md`). `tools/census.py --pin --never`, this
+   day: 48,233 functions, 7,901 entered, **334 cited and never entered**. A direct-call scan of the executable (every
+   `E8` into a function start) gives 1,223 never-entered simulation functions, 331 with an entered caller. Read by what
+   each caller's branch needs, the lobby setting with the most simulation readers no trace has set is **`RUSH_RULES`**:
+   `Game::war_allowed@00594670` is entered, and every one of its arms past `rush_rules == 0` is not. It calls
+   `Game::current_age@005946d0` (never entered) and its time arm reads the `rush_rules` table's minutes × 900. Its readers
+   are `Unit::process_attrition` (the human's `Game::say_no_war@00592b00`, never entered), `PathFinder::calc_cost`,
+   `Army::release_mustering`, `Leader::diplomacy`, `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
+   `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Leader::create_units`, `Leader::create_buildings`,
+   `Leader::upgrade_units` and `Game::do_frame`'s peace-end frame; `Game::is_no_rush@005946c0` is on the blind list. With
+   `STARTING_TECHNOLOGY 8` the age arms (1–7) never hold, so a time arm is the only one a late start reaches: **10, "Peace
+   for first 5 minutes"**, war from frame 4500. The nation: **the Lakota (19)**, never an AI in any capture, the
+   second-most `has_tribe_bonus` sites of any nation (24, for `0x13`), among them `Object::disband@006455c0` (never
+   entered; `lakota_raze_price`), the AI's `create_buildings`, `create_units`, `production_ai_setup` and `calc_gather`,
+   `Build::plunder` and `LeaderData::can_see_borders`. Not the battery's Germans, Russians or Egyptians (§125's battery
+   is never debugged against). **These are predictions**: the click-free lane runs `cover=0`, so the census cannot say
+   it entered any of them.
+2. **The lobby**: East Indies (`MAP_STYLE 18`), human Nubians (4) against **the Lakota (19)** at `DIFFICULTY 3`,
+   `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, **`RUSH_RULES 10`**, seed 12345 — the successor pair's lobby with the
+   nation and the rush rules varied. *Diff-backed*: each dump's `GAME INFO` reads them back. `crates/sim` already reads
+   `RUSH_RULES` into `Lobby::rush_rules` (`diff::setup::lobby_of`).
+3. **Captures**: run846 (`DUMP_ALL` start), run847 (draw stream, `cover=0`; **the game ended itself at 6822**, the
+   Lakota defeating the idle human — 1,766 frames past the successor pair's 5056), run848 (blocks 1378..1634 at the
+   long's detail). `rngcmp.py`: 0 differing in 37 and in 1641 frames.
+4. **What the game reached that the closed pairs did not**: run847's draw stacks name 11 functions no stack of run775 or
+   run652 does — `Leader::diplomacy`, `Leader::receive_chat`, `LeaderOut::display_chat`, `Unit::do_attack`,
+   `Group::action_attack`, `Unit::go_inside`, `Ammo::check_hit`, `Ammo::init_crash`, `AmmoOut::dirt_splash`,
+   `GraphicPieces::add_debris`, `GraphicPieces::add_explosion`. All 11 are entered by some pinned `cover=1` trace, so
+   none is a census row: no draw stack in run847 is in a never-entered function. The census rows stay predictions until a
+   `cover=1` take of this lobby on the queue lane.
+5. **The first word: frame 1384, 596 draws ours against 564 theirs, index 28**, count and sequence both, first try (the
+   successor pair's first word was 11) — ours `Leader::create_buildings+0xffb`, theirs `Animal::think_bird+0x82`
+   (`diff::lakota_pair::lakota_pair_first_parting`). Inside the peace.
+6. **The widening** (`run848_s_word_frame_is_widened_whole`, `RON_FIRSTS=1`): 870 keys on blocks 1378..1634, 74 standing
+   on 1378. **The value diff on the word's frame**: `leader:MAKE[5].val` ours 28124 / theirs 29387 (who=1), and the
+   Citizen `1/13` (type 50, `PEASANTS`) at (38963,38203) / (39009,38201). Walked back: on 1383 `1/13` carries
+   `BUILD 2026` toward a different site — ours `1/2026` at (35904,39744) with `constr_time` 70000, theirs at (40800,41568)
+   with 560000, **the Statue of Liberty (537)**; on 1382 leader 1's `MAKE[8].t` is ours 442 (`BUNKER`) against theirs 537.
+   **The first parted field, walked back to the start**: who=1's food economy — on 1378 `income[0:food]` ours 320 /
+   theirs 1728, `rate` 20/108, `econ` 3/8, `leftover` 2400/4544 — and on run846's block 1 already, `income[0:food]`
+   ours 160 / theirs 864 (a probe widening of run846's blocks 1..2, not kept). The rest of 1378's standing rows
+   (`SITE[n].reg` 65/0, `form` −1/9, the `held` pools 64..72) are the control's set (§127, §190).
+
+**What is not established.** Which arm makes the Lakota's food income 864 on frame 1 (the successor pair's was the
+Mongol food term, §191); that the word's draw delta is that income's (the frame is the booking, the mechanism the next
+item's hypothesis). Every census row in point 1 is a prediction. The peace's end at 4500 and `Game::war_allowed`'s time
+arm stand modelled as "always allowed" (`crates/sim/src/army.rs`'s seam list), parked 2321.
+
+**Diff-backed**: the lobby's read-back, the game's end at 6822, the first word and its widening. **Reading only**: the
+callers in point 1.
 
 ## 219. Reserved for the next item on the AI track
 
