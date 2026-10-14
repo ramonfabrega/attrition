@@ -3876,12 +3876,13 @@ impl Sim {
             return;
         }
         let Some(g) = self.group_of(u) else { return };
+        let (pf, pi) = (self.frame, self.units[u].index);
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = !st.facing;
             if std::env::var_os("RON_PROBE_2193").is_some() {
-                eprintln!("PROBEF f{} set_angle {}/{} army {:?} pushed {:?} -> {}", self.frame, g.who, self.units[u].index, g.army, g.pushed, st.facing);
+                eprintln!("PROBEF f{} set_angle {}/{} army {:?} pushed {:?} -> {}", pf, g.who, pi, g.army, g.pushed, st.facing);
             }
         }
     }
@@ -3910,12 +3911,13 @@ impl Sim {
         // `5e3087`/`5e308d`: `unit_masks & 2` takes it, leader or not.
         self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
+        let (pf, pi) = (self.frame, self.units[u].index);
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
             st.facing = f;
             if std::env::var_os("RON_PROBE_2193").is_some() {
-                eprintln!("PROBEF f{} hand_back {}/{} army {:?} pushed {:?} -> {} (order {} turned {})", self.frame, g.who, self.units[u].index, g.army, g.pushed, f, order_facing, f != order_facing);
+                eprintln!("PROBEF f{} hand_back {}/{} army {:?} pushed {:?} -> {} (order {} turned {})", pf, g.who, pi, g.army, g.pushed, f, order_facing, f != order_facing);
             }
         }
     }
