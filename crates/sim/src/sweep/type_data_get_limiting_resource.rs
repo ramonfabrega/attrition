@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,49 +46,67 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // Over the six goods: one leader a0 has (type_avail(good, 1) on its
-    // row) whose need (this's slot +0x78: good, a0, a1, a2, 0, 1, -1) is
-    // more than its stock (the row's +0x6eb8 list, each word xored with
-    // 0x8221) is the limiting resource; a second answers -1.
-    let row = a[0] as usize;
-    let (mut avail, mut need) = (5usize, 11usize);
-    let mut lim = -1i64;
-    let (mut ta, mut sl) = (Vec::new(), Vec::new());
-    let mut v = None;
-    for good in 0..6 {
-        ta.push(format!("r+0x0,{good},1"));
-        let ok = a[avail] != 0;
-        avail = (avail + 1).min(10);
-        if !ok {
-            continue;
-        }
-        sl.push(format!("m+0x0,{good},{},{},{},0,1,-1", a[0], a[1], a[2]));
-        let n = a[need];
-        need = (need + 1).min(16);
-        if (rd(&p[8 + row], 4 * good) ^ 0x8221) < n {
-            if lim != -1 {
-                v = Some(-1);
-                break;
+                // Over the six goods: one leader a0 has (type_avail(good, 1) on its
+                // row) whose need (this's slot +0x78: good, a0, a1, a2, 0, 1, -1) is
+                // more than its stock (the row's +0x6eb8 list, each word xored with
+                // 0x8221) is the limiting resource; a second answers -1.
+                let row = a[0] as usize;
+                let (mut avail, mut need) = (5usize, 11usize);
+                let mut lim = -1i64;
+                let (mut ta, mut sl) = (Vec::new(), Vec::new());
+                let mut v = None;
+                for good in 0..6 {
+                    ta.push(format!("r+0x0,{good},1"));
+                    let ok = a[avail] != 0;
+                    avail = (avail + 1).min(10);
+                    if !ok {
+                        continue;
+                    }
+                    sl.push(format!("m+0x0,{good},{},{},{},0,1,-1", a[0], a[1], a[2]));
+                    let n = a[need];
+                    need = (need + 1).min(16);
+                    if (rd(&p[8 + row], 4 * good) ^ 0x8221) < n {
+                        if lim != -1 {
+                            v = Some(-1);
+                            break;
+                        }
+                        lim = good as i64;
+                    }
+                }
+                let mut rows = vec!["-".to_string(); 9];
+                rows[row] = ta.join("/");
+                log.extend(rows);
+                log.push(if sl.is_empty() {
+                    "-".into()
+                } else {
+                    sl.join("/")
+                });
+                v.unwrap_or(lim)
             }
-            lim = good as i64;
-        }
-    }
-    let mut rows = vec!["-".to_string(); 9];
-    rows[row] = ta.join("/");
-    log.extend(rows);
-    log.push(if sl.is_empty() { "-".into() } else { sl.join("/") });
-    v.unwrap_or(lim)
-}
         };
         assert_eq!(got, want_eax, "get_limiting_resource — eax, row `{line}`");
-        assert_eq!(log, want_log, "get_limiting_resource — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "get_limiting_resource — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "get_limiting_resource — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "get_limiting_resource — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_limiting_resource — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_limiting_resource — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "get_limiting_resource — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "get_limiting_resource — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,23 +46,30 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // One speed down: a playback (a[0] != 0) with a speed (+0x34) steps it
-    // down for a[0]; the live speed (+0x30), when not 0, steps down for 0
-    // unless the game's semaphore (+0x820) has bit 4 and the info flags
-    // (+0x20) bit 0x100. speed_set(who, speed - 1, 0) on `this`.
-    let g = &c[0];
-    let (who, speed) = if a[0] != 0 { (a[0], rd(m, 0x34)) } else { (0, rd(m, 0x30)) };
-    let held = a[0] == 0 && g[0x820] & 4 != 0 && rd(g, 0x20) & 0x100 != 0;
-    if speed != 0 && !held {
-        log.push(format!("m+0x0,{who},{},0", speed.wrapping_sub(1)));
-    } else {
-        log.push("-".into());
-    }
-    0
-}
+                // One speed down: a playback (a[0] != 0) with a speed (+0x34) steps it
+                // down for a[0]; the live speed (+0x30), when not 0, steps down for 0
+                // unless the game's semaphore (+0x820) has bit 4 and the info flags
+                // (+0x20) bit 0x100. speed_set(who, speed - 1, 0) on `this`.
+                let g = &c[0];
+                let (who, speed) = if a[0] != 0 {
+                    (a[0], rd(m, 0x34))
+                } else {
+                    (0, rd(m, 0x30))
+                };
+                let held = a[0] == 0 && g[0x820] & 4 != 0 && rd(g, 0x20) & 0x100 != 0;
+                if speed != 0 && !held {
+                    log.push(format!("m+0x0,{who},{},0", speed.wrapping_sub(1)));
+                } else {
+                    log.push("-".into());
+                }
+                0
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "speed_down — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "speed_down — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "speed_down — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

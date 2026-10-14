@@ -4893,13 +4893,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BR — reserved
+## Parked by item 2309, 2026-10-14 — a recorded stub split by the table row
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2310) **`tools/sweep_gen.py obj --record IDX@S` built** (Loop 2003's twenty-sixth reach, 2298's Loop line; names
+no score): stub IDX's calls split by the row of `--sparse` table S their `ecx` lies in — one token a row, `ecx`
+written `r+OFF` within it, `-` for a row not called — and a last token for the calls outside the table; a plain
+`--record IDX` reads as before. Its test (`test_a_record_may_split_by_the_table_row`) was made to fail first (the
+generator's `int('1@0')` refused the spec), then built; 40 of 40 generator tests pass. `Game::defeat_all` and
+`TypeData::get_limiting_resource` use it: the walk's two stubs read as eighteen columns, and the port pushes one
+string a row rather than a `/`-joined history of nine.
+
+(2311) **A generated sweep keeps no copy of the `sweep_gen.py` line that drew it** (2309; names no score; Loop
+2003's next reach): `--regen` needs that line, and a lane holds it in its own job's tmp directory, which is deleted
+with the job — 2298's journal points at `$CLAUDE_JOB_DIR/tmp/gen/g.py`, gone. The script's docstring names every
+window it lays, but not as flags, so the next lane to redraw a sweep re-derives the line from the `WBIAS`/`PLACES`
+constants by hand. A `# sweep_gen: obj …` comment written into the script (and read back by `--regen` when no line
+is given) would make every generated sweep redrawable by anyone.
 
 ## Parked by the next landing, slot BS — reserved
 

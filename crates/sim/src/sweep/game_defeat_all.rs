@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,35 +46,38 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // The scene's borders flagged for a recalc (+0x22a), then the leaders
-    // table walked end to end: a live row (bit 1) whose bits 0x42 read 2 is
-    // marked 0x80 and defeated (8, -1, 0); every live row's score is
-    // computed (1). Each stub's calls are split by the row.
-    c[0][0x22a] = 1;
-    let mut defeat = Vec::new();
-    let mut score = Vec::new();
-    for k in 0..8 {
-        let w = rd(&p[k], 0);
-        let (mut d, mut s) = ("-".to_string(), "-".to_string());
-        if w & 1 != 0 {
-            if w & 0x42 == 2 {
-                wr(&mut p[k], 0, w | 0x80);
-                d = "r+0x0,8,-1,0".into();
+                // The scene's borders flagged for a recalc (+0x22a), then the leaders
+                // table walked end to end: a live row (bit 1) whose bits 0x42 read 2 is
+                // marked 0x80 and defeated (8, -1, 0); every live row's score is
+                // computed (1). Each stub's calls are split by the row.
+                c[0][0x22a] = 1;
+                let mut defeat = Vec::new();
+                let mut score = Vec::new();
+                for row in p.iter_mut().take(8) {
+                    let w = rd(row, 0);
+                    let (mut d, mut s) = ("-".to_string(), "-".to_string());
+                    if w & 1 != 0 {
+                        if w & 0x42 == 2 {
+                            wr(row, 0, w | 0x80);
+                            d = "r+0x0,8,-1,0".into();
+                        }
+                        s = "r+0x0,1".into();
+                    }
+                    defeat.push(d);
+                    score.push(s);
+                }
+                defeat.push("-".into());
+                score.push("-".into());
+                log.extend(defeat);
+                log.extend(score);
+                0
             }
-            s = "r+0x0,1".into();
-        }
-        defeat.push(d);
-        score.push(s);
-    }
-    defeat.push("-".into());
-    score.push("-".into());
-    log.extend(defeat);
-    log.extend(score);
-    0
-}
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "defeat_all — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "defeat_all — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "defeat_all — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

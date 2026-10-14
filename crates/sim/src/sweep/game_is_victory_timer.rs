@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -38,29 +43,37 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // Not while the game's info says victory (+0x38, a byte): a leader
-    // whose low bits are both set (3) with +0x44c held answers 1; then the
-    // same over +0x444. The leaders sit 0x6eec apart, three slices a row.
-    let mut v = 0;
-    if c[0][0x38] == 0 {
-        for off in [2, 1] {
-            if (0..8).any(|k| p[3 * k][0] & 3 == 3 && rd(&p[3 * k + off], 0) != 0) {
-                v = 1;
-                break;
+                // Not while the game's info says victory (+0x38, a byte): a leader
+                // whose low bits are both set (3) with +0x44c held answers 1; then the
+                // same over +0x444. The leaders sit 0x6eec apart, three slices a row.
+                let mut v = 0;
+                if c[0][0x38] == 0 {
+                    for off in [2, 1] {
+                        if (0..8).any(|k| p[3 * k][0] & 3 == 3 && rd(&p[3 * k + off], 0) != 0) {
+                            v = 1;
+                            break;
+                        }
+                    }
+                }
+                v
             }
-        }
-    }
-    v
-}
         };
         assert_eq!(got, want_eax, "is_victory_timer — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_victory_timer — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "is_victory_timer — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "is_victory_timer — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "is_victory_timer — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "is_victory_timer — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

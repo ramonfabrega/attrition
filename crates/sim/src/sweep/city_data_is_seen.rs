@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,21 +46,21 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // A live city (+4 bit 1) with its object (+8, a short) and owner (+0x5e,
-    // a byte) both non-negative asks the object (objects[who][o]) for its
-    // record (slot +0x3c), and the record's slot +0x48(a0, 0) answers.
-    let o = i16::from_le_bytes([m[8], m[9]]);
-    let who = m[0x5e] as i8;
-    if m[4] & 1 != 0 && o >= 0 && who >= 0 {
-        log.push("p1+0x0".into());
-        log.push(format!("p2+0x0,{},0", a[0]));
-        i64::from(a[2])
-    } else {
-        log.push("-".into());
-        log.push("-".into());
-        0
-    }
-}
+                // A live city (+4 bit 1) with its object (+8, a short) and owner (+0x5e,
+                // a byte) both non-negative asks the object (objects[who][o]) for its
+                // record (slot +0x3c), and the record's slot +0x48(a0, 0) answers.
+                let o = i16::from_le_bytes([m[8], m[9]]);
+                let who = m[0x5e] as i8;
+                if m[4] & 1 != 0 && o >= 0 && who >= 0 {
+                    log.push("p1+0x0".into());
+                    log.push(format!("p2+0x0,{},0", a[0]));
+                    i64::from(a[2])
+                } else {
+                    log.push("-".into());
+                    log.push("-".into());
+                    0
+                }
+            }
         };
         assert_eq!(got, want_eax, "is_seen — eax, row `{line}`");
         assert_eq!(log, want_log, "is_seen — the recorded calls, row `{line}`");
