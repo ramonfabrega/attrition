@@ -3764,6 +3764,13 @@ lane to quiet one, so a second lane crossing 300k would have gone unflagged to 3
 <lane>:<k>` (or a state file under the job dir) so a re-arm skips a lane already answered below a new mark, with a
 test made to fail first. One reach.
 
+(2198) **A flag predicate standing in for a lineage is copied to readers that ask the flag alone** (2175's
+"for the Loop" line). `0x40 && !0x20` was written for `is(SUPPLYWAGON)`'s count and copied into `update_hits`' supply term
+and `find_army`'s cap arm, where the original asks `is_supply` (`& 0x40` alone); The Despot carries both bits, and the
+successor pair's word sat on it. Candidate: a brief-checklist row — "a flag predicate that stands in for a lineage is
+checked at each reader against the reader's own vslot" — or a grep guard over `crates/sim` for the copied predicate.
+One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
@@ -4615,13 +4622,19 @@ can_queue` (0x62da00), takes `--vtat` alone: slot `+0x84` of `types.list[t]`. Te
 `WIN = 8` line caught `--vtat`'s parse shadowing the window size, which the first generation shipped as `WIN = p2`
 and the scripts refused to run).
 
-## Parked by the next landing, slot AZ — reserved
+## Parked by item 2175, 2026-10-13 — a government patriot is a supply unit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2176) **The successor pair's word 4603: 22 draws against 21, index 17** (2175; `docs/AI.md` §213.4). Ours spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` (a stop) for the Mechanized Infantry `1/111` (`TypeIndex` 104, army 1). Theirs
+spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, `1/139`'s next guard roll. **Disk gap**: past run820's last block (4488),
+and no capture holds 4603. The first act is run820's recipe (`docs/RUNS.md`, run820) with `--log-window 4597 4853` and
+`--end-frame` past it. Then every record on block 4604 both ways.
+
+(2177) **`Army::count(COUNT_TYPE, 0x3f)` is a lineage count, and this crate counts a flag** (2175; names no score).
+`army_count_supply` counts `unit_flags2 & 0x40` without `0x20`, which agrees with `is(SUPPLYWAGON)` for every type this lobby
+fields, The Despot included (it is `FROM General` and not counted). A type that is `0x40` and not of the wagon's lineage
+(`THEMONARCH`, `THECITIZEN`, and the other `BASE_GOV_HEROTYPES` not `FROM General`) would count here and not in the original.
+Candidate: count by `unit_line_is(u, SUPPLYWAGON)`, after reading `GroupData::count`'s `COUNT_TYPE` arm for the decoy test.
 
 ## Parked by item 2181, 2026-10-14 — the sweep's fifty-fifth batch
 
