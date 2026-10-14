@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -47,7 +52,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 const N: usize = 6;
                 let walked = {
                     let fig = |i: usize| -> &[u8] { if i == N { &m[..] } else { &p[2 + i][..] } };
-                    let short = |i: usize, off: usize| i16::from_le_bytes([fig(i)[off], fig(i)[off + 1]]);
+                    let short =
+                        |i: usize, off: usize| i16::from_le_bytes([fig(i)[off], fig(i)[off + 1]]);
                     crate::squad_walk(
                         N,
                         64,
@@ -62,7 +68,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     )
                 };
                 for k in walked {
-                    let fig: &mut [u8] = if k == N { &mut m[..] } else { &mut p[2 + k][..] };
+                    let fig: &mut [u8] = if k == N {
+                        &mut m[..]
+                    } else {
+                        &mut p[2 + k][..]
+                    };
                     fig[0x80..0x82].copy_from_slice(&(a[0] as i16).to_le_bytes());
                 }
                 0

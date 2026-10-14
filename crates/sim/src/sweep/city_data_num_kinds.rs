@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -48,7 +53,12 @@ fn the_emulated_original_agrees_on_every_row() {
                     chain.push(at as usize);
                     at = i16::from_le_bytes([p[1 + at as usize][0x74], p[1 + at as usize][0x75]]);
                 }
-                let (n, _) = crate::city::distinct_kinds(chain, |b| p[1 + b][8] & 5 == 5, |b| Some(rd(&p[7 + b], 4)), i32::MAX);
+                let (n, _) = crate::city::distinct_kinds(
+                    chain,
+                    |b| p[1 + b][8] & 5 == 5,
+                    |b| Some(rd(&p[7 + b], 4)),
+                    i32::MAX,
+                );
                 i64::from(n)
             }
         };

@@ -7942,12 +7942,13 @@ impl Sim {
     /// §52).
     fn all_gathering(&mut self, b: usize) -> bool {
         self.check_gatherers(b);
-        all_at_work(self.buildings[b].gatherers.iter().copied(), |u| {
-            match self.units[u].orders.front().map(|o| o.body) {
+        all_at_work(
+            self.buildings[b].gatherers.iter().copied(),
+            |u| match self.units[u].orders.front().map(|o| o.body) {
                 Some(Body::Gather(g)) => Some((g.goto_build, g.wait)),
                 _ => None,
-            }
-        })
+            },
+        )
     }
 
     // ------------------------------------------------------------------
@@ -10202,4 +10203,3 @@ mod unreachable_goal_tests {
         );
     }
 }
-

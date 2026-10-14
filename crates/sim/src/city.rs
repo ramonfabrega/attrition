@@ -362,9 +362,10 @@ impl Sim {
     /// counts itself.
     pub fn num_buildings(&self, c: usize) -> i32 {
         let city = &self.cities[c];
-        live_members(std::iter::once(city.building).chain(city.members.iter().copied()), |b| {
-            self.buildings[b].alive && self.buildings[b].active
-        })
+        live_members(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive && self.buildings[b].active,
+        )
     }
 
     /// `CityData::num_wonders@007382b0(exclude_city)`: wonders on the chain,
@@ -3273,7 +3274,10 @@ pub(crate) fn wear_site_vals(
 /// city's chain (`+8`, then each building's `+0x74`) whose slot is in use
 /// (`flags & 1`) and which answer `+0x20` and `+0x4c` — on a `Build`, 1 and
 /// `flags & 4`, its active bit — so `live`. Item 2276's sweep holds it.
-pub(crate) fn live_members(chain: impl IntoIterator<Item = usize>, live: impl Fn(usize) -> bool) -> i32 {
+pub(crate) fn live_members(
+    chain: impl IntoIterator<Item = usize>,
+    live: impl Fn(usize) -> bool,
+) -> i32 {
     chain.into_iter().filter(|&b| live(b)).count() as i32
 }
 
