@@ -1821,12 +1821,13 @@ impl World {
         if had != on {
             let c = Self::cell_of_tile(t);
             let mut d = self.cell_data(c);
+            // `inc`/`dec byte`, wrapping as the listing's do (item 2217).
             if on {
-                d.blocked = d.blocked.saturating_add(1);
-                d.solid = d.solid.saturating_add(1);
+                d.blocked = d.blocked.wrapping_add(1);
+                d.solid = d.solid.wrapping_add(1);
             } else {
-                d.blocked = d.blocked.saturating_sub(1);
-                d.solid = d.solid.saturating_sub(1);
+                d.blocked = d.blocked.wrapping_sub(1);
+                d.solid = d.solid.wrapping_sub(1);
             }
             self.set_cell_data(c, d);
         }

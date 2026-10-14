@@ -163,6 +163,33 @@ pub(crate) const GRID_THREES: [[usize; 5]; 4] = [
     [5, 6, 7, 13, 15],
 ];
 
+/// `check_building_wcoord`'s three gates on the cell, before any corner:
+/// another leader's (`owner` byte `+0xf` non-negative and not `who`), an
+/// occupied cell (`flags & 0x70`), or `blocked == 0x10`.
+pub(crate) fn wcoord_cell_refused(owner: Option<Player>, who: Player, flags: u16, blocked: u8) -> bool {
+    owner.is_some_and(|o| o != who) || flags & 0x70 != 0 || blocked == 0x10
+}
+
+/// `check_building_wcoord`'s corner walk: `dx` over `[−w, w]` outside, `dy`
+/// over `[−h, h]` inside, an offset taken on an axis or with `|dx| + |dy| ≤
+/// max`, the running best of `space(dx, dy)` from 0, and 4 answered the
+/// moment the best reaches it.
+pub(crate) fn best_corner(w: i32, h: i32, max: i32, mut space: impl FnMut(i32, i32) -> i32) -> i32 {
+    let mut best = 0;
+    for dx in -w..=w {
+        for dy in -h..=h {
+            if !(dx == 0 || dy == 0 || dx.abs() + dy.abs() <= max) {
+                continue;
+            }
+            best = best.max(space(dx, dy));
+            if best == 4 {
+                return 4;
+            }
+        }
+    }
+    best
+}
+
 impl Sim {
     /// Whether some live building of anyone has its centre in this cell —
     /// the cell flag `0x4000` the spiral skips.
@@ -236,26 +263,12 @@ impl Sim {
         need_city: bool,
     ) -> i32 {
         let d = self.world.cell_data(cell);
-        if self.world.owner(cell).player().is_some_and(|o| o != who)
-            || d.flags & 0x70 != 0
-            || d.blocked == 0x10
-        {
+        if wcoord_cell_refused(self.world.owner(cell).player(), who, d.flags, d.blocked) {
             return 0;
         }
-        let mut best = 0;
-        for dx in -w..=w {
-            for dy in -h..=h {
-                if !(dx == 0 || dy == 0 || dx.abs() + dy.abs() <= max) {
-                    continue;
-                }
-                let sp = self.space_at_corner(who, cell.x * 4 + dx, cell.y * 4 + dy, need_city);
-                if sp == 4 {
-                    return 4;
-                }
-                best = best.max(sp);
-            }
-        }
-        best
+        best_corner(w, h, max, |dx, dy| {
+            self.space_at_corner(who, cell.x * 4 + dx, cell.y * 4 + dy, need_city)
+        })
     }
 
     /// `ObjectsData::find_building_placed_at@00658c80(cell·4 + 2, who)`: the

@@ -650,3 +650,6 @@ mod world_set_waterhalf;
 mod unit_type_determine_roles;
 mod wall_mask_city;
 mod build_type_data_total_gather_access;
+mod world_data_check_building_wcoord;
+mod coll_block_set;
+mod world_set_blocked_at;
