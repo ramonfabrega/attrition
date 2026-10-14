@@ -629,6 +629,7 @@ pub fn load_tables(
     const SCOUT: usize = 0x45 - 0x32;
     const HOPLITES: usize = 0x84 - 0x32;
     const BARK: usize = 0x143 - 0x32;
+    const TRIREME: usize = 0x154 - 0x32;
     const CATAPULT: usize = 0x109 - 0x32;
     const FLAMINGARROW: usize = 0x117 - 0x32;
     const KATYUSHA: usize = 0x116 - 0x32;
@@ -1207,6 +1208,7 @@ pub fn load_tables(
             role::PATROLBOAT,
             is_named_unit(i, "Patrol Boat"),
         );
+        set(&mut roles, role::TRIREME, unit_is(i, TRIREME));
         let age = age_of_tree(unit_tree[i]).max(0);
         let combat = Profile {
             attack: c.attack,

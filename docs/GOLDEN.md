@@ -11710,9 +11710,10 @@ wake, with the eleven standing `form` rows (605). The pool parts nothing.
 **Not established.**
 
 - The `+0x8 |= 0x10` that `action_stance` writes on every member (`ObjectData::flags`), not carried.
-- `Unit::do_move@005f7b30:273`'s copy of the same predicate, for a unit firing on the move: a Bark does not.
-- The attack the original's idle `0/7` takes on 634 (parked 2166), and so whether the 635 re-search's agreement is
-  more than the search agreeing from a different start.
+- ~~`Unit::do_move@005f7b30:273`'s copy of the same predicate, for a unit firing on the move: a Bark does not.~~
+  It is the chase's retarget, not a move-fire arm, and a Bark reaches it: §80.
+- ~~The attack the original's idle `0/7` takes on 634 (parked 2166), and so whether the 635 re-search's agreement is
+  more than the search agreeing from a different start.~~ Answered by §80: `compare_target`'s sea arm.
 - A computer's Bark born inside a squad: `set_stance` walks the captain's chain, and every Bark is one figure.
 
 ### 79.1 Coverage
@@ -11725,12 +11726,67 @@ wake, with the eleven standing `form` rows (605). The pool parts nothing.
   0070d440`, its human arm for option 2 (682) and its −1 cycle from `GroupData::get_stance_option@0070bab0`'s modal
   option (722), with `GroupData::get_stance_type@0070d370` choosing the six combat options.
 
-## 80. Reserved for the next item on the rules track
+## 80. Chapter sixty-four closed — a Bark weighs ships by their line, and retargets to what it may take (item 2205)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** 2165's word 637 (ours 6 draws, theirs 10) and its first value parting, block 634's `0/7` first
+target (the Trireme `1/6` here, the Bark `1/8` there); 2165's hypothesis was that the original hands an idle unit
+its attacker (parked 2166).
+
+**The hypothesis dies on the dump.** `0/7` takes no damage before 669 (`damage_frame 668`, from `1/8`), so no hit
+names `1/8` on 634. And the original's `0/7` on block 634 reads `near 1/6`, the same nearest as ours, beside an
+`ATTACKORDER` on `1/8`: the search agrees and its **ranking** does not. `find_nearby_target` keeps `near` as the
+nearest by `check_target`'s distance and takes the best `compare_target(…) / (dist / 0xc0 + 1)`.
+
+**run839, the packet** (logger frame 634, `RON_STATE_FRAME`, §8 of `docs/EMULATOR.md`): `step4.py --entry 610bc0
+--this 0b9a0cd4` (`Unit::process` on `0/7`), the seed poked to `47568477` — the frame's opening `c312e778` one roll
+on, past `8/3`'s `Animal::do_idle` draw — with `compare_target`'s entry (`64e5c0`) and its return in
+`find_nearby_target` (`649715`) hooked. The original returns **1023, 168 and 9543** for `1/7`, `1/6` and `1/8`;
+this crate returned 1023, **66,888** and 9543. The listing's tail (`0064f04f`–`0064f0fe`) is the difference: a sea
+attacker (`type +0x218 == 1`) of the Bark line (`is(0x143)`) against a sea target divides a Trireme-line one
+(`is(0x154)`, TRIREME: Trireme, Galley, …) by 400 (`imul 0x51eb851f; sar 7`) and multiplies a transport
+(`unit_flags & 0x10`, `lea; shl 3`) by 40; then every unit target divides by its `full + 1` (`movsbl 0xac`, `idiv`).
+
+**Built** (`crates/sim/src/fight.rs`, `compare_target`; `combat::role::TRIREME`, loaded by id in
+`crates/rondata/src/load.rs`): the sea arm. `full` is 0 on every unit of the dump and is not carried (a SEAM).
+With it block 634 agrees, and block 635's `0/6` takes the fishing boat as the original does.
+
+**The second arm, on the same packet.** The word then fell to 635 (8 draws against 9): on tick 634 both sides'
+re-search (`fight`'s one-in-five, `fight+0x9b0`) re-finds `1/8` — `add_attack_order(8, 1, …)` at radius 2304 in
+the original too — and the original's `Unit::do_move+0x6e6` then calls `change_target(8, 1, 7, 1)`: the chase's
+retarget (`docs/COMBAT.md` §37.2) hands `0/7` the fishing boat in range. Its candidate predicate is `fight`'s
+(`uVar17`, `do_move@005f7b30:262`–`271`): with `unit_masks2 & 4` a non-combat candidate or an `n` one, without it a
+combat role. This crate had the second sense for every attacker. **Built**: `Sim::retarget_admits`
+(`crates/sim/src/orders.rs`).
+
+**The word: 820, the trace's end — closed** (637 → 820). Value diff on the word's old frame, block 635, `0/7`:
+ours now `ATTACKORDER` on `1/7`, `in_range 1`, at (12312, 34872), as theirs; before, ours chased `1/8` with a
+`MoveOrder` to (14232, 35592). Each arm is held by a mutation (`tools/mutate.py`, cargo exit 101 on
+`chapter_sixty_four_holds_to_the_golden_word`): the `/400` taken out, the word 636; the retarget's Bark sense
+taken out, 635. `a_bark_weighs_a_trireme_at_a_four_hundredth_and_a_transport_at_forty` and
+`a_bark_s_chase_retargets_to_a_fishing_boat_and_not_to_a_warship` hold each on a fixture.
+
+**What stands in the widening** (605..821, 141 rows from 401): the eleven standing `form` rows (605), and the
+Barks' rounds. From block 638 a Bark's round leaves the hull's own square here and a point 52 up and off it there
+(`0/6`'s `ammo[3]`: `sx` 11640 / 11707, `sy` 34680 / 34671, `sz` 0 / 52), with the landings and wounds that
+follow (647's `1/7` `hits:damage` 4 / 5); block 634's `1/6` `ammo[2]` (`sx` 12348 / 12349) stood before this item.
+The draw stream does not see it. Parked 2206.
+
+**Not established.**
+
+- The release point of a Bark's round (parked 2206).
+- `do_move`'s sixteen-frame `find_melee_target` probe in the retarget (`docs/COMBAT.md` §37.2's SEAM): `0/7`'s
+  tick 634 is off its phase (`(7 + 634) & 15 = 1`), so run839 does not reach it.
+- A transport's `×40` is read off the listing; no capture puts a transport before a Bark.
+
+### 80.1 Coverage
+
+**Diff-backed** by run835's word and widening, with run839's packet naming the values:
+
+- `Object::compare_target@0064e5c0`'s sea arm for a Bark against a Trireme-line target (block 634, `0/7` and
+  `0/6`; the packet's 168).
+- `Unit::do_move@005f7b30`'s retarget with `unit_masks2 & 4`, the non-combat candidate (block 635, `0/7`).
+
+**Reading alone**: the transport's `×40`, the `/ (full + 1)`.
 
 ## 81. Reserved for the next item on the rules track
 

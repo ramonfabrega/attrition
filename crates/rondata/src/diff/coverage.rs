@@ -2346,7 +2346,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         }
     }
     // **Chapter sixty-four, on run835** (item 2165): 622, a computer's Bark
-    // born RAID; 636, the word's re-search; 682, the stance button's kill.
+    // born RAID; 636, the re-search and the chase's retarget (item 2205); 682,
+    // the stance button's kill.
     if let Some(p) = &ch64 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTY_FOUR;
         for w in [622, 636, 682] {

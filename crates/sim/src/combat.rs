@@ -197,6 +197,10 @@ pub mod role {
     pub const IMMORTALS: u32 = 1 << 17;
     /// A `GUN`-flagged ship that does not broadside — `PATROLBOAT`.
     pub const PATROLBOAT: u32 = 1 << 18;
+    /// `is(TRIREME)` (`TypeIndex` 0x154: Trireme → Galley → Carrack …):
+    /// a Bark's target search takes a four-hundredth of one
+    /// (`Object::compare_target@0064e5c0`'s sea arm, `0064f09b`).
+    pub const TRIREME: u32 = 1 << 19;
 }
 
 /// The combat columns of a type and the derived bits the formula reads (§2.1).
