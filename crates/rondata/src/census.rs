@@ -32,9 +32,10 @@
 /// fifty-ninth batch; item 2253: 700 -> 710, the sweep's sixtieth batch; item 2247: 710 -> 720, the second
 /// sweep lane's next ten, the territory family through `obj --sparse`; item 2235: 720 -> 721,
 /// `UnitData::get_action`, by the city alarm's worker arm, `docs/GOLDEN.md` §81.1; item 2271: 721 ->
-/// 731, the sweep's sixty-first batch, the backups and restores through `obj --ptrarg-null`; item 2281:
-/// 731 -> 741, the sweep's sixty-second batch, seven of its ten through `obj --record`).
-pub const SIMULATION_BACKED: usize = 741;
+/// 731, the sweep's sixty-first batch, the backups and restores through `obj --ptrarg-null`; item
+/// 2276: 731 -> 741, the second sweep lane's ten, the squad and city chains through `obj --link`; item
+/// 2281: 741 -> 751, the sweep's sixty-second batch, seven of its ten through `obj --record`).
+pub const SIMULATION_BACKED: usize = 751;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

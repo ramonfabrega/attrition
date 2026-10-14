@@ -87,3 +87,15 @@ def xmm_bits(value, raw=False):
     if raw:
         return int(value) & 0xFFFFFFFF
     return struct.unpack("<I", struct.pack("<f", value))[0]
+
+
+def link_value(rng, n, k, d, terms):
+    """Figure k's link in a table of n figures, drawn so every walk ends
+    (Loop 2003, item 2276): a terminator a quarter of the rows — always when
+    DIR's side is empty — else a figure on DIR's side of k's own index, `<`
+    below and `>` above. A walk that only ever steps one way through n
+    figures takes at most n steps."""
+    side = range(0, k) if d == '<' else range(k + 1, n)
+    if not side or rng.random() < 0.25:
+        return rng.choice(terms)
+    return rng.choice(side)

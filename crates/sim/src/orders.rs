@@ -7925,13 +7925,12 @@ impl Sim {
                 .filter(|&&u| !(skip_decoys && self.units[u].decoy))
                 .count() as i32;
         }
-        n += self.buildings[b]
-            .gatherers
-            .iter()
-            .filter(|&&u| self.is_gathering_at(u, b, arrived))
-            .filter(|&&u| !(skip_decoys && self.units[u].decoy))
-            .count() as i32;
-        n
+        n + chain_gatherers(
+            self.buildings[b].gatherers.iter().copied(),
+            skip_decoys,
+            |u| self.units[u].decoy,
+            |u| self.is_gathering_at(u, b, arrived),
+        )
     }
 
     /// `Build::all_gathering`: every chain member is out at its tile.
@@ -7943,10 +7942,13 @@ impl Sim {
     /// §52).
     fn all_gathering(&mut self, b: usize) -> bool {
         self.check_gatherers(b);
-        self.buildings[b].gatherers.iter().all(|&u| {
-            matches!(self.units[u].orders.front().map(|o| o.body),
-                Some(Body::Gather(g)) if !g.goto_build && g.wait >= 0)
-        })
+        all_at_work(
+            self.buildings[b].gatherers.iter().copied(),
+            |u| match self.units[u].orders.front().map(|o| o.body) {
+                Some(Body::Gather(g)) => Some((g.goto_build, g.wait)),
+                _ => None,
+            },
+        )
     }
 
     // ------------------------------------------------------------------
@@ -9640,6 +9642,38 @@ impl Sim {
             .wrapping_sub(0x8000_0000);
         e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu)
     }
+}
+
+/// **`Build::all_gathering@0062f570`**'s walk, after its
+/// `check_gatherers`: every member of the gather chain has a gather order
+/// (`order` answers its `goto_build` and `wait`; `None` — no order at
+/// `+0xdc`, a null order, or vslot `+0xe4` answering none — is false)
+/// that is not going to the building and whose `wait` is not negative. An
+/// empty chain answers true. Item 2276's sweep holds it.
+pub(crate) fn all_at_work(
+    chain: impl IntoIterator<Item = usize>,
+    mut order: impl FnMut(usize) -> Option<(bool, i32)>,
+) -> bool {
+    chain
+        .into_iter()
+        .all(|u| order(u).is_some_and(|(goto_build, wait)| !goto_build && wait >= 0))
+}
+
+/// **`BuildData::num_gatherers@00630450`**'s chain term: the members of
+/// the building's gather chain (`+0x70`, then each unit's `+0x92`) that
+/// `gathering` answers for — `UnitData::is_gathering_at` — skipping, when
+/// `skip_decoys`, a decoy (`unit_masks & 1`) **before** asking. Item
+/// 2276's sweep holds it.
+pub(crate) fn chain_gatherers(
+    chain: impl IntoIterator<Item = usize>,
+    skip_decoys: bool,
+    decoy: impl Fn(usize) -> bool,
+    mut gathering: impl FnMut(usize) -> bool,
+) -> i32 {
+    chain
+        .into_iter()
+        .filter(|&u| !(skip_decoys && decoy(u)) && gathering(u))
+        .count() as i32
 }
 
 #[cfg(test)]

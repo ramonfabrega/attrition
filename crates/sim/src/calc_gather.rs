@@ -43,6 +43,34 @@ const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
 /// where the two searches above it are in tiles.
 const CROWD_RING: usize = 2;
 
+/// **`ObjectTypeData::upgrade_level@00661090`**'s walk: up `from` (the
+/// type record's `+0x3c`, `None` once negative) from `t`, counting each
+/// ancestor `is` answers for and stopping at the first it does not. The
+/// original's `is` is its vtable `+0x60` — inlined as `t == next`, then
+/// the `is_list`, then `is_slow` (`+0xf4`) when the list is empty — which
+/// the caller supplies. The original's `FROM` chain is acyclic by
+/// construction; a hand-built fixture's need not be, so the walk stops
+/// past 64. Item 2276's sweep holds it.
+pub(crate) fn upgrade_steps(
+    t: TypeId,
+    from: impl Fn(TypeId) -> Option<TypeId>,
+    mut is: impl FnMut(TypeId) -> bool,
+) -> i32 {
+    let mut level = 0;
+    let mut cur = t;
+    while let Some(next) = from(cur) {
+        if !is(next) {
+            break;
+        }
+        level += 1;
+        cur = next;
+        if level > 64 {
+            break;
+        }
+    }
+    level
+}
+
 impl Sim {
     /// `ObjectTypeData::upgrade_level@00661090`: how many steps up the
     /// `FROM` chain are still the same thing as this type.
@@ -54,24 +82,12 @@ impl Sim {
     /// [`crate::tech::TechTree::is`]. A type with `<FROM>none</FROM>` — the
     /// shipped Fishermen — answers 0.
     pub(crate) fn upgrade_level(&self, t: TypeId) -> i32 {
-        let mut level = 0;
-        let mut cur = t;
-        loop {
-            let Some(next) = self.tech_tree.types.get(cur).and_then(|d| d.from) else {
-                return level;
-            };
-            if next != t && !self.tech_tree.is(t, next, false) {
-                return level;
-            }
-            level += 1;
-            cur = next;
-            // The original's `FROM` chain is acyclic by construction; a
-            // hand-built fixture's need not be, and `circle_radius` has 65
-            // entries anyway.
-            if level > 64 {
-                return level;
-            }
-        }
+        let types = &self.tech_tree.types;
+        upgrade_steps(
+            t,
+            |c| types.get(c).and_then(|d| d.from),
+            |next| self.tech_tree.is(t, next, false),
+        )
     }
 
     /// The ring index `calc_gather` searches to, and the radius its crowd
