@@ -3864,9 +3864,19 @@ impl Sim {
         }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, false);
-        if !turned {
-            return;
+        if turned {
+            self.toggle_leader_facing(u);
         }
+    }
+
+    /// `Unit::set_angle@00605400`'s group arm on its own: a turn of 90° or
+    /// more by the group's **leader** (`find_leader`, through the unit's
+    /// `+0x80`) toggles `GroupData::facing`. Its two callers are
+    /// [`Self::unit_set_angle`] and `come_out`'s turn to the host's angle
+    /// (`crate::transport`'s `land_tail`, item 2193), which writes the
+    /// heading through [`crate::Movement::set_facing`] and so reaches
+    /// here only for the flag.
+    pub(crate) fn toggle_leader_facing(&mut self, u: usize) {
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)

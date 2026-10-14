@@ -1816,9 +1816,25 @@ impl Sim {
         // not `+0x58`, so `dest_angle` stays what step 1's
         // `update_action` seeded it with, the heading the passenger
         // boarded on: run249's `0/6` prints 1073741824 on 1160.
+        //
+        // **And `set_angle` is the whole of it** (item 2193, `docs/AI.md`
+        // §214): a turn of 90° or more (`605409`..`605418`, the same
+        // `reversing` window) flips the unit's `unit_masks & 2`, which
+        // `set_facing` does, and — when the passenger is its group's
+        // leader on landing — `GroupData::facing`. The successor pair's
+        // BMP `1/28` lands on 4363 and leads army 1 at once; its turn to
+        // the boat's heading is a reversal, so the original's flag is 1
+        // from there (run841's `GROUPDATA` reads 1 on 4482) and ours was
+        // 0 until the formation on 4602 came out mirrored.
         let des_angle = self.units[r].movement.des_angle;
+        let turned = crate::group::reversing(crate::movement::Angle(
+            angle.0.wrapping_sub(self.units[r].movement.heading.0),
+        ));
         self.units[r].movement.set_facing(angle);
         self.units[r].movement.des_angle = des_angle;
+        if turned {
+            self.toggle_leader_facing(r);
+        }
         // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
         // pos, 1)`, which seats the crew **on** its track offset rather
         // than letting it walk there from wherever it boarded. Without
