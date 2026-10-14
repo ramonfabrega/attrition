@@ -1364,32 +1364,34 @@ impl Sim {
     /// `Unit::update_action`: `orders_x/y` = the final destination of the
     /// leading run of transit moves, `dest_angle` = the last one's angle;
     /// returns the action's position (§3.3).
+    ///
+    /// The walk is [`update_action_steps`] (item 2341), which the sweep
+    /// `sweep::unit_update_action` holds to the original.
     pub fn update_action(&mut self, u: usize) -> Option<usize> {
         let unit = &mut self.units[u];
-        unit.orders_pos = unit.pos;
-        unit.movement.des_angle = unit.movement.heading;
-        let mut action = None;
-        for (i, o) in unit.orders.iter().enumerate() {
-            match o.body {
-                Body::Move(m) if !o.has(flag::ACTION) => {
+        let n = unit.orders.len();
+        update_action_steps(
+            unit,
+            n,
+            |unit| {
+                unit.orders_pos = unit.pos;
+                unit.movement.des_angle = unit.movement.heading;
+            },
+            // The engine's iterator (`+0xcc`, `+0xd0`, `+0xd4`): the port
+            // indexes the list and keeps none.
+            |_, _| {},
+            |unit, i| unit.orders[i].is_move(),
+            |unit, i| unit.orders[i].has(flag::ACTION),
+            // SEAM: `CHANGE_FORM` (`FormOrder`) is not an order this crate
+            // has, so this is never true here (`index::CHANGE_FORM`).
+            |unit, i| unit.orders[i].index() == index::CHANGE_FORM,
+            |unit, i| {
+                if let Body::Move(m) = unit.orders[i].body {
                     unit.orders_pos = m.dest;
                     unit.movement.des_angle = m.angle;
                 }
-                Body::Move(m) => {
-                    // A move that is itself the action: `update_action`
-                    // copies it once more and stops.
-                    unit.orders_pos = m.dest;
-                    unit.movement.des_angle = m.angle;
-                    action = Some(i);
-                    break;
-                }
-                _ => {
-                    action = Some(i);
-                    break;
-                }
-            }
-        }
-        action
+            },
+        )
     }
 
     /// The generic enqueue (§3.1): `QUEUE_NEW` clears first, then the order
@@ -10468,6 +10470,59 @@ pub(crate) fn add_air_patrol_steps<C, O>(
         *f &= !flag::ACTION;
     }
     link(cx, o);
+}
+
+/// **`Unit::update_action@0060a870`'s steps** (item 2341), over a list of
+/// `n` orders, `0` the current one (the engine's `head_node->next`, `+0xdc`)
+/// and `n - 1` the last (the node equal to `head_node`):
+///
+/// - `reset`: `orders_x/y` (`+0x70`/`+0x74`) the unit's own position and
+///   `dest_angle` (`+0x58`) its `angle` (`+0x50`); an empty list ends
+///   there, answering `None`.
+/// - `at(i)`: the iterator stepped onto order `i` (`+0xd4` the node,
+///   `+0xcc` its order, `+0xd0` its byte `+0xc`).
+/// - A lone order that is not a move (vslot `+0x14`) resets again.
+/// - Otherwise every **transit** order — a move without the action bit
+///   (`+4 & 4`), or a `CHANGE_FORM` (vslot `+0x10` `== 0x12`) — before the
+///   last is walked past, a move among them copying its record's `x, y,
+///   angle` (vslot `+0x40`, `+4`/`+8`/`+0xc`) as it goes; the order it stops
+///   on copies too when it is a move and the last or the action.
+/// - It answers the order it stopped on, or `None` when that one is
+///   transit.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn update_action_steps<C>(
+    cx: &mut C,
+    n: usize,
+    reset: impl Fn(&mut C),
+    at: impl Fn(&mut C, usize),
+    is_move: impl Fn(&mut C, usize) -> bool,
+    action: impl Fn(&mut C, usize) -> bool,
+    change_form: impl Fn(&mut C, usize) -> bool,
+    copy: impl Fn(&mut C, usize),
+) -> Option<usize> {
+    reset(cx);
+    if n == 0 {
+        return None;
+    }
+    let last = n - 1;
+    let transit = |cx: &mut C, i: usize| (is_move(cx, i) && !action(cx, i)) || change_form(cx, i);
+    let mut i = 0;
+    at(cx, i);
+    if i == last && !is_move(cx, i) {
+        reset(cx);
+    } else {
+        while transit(cx, i) && i != last {
+            if is_move(cx, i) {
+                copy(cx, i);
+            }
+            i += 1;
+            at(cx, i);
+        }
+        if is_move(cx, i) && (i == last || action(cx, i)) {
+            copy(cx, i);
+        }
+    }
+    (!transit(cx, i)).then_some(i)
 }
 
 /// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`

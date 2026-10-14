@@ -727,6 +727,7 @@ mod unit_type_data_type_graft;
 mod unit_type_determine_roles;
 mod unit_type_gather_radius;
 mod unit_type_restore;
+mod unit_update_action;
 mod unit_update_gpiece;
 mod unit_update_order;
 mod vector_dist_coords;
