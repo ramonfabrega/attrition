@@ -444,6 +444,7 @@ mod group_toggle;
 mod groupmoveorder_is_fleeing;
 mod groups_push_group;
 mod guard_order_get_guard_order;
+mod guy_data_get_speed;
 mod guy_data_is_corner;
 mod guy_data_walk_data;
 mod guy_set_bank;

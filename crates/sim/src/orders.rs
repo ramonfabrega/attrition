@@ -10275,6 +10275,31 @@ pub(crate) fn group_member_walk<C>(
     }
 }
 
+/// **`GuyData::get_speed@005de410`'s steps** (item 2341): the unit's
+/// `get_speed(x, y, 1)` (vslot `+0x17c`, asked at the figure's point —
+/// `speed`); then, for a figure inside the squad (`guy_num`, `+0xa2`,
+/// signed, `<` the type's `squad_size` `+0x304`, `5de473` `jge`) whose
+/// unit has an order list (`+0xdc`, `head`), the list's iterator is
+/// rewound to the head's next node (`rewind`, which answers whether the
+/// current order `+0xcc` is non-null), and a current order that
+/// `is_group` (`UnitData::get_order`, then the order's vslot `+0x2c`)
+/// adds 9. The sum wraps, as the original's `add` does.
+pub(crate) fn guy_speed_steps<C>(
+    cx: &mut C,
+    guy_num: i32,
+    speed: impl FnOnce(&mut C) -> i32,
+    squad_size: impl FnOnce(&mut C) -> i32,
+    head: impl FnOnce(&mut C) -> bool,
+    rewind: impl FnOnce(&mut C) -> bool,
+    is_group: impl FnOnce(&mut C) -> bool,
+) -> i32 {
+    let v = speed(cx);
+    if guy_num < squad_size(cx) && head(cx) && rewind(cx) && is_group(cx) {
+        return v.wrapping_add(9);
+    }
+    v
+}
+
 /// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`
 /// order made (`OrdersMemManager::get_obj(THINK)`, then its vslot `+0xb0`),
 /// its flags `| ACTION`; linked (`LinkListBase::add`, which makes the new

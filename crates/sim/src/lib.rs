@@ -6144,7 +6144,24 @@ impl Sim {
         // order scale and the slow ground, never the group cap
         // (`docs/MOVEMENT.md`, "The crew's speed"). The type's base
         // speed stepped a guarding computer's crew a quarter slow.
-        let speed = self.get_speed_at(i, f.body.pos, 1);
+        // Its `+9` for a squad figure on a group order is
+        // [`orders::guy_speed_steps`]'s; `g` is this figure's `guy_num`.
+        let speed = orders::guy_speed_steps(
+            &mut (),
+            g as i32,
+            |_| self.get_speed_at(i, f.body.pos, 1),
+            |_| anim::SQUAD_SIZE as i32,
+            |_| !self.units[i].orders.is_empty(),
+            |_| self.current_order(i).is_some(),
+            |_| {
+                matches!(
+                    self.order_type(i),
+                    orders::index::GROUP_MOVE
+                        | orders::index::GROUP_ATTACK_TO
+                        | orders::index::GROUP_PATROL
+                )
+            },
+        );
         let at_des = f.body.pos == f.des;
         self.guy_follow_anim(i, g, at_des, f.facing == f.des_angle);
         // A tracked crew guy's rate is [`movement::CREW_TURN_SPEED`] and
