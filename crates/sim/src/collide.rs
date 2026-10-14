@@ -688,12 +688,23 @@ impl Sim {
     }
 
     /// `Object::add_to_world`'s marking half: set every cell of the unit's
-    /// disc. Idempotent.
+    /// disc. Idempotent at one point — and **refused, in a debug build, at
+    /// a second** (Loop 2132): a unit already painted at `coll_at` that is
+    /// painted again at a moved `pos` leaves its first disc standing, and a
+    /// test fixture that did so passed on the stale disc while the walk
+    /// held it (item 2088). The move is `coll_move`; a repaint at a new
+    /// point clears the old one first (`coll_remove`).
     pub(crate) fn coll_add(&mut self, u: usize) {
         if !(self.units[u].alive() && self.units[u].on_map) {
             return;
         }
         let at = self.units[u].pos;
+        debug_assert!(
+            self.units[u].coll_at.is_none_or(|c| c == at),
+            "coll_add on unit {u} at {:?} while its disc stands at {:?}: coll_remove first, or coll_move (Loop 2132)",
+            at,
+            self.units[u].coll_at
+        );
         self.coll_paint(u, at, true);
         self.units[u].coll_at = Some(at);
     }
@@ -2646,6 +2657,36 @@ mod tests {
     /// including the first citizen's, and a unit born after both keeps what
     /// it covers. run382's frame 5 turns on the hole: `1/2`'s sidestep
     /// probe finds the cell diagonal to `1/1` clear.
+    /// Loop 2132: a second `coll_add` at a moved point, with the first disc
+    /// standing, is a stale disc nobody clears — 2088's fixture painted one
+    /// and its test passed on it while the walk held the step. A debug
+    /// build refuses it by name; the release harness never calls it so.
+    /// Made to fail first: without the assertion the second paint is silent.
+    #[test]
+    #[cfg(debug_assertions)]
+    #[should_panic(expected = "coll_remove first, or coll_move (Loop 2132)")]
+    fn a_second_paint_at_a_moved_point_is_refused_in_a_debug_build() {
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let mut u = Unit::new(1, 1, Pos::new(4 * 48 + 24, 4 * 48 + 24), 40);
+        u.ty = Some(ty);
+        let u = sim.add_unit(u);
+        // The same point again is idempotent, as `add_to_world` is.
+        sim.coll_add(u);
+        sim.units[u].pos = Pos::new(6 * 48 + 24, 4 * 48 + 24);
+        sim.coll_add(u);
+    }
+
     #[test]
     fn the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block() {
         let mut world = World::new(8, 8);

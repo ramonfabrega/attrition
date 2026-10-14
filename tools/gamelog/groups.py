@@ -2,8 +2,12 @@
 """The live GROUPDATA records of one frame — the group pool, folded.
 
 groups.py [frame.txt]
+groups.py <dump> <frame>
 
-Input is one frame, as written by lastframe.py. Prints one line per group
+Input is one frame, as written by lastframe.py — or, in the two-argument
+form, cut out of an archived dump by number through `frame.py` (Loop
+2037: `frame.py` writes the cut to `$RON_TMP` and prints one line, and the
+first `groups.py` after it read an empty file). Prints one line per group
 with `num > 0`, then its member table: the object, its slot offset `off`,
 the rotated `curr`, and the packed facing byte `angles`. Empty pool slots
 (512 of them, plus the `HOTKEYGROUPS` block's nested copies) are dropped.
@@ -23,7 +27,24 @@ SCALARS = ("id", "who", "num", "army", "ox", "oy", "o_dist", "o_angle",
            "form", "think_frame", "facing", "new_speed", "speed", "form_num")
 ARRAYS = ("list", "off_x", "off_y", "curr_x", "curr_y", "angles")
 
-path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
+def frame_of(dump, frame):
+    """The two-argument form: cut frame `frame` out of `dump` with
+    `frame.py` into a file of our own and answer its path."""
+    import subprocess
+    import tempfile
+    out = os.path.join(tempfile.mkdtemp(prefix="groups-"), f"f{frame}.txt")
+    here = os.path.dirname(os.path.abspath(__file__))
+    cut = subprocess.run([sys.executable, os.path.join(here, "frame.py"), dump, str(frame), out],
+                         capture_output=True, text=True)
+    if cut.returncode != 0:
+        sys.exit((cut.stdout + cut.stderr).strip() or f"frame.py refused frame {frame} of {dump}")
+    return out
+
+
+if len(sys.argv) > 2 and sys.argv[2].isdigit():
+    path = frame_of(sys.argv[1], int(sys.argv[2]))
+else:
+    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
 groups = []
 cur = None
 frame = ""

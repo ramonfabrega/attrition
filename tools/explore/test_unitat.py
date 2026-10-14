@@ -127,7 +127,7 @@ class OneUnit(unittest.TestCase):
             rc = unitat.main([str(self.path), *argv, '--enums', str(self.enums)])
         return rc, out.getvalue()
 
-    def test_one_frame_names_the_type_the_path_s_ends_and_the_orders_first_issued_first(self):
+    def test_one_frame_names_the_type_the_path_s_ends_and_the_orders_bottom_first(self):
         rc, out = self.run_tool('3131', '1/27')
         self.assertEqual(rc, 0, out)
         self.assertIn('f3131 1/27', out)
@@ -137,12 +137,17 @@ class OneUnit(unittest.TestCase):
         self.assertIn('path 3:', out)
         self.assertIn('[0] (4224,3456) f1', out)
         self.assertIn('[2] (6552,18840) f0', out)
-        # The dump prints the order stack top first (parked 1739); the
-        # printer gives them first issued first and marks the top.
-        self.assertLess(out.index('[0] ATTACKORDER'), out.index('[1] MOVEORDER'))
-        self.assertIn('[1] MOVEORDER', out)
+        # The dump prints the ring from its anchor, the bottom, and the
+        # current order last (`docs/AI.md` §206; Loop 2059: the printer once
+        # reversed them and marked the bottom `<top>`, which cost 2055 a
+        # misreading). The printer keeps the dump's order and marks the
+        # current order.
+        self.assertLess(out.index('[0] MOVEORDER'), out.index('[1] ATTACKORDER'))
+        self.assertIn('[1] ATTACKORDER', out)
         self.assertIn('dest_x=6552', out)
-        self.assertIn('top', out)
+        self.assertIn('<current>', out)
+        self.assertNotIn('<top>', out)
+        self.assertIn('bottom first', out)
         self.assertNotIn('1/28', out)
 
     def test_a_window_prints_the_first_frame_whole_and_then_what_changed(self):

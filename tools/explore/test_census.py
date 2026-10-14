@@ -74,6 +74,30 @@ class PinnedTraces(unittest.TestCase):
                 'and `Unit::operator=@00612340`, and `plain@00401000`.\n')
             self.assertEqual(census.cited_in(tmp), {0x472b30, 0x512340, 0x612340, 0x401000})
 
+    def test_a_sweep_chunk_citing_a_callee_its_script_hooks_is_named(self):
+        # Parked 2012, Loop 2025: 1998's first draft cited the callee its
+        # script hands `Harness(exe, {ADDR: …})`, and the census read 461 for
+        # ten. The audit names the chunk, the script and the address; a
+        # chunk that cites only what it sweeps is clean. Made to fail first
+        # on the pair below, before `hooked_in_sweeps` existed.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp, 'src'); emu = Path(tmp, 'emu')
+            src.mkdir(); emu.mkdir()
+            Path(emu, 'sweep_a_b.py').write_text(
+                'from hooks import Harness\nh = Harness(argv[1], {0x00512340: ("Objects::at", 1, 0)})\n')
+            Path(emu, 'sweep_c_d.py').write_text('h = Harness(argv[1], {})\n')
+            Path(src, 'a.rs').write_text(
+                '/// `A::b@00401000`, run by `tools/emu/sweep_a_b.py` under unicorn;\n'
+                '/// its callee `Objects::at@00512340` is answered by the script.\n'
+                '#[test]\nfn x() { let _ = 1; }\n'
+                '/// `C::d@00402000`, run by `tools/emu/sweep_c_d.py` under unicorn.\n'
+                '#[test]\nfn y() { let _ = 2; }\n')
+            self.assertEqual(census.hooked_in_sweeps(str(src), str(emu)),
+                             [('a.rs', 'sweep_a_b.py', 0x512340)])
+        # The tree itself, measured at the thirty-second pass: none of the
+        # 501 landed sweeps cites a callee its script hooks.
+        self.assertEqual(census.hooked_in_sweeps(str(ROOT / 'crates/sim/src'), str(ROOT / 'tools/emu')), [])
+
     def test_the_unbacked_list_skips_the_dead_weight_by_default(self):
         # Parked 1861, the thirtieth pass: destructors, `close`/`init`/
         # `clear`, loggers and `dynamic_initializer`s fill the shortest-first

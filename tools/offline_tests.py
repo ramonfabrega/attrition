@@ -50,6 +50,7 @@ SUITES = (
     'test_runwiring',
     'test_births',
     'test_recomp_flags',
+    'test_hooks_stubs',
     'test_offline_tests',
 )
 

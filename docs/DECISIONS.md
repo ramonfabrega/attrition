@@ -80,6 +80,7 @@ is append-only and amended in place, as it always was.
 - 66 standing — The first Sonnet tranche is scored whole, the stub pool replaces the appended stub, the waiter names a deep lane, and the lane count holds for a measured reason
 - 67 standing — The second Sonnet tranche is scored, the done line held, the waiter names a stalled lane, the parked file gets a pool, and the brief carries the seams
 - 68 standing — The third Sonnet tranche is scored, the captures are the price, the sweep generator takes its thirteen reaches, and the dump gets a unit printer
+- 69 standing — The Opus medium trial is scored against three Sonnet tranches, the waiter names an uncleared lane, and eight Loop items become tools
 
 ## 1. Fidelity before divergence
 
@@ -5158,3 +5159,95 @@ against 2 of 23; merges backed out against 1 of 23 and documents against
 the timings file's `--stale` against 8 untimed; the disk against 217
 GiB; the before-reading rows the lanes ran, from the journals and the
 transcripts both; and the two new tools' reaches.
+
+## 69. The Opus medium trial is scored against three Sonnet tranches, the waiter names an uncleared lane, and eight Loop items become tools
+
+**Decided 2026-10-13**, the thirty-second pass
+(`docs/audit/2026-10-13-fable-pass-32.md`), unattended. Adds one clause
+to `CLAUDE.md`'s fan-out rules (the `UNCLEARED` exit's answer); applies
+entry 61's rules 2, 4 and 5; declines entry 61's one-lane-a-tranche
+addition a third time, and says so; changes no roster.
+
+**What was measured.** Twenty-three landings on four lanes, every
+session Opus 5.5 at `--effort medium` (2,951 requests, 5,419 effort
+records), in 4 h 52 min from the thirty-first steer's commit: 187.14
+USD list for the workers (8.14 a landing; the thirteen word lanes
+10.05, the ten sweeps 5.65) and 19.40 for the commander's two sessions;
+23.4 minutes waiting a landing, of which captures 5.3; the successor
+pair's word 3632 → 4246; Great Sahara in the coverage lobby 3825 → 4340,
+closed at the game's end, its closing state to zero; chapters sixty,
+sixty-one and sixty-two closed; the census backed 449 → 571, cited 1563
+→ 1564, never 331 — and 331 over all 380 coverage logs on disk, not the
+57 pinned; peak context 241 k a session, six over 300 k, five `DEEP`
+exits each answered; no blocked ending; no kill rule; one merge backed
+out, in code; the waiter exited seven times for twenty-three landings
+and woke nobody twice; the battery 576 / 6566 / 2974, unmoved an eighth
+tranche; the backlog 21.
+
+**What it means.**
+
+1. **The trial is scored, and the pass recommends Sonnet.** Against
+   Sonnet 5.5 medium's three tranches (3.93, 2.78, 3.56 USD a landing),
+   Opus 5.5 medium cost 8.14 — 2.3× — for the same landings an hour, the
+   same two words moved a comparable distance, one more chapter, one
+   closed map, and a deeper context (six sessions over 300 k against
+   two). The sweep lane's 5.65 against 1.86 is 3× for ten agreeing
+   functions either way; the word lanes' 10.05 against 5.78 is 1.74× for
+   comparable frames. The pass recommends Sonnet 5.5 medium on every
+   lane with Opus 5.5 high as the kill-rule successor, writes the
+   numbers under "For Ramon", and **changes nothing**: the thirty-third
+   tranche spawns on entry 68's roster until Ramon says otherwise.
+2. **The lane count holds at four**, entry 61 §5 notwithstanding (the
+   waiting fell inside a fifth): the opener names four items one to a
+   lane, and entry 68 holds four by Ramon's word.
+3. **The waiter names an uncleared lane** (parked 2127). A cross-session
+   clear's `--then` prompt did not run twice in one tranche, and a
+   clear ccc reported fired left a lane working in its old session;
+   `tools/lanewait.py` reads each lane's newest transcript beside
+   `lore`'s `ctx` and exits `7 UNCLEARED <lane> <min>` once per lane
+   whose `/clear` record has stood five minutes with no turn after it.
+   The commander's answer is one message carrying the prompt, in the
+   turn that reads the exit; `CLAUDE.md` says so. ccc's half — why the
+   typed prompt is lost — is the user's.
+4. **The blind list is at the lobbies' floor.** Over every coverage log
+   on disk the never list is 331, as over the 57 pinned; no capture
+   since run461 enters a function the pinned cover does not. The 331 is
+   enumerated residue that only a lobby chosen for it or the sweep
+   moves — entry 29's third counter, to be read as such at the finish
+   line, not as a number the word lanes will lower.
+5. **A second paint is refused in a debug build** (Loop 2132): `coll_add`
+   asserts a unit's disc stands nowhere else, so a fixture that moves a
+   unit and paints again fails by name in the reflex instead of passing
+   on a stale disc.
+6. **Every closing test prints both parted lists** (Loop 2128), the
+   capture runner refuses a frame define without its plan before the
+   lane is taken (2054), the emulator's stub region grows (2043), the
+   groups tool takes a dump and a frame (2037), the unit printer labels
+   the ring as the dump prints it (2059), the brief carries memcap's
+   ceiling (2082), and the census audits hooked callees at zero of 501
+   (2025).
+7. **Ten Loop items leave the backlog**: eight built, one closed on its
+   audit (2025), one closed unreached under entry 54 (1475); eleven
+   stay, three of them Ramon's or waiting on him (1725, 1570, and 2003
+   as the generator's ledger).
+
+**The estimate, written down to be wrong on record** (Opus 5.5 medium,
+four lanes, unless the roster moves at a steer): twenty landings in
+under five hours; the successor pair past 4,600; Great Sahara in the
+successor pair's lobby scored and past 1,000; chapter sixty-three
+closes; the backed column past 660; under 8.50 USD and under 24 minutes
+waiting a landing; no `UNCLEARED` exit older than six minutes; no
+blocked ending; no merge backed out on a document; the battery moves on
+at least one lobby.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 8.14 / 23.4 (or against 3.56 / 24.9 if the roster moves), the
+word lanes against 10.05 (5.78) and the sweeps against 5.65 (1.86);
+capture minutes against 5.3; waiter exits against 7 of 23, second wakes
+against 0, `UNCLEARED` exits each answered; `DEEP` exits against five;
+blocked against 0; merges backed out against 1 of 23, documents 0; the
+battery against 576 / 6566 / 2974; the census's never against 331,
+backed against 571, cited against 1564; the backlog against eleven; the
+timings file's `--stale` against 36 untimed; the disk against 199 GiB;
+`census.py --hooked` against 0; and whether a journal names the three
+tools' new forms.

@@ -272,8 +272,8 @@ fn run676_sahara_coverage_closing_state() {
         e.extra
     );
     eprintln!(
-        "Closing city fields: {:?}",
-        harness::compare(&built, &fin, 8).city_diverged
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 4341, "the closing block");
     // Item 2055: 252 units compared; one off (`1/95`, ours (342, 159) from

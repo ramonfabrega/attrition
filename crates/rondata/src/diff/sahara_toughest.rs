@@ -2003,6 +2003,10 @@ mod tests {
             e.unlinked,
             e.extra
         );
+        eprintln!(
+            "Closing fields: {}",
+            harness::compare(&built, &fin, 8).closing_fields()
+        );
         pin_eq!(e.frame, 15_433, "the closing block");
         // Item 1528: 189 units, none off, unlinked, torn or extra.
         pin_eq!(e.compared, 189, "units compared");

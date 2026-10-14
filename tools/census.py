@@ -353,6 +353,39 @@ def sweep_backed(src, by_name):
     return out
 
 
+HOOKS = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
+SCRIPT = re.compile(r"tools/emu/(sweep_[a-z0-9_]+\.py)")
+
+
+def hooked_in_sweeps(src, emu_dir):
+    """Every (test file, script, address) where a sweep test's chunk cites
+    an address its own script hands `Harness(exe, {ADDR: …})` as a hooked
+    callee — a function the sweep answers for, not one it runs, which the
+    census would count as backed beside the one swept (parked 2012, Loop
+    2025: 1998's first draft read 461 for ten). The brief's rule is to
+    cite no hooked callee in the chunk; this is the audit of it."""
+    out = []
+    for p in sorted(glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)):
+        if os.path.basename(p) in NOT_A_SWEEP:
+            continue
+        with open(p, errors="replace") as f:
+            text = f.read()
+        for chunk in tests_in(text):
+            if not SWEEP.search(chunk):
+                continue
+            cited = {int(m.group(1), 16) for m in CITE.finditer(chunk)}
+            for m in SCRIPT.finditer(chunk):
+                script = os.path.join(emu_dir, m.group(1))
+                if not os.path.isfile(script):
+                    continue
+                with open(script, errors="replace") as f:
+                    hm = HOOKS.search(f.read())
+                hooked = {int(a, 16) for a in re.findall(r"0x(00[0-9a-f]{6})", hm.group(1))} if hm else set()
+                for addr in sorted(hooked & cited):
+                    out.append((os.path.relpath(p, src), m.group(1), addr))
+    return out
+
+
 def layers(index, docs, sim_src, pdb):
     """The census by layer: {layer: {functions, backed, doc, sweep}}, the
     unknowns' sources, and the simulation layer's files."""
@@ -542,6 +575,9 @@ def main():
     ap.add_argument("--pdb", default=default_pdb(HERE))
     ap.add_argument("--all", action="store_true",
                     help="--unbacked: show the dead weight and the operators too")
+    ap.add_argument("--hooked", action="store_true",
+                    help="the audit of Loop 2025: every sweep test chunk that cites an address its own "
+                         "script hooks as a callee; exit 1 when any")
     ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
     a = ap.parse_args()
     if a.layers:
@@ -550,6 +586,12 @@ def main():
     if a.unbacked:
         unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all)
         return
+    if a.hooked:
+        rows = hooked_in_sweeps(a.sim_src, os.path.join(HERE, "emu"))
+        for file, script, addr in rows:
+            print(f"{file}\t{script}\t{addr:08x}")
+        print(f"hooked callees cited in sweep chunks: {len(rows)}")
+        sys.exit(1 if rows else 0)
     if a.pin:
         a.logs = pinned_logs() + a.logs
 

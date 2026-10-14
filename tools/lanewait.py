@@ -19,6 +19,12 @@ session. A lane is named as `ccc list` names it. The exits:
                                              lost (parked 1871, 178 minutes); one line
                                              to the lane says what to read
                                              tokens or more (lore's `ctx`), once a lane
+    7  UNCLEARED <lane> <minutes>            the lane's newest transcript ends on a
+                                             `/clear` with no turn after it for
+                                             --uncleared-after minutes: the armed
+                                             clear's --then prompt never ran
+                                             (parked 2127, twice in one tranche);
+                                             one message carrying the prompt wakes it
     2  usage, a lane the roster does not hold when the wait starts, or a
        lane whose tree holds a second row (parked 1671: a lane's next session
        is `ccc clear <its row> --then`, never a spawn onto its tree)
@@ -50,7 +56,19 @@ crosses --deep; the commander answers with one line to the lane (write
 the journal as a draft, commit, end the turn) and arms `ccc clear <lane>
 --then "continue item <N> from the journal"`, which fires at the lane's
 next idle on a committed tree. `--deep 0` turns it off.
+
+The UNCLEARED exit (the thirty-second pass, parked 2127): twice in one
+tranche a cross-session clear fired, the lane's new session opened on the
+`/clear` record, and the `--then` prompt never followed — the row read
+idle with model `-` and sat twenty minutes until a message carrying the
+prompt woke it. The lane's newest transcript says so: its last record is
+the `/clear` command and nothing comes after. The waiter reads the
+transcript's tail every --deep-every polls, beside `ctx`, and exits once
+per lane whose `/clear` has stood --uncleared-after minutes with no turn
+past it; the commander answers with the prompt as one message.
+`--uncleared-after 0` turns it off.
 """
+import os
 import argparse
 import json
 import subprocess
@@ -123,6 +141,94 @@ def deep(ctxs, k_tokens, reported):
 
 
 SERVERS = ('bun ', 'node ', 'npx ')
+
+
+def uncleared(tails, now, after_minutes, reported):
+    """The first lane whose newest transcript ends on a `/clear` that has
+    stood `after_minutes` with no record after it, once each — as (7,
+    `UNCLEARED <lane> <minutes>`), or None. `tails` maps a lane to
+    `(cleared_at, last_at)` from `transcript_tail`: the time of the last
+    `/clear` command record, and of the last record of any kind; a lane
+    with no `/clear`, or a record after it, is clear. `now` and the stamps
+    are epoch seconds."""
+    if not after_minutes:
+        return None
+    for lane in sorted(tails):
+        tail = tails.get(lane)
+        if not tail or lane in reported:
+            continue
+        cleared_at, last_at = tail
+        if cleared_at is None or (last_at is not None and last_at > cleared_at):
+            continue
+        minutes = (now - cleared_at) / 60
+        if minutes >= after_minutes:
+            reported.add(lane)
+            return 7, f"UNCLEARED {lane} {int(minutes)}"
+    return None
+
+
+def transcript_tail(lines):
+    """`(cleared_at, last_at)` over a transcript's JSONL lines, epoch
+    seconds or None: when the last `/clear` command record was written,
+    and when the last record carrying a message of any kind was. The
+    `/clear` record is a user record whose content opens on the
+    `<command-name>/clear</command-name>` tag the harness writes for a
+    local command; the records before the first message (the title, the
+    bridge, a snapshot) carry no timestamp and are not read."""
+    from datetime import datetime
+    cleared_at = last_at = None
+    for line in lines:
+        try:
+            d = json.loads(line)
+        except ValueError:
+            continue
+        stamp = d.get('timestamp')
+        if not stamp or d.get('type') not in ('user', 'assistant'):
+            continue
+        try:
+            at = datetime.fromisoformat(stamp.replace('Z', '+00:00')).timestamp()
+        except ValueError:
+            continue
+        content = (d.get('message') or {}).get('content')
+        text = content if isinstance(content, str) else json.dumps(content or '')
+        if d.get('type') == 'user' and '<command-name>/clear</command-name>' in text:
+            cleared_at = at
+        else:
+            last_at = at
+    return cleared_at, last_at
+
+
+def newest_transcript(cwd, session_id=None):
+    """The lane's newest transcript: the harness writes
+    `~/.claude/projects/<cwd with / as ->/<session id>.jsonl`; the
+    session's own file when ccc names the id, else the newest by mtime."""
+    if not cwd:
+        return None
+    well = os.path.join(os.path.expanduser('~/.claude/projects'), cwd.replace('/', '-'))
+    if session_id:
+        own = os.path.join(well, f'{session_id}.jsonl')
+        if os.path.isfile(own):
+            return own
+    try:
+        files = [os.path.join(well, f) for f in os.listdir(well) if f.endswith('.jsonl')]
+    except OSError:
+        return None
+    return max(files, key=os.path.getmtime) if files else None
+
+
+def tails_of(lanes, where, sessions):
+    out = {}
+    for lane in lanes:
+        path = newest_transcript(where.get(lane), sessions.get(lane))
+        if not path:
+            out[lane] = None
+            continue
+        try:
+            with open(path, errors='replace') as f:
+                out[lane] = transcript_tail(f)
+        except OSError:
+            out[lane] = None
+    return out
 
 
 def is_server(command):
@@ -235,7 +341,7 @@ def roster():
         rows = json.loads(out)
     except ValueError:
         return None
-    found, trees, rests = {}, {}, {}
+    found, trees, rests, sessions = {}, {}, {}, {}
     for row in rows:
         session = row.get('session') or {}
         name = session.get('name')
@@ -249,8 +355,10 @@ def roster():
                            session.get('detail') or (row.get('job') or {}).get('detail'))
             job = row.get('job') or {}
             rests[name] = (session.get('pid'), job.get('tempo'), job.get('updatedAt'))
+            sessions[name] = session.get('sessionId')
     roster.trees = trees
     roster.rests = rests
+    roster.sessions = sessions
     return found
 
 
@@ -271,6 +379,9 @@ def main(argv=None):
                         help='read lore agents every this many polls')
     parser.add_argument('--stalled-after', type=float, default=30, metavar='MIN',
                         help='exit STALLED once per working lane idle this long with nothing running; 0 off')
+    parser.add_argument('--uncleared-after', type=float, default=5, metavar='MIN',
+                        help="exit UNCLEARED once per lane whose newest transcript ends on a /clear "
+                             "this long with no turn after it (parked 2127); 0 off")
     args = parser.parse_args(argv)
 
     rows = roster()
@@ -298,6 +409,7 @@ def main(argv=None):
     polls = 0
     reported = set()
     stalled_reported = set()
+    uncleared_reported = set()
     while True:
         time.sleep(args.interval)
         polls += 1
@@ -309,6 +421,12 @@ def main(argv=None):
         rows = roster()
         if rows is None:
             continue
+        if args.uncleared_after and polls % max(args.deep_every, 1) == 0:
+            found = uncleared(tails_of(list(watch), where, getattr(roster, 'sessions', {})),
+                              time.time(), args.uncleared_after, uncleared_reported)
+            if found:
+                print(found[1], flush=True)
+                return found[0]
         states = {lane: (rows[lane][0] if lane in rows else None) for lane in watch}
         details = {lane: (rows[lane][4] if lane in rows else None) for lane in watch}
         if args.stalled_after:

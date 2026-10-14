@@ -351,8 +351,8 @@ fn run652_coverage_pair_closing_state() {
         e.unlinked
     );
     eprintln!(
-        "Closing city fields: {:?}",
-        harness::compare(&built, &fin, 8).city_diverged
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 4731, "the closing block");
     // Item 1719: 261 units compared; one unit off (`1/84`, ours (-96, -720)

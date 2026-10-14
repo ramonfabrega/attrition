@@ -33,6 +33,8 @@ from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC
 
 HEAP = 0x2000_0000
 STUBS = 0x3000_0000
+# Pages the stub region may grow to: 64 pages, 16,384 stubs (Loop 2043).
+STUB_PAGES_MAX = 64
 
 
 class Harness:
@@ -42,14 +44,15 @@ class Harness:
         uc = self.m.uc
         uc.mem_map(0, 0x1000)  # fs:0 (the SEH chain) reads linear 0
         uc.mem_map(HEAP, 0x10_0000)
-        uc.mem_map(STUBS, 0x1000)
+        uc.mem_map(STUBS, 0x1000)  # grown a page at a time by `stub` (Loop 2043)
+        self.stub_pages = 1
         self.brk = HEAP
         self.calls = []
         self.answers = {}
         self.hooked = dict(callees)
         self.next_stub = STUBS
         self.marks = set()
-        uc.hook_add(UC_HOOK_CODE, self._on_code, begin=STUBS, end=STUBS + 0xFFF)
+        uc.hook_add(UC_HOOK_CODE, self._on_code, begin=STUBS, end=STUBS + STUB_PAGES_MAX * 0x1000 - 1)
         for a in callees:
             uc.hook_add(UC_HOOK_CODE, self._on_code, begin=a, end=a)
 
@@ -80,6 +83,16 @@ class Harness:
         `TypeData::is`), so the arguments sit at `[esp]` and the caller's
         return address below them."""
         a = self.next_stub
+        if a >= STUBS + self.stub_pages * 0x1000:
+            # Loop 2043 (parked 2022): one page holds 256 stubs, and a script
+            # that builds a vtable per row faulted at the 257th with an
+            # unmapped fetch. Map the next page as it is reached, up to
+            # STUB_PAGES_MAX, and refuse by name past that.
+            if self.stub_pages >= STUB_PAGES_MAX:
+                raise MemoryError(f"{self.stub_pages * 256} stubs handed out; reuse a vtable across rows "
+                                  "(Loop 2043) or raise STUB_PAGES_MAX")
+            self.m.uc.mem_map(STUBS + self.stub_pages * 0x1000, 0x1000)
+            self.stub_pages += 1
         self.next_stub += 0x10
         self.hooked[a] = (name, nargs, tail)
         self.answers[name] = answer

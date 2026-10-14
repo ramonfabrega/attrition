@@ -133,8 +133,8 @@ fn run600_french_east_indies_closing_state() {
         e.unlinked
     );
     eprintln!(
-        "Closing city fields: {:?}",
-        harness::compare(&built, &fin, 8).city_diverged
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 17380, "the closing block");
     // Item 1519: 154 units, none off, unlinked or extra, and every building
@@ -187,8 +187,8 @@ fn run598_french_great_lakes_closing_state() {
     );
     assert_eq!(e.frame, 5639);
     eprintln!(
-        "Closing city fields: {:?}",
-        harness::compare(&built, &fin, 8).city_diverged
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
     );
     assert_eq!(e.compared, 40);
     assert!(e.torn.is_empty());

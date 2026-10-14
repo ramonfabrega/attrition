@@ -581,7 +581,11 @@ sessions over 300 k took none (parked 1637, 1638). **And a `STALLED
 the gate or capture it waited on has exited; read its log and land —
 because a lost exit notice leaves a row `working` at `tempo=idle` with
 nothing running, where no other exit can fire, and one sat 178 minutes
-(parked 1871, DECISIONS 67). A red booking gate is a second commit and one line to every
+(parked 1871, DECISIONS 67). **And an `UNCLEARED <lane> <min>` exit is
+answered in its turn**: one message to the lane carrying the clear's
+`--then` prompt — twice in one tranche a cross-session clear fired and
+its prompt never ran, and the new session sat on its `/clear` twenty
+minutes until a message woke it (parked 2127, DECISIONS 69). A red booking gate is a second commit and one line to every
 live lane to take `ccc update`; **a landing that arrives while a gate
 runs is merged at the gate's exit**, never under it. The turn does not
 end with a lane empty and the queue not, and it never asks whether to

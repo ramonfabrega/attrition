@@ -12,18 +12,21 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-13, **the thirty-second pass is due**: twenty-three landings in 4 h 52 min since `dca6a873`,
-Opus 5.5 `--effort medium` (DECISIONS 68). Successor pair 3632 → 4246 (2049, 2077, 2088); Great Sahara
-(All Technologies) 3825 → 4340, closed, its closing state agreeing (2055, 2106); chapters 61 and 62
-closed (2099, 2117); census 449 → 571. No kill rule tripped.*
+*2026-10-13, **the thirty-second pass is done** (`docs/audit/2026-10-13-fable-pass-32.md`, DECISIONS 69):
+the Opus 5.5 medium trial scored — 23 landings in 4 h 52, **8.14 USD a landing against Sonnet 5.5 medium's
+3.56**, 23.4 min waiting; the words moved a comparable distance (successor 3632 → 4246, Great Sahara 3825 →
+4340 closed, chapters 60–62 closed, census 449 → 571); the sweeps cost 3× for the same ten. The pass
+recommends Sonnet on every lane and **changes no roster**: the thirty-third tranche runs Opus 5.5 medium,
+four lanes, until Ramon says (`ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`).*
 
-- **Measured** (`tools/tranche.py`, 23 items, 29 sessions): 187.14 USD list, **8.14 a landing** (Sonnet
-  5.5 medium's last: 3.56), **23.4 min waiting** a landing (24.9); peak 363 k (2066); four `DEEP` exits,
-  two clears whose `--then` never ran (parked 2127); one merge backed out on `census.rs` (2066); booking
-  gates all green; battery 576/6566/2974 unmoved; the rules line read closed from 2032 to 2099 (2105). Disk 195 GiB.
-- **No lanes live**: 2130, 2107, 2129, 2131 wait, stubs in the base. Next 2133, run 829,
-  AI §211, GOLDEN §79, park slot AQ (pools: AQ–AT, AI §211–§215, GOLDEN §79); runs 827–828 are 2131's.
-- **Fable backlog: 21 Loop items** (1475, 1570, 1725, 1900, 1947, 1965, 2003, 2025, 2031, 2037, 2043, 2054, 2060, 2071, 2082, 2059, 2089, 2104, 2127, 2128, 2132).
+- **Built**: `lanewait.py` exits `7 UNCLEARED <lane> <min>` when a clear's prompt never ran (2127) — answer
+  with one message carrying the prompt; `coll_add` refuses a second paint in debug (2132); closing tests
+  print `Closing fields:` with `build` rows (2128); `unitat.py` prints the ring bottom first, `<current>`
+  last (2059); the runner refuses `RON_STATE_FRAME` without its plan (2054); `hooks.py`'s stubs grow (2043);
+  `groups.py <dump> <frame>` (2037); `census.py --hooked` (2025, 0 of 501). Blind list 331 over all 380
+  coverage logs — the lobbies' floor (DECISIONS 69 §4). Battery unmoved an eighth tranche. Disk 199 GiB.
+- **No lanes live**: 2130, 2107, 2129, 2131 wait. Next 2133, run 829, AI §211, GOLDEN §79, park slot AQ (pools AQ–AT, AI §211–§215, GOLDEN §79); runs 827–828 are 2131's.
+- **Fable backlog: 11 Loop items** (1570, 1725, 1900, 1947, 1965, 2003, 2031, 2060, 2071, 2089, 2104).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,11 +39,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the thirty-second steering pass, on Fable — score the thirty-second
-tranche whole (Opus 5.5 medium, Ramon's trial: 8.14 USD a landing against Sonnet
-5.5 medium's 3.56, the roster his to decide), rule the twenty-one Loop items
-(2003's eleven reaches and 2127's clears first), then clear `commander` into the
-thirty-third tranche with 2130, 2107, 2129 and 2131, one to a lane.**
+**Opener: the thirty-third tranche's commander, on Opus — spawn 2130, 2107, 2129
+and 2131 one to a lane (Opus 5.5 medium, DECISIONS 68, 69), the lane wait with
+`--uncleared-after 5`, and run the chain to twenty landings; the pass is due at twenty.**
 
 ## The queue
 

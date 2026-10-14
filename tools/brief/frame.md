@@ -203,13 +203,13 @@ Before any reading of the original, in this order:
   from N" names the window's first block or the gap's. **A
   mechanism that makes a record kind appear in a window runs the
   `coverage` tests too** (1601).
-- **A gate's test uses a key the measured table lacks** (1126). **A
-  sea or air fixture sets the domain in all three fields**, type `kind`,
+- **A gate's test uses a key the measured table lacks** (1126). **A sea
+  or air fixture sets the domain in all three fields** — type `kind`,
   type `combat`, unit `kind` (1130).
-- **Your own test run is `--test-threads 2`, or under
-  `tools/memcap.sh`** (1081, 1086, 1089), `20` for the suite (1543);
-  one filter a `cargo test` (1551); **a gate prints `Gate pid:`
-  first — kill by it, never `pkill -f` a shared name** (1527, 1713).
+- **Your own test run is `--test-threads 2`, or `tools/memcap.sh <gib>
+  <cmd…>`, the ceiling first: `12` a filter, `20` the suite** (1081,
+  1086, 1089, 1543, 2082); one filter a run (1551); **kill a gate by
+  its `Gate pid:`, never `pkill -f`** (1527, 1713).
 - **A probe goes in behind one env guard, in one commit reverted
   whole** — never stripped by a pattern or a `git checkout <file>`
   (1727, 1717) — **committed before any other edit, never `commit -a`

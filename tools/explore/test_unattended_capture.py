@@ -204,6 +204,18 @@ class RunnerTest(unittest.TestCase):
         self.assertIn('GROUPS',why)
         self.assertIn('DEATHS',why)
 
+    def test_a_frame_define_without_its_plan_is_refused_before_the_lane(self):
+        # Parked 2006, Loop 2054: run810's first take died in the tracer
+        # build — `RON_STATE_FRAME` without `RON_STATE_PLAN` — after the lane
+        # was taken. Refused up front, naming the parked row and the fix.
+        self.assertIsNone(runner.refused_tracer_defs(None))
+        self.assertIsNone(runner.refused_tracer_defs([]))
+        self.assertIsNone(runner.refused_tracer_defs(['RON_AUTOSTART=1']))
+        self.assertIsNone(runner.refused_tracer_defs(['RON_STATE_FRAME=3631','RON_STATE_PLAN="/p/plan.h"']))
+        why=runner.refused_tracer_defs(['RON_AUTOSTART=1','RON_STATE_FRAME=3631'])
+        self.assertIn('2006',why)
+        self.assertIn('RON_STATE_PLAN',why)
+
     def test_a_take_that_exits_with_no_gamelog_is_retaken_once(self):
         # Parked 1987: run801's first take died on a Wine page fault before
         # frame 0, with no gamelog.txt, and the retake was by hand under

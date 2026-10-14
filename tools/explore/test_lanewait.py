@@ -162,6 +162,47 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         self.assertFalse(lanewait.is_server('python3 tools/lanewait.py att-1'))
         self.assertFalse(lanewait.is_server('zsh -c python3 tools/release_gate.py'))
 
+    def test_a_clear_with_no_turn_after_it_is_uncleared_once(self):
+        # Parked 2127, the thirty-second pass: twice a cross-session clear
+        # fired, the lane's new session opened on the `/clear` record, and
+        # the --then prompt never ran; the row sat twenty minutes until a
+        # message carrying the prompt woke it. A lane whose newest
+        # transcript ends on a `/clear` that has stood the threshold is
+        # named once; a lane with a record after its `/clear`, or none, is not.
+        now = 10_000.0
+        tails = {'a': (now - 6 * 60, None), 'b': (now - 6 * 60, now - 5 * 60), 'c': (None, now - 60),
+                 'd': (now - 60, None), 'e': None}
+        reported = set()
+        self.assertEqual(lanewait.uncleared(tails, now, 5, reported), (7, 'UNCLEARED a 6'))
+        self.assertIsNone(lanewait.uncleared(tails, now, 5, reported))
+        self.assertIsNone(lanewait.uncleared({'d': (now - 60, None)}, now, 5, set()), 'under the threshold')
+        self.assertIsNone(lanewait.uncleared(tails, now, 0, set()), 'off at 0')
+
+    def test_a_transcript_s_tail_is_its_last_clear_and_its_last_record(self):
+        # Two listings, as the harness writes them: 2055's second session
+        # (its `/clear` at 22:34:07, the commander's prompt at 22:35:35) and
+        # the shape 2127 found, the `/clear` with nothing after it.
+        import json
+        head = [json.dumps({'type': 'custom-title', 'customTitle': 'att-2055'}),
+                json.dumps({'type': 'file-history-snapshot', 'snapshot': {}})]
+        clear = json.dumps({'type': 'user', 'timestamp': '2026-10-13T22:34:07.000Z',
+                            'message': {'role': 'user', 'content': '<command-name>/clear</command-name> '
+                                        '<command-message>clear</command-message>'}})
+        prompt = json.dumps({'type': 'user', 'timestamp': '2026-10-13T22:35:35.000Z',
+                             'message': {'role': 'user', 'content': [{'type': 'text', 'text':
+                                         'Continue item 2055 from your journal draft'}]}})
+        answer = json.dumps({'type': 'assistant', 'timestamp': '2026-10-13T22:35:40.000Z',
+                             'message': {'role': 'assistant', 'content': [{'type': 'text', 'text': 'Reading.'}]}})
+        from datetime import datetime, timezone
+        at = lambda s: datetime.fromisoformat(s).replace(tzinfo=timezone.utc).timestamp()  # noqa: E731
+        self.assertEqual(lanewait.transcript_tail(head + [clear]), (at('2026-10-13T22:34:07'), None))
+        self.assertEqual(lanewait.transcript_tail(head + [clear, prompt, answer]),
+                         (at('2026-10-13T22:34:07'), at('2026-10-13T22:35:40')))
+        self.assertEqual(lanewait.transcript_tail(head + [answer, 'not json']), (None, at('2026-10-13T22:35:40')))
+        # A session that ended on a clear and was cleared again: the newest
+        # clear is the one that counts.
+        self.assertEqual(lanewait.transcript_tail(head + [clear, prompt, clear]), (at('2026-10-13T22:34:07'), at('2026-10-13T22:35:35')))
+
     def test_an_ended_row_s_detail_is_on_the_line(self):
         watch = watching(a='1' * 40)
         states, tips = {'a': 'blocked'}, {'a': '1' * 40}

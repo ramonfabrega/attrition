@@ -199,6 +199,33 @@ pub struct FrameResult {
 }
 
 impl FrameResult {
+    /// **A closing state's parted fields, cities and buildings both** (Loop
+    /// 2128, the thirty-second pass): every closing test printed its
+    /// `city_diverged` and never its `build_diverged`, so 2106's eight
+    /// building rows took a probe for their first look. One line a closing
+    /// test prints and a failure quotes, `city who/o field ours theirs; …`
+    /// then `build …`, `none` when both are empty.
+    pub fn closing_fields(&self) -> String {
+        let city = self.city_diverged.iter().map(|d| {
+            format!(
+                "city {}/{} {} {} vs {}",
+                d.who, d.o, d.field, d.ours, d.theirs
+            )
+        });
+        let build = self.build_diverged.iter().map(|d| {
+            format!(
+                "build {}/{} {} {} vs {}",
+                d.who, d.o, d.field, d.ours, d.theirs
+            )
+        });
+        let rows: Vec<String> = city.chain(build).collect();
+        if rows.is_empty() {
+            "none".into()
+        } else {
+            rows.join("; ")
+        }
+    }
+
     /// The order-list disagreements only — what the two sides *intend*.
     pub fn order_only(&self) -> impl Iterator<Item = &OrderDivergence> {
         self.order_diverged.iter().filter(|d| !d.what.is_path())
@@ -333,5 +360,45 @@ impl Report {
             }
         }
         seen.into_iter().map(|((w, o), f)| (w, o, f)).collect()
+    }
+}
+
+#[cfg(test)]
+mod closing_fields_tests {
+    use super::*;
+
+    /// Loop 2128: a closing state whose building row parted names it in
+    /// the text a closing test prints and a failure quotes. Made to fail
+    /// first on a `FrameResult` whose only divergence is a building's.
+    #[test]
+    fn a_closing_state_with_a_building_row_parted_names_it() {
+        let mut r = FrameResult::default();
+        assert_eq!(r.closing_fields(), "none");
+        r.build_diverged.push(crate::diff::build::BuildDivergence {
+            frame: 4340,
+            who: 1,
+            o: 2078,
+            field: "y_internal",
+            ours: 21984,
+            theirs: 24288,
+        });
+        let text = r.closing_fields();
+        assert!(
+            text.contains("build 1/2078 y_internal 21984 vs 24288"),
+            "{text}"
+        );
+        r.city_diverged.push(crate::diff::city::CityDivergence {
+            frame: 4340,
+            who: 0,
+            o: 2047,
+            field: "gatherers".into(),
+            ours: 3,
+            theirs: 4,
+        });
+        let text = r.closing_fields();
+        assert!(
+            text.starts_with("city 0/2047 gatherers 3 vs 4; build 1/2078"),
+            "{text}"
+        );
     }
 }

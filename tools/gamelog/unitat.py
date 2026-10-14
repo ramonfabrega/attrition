@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """unitat.py — one unit out of a dump, by name, its path's ends and its orders
-first issued first.
+bottom first, the current order last.
 
     python3 tools/gamelog/unitat.py <dump> <frame | lo-hi> <who>/<o> [--all] [--enums DIR]
 
@@ -8,10 +8,10 @@ Four lanes wrote the same scratch parsers (parked 1981: 1948's `blk.py` and
 `ord.py`, 1982's `units.py` and `th.py`; 1739; 1601 (d)): a unit's
 `UNITDATA` block names its type by `TypeIndex` number, which
 `decomp/enums/TypeIndex.txt` turns into a name by hand; the order kind and
-the figure's type share the field name `type`; and the order stack is
-printed top first, so "the first order" read off the dump is the last one
-issued (parked 1739). This prints one frame — the header, the path's two
-ends (`--all` every entry), the orders first issued first with the top
+the figure's type share the field name `type`; and the order ring is
+printed from its anchor, the bottom, so the current order is the last one
+printed (`docs/AI.md` §206; parked 1739, Loop 2059). This prints one frame — the header, the path's two
+ends (`--all` every entry), the orders bottom first with the current order
 marked, the figures — or a window, `lo-hi`: the first frame whole and then
 only the lines that changed, a per-unit history across the window (1601
 (d)). `--enums DIR` names the enum export (`~/ghidra-projects/decomp/enums`
@@ -142,14 +142,18 @@ def describe(unit, names, every):
             ends = [ends[0], '…', ends[-1]]
         lines.append(f"path {len(entries)}: " + ' '.join(ends))
     orders = [(n, c) for n, c in unit['children'] if n.endswith('ORDER')]
-    # The dump prints the stack top first (parked 1739): reversed here, so
-    # [0] is the first order issued and the last one is the top.
+    # `OrderList::log_data` starts at the ring's anchor and follows `+0`, so
+    # the dump prints the bottom of the list first and the current order
+    # last (`docs/AI.md` §206, item 2055; Loop 2059: this tool once
+    # reversed them and called the bottom `<top>`). Printed in the dump's
+    # own order: [0] is the bottom, the last entry the current order.
     shown = []
-    for i, (n, o) in enumerate(reversed(orders)):
+    for i, (n, o) in enumerate(orders):
         kv = ' '.join(f"{k}={v}" for k, v in o['fields'])
         inner = ' '.join(f"{cn.lower()}.{k}={v}" for cn, c in o['children'] for k, v in c['fields'])
-        shown.append(f"[{i}] {n} {kv} {inner}".rstrip() + (' <top>' if i == len(orders) - 1 else ''))
-    lines.append(f"orders {len(orders)} (first issued first): " + ('; '.join(shown) if shown else 'none'))
+        shown.append(f"[{i}] {n} {kv} {inner}".rstrip() + (' <current>' if i == len(orders) - 1 else ''))
+    lines.append(f"orders {len(orders)} (bottom first, the current order last): "
+                 + ('; '.join(shown) if shown else 'none'))
     for i, g in enumerate(guys):
         lines.append(f"guy[{i}] type {field(g, 'type')} at ({field(g, 'x')},{field(g, 'y')}) "
                      f"anim {field(g, 'anim', '?')} who/o {field(g, 'who')}/{field(g, 'o')}")

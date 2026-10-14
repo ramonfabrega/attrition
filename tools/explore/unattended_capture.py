@@ -130,6 +130,19 @@ def refused_detail(detail):
     return None
 
 
+def refused_tracer_defs(defs):
+    """Why a `--tracer-def` set is refused before the lane is taken, or
+    None: `RON_STATE_FRAME` names a packet frame and the tracer's
+    `live_frame_snapshot.h` `#include`s `RON_STATE_PLAN`, so a define set
+    with the frame and no plan dies in the build after the lane is taken
+    (parked 2006, Loop 2054: run810's first take spent the lane on it)."""
+    names = {d.split('=', 1)[0] for d in defs or ()}
+    if 'RON_STATE_FRAME' in names and 'RON_STATE_PLAN' not in names:
+        return ('RON_STATE_FRAME without RON_STATE_PLAN dies in the tracer build (parked 2006, Loop 2054); '
+                "add --tracer-def 'RON_STATE_PLAN=\"<plan.h>\"' (docs/EMULATOR.md §8), or drop the frame")
+    return None
+
+
 def exit_verdict(report, stalled):
     """What a launch that exited with no gamelog gets: `'retake'` once —
     run801's first take died on a Wine page fault before frame 0 with no
@@ -714,7 +727,7 @@ def main():
             live_session.parse_commands(args.cmd_file, args.end_frame)
         except ValueError as exc:
             ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
-    why = refused_detail(args.detail)
+    why = refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))
     if why:
         ap.error(why)
     # **The pool** (parked 1139; items 1568, 1569): `-` for the install and

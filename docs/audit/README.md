@@ -306,6 +306,15 @@ carries.
   `tools/memcap.sh`** (1081, 1086, 1089): three read the thread-width
   guard's red as their mutation's.
 
+
+## The brief checklist, from the thirty-second pass
+
+The rows continue; the first section's opening paragraph applies.
+
+- **`tools/memcap.sh` is written with its ceiling** (2082, 2049's Loop
+  line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
+  the suite — the frame once said "under `tools/memcap.sh`" and one run
+  came of the bare form, refused by the usage line.
 ## The brief checklist, from the twentieth pass
 
 The rows continue. The twentieth pass (2026-09-29) added these from the
