@@ -1077,7 +1077,8 @@ impl Sim {
             if gatherer {
                 leader.census.gatherers -= 1;
                 if let Some(c) = city {
-                    leader.city_ai[c].gatherers -= 1;
+                    let g = &mut leader.city_ai[c].gatherers;
+                    *g = g.wrapping_sub(1);
                 }
                 if let Some(r) = reg
                     && let Some(v) = leader.census.reg_gatherers.get_mut(r)

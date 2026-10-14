@@ -802,7 +802,7 @@ impl Sim {
         self.ai[w].census.gatherers += 1;
         if let Some(c) = counted {
             let rec = &mut self.ai[w].city_ai[c];
-            rec.gatherers += 1;
+            rec.gatherers = rec.gatherers.wrapping_add(1);
             // SEAM: a gatherer with no friendly city in its region but a
             // target in one reads the search's untouched `find_dist`
             // (99,999,999) truncated to a short; no capture has one, so

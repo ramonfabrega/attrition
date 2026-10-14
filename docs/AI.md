@@ -19689,12 +19689,87 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 209. Reserved for the next item on the AI track
+## 209. Great Sahara (All Technologies)'s closing state agrees: Tikal, `City::init`'s record and a byte (2026-10-13, item 2106)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed; `run676_sahara_coverage_closing_state` reads
+`[0, 0, 0, 0, 0, 0, 0]` on block 4341, from `[1, 0, 0, 0, 8, 0, 5]`.** The
+draw stream still agrees to 4340 of 4340, and no lobby's `first_parting`
+moved. No capture: run676's closing dump and run817's last blocks answered
+every row (run 822 unused).
+
+**The rows, both sides, on 4341.** Eight building rows: `myhits` on the six
+templed cities of player 1 (`1/2000`, `1/2018` ours 16250 against 21125;
+`1/2006`, `1/2027`, `1/2028`, `1/2039` ours 3900 against 5070), and
+`1/2086`'s `ever_seen`/`ever_seen_completed` (ours 2, theirs 255). Five city
+rows: Rigan `1/2031 gatherers` (ours −1, theirs 255) and Napata `1/2086`'s
+`land` 0/9, `filled` 0/1, `raid_stamp` and `reduce_stamp` 0/4340. One unit:
+the Flamethrower `1/95` (TI 131), ours (342, 159) from the dump's.
+
+1. **Tikal's temple bonus.** The dumps put the ×1.3 between run790's last
+   block (4017, theirs 16250/3900) and run817's first (4260, 21125/5070), the
+   window in which the Tikal `1/2048` (type 532, `0x214`) finishes on both
+   sides. 21125 = 6500 × 3.25 and 5070 = 1560 × 3.25: the level-4 temple's
+   150 % taken by `TIKAL_TEMPLE_HP`'s 1.5 to 225 %. `Wall::update_hits@0063f0d0`
+   asks `LeaderData::has_wonder` for the Taj Mahal (`0x21b`), the Red Fort
+   (`0x216`) and Tikal; ours read `Nation`'s three flags, which nothing wrote.
+   Built: [`Sim::update_hits`] reads [`Sim::wonders_held`]
+   (`has_wonder@006ebc10`'s finished-and-in-a-city walk, the Red Fort
+   without a city).
+2. **Tikal's borders.** run817's standing rows read `leader:territory` ours
+   639/2654 against 599/2694 from 4260. `compute_reg_territory@006b0bb0`
+   asks `has_wonder` for Tikal's temple multiplier, the Colosseum (`0x212`)
+   and the Eiffel Tower (`0x21c`); ours read `Nation::tikal` and two constant
+   `false`s. And `Build::activate@00623e20`'s `LAB_00626ac1` zeroes every
+   region's border stamp when one of the three finishes, as a fort does;
+   ours never re-ran territory for a wonder. Built: `player_borders` from
+   `wonders_held`, and the three wonders' activation calls `sync_territory`.
+   The territory rows go, and with them `1/95`'s and parked 2057's
+   `path[k].to` rows (every push point 768 south was a route round the
+   border): run817 344 → 298 keys, no `path[` row left.
+3. **`gatherers` is a byte.** `CityData +0x5c` is a `uchar`, like `free`
+   (§2.20): Rigan's decrement at zero lands on 255. Its readers widen with a
+   zero extension — `Leader::create_buildings`' gather tail
+   (`(byte)field_0x5c + free`), `find_gather_spot@005f5170:108`. Built:
+   `CityAi::gatherers: u8`, `wrapping_add`/`wrapping_sub` at the three
+   writers, `i32::from` at the readers.
+4. **`City::init@00737050`'s record.** On a transfer (`param_4`) it stamps
+   all five clocks with the frame — `attack_stamp +0x14`, `raid_stamp
+   +0x18`, `capture_stamp +0x20`, `assimilation_timer +0x24`,
+   `reduce_stamp +0x1c` — and ours stamped three; `City::capture@00736c40`
+   stamps `+0x14` and `+0x18` again. And it writes the AI half for every
+   city: `free`, `busy`, `gatherers`, `peasant_dist`, `in_port`, `bordering`,
+   `ocean_filled`, `dock_tile`, `space`, `ter` zero, and `*(this + 0x61) =
+   0x01090000` — **`land` 9, `filled` 1**. Ours left the record a reused
+   slot held, or a fresh zero. Built: `reduce_stamp` and a new
+   `City::raid_stamp` stamped on a transfer and by the capture, the harness
+   comparing it (`Leader::raid`'s own stamp is not carried, parked 2110), and
+   `init_city` writing the AI record. This also closed run58's last two
+   `CITY` rows (Great Lakes' `1/2007` `land`/`filled` for the 157 frames from
+   its founding at 1819 to its owner's first sweep).
+5. **`Wall::swap_team@00640c00` copies `ever_seen`/`ever_seen_completed`**
+   (`+0x62`/`+0x63`) to the new owner's building; ours did not.
+
+**Measured** (base `1f77df10` with this branch): the closing `[0, 0, 0, 0,
+0, 0, 0]`; French East Indies' closing (`run600`) `[0, 0, 0, 0, 4, 0, 1]` →
+`[0, 0, 0, 0, 0, 0, 1]` (the row left is `0/2000`'s raided `raid_stamp`);
+41 widening and floor-side literals re-pinned, every one fewer keys or a
+row gone, none more. `cargo test --release -p sim`: 1964 passed.
+
+**Mutations** (`tools/mutate.py`, exit code and failed names): Tikal out of
+`update_hits` fails the closing and `a_held_tikal_raises_a_templed_city_s_hit_points`;
+Tikal out of the border table fails the closing; the wonders' territory
+recompute out fails the closing; the AI record out of `init_city` fails the
+closing, run58 and both record tests; the transfer's `reduce_stamp` and
+`raid_stamp` at 0 fail the closing and the capture test; `swap_team`'s copy
+out fails the same two; `ai_place`'s `gatherers` decrement saturating fails
+the closing. **`ai_sites`' decrement saturating fails nothing**: no walk
+decrements a city's `gatherers` at zero there.
+
+**What is not established.** The Taj Mahal's and the Red Fort's hit-point
+arms and the Colosseum's and Eiffel Tower's border arms now read
+`has_wonder` and no walk holds one of those wonders. `Nation`'s wonder flags
+keep four other readers (parked 2109). Group 66's standing `sheltered` and
+`attrition` rows on run817 are left (parked 2108).
 
 ## 210. Reserved for the next item on the AI track
 

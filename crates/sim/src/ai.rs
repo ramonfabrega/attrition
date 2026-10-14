@@ -445,9 +445,13 @@ pub struct CityAi {
     /// it with a zero extension, so the readers here take `i32::from`.
     /// `busy` and the counters under it are the same width in the
     /// original and are still `i32` here — the widening ledger's row.
+    /// **`gatherers` (`+0x5c`) is a wrapping byte too** (item 2106): Great
+    /// Sahara's Rigan `1/2031` reads 255 in the original's dumps and −1
+    /// here, and `Leader::create_buildings`' gather tail widens it with a
+    /// zero extension (`(byte)field_0x5c + free`).
     pub free: u8,
     pub busy: i32,
-    pub gatherers: i32,
+    pub gatherers: u8,
     /// The nearest free or gathering citizen, in `dist / 0x300`; 100 when
     /// none.
     pub peasant_dist: i32,

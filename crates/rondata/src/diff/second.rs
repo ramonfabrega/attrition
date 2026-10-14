@@ -782,7 +782,7 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1377: 1571 74 → 73, who=1's `defense` 0 against 1.
-            [(1571, 29), (1576, 1)],
+            [(1571, 27), (1576, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -853,7 +853,7 @@ mod tests {
         // 42).
         pin_eq!(
             row(1, 2009, "city:land").as_deref(),
-            Some("3805: ours 0 theirs 9"),
+            None,
             "the city site's sweep"
         );
         // **Closed by item 1106**: who=1's `territory` is summed when the
@@ -866,7 +866,7 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1377: 3805 3 → 2, who=1's `defense` 0 against 1.
-            [(3771, 30), (3805, 2), (3977, 1)],
+            [(3771, 30), (3977, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -2178,7 +2178,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 13_386)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13380, 44), (13386, 2)],
+            [(13380, 44), (13386, 1)],
             "the blocks keys first part on, to the word 13385's"
         );
         // Item 1326 re-pinned on the tree merged with 1318's: was 1103.
@@ -2187,7 +2187,7 @@ mod tests {
         // Item 1407: 138 → 137.
         // Item 1451, `largest_gather` (AI §115): 134 → 132, MAKE[3].val and MAKE[4].val.
         // Item 1458: 132 → 128; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 48, "every key parted on run523");
+        pin_eq!(w.firsts.len(), 47, "every key parted on run523");
     }
 
     /// **run535 — the second pair's East Indies word 14141, widened whole**
@@ -2385,7 +2385,7 @@ mod tests {
         // Item 1383, the re-plan's step past the pause: 662 → 243.
         // Item 1457: 242 → 237; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 237 → 233; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 54, "every key parted on run544");
+        pin_eq!(w.firsts.len(), 52, "every key parted on run544");
     }
 
     /// **run572 — the second pair's East Indies word 16179, widened whole**
@@ -2446,7 +2446,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (16155, 65),
+                (16155, 63),
                 (16161, 1),
                 (16171, 1),
                 (16172, 1),
@@ -2488,7 +2488,7 @@ mod tests {
         // Item 1457: 263 → 257; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 257 → 253; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1634 removes 1/2046's false road flag from block 16288.
-        pin_eq!(w.firsts.len(), 125, "every key parted on run572");
+        pin_eq!(w.firsts.len(), 123, "every key parted on run572");
     }
 
     /// **run579 — the second pair's East Indies word 16482, widened whole**
@@ -2753,7 +2753,7 @@ mod tests {
         // Item 1502: 193 → 165 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 1563: 163 → 177; the shared instrument compares `ever_seen` and `ever_seen_completed` (parked 1450), and on the closing block 18141 seven of player 1's buildings, `1/2056`..`1/2062`, read 3 in the original against 2 — the defeated human's bit, a closing residue.
         // Item 1586: 177 → 176; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        pin_eq!(w.firsts.len(), 130, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 112, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))

@@ -2347,6 +2347,123 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     assert!(!sim.defeated[1]);
 }
 
+/// **A captured city's record is `City::init`'s on a transfer, then
+/// `City::capture`'s** (item 2106, Great Sahara's Napata `1/2086` on its
+/// capture frame 4340): all five clocks — `attack_stamp`, `raid_stamp`,
+/// `reduce_stamp`, `capture_stamp`, `assimilation_timer` — read the frame;
+/// the AI half is `land` 9, `filled` 1 and the rest zero until the owner's
+/// next sweep; and `Wall::swap_team` carries who has ever seen the
+/// building.
+#[test]
+fn a_captured_city_takes_city_init_s_record_and_its_building_s_ever_seen() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    bd.ever_seen = 0b11;
+    bd.ever_seen_completed = 0b11;
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .expect("player 0 has the city now");
+    let c = &sim.cities[nc];
+    assert_eq!(
+        [
+            c.attack_stamp,
+            c.raid_stamp,
+            c.reduce_stamp,
+            c.capture_stamp,
+            c.assimilation_timer
+        ],
+        [1000; 5],
+        "every clock City::init stamps on a transfer"
+    );
+    let rec = sim.ai[0].city_ai[nc];
+    assert_eq!((rec.land, rec.filled), (9, 1), "City::init's literal");
+    assert_eq!(
+        (rec.free, rec.busy, rec.gatherers, rec.ocean, rec.space),
+        (0, 0, 0, 0, [0; 3])
+    );
+    let nb = sim.cities[nc].building;
+    assert_eq!(
+        (
+            sim.buildings[nb].ever_seen,
+            sim.buildings[nb].ever_seen_completed
+        ),
+        (0b11, 0b11),
+        "Wall::swap_team copies +0x62 and +0x63"
+    );
+}
+
+/// **A founded city's AI record is `City::init`'s too** (item 2106): a
+/// reused slot does not keep the dead city's picture, and a new one reads
+/// `land` 9 and `filled` 1 before its owner's sweep — Great Lakes' `1/2007`
+/// for the 157 frames from 1819 (run58).
+#[test]
+fn a_new_city_s_ai_record_is_nine_open_one_filled() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, c) = city_at(&mut sim, &t, 1, 32, 32);
+    let rec = sim.ai[1].city_ai[c];
+    assert_eq!((rec.land, rec.filled, rec.gatherers), (9, 1, 0));
+    let c0 = &sim.cities[c];
+    assert_eq!(
+        (c0.raid_stamp, c0.reduce_stamp, c0.capture_stamp),
+        (0, 0, 0),
+        "a founding stamps nothing"
+    );
+}
+
+/// **Tikal's temple bonus is `has_wonder(0x214)`'s** (item 2106): a held,
+/// finished Tikal multiplies a templed city's `TEMPLE_UPGRADE_HP` by
+/// `TIKAL_TEMPLE_HP` (Great Sahara's six templed cities, `myhits` 16250 →
+/// 21125 in the original from the frame `1/2048` finished). `Nation::tikal`
+/// had no writer, so the bonus never applied.
+#[test]
+fn a_held_tikal_raises_a_templed_city_s_hit_points() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let mut tikal = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    tikal.ident = Ident::default();
+    tikal.tree = Some(line[tech::wonder::TIKAL]);
+    let tikal = sim.add_build_type(tikal);
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let tp = sim.place_building(0, t.temple, tile_pos(25, 32)).unwrap();
+    finish(&mut sim, tp);
+    sim.update_hits(b);
+    let without = sim.buildings[b].hits;
+    let w = sim.place_building(0, tikal, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_ne!(
+        sim.wonders_held(0) & (1 << tech::wonder::TIKAL),
+        0,
+        "the finished Tikal is held"
+    );
+    sim.update_hits(b);
+    let tu = &sim.tuning;
+    let bonus = tu.temple_upgrade_hp[0];
+    let k = ((tu.tikal_temple_hp + 100) * bonus + 99) / 100;
+    assert_eq!(without, (bonus + 100) * 1200 / 100, "the Temple's level 1");
+    assert_eq!(sim.buildings[b].hits, (k + 100) * 1200 / 100, "and Tikal's");
+}
+
 #[test]
 fn a_garrisoned_city_is_emptied_rather_than_captured() {
     let mut sim = world_sim();

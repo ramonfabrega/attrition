@@ -8637,7 +8637,7 @@ impl Sim {
             self.ai[who as usize]
                 .city_ai
                 .get(c)
-                .map_or(0, |r| i32::from(r.free) + r.gatherers)
+                .map_or(0, |r| i32::from(r.free) + i32::from(r.gatherers))
         };
         let mypop = pop(mine);
         if mypop < 2 {

@@ -361,7 +361,7 @@ mod tests {
                 ("dock_tile", ours.dock_tile),
                 ("free", i32::from(ours.free)),
                 ("busy", ours.busy),
-                ("gatherers", ours.gatherers),
+                ("gatherers", i32::from(ours.gatherers)),
                 ("peasant_dist", ours.peasant_dist),
                 ("in_port", ours.in_port),
             ];

@@ -3734,15 +3734,26 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2128) **A closing-state test prints its city rows and not its building
+rows** (2106's Loop line, filed at its merge): `counts()` counts both,
+but each closing test prints `city_diverged` and never `build_diverged`,
+so 2106's eight building rows took a probe for their first look.
+Candidate: each closing test prints both, held by a test that a closing
+state with a building row parted names it in the failure text.
+
 (2127) **A cross-session clear reported fired on a lane that went on in
 one session** (found at 2088's second `DEEP`): `ccc clear 4aa11452
 --status` said "cleared … 9m ago" at 18:51, and the lane's transcript
 (`4aa11452-491c…`, the only file in its project dir) went on to 351 k at
 18:58 with no `/clear` and no new session file; the lane had been told
 to end its turn and had not yet. A re-arm at 19:00 and a second line
-took. Candidate: the waiter checks, on its next pass after a clear, that
-the lane's newest transcript is not the one it measured, and exits
-`UNCLEARED <lane>` if it is — a test fed two transcript listings.
+took. **And the clear's `--then` prompt does not run** (twice: 2055 at
+17:3x, 2088 at 19:01): the new session's transcript holds the `/clear`
+and nothing after it, the row reads `working`/`idle` (or `blocked`) with
+model `-`, and it sat twenty minutes until a message carrying the prompt
+woke it. Candidate: the waiter checks, on its next pass after a clear,
+that the lane's newest transcript has a turn past the `/clear`, and exits
+`UNCLEARED <lane>` if not — a test fed two transcript listings.
 
 (2059) **`unitat.py`'s order labels are inverted** (Loop; names no score; filed here at 2055's merge). The dump prints an order list
 from the ring's anchor, the **bottom** (`OrderList::log_data`, `docs/AI.md` §206), and `unitat.py`
@@ -4360,14 +4371,14 @@ should keep in range, and something of ours that drops it otherwise. Names no fr
 
 ## Parked by item 2055, 2026-10-13 — the order ring's bottom, and Great Sahara's close
 
-(2056) **Great Sahara (All Technologies)'s closing residue** (the closing state's counts,
+(2056) ~~**Great Sahara (All Technologies)'s closing residue**~~ **Closed by item 2106** (`docs/AI.md` §209): `[0, 0, 0, 0, 0, 0, 0]`. (the closing state's counts,
 `run676_sahara_coverage_closing_state`). On block 4341: 252 units, one off (`1/95`, ours (342, 159) from the
 dump's), eight building field-rows and five city field-rows apart (`[1, 0, 0, 0, 8, 0, 5]`). The cities are
 `1/2031 gatherers` (ours −1, theirs 255) and `1/2086`'s `land` 0/9, `filled` 0/1, `raid_stamp` and
 `reduce_stamp` 0/4340. The stamps of 4340, the game's last frame, read like item 1528's capture on a game's
 last frame: the next score of a closed lobby.
 
-(2057) **A `path[k].to` residue in run817 from 4285** (run817's 344 keys; names no word now). `1/105`,
+(2057) ~~**A `path[k].to` residue in run817 from 4285**~~ **Closed by item 2106** (`docs/AI.md` §209, step 2): the border table's Tikal and the wonders' recompute; no `path[` row is left on run817. (run817's 344 keys; names no word now). `1/105`,
 `1/107` and `1/168` push points ours 768 south of theirs (`path[77].to` (14472, 26424) against (14472,
 25656) on block 4285; `1/168`'s four on 4292 by the same 768). It sits in the same stream as group 66's
 standing attrition and `sheltered` rows from 4260, which this item left alone.
@@ -4481,13 +4492,32 @@ target's role `0x10000` set and its type's `+0x2b4 & 0x2000` clear. This crate r
 which is the arm for a unit with the bit clear. No walk is known to set the bit on a captain that reaches the arm.
 Names no frame.
 
-## Parked by the next landing, slot AM — reserved
+## Parked by item 2106, 2026-10-13 — Great Sahara's closing state, and the wonders nobody held
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2108) **Group 66's standing `sheltered` and `attrition` rows on run817** (names no score: the closing agrees).
+After item 2106, run817 parts 298 keys, 246 standing from 4260 and the rest `sheltered` (ours 1, theirs 0;
+17 units) and `attrition` (ours 6 or 12, theirs 0; 13), with `hits`/`damage_frac` one point behind them — the
+same members (`1/29`, `1/42`, `1/54`, `1/91`, `1/93`, `1/94`, `1/113`, `1/114`, `1/128`, `1/144`, `1/178`,
+`1/179` …) by 4316. Ours calls a member sheltered and still bleeds it, the original neither. The namesake's
+fields on a lobby that otherwise agrees to its end; `leader:territory` agrees since §209, so the border is not
+the cause. Candidate: the next score of a closed lobby's window.
+
+(2109) **`Nation`'s wonder flags keep four readers** (`SEAM`-shaped; names no score). Item 2106 moved
+`update_hits` and `player_borders` onto `wonders_held`; `Nation::tikal` (the Temple's cost on a self-demolition,
+`city.rs`, `TIKAL_TEMPLE_COST`), `Nation::red_fort` (`garrison.rs`) and `Nation::pyramids` (`place.rs`, beside
+its own `wonders_held` test) and `Nation::versailles` (`ClockMods`, the heal period) are still read and still
+have no writer. Each is `has_wonder` in the original by the readings cited at its site; none is reached by a walk
+that holds the wonder.
+
+(2110) **`CityData::raid_stamp`'s raid writer is not carried** (names no score; one closing row). Item 2106
+carries the transfer's stamps (`City::init`, `City::capture`); the raid's (`Leader::raid`, the human city's
+2133 on Great Sahara and 9451 on the second pair, `0/2000`'s 17326 the one row left on French East Indies'
+closing) is not, and the harness now compares ours against it.
+
+(2111) **`ai_sites`' `gatherers` decrement wraps in no walk** (a mutation that failed nothing). Item 2106 made
+`CityAi::gatherers` a wrapping byte at all three writers; `ai_place`'s decrement is what wraps Rigan to 255,
+and the census adjustment in `ai_sites` (the chosen citizen's nearest city) never decrements one at zero on
+any capture.
 
 ## Parked by item 2112, 2026-10-13 — the sweep's forty-ninth batch
 

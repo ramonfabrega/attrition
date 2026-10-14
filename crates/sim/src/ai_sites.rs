@@ -1250,7 +1250,8 @@ impl Sim {
         }
         if let Some((_, ci)) = near {
             if gatherer {
-                self.ai[w].city_ai[ci].gatherers -= 1;
+                let g = &mut self.ai[w].city_ai[ci].gatherers;
+                *g = g.wrapping_sub(1);
             } else {
                 let f = &mut self.ai[w].city_ai[ci].free;
                 *f = f.wrapping_sub(1);
