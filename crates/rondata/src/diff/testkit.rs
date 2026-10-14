@@ -6380,6 +6380,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_THREE: i64 = 760;
 /// whole.
 pub(crate) const WIDENING_CHAPTER_SIXTY_THREE: (i64, i64) = (605, 761);
 
+/// **Chapter sixty-four** (item 2165, `docs/GOLDEN.md` §79, run835): two
+/// human Barks, a computer's, a Trireme and a fishing boat, and a player's
+/// stance button twice.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_FOUR: i64 = 637;
+
+/// `chapter_sixty_four_s_word_frame_is_widened_whole`'s window.
+pub(crate) const WIDENING_CHAPTER_SIXTY_FOUR: (i64, i64) = (605, 821);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8693,6 +8701,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixty_three_s_word_frame_is_widened_whole"),
         2131,
         Some(WIDENING_CHAPTER_SIXTY_THREE),
+    ),
+    // Item 2165: run835, chapter sixty-four, the Bark's bit and a player's
+    // stance button; open at 637 (6 draws here, 10 there). The widening is
+    // run835 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTY_FOUR",
+        GOLDEN_WORD_CHAPTER_SIXTY_FOUR,
+        Some("chapter_sixty_four_s_word_frame_is_widened_whole"),
+        2165,
+        Some(WIDENING_CHAPTER_SIXTY_FOUR),
     ),
     // Item 1393: run576, chapter forty-nine, a Tower's arrow at its owner's
     // third age and a Catapult trained under a queued Bombard; open at 934.
