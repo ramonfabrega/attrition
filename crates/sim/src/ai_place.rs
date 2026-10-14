@@ -963,12 +963,6 @@ impl Sim {
                     }
                     _ => {}
                 }
-                if std::env::var_os("RON_PROBE_BUILDER").is_some() {
-                    eprintln!(
-                        "  probe builder f{} site {:?} corner {:?} unit {}/{} #{} tile {:?} kind {} d {} best {}",
-                        self.frame, cand, corner, unit.owner, unit.index, u, tile, kind, d, best_d
-                    );
-                }
                 if d < best_d {
                     best_d = d;
                     builder = Some((u, kind));
