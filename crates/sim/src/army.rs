@@ -720,9 +720,9 @@ impl Sim {
         if a.units.iter().any(|&m| mine(m)) {
             return None;
         }
-        self.pushed
-            .iter()
-            .position(|p| p.who == who && p.state.pool == Some(s) && p.list.iter().any(|&m| mine(m)))
+        self.pushed.iter().position(|p| {
+            p.who == who && p.state.pool == Some(s) && p.list.iter().any(|&m| mine(m))
+        })
     }
 
     /// `Unit::go_to_unit(o, who)@005f78c0` — mark the squad, then walk it
