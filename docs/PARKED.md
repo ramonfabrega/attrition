@@ -3802,6 +3802,12 @@ Candidate: a brief-checklist row for a mirror or `facing` parting — "list ever
 crate reaches without `unit_set_angle`" — or `seams.py` printing a doc's left-out callers when the word's unit turns.
 One reach.
 
+(2240) **`step4.py` on one unit's `process` draws from the frame's opening seed** (2205's "for the Loop"
+line). The unit saw the seed some rolls past the opening; 2205's first packet run took the one-in-five's other
+branch in silence, and the second poked the seed by hand (8/3 draws first). Candidate: `--seed-after <n draws>`, or
+the walk's printed seed at the unit's draw, so a per-unit packet run says which roll it took, with a test made to
+fail first. One reach.
+
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
 ~~(2105) **The golden floor reads a widening's window as the trace's end**
