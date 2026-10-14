@@ -1413,32 +1413,13 @@ impl Sim {
     /// holder and hands the lead to the later leader if it reaches the
     /// points (`0059490e`).
     pub fn wonder_winning(&self) -> i32 {
-        let target = self.lobby.wonder_win_points;
-        let (mut best, mut win) = (0, -1i32);
-        let leaders: Vec<Player> = self.wonder_leaders().collect();
-        for p in leaders {
-            let net = self.wonder_net(p);
-            if net < best {
-                continue;
-            }
-            if net == best {
-                if win < 0 {
-                    continue;
-                }
-                if self.is_ally(p, win as Player) {
-                    if self.wonder_points(win as Player) < self.wonder_points(p) {
-                        win = p as i32;
-                    }
-                    continue;
-                }
-                win = -1;
-            }
-            if target <= net {
-                best = net;
-                win = p as i32;
-            }
-        }
-        win
+        wonder_lead(
+            self.lobby.wonder_win_points,
+            self.wonder_leaders(),
+            |p| self.wonder_net(p),
+            |p, q| self.is_ally(p, q),
+            |p| self.wonder_points(p),
+        )
     }
 
     // ------------------------------------------------------------------
@@ -1539,6 +1520,45 @@ impl Sim {
         let _ = (who, t, city, escrow);
         false
     }
+}
+
+/// `Game::wonder_winning@005948a0`'s walk over the active leaders in slot
+/// order: `net` asked of each, and on a tie with a holder `ally(p, holder)`,
+/// then `points(holder)` and `points(p)` in that order — the calls the
+/// original makes, in its order, which item 2247's sweep answers a call at a
+/// time. A leader takes the lead when its net reaches `target`.
+pub(crate) fn wonder_lead(
+    target: i32,
+    leaders: impl IntoIterator<Item = Player>,
+    mut net: impl FnMut(Player) -> i32,
+    mut ally: impl FnMut(Player, Player) -> bool,
+    mut points: impl FnMut(Player) -> i32,
+) -> i32 {
+    let (mut best, mut win) = (0, -1i32);
+    for p in leaders {
+        let n = net(p);
+        if n < best {
+            continue;
+        }
+        if n == best {
+            if win < 0 {
+                continue;
+            }
+            if ally(p, win as Player) {
+                let held = points(win as Player);
+                if held < points(p) {
+                    win = i32::from(p);
+                }
+                continue;
+            }
+            win = -1;
+        }
+        if target <= n {
+            best = n;
+            win = i32::from(p);
+        }
+    }
+    win
 }
 
 #[cfg(test)]

@@ -290,6 +290,32 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    places=['m+0x18:0:8'], vtat_also=['p0+0'])
 
+    def test_a_sparse_table_lays_only_the_slices_of_its_rows(self):
+        # Parked 2201 (Loop 2003's seventeenth reach, item 2247): the leaders
+        # table is eight rows 0x6eec apart, and `in_unfriendly_territory` reads
+        # `+8` and the diplos at `+0x74` of two of them; a cell window of the
+        # whole table is 113 KB a row. `--sparse LOC:STRIDE:N:OFF,SIZE[/..]`
+        # points LOC at a zeroed table and lays each row's slices as `p`
+        # windows, before the places; `@VA` lays them at a table in the image.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2247, win=0x20, bias=[], own=0,
+            sparse=['0xc061e0:0x6eec:8:8,0x8c/0x3f8,4'], wbias=['p0..7+*:0,1,2'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("SPARSE = [(None, '0xc061e0', 28396, 8, [(8, 140), (1016, 4)])]", script)
+        self.assertIn('for win, loc, stride, n, slices in SPARSE:', script)
+        self.assertIn("('p7', None, ('set', [0, 1, 2]))", script)
+        self.assertIn('8 rows 0x6eec apart at `0xc061e0`, slices +0x8:0x8c, +0x3f8:0x4 (`p` windows', script)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2247, win=0x20, bias=[], own=0, sparse=['@0xe6e000:0x6eec:8:0,4'], port='0')
+        self.assertIn("SPARSE = [('@', '0xe6e000', 28396, 8, [(0, 4)])]", script)
+        # Slices of one row may not overlap, nor outrun the stride.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   sparse=['0xc061e0:0x100:2:0,0x20/0x10,8'])
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   sparse=['0xc061e0:0x100:2:0xf0,0x20'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
@@ -410,6 +436,28 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2241, win=8, bias=[], stubs=['slot:0x3c:0'],
                                    places=['s1:0:4'])
+
+    def test_a_place_may_be_drawn_null(self):
+        # Item 2253 (Loop 2003, 2241's line): `Unit::update_order` and
+        # `UnitData::get_order` guard the pointer at `+0xdc` against null,
+        # and a place is never null, so the guard ran one arm. `--place-null
+        # K` lays place K's pointer as 0 a third of the rows; the buffer is
+        # still drawn so every later window keeps its index, and a line
+        # without the flag draws no extra number.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+            places=['m+0xdc:0:8', 'p0+4:0:0x10'], place_null=['0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('NULLS = [0]', script)
+        self.assertIn('if k in NULLS and rng.random() < 1 / 3:', script)
+        self.assertIn('null a third of the rows', test)
+        sp2, script2, *_ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+            places=['m+0xdc:0:8', 'p0+4:0:0x10'], port='0')
+        self.assertIn('NULLS = []', script2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2253, win=0xe0, bias=[],
+                                   places=['m+0xdc:0:8'], place_null=['1'])
 
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer

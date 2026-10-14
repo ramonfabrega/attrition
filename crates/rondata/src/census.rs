@@ -29,9 +29,10 @@
 /// sweep's fifty-seventh batch; item 2205: 669 -> 670, `compare_target`, by golden chapter sixty-four's
 /// sea arm, `docs/GOLDEN.md` §80.1; item 2223: 670 -> 680, the sweep's fifty-eighth batch; item 2217:
 /// 680 -> 690, the second sweep lane's ten with a port consumer; item 2241: 690 -> 700, the sweep's
-/// fifty-ninth batch; item 2235: 700 -> 701, `UnitData::get_action`, by the city alarm's worker arm,
-/// `docs/GOLDEN.md` §81.1).
-pub const SIMULATION_BACKED: usize = 701;
+/// fifty-ninth batch; item 2253: 700 -> 710, the sweep's sixtieth batch; item 2247: 710 -> 720, the second
+/// sweep lane's next ten, the territory family through `obj --sparse`; item 2235: 720 -> 721,
+/// `UnitData::get_action`, by the city alarm's worker arm, `docs/GOLDEN.md` §81.1).
+pub const SIMULATION_BACKED: usize = 721;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

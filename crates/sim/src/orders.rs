@@ -906,6 +906,28 @@ const MERCHANTDUTCH: crate::tech::TypeId = 0x3e;
 /// `TypeIndex` `MACHINEGUN` — the lineage whose packed arm unpacks at
 /// `idle 3` and whose unpack `add_cast_order` re-aims at `0x28e`.
 const MACHINEGUN: crate::tech::TypeId = 0x7b;
+
+/// `UnitTypeData::can_attack_ground@0061db20` past its rush-rules gate: a
+/// `max_range` (`+0x1fc`), neither of `unit_flags & 0x102000` (`+0x2b4`),
+/// then `has_objmask` asked EXPLOSIVE, SIEGE, NAVAL and BOMBARD in that
+/// order (`obj_masks`, `+0x1e4`, unless slot `+0xf0` is overridden), and
+/// last `is(MACHINEGUN, 0)` (slot `+0x60`). Item 2247's sweep holds it.
+pub(crate) fn ground_attacker(
+    max_range: i32,
+    barred: bool,
+    mut has: impl FnMut(u32) -> bool,
+    machinegun: impl FnOnce() -> bool,
+) -> bool {
+    use crate::combat::mask;
+    if max_range == 0 || barred {
+        return false;
+    }
+    has(mask::EXPLOSIVE)
+        || has(mask::SIEGE)
+        || has(mask::NAVAL)
+        || has(mask::BOMBARD)
+        || machinegun()
+}
 /// `PackerStanceIndex::PACKER_AUTO` (the PDB): a packer that unpacks by
 /// itself once idle.
 const PACKER_AUTO: u8 = 0;
@@ -9416,12 +9438,12 @@ impl Sim {
         };
         let ty = &self.unit_types[t];
         let p = ty.combat;
-        if p.max_range == 0 || ty.cols.flag(0x10_2000) {
-            return false;
-        }
-        use crate::combat::mask;
-        p.has(mask::EXPLOSIVE | mask::SIEGE | mask::NAVAL | mask::BOMBARD)
-            || self.unit_line_is(u, MACHINEGUN)
+        ground_attacker(
+            p.max_range,
+            ty.cols.flag(0x10_2000),
+            |m| p.has(m),
+            || self.unit_line_is(u, MACHINEGUN),
+        )
     }
 
     fn store_attack(&mut self, u: usize, a: AttackOrder) {

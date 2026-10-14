@@ -116,6 +116,77 @@ pub(crate) fn footprint_covers(corner: Pos, x_size: i32, y_size: i32, tile: Pos)
         && tile.y < corner.y.wrapping_add(y_size)
 }
 
+/// The owner byte a cell's `WData` holds (`+0xf`): the player, `-1` for
+/// nobody, `-2` for an ambiguous claim — what the territory predicates
+/// below compare.
+pub(crate) fn owner_byte(o: Owner) -> i32 {
+    match o {
+        Owner::Player(p) => i32::from(p),
+        Owner::None => -1,
+        Owner::Ambiguous => -2,
+    }
+}
+
+/// The friendly-ground test `WallData::in_unfriendly_territory@0063eca0`,
+/// `BuildTypeData::non_friendly_territory@006389c0`,
+/// `in_enemy_territory@00638b40` and `check_land_adjacent@00638ed0` each
+/// inline: the owner byte `o` is the placer's own `me` (its leader's `+8`),
+/// or both `diplos` words between them are 2 — `diplos[who][o]` and
+/// `diplos[o][me]`, which this crate keeps as the two `allied` flags.
+/// Item 2247's sweeps hold it against all four.
+pub(crate) fn friendly_ground(o: i32, me: i32, ally_to: bool, ally_from: bool) -> bool {
+    o == me || (ally_to && ally_from)
+}
+
+/// `non_friendly_territory`'s rank of one land tile under the footprint:
+/// 0 friendly ground, 1 nobody's (`-1`), 2 ambiguous (below `-1`) or a
+/// foreign owner at peace both ways, 3 a foreign owner at war either way
+/// (`diplos == 0`, the two `at_war` flags), which ends the walk. The walk
+/// keeps the largest rank it met.
+pub(crate) fn ground_rank(o: i32, me: i32, ally: (bool, bool), war: (bool, bool)) -> i32 {
+    if o >= 0 && friendly_ground(o, me, ally.0, ally.1) {
+        0
+    } else if o < -1 {
+        2
+    } else if o < 0 {
+        1
+    } else if war.0 || war.1 {
+        3
+    } else {
+        2
+    }
+}
+
+/// `in_enemy_territory`'s presence clause on foreign ground: the placer
+/// holds a city anywhere (`LeaderData+0x3f8`), or the cell's region (`WData`
+/// `+4`, read unsigned, so a negative region has none) is below `0x40` and
+/// the placer holds a city or a fort in it (`+0x125e`, `+0x12de`, a short a
+/// region) — `counts(region)` answers that pair.
+pub(crate) fn claim_reaches(
+    city_num: i32,
+    region: i32,
+    counts: impl Fn(usize) -> (i32, i32),
+) -> bool {
+    city_num != 0
+        || (u32::try_from(region).is_ok_and(|r| r < 0x40) && {
+            let (cities, forts) = counts(region as usize);
+            cities != 0 || forts != 0
+        })
+}
+
+/// `check_land_adjacent`'s land test on a ring tile's mask: neither ocean
+/// (`& 0x30 == 0x20`) nor blocked (`0x4000`).
+pub(crate) fn adjacent_land(mask: u16) -> bool {
+    mask & tile::SURFACE != tile::SURFACE_OCEAN && mask & tile::BLOCKED == 0
+}
+
+/// `BuildTypeData::get_town@00639b90`'s choice of finder: `find_town_at`
+/// for a type that needs a town and is not city-free, `find_city_at`
+/// otherwise.
+pub(crate) fn wants_town(build_flags: u32) -> bool {
+    build_flags & flags::NO_CITY == 0 && build_flags & flags::NEEDS_TOWN != 0
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // Geometry
@@ -926,24 +997,25 @@ impl Sim {
     fn non_friendly_territory(&self, who: Player, ty: usize, corner: Pos) -> i32 {
         let mut r = 0;
         for t in self.footprint(ty, corner) {
-            if self.is_ocean_tile(t) {
+            // Off the map and ocean tiles are skipped (item 2247: an
+            // off-map tile was ranked unowned).
+            if !self.world.tile_in_bounds(t) || self.is_ocean_tile(t) {
                 continue;
             }
-            match self.tile_owner(t) {
-                Owner::Player(p) if self.is_ally(who, p) => {}
-                Owner::Player(p) => {
-                    if self.is_enemy(who, p) {
-                        return 3;
-                    }
-                    r = 2;
-                }
-                Owner::Ambiguous => r = 2,
-                Owner::None => {
-                    if r < 1 {
-                        r = 1;
-                    }
-                }
+            let o = owner_byte(self.tile_owner(t));
+            let rank = match u8::try_from(o) {
+                Ok(p) => ground_rank(
+                    o,
+                    i32::from(who),
+                    (self.allied_with(who, p), self.allied_with(p, who)),
+                    (self.at_war_with(who, p), self.at_war_with(p, who)),
+                ),
+                Err(_) => ground_rank(o, i32::from(who), (false, false), (false, false)),
+            };
+            if rank == 3 {
+                return 3;
             }
+            r = r.max(rank);
         }
         r
     }
@@ -955,14 +1027,18 @@ impl Sim {
     fn in_enemy_territory(&self, who: Player, ty: usize, corner: Pos) -> bool {
         for t in self.footprint(ty, corner) {
             if let Owner::Player(p) = self.tile_owner(t)
-                && !self.is_ally(who, p)
+                && !friendly_ground(
+                    i32::from(p),
+                    i32::from(who),
+                    self.allied_with(who, p),
+                    self.allied_with(p, who),
+                )
             {
-                let reg = self.world.tregion(t);
-                if self.city_num(who) != 0
-                    || reg.is_some_and(|r| {
-                        self.reg_cities(who, r) != 0 || self.reg_forts(who, r) != 0
-                    })
-                {
+                let reg = self.world.tregion(t).map_or(-1, i32::from);
+                if claim_reaches(self.city_num(who), reg, |r| {
+                    let r = r as u16;
+                    (self.reg_cities(who, r), self.reg_forts(who, r))
+                }) {
                     return true;
                 }
             }
@@ -983,18 +1059,26 @@ impl Sim {
     fn check_land_adjacent(&self, who: Option<Player>, ty: usize, corner: Pos) -> i32 {
         let mut r = 2;
         for t in self.ring(ty, corner, 1) {
-            let m = self.world.tile_mask(t);
-            if m & tile::SURFACE == tile::SURFACE_OCEAN || m & tile::BLOCKED != 0 {
+            // Off the map is skipped (item 2247: its mask read zero, land).
+            if !self.world.tile_in_bounds(t) || !adjacent_land(self.world.tile_mask(t)) {
                 continue;
             }
             let Some(w) = who else {
                 return 0;
             };
-            match self.tile_owner(t) {
-                Owner::Player(p) if self.is_ally(w, p) => return 0,
-                Owner::None if self.nation[w as usize].lakota => return 0,
-                _ => r = 1,
+            let o = owner_byte(self.tile_owner(t));
+            let friendly = u8::try_from(o).is_ok_and(|p| {
+                friendly_ground(
+                    o,
+                    i32::from(w),
+                    self.allied_with(w, p),
+                    self.allied_with(p, w),
+                )
+            });
+            if friendly || (o == -1 && self.nation[w as usize].lakota) {
+                return 0;
             }
+            r = 1;
         }
         r
     }
@@ -1009,12 +1093,13 @@ impl Sim {
     pub fn get_town(&self, who: Player, ty: usize, pos: Pos) -> Option<usize> {
         let corner = self.tile_corner(ty, pos);
         for t in self.footprint(ty, corner) {
-            if self.world.tile_mask(t) & tile::CITY_RADIUS == 0 {
+            // Off the map is skipped (item 2247: its mask read zero).
+            if self.world.tile_in_bounds(t) && self.world.tile_mask(t) & tile::CITY_RADIUS == 0 {
                 return None;
             }
         }
         let b = &self.build_types[ty];
-        if !b.has(flags::NO_CITY) && b.has(flags::NEEDS_TOWN) {
+        if wants_town(b.flags) {
             self.find_town_at(who, pos)
         } else {
             self.find_city_at(who, pos, Some(ty))
