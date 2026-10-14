@@ -44,9 +44,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let _ = (&a, &m, &c, &p);
             {
                 let n = rd(m, 0x54);
-                for i in 0..n.max(0) as usize {
-                    p[0][i] = 0;
-                }
+                // `0 < size` gates the clear; a size past the buffer is not drawn.
+                p[0][..n.max(0) as usize].fill(0);
                 0
             }
         };
