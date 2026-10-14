@@ -647,3 +647,6 @@ mod world_set_seen;
 mod world_set_tocean;
 mod world_set_was_seen;
 mod world_set_waterhalf;
+mod unit_type_determine_roles;
+mod wall_mask_city;
+mod build_type_data_total_gather_access;

@@ -214,6 +214,30 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=1,
                                    cells=['0xc06188:4'], argeq=['1:m+0'])
 
+    def test_a_stub_may_answer_each_call_in_turn(self):
+        # Item 2217 (Loop 2003's eighteenth reach, 2211's line): a callee
+        # called more than once a row answered one value for every call, so
+        # `determine_roles`' two `is` tests and `check_building_wcoord`'s
+        # corner walk could only ever agree. `--seq IDX:N` draws N answers a
+        # row, hands them out in call order (the last repeated past N), and
+        # prints them after the stubs' answers.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=1,
+            stubs=['0x401100:2'], answers=['0:0,1,4'], seq=['0:6'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('SEQ = [(0, 6)]', script)
+        self.assertIn('for idx, n in SEQ:', script)
+        # Drawn from the stub's `--answers` list when it has one.
+        self.assertIn('ANSWERS', script[script.index('for idx, n in SEQ:'):])
+        self.assertIn('+ [str(v) for s in seqs for v in s]', script)
+        self.assertIn('stub 0 answers 6 values in call order', script)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0, stubs=['0x401100:2'])
+        self.assertIn('SEQ = []', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x401100:2'], seq=['1:3'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
