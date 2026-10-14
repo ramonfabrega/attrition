@@ -765,3 +765,4 @@ mod groups_push_group;
 mod object_data_attack_dist_at;
 mod unit_update_gpiece;
 mod unit_add_think_order;
+mod object_data_num_inside;
