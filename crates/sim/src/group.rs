@@ -2314,8 +2314,26 @@ impl Sim {
             match s {
                 0 | 3 | 4 => self.units[u].combat.mandatory = false,
                 // 1, 2, 5 kill the current order — for a **human** leader
-                // only, and no army's leader is human (`docs/GROUPS.md`
-                // §8), so nothing else happens here.
+                // only (`leaders.list[who] & 4`, `docs/GROUPS.md` §8),
+                // when it lacks the action bit and the action order does
+                // too: `Unit::repath`, then `kill_current_order(0)`. No
+                // army's leader is human; a player's stance button is
+                // (item 2165, `docs/GOLDEN.md` §79): run835's `0/7` drops
+                // the attack it found on the fishing boat on 681.
+                1 | 2 | 5 => {
+                    let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+                    if human
+                        && self
+                            .current_order(u)
+                            .is_some_and(|o| !o.has(crate::orders::flag::ACTION))
+                        && self.update_action(u).is_none_or(|a| {
+                            !self.units[u].orders[a].has(crate::orders::flag::ACTION)
+                        })
+                    {
+                        self.repath(u);
+                        self.kill_current_order(u);
+                    }
+                }
                 _ => {}
             }
         }
@@ -6608,6 +6626,39 @@ mod tests {
         );
         s.group_action_halt(&g, 0);
         assert!(s.current_order(m).is_none());
+    }
+
+    /// **A human's 1, 2 or 5 kills an order it was not given** (item 2165,
+    /// `docs/GOLDEN.md` §79; `Group::action_stance@0070d440`'s middle arm):
+    /// a current order without the action bit goes, one with it stays, and a
+    /// computer's stays whatever it carries.
+    #[test]
+    fn a_human_s_stand_ground_kills_an_order_without_the_action_bit() {
+        let mut s = sim();
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        let t = fighter(&mut s);
+        let found = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let given = spawn(&mut s, 0, t, Pos::new(0x1100, 0x1000));
+        let ai = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        for (u, action) in [(found, false), (given, true), (ai, false)] {
+            s.add_move_order(
+                u,
+                Pos::new(0x4000, 0x4000),
+                MoveKind::MoveTo,
+                QueuePos::New,
+                action,
+            );
+        }
+        s.group_action_stance(
+            &group_of(0, &[found, given]),
+            stance_option(Stance::StandGround),
+        );
+        s.group_action_stance(&group_of(1, &[ai]), stance_option(Stance::StandGround));
+        assert!(s.current_order(found).is_none(), "a found order goes");
+        assert!(s.current_order(given).is_some(), "a given one stays");
+        assert!(s.current_order(ai).is_some(), "a computer's stays");
+        assert_eq!(s.units[found].combat.stance, Stance::StandGround);
     }
 
     #[test]

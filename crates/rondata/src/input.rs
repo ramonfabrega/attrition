@@ -675,6 +675,35 @@ pub fn group_set_transport(built: &mut Built, who: i32, objects: &[i16], flag: i
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `stance` (0x02) behind it (item 2165,
+/// `docs/GOLDEN.md` §79) — [`group_set_transport`]'s group, then
+/// `CommandPackage::process_stance@00949ed0`'s one call, unchecked:
+/// `Group::action_stance(g, stance)@0070d440`
+/// ([`sim::Sim::group_action_stance`]).
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+pub fn group_stance(built: &mut Built, who: i32, objects: &[i16], stance: i32) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.group_action_stance(&g, stance);
+    g.list.len()
+}
+
 /// A `group` command (0x00) and the `swarm_around` (0x06) behind it
 /// (`docs/COMMANDS.md` §3; `docs/GOLDEN.md` §29) — [`group_spell`]'s
 /// group, then `CommandPackage::process_swarm_around@00949970`'s one call,
