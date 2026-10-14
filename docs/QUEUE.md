@@ -22,9 +22,9 @@ successor 4246 → 4671, Great Sahara (Mongols) closed on its first build, chapt
   (`--deep-state`, 2186); `unitat.py` prints a `GroupMoveOrder` (2145); the runner refuses a long with no
   `--detail` (2199); `census.py --pin --never` runs again — cited 1574, never **333**. Six Loop lines are brief
   rows; 1947, 1965, 2210 closed. Battery 576 / 6566 / 2974, a ninth tranche. Disk 182 GiB. `main` 476 behind.
-- **Lanes live** (tranche 34; landed 2271, 2276, 2281 — census 721 → 751 — 2259, successor 4671 → 4946, and 2265,
-  chapter 65 closed at 1100): 2287 (BN), 2293 (AI §217, BO, run 844), 2298 (BP), 2304 (GOLDEN §83, BQ, run 845);
-  four parked numbers follow each. Next 2309, run 846, AI §218, GOLDEN §84, park BR (AI §218–§221, GOLDEN §84–§87).
+- **Lanes live** (tranche 34; landed 2271, 2276, 2281, 2298, 2287 — census 721 → 771 — 2259, successor 4671 → 4946,
+  and 2265, chapter 65 closed at 1100): 2293 (AI §217, BO, run 844), 2304 (GOLDEN §83, BQ, run 845), 2309 (BR), 2314
+  (BS); four parked numbers follow each. Next 2319, run 846, AI §218, GOLDEN §84, park BT (BT–BX, AI §218–§221, GOLDEN §84–§87).
 - **Fable backlog: 13 Loop items** (1570, 1725, 1900, 2003, 2031, 2060, 2089, 2104, 2146, 2240, 2286, 2292, 2303).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -33,7 +33,7 @@ Second pair: EastIndies w18140 of 18,140 · GreatLakes w5930 of 5,930
 Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w4946 of 5,056
-Census: simulation backed 751 of 3611
+Census: simulation backed 771 of 3611
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed · ch43 closed · ch44 closed · ch45 closed · ch46 closed · ch47 closed · ch48 closed · ch49 closed · ch50 closed · ch51 closed · ch53 closed · ch55 closed · ch56 closed · ch57 closed · ch59 closed · ch61 closed · ch62 closed · ch63 closed · ch64 closed · ch65 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
@@ -46,7 +46,7 @@ DECISIONS 70 names, their reservations in the queue's words; at twenty landings 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-2293 the headline's word, 2304 the rules track's, 2298 and 2287 the
+2293 the headline's word, 2304 the rules track's, 2309 and 2314 the
 sweep lanes' — lower map first — East Indies (Mongols), the successor pair's.
 Take the first unstarted item unless a better order is clear, and say
 why. The backlog is `docs/PARKED.md`, back only when a score names it.
@@ -67,23 +67,23 @@ why. The backlog is `docs/PARKED.md`, back only when a score names it.
     wrapping decrement (2111); a building group's `land_tail` (2196).
     Name the census rows first; run 845. GOLDEN §83.
 
-2298. **The sweep's sixty-third batch: ten never-backed simulation
-    functions** (DECISIONS 63 (iv); the score `Census:` 751 of 3611):
-    2281's shape, merged by SHA; past the functions `crates/sim/src/sweep/`
-    holds, shortest decompile first; 2287's ten excluded by name; skip
-    operators (parked 1722); a `--regen` that redraws a generated
-    sweep in place and leaves `mod.rs` alone, owed by 2281's redraw of
-    a starved draw (Loop 2003, 2222): build it first, with a test made
-    to fail first. `--kind sweep`.
+2309. **The sweep's sixty-fourth batch: ten never-backed simulation
+    functions** (DECISIONS 63 (iv); the score `Census:` 771 of 3611):
+    2298's shape, merged by SHA; past the functions `crates/sim/src/sweep/`
+    holds, shortest decompile first; 2314's ten excluded by name; skip
+    operators (parked 1722); a `--record` split by the table row, for
+    walks of the leaders table like `Game::defeat_all` (2298's Loop
+    line, Loop 2003): build it first, with a test made to fail first.
+    `--kind sweep`.
 
-2287. **The second sweep lane's next ten: never-backed functions with
+2314. **The second sweep lane's next ten: never-backed functions with
     a port consumer** (DECISIONS 61; parked 1725; no map word is open
-    for a third lane; the score `Census:` 751 of 3611): 2276's shape,
-    ordered by port readers; 2298's ten excluded by name; a port mark
-    that is a name collision is no consumer (parked 2221, 2279); an
-    argument in `edx` beside `ecx`, `--ecx-int`'s twin, owed with one
-    waiting (`Caravan::trade_value`, parked 2279, Loop 2003): build it
-    if a second comes, with a test made to fail first. `--kind sweep`.
+    for a third lane; the score `Census:` 771 of 3611): 2287's shape,
+    ordered by port readers; 2309's ten excluded by name; a port mark
+    that is a name collision is no consumer (Loop 2286); an `obj
+    --rows N` for an arm few rows reach, owed with two of 2287's ten
+    edited by hand (Loop 2003): build it first, with a test made to
+    fail first. `--kind sweep`.
 
 ## How to maintain this file
 
