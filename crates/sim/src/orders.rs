@@ -291,6 +291,10 @@ pub mod flag {
     /// where `fight` reads this one on the *current* order it **narrows**
     /// the search — `005fde93`'s one-in-five suppression.
     pub const FIGHT_REENTRY: u8 = 0x10;
+    /// `add_move_facing_order@005e55c0`'s `param_11` and
+    /// `add_group_move_order`'s `param_17` (`docs/ORDERS.md` §4.3: the
+    /// group move's "disembark" argument). Nothing in this crate sets it.
+    pub const DISEMBARK: u8 = 0x20;
     /// **An attack-ground order has fired** (`docs/ORDERS.md` §1.3).
     /// `Unit::do_attack_ground@005f1410` sets it on the shot, and while
     /// the reload runs a set bit holds the unit still rather than
@@ -1640,27 +1644,67 @@ impl Sim {
         group: Option<GroupMove>,
         orig: Option<Pos>,
     ) {
-        let dest = snapped(to);
-        let order = Order {
-            flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
-            body: Body::Move(MoveOrder {
-                kind,
-                dest,
-                angle,
-                facing,
-                has_waypoint: false,
-                waypoint: dest,
-                last: None,
-                pause: 0,
-                retry: 0,
-                attempts: 0,
-                timer: 0,
-                coll: None,
-                orig,
-                group,
-            }),
-        };
-        self.enqueue(u, order, pos);
+        let mode = i32::from(match kind {
+            MoveKind::MoveTo => index::MOVE_TO,
+            MoveKind::AttackTo => index::ATTACK_TO,
+            MoveKind::ExploreTo => index::EXPLORE_TO,
+            MoveKind::FleeTo => index::FLEE_TO,
+        });
+        let plain = group.is_none();
+        add_move_facing_steps(
+            self,
+            (to.x.div_euclid(SNAP), to.y.div_euclid(SNAP)),
+            mode,
+            pos,
+            MoveBits {
+                pathed,
+                action,
+                // SEAM: the disembark argument (`param_11`, the order's
+                // `0x20`) — no caller in this crate passes it.
+                disembark: false,
+            },
+            |sim| {
+                // `add_group_move_order@005e4710` has no attack to keep.
+                if !plain {
+                    return None;
+                }
+                match sim.current_order(u).map(|o| o.body) {
+                    Some(Body::Attack(_)) => sim.units[u].combat.target,
+                    _ => None,
+                }
+            },
+            |sim, &t| matches!(sim.profile(t).domain, crate::attrition::Domain::Air),
+            |sim| sim.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR),
+            // SEAM: the scout's shift-queued `MOVE_TO` turned `EXPLORE_TO`
+            // with `unit_masks |= 0x4000000` (`role & 0x10`): the mask is
+            // not carried (`work`'s and `think`'s readers), so neither is
+            // the conversion. The group adder has no such arm.
+            |_| false,
+            |_| {},
+            // `unit_masks &= ~0x4000000` (not carried), `+0xc0 = 0`.
+            |sim| sim.units[u].path.clear(),
+            |sim| sim.close_orders(u),
+            |sim| sim.clear_partial_path(u),
+            |sim| {
+                sim.update_action(u);
+            },
+            |_, idx| new_move_order(idx, angle, facing, orig, group),
+            fill_move_order,
+            |sim, o| {
+                // `LinkListBase::add` appends; an empty list's new node is
+                // a new head (the generic enqueue's `Last`/`New`).
+                if sim.units[u].orders.is_empty() && pos != QueuePos::First {
+                    sim.new_head(u);
+                }
+                sim.units[u].orders.push_back(o);
+            },
+            |sim| {
+                let o = sim.units[u].orders.pop_back().expect("just linked");
+                sim.units[u].orders.push_front(o);
+                sim.new_head(u);
+            },
+            |sim, t| sim.add_attack_order(u, t, QueuePos::First, false, false),
+        );
     }
 
     /// `Unit::add_build_order`.
@@ -10273,6 +10317,163 @@ pub(crate) fn group_member_walk<C>(
             each(cx, u);
         }
     }
+}
+
+/// The three flag arguments of `Unit::add_move_facing_order@005e55c0`:
+/// `param_5` (`PATHED`, `1`), `param_7` (`ACTION`, `4`) and `param_11`
+/// (`0x20`, [`flag::DISEMBARK`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct MoveBits {
+    pub pathed: bool,
+    pub action: bool,
+    pub disembark: bool,
+}
+
+/// What `add_move_facing_order` writes into the order it made: the cell's
+/// centre (`u · 0x30 + 0x18`, twice — `x`/`y` and `dest_x`/`dest_y`) and
+/// the three flag bits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct MoveFields {
+    pub at: Pos,
+    pub bits: MoveBits,
+}
+
+/// The order `OrdersMemManager::get_obj(idx)` hands out for a move of
+/// `OrderIndex` `idx` (1..=4), with the caller's angle, the formation's
+/// `facing`, the click `orig` and a group move's own block; the cell and
+/// the flags are [`fill_move_order`]'s.
+pub(crate) fn new_move_order(
+    idx: i32,
+    angle: Angle,
+    facing: Option<bool>,
+    orig: Option<Pos>,
+    group: Option<GroupMove>,
+) -> Order {
+    let kind = match idx {
+        2 => MoveKind::AttackTo,
+        3 => MoveKind::ExploreTo,
+        4 => MoveKind::FleeTo,
+        _ => MoveKind::MoveTo,
+    };
+    let at = Pos::new(0, 0);
+    Order {
+        flags: 0,
+        body: Body::Move(MoveOrder {
+            kind,
+            dest: at,
+            angle,
+            facing,
+            has_waypoint: false,
+            waypoint: at,
+            last: None,
+            pause: 0,
+            retry: 0,
+            attempts: 0,
+            timer: 0,
+            coll: None,
+            orig,
+            group,
+        }),
+    }
+}
+
+/// `add_move_facing_order`'s writes into the made order: `x`/`y` and
+/// `dest_x`/`dest_y` the cell's centre, and the bits `1`, `4`, `0x20`
+/// each set or cleared by its argument.
+pub(crate) fn fill_move_order(o: &mut Order, f: &MoveFields) {
+    if let Body::Move(m) = &mut o.body {
+        m.dest = f.at;
+        m.waypoint = f.at;
+    }
+    for (on, bit) in [
+        (f.bits.pathed, flag::PATHED),
+        (f.bits.action, flag::ACTION),
+        (f.bits.disembark, flag::DISEMBARK),
+    ] {
+        if on {
+            o.flags |= bit;
+        } else {
+            o.flags &= !bit;
+        }
+    }
+}
+
+/// **`Unit::add_move_facing_order@005e55c0`'s steps** (item 2341).
+///
+/// Under `QUEUE_NEW` an attack-move (`mode == 2`) first asks whether the
+/// current order is an `ATTACK` (`UnitData::order_type`) and, if it is,
+/// reads its target (`get_order`'s vslot `+0xcc`, `+8`/`+0xc`); a target
+/// whose type is of the air domain (`+0x218 == 2`) is kept only by a unit
+/// that `has_objmask(0x80000000)` (`ANTI_AIR`), any other is kept. Then
+/// the clear: `unit_masks &= ~0x4000000` and `+0xc0 = 0`, `close_orders`,
+/// `clear_partial_path`, `update_action`. A `QUEUE_LAST` `MOVE_TO` of a
+/// `role & 0x10` type sets `unit_masks |= 0x4000000` and becomes
+/// `EXPLORE_TO`. The order is made by mode (2 `ATTACK_TO`, 3
+/// `EXPLORE_TO`, 4 `FLEE_TO`, any other `MOVE_TO`), filled, linked;
+/// `QUEUE_FIRST` runs `clear_partial_path` and rotates the head; a kept
+/// target is re-attacked `QUEUE_FIRST`; and `update_action`.
+///
+/// `add_group_move_order@005e4710` is the same steps without the kept
+/// attack and the scout's conversion, which its port closures answer.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_move_facing_steps<C, O, T>(
+    cx: &mut C,
+    cell: (i32, i32),
+    mode: i32,
+    pos: QueuePos,
+    bits: MoveBits,
+    attack_target: impl FnOnce(&mut C) -> Option<T>,
+    air: impl FnOnce(&mut C, &T) -> bool,
+    anti_air: impl FnOnce(&mut C) -> bool,
+    scout: impl FnOnce(&mut C) -> bool,
+    set_explore: impl FnOnce(&mut C),
+    clear_new: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    mut clear_path: impl FnMut(&mut C),
+    mut update: impl FnMut(&mut C),
+    make: impl FnOnce(&mut C, i32) -> O,
+    fill: impl FnOnce(&mut O, &MoveFields),
+    link: impl FnOnce(&mut C, O),
+    rotate: impl FnOnce(&mut C),
+    attack: impl FnOnce(&mut C, T),
+) {
+    let mut mode = mode;
+    let mut keep = None;
+    if pos == QueuePos::New {
+        if mode == i32::from(index::ATTACK_TO)
+            && let Some(t) = attack_target(cx)
+            && (!air(cx, &t) || anti_air(cx))
+        {
+            keep = Some(t);
+        }
+        clear_new(cx);
+        close(cx);
+        clear_path(cx);
+        update(cx);
+    } else if pos == QueuePos::Last && mode == i32::from(index::MOVE_TO) && scout(cx) {
+        set_explore(cx);
+        mode = i32::from(index::EXPLORE_TO);
+    }
+    let idx = match mode {
+        2..=4 => mode,
+        _ => i32::from(index::MOVE_TO),
+    };
+    let mut o = make(cx, idx);
+    let at = |v: i32| v.wrapping_mul(SNAP).wrapping_add(SNAP_CENTRE);
+    let fields = MoveFields {
+        at: Pos::new(at(cell.0), at(cell.1)),
+        bits,
+    };
+    fill(&mut o, &fields);
+    link(cx, o);
+    if pos == QueuePos::First {
+        clear_path(cx);
+        rotate(cx);
+    }
+    if let Some(t) = keep {
+        attack(cx, t);
+    }
+    update(cx);
 }
 
 /// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`
