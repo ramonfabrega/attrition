@@ -4479,13 +4479,18 @@ IDX:LO:HI` and `--name SNAKE` are 2045's candidates (a second `WorldData::get_la
 order-list iterator (2096), `--who-table` (2039; `GroupData::get_num_const`/`get_num_cap_const`, read and not
 taken: `this->list` is a second pointer field and `--place` lays it, a lane may try), `vcall --jmp` (2013).
 
-## Parked by the next landing, slot AQ — reserved
+## Parked by item 2130, 2026-10-13 — a tied builder is the lower object number
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2133) **The successor pair's word 4338: 159 draws against 161, index 142** (2130; `docs/AI.md` §210.4). Ours
+spends `Unit::do_guard+0x8fb` for the Transport Helicopter `1/215` (`TypeIndex` 311). Theirs spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271`. Block 4339 opens on `1/215` (`dest_angle` 0 against −478609408), the second helicopter `1/172` (its
+guard post (29784, 34056) against (30984, 33048)) and the General `1/175`, all in group 89. That group 89 is the cause is a
+hypothesis. Inside run820's window (4232..4488): every record on 4338 both ways first.
+
+(2134) **Other `self.units` walks that break a tie by order** (2130; names no score). `produce_building`'s builder
+loop walked birth order where the original walks `objects->units[who]`, and a recycled number turned a tie. Any loop with a
+strict-`<` best and a `units` index order has the same exposure. Candidate: grep `for u in 0..self.units.len()` beside a
+`best` and check each against its original's loop.
 
 ## Parked by the next landing, slot AR — reserved
 
