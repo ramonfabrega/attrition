@@ -214,6 +214,82 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=1,
                                    cells=['0xc06188:4'], argeq=['1:m+0'])
 
+    def test_a_stub_may_answer_each_call_in_turn(self):
+        # Item 2217 (Loop 2003's eighteenth reach, 2211's line): a callee
+        # called more than once a row answered one value for every call, so
+        # `determine_roles`' two `is` tests and `check_building_wcoord`'s
+        # corner walk could only ever agree. `--seq IDX:N` draws N answers a
+        # row, hands them out in call order (the last repeated past N), and
+        # prints them after the stubs' answers.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=1,
+            stubs=['0x401100:2'], answers=['0:0,1,4'], seq=['0:6'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('SEQ = [(0, 6)]', script)
+        self.assertIn('for idx, n in SEQ:', script)
+        # Drawn from the stub's `--answers` list when it has one.
+        self.assertIn('ANSWERS', script[script.index('for idx, n in SEQ:'):])
+        self.assertIn('+ [str(v) for s in seqs for v in s]', script)
+        self.assertIn('stub 0 answers 6 values in call order', script)
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0, stubs=['0x401100:2'])
+        self.assertIn('SEQ = []', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x401100:2'], seq=['1:3'])
+
+    def test_a_stub_s_answer_may_be_held_to_a_range(self):
+        # Item 2217: `City::fix_world_vals` indexes `circle_radius` by its
+        # callee's answer, and `--answers`' 10% of random words reads before
+        # the table. `--answer-range IDX:LO:HI` draws it from the range every
+        # row, as `--argrange` does an argument.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0,
+            stubs=['0x401100:1'], answer_range=['0:0:80'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('ANSRANGE = [(0, 0, 80)]', script)
+        self.assertIn('for idx, lo, hi in ANSRANGE:', script)
+        # Drawn after `--answers`, so the range is the last word.
+        self.assertLess(script.index('for idx, vals in ANSWERS:'), script.index('for idx, lo, hi in ANSRANGE:'))
+        self.assertIn('stub 0 answers 0..80 every row', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   stubs=['0x401100:1'], answer_range=['1:0:3'])
+
+    def test_a_global_cell_may_hold_this(self):
+        # Item 2217: `World::set_road_at` writes through `this` and scans
+        # through `GameAccess::world`, which in the game are one object;
+        # `--cell-win` gave the cell a record of its own. `--cell-this VA`
+        # points the cell at `this` every row, no window of its own.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x140, bias=[], own=0,
+            cell_this=['0xc06188'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('CELLTHIS = [12607880]', script)
+        self.assertIn('for va in CELLTHIS:', script)
+        self.assertIn('the global cell 0x00c06188 holds `this`', script)
+        # A cell is `this` or a record of its own, never both.
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   cells=['0xc06188:4'], cell_this=['0xc06188'])
+
+    def test_the_stubbed_vtable_may_serve_this_and_a_placed_record(self):
+        # Item 2217: `ObjectData::is_cargo` asks `this`'s slot `+0xbc` and then
+        # its type record's slots `+0xc` and `+0x12c`; `--vtat` moves the one
+        # stubbed vtable off `this`. `--vtat-also WIN+OFF` lays it in the
+        # window as well, `this` keeping it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2217, win=0x20, bias=[], own=0,
+            places=['m+0x18:0:0x220'], stubs=['slot:0xbc:0', 'slot:0xc:0'], vtat_also=['p0+0'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTALSO = [('p0', 0)]", script)
+        self.assertIn('for win, off in VTALSO:', script)
+        self.assertIn('VTAT = None', script)
+        self.assertIn('the stubbed vtable laid at `p0+0` as well as at `this`', script)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
+                                   places=['m+0x18:0:8'], vtat_also=['p0+0'])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
@@ -295,6 +371,45 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2170, win=8, bias=[], stubs=['0x401000:0'],
                                    vtat='p0+0')
+
+    def test_a_record_s_vtable_may_be_a_class_s_half_the_rows(self):
+        # Item 2223: `UnbuiltCity::is_started` calls slot +0xac of
+        # `objects[who][o]` and compares the record it answers with
+        # `Build::vftable`: equal, a flag byte; else the record's own slot
+        # +0x50. The stubbed vtable is laid at the object (`--vtat`) and at
+        # the record half the rows (`--vtat-half`), the other half left as
+        # the record's word was drawn (a `--wbias` of the class's address).
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['slot:0xac:0', 'slot:0x50:0'],
+            places=['0xc0618c:0x14+i8(m,2)*0x1c:4', 'p0+0:i16(m,0)*4:4', 'p1+0:0:0xc'],
+            vtat='p2+0', answer_wins=['0:0xc'], vtat_half=['p3+0'], wbias=['p3+0:0xb42174'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("VTATHALF = [('p3', 0)]", script)
+        self.assertLess(script.index('if VTAT is not None:'), script.index('for win, off in VTATHALF:'))
+        self.assertLess(script.index('for win, off in VTATHALF:'), script.index('for a_, b in wins:'))
+        self.assertIn('the stubbed vtable laid at `p3+0` half the rows', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2223, win=8, bias=[], stubs=['0x401000:0'],
+                                   vtat_half=['p0+0'])
+
+    def test_a_stub_may_answer_a_placed_record(self):
+        # Item 2241: `CityData::get_pop_value` calls slot +0x3c of
+        # `objects[who][o]` and reads `+4` of the record at `+0x18` of the
+        # record the slot answers — two levels below the answer, where an
+        # `--answer-win` (laid after the places) can lay no pointer. So a
+        # place's location may be a stub's answer, `sN`: the stub answers
+        # the placed buffer, and a later place reaches into it.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2241, win=0x60, bias=[], stubs=['slot:0x3c:0'],
+            places=['0xc0ab84+i8(m,0x5e)*0x1c:i16(m,8)*4:4', 'p0+0:0:4', 's0:0:0x1c', 'p2+0x18:4:4'],
+            vtat='p1+0', port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("('s0', '0', '0', 28)", script)
+        self.assertIn('answers[int(win[1:])] = (buf - off)', script)
+        self.assertIn('stub 0\'s answer points at 28 random bytes less `0` (placed)', test)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2241, win=8, bias=[], stubs=['slot:0x3c:0'],
+                                   places=['s1:0:4'])
 
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer

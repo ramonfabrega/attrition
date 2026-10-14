@@ -57,8 +57,15 @@ pub(crate) const MONGOL: Pair = Pair {
     // frame: its captain `1/23` had taken its own transport cast on its
     // step, and `do_cast`'s member check hands the clock back
     // (`005ecd9c`..`005ecdf0`, `docs/AI.md` section 207).
-    count: 4638,
-    sequence: 4637,
+    // Item 2229: 4637 -> 4671 (ours 161 draws, theirs 165, index 145;
+    // count and sequence both): `Group::finish_insert` re-issues a copied
+    // build by its site's number, so `1/82`, re-entering `2053` on 2972,
+    // keeps `BUILD 2057` on the site that took the closed one's number,
+    // walks it on the original's frames, and reaches `2073` on 4371 as the
+    // original's does; `1/2073` finishes on its frame and `1/8`'s idle roll
+    // leaves 4637 (`docs/AI.md` section 215).
+    count: 4671,
+    sequence: 4671,
 };
 
 /// The pair's word as the handoff's `Successor pair:` line and `AI_WORDS` carry it.
@@ -258,9 +265,13 @@ fn run788_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
+    // Item 2229: 135 -> 133 — `1/82`'s `order:length` and `orders.len`
+    // on 2972 (ours 2, theirs 4) leave: re-entering `2053`, its insert
+    // dance re-issues the copy of a build on the closed `2057` on the site
+    // that took the number, uid 214 (`docs/AI.md` section 215).
     pin_eq!(
         w.firsts.len(),
-        134,
+        132,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -307,7 +318,9 @@ fn run799_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 162, "run799 baseline");
+    // Item 2229: 163 -> 161 — `1/82`'s standing `orders.len` (ours 1,
+    // theirs 3) leaves with the re-issued `BUILD 2057` (section 215).
+    pin_eq!(w.firsts.len(), 160, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -381,7 +394,9 @@ fn run809_s_word_frame_is_widened_whole() {
     // `1/23`..`1/25` and `1/34`..`1/36` board `1/230` and `1/229` on the
     // original's frames, the scout `1/101`'s goal and `1/167`'s nine with
     // them (section 207).
-    pin_eq!(w.firsts.len(), 179, "run809 baseline");
+    // Item 2229: 180 -> 178 — `1/82`'s standing `orders.len` leaves
+    // (section 215).
+    pin_eq!(w.firsts.len(), 177, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -448,7 +463,12 @@ fn run820_s_word_frame_is_widened_whole() {
     // `is_supply`, and army 0's three wagons refuse it), and every row of
     // 4343..4357 leaves with group 83's five helicopters' posts on 4349
     // (`docs/AI.md` section 213).
-    pin_eq!(w.firsts.len(), 200, "run820 baseline");
+    // Item 2229: 201 -> 171 — `1/82`, two frames ahead on its walk since
+    // its stack parted on 2972, leaves whole (its standing `pos` and
+    // order rows, `orders.len` on 4257, `angle` on 4371), and so does
+    // `1/2073`'s build clock (`job_counter` 16850 against 16800 on 4370):
+    // `1/82` reaches `2073` on the original's frame (section 215).
+    pin_eq!(w.firsts.len(), 170, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -467,7 +487,9 @@ pub(crate) fn mongol_word_window() -> Option<harness::tests::Widened> {
         &[(RUN838, WIDENING_MONGOL_FRAME_4603.0)],
         WIDENING_MONGOL_FRAME_4603,
         1,
-        &[4604],
+        // 4604, the word 4603's block (item 2193); 4672, the word 4671's
+        // (item 2229).
+        &[4604, 4672],
         true,
     )
 }
@@ -495,5 +517,11 @@ fn run838_s_word_frame_is_widened_whole() {
     // with `come_out`'s leader toggle: all 74 leave, and the new word
     // 4637's block opens on `1/8`'s `BUILD` on `1/2073`, ended a frame
     // early (`docs/AI.md` section 214).
-    pin_eq!(w.firsts.len(), 1514, "run838 baseline");
+    // Item 2229: 1,515 -> 1,371 — `1/2073`'s clock (1134 against 1132 on
+    // 4597) leaves with `1/82`'s early arrival, and with it block 4637's
+    // `1/8`, whose `BUILD` on `1/2073` now ends on the original's frame;
+    // the new word 4671's block 4672 opens on the leader's `num_units`
+    // (302 ours, 304 theirs) and `1/2019`'s `queue:queued` 1 against 0
+    // (`docs/AI.md` section 215).
+    pin_eq!(w.firsts.len(), 1370, "run838 baseline");
 }
