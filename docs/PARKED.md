@@ -3734,6 +3734,13 @@ for: it cost one run rather than an item.
 
 ## Loop, filed 2026-10-13 — the thirty-second tranche's
 
+(2128) **A closing-state test prints its city rows and not its building
+rows** (2106's Loop line, filed at its merge): `counts()` counts both,
+but each closing test prints `city_diverged` and never `build_diverged`,
+so 2106's eight building rows took a probe for their first look.
+Candidate: each closing test prints both, held by a test that a closing
+state with a building row parted names it in the failure text.
+
 (2127) **A cross-session clear reported fired on a lane that went on in
 one session** (found at 2088's second `DEEP`): `ccc clear 4aa11452
 --status` said "cleared … 9m ago" at 18:51, and the lane's transcript
