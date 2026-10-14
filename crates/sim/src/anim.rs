@@ -38,6 +38,25 @@ use crate::{Sim, Unit};
 /// which is `Unit::init`'s copy of it.
 pub const SQUAD_SIZE: usize = 1;
 
+/// The figures `Unit::update_gpiece@005e2920` re-pieces, in its order:
+/// the squad `0 .. guy_mark` (`UnitData +0xb5`, a signed byte), then the
+/// crew from `squad_size` (`UnitType +0x304`) up to the lesser of
+/// `squad_size + crew_size` (`+0x30c`) and the guy count (`UnitData
+/// +0xe8`). Each visited figure gets `Guy::update_gpiece` and its
+/// renderer word `+0xd0` cleared. The port's [`Sim::update_gpiece`] hands
+/// it `guy_mark = squad_size =` [`SQUAD_SIZE`]; the sweep
+/// (`sweep::unit_update_gpiece`) holds it to the original on raw bytes.
+pub fn gpiece_walk(guy_mark: i8, squad: i32, crew: i32, guys: i32) -> Vec<i32> {
+    let mut out: Vec<i32> = (0..i32::from(guy_mark.max(0))).collect();
+    let end = squad.wrapping_add(crew).min(guys);
+    let mut k = squad;
+    while k < end {
+        out.push(k);
+        k += 1;
+    }
+    out
+}
+
 // The `UnitAnim` enum (`rise.pdb`, type 0x46B1).
 pub const DEFAULT: i8 = 0;
 pub const IDLE1: i8 = 1;
@@ -819,7 +838,17 @@ impl Sim {
             self.units[u].movement.body.pos,
             self.units[u].movement.facing,
         );
-        for n in 0..self.units[u].guys.len() {
+        let len = self.units[u].guys.len();
+        let walk = gpiece_walk(
+            SQUAD_SIZE as i8,
+            SQUAD_SIZE as i32,
+            self.unit_types[ty].combat.crew_size,
+            i32::try_from(len).unwrap_or(i32::MAX),
+        );
+        for n in walk {
+            let Some(n) = usize::try_from(n).ok().filter(|&n| n < len) else {
+                continue;
+            };
             let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
             self.units[u].guys[n].gpiece = piece;
             if n == 0 {
@@ -2527,6 +2556,8 @@ mod tests {
             ..UnitType::default()
         });
         s.unit_types[ty].combat.packs = true;
+        // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
+        s.unit_types[ty].combat.crew_size = 1;
         s.unit_types[ty].type_index = 0x7f;
         let piece = |guy: i32, gender: bool| {
             0x7f - 0x32
@@ -2588,6 +2619,8 @@ mod tests {
             ..UnitType::default()
         });
         s.unit_types[ty].combat.packs = true;
+        // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
+        s.unit_types[ty].combat.crew_size = 1;
         s.unit_types[ty].type_index = 0x7f;
         let piece = |guy: i32, gender: bool| {
             0x7f - 0x32
