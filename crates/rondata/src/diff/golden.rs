@@ -14109,8 +14109,22 @@ fn chapter_sixty_three_s_word_frame_is_widened_whole() {
 }
 
 // **What parts through the word** on run827 (item 2131, `docs/GOLDEN.md`
-// §78).
-const WANT_CH63: &[&str] = &[];
+// §78): the eleven standing `form` rows (605) alone. Without the `Follow`
+// arm of `unit_final_loc`, the two shift-moves' queued orders part on 662
+// and 712 — `angle`, the slot points and the group's record.
+const WANT_CH63: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
 
 const WANT_CH63_POOL: &[&str] = &[];
 
