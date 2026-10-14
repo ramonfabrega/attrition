@@ -4831,10 +4831,27 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BL — reserved
+## Parked by item 2247, 2026-10-14 — the second sweep lane's next ten, the territory family
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2248) **`obj --sparse` built** (Loop 2003's twenty-first reach; names no score). 2201's owed shape: a table of N
+rows STRIDE apart of which the function reads a few slices — the `0x6eec`-stride leaders table, eight rows of
+113 KB a cell window. `--sparse LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE..]` points LOC (a window's word, an address
+expression, or `@VA` for the image's own table, `Game::wonder_winning`'s `0xe3a390`) at a zeroed table and lays each
+row's slices as `p` windows after the pointed buffers and before the places, so a place may point out of a slice
+(`can_pay_cost`'s bucket through `+0x6eb8`); a `--wbias pA..B+OFF` biases a run of them. Seven of the ten use it.
+Its test was made to fail first (`generate_obj() got an unexpected keyword argument 'sparse'`).
+
+(2249) **Off-map tiles skipped where the original skips them** (fixed in 2247; names no score unless the gate says
+otherwise). `BuildTypeData::non_friendly_territory`, `check_land_adjacent` and `get_town` bound-check every tile
+against the world's `+0x18`/`+0x1c`; the port read an off-map tile's mask as zero — land, unowned, outside every
+city — so a footprint or ring that overhung the map edge ranked 1, found land, or answered no town where the
+original skips the tile. `in_enemy_territory` and `in_unfriendly_territory` move onto `place::friendly_ground`
+with no change of answer.
+
+(2250) **Three arms the ten's sweeps draw away from, each a SEAM or a shape** (names no score).
+`UnitTypeData::can_attack_ground`'s rush-rules gate (`game+0x32`, `current_age`, the frame against
+`rush_rules[n]+0x3c · 900`) is drawn off: this crate plays without rush rules. `BuildTypeData::in_enemy_territory`'s
+`WorldData::is_really_seen` is answered a row in the sweep, but the port's `Sim::in_enemy_territory` takes it false.
+`UnitData::curr_uber_size`'s overridden `is_captain` slot is drawn off (every figure carries `Unit::vftable`); and
+swapping `ground_attacker`'s four `has_objmask` masks passes, the answer being an OR of pure predicates with the
+stubbed slot answered in call order (2219's call log would see it).

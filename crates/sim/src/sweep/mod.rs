@@ -572,6 +572,7 @@ mod unbuilt_wonder_walk_data;
 mod unit_air_turn_speed;
 mod unit_data_can_ever_transport;
 mod unit_data_can_gather;
+mod unit_data_curr_uber_size;
 mod unit_data_decoy_time;
 mod unit_data_get_captain;
 mod unit_data_get_capture_value;
