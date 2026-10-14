@@ -14366,6 +14366,64 @@ const WANT_CH67: &[&str] = &[
     "600 1/5 form",
 ];
 
+/// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
+/// Light Horse at a Stable under Monarchy and a live military discount,
+/// and a Catapult at a Siege Factory each side of Socialism — `get_cost`'s
+/// three truncations in order, and `train_time`'s Socialism arm.
+#[test]
+fn chapter_sixty_eight_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch68", "chapter68", 68, 14, 1360) else {
+        return;
+    };
+    eprintln!(
+        "chapter sixty-eight: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIXTY_EIGHT,
+        "chapter sixty-eight's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIXTY_EIGHT}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIXTY_EIGHT,
+        "chapter sixty-eight's golden word moved; re-pin it here and say so in docs/GOLDEN.md §85"
+    );
+}
+
+/// **run852 whole, both directions** (item 2357, `docs/GOLDEN.md` §85). No
+/// pool: the capture prints no `GROUPS`.
+#[test]
+fn chapter_sixty_eight_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch68",
+        "chapter68",
+        WIDENING_CHAPTER_SIXTY_EIGHT,
+        1360,
+        0,
+        (614, 618),
+        false,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch68 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch68: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH68.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch68: what parts under the word moved");
+}
+
+// **What parts through run852** (item 2357, `docs/GOLDEN.md` §85).
+const WANT_CH68: &[&str] = &[];
+
 /// **run770: chapter fifty-one's script with the fog printed** (item 1497,
 /// `docs/GOLDEN.md` §62) — `WORLD=6` per frame over 690..714, which holds the
 /// Stockade's first round on 698. The walk compares every fog cell.
