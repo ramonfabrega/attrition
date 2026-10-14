@@ -1929,29 +1929,48 @@ impl Sim {
         home: Option<usize>,
         action: bool,
     ) {
-        if self.is_helicopter(u) {
-            let here = self.units[u].pos;
-            let angle = find_angle(point.x - here.x, point.y - here.y);
-            self.add_move_facing_order(
-                u,
-                point,
-                MoveKind::AttackTo,
-                QueuePos::New,
-                action,
-                angle,
-                None,
-                false,
-            );
-            return;
-        }
-        self.units[u].path.clear();
-        self.close_orders(u);
-        self.clear_partial_path(u);
-        self.update_action(u);
-        self.units[u].orders.push_back(Order {
-            flags: if action { flag::ACTION } else { 0 },
-            body: Body::AirPatrol(AirPatrolOrder::over(point, home)),
-        });
+        add_air_patrol_steps(
+            self,
+            point,
+            action,
+            |s| s.is_helicopter(u),
+            |s| s.units[u].pos,
+            |s, to, angle, action| {
+                s.add_move_facing_order(
+                    u,
+                    to,
+                    MoveKind::AttackTo,
+                    QueuePos::New,
+                    action,
+                    angle,
+                    None,
+                    false,
+                );
+            },
+            // SEAM: `unit_masks &= ~0x4000000`, the defended return's bit,
+            // which this crate does not carry; `+0xc0 = 0` is the path.
+            |s| s.units[u].path.clear(),
+            |s| s.close_orders(u),
+            |s| s.clear_partial_path(u),
+            |s| {
+                s.update_action(u);
+            },
+            |_| Order {
+                flags: 0,
+                body: Body::AirPatrol(AirPatrolOrder::over(Pos::new(0, 0), home)),
+            },
+            // SEAM: a home here is a building, whose `is_active` slot
+            // (`Window::get_button`, 0) never answers; a unit home (a
+            // carrier) would store the point relative to it.
+            |_| None,
+            |_, o, at| {
+                if let Body::AirPatrol(ap) = &mut o.body {
+                    ap.points[0] = at;
+                }
+            },
+            |o| &mut o.flags,
+            |s, o| s.units[u].orders.push_back(o),
+        );
     }
 
     /// `Unit::do_strafe@005eab00`, the air order a flight is
@@ -10298,6 +10317,60 @@ pub(crate) fn guy_speed_steps<C>(
         return v.wrapping_add(9);
     }
     v
+}
+
+/// **`Unit::add_air_patrol_order@005e4350`'s steps** (item 2341, swept by
+/// `sweep::unit_add_air_patrol_order`). A helicopter (`unit_flags & 0x20`)
+/// is handed `add_move_facing_order` to the point with `find_angle(point −
+/// here)`, the subtraction wrapping as the listing's `sub` does, and
+/// nothing else. A plane: the masks and the path (`+0xc0 = 0`),
+/// `close_orders(0)`, `clear_partial_path`, `update_action`; the order
+/// made (`get_obj(AIR_PATROL)` and its slot `+0x8c`); then a home that
+/// answers `is_active` (`objects[who][o]`, vslot `+0x8`, asked only when
+/// both indices are non-negative) has its position subtracted from the
+/// point; the point laid; the action bit set or cleared as asked; and the
+/// order linked (`LinkListBase::add` on `+0xcc`).
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn add_air_patrol_steps<C, O>(
+    cx: &mut C,
+    point: Pos,
+    action: bool,
+    helicopter: impl FnOnce(&mut C) -> bool,
+    here: impl FnOnce(&mut C) -> Pos,
+    move_facing: impl FnOnce(&mut C, Pos, Angle, bool),
+    clear: impl FnOnce(&mut C),
+    close: impl FnOnce(&mut C),
+    clear_path: impl FnOnce(&mut C),
+    update: impl FnOnce(&mut C),
+    make: impl FnOnce(&mut C) -> O,
+    home: impl FnOnce(&mut C) -> Option<Pos>,
+    lay: impl FnOnce(&mut C, &mut O, Pos),
+    flags: impl FnOnce(&mut O) -> &mut u8,
+    link: impl FnOnce(&mut C, O),
+) {
+    if helicopter(cx) {
+        let h = here(cx);
+        let angle = find_angle(point.x.wrapping_sub(h.x), point.y.wrapping_sub(h.y));
+        move_facing(cx, point, angle, action);
+        return;
+    }
+    clear(cx);
+    close(cx);
+    clear_path(cx);
+    update(cx);
+    let mut o = make(cx);
+    let at = match home(cx) {
+        Some(h) => Pos::new(point.x.wrapping_sub(h.x), point.y.wrapping_sub(h.y)),
+        None => point,
+    };
+    lay(cx, &mut o, at);
+    let f = flags(&mut o);
+    if action {
+        *f |= flag::ACTION;
+    } else {
+        *f &= !flag::ACTION;
+    }
+    link(cx, o);
 }
 
 /// **`Unit::add_think_order@005e3df0`'s steps** (item 2314): a `THINK`
