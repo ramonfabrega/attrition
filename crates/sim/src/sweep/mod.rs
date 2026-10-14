@@ -249,6 +249,7 @@ fn a_row_is_its_arguments_and_its_result() {
 mod air_attack_ground_order_get_air_attack_ground_order;
 mod ammo_process;
 mod angle_diff;
+mod animal_data_get_speed;
 mod animal_data_valid_target_const;
 mod animal_process;
 mod armies_diplo_change;
