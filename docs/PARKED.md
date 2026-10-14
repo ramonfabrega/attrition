@@ -5209,13 +5209,28 @@ is spelled `Class::vector_deleting_destructor_vtordisp@va`; the census backs it 
 `vtordisp` rows remain under `--unbacked --all`, the dead weight the default listing hides (1861). `--write-mod`
 appended twenty-eight `mod` lines unsorted, sorted by hand again (parked 2318's tail).
 
-## Parked by the next landing, slot CE — reserved
+## Parked by item 2379, 2026-10-14 — the CommandManager issuers, and the census's backticked initializers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2380) **The `CommandManager::issue_*` issuers left are each one generated line** (names no score; the
+sweep's next batch). 2379 took ten through `obj --deref IDX:K:N` (`add_command`'s argument 0, the
+`Command` local, read at the call): `check_accept_issue` (0x940a70) stubbed `--answers 0:0,1`,
+`add_group` (0x94bb60, one argument) a second stub where the issuer has one, `add_command` (0x94bae0) a
+third, all three `--record`ed. The local's depth is `sp-0x9` for a one-byte `Command` in an issuer with no
+argument, `sp-0xd` with one, `sp-0x14` for a five-byte one with one, `sp-0x10` for `pause`'s two. Left,
+on the same lines: `issue_scramble` (0x941df0) and `issue_stop_spell` (0x941e30), the `add_group` shape;
+`issue_mp_log` (0x941070), gated on the game record's semaphore bit 4 as well (`--cell-win` of
+`GameAccess::game`); `issue_cheat_view_all` (0x9410b0), five bytes with `console->who` behind `;`;
+`issue_spline` (0x940f70), `add_spline` (0x94bfb0) handed the caller's own argument and no `Command`;
+`issue_ping` (0x942ad0) and the `GroupOut::issue_*` family past them (`issue_hotkey`, `issue_attack`,
+`issue_disband`, `issue_trade`, ...), not read. Read each listing for its `mov byte` before its line:
+the decompiler drops it in the one-byte issuers.
+
+(2381) **`tools/census.py --unbacked` lists the compiler's backticked initializers as live rows** (names
+no score; the Loop's). `DEAD_WEIGHT` matches `dynamic_initializer` only after `^` or `::`, and the
+export spells them `` `dynamic_initializer_for_'X'' ``, so the forty shortest rows of the default
+listing are initializers (`combat_table`, `game_random`, `MiscAccess::*`), not the band the sweep wants;
+2346 and 2379 read past them by eye. A backtick beside `^` and `::` in that pattern hides them as
+`--all`'s dead weight; a test made to fail first on one such name.
 
 ## Parked by the next landing, slot CF — reserved
 
