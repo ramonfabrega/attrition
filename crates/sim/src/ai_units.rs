@@ -424,22 +424,23 @@ impl Sim {
     /// `BuildData::count_queue(1, t)`: queued entries of `t`'s lineage;
     /// `count_queue(0, _)` counts queued citizens instead.
     fn count_queue(&self, b: usize, of: Option<TypeId>) -> i32 {
-        self.buildings[b]
-            .queue
-            .items
-            .iter()
-            .filter(|i| {
-                if i.tech.is_some() {
-                    return false;
-                }
-                match of {
-                    None => self.unit_types[i.ty].worker == Worker::Citizen,
-                    Some(t) => self.unit_types[i.ty]
-                        .tree
-                        .is_some_and(|x| self.tech_tree.is(x, t, false)),
-                }
-            })
-            .count() as i32
+        let items = &self.buildings[b].queue.items;
+        let unit = |k: usize| items[k].tech.is_none();
+        count_queue_by(
+            items.len(),
+            if of.is_some() { 1 } else { 0 },
+            unit,
+            |k| self.unit_types[items[k].ty].worker == Worker::Citizen,
+            |k| {
+                unit(k)
+                    && of.is_some_and(|t| {
+                        self.unit_types[items[k].ty]
+                            .tree
+                            .is_some_and(|x| self.tech_tree.is(x, t, false))
+                    })
+            },
+            |_| false,
+        )
     }
 
     /// The city's region as the per-region census arrays index it.
@@ -3340,4 +3341,30 @@ mod tests {
         assert!(sim.produce_unit(0, ids.unit, Some(0), 1, 0));
         assert_eq!(sim.buildings[ids.b].queue.items.len(), 4);
     }
+}
+
+/// **`BuildData::count_queue@0062dee0`'s walk** (item 2287): over the
+/// `queued` entries (`+0x82`), mode 0 (`QUEUE_COUNT_PEASANTS`) counts the
+/// unit entries (`TypeData::is_unit_type`, inline as `0x32 ≤ index <
+/// 0x19e`) whose unit type is a citizen (`0x32`/`0x33`), mode 1
+/// (`QUEUE_COUNT_TYPE`) the entries whose type answers `is(t, 1)`, mode 2
+/// (`QUEUE_COUNT_UNITS`) the unit entries the owner already knows (the
+/// leader's bitset at `+0x6c18`); any other mode counts none. An entry
+/// past the list's own count (`+0x88`) reads as type `-1`.
+pub(crate) fn count_queue_by(
+    queued: usize,
+    mode: i32,
+    mut unit_entry: impl FnMut(usize) -> bool,
+    citizen: impl Fn(usize) -> bool,
+    mut is_type: impl FnMut(usize) -> bool,
+    known: impl Fn(usize) -> bool,
+) -> i32 {
+    (0..queued)
+        .filter(|&k| match mode {
+            0 => unit_entry(k) && citizen(k),
+            1 => is_type(k),
+            2 => unit_entry(k) && known(k),
+            _ => false,
+        })
+        .count() as i32
 }
