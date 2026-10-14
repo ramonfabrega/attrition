@@ -1108,6 +1108,7 @@ ECXINT = {ecxint!r}
 ANSWERS = {answers!r}
 VTAT = {vtat!r}
 ANSWERWIN = {answerwin!r}
+CDECL = {cdecl!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1135,6 +1136,18 @@ def u8(w, off):
     return w[off]
 
 
+def wdraw(rng, vals):
+    """A bias's value: a set's member, or a range's — its own edges and the
+    small integers inside it three rows in ten, so a boundary inside a wide
+    range is drawn on purpose rather than by luck (Loop 2003, item 2181)."""
+    if vals[0] == "set":
+        return rng.choice(vals[1])
+    lo, hi = vals[1], vals[2]
+    if rng.random() < 0.3:
+        return rng.choice([v for v in (lo, lo + 1, -1, 0, 1, 2, hi - 1, hi) if lo <= v <= hi])
+    return rng.randint(lo, hi)
+
+
 def shape(rng, name, buf):
     """The window `name`'s fills, then its biases, every row (parked 2113)."""
     for win, expr in FILLS:
@@ -1145,7 +1158,7 @@ def shape(rng, name, buf):
         if win != name:
             continue
         for o in (range(0, len(buf) - 3, 4) if off is None else (off,)):
-            v = rng.choice(vals[1]) if vals[0] == "set" else rng.randint(vals[1], vals[2])
+            v = wdraw(rng, vals)
             buf[o:o + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
 
 
@@ -1264,7 +1277,9 @@ def main(argv):
         h.calls.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
-        assert esp == STACK_BASE + STACK_SIZE - 0x100, f"esp {{esp:x}}: wrong pop"
+        # A `__cdecl` function leaves its arguments for the caller (item 2181).
+        want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
+        assert esp == want_esp, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
@@ -1382,7 +1397,8 @@ def _wbias(spec):
 
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
-                 argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=()):
+                 argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
+                 cdecl=False):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1437,6 +1453,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
+        if cdecl:
+            raise ValueError('--cdecl needs a window: the plain obj keeps the callee-pops check')
         script = OBJ_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, argset=pset, argfrom=pfrom)
         doc = doc or f'{win} random bytes of object, {own} argument(s) over the edges and random words, `eax` and every byte after held to the port.'
@@ -1454,6 +1472,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers the address of {n} random bytes, a `p` window after the places'
            for idx, n in pansw]
         + ([f'the stubbed vtable laid at `{vtat}`'] if pvtat else [])
+        + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
             if pecx[0] == 'range' else f'`ecx` an integer in {pecx[1]}, not the object, the row\'s last']
            if pecx else [])) or 'no windows'
@@ -1461,7 +1480,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
-                                   answers=pans, vtat=pvtat, answerwin=pansw)
+                                   answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1628,6 +1647,8 @@ def main(argv=None):
     ap.add_argument('--answer-win', action='append', default=[], metavar='IDX:SIZE',
                     help='obj: stub IDX answers the address of SIZE random bytes, a new `p` window after the '
                          'places (a callee that answers a record; parked 2151)')
+    ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
+                    'the caller pops its arguments and the esp check expects them left (item 2181)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1646,7 +1667,7 @@ def main(argv=None):
                                                     argrange=args.argrange, slotbase=args.slotbase,
                                                     module=args.module, ecx_int=args.ecx_int,
                                                     answers=args.answers, vtat=args.vtat,
-                                                    answer_wins=args.answer_win)
+                                                    answer_wins=args.answer_win, cdecl=args.cdecl)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
