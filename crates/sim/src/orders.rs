@@ -6576,7 +6576,7 @@ impl Sim {
         };
         let corner = self.tile_corner(ty, bd.pos);
         let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-        tile.x >= corner.x && tile.x < corner.x + xs && tile.y >= corner.y && tile.y < corner.y + ys
+        crate::place::footprint_covers(corner, xs, ys, tile)
     }
 
     /// `UnitType::find_nearby_spot(x, y, min, max, step, angle, …)`
