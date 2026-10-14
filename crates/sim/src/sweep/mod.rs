@@ -712,3 +712,5 @@ mod unit_set_group;
 mod object_type_data_upgrade_level;
 mod build_data_num_gatherers;
 mod city_data_num_buildings;
+mod city_data_num_kinds;
+mod city_data_enough_kinds;

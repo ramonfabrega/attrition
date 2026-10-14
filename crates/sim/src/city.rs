@@ -801,40 +801,22 @@ impl Sim {
     /// `CityData::enough_kinds(n)`: at least `n` distinct completed building
     /// types on the chain, the city itself first.
     pub fn enough_kinds(&self, c: usize, n: i32) -> bool {
-        let n = n.min(24);
-        let city = &self.cities[c];
-        let mut kinds: Vec<usize> = Vec::new();
-        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
-            let bd = &self.buildings[b];
-            if !bd.alive || !bd.active {
-                continue;
-            }
-            let Some(t) = bd.ty else { continue };
-            if !kinds.contains(&t) {
-                kinds.push(t);
-                if kinds.len() as i32 >= n {
-                    return true;
-                }
-            }
-        }
-        false
+        self.kinds_on_chain(c, n.min(24)).1
     }
 
     /// `CityData::num_kinds`: the same count, unbounded.
     pub fn num_kinds(&self, c: usize) -> i32 {
+        self.kinds_on_chain(c, i32::MAX).0
+    }
+
+    fn kinds_on_chain(&self, c: usize, cap: i32) -> (i32, bool) {
         let city = &self.cities[c];
-        let mut kinds: Vec<usize> = Vec::new();
-        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
-            let bd = &self.buildings[b];
-            if bd.alive
-                && bd.active
-                && let Some(t) = bd.ty
-                && !kinds.contains(&t)
-            {
-                kinds.push(t);
-            }
-        }
-        kinds.len() as i32
+        distinct_kinds(
+            std::iter::once(city.building).chain(city.members.iter().copied()),
+            |b| self.buildings[b].alive && self.buildings[b].active,
+            |b| self.buildings[b].ty,
+            cap,
+        )
     }
 
     /// `CityData::ready_to_upgrade`: not at the top, the next level
@@ -3295,4 +3277,32 @@ pub(crate) fn wear_site_vals(
 /// `flags & 4`, its active bit — so `live`. Item 2276's sweep holds it.
 pub(crate) fn live_members(chain: impl IntoIterator<Item = usize>, live: impl Fn(usize) -> bool) -> i32 {
     chain.into_iter().filter(|&b| live(b)).count() as i32
+}
+
+/// **`CityData::num_kinds@007366c0`** and **`CityData::enough_kinds@00736540`**:
+/// the distinct kinds (the type record's `+4`) of the chain's `live`
+/// members (`num_buildings`'s test), in chain order; `None` is no kind.
+/// Answers the count and whether a new kind brought it to `cap` —
+/// `enough_kinds` returns there, so `cap <= 0` still wants one live kind.
+/// Item 2276's sweeps hold it.
+pub(crate) fn distinct_kinds<K: PartialEq>(
+    chain: impl IntoIterator<Item = usize>,
+    live: impl Fn(usize) -> bool,
+    kind: impl Fn(usize) -> Option<K>,
+    cap: i32,
+) -> (i32, bool) {
+    let mut kinds: Vec<K> = Vec::new();
+    for b in chain {
+        if !live(b) {
+            continue;
+        }
+        let Some(k) = kind(b) else { continue };
+        if !kinds.contains(&k) {
+            kinds.push(k);
+            if kinds.len() as i32 >= cap {
+                return (kinds.len() as i32, true);
+            }
+        }
+    }
+    (kinds.len() as i32, false)
 }
