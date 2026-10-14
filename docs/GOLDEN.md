@@ -11390,8 +11390,8 @@ held, both chapter tests fail; `update_guard_order` answering `None` always (the
 held, both fail.
 
 **Not established.** The head's two follower arms stand unheld (above, and parked 2033, 2034 amended); the refusal on
-905 waits on the word. Why a computer's newborn joins its group 64 and takes the group's `ATTACK_TO` is the word's
-question, not read here. Chapter sixty-one's 780 is untouched (parked 2067 has what this item measured of it).
+905 waits on the word. ~~Why a computer's newborn joins its group 64 and takes the group's `ATTACK_TO` is the word's
+question, not read here.~~ Answered by §77: army 0 reads the pool record on its index. Chapter sixty-one's 780 is untouched (parked 2067 has what this item measured of it).
 
 ### 75.1 Coverage
 
