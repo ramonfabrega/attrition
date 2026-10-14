@@ -3158,7 +3158,8 @@ mod tests {
         // Item 1457: 285 → 271; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 271 → 266; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 1586: 202 → 199; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
-        pin_eq!(w.firsts.len(), 139, "every key parted on run583");
+        // Items 2193 and 2205, merged together (each gated without the other): 139 → 138.
+        pin_eq!(w.firsts.len(), 138, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
