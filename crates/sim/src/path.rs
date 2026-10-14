@@ -284,6 +284,13 @@ fn cap_tail(step: i32, anti_unit: bool) -> CapTail {
     }
 }
 
+/// `PathFinder::valid_wcoord@00687da0`'s verdict on `invalid_loc`'s answer
+/// `r`: valid, or a hazard in the goal's own cell. Item 2200's sweep holds
+/// it against the original.
+pub(crate) fn wcoord_verdict(r: i32, p: Pos, goal: Pos) -> bool {
+    r == loc::VALID || (r == loc::HAZARD && p.cell() == goal.cell())
+}
+
 impl Sim {
     /// `UnitData::invalid_loc(t, ignore_buildings, fog_relax,
     /// enemy_builds_only, transport_a, transport_b)` — the world's refusal
@@ -490,10 +497,7 @@ impl Sim {
             return false;
         }
         let r = self.invalid_loc(u, p.tile(), true, timeout > 1, false, true, false);
-        if r == loc::HAZARD && p.cell() == goal.cell() {
-            return true;
-        }
-        r == loc::VALID
+        wcoord_verdict(r, p, goal)
     }
 
     /// `PathFinder::valid_tcoord` — the tile grid's probe (the pre-walk's
