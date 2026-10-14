@@ -297,9 +297,7 @@ impl Sim {
         let Some(l) = self.ledgers.get(who as usize) else {
             return false;
         };
-        good >= economy::BASE_RARE
-            && good - economy::BASE_RARE < economy::RARES
-            && l.rare >> (good - economy::BASE_RARE) & 1 != 0
+        rare_bit(l.rare, good)
     }
 
     /// `World::reveal_fog@006b3d30`'s two goods arms — the rare arm and the
@@ -555,6 +553,16 @@ impl Sim {
 /// no row under the first held is asked (item 2090's sweep holds the asks).
 pub fn top_held(n: usize, mut held: impl FnMut(usize) -> bool) -> usize {
     (0..n).rev().find(|&i| held(i)).map_or(0, |i| i + 1)
+}
+
+/// A good's bit in a `rare` mask by **type index** — `has_rare`'s test on
+/// the mask alone, so a caller that reads the leader's two words (`rare`
+/// and `rare_conquest`, `+0x6da4` and `+0x6dcc`) asks the same bit
+/// (`Caravan::trade_value@0073d9d0`'s sweep, item 2368).
+pub(crate) fn rare_bit(rare: u64, good: usize) -> bool {
+    good >= economy::BASE_RARE
+        && good - economy::BASE_RARE < economy::RARES
+        && rare >> (good - economy::BASE_RARE) & 1 != 0
 }
 
 #[cfg(test)]

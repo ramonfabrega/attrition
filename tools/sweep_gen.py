@@ -126,7 +126,8 @@ rewritten, `mod.rs` left alone), so a starved draw is one line. The script
 keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
 with no line at hand (item 2325, parked 2311); a whole line given with
-`--regen` replaces the kept one. Without `--port` the test's port is `todo!()`, so the row
+`--regen` replaces the kept one; a `--regen` with no `--port` keeps the test's
+hand-written port block between the generated halves (item 2368). Without `--port` the test's port is `todo!()`, so the row
 fails until the lane writes it — a sweep lands when the two sides agree,
 never when a file exists. `--dry-run` prints both files instead.
 """
@@ -1283,6 +1284,17 @@ def wdraw(rng, vals):
     return rng.randint(lo, hi)
 
 
+def seq_values(rng, n, pick, terms, rand32):
+    """`--seq IDX:N[:T,T..]`'s answers a row: N drawn from the stub's
+    `--answers` list (90%) or a random word, the last from the terminators
+    T when given — answered past N, so a loop that runs while the stub
+    answers inside a set ends (`Unit::repath`, item 2368, parked 2342)."""
+    vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
+    if terms:
+        vals[-1] = rng.choice(terms)
+    return vals
+
+
 def shape(rng, name, buf):
     """The window `name`'s fills, then its biases, every row (parked 2113)."""
     for win, expr in FILLS:
@@ -1484,11 +1496,11 @@ def main(argv):
             h.answers[name] = v & 0xFFFFFFFF
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
-        # the last repeated past N, printed after the answers (item 2217).
+        # the last repeated past N — from the terminators when given (item
+        # 2368) — printed after the answers (item 2217).
         seqs = []
-        for idx, n in SEQ:
-            pick = dict(ANSWERS).get(idx)
-            vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
+        for idx, n, terms in SEQ:
+            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32)
             seqs.append(vals)
             turn = [0]
 
@@ -1812,10 +1824,18 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not 0 <= int(idx) < own:
             raise ValueError('--argeq IDX names one of the --own arguments')
         peq.append((int(idx), ewin, int(eoff, 0)))
-    pseq = [tuple(int(x, 0) for x in q.split(':')) for q in seq]
-    if any(not 0 <= idx < len(pstubs) or n < 1 for idx, n in pseq):
+    pseq = []
+    for q in seq:
+        # `IDX:N[:T,T..]`: the last of the N answers drawn from the
+        # terminators T and answered past N (item 2368, parked 2342).
+        parts = q.split(':')
+        if len(parts) not in (2, 3) or (len(parts) == 3 and not all(parts[2].split(','))):
+            raise ValueError(f'--seq {q}: IDX:N or IDX:N:T,T..')
+        pseq.append((int(parts[0], 0), int(parts[1], 0),
+                     [int(t, 0) for t in parts[2].split(',')] if len(parts) == 3 else None))
+    if any(not 0 <= idx < len(pstubs) or n < 1 for idx, n, _ in pseq):
         raise ValueError('--seq IDX:N names one of the --stub callees, by its order on the line, and N >= 1')
-    if any(idx in {i for i, _ in pansw} for idx, _ in pseq):
+    if any(idx in {i for i, _ in pansw} for idx, _, _ in pseq):
         raise ValueError('--seq and --answer-win answer one stub two ways')
     pansr = [tuple(int(x, 0) for x in r.split(':')) for r in answer_range]
     if any(not 0 <= idx < len(pstubs) for idx, _, _ in pansr):
@@ -1904,7 +1924,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'the stubbed vtable laid at `{vh}` half the rows' for vh in vtat_half]
         + (['`__cdecl`: the caller pops the arguments'] if cdecl else [])
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
-        + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
+        + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
+           + ', printed after the answers' for idx, n, t in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
            + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
@@ -2083,6 +2104,30 @@ def _kept_for_regen(argv):
     return line
 
 
+def kept_port(old, new, todo):
+    """`--regen` with no `--port` (item 2368, parked 2342): the new test
+    `new` with its `todo` port replaced by the block the old test `old`
+    holds in the same place — the hand-written port between the generated
+    halves — or None when `old` has no such place. The place is found by
+    the line before the port and the line after it, which the template
+    fixes whatever the draw."""
+    at = new.find(todo)
+    if at < 0:
+        return None
+    start = new.rfind('\n', 0, new.rfind('\n', 0, at)) + 1
+    head = new[start:at]
+    nl = new.find('\n', at + len(todo) + 1)
+    tail = new[at + len(todo):nl if nl >= 0 else len(new)]
+    i = old.find(head)
+    if i < 0:
+        return None
+    i += len(head)
+    j = old.find(tail, i)
+    if j < 0:
+        return None
+    return new[:at] + old[i:j] + new[at + len(todo):]
+
+
 def insert_mod(text, line):
     """`text` with `line` (`mod name;`) placed in its last run of `mod` lines
     at the name's sorted place, or appended where the file has none (item
@@ -2206,9 +2251,10 @@ def main(argv=None):
     ap.add_argument('--record-order', action='store_true',
                     help='obj: the --record stubs\' calls one token a call, in the order they were made, each '
                          'headed `sIDX:` — two argument-less callees on one `ecx` ordered (item 2341, parked 2318)')
-    ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
+    ap.add_argument('--seq', action='append', default=[], metavar='IDX:N[:T,T..]',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
-                         'printed after the stubs\' answers (a callee called more than once; item 2217)')
+                         'printed after the stubs\' answers (a callee called more than once; item 2217); '
+                         'the last drawn from the terminators T, so a loop on the answer ends (item 2368)')
     ap.add_argument('--answer-range', action='append', default=[], metavar='IDX:LO:HI',
                     help='obj: stub IDX\'s answer drawn from LO..HI every row, as --argrange an argument '
                          '(an answer the function indexes a table by; item 2217)')
@@ -2298,6 +2344,15 @@ def main(argv=None):
     if args.dry_run:
         print(f'# {sp}\n{script}\n# {tp}\n{test}\n# sweep/mod.rs\n{mod}')
         return 0
+    if args.regen and args.port is None and tp.exists():
+        # The test's hand-written port is kept between the generated halves
+        # (item 2368: two of 2341's ten restored it by hand from a copy).
+        kept = kept_port(tp.read_text(), test, f'todo!("the port of {parse(args.function)[0]}")')
+        if kept is not None:
+            test = kept
+        else:
+            print(f'sweep_gen.py: {shown(tp)}: no port block where the new test holds one (its windows '
+                  'changed?); the port is `todo!()` again — restore it from git', file=sys.stderr)
     for p in (sp, tp):
         if p.exists() != args.regen:
             print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen

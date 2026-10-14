@@ -568,42 +568,44 @@ impl Sim {
 
     /// `City::compute_trade@00739640`: `trade_val` is the sum, over every
     /// route this city is an end of that has **delivered at least once**
-    /// and whose other end is still alive, of `trade_value(other) · 16 / 2`.
+    /// and whose other end is still alive, of `trade_value(·) · 16 / 2`
+    /// ([`compute_trade_steps`], which the sweep backs).
     ///
     /// It is what a city contributes to its owner's wealth rate on top of
     /// its gatherers (`crate::economy::city_rates`), and a change marks the
     /// leader's economy dirty.
+    ///
+    /// The original walks the city's own route list (`+0x84`, `+0x78`
+    /// long); this crate keeps no such list and walks every leader's slots
+    /// below its mark for the routes with an end here. An end's leader is
+    /// the city's owner today.
     pub(crate) fn compute_trade(&mut self, city: usize) {
         let was = self.cities[city].trade_val;
-        let mut val = 0;
-        for w in 0..self.caravans.len() {
-            for s in 0..self.caravans[w].mark {
-                let van = &self.caravans[w].slots[s];
-                if !van.delivered {
-                    continue;
-                }
-                let (Some(a), Some(b)) = (van.city_a, van.city_b) else {
-                    continue;
-                };
-                if !self.cities[a].alive || !self.cities[b].alive {
-                    continue;
-                }
-                let other = if a == city {
-                    b
-                } else if b == city {
-                    a
-                } else {
-                    continue;
-                };
-                // `00739705`: the end whose owner is this city's goes in
-                // `ecx`/`edx`, and that is the leader the bonuses ask —
-                // always this city's own.
-                val += self.trade_value(city, other) * 16 / 2;
-            }
-        }
+        let owner = self.cities[city].owner;
+        let end = |c: Option<usize>| match c {
+            Some(c) => (c as i32, self.cities[c].owner as i32),
+            None => (-1, 0),
+        };
+        let routes: Vec<TradeRoute> = self
+            .caravans
+            .iter()
+            .flat_map(|w| w.slots[..w.mark].iter())
+            .filter(|van| van.city_a == Some(city) || van.city_b == Some(city))
+            .map(|van| TradeRoute {
+                delivered: van.delivered,
+                a: end(van.city_a),
+                b: end(van.city_b),
+            })
+            .collect();
+        let val = compute_trade_steps(
+            owner as i32,
+            routes,
+            |c, _| self.cities[c as usize].alive,
+            |e, o| self.trade_value(e.0 as usize, o.0 as usize),
+        );
+        let val = i32::from(val);
         self.cities[city].trade_val = val;
         if was != val {
-            let owner = self.cities[city].owner;
             self.economy_changed(owner);
         }
     }
@@ -692,30 +694,27 @@ impl Sim {
     /// the decompiler drops — and its **owner** is the leader both bonuses
     /// ask. Everything before them is symmetric in the two ends.
     pub(crate) fn trade_value(&self, a: usize, b: usize) -> i32 {
-        let d = self.trade_distance(a, b);
-        let mut v = self.city_trade_value(a) + self.city_trade_value(b);
-        if d != 0 {
-            v = (d + 3) * v / 3;
-        }
-        if self.cities[a].owner != self.cities[b].owner {
-            v = v * 3 / 2;
-        }
-        // The two bonuses, on `a`'s owner: the caravans' nation power
+        // The two bonuses ask `a`'s owner: the caravans' nation power
         // (`has_tribe_bonus(0x15)`), then the Spice rare (`rare` or
         // `rare_conquest`, bit 6) — Great Sahara's who=1 holds Spice, and
         // its two cities' routes went 22 → 26 on 14660 (`docs/CARAVAN.md`
         // §4).
         let lead = self.cities[a].owner;
-        if self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[lead as usize], 0x15)
-        {
-            v = (self.tuning.indians_caravan + 100) * v / 100;
-        }
-        if self.has_rare(lead, crate::economy::SPICE) {
-            v = (self.tuning.spice_caravan_income + 100) * v / 100;
-        }
-        v
+        trade_value_steps(
+            (self.cities[a].pos, self.cities[b].pos),
+            lead != self.cities[b].owner,
+            |pa, pb| self.trade_distance(pa, pb),
+            |end_a| self.city_trade_value(if end_a { a } else { b }),
+            |bonus| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, &self.tech[lead as usize], bonus)
+            },
+            self.has_rare(lead, crate::economy::SPICE),
+            (
+                self.tuning.indians_caravan,
+                self.tuning.spice_caravan_income,
+            ),
+        )
     }
 
     /// `Caravan::distance@0073d300`: a band, not a distance — 0 under a
@@ -731,8 +730,7 @@ impl Sim {
     /// distance takes (`docs/AI.md` §2.20). Measuring the world-unit
     /// distance instead put every pair in band 3 and doubled every trade
     /// route's value (`docs/CARAVAN.md` §3.1).
-    fn trade_distance(&self, a: usize, b: usize) -> i32 {
-        let (pa, pb) = (self.cities[a].pos.cell(), self.cities[b].pos.cell());
+    fn trade_distance(&self, pa: crate::world::Cell, pb: crate::world::Cell) -> i32 {
         let d = crate::world::vector_dist(pa.x - pb.x, pa.y - pb.y);
         distance_band(d, self.world.width())
     }
@@ -1058,6 +1056,44 @@ fn offset_road(path: &mut [PathData]) {
 /// map's width `w` (`WorldData::xs`): every quotient truncates toward zero
 /// and `w * 4` wraps, as the original's `cdq`/`sar` and `imul` do — swept
 /// against the emulated original on any `i32` pair (item 2181).
+/// `Caravan::trade_value@0073d9d0`'s arithmetic, its callees handed in: the
+/// distance band of the two ends' cells (`a`'s first, as the original pushes
+/// `distance`'s four `div_3_table[coord >> 8]` words), the two cities'
+/// trade values (`a`'s asked first, `true`), the leader's nation power
+/// (`has_tribe_bonus(0x15)`, asked every time) and its Spice; `foreign` is
+/// the two ends' leaders differing (`0073da78`), `pct` the constants'
+/// `indians_caravan` (`+0x890`) and `spice_caravan_income` (`+0x8f0`).
+///
+/// The products are the original's 32-bit `imul`s (`0073da69`, `0073dab4`,
+/// `0073daec`), so they wrap as its do; every division truncates toward
+/// zero, as its reciprocal multiplies and `cdq`/`sar` do.
+pub(crate) fn trade_value_steps(
+    (a, b): (Pos, Pos),
+    foreign: bool,
+    band: impl FnOnce(crate::world::Cell, crate::world::Cell) -> i32,
+    mut city: impl FnMut(bool) -> i32,
+    tribe: impl FnOnce(usize) -> bool,
+    spice: bool,
+    pct: (i32, i32),
+) -> i32 {
+    let d = band(a.cell(), b.cell());
+    let ta = city(true);
+    let mut v = ta.wrapping_add(city(false));
+    if d != 0 {
+        v = d.wrapping_add(3).wrapping_mul(v) / 3;
+    }
+    if foreign {
+        v = v.wrapping_mul(3) / 2;
+    }
+    if tribe(0x15) {
+        v = pct.0.wrapping_add(100).wrapping_mul(v) / 100;
+    }
+    if spice {
+        v = pct.1.wrapping_add(100).wrapping_mul(v) / 100;
+    }
+    v
+}
+
 pub(crate) fn distance_band(d: i32, w: i32) -> i32 {
     if d < w / 4 {
         return 0;
@@ -1066,6 +1102,51 @@ pub(crate) fn distance_band(d: i32, w: i32) -> i32 {
         return 1;
     }
     2 + i32::from(w.wrapping_mul(4) / 5 <= d)
+}
+
+/// One route as `City::compute_trade@00739640` reads it: the delivered bit
+/// (`caravan_flags & 4`, `+0xc`) and each end as `(index, leader)` —
+/// `city2`/`whom` (`+0x0`, `+0x2`) and `city3`/`whose` (`+0x4`, `+0x6`), a
+/// negative index an empty end.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct TradeRoute {
+    pub delivered: bool,
+    pub a: (i32, i32),
+    pub b: (i32, i32),
+}
+
+/// `City::compute_trade@00739640`'s sum over `routes`, the city's own: a
+/// route counts when it has delivered (`00739690`), both ends are set
+/// (`0073969d`, `007396a6`) and both are alive (`+0x4 & 1`, `007396d5`,
+/// `007396ee`, the first end first). `value(e, o)` is
+/// `Caravan::trade_value` with `e` in `ecx`/`edx` and `o` pushed — `e` the
+/// first end when its leader is `owner`, the city's, and the second end
+/// otherwise (`007396f4`–`00739709`). Each value goes in `· 16 / 2`, a
+/// signed halving (`00739710`–`00739719`), and the sum is the original's
+/// **16-bit** `trade_val` (`addw` at `0073971b`), wrapping.
+pub(crate) fn compute_trade_steps(
+    owner: i32,
+    routes: impl IntoIterator<Item = TradeRoute>,
+    mut alive: impl FnMut(i32, i32) -> bool,
+    mut value: impl FnMut((i32, i32), (i32, i32)) -> i32,
+) -> i16 {
+    let mut sum: i16 = 0;
+    for r in routes {
+        if !r.delivered || r.a.0 < 0 || r.b.0 < 0 {
+            continue;
+        }
+        if !alive(r.a.0, r.a.1) || !alive(r.b.0, r.b.1) {
+            continue;
+        }
+        let (e, o) = if r.a.1 == owner {
+            (r.a, r.b)
+        } else {
+            (r.b, r.a)
+        };
+        let v = value(e, o).wrapping_shl(4) / 2;
+        sum = sum.wrapping_add(v as i16);
+    }
+    sum
 }
 
 #[cfg(test)]

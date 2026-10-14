@@ -1314,10 +1314,7 @@ impl Sim {
     /// test is not reached. `do_attack_ground`'s shot has no object to aim
     /// at, which is why run146's catapult prints `ox −1` from 781.
     pub(crate) fn clear_attack(&mut self, i: usize) {
-        let n = self.units[i].guys.len().min(anim::SQUAD_SIZE);
-        for g in &mut self.units[i].guys[..n] {
-            g.aim = None;
-        }
+        self.set_attack_on(i, None);
     }
 
     /// `do_attack_ground`'s facing: the bearing, or for a broadside type
@@ -1381,30 +1378,34 @@ impl Sim {
     /// (`UnitType +0x1fc`), and a target that is a live unit or a
     /// building. Anything else answers 0, and the unit turns.
     pub(crate) fn set_attack(&mut self, i: usize, target: Obj) -> bool {
+        self.set_attack_on(i, Some(target))
+    }
+
+    /// [`Sim::set_attack`] with the original's `(−1, −1)` as `None`
+    /// ([`Sim::clear_attack`]): the one body both run, through
+    /// [`set_attack_steps`].
+    fn set_attack_on(&mut self, i: usize, target: Option<Obj>) -> bool {
         let n = self.units[i].guys.len().min(anim::SQUAD_SIZE);
-        for g in &mut self.units[i].guys[..n] {
-            g.aim = Some(target);
-        }
-        let Some(ty) = self.units[i].ty else {
-            return false;
-        };
-        let Some(nodes) = self.art.pivots.get(&self.unit_types[ty].type_index) else {
-            return false;
-        };
-        let live = match target {
-            Obj::Unit(t) => self.units[t].alive(),
-            Obj::Building(_) => true,
-        };
-        if nodes.is_empty() || self.profile(Obj::Unit(i)).max_range == 0 || !live || n == 0 {
-            return false;
-        }
-        // Every aimed figure's own `set_all_pivots`, and the answer is the
-        // last one's (`005fce70`); each writes its own turret.
-        let mut can = false;
-        for g in 0..n {
-            can = self.set_all_pivots(i, g, Some(target));
-        }
-        can
+        set_attack_steps(
+            self,
+            n,
+            target,
+            |s, g, t| s.units[i].guys[g].aim = t,
+            |s| {
+                s.units[i].ty.is_some_and(|ty| {
+                    s.art
+                        .pivots
+                        .get(&s.unit_types[ty].type_index)
+                        .is_some_and(|nodes| !nodes.is_empty())
+                })
+            },
+            |s| s.profile(Obj::Unit(i)).max_range != 0,
+            |s, t| match t {
+                Obj::Unit(t) => s.units[t].alive(),
+                Obj::Building(_) => true,
+            },
+            |s, g, t| s.set_all_pivots(i, g, Some(t)),
+        )
     }
 
     /// **`Guy::set_all_pivots@005d8bc0`** — can every restricted node of
@@ -4878,6 +4879,49 @@ pub(crate) fn valid_target_steps<C>(
         *o = 0;
     }
     armed_attack(cx)
+}
+
+/// **`Unit::set_attack@005fce70`**'s steps, the callees as closures
+/// ([`Sim::set_attack`]; `sweep::unit_set_attack` runs it against the
+/// emulated original).
+///
+/// - `aim(g, target)` for every figure `0 .. guy_mark` (`GuyData +0x8e`,
+///   `+0x9f`; `None` is the `(−1, −1)`), `005fce81`–`005fceb9`;
+/// - then `restricted` (the type's `get_gpiece`, `GraphicPieces::get_type`
+///   and its `pivot_restrictions` row, `005fcebb`–`005fcef1`), `ranged`
+///   (`UnitType +0x1fc`, `005fcefa`), a target at all (`o`, `who` ≥ 0,
+///   `005fcf07`), and `live` (`is_active && is_on_map || +0x1c`,
+///   `005fcf3d`–`005fcf63`), each short-circuiting to 0;
+/// - then `pivots(g, target)` for every figure, the answer the last one's
+///   (`005fcf80`–`005fcf9c`), whole (`eax`); no figure answers 0.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn set_attack_steps<C, T: Copy, R: Default>(
+    cx: &mut C,
+    guy_mark: usize,
+    target: Option<T>,
+    mut aim: impl FnMut(&mut C, usize, Option<T>),
+    restricted: impl FnOnce(&mut C) -> bool,
+    ranged: impl FnOnce(&mut C) -> bool,
+    live: impl FnOnce(&mut C, T) -> bool,
+    mut pivots: impl FnMut(&mut C, usize, T) -> R,
+) -> R {
+    for g in 0..guy_mark {
+        aim(cx, g, target);
+    }
+    if !restricted(cx) || !ranged(cx) {
+        return R::default();
+    }
+    let Some(t) = target else {
+        return R::default();
+    };
+    if !live(cx, t) {
+        return R::default();
+    }
+    let mut can = R::default();
+    for g in 0..guy_mark {
+        can = pivots(cx, g, t);
+    }
+    can
 }
 
 #[cfg(test)]

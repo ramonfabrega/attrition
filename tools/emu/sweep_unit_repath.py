@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_unit_repath.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 1024-byte object of random bytes (no bias), 0 stack argument(s);
-the global cell 0x00e85f20 points at 10240 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0x10c (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; callee 0x007123f0 (1 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+0x4` points at 16 random bytes less `0` (placed); the word at `p1+0x8` points at 16 random bytes less `0` (placed); stub 0 answered from [1, 2, 3, 4, 18, 19, 21, 0, 7, 26] (90%); stub 1 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p2+0`; stub 0 answers 6 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee).
+the global cell 0x00e85f20 points at 10240 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0x10c (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; callee 0x007123f0 (1 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+0x4` points at 16 random bytes less `0` (placed); the word at `p1+0x8` points at 16 random bytes less `0` (placed); stub 0 answered from [1, 2, 3, 4, 18, 19, 21, 0, 7, 26] (90%); stub 1 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p2+0`; stub 0 answers 6 values in call order, the last from [0, 7, 26], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee).
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
+from sweeplib import draw_reg  # noqa: E402
 
 ENTRY = 0x005e29b0
 WIN = 1024
@@ -39,13 +40,16 @@ FILLS = []
 ARGRANGE = []
 SLOTBASE = []
 ECXINT = None
+EDX = None
+# `--tame` (item 2346): a register drawn wild this share of the rows, a random word.
+WILD = 0.1
 ANSWERS = [(0, [1, 2, 3, 4, 18, 19, 21, 0, 7, 26])]
 VTAT = ('p2', 0)
 VTATHALF = []
 ANSWERWIN = [(1, 32)]
 CDECL = False
 ARGEQ = []
-SEQ = [(0, 6)]
+SEQ = [(0, 6, [0, 7, 26])]
 ANSRANGE = []
 CELLTHIS = []
 VTALSO = []
@@ -56,6 +60,7 @@ ROWSPLIT = {}
 LINKS = []
 OUTARG = []
 CDECLSTUBS = []
+STUBWRITE = []
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -85,11 +90,17 @@ def u8(w, off):
 
 def token(v, spans):
     """A recorded value: a pointer into a window by the window's name and
-    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    offset (`m+0x0`, `p0+0x10`), a local by its depth (`sp-0x14`), anything
+    else as a signed word (item 2281)."""
     v &= 0xFFFFFFFF
     for name, at, size in spans:
         if at <= v <= at + size:
             return f"{name}+{v - at:#x}"
+    # A caller's local handed to a callee: its depth under the caller's
+    # `esp`, which the harness holds every row (item 2336).
+    top = STACK_BASE + STACK_SIZE - 0x100
+    if top - 0x1000 <= v < top:
+        return f"sp-{top - v:#x}"
     return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
@@ -131,6 +142,17 @@ def out_answer(inner, k, v, write):
     return answer
 
 
+def win_write(inner, at, size, v, write):
+    """`--stub-write IDX:WIN+OFF:SIZE:VAL` (item 2346): a stub that writes VAL
+    at a window's word each call — a callee that unlinks the head of the
+    container its caller loops over (`Object::kill_contents`) — then answers
+    as `inner` would."""
+    def answer(ecx, args):
+        write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
 def wdraw(rng, vals):
     """A bias's value: a set's member, or a range's — its own edges and the
     small integers inside it three rows in ten, so a boundary inside a wide
@@ -141,6 +163,17 @@ def wdraw(rng, vals):
     if rng.random() < 0.3:
         return rng.choice([v for v in (lo, lo + 1, -1, 0, 1, 2, hi - 1, hi) if lo <= v <= hi])
     return rng.randint(lo, hi)
+
+
+def seq_values(rng, n, pick, terms, rand32):
+    """`--seq IDX:N[:T,T..]`'s answers a row: N drawn from the stub's
+    `--answers` list (90%) or a random word, the last from the terminators
+    T when given — answered past N, so a loop that runs while the stub
+    answers inside a set ends (`Unit::repath`, item 2368, parked 2342)."""
+    vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
+    if terms:
+        vals[-1] = rng.choice(terms)
+    return vals
 
 
 def shape(rng, name, buf):
@@ -166,7 +199,11 @@ def main(argv):
     uc = h.m.uc
     slots = {off: (f"slot{off:x}", n, 0) for k, off, n in STUBS if k == "slot"}
     vt = h.vtable(slots) if slots else None
-    names = [f"slot{a:x}" if k == "slot" else f"{a:x}" for k, a, _ in STUBS]
+    names = [f"slot{a:x}" if k == "slot" else f"iat{a:x}" if k == "iat" else f"{a:x}" for k, a, _ in STUBS]
+    # `--stub iat:VA:N`: a stub whose address is laid in an import's IAT cell,
+    # which the emulator resolves to nothing, so `call [VA]` lands on it
+    # (item 2336: `timeGetTime`, parked 2327).
+    iats = [(a, h.stub(f"iat{a:x}", n, 0)) for k, a, n in STUBS if k == "iat"]
     stubbed = {off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}
     base = h.brk
     for i in range(400):
@@ -329,6 +366,8 @@ def main(argv):
                 args[idx] = i32(w, off)
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
+        for cell, stub in iats:
+            uc.mem_write(cell, stub.to_bytes(4, "little"))
         based = []
         for off, addr in SLOTBASE:
             on = rng.random() < 0.5
@@ -338,17 +377,11 @@ def main(argv):
             h.answers[name] = v & 0xFFFFFFFF
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
-        # the last repeated past N, printed after the answers (item 2217).
+        # the last repeated past N — from the terminators when given (item
+        # 2368) — printed after the answers (item 2217).
         seqs = []
-        for idx, n in SEQ:
-            pick = dict(ANSWERS).get(idx)
-            vals = [rng.choice(pick) if pick and rng.random() < 0.9 else rand32(rng) for _ in range(n)]
-            # Hand edit (item 2341, a gap of `--seq`): `repath` loops while
-            # `get_type` answers the move family and the stubbed kills
-            # change nothing, so the repeated last answer is held outside
-            # the family (and off `CHANGE_FORM`) or the row never returns.
-            if vals[-1] in (1, 2, 3, 4, 18, 19, 21):
-                vals[-1] = rng.choice((0, 7, 26))
+        for idx, n, terms in SEQ:
+            vals = seq_values(rng, n, dict(ANSWERS).get(idx), terms, rand32)
             seqs.append(vals)
             turn = [0]
 
@@ -360,6 +393,9 @@ def main(argv):
         for (idx, k, _), v in zip(OUTARG, outs):
             h.answers[names[idx]] = out_answer(h.answers[names[idx]], k, v,
                                                lambda a_, v_: uc.mem_write(a_, (v_ & 0xFFFFFFFF).to_bytes(4, "little")))
+        for idx, win, off, size, v in STUBWRITE:
+            at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
+            h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -367,17 +403,12 @@ def main(argv):
             uc.mem_write(va, this.to_bytes(4, "little"))
         guard = bytes(uc.mem_read(this + WIN, 0x20))
         # `ecx` an integer rather than the object (parked 2141), the row's last.
-        ecx = None
-        if ECXINT is not None:
-            kind, *vals = ECXINT
-            if rng.random() < 0.1:
-                ecx = rand32(rng)
-            elif kind == "set":
-                ecx = rng.choice(vals[0])
-            else:
-                ecx = rng.randint(vals[0], vals[1])
+        ecx = None if ECXINT is None else draw_reg(rng, ECXINT, WILD, rand32)
+        # `--edx` (item 2346): an integer in `edx` beside `ecx`, after it on the row.
+        edx = None if EDX is None else draw_reg(rng, EDX, WILD, rand32)
         h.calls.clear()
-        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx)  # Harness.call signs eax; signed() again would double a negative
+        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
+                   edx=0 if EDX is None else edx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
@@ -388,7 +419,7 @@ def main(argv):
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
-                 + ([] if ECXINT is None else [str(ecx)]))
+                 + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)]))
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -414,4 +445,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Unit::repath@005e29b0", "--item", "2341", "--ret", "none", "--place", "m+0xdc:0:16", "--place-null", "0", "--place", "p0+0x4:0:16", "--place", "p1+0x8:0:16", "--vtat", "p2+0", "--stub", "slot:0x10:0", "--stub", "slot:0x10c:0", "--stub", "0x5e2cb0:1", "--stub", "0x7123f0:1", "--seq", "0:6", "--answers", "0:1,2,3,4,18,19,21,0,7,26", "--answer-win", "1:32", "--cell-win", "0xe85f20:0x2800", "--wbias", "m+0x80:-1..3", "--wbias", "p2+4:0..15", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record-order", "--rows", "400"]
+# sweep_gen: ["obj", "Unit::repath@005e29b0", "--item", "2341", "--ret", "none", "--place", "m+0xdc:0:16", "--place-null", "0", "--place", "p0+0x4:0:16", "--place", "p1+0x8:0:16", "--vtat", "p2+0", "--stub", "slot:0x10:0", "--stub", "slot:0x10c:0", "--stub", "0x5e2cb0:1", "--stub", "0x7123f0:1", "--seq", "0:6:0,7,26", "--answers", "0:1,2,3,4,18,19,21,0,7,26", "--answer-win", "1:32", "--cell-win", "0xe85f20:0x2800", "--wbias", "m+0x80:-1..3", "--wbias", "p2+4:0..15", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record-order", "--rows", "400"]

@@ -198,6 +198,20 @@ pub fn smelter_level_by(
     get_smelter()
 }
 
+/// `GoodTypeData::get_enhancer@0066fcf0`: the building type that enhances a
+/// good of `kind` — 0 `GRANARY`, 1 `LUMBERMILL`, 4 `SMELTER`, 5 `REFINERY`
+/// (`0x1a7..=0x1aa`), any other kind -1. The shipped goods' kinds are their
+/// [`Resource`] index.
+pub fn good_enhancer(kind: i32) -> i32 {
+    match kind {
+        0 => 0x1a7,
+        1 => 0x1a8,
+        4 => 0x1a9,
+        5 => 0x1aa,
+        _ => -1,
+    }
+}
+
 /// The metal good's kind, which `smelter_level` reads off the good-type list (`GoodTypeData`'s `+0x4`).
 const METAL_KIND: i32 = 4;
 
@@ -205,6 +219,49 @@ impl Default for Levels {
     fn default() -> Levels {
         Levels::BASE
     }
+}
+
+/// What `BuildData::calc_gather@0062d360` hands
+/// `BuildTypeData::calc_gather@00639e40` beside its own arguments.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct TypeGatherArgs {
+    /// `WallData::tile_corner`'s two tile coordinates.
+    pub corner: (i32, i32),
+    /// `1` when the caller forces it (`param_5`), else `is_active`'s answer
+    /// (the base `WallData::is_active@00472350` inlined as `flags & 4`).
+    pub active: i32,
+    /// `num_gatherers(1, 1)` — arrived, skipping decoys.
+    pub gatherers: i32,
+    /// `count_inside(COUNT_NON_DECOY_TYPE, 0x34)` for a university
+    /// (`is(0x1a4)`), else 0.
+    pub scholars: i32,
+}
+
+/// `BuildData::calc_gather@0062d360`, its steps in the listing's order
+/// (`62d373` the corner, `62d378..62d399` the active flag, `62d3a5..62d3c4`
+/// the university's scholars, `62d3da` the gatherers, `62d403` the type's
+/// own `calc_gather`), the callees as closures. Answers the count
+/// out-parameter clamped at zero (`62d408..62d40d`).
+pub(crate) fn build_calc_gather_steps(
+    forced_active: bool,
+    tile_corner: impl FnOnce() -> (i32, i32),
+    is_active: impl FnOnce() -> i32,
+    is_university: impl FnOnce() -> bool,
+    count_scholars: impl FnOnce() -> i32,
+    num_gatherers: impl FnOnce() -> i32,
+    type_calc_gather: impl FnOnce(TypeGatherArgs) -> i32,
+) -> i32 {
+    let corner = tile_corner();
+    let active = if forced_active { 1 } else { is_active() };
+    let scholars = if is_university() { count_scholars() } else { 0 };
+    let gatherers = num_gatherers();
+    let count = type_calc_gather(TypeGatherArgs {
+        corner,
+        active,
+        gatherers,
+        scholars,
+    });
+    count.max(0)
 }
 
 impl Sim {
@@ -291,24 +348,35 @@ impl Sim {
         out.university = any(Ident::University);
         out.library = any(Ident::Library);
 
-        if any(Ident::Granary) {
-            out.set_enhancer(&self.tuning, Resource::Food, levels.granary.max(1) as usize);
-        }
-        if any(Ident::Lumbermill) {
-            out.set_enhancer(
-                &self.tuning,
-                Resource::Timber,
-                levels.lumber_mill.max(1) as usize,
-            );
-        }
-        let smelter = smelter_level_by(
-            METAL_KIND,
-            |_| any(Ident::Smelter),
-            || levels.smelter.max(1),
+        // `City::calc_gather@00737c60`'s four bytes ([`economy::calc_gather_steps`],
+        // item 2368's sweep): the flags `0x200` / `0x400` are the granary and
+        // lumber mill standing, the metal and oil goods' enhancers are
+        // `get_enhancer` of kinds 4 and 5, and `calc_city_resources` is the
+        // rest of this function.
+        let enh = |t: i32| match t {
+            0x1a7 => any(Ident::Granary),
+            0x1a8 => any(Ident::Lumbermill),
+            0x1a9 => any(Ident::Smelter),
+            0x1aa => any(Ident::Refinery),
+            _ => false,
+        };
+        let flags = if any(Ident::Granary) { 0x200 } else { 0 }
+            | if any(Ident::Lumbermill) { 0x400 } else { 0 };
+        let tuning = &self.tuning;
+        let bytes = economy::calc_gather_steps(
+            &mut (),
+            flags,
+            |_| levels.granary.max(1),
+            |_| levels.lumber_mill.max(1),
+            |_, r| good_enhancer(r.index() as i32),
+            |_, t| i32::from(enh(t)),
+            |_| smelter_level_by(METAL_KIND, enh, || levels.smelter.max(1)),
+            |_, r, lvl| economy::enhancer_bonus(tuning, r, lvl),
+            |_, _| {},
         );
-        if smelter != 0 {
-            out.set_enhancer(&self.tuning, Resource::Metal, smelter as usize);
-        }
+        out.granary = i32::from(bytes[0]);
+        out.lumber_mill = i32::from(bytes[1]);
+        out.smelter = i32::from(bytes[2]);
 
         for &b in &chain {
             // The oil exclusion is the original's: an oil well or platform in
@@ -329,9 +397,37 @@ impl Sim {
     /// `BuildData::calc_gather` passes down, and the university level that
     /// selects `SCHOLAR_RATE`.
     fn site_of(&self, b: usize, resource: Resource, levels: Levels) -> Site {
+        let bd = &self.buildings[b];
+        let mut gatherers = 0;
+        // `calc_city_resources` passes `param_5 = 0`, so the building's own
+        // `is_active` is asked. The count out-parameter is `gather.rs`'s
+        // survey ([`Sim::max_gatherers`]); income takes the gatherers.
+        build_calc_gather_steps(
+            false,
+            || {
+                bd.ty.map_or((0, 0), |t| {
+                    let c = self.tile_corner(t, bd.pos);
+                    (c.x, c.y)
+                })
+            },
+            || i32::from(bd.active),
+            || self.is_kind(b, Ident::University),
+            || {
+                bd.garrison
+                    .iter()
+                    .filter(|&&u| self.worker_of(u) == crate::orders::Worker::Scholar)
+                    .filter(|&&u| !self.units[u].decoy)
+                    .count() as i32
+            },
+            || self.num_gatherers(b, true, true),
+            |h| {
+                gatherers = h.gatherers;
+                0
+            },
+        );
         Site {
             resource,
-            gatherers: self.num_gatherers(b, true, true),
+            gatherers,
             level: if resource == Resource::Knowledge {
                 levels.university.max(1)
             } else {

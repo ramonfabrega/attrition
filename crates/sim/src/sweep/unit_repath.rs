@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `Unit::repath@005e29b0`, run by `tools/emu/sweep_unit_repath.py` under unicorn
-/// (tools/emu): 1024 random bytes of object, 0 argument(s), the global cell 0x00e85f20 points at 10240 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0x10c (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; callee 0x007123f0 (1 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+0x4` points at 16 random bytes less `0` (placed); the word at `p1+0x8` points at 16 random bytes less `0` (placed); stub 0 answered from [1, 2, 3, 4, 18, 19, 21, 0, 7, 26] (90%); stub 1 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p2+0`; stub 0 answers 6 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// (tools/emu): 1024 random bytes of object, 0 argument(s), the global cell 0x00e85f20 points at 10240 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0x10c (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; callee 0x007123f0 (1 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+0x4` points at 16 random bytes less `0` (placed); the word at `p1+0x8` points at 16 random bytes less `0` (placed); stub 0 answered from [1, 2, 3, 4, 18, 19, 21, 0, 7, 26] (90%); stub 1 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p2+0`; stub 0 answers 6 values in call order, the last from [0, 7, 26], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_unit_repath.py") else {
@@ -46,8 +46,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // `a` is the four stubs' answers then `get_type`'s six (`--seq
-            // 0:6`, the last held off the family by the script's hand
-            // edit). The head is `m+0xdc` → `p0`, its node `p0+4` → `p1`,
+            // 0:6:0,7,26`, the last a terminator off the family, item 2368). The head is `m+0xdc` → `p0`, its node `p0+4` → `p1`,
             // whose `+8` is the order `p2` (the stubbed vtable at `+0`,
             // flags at `+4`); `get_group_move_order` answers `p3`, the id
             // its `+0xc`; `groups` is `c0`, stride `0x9d4`.

@@ -2225,6 +2225,60 @@ impl Sim {
     }
 }
 
+/// What `UnitData::is_flying_low@0060a140` makes of its front order's type
+/// (`order_type@00616e80`, `60a18d`): `STRAFE` (0x10), `AIR_ATTACK_GROUND`
+/// (0x18), `NONE` (0), or any other.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum LowFront {
+    None,
+    Strafe,
+    AirAttackGround,
+    Other,
+}
+
+/// **`UnitData::is_flying_low@0060a140`'s steps** (the listing,
+/// `60a140`..`60a2ff`; item 2368's sweep holds them): a fixed-wing plane
+/// ([`Sim::is_fixed_wing`]'s three type tests) asks whether it is on the map,
+/// then its front order's type. `NONE` is not low. A `STRAFE` asks its target
+/// (slot `0x100`: `None` when the slot's index or owner is negative or the
+/// object is not active), an `AIR_ATTACK_GROUND` its point (slot `0xd4`), and
+/// either is low when the point is within [`LOW_REACH`] (`vector_dist` of the
+/// absolute differences, `< 0x900`). Failing that — and for any other order —
+/// the air order (slot `0xfc`): `Some` home when it is `returning` with an
+/// active home, low within the same reach. `cx` is the caller's context, the
+/// closures' to read.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn flying_low_steps<C>(
+    cx: &mut C,
+    fixed_wing: bool,
+    here: impl Fn(&mut C) -> Pos,
+    on_map: impl FnOnce(&mut C) -> bool,
+    front: impl FnOnce(&mut C) -> LowFront,
+    strafe_target: impl FnOnce(&mut C) -> Option<Pos>,
+    ground_point: impl FnOnce(&mut C) -> Pos,
+    air_home: impl FnOnce(&mut C) -> Option<Pos>,
+) -> bool {
+    if !fixed_wing || !on_map(cx) {
+        return false;
+    }
+    let near = |p: Pos, h: Pos| vector_dist(p.x - h.x, p.y - h.y) < LOW_REACH;
+    let point = match front(cx) {
+        LowFront::None => return false,
+        LowFront::Strafe => strafe_target(cx),
+        LowFront::AirAttackGround => Some(ground_point(cx)),
+        LowFront::Other => None,
+    };
+    if let Some(p) = point
+        && near(p, here(cx))
+    {
+        return true;
+    }
+    match air_home(cx) {
+        Some(p) => near(p, here(cx)),
+        None => false,
+    }
+}
+
 /// `UnitData::is_flying_high@0060a310`'s order: a fixed-wing plane ([`Sim::is_fixed_wing`]'s three type tests)
 /// asks whether it is on the map, and only on the map whether it flies low, answering not low; anything else is
 /// not high and asks nothing (item 2090's sweep holds the asks).
@@ -3672,33 +3726,37 @@ impl Sim {
     /// is not low, and nor is any order that is not an air order.
     pub(crate) fn is_flying_low(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        if !self.is_fixed_wing(u) || !unit.alive() || unit.inside.is_some() {
-            return false;
-        }
-        let here = unit.pos;
-        let near = |p: Pos| vector_dist(p.x - here.x, p.y - here.y) < LOW_REACH;
-        match self.current_order(u).map(|o| o.body) {
-            None => return false,
-            Some(Body::Strafe(sf)) => {
-                if let Some(t) = sf.target
-                    && self.active(t)
-                    && near(self.pos_of(t))
-                {
-                    return true;
-                }
-            }
-            Some(Body::AirAttackGround(g)) => {
-                if near(g.at) {
-                    return true;
-                }
-            }
-            Some(_) => {}
-        }
-        self.current_air(u).is_some_and(|a| {
-            a.returning
-                && a.home
-                    .is_some_and(|b| self.buildings[b].alive && near(self.buildings[b].pos))
-        })
+        let front = || self.current_order(u).map(|o| o.body);
+        flying_low_steps(
+            &mut (),
+            self.is_fixed_wing(u),
+            |_| unit.pos,
+            |_| unit.alive() && unit.inside.is_none(),
+            |_| match front() {
+                None => LowFront::None,
+                Some(Body::Strafe(_)) => LowFront::Strafe,
+                Some(Body::AirAttackGround(_)) => LowFront::AirAttackGround,
+                Some(_) => LowFront::Other,
+            },
+            |_| match front() {
+                Some(Body::Strafe(sf)) => sf
+                    .target
+                    .filter(|&t| self.active(t))
+                    .map(|t| self.pos_of(t)),
+                _ => None,
+            },
+            |_| match front() {
+                Some(Body::AirAttackGround(g)) => g.at,
+                _ => unreachable!("asked only under an AIR_ATTACK_GROUND"),
+            },
+            |_| {
+                self.current_air(u)
+                    .filter(|a| a.returning)
+                    .and_then(|a| a.home)
+                    .filter(|&b| self.buildings[b].alive)
+                    .map(|b| self.buildings[b].pos)
+            },
+        )
     }
 
     /// **An `ANTI_AIR` attacker rolls whether its radar is jammed**

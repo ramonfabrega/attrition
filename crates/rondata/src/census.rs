@@ -54,8 +54,10 @@
 /// line each, the band empty on `census.py --unbacked`;
 /// item 2357: 873 -> 874, chapter sixty-eight's coverage, `get_military_level_slow` diff-backed by run852;
 /// item 2379: 874 -> 884, the sweep's seventieth batch, ten `CommandManager::issue_*` whose command
-/// bytes `obj --deref` reads at the call).
-pub const SIMULATION_BACKED: usize = 884;
+/// bytes `obj --deref` reads at the call;
+/// item 2368: 884 -> 894, the second sweep lane's ten with a port consumer, `Caravan::trade_value`'s eight
+/// windows among them, on `--regen`'s kept port block and `--seq`'s terminator).
+pub const SIMULATION_BACKED: usize = 894;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;

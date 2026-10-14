@@ -175,6 +175,35 @@ pub(crate) fn beyond_access_ring(cx: i32, cy: i32, p: Pos) -> bool {
     dx.wrapping_add(dy) > ACCESS_NEAR || dx >= ACCESS_NEAR || dy >= ACCESS_NEAR
 }
 
+/// `BuildTypeData::max_gatherers@0063c430`'s shape, its callees closures
+/// (swept in `sweep::build_type_data_max_gatherers`).
+///
+/// A flat type (`is_flat`, vtable `+0x94`) answers [`MAX_FLAT_GATHERERS`]
+/// before anything is asked. Unplaced (`o < 0 || who < 0`), `calc` is handed
+/// city `-1` and no list — the survey. Placed, the city is the building's
+/// (`BuildData::city`, `+0x72`) when the object is `active` — its flag bit 0,
+/// vtable `+0x20` and `+0x4c` (`WallData::is_active`), asked in that order and
+/// short-circuited — and `-1` otherwise; then `calc` gets that city and the
+/// building's own `MiningList` (`+0x98`). The count `calc` answers is clamped
+/// at zero (`cmovs`, `0063c527` and its twin after `0063c559`).
+pub(crate) fn max_gatherers_steps<L>(
+    flat: bool,
+    placed: bool,
+    active: impl FnOnce() -> bool,
+    city: impl FnOnce() -> i32,
+    list: impl FnOnce() -> L,
+    calc: impl FnOnce(i32, Option<L>) -> i32,
+) -> i32 {
+    if flat {
+        return MAX_FLAT_GATHERERS;
+    }
+    if !placed {
+        return calc(-1, None).max(0);
+    }
+    let city = if active() { city() } else { -1 };
+    calc(city, Some(list())).max(0)
+}
+
 /// What a gather building's slot count is being computed for: an existing
 /// building, which reads its own `MiningList`, or a prospective site, which
 /// surveys the map (`max_gatherers`' `o < 0 || who < 0` branch).
@@ -207,14 +236,36 @@ impl Sim {
         let bd = &self.buildings[b];
         let Some(ty) = bd.ty else { return 0 };
         let corner = self.tile_corner(ty, bd.pos);
-        self.gather_slots(ty, bd.owner, corner, &Source::List(&bd.gather_from))
+        // The city `calc_gather` is handed is a seam here: the count it
+        // decides reads none of what the sim models of it.
+        max_gatherers_steps(
+            self.build_types[ty].has(flags::FLAT),
+            true,
+            || bd.alive && bd.active,
+            || bd.city.map_or(-1, |c| i32::try_from(c).unwrap_or(-1)),
+            || &bd.gather_from[..],
+            |_city, list| match list {
+                Some(l) => self.gather_slots_raw(ty, bd.owner, corner, &Source::List(l)),
+                None => self.gather_slots_raw(ty, bd.owner, corner, &Source::Survey),
+            },
+        )
     }
 
     /// The same for a prospective site — `max_gatherers` with `o < 0`, which
     /// surveys the map instead of reading a list. `corner` is the footprint's
     /// corner tile, as [`Sim::tile_corner`] gives it.
     pub fn max_gatherers_at(&self, ty: usize, who: Player, corner: Pos) -> i32 {
-        self.gather_slots(ty, who, corner, &Source::Survey)
+        max_gatherers_steps(
+            self.build_types[ty].has(flags::FLAT),
+            false,
+            || false,
+            || -1,
+            || &[][..],
+            |_city, list| match list {
+                Some(l) => self.gather_slots_raw(ty, who, corner, &Source::List(l)),
+                None => self.gather_slots_raw(ty, who, corner, &Source::Survey),
+            },
+        )
     }
 
     /// Test support: the trees a woodcutter's camp needs before
@@ -282,13 +333,8 @@ impl Sim {
         }
     }
 
-    /// The count out-parameter of `calc_gather`, clamped at zero the way
-    /// `max_gatherers` clamps it.
-    fn gather_slots(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
-        self.gather_slots_raw(ty, who, corner, from).max(0)
-    }
-
-    /// The same count before the clamp: [`Sim::site_gather_count`] and
+    /// The count out-parameter of `calc_gather`, before the clamp
+    /// [`max_gatherers_steps`] applies: [`Sim::site_gather_count`] and
     /// [`Sim::max_gatherers`] are its two readers.
     fn gather_slots_raw(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
         let t = &self.build_types[ty];
