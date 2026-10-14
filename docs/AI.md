@@ -20278,12 +20278,65 @@ its `aim` is the live object, not the slot. Guard, follow and spell copies are s
 `Unit::do_build`'s own stale-site test is uid-checked was not read: `Unit::work@0060d180:319`'s uid test is, and the
 closed-site builder walks on (item 644).
 
-## 216. Reserved for the next item on the AI track
+## 216. A held Supercollider zeroes a tech's research time, and the successor pair's word moves 4671 → 4946 (2026-10-14, item 2259)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Status: built, diff-backed** (`mongol_pair_first_parting`, `run838_s_word_frame_is_widened_whole`). No capture and
+no packet: the frame and the block after it are inside run838.
+
+### 216.1 The frame, both sides
+
+Frame **4671: ours 161 draws, theirs 165, parting at index 145** (`RON_DEBUG_SITES`). Theirs spends three
+`Guy::init_real+0x52` draws (seeds `6cadace8`, `d6cd2b27`, `1adaae5a`) and then the same `Guy::inc_time+0x271` run as
+ours, one draw longer (17 against 16). Block 4672 is the frame's product. Theirs' leader `gov` reads 625
+(`GOV_MONARCHY`) against ours' 623, `discovered_get()` 43 against 42. The leader's `num_units` move from slot 302 to
+304 there and not here (`TypeIndex` 352, `THEDESPOT`, to 354, `THEMONARCH`). The Despot `1/191`'s figures move and its `mylos` drops
+22 → 14. The Senate `1/2019` (`orig_type` 438) has `queued` 0 there against 1 here. The research is Monarchy, the
+queue's head, `queue[0].job_counter` 28900 on block 4671 on both sides. The birth's draws are the Despot's
+`set_type` to The Monarch: `Build::finished`'s Senate tail (`senate_gov_hero`, the standing-patriot arm).
+
+### 216.2 Why theirs finishes: the target fell under the counter
+
+`production::advance` tests `target <= counter` before it adds the frame's 100. On theirs the counter climbed
+28800 → 28900 into 4671 uncapped, so its target was at least 28900 on 4670, and the job was done on 4671, so the
+target there was at most 28900. Ours' target is 42000: `JOB_TIME` 700 × 100, then the science speedup (epoch 7 against
+`AGE` 3, 40 % off). The target is recomputed every frame. Something moved it on 4671.
+
+The leader's diff 4671 → 4672 in the dump names it. `wonder_mark` 3 → 4, `num_buildings[127]` 0 → 1 and `num_queued[541]`
+1 → 0: the Supercollider (`TypeIndex` 541, `0x21d`), `1/2034`, finishes on 4671 (`job_counter` 839707 of 840000 on
+block 4671). It finishes on ours' 4671 too (`RON_DEBUG_BUILDS`: `act1` on 4671). `num_buildings` is on the coverage
+pin's unread list, so the two sides' agreement on it is quiet, not compared.
+
+### 216.3 The mechanism, and the build
+
+`ObjectData::train_time@006508c0`'s tech block (a type in `0x220..0x274`) ends with `has_wonder(0x21d)` and a type
+that is neither `DISBAND` nor `RAZE`: `local_8 = 0`. Every step after it multiplies a zero, and
+the `max(1, local_8)` at the foot answers 1. The function's last `has_wonder(0x21d)` block zeroes again for any type
+that is neither a unit nor a building. So a unit's research job keeps its time. `docs/PRODUCTION.md` names the arm
+("the Supercollider … zeroes research time entirely"); this crate's `tech_time` had only the science speedup.
+
+`Sim::tech_time` (`crates/sim/src/lib.rs`) answers `production::MIN_TIME` when `wonders_held` holds
+`tech::wonder::SUPERCOLLIDER`. `advance` passes a `MIN_TIME` target at any counter, so the job finishes on its next
+tick. Both sides see the completion inside the frame: theirs' Senate finishes on 4671, the Supercollider's own frame,
+and so does ours with the arm built. Which pass of the original's frame orders the two is not read. Test: `cities_tests::a_held_supercollider_finishes_a_research_job_on_its_next_tick`.
+**Mutations** (`tools/mutate.py`, the arm's test negated): **held** by the test (exit 101) and by the walk
+(`mongol_pair_first_parting` back at 4671).
+
+### 216.4 What moved, and the next word
+
+**The value diff, block 4672**: leader `gov` 625 on both sides, `num_units[304]` 1, `1/2019`'s `queue:queued` 0, and
+`1/191`'s `mylos` 14 and figures `g.x[1]` 30683, `g.x[2]` 30499, `g.y[1]` 37190, `g.y[2]` 37344 on both.
+
+**The keys**: run838 1,370 → 189. Block 4672's rows leave whole. The first row past the standing ones and the
+4605..4661 `form`/`dest_angle` rows is `1/176`'s `mirror` (ours 0, theirs 1) on 4702. `GROUND_INEXACT`'s
+`mongol_pair_first_parting` 877 → 923.
+
+**The word 4671 → 4946** (count and sequence both). Frame **4946: ours 161 draws, theirs 162, parting at index 150**.
+Theirs spends one `Guy::init_real+0x52`, a birth, ahead of the `Guy::inc_time+0x271` run that ours opens on. It is past
+run838's window. Parked 2260.
+
+**Not established**: whether the original's `do_queue` reads a target of 1 the way `advance` does (`target ==
+MIN_TIME`) or only through `target <= counter`; on a counter above zero the two agree. The `DISBAND`/`RAZE` exemption
+is not built, since neither is a tech entry here.
 
 ## 217. Reserved for the next item on the AI track
 

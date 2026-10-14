@@ -2508,6 +2508,55 @@ fn a_held_tikal_raises_a_templed_city_s_hit_points() {
     assert_eq!(sim.buildings[b].hits, (k + 100) * 1200 / 100, "and Tikal's");
 }
 
+/// **A held Supercollider finishes a research job on its next tick**
+/// (item 2259, `docs/AI.md` §216): `train_time@006508c0`'s tech block sets
+/// the time to zero under `has_wonder(0x21d)`, so the floor answers one and
+/// `do_queue`'s `done` test passes at any counter. run838's 4671: who=1's
+/// Supercollider completes and its Senate's Monarchy, at 28900 of 42000,
+/// finishes the same frame.
+#[test]
+fn a_held_supercollider_finishes_a_research_job_on_its_next_tick() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    let senate_t = tree.add(tech::TypeDef::building("Senate"));
+    let monarchy = tree.add(tech::TypeDef::gov("Monarchy", 0, 0).at(senate_t));
+    tree.types[monarchy].job_time = 700;
+    sim.set_tech_tree(tree);
+    sim.build_types[t.senate].tree = Some(senate_t);
+    let mut sc = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    sc.ident = Ident::default();
+    sc.tree = Some(line[tech::wonder::SUPERCOLLIDER]);
+    let sc = sim.add_build_type(sc);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let senate = sim.init_build(0, t.senate, tile_pos(36, 32), false);
+    finish(&mut sim, senate);
+    let long = sim.tech_time(0, monarchy);
+    assert!(long > 100 * 10, "a government takes its time: {long}");
+    assert_eq!(sim.queue_tech(senate, monarchy), Ok(0));
+    for _ in 0..10 {
+        sim.tick();
+    }
+    assert!(!sim.tech[0].tech[monarchy], "ten frames are not enough");
+    let w = sim.place_building(0, sc, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_ne!(
+        sim.wonders_held(0) & (1 << tech::wonder::SUPERCOLLIDER),
+        0,
+        "the finished Supercollider is held"
+    );
+    assert_eq!(sim.tech_time(0, monarchy), production::MIN_TIME);
+    sim.tick();
+    assert!(
+        sim.tech[0].tech[monarchy],
+        "the job finishes on the next tick"
+    );
+}
+
 #[test]
 fn a_garrisoned_city_is_emptied_rather_than_captured() {
     let mut sim = world_sim();
