@@ -8,7 +8,7 @@
     uv run tools/emu/sweep_unit_kill_group_move.py <install>/riseofnations.exe
 
 `__thiscall`, `ecx` = a 256-byte object of random bytes (no bias), 1 stack argument(s);
-16 random bytes at 0x00e90000; 16 random bytes at 0x00e90010; 16 random bytes at 0x00e90020; 16 random bytes at 0x00e90030; 64 random bytes at 0x00e90100; 64 random bytes at 0x00e90180; 64 random bytes at 0x00e90200; 64 random bytes at 0x00e90280; 16 random bytes at 0x00e90300; vtable slot +0x14 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0x24 (0 args) stubbed; vtable slot +0x94 (0 args) stubbed; callee 0x005e31d0 (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; the stubbed vtable laid at `c4+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the stubbed vtable laid at `c5+0` as well as at `this`; the stubbed vtable laid at `c6+0` as well as at `this`; the stubbed vtable laid at `c7+0` as well as at `this`.
+16 random bytes at 0x00e90000; 16 random bytes at 0x00e90010; 16 random bytes at 0x00e90020; 16 random bytes at 0x00e90030; 64 random bytes at 0x00e90100; 64 random bytes at 0x00e90180; 64 random bytes at 0x00e90200; 64 random bytes at 0x00e90280; 16 random bytes at 0x00e90300; vtable slot +0x14 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0x24 (0 args) stubbed; vtable slot +0x94 (0 args) stubbed; callee 0x005e31d0 (0 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; the stubbed vtable laid at `c4+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 0 answers from its own `ecx`: the word at `+0x8`; stub 1 answers from its own `ecx`: the word at `+0xc`; stub 2 answers from its own `ecx`: the word at `+0x10`; stub 3 answers from its own `ecx`: the word at `+0x18`, or `ecx+0x18` when the word at `+0x14` is set; a circular list in `c0..c3` at 0xe90000+0x10k, next `+0x4`, prev `+0x0`, head the word at `m+0xdc`; the stubbed vtable laid at `c5+0` as well as at `this`; the stubbed vtable laid at `c6+0` as well as at `this`; the stubbed vtable laid at `c7+0` as well as at `this`.
 One row per input, `<args… stubs…> | <this>;<c…>;<p…> -> <eax> | <this>;<c…>;<p…>` (hex); the stubs'
 answers follow the arguments, and the test holds every byte of every window.
 """
@@ -56,11 +56,15 @@ VTALSO = [('c5', 0), ('c6', 0), ('c7', 0)]
 SPARSE = []
 RECORD = [0, 1, 2, 3, 4, 5]
 RECORDORDER = True
+RECORDEDX = False
 ROWSPLIT = {}
 LINKS = []
 OUTARG = []
 CDECLSTUBS = []
 STUBWRITE = []
+ECXANSWER = [(0, 8, None), (1, 12, None), (2, 16, None), (3, 24, 20)]
+RING = [('m', 220, 0, 3, 4, 0, 15269888, 16)]
+DEREF = []
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -149,6 +153,18 @@ def win_write(inner, at, size, v, write):
     as `inner` would."""
     def answer(ecx, args):
         write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+        return inner(ecx, args) if callable(inner) else inner
+    return answer
+
+
+def read_arg(inner, k, n, read, sink):
+    """`--deref IDX:K:N` (item 2379, parked 2348): a stub that reads the N
+    bytes its argument K points at when it is called — a caller's local
+    `Command`, gone once the call returns — into `sink` as hex (`null` for a
+    null argument), then answers as `inner` would."""
+    def answer(ecx, args):
+        a = args[k] & 0xFFFFFFFF
+        sink.append(read(a, n).hex() if a else "null")
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -364,25 +380,31 @@ def main(argv):
             if rng.random() < 0.45:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 args[idx] = i32(w, off)
-        # Hand edit (item 2368; no sweep_gen shape lays a circular doubly
-        # linked list): each node's `+0` (its `prev`) is its predecessor on
-        # the `next` walk from the tail `m+0xdc`, so the walk's stop — the
-        # advanced node's `+0` is the tail — ends on the wrap; a fifth of
-        # the rows then lay one later node's `+0` as the tail, an early stop.
-        tail = i32(mem, 0xdc) & 0xFFFFFFFF
-        if tail:
-            node = lambda a_: (a_ - 0xe90000) // 0x10
-            walk = [node(tail)]
-            while True:
-                nxt = node(i32(c[walk[-1]], 4) & 0xFFFFFFFF)
-                if nxt == node(tail):
-                    break
-                walk.append(nxt)
-            order = walk[1:] + walk[:1]
-            for j, k in enumerate(order):
-                c[k][0:4] = (0xe90000 + 0x10 * order[j - 1]).to_bytes(4, "little")
-            if len(order) > 1 and rng.random() < 0.2:
-                c[rng.choice(order[1:])][0:4] = tail.to_bytes(4, "little")
+        # `--ring` (item 2400, parked 2369): a circular doubly linked list
+        # laid in the `c` windows LO..HI at BASE + STRIDE k. The head is
+        # the word at HWIN+HOFF; each node's `prev` is its predecessor on
+        # the `next` walk from the head (the head's, the last node), so a
+        # walk stopping at the head ends on the wrap; a fifth of the rows
+        # then point one later node's `prev` at the head, an early stop.
+        for hwin, hoff, lo_, hi_, noff, poff, base_, stride_ in RING:
+            hw = mem if hwin == "m" else (c if hwin[0] == "c" else p)[int(hwin[1:])]
+            head = i32(hw, hoff) & 0xFFFFFFFF
+            node = lambda a_: (a_ - base_) // stride_
+            if head and base_ <= head < base_ + stride_ * (hi_ - lo_ + 1) and (head - base_) % stride_ == 0:
+                walk, seen = [node(head)], {node(head)}
+                while True:
+                    a_ = i32(c[lo_ + walk[-1]], noff) & 0xFFFFFFFF
+                    if not (base_ <= a_ < base_ + stride_ * (hi_ - lo_ + 1)) or (a_ - base_) % stride_:
+                        break
+                    nxt = node(a_)
+                    if nxt in seen:
+                        break
+                    walk.append(nxt)
+                    seen.add(nxt)
+                for j, k in enumerate(walk):
+                    c[lo_ + k][poff:poff + 4] = (base_ + stride_ * walk[j - 1]).to_bytes(4, "little")
+                if len(walk) > 1 and rng.random() < 0.2:
+                    c[lo_ + rng.choice(walk[1:])][poff:poff + 4] = head.to_bytes(4, "little")
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
         for cell, stub in iats:
@@ -394,16 +416,6 @@ def main(argv):
             based.append(int(on))
         for name, v in zip(names, answers):
             h.answers[name] = v & 0xFFFFFFFF
-        # Hand edit (item 2368; no sweep_gen shape answers a slot from its
-        # own `ecx`, as `update_action`'s): each order answers from its own
-        # window — `is_move` (+0x14) its word +8, `get_type` (+0x10) +0xc,
-        # `is_pathed` (+0x24) +0x10, and `get_group_move_order` (+0x94)
-        # `ecx+0x18` when its word +0x14 is set, else null; that record's
-        # vbtable (`c8`, `+4` = -0x18) leads back to the order itself.
-        h.answers["slot14"] = lambda ecx, args: h.r32(ecx + 8) & 0xFFFFFFFF
-        h.answers["slot10"] = lambda ecx, args: h.r32(ecx + 0xc) & 0xFFFFFFFF
-        h.answers["slot24"] = lambda ecx, args: h.r32(ecx + 0x10) & 0xFFFFFFFF
-        h.answers["slot94"] = lambda ecx, args: (ecx + 0x18) & 0xFFFFFFFF if h.r32(ecx + 0x14) else 0
         # A callee called more than once a row answers each call in turn:
         # N values drawn a row (from its `--answers` list when it has one),
         # the last repeated past N — from the terminators when given (item
@@ -422,9 +434,21 @@ def main(argv):
         for (idx, k, _), v in zip(OUTARG, outs):
             h.answers[names[idx]] = out_answer(h.answers[names[idx]], k, v,
                                                lambda a_, v_: uc.mem_write(a_, (v_ & 0xFFFFFFFF).to_bytes(4, "little")))
+        # `--ecx-answer IDX:OFF[:FLAGOFF]` (item 2400): a slot answering from
+        # its own `ecx`: the word at `ecx+OFF`, or with FLAGOFF `ecx+OFF`
+        # itself when the word at `ecx+FLAGOFF` is set, else null.
+        for idx, off, flag in ECXANSWER:
+            if flag is None:
+                h.answers[names[idx]] = lambda ecx, args, off=off: h.r32(ecx + off) & 0xFFFFFFFF
+            else:
+                h.answers[names[idx]] = lambda ecx, args, off=off, flag=flag: (ecx + off) & 0xFFFFFFFF if h.r32(ecx + flag) else 0
         for idx, win, off, size, v in STUBWRITE:
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
+        derefs = [[] for _ in DEREF]
+        for (idx, k, n), sink in zip(DEREF, derefs):
+            h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
+                                             lambda a_, n_: bytes(uc.mem_read(a_, n_)), sink)
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -436,6 +460,7 @@ def main(argv):
         # `--edx` (item 2346): an integer in `edx` beside `ecx`, after it on the row.
         edx = None if EDX is None else draw_reg(rng, EDX, WILD, rand32)
         h.calls.clear()
+        h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
                    edx=0 if EDX is None else edx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
@@ -453,7 +478,7 @@ def main(argv):
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
         log = ""
-        if RECORD:
+        if RECORD or DEREF:
             spans = [("m", this, WIN)] + [(f"c{k}" if k < nc else f"p{k - nc}", a_, len(b))
                                           for k, (a_, b) in enumerate(wins)]
             cols = []
@@ -461,11 +486,17 @@ def main(argv):
                 cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
             for idx in ([] if RECORDORDER else RECORD):
                 calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
-                if idx in ROWSPLIT:
+                if RECORDEDX:
+                    # `--record-edx` (item 2400): `ecx,edx,arg..` a call.
+                    cols.append("/".join(",".join(token(v, spans) for v in [e, d] + list(a_))
+                                         for (n_, e, a_, _), d in zip(h.calls, h.edxs) if n_ == names[idx]) or "-")
+                elif idx in ROWSPLIT:
                     cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
                 else:
                     cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
                                          for e, a_ in calls) or "-")
+            # `--deref`: the bytes each call's argument pointed at (item 2379).
+            cols += ["/".join(sink) or "-" for sink in derefs]
             log = " # " + " ".join(cols)
         print(" ".join(shown) + f" | {before} -> {r} | {after}" + log)
     return 0
@@ -474,4 +505,4 @@ def main(argv):
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
 
-# sweep_gen: ["obj", "Unit::kill_group_move@005e3400", "--item", "2368", "--win", "0x100", "--own", "1", "--ret", "none", "--rows", "600", "--argset", "0:5,6,7", "--stub", "slot:0x14:0", "--stub", "slot:0x10:0", "--stub", "slot:0x24:0", "--stub", "slot:0x94:0", "--stub", "0x5e31d0:0", "--stub", "0x5e2cb0:1", "--at", "0xe90000:16", "--at", "0xe90010:16", "--at", "0xe90020:16", "--at", "0xe90030:16", "--at", "0xe90100:64", "--at", "0xe90180:64", "--at", "0xe90200:64", "--at", "0xe90280:64", "--at", "0xe90300:16", "--vtat", "c4+0", "--vtat-also", "c5+0", "--vtat-also", "c6+0", "--vtat-also", "c7+0", "--wbias", "m+0xdc:0xe90000,0xe90000,0xe90000,0xe90000,0", "--wbias", "m+0xd8:1,2,3,4,0", "--wbias", "c0+4:0xe90000,0xe90010", "--wbias", "c1+4:0xe90000,0xe90020", "--wbias", "c2+4:0xe90000,0xe90030", "--wbias", "c3+4:0xe90000", "--wbias", "c0+8:0xe90100", "--wbias", "c1+8:0xe90180", "--wbias", "c2+8:0xe90200", "--wbias", "c3+8:0xe90280", "--wbias", "c4+8:0,1,1,1", "--wbias", "c5+8:0,1,1,1", "--wbias", "c6+8:0,1,1,1", "--wbias", "c7+8:0,1,1,1", "--wbias", "c4+0xc:0x12,0x15,1,4,0x13", "--wbias", "c5+0xc:0x12,0x15,1,4,0x13", "--wbias", "c6+0xc:0x12,0x15,1,4,0x13", "--wbias", "c7+0xc:0x12,0x15,1,4,0x13", "--wbias", "c4+0x10:0,1", "--wbias", "c5+0x10:0,1", "--wbias", "c6+0x10:0,1", "--wbias", "c7+0x10:0,1", "--wbias", "c4+0x14:0,1", "--wbias", "c5+0x14:0,1", "--wbias", "c6+0x14:0,1", "--wbias", "c7+0x14:0,1", "--wbias", "c4+0x18:0xe90300", "--wbias", "c5+0x18:0xe90300", "--wbias", "c6+0x18:0xe90300", "--wbias", "c7+0x18:0xe90300", "--wbias", "c4+0x24:5,6,7", "--wbias", "c5+0x24:5,6,7", "--wbias", "c6+0x24:5,6,7", "--wbias", "c7+0x24:5,6,7", "--wbias", "c8+4:-24", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record", "4", "--record", "5", "--record-order"]
+# sweep_gen: ["obj", "Unit::kill_group_move@005e3400", "--item", "2368", "--win", "0x100", "--own", "1", "--ret", "none", "--rows", "600", "--argset", "0:5,6,7", "--stub", "slot:0x14:0", "--stub", "slot:0x10:0", "--stub", "slot:0x24:0", "--stub", "slot:0x94:0", "--stub", "0x5e31d0:0", "--stub", "0x5e2cb0:1", "--at", "0xe90000:16", "--at", "0xe90010:16", "--at", "0xe90020:16", "--at", "0xe90030:16", "--at", "0xe90100:64", "--at", "0xe90180:64", "--at", "0xe90200:64", "--at", "0xe90280:64", "--at", "0xe90300:16", "--vtat", "c4+0", "--vtat-also", "c5+0", "--vtat-also", "c6+0", "--vtat-also", "c7+0", "--wbias", "m+0xdc:0xe90000,0xe90000,0xe90000,0xe90000,0", "--wbias", "m+0xd8:1,2,3,4,0", "--wbias", "c0+4:0xe90000,0xe90010", "--wbias", "c1+4:0xe90000,0xe90020", "--wbias", "c2+4:0xe90000,0xe90030", "--wbias", "c3+4:0xe90000", "--wbias", "c0+8:0xe90100", "--wbias", "c1+8:0xe90180", "--wbias", "c2+8:0xe90200", "--wbias", "c3+8:0xe90280", "--wbias", "c4+8:0,1,1,1", "--wbias", "c5+8:0,1,1,1", "--wbias", "c6+8:0,1,1,1", "--wbias", "c7+8:0,1,1,1", "--wbias", "c4+0xc:0x12,0x15,1,4,0x13", "--wbias", "c5+0xc:0x12,0x15,1,4,0x13", "--wbias", "c6+0xc:0x12,0x15,1,4,0x13", "--wbias", "c7+0xc:0x12,0x15,1,4,0x13", "--wbias", "c4+0x10:0,1", "--wbias", "c5+0x10:0,1", "--wbias", "c6+0x10:0,1", "--wbias", "c7+0x10:0,1", "--wbias", "c4+0x14:0,1", "--wbias", "c5+0x14:0,1", "--wbias", "c6+0x14:0,1", "--wbias", "c7+0x14:0,1", "--wbias", "c4+0x18:0xe90300", "--wbias", "c5+0x18:0xe90300", "--wbias", "c6+0x18:0xe90300", "--wbias", "c7+0x18:0xe90300", "--wbias", "c4+0x24:5,6,7", "--wbias", "c5+0x24:5,6,7", "--wbias", "c6+0x24:5,6,7", "--wbias", "c7+0x24:5,6,7", "--wbias", "c8+4:-24", "--record", "0", "--record", "1", "--record", "2", "--record", "3", "--record", "4", "--record", "5", "--record-order", "--ring", "m+0xdc:0..3:4:0:0xe90000:0x10", "--ecx-answer", "0:8", "--ecx-answer", "1:0xc", "--ecx-answer", "2:0x10", "--ecx-answer", "3:0x18:0x14"]

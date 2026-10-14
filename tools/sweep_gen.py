@@ -1162,11 +1162,14 @@ VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
 RECORD = {record!r}
 RECORDORDER = {recordorder!r}
+RECORDEDX = {recordedx!r}
 ROWSPLIT = {rowsplit!r}
 LINKS = {links!r}
 OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
+ECXANSWER = {ecxanswer!r}
+RING = {ring!r}
 DEREF = {deref!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
@@ -1483,6 +1486,31 @@ def main(argv):
             if rng.random() < 0.45:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 args[idx] = i32(w, off)
+        # `--ring` (item 2400, parked 2369): a circular doubly linked list
+        # laid in the `c` windows LO..HI at BASE + STRIDE k. The head is
+        # the word at HWIN+HOFF; each node's `prev` is its predecessor on
+        # the `next` walk from the head (the head's, the last node), so a
+        # walk stopping at the head ends on the wrap; a fifth of the rows
+        # then point one later node's `prev` at the head, an early stop.
+        for hwin, hoff, lo_, hi_, noff, poff, base_, stride_ in RING:
+            hw = mem if hwin == "m" else (c if hwin[0] == "c" else p)[int(hwin[1:])]
+            head = i32(hw, hoff) & 0xFFFFFFFF
+            node = lambda a_: (a_ - base_) // stride_
+            if head and base_ <= head < base_ + stride_ * (hi_ - lo_ + 1) and (head - base_) % stride_ == 0:
+                walk, seen = [node(head)], {{node(head)}}
+                while True:
+                    a_ = i32(c[lo_ + walk[-1]], noff) & 0xFFFFFFFF
+                    if not (base_ <= a_ < base_ + stride_ * (hi_ - lo_ + 1)) or (a_ - base_) % stride_:
+                        break
+                    nxt = node(a_)
+                    if nxt in seen:
+                        break
+                    walk.append(nxt)
+                    seen.add(nxt)
+                for j, k in enumerate(walk):
+                    c[lo_ + k][poff:poff + 4] = (base_ + stride_ * walk[j - 1]).to_bytes(4, "little")
+                if len(walk) > 1 and rng.random() < 0.2:
+                    c[lo_ + rng.choice(walk[1:])][poff:poff + 4] = head.to_bytes(4, "little")
         for a_, b in wins:
             uc.mem_write(a_, bytes(b))
         for cell, stub in iats:
@@ -1512,6 +1540,14 @@ def main(argv):
         for (idx, k, _), v in zip(OUTARG, outs):
             h.answers[names[idx]] = out_answer(h.answers[names[idx]], k, v,
                                                lambda a_, v_: uc.mem_write(a_, (v_ & 0xFFFFFFFF).to_bytes(4, "little")))
+        # `--ecx-answer IDX:OFF[:FLAGOFF]` (item 2400): a slot answering from
+        # its own `ecx`: the word at `ecx+OFF`, or with FLAGOFF `ecx+OFF`
+        # itself when the word at `ecx+FLAGOFF` is set, else null.
+        for idx, off, flag in ECXANSWER:
+            if flag is None:
+                h.answers[names[idx]] = lambda ecx, args, off=off: h.r32(ecx + off) & 0xFFFFFFFF
+            else:
+                h.answers[names[idx]] = lambda ecx, args, off=off, flag=flag: (ecx + off) & 0xFFFFFFFF if h.r32(ecx + flag) else 0
         for idx, win, off, size, v in STUBWRITE:
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write)
@@ -1530,6 +1566,7 @@ def main(argv):
         # `--edx` (item 2346): an integer in `edx` beside `ecx`, after it on the row.
         edx = None if EDX is None else draw_reg(rng, EDX, WILD, rand32)
         h.calls.clear()
+        h.edxs.clear()
         r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
                    edx=0 if EDX is None else edx)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
@@ -1555,7 +1592,11 @@ def main(argv):
                 cols = in_order([(n_, e_, a_) for n_, e_, a_, _ in h.calls], RECORD, names, spans)
             for idx in ([] if RECORDORDER else RECORD):
                 calls = [(ecx_, list(args_)) for name_, ecx_, args_, _ in h.calls if name_ == names[idx]]
-                if idx in ROWSPLIT:
+                if RECORDEDX:
+                    # `--record-edx` (item 2400): `ecx,edx,arg..` a call.
+                    cols.append("/".join(",".join(token(v, spans) for v in [e, d] + list(a_))
+                                         for (n_, e, a_, _), d in zip(h.calls, h.edxs) if n_ == names[idx]) or "-")
+                elif idx in ROWSPLIT:
                     cols += by_row(calls, *tables[ROWSPLIT[idx]], spans)
                 else:
                     cols.append("/".join(",".join(token(v, spans) for v in [e] + a_)
@@ -1726,7 +1767,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, edx=None, tame=False, stub_write=(), deref=()):
+                 rows=220, record_order=False, record_edx=False, edx=None, tame=False, stub_write=(), deref=(), ecx_answer=(), ring=()):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -1811,6 +1852,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not 0 <= k < pstubs[idx][2] or n < 1:
             raise ValueError(f'--deref {one}: stub {idx} takes {pstubs[idx][2]} argument(s); K names one, N >= 1')
         pderef.append((idx, k, n))
+    if record_edx and (not precord or prowsplit or record_order):
+        raise ValueError('--record-edx adds `edx` to the --record stubs\' calls; a row split or an order keeps its own columns')
     if record_order and (not precord or prowsplit):
         raise ValueError('--record-order orders the --record stubs\' calls; a row split keeps its own columns')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
@@ -1883,6 +1926,19 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if idx >= len(stubs):
             raise ValueError(f'--stub-write names stub {idx}, and there are {len(stubs)}')
         pwrite.append((idx, m_.group(2), int(m_.group(3), 0), int(m_.group(4)), int(m_.group(5), 0)))
+    pecxans = []
+    for spec in ecx_answer:
+        m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
+        if not m_ or int(m_.group(1)) >= len(stubs):
+            raise ValueError(f'--ecx-answer is IDX:OFF[:FLAGOFF], IDX naming a --stub, not {spec!r}')
+        pecxans.append((int(m_.group(1)), int(m_.group(2), 0), None if m_.group(3) is None else int(m_.group(3), 0)))
+    pring = []
+    for spec in ring:
+        m_ = re.fullmatch(r'(m|c\d+|p\d+)\+(\w+):(\d+)\.\.(\d+):(\w+):(\w+):(\w+):(\w+)', spec)
+        if not m_ or int(m_.group(3)) > int(m_.group(4)):
+            raise ValueError(f'--ring is HWIN+HOFF:LO..HI:NEXT:PREV:BASE:STRIDE (the c windows LO..HI), not {spec!r}')
+        g = m_.groups()
+        pring.append((g[0], int(g[1], 0), int(g[2]), int(g[3]), int(g[4], 0), int(g[5], 0), int(g[6], 0), int(g[7], 0)))
     pedx = None
     if edx is not None:
         if '..' in edx:
@@ -1927,7 +1983,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers {n} values in call order' + (f', the last from {t}' if t else '')
            + ', printed after the answers' for idx, n, t in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
-        + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
+        + [f'stub {idx} records its `ecx`' + (', `edx`' if record_edx else '') + f' and arguments, a window\'s pointer by its name, after ` # `'
            + (f', split by the rows of sparse table {prowsplit[idx]} (a token a row, `ecx` `r+OFF`, '
               f'then the calls outside it)' if idx in prowsplit else '')
            for idx in precord]
@@ -1940,6 +1996,11 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
         + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
         + [f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
+        + [f'stub {idx} answers from its own `ecx`: the word at `+{o:#x}`'
+           + (f', or `ecx+{o:#x}` when the word at `+{f:#x}` is set' if f is not None else '')
+           for idx, o, f in pecxans]
+        + [f'a circular list in `c{lo}..c{hi}` at {b:#x}+{st:#x}k, next `+{n:#x}`, prev `+{pv:#x}`, head the word at `{w}+{ho:#x}`'
+           for w, ho, lo, hi, n, pv, b, st in pring]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
@@ -1962,8 +2023,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx, edx=pedx, wild=0.0 if tame else 0.1,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse, record=precord, recordorder=record_order, rowsplit=prowsplit, links=plinks,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, rows=rows)
+                                   sparse=psparse, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, deref=pderef, ecxanswer=pecxans, ring=pring, rows=rows)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -2226,6 +2287,14 @@ def main(argv=None):
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
                     help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
                          'a callee that unlinks the head its caller loops over (item 2346)')
+    ap.add_argument('--ecx-answer', action='append', default=[], metavar='IDX:OFF[:FLAGOFF]',
+                    help='obj: stub IDX answers from its own `ecx`: the word at ecx+OFF, or with FLAGOFF ecx+OFF '
+                         'itself when the word at ecx+FLAGOFF is set, else null (a slot of a record laid in a '
+                         'window, `kill_group_move`\'s orders; item 2400, parked 2369)')
+    ap.add_argument('--ring', action='append', default=[], metavar='HWIN+HOFF:LO..HI:NEXT:PREV:BASE:STRIDE',
+                    help='obj: a circular doubly linked list in the c windows LO..HI at BASE+STRIDE*k, its head the '
+                         'word at HWIN+HOFF: each node\'s PREV laid as its predecessor on the NEXT walk, a fifth '
+                         'of the rows an early stop (item 2400, parked 2369)')
     ap.add_argument('--tame', action='store_true', help='obj: --ecx-int and --edx held to their draw every row, '
                     'no wild word (a register that indexes a table; item 2346, parked 2338)')
     ap.add_argument('--answers', action='append', default=[], metavar='IDX:V,V,..',
@@ -2251,6 +2320,9 @@ def main(argv=None):
     ap.add_argument('--record-order', action='store_true',
                     help='obj: the --record stubs\' calls one token a call, in the order they were made, each '
                          'headed `sIDX:` — two argument-less callees on one `ecx` ordered (item 2341, parked 2318)')
+    ap.add_argument('--record-edx', action='store_true',
+                    help='obj: the --record stubs\' calls carry `edx` after `ecx` (`ecx,edx,arg..`) — a hand-off '
+                         'in `edx` (`compute_trade`\'s near leader to `trade_value`; item 2400, parked 2369)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N[:T,T..]',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217); '
@@ -2310,10 +2382,10 @@ def main(argv=None):
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
-                                                    record=args.record, record_order=args.record_order, links=args.link,
+                                                    record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, tame=args.tame, stub_write=args.stub_write,
-                                                    deref=args.deref)
+                                                    deref=args.deref, ecx_answer=args.ecx_answer, ring=args.ring)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

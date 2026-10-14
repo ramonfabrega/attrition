@@ -29,7 +29,7 @@ import subprocess
 from callfn import Image, Machine
 from sweeplib import answer_regs
 from unicorn import UC_HOOK_CODE
-from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_ESP
+from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EDX, UC_X86_REG_EIP, UC_X86_REG_ESP
 
 HEAP = 0x2000_0000
 STUBS = 0x3000_0000
@@ -48,6 +48,7 @@ class Harness:
         self.stub_pages = 1
         self.brk = HEAP
         self.calls = []
+        self.edxs = []  # `edx` at each call, beside `calls` (item 2400, parked 2369)
         self.answers = {}
         self.hooked = dict(callees)
         self.next_stub = STUBS
@@ -122,6 +123,7 @@ class Harness:
         ecx = uc.reg_read(UC_X86_REG_ECX)
         eax, ecx_out = answer_regs(self.answers.get(name, 0), ecx, args)
         self.calls.append((name, ecx, args, eax))
+        self.edxs.append(uc.reg_read(UC_X86_REG_EDX))
         uc.reg_write(UC_X86_REG_EAX, eax & 0xFFFF_FFFF)
         if ecx_out is not None:
             # An answer `(eax, ecx)` leaves `ecx` as a real callee would
