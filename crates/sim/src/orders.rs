@@ -1619,6 +1619,21 @@ impl Sim {
         orig: Option<Pos>,
     ) {
         let dest = snapped(to);
+        if let Ok(w) = std::env::var("RON_PROBE_MOVE")
+            && w == format!("{}/{}", self.units[u].owner, self.units[u].index)
+        {
+            eprintln!(
+                "  probe move f{} {w} to {:?} kind {:?} pos {:?} angle {} facing {:?} group {:?}\n{}",
+                self.frame,
+                to,
+                kind,
+                pos,
+                angle.0,
+                facing,
+                group.map(|g| g.id),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
             body: Body::Move(MoveOrder {
