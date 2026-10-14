@@ -4097,16 +4097,7 @@ impl Sim {
     /// the `o_up` links to the captain, then the captain's chain. A dead
     /// figure is relinked out of the chain, so the count is the living.
     pub fn curr_uber_size(&self, i: usize) -> i32 {
-        let mut head = i;
-        let mut guard = 0;
-        while let Some(up) = self.units[head].o_up {
-            head = up;
-            guard += 1;
-            if guard > 16 {
-                break;
-            }
-        }
-        self.squad_members(head).len() as i32
+        squad_size(i, |u| self.units[u].o_up, |u| self.units[u].o_down)
     }
 
     pub fn squad_members(&self, captain: usize) -> Vec<usize> {
@@ -6174,6 +6165,37 @@ pub struct Tick {
     /// accumulator. Zero on most ticks for a figure in a squad of four.
     pub lost: i32,
     pub killed: bool,
+}
+
+/// `UnitData::curr_uber_size@0060a760`'s two walks: up the `o_up` links to
+/// the captain (`up` answers `None` there — the original's `is_captain`,
+/// `o_up`'s sign bit), then the captain and each `o_down` link whose figure
+/// is alive (`down` answers `None` past the last), counted. Both walks stop
+/// after sixteen links, a guard the original does not have. Item 2247's
+/// sweep holds it.
+pub(crate) fn squad_size(
+    mut i: usize,
+    up: impl Fn(usize) -> Option<usize>,
+    down: impl Fn(usize) -> Option<usize>,
+) -> i32 {
+    let mut guard = 0;
+    while let Some(u) = up(i) {
+        i = u;
+        guard += 1;
+        if guard > 16 {
+            break;
+        }
+    }
+    let (mut n, mut cur, mut guard) = (1, down(i), 0);
+    while let Some(d) = cur {
+        n += 1;
+        cur = down(d);
+        guard += 1;
+        if guard > 16 {
+            break;
+        }
+    }
+    n
 }
 
 #[cfg(test)]

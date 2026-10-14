@@ -1116,6 +1116,7 @@ SEQ = {seq!r}
 ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
+SPARSE = {sparse!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1221,6 +1222,32 @@ def main(argv):
             shape(rng, f"c{{k}}", b)
         for k, b in enumerate(p):
             shape(rng, f"p{{k}}", b)
+        for win, loc, stride, n, slices in SPARSE:
+            # A table of N rows STRIDE apart of which the function reads a
+            # few slices: the table zeroed, each row's slices `p` windows, the
+            # pointer laid at LOC — or, `@`, the slices written at the image's
+            # own table (parked 2201, item 2247: the leaders table).
+            env = {{"a": args, "m": mem, "c": c, "p": p,
+                   "i32": i32, "i16": i16, "i8": i8, "u16": u16, "u8": u8}}
+            if win == "@":
+                tbase = eval(loc, env) & 0xFFFFFFFF
+            else:
+                tbase = h.alloc(stride * n + 0x20)
+                uc.mem_write(tbase, bytes(stride * n))
+            for k in range(n):
+                for off, size in slices:
+                    b = bytearray(rng.randrange(256) for _ in range(size))
+                    p.append(b)
+                    wins.append((tbase + k * stride + off, b))
+                    shape(rng, f"p{{len(p) - 1}}", b)
+            if win != "@":
+                ptr = tbase.to_bytes(4, "little")
+                if win is None:
+                    uc.mem_write(eval(loc, env) & 0xFFFFFFFF, ptr)
+                else:
+                    w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
+                    at = int(loc, 0)
+                    w[at:at + 4] = ptr
         # The stubs' answers are drawn before the windows are placed, so a
         # placed table may be indexed by one (`s`, item 2160); `--answers`
         # draws stub IDX's from a list (parked 2141).
@@ -1448,24 +1475,49 @@ def _placed(win, off):
     return f'the word at `{win}+{off}`' if win else f'the word at `{off}`'
 
 
+def _sparse(spec):
+    """`LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE..]` — LOC a window's `m+OFF`, `cN+OFF`,
+    `pN+OFF`, an address expression, or `@VA` for a table in the image itself
+    (parked 2201, item 2247)."""
+    loc, stride, n, sl = spec.split(':')
+    stride, n = int(stride, 0), int(n, 0)
+    slices = sorted(tuple(int(x, 0) for x in one.split(',')) for one in sl.split('/'))
+    end = 0
+    for off, size in slices:
+        if off < end or off + size > stride or size < 1:
+            raise ValueError(f'--sparse slices overlap or outrun the stride {stride:#x}: {spec!r}')
+        end = off + size
+    if loc.startswith('@'):
+        return ('@', loc[1:], stride, n, slices)
+    win, plus, off = loc.partition('+')
+    if plus and re.fullmatch(r'm|c\d+|p\d+', win):
+        return (win, off, stride, n, slices)
+    return (None, loc, stride, n, slices)
+
+
 def _wbias(spec):
     """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
     loc, vals = spec.rsplit(':', 1)
     win, _, off = loc.partition('+')
+    run = re.fullmatch(r'p(\d+)\.\.(\d+)', win)
+    if run:
+        # `pA..B+OFF`: every window of a run, a sparse table's rows (item 2247).
+        return [w for k in range(int(run.group(1)), int(run.group(2)) + 1)
+                for w in _wbias(f'p{k}+{off}:{vals}')]
     if not re.fullmatch(r'm|c\d+|p\d+', win):
         raise ValueError(f'a biased window is m, cN or pN, not {win!r}')
     o = None if off == '*' else int(off, 0)
     if '..' in vals:
         lo, hi = vals.split('..')
-        return (win, o, ('range', int(lo, 0), int(hi, 0)))
-    return (win, o, ('set', [int(v, 0) for v in vals.split(',')]))
+        return [(win, o, ('range', int(lo, 0), int(hi, 0)))]
+    return [(win, o, ('set', [int(v, 0) for v in vals.split(',')]))]
 
 
 def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(), argfrom=(),
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=()):
+                 place_null=(), sparse=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1493,7 +1545,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pnull = [int(k, 0) for k in place_null]
     if any(not 0 <= k < len(pplaces) for k in pnull):
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
-    pwbias = [_wbias(s) for s in wbias]
+    pwbias = [w for s in wbias for w in _wbias(s)]
+    psparse = [_sparse(s) for s in sparse]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
@@ -1559,7 +1612,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf):
+            or pseq or pansr or pthis or palso or phalf or psparse):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1588,6 +1641,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
+        + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
+           + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
+           for w, lo, st, n, sl in psparse]
         + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
@@ -1598,7 +1654,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
-                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf)
+                                   seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
+                                   sparse=psparse)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -1789,6 +1846,10 @@ def main(argv=None):
     ap.add_argument('--vtat-also', action='append', default=[], metavar='WIN+OFF',
                     help='obj: the stubbed vtable laid at this word of window m, cN or pN as well, `this` '
                          'keeping it (a record whose slots the function asks beside its own; item 2217)')
+    ap.add_argument('--sparse', action='append', default=[], metavar='LOC:STRIDE:N:OFF,SIZE[/OFF,SIZE]',
+                    help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
+                         'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
+                         '(the leaders table, parked 2201; item 2247)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1811,7 +1872,8 @@ def main(argv=None):
                                                     argeq=args.argeq, seq=args.seq,
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
-                                                    vtat_half=args.vtat_half, place_null=args.place_null)
+                                                    vtat_half=args.vtat_half, place_null=args.place_null,
+                                                    sparse=args.sparse)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

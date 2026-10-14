@@ -183,6 +183,14 @@ impl Armies {
     }
 }
 
+/// `Armies::find_aggressive_army@006f2e10`'s test of one of the sixteen
+/// slots: a live army (`+0` nonzero) of two or more captains (`+0x14`), not
+/// mustering (`+4 & 1`), whose cell's owner byte is not `who`. Item 2247's
+/// sweep holds it.
+pub(crate) fn aggressive(valid: bool, captains: i32, status: i32, owner: i32, who: i32) -> bool {
+    valid && captains >= 2 && status & status::MUSTERING == 0 && owner != who
+}
+
 /// The centre of a cell in coordinate units — `cell × 0x300 + 0x180`.
 pub const fn cell_centre(c: Cell) -> Pos {
     Pos::new(
@@ -3024,9 +3032,13 @@ impl Sim {
         self.armies[who as usize]
             .valid()
             .find(|(_, a)| {
-                a.num_captains >= 2
-                    && a.status & status::MUSTERING == 0
-                    && self.world.owner(a.pos.cell()) != Owner::Player(who)
+                aggressive(
+                    a.valid,
+                    a.num_captains,
+                    a.status,
+                    crate::place::owner_byte(self.world.owner(a.pos.cell())),
+                    i32::from(who),
+                )
             })
             .map(|(s, _)| s)
     }
