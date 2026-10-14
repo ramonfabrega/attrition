@@ -117,7 +117,7 @@ function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
 Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
-the `mod <snake>;` line for `sweep/mod.rs` is printed, or appended with
+the `mod <snake>;` line for `sweep/mod.rs` is printed, or inserted at its sorted place in the last `mod` run with
 `--write-mod`; `--regen` redraws a generated sweep in place (both files
 rewritten, `mod.rs` left alone), so a starved draw is one line. The script
 keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
@@ -2051,6 +2051,22 @@ def _kept_for_regen(argv):
     return line
 
 
+def insert_mod(text, line):
+    """`text` with `line` (`mod name;`) placed in its last run of `mod` lines
+    at the name's sorted place, or appended where the file has none (item
+    2379, Loop 2003: two batches sorted the appended tail by hand)."""
+    lines = text.splitlines()
+    run = [i for i, ln in enumerate(lines) if re.fullmatch(r'mod \w+;', ln)]
+    if not run:
+        return text + ('' if text.endswith('\n') or not text else '\n') + line + '\n'
+    start = end = run[-1]
+    while start - 1 in run:
+        start -= 1
+    at = next((i for i in range(start, end + 1) if lines[i] > line), end + 1)
+    lines.insert(at, line)
+    return '\n'.join(lines) + '\n'
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
     try:
@@ -2184,7 +2200,7 @@ def main(argv=None):
     ap.add_argument('--stub-cdecl', action='append', default=[], metavar='IDX',
                     help='obj: --stub IDX (a direct callee) is `__cdecl`: its arguments are read and the caller '
                          'pops them (`memcpy`, an import the emulator cannot enter; item 2325)')
-    ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
+    ap.add_argument('--write-mod', action='store_true', help='insert the `mod` line into sweep/mod.rs in sorted order')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
                     '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
     ap.add_argument('--dry-run', action='store_true')
@@ -2256,8 +2272,8 @@ def main(argv=None):
     sp.chmod(0o755)
     tp.write_text(test)
     if args.write_mod:
-        with open(SWEEP / 'mod.rs', 'a') as f:
-            f.write(mod + '\n')
+        mp = SWEEP / 'mod.rs'
+        mp.write_text(insert_mod(mp.read_text() if mp.exists() else '', mod))
     print(f'{shown(sp)}\n{shown(tp)}\n{mod}'
           + ('' if args.write_mod or args.regen else '  (add to crates/sim/src/sweep/mod.rs)'))
     return 0

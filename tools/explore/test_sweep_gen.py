@@ -1017,6 +1017,28 @@ class Shapes(unittest.TestCase):
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_write_mod_inserts_its_line_in_sorted_order(self):
+        # Item 2379 (Loop 2003; parked 2318, 2375): `--write-mod` appended its
+        # `mod` line at `mod.rs`'s tail, and two batches sorted the run by
+        # hand. The line goes into the file's last run of `mod` lines at its
+        # name's place, the helpers and the first run left as they stand.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            mod = Path(tmp) / 'mod.rs'
+            head = '//! doc\n\nmod zz_first_run;\n\nfn helper() {}\n\n'
+            mod.write_text(head + 'mod a_b;\nmod y_z;\n')
+            try:
+                self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1', '--write-mod']), 0)
+                self.assertEqual(mod.read_text(), head + 'mod a_b;\nmod x_y;\nmod y_z;\n')
+                self.assertEqual(sweep_gen.main(['const', 'Z::z@00401010', '--item', '1', '--write-mod']), 0)
+                self.assertEqual(mod.read_text(), head + 'mod a_b;\nmod x_y;\nmod y_z;\nmod z_z;\n')
+                self.assertEqual(sweep_gen.main(['const', 'A::a@00401020', '--item', '1', '--write-mod']), 0)
+                self.assertEqual(mod.read_text(), head + 'mod a_a;\nmod a_b;\nmod x_y;\nmod y_z;\nmod z_z;\n')
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_a_generated_sweep_keeps_its_own_line(self):
         # Item 2325 (parked 2311, Loop 2003): `--regen` wants the line that
         # drew a sweep, and a lane kept it in its job's tmp directory, gone
