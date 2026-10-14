@@ -747,3 +747,8 @@ mod world_set_seen;
 mod world_set_tocean;
 mod world_set_was_seen;
 mod world_set_waterhalf;
+mod game_defeat_all;
+mod game_is_victory_timer;
+mod borders_is_border_hidden;
+mod turn_control_speed_down;
+mod game_is_observing;
