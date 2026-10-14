@@ -1229,15 +1229,17 @@ impl Sim {
         // Both classes open on `UnitData::speed`, layer two.
         let speed = self.unit_speed(u);
         if unit.is_gaia() {
-            if unit.kind.domain == crate::attrition::Domain::Air {
-                return speed;
-            }
-            let far = self
-                .current_order(u)
-                .and_then(Order::move_dest)
-                .is_some_and(|to| vector_dist(unit.pos.x - to.x, unit.pos.y - to.y) > 0x180);
-            let speed = if far { speed * 3 / 2 } else { speed };
-            return speed.max(movement::SPEED_FLOOR);
+            // SEAM: the original's air test is the type's `+0x218 == 2`;
+            // this crate's is the unit's domain.
+            return animal_speed_steps(
+                &mut (),
+                |_| speed,
+                |_| unit.kind.domain == crate::attrition::Domain::Air,
+                |_| self.current_order(u),
+                |_, o| o.is_move(),
+                |_, o| o.move_dest().unwrap_or(unit.pos),
+                |_| unit.pos,
+            );
         }
         // The **action**'s own scale, `00608743`–`00608777`. `get_action`
         // is the first order that is neither a transit move nor a
@@ -10282,6 +10284,44 @@ pub(crate) fn group_member_walk<C>(
 /// head_node->next` (`+0xdc`), which leaves the new node at `head->prev`,
 /// the end the engine reads as the current order — so the order goes to
 /// the front whatever `QueuePos` says; and `update_action`.
+/// **`AnimalData::get_speed@005d8380`'s steps** (item 2341): `speed`
+/// (`UnitData::speed`) is the answer outright for an air animal (`air`,
+/// the type's `+0x218 == 2`) — no hurry and no floor. Otherwise, when the
+/// list's current order (`order`, the `+0xdc` head refreshed into
+/// `+0xcc`) answers `is_move` (vslot `+0x14`), the unit's point (`at`,
+/// the objects table's `+0x10`/`+0x14`) is measured against
+/// `get_move_order`'s goal (vslot `+0xb8`, asked twice: its `+0x8` first,
+/// then its `+0x4`) with `vector_dist(|dx|, |dy|)`; more than `0x180`
+/// makes the speed `speed * 3 / 2`, truncated. The result is floored at
+/// [`movement::SPEED_FLOOR`].
+pub(crate) fn animal_speed_steps<C, O>(
+    cx: &mut C,
+    speed: impl FnOnce(&mut C) -> i32,
+    air: impl FnOnce(&mut C) -> bool,
+    order: impl FnOnce(&mut C) -> Option<O>,
+    is_move: impl FnOnce(&mut C, &O) -> bool,
+    mut goal: impl FnMut(&mut C, &O) -> Pos,
+    at: impl FnOnce(&mut C) -> Pos,
+) -> i32 {
+    let mut speed = speed(cx);
+    if air(cx) {
+        return speed;
+    }
+    if let Some(o) = order(cx)
+        && is_move(cx, &o)
+    {
+        let at = at(cx);
+        let gy = goal(cx, &o).y;
+        let gx = goal(cx, &o).x;
+        let dx = at.x.wrapping_sub(gx).wrapping_abs();
+        let dy = at.y.wrapping_sub(gy).wrapping_abs();
+        if vector_dist(dx, dy) > 0x180 {
+            speed = speed * 3 / 2;
+        }
+    }
+    speed.max(movement::SPEED_FLOOR)
+}
+
 pub(crate) fn add_think_steps<C, O>(
     cx: &mut C,
     make: impl FnOnce(&mut C) -> O,
