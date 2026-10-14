@@ -4870,13 +4870,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BP — reserved
+## Parked by item 2298, 2026-10-14 — a generated sweep redrawn in place
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2299) **`tools/sweep_gen.py --regen` built** (Loop 2003's twenty-fifth reach, 2281's Loop line, Loop 2222; names no
+score): both files of a generated sweep rewritten from the same line, `mod.rs` left alone; refused when either file is
+missing, and refused beside `--write-mod`. A plain run still refuses an existing sweep, and now names `--regen`. Its
+test (`test_a_generated_sweep_is_redrawn_in_place`) was made to fail first (argparse's `unrecognized arguments:
+--regen`), then built; 39 of 39 generator tests pass. Used once in the batch: `Player::is_connection`'s first draw
+matched the play byte on 168 of 220 rows and was redrawn with the play reaching 7..0xff (132 / 88), one line.
+
+(2300) **The decompile of `ObjectTypeData::is_slow@00661ae0` names three fields `_padding_`** (2298; names no
+score): the type's id (`+0x4`), its vtable slot `+0xc` (read as `_padding_ + 0xc`) and, on the a1 = 0 arm, the
+type index at `+0x3c` the `objecttypes` table is indexed by; and it prints the `TypeData::is_unit_type` arm's
+graft compare as `this->graft`, which the listing reads at `+0x25c`. The sweep follows the listing (`661ae0`–
+`661b7b`); a reader of the decompile alone would port the wrong field.
 
 ## Parked by the next landing, slot BQ — reserved
 
