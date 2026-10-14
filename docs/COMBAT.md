@@ -10121,8 +10121,10 @@ to fail with the gate off: slot 8, not mirrored, on 781. The unit test
 `an_unpacked_packer_s_moving_figure_asks_for_no_walk` was made to fail
 the same way. The round's scatter draws are taken on 798 inside the
 stream now, so its landing agrees
-(`chapter_three_s_catapult_fires_on_the_ground`); its launch is still the
-unit's square (§57.6).
+(`chapter_three_s_catapult_fires_on_the_ground`); ~~its launch is still the
+unit's square (§57.6).~~ Its launch agrees too since item 2304
+(`docs/GOLDEN.md` §83): piece 567's release row, read off run842's packet,
+puts 798's round at the dump's `(855, 7990, 496)`.
 
 ### 58.4 The new word is the numbering
 

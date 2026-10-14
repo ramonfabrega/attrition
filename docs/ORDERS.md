@@ -7338,8 +7338,10 @@ any other.
 
 ### 35.4 What is not established
 
-- **The half-way bytes.** A top byte ≡ 16 (mod 32) (22.5°, 67.5°, …) is
-  taken to the even degree. No measured heading sits on one.
+- ~~**The half-way bytes.** A top byte ≡ 16 (mod 32) (22.5°, 67.5°, …) is
+  taken to the even degree. No measured heading sits on one.~~ Answered by
+  item 2304 (`docs/GOLDEN.md` §83): it rounds up, `fast_angle_to_degrees` of
+  the angle less a half turn; run835's Bark `0/7` faces byte 80.
 - **`accuracy`.** The arm writes no `+0x6`, so a recycled slot keeps its
   last round's value. Here it is 0, which run235 prints on every bomb.
   Only a unit target's hit test reads it.

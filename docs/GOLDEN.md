@@ -11933,12 +11933,84 @@ STAND_GROUND chase gate with `Unit::on_duty@005fff70` (run346's 17944 and run470
 now that the Catapult strikes the Barracks as there, §81's siege term and `/10` ceiling (849, 915), moved from
 unit-backed to diff-backed.
 
-## 83. Reserved for the next item on the rules track
+## 83. Chapter sixty-six — a round leaves its release node: the Bark's, the Catapult's and the Trireme's rows (item 2304)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** DECISIONS 56 §3, three candidates by their parked rows: a round's release point against the firer's
+own square — the Catapult's (2266) and the Bark's (2206) together — `ai_sites`' wrapping decrement (2111), and a
+building group's `land_tail` (2196). **The arm chosen is the release point**, because it is the one the disk already
+parts on: chapter sixty-four's widening held 140 rows of it (run835, 638 on) and sixty-five's four (run843, 818),
+both chapters closed at their traces' ends so no word could see it. 2111 needs a computer whose census adjustment
+meets a city at zero gatherers, which no capture under `!ai off` stages; 2196 needs a building group whose
+`list[0]` turns, which no staging builds. Both stay parked (2305).
+
+**No frame, no draw delta.** Both chapters are closed, and a launch point moves no draw: the rows are values on
+blocks the stream already agrees on. The value diff is the booking.
+
+**The census rows the chapter reaches: none.** The release is `GraphicEvents::execute_game_events@008e48e0` adding
+`GraphicPieces::get_position@0090b750`'s vector, and `census.py --unbacked --all` counts neither: both are graphics
+module functions, outside the simulation the census reads. Census 751 of 3611, unmoved.
+
+**What the disk answered, so run 845 was not taken.** The rows are `AttachPos` entries, which exist only in a
+process that fields the type (`docs/COMBAT.md` §55.2), and two packets on disk do: run839 (chapter sixty-four's
+game, logger frame 634) and run842 (sixty-five's, 777). `tools/recomp/get_position.py … entries` on each:
+
+| piece | type | rows | `RData +0x88` | point (model units) |
+|---|---|---|---|---|
+| 273 | `BARK` (323) | node 0, frames 2, 10, 17 of anims 10, 11, 12 | 0.78 | (0.04, −18.16, 14.03), (−0.296, 29.46, 14.03), (0.460, 7.00, 14.02) |
+| 567 | `CATAPULT` (265) | node 0, frame 12 of anim 12 | 1.0 | (0.0, 6.92, 51.06) |
+| 290 | `TRIREME` (340) | node 0, frames 5, 9, 17 of anims 11, 12 | 0.8 | (0.076, −11.83, 23.01), (0.337, 3.83, 23.04), (0.548, 17.23, 22.89) |
+
+Neither the Bark nor the Catapult pivots: `turret_angles` and `node_flags` read 0 on every round, so the round
+takes `get_position`'s non-pivot arm, a [`sim::launch::Bay`]. `sweep … <piece> 0 <anim> <frame>` called the
+original's function at every whole degree under unicorn, and each row is the model point times `guy_scale ×
+RData +0x88`, `right = −s·x` and `fwd = −s·y` in thousandths — inside the region that reproduces all 256 headings'
+truncated answers. The heights are 52 (the Bark, over the water's 0) and 245 (the Catapult).
+
+**The Trireme rode along.** Its three rows (item 1200) were centroids fitted to two facings, and run835's computer
+Trireme `1/6` at 63° put its third key a unit out (634: `sx` 12348 against 12349). The packet's rows reproduce
+run127's and run437's trireme tests as well as 634.
+
+**And a half-way byte rounds up** (parked 781). `Bay::point` turned by `whole_degrees`, which took a top byte ≡ 16
+mod 32 to the even degree. The Bark `0/7` faces `1344339968`, byte 80, 112.5°, on blocks 638–653: the original's
+`fast_angle_to_degrees` of the angle less a half turn gives 293, and only 113 puts the round at the dump's (12374,
+34898). `whole_degrees` is now that table's answer turned back by the half turn (`sim::pivot::release_rotation`).
+
+**Built** (`crates/sim/src/launch.rs`): nine Bark rows, one Catapult row, the Trireme's three replaced, and
+`whole_degrees`. `run835_s_barks_and_run843_s_catapult_leave_from_their_release_nodes` holds every distinct launch
+point of the three Barks (24 rows, five headings), the Trireme's four and the Catapult's, read off the dumps — the
+rows came off the packets, so the two are independent. It failed first on the half-way byte. Mutations
+(`tools/mutate.py`, each `held`, cargo 101): the Catapult's `fwd` zeroed → `chapter_sixty_five_s_word_frame_is_widened_whole`;
+the half-even `whole_degrees` restored → `chapter_sixty_four_s_word_frame_is_widened_whole`; the Trireme's old third
+row → the same.
+
+**The value diff.** run843 block 818, `0/9`'s `ammo[0]`: `sx`/`sy`/`sz` (34680, 24696, 50) here against (34655, 24716,
+295) there, now (34655, 24716, 295) on both, and `v1z` with them. run835 block 638, `0/6`'s `ammo[3]`: (11640, 34680,
+0) against (11707, 34671, 52), now agreeing, with `total_time` 10 both sides and 647's `1/7` `hits:damage` 5 both
+sides. Chapter three's restage (run146) block 798, the Catapult `0/6`'s ground round: the launch (888, 7992, 251) here
+against (855, 7990, 496), now agreeing (`chapter_three_s_catapult_fires_on_the_ground` compares the whole round).
+
+| | before | after |
+|---|---|---|
+| `chapter_sixty_four_s_word_frame_is_widened_whole` | 140 rows | **14**: the eleven `form` rows, and 800's `0/6` `death:extra` (no `DEATHS` at run835's end detail, the instrument) with `1/6`'s round forgetting its sunk target (parked 780's family) |
+| `chapter_sixty_five_s_word_frame_is_widened_whole` | 15 | **11**, the `form` rows alone |
+| run594's projectile baseline | 351 | **337** |
+| run589's projectile baseline | 279 | **276** |
+| every word, floor and battery number | | unchanged |
+
+`tools/repin.py --write` rewrote both golden `WANT_CH*` lists and the two baselines.
+
+**Not established.**
+
+- Every other non-pivot piece with no row still releases from the figure's square: `sim::launch`'s seam. A packet
+  from a game that fields the type answers each in minutes.
+- The run589/run594 baselines fell by 3 and 14 without being attributed round by round; the rows and the half-way
+  byte are the two changes, and no round there was walked.
+
+### 83.1 Coverage
+
+**Diff-backed** by run835's and run843's widenings and run146's ground round: `GraphicPieces::get_position@0090b750`'s
+non-pivot arm for pieces 273, 567 and 290, and `fast_angle_to_degrees@00a28f70`'s half-way byte (Bark `0/7`, byte 80).
+Each fails its widening when taken out.
 
 ## 84. Reserved for the next item on the rules track
 

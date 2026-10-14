@@ -2802,7 +2802,10 @@ mod tests {
             (1326, 1343, 26520),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 351, "run594 projectile baseline");
+        // 351 → 337 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
+        // Catapult's and the Trireme's release rows read off two packets,
+        // and a half-way heading byte rounded up; not attributed per round.
+        pin_eq!(a.firsts.len(), 337, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),
@@ -2895,7 +2898,10 @@ mod tests {
             (1084, 1096, 21680),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 279, "run589 projectile baseline");
+        // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
+        // Catapult's and the Trireme's release rows read off two packets,
+        // and a half-way heading byte rounded up; not attributed per round.
+        pin_eq!(a.firsts.len(), 276, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),
