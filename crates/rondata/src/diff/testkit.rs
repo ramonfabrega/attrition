@@ -6926,7 +6926,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2088: 516 -> 524, past 4238.
     ("mongol_pair_first_parting", 524),
     // Great Sahara in the successor pair's lobby (item 2107): its walk.
-    ("sahara_mongol_first_parting", 193),
+    // Item 2107: 193 -> 204, the walk past 2995 to the game's end.
+    ("sahara_mongol_first_parting", 204),
+    // And run834 (item 2107): the word 2995's window to the closing block.
+    ("run834_s_word_frame_is_widened_whole", 204),
     ("run780_s_word_frame_is_widened_whole", 4),
     ("run788_s_word_frame_is_widened_whole", 4),
     ("run799_s_word_frame_is_widened_whole", 4),

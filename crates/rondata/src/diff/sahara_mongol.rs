@@ -30,8 +30,12 @@ pub(crate) const SAHARA_MONGOL: Pair = Pair {
     // Item 2107, first try: frame 2995 by the count and the sequence, ours
     // 30 draws against 26, index 3: ours `Guy::init_real+0x52`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §211).
-    count: 2995,
-    sequence: 2995,
+    // Item 2107's build moved it 2995 -> 3268, the game's last frame:
+    // `Build::finished` holds a done Caravan at `get_caravan_limit(0)` and
+    // `do_queue` runs `get_next_non_caravan`'s Merchant behind it (the
+    // Market `1/2019`, 2995 to the end; `docs/AI.md` §211).
+    count: 3268,
+    sequence: 3268,
 };
 
 /// The map's word as the handoff's `Third map:` line and `AI_WORDS` carry it.
