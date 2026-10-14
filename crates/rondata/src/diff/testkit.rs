@@ -6359,15 +6359,17 @@ pub(crate) const WIDENING_CHAPTER_SIXTY_ONE: (i64, i64) = (605, 1001);
 
 /// **Chapter sixty-two** (item 2066, `docs/GOLDEN.md` §75, run818): two
 /// guarding Hoplite squads, who=1's squads walked past them and a third added
-/// inside the leash, 605 to 1000. Open at **900**, 13 draws against 11: the
-/// third squad's men `1/13` and `1/14` spend `Guy::set_anim+0x97a <
-/// Unit::do_idle+0x7d` here, where the original's join who=1's group 64 and
-/// take its `ATTACK_TO` (this crate seats them in a new group 65).
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_TWO: i64 = 900;
+/// inside the leash, 605 to 1000. **Closed at 1000** (item 2117, 900 →
+/// 1000, `docs/GOLDEN.md` §77): on 900 the third squad's men `1/13` and
+/// `1/14` spent `Guy::set_anim+0x97a < Unit::do_idle+0x7d` here, 13 draws
+/// against 11, where the original's join army 0 through the pool record on
+/// its index — who=1's group 64, the Scout's since 847 — and take the walk
+/// to the Scout, an `ATTACK_TO` (this crate seated them in a new group 65).
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTY_TWO: i64 = 1000;
 
-/// `chapter_sixty_two_s_word_frame_is_widened_whole`'s window: run818 from
-/// its first block through the word's.
-pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 901);
+/// `chapter_sixty_two_s_word_frame_is_widened_whole`'s window: run818 whole
+/// (item 2117; item 2066's ended at the word, 901).
+pub(crate) const WIDENING_CHAPTER_SIXTY_TWO: (i64, i64) = (605, 1001);
 
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
@@ -8658,8 +8660,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2032,
         Some(WIDENING_CHAPTER_SIXTY_ONE),
     ),
-    // Item 2066: run818, chapter sixty-two; open at 900. The widening is
-    // run818 from its first block through the word's.
+    // Item 2066: run818, chapter sixty-two; closed at 1000 by item 2117.
+    // The widening is run818 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIXTY_TWO",
         GOLDEN_WORD_CHAPTER_SIXTY_TWO,

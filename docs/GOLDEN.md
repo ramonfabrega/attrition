@@ -11394,8 +11394,8 @@ held, both chapter tests fail; `update_guard_order` answering `None` always (the
 held, both fail.
 
 **Not established.** The head's two follower arms stand unheld (above, and parked 2033, 2034 amended); the refusal on
-905 waits on the word. Why a computer's newborn joins its group 64 and takes the group's `ATTACK_TO` is the word's
-question, not read here. Chapter sixty-one's 780 is untouched (parked 2067 has what this item measured of it).
+905 waits on the word. ~~Why a computer's newborn joins its group 64 and takes the group's `ATTACK_TO` is the word's
+question, not read here.~~ Answered by §77: army 0 reads the pool record on its index. Chapter sixty-one's 780 is untouched (parked 2067 has what this item measured of it).
 
 ### 75.1 Coverage
 
@@ -11467,12 +11467,95 @@ arm (`005fded5`) and, through it, `Unit::find_new_target@005ff6a0` → `Object::
 `Object::check_target@00649e00`'s `poor_target` refusal (its tail), on `0/10` at 778. No function enters
 the census for the first time here: census 536 of 3611 (`census.py --layers`), unchanged.
 
-## 77. Reserved for the next item on the rules track
+## 77. Chapter sixty-two closes: an army reads the record on its index (item 2117)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking.** Chapter sixty-two's word, frame 900 on run818, 13 draws against 11 (§75). Value diff on block
+901: `1/12 group` 65 here against 64 there, and `1/13 order:kind` `ATTACK` against `ATTACK_TO`. 702's `1/9` row
+was booked as a hypothesis of the same family. It turned out to be a second cause (below).
+
+**The frame, before any reading.** Block 900: ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` three times,
+for the third squad's men `1/12`, `1/13` and `1/14` (`TypeIndex` 132, `HOPLITES`, land, born 900). Theirs spends it
+for `1/12` alone, then the five `Farms::inc_time+0x1ae`. **Both sides on 901** (`unitat.py`, the `GROUPDATA` pool):
+the original's three carry an `ATTACK_TO` to (46056, 10056) (`1/13`: 45912; `off` 744/72 and 600/72, `orig`
+(46056, 10056)), with `1/12`'s `ATTACK` on `0/12` in front. Their units' `group` reads 64. The pool's group 64 is
+who=1's Scout `1/0` (`TypeIndex` 69), exploring at (45804, 10218), and lists `[0, 14]`. Group 65 lists `[12, 13,
+14]` with `(ox, oy)` (46056, 10056), the walk's point.
+
+**Group 64's history** (the pool, run818): on 701 it is who=1's army group (`army` 0, `stamp` 700). It holds `1/6`'s
+squad, born 700, and from 702 `1/9`'s too. The staged `@move`s on 702 push both squads to 66 and 67. On 704 the
+pool frees 64 (`who` 0, `num` 0). On 847 the Scout's explore group is pushed onto the free index 64 (`army` −1).
+Under `!ai off` no `Armies::process_all` runs (§5 of `docs/ARMY.md`), so nothing normalizes army 0 between 702 and
+900.
+
+**The cause, read off `docs/ARMY.md` §3 and §4.** On 900 the newborn captain's first idle frame enters `think_attack`'s
+head (§4.2), and `add_to_army` → `find_local_army` answers army 0. The army keeps its groups as pool **indices**
+(`list[16]`, §3.1), and its list still names 64:
+
+- `push_group`'s kill does not remove a group from the army (§3.4).
+- `remove_group` refuses a group whose `army` no longer names it, and the Scout's push wrote −1 there.
+
+So `normalize` (§3.3) counts the Scout's group, and `get_unit(0)` answers the Scout. `go_to_unit` walks the squad
+to it, `go_to(ATTACK_TO, 0, 0x300)` (§4.3), through a pushed group (65). `add_unit` then `Group::add`s the captain
+to `list[0]`, group 64, whose `get_num` drops the figures still pointing at 65, so 64 lists `[0, 14]`. `set_group`
+points all three at 64. This crate keeps the army's record on the army (`docs/GROUPS.md` §23). Its army 0 listed
+no live member there, so `add_unit` pushed a fresh group (65) and no walk was issued.
+
+**A probe** (`RON_PROBE_2117`, committed and reverted whole) in `add_to_army` and `go_to` printed the two events:
+on 701 `1/9` (`#68`) finds army 0 with `1/6` first and its walk is issued to (45720, 32472), the original's point.
+On 900 `1/12` finds army 0 with `units []`.
+
+**Two builds.**
+
+- **`think`'s step 3 adds its attack as `find_nearby_target` does** (`crates/sim/src/orders.rs`,
+  [`Sim::nearby_add`]). `think_attack` calls `find_melee_target(−1, &whom, 0, 1, 0)`, which adds its own order:
+  `QUEUE_FIRST` under an attack-move. This crate added `QUEUE_NEW`, which dropped `1/9`'s walk on 701 under its
+  attack on `0/7`. **Value diff, block 702**: `1/9 orders.len` was 1 here against 2 there, and is 2 on both sides
+  (`[ATTACK 0/7, ATTACK_TO (45720, 32472)]`). Block 703's `path[0].to` was (44376, 31656) against (45720, 32472),
+  and now agrees. All four of 702–703's rows leave.
+- **An army reads the pool record on its index** (`crates/sim/src/army.rs`, `army_pool_record` and `add_to_army`).
+  When the army's own seat lists no live member and a pushed group of the same player stands on the army's pool
+  index with a live member, that group is the army's record: its first live member is `get_unit(0)`, the walk goes
+  there, and the join is that group's `Group::add`. A joiner the record already lists is `Army::member` there, and the
+  original's `add_unit` does nothing; for it this crate keeps the earlier arm, which seats the record on the army.
+  Built without that exception, run460's lone who=1 unit, re-joining every 32 frames from 908, took the new arm, and
+  golden chapter forty-two fell 1160 → 1020 on `1/6`'s `stance` (0 here, 1 there). **Value diff, block 901**: `1/12 group` was 65 here against 64
+  there, and is 64 on both sides. `1/13`'s order was `ATTACK` against `ATTACK_TO`, and is `ATTACK_TO` (45912,
+  10056) on both sides. The walk's points are the original's: (46056, 10056) for `1/12` and `1/14`, and (45912,
+  10056) for `1/13`.
+
+**The word moves 900 → 1000, the trace's end: chapter sixty-two is closed.** The widening is run818 whole (605..1001).
+It holds 73 rows (`WANT_CH62`): the eleven standing `form` rows, the 757 `treaties`, `1/8`'s 841 wound (parked
+2068), and `1/14` on 901–903 (55 rows). `1/14`'s walk has the original's point and slot, but its path's waypoints
+stand 120 east of the original's from the second on (`path[42]` (44663, 31571) against (44543, 31571)), so its first
+step (44144, 33073) against (44142, 33072) and its heading part. That is parked 2118. The pool parts nothing.
+`GOLDEN_WORDS` names the widening again, and `TRACE_CHAPTER_SIXTY_TWO` is gone.
+
+**Mutations** (`tools/mutate.py`, each scored by cargo's exit): `think`'s add back to `QUEUE_NEW`: held, both
+chapter tests fail. `army_pool_record` answering nothing: held, both fail.
+
+**Not established.**
+
+- Why the earlier arm (seating the record on the army) agrees with run460 where the original's `add_unit` returns:
+  the army's tick then acts on the record, as it would on the original's index. This was not read.
+- The rest of the army's reads of its index are not carried: its counts, `role` and ticks on an adopted record, and
+  `Army::process` issuing orders to it. No capture with live armies is known to reach an army whose index a later
+  push took.
+- A follower's `think_attack` still runs the plain search, where the original's `find_melee_target(…, param_3 0,
+  …)` answers a follower from the squad head (`find_melee_target_headed`). The run reaches no follower on this
+  arm with a search that would differ.
+- Why `1/14`'s path is shifted (parked 2118).
+
+### 77.1 Coverage
+
+**Diff-backed** by run818's widening whole, with both mutations failing it:
+
+- `Unit::think_attack@005f5a80`'s `find_melee_target(…, 1, 0)` add, `QUEUE_FIRST` under the `ATTACK_TO` (702).
+- `Unit::add_to_army@005f7740`, `ArmyData::get_unit@006f9df0` and `Unit::go_to_unit@005f78c0` →
+  `Unit::go_to@005f7a50` on an army whose index another group holds (901).
+- `Army::add_unit@006f9f40`'s `Group::add` into that record.
+
+Five functions enter the census for the first time here: `think_attack`, `add_to_army`, `get_unit`, `go_to_unit`
+and `go_to`. The census is 566 → 571 of 3611 (`census.py --layers`, on the tree merged with 2122).
 
 ## 78. Reserved for the next item on the rules track
 

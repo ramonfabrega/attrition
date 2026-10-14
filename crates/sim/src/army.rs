@@ -668,6 +668,30 @@ impl Sim {
                 self.init_army(who, Some(city))
             }
         };
+        // **The army's group is a pool index, and the record on it may be
+        // another group's** (`docs/GOLDEN.md` §77): an army whose own seat lists no live
+        // member, and whose index a later push took, reads that pushed
+        // group as its own — the count, `get_unit(0)` and the join. A
+        // joiner the record already lists is `Army::member` there and
+        // the original's `add_unit` does nothing; this crate keeps the
+        // arm below for it, which seats the record on the army and
+        // agrees with run460 (golden chapter forty-two) through its end.
+        if let Some(p) = self.army_pool_record(who, slot)
+            && !self.pushed[p].list.contains(&u)
+        {
+            let s = self.armies[who as usize].list[slot].group.pool;
+            let first = self.pushed[p]
+                .list
+                .iter()
+                .copied()
+                .find(|&m| self.units[m].alive() && self.units[m].group_ptr == s);
+            if let Some(first) = first {
+                self.go_to_unit(u, first);
+            }
+            self.seat_add(crate::group::Seat::Pushed(p), u, false, false);
+            self.set_group(u, s);
+            return Some(slot);
+        }
         // **The walk to the army** (§4.3), between the pick and the join,
         // and only on the arm that *found* an army: the `init_army` arm
         // jumps straight to the add (`005f7891`). `ArmyData::get_unit(0)`
@@ -681,6 +705,30 @@ impl Sim {
         }
         self.army_add_unit(who, slot, u);
         Some(slot)
+    }
+
+    /// **The pool record an army's index holds when it is not the army's
+    /// own** (`docs/GOLDEN.md` §77). `Army` keeps its groups as pool **indices**
+    /// (`list[16]`, §3.1), and nothing tells it when `push_group` kills its
+    /// members out of the group (§3.4), when the pool frees the emptied
+    /// record, or when a later push takes the index: `remove_group` refuses
+    /// a group whose `army` no longer names it, and the push writes −1
+    /// there. So `normalize` (§3.3), `get_unit(0)` and `add_unit`'s
+    /// `Group::add` on `list[0]` all read whatever group stands on the
+    /// index. This crate keeps the army's record on the army; the answer
+    /// is the [`crate::group::Pushed`] entry of the same player on the
+    /// army's index with a live member, when the army's own seat lists
+    /// none.
+    fn army_pool_record(&self, who: Player, slot: usize) -> Option<usize> {
+        let a = &self.armies[who as usize].list[slot];
+        let s = a.group.pool?;
+        let mine = |m: usize| self.units[m].alive() && self.units[m].group_ptr == Some(s);
+        if a.units.iter().any(|&m| mine(m)) {
+            return None;
+        }
+        self.pushed.iter().position(|p| {
+            p.who == who && p.state.pool == Some(s) && p.list.iter().any(|&m| mine(m))
+        })
     }
 
     /// `Unit::go_to_unit(o, who)@005f78c0` — mark the squad, then walk it

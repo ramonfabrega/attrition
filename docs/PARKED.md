@@ -4533,13 +4533,14 @@ width and two `diplos` words of two leaders, and `UnitData::can_ever_transport` 
 made to fail first. The WCoord world shape (parked 1994) was reached once, not built.~~ **Closed by item 2122**
 (parked 2123): `obj --place LOC:EXPR:SIZE`, seven of its ten.
 
-## Parked by the next landing, slot AO — reserved
+## Parked by item 2117, 2026-10-13 — chapter sixty-two closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2118) **`1/14`'s walk to the Scout takes a path 120 units east of the original's** (2117, `docs/GOLDEN.md`
+§77; run818, block 901). Both sides have the same order point (46056, 10056), `off` 744/72 and `path[0]` (46079,
+10067). From `path[1]` on, ours stands 120 east: `path[42]` (44663, 31571) against (44543, 31571), and
+`order:move.dest_x` 44663 against 44543. So the first step (44144, 33073) against (44142, 33072) and the heading
+228917248 against 177405952 part, through 903. `1/12` and `1/13`, walked by the same group move, agree. The draws
+agree through 1000. Names no frame: chapter sixty-two is closed.
 
 ## Parked by item 2122, 2026-10-13 — the sweep's fiftieth batch
 
