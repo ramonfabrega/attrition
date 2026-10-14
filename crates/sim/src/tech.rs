@@ -550,6 +550,8 @@ pub mod wonder {
     pub const KREMLIN: usize = 0x21a - BASE;
     pub const TAJ_MAHAL: usize = 0x21b - BASE;
     pub const EIFFEL_TOWER: usize = 0x21c - BASE;
+    /// `SUPERCOLLIDER`: `train_time`'s research block zeroes a tech's time.
+    pub const SUPERCOLLIDER: usize = 0x21d - BASE;
     /// `SPACEPROGRAM`: `gain_tech` and `fix_tech_flags` raise `leader_flags
     /// & 0x800` while it is held (`has_wonder(0x21e)`).
     pub const SPACE_PROGRAM: usize = 0x21e - BASE;

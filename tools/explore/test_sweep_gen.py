@@ -316,6 +316,43 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], own=0,
                                    sparse=['0xc061e0:0x100:2:0xf0,0x20'])
 
+    def test_a_link_field_is_drawn_to_terminate(self):
+        # Loop 2003's reach from item 2247 (item 2276): `curr_uber_size`
+        # climbs `o_up` to the captain and walks `o_down`; `set_in_danger`,
+        # `set_group` and `upgrade_level` walk a link the same way, and a
+        # random link can cycle. `--link pA..B+OFF:SIZE:DIR[:T,T..]` draws
+        # figure k's (window p(A+k)'s) link from the figures on DIR's side of
+        # its own index (`<` below, `>` above) or a terminator, so every
+        # walk ends.
+        import random
+        import sweeplib
+        rng = random.Random(1)
+        ends = set()
+        for _ in range(400):
+            n = rng.randint(1, 9)
+            for d in '<>':
+                links = [sweeplib.link_value(rng, n, k, d, (-1,)) for k in range(n)]
+                for k, v in enumerate(links):
+                    self.assertTrue(v == -1 or (v < k if d == '<' else k < v < n), (d, k, v, links))
+                k, seen = rng.randrange(n), 0
+                while k >= 0:
+                    k, seen = links[k], seen + 1
+                    self.assertLessEqual(seen, n)
+                ends.add(seen)
+        self.assertGreater(len(ends), 4, 'a walk of every length, not only the first step')
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2276, win=0x20, bias=[], own=0,
+            places=['p0+0:0:0x94', 'p0+4:0:0x94', 'p0+8:0:0x94'], cells=['0xc0aec0:0x10'],
+            links=['p1..3+0x8e:2:<:-1,-0x8000', 'p1..3+0x90:2:>'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn("LINKS = [(1, 3, 142, 2, '<', [-1, -32768]), (1, 3, 144, 2, '>', [-1])]", script)
+        self.assertIn('link_value(rng, n, k, d, terms)', script)
+        self.assertIn('from sweeplib import link_value', script)
+        self.assertIn('figures p1..p3 link at +0x8e (2 bytes) below their own index or to -1, -32768', test)
+        for bad in ('p1..3+0x8e:3:<', 'p1..3+0x8e:2:=', 'm+0x8e:2:<', 'p3..1+0x8e:2:<'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=8, bias=[], links=[bad])
+
     def test_ecx_may_be_an_integer_rather_than_the_object(self):
         # Parked 2141 (Loop 2003's twelfth reach, item 2149): `Map::scale_by_axis`
         # and `Map::scale_by_area` take the axis length in `ecx`, an integer,
@@ -458,6 +495,66 @@ class Shapes(unittest.TestCase):
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2253, win=0xe0, bias=[],
                                    places=['m+0xdc:0:8'], place_null=['1'])
+
+    def test_a_ptrarg_may_be_drawn_null(self):
+        # Item 2271 (Loop 2003, 2253's line): `UnitType::backup` and its
+        # kin guard a pointer argument against null, and a `--ptrarg` is
+        # never null, so the guard ran one arm. `--ptrarg-null IDX` lays
+        # argument IDX as 0 a third of the rows; its buffer is still drawn
+        # so every later window keeps its index, and a line without the
+        # flag draws no extra number.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+            ptrargs=['0:0x40', '1:0x10'], ptrarg_null=['1'], port='0')
+        compile(script, str(sp), 'exec')
+        self.assertIn('PNULLS = [1]', script)
+        self.assertIn('if idx in PNULLS and rng.random() < 1 / 3:', script)
+        self.assertIn('argument 1 names 16 random bytes (null a third of the rows)', test)
+        sp2, script2, *_ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+            ptrargs=['0:0x40', '1:0x10'], port='0')
+        self.assertIn('PNULLS = []', script2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2271, win=0x20, bias=[], own=2,
+                                   ptrargs=['0:0x40'], ptrarg_null=['1'])
+
+    def test_a_stub_may_record_what_it_was_handed(self):
+        # Item 2281 (Loop 2003, parked 2272 and 2219): six of 2271's ten end
+        # in `pop ebp; jmp` into the base class's twin, and a stubbed tail
+        # target answered without a row saying what `ecx` and argument it
+        # was handed. `--record IDX` prints stub IDX's calls after ` # `,
+        # each `ecx,arg..` with a pointer into a window named by it
+        # (`m+0x0`, `p0+0x10`), `-` when it was not called; the test hands
+        # the port a `log` and holds it to the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+            ptrargs=['0:0x40'], ptrarg_null=['0'], stubs=['0x402000:1'], record=['0'], ret='none',
+            port='{ log.push("-".into()); 0 }')
+        compile(script, str(sp), 'exec')
+        self.assertIn('RECORD = [0]', script)
+        self.assertIn('def token(', script)
+        self.assertIn('" # "', script)
+        self.assertIn('let mut log: Vec<String> = Vec::new();', test)
+        self.assertIn('split_once(" # ")', test)
+        self.assertIn('stub 0 records its `ecx` and arguments', test)
+        # Without the flag the row and the test are as before.
+        _, script2, _, test2, _ = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+            ptrargs=['0:0x40'], stubs=['0x402000:1'], ret='none', port='0')
+        self.assertIn('RECORD = []', script2)
+        self.assertNotIn('split_once(" # ")', test2)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=2281, win=0x20, bias=[], own=1,
+                                   stubs=['0x402000:1'], record=['1'])
+        # The token: a pointer into a window by its name, anything else signed.
+        ns = {}
+        body = script[script.index('def token('):]
+        exec(body[:body.index('\n\n\ndef ')], ns)
+        spans = [('m', 0x1000, 0x20), ('p0', 0x2000, 0x40)]
+        self.assertEqual(ns['token'](0x1000, spans), 'm+0x0')
+        self.assertEqual(ns['token'](0x2010, spans), 'p0+0x10')
+        self.assertEqual(ns['token'](0xFFFFFFFF, spans), '-1')
+        self.assertEqual(ns['token'](0, spans), '0')
 
     def test_a_vcall_may_take_the_function_s_own_arguments(self):
         # 1966's `BuildTypeData::has_stance_type` compares the slot's answer

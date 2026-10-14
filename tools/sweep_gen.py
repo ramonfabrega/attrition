@@ -1088,6 +1088,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
+from sweeplib import link_value  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1098,6 +1099,7 @@ ARGFROM = {argfrom!r}
 CELLS = {cells!r}
 AT = {at!r}
 PTRARGS = {ptrargs!r}
+PNULLS = {pnulls!r}
 STUBS = {stubs!r}
 PLACES = {places!r}
 NULLS = {nulls!r}
@@ -1117,6 +1119,8 @@ ANSRANGE = {ansrange!r}
 CELLTHIS = {cellthis!r}
 VTALSO = {vtalso!r}
 SPARSE = {sparse!r}
+RECORD = {record!r}
+LINKS = {links!r}
 I32 = (0, 1, -1, 2, -2, 0x7FFFFFFF, -0x80000000, 0x100, -0x100, 3, 4, 7, 15, 16, 255, 0x3F800000)
 
 
@@ -1142,6 +1146,16 @@ def u16(w, off):
 
 def u8(w, off):
     return w[off]
+
+
+def token(v, spans):
+    """A recorded value: a pointer into a window by the window's name and
+    offset (`m+0x0`, `p0+0x10`), anything else as a signed word (item 2281)."""
+    v &= 0xFFFFFFFF
+    for name, at, size in spans:
+        if at <= v <= at + size:
+            return f"{{name}}+{{v - at:#x}}"
+    return str(v - (1 << 32) if v & 0x80000000 else v)
 
 
 def wdraw(rng, vals):
@@ -1214,6 +1228,11 @@ def main(argv):
             b = bytearray(rng.randrange(256) for _ in range(size))
             uc.mem_write(buf, bytes(b))
             args[idx] = buf
+            # `--ptrarg-null IDX`: the argument laid as 0 a third of the rows,
+            # its buffer still drawn so every later window keeps its index
+            # (item 2271; a guarded null argument ran one arm).
+            if idx in PNULLS and rng.random() < 1 / 3:
+                args[idx] = 0
             wins.append((buf, b))
         nc = len(CELLS) + len(AT)
         c = [b for _, b in wins[:nc]]
@@ -1314,6 +1333,14 @@ def main(argv):
             if rng.random() < 0.5:
                 w = mem if win == "m" else (c if win[0] == "c" else p)[int(win[1:])]
                 w[off:off + 4] = vt.to_bytes(4, "little")
+        for lo, hi, off, size, d, terms in LINKS:
+            # A link field (`o_up`, a type's upgrade) of figures p(lo)..p(hi),
+            # drawn from the figures on one side of each one's own index or a
+            # terminator, so a walk through them ends (item 2276).
+            n = hi - lo + 1
+            for k in range(n):
+                v = link_value(rng, n, k, d, terms)
+                p[lo + k][off:off + size] = (v & ((1 << 8 * size) - 1)).to_bytes(size, "little")
         for idx, win, off in ARGEQ:
             # An argument the function compares with a word of a window laid
             # after the arguments were drawn: the word copied (item 2200).
@@ -1373,7 +1400,18 @@ def main(argv):
         shown = ([str(a) for a in args] + [str(v) for v in answers]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based]
                  + ([] if ECXINT is None else [str(ecx)]))
-        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}")
+        # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
+        # calls joined by `/`, `-` when it was not called, after ` # `
+        # (item 2281: a tail target's `ecx` and argument, parked 2272).
+        log = ""
+        if RECORD:
+            spans = [("m", this, WIN)] + [(f"c{{k}}" if k < nc else f"p{{k - nc}}", a_, len(b))
+                                          for k, (a_, b) in enumerate(wins)]
+            log = " # " + " ".join(
+                "/".join(",".join(token(v, spans) for v in [ecx_] + list(args_))
+                         for name_, ecx_, args_, _ in h.calls if name_ == names[idx]) or "-"
+                for idx in RECORD)
+        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
     return 0
 
 
@@ -1408,7 +1446,7 @@ fn the_emulated_original_agrees_on_every_row() {{
     }};
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+{logsplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
         let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
@@ -1417,13 +1455,13 @@ fn the_emulated_original_agrees_on_every_row() {{
         let mut p: Vec<Vec<u8>> = wins.split_off({nc});
         let mut c: Vec<Vec<u8>> = wins;
         let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let got: i64 = {{
+{logdecl}        let got: i64 = {{
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {port}
         }};
 {ret}
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
+{logcheck}        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "{short} — this's bytes, row `{{line}}`");
         for (i, w) in c.iter().enumerate() {{
             assert_eq!(w, &want[1 + i], "{short} — window c[{{i}}], row `{{line}}`");
@@ -1495,6 +1533,20 @@ def _sparse(spec):
     return (None, loc, stride, n, slices)
 
 
+def _link(spec):
+    """`pA..B+OFF:SIZE:DIR[:T,T..]` — figure k is window p(A+k); its link at
+    OFF, SIZE bytes, drawn below (`<`) or above (`>`) k or a terminator,
+    -1 by default (item 2276)."""
+    loc, size, d, *terms = spec.split(':')
+    m = re.fullmatch(r'p(\d+)\.\.(\d+)\+(\w+)', loc)
+    if not m or int(m.group(1)) > int(m.group(2)):
+        raise ValueError(f'--link names a run of figures pA..B+OFF, A <= B, not {loc!r}')
+    if size not in ('1', '2', '4') or d not in ('<', '>') or len(terms) > 1:
+        raise ValueError(f'--link is pA..B+OFF:1|2|4:<|>[:T,T..], not {spec!r}')
+    terms = [int(t, 0) for t in terms[0].split(',')] if terms else [-1]
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3), 0), int(size), d, terms)
+
+
 def _wbias(spec):
     """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
     loc, vals = spec.rsplit(':', 1)
@@ -1517,7 +1569,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  cells=(), at=(), ptrargs=(), stubs=(), doc=None, places=(), wbias=(), fills=(),
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(),
-                 place_null=(), sparse=()):
+                 place_null=(), sparse=(), ptrarg_null=(), record=(), links=()):
     name, va = parse(spec)
     short = name.rsplit('::', 1)[-1]
     sn = module or snake(name)
@@ -1540,6 +1592,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pptr = [_window(p, 0x100) for p in ptrargs]
     if any(idx >= own for idx, _ in pptr):
         raise ValueError('--ptrarg IDX names one of the --own arguments')
+    ppnull = [int(k, 0) for k in ptrarg_null]
+    if any(k not in {idx for idx, _ in pptr} for k in ppnull):
+        raise ValueError('--ptrarg-null IDX names one of the --ptrarg arguments')
     pstubs = [_stub(s) for s in stubs]
     pplaces = [_place(s) for s in places]
     pnull = [int(k, 0) for k in place_null]
@@ -1547,6 +1602,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         raise ValueError('--place-null K names one of the --place pointers, by its order on the line')
     pwbias = [w for s in wbias for w in _wbias(s)]
     psparse = [_sparse(s) for s in sparse]
+    plinks = [_link(s) for s in links]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
     pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
@@ -1558,6 +1614,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
         raise ValueError('--place sN:EXPR:SIZE names one of the --stub callees, by its order on the line')
     pansw = [tuple(int(x, 0) for x in a.split(':')) for a in answer_wins]
+    precord = [int(k, 0) for k in record]
+    if any(not 0 <= k < len(pstubs) for k in precord):
+        raise ValueError('--record IDX names one of the --stub callees, by its order on the line')
     if any(not 0 <= idx < len(pstubs) for idx, _ in pansw):
         raise ValueError('--answer-win IDX:SIZE names one of the --stub callees, by its order on the line')
     peq = []
@@ -1612,7 +1671,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         else:
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or psparse):
+            or pseq or pansr or pthis or palso or phalf or psparse or plinks):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if cdecl:
@@ -1625,7 +1684,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     windoc = '; '.join(
         [f'the global cell 0x{va:08x} points at {size} random bytes' for va, size in pcells]
         + [f'{size} random bytes at 0x{va:08x}' for va, size in pat]
-        + [f'argument {idx} names {size} random bytes' for idx, size in pptr]
+        + [f'argument {idx} names {size} random bytes' + (' (null a third of the rows)' if idx in ppnull else '')
+           for idx, size in pptr]
         + [f'vtable slot +0x{a:x} ({n} args) stubbed' if k == 'slot' else f'callee 0x{a:08x} ({n} args) stubbed'
            for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
@@ -1640,10 +1700,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + [f'argument {idx} copies `{w}+{o:#x}` (45%)' for idx, w, o in peq]
         + [f'stub {idx} answers {n} values in call order, printed after the answers' for idx, n in pseq]
         + [f'stub {idx} answers {lo}..{hi} every row' for idx, lo, hi in pansr]
+        + [f'stub {idx} records its `ecx` and arguments, a window\'s pointer by its name, after ` # `'
+           for idx in precord]
         + [f'the global cell 0x{va:08x} holds `this`' for va in pthis]
         + [f'{n} rows {st:#x} apart at `{"@" if w == "@" else (w + "+" if w else "")}{lo}`, slices '
            + ', '.join(f'+{o:#x}:{z:#x}' for o, z in sl) + ' (`p` windows after the pointed buffers, before the places)'
            for w, lo, st, n, sl in psparse]
+        + [f'figures p{lo}..p{hi} link at +{o:#x} ({z} bytes) '
+           + ('below' if d == '<' else 'above') + ' their own index or to ' + ', '.join(map(str, t))
+           for lo, hi, o, z, d, t in plinks]
         + [f'the stubbed vtable laid at `{w}+{o:#x}` as well as at `this`'.replace('+0x0`', '+0`')
            for w, o in palso]
         + ([f'`ecx` an integer in {pecx[1]}..{pecx[2]}, not the object, the row\'s last'
@@ -1651,16 +1716,24 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            if pecx else [])) or 'no windows'
     script = OBJ_WIN_SCRIPT.format(snake=sn, name=name, va=va, item=item, win=win, own=own, bias=parsed,
                                    biasdoc=biasdoc, windoc=windoc, argset=pset, argfrom=pfrom,
-                                   cells=pcells, at=pat, ptrargs=pptr, stubs=pstubs, places=pplaces, nulls=pnull,
+                                   cells=pcells, at=pat, ptrargs=pptr, pnulls=ppnull, stubs=pstubs, places=pplaces, nulls=pnull,
                                    wbias=pwbias, fills=pfills, argrange=prange, slotbase=pslot, ecxint=pecx,
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf,
-                                   sparse=psparse)
+                                   sparse=psparse, record=precord, links=plinks)
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
+    if precord:
+        logsplit = ('        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");\n'
+                    '        let want_log: Vec<&str> = calls.split_whitespace().collect();\n')
+        logdecl = '        let mut log: Vec<String> = Vec::new();\n'
+        logcheck = (f'        assert_eq!(log, want_log, "{short} — the recorded calls, row `{{line}}`");\n')
+    else:
+        logsplit = logdecl = logcheck = ''
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
-                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat))
+                               ret=retcode, nc=len(pcells) + len(pat), pbase=1 + len(pcells) + len(pat),
+                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -1765,6 +1838,9 @@ def main(argv=None):
                     help='obj: SIZE random bytes written at VA itself (a table in the image\'s data)')
     ap.add_argument('--ptrarg', action='append', default=[], metavar='IDX[:SIZE]',
                     help='obj: argument IDX names SIZE (default 0x100) random bytes')
+    ap.add_argument('--ptrarg-null', action='append', default=[], metavar='IDX',
+                    help='obj: --ptrarg IDX laid as a null pointer a third of the rows, its buffer still drawn '
+                         '(a guard against a null argument; item 2271)')
     ap.add_argument('--stub', action='append', default=[], metavar='slot:OFF:NARGS|ADDR:NARGS',
                     help='obj: a vtable slot of this, or a direct callee, answered per row (the answer printed after the arguments)')
     ap.add_argument('--call', action='append', default=[], help='fwd: ADDR:NARGS:ECX:ARGS, in call order')
@@ -1834,6 +1910,10 @@ def main(argv=None):
     ap.add_argument('--argeq', action='append', default=[], metavar='IDX:WIN+OFF',
                     help='obj: argument IDX copies the 32-bit word at WIN+OFF (45%%) once every window is laid — '
                          'an argument compared with a placed record\'s field (item 2200)')
+    ap.add_argument('--record', action='append', default=[], metavar='IDX',
+                    help='obj: stub IDX\'s calls printed after ` # `, each `ecx,arg..` with a pointer into a '
+                         'window by its name, and held to a `log` the port pushes (a tail target\'s hand-off; '
+                         'item 2281)')
     ap.add_argument('--seq', action='append', default=[], metavar='IDX:N',
                     help='obj: stub IDX answers N values a row in call order, the last repeated past N, '
                          'printed after the stubs\' answers (a callee called more than once; item 2217)')
@@ -1850,6 +1930,10 @@ def main(argv=None):
                     help='obj: LOC points at a zeroed table of N rows STRIDE apart, each row\'s slices `p` '
                          'windows after the pointed buffers and before the places; `@VA` the image\'s own table '
                          '(the leaders table, parked 2201; item 2247)')
+    ap.add_argument('--link', action='append', default=[], metavar='pA..B+OFF:SIZE:DIR[:T,T..]',
+                    help='obj: figure k (window p(A+k))\'s link at OFF drawn from the figures below (`<`) or '
+                         'above (`>`) its own index or a terminator (-1), so a walk through them ends '
+                         '(`o_up`, an upgrade chain; item 2276)')
     ap.add_argument('--write-mod', action='store_true', help='append the `mod` line to sweep/mod.rs')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
@@ -1873,7 +1957,8 @@ def main(argv=None):
                                                     answer_range=args.answer_range,
                                                     cell_this=args.cell_this, vtat_also=args.vtat_also,
                                                     vtat_half=args.vtat_half, place_null=args.place_null,
-                                                    sparse=args.sparse)
+                                                    sparse=args.sparse, ptrarg_null=args.ptrarg_null,
+                                                    record=args.record, links=args.link)
         elif args.shape == 'void':
             sp, script, tp, test, mod = generate_void(args.function, item=args.item, own=args.own)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:

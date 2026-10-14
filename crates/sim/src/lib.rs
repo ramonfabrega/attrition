@@ -3012,7 +3012,19 @@ impl Sim {
     /// mid-research shortens the job already in progress — which is what
     /// puts the AI's second library entry on the original's frame rather
     /// than twenty later.
+    ///
+    /// **A held Supercollider zeroes it** (`train_time@006508c0`'s tech
+    /// block: `has_wonder(0x21d)` sets `local_8 = 0` for every type but
+    /// `DISBAND` and `RAZE`, neither of which is a tech here), so the floor
+    /// answers one and the entry finishes on its next tick whatever its
+    /// counter. A unit's research job is not in that block and keeps its
+    /// time. run838's 4671: who=1's Supercollider `1/2034` completes, and
+    /// the Senate `1/2019`'s Monarchy (at 28900 of 42000) finishes the same
+    /// frame (`docs/AI.md` §216).
     pub fn tech_time(&self, who: Player, t: tech::TypeId) -> i32 {
+        if self.wonders_held(who) & (1 << tech::wonder::SUPERCOLLIDER) != 0 {
+            return production::MIN_TIME;
+        }
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
@@ -6217,6 +6229,33 @@ pub(crate) fn squad_size(
         }
     }
     n
+}
+
+/// The figures a squad walk reaches, in its order — **`Unit::set_in_danger@005fcfb0`**
+/// and **`Unit::set_group@00605220`** walk alike: the climb up `up` (the
+/// original's `o_up`, `None` at the captain — its `is_captain`, the link's
+/// sign bit) from `start`, then the captain and each `down` link (the
+/// original's `o_down` whose slot is active, `flags & 1`; `None` past the
+/// last). Both walks stop after `limit` links, a guard the original does
+/// not have: a cycle would hang it. Item 2276's sweeps hold it.
+pub(crate) fn squad_walk(
+    start: usize,
+    limit: usize,
+    up: impl Fn(usize) -> Option<usize>,
+    down: impl Fn(usize) -> Option<usize>,
+) -> Vec<usize> {
+    let mut at = start;
+    for _ in 0..limit {
+        let Some(u) = up(at) else { break };
+        at = u;
+    }
+    let mut out = vec![at];
+    for _ in 0..limit {
+        let Some(d) = down(at) else { break };
+        out.push(d);
+        at = d;
+    }
+    out
 }
 
 #[cfg(test)]
