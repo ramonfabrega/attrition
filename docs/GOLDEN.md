@@ -9259,8 +9259,12 @@ building arm zeroed the body's speeds. What the listing says each needs:
   (run430). No staging owed.
 - **The dead figure is on its `des`.** `Unit::set_new_location@005f8d20`'s
   sea arm ejects, `die`s and returns before `+0x10`/`+0x14` are written,
-  so `Guy::set_new_location`'s `move_unit` never runs on the dead figure:
-  only `Guy::move`'s at-`des` arms and `Guy::process@005e0230`'s tail, the
+  ~~so `Guy::set_new_location`'s `move_unit` never runs on the dead figure:
+  only `Guy::move`'s at-`des` arms~~ — **wrong, answered by item 2088
+  (`docs/AI.md` §208)**: the unit's point is unwritten, but the figure's
+  is not on its `des`; run825's packet has the dead boat's own
+  `Guy::move+0x4a5` → `Guy::set_new_location` → `move_unit` step its disc
+  after the close cleared it — and `Guy::process@005e0230`'s tail, the
   sixty-fourth-frame repaint (`(frame + o) & 63 == 0`, `avg_speed` 0, not
   air, `+0x248` non-zero, the figure's own `get_tregion`), are left.
 - **The crew loop is empty on every boat that carries**: Transport Barge,

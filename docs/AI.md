@@ -19597,12 +19597,74 @@ Not established: the member check's arm when the captain is dead (the original's
 `squad_captain` stops at a dead link, and no capture has one); the `has_general(0, 0x162)` step beside it (still a seam).
 
 
-## 208. Reserved for the next item on the AI track
+## 208. A boat that dies stepping ashore still moves its disc with its figure, and the successor pair's word moves 4238 → 4246 (2026-10-13, item 2088)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Opus 5.5 (medium) lane att-2088, base `a6ecc0ea`. East Indies, the Mongols, `DIFFICULTY 3`, All Tech. Runs 820 (the word's
+window), 823 (packet, logger frame 4238), 824 (detail, 4196..4210), 825 (packet, logger frame 4204); `docs/RUNS.md`.*
+
+### 208.1 The frame, both sides
+
+Frame 4238: ours 158 draws, theirs 159, index 145. Theirs' extra draw is `PathFinder::astar_path+0x1697` (seed `8ce6ff4e`, 65108), the
+unit-grid search's open-list-exhausted retry roll, for the Transport Freighter `1/183` (`TypeIndex` 322; this crate's record 272). Both
+sides unwind `1/183`'s stack to the same goal (15000, 25704) from the snapped centre (18792, 30024); ours' 48-grid search finds ten
+nodes west, theirs' exhausts its open list. `repaths` is 1 of a limit of 500 (an over-limit search suspends, so the limit is not it).
+
+### 208.2 Every record on 4238, both ways
+
+`RON_FIRSTS=1` on `run820_s_word_frame_is_widened_whole` (blocks 4232..4488): 2,316 keys, 295 on the first block — the leaders'
+counts, the swapped Citizens `1/186`/`1/208` and the freighters' standing `form` (§207.4). Nothing else parts on 4238; the first row
+past them is `1/183` on block 4239 (the frame's product): `path:length` ours 44, theirs 33, and `safe` ours 0, theirs 30, with theirs'
+`retry` 8 (6 + 65108 % 3).
+
+### 208.3 The wall, and who painted it
+
+**run823**, a packet at logger frame 4238: theirs' `CollBlock` bitmap (`GameAccess::world` `0xc06188`, cells `+0x134`, 0x1c bytes a
+cell, block `+0x18`, bits `+0xc`, index `(ux & 15) * 16 + (uy & 15)`) against ours at the tick's head. **The whole map agrees but four
+bits: x 384..387 of row 624** (theirs set, ours clear), and every other difference lies under a unit already parted (`1/186`, `1/208`,
+`1/82`). Those four bits wall `1/183` in.
+
+Ours cleared them on 4201, in `coll_move` of the Transport Freighter `1/191` (radius 3), its figure (384, 621) → (384, 620). `1/191`
+disembarks on 4204 (its passenger, the BMP `1/62`, out at (18312, 29784)) and dies. **run824** (blocks 4196..4210): theirs' `1/191`,
+its figure and `1/62` walk ours' points exactly, and the packet's regions for cells (24, 38) and (24, 39) are both 65, so theirs clears
+row 624 on 4201 too. The four bits — row 624 at x 384..387 alone, x 381..383 refused by cell (23, 39)'s region, row 623 clear — are a
+radius-3 disc painted round (384, 621) after one round (384, 620) was cleared: 4204, the freighter's last tick.
+
+**run825**, a packet at logger frame 4204: row 624 is clear at the tick's head. `step4.py --entry 65dce0 --this c0ab70 --watch
+3b71bee8+8` (the objects global `0xc0618c` → `0xc0ab70`; cell (24, 39)'s block `3b71bedc`) names the writer — `CollCheck::move_unit+0x401`
+(`00682ed1`, the set pass), four writes, x 387 → 384 — and `--hook` on `682ad0`, `5d86f0`, `5f8d20`, `64cd20`, `647970` (with each call's
+return address, a `step4.py` change in this item) the order:
+
+1. `eject_contents` on the boat; the passenger's `Unit::set_new_location` to (18312, 29784);
+2. `Object::remove_from_world@00647970` (from `Object::close+0x7d`): the boat's disc cleared round its figure's own point;
+3. **`Guy::set_new_location` from `Guy::move+0x4a5`, on the dead boat's figure**, to (18445, 29810), and its `move_unit` (384, 620) →
+   (384, 621), whose set pass paints row 624 on no unit.
+
+`Unit::set_new_location@005f8d20`'s sea arm returns before the **unit's** point is written, and the reading (GOLDEN §52, struck) took that
+for the figure's: the figure is not on its `des`, and `Guy::move` steps it on the tick the boat died in.
+
+### 208.4 The build
+
+`Sim::process_unit`'s dead-boat arm (`lib.rs`, item 1191's, whose comment said `coll_follow` could skip the dead boat because its figure
+was on its `des`) runs `coll_move(i, body before, body after)` round its `process_movement`; `coll_move` is `pub(crate)`. `move_unit` has
+no gate on the unit, so the disc moves with the body as on a live one.
+
+Test: `transport::tests::a_boat_that_dies_stepping_ashore_paints_its_figure_s_step` — the fixture's disc at the unit's own point
+cleared, the figure painted a cell behind; after the death the leading row is set and the trailing one clear. Mutation through
+`tools/mutate.py`, the `coll_move` dropped: **held** by the test (exit 101) and by the walk (`mongol_pair_first_parting` back at 4238).
+Its first scoring passed the test: the fixture's own disc round the unit's point stood in for the step's leading row.
+
+### 208.5 What moved, and the next word
+
+**The word 4238 → 4246** (`mongol_pair_first_parting`; `MONGOL` count and sequence). The value diff on block 4239: `1/183`
+`path:length` 33 both sides (ours was 44), `safe` 30 both (ours 0). run820's keys 2,316 → 2,079, pinned. `GROUND_INEXACT`'s
+`mongol_pair_first_parting` 516 → 524.
+
+Frame **4246: ours 156 draws, theirs 157, index 147** — ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `< Unit::move_step+0x823`;
+block 4247 opens on the swapped Citizen `1/186` (its collision with `1/80`). Parked 2091.
+
+Not established: whether a dead boat with a death animation (`Unit::close`'s `param_1 != 0`, `Objects::kill_guy`) steps its figure too —
+this crate kills none that way there (the arm's SEAM); and the step on a frame that is also the boat's sixty-fourth (`coll_repaint`
+re-marks the same disc, so no capture separates the two).
 
 ## 209. Reserved for the next item on the AI track
 

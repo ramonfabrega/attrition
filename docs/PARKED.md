@@ -4380,13 +4380,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AJ — reserved
+## Parked by item 2088, 2026-10-13 — a boat that dies stepping ashore still moves its disc with its figure
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(2091) **The successor pair's word 4246: 156 draws against 157, index 147** (2088; `docs/AI.md` §208.5): ours
+`Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. run820's block 4247 opens on the
+swapped Citizen `1/186` (its collision with `1/80`); that it is the cause is a hypothesis. Inside run820's window (4232..4488): its
+widening, every record on 4246 both ways, before a mechanism.
 
 ## Parked by the next landing, slot AK — reserved
 
