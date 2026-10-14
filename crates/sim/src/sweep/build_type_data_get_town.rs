@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(3);
@@ -53,7 +58,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     for y in corner.y..corner.y + ys {
                         if x >= 0 && y >= 0 && x < w && y < h {
                             let t = ((w * y + x) * 2) as usize;
-                            clear &= u16::from_le_bytes([p[0][t], p[0][t + 1]]) & tile::CITY_RADIUS != 0;
+                            clear &=
+                                u16::from_le_bytes([p[0][t], p[0][t + 1]]) & tile::CITY_RADIUS != 0;
                         }
                     }
                 }
@@ -71,7 +77,6 @@ fn the_emulated_original_agrees_on_every_row() {
                     i64::from(i16::from_le_bytes([rec[8], rec[9]]))
                 }
             }
-
         };
         assert_eq!(got, want_eax, "get_town — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
